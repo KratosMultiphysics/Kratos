@@ -76,7 +76,7 @@ LargeDisplacementSegregatedVPElement&  LargeDisplacementSegregatedVPElement::ope
 
 Element::Pointer LargeDisplacementSegregatedVPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared< LargeDisplacementSegregatedVPElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+  return Kratos::make_intrusive< LargeDisplacementSegregatedVPElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -113,7 +113,7 @@ Element::Pointer LargeDisplacementSegregatedVPElement::Clone( IndexType NewId, N
 
     NewElement.mStepVariable = mStepVariable;
 
-    return Kratos::make_shared< LargeDisplacementSegregatedVPElement >(NewElement);
+    return Kratos::make_intrusive< LargeDisplacementSegregatedVPElement >(NewElement);
 }
 
 

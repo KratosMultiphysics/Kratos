@@ -7,7 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from math import sqrt, sin, cos, pi, exp, atan
 
-class TestCrBeam3D2N(KratosUnittest.TestCase):
+class BasePatchTestCrBeam3D2N(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
@@ -190,8 +190,8 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         #check displacement as soon as a total circle is formed
         #M = EI * 2 * pi / L ---> 13200000.0 reached at t_step = 527
         if (timestep == 5):
-            self.assertAlmostEqual(displacement_x, -0.0008214481371826507,5)
-            self.assertAlmostEqual(displacement_y, 0.03560205297258129,5)
+            self.assertAlmostEqual(displacement_x, -0.0008495924536316574)
+            self.assertAlmostEqual(displacement_y, 0.03569912736309147)
 
 
     def _check_results_dynamic(self,mp,time_i,nr_nodes,time_step):
@@ -242,143 +242,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
 
         mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
-    def test_cr_beam_linear(self):
-        dim = 3
-        nr_nodes = 11
-        nr_elements = nr_nodes-1
-        current_model = KratosMultiphysics.Model()
-        mp = current_model.CreateModelPart("solid_part")
-        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
-        self._add_variables(mp)
-        self._apply_material_properties(mp,dim)
-
-        #create nodes
-        dx = 1.20 / nr_elements
-        for i in range(nr_nodes):
-            mp.CreateNewNode(i+1,i*dx,0.00,0.00)
-        #add dofs
-        self._add_dofs(mp)
-        #create condition
-        mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])
-        #create submodelparts for dirichlet boundary conditions
-        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
-        bcs_xyz.AddNodes([1])
-        bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
-        bcs_rot.AddNodes([1])
-        #create a submodalpart for neumann boundary conditions
-        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
-        bcs_neumann.AddNodes([nr_nodes])
-        bcs_neumann.AddConditions([1])
-        #create Element
-        for i in range(nr_elements):
-            mp.CreateNewElement("CrLinearBeamElement3D2N", i+1, [i+1,i+2],
-             mp.GetProperties()[0])
-
-        #apply boundary conditions
-        Force_Y = -400000.00
-        self._apply_BCs(bcs_xyz,'xyz')
-        self._apply_BCs(bcs_rot,'rotXYZ')
-
-        self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
-
-        #solve + compare
-        self._solve_linear(mp)
-        self._check_results_linear(mp,nr_nodes)
-
-    def test_cr_beam_linear_local_axis2(self):
-            dim = 3
-            nr_nodes = 11
-            nr_elements = nr_nodes-1
-            current_model = KratosMultiphysics.Model()
-            mp = current_model.CreateModelPart("solid_part")
-            mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
-            self._add_variables(mp)
-            self._apply_material_properties(mp,dim)
-
-            #create nodes
-            dx = 1.20 / nr_elements
-            for i in range(nr_nodes):
-                mp.CreateNewNode(i+1,i*dx,0.00,0.00)
-            #add dofs
-            self._add_dofs(mp)
-            #create condition
-            mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])
-            #create submodelparts for dirichlet boundary conditions
-            bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
-            bcs_xyz.AddNodes([1])
-            bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
-            bcs_rot.AddNodes([1])
-            #create a submodalpart for neumann boundary conditions
-            bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
-            bcs_neumann.AddNodes([nr_nodes])
-            bcs_neumann.AddConditions([1])
-            #create Element
-            for i in range(nr_elements):
-                mp.CreateNewElement("CrLinearBeamElement3D2N", i+1, [i+1,i+2],
-                mp.GetProperties()[0])
-
-            #apply local_axis_2 elemental data
-            for i in range(nr_elements): self._apply_elemental_data(mp.GetElement(i+1))
-            #apply boundary conditions
-            Force_Y = -400000.00
-            self._apply_BCs(bcs_xyz,'xyz')
-            self._apply_BCs(bcs_rot,'rotXYZ')
-
-            self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
-
-            #solve + compare
-            self._solve_linear(mp)
-            self._check_results_linear(mp,nr_nodes)
-
-    def test_cr_beam_nonlinear(self):
-        dim = 3
-        nr_nodes = 21
-        nr_elements = nr_nodes-1
-        current_model = KratosMultiphysics.Model()
-        mp = current_model.CreateModelPart("solid_part")
-        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
-        self._add_variables(mp)
-        self._apply_material_properties(mp,dim)
-
-        #create nodes
-        dx = 1.00 / nr_elements
-        for i in range(nr_nodes):
-            mp.CreateNewNode(i+1,i*dx,0.00,0.00)
-        #add dofs
-        self._add_dofs(mp)
-        #create condition
-        mp.CreateNewCondition("PointMomentCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])
-        #create submodelparts for dirichlet boundary conditions
-        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
-        bcs_xyz.AddNodes([1])
-        bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
-        bcs_rot.AddNodes([1])
-        #create Element
-        for i in range(nr_elements):
-            mp.CreateNewElement("CrBeamElement3D2N", i+1, [i+1,i+2],
-             mp.GetProperties()[0])
-
-        #apply constant boundary conditions
-        self._apply_BCs(bcs_xyz,'xyz')
-        self._apply_BCs(bcs_rot,'rotXYZ')
-
-        #incrementally increase load -> nonlinear case
-        Moment_Z = 25000.00
-        time_start = 0.00
-        time_end = 5
-        time_delta = 1
-        time_i = time_start
-        time_step = 0
-        while (time_i <= time_end):
-            time_i += time_delta
-            #apply non-constant boundary conditions
-            Moment_i = Moment_Z*time_i
-            mp.Nodes[nr_nodes].SetSolutionStepValue(StructuralMechanicsApplication.
-                POINT_MOMENT_Z,0,Moment_i)
-            #solve + compare
-            self._solve_nonlinear(mp)
-            self._check_results_nonlinear(mp,time_step,Moment_i,nr_nodes)
-            time_step += 1
+class DynamicPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
 
     def test_cr_beam_dynamic_lumped_mass_matrix(self):
         dim = 3
@@ -559,6 +423,145 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
 
                 time_step += 1
 
+class StaticPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
+    def test_cr_beam_linear(self):
+        dim = 3
+        nr_nodes = 11
+        nr_elements = nr_nodes-1
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        dx = 1.20 / nr_elements
+        for i in range(nr_nodes):
+            mp.CreateNewNode(i+1,i*dx,0.00,0.00)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
+        bcs_rot.AddNodes([1])
+        #create a submodalpart for neumann boundary conditions
+        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+        bcs_neumann.AddNodes([nr_nodes])
+        bcs_neumann.AddConditions([1])
+        #create Element
+        for i in range(nr_elements):
+            mp.CreateNewElement("CrLinearBeamElement3D2N", i+1, [i+1,i+2],
+             mp.GetProperties()[0])
+
+        #apply boundary conditions
+        Force_Y = -400000.00
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_rot,'rotXYZ')
+
+        self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
+
+        #solve + compare
+        self._solve_linear(mp)
+        self._check_results_linear(mp,nr_nodes)
+
+    def test_cr_beam_linear_local_axis2(self):
+            dim = 3
+            nr_nodes = 11
+            nr_elements = nr_nodes-1
+            current_model = KratosMultiphysics.Model()
+            mp = current_model.CreateModelPart("solid_part")
+            mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
+            self._add_variables(mp)
+            self._apply_material_properties(mp,dim)
+
+            #create nodes
+            dx = 1.20 / nr_elements
+            for i in range(nr_nodes):
+                mp.CreateNewNode(i+1,i*dx,0.00,0.00)
+            #add dofs
+            self._add_dofs(mp)
+            #create condition
+            mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])
+            #create submodelparts for dirichlet boundary conditions
+            bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+            bcs_xyz.AddNodes([1])
+            bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
+            bcs_rot.AddNodes([1])
+            #create a submodalpart for neumann boundary conditions
+            bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+            bcs_neumann.AddNodes([nr_nodes])
+            bcs_neumann.AddConditions([1])
+            #create Element
+            for i in range(nr_elements):
+                mp.CreateNewElement("CrLinearBeamElement3D2N", i+1, [i+1,i+2],
+                mp.GetProperties()[0])
+
+            #apply local_axis_2 elemental data
+            for i in range(nr_elements): self._apply_elemental_data(mp.GetElement(i+1))
+            #apply boundary conditions
+            Force_Y = -400000.00
+            self._apply_BCs(bcs_xyz,'xyz')
+            self._apply_BCs(bcs_rot,'rotXYZ')
+
+            self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
+
+            #solve + compare
+            self._solve_linear(mp)
+            self._check_results_linear(mp,nr_nodes)
+
+    def test_cr_beam_nonlinear(self):
+        dim = 3
+        nr_nodes = 21
+        nr_elements = nr_nodes-1
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        dx = 1.00 / nr_elements
+        for i in range(nr_nodes):
+            mp.CreateNewNode(i+1,i*dx,0.00,0.00)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointMomentCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
+        bcs_rot.AddNodes([1])
+        #create Element
+        for i in range(nr_elements):
+            mp.CreateNewElement("CrBeamElement3D2N", i+1, [i+1,i+2],
+             mp.GetProperties()[0])
+
+        #apply constant boundary conditions
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_rot,'rotXYZ')
+
+        #incrementally increase load -> nonlinear case
+        Moment_Z = 25000.00
+        time_start = 0.00
+        time_end = 5
+        time_delta = 1
+        time_i = time_start
+        time_step = 0
+        while (time_i <= time_end):
+            time_i += time_delta
+            #apply non-constant boundary conditions
+            Moment_i = Moment_Z*time_i
+            mp.Nodes[nr_nodes].SetSolutionStepValue(StructuralMechanicsApplication.
+                POINT_MOMENT_Z,0,Moment_i)
+            #solve + compare
+            self._solve_nonlinear(mp)
+            self._check_results_nonlinear(mp,time_step,Moment_i,nr_nodes)
+            time_step += 1
+
     def test_cr_beam_linear_moment_hinge(self):
         dim = 2
         nr_nodes = 3
@@ -619,7 +622,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         self.assertAlmostEqual(out2[0][2], 55000.0)
 
 
-class TestCrBeam2D2N(KratosUnittest.TestCase):
+class BasePatchTestCrBeam2D2N(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
@@ -794,8 +797,8 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         #check displacement as soon as a total circle is formed
         #M = EI * 2 * pi / L ---> 13200000.0 reached at t_step = 527
         if (timestep == 5):
-            self.assertAlmostEqual(displacement_x, -0.0008258150820168632)
-            self.assertAlmostEqual(displacement_y, 0.03569588131158605)
+            self.assertAlmostEqual(displacement_x, -0.000849592227925813)
+            self.assertAlmostEqual(displacement_y, 0.03569912262393553)
 
     def _check_results_dynamic(self,mp,time_i,nr_nodes,time_step):
         #check free vibration of cantilever tip
@@ -843,50 +846,7 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
 
         mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
-    def test_cr_beam_linear(self):
-        dim = 2
-        nr_nodes = 11
-        nr_elements = nr_nodes-1
-        current_model = KratosMultiphysics.Model()
-        mp = current_model.CreateModelPart("solid_part")
-        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
-        self._add_variables(mp)
-        self._apply_material_properties(mp,dim)
-
-        #create nodes
-        dx = 1.20 / nr_elements
-        for i in range(nr_nodes):
-            mp.CreateNewNode(i+1,i*dx,0.00,0.00)
-        #add dofs
-        self._add_dofs(mp)
-        #create condition
-        mp.CreateNewCondition("PointLoadCondition2D1N",1,[nr_nodes],mp.GetProperties()[0])
-        #create submodelparts for dirichlet boundary conditions
-        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XY")
-        bcs_xyz.AddNodes([1])
-        bcs_rot = mp.CreateSubModelPart("Dirichlet_Rot")
-        bcs_rot.AddNodes([1])
-        #create a submodalpart for neumann boundary conditions
-        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
-        bcs_neumann.AddNodes([nr_nodes])
-        bcs_neumann.AddConditions([1])
-        #create Element
-        for i in range(nr_elements):
-            mp.CreateNewElement("CrLinearBeamElement2D2N", i+1, [i+1,i+2],
-             mp.GetProperties()[0])
-
-        #apply boundary conditions
-        Force_Y = -400000.00
-        self._apply_BCs(bcs_xyz,'xy')
-        self._apply_BCs(bcs_rot,'rotZ')
-
-        self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
-
-        #solve + compare
-        self._solve_linear(mp)
-        self._check_results_linear(mp,nr_nodes)
-
-
+class DynamicPatchTestBeam2D2N(BasePatchTestCrBeam2D2N):
 
     def test_cr_beam_dynamic_consistent_mass_matrix(self):
         dim = 2
@@ -947,6 +907,110 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
             self._check_results_dynamic(mp,time_i,nr_nodes,time_step)
             time_step += 1
 
+    def test_cr_beam_dynamic_explicit(self):
+            dim = 2
+            nr_nodes = 11
+            nr_elements = nr_nodes-1
+            current_model = KratosMultiphysics.Model()
+            mp = current_model.CreateModelPart("solid_part")
+            mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
+            self._add_variables(mp)
+            _add_explicit_variables(mp)
+            self._apply_material_properties(mp,dim)
+            mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,True)
+
+            #create nodes
+            dx = 1.00 / nr_elements
+            for i in range(nr_nodes):
+                mp.CreateNewNode(i+1,i*dx,0.00,0.00)
+            #add dofs
+            self._add_dofs(mp)
+            #create condition
+            mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])
+            #create submodelparts for dirichlet boundary conditions
+            bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+            bcs_xyz.AddNodes([1])
+            bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
+            bcs_rot.AddNodes([1])
+            #create a submodalpart for neumann boundary conditions
+            bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+            bcs_neumann.AddNodes([nr_nodes])
+            bcs_neumann.AddConditions([1])
+            #create Element
+            for i in range(nr_elements):
+                mp.CreateNewElement("CrBeamElement2D2N", i+1, [i+1,i+2],
+                mp.GetProperties()[0])
+
+            #apply constant boundary conditions
+            self._apply_BCs(bcs_xyz,'xyz')
+            self._apply_BCs(bcs_rot,'rotXYZ')
+            Force_Y = -100000.000
+            self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
+
+            #loop over time
+            time_start = 0.00
+            time_end = 0.0004
+            # time_delta = 0.001
+            time_delta = 0.000015
+            time_i = time_start
+            time_step = 0
+            self._set_and_fill_buffer(mp,2,time_delta)
+            strategy_expl = _create_dynamic_explicit_strategy(mp)
+            while (time_i <= time_end):
+
+                time_i += time_delta
+                mp.CloneTimeStep(time_i)
+                #solve + compare
+                strategy_expl.Solve()
+                self._check_results_dynamic_explicit(mp,time_i,nr_nodes,time_step)
+
+                time_step += 1
+
+class StaticPatchTestBeam2D2N(BasePatchTestCrBeam2D2N):
+
+    def test_cr_beam_linear(self):
+        dim = 2
+        nr_nodes = 11
+        nr_elements = nr_nodes-1
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        dx = 1.20 / nr_elements
+        for i in range(nr_nodes):
+            mp.CreateNewNode(i+1,i*dx,0.00,0.00)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointLoadCondition2D1N",1,[nr_nodes],mp.GetProperties()[0])
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XY")
+        bcs_xyz.AddNodes([1])
+        bcs_rot = mp.CreateSubModelPart("Dirichlet_Rot")
+        bcs_rot.AddNodes([1])
+        #create a submodalpart for neumann boundary conditions
+        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+        bcs_neumann.AddNodes([nr_nodes])
+        bcs_neumann.AddConditions([1])
+        #create Element
+        for i in range(nr_elements):
+            mp.CreateNewElement("CrLinearBeamElement2D2N", i+1, [i+1,i+2],
+             mp.GetProperties()[0])
+
+        #apply boundary conditions
+        Force_Y = -400000.00
+        self._apply_BCs(bcs_xyz,'xy')
+        self._apply_BCs(bcs_rot,'rotZ')
+
+        self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
+
+        #solve + compare
+        self._solve_linear(mp)
+        self._check_results_linear(mp,nr_nodes)
+
     def test_cr_beam_nonlinear(self):
         dim = 2
         nr_nodes = 21
@@ -996,7 +1060,6 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
             self._solve_nonlinear(mp)
             self._check_results_nonlinear(mp,time_step,Moment_i,nr_nodes)
             time_step += 1
-
 
     def test_cr_beam_linear_moment_hinge(self):
         dim = 2
@@ -1056,65 +1119,6 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         self.assertAlmostEqual(out2[2][2], 165000.0)
         self.assertAlmostEqual(out2[1][2], 110000.0)
         self.assertAlmostEqual(out2[0][2], 55000.0)
-
-    def test_cr_beam_dynamic_explicit(self):
-            dim = 2
-            nr_nodes = 11
-            nr_elements = nr_nodes-1
-            current_model = KratosMultiphysics.Model()
-            mp = current_model.CreateModelPart("solid_part")
-            mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
-            self._add_variables(mp)
-            _add_explicit_variables(mp)
-            self._apply_material_properties(mp,dim)
-            mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,True)
-
-            #create nodes
-            dx = 1.00 / nr_elements
-            for i in range(nr_nodes):
-                mp.CreateNewNode(i+1,i*dx,0.00,0.00)
-            #add dofs
-            self._add_dofs(mp)
-            #create condition
-            mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])
-            #create submodelparts for dirichlet boundary conditions
-            bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
-            bcs_xyz.AddNodes([1])
-            bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
-            bcs_rot.AddNodes([1])
-            #create a submodalpart for neumann boundary conditions
-            bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
-            bcs_neumann.AddNodes([nr_nodes])
-            bcs_neumann.AddConditions([1])
-            #create Element
-            for i in range(nr_elements):
-                mp.CreateNewElement("CrBeamElement2D2N", i+1, [i+1,i+2],
-                mp.GetProperties()[0])
-
-            #apply constant boundary conditions
-            self._apply_BCs(bcs_xyz,'xyz')
-            self._apply_BCs(bcs_rot,'rotXYZ')
-            Force_Y = -100000.000
-            self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
-
-            #loop over time
-            time_start = 0.00
-            time_end = 0.0004
-            # time_delta = 0.001
-            time_delta = 0.000015
-            time_i = time_start
-            time_step = 0
-            self._set_and_fill_buffer(mp,2,time_delta)
-            strategy_expl = _create_dynamic_explicit_strategy(mp)
-            while (time_i <= time_end):
-
-                time_i += time_delta
-                mp.CloneTimeStep(time_i)
-                #solve + compare
-                strategy_expl.Solve()
-                self._check_results_dynamic_explicit(mp,time_i,nr_nodes,time_step)
-
-                time_step += 1
 
 def _add_explicit_variables(mp):
     mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)

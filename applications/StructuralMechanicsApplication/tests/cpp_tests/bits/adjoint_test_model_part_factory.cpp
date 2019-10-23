@@ -11,7 +11,7 @@ namespace Kratos
 {
 namespace
 { // cpp internals
-namespace smatmpf
+namespace adjoint_test_model_part_factory_cpp
 { // cotire unity guard
 void AddVariables(ModelPart* pAdjointModelPart, const VariablesList& rCustomVariables = {});
 void CopyNodes(ModelPart* pModelPart, const PointerVectorSet<Node<3>, IndexedObject>& rNodes);
@@ -23,38 +23,38 @@ void AddDofs(ModelPart* pAdjointModelPart);
 void AssignBCs(ModelPart* pAdjointModelPart, const ModelPart& rPrimalModelPart);
 void CopySolutionStepData(ModelPart* pDestinationModelPart,
                           const PointerVectorSet<Node<3>, IndexedObject>& rNodes);
-} // namespace smatmpf
+} // namespace adjoint_test_model_part_factory_cpp
 } // namespace
 
 ModelPart& CreateStructuralMechanicsAdjointTestModelPart(ModelPart* pPrimalModelPart)
 {
+    using namespace adjoint_test_model_part_factory_cpp;
     const std::string name = pPrimalModelPart->Name() + "(Adjoint)";
     if (pPrimalModelPart->GetModel().HasModelPart(name))
     {
         pPrimalModelPart->GetModel().DeleteModelPart(name);
     }
     ModelPart& adjoint_model_part = pPrimalModelPart->GetModel().CreateModelPart(name);
-    smatmpf::AddVariables(&adjoint_model_part,
-                          pPrimalModelPart->GetNodalSolutionStepVariablesList());
-    smatmpf::CopyNodes(&adjoint_model_part, pPrimalModelPart->Nodes());
+    AddVariables(&adjoint_model_part, pPrimalModelPart->GetNodalSolutionStepVariablesList());
+    CopyNodes(&adjoint_model_part, pPrimalModelPart->Nodes());
     ProcessInfo& r_process_info = adjoint_model_part.GetProcessInfo();
     r_process_info = pPrimalModelPart->GetProcessInfo();
-    smatmpf::CopyProperties(&adjoint_model_part, pPrimalModelPart->rProperties());
-    smatmpf::CreateAdjointElements(&adjoint_model_part, pPrimalModelPart->Elements());
+    CopyProperties(&adjoint_model_part, pPrimalModelPart->rProperties());
+    CreateAdjointElements(&adjoint_model_part, pPrimalModelPart->Elements());
     adjoint_model_part.SetBufferSize(pPrimalModelPart->GetBufferSize());
     // initialize adjoint time
     adjoint_model_part.CloneTimeStep(r_process_info[TIME] + r_process_info[DELTA_TIME]);
-    smatmpf::AddDofs(&adjoint_model_part);
-    smatmpf::AssignBCs(&adjoint_model_part, *pPrimalModelPart);
+    AddDofs(&adjoint_model_part);
+    AssignBCs(&adjoint_model_part, *pPrimalModelPart);
     VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true,
                                              adjoint_model_part.Nodes());
-    smatmpf::CopySolutionStepData(&adjoint_model_part, pPrimalModelPart->Nodes());
+    CopySolutionStepData(&adjoint_model_part, pPrimalModelPart->Nodes());
     return adjoint_model_part;
 }
 
 namespace
 { // cpp internals
-namespace smatmpf
+namespace adjoint_test_model_part_factory_cpp
 { // cotire unity guard
 void AddVariables(ModelPart* pAdjointModelPart, const VariablesList& rCustomVariables)
 {
@@ -81,7 +81,7 @@ void CopyProperties(ModelPart* pModelPart,
 {
     for (const auto& r_prop : rProperties)
     {
-        pModelPart->GetProperties(r_prop.Id()) = r_prop;
+        *pModelPart->CreateNewProperties(r_prop.Id()) = r_prop;
     }
 }
 
@@ -89,7 +89,11 @@ const std::string* AdjointName(const std::string& rPrimalName)
 {
     // extend this map when adding new adjoint elements for testing
     const static std::unordered_map<std::string, std::string> m = {
-        {"TotalLagrangianElement2D3N", "TotalLagrangianAdjointElement2D3N"}};
+        {"TotalLagrangianElement2D3N", "TotalLagrangianAdjointElement2D3N"},
+        {"TotalLagrangianElement2D4N", "TotalLagrangianAdjointElement2D4N"},
+        {"TotalLagrangianElement2D6N", "TotalLagrangianAdjointElement2D6N"},
+        {"TotalLagrangianElement3D8N", "TotalLagrangianAdjointElement3D8N"},
+        {"TotalLagrangianElement3D4N", "TotalLagrangianAdjointElement3D4N"}};
 
     auto search = m.find(rPrimalName);
     return (search != m.end()) ? &search->second : nullptr;
@@ -184,6 +188,6 @@ void CopySolutionStepData(ModelPart* pDestinationModelPart,
     }
     KRATOS_CATCH("");
 }
-} // namespace smatmpf
+} // namespace adjoint_test_model_part_factory_cpp
 } // namespace
 } // namespace Kratos

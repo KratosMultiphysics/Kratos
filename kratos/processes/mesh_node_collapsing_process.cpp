@@ -18,7 +18,7 @@
 
 // Project includes
 #include "processes/mesh_node_collapsing_process.h"
-
+#include "includes/global_pointer_variables.h"
 
 
 namespace Kratos
@@ -98,7 +98,7 @@ namespace Kratos
 				if (ElementHas(*i_element, *i_coarse_node))
 					i_element->Set(TO_ERASE);
 				else
-					SwapElementNode(*i_element, rThisNode, i_coarse_node.base()->lock());
+					SwapElementNode(*i_element, rThisNode, i_coarse_node->shared_from_this());
 		}
 	}
 
@@ -130,7 +130,8 @@ namespace Kratos
 		return false;
 	}
 
-	void MeshNodeCollapsingProcess::SwapElementNode(Element& rElement, Node<3> const& rThisNode, Node<3>::Pointer pCoarseNode) {
+	void MeshNodeCollapsingProcess::SwapElementNode(Element& rElement, 
+		Node<3> const& rThisNode, Node<3>::Pointer pCoarseNode) {
 		std::size_t number_of_nodes = rElement.GetGeometry().size();
 		auto& geometry = rElement.GetGeometry();
 		for (std::size_t i = 0; i < number_of_nodes; i++)

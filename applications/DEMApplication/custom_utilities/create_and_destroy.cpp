@@ -57,8 +57,7 @@ namespace Kratos {
             if(thread_maximums[i] > max_Id) max_Id = thread_maximums[i];
         }
 
-        r_modelpart.GetCommunicator().MaxAll(max_Id);
-        return max_Id;
+        return r_modelpart.GetCommunicator().GetDataCommunicator().MaxAll(max_Id);
         KRATOS_CATCH("")
     }
 
@@ -79,8 +78,7 @@ namespace Kratos {
             if ((int) (element_it->Id()) > max_Id) max_Id = element_it->Id();
         }
 
-        r_modelpart.GetCommunicator().MaxAll(max_Id);
-        return max_Id;
+        return r_modelpart.GetCommunicator().GetDataCommunicator().MaxAll(max_Id);
         KRATOS_CATCH("")
     }
 
@@ -95,17 +93,14 @@ namespace Kratos {
             if ((int) (condition_it->Id()) > max_Id) max_Id = condition_it->Id();
         }
 
-        r_modelpart.GetCommunicator().MaxAll(max_Id);
-        return max_Id;
+        return r_modelpart.GetCommunicator().GetDataCommunicator().MaxAll(max_Id);
         KRATOS_CATCH("")
     }
 
     void ParticleCreatorDestructor::RenumberElementIdsFromGivenValue(ModelPart& r_modelpart, const int initial_id) {
         KRATOS_TRY
         const int number_of_elements = r_modelpart.GetCommunicator().LocalMesh().NumberOfElements();
-        int total_accumulated_elements = 0;
-
-        r_modelpart.GetCommunicator().ScanSum(number_of_elements, total_accumulated_elements);
+        int total_accumulated_elements = r_modelpart.GetCommunicator().GetDataCommunicator().ScanSum(number_of_elements);
 
         int id = total_accumulated_elements - number_of_elements + initial_id;
         auto& local_mesh = r_modelpart.GetCommunicator().LocalMesh();
@@ -181,7 +176,7 @@ namespace Kratos {
             pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL] + 100; //So the inlet ghost spheres are not in the same
         }                                                                                             //layer of the inlet newly created spheres
         else {
-            pnew_node = Kratos::make_shared< Node<3> >(aId, bx, cy, dz);
+            pnew_node = Kratos::make_intrusive<Node<3>>(aId, bx, cy, dz);
             pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
             pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
             #pragma omp critical
@@ -258,7 +253,7 @@ namespace Kratos {
             pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL] + 100; //So the inlet ghost spheres are not in the same
         }                                                                                             //layer of the inlet newly created spheres
         else {
-            pnew_node = Kratos::make_shared< Node<3> >(aId, bx, cy, dz);
+            pnew_node = Kratos::make_intrusive<Node<3>>(aId, bx, cy, dz);
             pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
             pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
             #pragma omp critical
@@ -403,7 +398,7 @@ namespace Kratos {
                                                             double radius,
                                                             Properties& params) {
         KRATOS_TRY
-        pnew_node = Kratos::make_shared< Node<3> >( aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2] );
+        pnew_node = Kratos::make_intrusive<Node<3>>( aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2] );
         pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
         pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
 
@@ -450,7 +445,7 @@ namespace Kratos {
                                                                         int aId,
                                                                         array_1d<double, 3>& reference_coordinates) {
         KRATOS_TRY
-        pnew_node = Kratos::make_shared< Node<3> >(aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2]);
+        pnew_node = Kratos::make_intrusive<Node<3>>(aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2]);
         pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
         pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
 
@@ -615,7 +610,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         if (r_sub_model_part_with_parameters[RANDOM_ORIENTATION]) {
 
-            Orientation = Quaternion<double>(((double) rand() / (RAND_MAX)), ((double) rand() / (RAND_MAX)), ((double) rand() / (RAND_MAX)), ((double) rand() / (RAND_MAX)));
+            Orientation = Quaternion<double>(2.0 * (double) rand() / (RAND_MAX) - 1.0, 2.0 * (double) rand() / (RAND_MAX) - 1.0, 2.0 * (double) rand() / (RAND_MAX) - 1.0, 2.0 * (double) rand() / (RAND_MAX) - 1.0);
         }
         else {
 
@@ -762,7 +757,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         double dz = coordinates[2];
 
         Node<3>::Pointer pnew_node;
-        pnew_node = Kratos::make_shared< Node<3> >(r_Elem_Id, bx, cy, dz);
+        pnew_node = Kratos::make_intrusive<Node<3>>(r_Elem_Id, bx, cy, dz);
         Geometry<Node<3> >::PointsArrayType nodelist;
         nodelist.push_back(pnew_node);
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
@@ -795,7 +790,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         double dz = coordinates[2];
 
         Node<3>::Pointer pnew_node;
-        pnew_node = Kratos::make_shared< Node<3> >(r_Elem_Id, bx, cy, dz);
+        pnew_node = Kratos::make_intrusive<Node<3>>(r_Elem_Id, bx, cy, dz);
         Geometry<Node<3> >::PointsArrayType nodelist;
         nodelist.push_back(pnew_node);
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
@@ -1044,13 +1039,14 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
                 }
             }
 
-            r_balls_model_part.GetCommunicator().MinAll(mStrictLowPoint[0]);
-            r_balls_model_part.GetCommunicator().MinAll(mStrictLowPoint[1]);
-            r_balls_model_part.GetCommunicator().MinAll(mStrictLowPoint[2]);
-            r_balls_model_part.GetCommunicator().MaxAll(mStrictHighPoint[0]);
-            r_balls_model_part.GetCommunicator().MaxAll(mStrictHighPoint[1]);
-            r_balls_model_part.GetCommunicator().MaxAll(mStrictHighPoint[2]);
-            r_balls_model_part.GetCommunicator().MaxAll(ref_radius);
+            const auto& r_comm = r_balls_model_part.GetCommunicator().GetDataCommunicator();
+            mStrictLowPoint[0] = r_comm.MinAll(mStrictLowPoint[0]);
+            mStrictLowPoint[1] = r_comm.MinAll(mStrictLowPoint[1]);
+            mStrictLowPoint[2] = r_comm.MinAll(mStrictLowPoint[2]);
+            mStrictHighPoint[0] = r_comm.MaxAll(mStrictHighPoint[0]);
+            mStrictHighPoint[1] = r_comm.MaxAll(mStrictHighPoint[1]);
+            mStrictHighPoint[2] = r_comm.MaxAll(mStrictHighPoint[2]);
+            ref_radius = r_comm.MaxAll(ref_radius);
 
 
             array_1d<double, 3 > midpoint;
@@ -1307,6 +1303,38 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             }
         }
 
+        KRATOS_CATCH("")
+    }
+
+    void ParticleCreatorDestructor::MarkParticlesForErasingGivenCylinder(ModelPart& r_model_part, array_1d<double, 3 > center, array_1d<double, 3 > axis_vector, const double radius) {
+        KRATOS_TRY
+
+        Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+
+        const double radius_squared = radius * radius;
+        const double axis_modulus = DEM_MODULUS_3(axis_vector);
+        array_1d<double, 3 > unitary_axis_vector;
+        noalias(unitary_axis_vector) = axis_vector / axis_modulus;
+
+        #pragma omp parallel for
+        for (int k = 0; k < (int)rElements.size(); k++){
+            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;
+
+            if ((*particle_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
+            if ((*particle_pointer_it)->Is(BLOCKED)) continue;
+
+            const array_1d<double, 3 >& coor = (*particle_pointer_it)->GetGeometry()[0].Coordinates();
+            array_1d<double, 3 > center_to_particle;
+            noalias(center_to_particle) = coor - center;
+            const double center_to_particle_modulus = DEM_MODULUS_3(center_to_particle);
+            double projection_on_axis = center_to_particle[0] * unitary_axis_vector[0] + center_to_particle[1] * unitary_axis_vector[1] + center_to_particle[2] * unitary_axis_vector[2];
+            double distance_squared = center_to_particle_modulus*center_to_particle_modulus - projection_on_axis*projection_on_axis;
+
+            if (distance_squared < radius_squared) {
+                (*particle_pointer_it)->GetGeometry()[0].Set(TO_ERASE);
+                (*particle_pointer_it)->Set(TO_ERASE);
+            }
+        }
         KRATOS_CATCH("")
     }
 

@@ -1,41 +1,36 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-#Activate it to import in the gdb path:
-#import sys
-#sys.path.append('/home/cpuigbo/kratos')
-#x = input("stopped to allow debug: set breakpoints and press enter to continue");
 import time as timer
-# Import system python
 import os
+from importlib import import_module
 
 # Import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.DelaunayMeshingApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication
-import KratosMultiphysics.SolidMechanicsApplication
-
-import DEM_coupled_pfem_fluid_dynamics_analysis as fluid_solution
-import pfem_fluid_solver_analysis as pfem_solver
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
 class PfemFluidDynamicsAnalysis(AnalysisStage):
-
+    """The base class for the PfemFluidDynamicsAnalysis
+    """
     def __init__(self, model, parameters):
-
+        """The constructor of the AnalysisStage-Object.
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        model -- The Model to be used
+        parameters -- The ProjectParameters used
+        """
         self.model = model
-
         #### TIME MONITORING START ####
-
         # Time control starts
-        print(timer.ctime())
+        self.KratosPrintInfo(timer.ctime())
         # Measure process time
         self.t0p = timer.clock()
         # Measure wall time
         self.t0w = timer.time()
         #### TIME MONITORING END ####
-
 
         #### PARSING THE PARAMETERS ####
 
@@ -47,65 +42,52 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         if( self.echo_level > 0 ):
             self.report = True
 
-        print(" ")
+        self.KratosPrintInfo(" ")
 
         # defining the number of threads:
         num_threads = parameters["problem_data"]["threads"].GetInt()
         self.SetParallelSize(num_threads)
-        print("::[KPFEM Simulation]:: [OMP USING",num_threads,"THREADS ]")
+        self.KratosPrintInfo("::[KPFEM Simulation]:: [OMP USING" + str(num_threads) + "THREADS ]")
         #parallel.PrintOMPInfo()
 
-
-        print(" ")
-        print("::[KPFEM Simulation]:: [Time Step:", parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()," echo:", self.echo_level,"]")
+        self.KratosPrintInfo(" ")
+        self.KratosPrintInfo("::[KPFEM Simulation]:: [Time Step:" + str(parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()) + " echo:" +  str(self.echo_level) + "]")
 
         #### Model_part settings start ####
         super(PfemFluidDynamicsAnalysis,self).__init__(model,parameters)
         # Defining the model_part
-        self.main_model_part = self.model.GetModelPart(parameters["problem_data"]["model_part_name"].GetString())
+        self.main_model_part = self.model.GetModelPart(parameters["solver_settings"]["model_part_name"].GetString())
 
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, parameters["problem_data"]["dimension"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, parameters["problem_data"]["dimension"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, parameters["time_stepping"]["time_step"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, parameters["solver_settings"]["domain_size"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, parameters["solver_settings"]["domain_size"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, parameters["problem_data"]["start_time"].GetDouble())
-        if( parameters["problem_data"].Has("gravity_vector") ):
+        if parameters["problem_data"].Has("gravity_vector"):
              self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_X, parameters["problem_data"]["gravity_vector"][0].GetDouble())
              self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Y, parameters["problem_data"]["gravity_vector"][1].GetDouble())
              self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Z, parameters["problem_data"]["gravity_vector"][2].GetDouble())
-
-        ###TODO replace this "model" for real one once available in kratos core
-        self.Model = {parameters["problem_data"]["model_part_name"].GetString() : self.main_model_part}
-
 
         self.problem_path = os.getcwd()
         self.problem_name = parameters["problem_data"]["problem_name"].GetString()
 
     def _CreateSolver(self):
-
-        solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())
-        return solver_module.CreateSolver(self.model, self.project_parameters)
+        """Create the solver
+        """
+        python_module_name = "KratosMultiphysics.PfemFluidDynamicsApplication"
+        full_module_name = python_module_name + "." + self.project_parameters["solver_settings"]["solver_type"].GetString()
+        solver_module = import_module(full_module_name)
+        solver = solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
+        return solver
 
     def AddNodalVariablesToModelPart(self):
-
-        # Add variables (always before importing the model part)
-        self._solver.AddVariables()
-
-        # Add PfemSolidMechanicsApplication Variables
-        import pfem_variables
-        pfem_variables.AddVariables(self.fluid_model_part)
-
-
-    def Run(self):
-
-        self.Initialize()
-
-        self.RunMainTemporalLoop()
-
-        self.Finalize()
-
+        from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_variables
+        pfem_variables.AddVariables(self.main_model_part)
 
     def Initialize(self):
-
+        """This function initializes the AnalysisStage
+        Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
+        This function has to be implemented in deriving classes!
+        """
         # Add variables (always before importing the model part)
         self.AddNodalVariablesToModelPart()
 
@@ -119,160 +101,100 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         else:
             self._solver.AddDofs()
 
-        # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
-        ## Get the list of the submodel part in the object Model
-        for i in range(self.project_parameters["solver_settings"]["processes_sub_model_part_list"].size()):
-            part_name = self.project_parameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-            if( self.main_model_part.HasSubModelPart(part_name) ):
-                self.Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
-
-        #### Model_part settings end ####
-
-
         #print model_part and properties
-        if(self.echo_level>1):
-            print("")
-            print(self.main_model_part)
+        if (self.echo_level>1):
+            self.KratosPrintInfo("")
+            self.KratosPrintInfo(self.main_model_part)
             for properties in self.main_model_part.Properties:
-                print(properties)
+                self.KratosPrintInfo(properties)
 
         #### Processes settings start ####
 
-        #obtain the list of the processes to be applied
-
-        import process_handler
+        # obtain the list of the processes to be applied
+        from KratosMultiphysics.SolidMechanicsApplication.process_handler import ProcessHandler
 
         process_parameters = KratosMultiphysics.Parameters("{}")
         process_parameters.AddValue("echo_level", self.project_parameters["problem_data"]["echo_level"])
-        process_parameters.AddValue("constraints_process_list", self.project_parameters["constraints_process_list"])
-        process_parameters.AddValue("loads_process_list", self.project_parameters["loads_process_list"])
+
         if( self.project_parameters.Has("problem_process_list") ):
             process_parameters.AddValue("problem_process_list", self.project_parameters["problem_process_list"])
-        if( self.project_parameters.Has("output_process_list") ):
-            process_parameters.AddValue("output_process_list", self.project_parameters["output_process_list"])
-        if( self.project_parameters.Has("processes_sub_model_part_tree_list") ):
-            process_parameters.AddValue("processes_sub_model_part_tree_list",self.project_parameters["processes_sub_model_part_tree_list"])
-        if( self.project_parameters.Has("check_process_list") ):
-            process_parameters.AddValue("check_process_list", self.project_parameters["check_process_list"])
 
-        self.model_processes = process_handler.ProcessHandler(self.Model, process_parameters)
-
+        self.model_processes = ProcessHandler(self.model, process_parameters)
         self.model_processes.ExecuteInitialize()
 
+        ## here we initialize user-provided processes
+        order_processes_initialization = self._GetOrderOfProcessesInitialization()
+        self._list_of_processes        = self._CreateProcesses("processes", order_processes_initialization)
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteInitialize()
+
         #### processes settings end ####
-
-
-        # --PLOT GRAPHS OPTIONS START--###############
-        #self.problem_path = os.getcwd() #current path
-        #plot_active = general_variables.PlotGraphs
-        #graph_plot = plot_utils.GraphPlotUtility(model_part, self.problem_path)
-        # --PLOT GRAPHS OPTIONS END--#################
-
         #### START SOLUTION ####
 
         self.computing_model_part = self._solver.GetComputingModelPart()
-
         self.graphical_output = self.SetGraphicalOutput()
-
         ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
         self._solver.Initialize()
         self._solver.InitializeStrategy()
         self._solver.SetEchoLevel(self.echo_level)
 
-
-
         # Initialize GiD  I/O (gid outputs, file_lists)
         self.GraphicalOutputExecuteInitialize()
 
-        #### Output settings end ####
-
-        # writing a initial state results file
-        current_id = 0
-        #if(load_restart == False):
-        #    if (general_variables.TryToSetTheWeight):
-        #        if (general_variables.TryToSetConstantWeight):
-        #            conditions.SetConstantWeight( general_variables.TryToSetWeightVertical, general_variables.TryToSetWeightHorizontal);
-        #        else:
-        #            conditions.SetWeight();
-
-        # set solver info starting parameters
-        # solving_info = solving_info_utils.SolvingInfoUtility(model_part, SolverSettings)
-
-        print(" ")
-        print("::[KPFEM Simulation]:: Analysis -START- ")
+        self.KratosPrintInfo(" ")
+        self.KratosPrintInfo("::[KPFEM Simulation]:: Analysis -START- ")
 
         self.model_processes.ExecuteBeforeSolutionLoop()
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteBeforeSolutionLoop()
 
         self.GraphicalOutputExecuteBeforeSolutionLoop()
 
         # Set time settings
-        self.step       = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-        self.time       = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        self.step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+        self.time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         self.end_time   = self.project_parameters["problem_data"]["end_time"].GetDouble()
-        self.delta_time = self.project_parameters["problem_data"]["time_step"].GetDouble()
-
-
-    def RunMainTemporalLoop(self):
-
-        # Solving the problem (time integration)
-        while(self.time < self.end_time):
-
-            self.InitializeSolutionStep()
-            self.SolveSolutionStep()
-            self.FinalizeSolutionStep()
+        self.delta_time = self.project_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
 
 
     def InitializeSolutionStep(self):
-
-        self.clock_time = self.StartTimeMeasuring();
-
-        # current time parameters
-        # self.main_model_part.ProcessInfo.GetPreviousSolutionStepInfo()[KratosMultiphysics.DELTA_TIME] = self.delta_time
-        self.delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-
-        self.time = self.time + self.delta_time
-        self.step = self.step + 1
-
-        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.step
-        self.main_model_part.CloneTimeStep(self.time)
-
-        #print(" [STEP:",self.step," TIME:",self.time,"]")
-
+        """This function performs all the required operations that should be executed
+        (for each step) BEFORE solving the solution step.
+        """
+        self.clock_time = self.StartTimeMeasuring()
         # processes to be executed at the begining of the solution step
         self.model_processes.ExecuteInitializeSolutionStep()
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteInitializeSolutionStep()
 
         self.GraphicalOutputExecuteInitializeSolutionStep()
 
         # solve time step
         self._solver.InitializeSolutionStep()
 
-        self.StopTimeMeasuring(self.clock_time,"Initialize Step" , self.report);
-
-    def SolveSolutionStep(self):
-
-        self.clock_time = self.StartTimeMeasuring();
-
-        self._solver.Predict()
-
-        self._solver.SolveSolutionStep()
-
-        self._solver.FinalizeSolutionStep()
-
-        self.StopTimeMeasuring(self.clock_time,"Solve Step" , self.report);
+        self.StopTimeMeasuring(self.clock_time,"Initialize Step" , self.report)
 
     def FinalizeSolutionStep(self):
-
+        """This function performs all the required operations that should be executed
+        (for each step) AFTER solving the solution step.
+        """
         self.clock_time = self.StartTimeMeasuring();
-
+        self._GetSolver().FinalizeSolutionStep()
         self.GraphicalOutputExecuteFinalizeSolutionStep()
 
         # processes to be executed at the end of the solution step
         self.model_processes.ExecuteFinalizeSolutionStep()
 
-        #if (self.time>0.0001):
-        # processes to be executed before writing the output
+        for process in self._GetListOfProcesses():
+            process.ExecuteFinalizeSolutionStep()
         self.model_processes.ExecuteBeforeOutputStep()
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteBeforeOutputStep()
 
         # write output results GiD: (frequency writing is controlled internally)
         self.GraphicalOutputPrintOutput()
@@ -280,22 +202,30 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         # processes to be executed after witting the output
         self.model_processes.ExecuteAfterOutputStep()
 
-        # Calculate Nodal_Area
+        for process in self._GetListOfProcesses():
+            process.ExecuteAfterOutputStep()
 
         self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report);
 
+    def OutputSolutionStep(self):
+        """This function printed / writes output files after the solution of a step
+        """
+        pass
+
     def Finalize(self):
+        """This function finalizes the AnalysisStage
+        Usage: It is designed to be called ONCE, AFTER the execution of the solution-loop
+        """
 
         # Ending the problem (time integration finished)
         self.GraphicalOutputExecuteFinalize()
-
         self.model_processes.ExecuteFinalize()
 
-        print("::[KPFEM Simulation]:: Analysis -END- ")
-        print(" ")
+        for process in self._GetListOfProcesses():
+            process.ExecuteFinalize()
 
-        # Check solving information for any problem
-        #~ self.solver.InfoCheck() # InfoCheck not implemented yet.
+        self.KratosPrintInfo("::[KPFEM Simulation]:: Analysis -END- ")
+        self.KratosPrintInfo(" ")
 
         #### END SOLUTION ####
 
@@ -305,22 +235,17 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         tfw = timer.time()
 
         print("::[KPFEM Simulation]:: [Elapsed Time = %.2f" % (tfw - self.t0w),"seconds] (%.2f" % (tfp - self.t0p),"seconds of cpu/s time)")
-
-        print(timer.ctime())
-
-        # to create a benchmark: add standard benchmark files and decomment next two lines
-        # rename the file to: run_test.py
-        #from run_test_benchmark_results import *
-        #WriteBenchmarkResults(model_part)
+        self.KratosPrintInfo(timer.ctime())
 
 
     def SetGraphicalOutput(self):
+        """This function sets the settings for the graphical
+        output
+        """
         if( self.project_parameters.Has("output_configuration") ):
-            from pfem_fluid_gid_output_process import GiDOutputProcess
+            from KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_gid_output_process import GiDOutputProcess
             self.output_settings = self.project_parameters["output_configuration"]
             self.post_process_model_part = self.model.CreateModelPart("output_model_part")
-            #KratosMultiphysics.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.post_process_model_part, self.main_model_part)
-
             return GiDOutputProcess(self.post_process_model_part,
                                     self.problem_name,
                                     self.output_settings)
@@ -328,66 +253,110 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
             return (KratosMultiphysics.Process())
 
     def GraphicalOutputExecuteInitialize(self):
+        """This function performs the initialize of the graphical output
+        """
         self.graphical_output.ExecuteInitialize()
 
     def GraphicalOutputExecuteBeforeSolutionLoop(self):
+        """This function performs the ExecuteBeforeSolutionLoop
+        of the graphical_output
+        """
         # writing a initial state results file or single file (if no restart)
         if((self.main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
             if(self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
                 self.graphical_output.ExecuteBeforeSolutionLoop()
 
     def GraphicalOutputExecuteInitializeSolutionStep(self):
+        """This function performs the ExecuteInitializeSolutionStep
+        of the graphical_output
+        """
         self.graphical_output.ExecuteInitializeSolutionStep()
 
     def GraphicalOutputExecuteFinalizeSolutionStep(self):
+        """This function performs the ExecuteFinalizeSolutionStep
+        of the graphical_output
+        """
         self.graphical_output.ExecuteFinalizeSolutionStep()
 
     def GraphicalOutputPrintOutput(self):
+        """This function prints the output for this time step
+        """
         if( self.project_parameters.Has("output_configuration") ):
             self.post_process_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
             if(self.graphical_output.IsOutputStep()):
+                time=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+                delta_time=self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+                step=self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
                 KratosMultiphysics.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.post_process_model_part, self.main_model_part)
-                print("")
-                print("**********************************************************")
-                print("---> Print Output at [STEP:",self.step," TIME:",self.time," DT:",self.delta_time,"]")
-                print("**********************************************************")
-                print("")
+                self.KratosPrintInfo("")
+                self.KratosPrintInfo("**********************************************************")
+                self.KratosPrintInfo("---> Print Output at [STEP:" + str(step) + " TIME:" + str(time) + " DT:" + str(delta_time) + "]")
+                self.KratosPrintInfo("**********************************************************")
+                self.KratosPrintInfo("")
                 self.graphical_output.PrintOutput()
 
     def GraphicalOutputExecuteFinalize(self):
+        """This function performs the ExecuteFinalize
+        of the graphical_output
+        """
         self.graphical_output.ExecuteFinalize()
 
     def SetParallelSize(self, num_threads):
+        """This function sets the number of threads
+        """
         parallel = KratosMultiphysics.OpenMPUtils()
         parallel.SetNumThreads(int(num_threads))
 
     def GetParallelSize(self):
+        """This function returns the number of threads
+        """
         parallel = KratosMultiphysics.OpenMPUtils()
         return parallel.GetNumThreads()
 
     def StartTimeMeasuring(self):
+        """This function starts time calculation
+        """
         # Measure process time
         time_ip = timer.clock()
         return time_ip
 
     def StopTimeMeasuring(self, time_ip, process, report):
+        """This function ends time calculation
+        """
         # Measure process time
         time_fp = timer.clock()
-        if( report ):
+        if report:
             used_time = time_fp - time_ip
             print("::[PFEM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
 
-    def CalculateNodalArea(self):
-        pass
+    def _GetOrderOfProcessesInitialization(self):
+        """This function can be overridden in derived classes if the order of
+        initialization for the processes matters
+        """
+        return ["constraints_process_list",
+                "loads_process_list",
+                "auxiliar_process_list"]
 
     #### Main internal methods ####
 
     def _import_project_parameters(self, input_file):
-        import input_manager
-        self.input_manager = input_manager.InputManager(input_file)
+        """This function reads the ProjectsParameters.json
+        """
+        from KratosMultiphysics.SolidMechanicsApplication.input_manager import InputManager
+        self.input_manager = InputManager(input_file)
         return self.input_manager.Getparameters()
 
+    def KratosPrintInfo(self, message):
+        """This function prints info on screen
+        """
+        KratosMultiphysics.Logger.Print(message, label="")
+        KratosMultiphysics.Logger.Flush()
 
 if __name__ == "__main__":
+    parameter_file_name = "ProjectParameters.json"
+    with open(parameter_file_name,'r') as parameter_file:
+        parameters = Kratos.Parameters(parameter_file.read())
     model = KratosMultiphysics.Model()
-    Solution(model).Run()
+    simulation = PfemFluidDynamicsAnalysis(model,parameters)
+    simulation.Run()
+

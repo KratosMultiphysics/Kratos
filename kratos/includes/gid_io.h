@@ -594,7 +594,7 @@ public:
     /**
      * Turn back information as a string.
      */
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "gid io";
     }
@@ -602,7 +602,7 @@ public:
     /**
      * Print information about this object.
      */
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
@@ -610,7 +610,7 @@ public:
     /**
      * Print object's data.
      */
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -746,7 +746,7 @@ public:
 
     }
     /**
-     * writes nodal results for variables of type double
+     * writes nodal results for variables of type int
      */
     void WriteNodalResults( Variable<int> const& rVariable,
                             NodesContainerType& rNodes, double SolutionTag,
@@ -1361,7 +1361,7 @@ public:
      * @param deformed_flag states whether the mesh should be written in deformed configuration
      * @param conditions_flag states whether conditions should also be written
      */
-    void WriteMesh( MeshType& rThisMesh )
+    void WriteMesh( MeshType& rThisMesh ) override
     {
         KRATOS_TRY
 

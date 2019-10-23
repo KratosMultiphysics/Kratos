@@ -1,8 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
-from json_utilities import *
-import json
+from KratosMultiphysics.json_utilities import read_external_json, write_external_json
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -44,7 +43,8 @@ class JsonOutputProcess(KratosMultiphysics.Process):
             "check_for_flag"                : "",
             "time_frequency"                : 1.00,
             "historical_value"              : true,
-            "resultant_solution"            : false
+            "resultant_solution"            : false,
+            "use_node_coordinates"          : false
         }
         """)
 
@@ -53,15 +53,9 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         self.params.ValidateAndAssignDefaults(default_parameters)
 
         self.model = model
-
         self.params = params
 
-        self.output_file_name = ""
-        self.output_variables = []
-        self.gauss_points_output_variables = []
-        self.frequency = 0.0
         self.time_counter = 0.0
-        self.resultant_solution = False
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -78,10 +72,13 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         else:
             self.sub_model_part = self.model.GetModelPart(model_part_name)
 
+        if self.sub_model_part.GetCommunicator().TotalProcesses() > 1: # mpi-execution
+            raise Exception("This process cannot be used for writing output in MPI!")
+
         # If we consider any flag
         flag_name = self.params["check_for_flag"].GetString()
         if flag_name != "":
-            self.flag = globals().get(flag_name)
+            self.flag = KratosMultiphysics.KratosGlobals.GetFlag(flag_name)
         else:
             self.flag = None
 
@@ -91,6 +88,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         self.frequency = self.params["time_frequency"].GetDouble()
         self.resultant_solution = self.params["resultant_solution"].GetBool()
         self.historical_value = self.params["historical_value"].GetBool()
+        self.use_node_coordinates = self.params["use_node_coordinates"].GetBool()
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed before starting the time loop
@@ -108,8 +106,10 @@ class JsonOutputProcess(KratosMultiphysics.Process):
             compute = self.__check_flag(node)
 
             if compute:
+                node_identifier = "NODE_" + self.__get_node_identifier(node)
+
                 if not self.resultant_solution:
-                    data["NODE_" + str(node.Id)] = {}
+                    data[node_identifier] = {}
                 else:
                     if count == 0:
                         data["RESULTANT"] = {}
@@ -126,16 +126,16 @@ class JsonOutputProcess(KratosMultiphysics.Process):
 
                     if variable_type == "Double" or variable_type == "Component":
                         if not self.resultant_solution:
-                            data["NODE_" + str(node.Id)][variable_name] = []
+                            data[node_identifier][variable_name] = []
                         else:
                             if count == 0:
                                 data["RESULTANT"][variable_name] = []
                     elif variable_type == "Array":
                         if KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component":
                             if not self.resultant_solution:
-                                data["NODE_" + str(node.Id)][variable_name + "_X"] = []
-                                data["NODE_" + str(node.Id)][variable_name + "_Y"] = []
-                                data["NODE_" + str(node.Id)][variable_name + "_Z"] = []
+                                data[node_identifier][variable_name + "_X"] = []
+                                data[node_identifier][variable_name + "_Y"] = []
+                                data[node_identifier][variable_name + "_Z"] = []
                             else:
                                 if count == 0:
                                     data["RESULTANT"][variable_name + "_X"] = []
@@ -143,13 +143,13 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                     data["RESULTANT"][variable_name + "_Z"] = []
                         else:
                             if not self.resultant_solution:
-                                data["NODE_" + str(node.Id)][variable_name] = []
+                                data[node_identifier][variable_name] = []
                             else:
                                 if count == 0:
                                     data["RESULTANT"][variable_name] = []
                     elif variable_type == "Vector":
                         if not self.resultant_solution:
-                            data["NODE_" + str(node.Id)][variable_name] = []
+                            data[node_identifier][variable_name] = []
                         else:
                             if count == 0:
                                 data["RESULTANT"][variable_name] = []
@@ -227,15 +227,6 @@ class JsonOutputProcess(KratosMultiphysics.Process):
 
         write_external_json(self.output_file_name, data)
 
-    def ExecuteInitializeSolutionStep(self):
-        """ This method is executed in order to initialize the current step
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-
-        pass
-
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
 
@@ -245,7 +236,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
 
-        data =  read_external_json(self.output_file_name)
+        data = read_external_json(self.output_file_name)
 
         time = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
         dt = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
@@ -260,6 +251,8 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                 compute = self.__check_flag(node)
 
                 if compute:
+                    node_identifier = "NODE_" + self.__get_node_identifier(node)
+
                     for i in range(self.params["output_variables"].size()):
                         out = self.params["output_variables"][i]
                         variable_name = out.GetString()
@@ -272,7 +265,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
 
                         if variable_type == "Double" or variable_type == "Component":
                             if not self.resultant_solution:
-                                data["NODE_" + str(node.Id)][variable_name].append(value)
+                                data[node_identifier][variable_name].append(value)
                             else:
                                 if count == 0:
                                     data["RESULTANT"][variable_name].append(value)
@@ -281,9 +274,9 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                         elif variable_type == "Array":
                             if KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component":
                                 if not self.resultant_solution:
-                                    data["NODE_" + str(node.Id)][variable_name + "_X"].append(value[0])
-                                    data["NODE_" + str(node.Id)][variable_name + "_Y"].append(value[1])
-                                    data["NODE_" + str(node.Id)][variable_name + "_Z"].append(value[2])
+                                    data[node_identifier][variable_name + "_X"].append(value[0])
+                                    data[node_identifier][variable_name + "_Y"].append(value[1])
+                                    data[node_identifier][variable_name + "_Z"].append(value[2])
                                 else:
                                     if count == 0:
                                         data["RESULTANT"][variable_name + "_X"].append(value[0])
@@ -296,7 +289,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                             else:
                                 if not self.resultant_solution:
                                     list = self.__kratos_vector_to__python_list(value)
-                                    data["NODE_" + str(node.Id)][variable_name ].append(list)
+                                    data[node_identifier][variable_name ].append(list)
                                 else:
                                     aux = 0.0
                                     for index in range(len(value)):
@@ -307,7 +300,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                         data["RESULTANT"][variable_name ][-1] += aux
                         elif variable_type == "Vector":
                             if not self.resultant_solution:
-                                data["NODE_" + str(node.Id)][variable_name].append(value)
+                                data[node_identifier][variable_name].append(value)
                             else:
                                 if count == 0:
                                     data["RESULTANT"][variable_name].append(value)
@@ -395,33 +388,6 @@ class JsonOutputProcess(KratosMultiphysics.Process):
 
         write_external_json(self.output_file_name, data)
 
-    def ExecuteBeforeOutputStep(self):
-        """ This method is executed right before the ouput process computation
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        """ This method is executed right after the ouput process computation
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-
-        pass
-
-    def ExecuteFinalize(self):
-        """ This method is executed in order to finalize the current computation
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-
-        pass
-
     def __kratos_vector_to__python_list(self, value):
         """ This method is executed in order to finalize the current computation
 
@@ -463,3 +429,17 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                 return False
 
         return True
+
+    def __get_node_identifier(self, node):
+        """ returns the identifier/key for saving nodal results in the json
+        this can be either the node Id or its coordinates
+        The coordinates can be used to check the nodal results in MPI
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        node -- The Kratos node to get the identifier for
+        """
+        if self.use_node_coordinates:
+            return 'X_{0:.{digits}f}_Y_{1:.{digits}f}_Z_{2:.{digits}f}'.format(node.X0, node.Y0, node.Z0, digits=6)
+        else:
+            return str(node.Id)

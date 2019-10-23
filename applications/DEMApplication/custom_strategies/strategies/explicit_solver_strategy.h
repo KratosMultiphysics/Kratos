@@ -114,15 +114,15 @@ namespace Kratos {
                                 ParticleCreatorDestructor::Pointer p_creator_destructor,
                                 DEM_FEM_Search::Pointer p_dem_fem_search,
                                 SpatialSearch::Pointer pSpSearch,
-                                Parameters strategy_parameters,
-                                const bool do_search_balls = true) {
+                                Parameters strategy_parameters) {
 
             mParameters = strategy_parameters;
             mDeltaOption = delta_option;
             mpParticleCreatorDestructor = p_creator_destructor;
             mpDemFemSearch = p_dem_fem_search;
             mpSpSearch = pSpSearch;
-            mDoSearchNeighbourElements = do_search_balls;
+            if(mParameters["do_search_neighbours"].GetBool()) mDoSearchNeighbourElements = true;
+            else mDoSearchNeighbourElements = false;
             p_creator_destructor->SetDoSearchNeighbourElements(mDoSearchNeighbourElements);
             mMaxTimeStep = max_delta_time;
             mNStepSearch = n_step_search;
@@ -214,7 +214,7 @@ namespace Kratos {
         virtual void InitializeClusters();
         virtual void GetClustersForce();
         virtual void GetRigidBodyElementsForce();
-        virtual double Solve();
+        virtual double SolveSolutionStep();
         void SearchDEMOperations(ModelPart& r_model_part, bool has_mpi = true);
         void SearchFEMOperations(ModelPart& r_model_part, bool has_mpi = true) ;
         virtual void ForceOperations(ModelPart& r_model_part);

@@ -18,17 +18,18 @@
         "move_mesh_flag"                    : false,
         "response_function_settings" : {
             "response_type"     : "adjoint_nodal_displacement",
-            "use_kratos"        : true,
+            "analyzer"          : "kratos",
             "gradient_mode"     : "semi_analytic",
             "step_size"         : 1.0e-6,
+            "adapt_step_size"   : true,
             "traced_node_id"       : 5,
             "traced_dof"        : "DISPLACEMENT_Z"
         },
         "sensitivity_settings" : {
             "sensitivity_model_part_name" :"Parts_AREAS",
-            "nodal_sensitivity_variables"  : ["SHAPE"],
-            "element_sensitivity_variables"  : ["THICKNESS"],
-            "condition_sensitivity_variables"  : ["POINT_LOAD"],
+            "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+            "element_data_value_sensitivity_variables"  : ["THICKNESS"],
+            "condition_data_value_sensitivity_variables"  : ["POINT_LOAD"],
             "build_mode": "static"
         },
         "echo_level"                   : 0,

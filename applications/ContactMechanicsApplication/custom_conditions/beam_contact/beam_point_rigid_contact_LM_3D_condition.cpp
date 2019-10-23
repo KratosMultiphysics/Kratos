@@ -58,7 +58,7 @@ namespace Kratos
   Condition::Pointer BeamPointRigidContactLM3DCondition::Create(IndexType NewId, NodesArrayType
 								 const& ThisNodes,  PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<BeamPointRigidContactLM3DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<BeamPointRigidContactLM3DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
   }
 
 

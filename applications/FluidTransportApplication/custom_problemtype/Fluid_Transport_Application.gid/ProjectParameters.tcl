@@ -67,7 +67,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
             puts $FileVar "            \"tolerance\":           1.0e-6,"
             puts $FileVar "            \"max_iteration\":       200,"
             puts $FileVar "            \"scaling\":             [GiD_AccessValue get gendata Scaling],"
-            puts $FileVar "            \"preconditioner_type\": \"None\""
+            puts $FileVar "            \"preconditioner_type\": \"none\""
         } elseif {([GiD_AccessValue get gendata Solver_Type] eq "Klu") || ([GiD_AccessValue get gendata Solver_Type] eq "MultiLevelSolver")} {
             puts $FileVar "            \"solver_type\": \"[GiD_AccessValue get gendata Solver_Type]\","
             puts $FileVar "            \"scaling\":     [GiD_AccessValue get gendata Scaling]"
@@ -76,8 +76,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
             puts $FileVar "            \"scaling\":     false"
         }
     } else {
-        if {[GiD_AccessValue get gendata Solver_Type] eq "AMGCL"} {
-            puts $FileVar "            \"solver_type\":     \"AMGCL\","
+        if {[GiD_AccessValue get gendata Solver_Type] eq "amgcl"} {
+            puts $FileVar "            \"solver_type\":     \"amgcl\","
             puts $FileVar "            \"smoother_type\":   \"ilu0\","
             puts $FileVar "            \"krylov_type\":     \"gmres\","
             puts $FileVar "            \"coarsening_type\": \"aggregation\","
@@ -85,16 +85,16 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
             puts $FileVar "            \"verbosity\":       [GiD_AccessValue get gendata Verbosity],"
             puts $FileVar "            \"tolerance\":       1.0e-6,"
             puts $FileVar "            \"scaling\":         [GiD_AccessValue get gendata Scaling]"
-        } elseif {[GiD_AccessValue get gendata Solver_Type] eq "BICGSTABSolver"} {
-            puts $FileVar "            \"solver_type\":         \"BICGSTABSolver\","
+        } elseif {[GiD_AccessValue get gendata Solver_Type] eq "bicgstab"} {
+            puts $FileVar "            \"solver_type\":         \"bicgstab\","
             puts $FileVar "            \"tolerance\":           1.0e-6,"
             puts $FileVar "            \"max_iteration\":       100,"
             puts $FileVar "            \"scaling\":             [GiD_AccessValue get gendata Scaling],"
-            puts $FileVar "            \"preconditioner_type\": \"ILU0Preconditioner\""
-        } elseif {([GiD_AccessValue get gendata Solver_Type] eq "SkylineLUFactorizationSolver") || ([GiD_AccessValue get gendata Solver_Type] eq "SuperLUSolver")} {
+            puts $FileVar "            \"preconditioner_type\": \"ilu0\""
+        } elseif {([GiD_AccessValue get gendata Solver_Type] eq "skyline_lu_factorization") || ([GiD_AccessValue get gendata Solver_Type] eq "ExternalSolversApplication.super_lu")} {
             puts $FileVar "            \"solver_type\":   \"[GiD_AccessValue get gendata Solver_Type]\""
         } else {
-            puts $FileVar "            \"solver_type\":   \"SuperLUSolver\""
+            puts $FileVar "            \"solver_type\":   \"ExternalSolversApplication.super_lu\""
         }
     }
     puts $FileVar "        \},"
@@ -140,6 +140,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     set PutStrings \[
     set iGroup 0
     AppendOutputVariables PutStrings iGroup Write_Velocity VELOCITY
+    AppendOutputVariables PutStrings iGroup Write_Nodal_Phi_Gradient NODAL_PHI_GRADIENT
+    AppendOutputVariables PutStrings iGroup Write_Analytic_Solution NODAL_ANALYTIC_SOLUTION
 
     set SolutionType [GiD_AccessValue get gendata Solution_Type]
     set SchemeType [GiD_AccessValue get gendata Scheme]
@@ -182,6 +184,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     set PutStrings \[
     set iGroup 0
     AppendOutputVariables PutStrings iGroup Write_Peclet PECLET
+    AppendOutputVariables PutStrings iGroup Write_Courant CFL_NUMBER
     AppendOutputVariables PutStrings iGroup Write_FIC_Beta FIC_BETA
     AppendOutputVariables PutStrings iGroup Write_Phi_Gradient PHI_GRADIENT
 

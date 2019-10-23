@@ -92,7 +92,7 @@ Condition::Pointer MeshCondition::Create(
     ) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<MeshCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<MeshCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
 
@@ -106,7 +106,7 @@ Condition::Pointer MeshCondition::Create(
     ) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<MeshCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MeshCondition>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
@@ -120,7 +120,7 @@ Condition::Pointer MeshCondition::Clone (
 {
     KRATOS_TRY
 
-    Condition::Pointer p_new_cond = Kratos::make_shared<MeshCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    Condition::Pointer p_new_cond = Kratos::make_intrusive<MeshCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     p_new_cond->SetData(this->GetData());
     p_new_cond->Set(Flags(*this));
     return p_new_cond;

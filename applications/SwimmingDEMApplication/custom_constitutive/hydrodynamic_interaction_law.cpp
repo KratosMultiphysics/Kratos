@@ -72,9 +72,9 @@ namespace Kratos {
 
     double HydrodynamicInteractionLaw::ComputeParticleReynoldsNumber(const double particle_radius,
                                                                      const double fluid_kinematic_viscosity,
-                                                                     const double modulus_of_slip_velocity)
+                                                                     const double modulus_of_minus_slip_velocity)
     {
-        return 2 * particle_radius * modulus_of_slip_velocity / fluid_kinematic_viscosity;
+        return 2 * particle_radius * modulus_of_minus_slip_velocity / fluid_kinematic_viscosity;
     }
 
     void HydrodynamicInteractionLaw::ComputeBuoyancyForce(Geometry<Node<3> >& r_geometry,
@@ -96,19 +96,19 @@ namespace Kratos {
                                                       double particle_radius,
                                                       double fluid_density,
                                                       double fluid_kinematic_viscosity,
-                                                      array_1d<double, 3>& slip_velocity,
+                                                      array_1d<double, 3>& minus_slip_velocity,
                                                       array_1d<double, 3>& drag_force,
                                                       const ProcessInfo& r_current_process_info)
     {
         const double reynolds_number = ComputeParticleReynoldsNumber(particle_radius,
                                                                      fluid_kinematic_viscosity,
-                                                                     SWIMMING_MODULUS_3(slip_velocity));
+                                                                     SWIMMING_MODULUS_3(minus_slip_velocity));
         mpDragLaw->ComputeForce(r_geometry,
                                 reynolds_number,
                                 particle_radius,
                                 fluid_density,
                                 fluid_kinematic_viscosity,
-                                slip_velocity,
+                                minus_slip_velocity,
                                 drag_force,
                                 r_current_process_info);
 
@@ -140,19 +140,19 @@ namespace Kratos {
                                                          double particle_radius,
                                                          double fluid_density,
                                                          double fluid_kinematic_viscosity,
-                                                         array_1d<double, 3>& slip_velocity,
+                                                         array_1d<double, 3>& minus_slip_velocity,
                                                          array_1d<double, 3>& basset_force,
                                                          const ProcessInfo& r_current_process_info)
     {
         const double reynolds_number = ComputeParticleReynoldsNumber(particle_radius,
                                                                      fluid_kinematic_viscosity,
-                                                                     SWIMMING_MODULUS_3(slip_velocity));
+                                                                     SWIMMING_MODULUS_3(minus_slip_velocity));
         return mpHistoryForceLaw->ComputeForce(r_geometry,
                                                reynolds_number,
                                                particle_radius,
                                                fluid_density,
                                                fluid_kinematic_viscosity,
-                                               slip_velocity,
+                                               minus_slip_velocity,
                                                basset_force,
                                                r_current_process_info);
     }
@@ -167,19 +167,19 @@ namespace Kratos {
                                                                  double particle_radius,
                                                                  double fluid_density,
                                                                  double fluid_kinematic_viscosity,
-                                                                 array_1d<double, 3>& slip_velocity,
+                                                                 array_1d<double, 3>& minus_slip_velocity,
                                                                  array_1d<double, 3>& vorticity_induced_lift,
                                                                  const ProcessInfo& r_current_process_info)
     {
         const double reynolds_number = ComputeParticleReynoldsNumber(particle_radius,
                                                                      fluid_kinematic_viscosity,
-                                                                     SWIMMING_MODULUS_3(slip_velocity));
+                                                                     SWIMMING_MODULUS_3(minus_slip_velocity));
         return mpVorticityInducedLiftLaw->ComputeForce(r_geometry,
                                                        reynolds_number,
                                                        particle_radius,
                                                        fluid_density,
                                                        fluid_kinematic_viscosity,
-                                                       slip_velocity,
+                                                       minus_slip_velocity,
                                                        vorticity_induced_lift,
                                                        r_current_process_info);
     }
@@ -188,19 +188,19 @@ namespace Kratos {
                                                                 double particle_radius,
                                                                 double fluid_density,
                                                                 double fluid_kinematic_viscosity,
-                                                                array_1d<double, 3>& slip_velocity,
+                                                                array_1d<double, 3>& minus_slip_velocity,
                                                                 array_1d<double, 3>& rotation_induced_lift,
                                                                 const ProcessInfo& r_current_process_info)
     {
         const double reynolds_number = ComputeParticleReynoldsNumber(particle_radius,
                                                                      fluid_kinematic_viscosity,
-                                                                     SWIMMING_MODULUS_3(slip_velocity));
+                                                                     SWIMMING_MODULUS_3(minus_slip_velocity));
         return mpRotationInducedLiftLaw->ComputeForce(r_geometry,
                                                       reynolds_number,
                                                       particle_radius,
                                                       fluid_density,
                                                       fluid_kinematic_viscosity,
-                                                      slip_velocity,
+                                                      minus_slip_velocity,
                                                       rotation_induced_lift,
                                                       r_current_process_info);
     }
@@ -209,19 +209,19 @@ namespace Kratos {
                                                                 double particle_radius,
                                                                 double fluid_density,
                                                                 double fluid_kinematic_viscosity,
-                                                                array_1d<double, 3>& slip_velocity,
+                                                                array_1d<double, 3>& minus_slip_velocity,
                                                                 array_1d<double, 3>& steady_viscous_torque,
                                                                 const ProcessInfo& r_current_process_info)
     {
         const double reynolds_number = ComputeParticleReynoldsNumber(particle_radius,
                                                                      fluid_kinematic_viscosity,
-                                                                     SWIMMING_MODULUS_3(slip_velocity));
+                                                                     SWIMMING_MODULUS_3(minus_slip_velocity));
         return mpSteadyViscousTorqueLaw->ComputeMoment(r_geometry,
                                                       reynolds_number,
                                                       particle_radius,
                                                       fluid_density,
                                                       fluid_kinematic_viscosity,
-                                                      slip_velocity,
+                                                      minus_slip_velocity,
                                                       steady_viscous_torque,
                                                       r_current_process_info);
     }

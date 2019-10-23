@@ -235,8 +235,8 @@ proc ::wkcf::SelectPythonScript {} {
 
     # For DEM application
     if {$DEMApplication =="Yes" && $FluidApplication =="No" && $DSOLID =="No"} {
-	set endfilename "KratosDEM.py"
-	set ppfilename "KratosDEM.py"
+	set endfilename "KratosDEMAnalysis.py"
+	set ppfilename "KratosDEMAnalysis.py"
 	set tofname [file native [file join $PDir $endfilename]]
 	set fromfname [file native [file join "$PTDir/python" $ppfilename]]
 	if {[catch {file copy -force "$fromfname" "$tofname"} error]} {
@@ -258,14 +258,14 @@ proc ::wkcf::SelectPythonScript {} {
     # For Swimming DEM application
     if {$DEMApplication =="Yes" && $FluidApplication =="Yes"} {
 
-	set ppfilename "KratosSwimmingDEM.py"
+	set ppfilename "KratosSwimmingDEMAnalysis.py"
 	set cxpath "DEM//c.DEM-Cohesivegroup"
 	set glist [::xmlutils::setXmlContainerIds $cxpath]
 
 	if { [llength $glist] } {
 	    WarnWin [= "DEM continuum simulations are not available when interacting with fluid."]
 	}
-	set endfilename "KratosSwimmingDEM.py"
+	set endfilename "KratosSwimmingDEMAnalysis.py"
 	set tofname [file native [file join $PDir $endfilename]]
 	set fromfname [file native [file join "$PTDir/python" $ppfilename]]
 

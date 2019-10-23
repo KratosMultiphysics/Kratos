@@ -64,7 +64,7 @@ namespace Kratos {
                                       double particle_radius,
                                       double fluid_density,
                                       double fluid_kinematic_viscosity,
-                                      array_1d<double, 3>& slip_velocity,
+                                      array_1d<double, 3>& minus_slip_velocity,
                                       array_1d<double, 3>& vorticity_induced_lift,
                                       const ProcessInfo& r_current_process_info)
     {
@@ -74,7 +74,7 @@ namespace Kratos {
                                      particle_radius,
                                      fluid_density,
                                      fluid_kinematic_viscosity,
-                                     slip_velocity,
+                                     minus_slip_velocity,
                                      vorticity_induced_lift,
                                      r_current_process_info);
 
@@ -82,7 +82,7 @@ namespace Kratos {
         Node<3>& node = r_geometry[0];
         const array_1d<double, 3>& vorticity = node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED);
         array_1d<double, 3> vort_cross_slip_vel;
-        SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(slip_velocity, vorticity, vort_cross_slip_vel)
+        SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(minus_slip_velocity, vorticity, vort_cross_slip_vel)
         const double norm_of_vorticity = SWIMMING_MODULUS_3(vorticity);
 
         const double mei_over_saff = ComputeMeiCorrectionOnSaffmanCoefficient(reynolds_number,

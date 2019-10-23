@@ -51,7 +51,6 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
 			modelPart.AddNodalSolutionStepVariable(VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
-			modelPart.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
 
 			// Process info creation
@@ -93,7 +92,12 @@ namespace Kratos {
 				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
 			}
 
+			array_1d<double, 3> embedded_vel;
+			embedded_vel(0) = 1.0;
+			embedded_vel(1) = 2.0;
+			embedded_vel(2) = 0.0;
 			for(unsigned int i=0; i<3; i++){
+				pElement->GetGeometry()[i].SetValue(EMBEDDED_VELOCITY, embedded_vel);
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
@@ -109,11 +113,6 @@ namespace Kratos {
 			pElement->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -1.0;
 			pElement->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) = -1.0;
 			pElement->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) =  0.5;
-			array_1d<double, 3> embedded_vel;
-			embedded_vel(0) = 1.0;
-			embedded_vel(1) = 2.0;
-			embedded_vel(2) = 0.0;
-			pElement->SetValue(EMBEDDED_VELOCITY, embedded_vel);
 
 			// Compute RHS and LHS
 			Vector RHS = ZeroVector(9);
@@ -152,7 +151,6 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
 			modelPart.AddNodalSolutionStepVariable(VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(DISTANCE);
-			modelPart.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
 
 			// Process info creation
@@ -196,7 +194,12 @@ namespace Kratos {
 				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
 			}
 
+			array_1d<double, 3> embedded_vel;
+			embedded_vel(0) = 1.0;
+			embedded_vel(1) = 2.0;
+			embedded_vel(2) = 3.0;
 			for(unsigned int i=0; i<4; i++){
+				pElement->GetGeometry()[i].SetValue(EMBEDDED_VELOCITY, embedded_vel);
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
@@ -213,11 +216,6 @@ namespace Kratos {
 			pElement->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) =  1.0;
 			pElement->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = -1.0;
 			pElement->GetGeometry()[3].FastGetSolutionStepValue(DISTANCE) =  1.0;
-			array_1d<double, 3> embedded_vel;
-			embedded_vel(0) = 1.0;
-			embedded_vel(1) = 2.0;
-			embedded_vel(2) = 3.0;
-			pElement->SetValue(EMBEDDED_VELOCITY, embedded_vel);
 
 			// Compute RHS and LHS
 			Vector RHS = ZeroVector(16);

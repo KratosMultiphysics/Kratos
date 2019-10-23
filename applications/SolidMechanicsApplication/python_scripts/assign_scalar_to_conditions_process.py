@@ -5,7 +5,7 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 ## This proces sets the value of a scalar variable to conditions
 
-import assign_scalar_to_nodes_process as BaseProcess
+from KratosMultiphysics.SolidMechanicsApplication.assign_scalar_to_nodes_process import AssignScalarToNodesProcess
 
 def Factory(custom_settings, Model):
     if( not isinstance(custom_settings,KratosMultiphysics.Parameters) ):
@@ -13,9 +13,9 @@ def Factory(custom_settings, Model):
     return AssignScalarToConditionsProcess(Model, custom_settings["Parameters"])
 
 
-class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
+class AssignScalarToConditionsProcess(AssignScalarToNodesProcess):
     def __init__(self, Model, custom_settings ):
-        BaseProcess.AssignScalarToNodesProcess.__init__(self, Model, custom_settings)
+        AssignScalarToNodesProcess.__init__(self, Model, custom_settings)
 
     def ExecuteInitialize(self):
 

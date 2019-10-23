@@ -16,14 +16,12 @@
 // System includes
 #include <vector>
 #include <string>
-#include <type_traits>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "containers/array_1d.h"
-#include "utilities/builtin_timer.h"
 
 // Application includes
 #include "hdf5_application_define.h"
@@ -37,23 +35,6 @@ namespace HDF5
 {
 ///@addtogroup HDF5Application
 ///@{
-
-namespace Internals
-{
-/// Check if string is a valid path.
-/**
- * Valid paths are similar to linux file system with alphanumeric names
- * and possible underscores separated by '/'. All paths are absolute.
- */
-bool IsPath(const std::string& rPath);
-
-/// Return vector of non-empty substrings separated by a delimiter.
-std::vector<std::string> Split(const std::string& rPath, char Delimiter);
-
-template <class TScalar>
-hid_t GetScalarDataType();
-
-} // namespace Internals.
 
 ///@name Kratos Classes
 ///@{
@@ -115,6 +96,8 @@ public:
     bool IsDataSet(const std::string& rPath) const;
 
     bool HasAttribute(const std::string& rObjectPath, const std::string& rName) const;
+
+    void DeleteAttribute(const std::string& rObjectPath, const std::string& rName);
 
     std::vector<std::string> GetAttributeNames(const std::string& rObjectPath) const;
 
@@ -290,211 +273,49 @@ private:
     ///@}
 
 };
+
+extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, int Value);
+extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, double Value);
+extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Vector<int>& rValue);
+extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Vector<double>& rValue);
+extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Matrix<int>& rValue);
+extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Matrix<double>& rValue);
+
+extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, int& rValue);
+extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, double& rValue);
+extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, Vector<int>& rValue);
+extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, Vector<double>& rValue);
+extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, Matrix<int>& rValue);
+extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, Matrix<double>& rValue);
+
 ///@} // Kratos Classes
-
-template <class TScalar>
-void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, TScalar Value)
-{
-    KRATOS_TRY;
-    BuiltinTimer timer;
-    hid_t type_id, space_id, attr_id;
-
-    type_id = Internals::GetScalarDataType<TScalar>();
-    space_id = H5Screate(H5S_SCALAR);
-    KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
-    attr_id = H5Acreate_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), type_id,
-                                space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    KRATOS_ERROR_IF(attr_id < 0) << "H5Acreate_by_name failed." << std::endl;
-    KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &Value) < 0) << "H5Awrite failed." << std::endl;
-    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
-    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    if (GetEchoLevel() == 2 && GetPID() == 0)
-        std::cout << "Write time \"" << rObjectPath << '/' << rName << "\": " << timer.ElapsedSeconds() << std::endl;
-    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
-}
-
-template <class TScalar>
-void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Vector<TScalar>& rValue)
-{
-    KRATOS_TRY;
-    BuiltinTimer timer;
-    hid_t type_id, space_id, attr_id;
-
-    type_id = Internals::GetScalarDataType<TScalar>();
-    const hsize_t dim = rValue.size();
-    space_id = H5Screate_simple(1, &dim, nullptr);
-    KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
-    attr_id = H5Acreate_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), type_id,
-                                space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    KRATOS_ERROR_IF(attr_id < 0) << "H5Acreate_by_name failed." << std::endl;
-    KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &rValue[0]) < 0) << "H5Awrite failed." << std::endl;
-    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
-    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    if (GetEchoLevel() == 2 && GetPID() == 0)
-        std::cout << "Write time \"" << rObjectPath << '/' << rName << "\": " << timer.ElapsedSeconds() << std::endl;
-    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
-}
-
-template <class TScalar>
-void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Matrix<TScalar>& rValue)
-{
-    KRATOS_TRY;
-    BuiltinTimer timer;
-    hid_t type_id, space_id, attr_id;
-
-    type_id = Internals::GetScalarDataType<TScalar>();
-    const unsigned ndims = 2;
-    hsize_t dims[ndims];
-    dims[0] = rValue.size1();
-    dims[1] = rValue.size2();
-    space_id = H5Screate_simple(ndims, dims, nullptr);
-    KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
-    attr_id = H5Acreate_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), type_id,
-                                space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    KRATOS_ERROR_IF(attr_id < 0) << "H5Acreate_by_name failed." << std::endl;
-    KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &rValue(0,0)) < 0) << "H5Awrite failed." << std::endl;
-    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
-    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    if (GetEchoLevel() == 2 && GetPID() == 0)
-        std::cout << "Write time \"" << rObjectPath << '/' << rName << "\": " << timer.ElapsedSeconds() << std::endl;
-    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
-}
-
-template <class TScalar>
-void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, TScalar& rValue)
-{
-    KRATOS_TRY;
-    BuiltinTimer timer;
-    hid_t mem_type_id, attr_type_id, space_id, attr_id;
-    int ndims;
-
-    mem_type_id = Internals::GetScalarDataType<TScalar>();
-    attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(),
-                                    H5P_DEFAULT, H5P_DEFAULT);
-    KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
-
-    // Check data type.
-    attr_type_id = H5Aget_type(attr_id);
-    KRATOS_ERROR_IF(attr_type_id < 0) << "H5Aget_type failed." << std::endl;
-    htri_t is_valid_type = H5Tequal(mem_type_id, attr_type_id);
-    KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl; 
-    KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
-    KRATOS_ERROR_IF(is_valid_type == 0) << "Memory and file data types are different." << std::endl;
-
-    // Check dimensions.
-    space_id = H5Aget_space(attr_id);
-    KRATOS_ERROR_IF(space_id < 0) << "H5Aget_space failed." << std::endl;
-    KRATOS_ERROR_IF((ndims = H5Sget_simple_extent_ndims(space_id)) < 0)
-        << "H5Sget_simple_extent_ndims failed." << std::endl;
-    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
-    KRATOS_ERROR_IF(ndims != 0) << "Attribute \"" << rName << "\" is not scalar." << std::endl;
-    
-    // Read attribute.
-    KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue) < 0) << "H5Aread failed." << std::endl; 
-    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    if (GetEchoLevel() == 2 && GetPID() == 0)
-        std::cout << "Read time \"" << rObjectPath << '/' << rName << "\": " << timer.ElapsedSeconds() << std::endl;
-    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
-}
-
-template <class TScalar>
-void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, Vector<TScalar>& rValue)
-{
-    KRATOS_TRY;
-    BuiltinTimer timer;
-    hid_t mem_type_id, attr_type_id, space_id, attr_id;
-    int ndims;
-    hsize_t dims[1];
-
-    mem_type_id = Internals::GetScalarDataType<TScalar>();
-    attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(),
-                                    H5P_DEFAULT, H5P_DEFAULT);
-    KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
-
-    // Check data type.
-    attr_type_id = H5Aget_type(attr_id);
-    KRATOS_ERROR_IF(attr_type_id < 0) << "H5Aget_type failed." << std::endl;
-    htri_t is_valid_type = H5Tequal(mem_type_id, attr_type_id);
-    KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl; 
-    KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
-    KRATOS_ERROR_IF(is_valid_type == 0) << "Memory and file data types are different." << std::endl;
-
-    // Check dimensions.
-    space_id = H5Aget_space(attr_id);
-    KRATOS_ERROR_IF(space_id < 0) << "H5Aget_space failed." << std::endl;
-    KRATOS_ERROR_IF((ndims = H5Sget_simple_extent_ndims(space_id)) < 0)
-        << "H5Sget_simple_extent_ndims failed." << std::endl;
-    KRATOS_ERROR_IF(ndims != 1) << "Attribute \"" << rName << "\" is not vector." << std::endl;
-    KRATOS_ERROR_IF(H5Sget_simple_extent_dims(space_id, dims, nullptr) < 0)
-        << "H5Sget_simple_extent_dims failed" << std::endl;
-    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
-    rValue.resize(dims[0], false);
-    // Read attribute.
-    KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue[0]) < 0) << "H5Aread failed." << std::endl; 
-    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    if (GetEchoLevel() == 2 && GetPID() == 0)
-        std::cout << "Read time \"" << rObjectPath << '/' << rName << "\": " << timer.ElapsedSeconds() << std::endl;
-    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
-}
-
-template <class TScalar>
-void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, Matrix<TScalar>& rValue)
-{
-    KRATOS_TRY;
-    BuiltinTimer timer;
-    hid_t mem_type_id, attr_type_id, space_id, attr_id;
-    int ndims;
-    hsize_t dims[2];
-
-    mem_type_id = Internals::GetScalarDataType<TScalar>();
-    attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(),
-                                    H5P_DEFAULT, H5P_DEFAULT);
-    KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
-
-    // Check data type.
-    attr_type_id = H5Aget_type(attr_id);
-    KRATOS_ERROR_IF(attr_type_id < 0) << "H5Aget_type failed." << std::endl;
-    htri_t is_valid_type = H5Tequal(mem_type_id, attr_type_id);
-    KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl; 
-    KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
-    KRATOS_ERROR_IF(is_valid_type == 0) << "Memory and file data types are different." << std::endl;
-
-    // Check dimensions.
-    space_id = H5Aget_space(attr_id);
-    KRATOS_ERROR_IF(space_id < 0) << "H5Aget_space failed." << std::endl;
-    KRATOS_ERROR_IF((ndims = H5Sget_simple_extent_ndims(space_id)) < 0)
-        << "H5Sget_simple_extent_ndims failed." << std::endl;
-    KRATOS_ERROR_IF(ndims != 2) << "Attribute \"" << rName << "\" is not matrix." << std::endl;
-    KRATOS_ERROR_IF(H5Sget_simple_extent_dims(space_id, dims, nullptr) < 0)
-        << "H5Sget_simple_extent_dims failed" << std::endl;
-    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
-    rValue.resize(dims[0], dims[1], false);
-    // Read attribute.
-    KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue(0,0)) < 0) << "H5Aread failed." << std::endl; 
-    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    if (GetEchoLevel() == 2 && GetPID() == 0)
-        std::cout << "Read time \"" << rObjectPath << '/' << rName << "\": " << timer.ElapsedSeconds() << std::endl;
-    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
-}
 
 namespace Internals
 {
-template <class TScalar>
-hid_t GetScalarDataType()
-{
-    hid_t type_id;
-    constexpr bool is_int_type = std::is_same<int, TScalar>::value;
-    constexpr bool is_double_type = std::is_same<double, TScalar>::value;
-    if (is_int_type)
-        type_id = H5T_NATIVE_INT;
-    else if (is_double_type)
-        type_id = H5T_NATIVE_DOUBLE;
-    else
-        static_assert(is_int_type || is_double_type,
-                      "Unsupported scalar data type.");
+/// Check if string is a valid path.
+/**
+ * Valid paths are similar to linux file system with alphanumeric names
+ * and possible underscores separated by '/'. All paths are absolute.
+ */
+bool IsPath(const std::string& rPath);
 
-    return type_id;
-}
+/// Return vector of non-empty substrings separated by a delimiter.
+std::vector<std::string> Split(const std::string& rPath, char Delimiter);
+
+hid_t GetScalarDataType(const Vector<int>&);
+hid_t GetScalarDataType(const Vector<double>&);
+hid_t GetScalarDataType(const Vector<array_1d<double, 3>>&);
+hid_t GetScalarDataType(const Matrix<int>&);
+hid_t GetScalarDataType(const Matrix<double>&);
+hid_t GetScalarDataType(int);
+hid_t GetScalarDataType(double);
+
+std::vector<hsize_t> GetDataDimensions(const Vector<int>& rData);
+std::vector<hsize_t> GetDataDimensions(const Vector<double>& rData);
+std::vector<hsize_t> GetDataDimensions(const Vector<array_1d<double, 3>>& rData);
+std::vector<hsize_t> GetDataDimensions(const Matrix<int>& rData);
+std::vector<hsize_t> GetDataDimensions(const Matrix<double>& rData);
+std::vector<hsize_t> GetDataDimensions(const File& rFile, const std::string& rPath);
 } // namespace Internals.
 
 ///@} addtogroup

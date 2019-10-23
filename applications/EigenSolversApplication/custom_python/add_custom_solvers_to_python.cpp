@@ -20,7 +20,7 @@
 #include "custom_solvers/eigen_direct_solver.h"
 #include "custom_solvers/eigensystem_solver.h"
 
-#include "includes/standard_linear_solver_factory.h"
+#include "factories/standard_linear_solver_factory.h"
 #include "eigen_solvers_application.h"
 
 namespace Kratos {

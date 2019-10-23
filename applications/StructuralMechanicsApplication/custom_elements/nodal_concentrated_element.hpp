@@ -48,7 +48,7 @@ public:
     ///@name Type Definitions
     ///@{
     /// Counted pointer of NodalConcentratedElement
-    KRATOS_CLASS_POINTER_DEFINITION( NodalConcentratedElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( NodalConcentratedElement);
     ///@}
 
 public:

@@ -31,8 +31,8 @@ namespace Testing {
     Line2D2 <NodeType> GenerateExampleLine()
     {
         // First we create the nodes
-        NodeType::Pointer p_node_1 = Kratos::make_shared<NodeType>(1, 0.0 , 0.0 , 0.0);
-        NodeType::Pointer p_node_2 = Kratos::make_shared<NodeType>(2, 1.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_1 = Kratos::make_intrusive<Node<3>>(1, 0.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_2 = Kratos::make_intrusive<Node<3>>(2, 1.0 , 0.0 , 0.0);
 
         // Now we create the geometry
         std::vector<NodeType::Pointer> line_nodes (2);
@@ -46,9 +46,9 @@ namespace Testing {
     Triangle2D3 <NodeType> GenerateExampleTriangle()
     {
         // First we create the nodes
-        NodeType::Pointer p_node_1 = Kratos::make_shared<NodeType>(1, 0.0 , 0.0 , 0.0);
-        NodeType::Pointer p_node_2 = Kratos::make_shared<NodeType>(2, 1.0 , 0.0 , 0.0);
-        NodeType::Pointer p_node_3 = Kratos::make_shared<NodeType>(3, 1.0 , 1.0 , 0.0);
+        NodeType::Pointer p_node_1 = Kratos::make_intrusive<Node<3>>(1, 0.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_2 = Kratos::make_intrusive<Node<3>>(2, 1.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_3 = Kratos::make_intrusive<Node<3>>(3, 1.0 , 1.0 , 0.0);
 
         // Now we create the geometry
         std::vector<NodeType::Pointer> triangle_nodes (3);
@@ -63,9 +63,9 @@ namespace Testing {
     Triangle3D3 <NodeType> GenerateExampleTriangle3D()
     {
         // First we create the nodes
-        NodeType::Pointer p_node_1 = Kratos::make_shared<NodeType>(1, 0.0 , 0.0 , 0.0);
-        NodeType::Pointer p_node_2 = Kratos::make_shared<NodeType>(2, 1.0 , 0.0 , 0.0);
-        NodeType::Pointer p_node_3 = Kratos::make_shared<NodeType>(3, 1.0 , 1.0 , 0.0);
+        NodeType::Pointer p_node_1 = Kratos::make_intrusive<Node<3>>(1, 0.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_2 = Kratos::make_intrusive<Node<3>>(2, 1.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_3 = Kratos::make_intrusive<Node<3>>(3, 1.0 , 1.0 , 0.0);
 
         // Now we create the geometry
         std::vector<NodeType::Pointer> triangle_nodes (3);
@@ -80,10 +80,10 @@ namespace Testing {
     Tetrahedra3D4 <NodeType> GenerateExampleTetrahedra()
     {
         // First we create the nodes
-        NodeType::Pointer p_node_1 = Kratos::make_shared<NodeType>(1, 0.0 , 0.0 , 0.0);
-        NodeType::Pointer p_node_2 = Kratos::make_shared<NodeType>(2, 1.0 , 0.0 , 0.0);
-        NodeType::Pointer p_node_3 = Kratos::make_shared<NodeType>(3, 1.0 , 1.0 , 0.0);
-        NodeType::Pointer p_node_4 = Kratos::make_shared<NodeType>(4, 1.0 , 1.0 , 1.0);
+        NodeType::Pointer p_node_1 = Kratos::make_intrusive<Node<3>>(1, 0.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_2 = Kratos::make_intrusive<Node<3>>(2, 1.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_3 = Kratos::make_intrusive<Node<3>>(3, 1.0 , 1.0 , 0.0);
+        NodeType::Pointer p_node_4 = Kratos::make_intrusive<Node<3>>(4, 1.0 , 1.0 , 1.0);
 
         // Now we create the geometry
         std::vector<NodeType::Pointer> tetrahedra_nodes (4);

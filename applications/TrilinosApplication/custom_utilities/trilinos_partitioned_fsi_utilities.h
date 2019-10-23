@@ -29,7 +29,7 @@
 // Project includes
 #include "includes/define.h"
 
-#include "../FSIapplication/custom_utilities/partitioned_fsi_utilities.hpp"
+#include "../FSIApplication/custom_utilities/partitioned_fsi_utilities.hpp"
 
 namespace Kratos
 {
@@ -99,8 +99,7 @@ namespace Kratos
       {
           // Initialize Epetra_Map for the vector
           int NumLocalInterfaceDofs = rInterfaceModelPart.GetCommunicator().LocalMesh().NumberOfNodes() * TDim;
-          int NumGlobalInterfaceDofs = NumLocalInterfaceDofs;
-          rInterfaceModelPart.GetCommunicator().SumAll(NumGlobalInterfaceDofs);
+          int NumGlobalInterfaceDofs = rInterfaceModelPart.GetCommunicator().GetDataCommunicator().SumAll(NumLocalInterfaceDofs);
           int IndexBase = 0; // 0 for C-style vectors, 1 for Fortran numbering
           Epetra_Map InterfaceMap(NumGlobalInterfaceDofs,NumLocalInterfaceDofs,IndexBase,mrEpetraComm);
 

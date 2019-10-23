@@ -675,15 +675,15 @@ protected:
 
         /// We transfer the temporal sets to our DoF set
         dof_temp_all.reserve(dof_global_set.size());
-        for (auto& dof : dof_global_set) {
-            dof_temp_all.push_back( dof.get() );
+        for (auto p_dof : dof_global_set) {
+            dof_temp_all.push_back( p_dof );
         }
         dof_temp_all.Sort();
         BaseType::mDofSet = dof_temp_all;
 
         dof_temp_slave.reserve(dof_global_slave_set.size());
-        for (auto& dof : dof_global_slave_set) {
-            dof_temp_slave.push_back( dof.get() );
+        for (auto p_dof : dof_global_slave_set) {
+            dof_temp_slave.push_back( p_dof );
         }
         dof_temp_slave.Sort();
         mDoFSlaveSet = dof_temp_slave;
@@ -1576,8 +1576,8 @@ private:
         }
 
         dof_temp_fixed_master.reserve(dof_global_fixed_master_set.size());
-        for (auto& dof : dof_global_fixed_master_set) {
-            dof_temp_fixed_master.push_back( dof.get() );
+        for (auto p_dof : dof_global_fixed_master_set) {
+            dof_temp_fixed_master.push_back( p_dof );
         }
         dof_temp_fixed_master.Sort();
         mDoFMasterFixedSet = dof_temp_fixed_master;

@@ -785,7 +785,7 @@ void ASGS2D::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const boost
 
 // 	if(this->Has(NEIGHBOUR_ELEMENTS))
 // 	{
-// 		WeakPointerVector< Element >& ne = this->GetValue(NEIGHBOUR_ELEMENTS);
+// 		GlobalPointersVector< Element >& ne = this->GetValue(NEIGHBOUR_ELEMENTS);
 // 		//edges are
 // 		//0 1 - 1 2 - 2 0
 // 		boost::numeric::ublas::bounded_matrix<double, 3, 2 > temp;

@@ -309,8 +309,10 @@ void  AddIOToPython(pybind11::module& m)
 
 
     py::class_<VtkOutput, VtkOutput::Pointer, IO>(m, "VtkOutput")
+        .def(py::init< ModelPart&>())
         .def(py::init< ModelPart&, Parameters >())
         .def("PrintOutput", &VtkOutput::PrintOutput)
+        .def_static("GetDefaultParameters", &VtkOutput::GetDefaultParameters)
         ;
 
     py::class_<UnvOutput, UnvOutput::Pointer>(m, "UnvOutput")

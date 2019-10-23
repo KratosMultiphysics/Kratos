@@ -71,7 +71,7 @@ public:
     ///@{
 
     /// Pointer definition of StokesWallCondition
-    KRATOS_CLASS_POINTER_DEFINITION(StokesWallCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StokesWallCondition);
 
     typedef Node < 3 > NodeType;
 
@@ -177,7 +177,7 @@ public:
       */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<StokesWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<StokesWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
 
@@ -188,7 +188,7 @@ public:
       @param pProperties Pointer to the element's properties
       */
     Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override {
-        return Kratos::make_shared< StokesWallCondition >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< StokesWallCondition >(NewId, pGeom, pProperties);
     }
 
 
@@ -280,8 +280,6 @@ public:
                 KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
             if(VISCOSITY.Key() == 0)
                 KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
-            if(IS_STRUCTURE.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
              if(EXTERNAL_PRESSURE.Key() == 0)
                 KRATOS_THROW_ERROR(std::invalid_argument,"EXTERNAL_PRESSURE Key is 0. Check if the application was correctly registered.","");
 

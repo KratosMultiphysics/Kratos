@@ -76,13 +76,13 @@ DynamicVMS<TDim>::~DynamicVMS()
 template< unsigned int TDim >
 Element::Pointer DynamicVMS<TDim>::Create(IndexType NewId, const NodesArrayType &ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<DynamicVMS>(NewId,this->GetGeometry().Create(ThisNodes),pProperties,this->mIntegrationMethod);
+    return Kratos::make_intrusive<DynamicVMS>(NewId,this->GetGeometry().Create(ThisNodes),pProperties,this->mIntegrationMethod);
 }
 
 template< unsigned int TDim >
 Element::Pointer DynamicVMS<TDim>::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<DynamicVMS>(NewId,pGeom,pProperties,this->mIntegrationMethod);
+    return Kratos::make_intrusive<DynamicVMS>(NewId,pGeom,pProperties,this->mIntegrationMethod);
 }
 
 

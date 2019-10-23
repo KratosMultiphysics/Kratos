@@ -50,73 +50,149 @@ RigidFace3D::~RigidFace3D() {}
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidFace3D::Initialize() {
+void RigidFace3D::Initialize(const ProcessInfo& rCurrentProcessInfo) {
+    if (! rCurrentProcessInfo[IS_RESTARTED]){
+        const unsigned int number_of_nodes = GetGeometry().size();
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-
-    for (unsigned int i=0; i< number_of_nodes; i++)
-    {
-        this->GetGeometry()[i].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
-        this->GetGeometry()[i].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+        for (unsigned int i=0; i< number_of_nodes; i++)
+        {
+            this->GetGeometry()[i].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
+            this->GetGeometry()[i].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+        }
     }
 }
 
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                         ProcessInfo& r_process_info)
-{
+void RigidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) {
     const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
 
-    if (rRightHandSideVector.size() != MatSize)
-    {
+    if (rRightHandSideVector.size() != MatSize) {
         rRightHandSideVector.resize(MatSize, false);
     }
     rRightHandSideVector = ZeroVector(MatSize);
 
+    std::vector<SphericParticle*>& vector_of_glued_particles = GetVectorOfGluedParticles();
+    for (unsigned int i=0; i<vector_of_glued_particles.size(); i++) {
+        SphericParticle* p_particle = vector_of_glued_particles[i];
+        DEMIntegrationScheme& dem_scheme = p_particle->GetTranslationalIntegrationScheme();
+        GluedToWallScheme* p_glued_scheme = dynamic_cast<GluedToWallScheme*>(&dem_scheme);
+        #ifdef KRATOS_DEBUG
+        Condition* p_condition = p_glued_scheme->pGetCondition();
+        if(p_condition != this) {
+            KRATOS_ERROR << "Inconsistency in the pointers to faces of the glued spheres!! Condition with id: " <<this->Id()<<" used a sphere with Id: "<<p_particle->Id()<<" glued to it, but the sphere was actually glued to a Condition with Id: "<<p_condition->Id()<<std::endl;
+        }
+        #endif
+        array_1d<double, 3> force = ZeroVector(3);
+        std::vector<double> weights_vector(number_of_nodes, 0.0);
+        noalias(force) = p_particle->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
+        Vector& r_shape_functions_values = p_glued_scheme->GetShapeFunctionsValues();
+        for(size_t j=0; j<r_shape_functions_values.size(); j++) {
+            weights_vector[j] = r_shape_functions_values[j];
+        }
+        for (unsigned int k=0; k< number_of_nodes; k++) {
+            rRightHandSideVector[k * 3 + 0] += force[0] * weights_vector[k];
+            rRightHandSideVector[k * 3 + 1] += force[1] * weights_vector[k];
+            rRightHandSideVector[k * 3 + 2] += force[2] * weights_vector[k];
+        }
+
+
+        //AddForcesDueToTorque(rRightHandSideVector, r_shape_functions_values, weights_vector, force, p_particle);
+    }
     std::vector<SphericParticle*>& rNeighbours = this->mNeighbourSphericParticles;
 
-    for (unsigned int i=0; i<rNeighbours.size(); i++)
-    {
+    for (unsigned int i=0; i<rNeighbours.size(); i++) {
         if(rNeighbours[i]->Is(BLOCKED)) continue; //Inlet Generator Spheres are ignored when integrating forces.
+        array_1d<double, 3> force = ZeroVector(3);
+        std::vector<double> weights_vector(number_of_nodes, 0.0);
+        ComputeForceAndWeightsOfSphereOnThisFace(rNeighbours[i], force, weights_vector);
 
-        std::vector<DEMWall*>& rRFnei = rNeighbours[i]->mNeighbourRigidFaces;
+        for (unsigned int k=0; k< number_of_nodes; k++) {
+            rRightHandSideVector[k * 3 + 0] += -force[0] * weights_vector[k];
+            rRightHandSideVector[k * 3 + 1] += -force[1] * weights_vector[k];
+            rRightHandSideVector[k * 3 + 2] += -force[2] * weights_vector[k];
+        }
+    }
+}
 
-        for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
-        {
-            int Contact_Type = rNeighbours[i]->mContactConditionContactTypes[i_nei];
+void RigidFace3D::AddForcesDueToTorque(VectorType& rRightHandSideVector, Vector& r_shape_functions_values, std::vector<double>& weights_vector, array_1d<double, 3>& force, SphericParticle* p_particle) {
+    DEMIntegrationScheme& dem_scheme = p_particle->GetTranslationalIntegrationScheme();
+    GluedToWallScheme* p_glued_scheme = dynamic_cast<GluedToWallScheme*>(&dem_scheme);
+    array_1d<double, 3> inner_point = ZeroVector(3);
+    for(size_t j=0; j<r_shape_functions_values.size(); j++) {
+        noalias(inner_point) += weights_vector[j] * GetGeometry()[j];
+    }
+    array_1d<double, 3> unit_normal;
+    noalias(unit_normal) = GetGeometry().UnitNormal(GetGeometry()[0]);
 
-            if ( ( rRFnei[i_nei]->Id() == this->Id() ) && (Contact_Type > 0 ) )
-            {
+    array_1d<double, 3> normal_force;
+    const double dot_product_force_unit_normal = force[0]*unit_normal[0] + force[1]*unit_normal[1] + force[2]*unit_normal[2];
+    noalias(normal_force) = dot_product_force_unit_normal * unit_normal;
+    array_1d<double, 3> tangential_force;
+    noalias(tangential_force) = force - normal_force;
+    const double modulus_of_tangential_force = MathUtils<double>::Norm3(tangential_force);
+    array_1d<double, 3> torque;
+    array_1d<double, 3> inner_to_ball = p_glued_scheme->GetDistanceSignedWithNormal() * unit_normal;
+    MathUtils<double>::CrossProduct(torque, inner_to_ball, tangential_force);
+    array_1d<double, 3> unit_tangential_force = tangential_force;
+    double aux_inv_modulus = 1.0 / modulus_of_tangential_force;
+    unit_tangential_force[0] *= aux_inv_modulus;
+    unit_tangential_force[1] *= aux_inv_modulus;
+    unit_tangential_force[2] *= aux_inv_modulus;
+    array_1d<double, 3> unit_perpendicular_to_tangential_force;
+    MathUtils<double>::CrossProduct(unit_perpendicular_to_tangential_force, unit_normal, tangential_force);
+    aux_inv_modulus = 1.0 / MathUtils<double>::Norm3(unit_perpendicular_to_tangential_force);
+    unit_perpendicular_to_tangential_force[0] *= aux_inv_modulus;
+    unit_perpendicular_to_tangential_force[1] *= aux_inv_modulus;
+    unit_perpendicular_to_tangential_force[2] *= aux_inv_modulus;
+    const double modulus_of_torque = MathUtils<double>::Norm3(torque);
+    array_1d<double, 3> inner_to_node;
+    noalias(inner_to_node) = GetGeometry()[0] - inner_point;
+    const double d1 = MathUtils<double>::Dot3(inner_to_node, unit_tangential_force);
+    const double dp1 = MathUtils<double>::Dot3(inner_to_node, unit_perpendicular_to_tangential_force);
+    noalias(inner_to_node) = GetGeometry()[1] - inner_point;
+    const double d2 = MathUtils<double>::Dot3(inner_to_node, unit_tangential_force);
+    const double dp2 = MathUtils<double>::Dot3(inner_to_node, unit_perpendicular_to_tangential_force);
+    noalias(inner_to_node) = GetGeometry()[2] - inner_point;
+    const double d3 = MathUtils<double>::Dot3(inner_to_node, unit_tangential_force);
+    const double dp3 = MathUtils<double>::Dot3(inner_to_node, unit_perpendicular_to_tangential_force);
+    const double aux = 1.0 / (dp2 - dp3);
+    const double f1 = -1.0 * modulus_of_torque / (d1 - d2*dp1*aux + d2*dp3*aux - d3 + d3*dp1*aux - d3*dp3*aux);
+    const double f2 = (dp3-dp1)*f1*aux;
+    const double f3 = -f1 -f2;
 
-                const array_1d<double, 4>& weights_vector = rNeighbours[i]->mContactConditionWeights[i_nei];
-                double weight = 0.0;
+    std::vector<array_1d<double, 3> > forces_due_to_torque;
+    forces_due_to_torque.resize(3);
+    noalias(forces_due_to_torque[0]) = f1 * unit_normal;
+    noalias(forces_due_to_torque[1]) = f2 * unit_normal;
+    noalias(forces_due_to_torque[2]) = f3 * unit_normal;
 
-                double ContactForce[3] = {0.0};
+    const unsigned int number_of_nodes = GetGeometry().size();
+    for (unsigned int k=0; k< number_of_nodes; k++) {
+        rRightHandSideVector[k * 3 + 0] += forces_due_to_torque[k][0];
+        rRightHandSideVector[k * 3 + 1] += forces_due_to_torque[k][1];;
+        rRightHandSideVector[k * 3 + 2] += forces_due_to_torque[k][2];;
+    }
+}
 
-                const array_1d<double, 3>& neighbour_rigid_faces_contact_force = rNeighbours[i]->mNeighbourRigidFacesTotalContactForce[i_nei];
+void RigidFace3D::ComputeForceAndWeightsOfSphereOnThisFace(SphericParticle* p_particle, array_1d<double, 3>& force, std::vector<double>& weights_vector) {
+    if(p_particle->Is(DEMFlags::STICKY)) return;
 
-                ContactForce[0] = neighbour_rigid_faces_contact_force[0];
-                ContactForce[1] = neighbour_rigid_faces_contact_force[1];
-                ContactForce[2] = neighbour_rigid_faces_contact_force[2];
+    std::vector<DEMWall*>& rRFnei = p_particle->mNeighbourRigidFaces;
 
-                for (unsigned int k=0; k< number_of_nodes; k++)
-                {
-                    weight = weights_vector[k];
+    for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++) {
+        int Contact_Type = p_particle->mContactConditionContactTypes[i_nei];
 
-                    unsigned int w =  k * 3;
+        if ( (rRFnei[i_nei] == this) && (Contact_Type > 0 ) ) {
+            for(size_t i=0; i<weights_vector.size(); i++) weights_vector[i] = p_particle->mContactConditionWeights[i_nei][i];
+            const array_1d<double, 3>& neighbour_rigid_faces_contact_force = p_particle->mNeighbourRigidFacesTotalContactForce[i_nei];
+            noalias(force) = neighbour_rigid_faces_contact_force;
+        }//if the condition neighbour of my sphere neighbour is myself.
+    }
 
-                    rRightHandSideVector[w + 0] += -ContactForce[0] * weight;
-                    rRightHandSideVector[w + 1] += -ContactForce[1] * weight;
-                    rRightHandSideVector[w + 2] += -ContactForce[2] * weight;
-                }
-
-            }//if the condition neighbour of my sphere neighbour is myself.
-        }//Loop spheres neighbours (condition)
-    }//Loop condition neighbours (spheres)
-}//CalculateRightHandSide
+}
 
 void RigidFace3D::CalculateElasticForces(VectorType& rElasticForces,
                                          ProcessInfo& r_process_info)

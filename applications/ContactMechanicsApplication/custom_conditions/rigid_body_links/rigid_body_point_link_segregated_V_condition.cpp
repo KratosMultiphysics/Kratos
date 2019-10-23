@@ -49,7 +49,7 @@ RigidBodyPointLinkSegregatedVCondition::RigidBodyPointLinkSegregatedVCondition( 
 //***********************************************************************************
 Condition::Pointer RigidBodyPointLinkSegregatedVCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-  return Kratos::make_shared<RigidBodyPointLinkSegregatedVCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+  return Kratos::make_intrusive<RigidBodyPointLinkSegregatedVCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 

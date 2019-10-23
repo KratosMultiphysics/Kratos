@@ -18,9 +18,10 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_dirichlet_condition.h"
-#include "utilities/math_utils.h"
 #include "includes/kratos_flags.h"
+#include "utilities/math_utils.h"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -44,9 +45,9 @@ MPMParticlePenaltyDirichletCondition::MPMParticlePenaltyDirichletCondition( Inde
 //********************************* CREATE *******************************************
 //************************************************************************************
 
-Condition::Pointer MPMParticlePenaltyDirichletCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
+Condition::Pointer MPMParticlePenaltyDirichletCondition::Create(IndexType NewId,GeometryType::Pointer pGeometry,PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<MPMParticlePenaltyDirichletCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMParticlePenaltyDirichletCondition>(NewId, pGeometry, pProperties);
 }
 
 //************************************************************************************
@@ -54,7 +55,7 @@ Condition::Pointer MPMParticlePenaltyDirichletCondition::Create(IndexType NewId,
 
 Condition::Pointer MPMParticlePenaltyDirichletCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared<MPMParticlePenaltyDirichletCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<MPMParticlePenaltyDirichletCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 //******************************* DESTRUCTOR *****************************************
@@ -74,8 +75,8 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( ProcessInfo& 
     // Additional treatment for slip conditions
     if (Is(SLIP))
     {
-        GeometryType& rGeom = GetGeometry();
-        const unsigned int number_of_nodes = rGeom.PointsNumber();
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int number_of_nodes = r_geometry.PointsNumber();
         const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
         GeneralVariables Variables;
 
@@ -88,10 +89,11 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( ProcessInfo& 
         // Here MPC contribution of normal vector are added
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            rGeom[i].SetLock();
-            rGeom[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0;
-            rGeom[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * unit_normal_vector;
-            rGeom[i].UnSetLock();
+            r_geometry[i].SetLock();
+            r_geometry[i].Set(SLIP);
+            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0;
+            r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * unit_normal_vector;
+            r_geometry[i].UnSetLock();
         }
     }
 }
@@ -138,7 +140,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
 
     // Get imposed displacement and normal vector
     const array_1d<double, 3 > & xg_c = this->GetValue(MPC_COORD);
-    const array_1d<double, 3 > & imposed_displacement = this->GetValue (MPC_DISPLACEMENT);
+    const array_1d<double, 3 > & imposed_displacement = this->GetValue (MPC_IMPOSED_DISPLACEMENT);
 
     // Prepare variables
     GeneralVariables Variables;
@@ -153,7 +155,8 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
     if (Is(CONTACT))
     {
         // NOTE: the unit_normal_vector is assumed always pointing outside the boundary
-        const array_1d<double, 3 > & unit_normal_vector = this->GetValue(MPC_NORMAL);
+        array_1d<double, 3 > & unit_normal_vector = this->GetValue(MPC_NORMAL);
+        ParticleMechanicsMathUtilities<double>::Normalize(unit_normal_vector);
         array_1d<double, 3 > field_displacement = ZeroVector(3);
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
@@ -212,7 +215,13 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
             noalias(rRightHandSideVector) -= prod(prod(trans(shape_function), shape_function), gap_function);
             rRightHandSideVector *= penalty_factor * this->GetIntegrationWeight();
         }
-
+    }
+    else{
+        // To improve stability: use identity matrix to avoid nonzero diagonal LHS matrix
+        if ( CalculateStiffnessMatrixFlag == true )
+        {
+            noalias(rLeftHandSideMatrix) = IdentityMatrix(matrix_size);
+        }
     }
 
     KRATOS_CATCH( "" )
@@ -230,20 +239,32 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( ProcessInfo& rC
     // Additional treatment for slip conditions
     if (Is(SLIP))
     {
-        GeometryType& rGeom = GetGeometry();
-        const unsigned int number_of_nodes = rGeom.PointsNumber();
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
         // Here MPC normal vector and IS_STRUCTURE are reset
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            rGeom[i].SetLock();
-            rGeom[i].FastGetSolutionStepValue(IS_STRUCTURE) = 0.0;
-            rGeom[i].FastGetSolutionStepValue(NORMAL).clear();
-            rGeom[i].UnSetLock();
+            r_geometry[i].SetLock();
+            r_geometry[i].Reset(SLIP);
+            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 0.0;
+            r_geometry[i].FastGetSolutionStepValue(NORMAL).clear();
+            r_geometry[i].UnSetLock();
         }
     }
 
     KRATOS_CATCH( "" )
+}
+
+int MPMParticlePenaltyDirichletCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+{
+    MPMParticleBaseDirichletCondition::Check(rCurrentProcessInfo);
+
+    // Verify that the dofs exist
+    for (const auto& r_node : this->GetGeometry().Points())
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,r_node)
+
+    return 0;
 }
 
 } // Namespace Kratos

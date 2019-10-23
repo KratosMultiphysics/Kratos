@@ -9,7 +9,7 @@
 #include "DEM_discontinuum_constitutive_law.h"
 
 namespace Kratos {
-    
+
     class SphericParticle;
 
     class KRATOS_API(DEM_APPLICATION) DEM_D_Bentonite_Colloid : public DEMDiscontinuumConstitutiveLaw {
@@ -19,10 +19,8 @@ namespace Kratos {
 
         DEM_D_Bentonite_Colloid();
 
-        void Initialize(const ProcessInfo& r_process_info) override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
-        
         std::string GetTypeOfLaw() override;
 
         ~DEM_D_Bentonite_Colloid() {
@@ -30,15 +28,11 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
-        void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override;  
-
-        void InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta = 0.0) override;
-
         void CalculateForces(const ProcessInfo& r_process_info,
                              const double OldLocalContactForce[3],
                             double LocalElasticContactForce[3],
                             double LocalDeltDisp[3],
-                            double LocalRelVel[3],            
+                            double LocalRelVel[3],
                             double indentation,
                             double previous_indentation,
                             double ViscoDampingLocalContactForce[3],
@@ -46,12 +40,12 @@ namespace Kratos {
                             SphericParticle* element1,
                             SphericParticle* element2,
                             bool& sliding, double LocalCoordSystem[3][3]) override;
-        
+
         void CalculateForcesWithFEM(ProcessInfo& r_process_info,
                                     const double OldLocalContactForce[3],
                                     double LocalElasticContactForce[3],
                                     double LocalDeltDisp[3],
-                                    double LocalRelVel[3],            
+                                    double LocalRelVel[3],
                                     double indentation,
                                     double previous_indentation,
                                     double ViscoDampingLocalContactForce[3],
@@ -65,7 +59,7 @@ namespace Kratos {
         double CalculateNormalForce(const double distance, const double cation_concentration);
         double CalculateVanDerWaalsForce(const double);
         double CalculateDiffuseDoubleLayerForce(const double distance, const double cation_concentration);
-        
+
         double CalculateCohesiveNormalForce(SphericParticle* const element1,
                                             SphericParticle* const element2,
                                             const double indentation) override;
@@ -79,7 +73,7 @@ namespace Kratos {
                                             const double OldLocalContactForce[3],
                                             double LocalElasticContactForce[3],
                                             double ViscoDampingLocalContactForce[3],
-                                            const double LocalDeltDisp[3],            
+                                            const double LocalDeltDisp[3],
                                             bool& sliding,
                                             SphericParticle* const element,
                                                    NeighbourClassType* const neighbour,
@@ -95,18 +89,18 @@ namespace Kratos {
                                         double ViscoDampingLocalContactForce[3],
                                         SphericParticle* const element,
                                         Condition* const wall);
-        
+
         double mA_H;
         double mA_p;
         double mD_p;
         double mThickness;
         double mDDLCoefficient;
         double mEquivRadius;
-        
+
     private:
 
 
-        
+
         friend class Serializer;
 
         virtual void save(Serializer& rSerializer) const override {

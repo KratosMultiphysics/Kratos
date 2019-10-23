@@ -17,10 +17,11 @@ cmake .. \
 -DHDF5_APPLICATION=ON                                                                           \
 -DDAM_APPLICATION=ON                                                                            \
 -DDEM_APPLICATION=ON                                                                            \
--DEMPIRE_APPLICATION=ON                                                                         \
+-DCO_SIMULATION_APPLICATION=ON                                                                  \
 -DEXTERNAL_SOLVERS_APPLICATION=ON                                                               \
 -DFSI_APPLICATION=ON                                                                            \
 -DFLUID_DYNAMICS_APPLICATION=ON                                                                 \
+-DCSHARP_WRAPPER_APPLICATION=ON                                                                 \
 -DMESHING_APPLICATION=ON                                                                        \
 -DINCLUDE_MMG=ON                                                                                \
 -DMMG_INCLUDE_DIR="${HOME}/MMGPrecompiled-master/include/"                                      \
@@ -48,11 +49,12 @@ cmake .. \
 -DIGA_APPLICATION=ON                                                                            \
 -DANURBS_ROOT="${HOME}/ANurbs"                                                                  \
 -DSWIMMING_DEM_APPLICATION=OFF                                                                  \
--DTHERMO_MECHANICAL_APPLICATION=ON                                                              \
+-DTHERMO_MECHANICAL_APPLICATION=OFF                                                              \
 -DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                                   \
 -DMAPPING_APPLICATION=ON                                                                        \
 -DMETIS_APPLICATION=OFF                                                                         \
 -DCOMPRESSIBLE_POTENTIAL_FLOW_APPLICATION=ON                                                    \
+-DCABLE_NET_APPLICATION=ON                                                                      \
 -DPARMETIS_ROOT_DIR=\"UNSET\"                                                                   \
 -DTRILINOS_APPLICATION=OFF                                                                      \
 -DTRILINOS_ROOT=\"UNSET\"                                                                       \

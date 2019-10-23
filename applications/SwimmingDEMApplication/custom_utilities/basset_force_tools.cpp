@@ -561,7 +561,7 @@ void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
     double time = r_process_info[TIME];
     r_process_info[LAST_TIME_APPENDING] = time;
 
-    if (r_process_info[BASSET_FORCE_TYPE] >= 3 && mNumberOfExponentials > 0){
+    if (mBassetForceType >= 3 && mNumberOfExponentials > 0){
 
         for (ElementIterator iparticle = r_model_part.ElementsBegin(); iparticle != r_model_part.ElementsEnd(); iparticle++){
             Node<3>& node = iparticle->GetGeometry()[0];

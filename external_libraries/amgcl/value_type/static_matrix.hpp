@@ -185,6 +185,12 @@ struct scalar_of< static_matrix<T, N, M> > {
     typedef typename scalar_of<T>::type type;
 };
 
+/// Replace scalar type in the static matrix.
+template <class T, int N, int M, class S>
+struct replace_scalar<static_matrix<T, N, M>, S> {
+    typedef static_matrix<S, N, M> type;
+};
+
 /// RHS type corresponding to a non-scalar type.
 template <class T, int N>
 struct rhs_of< static_matrix<T, N, N> > {

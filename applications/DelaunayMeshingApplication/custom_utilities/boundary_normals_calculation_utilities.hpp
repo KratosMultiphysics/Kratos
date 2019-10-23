@@ -59,9 +59,9 @@ class BoundaryNormalsCalculationUtilities
   typedef ModelPart::ConditionsContainerType ConditionsContainerType;
   typedef ModelPart::MeshType                               MeshType;
 
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-  typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
+  typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 
   ///@}
   ///@name Life Cycle
@@ -675,7 +675,13 @@ protected:
           InvJ.clear();
           detJ=0;
           //Calculating the inverse of the jacobian and the parameters needed
-          MathUtils<double>::InvertMatrix( J, InvJ, detJ);
+          if(dimension==2){
+            MathUtils<double>::InvertMatrix2( J, InvJ, detJ);
+          }else if(dimension==3){
+            MathUtils<double>::InvertMatrix3( J, InvJ, detJ);
+          }else{
+            MathUtils<double>::InvertMatrix( J, InvJ, detJ);
+          }
 
 
           //Compute cartesian derivatives for one gauss point
@@ -932,7 +938,7 @@ protected:
   //**************************************************************************
 
   template<class TClassType>
-  void ComputeBoundaryShrinkage(ModelPart::NodesContainerType& rNodes, const std::vector<WeakPointerVector<TClassType> >& rNeighbours, const std::vector<int>& rNodeNeighboursIds, const unsigned int& dimension )
+  void ComputeBoundaryShrinkage(ModelPart::NodesContainerType& rNodes, const std::vector<GlobalPointersVector<TClassType> >& rNeighbours, const std::vector<int>& rNodeNeighboursIds, const unsigned int& dimension )
   {
     KRATOS_TRY
 
@@ -1320,7 +1326,7 @@ protected:
 
 
   // template<class TClassType>
-  // void ComputeBoundaryShrinkage(ModelPart::NodesContainerType& rNodes, const std::vector<WeakPointerVector<TClassType> >& rNeighbours, const std::vector<int>& rIds, const unsigned int& dimension )
+  // void ComputeBoundaryShrinkage(ModelPart::NodesContainerType& rNodes, const std::vector<GlobalPointersVector<TClassType> >& rNeighbours, const std::vector<int>& rIds, const unsigned int& dimension )
   // {
 
   //   KRATOS_TRY

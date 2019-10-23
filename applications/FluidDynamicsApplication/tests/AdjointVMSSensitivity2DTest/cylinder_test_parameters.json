@@ -50,6 +50,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "AdjointVMSSensitivity2DTest/cylinder_test"
         },
+        "material_import_settings": {
+            "materials_filename": "AdjointVMSSensitivity2DTest/cylinder_test_materials.json"
+        },
         "model_part_name"              : "MainModelPart",
         "domain_size"                  : 2,
         "maximum_iterations"           : 10,
@@ -141,19 +144,13 @@
                 "file_settings" : {
                     "file_access_mode" : "truncate"
                 },
-                "model_part_output_settings" : {
-                    "prefix" : "/ModelData"
-                },
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
-                },
-                "output_time_settings" : {
-                    "output_step_frequency": 1
                 }
             }
         },{
             "python_module" : "compute_body_fitted_drag_process",
-                "kratos_module" : "KratosMultiphysics",
+                "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
                 "process_name"  : "ComputeBodyFittedDragProcess",
                 "Parameters" : {
                     "model_part_name"           : "NoSlip2D_Cylinder",

@@ -18,18 +18,60 @@
 namespace Kratos
 {
 
-class AdjointFiniteDifferenceCrBeamElement : public AdjointFiniteDifferencingBaseElement
+template <typename TPrimalElement>
+class AdjointFiniteDifferenceCrBeamElement
+    : public AdjointFiniteDifferencingBaseElement<TPrimalElement>
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointFiniteDifferenceCrBeamElement);
+    // redefine the typedefs because of templated base class
+    typedef AdjointFiniteDifferencingBaseElement<TPrimalElement> BaseType;
+    typedef typename BaseType::SizeType SizeType;
+    typedef typename BaseType::IndexType IndexType;
+    typedef typename BaseType::GeometryType GeometryType;
+    typedef typename BaseType::PropertiesType PropertiesType;
+    typedef typename BaseType::NodesArrayType NodesArrayType;
+    typedef typename BaseType::VectorType VectorType;
+    typedef typename BaseType::MatrixType MatrixType;
+    typedef typename BaseType::EquationIdVectorType EquationIdVectorType;
+    typedef typename BaseType::DofsVectorType DofsVectorType;
+    typedef typename BaseType::DofsArrayType DofsArrayType;
+    typedef typename BaseType::IntegrationMethod IntegrationMethod;
+    typedef typename BaseType::GeometryDataType GeometryDataType;
 
-    AdjointFiniteDifferenceCrBeamElement(): AdjointFiniteDifferencingBaseElement()
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointFiniteDifferenceCrBeamElement);
+
+    AdjointFiniteDifferenceCrBeamElement(IndexType NewId = 0)
+    : BaseType(NewId, true)
     {
     }
 
-    AdjointFiniteDifferenceCrBeamElement(Element::Pointer pPrimalElement);
+    AdjointFiniteDifferenceCrBeamElement(IndexType NewId, typename GeometryType::Pointer pGeometry)
+    : BaseType(NewId, pGeometry, true)
+    {
+    }
 
-    ~AdjointFiniteDifferenceCrBeamElement() override;
+    AdjointFiniteDifferenceCrBeamElement(IndexType NewId,
+                        typename GeometryType::Pointer pGeometry,
+                        typename PropertiesType::Pointer pProperties)
+    : BaseType(NewId, pGeometry, pProperties, true)
+    {
+    }
+
+    Element::Pointer Create(IndexType NewId,
+                              NodesArrayType const& ThisNodes,
+                              typename PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<AdjointFiniteDifferenceCrBeamElement<TPrimalElement>>(
+            NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    }
+
+    Element::Pointer Create(IndexType NewId,
+                              typename GeometryType::Pointer pGeometry,
+                              typename PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<AdjointFiniteDifferenceCrBeamElement<TPrimalElement>>(
+            NewId, pGeometry, pProperties);
+    }
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 

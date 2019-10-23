@@ -1,7 +1,5 @@
-import os
 import sys
-sys.path.append(os.getcwd())
-from KratosMultiphysics import *
+from KratosMultiphysics import Parameters
 import KratosSwimmingDEM as script
 import sys
 import ProjectParameters as pp
