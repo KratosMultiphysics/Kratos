@@ -33,4 +33,4 @@ class SumDistToSingle(CoSimulationDataTransferOperator):
 
     @classmethod
     def _GetListAvailableTransferOptions(cls):
-        return ["swap_sign", "add_values"]
+        return ["swap_sign", "add_values", "redistribute_data"]
