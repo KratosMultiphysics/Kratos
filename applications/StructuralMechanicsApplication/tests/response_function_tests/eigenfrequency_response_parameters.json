@@ -9,7 +9,7 @@
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0
     },
-    "kratos_response_settings":{
+    "response_settings" :{
         "response_type"          : "eigenfrequency",
         "primal_settings"        : "eigenfrequency_primal_parameters.json",
         "gradient_mode"          : "semi_analytic",

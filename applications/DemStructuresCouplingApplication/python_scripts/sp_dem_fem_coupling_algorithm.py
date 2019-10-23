@@ -57,6 +57,8 @@ class SPAlgorithm(Algorithm):
     def Initialize(self):
         super(SPAlgorithm,self).Initialize()
 
+        self.InitializeAdditionalProcessInfoVars()
+
         if self.test_number:
             from KratosMultiphysics.DemStructuresCouplingApplication.control_module_fem_dem_utility import ControlModuleFemDemUtility
             self.control_module_fem_dem_utility = ControlModuleFemDemUtility(self.model, self.dem_solution.spheres_model_part, self.test_number)
@@ -70,6 +72,9 @@ class SPAlgorithm(Algorithm):
 
         from KratosMultiphysics.DemStructuresCouplingApplication import stress_failure_check_utility
         self.stress_failure_check_utility = stress_failure_check_utility.StressFailureCheckUtility(self.dem_solution.spheres_model_part, self.test_number)
+
+    def InitializeAdditionalProcessInfoVars(self):
+        self.dem_solution.spheres_model_part.ProcessInfo.SetValue(SIGMA_3_AVERAGE, 0.0)
 
     def RunSolutionLoop(self):
 

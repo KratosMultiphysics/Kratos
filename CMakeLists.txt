@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 2.8.6)
 
 
 # Setting some policies
-# No recursive dereferencing 
+# No recursive dereferencing
 if(POLICY CMP0054)
   cmake_policy(SET CMP0054 NEW)
 endif(POLICY CMP0054)
@@ -264,10 +264,6 @@ if(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON )
     add_definitions(-DADD_)
   endif(DEFINED ${KRATOS_SUPERLU_FORTRAN_MANGLING})
 endif(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON )
-
-if(${TRILINOS_APPLICATION} MATCHES ON )
-  set(BLAS_INCLUDE_NEEDED ON)
-endif(${TRILINOS_APPLICATION} MATCHES ON )
 
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
   find_package(Tetgen REQUIRED)

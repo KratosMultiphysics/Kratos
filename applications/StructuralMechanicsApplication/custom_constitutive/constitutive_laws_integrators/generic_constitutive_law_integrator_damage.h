@@ -145,6 +145,7 @@ class GenericConstitutiveLawIntegratorDamage
             KRATOS_ERROR << "SOFTENING_TYPE not defined or wrong..." << softening_type << std::endl;
             break;
         }
+        rDamage = (rDamage > 0.999) ? 0.999 : rDamage;
         rPredictiveStressVector *= (1.0 - rDamage);
     }
 

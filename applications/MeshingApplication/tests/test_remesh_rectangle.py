@@ -9,6 +9,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import os
 
+from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
+
 class TestRemeshMMG2D(KratosUnittest.TestCase):
 
     def test_remesh_rectangle_hessian(self):
@@ -215,7 +217,6 @@ class TestRemeshMMG2D(KratosUnittest.TestCase):
         #gid_output.ExecuteFinalize()
 
         # We check the solution
-        from compare_two_files_check_process import CompareTwoFilesCheckProcess
         check_parameters = KratosMultiphysics.Parameters("""
         {
             "reference_file_name"   : "mmg_lagrangian_test/remesh_rectangle_result.sol",

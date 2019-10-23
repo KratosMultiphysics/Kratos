@@ -29,14 +29,14 @@
 namespace Kratos {
 
 template <int TWorkingSpaceDimension, class TCurveContainerPointType, class TSurfaceContainerPointType>
-class NurbsCurveOnSurfaceGeometry : public NurbsCurveGeometry<2, TCurveContainerPointType>
+// class NurbsCurveOnSurfaceGeometry : public NurbsCurveGeometry<2, TCurveContainerPointType>
+class NurbsCurveOnSurfaceGeometry
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Geometry as base class.
-    // typedef Geometry<typename TCurveContainerPointType::value_type> BaseType;
     typedef NurbsCurveGeometry<2, TCurveContainerPointType> BaseType;
     typedef NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TCurveContainerPointType, TSurfaceContainerPointType> GeometryType;
 
@@ -48,7 +48,6 @@ public:
 
     /** Array of counted pointers to point. This type used to hold
         geometry's points.*/
-    // typedef  typename TCurveContainerPointType PointsArrayType;
     typedef  typename BaseType::PointsArrayType PointsArrayType;
 
     typedef  typename BaseType::CoordinatesArrayType CoordinatesArrayType;
@@ -63,26 +62,18 @@ public:
     NurbsCurveOnSurfaceGeometry(
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve)
-        : BaseType(
-            pCurve->Points(), 
-            pCurve->PolynomialDegree(), 
-            pCurve->Knots(),
-            pCurve->Weights()
-        )
-        , mpNurbsSurface(pSurface)
-        , mpNurbsCurve(pCurve)
+        : mpNurbsSurface(pSurface), mpNurbsCurve(pCurve)
     {
     }
 
-    explicit NurbsCurveOnSurfaceGeometry(const PointsArrayType& ThisPoints)
+    /*explicit NurbsCurveOnSurfaceGeometry(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
     {
-    }
+    }*/
 
     /// Copy constructor.
     NurbsCurveOnSurfaceGeometry(NurbsCurveOnSurfaceGeometry const& rOther)
-        : BaseType(rOther)
-        , mpNurbsSurface(rOther.mpNurbsSurface)
+        : mpNurbsSurface(rOther.mpNurbsSurface)
         , mpNurbsCurve(rOther.mpNurbsCurve)
     {
     }
@@ -90,14 +81,13 @@ public:
     /// Copy constructor from a geometry with different point type.
     template<class TOtherCurveContainerPointType, class TOtherSurfaceContainerPointType> NurbsCurveOnSurfaceGeometry(
         NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TCurveContainerPointType, TOtherSurfaceContainerPointType> const& rOther)
-        : BaseType(rOther)
-        , mpNurbsSurface(rOther.mpNurbsSurface)
+        : mpNurbsSurface(rOther.mpNurbsSurface)
         , mpNurbsCurve(rOther.mpNurbsCurve)
     {
     }
 
     /// Destructor
-    ~NurbsCurveOnSurfaceGeometry() override = default;
+    // ~NurbsCurveOnSurfaceGeometry() override = default;
 
     ///@}
     ///@name Operators
@@ -166,18 +156,20 @@ public:
     * @return std::vector<array_1d<double, 3>> with the coordinates in working space
     * @see PointLocalCoordinates
     */
-    std::vector<CoordinatesArrayType> GlobalDerivatives(
+    std::vector<CoordinatesArrayType> GlobalSpaceDerivatives(
         const CoordinatesArrayType& rCoordinates,
         const SizeType DerivativeOrder) const
     {
         // Compute the gradients of the embedded curve in the parametric space of the surface
-        auto curve_derivatives = mpNurbsCurve->GlobalDerivatives(rCoordinates, DerivativeOrder);
+        std::vector<array_1d<double, 3>> curve_derivatives;
+        mpNurbsCurve->GlobalSpaceDerivatives(curve_derivatives, rCoordinates, DerivativeOrder);
         
         // Compute the gradients of the surface in the geometric space
         array_1d<double, 2> surface_coordinates =  ZeroVector(2);
         surface_coordinates[0] = curve_derivatives[0][0];
         surface_coordinates[1] = curve_derivatives[0][1];
-        auto surface_derivatives = mpNurbsSurface->GlobalDerivatives(surface_coordinates, DerivativeOrder);
+        std::vector<array_1d<double, 3>> surface_derivatives;
+        mpNurbsSurface->GlobalSpaceDerivatives(surface_derivatives, surface_coordinates, DerivativeOrder);
         
         // Compute the gradients of the embedded curve in the geometric space
         std::vector<array_1d<double, 3>> derivatives(DerivativeOrder + 1);
@@ -219,7 +211,7 @@ public:
     CoordinatesArrayType& GlobalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rLocalCoordinates
-    ) const override
+    ) const
     {
         // Compute the coordinates of the embedded curve in the parametric space of the surface
         rResult = mpNurbsCurve->GlobalCoordinates(rResult, rLocalCoordinates);
@@ -233,19 +225,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    std::string Info() const
     {
         return "2 dimensional nurbs curve on 3D surface.";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "2 dimensional nurbs curve on 3D surface.";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const
     {
     }
 
@@ -269,14 +261,14 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
         rSerializer.save("pNurbsSurface", mpNurbsSurface);
         rSerializer.save("pNurbsCurve", mpNurbsCurve);
     }
 
-    void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
         rSerializer.load("pNurbsSurface", mpNurbsSurface);
