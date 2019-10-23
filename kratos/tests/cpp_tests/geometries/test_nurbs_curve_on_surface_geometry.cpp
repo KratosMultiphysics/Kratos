@@ -189,7 +189,8 @@ typedef Node<3> NodeType;
         parameter[0] = 8.0;
 
         // Compute the derivatives of the gradient of the curve on surface up to 2nd order
-        auto derivatives = curve_on_surface.GlobalSpaceDerivatives(parameter, 2);
+        std::vector<array_1d<double, 3>> derivatives;
+        curve_on_surface.GlobalSpaceDerivatives(derivatives, parameter, 2);
 
         // Compare the position vectors and the gradients up to 2nd order
         std::vector<double> positionVct = {3.75, 4.375, 1.5063476563};
@@ -212,7 +213,8 @@ typedef Node<3> NodeType;
             parameter[0] = 4.0;
 
             // Compute the global coordinates of the curve on surface
-            auto global_coordinates = curve_on_surface.GlobalSpaceDerivatives(parameter, 1);
+            std::vector<array_1d<double, 3>> global_coordinates;
+            curve_on_surface.GlobalSpaceDerivatives(global_coordinates, parameter, 1);
 
             // Compare the position vectors
             std::vector<double> positionVct = {0.054174511426802, -0.034958783455029, 0.038314563432352};
@@ -226,7 +228,8 @@ typedef Node<3> NodeType;
             parameter[0] = 0.0;
 
             // Compute the derivatives of the gradient of the curve on surface up to 2nd order
-            auto derivatives = curve_on_surface.GlobalSpaceDerivatives(parameter, 1);
+            std::vector<array_1d<double, 3>> derivatives;
+            curve_on_surface.GlobalSpaceDerivatives(derivatives, parameter, 1);
 
             // Compare the position vectors and the gradients up to 2nd order
             std::vector<double> positionVct = {0.032428916974017, -0.057744163816062, 0.035199103526597};
@@ -242,7 +245,8 @@ typedef Node<3> NodeType;
             parameter[0] = 7.2109;
 
             // Compute the derivatives of the gradient of the curve on surface up to 2nd order
-            auto derivatives = curve_on_surface.GlobalSpaceDerivatives(parameter, 1);
+            std::vector<array_1d<double, 3>> derivatives;
+            curve_on_surface.GlobalSpaceDerivatives(derivatives, parameter, 1);
 
             // Compare the position vectors and the gradients up to 2nd order
             std::vector<double> positionVct = {0.062263623548203, -0.021647529053958, 0.035771855815790};
