@@ -19,7 +19,7 @@ namespace Kratos {
 
         ~DEM_D_Linear_HighStiffness() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 

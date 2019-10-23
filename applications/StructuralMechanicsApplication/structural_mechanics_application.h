@@ -78,6 +78,7 @@
 #include "custom_conditions/axisym_line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
 #include "custom_conditions/point_moment_condition_3d.h"
+#include "custom_conditions/displacement_control_condition.h"
 
 /* Adding the adjoint conditions */
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
@@ -85,6 +86,8 @@
 /* CONSTITUTIVE LAWS */
 #include "custom_constitutive/truss_plasticity_constitutive_law.h"
 #include "custom_constitutive/truss_constitutive_law.h"
+#include "custom_constitutive/hyper_elastic_isotropic_ogden_1d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_henky_1d.h"
 #include "custom_constitutive/beam_constitutive_law.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/axisym_elastic_isotropic.h"
@@ -456,10 +459,15 @@ private:
     const AdjointSemiAnalyticPointLoadCondition<PointLoadCondition> mAdjointSemiAnalyticPointLoadCondition2D1N;
     const AdjointSemiAnalyticPointLoadCondition<PointLoadCondition> mAdjointSemiAnalyticPointLoadCondition3D1N;
 
+    // Displacement-Control Conditions
+    const DisplacementControlCondition mDisplacementControlCondition3D1N;
+
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws
     const TrussConstitutiveLaw mTrussConstitutiveLaw;
     const TrussPlasticityConstitutiveLaw mTrussPlasticityConstitutiveLaw;
+    const HyperElasticIsotropicOgden1D mHyperElasticIsotropicOgden1D;
+    const HyperElasticIsotropicHenky1D mHyperElasticIsotropicHenky1D;
     const BeamConstitutiveLaw mBeamConstitutiveLaw;
     const ElasticIsotropic3D mElasticIsotropic3D;
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
