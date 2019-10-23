@@ -519,7 +519,7 @@ protected:
     /**
      * @param rCurrentProcessInfo ProcessInfo instance from the fluid ModelPart. Must contain DELTA_TIME and BDF_COEFFICIENTS variables.
      */
-    virtual void SetTimeCoefficients(ProcessInfo& rCurrentProcessInfo)
+    void SetTimeCoefficients(ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 
@@ -652,7 +652,7 @@ protected:
         return NormDp;
     }
 
-    virtual bool CheckFractionalStepConvergence(const double NormDv)
+    bool CheckFractionalStepConvergence(const double NormDv)
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
 
@@ -692,7 +692,7 @@ protected:
             return false;
     }
 
-    virtual bool CheckPressureConvergence(const double NormDp)
+    bool CheckPressureConvergence(const double NormDp)
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
 
@@ -866,7 +866,7 @@ protected:
      * @brief Substract wall-normal component of velocity update to ensure that the final velocity satisfies slip conditions.
      * @param rSlipWallFlag If Node.Is(rSlipWallFlag) == true, the node is in the wall.
      */
-    virtual void EnforceSlipCondition(const Kratos::Flags& rSlipWallFlag)
+    void EnforceSlipCondition(const Kratos::Flags& rSlipWallFlag)
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
 
