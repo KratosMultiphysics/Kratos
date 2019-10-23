@@ -12,11 +12,15 @@ class SDoFSolver(object):
     def __init__(self, input_file_name):
 
         #input_file_name = self.solver_settings["input_file"]
-        if not input_file_name.endswith(".json"):
-            input_file_name += ".json"
+        if isinstance(input_file_name, dict):
+            parameters = input_file_name
 
-        with open(input_file_name,'r') as ProjectParameters:
-            parameters = json.load(ProjectParameters)
+        if isinstance(input_file_name, str):
+            if not input_file_name.endswith(".json"):
+                input_file_name += ".json"
+
+            with open(input_file_name,'r') as ProjectParameters:
+                parameters = json.load(ProjectParameters)
 
         default_settings = {
                 "system_parameters":{
@@ -26,9 +30,8 @@ class SDoFSolver(object):
                 },
                 "time_integration_parameters":{
                     "alpha_m"   : -0.3,
-                    "alpha_f"   : 0.0,
                     "start_time": 0.0,
-                    "time_step" : 0.05
+                    "time_step" : 0.05,
                 },
                 "initial_values":{
                     "displacement"  : 0.0,
@@ -59,7 +62,6 @@ class SDoFSolver(object):
         self.damping = parameters["system_parameters"]["damping"]
 
         self.alpha_m = parameters["time_integration_parameters"]["alpha_m"]
-        self.alpha_f = parameters["time_integration_parameters"]["alpha_f"]
         self.delta_t = parameters["time_integration_parameters"]["time_step"]
         self.start_time = parameters["time_integration_parameters"]["start_time"]
 
@@ -74,26 +76,24 @@ class SDoFSolver(object):
         self.amplitude_root_point_displacement = parameters["boundary_conditions"]["amplitude_root_point_displacement"]
         self.amplitude_force = parameters["boundary_conditions"]["amplitude_force"]
 
-
-
         #calculate initial acceleration
         factor = self.load_impulse - self.stiffness * self.initial_displacement
         self.initial_acceleration = (1/self.mass) * factor
 
-        self.beta = 0.25 * (1- self.alpha_m + self.alpha_f)**2
-        self.gamma =  0.50 - self.alpha_m + self.alpha_f
+        self.beta = 0.25 * (1- self.alpha_m)**2
+        self.gamma =  0.50 - self.alpha_m
 
         self.LHS = np.array([[1.0, 0.0, -self.delta_t**2 * self.beta],
                              [0.0, 1.0, -self.delta_t * self.gamma],
-                             [(1-self.alpha_f)*self.stiffness,
-                               (1-self.alpha_f) * self.damping,
+                             [self.stiffness,
+                              self.damping,
                                (1-self.alpha_m) * self.mass]])
 
         self.RHS_matrix = np.array([[1.0, self.delta_t, self.delta_t**2 * (0.5 - self.beta)],
                                     [0.0, 1.0, self.delta_t*(1-self.gamma)],
-                                    [-self.alpha_f * self.stiffness,
-                                      -self.alpha_f * self.damping,
-                                      -self.alpha_m * self.mass]])
+                                    [-self.stiffness,
+                                     -self.damping,
+                                     -self.alpha_m * self.mass]])
 
         self.buffer_size = parameters["solver_parameters"]["buffer_size"]
         self.output_file_name = parameters["output_parameters"]["file_name"]
