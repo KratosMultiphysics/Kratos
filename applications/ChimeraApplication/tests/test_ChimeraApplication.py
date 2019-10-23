@@ -5,14 +5,13 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests to test_classes to create the suits
-#sys.path.insert(0, 'chimera_monolithic_simple_test')
 #from chimera_analysis_test import FlowOverCylinderMonolithic
 #from chimera_analysis_test import FlowOverCylinderFractionalStep
 from chimera_analysis_test import FlowOverCrossFractionalStep
 from chimera_analysis_test import FlowOverCrossMonolithic
 from rotate_region_test import ChimeraRotateRegionTest
-#from chimera_analysis_test import MonolithicMultiPatch
-#from chimera_analysis_test import FractionalStepMultiPatch
+from chimera_analysis_test import MonolithicMultiPatch
+from chimera_analysis_test import FractionalStepMultiPatch
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -41,18 +40,13 @@ def AssembleTestSuites():
     #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicMultiPatch]))
     #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepMultiPatch]))
 
-    # Create a test suit with the selected tests
-    # nightSuite will contain the following tests:
-    # - testSmallExample
-    # - testNightlyFirstExample
-    # - testNightlySecondExample
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
 
     ## Validation suite. Big cases go here
-    #validationSuite = suites['validation']
-    #validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCylinderMonolithic]))
-    #validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCylinderFractionalStep]))
+    validationSuite = suites['validation']
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCylinderMonolithic]))
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCylinderFractionalStep]))
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']
