@@ -376,7 +376,9 @@ namespace Kratos
             if(i_min == coordinates.end())
                 return coordinates.size() - 2;
 
-            return std::distance(coordinates.begin(), i_min);
+            std::size_t index = std::distance(coordinates.begin(), i_min);
+
+            return (index < coordinates.size() - 2) ? index : coordinates.size() - 2;
         }
 
         
