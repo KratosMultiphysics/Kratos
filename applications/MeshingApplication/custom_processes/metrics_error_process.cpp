@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix 
+//  Main authors:    Vicente Mataix
 //                   Anna Rehr
 //
 
@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "meshing_application_variables.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "custom_processes/metrics_error_process.h"
 #include "custom_utilities/meshing_utilities.h"
@@ -75,18 +76,14 @@ void MetricErrorProcess<TDim>::Execute()
     /******************************************************************************
     --1-- Initialize metric --1--
     ******************************************************************************/
-    // Tensor variable definition
-    const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
-
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
-    KRATOS_DEBUG_ERROR_IF(nodes_array.size() == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
-    if (nodes_array.begin()->Has(tensor_variable) == false) {
-        const TensorArrayType zero_array(3 * (TDim - 1), 0.0);
-
+    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
+    KRATOS_DEBUG_ERROR_IF(r_nodes_array.size() == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
+    if (!r_nodes_array.begin()->Has(METRIC_SCALAR)) {
+        const auto it_node_begin = r_nodes_array.begin();
         // We iterate over the nodes
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
-            (nodes_array.begin() + i)->SetValue(tensor_variable, zero_array);
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i)
+            (it_node_begin + i)->SetValue(METRIC_SCALAR, 0.0);
     }
 
     /******************************************************************************
@@ -156,25 +153,22 @@ template<SizeType TDim>
 void MetricErrorProcess<TDim>::CalculateMetric()
 {
     // Array of nodes
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
 
     // We do a find of neighbours
     {
         FindNodalNeighboursProcess find_neighbours(mrThisModelPart);
-        if (nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
+        if (r_nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
         find_neighbours.Execute();
     }
 
-    // Tensor variable definition
-    const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
-
     // Iteration over all nodes
-    const int num_nodes = static_cast<int>(nodes_array.size());
+    const int num_nodes = static_cast<int>(r_nodes_array.size());
     KRATOS_DEBUG_ERROR_IF(num_nodes == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
 
     #pragma omp parallel for
     for(int i_node = 0; i_node < num_nodes; ++i_node) {
-        auto it_node = nodes_array.begin() + i_node;
+        auto it_node = r_nodes_array.begin() + i_node;
         /**************************************************************************
         ** Determine nodal element size h:
         ** if mAverageNodalH == true : the nodal element size is averaged from the element size of neighboring elements
@@ -195,18 +189,10 @@ void MetricErrorProcess<TDim>::CalculateMetric()
         // Average Nodal H
         if(mAverageNodalH) h_min = h_min/static_cast<double>(neigh_elements.size());
 
-        // Set metric
-        BoundedMatrix<double, TDim, TDim> metric_matrix = ZeroMatrix(TDim, TDim);
-        for(IndexType i = 0;i < TDim; ++i)
-            metric_matrix(i,i) = 1.0/std::pow(h_min, 2);
-
-        // Transform metric matrix to a vector
-        const TensorArrayType metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
-
         // Setting value
-        it_node->SetValue(tensor_variable, metric);
+        it_node->SetValue(METRIC_SCALAR, h_min);
 
-        KRATOS_INFO_IF("MetricErrorProcess", mEchoLevel > 2) << "Node " << it_node->Id() << " has metric: "<< metric << std::endl;
+        KRATOS_INFO_IF("MetricErrorProcess", mEchoLevel > 2) << "Node " << it_node->Id() << " has metric: "<< h_min << std::endl;
     }
 }
 
