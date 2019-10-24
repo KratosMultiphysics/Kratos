@@ -76,6 +76,7 @@ build_kratos_all_wheel () {
     setup_wheel_dir
     cp ${KRATOS_ROOT}/scripts/wheels/linux/KratosMultiphysics-all.json ${WHEEL_ROOT}/wheel.json
     cp ${KRATOS_ROOT}/scripts/wheels/linux/setup_kratos_all.py ${WHEEL_ROOT}/setup.py
+    cd ${WHEEL_ROOT}
     $PYTHON_LOCATION setup.py bdist_wheel
     cp dist/* ${WHEEL_OUT}
 }
