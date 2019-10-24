@@ -388,9 +388,9 @@ bool FindIntersectedGeometricalObjectsProcess::HasIntersection2D(
     // Check the intersection of each edge against the intersecting object
     const array_1d<double, 3>& r_coordinates_second_geometry_1 = rSecondGeometry[0].Coordinates();
     const array_1d<double, 3>& r_coordinates_second_geometry_2 = rSecondGeometry[1].Coordinates();
-    auto r_edges = rFirstGeometry.Edges();
+    const auto edges = rFirstGeometry.GenerateEdges();
     PointType int_pt(0.0,0.0,0.0);
-    for (auto& edge : r_edges) {
+    for (auto& edge : edges) {
         const int int_id = IntersectionUtilities::ComputeLineLineIntersection<Line2D2<NodeType>>(
             Line2D2<NodeType>{edge},
             r_coordinates_second_geometry_1,
@@ -453,7 +453,7 @@ bool FindIntersectedGeometricalObjectsProcess::HasIntersection3D(
     )
 {
     // Check the intersection of each face against the intersecting object
-    auto faces = rFirstGeometry.Faces();
+    const auto faces = rFirstGeometry.GenerateFaces();
     for (auto& face : faces) {
         if (face.HasIntersection(rSecondGeometry)){
             return true;
