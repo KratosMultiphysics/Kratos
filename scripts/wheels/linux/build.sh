@@ -79,6 +79,9 @@ build_kratos_all_wheel () {
     cd ${WHEEL_ROOT}
     $PYTHON_LOCATION setup.py bdist_wheel
     cp dist/* ${WHEEL_OUT}
+
+    cd
+    rm -r $WHEEL_ROOT
 }
 
 build () {
