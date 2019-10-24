@@ -53,7 +53,16 @@ before_build:
 # Custom build script
 build_script:
   - cmd: SET preferredToolArchitecture=x64
-  - cmd: MSBuild.exe kratos/all_unity.vcxproj /p:Configuration=Debug /p:Platform="x64"
-  - cmd: MSBuild.exe install_unity.vcxproj /p:Configuration=Debug /p:Platform="x64"
+  - cmd: Msbuild.exe external_libraries/zlib/zlib.vcxproj /property:configuration=Debug /p:Platform=x64
+  - cmd: Msbuild.exe external_libraries/zlib/zlibstatic.vcxproj /property:configuration=Debug /p:Platform=x64
+  - cmd: Msbuild.exe external_libraries/triangle/triangle.vcxproj /property:configuration=Debug /p:Platform=x64
+  - cmd: Msbuild.exe external_libraries/gidpost/gidpost.vcxproj /property:configuration=Debug /p:Platform=x64
+  - cmd: Msbuild.exe install_unity.vcxproj /property:configuration=Debug /p:Platform=x64
+  - cmd: Msbuild.exe INSTALL.vcxproj /property:configuration=Debug /p:Platform=x64
+
+after_build:
+  - SET PYTHONPATH=%PYTHONPATH%;C:\projects\kratos
+  - SET PATH=%PATH%;C:\projects\kratos\libs
+  - cmd: C:\Python36-x64\python.exe C:\projects\kratos\kratos\python_scripts\run_tests.py
 
 test: off
