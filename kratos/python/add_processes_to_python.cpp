@@ -602,6 +602,7 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<VoxelMeshGeneratorProcess, VoxelMeshGeneratorProcess::Pointer, Process>(m,"VoxelMeshGeneratorProcess")
             .def(py::init<Point const&, Point const&, ModelPart&, ModelPart&, Parameters&>()) 
+            .def(py::init<std::vector<double> const&, std::vector<double> const&, std::vector<double> const&, ModelPart&, ModelPart&, Parameters&>()) 
     ;
 
 }
