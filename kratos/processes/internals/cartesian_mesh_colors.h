@@ -442,9 +442,9 @@ namespace Kratos
                 output_file << "<DataArray type=\"Float64\" Name=\"" << "RayColor" << i << "\" NumberOfComponents=\"1\" format=\"ascii\">" << std::endl;
                 
                 for (auto& color: mNodalRayColors) {
-                    output_file << color[i] << std::endl;
+                    output_file << color[i] << " ";
                 }
-                    
+                output_file << std::endl;  
                 output_file << "</DataArray> " << std::endl;
             }
             output_file << "</PointData> " << std::endl;
@@ -453,17 +453,17 @@ namespace Kratos
                 output_file << "<DataArray type=\"Float64\" Name=\"" << "RayColor" << i << "\" NumberOfComponents=\"1\" format=\"ascii\">" << std::endl;
                 
                 for (auto& color: mElementalRayColors) {
-                    output_file << color[i] << std::endl;
+                    output_file << color[i] << " ";
                 }
-                    
+                output_file << std::endl;  
                 output_file << "</DataArray> " << std::endl;
             }
-            output_file << "<DataArray type=\"Float64\" Name=\"" << "RayColor" << "\" NumberOfComponents=\"1\" format=\"ascii\">" << std::endl;
+            output_file << "<DataArray type=\"Float64\" Name=\"" << "ElementColor" << "\" NumberOfComponents=\"1\" format=\"ascii\">" << std::endl;
                 
             for (auto& color: mElementalColors) {
-                output_file << color << std::endl;
-            }
-                    
+                    output_file << color << " ";
+                }
+            output_file << std::endl;  
             output_file << "</DataArray> " << std::endl;
             output_file << "</CellData> " << std::endl;
 
