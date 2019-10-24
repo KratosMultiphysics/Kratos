@@ -27,7 +27,6 @@
 
 namespace Kratos {
 
-// template <typename TCurve>
 template <int TWorkingSpaceDimension, class TContainerPointType>
 class NurbsCurveTessellation
 {
@@ -38,18 +37,19 @@ public:
 
     typedef Geometry<typename TContainerPointType::value_type> GeometryType;
     typedef NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType> NurbsCurveGeometryType;
+    typedef std::vector<std::pair<double, Vector>> TessellationType;
     typedef typename GeometryType::IndexType IndexType;
     typedef typename GeometryType::SizeType SizeType;
 
 private:    // static methods
     static double DistanceToLine(
-        const typename GeometryType::CoordinatesArrayType& Point, 
-        const typename GeometryType::CoordinatesArrayType& LineA,
-        const typename GeometryType::CoordinatesArrayType& LineB
+        const typename GeometryType::CoordinatesArrayType& rPoint, 
+        const typename GeometryType::CoordinatesArrayType& rLineA,
+        const typename GeometryType::CoordinatesArrayType& rLineB
         )
     {
-        typename GeometryType::CoordinatesArrayType vector_v = LineA - Point;
-        typename GeometryType::CoordinatesArrayType vector_u = LineB - LineA;
+        typename GeometryType::CoordinatesArrayType vector_v = rLineA - rPoint;
+        typename GeometryType::CoordinatesArrayType vector_u = rLineB - rLineA;
 
         return MathUtils<double>::Norm(MathUtils<double>::CrossProduct(vector_v, vector_u)) / MathUtils<double>::Norm(vector_u);
     }
@@ -66,7 +66,6 @@ public:
 
     /** 
     * @brief This method tessellates a curve and stores the tessellation in the class
-    * From ANurbs library (https://github.com/oberbichler/ANurbs)
     * @param pGeometry Pointer to the geometry
     * @param PolynomialDegree The polynomial degree of the curve
     * @param DomainInterval The curve interval which is to be tessellated
@@ -91,7 +90,6 @@ public:
 
     /** 
     * @brief This method returns the tessellation of a curve
-    * From ANurbs library (https://github.com/oberbichler/ANurbs)
     * @param pGeometry Pointer to the geometry
     * @param PolynomialDegree The polynomial degree of the curve
     * @param DomainInterval The curve interval which is to be tessellated
@@ -100,16 +98,16 @@ public:
     * @return std::map<double, typename GeometryType::CoordinatesArrayType> with the coordinates in local and working space
     * @see ANurbs library (https://github.com/oberbichler/ANurbs)
     */
-	static std::vector<std::pair<double, Vector>> ComputeTessellation(
-        typename GeometryType::Pointer pGeometry,
-        int PolynomialDegree,
-        NurbsInterval DomainInterval,
-        std::vector<NurbsInterval> KnotSpanIntervals,
+	static TessellationType ComputeTessellation(
+        const GeometryType& rGeometry,
+        const int PolynomialDegree,
+        const NurbsInterval DomainInterval,
+        const std::vector<NurbsInterval> KnotSpanIntervals,
         const double Tolerance
         )
     {
-		static std::vector<std::pair<double, Vector>> sample_points;
-		static std::vector<std::pair<double, Vector>> points;
+		static TessellationType sample_points;
+		static TessellationType points;
 
         typename GeometryType::CoordinatesArrayType point;
         typename GeometryType::CoordinatesArrayType result;
@@ -127,7 +125,7 @@ public:
             typename GeometryType::CoordinatesArrayType t0;
             t0[0] = span.GetT0();
             
-            point = pGeometry->GlobalCoordinates(result, t0);
+            point = rGeometry.GlobalCoordinates(result, t0);
 
             sample_points.emplace_back(t, point);
         }
@@ -135,7 +133,7 @@ public:
         typename GeometryType::CoordinatesArrayType t_at_normalized;
         t_at_normalized[0] = DomainInterval.GetParameterAtNormalized(1.0);
 
-        point = pGeometry->GlobalCoordinates(result, t_at_normalized);
+        point = rGeometry.GlobalCoordinates(result, t_at_normalized);
 
 		sample_points.emplace_back(1.0, point);
 
@@ -178,7 +176,7 @@ public:
 
                     t_at_normalized[0] = DomainInterval.GetParameterAtNormalized(t);
 
-                    point = pGeometry->GlobalCoordinates(
+                    point = rGeometry.GlobalCoordinates(
                         result, t_at_normalized);
 
                     const double distance = DistanceToLine(point, point_a,
@@ -209,7 +207,7 @@ public:
     ///@name Private Member Variables
     ///@{
 
-		std::vector<std::pair<double, Vector>> mTesselation;
+	TessellationType mTesselation;
 
     ///@}
     ///@name Private Operations
