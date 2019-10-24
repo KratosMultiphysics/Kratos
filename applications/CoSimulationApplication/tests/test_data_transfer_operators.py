@@ -22,7 +22,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         mp_o = self.model.CreateModelPart("mp_origin", 2)
         mp_d_m = self.model.CreateModelPart("mp_destination_matching", 2)
         mp_d_nm = self.model.CreateModelPart("mp_destination_non_matching", 2)
-        mp_one_n = self.model.CreateModelPart("mp_origin_single_node", 2)
+        mp_one_n = self.model.CreateModelPart("mp_single_node", 2)
 
         mp_o.AddNodalSolutionStepVariable(KM.PRESSURE)
         mp_o.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
@@ -31,6 +31,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         mp_d_nm.AddNodalSolutionStepVariable(KM.TEMPERATURE)
         mp_d_nm.AddNodalSolutionStepVariable(KM.FORCE)
         mp_one_n.AddNodalSolutionStepVariable(KMC.SCALAR_DISPLACEMENT)
+        mp_one_n.AddNodalSolutionStepVariable(KMC.SCALAR_FORCE)
 
         mp_o.ProcessInfo[KM.DOMAIN_SIZE] = 2
         mp_d_m.ProcessInfo[KM.DOMAIN_SIZE] = 2
@@ -63,14 +64,14 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "variable_name"   : "DISPLACEMENT",
             "dimension" : 2
         }""")
-        origin_data_single_node = KM.Parameters("""{
-            "model_part_name" : "mp_origin_single_node",
+        origin_data_settings_single_node = KM.Parameters("""{
+            "model_part_name" : "mp_single_node",
             "variable_name"   : "SCALAR_DISPLACEMENT"
         }""")
 
         self.origin_data_scalar = CouplingInterfaceData(origin_data_settings_scalar, self.model)
         self.origin_data_vector = CouplingInterfaceData(origin_data_settings_vector, self.model)
-        self.origin_data_single_node = CouplingInterfaceData(origin_data_single_node, self.model)
+        self.origin_data_single_node = CouplingInterfaceData(origin_data_settings_single_node, self.model)
         self.origin_data_scalar.Initialize()
         self.origin_data_vector.Initialize()
         self.origin_data_single_node.Initialize()
@@ -85,11 +86,17 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "variable_name"   : "FORCE",
             "dimension" : 2
         }""")
+        destination_data_settings_single_node = KM.Parameters("""{
+            "model_part_name" : "mp_single_node",
+            "variable_name"   : "SCALAR_FORCE"
+        }""")
 
         self.destination_matching_data_scalar = CouplingInterfaceData(destination_matching_data_settings_scalar, self.model)
         self.destination_matching_data_vector = CouplingInterfaceData(destination_matching_data_settings_vector, self.model)
+        self.destination_data_single_node = CouplingInterfaceData(destination_data_settings_single_node, self.model)
         self.destination_matching_data_scalar.Initialize()
         self.destination_matching_data_vector.Initialize()
+        self.destination_data_single_node.Initialize()
 
 
         destination_non_matching_data_settings_scalar = KM.Parameters("""{
@@ -159,14 +166,14 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
-        transfer_options_empty = KM.Parameters(""" [] """)
+        transfer_options = KM.Parameters(""" [] """)
 
         for node in self.origin_data_single_node.GetModelPart().Nodes:
             node.SetSolutionStepValue(KMC.SCALAR_DISPLACEMENT, 0, 100.0)
 
         data_transfer_op.TransferData(self.origin_data_single_node, 
                                       self.destination_matching_data_scalar, 
-                                      transfer_options_empty)
+                                      transfer_options)
 
         self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes, 
                                         self.origin_data_single_node.GetModelPart().Nodes,
@@ -179,26 +186,140 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
-        transfer_options_empty = KM.Parameters(""" ["swap_sign"] """)
+        transfer_options = KM.Parameters(""" ["swap_sign"] """)
 
         for node in self.origin_data_single_node.GetModelPart().Nodes:
             node.SetSolutionStepValue(KMC.SCALAR_DISPLACEMENT, 0, 100.0)
 
         data_transfer_op.TransferData(self.origin_data_single_node, 
                                       self.destination_matching_data_scalar, 
-                                      transfer_options_empty)
+                                      transfer_options)
 
         self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes, 
                                         self.origin_data_single_node.GetModelPart().Nodes,
                                         KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT,-1)
 
+    def test_copy_single_to_dist_transfer_operator_redistribute_data(self):
+        data_transfer_op_settings = KM.Parameters("""{
+            "type" : "copy_single_to_dist"
+        }""")
+
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        transfer_options = KM.Parameters(""" ["redistribute_data"] """)
 
         for node in self.origin_data_single_node.GetModelPart().Nodes:
-            disp = node.GetSolutionStepValue(KMC.SCALAR_DISPLACEMENT, 0)
-            print(disp)
-        for node in self.destination_matching_data_scalar.GetModelPart().Nodes:
-            disp = node.GetSolutionStepValue(KM.TEMPERATURE, 0)
-            print(disp)
+            node.SetSolutionStepValue(KMC.SCALAR_DISPLACEMENT, 0, 100.0)
+
+        data_transfer_op.TransferData(self.origin_data_single_node, 
+                                      self.destination_matching_data_scalar, 
+                                      transfer_options)
+
+        self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes, 
+                                        self.origin_data_single_node.GetModelPart().Nodes,
+                                        KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, 0.2)
+
+    def test_copy_single_to_dist_transfer_operator_redistribute_data_swap_sign(self):
+        data_transfer_op_settings = KM.Parameters("""{
+            "type" : "copy_single_to_dist"
+        }""")
+
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        transfer_options = KM.Parameters(""" ["redistribute_data", "swap_sign"] """)
+
+        for node in self.origin_data_single_node.GetModelPart().Nodes:
+            node.SetSolutionStepValue(KMC.SCALAR_DISPLACEMENT, 0, 100.0)
+
+        data_transfer_op.TransferData(self.origin_data_single_node, 
+                                      self.destination_matching_data_scalar, 
+                                      transfer_options)
+
+        self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes, 
+                                        self.origin_data_single_node.GetModelPart().Nodes,
+                                        KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, -0.2)
+
+    def test_sum_dist_to_single(self):
+        data_transfer_op_settings = KM.Parameters("""{
+            "type" : "sum_dist_to_single"
+        }""")
+
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        transfer_options = KM.Parameters(""" [] """)
+
+        for node in self.origin_data_scalar.GetModelPart().Nodes:
+            node.SetSolutionStepValue(KM.PRESSURE, 0, 100.0)
+
+        data_transfer_op.TransferData(self.origin_data_scalar, 
+                                      self.destination_data_single_node, 
+                                      transfer_options)
+
+        self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes, 
+                                        self.origin_data_scalar.GetModelPart().Nodes,
+                                        KMC.SCALAR_FORCE, KM.PRESSURE, 5)
+
+
+    def test_sum_dist_to_single_swap_sign(self):
+        data_transfer_op_settings = KM.Parameters("""{
+            "type" : "sum_dist_to_single"
+        }""")
+
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        transfer_options = KM.Parameters(""" ["swap_sign"] """)
+
+        for node in self.origin_data_scalar.GetModelPart().Nodes:
+            node.SetSolutionStepValue(KM.PRESSURE, 0, 100.0)
+
+        data_transfer_op.TransferData(self.origin_data_scalar, 
+                                      self.destination_data_single_node, 
+                                      transfer_options)
+
+        self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes, 
+                                        self.origin_data_scalar.GetModelPart().Nodes,
+                                        KMC.SCALAR_FORCE, KM.PRESSURE, -5)
+
+
+    def test_sum_dist_to_single_add_values(self):
+        data_transfer_op_settings = KM.Parameters("""{
+            "type" : "sum_dist_to_single"
+        }""")
+
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        transfer_options = KM.Parameters(""" ["add_values"] """)
+
+        for node in self.origin_data_scalar.GetModelPart().Nodes:
+            node.SetSolutionStepValue(KM.PRESSURE, 0, 100.0)
+
+        for node in self.destination_data_single_node.GetModelPart().Nodes:
+            node.SetSolutionStepValue(KMC.SCALAR_FORCE, 0, 500.0)
+
+        data_transfer_op.TransferData(self.origin_data_scalar, 
+                                      self.destination_data_single_node, 
+                                      transfer_options)
+
+        self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes, 
+                                        self.origin_data_scalar.GetModelPart().Nodes,
+                                        KMC.SCALAR_FORCE, KM.PRESSURE, 10.0)
+
+    def test_sum_dist_to_single_add_values_swap_sign(self):
+        data_transfer_op_settings = KM.Parameters("""{
+            "type" : "sum_dist_to_single"
+        }""")
+
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        transfer_options = KM.Parameters(""" ["add_values", "swap_sign"] """)
+
+        for node in self.origin_data_scalar.GetModelPart().Nodes:
+            node.SetSolutionStepValue(KM.PRESSURE, 0, 100.0)
+
+        for node in self.destination_data_single_node.GetModelPart().Nodes:
+            node.SetSolutionStepValue(KMC.SCALAR_FORCE, 0, 500.0)
+
+        data_transfer_op.TransferData(self.origin_data_scalar, 
+                                      self.destination_data_single_node, 
+                                      transfer_options)
+
+        self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes, 
+                                        self.origin_data_scalar.GetModelPart().Nodes,
+                                        KMC.SCALAR_FORCE, KM.PRESSURE, -10.0)
 
 
 
