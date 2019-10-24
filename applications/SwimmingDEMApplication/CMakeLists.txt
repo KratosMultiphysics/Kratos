@@ -136,11 +136,6 @@ pybind11_add_module(KratosSwimmingDEMApplication MODULE ${KRATOS_SWIMMING_DEM_AP
 target_link_libraries(KratosSwimmingDEMApplication PUBLIC KratosSwimmingDEMCore)
 set_target_properties(KratosSwimmingDEMApplication PROPERTIES PREFIX "")
 
-if(USE_COTIRE MATCHES ON)
-  cotire(KratosSwimmingDEMCore)
-  cotire(KratosSwimmingDEMApplication)
-endif(USE_COTIRE MATCHES ON)
-
 ## installing the resulting libraries
 install(TARGETS KratosSwimmingDEMCore DESTINATION libs )
 install(TARGETS KratosSwimmingDEMApplication DESTINATION libs )
@@ -154,6 +149,12 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosSwimmingDEMApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+# Cotire
+if(USE_COTIRE MATCHES ON)
+  cotire(KratosSwimmingDEMCore)
+  cotire(KratosSwimmingDEMApplication)
+endif(USE_COTIRE MATCHES ON)
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
