@@ -66,7 +66,6 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         # Construct the base solver.
         super(PotentialFlowAdjointSolver, self).__init__(model, custom_settings)
         # Setting the reference chord
-        self.response_function_settings.AddEmptyValue("reference_chord").SetDouble(self.reference_chord)
 
         gradient_mode = self.response_function_settings["gradient_mode"].GetString()
         self.settings["formulation"].AddEmptyValue("gradient_mode").SetString(gradient_mode)
@@ -90,6 +89,8 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
 
     def Initialize(self):
+        self.response_function_settings.AddEmptyValue("reference_chord").SetDouble(self.reference_chord)
+
         self._ComputeNodalNeighbours()
 
         """Perform initialization after adding nodal variables and dofs to the main model part. """
