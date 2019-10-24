@@ -1,6 +1,6 @@
 {
     "problem_data"     : {
-        "problem_name"  : "coupled_problem",
+        "problem_name"  : "coupled_problem_test",
         "parallel_type" : "OpenMP",
         "time_step"     : 1.0,
         "start_time"    : 0.0,
@@ -19,7 +19,7 @@
             "analysis_type"                   : "non_linear",
             "model_import_settings"           : {
                 "input_type"     : "mdpa",
-                "input_filename" : "coupled_problem"
+                "input_filename" : "coupled_problem_test"
             },
             "material_import_settings"        : {
                 "materials_filename" : "StructuralMaterials.json"
@@ -43,7 +43,7 @@
             "domain_size"                        : 2,
             "model_import_settings"              : {
                 "input_type"     : "mdpa",
-                "input_filename" : "coupled_problem"
+                "input_filename" : "coupled_problem_test"
             },
             "material_import_settings"           : {
                 "materials_filename" : "ConvectionDiffusionMaterials.json"
@@ -128,7 +128,7 @@
 			"Parameters"            : {
 			    "check_variables"              : ["DISPLACEMENT", "TEMPERATURE"],
 				"gauss_points_check_variables" : [],
-				"input_file_name"              : "thermo_mechanical_tests_results.json",
+				"input_file_name"              : "thermo_mechanical_test_results.json",
 				"model_part_name"               : "Parts_Solid_Auto1",
 				"time_frequency"                : 1.0
 			}
