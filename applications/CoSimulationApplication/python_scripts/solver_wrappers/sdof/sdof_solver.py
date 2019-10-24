@@ -91,8 +91,8 @@ class SDoFSolver(object):
 
         self.RHS_matrix = np.array([[1.0, self.delta_t, self.delta_t**2 * (0.5 - self.beta)],
                                     [0.0, 1.0, self.delta_t*(1-self.gamma)],
-                                    [-self.stiffness,
-                                     -self.damping,
+                                    [0.0,
+                                     0.0,
                                      -self.alpha_m * self.mass]])
 
         self.buffer_size = parameters["solver_parameters"]["buffer_size"]
