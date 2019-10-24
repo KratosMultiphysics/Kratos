@@ -6,8 +6,8 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 import numpy as np
 from copy import deepcopy
 import multiprocessing
-from matplotlib import pyplot
 import os
+import subprocess
 
 
 class TestSolverWrapperFluent2019R1(KratosUnittest.TestCase):
@@ -16,8 +16,6 @@ class TestSolverWrapperFluent2019R1(KratosUnittest.TestCase):
         self.test_solver_wrapper_fluent_2019R1_tube3d()
 
     def test_solver_wrapper_fluent_2019R1_tube2d(self):
-        # to reset Fluent case, run file setup_case.sh
-
         print('Starting tests for Fluent Tube2D.')
 
         parameter_file_name = os.path.join(os.path.dirname(__file__),
@@ -30,9 +28,15 @@ class TestSolverWrapperFluent2019R1(KratosUnittest.TestCase):
 
         # if running from this folder
         if os.getcwd() == os.path.realpath(os.path.dirname(__file__)):
-            par_solver_0['settings'].SetString('working_directory', 'CFD')
+            par_solver_0['settings'].SetString('working_directory', 'test_2019R1_tube2d/CFD')
 
         displacement = vars(KM)['DISPLACEMENT']
+
+        # setup Fluent case
+        if True:
+            dir_tmp = os.path.join(os.path.realpath(os.path.dirname(__file__)), 'test_2019R1_tube2d')
+            p = subprocess.Popen(os.path.join(dir_tmp, 'setup_case.sh'), cwd=dir_tmp, shell=True)
+            p.wait()
 
         # test if nodes are moved to the correct position
         if True:
@@ -239,11 +243,8 @@ class TestSolverWrapperFluent2019R1(KratosUnittest.TestCase):
                 self.assertAlmostEqual(data1n[i] - data2n[i], 0., delta=1e-14)
 
         print('Finishing tests for Fluent Tube2D.')
-        # self.assertTrue(False)
 
     def test_solver_wrapper_fluent_2019R1_tube3d(self):
-        # to reset Fluent case, run file setup_case.sh
-
         print('Starting tests for Fluent Tube3D.')
 
         parameter_file_name = os.path.join(os.path.dirname(__file__),
@@ -256,7 +257,7 @@ class TestSolverWrapperFluent2019R1(KratosUnittest.TestCase):
 
         # if running from this folder
         if os.getcwd() == os.path.realpath(os.path.dirname(__file__)):
-            par_solver_0['settings'].SetString('working_directory', 'CFD')
+            par_solver_0['settings'].SetString('working_directory', 'test_2019R1_tube3d/CFD')
 
         displacement = vars(KM)['DISPLACEMENT']
 
@@ -265,6 +266,12 @@ class TestSolverWrapperFluent2019R1(KratosUnittest.TestCase):
             dx = dr * np.cos(theta)
             dy = dr * np.sin(theta)
             return dx, dy
+
+        # setup Fluent case
+        if True:
+            dir_tmp = os.path.join(os.path.realpath(os.path.dirname(__file__)), 'test_2019R1_tube3d')
+            p = subprocess.Popen(os.path.join(dir_tmp, 'setup_case.sh'), cwd=dir_tmp, shell=True)
+            p.wait()
 
         # test if nodes are moved to the correct position
         if True:
@@ -499,4 +506,3 @@ class TestSolverWrapperFluent2019R1(KratosUnittest.TestCase):
 
 if __name__ == '__main__':
     KratosUnittest.main()
-
