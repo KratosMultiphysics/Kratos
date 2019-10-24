@@ -76,6 +76,10 @@ namespace Kratos
         ModelPart& rVolumePart,
         ModelPart& rSkinPart, Parameters& TheParameters);
 
+      VoxelMeshGeneratorProcess(std::vector<double> const& XCoordinates, std::vector<double> const& YCoordinates, std::vector<double> const& ZCoordinates,
+        ModelPart& rVolumePart,
+        ModelPart& rSkinPart, Parameters& TheParameters);
+        
       /// The object is not copyable.
 	  VoxelMeshGeneratorProcess(VoxelMeshGeneratorProcess const& rOther) = delete;
 

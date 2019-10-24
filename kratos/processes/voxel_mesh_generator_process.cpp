@@ -94,7 +94,66 @@ namespace Kratos
 				coordinates[i][j] = j*mCellSizes[i] + min_coordinate_i;
 		}
 		
-		mColors.SetCoordinates(coordinates);
+		mColors.SetCoordinates(coordinates[0], coordinates[1], coordinates[2]);
+
+    }
+
+    VoxelMeshGeneratorProcess::VoxelMeshGeneratorProcess(std::vector<double> const& XCoordinates, std::vector<double> const& YCoordinates, std::vector<double> const& ZCoordinates,
+        ModelPart& rVolumePart,
+        ModelPart& rSkinPart, Parameters& TheParameters)
+		: Process()
+        , mMinPoint(XCoordinates.front(), YCoordinates.front(), ZCoordinates.front())
+        , mMaxPoint(XCoordinates.back(), YCoordinates.back(), ZCoordinates.back())
+        , mrVolumePart(rVolumePart), mrSkinPart(rSkinPart), mCoarseMeshType(false) {
+		
+		mColors.SetCoordinates(XCoordinates, YCoordinates, ZCoordinates);
+
+		Parameters default_parameters(R"(
+            {
+	            "create_skin_sub_model_part": true,
+	            "start_node_id":1,
+                "start_element_id":1,
+                "start_condition_id":1,
+                "number_of_divisions":[1,1,1],
+                "elements_properties_id":0,
+                "conditions_properties_id":0,
+                "element_name": "PLEASE SPECIFY IT",
+                "condition_name": "PLEASE SPECIFY IT",
+				"coloring_settings_list": [],
+				"entities_to_generate": "elements",
+				"mesh_type": "uniform",
+				"output_filename" : ""
+            }  )");
+
+		TheParameters["element_name"]; // Should be given by caller! if not thorws an error
+
+		TheParameters.ValidateAndAssignDefaults(default_parameters);
+
+		mStartNodeId = TheParameters["start_node_id"].GetInt();
+		mStartElementId = TheParameters["start_element_id"].GetInt();
+		mStartConditionId = TheParameters["start_condition_id"].GetInt();
+
+        mNumberOfDivisions[0] = XCoordinates.size() - 1;
+        mNumberOfDivisions[1] = YCoordinates.size() - 1;
+        mNumberOfDivisions[2] = ZCoordinates.size() - 1;
+		
+		mElementPropertiesId = TheParameters["elements_properties_id"].GetInt();
+		mConditiongPropertiesId = TheParameters["conditions_properties_id"].GetInt();
+		mElementName = TheParameters["element_name"].GetString();
+		mConditionName = TheParameters["condition_name"].GetString();
+        mCreateSkinSubModelPart = TheParameters["create_skin_sub_model_part"].GetBool();
+		mOutputFilename = TheParameters["output_filename"].GetString();
+        mCellSizes = mMaxPoint - mMinPoint;
+		mColoringParameters = TheParameters["coloring_settings_list"];
+        for(int i = 0 ; i < 3 ; i++)
+            mCellSizes[i] /= mNumberOfDivisions[i];
+		mEntitiesToGenerate=TheParameters["entities_to_generate"].GetString();
+		if(TheParameters["mesh_type"].GetString() == "coarse")
+			mCoarseMeshType=true;
+
+		mHasColor = false;
+
+        Check();
 
     }
 
