@@ -83,6 +83,15 @@ namespace Kratos
 
         KRATOS_INFO("Input") << "Reading Solid '" << word << "'" << std::endl;
 
+        if(rThisModelPart.HasSubModelPart(word)){
+            for(int i = 0 ; i < 1000000 ; i++){
+                if(!rThisModelPart.HasSubModelPart(word + std::to_string(i))){
+                    word = word + std::to_string(i);
+                    break;
+                }
+            }
+        }
+
         auto& sub_model_part = rThisModelPart.CreateSubModelPart(word);
 
         *mpInputStream >> word; // Reading facet or endsolid
