@@ -55,13 +55,13 @@ public:
     ///@{
 
     /// Default constructor.
-    CartesianRay(): mDirection(0), mPoint1(), mPoint2() {}
+    CartesianRay(): mIsValid(true), mDirection(0), mPoint1(), mPoint2() {}
 
     /// Constructor with all needed parameters
-    CartesianRay(int Direction, Point const& Point1, Point const& Point2): mDirection(Direction), mPoint1(Point1), mPoint2(Point2) {}
+    CartesianRay(int Direction, Point const& Point1, Point const& Point2): mIsValid(true), mDirection(Direction), mPoint1(Point1), mPoint2(Point2) {}
 
     // Copy constructor
-    CartesianRay(CartesianRay const& Other): mDirection(Other.mDirection), mPoint1(Other.mPoint1), mPoint2(Other.mPoint2), mIntersections(Other.mIntersections) {}
+    CartesianRay(CartesianRay const& Other): mIsValid(Other.mIsValid), mDirection(Other.mDirection), mPoint1(Other.mPoint1), mPoint2(Other.mPoint2), mIntersections(Other.mIntersections) {}
 
     /// Destructor.
     virtual ~CartesianRay(){}
@@ -71,7 +71,8 @@ public:
     ///@{
 
     CartesianRay& operator=(CartesianRay const& Other){
-        mDirection=Other.mDirection;
+        mIsValid = Other.mIsValid;
+        mDirection = Other.mDirection;
         mPoint1 = Other.mPoint1;
         mPoint2 = Other.mPoint2;
         mIntersections = Other.mIntersections;
@@ -107,7 +108,7 @@ public:
         }
 
 		const double relative_tolerance = 1.0e-12*std::sqrt(rGeometry.Length());
-        const int is_intersected = IntersectionUtilities::ComputeTriangleLineIntersection(
+        const int is_intersected = IntersectionUtilities::ComputeTriangleRayIntersection(
           rGeometry,
           mPoint1,
           mPoint2,
@@ -186,6 +187,9 @@ public:
             }
             is_inside = (is_inside) ? false:true;
         }
+
+        mIsValid = !is_inside; // Ray is not valid if is_inside is true after the last intersection
+
         // now coloring the points after the last intersection as outside
         while(current_index < size){
             ResultingColors[current_index++] = OutsideColor;
@@ -208,6 +212,7 @@ public:
     ///@name Inquiry
     ///@{
 
+    bool IsValid(){return mIsValid;}
 
     ///@}
     ///@name Input and output
@@ -241,7 +246,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+    
+    bool mIsValid;
     int mDirection;
     Point mPoint1;
     Point mPoint2;
