@@ -1,0 +1,16 @@
+Performing C++ SOURCE FILE Test HAS_CPP14_FLAG failed with the following output:
+Change Dir: /home/msaranshs/Kratos/cmake_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec1699213271/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec1699213271.dir/build.make CMakeFiles/cmTryCompileExec1699213271.dir/build
+make[1]: Entering directory `/home/msaranshs/Kratos/cmake_debug/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/msaranshs/Kratos/cmake_debug/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building CXX object CMakeFiles/cmTryCompileExec1699213271.dir/src.cxx.o
+/usr/bin/g++    -msse3 -std=c++11 -funroll-loops -Wall -std=c++11 -DHAS_CPP14_FLAG   -std=c++14 -o CMakeFiles/cmTryCompileExec1699213271.dir/src.cxx.o -c /home/msaranshs/Kratos/cmake_debug/CMakeFiles/CMakeTmp/src.cxx
+g++: error: unrecognized command line option '-std=c++14'
+make[1]: *** [CMakeFiles/cmTryCompileExec1699213271.dir/src.cxx.o] Error 1
+make[1]: Leaving directory `/home/msaranshs/Kratos/cmake_debug/CMakeFiles/CMakeTmp'
+make: *** [cmTryCompileExec1699213271/fast] Error 2
+
+Source file was:
+int main() { return 0; }
