@@ -106,8 +106,8 @@ public:
         const double Tolerance
         )
     {
-		static TessellationType sample_points;
-		static TessellationType points;
+		TessellationType sample_points;
+		TessellationType points;
 
         typename GeometryType::CoordinatesArrayType point;
         typename GeometryType::CoordinatesArrayType result;
