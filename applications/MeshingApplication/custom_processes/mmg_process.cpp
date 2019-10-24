@@ -75,7 +75,17 @@ MmgProcess<TMMGLibrary>::MmgProcess(
 
     // The discretization type
     mDiscretization = ConvertDiscretization(mThisParameters["discretization_type"].GetString());
+    if (TMMGLibrary != MMGLibrary::MMGS) {
+        if (mDiscretization == DiscretizationOption::LAGRANGIAN && mFramework == FrameworkEulerLagrange::EULERIAN) {
+            mFramework = FrameworkEulerLagrange::LAGRANGIAN;
+            KRATOS_WARNING("MmgProcess") << "Inconsistent discretization and framework. Assigning LAGRANGIAN framework" << std::endl;
+        }
+    } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+        mDiscretization = DiscretizationOption::STANDARD;
+        KRATOS_WARNING("MmgProcess") << "Surface meshes not compatible with Lagrangian motion. Reassign to standard discretization" << std::endl;
+    }
 
+    // Checking isosurface flag
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         mRemoveRegions = mThisParameters["isosurface_parameters"]["remove_internal_regions"].GetBool();
     } else {
@@ -183,12 +193,15 @@ void MmgProcess<TMMGLibrary>::ExecuteInitializeSolutionStep()
     InitializeMeshData();
 
     // We retrieve the data form the Kratos model part to fill sol
-    if (mDiscretization == DiscretizationOption::STANDARD) {
-        InitializeSolDataMetric();
-    } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         InitializeSolDataDistance();
     } else {
-        KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
+        InitializeSolDataMetric();
+    }
+
+    // We set the displacement vector
+    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+        InitializeDisplacementData();
     }
 
     // Check if the number of given entities match with mesh size
@@ -259,19 +272,38 @@ void MmgProcess<TMMGLibrary>::ExecuteFinalize()
     auto& r_nodes_array = mrThisModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
+    // In case of considering meric tensor
+    if (it_node_begin->Has(r_tensor_variable)) {
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
 
-        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
-        if (!old_entity) {
-            KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
+            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+            if (!old_entity) {
+                KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
 
-            // We get the metric
-            TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
+                // We get the metric
+                TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
 
-            // We set the metric
-            mMmmgUtilities.GetMetricTensor(r_metric);
+                // We set the metric
+                mMmmgUtilities.GetMetricTensor(r_metric);
+            }
+        }
+    } else {
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
+
+            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+            if (!old_entity) {
+                KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(METRIC_SCALAR)) << "METRIC_SCALAR not defined for node " << it_node->Id() << std::endl;
+
+                // We get the metric
+                double& r_metric = it_node->GetValue(METRIC_SCALAR);
+
+                // We set the metric
+                mMmmgUtilities.GetMetricScalar(r_metric);
+            }
         }
     }
 
@@ -318,13 +350,29 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
     if (collapse_prisms_elements) {
         CollapsePrismsToTriangles();
     }
+
+    // Move mesh before remesh
+    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {  // TODO: Revert when dependency problem solved
+        NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
+        const auto it_node_begin = r_nodes_array.begin();
+
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
+            noalias(it_node->GetInitialPosition().Coordinates()) = it_node->Coordinates();
+        }
+    }
+
+    // Actually generate mesh data
     mMmmgUtilities.GenerateMeshDataFromModelPart(mrThisModelPart, mColors, aux_ref_cond, aux_ref_elem, mFramework, collapse_prisms_elements);
 
     // We copy the DOF from the first node (after we release, to avoid problem with previous conditions)
     auto& r_nodes_array = mrThisModelPart.Nodes();
-    mDofs = r_nodes_array.begin()->GetDofs();
+    const auto& r_old_dofs = r_nodes_array.begin()->GetDofs();
+    for (auto it_dof = r_old_dofs.begin(); it_dof != r_old_dofs.end(); ++it_dof)
+        mDofs.push_back(Kratos::make_unique<NodeType::DofType>(**it_dof));
     for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
-        it_dof->FreeDof();
+        (**it_dof).FreeDof();
 
     // Generate the maps of reference
     mMmmgUtilities.GenerateReferenceMaps(mrThisModelPart, aux_ref_cond, aux_ref_elem, mpRefCondition, mpRefElement);
@@ -391,6 +439,16 @@ void MmgProcess<TMMGLibrary>::InitializeSolDataDistance()
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::InitializeDisplacementData()
+{
+    // We initialize the displacement data with the given modelpart
+    mMmmgUtilities.GenerateDisplacementDataFromModelPart(mrThisModelPart);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
 void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 {
     // Getting the parameters
@@ -421,12 +479,10 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     }
 
     // Calling the library functions
-    if (mDiscretization == DiscretizationOption::STANDARD) {
-        mMmmgUtilities.MMGLibCallMetric(mThisParameters);
-    } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         mMmmgUtilities.MMGLibCallIsoSurface(mThisParameters);
     } else {
-        KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
+        mMmmgUtilities.MMGLibCallMetric(mThisParameters);
     }
 
     /* Save to file */
@@ -577,19 +633,37 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
     /* We do some operations related with the Lagrangian framework */
     if (mFramework == FrameworkEulerLagrange::LAGRANGIAN) {
-        // If we remesh during non linear iteration we just move to the previous displacement, to the last displacement otherwise
-        const IndexType step = mThisParameters["remesh_at_non_linear_iteration"].GetBool() ? 1 : 0;
+        if (mDiscretization == DiscretizationOption::STANDARD) {
+            // If we remesh during non linear iteration we just move to the previous displacement, to the last displacement otherwise
+            const IndexType step = mThisParameters["remesh_at_non_linear_iteration"].GetBool() ? 1 : 0;
 
-        /* We move the mesh */
-        r_nodes_array = mrThisModelPart.Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
+            /* We move the mesh */
+            r_nodes_array = mrThisModelPart.Nodes();
+            const auto it_node_begin = r_nodes_array.begin();
 
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = it_node_begin + i;
+            #pragma omp parallel for
+            for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+                auto it_node = it_node_begin + i;
 
-            noalias(it_node->Coordinates())  = it_node->GetInitialPosition().Coordinates();
-            noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT, step);
+                noalias(it_node->Coordinates())  = it_node->GetInitialPosition().Coordinates();
+                noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT, step);
+            }
+        } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+            /* We reset the displacement (the API already moved the mesh) */
+            const SizeType buffer_size = mrThisModelPart.GetBufferSize();
+            r_nodes_array = mrThisModelPart.Nodes();
+            const auto it_node_begin = r_nodes_array.begin();
+
+            const array_1d<double, 3> zero_vector = ZeroVector(3);
+
+            #pragma omp parallel for
+            for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+                auto it_node = it_node_begin + i;
+
+                for (IndexType i_buffer = 0; i_buffer < buffer_size; ++i_buffer) {
+                    noalias(it_node->FastGetSolutionStepValue(DISPLACEMENT, i_buffer)) = zero_vector;
+                }
+            }
         }
 
         /* We interpolate the internal variables */
@@ -654,6 +728,11 @@ void MmgProcess<TMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
     // Automatically save the solution
     mMmmgUtilities.OutputSol(file_name);
 
+    // The current displacement
+    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+        mMmmgUtilities.OutputDisplacement(file_name);
+    }
+
     if (mThisParameters["save_colors_files"].GetBool()) {
         // Output the reference files
         mMmmgUtilities.OutputReferenceEntitities(file_name, mpRefCondition, mpRefElement);
@@ -675,6 +754,9 @@ void MmgProcess<TMMGLibrary>::FreeMemory()
     // Free reference std::unordered_map
     mpRefElement.clear();
     mpRefCondition.clear();
+
+    // Clear the colors
+    mColors.clear();
 }
 
 /***********************************************************************************/
@@ -740,7 +822,12 @@ void MmgProcess<TMMGLibrary>::CollapsePrismsToTriangles()
 
         auto p_new_node = r_auxiliar_model_part.CreateNewNode(total_number_of_nodes + r_pair.first, average_coordinates[0], average_coordinates[1], average_coordinates[2]);
         p_new_node->SetValue(THICKNESS, distance);
-        p_new_node->SetValue(METRIC_TENSOR_3D, 0.5 * (pnode1->GetValue(METRIC_TENSOR_3D) + pnode2->GetValue(METRIC_TENSOR_3D))); // Average metric
+        // In case of considering metric tensor
+        if (pnode1->Has(METRIC_TENSOR_3D)) {
+            p_new_node->SetValue(METRIC_TENSOR_3D, 0.5 * (pnode1->GetValue(METRIC_TENSOR_3D) + pnode2->GetValue(METRIC_TENSOR_3D))); // Average metric
+        } else {
+            p_new_node->SetValue(METRIC_SCALAR, 0.5 * (pnode1->GetValue(METRIC_SCALAR) + pnode2->GetValue(METRIC_SCALAR))); // Average metric
+        }
     }
 
     // Create the new elements

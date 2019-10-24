@@ -33,6 +33,9 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
+            "material_import_settings": {
+                "materials_filename": ""
+            },
             "linear_solver_settings" : {
                 "solver_type" : "multi_level"
             },
@@ -66,6 +69,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         elif self.settings["domain_size"].GetInt() == 3:
             self.condition_name = "SurfaceCondition"
         self.min_buffer_size = 2
+        self.element_has_nodal_properties = True
 
         # construct the linear solver
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])

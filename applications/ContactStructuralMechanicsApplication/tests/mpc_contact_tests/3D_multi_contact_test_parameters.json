@@ -1,0 +1,188 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "3d_multi_contact_test",
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "model_part_name"                    : "Structure",
+        "solver_type"                        : "Static",
+        "domain_size"                        : 3,
+        "echo_level"                         : 0,
+        "analysis_type"                      : "non_linear",
+        "time_stepping"                      : {
+            "time_step" : 1.0
+        },
+        "model_import_settings"              : {
+            "input_type"       : "mdpa",
+            "input_filename"   : "mpc_contact_tests/3D_multi_contact_test"
+        },
+        "material_import_settings" :{
+            "materials_filename": "mpc_contact_tests/3D_multi_contact_test_materials.json"
+        },
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "mpc_contact_settings" :
+        {
+            "contact_type"                   : "Frictionless"
+        }
+    },
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Imposed",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,-0.001],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Fix",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Control",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,false],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [],
+        "contact_process_list" :[{
+            "python_module" : "mpc_contact_process",
+            "kratos_module" : "ContactStructuralMechanicsApplication",
+            "help"          : "This process computes the contact between different surfaces",
+            "process_name"  : "MPCContactProcess",
+            "Parameters"            : {
+                "model_part_name"             : "Structure",
+                "assume_master_slave"         : {
+                                                "0" : ["GENERIC_TopMiddle"],
+                                                "1" : ["GENERIC_BottomMiddle"]
+                },
+                "contact_model_part"          : {
+                                                "0" : ["GENERIC_TopMiddle","GENERIC_BottomUpper"],
+                                                "1" : ["GENERIC_BottomMiddle","GENERIC_TopLower"]
+                }
+            }
+        }],
+        "list_other_processes" : [],
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"      : ["DISPLACEMENT_Z"],
+                "input_file_name"      : "mpc_contact_tests/3d_multi_contact_test_results.json",
+                "model_part_name"      : "Structure.Parts_Middle",
+                "time_frequency"       : 0.1
+            }
+        }
+        ]
+    },
+    "_output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "Structure.computing_domain",
+                "output_name"            : "test_solution",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "step",
+                        "output_control_type" : "step",
+                        "output_frequency"    : 1,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","WEIGHTED_GAP"],
+                        "nodal_nonhistorical_results": ["CONTACT_FORCE","NODAL_AREA","NODAL_MAUX","NORMAL_CONTACT_STRESS"],
+                        "nodal_flags_results": ["ACTIVE","MASTER","SLAVE"],
+                        "gauss_point_results" : []
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }],
+        "vtk_output" : [{
+            "python_module" : "vtk_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "VtkOutputProcess",
+            "help"          : "This process writes postprocessing files for Paraview",
+            "Parameters"    : {
+                "model_part_name"                    : "Structure.computing_domain",
+                "output_control_type"                : "step",
+                "output_frequency"                   : 1,
+                "file_format"                        : "ascii",
+                "output_precision"                   : 7,
+                "output_sub_model_parts"             : false,
+                "folder_name"                        : "vtk_output",
+                "save_output_files_in_folder"        : true,
+                "nodal_solution_step_data_variables" : ["DISPLACEMENT","NORMAL","REACTION","WEIGHTED_GAP"],
+                "nodal_data_value_variables"         : ["CONTACT_FORCE","NODAL_AREA","NODAL_MAUX","NORMAL_CONTACT_STRESS"],
+                "nodal_flags"                        : ["ACTIVE","MASTER","SLAVE"],
+                "element_data_value_variables"       : [],
+                "element_flags"                      : [],
+                "condition_data_value_variables"     : [],
+                "condition_flags"                    : [],
+                "gauss_point_variables_extrapolated_to_nodes"              : []
+            }
+        }]
+    },
+    "_json_check_process" : [
+    {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"      : ["DISPLACEMENT_Z"],
+            "input_file_name"      : "mpc_contact_tests/3d_multi_contact_test_results.json",
+            "model_part_name"      : "Structure.Parts_Middle",
+            "time_frequency"       : 0.1
+        }
+    }
+    ],
+    "_json_output_process" : [
+    {
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables"     : ["DISPLACEMENT_Z"],
+            "output_file_name"     : "mpc_contact_tests/3d_multi_contact_test_results.json",
+            "model_part_name"      : "Structure.Parts_Middle",
+            "time_frequency"       : 0.1
+        }
+    }
+    ]
+}

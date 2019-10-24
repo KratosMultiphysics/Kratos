@@ -330,7 +330,7 @@ private:
 				unsigned int n_int_edges = 0;
 				auto it_elem = mrVolumePart.ElementsBegin() + i_elem;
 				auto &r_geom = it_elem->GetGeometry();
-				const auto edges = r_geom.Edges();
+				const auto edges = r_geom.GenerateEdges();
 
 				// Loop the element of interest edges
 				for (unsigned int i_edge = 0; i_edge < r_geom.EdgesNumber(); ++i_edge) {

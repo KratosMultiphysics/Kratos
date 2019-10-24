@@ -172,6 +172,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
         const Variable<Vector>& rStrainVariable,
         const Variable<Vector>& rStressVariable,
         BoundedArrayType& rPredictiveStressVector,
+        Vector& rStrainVector,
         double& rUniaxialStress,
         double& rThreshold,
         double& rPlasticDenominator,
@@ -179,90 +180,106 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
         BoundedArrayType& rPlasticPotentialDerivative,
         double& rPlasticDissipation,
         Matrix& rPlasticDeformationGradient,
-        ConstitutiveLaw::Parameters& rValues
+        const Matrix& rPreviousDeformationGradient,
+        const Matrix& rConstitutiveMatrix,
+        ConstitutiveLaw::Parameters& rValues,
+        const double CharacteristicLength
         )
     {
         // We do a backup of the parameters
         const ConstitutiveLaw::Parameters values_backup = rValues;
 
+        // Material properties
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+
         // Some values initialization
-        IndexType iteration = 0, max_iter = 100;
+        IndexType iteration = 0, max_iter = r_material_properties.Has(MAX_NUMBER_NL_CL_ITERATIONS) ? r_material_properties.GetValue(MAX_NUMBER_NL_CL_ITERATIONS) : 100;
         double plastic_consistency_factor_increment = 0.0;
-        double previous_plastic_denominator = 0.0;
-        double previous_threshold_indicator = 0.0;
         double threshold_indicator = rUniaxialStress - rThreshold;
-        Matrix aux_plastic_deformation_gradient;
         Vector delta_sigma = ZeroVector(VoigtSize);
         Vector plastic_strain = ZeroVector(VoigtSize);
         Vector delta_plastic_strain = ZeroVector(VoigtSize);
 
-        // Material properties
-        const Properties& r_material_properties = rValues.GetMaterialProperties();
-        const int curve_type = r_material_properties[HARDENING_CURVE];
-
         // Initialize the pastic deformation gradient increment
         double aux_det;
+        Vector aux_vector(VoigtSize);
+        Matrix Re(Dimension, Dimension), Ue(Dimension, Dimension);
+        Matrix inverse_previous_deformation_gradient_increment(Dimension, Dimension);
+        const Matrix previous_plastic_deformation_gradient = rPlasticDeformationGradient;
         Matrix plastic_deformation_gradient_increment(Dimension, Dimension);
-        Matrix inverse_plastic_deformation_gradient_increment(Dimension, Dimension);
+        Matrix inverse_plastic_deformation_gradient(Dimension, Dimension);
 
         // Predictive deformation gradient
         Matrix predictive_deformation_gradient = rValues.GetDeformationGradientF();
 
-        // We compute Fe auxiliarly
-        MathUtils<double>::InvertMatrix(rPlasticDeformationGradient, inverse_plastic_deformation_gradient_increment, aux_det);
-        const Matrix elastic_deformation_matrix = prod(predictive_deformation_gradient, inverse_plastic_deformation_gradient_increment);
+        // Calculate the incremental deformation gradient
+        MathUtils<double>::InvertMatrix(rPreviousDeformationGradient, inverse_previous_deformation_gradient_increment, aux_det);
+        const Matrix incremental_deformation_gradient = prod(predictive_deformation_gradient, inverse_previous_deformation_gradient_increment);
 
-        // With this we can compute the polar decomposition in order to compute the Ren+1
-        Matrix Re, Ue;
-        ConstitutiveLawUtilities<VoigtSize>::PolarDecomposition(elastic_deformation_matrix, Re, Ue);
+        // The inverse of the plastic deformation gradient
+        MathUtils<double>::InvertMatrix(previous_plastic_deformation_gradient, inverse_plastic_deformation_gradient, aux_det);
+
+        // We compute Fen auxiliarly
+        const Matrix previous_elastic_deformation_matrix = prod(rPreviousDeformationGradient, inverse_plastic_deformation_gradient);
+
+        // We compute Fen+1 trial auxiliarly
+        const Matrix trial_elastic_deformation_matrix = prod(incremental_deformation_gradient, previous_elastic_deformation_matrix);
+
+        // We compute Fe auxiliarly
+        Matrix elastic_deformation_matrix = previous_elastic_deformation_matrix;
 
         // Backward Euler
         while (iteration <= max_iter) {
-            plastic_consistency_factor_increment = threshold_indicator * (rPlasticDenominator - previous_plastic_denominator);
+            // With this we can compute the polar decomposition in order to compute the Ren+1
+            ConstitutiveLawUtilities<VoigtSize>::PolarDecomposition(elastic_deformation_matrix, Re, Ue);
 
-            noalias(plastic_deformation_gradient_increment) = ConstitutiveLawUtilities<VoigtSize>::CalculateExponentialPlasticDeformationGradientIncrement(rPlasticPotentialDerivative, plastic_consistency_factor_increment, Re);
+            noalias(elastic_deformation_matrix) = ConstitutiveLawUtilities<VoigtSize>::CalculateDirectElasticDeformationGradient(trial_elastic_deformation_matrix, rPlasticPotentialDerivative, plastic_consistency_factor_increment, Re);
 
-            // We check that the increment is not a zero matrix
-            if (norm_frobenius(plastic_deformation_gradient_increment) < 1.0e-8) {
+            // We calculate the plastic consistency factor
+            plastic_consistency_factor_increment = threshold_indicator * rPlasticDenominator;
+            if (plastic_consistency_factor_increment < 0.0) plastic_consistency_factor_increment = 0.0; // NOTE: It could be useful, maybe
+
+//             noalias(plastic_deformation_gradient_increment) = ConstitutiveLawUtilities<VoigtSize>::CalculateLinearPlasticDeformationGradientIncrement(rPlasticPotentialDerivative, plastic_consistency_factor_increment);
+            noalias(plastic_deformation_gradient_increment) = ConstitutiveLawUtilities<VoigtSize>::CalculateDirectPlasticDeformationGradientIncrement(rPlasticPotentialDerivative, plastic_consistency_factor_increment, Re);
+//             noalias(plastic_deformation_gradient_increment) = ConstitutiveLawUtilities<VoigtSize>::CalculateExponentialPlasticDeformationGradientIncrement(rPlasticPotentialDerivative, plastic_consistency_factor_increment, Re);
+
+            // We check that the increment is not a zero matrix or to big
+            const double norm_increment = norm_frobenius(plastic_deformation_gradient_increment);
+            if (norm_increment < 1.0e-8
+                || norm_increment > 1.0e2
+                ) {
                 Vector& r_strain_vector = rValues.GetStrainVector();
                 rConstitutiveLaw.CalculateValue(rValues, rStrainVariable, r_strain_vector);
-                Vector aux_vector;
                 rConstitutiveLaw.CalculateValue(rValues, rStressVariable, aux_vector);
                 noalias(rPredictiveStressVector) = aux_vector;
                 break;
             }
 
             // The increment of the deformation is not added but multiplied in finite strain
-            aux_plastic_deformation_gradient = prod(plastic_deformation_gradient_increment, rPlasticDeformationGradient);
-            noalias(rPlasticDeformationGradient) = aux_plastic_deformation_gradient;
+            noalias(rPlasticDeformationGradient) = prod(plastic_deformation_gradient_increment, previous_plastic_deformation_gradient);
             rValues.SetDeterminantF(MathUtils<double>::DetMat(plastic_deformation_gradient_increment));
             rValues.SetDeformationGradientF(plastic_deformation_gradient_increment);
             rConstitutiveLaw.CalculateValue(rValues, rStrainVariable, delta_plastic_strain);
 
-            // In case of curve fitting hardening we compute the plastic strain
-            if (static_cast<HardeningCurveType>(curve_type) == HardeningCurveType::CurveFittingHardening) {
-                rValues.SetDeterminantF(MathUtils<double>::DetMat(rPlasticDeformationGradient));
-                rValues.SetDeformationGradientF(rPlasticDeformationGradient);
-                rConstitutiveLaw.CalculateValue(rValues, rStrainVariable, plastic_strain);
-            }
+            // We compute the plastic strain
+            rValues.SetDeterminantF(MathUtils<double>::DetMat(rPlasticDeformationGradient));
+            rValues.SetDeformationGradientF(rPlasticDeformationGradient);
+            rConstitutiveLaw.CalculateValue(rValues, rStrainVariable, plastic_strain);
 
             // We compute the new predictive stress vector
-            MathUtils<double>::InvertMatrix(plastic_deformation_gradient_increment, inverse_plastic_deformation_gradient_increment, aux_det);
-            predictive_deformation_gradient = prod(inverse_plastic_deformation_gradient_increment, predictive_deformation_gradient);
+            MathUtils<double>::InvertMatrix(plastic_deformation_gradient_increment, inverse_plastic_deformation_gradient, aux_det);
+            predictive_deformation_gradient = prod(inverse_plastic_deformation_gradient, predictive_deformation_gradient);
             rValues.SetDeterminantF(MathUtils<double>::DetMat(predictive_deformation_gradient));
             rValues.SetDeformationGradientF(predictive_deformation_gradient);
-            Vector aux_vector;
             rConstitutiveLaw.CalculateValue(rValues, rStressVariable, aux_vector);
             noalias(rPredictiveStressVector) = aux_vector;
 
-            // Update previous plastic denominator
-            previous_plastic_denominator = rPlasticDenominator;
-            previous_threshold_indicator = threshold_indicator;
-
             // Calculate plastic parameters
-            threshold_indicator = CalculatePlasticParameters(rPredictiveStressVector, rUniaxialStress, rThreshold, rPlasticDenominator, rYieldSurfaceDerivative, rPlasticPotentialDerivative, rPlasticDissipation, delta_plastic_strain, plastic_strain, rValues);
+            threshold_indicator = CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold,
+                                                             rPlasticDenominator, rYieldSurfaceDerivative, rPlasticPotentialDerivative,
+                                                             rPlasticDissipation, delta_plastic_strain, rConstitutiveMatrix, rValues, CharacteristicLength, plastic_strain);
 
-            if (std::abs((threshold_indicator - previous_threshold_indicator)/rThreshold) < ConvergenceTolerance) { // Has converged
+            if (threshold_indicator <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 break;
             } else {
                 ++iteration;
@@ -271,7 +288,9 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
 
         rValues = values_backup;
 
-        KRATOS_WARNING_IF("Backward Euler Plasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+        if (iteration > max_iter) {
+            KRATOS_WARNING_FIRST_N("Backward Euler Plasticity", 20) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+        }
     }
 
     /**
@@ -289,6 +308,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
      */
     static double CalculatePlasticParameters(
         BoundedArrayType& rPredictiveStressVector,
+        Vector& rStrainVector,
         double& rUniaxialStress,
         double& rThreshold,
         double& rPlasticDenominator,
@@ -296,46 +316,29 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
         BoundedArrayType& rDerivativePlasticPotential,
         double& rPlasticDissipation,
         const Vector& rPlasticStrainIncrement,
-        const Vector& rPlasticStrain,
-        ConstitutiveLaw::Parameters& rValues
+        const Matrix& rConstitutiveMatrix,
+        ConstitutiveLaw::Parameters& rValues,
+        const double CharacteristicLength,
+        const Vector& rPlasticStrain
         )
     {
-        // Defining the threshold indicator
-        double threshold_indicator = 1.0;
-
-        // Getting some values
-        const Vector& r_strain_vector = rValues.GetStrainVector();
-        const Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-
         BoundedArrayType deviator = ZeroVector(6);
         BoundedArrayType h_capa = ZeroVector(6);
         double J2, tensile_indicator_factor, compression_indicator_factor, slope, hardening_parameter, equivalent_plastic_strain;
 
-        YieldSurfaceType::CalculateEquivalentStress(rPredictiveStressVector, r_strain_vector, rUniaxialStress, rValues);
-
+        YieldSurfaceType::CalculateEquivalentStress(rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
         const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
-
         ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
-
         CalculateDerivativeYieldSurface(rPredictiveStressVector, deviator, J2, rYieldSurfaceDerivative, rValues);
-
         CalculateDerivativePlasticPotential(rPredictiveStressVector, deviator, J2, rDerivativePlasticPotential, rValues);
-
         CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor);
-
-        CalculatePlasticDissipation(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor, rPlasticStrainIncrement, rPlasticDissipation, h_capa, rValues);
-
+        CalculatePlasticDissipation(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor, rPlasticStrainIncrement, rPlasticDissipation, h_capa, rValues, CharacteristicLength);
         CalculateEquivalentPlasticStrain(rPredictiveStressVector, rUniaxialStress, rPlasticStrain, tensile_indicator_factor, rValues, equivalent_plastic_strain);
-
         CalculateEquivalentStressThreshold(rPlasticDissipation, tensile_indicator_factor, compression_indicator_factor, rThreshold, slope, equivalent_plastic_strain, rValues);
-
         CalculateHardeningParameter(rYieldSurfaceDerivative, slope, h_capa, hardening_parameter);
+        CalculatePlasticDenominator(rYieldSurfaceDerivative, rDerivativePlasticPotential, rConstitutiveMatrix, hardening_parameter, rPlasticDenominator);
 
-        CalculatePlasticDenominator(rYieldSurfaceDerivative, rDerivativePlasticPotential, r_constitutive_matrix, hardening_parameter, rPlasticDenominator);
-
-        // Updating threshold indicator
-        threshold_indicator = rUniaxialStress - rThreshold;
-        return threshold_indicator;
+        return rUniaxialStress - rThreshold;
     }
 
     /**
@@ -399,6 +402,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
      * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param rHCapa The slope of the PlasticDiss-Threshold curve
      * @param rValues Parameters of the constitutive law
+     * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculatePlasticDissipation(
         const BoundedArrayType& rPredictiveStressVector,
@@ -407,11 +411,11 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
         const Vector& rPlasticStrainIncrement,
         double& rPlasticDissipation,
         BoundedArrayType& rHCapa,
-        ConstitutiveLaw::Parameters& rValues
+        ConstitutiveLaw::Parameters& rValues,
+        const double CharacteristicLength
         )
     {
-        const double characteristic_length = rValues.GetElementGeometry().Length();
-        SmallStrainIntegratorType::CalculatePlasticDissipation(rPredictiveStressVector, TensileIndicatorFactor, CompressionIndicatorFactor, rPlasticStrainIncrement, rPlasticDissipation, rHCapa, rValues, characteristic_length);
+        SmallStrainIntegratorType::CalculatePlasticDissipation(rPredictiveStressVector, TensileIndicatorFactor, CompressionIndicatorFactor, rPlasticStrainIncrement, rPlasticDissipation, rHCapa, rValues, CharacteristicLength);
     }
 
     /**

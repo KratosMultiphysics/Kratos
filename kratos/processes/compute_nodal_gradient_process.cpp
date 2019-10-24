@@ -161,9 +161,9 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistorica
         }
     } else {
         if (mpOriginVariableDoubleList.size() > 0) {
-            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(*mpOriginVariableDoubleList[0])) << "Variable " << r_origin_variable_name << "not defined on non-historial database" << std::endl;
+            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(*mpOriginVariableDoubleList[0])) << "Variable " << r_origin_variable_name << " not defined on non-historial database" << std::endl;
         } else {
-            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(*mpOriginVariableComponentsList[0])) << "Variable " << r_origin_variable_name << "not defined on non-historial database" << std::endl;
+            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(*mpOriginVariableComponentsList[0])) << "Variable " << r_origin_variable_name << " not defined on non-historial database" << std::endl;
         }
     }
     VariableUtils().CheckVariableExists(*mpGradientVariable, mrModelPart.Nodes());
@@ -215,9 +215,9 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistor
         }
     } else {
         if (mpOriginVariableDoubleList.size() > 0) {
-            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(*mpOriginVariableDoubleList[0])) << "Variable " << r_origin_variable_name << "not defined on non-historial database" << std::endl;
+            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(*mpOriginVariableDoubleList[0])) << "Variable " << r_origin_variable_name << " not defined on non-historial database" << std::endl;
         } else {
-            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(*mpOriginVariableComponentsList[0])) << "Variable " << r_origin_variable_name << "not defined on non-historial database" << std::endl;
+            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(*mpOriginVariableComponentsList[0])) << "Variable " << r_origin_variable_name << " not defined on non-historial database" << std::endl;
         }
     }
     // In case the area or gradient variable is not initialized we initialize it
@@ -253,7 +253,12 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistorica
     // We push the list of double variables
     mpOriginVariableDoubleList.push_back(&rOriginVariable);
 
-    VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    // Doing several checks
+    if (!mNonHistoricalVariable) {
+        VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    } else {
+        KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(rOriginVariable)) << "Variable " << rOriginVariable.Name() << " not defined on non-historial database" << std::endl;
+    }
     VariableUtils().CheckVariableExists(rGradientVariable, mrModelPart.Nodes());
     // In case the area or gradient variable is not initialized we initialize it
     auto& r_nodes = rModelPart.Nodes();
@@ -284,7 +289,12 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistor
     // We push the list of double variables
     mpOriginVariableDoubleList.push_back(&rOriginVariable);
 
-    VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    // Doing several checks
+    if (!mNonHistoricalVariable) {
+        VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    } else {
+        KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(rOriginVariable)) << "Variable " << rOriginVariable.Name() << " not defined on non-historial database" << std::endl;
+    }
     // In case the area or gradient variable is not initialized we initialize it
     auto& r_nodes = rModelPart.Nodes();
     if (!r_nodes.begin()->Has( rGradientVariable )) {
@@ -318,7 +328,12 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistorica
     // We push the components list
     mpOriginVariableComponentsList.push_back(&rOriginVariable);
 
-    VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    // Doing several checks
+    if (!mNonHistoricalVariable) {
+        VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    } else {
+        KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(rOriginVariable)) << "Variable " << rOriginVariable.Name() << " not defined on non-historial database" << std::endl;
+    }
     VariableUtils().CheckVariableExists(rGradientVariable, mrModelPart.Nodes());
     // In case the area or gradient variable is not initialized we initialize it
     auto& r_nodes = rModelPart.Nodes();
@@ -349,7 +364,12 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistor
     // We push the components list
     mpOriginVariableComponentsList.push_back(&rOriginVariable);
 
-    VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    // Doing several checks
+    if (!mNonHistoricalVariable) {
+        VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    } else {
+        KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(rOriginVariable)) << "Variable " << rOriginVariable.Name() << " not defined on non-historial database" << std::endl;
+    }
     // In case the area or gradient variable is not initialized we initialize it
     auto& r_nodes = rModelPart.Nodes();
     if (!r_nodes.begin()->Has( rGradientVariable )) {

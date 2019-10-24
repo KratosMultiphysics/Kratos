@@ -21,6 +21,8 @@
 
 // Project includes
 #include "includes/variables.h"
+#include "includes/node.h"
+#include "geometries/geometry.h"
 
 namespace Kratos
 {
@@ -243,20 +245,40 @@ namespace MortarUtilities
         );
 
     /**
-     * @brief It inverts the order of the nodes in the conditions of a model part in order to invert the r_normal
-     * @param rContainer reference to the objective container
+     * @brief It inverts the order of the nodes in the conditions of a model part in order to invert the normal when certain flag is active
+     * @param rContainer Reference to the objective container
+     * @param Flag The flag of the entities inverted
      */
     template<class TContainerType>
-    void InvertNormal(TContainerType& rContainer) {
+    void InvertNormalForFlag(
+        TContainerType& rContainer,
+        const Flags Flag
+        )
+    {
+        bool to_invert = false;
         const auto it_cont_begin = rContainer.begin();
-        #pragma omp parallel for
+        #pragma omp parallel for firstprivate(to_invert)
         for(int i = 0; i < static_cast<int>(rContainer.size()); ++i) {
             auto it_cont = it_cont_begin + i;
-            GeometryType& r_geometry = it_cont->GetGeometry();
+            to_invert = Flag == Flags() ? true : it_cont->IsDefined(Flag) ? it_cont->Is(Flag) : false;
 
-            auto& data_geom = r_geometry.GetContainer();
-            std::reverse(data_geom.begin(), data_geom.end());
+            if (to_invert) {
+                GeometryType& r_geometry = it_cont->GetGeometry();
+
+                auto& data_geom = r_geometry.GetContainer();
+                std::reverse(data_geom.begin(), data_geom.end());
+            }
         }
+    }
+
+    /**
+     * @brief It inverts the order of the nodes in the conditions of a model part in order to invert the normal
+     * @param rContainer Reference to the objective container
+     */
+    template<class TContainerType>
+    void InvertNormal(TContainerType& rContainer)
+    {
+        InvertNormalForFlag(rContainer, Flags());
     }
 
     /**

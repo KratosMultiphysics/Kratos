@@ -5,7 +5,6 @@ license: HDF5Application/license.txt
 
 
 __all__ = [
-    "DefaultSetter",
     "ParametersWrapper",
     "IsDistributed",
     "CreateOperationSettings",
@@ -13,7 +12,6 @@ __all__ = [
 
 
 import KratosMultiphysics
-from KratosMultiphysics.HDF5Application.core.utils import DefaultSetter
 from KratosMultiphysics.HDF5Application.core.utils import ParametersWrapper
 
 

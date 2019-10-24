@@ -16,7 +16,7 @@ namespace Kratos {
         DEM_KDEM_soft_torque() {
         }
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         ~DEM_KDEM_soft_torque() {
         }
@@ -39,12 +39,12 @@ namespace Kratos {
         friend class Serializer;
 
         virtual void save(Serializer& rSerializer) const override{
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEM_KDEM)
                     //rSerializer.save("MyMemberName",myMember);
         }
 
         virtual void load(Serializer& rSerializer) override{
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEM_KDEM)
                     //rSerializer.load("MyMemberName",myMember);
         }
 

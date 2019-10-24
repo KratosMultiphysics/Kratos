@@ -97,10 +97,18 @@ void ComputeHessianSolMetricProcess::Execute()
 
     // Some checks
     NodesArrayType& r_nodes_array = mrModelPart.Nodes();
-    if (mrOriginVariableDoubleList.size() > 0) {
-        VariableUtils().CheckVariableExists(*mrOriginVariableDoubleList[0], r_nodes_array);
+    if (!mNonHistoricalVariable) {
+        if (mrOriginVariableDoubleList.size() > 0) {
+            VariableUtils().CheckVariableExists(*mrOriginVariableDoubleList[0], r_nodes_array);
+        } else {
+            VariableUtils().CheckVariableExists(*mrOriginVariableComponentsList[0], r_nodes_array);
+        }
     } else {
-        VariableUtils().CheckVariableExists(*mrOriginVariableComponentsList[0], r_nodes_array);
+        if (mrOriginVariableDoubleList.size() > 0) {
+            KRATOS_ERROR_IF_NOT(r_nodes_array.begin()->Has(*mrOriginVariableDoubleList[0])) << "Variable " << mrOriginVariableDoubleList[0]->Name() << " not defined on non-historial database" << std::endl;
+        } else {
+            KRATOS_ERROR_IF_NOT(r_nodes_array.begin()->Has(*mrOriginVariableComponentsList[0])) << "Variable " << mrOriginVariableComponentsList[0]->Name() << " not defined on non-historial database" << std::endl;
+        }
     }
 
     // Checking NODAL_H
@@ -223,6 +231,9 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
     NodesArrayType& r_nodes_array = mrModelPart.Nodes();
     const int num_nodes = static_cast<int>(r_nodes_array.size());
 
+    // We get the normalization factor
+    const double normalization_factor = mThisParameters["normalization_factor"].GetDouble();
+
     // Initialize auxiliar variables
     const auto& it_nodes_begin = r_nodes_array.begin();
     #pragma omp parallel for
@@ -231,16 +242,15 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
         it_node->SetValue(NODAL_AREA, 0.0);
         it_node->SetValue(AUXILIAR_HESSIAN, aux_zero_hessian);
         it_node->SetValue(AUXILIAR_GRADIENT, aux_zero_vector);
+
+        // Saving auxiliar value
+        const double value = mNonHistoricalVariable ? (mrOriginVariableDoubleList.size() > 0 ? it_node->GetValue(*mrOriginVariableDoubleList[0]) : it_node->GetValue(*mrOriginVariableComponentsList[0])) : (mrOriginVariableDoubleList.size() > 0 ? it_node->FastGetSolutionStepValue(*mrOriginVariableDoubleList[0]) : it_node->FastGetSolutionStepValue(*mrOriginVariableComponentsList[0]));
+        it_node->SetValue(NODAL_MAUX, value * normalization_factor);
     }
 
     // Compute auxiliar gradient
-    if (mrOriginVariableDoubleList.size() > 0) {
-        auto gradient_process = ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(mrModelPart, *mrOriginVariableDoubleList[0], AUXILIAR_GRADIENT, NODAL_AREA, mNonHistoricalVariable);
-        gradient_process.Execute();
-    } else {
-        auto gradient_process = ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(mrModelPart, *mrOriginVariableComponentsList[0], AUXILIAR_GRADIENT, NODAL_AREA, mNonHistoricalVariable);
-        gradient_process.Execute();
-    }
+    auto gradient_process = ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(mrModelPart, NODAL_MAUX, AUXILIAR_GRADIENT, NODAL_AREA, true);
+    gradient_process.Execute();
 
     // Auxiliar containers
     Matrix DN_DX, J0;
@@ -480,6 +490,7 @@ Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
         {
             "metric_variable"                      : "DISTANCE",
             "non_historical_metric_variable"       : false,
+            "normalization_factor"                 : 1.0,
             "estimate_interpolation_error"         : false,
             "interpolation_error"                  : 1.0e-6,
             "mesh_dependent_constant"              : 0.28125
@@ -530,6 +541,7 @@ void ComputeHessianSolMetricProcess::InitializeVariables(Parameters ThisParamete
     mThisParameters.AddValue("interpolation_error", ThisParameters["hessian_strategy_parameters"]["interpolation_error"]);
     mThisParameters.AddValue("metric_variable", ThisParameters["hessian_strategy_parameters"]["metric_variable"]);
     mThisParameters.AddValue("non_historical_metric_variable", ThisParameters["hessian_strategy_parameters"]["non_historical_metric_variable"]);
+    mThisParameters.AddValue("normalization_factor", ThisParameters["hessian_strategy_parameters"]["normalization_factor"]);
     mThisParameters.AddValue("estimate_interpolation_error", considered_parameters["hessian_strategy_parameters"]["estimate_interpolation_error"]);
     mThisParameters.AddValue("mesh_dependent_constant", considered_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"]);
     mThisParameters.AddValue("hmin_over_hmax_anisotropic_ratio", considered_parameters["enforced_anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"]);

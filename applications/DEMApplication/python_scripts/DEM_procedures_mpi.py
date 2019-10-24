@@ -5,12 +5,12 @@ from KratosMultiphysics.DEMApplication import *
 if not "DO_NOT_PARTITION_DOMAIN" in os.environ:
     from KratosMultiphysics.MetisApplication import *
     from KratosMultiphysics.MPISearchApplication import *
-    import DEM_material_test_script_mpi as DEM_material_test_script
+    import KratosMultiphysics.DEMApplication.DEM_material_test_script_mpi as DEM_material_test_script
 else:
-    import DEM_material_test_script
+    import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
 
 from KratosMultiphysics.mpi import *
-import DEM_procedures
+import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
 
 from glob import glob
 

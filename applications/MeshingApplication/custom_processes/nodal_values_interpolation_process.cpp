@@ -120,11 +120,28 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
 
     // In case interpolate fails we extrapolate values
     if (extrapolate_values && to_extrapolate_nodes.size() > 0) {
+        // Original number of conditions
+        const std::size_t original_number_of_conditions = mrDestinationMainModelPart.NumberOfConditions();
+
+        // Generate boundary
         const std::string name_auxiliar_model_part = "SKIN_MODEL_PART_TO_LATER_REMOVE";
         GenerateBoundary(name_auxiliar_model_part);
+
+        // Remove new conditions and submodelpart
+        VariableUtils().SetFlag(TO_ERASE, true, mrDestinationMainModelPart.GetSubModelPart(name_auxiliar_model_part).Conditions());
         mrDestinationMainModelPart.RemoveSubModelPart(name_auxiliar_model_part);
+
+        // Extrapolate values
         ExtrapolateValues(name_auxiliar_model_part, to_extrapolate_nodes);
+
+        // Remove auxiliar model part
         mrOriginMainModelPart.RemoveSubModelPart(name_auxiliar_model_part);
+
+        // Removing generated auxiliar conditions
+        mrDestinationMainModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+
+        const std::size_t number_of_conditions = mrDestinationMainModelPart.NumberOfConditions();
+        KRATOS_ERROR_IF(original_number_of_conditions != number_of_conditions) << "The number of conditions have changed " << number_of_conditions << " vs " << original_number_of_conditions <<  std::endl;
     }
 }
 
@@ -231,7 +248,7 @@ void NodalValuesInterpolationProcess<TDim>::GenerateBoundaryFromElements(
     auto& r_elements_array = rModelPart.Elements();
     for(IndexType i=0; i< r_elements_array.size(); ++i) {
         auto it_elem = r_elements_array.begin() + i;
-        r_new_model_part.CreateNewCondition("Condition3D", new_id + 1, it_elem->GetGeometry(), it_elem->pGetProperties());
+        r_new_model_part.CreateNewCondition("SurfaceCondition3D3N", new_id + 1, it_elem->GetGeometry(), it_elem->pGetProperties());
         ++new_id;
     }
 }

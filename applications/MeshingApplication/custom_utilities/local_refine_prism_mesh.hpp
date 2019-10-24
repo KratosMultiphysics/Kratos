@@ -123,10 +123,10 @@ public:
 
             for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
             {
-                Node < 3 > ::DofType& rDof = *iii;
+                Node < 3 > ::DofType& rDof = **iii;
                 Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
-                if (geom[0].IsFixed(iii->GetVariable()) == true && geom[1].IsFixed(iii->GetVariable()) == true && geom[2].IsFixed(iii->GetVariable()) == true && geom[3].IsFixed(iii->GetVariable()) == true
-                 && geom[4].IsFixed(iii->GetVariable()) == true && geom[5].IsFixed(iii->GetVariable()) == true)
+                if (geom[0].IsFixed(rDof.GetVariable()) && geom[1].IsFixed(rDof.GetVariable()) && geom[2].IsFixed(rDof.GetVariable()) && geom[3].IsFixed(rDof.GetVariable())
+                 && geom[4].IsFixed(rDof.GetVariable()) && geom[5].IsFixed(rDof.GetVariable()))
                 {
                     (p_new_dof)->FixDof();
                 }
