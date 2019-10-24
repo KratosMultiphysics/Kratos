@@ -40,7 +40,6 @@ void GenerateInitialSkinDEMProcess::Execute()
     // #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(r_submodel_part.Nodes().size()); i++) {
         auto it_node = it_node_begin + i;
-        KRATOS_WATCH(it_node->Id())
 
         if (!it_node->GetValue(IS_DEM)) { // we have to generate its DEM
             auto& r_neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
