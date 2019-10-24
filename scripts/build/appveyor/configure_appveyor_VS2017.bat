@@ -25,4 +25,5 @@ cmake .. -G "Visual Studio 15 2017 Win64"                                       
 -DTRILINOS_ROOT="UNSET"                                                         ^
 -DINSTALL_EMBEDDED_PYTHON=ON                                                    ^
 -DINCLUDE_FEAST=OFF                                                             ^
+-DCMAKE_SKIP_INSTALL_ALL_DEPENDENCY=ON                                          ^
 -DUSE_COTIRE=ON
