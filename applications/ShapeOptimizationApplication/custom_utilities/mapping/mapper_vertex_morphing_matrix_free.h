@@ -113,7 +113,7 @@ public:
     void Initialize() override
     {
         BuiltinTimer timer;
-        std::cout << "> Starting initialization of matrix-free mapper..." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting initialization of matrix-free mapper..." << std::endl;
 
         CreateListOfNodesInOriginModelPart();
         CreateFilterFunction();
@@ -124,7 +124,7 @@ public:
 
         mIsMappingInitialized = true;
 
-        std::cout << "> Finished initialization of matrix-free mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Finished initialization of matrix-free mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -134,7 +134,8 @@ public:
             Initialize();
 
         BuiltinTimer mapping_time;
-        std::cout << "\n> Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
         mValuesDestination[0].clear();
@@ -194,7 +195,7 @@ public:
             r_node_vector(2) = mValuesDestination[2][i];
         }
 
-        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -204,7 +205,8 @@ public:
             Initialize();
 
         BuiltinTimer mapping_time;
-        std::cout << "\n> Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
         mValuesDestination[0].clear();
@@ -252,7 +254,7 @@ public:
             node_i.FastGetSolutionStepValue(rDestinationVariable) = mValuesDestination[0][i];
         }
 
-        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -262,7 +264,8 @@ public:
             Initialize();
 
         BuiltinTimer mapping_time;
-        std::cout << "\n> Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
         mValuesOrigin[0].clear();
@@ -323,7 +326,7 @@ public:
             r_node_vector(2) = mValuesOrigin[2][i];
         }
 
-        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -333,7 +336,8 @@ public:
             Initialize();
 
         BuiltinTimer mapping_time;
-        std::cout << "\n> Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
         mValuesOrigin[0].clear();
@@ -385,21 +389,21 @@ public:
             node_i.FastGetSolutionStepValue(rOriginVariable) = mValuesOrigin[0][i];
         }
 
-        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
     void Update() override
     {
         if (mIsMappingInitialized == false)
-            KRATOS_ERROR << "> Mapping has to be initialized before calling the Update-function!";
+            KRATOS_ERROR << "Mapping has to be initialized before calling the Update-function!";
 
         BuiltinTimer timer;
-        std::cout << "> Starting to update mapper..." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting to update mapper..." << std::endl;
 
         CreateSearchTreeWithAllNodesInOriginModelPart();
 
-        std::cout << "> Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -563,16 +567,16 @@ private:
     void CreateSearchTreeWithAllNodesInOriginModelPart()
     {
         BuiltinTimer timer;
-        std::cout << "> Creating search tree to perform mapping..." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Creating search tree to perform mapping..." << std::endl;
         mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesInOriginModelPart.begin(), mListOfNodesInOriginModelPart.end(), mBucketSize));
-        std::cout << "> Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
     }
 
     // --------------------------------------------------------------------------
     void ThrowWarningIfNumberOfNeighborsExceedsLimit(ModelPart::NodeType& given_node, unsigned int number_of_neighbors)
     {
         if(number_of_neighbors >= mMaxNumberOfNeighbors)
-            std::cout << "\n> WARNING!!!!! For node " << given_node.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << mMaxNumberOfNeighbors << " nodes) reached!" << std::endl;
+            KRATOS_WARNING("ShapeOpt::MapperVertexMorphingMatrixFree") << "For node " << given_node.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << mMaxNumberOfNeighbors << " nodes) reached!" << std::endl;
     }
 
     // --------------------------------------------------------------------------

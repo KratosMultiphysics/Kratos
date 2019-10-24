@@ -20,6 +20,7 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "utilities/adjoint_extensions.h"
+#include "custom_elements/total_lagrangian.h"
 
 namespace Kratos
 {
@@ -155,6 +156,8 @@ private:
     }
     ///@}
 };
+
+KRATOS_API_EXTERN template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointSolidElement<TotalLagrangian>;
 
 ///@}
 

@@ -779,6 +779,25 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Sets a flag according to a given status over all submodelparts
+     * @param rFlag flag to be set
+     * @param FlagValue flag value to be set
+     */
+    void ResursivelyAssignFlagEntities(
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool FlagValue
+        )
+    {
+        // We call it recursively
+        for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
+            VariableUtils().SetFlag(rFlag, FlagValue, r_sub_model_part.Conditions());
+            VariableUtils().SetFlag(rFlag, FlagValue, r_sub_model_part.Elements());
+            ResursivelyAssignFlagEntities(r_sub_model_part, rFlag, FlagValue);
+        }
+    }
+
     ///@}
     ///@name Private  Access
     ///@{

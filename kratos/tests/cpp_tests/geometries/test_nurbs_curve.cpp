@@ -17,6 +17,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/pointer_vector.h"
 #include "geometries/nurbs_curve_geometry.h"
 
 #include "tests/cpp_tests/geometries/test_geometry.h"
@@ -28,9 +29,9 @@ typedef Node<3> NodeType;
 
 // /// Factory functions
 //namespace {
-    NurbsCurveGeometry<2, Point> GenerateReferenceCurve2d()
+    NurbsCurveGeometry<2, PointerVector<Point>> GenerateReferenceCurve2d()
     {
-        NurbsCurveGeometry<2, Point>::PointsArrayType points;
+        PointerVector<Point> points;
 
         points.push_back(Point::Pointer(new Point(0, 0, 0)));
         points.push_back(Point::Pointer(new Point(3.3333333333333335, 1.6666666666666667, 0)));
@@ -47,14 +48,14 @@ typedef Node<3> NodeType;
 
         int p = 3;
 
-        auto curve = NurbsCurveGeometry<2, Point>(points, p, knot_vector);
+        auto curve = NurbsCurveGeometry<2, PointerVector<Point>>(points, p, knot_vector);
 
         return curve;
     }
 
-    NurbsCurveGeometry<3, NodeType> GenerateReferenceCurve3d()
+    NurbsCurveGeometry<3, PointerVector<NodeType>> GenerateReferenceCurve3d()
     {
-        NurbsCurveGeometry<3, NodeType>::PointsArrayType points;
+        PointerVector<NodeType> points;
 
         points.push_back(NodeType::Pointer(new NodeType(1, 0, -25, -5)));
         points.push_back(NodeType::Pointer(new NodeType(2, -15, -15, 0)));
@@ -90,7 +91,7 @@ typedef Node<3> NodeType;
         weights[6] = 1.0;
         weights[7] = 2.0;
 
-        auto curve = NurbsCurveGeometry<3, NodeType>(points, p, knot_vector, weights);
+        auto curve = NurbsCurveGeometry<3, PointerVector<NodeType>>(points, p, knot_vector, weights);
 
         return curve;
     }
@@ -122,7 +123,8 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_NEAR(result[1], 0.447214, TOLERANCE);
         KRATOS_CHECK_NEAR(result[2], 0.0, TOLERANCE);
 
-        auto derivatives = curve.GlobalDerivatives(parameter, 5);
+        std::vector<array_1d<double, 3>> derivatives;
+        curve.GlobalSpaceDerivatives(derivatives, parameter, 5);
 
         KRATOS_CHECK_NEAR(derivatives[4][1], 0.0, TOLERANCE);
     }
@@ -164,7 +166,8 @@ typedef Node<3> NodeType;
             array_1d<double, 3> parameter(0.0);
             parameter[0] = 0.0;
 
-            const auto derivatives = curve.GlobalDerivatives(parameter, 3);
+            std::vector<array_1d<double, 3>> derivatives;
+            curve.GlobalSpaceDerivatives(derivatives, parameter, 3);
 
             KRATOS_CHECK_NEAR(derivatives[0][0], 0, TOLERANCE);
             KRATOS_CHECK_NEAR(derivatives[0][1], -25, TOLERANCE);
@@ -201,7 +204,8 @@ typedef Node<3> NodeType;
             array_1d<double, 3> parameter(0.0);
             parameter[0] = 65.9462851997;
 
-            const auto derivatives = curve.GlobalDerivatives(parameter, 3);
+            std::vector<array_1d<double, 3>> derivatives;
+            curve.GlobalSpaceDerivatives(derivatives, parameter, 3);
 
             KRATOS_CHECK_NEAR(derivatives[0][0], 17.372881, TOLERANCE);
             KRATOS_CHECK_NEAR(derivatives[0][1], -10.084746, TOLERANCE);
@@ -238,7 +242,8 @@ typedef Node<3> NodeType;
             array_1d<double, 3> parameter(0.0);
             parameter[0] = 125;
 
-            const auto derivatives = curve.GlobalDerivatives(parameter, 3);
+            std::vector<array_1d<double, 3>> derivatives;
+            curve.GlobalSpaceDerivatives(derivatives, parameter, 3);
 
             KRATOS_CHECK_NEAR(derivatives[0][0], -15.801248, TOLERANCE);
             KRATOS_CHECK_NEAR(derivatives[0][1], 7.432826, TOLERANCE);
@@ -275,7 +280,8 @@ typedef Node<3> NodeType;
             array_1d<double, 3> parameter(0.0);
             parameter[0] = 131.892570399495;
 
-            const auto derivatives = curve.GlobalDerivatives(parameter, 3);
+            std::vector<array_1d<double, 3>> derivatives;
+            curve.GlobalSpaceDerivatives(derivatives, parameter, 3);
 
             KRATOS_CHECK_NEAR(derivatives[0][0], -25, TOLERANCE);
             KRATOS_CHECK_NEAR(derivatives[0][1], 15, TOLERANCE);

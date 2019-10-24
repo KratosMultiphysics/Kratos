@@ -36,9 +36,8 @@
             "scaling"     : false,
             "verbosity"   : 0
         },
-        "problem_domain_sub_model_part_list" : ["Parts_structure"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichletXYZ","DISPLACEMENT_dirichletXZ","PointLoad3D_neumann"],
-        "rotation_dofs"                      : false
+        "rotation_dofs"                      : false,
+        "use_computing_model_part" : false
     },
     "processes" : {
     "constraints_process_list" : [{

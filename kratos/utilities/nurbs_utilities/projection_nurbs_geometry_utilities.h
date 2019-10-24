@@ -65,7 +65,9 @@ namespace Kratos
             for (int i = 0; i < MaxIterations; i++) 
             {
                 // Compute the position, the base and the acceleration vector
-                auto derivatives = rNurbsCurve.GlobalDerivatives(
+                std::vector<array_1d<double, 3>> derivatives;
+                rNurbsCurve.GlobalSpaceDerivatives(
+                    derivatives,
                     rParameter,
                     2);
                 rResult = derivatives[0];
@@ -121,7 +123,8 @@ namespace Kratos
 
         for (int i = 0; i < MaxIterations; i++) {
             // Compute the position, the base and the acceleration vectors
-            const auto s = rNurbsSurface.GlobalDerivatives(rParameter, 2);
+            std::vector<array_1d<double, 3>> s;
+            rNurbsSurface.GlobalSpaceDerivatives(s,rParameter, 2);
             rResult = s[0];
 
             // Compute the distance vector

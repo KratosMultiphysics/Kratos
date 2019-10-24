@@ -30,9 +30,9 @@ namespace Testing {
 typedef Node<3> NodeType;
 
     /// Factory functions
-    NurbsCurveGeometry<2, Point> GenerateReferenceCurveForProjection2d()
+    NurbsCurveGeometry<2, PointerVector<Point>> GenerateReferenceCurveForProjection2d()
     {
-        NurbsCurveGeometry<2, Point>::PointsArrayType points;
+        PointerVector<Point> points;
 
         points.push_back(Point::Pointer(new Point(-9, -2, 0)));
         points.push_back(Point::Pointer(new Point(-5, -3, 0)));
@@ -64,14 +64,14 @@ typedef Node<3> NodeType;
         weights[5] = 4.3;
         weights[6] = 1.0;
 
-        auto curve = NurbsCurveGeometry<2, Point>(points, p, knot_vector, weights);
+        auto curve = NurbsCurveGeometry<2, PointerVector<Point>>(points, p, knot_vector, weights);
 
         return curve;
     }
 
-    NurbsSurfaceGeometry<3, Point> GenerateReferenceUnrefinedQuarterSphereGeometry()
+    NurbsSurfaceGeometry<3, PointerVector<Point>> GenerateReferenceUnrefinedQuarterSphereGeometry()
     {
-        NurbsSurfaceGeometry<3, Point>::PointsArrayType points;
+        PointerVector<Point> points;
 
         points.push_back(Point::Pointer(new Point(0.0, -0.075, 0.0)));
         points.push_back(Point::Pointer(new Point(0.075, -0.075, 0.0)));
@@ -113,7 +113,7 @@ typedef Node<3> NodeType;
         weights[7] = 7.071067811865476e-01;
         weights[8] = 1.0;
 
-        return NurbsSurfaceGeometry<3, Point>(
+        return NurbsSurfaceGeometry<3, PointerVector<Point>>(
             points, p, q, knot_vector_u, knot_vector_v, weights);
     }
 

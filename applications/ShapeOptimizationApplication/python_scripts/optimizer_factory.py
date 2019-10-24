@@ -12,16 +12,16 @@
 from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
+import KratosMultiphysics as KM
+import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # additional imports
-from custom_timer import Timer
-from analyzer_empty import EmptyAnalyzer
-import model_part_controller_factory
-import analyzer_factory
-import communicator_factory
-import algorithm_factory
+from .custom_timer import Timer
+from .analyzer_empty import EmptyAnalyzer
+from . import model_part_controller_factory
+from . import analyzer_factory
+from . import communicator_factory
+from . import algorithm_factory
 
 # ==============================================================================
 def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyzer()):
@@ -47,7 +47,7 @@ def _ValidateSettings(optimization_settings):
 
 # ------------------------------------------------------------------------------
 def _ValidateTopLevelSettings(optimization_settings):
-    default_settings = Parameters("""
+    default_settings = KM.Parameters("""
     {
         "model_settings" : { },
         "objectives" : [ ],
@@ -65,13 +65,13 @@ def _ValidateTopLevelSettings(optimization_settings):
 
 # ------------------------------------------------------------------------------
 def _ValidateObjectiveSettingsRecursively(objective_settings):
-    default_settings = Parameters("""
+    default_settings = KM.Parameters("""
     {
         "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
         "type"                                : "minimization",
         "scaling_factor"                      : 1.0,
-        "use_kratos"                          : false,
-        "kratos_response_settings"            : {},
+        "analyzer"                            : "external",
+        "response_settings"                   : {},
         "is_combined"                         : false,
         "combined_responses"                  : [],
         "weight"                              : 1.0,
@@ -85,15 +85,15 @@ def _ValidateObjectiveSettingsRecursively(objective_settings):
 
 # ------------------------------------------------------------------------------
 def _ValidateConstraintSettings(constraint_settings):
-    default_settings = Parameters("""
+    default_settings = KM.Parameters("""
     {
         "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
         "type"                                : "<",
         "scaling_factor"                      : 1.0,
         "reference"                           : "initial_value",
         "reference_value"                     : 1.0,
-        "use_kratos"                          : false,
-        "kratos_response_settings"            : {},
+        "analyzer"                            : "external",
+        "response_settings"                   : {},
         "project_gradient_on_surface_normals" : false
     }""")
     for itr in range(constraint_settings.size()):
@@ -116,32 +116,33 @@ class VertexMorphingMethod:
         number_of_objectives = self.optimization_settings["objectives"].size()
         number_of_constraints = self.optimization_settings["constraints"].size()
 
-        nodal_variable = KratosGlobals.GetVariable("DF1DX")
+        nodal_variable = KM.KratosGlobals.GetVariable("DF1DX")
         model_part.AddNodalSolutionStepVariable(nodal_variable)
-        nodal_variable = KratosGlobals.GetVariable("DF1DX_MAPPED")
+        nodal_variable = KM.KratosGlobals.GetVariable("DF1DX_MAPPED")
         model_part.AddNodalSolutionStepVariable(nodal_variable)
 
         for itr in range(1,number_of_constraints+1):
-            nodal_variable = KratosGlobals.GetVariable("DC"+str(itr)+"DX")
+            nodal_variable = KM.KratosGlobals.GetVariable("DC"+str(itr)+"DX")
             model_part.AddNodalSolutionStepVariable(nodal_variable)
-            nodal_variable = KratosGlobals.GetVariable("DC"+str(itr)+"DX_MAPPED")
+            nodal_variable = KM.KratosGlobals.GetVariable("DC"+str(itr)+"DX_MAPPED")
             model_part.AddNodalSolutionStepVariable(nodal_variable)
 
-        model_part.AddNodalSolutionStepVariable(CONTROL_POINT_UPDATE)
-        model_part.AddNodalSolutionStepVariable(CONTROL_POINT_CHANGE)
-        model_part.AddNodalSolutionStepVariable(SHAPE_UPDATE)
-        model_part.AddNodalSolutionStepVariable(SHAPE_CHANGE)
-        model_part.AddNodalSolutionStepVariable(MESH_CHANGE)
-        model_part.AddNodalSolutionStepVariable(NORMAL)
-        model_part.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
+        model_part.AddNodalSolutionStepVariable(KSO.CONTROL_POINT_UPDATE)
+        model_part.AddNodalSolutionStepVariable(KSO.CONTROL_POINT_CHANGE)
+        model_part.AddNodalSolutionStepVariable(KSO.SHAPE_UPDATE)
+        model_part.AddNodalSolutionStepVariable(KSO.SHAPE_CHANGE)
+        model_part.AddNodalSolutionStepVariable(KSO.MESH_CHANGE)
+        model_part.AddNodalSolutionStepVariable(KM.NORMAL)
+        model_part.AddNodalSolutionStepVariable(KSO.NORMALIZED_SURFACE_NORMAL)
 
     # --------------------------------------------------------------------------
     def Optimize(self):
         algorithm_name = self.optimization_settings["optimization_algorithm"]["name"].GetString()
 
-        print("\n> ==============================================================================================================")
-        print("> ", Timer().GetTimeStamp(),": Starting optimization using the following algorithm: ", algorithm_name)
-        print("> ==============================================================================================================\n")
+        KM.Logger.Print("")
+        KM.Logger.Print("===============================================================================")
+        KM.Logger.PrintInfo("ShapeOpt", Timer().GetTimeStamp(), ": Starting optimization using the following algorithm: ", algorithm_name)
+        KM.Logger.Print("===============================================================================\n")
 
         algorithm = algorithm_factory.CreateOptimizationAlgorithm(self.optimization_settings,
                                                                   self.analyzer,
@@ -152,8 +153,9 @@ class VertexMorphingMethod:
         algorithm.RunOptimizationLoop()
         algorithm.FinalizeOptimizationLoop()
 
-        print("\n> ==============================================================================================================")
-        print("> Finished optimization                                                                                           ")
-        print("> ==============================================================================================================\n")
+        KM.Logger.Print("")
+        KM.Logger.Print("===============================================================================")
+        KM.Logger.PrintInfo("ShapeOpt", "Finished optimization")
+        KM.Logger.Print("===============================================================================\n")
 
 # ==============================================================================

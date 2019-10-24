@@ -32,7 +32,7 @@
             "verbosity": 0,
             "scaling": false
         },
-        "auxiliary_variables_list" : ["NODAL_H","GEOMETRY_DISTANCE","DISTANCE"]
+        "auxiliary_variables_list" : ["GEOMETRY_DISTANCE","DISTANCE"]
     },
     "processes"            : {
         "initial_conditions_process_list"  : [],
@@ -53,6 +53,7 @@
                 "angle_of_attack": 0.0,
                 "mach_infinity": 0.02941176471,
                 "inlet_potential": 1.0,
+                "free_stream_density": 1.225,
                 "initialize_flow_field": false
             }
         }],

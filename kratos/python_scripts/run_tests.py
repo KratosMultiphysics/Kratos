@@ -119,7 +119,7 @@ class Commander(object):
                         script,
                         '-l'+level,
                         '-v'+str(verbose)
-                    ], stdout=subprocess.PIPE)
+                    ], stdout=subprocess.PIPE, cwd=os.path.dirname(os.path.abspath(script)))
                 except OSError:
                     # Command does not exist
                     print('[Error]: Unable to execute {}'.format(command), file=sys.stderr)

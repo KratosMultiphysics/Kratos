@@ -44,6 +44,8 @@ KRATOS_ERROR << "The string \"" << SubString << "\" was not found in the given s
 
 #define KRATOS_CHECK_NEAR(a,b, tolerance) if(std::abs(a - b) > tolerance) KRATOS_ERROR << "Check failed because " << #a << " = " << a << \
 " is not near to " << #b << " = " << b << " within the tolerance " << tolerance
+#define KRATOS_CHECK_RELATIVE_NEAR(a,b, tolerance) if(std::abs(b) > std::numeric_limits<double>::epsilon()) { KRATOS_ERROR_IF(std::abs((a - b)/b) > tolerance) << "Check failed because " << #a << " = " << a << \
+" is not near to " << #b << " = " << b << " within the relative tolerance " << tolerance } else {KRATOS_CHECK_NEAR(a,b,tolerance);}
 #define KRATOS_CHECK_DOUBLE_EQUAL(a,b) KRATOS_CHECK_NEAR(a,b,std::numeric_limits<double>::epsilon())
 
 #define KRATOS_CHECK_VECTOR_NEAR(a, b, tolerance) {                        \
@@ -62,6 +64,34 @@ for (std::size_t i = 0; i < a.size(); i++) {                               \
    << a[i] << " not near " << b[i]                                         \
    << " within tolerance " << tolerance << "." << std::endl;               \
 }                                                                          \
+}
+#define KRATOS_CHECK_VECTOR_RELATIVE_NEAR(a, b, tolerance) {                   \
+KRATOS_ERROR_IF_NOT(a.size() == b.size())                                      \
+<< "Check failed because vector arguments do not have the same size:"          \
+<< std::endl                                                                   \
+<< "First argument has size " << a.size() << ", "                              \
+<< "second argument has size " << b.size() << "." << std::endl;                \
+for (std::size_t i = 0; i < a.size(); i++) {                                   \
+    if (std::abs(b[i]) > std::numeric_limits<double>::epsilon()) {             \
+       KRATOS_ERROR_IF( std::abs((a[i] - b[i])/b[i]) > tolerance )             \
+       << "Check failed because vector " << #a << " with values" << std::endl  \
+       << a << std::endl                                                       \
+       << "Is not near vector " << #b << " with values" << std::endl           \
+       << b << std::endl                                                       \
+       << "Mismatch found in component " << i << ":" << std::endl              \
+       << a[i] << " not near " << b[i]                                         \
+       << " within relative tolerance " << tolerance << "." << std::endl;      \
+    } else {                                                                   \
+       KRATOS_ERROR_IF( std::abs(a[i] - b[i]) > tolerance )                    \
+       << "Check failed because vector " << #a << " with values" << std::endl  \
+       << a << std::endl                                                       \
+       << "Is not near vector " << #b << " with values" << std::endl           \
+       << b << std::endl                                                       \
+       << "Mismatch found in component " << i << ":" << std::endl              \
+       << a[i] << " not near " << b[i]                                         \
+       << " within tolerance " << tolerance << "." << std::endl;               \
+    }                                                                          \
+}                                                                              \
 }
 #define KRATOS_CHECK_VECTOR_EQUAL(a, b) KRATOS_CHECK_VECTOR_NEAR(a,b,std::numeric_limits<double>::epsilon())
 
@@ -84,6 +114,37 @@ for (std::size_t i = 0; i < a.size1(); i++) {                                   
        << " within tolerance " << tolerance << "." << std::endl;                 \
     }                                                                            \
 }                                                                                \
+}
+#define KRATOS_CHECK_MATRIX_RELATIVE_NEAR(a, b, tolerance) {                         \
+KRATOS_ERROR_IF_NOT((a.size1() == b.size1()) && (a.size2() == b.size2()))            \
+<< "Check failed because matrix arguments do not have the same dimensions:"          \
+<< std::endl                                                                         \
+<< "First argument has dimensions (" << a.size1() << "," << a.size2() << "), "       \
+<< "second argument has dimensions (" << b.size1() << "," << b.size2() << ")."       \
+<< std::endl;                                                                        \
+for (std::size_t i = 0; i < a.size1(); i++) {                                        \
+    for (std::size_t j = 0; j < a.size2(); j++) {                                    \
+        if (std::abs(b(i,j)) > std::numeric_limits<double>::epsilon()) {             \
+           KRATOS_ERROR_IF( std::abs((a(i,j) - b(i,j))/b(i,j)) > tolerance )         \
+           << "Check failed because matrix " << #a << " with values" << std::endl    \
+           << a << std::endl                                                         \
+           << "Is not near matrix " << #b << " with values" << std::endl             \
+           << b << std::endl                                                         \
+           << "Mismatch found in component (" << i << "," << j << "): " << std::endl \
+           << a(i,j) << " not near " << b(i,j)                                       \
+           << " within relative tolerance " << tolerance << "." << std::endl;        \
+        } else {                                                                     \
+           KRATOS_ERROR_IF( std::abs(a(i,j) - b(i,j)) > tolerance )                  \
+           << "Check failed because matrix " << #a << " with values" << std::endl    \
+           << a << std::endl                                                         \
+           << "Is not near matrix " << #b << " with values" << std::endl             \
+           << b << std::endl                                                         \
+           << "Mismatch found in component (" << i << "," << j << "): " << std::endl \
+           << a(i,j) << " not near " << b(i,j)                                       \
+           << " within tolerance " << tolerance << "." << std::endl;                 \
+    }                                                                                \
+}                                                                                    \
+}                                                                                    \
 }
 #define KRATOS_CHECK_MATRIX_EQUAL(a, b) KRATOS_CHECK_MATRIX_NEAR(a,b,std::numeric_limits<double>::epsilon())
 
