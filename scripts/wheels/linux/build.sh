@@ -72,6 +72,14 @@ build_application_wheel () {
     rm -r $WHEEL_ROOT
 }
 
+build_kratos_all_wheel () {
+    setup_wheel_dir
+    cp ${KRATOS_ROOT}/scripts/wheels/linux/KratosMultiphysics-all.json ${WHEEL_ROOT}/wheel.json
+    cp ${KRATOS_ROOT}/scripts/wheels/linux/setup_kratos_all.py ${WHEEL_ROOT}/setup.py
+    $PYTHON_LOCATION setup.py bdist_wheel
+    cp dist/* ${WHEEL_OUT}
+}
+
 build () {
 	cd $KRATOS_ROOT
 	git clean -ffxd
@@ -108,6 +116,8 @@ do
     do
         build_application_wheel $APPLICATION
     done
+
+    build_kratos_all_wheel
 
 	echo finished build for python${PYTHON}
 
