@@ -404,7 +404,7 @@ class MainCoupledFemDem_Solution:
                                                                                self.SkinDetectionProcessParameters)
         else: # 3D
             skin_detection_process = KratosMultiphysics.SkinDetectionProcess3D(self.FEM_Solution.main_model_part,
-                                                                               self.SkinDetectionProcessParameters)    
+                                                                               self.SkinDetectionProcessParameters)
         skin_detection_process.Execute()
         self.GenerateDemAfterRemeshing()
 
