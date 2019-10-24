@@ -52,12 +52,14 @@ namespace Kratos
 
       std::vector<double> const& GetNodalCoordinates(int Index) const {return mNodalCoordinates[Index];}
 
-      void SetCoordinates(array_1d<std::vector<double>, 3>& TheNodalCoordinates){
+      void SetCoordinates(std::vector<double> const& NodalXCoordinates, std::vector<double> const& NodalYCoordinates, std::vector<double> const& NodalZCoordinates){
 
-        KRATOS_ERROR_IF((TheNodalCoordinates[0].size() < 2) || (TheNodalCoordinates[1].size() < 2) || (TheNodalCoordinates[2].size() < 2)) 
+        KRATOS_ERROR_IF((NodalXCoordinates.size() < 2) || (NodalYCoordinates.size() < 2) || (NodalZCoordinates.size() < 2)) 
             << "The coordinates should have at least two entries defining the bounding box." << std::endl;
 
-        mNodalCoordinates = TheNodalCoordinates;
+        mNodalCoordinates[0] = NodalXCoordinates;
+        mNodalCoordinates[1] = NodalYCoordinates;
+        mNodalCoordinates[2] = NodalZCoordinates;
 
         for(int i = 0 ; i < 3 ; i++){
             for(std::size_t j = 0 ; j < mNodalCoordinates[i].size() - 1 ; j++){
@@ -81,12 +83,14 @@ namespace Kratos
     void SetAllColors(double TheColor){
 
         const int number_of_nodes = static_cast<int>(mNodalColors.size());
+        #pragma omp parallel for
         for(int i = 0 ; i < number_of_nodes ; i++ ){
             mNodalRayColors[i] = ScalarVector(3,TheColor);
             mNodalColors[i] = TheColor;
         }
 
         const int number_of_elements = static_cast<int>(mElementalColors.size());
+        #pragma omp parallel for
         for(int i = 0 ; i < number_of_elements ; i++ ){
             mElementalRayColors[i] = ScalarVector(3,TheColor);
             mElementalColors[i] = TheColor;
@@ -118,34 +122,40 @@ namespace Kratos
     void InitializeRays(array_1d< std::size_t, 3 > const& MinRayPosition, array_1d< std::size_t, 3 > const& MaxRayPosition, std::string EntititesToColor){
 
         if(EntititesToColor == "center_of_elements"){
-            for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
+            #pragma omp parallel for
+            for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
                 for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                 mXYRays(i,j) = Internals::CartesianRay<Element::GeometryType>(2, GetCenterOfElement(i,j,0), GetCenterOfElement(i,j,mNodalCoordinates[2].size() - 2));
                 }
             }
-            for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
+            #pragma omp parallel for
+            for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                 mXZRays(i,k) = Internals::CartesianRay<Element::GeometryType>(1, GetCenterOfElement(i,0, k), GetCenterOfElement(i,mNodalCoordinates[1].size() - 2,k));
                 }
             }
-            for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
+            #pragma omp parallel for
+            for(int j = MinRayPosition[1] ; j < static_cast<int>(MaxRayPosition[1]) ; j++){
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                 mYZRays(j,k) = Internals::CartesianRay<Element::GeometryType>(0, GetCenterOfElement(0,j,k), GetCenterOfElement(mNodalCoordinates[0].size() - 2,j,k));
                 }
             }
         }
         else if(EntititesToColor == "nodes"){
-            for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
+            #pragma omp parallel for
+            for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
                 for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                 mXYRays(i,j) = Internals::CartesianRay<Element::GeometryType>(2, GetPoint(i,j,0), GetPoint(i,j,mNodalCoordinates[2].size() - 1));
                 }
             }
-            for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
+            #pragma omp parallel for
+            for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                 mXZRays(i,k) = Internals::CartesianRay<Element::GeometryType>(1, GetPoint(i,0, k), GetPoint(i,mNodalCoordinates[1].size() - 1,k));
                 }
             }
-            for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
+            #pragma omp parallel for
+            for(int j = MinRayPosition[1] ; j < static_cast<int>(MaxRayPosition[1]) ; j++){
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                 mYZRays(j,k) = Internals::CartesianRay<Element::GeometryType>(0, GetPoint(0,j,k), GetPoint(mNodalCoordinates[0].size() - 1,j,k));
                 }
@@ -167,17 +177,22 @@ namespace Kratos
                     CalculateMinMaxCenterOfElementPositions(rGeometry, min_position, max_position);
                 }
                 
-                for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
+                // #pragma omp parallel for
+                for(int i = min_position[0] ; i < static_cast<int>(max_position[0]) ; i++){
                     for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
                         mXYRays(i,j).AddIntersection(rGeometry, mTolerance);
                     }
                 }
-                for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
+
+                // #pragma omp parallel for
+                for(int i = min_position[0] ; i < static_cast<int>(max_position[0]) ; i++){
                     for(std::size_t k = min_position[2] ; k < max_position[2] ; k++){
                         mXZRays(i,k).AddIntersection(rGeometry, mTolerance);
                     }
                 }
-                for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
+
+                // #pragma omp parallel for
+                for(int j = min_position[1] ; j < static_cast<int>(max_position[1]) ; j++){
                     for(std::size_t k = min_position[2] ; k < max_position[2] ; k++){
                         mYZRays(j,k).AddIntersection(rGeometry, mTolerance);
                     }
@@ -187,7 +202,8 @@ namespace Kratos
 
         void CalculateNodalRayColors(array_1d< std::size_t, 3 > const& MinRayPosition, array_1d< std::size_t, 3 > const& MaxRayPosition, int InsideColor, int OutsideColor){
             std::vector<double> colors;
-            for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
+            // #pragma omp parallel for
+            for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
                 for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                     auto& ray = mXYRays(i,j);
                     ray.CollapseIntersectionPoints(mTolerance);
@@ -199,7 +215,8 @@ namespace Kratos
                     }
                 }
             }
-            for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
+            // #pragma omp parallel for
+            for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                     auto& ray = mXZRays(i,k);
                     ray.CollapseIntersectionPoints(mTolerance);
@@ -211,7 +228,8 @@ namespace Kratos
                     }
                 }
             }
-            for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
+            // #pragma omp parallel for
+            for(int j = MinRayPosition[1] ; j < static_cast<int>(MaxRayPosition[1]) ; j++){
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                     mYZRays(j,k).CollapseIntersectionPoints(mTolerance);
                     mYZRays(j,k).CalculateColor(mNodalCoordinates[0], InsideColor, OutsideColor, colors, mTolerance);
@@ -224,7 +242,8 @@ namespace Kratos
                 }
             }
 
-            for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
+            // #pragma omp parallel for
+            for(int k = MinRayPosition[2] ; k < static_cast<int>(MaxRayPosition[2]) ; k++){
                 for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                     for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
                         auto& ray_colors = GetNodalRayColor(i,j,k);
@@ -262,7 +281,8 @@ namespace Kratos
                 z_coordinates[i] = (mNodalCoordinates[2][i] +  mNodalCoordinates[2][i+1]) * 0.5;
             }
 
-            for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
+            // #pragma omp parallel for
+            for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
                 for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                     auto& ray = mXYRays(i,j);
                     ray.CollapseIntersectionPoints(mTolerance);
@@ -275,7 +295,8 @@ namespace Kratos
                     }
                 }
             }
-            for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
+            // #pragma omp parallel for
+            for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                     auto& ray = mXZRays(i,k);
                     ray.CollapseIntersectionPoints(mTolerance);
@@ -287,7 +308,8 @@ namespace Kratos
                     }
                 }
             }
-            for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
+            // #pragma omp parallel for
+            for(int j = MinRayPosition[1] ; j < static_cast<int>(MaxRayPosition[1]) ; j++){
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                     mYZRays(j,k).CollapseIntersectionPoints(mTolerance);
                     mYZRays(j,k).CalculateColor(x_coordinates, InsideColor, OutsideColor, colors, mTolerance);
@@ -299,7 +321,8 @@ namespace Kratos
                     }
                 }
             }
-            for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
+            // #pragma omp parallel for
+            for(int k = MinRayPosition[2] ; k < static_cast<int>(MaxRayPosition[2]) ; k++){
                 for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                     for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
                         auto& ray_colors = GetElementalRayColor(i,j,k);
