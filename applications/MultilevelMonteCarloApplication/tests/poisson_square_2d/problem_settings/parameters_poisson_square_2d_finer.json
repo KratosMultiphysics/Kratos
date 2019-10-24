@@ -12,10 +12,14 @@
     "solver_settings"          : {
             "model_part_name" : "MainModelPart",
             "domain_size" : 2,
+            "solver_type" : "stationary",
             "echo_level": 0,
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "problem_settings/square_finer_2d"
+            },
+            "material_import_settings"           : {
+                "materials_filename" : "problem_settings/materials_poisson_square_2d.json"
             },
             "time_stepping" : {
                 "time_step": 1.1
@@ -34,7 +38,7 @@
         "python_module" : "assign_scalar_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "Parameters"    : {
-            "model_part_name" : "Subpart_Boundary",
+            "model_part_name" : "MainModelPart.Subpart_Boundary",
             "variable_name"   : "TEMPERATURE",
             "constrained"     : true,
             "value"           : 0.0,
