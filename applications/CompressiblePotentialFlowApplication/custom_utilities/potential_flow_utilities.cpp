@@ -12,6 +12,7 @@
 #include "custom_utilities/potential_flow_utilities.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "includes/model_part.h"
+#include <fstream>
 
 namespace Kratos {
 namespace PotentialFlowUtilities {
@@ -276,7 +277,7 @@ void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const do
         }
     }
 
-    const double percentage_unfulfilled = number_of_unfulfilled_wake_conditions * 100 / rWakeModelPart.NumberOfElements();
+    const double percentage_unfulfilled = number_of_unfulfilled_wake_conditions * 100.0 / rWakeModelPart.NumberOfElements();
 
     KRATOS_WARNING_IF("\nCheckIfWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
         << " THE WAKE CONDITION IS NOT FULFILLED IN " << percentage_unfulfilled
@@ -324,13 +325,19 @@ const bool CheckWakeCondition(const Element& rElement, const double& rTolerance,
     //     }
     // }
 
-    KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 0)
+    KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 2)
         << "WAKE CONDITION NOT FULFILLED IN ELEMENT WING TIP" << rElement.GetValue(WING_TIP)
         << " WITH ID # " << rElement.Id() << std::endl;
-    KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 1)
+    KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 3)
         << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id()
         << " upper_velocity  = " << upper_velocity
         << " lower_velocity  = " << lower_velocity << std::endl;
+    if(!wake_condition_is_fulfilled && rEchoLevel > 1){
+        std::ofstream outfile;
+        outfile.open("unfulfilled_wake_elements_id.txt", std::ios_base::app);
+        outfile << rElement.Id();
+        outfile << "\n";
+    }
 
     return wake_condition_is_fulfilled;
 }
