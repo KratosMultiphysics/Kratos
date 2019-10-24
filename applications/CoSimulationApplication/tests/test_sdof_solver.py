@@ -32,9 +32,10 @@ class TestSdofSolver(KratosUnittest.TestCase):
             "file_name" : "./result.dat"
             }
         }
+        #result.dat
         self.end_time = 1.0
         self.time = 0.0
-
+    
     def tearDown(self):
         os.remove("./result.dat")
 
@@ -52,7 +53,7 @@ class TestSdofSolver(KratosUnittest.TestCase):
         res = np.loadtxt(reference, skiprows=1)
         for line_ref, line_res in zip(ref, res):
             for entry_ref, entry_res in zip(line_ref, line_res):
-                self.assertAlmostEqual(entry_ref, entry_res, 4)
+                self.assertAlmostEqual(entry_ref, entry_res)
 
     def test_initial_displacement(self):
         settings = {                    
@@ -156,6 +157,52 @@ class TestSdofSolver(KratosUnittest.TestCase):
             system.OutputSolutionStep()
 
         self._compare_results("./reference_files/ref_sdof_root_point_displacement.dat", "./result.dat")
+
+    def test_root_point_excitation_force_excitation(self):
+        settings = {                    
+                "boundary_conditions":{
+                    "load_impulse" : 0.0,
+                    "omega_force"        : 3.0,
+                    "omega_root_point_displacement"        : 12.57,
+                    "excitation_function_force": "A * sin(omega * t)",
+                    "excitation_function_root_point_displacement": "A * sin(omega * t)",
+                    "amplitude_root_point_displacement": 1.0,
+                    "amplitude_force": 1000.0
+                }
+        }
+        settings.update(self.system_settings)
+        system = SDoFSolver(settings)
+        system.Initialize()
+
+        while(self.time <= self.end_time):
+            self.time =  system.AdvanceInTime(self.time)
+            system.SolveSolutionStep()
+            system.OutputSolutionStep()
+
+        self._compare_results("./reference_files/ref_sdof_root_point_displacement_external_force.dat", "./result.dat")
+
+    def test_root_point_excitation_force_excitation_impulse(self):
+        settings = {                    
+                "boundary_conditions":{
+                    "load_impulse" : 10.0,
+                    "omega_force"        : 3.0,
+                    "omega_root_point_displacement"        : 12.57,
+                    "excitation_function_force": "A * sin(omega * t)",
+                    "excitation_function_root_point_displacement": "A * sin(omega * t)",
+                    "amplitude_root_point_displacement": 1.0,
+                    "amplitude_force": 1000.0
+                }
+        }
+        settings.update(self.system_settings)
+        system = SDoFSolver(settings)
+        system.Initialize()
+
+        while(self.time <= self.end_time):
+            self.time =  system.AdvanceInTime(self.time)
+            system.SolveSolutionStep()
+            system.OutputSolutionStep()
+
+        self._compare_results("./reference_files/ref_sdof_root_point_displacement_external_force.dat", "./result.dat")
 
 if __name__ == '__main__':
     KratosUnittest.main()
