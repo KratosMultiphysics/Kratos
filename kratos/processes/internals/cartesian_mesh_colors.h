@@ -38,7 +38,8 @@ namespace Kratos
   {
     class CartesianMeshColors{
       double mTolerance;
-      array_1d<std::vector<double>, 3> mCoordinates;
+      array_1d<std::vector<double>, 3> mNodalCoordinates;
+      array_1d<std::vector<double>, 3> mElementCenterCoordinates;
       std::vector<array_1d<double,3>> mNodalRayColors;
       std::vector<array_1d<double,3>> mElementalRayColors;
       std::vector<double> mNodalColors;
@@ -49,23 +50,30 @@ namespace Kratos
      public:
       CartesianMeshColors(): mTolerance(1e-12){}
 
-      std::vector<double> const& GetCoordinates(int Index) const {return mCoordinates[Index];}
+      std::vector<double> const& GetNodalCoordinates(int Index) const {return mNodalCoordinates[Index];}
 
-      void SetCoordinates(array_1d<std::vector<double>, 3>& TheCoordinates){
+      void SetCoordinates(array_1d<std::vector<double>, 3>& TheNodalCoordinates){
 
-        KRATOS_ERROR_IF((TheCoordinates[0].size() < 2) || (TheCoordinates[1].size() < 2) || (TheCoordinates[2].size() < 2)) 
+        KRATOS_ERROR_IF((TheNodalCoordinates[0].size() < 2) || (TheNodalCoordinates[1].size() < 2) || (TheNodalCoordinates[2].size() < 2)) 
             << "The coordinates should have at least two entries defining the bounding box." << std::endl;
 
-        mCoordinates = TheCoordinates;
+        mNodalCoordinates = TheNodalCoordinates;
 
-        mXYRays.resize(mCoordinates[0].size(),mCoordinates[1].size(),false);
-        mXZRays.resize(mCoordinates[0].size(),mCoordinates[2].size(),false);
-        mYZRays.resize(mCoordinates[1].size(),mCoordinates[2].size(),false); 
+        for(int i = 0 ; i < 3 ; i++){
+            for(std::size_t j = 0 ; j < mNodalCoordinates[i].size() - 1 ; j++){
+                double center_coordinate = (mNodalCoordinates[i][j] + mNodalCoordinates[i][j+1]) * .5;
+                mElementCenterCoordinates[i].push_back(center_coordinate);
+            }
+        }
 
-        mNodalRayColors.resize(mCoordinates[0].size()*mCoordinates[1].size()*mCoordinates[2].size());
-        mNodalColors.resize(mCoordinates[0].size()*mCoordinates[1].size()*mCoordinates[2].size());
-        mElementalRayColors.resize((mCoordinates[0].size() - 1) * (mCoordinates[1].size() - 1)*(mCoordinates[2].size() - 1));
-        mElementalColors.resize((mCoordinates[0].size() - 1) * (mCoordinates[1].size() - 1)*(mCoordinates[2].size() - 1));
+        mXYRays.resize(mNodalCoordinates[0].size(),mNodalCoordinates[1].size(),false);
+        mXZRays.resize(mNodalCoordinates[0].size(),mNodalCoordinates[2].size(),false);
+        mYZRays.resize(mNodalCoordinates[1].size(),mNodalCoordinates[2].size(),false); 
+
+        mNodalRayColors.resize(mNodalCoordinates[0].size()*mNodalCoordinates[1].size()*mNodalCoordinates[2].size());
+        mNodalColors.resize(mNodalCoordinates[0].size()*mNodalCoordinates[1].size()*mNodalCoordinates[2].size());
+        mElementalRayColors.resize((mNodalCoordinates[0].size() - 1) * (mNodalCoordinates[1].size() - 1)*(mNodalCoordinates[2].size() - 1));
+        mElementalColors.resize((mNodalCoordinates[0].size() - 1) * (mNodalCoordinates[1].size() - 1)*(mNodalCoordinates[2].size() - 1));
 
         SetAllColors(0.00);
      }
@@ -86,24 +94,21 @@ namespace Kratos
     }
 
     double& GetNodalColor(std::size_t I, std::size_t J, std::size_t K){
-        const std::size_t index = I + J * mCoordinates[0].size() + K * mCoordinates[1].size() * mCoordinates[0].size();
+        const std::size_t index = I + J * mNodalCoordinates[0].size() + K * mNodalCoordinates[1].size() * mNodalCoordinates[0].size();
         return mNodalColors[index];
     }
 
     double& GetElementalColor(std::size_t I, std::size_t J, std::size_t K){
-        const std::size_t index = I + J * (mCoordinates[0].size() - 1) + K * (mCoordinates[1].size() - 1) * (mCoordinates[0].size() - 1);
+        const std::size_t index = I + J * mElementCenterCoordinates[0].size() + K * mElementCenterCoordinates[1].size() * mElementCenterCoordinates[0].size();
         return mElementalColors[index];
     }
 
     Point GetPoint(std::size_t I, std::size_t J, std::size_t K){
-        return Point(mCoordinates[0][I], mCoordinates[1][J], mCoordinates[2][K]);
+        return Point(mNodalCoordinates[0][I], mNodalCoordinates[1][J], mNodalCoordinates[2][K]);
     }
 
     Point GetCenterOfElement(std::size_t I, std::size_t J, std::size_t K){
-        double x = (mCoordinates[0][I] + mCoordinates[0][I+1])*.5;
-        double y = (mCoordinates[1][J] + mCoordinates[1][J+1])*.5;
-        double z = (mCoordinates[2][K] + mCoordinates[2][K+1])*.5;
-        return Point(x, y, z);
+        return Point(mElementCenterCoordinates[0][I], mElementCenterCoordinates[1][J], mElementCenterCoordinates[2][K]);
     }
       
     CartesianRay<Element::GeometryType>& GetXYRay(std::size_t I, std::size_t J){
@@ -115,34 +120,34 @@ namespace Kratos
         if(EntititesToColor == "center_of_elements"){
             for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
                 for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
-                mXYRays(i,j) = Internals::CartesianRay<Element::GeometryType>(2, GetCenterOfElement(i,j,0), GetCenterOfElement(i,j,mCoordinates[2].size() - 2));
+                mXYRays(i,j) = Internals::CartesianRay<Element::GeometryType>(2, GetCenterOfElement(i,j,0), GetCenterOfElement(i,j,mNodalCoordinates[2].size() - 2));
                 }
             }
             for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
-                mXZRays(i,k) = Internals::CartesianRay<Element::GeometryType>(1, GetCenterOfElement(i,0, k), GetCenterOfElement(i,mCoordinates[1].size() - 2,k));
+                mXZRays(i,k) = Internals::CartesianRay<Element::GeometryType>(1, GetCenterOfElement(i,0, k), GetCenterOfElement(i,mNodalCoordinates[1].size() - 2,k));
                 }
             }
             for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
-                mYZRays(j,k) = Internals::CartesianRay<Element::GeometryType>(0, GetCenterOfElement(0,j,k), GetCenterOfElement(mCoordinates[0].size() - 2,j,k));
+                mYZRays(j,k) = Internals::CartesianRay<Element::GeometryType>(0, GetCenterOfElement(0,j,k), GetCenterOfElement(mNodalCoordinates[0].size() - 2,j,k));
                 }
             }
         }
         else if(EntititesToColor == "nodes"){
             for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
                 for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
-                mXYRays(i,j) = Internals::CartesianRay<Element::GeometryType>(2, GetPoint(i,j,0), GetPoint(i,j,mCoordinates[2].size() - 1));
+                mXYRays(i,j) = Internals::CartesianRay<Element::GeometryType>(2, GetPoint(i,j,0), GetPoint(i,j,mNodalCoordinates[2].size() - 1));
                 }
             }
             for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
-                mXZRays(i,k) = Internals::CartesianRay<Element::GeometryType>(1, GetPoint(i,0, k), GetPoint(i,mCoordinates[1].size() - 1,k));
+                mXZRays(i,k) = Internals::CartesianRay<Element::GeometryType>(1, GetPoint(i,0, k), GetPoint(i,mNodalCoordinates[1].size() - 1,k));
                 }
             }
             for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
-                mYZRays(j,k) = Internals::CartesianRay<Element::GeometryType>(0, GetPoint(0,j,k), GetPoint(mCoordinates[0].size() - 1,j,k));
+                mYZRays(j,k) = Internals::CartesianRay<Element::GeometryType>(0, GetPoint(0,j,k), GetPoint(mNodalCoordinates[0].size() - 1,j,k));
                 }
             }
         }
@@ -186,7 +191,7 @@ namespace Kratos
                 for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                     auto& ray = mXYRays(i,j);
                     ray.CollapseIntersectionPoints(mTolerance);
-                    ray.CalculateColor(mCoordinates[2], InsideColor, OutsideColor, colors, mTolerance);
+                    ray.CalculateColor(mNodalCoordinates[2], InsideColor, OutsideColor, colors, mTolerance);
                     for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                         if(colors[k] == InsideColor){
                             GetNodalRayColor(i,j,k)[0] = colors[k];
@@ -198,7 +203,7 @@ namespace Kratos
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                     auto& ray = mXZRays(i,k);
                     ray.CollapseIntersectionPoints(mTolerance);
-                    ray.CalculateColor(mCoordinates[1], InsideColor, OutsideColor, colors, mTolerance);
+                    ray.CalculateColor(mNodalCoordinates[1], InsideColor, OutsideColor, colors, mTolerance);
                     for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                         if(colors[j] == InsideColor){
                             GetNodalRayColor(i,j,k)[1] = colors[j];
@@ -209,7 +214,7 @@ namespace Kratos
             for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                     mYZRays(j,k).CollapseIntersectionPoints(mTolerance);
-                    mYZRays(j,k).CalculateColor(mCoordinates[0], InsideColor, OutsideColor, colors, mTolerance);
+                    mYZRays(j,k).CalculateColor(mNodalCoordinates[0], InsideColor, OutsideColor, colors, mTolerance);
                     for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
                         if(colors[i] == InsideColor){
                             GetNodalRayColor(i,j,k)[2] = colors[i];
@@ -241,20 +246,20 @@ namespace Kratos
 
         void CalculateElementalRayColors(array_1d< std::size_t, 3 > const& MinRayPosition, array_1d< std::size_t, 3 > const& MaxRayPosition, int InsideColor, int OutsideColor){
             std::vector<double> colors;
-            std::vector<double> x_coordinates(mCoordinates[0].size() - 1);
-            std::vector<double> y_coordinates(mCoordinates[1].size() - 1);
-            std::vector<double> z_coordinates(mCoordinates[2].size() - 1);
+            std::vector<double> x_coordinates(mNodalCoordinates[0].size() - 1);
+            std::vector<double> y_coordinates(mNodalCoordinates[1].size() - 1);
+            std::vector<double> z_coordinates(mNodalCoordinates[2].size() - 1);
 
             for(std::size_t i = 0 ; i < x_coordinates.size() ; i++){
-                x_coordinates[i] = (mCoordinates[0][i] +  mCoordinates[0][i+1]) * 0.5;
+                x_coordinates[i] = (mNodalCoordinates[0][i] +  mNodalCoordinates[0][i+1]) * 0.5;
             }
 
             for(std::size_t i = 0 ; i < y_coordinates.size() ; i++){
-                y_coordinates[i] = (mCoordinates[1][i] +  mCoordinates[1][i+1]) * 0.5;
+                y_coordinates[i] = (mNodalCoordinates[1][i] +  mNodalCoordinates[1][i+1]) * 0.5;
             }
 
             for(std::size_t i = 0 ; i < z_coordinates.size() ; i++){
-                z_coordinates[i] = (mCoordinates[2][i] +  mCoordinates[2][i+1]) * 0.5;
+                z_coordinates[i] = (mNodalCoordinates[2][i] +  mNodalCoordinates[2][i+1]) * 0.5;
             }
 
             for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
@@ -308,7 +313,8 @@ namespace Kratos
                                 n_outside++;
                             }          
                         }
-                        GetElementalColor(i,j,k) = (n_inside > n_outside) ? InsideColor : OutsideColor;
+                        auto& color = GetElementalColor(i,j,k);
+                        color = (n_inside > n_outside) ? InsideColor : color;
                     }
                 }
             }
@@ -362,7 +368,7 @@ namespace Kratos
         }
 
         std::size_t CalculateNodePosition( double Coordinate, int ThisDimension ) const {
-            auto const& coordinates = mCoordinates[ThisDimension];
+            auto const& coordinates = mNodalCoordinates[ThisDimension];
             auto i_min = std::lower_bound(coordinates.begin(), coordinates.end(), Coordinate);
             if(i_min == coordinates.end())
                 return coordinates.size() - 1;
@@ -371,15 +377,13 @@ namespace Kratos
         }
 
         std::size_t CalculateCenterOfElementPosition( double Coordinate, int ThisDimension ) const {
-            auto const& coordinates = mCoordinates[ThisDimension];
+            auto const& coordinates = mElementCenterCoordinates[ThisDimension];
             auto i_min = std::lower_bound(coordinates.begin(), coordinates.end(), Coordinate);
             if(i_min == coordinates.end())
-                return coordinates.size() - 2;
+                return coordinates.size() - 1;
 
-            std::size_t index = std::distance(coordinates.begin(), i_min);
-
-            return (index < coordinates.size() - 2) ? index : coordinates.size() - 2;
-        }
+            return std::distance(coordinates.begin(), i_min);
+         }
 
         
 
@@ -387,24 +391,24 @@ namespace Kratos
             std::ofstream output_file(Filename);
 
             output_file << "<VTKFile type=\"RectilinearGrid\" version=\"0.1\" byte_order=\"LittleEndian\">" << std::endl;
-            output_file << "<RectilinearGrid WholeExtent=\"0 " << mCoordinates[0].size() - 1  << " 0 " << mCoordinates[1].size() - 1 
-                        << " 0 " << mCoordinates[2].size() - 1 << "\">" << std::endl;
-            output_file << "<Piece Extent=\"0 " << mCoordinates[0].size()  - 1 << " 0 " << mCoordinates[1].size() - 1 
-                        << " 0 " <<  mCoordinates[2].size() - 1 << "\">" << std::endl;
+            output_file << "<RectilinearGrid WholeExtent=\"0 " << mNodalCoordinates[0].size() - 1  << " 0 " << mNodalCoordinates[1].size() - 1 
+                        << " 0 " << mNodalCoordinates[2].size() - 1 << "\">" << std::endl;
+            output_file << "<Piece Extent=\"0 " << mNodalCoordinates[0].size()  - 1 << " 0 " << mNodalCoordinates[1].size() - 1 
+                        << " 0 " <<  mNodalCoordinates[2].size() - 1 << "\">" << std::endl;
             output_file << "<Coordinates> " << std::endl;
             output_file << "<DataArray type=\"Float64\" Name=\"coordinates\" NumberOfComponents=\"1\" format=\"ascii\">" << std::endl;
-            for (auto i_x : mCoordinates[0]) {
+            for (auto i_x : mNodalCoordinates[0]) {
                 output_file << i_x << " ";
             }
             output_file << "</DataArray> " << std::endl;
             output_file << "<DataArray type=\"Float64\" Name=\"coordinates\" NumberOfComponents=\"1\" format=\"ascii\">"
                         << std::endl;
-            for (auto i_y : mCoordinates[1]) {
+            for (auto i_y : mNodalCoordinates[1]) {
                 output_file << i_y << " ";
             }
             output_file << "</DataArray> " << std::endl;
             output_file << "<DataArray type=\"Float64\" Name=\"coordinates\" NumberOfComponents=\"1\" format=\"ascii\">" << std::endl;
-            for (auto i_z : mCoordinates[2]) {
+            for (auto i_z : mNodalCoordinates[2]) {
                 output_file << i_z << " ";
             }
             output_file << "</DataArray> " << std::endl;
@@ -422,6 +426,15 @@ namespace Kratos
             }
             output_file << "</PointData> " << std::endl;
             output_file << "<CellData Scalars=\"" << "Color" << "\">" << std::endl;
+            for(int i = 0 ; i < 3 ; i++){
+                output_file << "<DataArray type=\"Float64\" Name=\"" << "RayColor" << i << "\" NumberOfComponents=\"1\" format=\"ascii\">" << std::endl;
+                
+                for (auto& color: mElementalRayColors) {
+                    output_file << color[i] << std::endl;
+                }
+                    
+                output_file << "</DataArray> " << std::endl;
+            }
             output_file << "<DataArray type=\"Float64\" Name=\"" << "RayColor" << "\" NumberOfComponents=\"1\" format=\"ascii\">" << std::endl;
                 
             for (auto& color: mElementalColors) {
@@ -437,12 +450,12 @@ namespace Kratos
         }
     private:
         array_1d<double, 3>& GetNodalRayColor(std::size_t I, std::size_t J, std::size_t K){
-            const std::size_t index = I + J * mCoordinates[0].size() + K * mCoordinates[1].size() * mCoordinates[0].size();
+            const std::size_t index = I + J * mNodalCoordinates[0].size() + K * mNodalCoordinates[1].size() * mNodalCoordinates[0].size();
             return mNodalRayColors[index];
         }
 
         array_1d<double, 3>& GetElementalRayColor(std::size_t I, std::size_t J, std::size_t K){
-            const std::size_t index = I + J * (mCoordinates[0].size() - 1) + K * (mCoordinates[1].size() - 1) * (mCoordinates[0].size() - 1);
+            const std::size_t index = I + J * (mNodalCoordinates[0].size() - 1) + K * (mNodalCoordinates[1].size() - 1) * (mNodalCoordinates[0].size() - 1);
             return mElementalRayColors[index];
         }
 
