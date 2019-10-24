@@ -60,7 +60,6 @@ namespace Kratos
     ModelPart& CleaningUtilities::HardCopyBeforeSurfaceDiscretization( ModelPart& OriginalModelPart, ModelPart& NewModelPart ){
 
         auto& r_sub_model_part = NewModelPart.GetSubModelPart("AuxSubModelPart");
-        Properties::Pointer p_prop = NewModelPart.pGetProperties(0);
 
         // copying every node to the auxiliary model part
         // #pragma omp parallel for
@@ -86,7 +85,7 @@ namespace Kratos
             auto elem = NewModelPart.CreateNewElement(  "Element3D4N",
                                                         p_elem->Id(),
                                                         elem_nodes,
-                                                        p_prop );
+                                                        p_elem->pGetProperties() );
             // #pragma omp critical
             r_sub_model_part.AddElement( elem );
         }
@@ -109,7 +108,6 @@ namespace Kratos
 
         auto& r_sub_model_part_bound = NewModelPart.GetSubModelPart("Complete_Boundary");
         auto& r_sub_model_part_fluid = NewModelPart.GetSubModelPart("Parts_Fluid");
-        Properties::Pointer p_prop = NewModelPart.pGetProperties(0);
 
         std::vector<std::size_t> index_node;
         std::vector<std::size_t> index_element;
@@ -141,7 +139,7 @@ namespace Kratos
             auto elem = NewModelPart.CreateNewElement(   "Element3D4N",
                                                             p_elem->Id(),
                                                             elem_nodes,
-                                                            p_prop );
+                                                            p_elem->pGetProperties() );
             // #pragma omp critical
             index_element.push_back( p_elem->Id() );
         }
@@ -160,7 +158,7 @@ namespace Kratos
             auto cond = NewModelPart.CreateNewCondition(  "Condition3D3N",
                                                             p_cond->Id(),
                                                             cond_nodes,
-                                                            p_prop );
+                                                            p_cond->pGetProperties() );
             // #pragma omp critical
             index_condition.push_back( p_cond->Id() );
             // #pragma omp critical

@@ -56,8 +56,8 @@ CMAKE_BINARY_DIR = /home/msaranshs/Kratos/cmake_debug/CMakeFiles/FortranCInterfa
 # Target rules for target CMakeFiles/FortranCInterface.dir
 
 # All Build rule for target.
-CMakeFiles/FortranCInterface.dir/all: CMakeFiles/symbols.dir/all
 CMakeFiles/FortranCInterface.dir/all: CMakeFiles/myfort.dir/all
+CMakeFiles/FortranCInterface.dir/all: CMakeFiles/symbols.dir/all
 	$(MAKE) -f CMakeFiles/FortranCInterface.dir/build.make CMakeFiles/FortranCInterface.dir/depend
 	$(MAKE) -f CMakeFiles/FortranCInterface.dir/build.make CMakeFiles/FortranCInterface.dir/requires
 	$(MAKE) -f CMakeFiles/FortranCInterface.dir/build.make CMakeFiles/FortranCInterface.dir/build
