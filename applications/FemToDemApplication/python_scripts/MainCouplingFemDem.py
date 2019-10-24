@@ -163,7 +163,7 @@ class MainCoupledFemDem_Solution:
         self.FEM_Solution.step = self.FEM_Solution.step + 1
         self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.FEM_Solution.step
 
-        self.FindNeighboursIfNecessary()    
+        self.FindNeighboursIfNecessary()
         self.PerformRemeshingIfNecessary()
 
         if self.echo_level > 0:
@@ -831,7 +831,6 @@ class MainCoupledFemDem_Solution:
 
 #============================================================================================================================
     def BeforeSolveDEMOperations(self):
-        # self.DEM_Solution.InitializeTimeStep()
         self.DEM_Solution.time = self.FEM_Solution.time
         self.DEM_Solution.step = self.FEM_Solution.step
         self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts,
@@ -839,4 +838,3 @@ class MainCoupledFemDem_Solution:
                                                                    self.DEM_Solution.solver.dt,
                                                                    self.DEM_Solution.step,
                                                                    self.DEM_Solution.IsTimeToPrintPostProcess())
-        # self.DEM_Solution._BeforeSolveOperations(self.DEM_Solution.time)
