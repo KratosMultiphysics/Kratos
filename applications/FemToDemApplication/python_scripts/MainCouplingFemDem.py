@@ -136,6 +136,11 @@ class MainCoupledFemDem_Solution:
             # We assign the flag to recompute neighbours inside the 3D elements the 1st time
             utils = KratosMultiphysics.VariableUtils()
             utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
+        
+        self.create_initial_skin_DEM = True
+        if self.create_initial_skin_DEM:
+            self.ComputeSkinSubModelPart()
+            KratosFemDem.GenerateInitialSkinDEMProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart).Execute()
 
 #============================================================================================================================
     def RunMainTemporalLoop(self):
@@ -399,6 +404,12 @@ class MainCoupledFemDem_Solution:
         self.FEM_Solution.model_processes.ExecuteInitializeSolutionStep()
 
         # Search the skin nodes for the remeshing
+        self.ComputeSkinSubModelPart()
+        self.GenerateDemAfterRemeshing()
+
+#============================================================================================================================
+    def ComputeSkinSubModelPart(self):
+        # Search the skin nodes for the remeshing
         if self.domain_size == 2:
             skin_detection_process = KratosMultiphysics.SkinDetectionProcess2D(self.FEM_Solution.main_model_part,
                                                                                self.SkinDetectionProcessParameters)
@@ -406,8 +417,6 @@ class MainCoupledFemDem_Solution:
             skin_detection_process = KratosMultiphysics.SkinDetectionProcess3D(self.FEM_Solution.main_model_part,
                                                                                self.SkinDetectionProcessParameters)
         skin_detection_process.Execute()
-        self.GenerateDemAfterRemeshing()
-
 
 #============================================================================================================================
     def ComputeDeltaTime(self):
