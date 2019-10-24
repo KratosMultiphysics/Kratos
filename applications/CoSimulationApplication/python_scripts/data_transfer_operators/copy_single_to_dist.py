@@ -24,11 +24,9 @@ class CopySingleToDist(CoSimulationDataTransferOperator):
 
         if "swap_sign" in transfer_options.GetStringArray():
             to_solver_values *= (-1)
-        if "add_values" in transfer_options.GetStringArray():
-            to_solver_data.SetData(to_solver_data + from_solver_data)
-        else:
-            to_solver_data.SetData(to_solver_values)
+            
+        to_solver_data.SetData(to_solver_values)
 
     @classmethod
     def _GetListAvailableTransferOptions(cls):
-        return ["swap_sign", "add_values"]
+        return ["swap_sign"]
