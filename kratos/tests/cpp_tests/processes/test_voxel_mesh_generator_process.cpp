@@ -136,7 +136,7 @@ namespace Kratos {
 				coordinates[i][j] = j * 2.0 + min_coordinate_i;
 		}
 		
-		mesh_colors.SetCoordinates(coordinates);
+		mesh_colors.SetCoordinates(coordinates[0], coordinates[1], coordinates[2]);
 
 		for (std::size_t k = 0; k <= 5; k++) {
 			for (std::size_t j = 0; j <= 5; j++) {
@@ -170,7 +170,7 @@ namespace Kratos {
 				coordinates[i][j] = j * 2.0 + min_coordinate_i;
 		}
 		
-		mesh_colors.SetCoordinates(coordinates);
+		mesh_colors.SetCoordinates(coordinates[0], coordinates[1], coordinates[2]);
 
 		array_1d<std::size_t, 3> min_position;
 		array_1d<std::size_t, 3> max_position;
@@ -234,7 +234,7 @@ namespace Kratos {
 				coordinates[i][j] = static_cast<double>(j);
 		}
 		
-		mesh_colors.SetCoordinates(coordinates);
+		mesh_colors.SetCoordinates(coordinates[0], coordinates[1], coordinates[2]);
 
 		array_1d<std::size_t, 3> min_position;
 		array_1d<std::size_t, 3> max_position;
@@ -282,6 +282,41 @@ namespace Kratos {
 
 		// Generating the mesh
 		VoxelMeshGeneratorProcess(Point{1.00, 2.00, 3.00}, Point{11.00, 12.00, 13.00}, volume_part, skin_model_part, mesher_parameters).Execute();
+
+		auto i_node = volume_part.NodesBegin();
+		for (std::size_t k = 0; k <= 5; k++) {
+			for (std::size_t j = 0; j <= 5; j++) {
+				for (std::size_t i = 0; i <= 5; i++) {
+					auto& node = *i_node++;
+					double x = 2.00*i + 1.00;
+					double y = 2.00*j + 2.00;
+					double z = 2.00*k + 3.00;
+                	KRATOS_CHECK_NEAR(node.X(), x, 1e-6);
+                	KRATOS_CHECK_NEAR(node.Y(), y, 1e-6);
+                	KRATOS_CHECK_NEAR(node.Z(), z, 1e-6);
+				}
+            }
+		}
+	}
+
+
+	KRATOS_TEST_CASE_IN_SUITE(VoxelMeshGeneratorProcessXYZPositions, KratosCoreFastSuite)
+	{
+		Parameters mesher_parameters(R"(
+		{
+			"number_of_divisions":   [5,5,5],
+			"element_name":     "Element3D4N"
+		})");
+
+        Model current_model;
+		ModelPart &volume_part = current_model.CreateModelPart("Volume");
+
+		// Generate the skin
+		ModelPart &skin_model_part = current_model.CreateModelPart("Skin");
+
+
+		// Generating the mesh
+		VoxelMeshGeneratorProcess({1.00, 3.00, 5.00, 7.00, 9.00, 11.00}, {2.00, 4.00, 6.00, 8.00, 10.00, 12.00}, {3.00, 5.00, 7.00, 9.00, 11.00, 13.00}, volume_part, skin_model_part, mesher_parameters).Execute();
 
 		auto i_node = volume_part.NodesBegin();
 		for (std::size_t k = 0; k <= 5; k++) {
@@ -530,9 +565,6 @@ namespace Kratos {
 			for (std::size_t j = 0; j < 4; j++) {
 				for (std::size_t i = 0; i < 4; i++) {
 					auto& node = *i_node++;
-					auto node_x = node.X();
-					auto node_y = node.Y();
-					auto node_z = node.Z();
                 	KRATOS_CHECK_NEAR(node.X(), xy[i], 1e-6);
                 	KRATOS_CHECK_NEAR(node.Y(), xy[j], 1e-6);
                 	KRATOS_CHECK_NEAR(node.Z(), z[k], 1e-6);
