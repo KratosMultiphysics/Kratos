@@ -36,9 +36,11 @@ void GenerateInitialSkinDEMProcess::Execute()
 
     auto &r_submodel_part = mrModelPart.GetSubModelPart("SkinDEMModelPart");
     const auto it_node_begin = r_submodel_part.NodesBegin();
+    double num_DEM = 0;
     // #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(r_submodel_part.Nodes().size()); i++) {
         auto it_node = it_node_begin + i;
+        KRATOS_WATCH(it_node->Id())
 
         if (!it_node->GetValue(IS_DEM)) { // we have to generate its DEM
             auto& r_neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
@@ -65,17 +67,18 @@ void GenerateInitialSkinDEMProcess::Execute()
                 } else {
                     potential_radii(neigh) = 0.0;
                 }
-                // Let's compute the Radius of the new DEM
-                double radius;
-                if (has_dem_neigh) {
-                    radius = this->GetMinimumValue(potential_radii);
-                } else {
-                    radius = this->GetMinimumValue(distances)*0.5;
-                }
-                const array_1d<double,3>& r_coordinates = it_node->Coordinates();
-                const int id = this->GetMaximumDEMId() + 1;
-                this->CreateDEMParticle(id, r_coordinates, p_DEM_properties, radius, it_node);
             }
+            // Let's compute the Radius of the new DEM
+            double radius;
+            if (has_dem_neigh) {
+                radius = this->GetMinimumValue(potential_radii);
+            } else {
+                radius = this->GetMinimumValue(distances)*0.5;
+            }
+            const array_1d<double,3>& r_coordinates = it_node->Coordinates();
+            const int id = this->GetMaximumDEMId() + 1;
+            this->CreateDEMParticle(id, r_coordinates, p_DEM_properties, radius, it_node);
+            num_DEM++;
         }
     }
 }
