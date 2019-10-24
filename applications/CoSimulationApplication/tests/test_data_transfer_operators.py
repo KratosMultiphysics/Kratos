@@ -319,7 +319,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes, 
                                         self.origin_data_scalar.GetModelPart().Nodes,
-                                        KMC.SCALAR_FORCE, KM.PRESSURE, -10.0)
+                                        KMC.SCALAR_FORCE, KM.PRESSURE, 0.0)
 
 
 

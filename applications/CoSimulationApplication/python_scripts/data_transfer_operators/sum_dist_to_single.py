@@ -23,10 +23,10 @@ class SumDistToSingle(CoSimulationDataTransferOperator):
         summed_data_array = np.array([value])
 
         #the order is IMPORTANT here!
-        if "add_values" in transfer_options.GetStringArray():
-            summed_data_array += to_solver_data.GetData()
         if "swap_sign" in transfer_options.GetStringArray():
             summed_data_array *= (-1)
+        if "add_values" in transfer_options.GetStringArray():
+            summed_data_array += to_solver_data.GetData()
 
         to_solver_data.SetData(summed_data_array)
 
