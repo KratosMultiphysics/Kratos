@@ -4,11 +4,6 @@ message("**** configuring KratosFluidDynamicsApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
-if((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON))
-  message("Enabling trilinos extension for KratosFluidDynamicsApplication")
-  add_subdirectory(trilinos_extension)
-endif((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON) )
-
 ## define application core sources (pure C++ parts)
 set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
 
@@ -150,3 +145,12 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
     PATTERN "*.hpp" EXCLUDE
   )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
+
+###############################################################################
+## If trilinos is avaliable, switch on the Fluid trilinos extension 
+
+if((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON))
+  message("Enabling trilinos extension for KratosFluidDynamicsApplication")
+  add_subdirectory(trilinos_extension)
+endif((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON) )
+

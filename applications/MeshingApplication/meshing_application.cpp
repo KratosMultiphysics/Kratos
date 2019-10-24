@@ -41,6 +41,7 @@ void KratosMeshingApplication::Register() {
     KRATOS_REGISTER_VARIABLE(ANISOTROPIC_RATIO);                                    // The anisotropic aspect ratio
     KRATOS_REGISTER_VARIABLE(AUXILIAR_GRADIENT);                                    // An auxiliar gradient needed to compute the metric
     KRATOS_REGISTER_VARIABLE(AUXILIAR_HESSIAN);                                     // An auxiliar hessian needed to compute the metric
+    KRATOS_REGISTER_VARIABLE(METRIC_SCALAR);                                        // A single scalar metric
     KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_2D); // A 2D metric vector
     KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_3D); // A 3D metric vector
 

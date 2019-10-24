@@ -13,6 +13,7 @@
 #include "custom_utilities/control_module_fem_dem_utilities.hpp"
 #include "custom_utilities/stress_failure_check_utilities.hpp"
 #include "custom_utilities/post_process_utilities.hpp"
+#include "custom_utilities/sand_production_utilities.hpp"
 
 namespace Kratos {
 
@@ -64,6 +65,13 @@ namespace Kratos {
                 .def("GetInitialContinuumBonds", &PostProcessUtilities::GetInitialContinuumBonds)
                 .def("GetCurrentContinuumBonds", &PostProcessUtilities::GetCurrentContinuumBonds)
                 ;
+
+            class_<SandProductionUtilities, SandProductionUtilities::Pointer>(m, "SandProductionUtilities")
+                .def(init<>())
+                .def("MarkSandProductionParticlesForErasing", &SandProductionUtilities::MarkSandProductionParticlesForErasing)
+                ;
+
+
 
         }
     }  // namespace Python
