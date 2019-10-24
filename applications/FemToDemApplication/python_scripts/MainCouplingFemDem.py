@@ -188,7 +188,7 @@ class MainCoupledFemDem_Solution:
         self.DEM_Solution.solver.Solve()
         ########################################################
 
-        self.DEM_Solution.AfterSolveOperations()
+        self.DEM_Solution.FinalizeSolutionStep()
         self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
 
         # to print DEM with the FEM coordinates
@@ -831,7 +831,7 @@ class MainCoupledFemDem_Solution:
 
 #============================================================================================================================
     def BeforeSolveDEMOperations(self):
-        self.DEM_Solution.InitializeTimeStep()
+        # self.DEM_Solution.InitializeTimeStep()
         self.DEM_Solution.time = self.FEM_Solution.time
         self.DEM_Solution.step = self.FEM_Solution.step
         self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts,
@@ -839,4 +839,4 @@ class MainCoupledFemDem_Solution:
                                                                    self.DEM_Solution.solver.dt,
                                                                    self.DEM_Solution.step,
                                                                    self.DEM_Solution.IsTimeToPrintPostProcess())
-        self.DEM_Solution._BeforeSolveOperations(self.DEM_Solution.time)
+        # self.DEM_Solution._BeforeSolveOperations(self.DEM_Solution.time)
