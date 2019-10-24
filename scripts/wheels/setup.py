@@ -19,6 +19,11 @@ for module in conf["included_modules"]:
 for binary in conf["included_binaries"]:
     shutil.copy(os.path.join(os.environ["KRATOS_ROOT"], "libs", binary.replace("${PYTHON}", os.environ["PYTHON"])), os.path.join("KratosMultiphysics", ".libs"))
 
+if "excluded_binaries" in conf:
+    f = open("excluded.txt", "w")
+    f.writelines(list(map(lambda x: x + "\n", conf["excluded_binaries"])))
+    f.close()
+
 class BinaryDistribution(setuptools.Distribution):
     def has_ext_modules(foo):
         return True

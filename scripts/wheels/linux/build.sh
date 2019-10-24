@@ -45,8 +45,8 @@ optimize_wheel(){
     
     for LIBRARY in $(ls tmp/KratosMultiphysics/.libs)
     do
-        if [ -f "${CORE_LIB_DIR}/${LIBRARY}" ]; then
-            echo "removing ${LIBRARY} - already present in Kratos Core wheel."
+        if [ -f "${CORE_LIB_DIR}/${LIBRARY}" ] || grep -Fxq $(echo $LIBRARY | cut -f1 -d"-") "${WHEEL_ROOT}/excluded.txt" ; then
+            echo "removing ${LIBRARY} - already present in dependent wheel."
             rm tmp/KratosMultiphysics/.libs/${LIBRARY}
             sed -i "/${LIBRARY}/d" tmp/*.dist-info/RECORD
         fi
