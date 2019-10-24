@@ -33,11 +33,49 @@ void GenerateInitialSkinDEMProcess::Execute()
     auto nodal_neigh_process = FindNodalNeighboursProcess(mrModelPart, 5, 5);
     nodal_neigh_process.Execute();
 
-    const auto it_node_begin = mrModelPart.NodesBegin();
+    auto &r_submodel_part = mrModelPart.GetSubModelPart("SkinDEMModelPart");
+    const auto it_node_begin = r_submodel_part.NodesBegin();
     // #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
+    for (int i = 0; i < static_cast<int>(r_submodel_part.Nodes().size()); i++) {
         auto it_node = it_node_begin + i;
 
+        if (!it_node->GetValue(IS_DEM)) { // we have to generate its DEM
+            auto& r_neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
+            Vector potential_radii(r_neigh_nodes.size());
+            Vector distances(r_neigh_nodes.size());
+    
+            // Loop over the neighbours of that node
+            bool has_dem_neigh = false;
+            for (int neigh = 0; neigh < r_neigh_nodes.size(); neigh++) {
+                auto& r_neighbour_node = r_neigh_nodes[neigh];
+                const double dist_between_nodes = CalculateDistanceBetweenNodes(it_node, r_neighbour_node);
+                distances(neigh) = dist_between_nodes;
+                if (r_neighbour_node.GetValue(IS_DEM)) { // Has DEM
+                    has_dem_neigh = true;
+                    potential_radii(neigh) = dist_between_nodes - r_neighbour_node.GetValue(RADIUS);
+                    if (potential_radii(neigh) < 0.0 || potential_radii(neigh) / dist_between_nodes < 0.2) {
+                        const double new_radius = dist_between_nodes*0.5;
+                        auto& pDEM_particle = r_neighbour_node.GetValue(DEM_PARTICLE_POINTER);
+                        auto& r_radius_neigh_old = pDEM_particle->GetGeometry()[0].GetSolutionStepValue(RADIUS);
+                        r_radius_neigh_old = new_radius;
+                        r_neighbour_node.SetValue(RADIUS, new_radius);
+                        potential_radii(neigh) = new_radius;
+                    }
+                } else {
+                    potential_radii(neigh) = 0.0;
+                }
+                // Let's compute the Radius of the new DEM
+                double radius;
+                if (has_dem_neigh) {
+                    radius = this->GetMinimumValue(potential_radii);
+                } else {
+                    radius = this->GetMinimumValue(distances)*0.5;
+                }
+                const array_1d<double,3>& r_coordinates = it_node->Coordinates();
+                const int id = this->GetMaximumDEMId() + 1;
+                this->CreateDEMParticle(id, r_coordinates, p_DEM_properties, radius, it_node);
+            }
+        }
     }
 }
 
@@ -64,7 +102,7 @@ void GenerateInitialSkinDEMProcess::CreateDEMParticle(
 /***********************************************************************************/
 
 double GenerateInitialSkinDEMProcess::CalculateDistanceBetweenNodes(
-    const NodeType& rNode1, 
+    NodeIteratorType rNode1, 
     const NodeType& rNode2
     )
 {

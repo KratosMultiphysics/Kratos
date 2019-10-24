@@ -25,7 +25,7 @@ namespace Kratos {
 
 typedef std::size_t SizeType;
 typedef Node<3> NodeType;
-typedef ModelPart::ElementsContainerType::iterator ElementIteratorType;
+typedef ModelPart::NodesContainerType::iterator NodeIteratorType;
 
 class GenerateInitialSkinDEMProcess : public Process 
 {
@@ -52,7 +52,7 @@ class GenerateInitialSkinDEMProcess : public Process
     /**
      * @brief Computes the distance between nodes
      */
-  double CalculateDistanceBetweenNodes(const NodeType& Node1, const NodeType& Node2);
+  double CalculateDistanceBetweenNodes(NodeIteratorType Node1, const NodeType& Node2);
 
     /**
      * @brief This creates one particle

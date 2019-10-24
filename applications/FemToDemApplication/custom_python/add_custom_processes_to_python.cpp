@@ -146,6 +146,10 @@ void AddCustomProcessesToPython(pybind11::module &m)
     class_<UpdatePressureVolumeProcess, UpdatePressureVolumeProcess::Pointer, Process>(m, "UpdatePressureVolumeProcess")
         .def(init<ModelPart &>())
         .def("Execute", &UpdatePressureVolumeProcess::Execute);
+
+    class_<GenerateInitialSkinDEMProcess, GenerateInitialSkinDEMProcess::Pointer, Process>(m, "GenerateInitialSkinDEMProcess")
+        .def(init<ModelPart &, ModelPart &>())
+        .def("Execute", &GenerateInitialSkinDEMProcess::Execute);
 }
 } // namespace Python.
 } // Namespace Kratos
