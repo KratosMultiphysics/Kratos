@@ -20,8 +20,8 @@ class PotentialFlowStochasticAdjointSolver(PotentialFlowAdjointSolver):
 
         KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowStochasticAdjointSolver]:: ", "Construction finished")
 
+    def SolveSolutionStep(self):
 
-    def FinalizeSolutionStep(self):
 
         cvar_beta = self.response_function_settings["cvar_beta"].GetDouble()
         cvar_t = self.response_function_settings["cvar_t"].GetDouble()
@@ -34,6 +34,7 @@ class PotentialFlowStochasticAdjointSolver(PotentialFlowAdjointSolver):
         ##USING ABS
         if abs(objective_function) >= abs(cvar_t):
             multiplier = 1.0 / (1.0-cvar_beta)
+            super(PotentialFlowStochasticAdjointSolver, self).SolveSolutionStep()
         else:
             multiplier = 0.0
         print("CVAR_T VALUE:", cvar_t)
@@ -46,5 +47,3 @@ class PotentialFlowStochasticAdjointSolver(PotentialFlowAdjointSolver):
             current_value_aux = node.GetSolutionStepValue(KCPFApp.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL)
             node.SetSolutionStepValue(KCPFApp.ADJOINT_VELOCITY_POTENTIAL, multiplier*current_value)
             node.SetSolutionStepValue(KCPFApp.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL, multiplier*current_value_aux)
-
-        super(PotentialFlowStochasticAdjointSolver, self).FinalizeSolutionStep()
