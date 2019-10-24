@@ -442,39 +442,39 @@ protected:
         const bool CalculateResidualVectorFlag
         );
 
-    /**
-     * @brief This functions updates the data structure passed to the CL
-     * @param rThisKinematicVariables The kinematic variables to be calculated
-     * @param rThisConstitutiveVariables The constitutive variables
-     * @param rValues The CL parameters
-     * @param PointNumber The integration point considered
-     * @param IntegrationPoints The list of integration points
-     */
-    virtual void SetConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables,
-        ConstitutiveVariables& rThisConstitutiveVariables,
-        ConstitutiveLaw::Parameters& rValues,
-        const IndexType PointNumber,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
-        );
+    // /**
+    //  * @brief This functions updates the data structure passed to the CL
+    //  * @param rThisKinematicVariables The kinematic variables to be calculated
+    //  * @param rThisConstitutiveVariables The constitutive variables
+    //  * @param rValues The CL parameters
+    //  * @param PointNumber The integration point considered
+    //  * @param IntegrationPoints The list of integration points
+    //  */
+    // virtual void SetConstitutiveVariables(
+    //     KinematicVariables& rThisKinematicVariables,
+    //     ConstitutiveVariables& rThisConstitutiveVariables,
+    //     ConstitutiveLaw::Parameters& rValues,
+    //     const IndexType PointNumber,
+    //     const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+    //     );
 
-    /**
-     * @brief This functions updates the constitutive variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated
-     * @param rThisConstitutiveVariables The constitutive variables
-     * @param rValues The CL parameters
-     * @param PointNumber The integration point considered
-     * @param IntegrationPoints The list of integration points
-     * @param ThisStressMeasure The stress measure considered
-     */
-    virtual void CalculateConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables,
-        ConstitutiveVariables& rThisConstitutiveVariables,
-        ConstitutiveLaw::Parameters& rValues,
-        const IndexType PointNumber,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2
-        );
+    // /**
+    //  * @brief This functions updates the constitutive variables
+    //  * @param rThisKinematicVariables The kinematic variables to be calculated
+    //  * @param rThisConstitutiveVariables The constitutive variables
+    //  * @param rValues The CL parameters
+    //  * @param PointNumber The integration point considered
+    //  * @param IntegrationPoints The list of integration points
+    //  * @param ThisStressMeasure The stress measure considered
+    //  */
+    // virtual void CalculateConstitutiveVariables(
+    //     KinematicVariables& rThisKinematicVariables,
+    //     ConstitutiveVariables& rThisConstitutiveVariables,
+    //     ConstitutiveLaw::Parameters& rValues,
+    //     const IndexType PointNumber,
+    //     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+    //     const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2
+    //     );
 
     /**
      * @brief This function computes the body force
@@ -612,6 +612,15 @@ private:
     void CalculateB(
         Matrix& rB,
         const Matrix& rDN_DX) const;
+
+    /**
+     * @brief Calculation of the deformation gradient F
+     * @param rF The deformation gradient
+     * @param rStrainTensor The strain tensor in Voigt notation
+     */
+    void ComputeEquivalentF(
+        Matrix &rF,
+        const Vector &rStrainTensor) const;
 
     /**
      * Calculation of the deviatoric strain operator
