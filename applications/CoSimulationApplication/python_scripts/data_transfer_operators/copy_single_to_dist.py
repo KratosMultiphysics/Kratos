@@ -22,11 +22,14 @@ class CopySingleToDist(CoSimulationDataTransferOperator):
 
         to_solver_values.fill(data_value[0])
 
+        #the order is IMPORTANT here!
         if "swap_sign" in transfer_options.GetStringArray():
             to_solver_values *= (-1)
-            
+        if "redistribute_data" in transfer_options.GetStringArray():
+            to_solver_values /= to_solver_data.Size()
+
         to_solver_data.SetData(to_solver_values)
 
     @classmethod
     def _GetListAvailableTransferOptions(cls):
-        return ["swap_sign"]
+        return ["swap_sign", "redistribute_data"]

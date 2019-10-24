@@ -22,15 +22,14 @@ class SumDistToSingle(CoSimulationDataTransferOperator):
             value = from_solver_data.GetModelPart.GetCommunicator().GetDataCommunicator().SumAll(value)
         summed_data_array = np.array([value])
 
+        #the order is IMPORTANT here!
+        if "add_values" in transfer_options.GetStringArray():
+            summed_data_array += to_solver_data.GetData()
         if "swap_sign" in transfer_options.GetStringArray():
             summed_data_array *= (-1)
-        if "add_values" in transfer_options.GetStringArray():
-            to_solver_data.SetData(to_solver_data.GetData() + summed_data_array)
-        #if "redistribute_data" in transfer_options.GetStringArray():
-        #    summed_data_array /= len(to_solver_data)
-        else:
-            to_solver_data.SetData(summed_data_array)
+
+        to_solver_data.SetData(summed_data_array)
 
     @classmethod
     def _GetListAvailableTransferOptions(cls):
-        return ["swap_sign", "add_values", "redistribute_data"]
+        return ["swap_sign", "add_values"]
