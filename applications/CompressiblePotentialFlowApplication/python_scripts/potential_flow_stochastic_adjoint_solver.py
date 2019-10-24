@@ -11,11 +11,7 @@ def CreateSolver(model, custom_settings):
 class PotentialFlowStochasticAdjointSolver(PotentialFlowAdjointSolver):
     def __init__(self, model, custom_settings):
 
-        # self.response_function_settings = custom_settings["response_function_settings"].Clone()
-        # self.sensitivity_settings = custom_settings["sensitivity_settings"].Clone()
-        # custom_settings.RemoveValue("response_function_settings")
-        # custom_settings.RemoveValue("sensitivity_settings")
-        # Construct the base solver.
+        # Construct the parent solver.
         super(PotentialFlowStochasticAdjointSolver, self).__init__(model, custom_settings)
 
         KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowStochasticAdjointSolver]:: ", "Construction finished")
@@ -26,10 +22,7 @@ class PotentialFlowStochasticAdjointSolver(PotentialFlowAdjointSolver):
         cvar_beta = self.response_function_settings["cvar_beta"].GetDouble()
         cvar_t = self.response_function_settings["cvar_t"].GetDouble()
 
-        ################### SWITCHING TO NEGATIVE ##########################################
-        objective_function = - self.response_function.CalculateValue(self.main_model_part)
-        ################### SWITCHING TO NEGATIVE ##########################################
-
+        objective_function = self.response_function.CalculateValue(self.main_model_part)
 
         ##USING ABS
         if abs(objective_function) >= abs(cvar_t):
@@ -37,11 +30,7 @@ class PotentialFlowStochasticAdjointSolver(PotentialFlowAdjointSolver):
             super(PotentialFlowStochasticAdjointSolver, self).SolveSolutionStep()
         else:
             multiplier = 0.0
-        print("CVAR_T VALUE:", cvar_t)
 
-        print("LIFT:", objective_function)
-
-        print("MULPLIER:", multiplier)
         for node in self.main_model_part.Nodes:
             current_value = node.GetSolutionStepValue(KCPFApp.ADJOINT_VELOCITY_POTENTIAL)
             current_value_aux = node.GetSolutionStepValue(KCPFApp.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL)
