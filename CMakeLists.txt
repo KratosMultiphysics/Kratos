@@ -186,6 +186,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
 
 if(USE_COTIRE MATCHES ON)
     include(cotire)
+    if(${MSVC})
+      add_custom_target(install_unity
+        COMMAND ${CMAKE_COMMAND} -DCOMPONENT=unity -P cmake_install.cmake
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+      )
+    endif(${MSVC})
 endif(USE_COTIRE MATCHES ON)
 
 ################### PYBIND11
