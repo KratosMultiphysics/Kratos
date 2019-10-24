@@ -33,7 +33,7 @@ namespace Kratos
 		: Process()
 		, mColors(MeshColors)
         , mMinPoint(MeshColors.GetPoint(0,0,0))
-        , mMaxPoint(MeshColors.GetCoordinates(0)[MeshColors.GetCoordinates(0).size() - 1], MeshColors.GetCoordinates(1)[MeshColors.GetCoordinates(1).size() - 1], MeshColors.GetCoordinates(2)[MeshColors.GetCoordinates(2).size() - 1])
+        , mMaxPoint(MeshColors.GetNodalCoordinates(0)[MeshColors.GetNodalCoordinates(0).size() - 1], MeshColors.GetNodalCoordinates(1)[MeshColors.GetNodalCoordinates(1).size() - 1], MeshColors.GetNodalCoordinates(2)[MeshColors.GetNodalCoordinates(2).size() - 1])
 		, mNumberOfDivisions(NumberOfDivisions)
         , mrVolumePart(rVolumePart), mrSkinPart(rSkinPart), mFindIntersectedObjectsProcess(rVolumePart, rSkinPart) {
 
