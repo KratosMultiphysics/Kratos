@@ -50,6 +50,7 @@ namespace Kratos
                 "condition_name": "PLEASE SPECIFY IT",
 				"coloring_settings_list": [],
 				"entities_to_generate": "elements",
+				"output" : "mesh",
 				"mesh_type": "uniform",
 				"output_filename" : ""
             }  )");
@@ -78,6 +79,11 @@ namespace Kratos
 		mEntitiesToGenerate=TheParameters["entities_to_generate"].GetString();
 		if(TheParameters["mesh_type"].GetString() == "coarse")
 			mCoarseMeshType=true;
+
+		if(TheParameters["output"].GetString() == "mesh"){
+			mMeshOutput = true;
+		}
+
 
 		mHasColor = false;
 

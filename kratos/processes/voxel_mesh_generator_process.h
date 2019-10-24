@@ -79,7 +79,7 @@ namespace Kratos
       VoxelMeshGeneratorProcess(std::vector<double> const& XCoordinates, std::vector<double> const& YCoordinates, std::vector<double> const& ZCoordinates,
         ModelPart& rVolumePart,
         ModelPart& rSkinPart, Parameters& TheParameters);
-        
+
       /// The object is not copyable.
 	  VoxelMeshGeneratorProcess(VoxelMeshGeneratorProcess const& rOther) = delete;
 
@@ -162,6 +162,7 @@ namespace Kratos
           Parameters mColoringParameters;
           std::string mEntitiesToGenerate;
           bool mCoarseMeshType;
+          bool mMeshOutput;
           bool mHasColor;
 
 
