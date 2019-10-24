@@ -32,6 +32,7 @@ void GenerateInitialSkinDEMProcess::Execute()
 {
     auto nodal_neigh_process = FindNodalNeighboursProcess(mrModelPart, 5, 5);
     nodal_neigh_process.Execute();
+    auto p_DEM_properties = mrDEMModelPart.pGetProperties(1);
 
     auto &r_submodel_part = mrModelPart.GetSubModelPart("SkinDEMModelPart");
     const auto it_node_begin = r_submodel_part.NodesBegin();
@@ -88,13 +89,13 @@ void GenerateInitialSkinDEMProcess::CreateDEMParticle(
     const array_1d<double, 3> Coordinates,
     const Properties::Pointer pProperties,
     const double Radius,
-    NodeType& rNode
+	NodeIteratorType rNode
 )
 {
     auto spheric_particle = mParticleCreator.CreateSphericParticleRaw(mrDEMModelPart, Id, Coordinates, pProperties, Radius, "SphericParticle3D");
-    rNode.SetValue(IS_DEM, true);
-    rNode.SetValue(RADIUS, Radius);
-    rNode.SetValue(DEM_PARTICLE_POINTER, spheric_particle);
+    rNode->SetValue(IS_DEM, true);
+    rNode->SetValue(RADIUS, Radius);
+    rNode->SetValue(DEM_PARTICLE_POINTER, spheric_particle);
 }
 
 
@@ -106,11 +107,11 @@ double GenerateInitialSkinDEMProcess::CalculateDistanceBetweenNodes(
     const NodeType& rNode2
     )
 {
-    const double X1 = rNode1.X();
+    const double X1 = rNode1->X();
     const double X2 = rNode2.X();
-    const double Y1 = rNode1.Y();
+    const double Y1 = rNode1->Y();
     const double Y2 = rNode2.Y();
-    const double Z1 = rNode1.Z();
+    const double Z1 = rNode1->Z();
     const double Z2 = rNode2.Z();
     return std::sqrt(std::pow(X1-X2, 2) + std::pow(Y1-Y2, 2) + std::pow(Z1-Z2, 2));
 }

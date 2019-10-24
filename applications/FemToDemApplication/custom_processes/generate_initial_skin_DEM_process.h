@@ -11,8 +11,8 @@
 //  Main authors:    Alejandro Cornejo Velazquez
 //
 
-#if !defined(KRATOS_GENERATE_DEM_PROCESS)
-#define KRATOS_GENERATE_DEM_PROCESS
+#if !defined(KRATOS_GENERATE_INITIAL_SKIN_DEM_PROCESS)
+#define KRATOS_GENERATE_INITIAL_SKIN_DEM_PROCESS
 
 
 #include "includes/model_part.h"
@@ -58,7 +58,7 @@ class GenerateInitialSkinDEMProcess : public Process
      * @brief This creates one particle
      */
   void CreateDEMParticle(const int Id, const array_1d<double, 3> Coordinates, 
-      const Properties::Pointer pProperties, const double Radius, NodeType& rNode); 
+      const Properties::Pointer pProperties, const double Radius, NodeIteratorType rNode); 
 
     /**
      * @brief This returns the min value of a vector
@@ -80,4 +80,4 @@ protected:
 };  // Class
 
 }  // namespace Kratos
-#endif /* KRATOS_GENERATE_DEM_PROCESS defined */
+#endif /* KRATOS_GENERATE_INITIAL_SKIN_DEM_PROCESS defined */
