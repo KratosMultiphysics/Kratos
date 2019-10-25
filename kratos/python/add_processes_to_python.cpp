@@ -589,7 +589,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init< ModelPart&, Parameters >())
     ;
 
-    py::class_<SubModelPartSkinDetectionProcess<3>, SubModelPartSkinDetectionProcess<3>::Pointer, Process>
+    py::class_<SubModelPartSkinDetectionProcess<3>, SubModelPartSkinDetectionProcess<3>::Pointer, SkinDetectionProcess<3>>
     (m, "SubModelPartSkinDetectionProcess3D")
     .def(py::init< ModelPart&, Parameters >())
     ;

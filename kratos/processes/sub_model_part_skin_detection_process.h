@@ -31,7 +31,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-template<unsigned int TDim>
+template<SizeType TDim>
 class SubModelPartSkinDetectionProcess: public SkinDetectionProcess<TDim>
 {
 public:
@@ -68,7 +68,7 @@ SubModelPartSkinDetectionProcess &operator=(SubModelPartSkinDetectionProcess con
 ///@name Operations
 ///@{
 
-void Execute() override;
+//void Execute() override;
 
 ///@}
 ///@name Input and output
@@ -107,6 +107,8 @@ protected:
 ///@}
 ///@name Protected Operations
 ///@{
+
+Parameters GetDefaultSettings() const override;
 
 ///@}
 ///@name Protected  Access

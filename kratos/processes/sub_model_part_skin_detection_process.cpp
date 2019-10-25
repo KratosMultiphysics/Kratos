@@ -16,14 +16,21 @@
 namespace Kratos
 {
 
-template<unsigned int TDim>
+template<SizeType TDim>
 SubModelPartSkinDetectionProcess<TDim>::SubModelPartSkinDetectionProcess(
     ModelPart& rModelPart, Parameters Settings)
-    : SkinDetectionProcess<TDim>(rModelPart, Settings)
+    : SkinDetectionProcess<TDim>(rModelPart, Settings, this->GetDefaultSettings())
 {}
 
-template<> class SubModelPartSkinDetectionProcess<2>;
-template<> class SubModelPartSkinDetectionProcess<3>;
+template<SizeType TDim>
+Parameters SubModelPartSkinDetectionProcess<TDim>::GetDefaultSettings() const
+{
+    return SkinDetectionProcess<TDim>::GetDefaultSettings();
+}
+
+
+template class SubModelPartSkinDetectionProcess<2>;
+template class SubModelPartSkinDetectionProcess<3>;
 
 }  // namespace Kratos.
 
