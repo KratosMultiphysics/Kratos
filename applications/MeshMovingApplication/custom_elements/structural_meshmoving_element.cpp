@@ -118,7 +118,8 @@ StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
                          // elements; 0 = no stiffening
   const double quotient = factor / detJ0[PointNumber];
   const double weighting_factor = detJ0[PointNumber] * std::pow(quotient, xi);
-  const double poisson_coefficient = this->pGetProperties()->GetValue(POISSON_RATIO);
+  const double poisson_coefficient = this->pGetProperties()->Has(MESH_POISSON_RATIO)
+    ? this->pGetProperties()->GetValue(MESH_POISSON_RATIO) : 0.3;
 
   // The ratio between lambda and mu affects relative stiffening against
   // volume or shape change.

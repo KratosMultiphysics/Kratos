@@ -101,7 +101,7 @@ public:
     mpmesh_model_part = MoveMeshUtilities::GenerateMeshPart(
         BaseType::GetModelPart(), element_type);
 
-    mpmesh_model_part->pGetProperties(0)->GetValue(POISSON_RATIO) = PoissonRatio;
+    mpmesh_model_part->pGetProperties(0)->GetValue(MESH_POISSON_RATIO) = PoissonRatio;
 
     mpbulider_and_solver = typename TBuilderAndSolverType::Pointer(
         new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace,
