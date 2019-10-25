@@ -195,7 +195,7 @@ namespace Kratos
             for (unsigned int i_subdivision = 0; i_subdivision < n_positive_subdivision; ++i_subdivision) {
                 // Get the subdivision geometry faces
                 const IndexedPointGeometryPointerType p_subdivision_geom = mPositiveSubdivisions[i_subdivision];
-                IndexedGeometriesArrayType subdivision_faces = p_subdivision_geom->Faces();
+                const IndexedGeometriesArrayType subdivision_faces = p_subdivision_geom->GenerateFaces();
 
                 // Faces iteration
                 for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
@@ -223,7 +223,7 @@ namespace Kratos
             for (unsigned int i_subdivision = 0; i_subdivision < n_negative_subdivision; ++i_subdivision) {
                 // Get the subdivision geometry
                 const IndexedPointGeometryPointerType p_subdivision_geom = mNegativeSubdivisions[i_subdivision];
-                IndexedGeometriesArrayType subdivision_faces = p_subdivision_geom->Faces();
+                const IndexedGeometriesArrayType subdivision_faces = p_subdivision_geom->GenerateFaces();
 
                 // Faces iteration
                 for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
@@ -305,7 +305,7 @@ namespace Kratos
             for (unsigned int i_subdivision = 0; i_subdivision < n_subdivision; ++i_subdivision) {
                 // Get the subdivision faces
                 const IndexedPointGeometryPointerType p_subdivision_geom = rSubdivisionsContainer[i_subdivision];
-                IndexedGeometriesArrayType subdivision_faces = p_subdivision_geom->Faces();
+                const IndexedGeometriesArrayType subdivision_faces = p_subdivision_geom->GenerateFaces();
 
                 // Subdivision geometry subfaces iteration
                 for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
