@@ -185,7 +185,7 @@ typedef Node<3> NodeType;
         auto curve_on_surface = GenerateReferenceBSplineCurveOnBSplineSurface3d();
 
         // Choose a parametric coordinate on the curve
-        array_1d<double, 1> parameter = ZeroVector(1);
+        array_1d<double, 3> parameter = ZeroVector(3);
         parameter[0] = 8.0;
 
         // Compute the derivatives of the gradient of the curve on surface up to 2nd order
@@ -209,7 +209,7 @@ typedef Node<3> NodeType;
 
         // Evaluate the global coordinates of the curve at u = 4.0
         {
-            array_1d<double, 1> parameter = ZeroVector(1);
+            array_1d<double, 3> parameter = ZeroVector(3);
             parameter[0] = 4.0;
 
             // Compute the global coordinates of the curve on surface
@@ -224,7 +224,7 @@ typedef Node<3> NodeType;
 
         // Evaluate the gradients of the curve at u = 0.0
         {
-            array_1d<double, 1> parameter = ZeroVector(1);
+            array_1d<double, 3> parameter = ZeroVector(3);
             parameter[0] = 0.0;
 
             // Compute the derivatives of the gradient of the curve on surface up to 2nd order
@@ -241,7 +241,7 @@ typedef Node<3> NodeType;
 
         // Evaluate the gradients of the curve at u = 7.2109
         {
-            array_1d<double, 1> parameter = ZeroVector(1);
+            array_1d<double, 3> parameter = ZeroVector(3);
             parameter[0] = 7.2109;
 
             // Compute the derivatives of the gradient of the curve on surface up to 2nd order

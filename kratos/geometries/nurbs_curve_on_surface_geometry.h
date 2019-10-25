@@ -131,7 +131,7 @@ public:
     }
 
     ///@}
-    ///@name Operations
+    ///@name OperationsZeroVector(3);
     ///@{
 
     /*typename BaseType::Pointer Create(
@@ -178,23 +178,21 @@ public:
         const CoordinatesArrayType& rCoordinates,
         const SizeType DerivativeOrder) const override
     {
+        // Check size of output
+        if (rGlobalSpaceDerivatives.size() != DerivativeOrder + 1) {
+            rGlobalSpaceDerivatives.resize(DerivativeOrder + 1);
+        }
+
         // Compute the gradients of the embedded curve in the parametric space of the surface
         std::vector<array_1d<double, 3>> curve_derivatives;
         mpNurbsCurve->GlobalSpaceDerivatives(curve_derivatives, rCoordinates, DerivativeOrder);
         
         // Compute the gradients of the surface in the geometric space
-        array_1d<double, 2> surface_coordinates =  ZeroVector(2);
+        array_1d<double, 3> surface_coordinates =  ZeroVector(3);
         surface_coordinates[0] = curve_derivatives[0][0];
         surface_coordinates[1] = curve_derivatives[0][1];
         std::vector<array_1d<double, 3>> surface_derivatives;
         mpNurbsSurface->GlobalSpaceDerivatives(surface_derivatives, surface_coordinates, DerivativeOrder);
-        
-        // Compute the gradients of the embedded curve in the geometric space
-        // std::vector<array_1d<double, 3>> rGlobalSpaceDerivatives(DerivativeOrder + 1);
-
-        if (rGlobalSpaceDerivatives.size() != DerivativeOrder + 1) {
-            rGlobalSpaceDerivatives.resize(DerivativeOrder + 1);
-        }
 
         std::function<array_1d<double, 3>(int, int, int)> c;
         c = [&](int DerivativeOrder, int i, int j) -> array_1d<double, 3> {
