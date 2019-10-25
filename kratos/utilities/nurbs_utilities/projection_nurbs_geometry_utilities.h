@@ -20,8 +20,6 @@
 
 // Project includes
 #include "containers/array_1d.h"
-// #include "geometries/nurbs_curve_geometry.h"
-// #include "geometries/nurbs_surface_geometry.h"
 
 namespace Kratos
 {
@@ -55,14 +53,14 @@ namespace Kratos
             CoordinatesArrayType& rResult,
             const NurbsCurveGeometry<TDimension, TPointType>& rNurbsCurve,
             const int MaxIterations = 20,
-            const double ModelTolerance = 1e-6,
-            const double Accuracy = 1e-6)
+            const double Accuracy = 1e-6,
+            const double ModelTolerance = 1e-6)
         {
             // Intialize variables
             double residual, delta_t;
 
             // Loop over all Newton-Raphson iterations
-            for (int i = 0; i < MaxIterations; i++) 
+            for (int i = 0; i < MaxIterations; ++i) 
             {
                 // Compute the position, the base and the acceleration vector
                 std::vector<array_1d<double, 3>> derivatives;
@@ -109,8 +107,8 @@ namespace Kratos
         CoordinatesArrayType& rResult,
         const NurbsSurfaceGeometry<TDimension, TPointType>& rNurbsSurface,
         const int MaxIterations = 20,
-        const double ModelTolerance = 1e-6,
-        const double Accuracy = 1e-6)
+        const double Accuracy = 1e-6,
+        const double ModelTolerance = 1e-6)
     {
         // Initialize variables
         bool clampU = false;
