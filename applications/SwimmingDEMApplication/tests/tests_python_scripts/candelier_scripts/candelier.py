@@ -1,6 +1,9 @@
 import math
 import cmath
-import mpmath
+try:
+    import mpmath
+except:
+    print("Cannot import mpmath module. Running this test will fail.")
 import numpy as np
 
 import candelier_parameters as pp
