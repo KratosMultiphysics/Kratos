@@ -295,6 +295,14 @@ public:
         int Step);
 
     ///@}
+    ///@name Geometrical Functions
+    ///@{
+
+    void CalculateHessian(
+        Matrix& Hessian,
+        const Matrix& DDN_DDe);
+
+    ///@}
     ///@name Check
     ///@{
 

@@ -195,9 +195,9 @@ namespace Kratos
         Matrix H = ZeroMatrix(3, 3);
         CalculateHessian(H, GetGeometry().ShapeFunctionsThirdDerivatives());
 
-        rKinematicVariables.b_ab_covariant[0] = H(0, 0)*n[0] + H(1, 0)*n[1] + H(2, 0)*n[2];
-        rKinematicVariables.b_ab_covariant[1] = H(0, 1)*n[0] + H(1, 1)*n[1] + H(2, 1)*n[2];
-        rKinematicVariables.b_ab_covariant[2] = H(0, 2)*n[0] + H(1, 2)*n[1] + H(2, 2)*n[2];
+        rKinematicVariables.b_ab_covariant[0] = H(0, 0)*rKinematicVariables.a3_tilde[0] + H(1, 0)*rKinematicVariables.a3_tilde[1] + H(2, 0)*rKinematicVariables.a3_tilde[2];
+        rKinematicVariables.b_ab_covariant[1] = H(0, 1)*rKinematicVariables.a3_tilde[0] + H(1, 1)*rKinematicVariables.a3_tilde[1] + H(2, 1)*rKinematicVariables.a3_tilde[2];
+        rKinematicVariables.b_ab_covariant[2] = H(0, 2)*rKinematicVariables.a3_tilde[0] + H(1, 2)*rKinematicVariables.a3_tilde[1] + H(2, 2)*rKinematicVariables.a3_tilde[2];
     }
 
     /* Computes the transformation matrix T from the contravariant curvilinear basis to
@@ -490,16 +490,16 @@ namespace Kratos
             const array_1d<double, 3> coords = GetGeometry()[k].Coordinates();
 
             Hessian(0, 0) += DDN_DDe(k, 0)*coords[0];
-            Hessian(0, 1) += DDN_DDe(k, 1)*coords[0];
-            Hessian(0, 2) += DDN_DDe(k, 2)*coords[0];
+            Hessian(0, 1) += DDN_DDe(k, 2)*coords[0];
+            Hessian(0, 2) += DDN_DDe(k, 1)*coords[0];
 
             Hessian(1, 0) += DDN_DDe(k, 0)*coords[1];
-            Hessian(1, 1) += DDN_DDe(k, 1)*coords[1];
-            Hessian(1, 2) += DDN_DDe(k, 2)*coords[1];
+            Hessian(1, 1) += DDN_DDe(k, 2)*coords[1];
+            Hessian(1, 2) += DDN_DDe(k, 1)*coords[1];
 
             Hessian(2, 0) += DDN_DDe(k, 0)*coords[2];
-            Hessian(2, 1) += DDN_DDe(k, 1)*coords[2];
-            Hessian(2, 2) += DDN_DDe(k, 2)*coords[2];
+            Hessian(2, 1) += DDN_DDe(k, 2)*coords[2];
+            Hessian(2, 2) += DDN_DDe(k, 1)*coords[2];
         }
     }
 
