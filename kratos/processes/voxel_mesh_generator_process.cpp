@@ -205,6 +205,26 @@ namespace Kratos
 			else if(mEntitiesToGenerate == "nodes" || mEntitiesToGenerate == "elements"){
 				Generate3DMesh();
 			}
+			else if(mEntitiesToGenerate == "rectilinear_coordinates"){
+				auto& x_coordinates = mrVolumePart.GetValue(RECTILINEAR_X_COORDINATES);
+				auto& y_coordinates = mrVolumePart.GetValue(RECTILINEAR_Y_COORDINATES);
+				auto& z_coordinates = mrVolumePart.GetValue(RECTILINEAR_Z_COORDINATES);
+
+				x_coordinates.resize(mColors.GetNodalCoordinates(0).size(), false);
+				y_coordinates.resize(mColors.GetNodalCoordinates(1).size(), false);
+				z_coordinates.resize(mColors.GetNodalCoordinates(2).size(), false);
+
+				for(int i = 0 ; i < static_cast<int>(mColors.GetNodalCoordinates(0).size()) ; i++){
+					x_coordinates[i] = mColors.GetNodalCoordinates(0)[i];
+				}
+				for(int i = 0 ; i < static_cast<int>(mColors.GetNodalCoordinates(1).size()) ; i++){
+					y_coordinates[i] = mColors.GetNodalCoordinates(1)[i];
+				}
+				for(int i = 0 ; i < static_cast<int>(mColors.GetNodalCoordinates(2).size()) ; i++){
+					z_coordinates[i] = mColors.GetNodalCoordinates(2)[i];
+				}
+
+			}
 
 		}
 	}
@@ -454,7 +474,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-		KRATOS_ERROR_IF(mEntitiesToGenerate != "nodes" && mEntitiesToGenerate != "elements" && mEntitiesToGenerate != "center_of_elements") << mEntitiesToGenerate 
+		KRATOS_ERROR_IF(mEntitiesToGenerate != "nodes" && mEntitiesToGenerate != "elements" && mEntitiesToGenerate != "center_of_elements" && mEntitiesToGenerate != "rectilinear_coordinates") << mEntitiesToGenerate 
 			<< " is not accepted as entities_to_generate. The valid options are 'nodes', 'elements' and 'center_of_elements'." << std::endl;
 
         return 0;
