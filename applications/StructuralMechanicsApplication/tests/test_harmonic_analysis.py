@@ -119,7 +119,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
 
         return mp
 
-    @UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
+    @KratosUnittest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
     def test_undamped_mdof_harmonic(self):
         current_model = KratosMultiphysics.Model()
         #analytic solution taken from Humar - Dynamics of Structures p. 675
@@ -157,7 +157,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
 
             exfreq = exfreq + df
 
-    @UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
+    @KratosUnittest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
     def test_damped_mdof_harmonic(self):
         current_model = KratosMultiphysics.Model()
 
