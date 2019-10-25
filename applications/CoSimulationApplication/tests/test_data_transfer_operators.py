@@ -171,11 +171,11 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         for node in self.origin_data_single_node.GetModelPart().Nodes:
             node.SetSolutionStepValue(KMC.SCALAR_DISPLACEMENT, 0, 100.0)
 
-        data_transfer_op.TransferData(self.origin_data_single_node, 
-                                      self.destination_matching_data_scalar, 
+        data_transfer_op.TransferData(self.origin_data_single_node,
+                                      self.destination_matching_data_scalar,
                                       transfer_options)
 
-        self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes, 
+        self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes,
                                         self.origin_data_single_node.GetModelPart().Nodes,
                                         KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT,1)
 
@@ -191,11 +191,11 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         for node in self.origin_data_single_node.GetModelPart().Nodes:
             node.SetSolutionStepValue(KMC.SCALAR_DISPLACEMENT, 0, 100.0)
 
-        data_transfer_op.TransferData(self.origin_data_single_node, 
-                                      self.destination_matching_data_scalar, 
+        data_transfer_op.TransferData(self.origin_data_single_node,
+                                      self.destination_matching_data_scalar,
                                       transfer_options)
 
-        self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes, 
+        self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes,
                                         self.origin_data_single_node.GetModelPart().Nodes,
                                         KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT,-1)
 
@@ -210,11 +210,11 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         for node in self.origin_data_single_node.GetModelPart().Nodes:
             node.SetSolutionStepValue(KMC.SCALAR_DISPLACEMENT, 0, 100.0)
 
-        data_transfer_op.TransferData(self.origin_data_single_node, 
-                                      self.destination_matching_data_scalar, 
+        data_transfer_op.TransferData(self.origin_data_single_node,
+                                      self.destination_matching_data_scalar,
                                       transfer_options)
 
-        self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes, 
+        self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes,
                                         self.origin_data_single_node.GetModelPart().Nodes,
                                         KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, 0.2)
 
@@ -229,11 +229,11 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         for node in self.origin_data_single_node.GetModelPart().Nodes:
             node.SetSolutionStepValue(KMC.SCALAR_DISPLACEMENT, 0, 100.0)
 
-        data_transfer_op.TransferData(self.origin_data_single_node, 
-                                      self.destination_matching_data_scalar, 
+        data_transfer_op.TransferData(self.origin_data_single_node,
+                                      self.destination_matching_data_scalar,
                                       transfer_options)
 
-        self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes, 
+        self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes,
                                         self.origin_data_single_node.GetModelPart().Nodes,
                                         KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, -0.2)
 
@@ -248,11 +248,11 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         for node in self.origin_data_scalar.GetModelPart().Nodes:
             node.SetSolutionStepValue(KM.PRESSURE, 0, 100.0)
 
-        data_transfer_op.TransferData(self.origin_data_scalar, 
-                                      self.destination_data_single_node, 
+        data_transfer_op.TransferData(self.origin_data_scalar,
+                                      self.destination_data_single_node,
                                       transfer_options)
 
-        self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes, 
+        self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes,
                                         self.origin_data_scalar.GetModelPart().Nodes,
                                         KMC.SCALAR_FORCE, KM.PRESSURE, 5)
 
@@ -268,11 +268,11 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         for node in self.origin_data_scalar.GetModelPart().Nodes:
             node.SetSolutionStepValue(KM.PRESSURE, 0, 100.0)
 
-        data_transfer_op.TransferData(self.origin_data_scalar, 
-                                      self.destination_data_single_node, 
+        data_transfer_op.TransferData(self.origin_data_scalar,
+                                      self.destination_data_single_node,
                                       transfer_options)
 
-        self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes, 
+        self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes,
                                         self.origin_data_scalar.GetModelPart().Nodes,
                                         KMC.SCALAR_FORCE, KM.PRESSURE, -5)
 
@@ -291,11 +291,11 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         for node in self.destination_data_single_node.GetModelPart().Nodes:
             node.SetSolutionStepValue(KMC.SCALAR_FORCE, 0, 500.0)
 
-        data_transfer_op.TransferData(self.origin_data_scalar, 
-                                      self.destination_data_single_node, 
+        data_transfer_op.TransferData(self.origin_data_scalar,
+                                      self.destination_data_single_node,
                                       transfer_options)
 
-        self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes, 
+        self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes,
                                         self.origin_data_scalar.GetModelPart().Nodes,
                                         KMC.SCALAR_FORCE, KM.PRESSURE, 10.0)
 
@@ -313,11 +313,11 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         for node in self.destination_data_single_node.GetModelPart().Nodes:
             node.SetSolutionStepValue(KMC.SCALAR_FORCE, 0, 500.0)
 
-        data_transfer_op.TransferData(self.origin_data_scalar, 
-                                      self.destination_data_single_node, 
+        data_transfer_op.TransferData(self.origin_data_scalar,
+                                      self.destination_data_single_node,
                                       transfer_options)
 
-        self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes, 
+        self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes,
                                         self.origin_data_scalar.GetModelPart().Nodes,
                                         KMC.SCALAR_FORCE, KM.PRESSURE, 0.0)
 

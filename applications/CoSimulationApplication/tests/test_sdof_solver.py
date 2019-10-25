@@ -1,9 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
-import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-
-from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
 using_pykratos = UsingPyKratos()
@@ -35,18 +32,9 @@ class TestSdofSolver(KratosUnittest.TestCase):
         #result.dat
         self.end_time = 1.0
         self.time = 0.0
-    
+
     def tearDown(self):
         os.remove("./result.dat")
-
-    def _plot_results(self, file):
-        import matplotlib.pyplot as plt
-        import numpy as np
-
-        x = np.loadtxt(file, usecols=0, skiprows=1)
-        y = np.loadtxt(file, usecols=1, skiprows=1)
-        plt.plot(x, y)
-        plt.show()
 
     def _compare_results(self, reference, result):
         ref = np.loadtxt(reference, skiprows=1)
@@ -56,7 +44,7 @@ class TestSdofSolver(KratosUnittest.TestCase):
                 self.assertAlmostEqual(entry_ref, entry_res)
 
     def test_initial_displacement(self):
-        settings = {                    
+        settings = {
         "initial_values":{
             "displacement"  : 1.0,
             "velocity"      : 0.0,
@@ -74,9 +62,9 @@ class TestSdofSolver(KratosUnittest.TestCase):
 
         self._compare_results("./reference_files/ref_sdof_initial_displacement.dat", "./result.dat")
 
-    
+
     def test_initial_velocity(self):
-        settings = {                    
+        settings = {
         "initial_values":{
             "displacement"  : 0.0,
             "velocity"      : 1.0,
@@ -95,7 +83,7 @@ class TestSdofSolver(KratosUnittest.TestCase):
         self._compare_results("./reference_files/ref_sdof_initial_velocity.dat", "./result.dat")
 
     def test_impulse(self):
-        settings = {                    
+        settings = {
                 "boundary_conditions":{
                     "load_impulse" : 1000.0
                 }
@@ -110,10 +98,10 @@ class TestSdofSolver(KratosUnittest.TestCase):
             system.OutputSolutionStep()
 
         self._compare_results("./reference_files/ref_sdof_impulse.dat", "./result.dat")
-    
+
 
     def test_force_excitation(self):
-        settings = {                    
+        settings = {
                 "boundary_conditions":{
                     "load_impulse" : 0.0,
                     "omega_force"        : 12.57,
@@ -136,7 +124,7 @@ class TestSdofSolver(KratosUnittest.TestCase):
         self._compare_results("./reference_files/ref_sdof_force_excitation.dat", "./result.dat")
 
     def test_root_point_excitation(self):
-        settings = {                    
+        settings = {
                 "boundary_conditions":{
                     "load_impulse" : 0.0,
                     "omega_force"        : 0.0,
@@ -159,7 +147,7 @@ class TestSdofSolver(KratosUnittest.TestCase):
         self._compare_results("./reference_files/ref_sdof_root_point_displacement.dat", "./result.dat")
 
     def test_root_point_excitation_force_excitation(self):
-        settings = {                    
+        settings = {
                 "boundary_conditions":{
                     "load_impulse" : 0.0,
                     "omega_force"        : 3.0,
@@ -182,7 +170,7 @@ class TestSdofSolver(KratosUnittest.TestCase):
         self._compare_results("./reference_files/ref_sdof_root_point_displacement_external_force.dat", "./result.dat")
 
     def test_root_point_excitation_force_excitation_impulse(self):
-        settings = {                    
+        settings = {
                 "boundary_conditions":{
                     "load_impulse" : 10.0,
                     "omega_force"        : 3.0,

@@ -7,8 +7,7 @@ import KratosMultiphysics.CoSimulationApplication as KMC
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
 
 # Other imports
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-from importlib import import_module
+#from importlib import import_module
 from .sdof_solver import SDoFSolver
 
 def Create(settings, solver_name):
