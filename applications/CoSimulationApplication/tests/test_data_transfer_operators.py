@@ -13,7 +13,6 @@ using_pykratos = UsingPyKratos()
 
 mapping_app_available = kratos_utils.CheckIfApplicationsAvailable("MappingApplication")
 
-import numpy as np
 
 class TestDataTransferOperators(KratosUnittest.TestCase):
 
