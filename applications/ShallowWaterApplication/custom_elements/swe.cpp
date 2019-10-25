@@ -473,20 +473,23 @@ void SWE<TNumNodes, TFramework>::AddStabilizationTerms(
     rLeftHandSideMatrix += (1 - p) * rVariables.discharge_penalty * vector_lumped_mass;
     rLeftHandSideMatrix += (1 - p) * rVariables.permeability * scalar_diffusion;
 
-    // Friction stabilization
-    const double q = norm_2(rVariables.projected_momentum) + rVariables.epsilon;
-    const double h73 = std::pow(rVariables.height, 2.333333333333333) + rVariables.epsilon;
-    LocalMatrixType friction_stab = prod(trans(rVariables.DN_DX_h), rVariables.N_q);
-    rLeftHandSideMatrix += p * tau_f * rVariables.gravity * rVariables.manning2 * q / h73 * friction_stab;
+    bool full_subscales = false;
+    if (full_subscales) {
+        // Friction stabilization
+        const double q = norm_2(rVariables.projected_momentum) + rVariables.epsilon;
+        const double h73 = std::pow(rVariables.height, 2.333333333333333) + rVariables.epsilon;
+        LocalMatrixType friction_stab = prod(trans(rVariables.DN_DX_h), rVariables.N_q);
+        rLeftHandSideMatrix += p * tau_f * rVariables.gravity * rVariables.manning2 * q / h73 * friction_stab;
 
-    // Dynamic stabilization
-    const double dt_inv = rVariables.dt_inv;
-    LocalMatrixType vector_dyn_stab = prod(trans(rVariables.DN_DX_h), rVariables.N_q);
-    LocalMatrixType scalar_dyn_stab = outer_prod(rVariables.DN_DX_q, rVariables.N_h);
-    rLeftHandSideMatrix += p * tau_f * dt_inv * vector_dyn_stab;
-    rLeftHandSideMatrix += p * tau_f * dt_inv * scalar_dyn_stab;
-    rRightHandSideVector += p * tau_f * dt_inv * prod(vector_dyn_stab, rVariables.prev_unk);
-    rRightHandSideVector += p * tau_f * dt_inv * prod(scalar_dyn_stab, rVariables.prev_unk);
+        // Dynamic stabilization
+        const double dt_inv = rVariables.dt_inv;
+        LocalMatrixType vector_dyn_stab = prod(trans(rVariables.DN_DX_h), rVariables.N_q);
+        LocalMatrixType scalar_dyn_stab = outer_prod(rVariables.DN_DX_q, rVariables.N_h);
+        rLeftHandSideMatrix += p * tau_f * dt_inv * vector_dyn_stab;
+        rLeftHandSideMatrix += p * tau_f * dt_inv * scalar_dyn_stab;
+        rRightHandSideVector += p * tau_f * dt_inv * prod(vector_dyn_stab, rVariables.prev_unk);
+        rRightHandSideVector += p * tau_f * dt_inv * prod(scalar_dyn_stab, rVariables.prev_unk);
+    }
 }
 
 
