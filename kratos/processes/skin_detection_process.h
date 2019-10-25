@@ -205,6 +205,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /// Auxiliar function to get default settings.
+    /** It is defined as virtual so that it can be overriden by derived classes
+     */
+    virtual Parameters GetDefaultSettings() const;
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -216,6 +221,9 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
+
+    /// Protected constructor with modified default settings to be defined by derived class.
+    SkinDetectionProcess(ModelPart& rModelPart, Parameters Settings, Parameters DefaultSettings);
 
     ///@}
 

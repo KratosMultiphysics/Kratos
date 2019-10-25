@@ -26,15 +26,7 @@ SkinDetectionProcess<TDim>::SkinDetectionProcess(
     ) : mrModelPart(rModelPart),
         mThisParameters(ThisParameters)
 {
-    Parameters default_parameters = Parameters(R"(
-    {
-        "name_auxiliar_model_part"              : "SkinModelPart",
-        "name_auxiliar_condition"               : "Condition",
-        "list_model_parts_to_assign_conditions" : [],
-        "echo_level"                            : 0
-    })" );
-
-    mThisParameters.ValidateAndAssignDefaults(default_parameters);
+    mThisParameters.ValidateAndAssignDefaults(this->GetDefaultSettings());
 }
 
 /***********************************************************************************/
@@ -288,6 +280,34 @@ void SkinDetectionProcess<TDim>::Execute()
     }
 
     KRATOS_CATCH("");
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<SizeType TDim>
+Parameters SkinDetectionProcess<TDim>::GetDefaultSettings() const
+{
+    Parameters default_parameters = Parameters(R"(
+    {
+        "name_auxiliar_model_part"              : "SkinModelPart",
+        "name_auxiliar_condition"               : "Condition",
+        "list_model_parts_to_assign_conditions" : [],
+        "echo_level"                            : 0
+    })" );
+    return default_parameters;
+}
+
+template<SizeType TDim>
+SkinDetectionProcess<TDim>::SkinDetectionProcess(
+    ModelPart& rModelPart,
+    Parameters Settings,
+    Parameters DefaultSettings)
+    : Process()
+    , mrModelPart(rModelPart)
+    , mThisParameters(Settings)
+{
+    mThisParameters.ValidateAndAssignDefaults(DefaultSettings);
 }
 
 /***********************************************************************************/
