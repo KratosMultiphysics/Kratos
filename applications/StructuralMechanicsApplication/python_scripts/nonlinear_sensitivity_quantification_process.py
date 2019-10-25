@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import sys
 from KratosMultiphysics.StructuralMechanicsApplication import *
-from json_utilities import *
+from KratosMultiphysics import json_utilities
 import json
 import math
 import numpy as np
@@ -332,7 +332,7 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
                     # TODO: Add pending classes
                 count += 1
 
-        write_external_json(self.file_name, data)
+        json_utilities.write_external_json(self.file_name, data)
 
 
     def ExecuteFinalizeSolutionStep(self):
@@ -344,7 +344,7 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
 
-        data =  read_external_json(self.file_name)
+        data =  json_utilities.read_external_json(self.file_name)
 
         time = self.sensitivity_model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
         #dt = self.sensitivity_model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
@@ -491,7 +491,7 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
                                     data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)].append(list)
                 count += 1
 
-        write_external_json(self.file_name, data)
+        json_utilities.write_external_json(self.file_name, data)
 
 
     def ExecuteBeforeOutputStep(self):
@@ -500,7 +500,7 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        self.data =  read_external_json(self.file_name)
+        self.data =  json_utilities.read_external_json(self.file_name)
         input_time_list = self.data["TIME"]
         time = self.sensitivity_model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
         if len(input_time_list) is 3 and self.sensitivities_computed is False and round(time,1) == self.traced_time_steps[2]:
