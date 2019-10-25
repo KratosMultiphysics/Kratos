@@ -18,7 +18,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "includes/mesh_moving_variables.h"
-#include "includes/variables.h"
+#include "includes/mesh_moving_variables.h"
 #include "custom_elements/structural_meshmoving_element.h"
 #include "custom_utilities/move_mesh_utilities.h"
 
