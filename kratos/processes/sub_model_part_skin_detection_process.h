@@ -31,7 +31,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-template<SizeType TDim>
+template<unsigned int TDim>
 class SubModelPartSkinDetectionProcess: public SkinDetectionProcess<TDim>
 {
 public:
@@ -45,8 +45,11 @@ KRATOS_CLASS_POINTER_DEFINITION(SubModelPartSkinDetectionProcess);
 ///@name Life Cycle
 ///@{
 
-/// Default constructor.
-SubModelPartSkinDetectionProcess();
+/// Constructor
+SubModelPartSkinDetectionProcess(ModelPart& rModelPart, Parameters Settings);
+
+/// Deleted default constructor.
+SubModelPartSkinDetectionProcess() = delete;
 
 /// Deleted copy constructor.
 SubModelPartSkinDetectionProcess(SubModelPartSkinDetectionProcess const &rOther) = delete;

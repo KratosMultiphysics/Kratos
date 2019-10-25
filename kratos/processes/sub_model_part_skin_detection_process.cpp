@@ -16,8 +16,13 @@
 namespace Kratos
 {
 
+template<unsigned int TDim>
+SubModelPartSkinDetectionProcess<TDim>::SubModelPartSkinDetectionProcess(
+    ModelPart& rModelPart, Parameters Settings)
+    : SkinDetectionProcess<TDim>(rModelPart, Settings)
+{}
 
-
+template<> class SubModelPartSkinDetectionProcess<2>;
 template<> class SubModelPartSkinDetectionProcess<3>;
 
 }  // namespace Kratos.
