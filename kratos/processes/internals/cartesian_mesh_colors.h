@@ -52,6 +52,8 @@ namespace Kratos
 
       std::vector<double> const& GetNodalCoordinates(int Index) const {return mNodalCoordinates[Index];}
 
+      std::vector<double> const& GetElementCenterCoordinates(int Index) const {return mElementCenterCoordinates[Index];}
+
       void SetCoordinates(std::vector<double> const& NodalXCoordinates, std::vector<double> const& NodalYCoordinates, std::vector<double> const& NodalZCoordinates){
 
         KRATOS_ERROR_IF((NodalXCoordinates.size() < 2) || (NodalYCoordinates.size() < 2) || (NodalZCoordinates.size() < 2)) 
@@ -106,6 +108,10 @@ namespace Kratos
         const std::size_t index = I + J * mElementCenterCoordinates[0].size() + K * mElementCenterCoordinates[1].size() * mElementCenterCoordinates[0].size();
         return mElementalColors[index];
     }
+
+    std::vector<double>& GetNodalColors(){ return mNodalColors;}
+    
+    std::vector<double>& GetElementalColors(){return mElementalColors;}
 
     Point GetPoint(std::size_t I, std::size_t J, std::size_t K){
         return Point(mNodalCoordinates[0][I], mNodalCoordinates[1][J], mNodalCoordinates[2][K]);
