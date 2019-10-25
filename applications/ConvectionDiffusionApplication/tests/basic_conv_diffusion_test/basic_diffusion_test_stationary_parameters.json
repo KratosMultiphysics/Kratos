@@ -58,7 +58,7 @@
             "python_module" : "assign_scalar_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "TEMPERATURE_Temperature_Auto1",
+                "model_part_name" : "Thermic.TEMPERATURE_Temperature_Auto1",
                 "variable_name"   : "TEMPERATURE",
                 "constrained"     : true,
                 "value"           : 1.0,
@@ -69,7 +69,7 @@
             "python_module" : "assign_scalar_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "Parts_Parts_Auto1",
+                "model_part_name" : "Thermic.Parts_Parts_Auto1",
                 "variable_name"   : "HEAT_FLUX",
                 "constrained"     : false,
                 "value"           : 100.0,
@@ -83,7 +83,7 @@
             "kratos_module"   : "KratosMultiphysics",
             "process_name"          : "CheckValueProcess",
             "Parameters"            : {
-                    "model_part_name" : "Central_Nodes",
+                    "model_part_name" : "Thermic.Central_Nodes",
                     "variable_name"   : "TEMPERATURE",
                     "interval"        : [0.0, "End"],
                     "value"           : 1.444444,
