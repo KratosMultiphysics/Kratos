@@ -7,8 +7,8 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Philip Kalkbrenner
-//                   Alejandro Cornejo 
-//  
+//                   Alejandro Cornejo
+//
 //
 #if !defined(KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED)
 #define KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED
@@ -32,7 +32,7 @@ namespace Kratos
     // The size type definition
     typedef std::size_t SizeType;
 
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -45,10 +45,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class DamageDPlusDMinusMasonry2DLaw 
+ * @class DamageDPlusDMinusMasonry2DLaw
  * @ingroup StructuralMechanicsApplication
  */
- class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DamageDPlusDMinusMasonry2DLaw 
+ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DamageDPlusDMinusMasonry2DLaw
     : public LinearPlaneStress
 {
 public:
@@ -61,7 +61,7 @@ public:
 
     /// The define the Voigt size, already defined in the  integrator
     static constexpr SizeType VoigtSize = 3;
-    
+
     /// Definition of the base class
     typedef LinearPlaneStress BaseType;
 
@@ -77,7 +77,7 @@ public:
 
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
-	
+
     /// Definition of the machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
@@ -94,12 +94,12 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-	
+
 	/**
     * Default constructor.
     */
     DamageDPlusDMinusMasonry2DLaw();
-	
+
 
     /**
     * Clone.
@@ -111,7 +111,7 @@ public:
     /**
      * @brief Dimension of the law:
      */
-    SizeType WorkingSpaceDimension() override 
+    SizeType WorkingSpaceDimension() override
     {
         return Dimension;
     };
@@ -119,11 +119,11 @@ public:
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() override 
+    SizeType GetStrainSize() override
     {
         return VoigtSize;
     };
-	
+
     /**
     * Copy constructor.
     */
@@ -139,7 +139,7 @@ public:
           mNonConvCompressionThreshold(rOther.mNonConvCompressionThreshold)
     {
     }
-	
+
     /**
     * Destructor.
     */
@@ -176,8 +176,8 @@ public:
      * @param F_compression = uniaxial_stress_tension - threshold
      */
     bool IntegrateStressTensionIfNecessary(
-        const double F_tension, 
-        DamageParameters& Parameters, 
+        const double F_tension,
+        DamageParameters& Parameters,
         array_1d<double, VoigtSize>& IntegratedStressVectorTension,
         const array_1d<double,3> rIntegratedStressVector,
         ConstitutiveLaw::Parameters& rValues
@@ -188,7 +188,7 @@ public:
      * @param F_compression = uniaxial_stress_compression - threshold
      */
     bool IntegrateStressCompressionIfNecessary(
-        const double F_compression, 
+        const double F_compression,
         DamageParameters& Parameters,
         array_1d<double, VoigtSize>& IntegratedStressVectorCompression,
         array_1d<double, VoigtSize> rIntegratedStressVector,
@@ -268,7 +268,7 @@ public:
      * @return true if the variable is defined in the constitutive law
      */
     bool Has(const Variable<Vector> &rThisVariable) override;
-    
+
     /**
      * @brief Returns whether this constitutive Law has specified variable (Matrix)
      * @param rThisVariable the variable to be checked for
@@ -345,7 +345,7 @@ public:
         const Variable<Vector>& rThisVariable,
         Vector& rValue
         ) override;
-        
+
     /**
      * @brief Returns the value of a specified variable (matrix)
      * @param rParameterValues the needed parameters for the CL calculation
@@ -490,7 +490,7 @@ private:
      * @param rValues The constitutive law parameters and flags
      */
     void CalculateSecantTensor(ConstitutiveLaw::Parameters& rValues, Matrix& rSecantTensor);
-	
+
 
 	// Serialization
 
@@ -529,10 +529,10 @@ private:
 	 *        rEquivalentStress The equivalent Stress to be filled by method
 	 */
 	void CalculateEquivalentStressTension(
-	array_1d<double, 3>& rPredictiveStressVector, 
+	array_1d<double, 3>& rPredictiveStressVector,
 	double& rEquivalentStress,
 	ConstitutiveLaw::Parameters& rValues);
-	
+
 	/**
 	 * @brief This method computes the equivalent stress in Compression
 	 * @param rValues The constitutive law parameters and flags
@@ -540,7 +540,7 @@ private:
 	 *        rEquivalentStress The equivalent Stress to be filled by method
 	 */
 	void CalculateEquivalentStressCompression(
-	array_1d<double, 3>& rPredictiveStressVector, 
+	array_1d<double, 3>& rPredictiveStressVector,
 	double& rEquivalentStress,
 	ConstitutiveLaw::Parameters& rValues);
 
@@ -561,7 +561,7 @@ private:
     ConstitutiveLaw::Parameters& rValues,
     const double CharacteristicLength);
 
-	/** 
+	/**
 	 *  @brief This method computes the damage parameter for the exponential softening behavior in tension
 	 *  @params rValues The constitutive law parameters and flags
 	 *          rAParameter The damage parameter filled by method
@@ -589,7 +589,7 @@ private:
 	const double CharacteristicLength,
 	ConstitutiveLaw::Parameters& rValues,
 	double& rDamage);
-	
+
 	/**
 	 * @brief This method computes the final stress vector in Tension
 	 * @param rValues The constitutive law parameters and flags
@@ -606,44 +606,44 @@ private:
     double& rThreshold,
     ConstitutiveLaw::Parameters& rValues,
     const double CharacteristicLength);
-	
-	
+
+
     /**
-     *  BRIEF DOCUMENTATION OF THE USED UNIAXIAL SOFTENING BEHAVIOR IN COMPRESSION 
+     *  BRIEF DOCUMENTATION OF THE USED UNIAXIAL SOFTENING BEHAVIOR IN COMPRESSION
      *  Entire documentation can be found in the the Phd Thesis of Massimo Petracca
      *  << Computational Multiscale Analysis of Masonry Structures>>
      *
      *  UNIAXIAL BEZIER COMPRESSION DAMAGE
-     *  {I}   Linear Elastic 
-     *  {II}  Hardening Quadratic Bezier Curve 
-     *          Control nodes:  0=(e_0,s_0); I=(e_i,s_p); P=(e_p,s_p) 
-     *  {III} Softening Quadratic Bezier Curve 
+     *  {I}   Linear Elastic
+     *  {II}  Hardening Quadratic Bezier Curve
+     *          Control nodes:  0=(e_0,s_0); I=(e_i,s_p); P=(e_p,s_p)
+     *  {III} Softening Quadratic Bezier Curve
      *          Control nodes:  P=(e_p,s_p); J=(e_j,s_j); K=(e_k,s_k)
-     *  {IV}  Softening Quadratic Bezier Curve 
+     *  {IV}  Softening Quadratic Bezier Curve
      *          Control nodes:  K=(e_k,s_k); R=(e_r,s_r); U=(e_u,s_u)
      *  {V}   Residual Strength
      *
-     *    STRESS                 
+     *    STRESS
      *       ^
      *      /|\
      *       |                     (P)
-     * s_p = |------------(I)+----#####--+(J) 
+     * s_p = |------------(I)+----#####--+(J)
      * s_i = |               ' ###  ' ####
      * s_j   |              ###     '    ####
      *       |            ###'      '    ' ###
      * s_k   |-----------##--+------+----+--## (K)
-     * s_0   |---------##(0) '      '    '   ### 
+     * s_0   |---------##(0) '      '    '   ###
      *       |        ## '   '      '    '    '##
      *       |       ##  '   '      '    '    '   ####
      *       |      ##   '   '      '    '    '      #####
      *       |     ##    '   '      '    '    '          #####
      *       |    ##     '   '      '    '    '    (R)       ######## (U)
      * s_r = |---##------+---+------'----+----+-----+-----------------######################
-     * s_u   |  ##       '   '      '    '    '     '                 '                                    
+     * s_u   |  ##       '   '      '    '    '     '                 '
      *       |_##________+___+______+____+____+_____+_________________+______________________________\
      *                  e_0 e_i    e_p  e_j  e_k   e_r               e_u                             / STRAIN
      *        '          '          '         '                       '
-     *        '   {I}    '   {II}   '  {III}  '        {IV}           '          {V}         
+     *        '   {I}    '   {II}   '  {III}  '        {IV}           '          {V}
      *        '          '          '         '                       '
      *
      */
@@ -663,7 +663,7 @@ private:
 	double& rThreshold,
 	const double CharacteristicLength,
 	ConstitutiveLaw::Parameters& rValues);
-	
+
 	/**
 	 * @brief This method regulates the four bezier control strains to avoid a constitutive snap-back (fracture energy considerations)
 	 * @param specific_dissipated_fracture_energy FRACTURE_ENERGY_CMOPRESSION devided by CharacteristicLength
@@ -675,7 +675,7 @@ private:
 	const double specific_dissipated_fracture_energy,
 	const double sp, const double sk, const double sr, const double ep,
 	double& ej, double& ek, double& er, double& eu);
-	
+
 	/**
 	 * @brief This method computes the area beneath the parts of the bezier curves, respectively
      * @param BezierG Area beneath the curve, to be filled by method
@@ -687,14 +687,14 @@ private:
 	const double y1, const double y2, const double y3);
 
     /**
-     * @brief This method returns the bezier damage parameter  
+     * @brief This method returns the bezier damage parameter
      * @param Xi Strain-like counterpart of the uniaxial compression stress
      *        x1, x2, x3 Necesarry Stress values to define the uniaxial compression damage bezier curve
      *        y1, y2, y3 Necesarry Strain vlaues to define the uniaxial compression damage bezier curve
      */
     double EvaluateBezierCurve(
-    const double Xi, 
-    const double x1, double x2, const double x3, 
+    const double Xi,
+    const double x1, double x2, const double x3,
     const double y1, const double y2, const double y3);
 
 
@@ -710,11 +710,11 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    
+
 
     ///@}
 
-}; // Class DamageDPlusDMinusMasonry2DLaw  
+}; // Class DamageDPlusDMinusMasonry2DLaw
 }// namespace Kratos
 #endif
 

@@ -18,7 +18,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "includes/properties.h"
-#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
+#include "custom_advanced_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 

@@ -20,14 +20,14 @@
 // Application includes
 
 // Yields
-#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/rankine_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/tresca_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/rankine_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/simo_ju_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/tresca_yield_surface.h"
 // Plastic Potentials
-#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
 
 namespace Kratos
 {

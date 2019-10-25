@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.h"
+#include "custom_advanced_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.h"
 
 #include "structural_mechanics_application_variables.h"
 
@@ -26,7 +26,7 @@ namespace Kratos
 /******************************CONSTRUCTOR******************************************/
 /***********************************************************************************/
 HyperElasticIsotropicKirchhoffPlaneStrain2D::HyperElasticIsotropicKirchhoffPlaneStrain2D()
-    : BaseType() 
+    : BaseType()
 {
 }
 
@@ -41,7 +41,7 @@ HyperElasticIsotropicKirchhoffPlaneStrain2D::HyperElasticIsotropicKirchhoffPlane
 /********************************CLONE**********************************************/
 /***********************************************************************************/
 
-ConstitutiveLaw::Pointer HyperElasticIsotropicKirchhoffPlaneStrain2D::Clone() const 
+ConstitutiveLaw::Pointer HyperElasticIsotropicKirchhoffPlaneStrain2D::Clone() const
 {
     return Kratos::make_shared<HyperElasticIsotropicKirchhoffPlaneStrain2D>(*this);
 }
@@ -49,14 +49,14 @@ ConstitutiveLaw::Pointer HyperElasticIsotropicKirchhoffPlaneStrain2D::Clone() co
 /*******************************DESTRUCTOR******************************************/
 /***********************************************************************************/
 
-HyperElasticIsotropicKirchhoffPlaneStrain2D::~HyperElasticIsotropicKirchhoffPlaneStrain2D() 
+HyperElasticIsotropicKirchhoffPlaneStrain2D::~HyperElasticIsotropicKirchhoffPlaneStrain2D()
 {
 };
 
 /*************************CONSTITUTIVE LAW GENERAL FEATURES ************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicKirchhoffPlaneStrain2D::GetLawFeatures(Features& rFeatures) 
+void HyperElasticIsotropicKirchhoffPlaneStrain2D::GetLawFeatures(Features& rFeatures)
 {
     //Set the type of law
     rFeatures.mOptions.Set( PLANE_STRAIN_LAW );
@@ -81,7 +81,7 @@ void HyperElasticIsotropicKirchhoffPlaneStrain2D::CalculateConstitutiveMatrixPK2
     Matrix& rConstitutiveMatrix,
     const double YoungModulus,
     const double PoissonCoefficient
-    ) 
+    )
 {
     rConstitutiveMatrix.clear();
     rConstitutiveMatrix = ZeroMatrix(3,3);
@@ -103,7 +103,7 @@ void HyperElasticIsotropicKirchhoffPlaneStrain2D::CalculateConstitutiveMatrixPK2
 void HyperElasticIsotropicKirchhoffPlaneStrain2D::CalculateGreenLagrangianStrain(
     ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
-    ) 
+    )
 {
     //1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
@@ -122,7 +122,7 @@ void HyperElasticIsotropicKirchhoffPlaneStrain2D::CalculateGreenLagrangianStrain
 void HyperElasticIsotropicKirchhoffPlaneStrain2D::CalculateAlmansiStrain(
     ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
-    ) 
+    )
 {
     //1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();

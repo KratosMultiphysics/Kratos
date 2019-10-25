@@ -22,7 +22,7 @@
 // Application includes
 
 // Constitutive law
-#include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
+#include "custom_advanced_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
 #include "structural_mechanics_application_variables.h"
@@ -127,7 +127,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosStructu
     strain_vector[0] = -0.00935;
     strain_vector[1] = 0.0;
     strain_vector[2] = 0.0;
- 
+
     material_properties.SetValue(YOUNG_MODULUS, 3718.0e+6);
     material_properties.SetValue(POISSON_RATIO, 0.2);
     material_properties.SetValue(YIELD_STRESS_TENSION, 1.559e+6);
@@ -195,7 +195,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosStructuralM
     strain_vector[0] = 0.0;
     strain_vector[1] = 0.0;
     strain_vector[2] = 0.003;
- 
+
     material_properties.SetValue(YOUNG_MODULUS, 3718.0e+6);
     material_properties.SetValue(POISSON_RATIO, 0.2);
     material_properties.SetValue(YIELD_STRESS_TENSION, 1.559e+6);

@@ -21,7 +21,7 @@
 // Application includes
 
 // Constitutive law
-#include "custom_constitutive/viscous_generalized_kelvin.h"
+#include "custom_advanced_constitutive/viscous_generalized_kelvin.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "structural_mechanics_application_variables.h"

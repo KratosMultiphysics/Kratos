@@ -16,7 +16,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/generic_yield_surface.h"
 
 namespace Kratos
 {
@@ -29,7 +29,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -45,7 +45,7 @@ namespace Kratos
  * @class VonMisesYieldSurface
  * @ingroup StructuralMechanicsApplication
  * @brief This class defines a yield surface according to Von-Mises theory
- * @details The von Mises yield criterion (also known as the maximum distortion energy criterion) suggests that yielding of a ductile material begins when the second deviatoric stress invariant J2 reaches a critical value. It is part of plasticity theory that applies best to ductile materials, such as some metals. Prior to yield, material response can be assumed to be of a nonlinear elastic, viscoelastic, or linear elastic behavior. 
+ * @details The von Mises yield criterion (also known as the maximum distortion energy criterion) suggests that yielding of a ductile material begins when the second deviatoric stress invariant J2 reaches a critical value. It is part of plasticity theory that applies best to ductile materials, such as some metals. Prior to yield, material response can be assumed to be of a nonlinear elastic, viscoelastic, or linear elastic behavior.
  * The yield surface requires the definition of the following properties:
  * - FRACTURE_ENERGY: A fracture energy-based function is used to describe strength degradation in post-peak regime
  * - YOUNG_MODULUS: It defines the relationship between stress (force per unit area) and strain (proportional deformation) in a material in the linear elasticity regime of a uniaxial deformation.
@@ -66,16 +66,16 @@ public:
 
     /// The Plastic potential already defines the working simension size
     static constexpr SizeType Dimension = PlasticPotentialType::Dimension;
-    
+
     /// The Plastic potential already defines the Voigt size
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
-    
+
     /// Counted pointer of VonMisesYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(VonMisesYieldSurface);
 
     /// The machine precision zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -230,7 +230,7 @@ public:
         if (!rMaterialProperties.Has(YIELD_STRESS)) {
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
-            
+
             const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
             const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
 

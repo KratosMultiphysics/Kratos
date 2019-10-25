@@ -17,26 +17,26 @@
 // Project includes
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_constitutive/generic_small_strain_isotropic_damage.h"
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
+#include "custom_advanced_constitutive/generic_small_strain_isotropic_damage.h"
+#include "custom_advanced_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
 
 // Yield surfaces
-#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/rankine_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/tresca_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/generic_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/mohr_coulomb_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/rankine_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/simo_ju_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/tresca_yield_surface.h"
 
 // Plastic potentials
-#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/tresca_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/generic_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/tresca_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/mohr_coulomb_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
 
 namespace Kratos
 {
@@ -124,9 +124,9 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
             const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
             // This routine updates the PredictiveStress to verify the yield surf
             TConstLawIntegratorType::IntegrateStressVector(
-                predictive_stress_vector, 
-                uniaxial_stress, damage, 
-                threshold, rValues, 
+                predictive_stress_vector,
+                uniaxial_stress, damage,
+                threshold, rValues,
                 characteristic_length);
 
             // Updated Values
@@ -276,7 +276,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::FinalizeMateria
                 characteristic_length);
             mDamage = damage;
 			mThreshold = uniaxial_stress;
-            
+
             TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
             this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
         } else {

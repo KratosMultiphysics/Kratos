@@ -15,7 +15,7 @@
 // System includes
 
 // Project includes
-#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/generic_plastic_potential.h"
 
 namespace Kratos
 {
@@ -28,7 +28,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -57,10 +57,10 @@ public:
 
     /// We define the dimension
     static constexpr SizeType Dimension = TVoigtSize == 6 ? 3 : 2;
-      
+
     /// The define the Voigt size
     static constexpr SizeType VoigtSize = TVoigtSize;
-    
+
     /// Counted pointer of MohrCoulombPlasticPotential
     KRATOS_CLASS_POINTER_DEFINITION(MohrCoulombPlasticPotential);
 
@@ -131,7 +131,7 @@ public:
 
         double c1, c3, c2;
 		double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
-        
+
         if (std::abs(checker) < 29.0) {
             c1 = std::sin(dilatancy);
             c3 = (std::sqrt(3.0) * std::sin(lode_angle) + std::sin(dilatancy) * std::cos(lode_angle)) /

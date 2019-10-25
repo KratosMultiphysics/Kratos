@@ -19,13 +19,13 @@
 
 // Application includes
 // Integrator
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
+#include "custom_advanced_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
 // Yield surfaces
-#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/von_mises_yield_surface.h"
 // Plastic potentials
-#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
 // Constitutive law
-#include "custom_constitutive/generic_small_strain_high_cycle_fatigue_law.h"
+#include "custom_advanced_constitutive/generic_small_strain_high_cycle_fatigue_law.h"
 #include "geometries/tetrahedra_3d_4.h"
 
 namespace Kratos

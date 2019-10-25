@@ -16,7 +16,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/generic_yield_surface.h"
 
 namespace Kratos
 {
@@ -29,7 +29,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -64,10 +64,10 @@ class SimoJuYieldSurface
 
     /// The Plastic potential already defines the working simension size
     static constexpr SizeType Dimension = PlasticPotentialType::Dimension;
-    
+
     /// The Plastic potential already defines the Voigt size
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
-    
+
     /// Counted pointer of SimoJuYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(SimoJuYieldSurface);
 
@@ -152,7 +152,7 @@ class SimoJuYieldSurface
      * @param rValues Parameters of the constitutive law
      */
     static void GetInitialUniaxialThreshold(
-        ConstitutiveLaw::Parameters& rValues, 
+        ConstitutiveLaw::Parameters& rValues,
         double& rThreshold
         )
     {
@@ -161,7 +161,7 @@ class SimoJuYieldSurface
         const double yield_compression = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
         rThreshold = std::abs(yield_compression / std::sqrt(r_material_properties[YOUNG_MODULUS]));
     }
-		
+
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
      * @param rAParameter The damage parameter

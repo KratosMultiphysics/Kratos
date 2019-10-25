@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "elastic_isotropic_3d.h"
+#include "custom_constitutive/elastic_isotropic_3d.h"
 
 namespace Kratos
 {

@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
+#include "custom_advanced_constitutive/linear_elastic_orthotropic_2D_law.h"
 
 #include "structural_mechanics_application_variables.h"
 
@@ -57,7 +57,7 @@ namespace Kratos
 	LinearElasticOrthotropic2DLaw::~LinearElasticOrthotropic2DLaw()
 	{
 	}
-	
+
 	//*****************************MATERIAL RESPONSES***************************
 	//**************************************************************************
 
@@ -129,10 +129,10 @@ namespace Kratos
 		// This Constitutive Law has been checked with Stenberg Stabilization
 		if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE)
 			rValue = true;
-		
+
 		return rValue;
 	}
-	
+
 	//***********************COMPUTE TOTAL STRAIN*****************************************
 	//************************************************************************************
 
@@ -189,7 +189,7 @@ namespace Kratos
 		const double v12 = poisson_ration_xy;
 
 		const double v21 = v12*youngs_modulus_y / youngs_modulus_x;
-		
+
 		const double Q11 = youngs_modulus_x / (1.0 - v12*v21);
 		const double Q12 = v12*youngs_modulus_y / (1.0 - v12*v21);
 		const double Q22 = youngs_modulus_y / (1.0 - v12*v21);
@@ -224,7 +224,7 @@ namespace Kratos
 
 	//*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 	//************************************************************************************
-	
+
 	void LinearElasticOrthotropic2DLaw::GetLawFeatures(Features& rFeatures)
 	{
 		//Set the type of law
@@ -242,7 +242,7 @@ namespace Kratos
 		//Set the spacedimension
 		rFeatures.mSpaceDimension = 2;
 	}
-	
+
 
 	//******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************
 	//************************************************************************************

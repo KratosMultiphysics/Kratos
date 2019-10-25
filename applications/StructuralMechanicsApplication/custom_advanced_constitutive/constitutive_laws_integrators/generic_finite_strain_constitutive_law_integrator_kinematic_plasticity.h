@@ -23,7 +23,7 @@
 #include "utilities/math_utils.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_kinematic_plasticity.h"
+#include "custom_advanced_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_kinematic_plasticity.h"
 
 namespace Kratos
 {

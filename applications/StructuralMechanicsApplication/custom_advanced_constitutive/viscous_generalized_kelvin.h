@@ -66,7 +66,7 @@ public:
 
     /// Definition of the base CL class
     typedef ConstitutiveLaw CLBaseType;
-    
+
     /// Definition of the base class
     typedef TElasticBehaviourLaw BaseType;
 
@@ -78,19 +78,19 @@ public:
 
     /// Static definition of the dimension
     static constexpr SizeType Dimension = TElasticBehaviourLaw::Dimension;
-    
+
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = TElasticBehaviourLaw::VoigtSize;
-    
+
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(ViscousGeneralizedKelvin);
-    
+
     /// The node definition
     typedef Node<3> NodeType;
-    
+
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
-    
+
     /// Definition of the machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
@@ -112,7 +112,7 @@ public:
     * @brief Copy constructor.
     */
     ViscousGeneralizedKelvin(const ViscousGeneralizedKelvin& rOther);
-    
+
     /**
     * @brief Destructor.
     */
@@ -228,7 +228,7 @@ public:
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
-        
+
     ///@}
     ///@name Access
     ///@{

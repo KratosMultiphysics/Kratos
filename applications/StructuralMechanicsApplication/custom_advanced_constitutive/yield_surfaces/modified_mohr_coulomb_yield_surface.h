@@ -16,7 +16,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/generic_yield_surface.h"
 
 namespace Kratos
 {
@@ -29,7 +29,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -66,10 +66,10 @@ class ModifiedMohrCoulombYieldSurface
 
     /// The Plastic potential already defines the working simension size
     static constexpr SizeType Dimension = PlasticPotentialType::Dimension;
-    
+
     /// The Plastic potential already defines the Voigt size
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
-    
+
     /// Counted pointer of ModifiedMohrCoulombYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(ModifiedMohrCoulombYieldSurface);
 
@@ -254,13 +254,13 @@ class ModifiedMohrCoulombYieldSurface
 
         double c1, c2, c3;
         double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0;
-	    
+
         // Check input variables
         if (friction_angle < tolerance) {
             friction_angle = 32.0 * Globals::Pi / 180.0;
             KRATOS_WARNING("ModifiedMohrCoulombYieldSurface") << "Friction Angle not defined, assumed equal to 32 deg " << std::endl;
         }
-	    
+
         const double sin_phi = std::sin(friction_angle);
         const double cons_phi = std::cos(friction_angle);
         const double sin_theta = std::sin(lode_angle);
@@ -321,7 +321,7 @@ class ModifiedMohrCoulombYieldSurface
         if (!rMaterialProperties.Has(YIELD_STRESS)) {
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
-            
+
             const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
             const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
 
@@ -355,7 +355,7 @@ class ModifiedMohrCoulombYieldSurface
     static double GetScaleFactorTension(const Properties& rMaterialProperties)
     {
         const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION]; 
+        const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
         return yield_compression / yield_tension;
     }
 

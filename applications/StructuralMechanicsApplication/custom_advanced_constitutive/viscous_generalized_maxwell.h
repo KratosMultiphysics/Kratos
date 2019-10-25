@@ -51,7 +51,7 @@ namespace Kratos
  *           -----^^^^^^-----------[------
  *                Spring (K)   Damper (C)
  * The Maxwell law requires the definition of the following properties:
- * - VISCOUS_PARAMETER: It is the material coefficient of viscosity. This model describes the damper as a Newtonian fluid and models the spring with Hooke's law. 
+ * - VISCOUS_PARAMETER: It is the material coefficient of viscosity. This model describes the damper as a Newtonian fluid and models the spring with Hooke's law.
  * @param TElasticBehaviourLaw Defines the elastic behaviour of the constitutive law (can be hyperelastic or just linear elastic, or any desired elastic behaviour)
  * @author Alejandro Cornejo & Lucia Barbu
  */
@@ -65,7 +65,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell
 
     /// Definition of the base CL class
     typedef ConstitutiveLaw CLBaseType;
-    
+
     /// Definition of the base class
     typedef TElasticBehaviourLaw BaseType;
 
@@ -77,19 +77,19 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell
 
     /// Static definition of the dimension
     static constexpr SizeType Dimension = TElasticBehaviourLaw::Dimension;
-    
+
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = TElasticBehaviourLaw::VoigtSize;
-    
+
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(ViscousGeneralizedMaxwell);
-    
+
     /// The node definition
     typedef Node<3> NodeType;
-    
+
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
-    
+
     /// Definition of the machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
@@ -111,7 +111,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell
     * @brief Copy constructor.
     */
     ViscousGeneralizedMaxwell(const ViscousGeneralizedMaxwell& rOther);
-    
+
     /**
     * @brief Destructor.
     */

@@ -18,7 +18,7 @@
 #include "includes/checks.h"
 #include "utilities/math_utils.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_constitutive/viscous_generalized_maxwell.h"
+#include "custom_advanced_constitutive/viscous_generalized_maxwell.h"
 
 namespace Kratos
 {
@@ -61,7 +61,7 @@ ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::~ViscousGeneralizedMaxwell()
 
 /***********************************************************************************/
 /***********************************************************************************/
-    
+
 template <class TElasticBehaviourLaw>
 void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
@@ -126,7 +126,7 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::ComputeViscoElasticity(Con
         Vector& r_strain_vector = rValues.GetStrainVector();
         this->CalculateValue(rValues, STRAIN, r_strain_vector);
     }
-    
+
     // We compute the stress
     if (r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS)) {
         const double viscous_parameter = material_props[VISCOUS_PARAMETER]; //  C1/Cinf
@@ -145,7 +145,7 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::ComputeViscoElasticity(Con
         const Vector& r_auxiliar_strain = -(r_strain_vector - r_strain_increment) * std::exp(-time_step / delay_time) * (1.0 + coef) + r_strain_vector * (1.0 - coef);
 
         noalias(integrated_stress_vector) = r_previous_stress * std::exp(-time_step / delay_time) + prod(constitutive_matrix, r_auxiliar_strain);
-        
+
         if (r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             rValues.SetConstitutiveMatrix(constitutive_matrix);
         }
@@ -205,7 +205,7 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::FinalizeMaterialResponseCa
         Vector& r_strain_vector = rValues.GetStrainVector();
         this->CalculateValue(rValues, STRAIN, r_strain_vector);
     }
-    
+
 
     const double viscous_parameter = material_props[VISCOUS_PARAMETER]; //  C1/Cinf
     const double delay_time = material_props[DELAY_TIME];
@@ -223,9 +223,9 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::FinalizeMaterialResponseCa
     const Vector& r_auxiliar_strain = -(r_strain_vector - r_strain_increment) * std::exp(-time_step / delay_time) * (1.0 + coef) + r_strain_vector * (1.0 - coef);
 
     noalias(integrated_stress_vector) = r_previous_stress * std::exp(-time_step / delay_time) + prod(constitutive_matrix, r_auxiliar_strain);
-    
+
     mPrevStressVector = integrated_stress_vector;
-    mPrevStrainVector = r_strain_vector;  
+    mPrevStrainVector = r_strain_vector;
 }
 
 /***********************************************************************************/
@@ -274,7 +274,7 @@ int ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::Check(
 
     KRATOS_CHECK_VARIABLE_KEY(VISCOUS_PARAMETER);
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(VISCOUS_PARAMETER)) << "VISCOUS_PARAMETER is not a defined value" << std::endl;
-    
+
     KRATOS_ERROR_IF_NOT(VoigtSize == this->GetStrainSize()) << "You are combining not compatible constitutive laws" << std::endl;
 
     return check_base;

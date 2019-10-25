@@ -6,8 +6,8 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo 
-//  
+//  Main authors:    Alejandro Cornejo
+//
 //
 
 // System includes
@@ -17,26 +17,26 @@
 // Project includes
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_constitutive/generic_small_strain_d_plus_d_minus_damage.h"
-#include "custom_constitutive/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_compression_constitutive_law_integrator.h"
-#include "custom_constitutive/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_tension_constitutive_law_integrator.h"
+#include "custom_advanced_constitutive/generic_small_strain_d_plus_d_minus_damage.h"
+#include "custom_advanced_constitutive/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_compression_constitutive_law_integrator.h"
+#include "custom_advanced_constitutive/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_tension_constitutive_law_integrator.h"
 
 // Yield surfaces
-#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/rankine_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/tresca_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/generic_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/mohr_coulomb_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/rankine_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/simo_ju_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/tresca_yield_surface.h"
 
 // Plastic potentials
-#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/tresca_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/generic_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/tresca_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
 
 namespace Kratos
 {
@@ -118,7 +118,7 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
 
         damage_parameters.TensionStressVector     = predictive_stress_vector_tension;
         damage_parameters.CompressionStressVector = predictive_stress_vector_compression;
-        
+
         TConstLawIntegratorTensionType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector_tension, r_strain_vector,
             damage_parameters.UniaxialTensionStress, rValues);
         TConstLawIntegratorCompressionType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector_compression, r_strain_vector,
@@ -129,7 +129,7 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
 
         const bool is_damaging_tension = this->IntegrateStressTensionIfNecessary(F_tension, damage_parameters, predictive_stress_vector_tension, rValues);
         const bool is_damaging_compression = this->IntegrateStressCompressionIfNecessary(F_compression, damage_parameters, predictive_stress_vector_compression, rValues);
-  
+
         if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             if (is_damaging_tension || is_damaging_compression) { // Perturbations
                 this->CalculateTangentTensor(rValues);
@@ -148,8 +148,8 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
 template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
 bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
     IntegrateStressTensionIfNecessary(
-        const double F_tension, 
-        DamageParameters& rParameters, 
+        const double F_tension,
+        DamageParameters& rParameters,
         array_1d<double, VoigtSize>& rIntegratedStressVectorTension,
         ConstitutiveLaw::Parameters& rValues)
 {
@@ -166,10 +166,10 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
 
         // This routine updates the IntegratedStressVectorTension to verify the yield surf
         TConstLawIntegratorTensionType::IntegrateStressVector(
-            rIntegratedStressVectorTension, 
-            rParameters.UniaxialTensionStress, 
-            rParameters.DamageTension, 
-            rParameters.ThresholdTension, 
+            rIntegratedStressVectorTension,
+            rParameters.UniaxialTensionStress,
+            rParameters.DamageTension,
+            rParameters.ThresholdTension,
             rValues, characteristic_length);
         if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
             this->SetNonConvTensionDamage(rParameters.DamageTension);
@@ -194,8 +194,8 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
 template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
 bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
     IntegrateStressCompressionIfNecessary(
-        const double F_compression, 
-        DamageParameters& rParameters, 
+        const double F_compression,
+        DamageParameters& rParameters,
         array_1d<double, VoigtSize>& rIntegratedStressVectorCompression,
         ConstitutiveLaw::Parameters& rValues)
 {
@@ -212,10 +212,10 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
 
         // This routine updates the IntegratedStressVectorCompression to verify the yield surf
         TConstLawIntegratorCompressionType::IntegrateStressVector(
-            rIntegratedStressVectorCompression, 
-            rParameters.UniaxialCompressionStress, 
-            rParameters.DamageCompression, 
-            rParameters.ThresholdCompression, 
+            rIntegratedStressVectorCompression,
+            rParameters.UniaxialCompressionStress,
+            rParameters.DamageCompression,
+            rParameters.ThresholdCompression,
             rValues, characteristic_length);
         if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
             this->SetNonConvCompressionDamage(rParameters.DamageCompression);
@@ -300,7 +300,7 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
     double initial_threshold_tension, initial_threshold_compression;
     TConstLawIntegratorTensionType::GetInitialUniaxialThreshold(aux_param, initial_threshold_tension);
     this->SetTensionThreshold(initial_threshold_tension);
-    
+
     TConstLawIntegratorCompressionType::GetInitialUniaxialThreshold(aux_param, initial_threshold_compression);
     this->SetCompressionThreshold(initial_threshold_compression);
 }
@@ -376,9 +376,9 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
     } else if (rThisVariable == THRESHOLD_COMPRESSION) {
 		return true;
     } else if (rThisVariable == UNIAXIAL_STRESS_COMPRESSION) {
-		return true; 
+		return true;
     } else if (rThisVariable == UNIAXIAL_STRESS_TENSION) {
-		return true; 
+		return true;
     } else {
         return BaseType::Has(rThisVariable);
     }
@@ -425,9 +425,9 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
     } else if (rThisVariable == THRESHOLD_COMPRESSION) {
        mCompressionThreshold = rValue;
     } else if (rThisVariable == UNIAXIAL_STRESS_COMPRESSION) {
-       mCompressionUniaxialStress = rValue; 
+       mCompressionUniaxialStress = rValue;
     } else if (rThisVariable == UNIAXIAL_STRESS_TENSION) {
-       mTensionUniaxialStress = rValue; 
+       mTensionUniaxialStress = rValue;
     } else {
        return BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }

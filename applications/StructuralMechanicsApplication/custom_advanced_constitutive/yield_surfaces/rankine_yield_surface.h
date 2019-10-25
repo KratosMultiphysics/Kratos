@@ -16,7 +16,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/generic_yield_surface.h"
 
 namespace Kratos
 {
@@ -29,7 +29,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -66,13 +66,13 @@ public:
 
     /// The Plastic potential already defines the working simension size
     static constexpr SizeType Dimension = PlasticPotentialType::Dimension;
-    
+
     /// The Plastic potential already defines the Voigt size
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
-    
+
     /// Counted pointer of RankineYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(RankineYieldSurface);
-    
+
     /// The zero tolerance definition
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
@@ -219,7 +219,7 @@ public:
         if (!rMaterialProperties.Has(YIELD_STRESS)) {
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
-            
+
             const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
             const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
 
