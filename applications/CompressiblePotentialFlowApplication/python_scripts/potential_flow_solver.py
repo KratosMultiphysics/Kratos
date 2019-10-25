@@ -118,8 +118,8 @@ class PotentialFlowSolver(FluidSolver):
         self.condition_name = self.formulation.condition_name
         self.min_buffer_size = 1
         self.domain_size = custom_settings["domain_size"].GetInt()
-        self.reference_chord = custom_settings["reference_chord"].GetDouble()
-        self.main_model_part.ProcessInfo.SetValue(KCPFApp.REFERENCE_CHORD,self.reference_chord)
+        # self.reference_chord = custom_settings["reference_chord"].GetDouble()
+        # self.main_model_part.ProcessInfo.SetValue(KCPFApp.REFERENCE_CHORD,self.reference_chord)
         self.element_has_nodal_properties = False
 
         #construct the linear solvers
@@ -187,3 +187,6 @@ class PotentialFlowSolver(FluidSolver):
         avg_node_num = 10
         KratosMultiphysics.FindNodalNeighboursProcess(
             self.main_model_part, avg_elem_num, avg_node_num).Execute()
+
+    def _SetPhysicalProperties(self):
+        return True

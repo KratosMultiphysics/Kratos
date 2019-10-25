@@ -244,12 +244,12 @@ class MassResponseFunction(ResponseFunctionBase):
         Logger.PrintInfo("MassResponse", "Time needed for calculating gradients",round(timer.time() - startTime,2),"s")
 
     def GetValue(self):
-        return self.model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
+        return (10000-self.model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE])
 
     def GetShapeGradient(self):
         gradient = {}
         for node in self.model_part.Nodes:
-            gradient[node.Id] = node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY)
+            gradient[node.Id] = -1*node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY)
         return gradient
 
 # ==============================================================================
