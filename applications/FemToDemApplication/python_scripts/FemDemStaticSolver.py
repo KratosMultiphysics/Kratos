@@ -4,11 +4,8 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 # Import the mechanical solver base class
-import FemDemMechanicalSolver as BaseSolver
+import KratosMultiphysics.FemToDemApplication.FemDemMechanicalSolver as BaseSolver
 
 def CreateSolver(main_model_part, custom_settings):
     return StaticMechanicalSolver(main_model_part, custom_settings)
@@ -21,7 +18,7 @@ class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
     See solid_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings):
-        
+
         # Set defaults and validate custom settings.
         static_settings = KratosMultiphysics.Parameters("""
         {
@@ -29,10 +26,10 @@ class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
         """)
         self._validate_and_transfer_matching_settings(custom_settings, static_settings)
         # Validate the remaining settings in the base class.
-        if not custom_settings.Has("solution_type"): 
+        if not custom_settings.Has("solution_type"):
             custom_settings.AddEmptyValue("solution_type")
             custom_settings["solution_type"].SetString("Static") # Override defaults in the base class.
-        if not custom_settings.Has("scheme_type"): 
+        if not custom_settings.Has("scheme_type"):
             custom_settings.AddEmptyValue("scheme_type")
             custom_settings["scheme_type"].SetString("Non-Linear") # Override defaults in the base class.
         if not custom_settings.Has("extrapolation_required"):
@@ -42,10 +39,10 @@ class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
         # Construct the base solver.
         super(StaticMechanicalSolver, self).__init__(main_model_part, custom_settings)
 
-        print("::[Static_Mechanical_Solver]:: Constructed")        
- 
+        print("::[Static_Mechanical_Solver]:: Constructed")
+
     #### Solver internal methods ####
-        
+
     def _create_solution_scheme (self):
         scheme_type = self.settings["scheme_type"].GetString()
         if(scheme_type == "Linear"):
@@ -58,15 +55,15 @@ class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
             else:
                 mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         elif(scheme_type == "RotationStatic"):
-            dynamic_factor = 0.0 
+            dynamic_factor = 0.0
             damp_factor_m  = 0.0
             mechanical_scheme = KratosSolid.ResidualBasedRotationNewmarkScheme(dynamic_factor, damp_factor_m)
         elif(scheme_type == "RotationEMC"):
-            dynamic_factor = 0.0       
+            dynamic_factor = 0.0
             mechanical_scheme = KratosSolid.ResidualBasedRotationEMCScheme(dynamic_factor)
         else:
             raise Exception("Unsupported scheme_type: " + scheme_type)
-     
+
         return mechanical_scheme
 
     def _create_mechanical_solver(self):
@@ -85,7 +82,7 @@ class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
                     mechanical_solver = self._create_newton_raphson_hexaedrons_strategy()
                 else:
                     mechanical_solver = self._create_newton_raphson_strategy()
-                
+
         return mechanical_solver
 
 
@@ -95,43 +92,43 @@ class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
         linear_solver = self._get_linear_solver()
         mechanical_convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
-        return KratosSolid.ComponentWiseNewtonRaphsonStrategy(computing_model_part, 
-                                                              mechanical_scheme, 
-                                                              linear_solver, 
-                                                              mechanical_convergence_criterion, 
-                                                              builder_and_solver, 
+        return KratosSolid.ComponentWiseNewtonRaphsonStrategy(computing_model_part,
+                                                              mechanical_scheme,
+                                                              linear_solver,
+                                                              mechanical_convergence_criterion,
+                                                              builder_and_solver,
                                                               self.settings["max_iteration"].GetInt(),
                                                               self.settings["compute_reactions"].GetBool(),
                                                               self.settings["reform_dofs_at_each_step"].GetBool(),
                                                               self.settings["move_mesh_flag"].GetBool())
-     
+
     def _create_line_search_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._get_solution_scheme()
         linear_solver = self._get_linear_solver()
         mechanical_convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
-        return KratosSolid.ResidualBasedNewtonRaphsonLineSearchStrategy(computing_model_part, 
-                                                                        mechanical_scheme, 
-                                                                        linear_solver, 
-                                                                        mechanical_convergence_criterion, 
-                                                                        builder_and_solver, 
+        return KratosSolid.ResidualBasedNewtonRaphsonLineSearchStrategy(computing_model_part,
+                                                                        mechanical_scheme,
+                                                                        linear_solver,
+                                                                        mechanical_convergence_criterion,
+                                                                        builder_and_solver,
                                                                         self.settings["max_iteration"].GetInt(),
                                                                         self.settings["compute_reactions"].GetBool(),
                                                                         self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                         self.settings["move_mesh_flag"].GetBool())
-    
+
     def _create_line_search_implex_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._get_solution_scheme()
         linear_solver = self._get_linear_solver()
         mechanical_convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
-        return KratosSolid.ResidualBasedNewtonRaphsonLineSearchImplexStrategy(computing_model_part, 
-                                                                              mechanical_scheme, 
-                                                                              linear_solver, 
-                                                                              mechanical_convergence_criterion, 
-                                                                              builder_and_solver, 
+        return KratosSolid.ResidualBasedNewtonRaphsonLineSearchImplexStrategy(computing_model_part,
+                                                                              mechanical_scheme,
+                                                                              linear_solver,
+                                                                              mechanical_convergence_criterion,
+                                                                              builder_and_solver,
                                                                               self.settings["max_iteration"].GetInt(),
                                                                               self.settings["compute_reactions"].GetBool(),
                                                                               self.settings["reform_dofs_at_each_step"].GetBool(),
@@ -143,26 +140,26 @@ class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
         mechanical_scheme = self._get_solution_scheme()
         linear_solver = self._get_linear_solver()
         builder_and_solver = self._get_builder_and_solver()
-        return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part, 
-                                                              mechanical_scheme, 
-                                                              linear_solver, 
-                                                              builder_and_solver, 
-                                                              self.settings["compute_reactions"].GetBool(), 
-                                                              self.settings["reform_dofs_at_each_step"].GetBool(), 
-                                                              False, 
+        return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
+                                                              mechanical_scheme,
+                                                              linear_solver,
+                                                              builder_and_solver,
+                                                              self.settings["compute_reactions"].GetBool(),
+                                                              self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                              False,
                                                               self.settings["move_mesh_flag"].GetBool())
 
-    
+
     def _create_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self._get_solution_scheme()
         linear_solver = self._get_linear_solver()
         mechanical_convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
-        return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part, 
-                                                                     mechanical_scheme, 
-                                                                     linear_solver, 
-                                                                     mechanical_convergence_criterion, 
+        return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
+                                                                     mechanical_scheme,
+                                                                     linear_solver,
+                                                                     mechanical_convergence_criterion,
                                                                      builder_and_solver,
                                                                      self.settings["max_iteration"].GetInt(),
                                                                      self.settings["compute_reactions"].GetBool(),
@@ -175,12 +172,12 @@ class StaticMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
         linear_solver = self._get_linear_solver()
         mechanical_convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
-        return KratosFemDem.HexahedraNewtonRaphsonStrategy(computing_model_part, 
-                                                                     mechanical_scheme, 
-                                                                     linear_solver, 
-                                                                     mechanical_convergence_criterion, 
+        return KratosFemDem.HexahedraNewtonRaphsonStrategy(computing_model_part,
+                                                                     mechanical_scheme,
+                                                                     linear_solver,
+                                                                     mechanical_convergence_criterion,
                                                                      self.settings["max_iteration"].GetInt(),
                                                                      self.settings["compute_reactions"].GetBool(),
                                                                      self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                     self.settings["move_mesh_flag"].GetBool())    
+                                                                     self.settings["move_mesh_flag"].GetBool())
 

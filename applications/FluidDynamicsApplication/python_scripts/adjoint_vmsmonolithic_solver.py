@@ -32,6 +32,9 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
                 "input_type"     : "mdpa",
                 "input_filename" : "unknown_name"
             },
+            "material_import_settings": {
+                "materials_filename": ""
+            },
             "linear_solver_settings" : {
                 "solver_type" : "amgcl"
             },
@@ -59,6 +62,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
             self.condition_name = "LineCondition"
         elif self.settings["domain_size"].GetInt() == 3:
             self.condition_name = "SurfaceCondition"
+        self.element_has_nodal_properties = True
 
         # construct the linear solver
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
@@ -83,10 +87,6 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Adjoint fluid solver variables added correctly.")
-
-    def PrepareModelPart(self):
-        self._set_physical_properties()
-        super(AdjointVMSMonolithicSolver, self).PrepareModelPart()
 
     def Initialize(self):
 

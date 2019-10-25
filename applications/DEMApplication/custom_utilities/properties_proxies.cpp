@@ -90,10 +90,6 @@ namespace Kratos {
     double* PropertiesProxy::pGetLevelOfFouling()                                             { return  mLevelOfFouling;                     }
     void    PropertiesProxy::SetLevelOfFoulingFromProperties(double* level_of_fouling)        { mLevelOfFouling = level_of_fouling;          }
 
-    double  PropertiesProxy::GetContactSigmaMin()                                             { return *mContactSigmaMin;                    }
-    double* PropertiesProxy::pGetContactSigmaMin()                                            { return  mContactSigmaMin;                    }
-    void    PropertiesProxy::SetContactSigmaMinFromProperties(double* contact_sigma_min)      { mContactSigmaMin = contact_sigma_min;        }
-
     double  PropertiesProxy::GetContactTauZero()                                              { return *mContactTauZero;                     }
     double* PropertiesProxy::pGetContactTauZero()                                             { return  mContactTauZero;                     }
     void    PropertiesProxy::SetContactTauZeroFromProperties(double* contact_tau_zero)        { mContactTauZero = contact_tau_zero;          }
@@ -195,9 +191,6 @@ namespace Kratos {
 
             aux_pointer = &(props_it->GetValue(LEVEL_OF_FOULING));
             vector_of_proxies[properties_counter].SetLevelOfFoulingFromProperties(aux_pointer);
-
-            aux_pointer = &(props_it->GetValue(CONTACT_SIGMA_MIN));
-            vector_of_proxies[properties_counter].SetContactSigmaMinFromProperties(aux_pointer);
 
             aux_pointer = &(props_it->GetValue(CONTACT_TAU_ZERO));
             vector_of_proxies[properties_counter].SetContactTauZeroFromProperties(aux_pointer);

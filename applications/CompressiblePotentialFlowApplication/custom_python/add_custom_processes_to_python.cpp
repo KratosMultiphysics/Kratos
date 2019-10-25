@@ -58,6 +58,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, Vector&>())
         ;
 
+    py::class_<ComputeEmbeddedLiftProcess<3,4>, ComputeEmbeddedLiftProcess<3,4>::Pointer, Process >
+        (m, "ComputeEmbeddedLiftProcess3D")
+        .def(py::init<ModelPart&, Vector&>())
+        ;
+
     py::class_<DefineEmbeddedWakeProcess, DefineEmbeddedWakeProcess::Pointer, Process >
         (m, "DefineEmbeddedWakeProcess")
         .def(py::init<ModelPart&, ModelPart&>())

@@ -86,15 +86,5 @@ def _ImportApplicationAsModuleCustomFolder(application, application_name, applic
     # Add application to kernel
     Kernel.ImportApplication(application)
 
-def CheckForPreviousImport():
-    warn_msg  = '"CheckForPreviousImport" is not needed any more and can be safely removed\n'
-    warn_msg += 'It does nothing any more'
-    Logger.PrintWarning('DEPRECATION', warn_msg)
-
-def CheckRegisteredApplications(*applications):
-    warn_msg  = '"CheckRegisteredApplications" is not needed any more and can be safely removed\n'
-    warn_msg += 'It does nothing any more'
-    Logger.PrintWarning('DEPRECATION', warn_msg)
-
 def IsDistributedRun():
     return KratosGlobals.Kernel.IsDistributedRun()
