@@ -83,7 +83,6 @@ namespace Kratos
             const unsigned int number_nodes = mrModelPart.NumberOfNodes();
 
             const auto& r_node = *mrModelPart.NodesBegin();
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_WEIGHTED, r_node);
 
             // Iterate over the nodes
             #pragma omp parallel for
@@ -94,13 +93,13 @@ namespace Kratos
                 const auto variable_current = it_node->GetSolutionStepValue(VELOCITY);
 
                 // Retrieve variable from previous time step
-                const auto average_old = it_node->GetSolutionStepValue(VELOCITY_WEIGHTED);
+                const auto average_old = it_node->GetValue(VELOCITY_WEIGHTED);
 
                 // Compute divergence weighted time average
                 auto average_new = ComputeWeightedTimeAverage(average_old, variable_current);
 
+                // Set new value
                 it_node->SetValue(VELOCITY_WEIGHTED,average_new);
-
             }
         }
 
