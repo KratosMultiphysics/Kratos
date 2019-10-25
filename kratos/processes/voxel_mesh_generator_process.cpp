@@ -80,10 +80,7 @@ namespace Kratos
 		if(TheParameters["mesh_type"].GetString() == "coarse")
 			mCoarseMeshType=true;
 
-		if(TheParameters["output"].GetString() == "mesh"){
-			mMeshOutput = true;
-		}
-
+		mOutput = TheParameters["output"].GetString();
 
 		mHasColor = false;
 
@@ -128,7 +125,8 @@ namespace Kratos
 				"coloring_settings_list": [],
 				"entities_to_generate": "elements",
 				"mesh_type": "uniform",
-				"output_filename" : ""
+				"output_filename" : "",
+				"output" : "mesh"
             }  )");
 
 		TheParameters["element_name"]; // Should be given by caller! if not thorws an error
@@ -158,6 +156,7 @@ namespace Kratos
 			mCoarseMeshType=true;
 
 		mHasColor = false;
+		mOutput = TheParameters["output"].GetString();
 
         Check();
 
@@ -205,27 +204,6 @@ namespace Kratos
 			else if(mEntitiesToGenerate == "nodes" || mEntitiesToGenerate == "elements"){
 				Generate3DMesh();
 			}
-			else if(mEntitiesToGenerate == "rectilinear_coordinates"){
-				auto& x_coordinates = mrVolumePart.GetValue(RECTILINEAR_X_COORDINATES);
-				auto& y_coordinates = mrVolumePart.GetValue(RECTILINEAR_Y_COORDINATES);
-				auto& z_coordinates = mrVolumePart.GetValue(RECTILINEAR_Z_COORDINATES);
-
-				x_coordinates.resize(mColors.GetNodalCoordinates(0).size(), false);
-				y_coordinates.resize(mColors.GetNodalCoordinates(1).size(), false);
-				z_coordinates.resize(mColors.GetNodalCoordinates(2).size(), false);
-
-				for(int i = 0 ; i < static_cast<int>(mColors.GetNodalCoordinates(0).size()) ; i++){
-					x_coordinates[i] = mColors.GetNodalCoordinates(0)[i];
-				}
-				for(int i = 0 ; i < static_cast<int>(mColors.GetNodalCoordinates(1).size()) ; i++){
-					y_coordinates[i] = mColors.GetNodalCoordinates(1)[i];
-				}
-				for(int i = 0 ; i < static_cast<int>(mColors.GetNodalCoordinates(2).size()) ; i++){
-					z_coordinates[i] = mColors.GetNodalCoordinates(2)[i];
-				}
-
-			}
-
 		}
 	}
 
@@ -294,6 +272,10 @@ namespace Kratos
 		}
 		GenerateNodes3D();
 
+		if(mOutput == "rectilinear_coordinates") { // we don't need to explictly generate the elements.
+			return;
+		}
+
 		if(mEntitiesToGenerate == "elements") {
 
 			Properties::Pointer p_properties = mrVolumePart.pGetProperties(mElementPropertiesId);
@@ -355,27 +337,60 @@ namespace Kratos
 			}
 		}
 
-		std::vector<double> x_key_planes;
-		std::vector<double> y_key_planes;
-		std::vector<double> z_key_planes;
+		if(mOutput == "rectilinear_coordinates") { 
+			std::vector<double> x_key_planes;
+			std::vector<double> y_key_planes;
+			std::vector<double> z_key_planes;
 
-		for(std::size_t i = 0 ; i < mNumberOfDivisions[0]; i++){
-			if(x_cell_coarse[i])
-				x_key_planes.push_back(i*mCellSizes[0]+mMinPoint[0]);
-		}
+			for(std::size_t i = 0 ; i < mNumberOfDivisions[0]; i++){
+				if(x_cell_coarse[i])
+					x_key_planes.push_back(i*mCellSizes[0]+mMinPoint[0]);
+			}
 
-		for(std::size_t i = 0 ; i < mNumberOfDivisions[1]; i++){
-			if(y_cell_coarse[i])
-				y_key_planes.push_back(i*mCellSizes[1]+mMinPoint[1]);
-		}
+			for(std::size_t i = 0 ; i < mNumberOfDivisions[1]; i++){
+				if(y_cell_coarse[i])
+					y_key_planes.push_back(i*mCellSizes[1]+mMinPoint[1]);
+			}
 
-		for(std::size_t i = 0 ; i < mNumberOfDivisions[2]; i++){
-			if(z_cell_coarse[i])
-				z_key_planes.push_back(i*mCellSizes[2]+mMinPoint[2]);
+			for(std::size_t i = 0 ; i < mNumberOfDivisions[2]; i++){
+				if(z_cell_coarse[i])
+					z_key_planes.push_back(i*mCellSizes[2]+mMinPoint[2]);
+			}
+
+			x_key_planes.push_back(mMaxPoint[0]);
+			y_key_planes.push_back(mMaxPoint[1]);
+			z_key_planes.push_back(mMaxPoint[2]);
+
+			auto& x_coordinates = mrVolumePart.GetValue(RECTILINEAR_X_COORDINATES);
+ 			auto& y_coordinates = mrVolumePart.GetValue(RECTILINEAR_Y_COORDINATES);
+ 			auto& z_coordinates = mrVolumePart.GetValue(RECTILINEAR_Z_COORDINATES);
+
+			x_coordinates.resize(x_key_planes.size(), false);
+			y_coordinates.resize(y_key_planes.size(), false);
+			z_coordinates.resize(z_key_planes.size(), false);
+
+			std::copy(x_key_planes.begin(), x_key_planes.end(), x_coordinates.begin());
+			std::copy(y_key_planes.begin(), y_key_planes.end(), y_coordinates.begin());
+			std::copy(z_key_planes.begin(), z_key_planes.end(), z_coordinates.begin());
+
+			auto& colors = mrVolumePart.GetValue(COLORS);
+			colors.resize(mColors.GetNodalColors().size());
+			for(int i = 0 ; i < colors.size() ; i++){
+				colors[i] = static_cast<int>(mColors.GetNodalColors()[i]);
+			}
+			std::size_t index = 0;
+			for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
+				for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
+					for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
+						if(x_cell_coarse[i]&y_cell_coarse[j]&z_cell_coarse[k]){
+							colors[index++] = mColors.GetElementalColor(i,j,k);
+						}
+					}
+				}
+			}
+
+			return;
 		}
-		x_key_planes.push_back(mMaxPoint[0]);
-		y_key_planes.push_back(mMaxPoint[1]);
-		z_key_planes.push_back(mMaxPoint[2]);
 		
 		std::size_t node_id = mStartNodeId;
 		for (std::size_t k = 0; k < mNumberOfDivisions[2] + 1; k++) {
@@ -415,6 +430,28 @@ namespace Kratos
 		if (mCreateSkinSubModelPart)
 			p_skin_part = &(mrVolumePart.GetSubModelPart("Skin"));
 
+		if(mOutput == "rectilinear_coordinates") { 
+			auto& x_coordinates = mrVolumePart.GetValue(RECTILINEAR_X_COORDINATES);
+			auto& y_coordinates = mrVolumePart.GetValue(RECTILINEAR_Y_COORDINATES);
+			auto& z_coordinates = mrVolumePart.GetValue(RECTILINEAR_Z_COORDINATES);
+
+			x_coordinates.resize(mColors.GetNodalCoordinates(0).size(), false);
+			y_coordinates.resize(mColors.GetNodalCoordinates(1).size(), false);
+			z_coordinates.resize(mColors.GetNodalCoordinates(2).size(), false);
+
+			std::copy(mColors.GetNodalCoordinates(0).begin(), mColors.GetNodalCoordinates(0).end(), x_coordinates.begin());
+			std::copy(mColors.GetNodalCoordinates(1).begin(), mColors.GetNodalCoordinates(1).end(), y_coordinates.begin());
+			std::copy(mColors.GetNodalCoordinates(2).begin(), mColors.GetNodalCoordinates(2).end(), z_coordinates.begin());
+
+			auto& colors = mrVolumePart.GetValue(COLORS);
+			colors.resize(mColors.GetElementalColors().size());
+			for(int i = 0 ; i < colors.size() ; i++){
+				colors[i] = static_cast<int>(mColors.GetElementalColors()[i]);
+			}
+
+			return;
+		}
+
 		for (std::size_t k = 0; k < mNumberOfDivisions[2] + 1; k++) {
 			for (std::size_t j = 0; j < mNumberOfDivisions[1] + 1; j++) {
 				for (std::size_t i = 0; i < mNumberOfDivisions[0] + 1; i++) {
@@ -449,6 +486,23 @@ namespace Kratos
 		auto global_coordinates = Point{ZeroVector(3)};
 		std::size_t node_id = mStartNodeId;
 
+		if(mOutput == "rectilinear_coordinates") { 
+			auto& x_coordinates = mrVolumePart.GetValue(RECTILINEAR_X_COORDINATES);
+			auto& y_coordinates = mrVolumePart.GetValue(RECTILINEAR_Y_COORDINATES);
+			auto& z_coordinates = mrVolumePart.GetValue(RECTILINEAR_Z_COORDINATES);
+
+			x_coordinates.resize(mColors.GetElementCenterCoordinates(0).size(), false);
+			y_coordinates.resize(mColors.GetElementCenterCoordinates(1).size(), false);
+			z_coordinates.resize(mColors.GetElementCenterCoordinates(2).size(), false);
+
+			std::copy(mColors.GetElementCenterCoordinates(0).begin(), mColors.GetElementCenterCoordinates(0).end(), x_coordinates.begin());
+			std::copy(mColors.GetElementCenterCoordinates(1).begin(), mColors.GetElementCenterCoordinates(1).end(), y_coordinates.begin());
+			std::copy(mColors.GetElementCenterCoordinates(2).begin(), mColors.GetElementCenterCoordinates(2).end(), z_coordinates.begin());
+
+
+			return;
+		}
+
 		for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
 			for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
 				for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
@@ -474,7 +528,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-		KRATOS_ERROR_IF(mEntitiesToGenerate != "nodes" && mEntitiesToGenerate != "elements" && mEntitiesToGenerate != "center_of_elements" && mEntitiesToGenerate != "rectilinear_coordinates") << mEntitiesToGenerate 
+		KRATOS_ERROR_IF(mEntitiesToGenerate != "nodes" && mEntitiesToGenerate != "elements" && mEntitiesToGenerate != "center_of_elements") << mEntitiesToGenerate 
 			<< " is not accepted as entities_to_generate. The valid options are 'nodes', 'elements' and 'center_of_elements'." << std::endl;
 
         return 0;

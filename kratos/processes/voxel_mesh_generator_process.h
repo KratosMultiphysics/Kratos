@@ -161,8 +161,8 @@ namespace Kratos
           const double mExtraRaysEpsilon = 1.0e-8;
           Parameters mColoringParameters;
           std::string mEntitiesToGenerate;
+          std::string mOutput;
           bool mCoarseMeshType;
-          bool mMeshOutput;
           bool mHasColor;
 
 
