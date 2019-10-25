@@ -81,7 +81,8 @@ namespace Testing
     void LinearPerturbationField(
         ModelPart &rModelPart,
         const double c_1,
-        const double c_2)
+        const double c_2,
+        const bool SetVolumetricStrain)
     {
         array_1d<double, 3> aux_disp;
         for (auto &r_node : rModelPart.Nodes()) {
@@ -89,7 +90,9 @@ namespace Testing
             aux_disp[1] = c_2 * r_node.Y();
             aux_disp[2] = 0.0;
             r_node.FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
-            r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = c_1 + c_2;
+            if (SetVolumetricStrain) {
+                r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = c_1 + c_2;
+            }
         }
     }
 
@@ -125,7 +128,8 @@ namespace Testing
         // Set a fake displacement and volumetric strain field to compute the residual
         const double alpha = 1.0;
         const double beta = 1.0;
-        LinearPerturbationField(r_model_part, alpha, beta);
+        const bool set_volumetric_field = false;
+        LinearPerturbationField(r_model_part, alpha, beta, set_volumetric_field);
 
         Vector RHS = ZeroVector(9);
         Matrix LHS = ZeroMatrix(9,9);
@@ -134,7 +138,7 @@ namespace Testing
         // Perturb the previous displacement and volumetric strain field to compute the residual
         const double alpha_perturbed = 1.25;
         const double beta_perturbed = 1.25;
-        LinearPerturbationField(r_model_part, alpha_perturbed, beta_perturbed);
+        LinearPerturbationField(r_model_part, alpha_perturbed, beta_perturbed, set_volumetric_field);
 
         Vector RHS_perturbed = ZeroVector(9);
         p_element->CalculateRightHandSide(RHS_perturbed, r_model_part.GetProcessInfo());
@@ -142,7 +146,7 @@ namespace Testing
         // Calculate the perturbation RHS
         const double delta_alpha = alpha_perturbed - alpha;
         const double delta_beta = beta_perturbed - beta;
-        LinearPerturbationField(r_model_part, delta_alpha, delta_beta);
+        LinearPerturbationField(r_model_part, delta_alpha, delta_beta, set_volumetric_field);
 
         Vector RHS_delta = ZeroVector(9);
         p_element->CalculateRightHandSide(RHS_delta, r_model_part.GetProcessInfo());
@@ -151,37 +155,16 @@ namespace Testing
         const Vector RHS_error = RHS_perturbed - (RHS + RHS_delta);
 
         // Check the LHS
-        array_1d<double, 9> perturbation_vector;
+        array_1d<double, 9> perturbation_vector = ZeroVector(9);
         for (auto &r_node : r_model_part.Nodes()) {
             perturbation_vector[(r_node.Id() - 1) * 3] = delta_alpha * r_node.X();
             perturbation_vector[(r_node.Id() - 1) * 3 + 1] = delta_beta * r_node.Y();
-            perturbation_vector[(r_node.Id() - 1) * 3 + 2] = delta_alpha + delta_beta;
+            if (set_volumetric_field) {
+                perturbation_vector[(r_node.Id() - 1) * 3 + 2] = delta_alpha + delta_beta;
+            }
         }
         const Vector RHS_from_LHS = RHS  - prod(LHS,perturbation_vector);
         const Vector RHS_from_LHS_error = RHS_perturbed - RHS_from_LHS;
-
-
-
-        // const Vector RHS_error = RHS_perturbed - (RHS + RHS_perturbation);
-
-        // // Perturb the previous displacement and volumetric strain field to compute the residual
-        // array_1d<double, 9> aux_perturbation_vol;
-
-        // Vector RHS_perturbation_vol = -prod(LHS, aux_perturbation_vol);
-
-        // const Vector RHS_error_vol = RHS_perturbed - (RHS + RHS_perturbation_vol);
-
-        // // Perturb the previous displacement and volumetric strain field to compute the residual
-        // array_1d<double, 9> aux_perturbation_dev;
-        // for (auto &r_node : r_model_part.Nodes()) {
-        //     aux_perturbation_dev[(r_node.Id() - 1) * 3] = (alpha_perturbed - alpha) * r_node.X();
-        //     aux_perturbation_dev[(r_node.Id() - 1) * 3 + 1] = (beta_perturbed - beta) * r_node.Y();
-        //     aux_perturbation_dev[(r_node.Id() - 1) * 3 + 2] = 0.0;
-        // }
-
-        // Vector RHS_perturbation_dev = -prod(LHS, aux_perturbation_dev);
-
-        // const Vector RHS_error_dev = RHS_perturbed - (RHS + RHS_perturbation_dev);
 
         KRATOS_WATCH("")
         KRATOS_WATCH(RHS)

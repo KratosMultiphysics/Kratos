@@ -396,10 +396,8 @@ void SmallDisplacementMixedStrainElement::CalculateLeftHandSide(
         // Calculate stabilization constants
         const double h = ComputeElementSize(DN_DX_container[i_gauss]);
         const double shear_modulus = GetProperties()[YOUNG_MODULUS] / (2.0 * (1.0 + GetProperties()[POISSON_RATIO]));
-        const double tau_1 = 0.0;
-        const double tau_2 = 0.0;
-        // const double tau_1 = 2.0 * std::pow(h, 2) / (2.0 * shear_modulus);
-        // const double tau_2 = 0.15;
+        const double tau_1 = 2.0 * std::pow(h, 2) / (2.0 * shear_modulus);
+        const double tau_2 = 0.15;
 
         // Add the volumetric strain momentum stabilization term - term 1
         const double aux_1 = w_gauss * bulk_modulus * tau_2;
@@ -587,10 +585,8 @@ void SmallDisplacementMixedStrainElement::CalculateRightHandSide(
 
         const double h = ComputeElementSize(DN_DX_container[i_gauss]);
         const double shear_modulus = GetProperties()[YOUNG_MODULUS] / (2.0 * (1.0 + GetProperties()[POISSON_RATIO]));
-        const double tau_1 = 0.0;
-        const double tau_2 = 0.0;
-        // const double tau_1 = 2.0 * std::pow(h, 2) / (2.0 * shear_modulus);
-        // const double tau_2 = 0.15;
+        const double tau_1 = 2.0 * std::pow(h, 2) / (2.0 * shear_modulus);
+        const double tau_2 = 0.15;
 
         // Add the volumetric strain momentum stabilization term - term 1
         const double aux_1 = w_gauss * bulk_modulus * tau_2;

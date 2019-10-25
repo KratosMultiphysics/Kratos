@@ -26,7 +26,6 @@ class TestPatchTestSmallDisplacementMixedStrain(KratosUnittest.TestCase):
             node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
             node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
 
-        for node in ModelPart.Nodes:
             x_vec = KratosMultiphysics.Vector(3)
             x_vec[0] = node.X0
             x_vec[1] = node.Y0
