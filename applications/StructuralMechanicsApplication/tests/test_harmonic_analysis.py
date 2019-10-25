@@ -3,15 +3,14 @@ import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
-if kratos_utilities.CheckIfApplicationsAvailable("ExternalSolversApplication"):
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utils
+
+if kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
     import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
     have_external_solvers = True
 else:
     have_external_solvers = False
-
-
-import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.kratos_utilities as kratos_utils
 
 from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_analysis
 
