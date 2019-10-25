@@ -334,6 +334,38 @@ namespace Kratos {
 		}
 	}
 
+	KRATOS_TEST_CASE_IN_SUITE(VoxelMeshGeneratorProcessRectilinearCoordinatesOutput, KratosCoreFastSuite)
+	{
+		Parameters mesher_parameters(R"(
+		{
+			"number_of_divisions":   [5,5,5],
+			"element_name":     "Element3D4N",
+			"entities_to_generate": "rectilinear_coordinates"
+		})");
+
+        Model current_model;
+		ModelPart &volume_part = current_model.CreateModelPart("Volume");
+
+		// Generate the skin
+		ModelPart &skin_model_part = current_model.CreateModelPart("Skin");
+
+
+		// Generating the mesh
+		VoxelMeshGeneratorProcess({1.00, 3.00, 5.00, 7.00, 9.00, 11.00}, {2.00, 4.00, 6.00, 8.00, 10.00, 12.00}, {3.00, 5.00, 7.00, 9.00, 11.00, 13.00}, volume_part, skin_model_part, mesher_parameters).Execute();
+
+		KRATOS_CHECK_EQUAL(volume_part.NumberOfNodes(), 0);
+		KRATOS_CHECK_EQUAL(volume_part.NumberOfElements(), 0);
+	
+		for (std::size_t i = 0; i <= 5; i++) {
+			double x = 2.00*i + 1.00;
+			double y = 2.00*i + 2.00;
+			double z = 2.00*i + 3.00;
+			KRATOS_CHECK_NEAR(volume_part.GetValue(RECTILINEAR_X_COORDINATES)[i], x, 1e-6);
+			KRATOS_CHECK_NEAR(volume_part.GetValue(RECTILINEAR_Y_COORDINATES)[i], y, 1e-6);
+			KRATOS_CHECK_NEAR(volume_part.GetValue(RECTILINEAR_Z_COORDINATES)[i], z, 1e-6);
+		}
+	}
+
 	KRATOS_TEST_CASE_IN_SUITE(VoxelMeshGeneratorProcessCentersPositions, KratosCoreFastSuite)
 	{
 		Parameters mesher_parameters(R"(
