@@ -3,11 +3,13 @@
 
 
 // System includes
-#include "utilities/math_utils.h"
 
 // External includes
 
 // Project includes
+#include "includes/define.h"
+#include "includes/element.h"
+#include "utilities/math_utils.h"
 
 // Application includes
 #include "iga_application_variables.h"
@@ -27,20 +29,21 @@ protected:
     /// Internal variables used for metric transformation
     struct KinematicVariables
     {
-        Vector gab; // covariant metric
-        Vector gab_con; // contravariant metric
-        Vector curvature; //
+        // covariant metric
+        array_1d<double, 3> a_ab_covariant;
+        array_1d<double, 3> b_ab_covariant;
 
-        double  detJ;
+        //base vector 1
+        array_1d<double, 3> a1;
+        //base vector 2
+        array_1d<double, 3> a2;
+        //base vector 3 normalized
+        array_1d<double, 3> a3;
+        //not-normalized base vector 3
+        array_1d<double, 3> a3_tilde;
 
-        Vector g1; //base vector 1
-        Vector g2; //base vector 2
-        Vector g3; //normalized base vector 3
-
-        Vector g3_tilde; //base vector 3
-        double dA; //differential area
-
-        Matrix Q;
+        //differential area
+        double dA;
 
         /**
         * The default constructor
@@ -48,21 +51,16 @@ protected:
         */
         KinematicVariables(SizeType Dimension)
         {
-            gab = ZeroVector(Dimension);
-            gab_con = ZeroVector(Dimension);
+            a_ab_covariant = ZeroVector(Dimension);
+            b_ab_covariant = ZeroVector(Dimension);
 
-            curvature = ZeroVector(Dimension);
+            a1 = ZeroVector(Dimension);
+            a2 = ZeroVector(Dimension);
+            a3 = ZeroVector(Dimension);
 
-            J = ZeroMatrix(Dimension, Dimension);
-            detJ = 1.0;
-
-            g1 = ZeroVector(Dimension);
-            g2 = ZeroVector(Dimension);
-            g3 = ZeroVector(Dimension);
+            a3_tilde = ZeroVector(Dimension);
 
             dA = 1.0;
-
-            Q = ZeroMatrix(Dimension, Dimension);
         }
     };
 
@@ -86,6 +84,27 @@ protected:
         }
     };
 
+    /**
+    * Internal variables used in the constitutive equations
+    */
+    struct SecondVariations
+    {
+        Matrix B11;
+        Matrix B22;
+        Matrix B12;
+
+        /**
+        * The default constructor
+        * @param StrainSize: The size of the strain vector in Voigt notation
+        */
+        SecondVariations(const int& mat_size)
+        {
+            B11 = ZeroMatrix(mat_size, mat_size);
+            B22 = ZeroMatrix(mat_size, mat_size);
+            B12 = ZeroMatrix(mat_size, mat_size);
+        }
+    };
+
 public:
     ///@name Type Definitions
     ///@{
@@ -96,6 +115,9 @@ public:
     /// Size types
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
+
+    // GometryType
+    typedef Geometry<Node<3>> GeometryType;
 
     ///@}
     ///@name Life Cycle
@@ -136,7 +158,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<LoadCondition>(
+        return Kratos::make_intrusive<Shell3pElement>(
             NewId, pGeom, pProperties);
     };
 
@@ -147,7 +169,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive< LoadCondition >(
+        return Kratos::make_intrusive< Shell3pElement >(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -249,6 +271,28 @@ public:
         ProcessInfo& rCurrentProcessInfo
     ) override;
 
+    ///@}
+    ///@name Base Class Operations
+    ///@{
+
+    void Initialize() override;
+
+    void CalculateBMembrane(
+        IndexType IntegrationPointIndex,
+        Matrix& rB,
+        KinematicVariables& rActualKinematic);
+
+    void GetValuesVector(
+        Vector& rValues,
+        int Step);
+
+    void GetFirstDerivativesVector(
+        Vector& rValues,
+        int Step);
+
+    void GetSecondDerivativesVector(
+        Vector& rValues,
+        int Step);
 
     ///@}
     ///@name Check
@@ -292,6 +336,17 @@ private:
     ///@name Member Variables
     ///@{
 
+    // Components of the metric coefficient tensor on the contravariant basis
+    std::vector<array_1d<double, 3>> mA_ab_covariant_vector;
+    // Components of the curvature coefficient tensor on the contravariant basis
+    std::vector<array_1d<double, 3>> mB_ab_covariant_vector;
+    // Determinant of the geometrical Jacobian.
+    Vector mdA_vector;
+    // Transformation the strain tensor from the curvilinear system
+    // to the local cartesian in voigt notation including a 2 in the 
+    // shear part.
+    std::vector<Matrix> mT_vector;
+
     /// The vector containing the constitutive laws
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
@@ -313,14 +368,19 @@ private:
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
-    ) override;
+    );
 
+    /// Initialize Operations
+    void InitializeMaterial();
 
 
     void CalculateKinematics(
         IndexType IntegrationPointIndex,
-        MetricVariables& metric
-    ) override;
+        KinematicVariables& rKinematicVariables);
+
+    void CalculateTransformation(
+        const KinematicVariables& rKinematicVariables,
+        Matrix& T);
 
     /**
     * This functions updates the constitutive variables
@@ -330,7 +390,8 @@ private:
     * @param ThisStressMeasure: The stress measure considered
     */
     void CalculateConstitutiveVariables(
-        MetricVariables& rActualMetric,
+        IndexType IntegrationPointIndex,
+        KinematicVariables& rActualMetric,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         ConstitutiveLaw::Parameters& rValues,
