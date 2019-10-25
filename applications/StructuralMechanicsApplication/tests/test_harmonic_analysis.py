@@ -2,7 +2,14 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
+
+if kratos_utilities.CheckIfApplicationsAvailable("ExternalSolversApplication"):
+    import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
+    have_external_solvers = True
+else:
+    have_external_solvers = False
+
+
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
@@ -113,6 +120,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
 
         return mp
 
+    @UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
     def test_undamped_mdof_harmonic(self):
         current_model = KratosMultiphysics.Model()
         #analytic solution taken from Humar - Dynamics of Structures p. 675
@@ -150,6 +158,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
 
             exfreq = exfreq + df
 
+    @UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
     def test_damped_mdof_harmonic(self):
         current_model = KratosMultiphysics.Model()
 
