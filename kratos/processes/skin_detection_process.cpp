@@ -37,16 +37,23 @@ void SkinDetectionProcess<TDim>::Execute()
 {
     KRATOS_TRY;
 
+    HashMapVectorIntType inverse_face_map;
+    HashMapVectorIntIdsType properties_face_map;
+    this->GenerateFaceMaps(inverse_face_map, properties_face_map);
+    this->GenerateSkinConditions(inverse_face_map, properties_face_map);
+
+    KRATOS_CATCH("");
+}
+
+template<SizeType TDim>
+void SkinDetectionProcess<TDim>::GenerateFaceMaps(
+    HashMapVectorIntType& rInverseFaceMap,
+    HashMapVectorIntIdsType& rPropertiesFaceMap) const
+{
     // Auxiliar values
     auto& r_elements_array = mrModelPart.Elements();
     const SizeType number_of_elements = r_elements_array.size();
     const auto it_elem_begin = r_elements_array.begin();
-    const SizeType echo_level = mThisParameters["echo_level"].GetInt();
-
-    /* NEIGHBOUR ELEMENTS */
-    // Create the inverse_face_map
-    HashMapVectorIntType inverse_face_map;
-    HashMapVectorIntIdsType properties_face_map;
 
     for(IndexType i = 0; i < number_of_elements; ++i) {
         auto it_elem = it_elem_begin + i;
@@ -78,12 +85,12 @@ void SkinDetectionProcess<TDim>::Execute()
                 /*** THE ARRAY OF IDS MUST BE ORDERED!!! ***/
                 std::sort(vector_ids.begin(), vector_ids.end());
                 // Check if the elements already exist in the HashMapVectorIntType
-                HashMapVectorIntTypeIteratorType it_check = inverse_face_map.find(vector_ids);
+                HashMapVectorIntTypeIteratorType it_check = rInverseFaceMap.find(vector_ids);
 
-                if(it_check == inverse_face_map.end() ) {
+                if(it_check == rInverseFaceMap.end() ) {
                     // If it doesn't exist it is added to the database
-                    inverse_face_map.insert(std::pair<VectorIndexType, VectorIndexType>(vector_ids, ordered_vector_ids));
-                    properties_face_map.insert(std::pair<VectorIndexType, IndexType>(vector_ids, (it_elem->pGetProperties())->Id()));
+                    rInverseFaceMap.insert(std::pair<VectorIndexType, VectorIndexType>(vector_ids, ordered_vector_ids));
+                    rPropertiesFaceMap.insert(std::pair<VectorIndexType, IndexType>(vector_ids, (it_elem->pGetProperties())->Id()));
                 }
             }
         }
@@ -124,8 +131,8 @@ void SkinDetectionProcess<TDim>::Execute()
 
                 if(it_check != face_set.end() ) {
                     // If it exists we remove from the inverse map
-                    inverse_face_map.erase(vector_ids);
-                    properties_face_map.erase(vector_ids);
+                    rInverseFaceMap.erase(vector_ids);
+                    rPropertiesFaceMap.erase(vector_ids);
                 } else {
                     // If it doesn't exist it is added to the database
                     face_set.insert(vector_ids);
@@ -133,7 +140,13 @@ void SkinDetectionProcess<TDim>::Execute()
             }
         }
     }
+}
 
+template<SizeType TDim>
+void SkinDetectionProcess<TDim>::GenerateSkinConditions(
+    HashMapVectorIntType& rInverseFaceMap,
+    HashMapVectorIntIdsType& rPropertiesFaceMap)
+{
     // We create the auxiliar ModelPart
     const std::string& name_auxiliar_model_part = mThisParameters["name_auxiliar_model_part"].GetString();
     if (!(mrModelPart.HasSubModelPart(name_auxiliar_model_part))) {
@@ -172,13 +185,13 @@ void SkinDetectionProcess<TDim>::Execute()
     std::unordered_set<IndexType> nodes_in_the_skin;
 
     // Create the auxiliar conditions
-    for (auto& map : inverse_face_map) {
+    for (auto& map : rInverseFaceMap) {
         condition_id += 1;
 
         const VectorIndexType& nodes_face = map.second;
 
         Properties::Pointer p_prop;
-        const IndexType property_id = properties_face_map[map.first];
+        const IndexType property_id = rPropertiesFaceMap[map.first];
          if (mrModelPart.RecursivelyHasProperties(property_id)) {
              p_prop = mrModelPart.pGetProperties(property_id);
          } else {
@@ -200,7 +213,8 @@ void SkinDetectionProcess<TDim>::Execute()
     indexes_skin.insert(indexes_skin.end(), nodes_in_the_skin.begin(), nodes_in_the_skin.end());
     r_auxiliar_model_part.AddNodes(indexes_skin);
 
-    KRATOS_INFO_IF("SkinDetectionProcess", echo_level > 0) << inverse_face_map.size() << " have been created" << std::endl;
+    const SizeType echo_level = mThisParameters["echo_level"].GetInt();
+    KRATOS_INFO_IF("SkinDetectionProcess", echo_level > 0) << rInverseFaceMap.size() << " have been created" << std::endl;
 
     // Now we set the falg on the nodes. The list of nodes of the auxiliar model part
     auto& nodes_array = r_auxiliar_model_part.Nodes();
@@ -278,8 +292,6 @@ void SkinDetectionProcess<TDim>::Execute()
             sub_model_part.AddConditions(conditions_ids);
         }
     }
-
-    KRATOS_CATCH("");
 }
 
 

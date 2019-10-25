@@ -205,6 +205,14 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void GenerateFaceMaps(
+        HashMapVectorIntType& rInverseFaceMap,
+        HashMapVectorIntIdsType& rPropertiesFaceMap) const;
+
+    void GenerateSkinConditions(
+        HashMapVectorIntType& rInverseFaceMap,
+        HashMapVectorIntIdsType& rPropertiesFaceMap);
+
     /// Auxiliar function to get default settings.
     /** It is defined as virtual so that it can be overriden by derived classes
      */
