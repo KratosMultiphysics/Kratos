@@ -2,7 +2,7 @@ import setuptools
 import os
 import json
 
-kratos_version = "7.0.2"
+kratos_version = os.environ["KRATOS_VERSION"]
 
 with open("wheel.json", "r") as conf_file:
     conf = json.loads(conf_file.read())
