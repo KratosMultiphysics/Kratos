@@ -75,31 +75,14 @@ public:
 	/// Constructor.
 	/** @param DomainSize Number of space dimensions (2 or 3)
 	 * @param NumRowsPerNode Number of matrix or vector rows associated to each node. Velocity DOFs are assumed to be the first mDomainSize rows in each block of rows.
-	 * @param rVariable Kratos variable used to flag nodes where local system contributions will be rotated. All nodes with rVariable != Zero will be rotated.
-	 * @param Zero The zero value for the variable.
+	 * @param rSelectionFlag All nodes where the flag given by this argument is set to true will be transformed to a rotated coordinate system.
 	 */
 	CoordinateTransformationUtils(const unsigned int DomainSize,
 			const unsigned int NumRowsPerNode,
-			const Variable<TValueType>& rVariable,
-			const TValueType Zero):
+			const Kratos::Flags& rSelectionFlag = SLIP):
 	mDomainSize(DomainSize),
 	mBlockSize(NumRowsPerNode),
-	mrFlagVariable(rVariable),
-	mZero(Zero)
-	{}
-
-	/// Constructor.
-	/** @param DomainSize Number of space dimensions (2 or 3)
-	 * @param NumRowsPerNode Number of matrix or vector rows associated to each node. Velocity DOFs are assumed to be the first mDomainSize rows in each block of rows.
-	 * @param rVariable Kratos variable used to flag nodes where local system contributions will be rotated. All nodes with rVariable != Zero will be rotated.
-	 */
-	CoordinateTransformationUtils(const unsigned int DomainSize,
-			const unsigned int NumRowsPerNode,
-			const Variable<TValueType> &rVariable):
-	mDomainSize(DomainSize),
-	mBlockSize(NumRowsPerNode),
-	mrFlagVariable(rVariable),
-	mZero(TValueType())
+	mrFlag(rSelectionFlag)
 	{}
 
 	/// Destructor.
@@ -721,7 +704,7 @@ protected:
 
 	bool IsSlip(const Node<3>& rNode) const
 	{
-		return rNode.FastGetSolutionStepValue(mrFlagVariable) != mZero;
+		return rNode.Is(mrFlag);
 	}
 
 	/// Normalize a vector.
@@ -781,9 +764,7 @@ private:
 	 */
 	const unsigned int mBlockSize;
 
-	const Variable<TValueType>& mrFlagVariable;
-
-	const TValueType mZero;
+	const Kratos::Flags& mrFlag;
 
 	///@}
 	///@name Private Operators

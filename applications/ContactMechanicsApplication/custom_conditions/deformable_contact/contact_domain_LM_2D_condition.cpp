@@ -66,7 +66,7 @@ ContactDomainLM2DCondition&  ContactDomainLM2DCondition::operator=(ContactDomain
 
 Condition::Pointer ContactDomainLM2DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared<ContactDomainLM2DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
+  return Kratos::make_intrusive<ContactDomainLM2DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
 }
 
 //************************************CLONE*******************************************
@@ -218,7 +218,7 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
 
     // Element::NodeType&    MasterNode   = *GetValue(MASTER_NODES).back();
 
-    Condition* MasterCondition = GetValue(MASTER_CONDITION).lock().get();
+    Condition* MasterCondition = GetValue(MASTER_CONDITION).get();
 
 
     //Get previous mechanics stored in the master node/condition

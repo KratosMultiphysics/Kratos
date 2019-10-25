@@ -941,8 +941,8 @@ public:
         {
             if (inode->FastGetSolutionStepValue(DISTANCE) < 0.0) //candidates are only the ones inside the fluid domain
             {
-                WeakPointerVector< Node < 3 > >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                GlobalPointersVector< Node < 3 > >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                for (GlobalPointersVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                 {
                     if (i->FastGetSolutionStepValue(DISTANCE) >= 0.0) //add the node as free surface if one of its neighb is outside
                     {
@@ -962,8 +962,8 @@ public:
         //fill layer 1 by neighbour relationships
         for (PointIterator iii = (layers[0]).begin(); iii != (layers[0]).end(); iii++)
         {
-            WeakPointerVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-            for (WeakPointerVector< Node < 3 > >::iterator jjj = neighb_nodes.begin(); jjj != neighb_nodes.end(); jjj++) //destination = origin1 + value * Minv*origin
+            GlobalPointersVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+            for (GlobalPointersVector< Node < 3 > >::iterator jjj = neighb_nodes.begin(); jjj != neighb_nodes.end(); jjj++) //destination = origin1 + value * Minv*origin
             {
 
                 if (jjj->FastGetSolutionStepValue(DISTANCE) >= 0 &&
@@ -987,8 +987,8 @@ public:
 
         	    double pavg = 0.0;
 
-        	    WeakPointerVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-        	    for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+        	    GlobalPointersVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+        	    for (GlobalPointersVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
         	    {
         		if (i->GetValue(IS_VISITED) < (il + 1) && i->GetValue(IS_VISITED) != 0.0) {*/
         //on the first layer outside the pressure is set to a value such that on the free surface the pressure is approx 0
@@ -1047,8 +1047,8 @@ public:
 
                 double pavg = 0.0;
 
-                WeakPointerVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                GlobalPointersVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                for (GlobalPointersVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                 {
                     if (i->GetValue(IS_VISITED) == 1.0)
                     {
@@ -1627,8 +1627,8 @@ public:
         {
             if (inode->FastGetSolutionStepValue(DISTANCE) < 0.0) //candidates are only the ones inside the fluid domain
             {
-                WeakPointerVector< Node < 3 > >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                GlobalPointersVector< Node < 3 > >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                for (GlobalPointersVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                 {
                     if (i->FastGetSolutionStepValue(DISTANCE) >= 0.0) //add the node as free surface if one of its neighb is outside
                     {
@@ -1662,8 +1662,8 @@ public:
         {
             for (PointIterator iii = (layers[il]).begin(); iii != (layers[il]).end(); iii++)
             {
-                WeakPointerVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                for (WeakPointerVector< Node < 3 > >::iterator jjj = neighb_nodes.begin(); jjj != neighb_nodes.end(); jjj++) //destination = origin1 + value * Minv*origin
+                GlobalPointersVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                for (GlobalPointersVector< Node < 3 > >::iterator jjj = neighb_nodes.begin(); jjj != neighb_nodes.end(); jjj++) //destination = origin1 + value * Minv*origin
                 {
 
                     if (jjj->FastGetSolutionStepValue(DISTANCE) >= 0 &&
@@ -1687,8 +1687,8 @@ public:
             noalias(aux_proj) = ZeroVector(3);
             double avg_number = 0.0;
 
-            WeakPointerVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-            for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+            GlobalPointersVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+            for (GlobalPointersVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
             {
                 if (i->GetValue(IS_VISITED) == 0.0) //the node will be considered for extrapolation only if completely inside
                 {
@@ -1732,8 +1732,8 @@ public:
 
                 double pavg = 0.0;
 
-                WeakPointerVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                GlobalPointersVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                for (GlobalPointersVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                 {
                     if (i->GetValue(IS_VISITED) < (il + 1) && i->GetValue(IS_VISITED) != 0.0)
                     {
@@ -1828,8 +1828,8 @@ public:
 //
 //                             double pavg = 0.0;
 //
-//                             WeakPointerVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-//                             for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+//                             GlobalPointersVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+//                             for (GlobalPointersVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
 //                             {
 //                                 if (i->GetValue(IS_VISITED) == 1) {
 //                                     pavg += i->FastGetSolutionStepValue(PRESSURE);
@@ -1953,8 +1953,8 @@ public:
             if (inode->FastGetSolutionStepValue(DISTANCE) > 0.0) //candidates are only the ones inside the fluid domain
             {
                 inode->GetValue(IS_VISITED) = 1.0;
-                WeakPointerVector< Node < 3 > >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                GlobalPointersVector< Node < 3 > >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                for (GlobalPointersVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                 {
                     i->GetValue(IS_VISITED) = 1.0;
                 }
@@ -1982,8 +1982,8 @@ public:
             if (inode->FastGetSolutionStepValue(DISTANCE) <= 0.0) //candidates are only the ones inside the fluid domain
             {
                 inode->GetValue(IS_VISITED) = 1.0;
-                WeakPointerVector< Node < 3 > >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                GlobalPointersVector< Node < 3 > >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                for (GlobalPointersVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                 {
                     i->GetValue(IS_VISITED) = 1.0;
                 }
@@ -3271,7 +3271,7 @@ private:
     void CornerDectectionHelper(Geometry< Node < 3 > >& face_geometry,
                                 const array_1d<double, 3 > & face_normal,
                                 const double An,
-                                const WeakPointerVector<Condition>& neighb,
+                                const GlobalPointersVector<Condition>& neighb,
                                 const unsigned int i1,
                                 const unsigned int i2,
                                 const unsigned int neighb_index,
@@ -3370,7 +3370,7 @@ private:
             //slip condition
             if (cond_it->GetValue(IS_STRUCTURE) == 1.0) //this is a slip face --> now look for its neighbours
             {
-                const WeakPointerVector<Condition>& neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
+                const GlobalPointersVector<Condition>& neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
 
                 //check for neighbour zero
                 if (neighb[0].Id() != current_id) //check if the neighbour exists

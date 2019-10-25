@@ -49,27 +49,47 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     ///@name Access
     ///@{
 
+    /// Retrieve a registered DataCommunicator instance.
+    /** @param rName The name used to register the string. */
+    static DataCommunicator& GetDataCommunicator(const std::string& rName);
+
+    /// Retrieve the default DataCommunicator instance.
+    static DataCommunicator& GetDefaultDataCommunicator();
+
+    /// Set a new default DataCommunicator instance.
+    /** @param rName The name the new default DataCommunicator was registered with. */
+    static void SetDefaultDataCommunicator(const std::string& rName);
+
+    /// Get the rank of the current process, as given by the default DataCommunicator.
+    static int GetDefaultRank();
+
+    /// Get the MPI Comm size, as given by the default DataCommunicator.
+    static int GetDefaultSize();
 
     ///@}
     ///@name Operations
     ///@{
 
+    /// Add a new DataCommunicator instance to the ParallelEnvironment.
+    /** @param rName The name to be used to identify the DataCommunicator within ParallelEnvironment.
+     *  @param rPrototype The DataCommunicator instance.
+     *  @param Default If set to ParallelEnvironment::MakeDefault (a.k.a. true), the provided DataCommunicator will also be made default.
+     */
     static void RegisterDataCommunicator(
         const std::string& rName,
         const DataCommunicator& rPrototype,
         const bool Default = DoNotMakeDefault);
 
-    static DataCommunicator& GetDataCommunicator(const std::string& rName);
-
-    static DataCommunicator& GetDefaultDataCommunicator();
-
-    static void SetDefaultDataCommunicator(const std::string& rName);
-
     ///@}
     ///@name Inquiry
     ///@{
 
+    /// Check if a DataCommunicator is registered as rName.
     static bool HasDataCommunicator(const std::string& rName);
+
+    /// Get the registered name of the current default.
+    /** This is a convenience function to help with temporarily changing the default DataCommunicator. */
+    static std::string GetDefaultDataCommunicatorName();
 
     ///@}
     ///@name Input and output
@@ -94,9 +114,14 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     /// Internal constructor.
     ParallelEnvironment();
 
+    /// Destructor
+    ~ParallelEnvironment();
+
     ///@}
     ///@name Private Operations
     ///@{
+
+    static void Create();
 
     void RegisterDataCommunicatorDetail(
         const std::string& Name,
@@ -121,6 +146,8 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
 
     static ParallelEnvironment& GetInstance();
 
+    void SetAsDefault(std::unordered_map<std::string, DataCommunicator::UniquePointer>::iterator& rThisCommunicator);
+
     ///@}
     ///@name Private Input and output
     ///@{
@@ -141,6 +168,12 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     std::unordered_map<std::string, DataCommunicator::UniquePointer> mDataCommunicators;
 
     std::unordered_map<std::string, DataCommunicator::UniquePointer>::iterator mDefaultCommunicator;
+
+    int mDefaultRank;
+    int mDefaultSize;
+
+    static ParallelEnvironment* mpInstance;
+    static bool mDestroyed;
 
     ///@}
     ///@name Un accessible methods

@@ -68,7 +68,7 @@ public:
     typedef LargeDisplacementBeamEMCElement::ElementDataType ElementDataType;
 
     /// Counted pointer of GeometricallyExactRodElement
-    KRATOS_CLASS_POINTER_DEFINITION( GeometricallyExactRodElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( GeometricallyExactRodElement );
 
     ///@}
     ///@name Life Cycle

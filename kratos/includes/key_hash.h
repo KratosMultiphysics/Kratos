@@ -10,15 +10,16 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-/* System includes */
-
-/* External includes */
-
-/* Project includes */
-#include "includes/node.h"
-
 #ifndef KRATOS_KEY_HASH_H_INCLUDED
 #define KRATOS_KEY_HASH_H_INCLUDED
+
+// System includes
+
+// External includes
+
+// Project includes
+#include "includes/dof.h"
+#include "utilities/indexed_object.h"
 
 namespace Kratos
 {
@@ -37,9 +38,6 @@ namespace Kratos
 
     /// The definition of the hash type
     typedef std::size_t HashType;
-
-    // The node definition
-    typedef Node<3> NodeType;
 
 ///@}
 ///@name  Enum's
@@ -223,6 +221,82 @@ namespace Kratos
     };
 
     /**
+     * @brief This is a hasher for indexed objects
+     */
+    struct IndexedObjectHasher
+    {
+        /**
+         * @brief This is the () operator
+         * @param rIndexedObject The indexed object to be hashed
+         * @return The corresponding hash
+         */
+        HashType operator()(const IndexedObject& rIndexedObject) const
+        {
+            return rIndexedObject.Id();
+        }
+    };
+
+    /**
+     * @brief This is a key comparer between two indexed objects
+     */
+    struct IndexedObjectComparator
+    {
+        /**
+         * @brief This is the () operator
+         * @param rFirst The first class to be compared
+         * @param rSecond The second class to be compared
+         */
+        bool operator()(
+            const IndexedObject& rFirst,
+            const IndexedObject& rSecond
+            ) const
+        {
+            return rFirst.Id() == rSecond.Id();
+        }
+    };
+
+    /**
+     * @brief This is a hasher for indexed objects (pointer)
+     * @param TpIndexedObject Pointer type to indexed object
+     * @note Must be tenmplated to take into account the shared, intrussive,etc... pointers
+     */
+    template<class TpIndexedObject>
+    struct IndexedObjecPointertHasher
+    {
+        /**
+         * @brief This is the () operator
+         * @param pIndexedObject The indexed object pointer to be hashed
+         * @return The corresponding hash
+         */
+        HashType operator()(const TpIndexedObject pIndexedObject) const
+        {
+            return pIndexedObject->Id();
+        }
+    };
+
+    /**
+     * @brief This is a key comparer between two indexed objects (pointer)
+     * @param TpIndexedObject Pointer type to indexed object
+     * @note Must be tenmplated to take into account the shared, intrussive,etc... pointers
+     */
+    template<class TpIndexedObject>
+    struct IndexedObjectPointerComparator
+    {
+        /**
+         * @brief This is the () operator
+         * @param pFirst The first class to be compared
+         * @param pSecond The second class to be compared
+         */
+        bool operator()(
+            const TpIndexedObject pFirst,
+            const TpIndexedObject pSecond
+            ) const
+        {
+            return pFirst->Id() == pSecond->Id();
+        }
+    };
+
+    /**
      * @brief This is a hasher for shared pointers
      * @tparam TSharedPointer The type of shared pointer to be hashed
      */
@@ -314,7 +388,7 @@ namespace Kratos
          * @brief The () operator
          * @param pDoF The DoF pointer
          */
-        HashType operator()(const NodeType::DofType::Pointer& pDoF) const
+        HashType operator()(const Dof<double>::Pointer& pDoF) const
         {
             HashType seed = 0;
             HashCombine(seed, pDoF->Id());
@@ -334,9 +408,47 @@ namespace Kratos
          * @param pDoF1 The first DoF pointer
          * @param pDoF2 The second DoF pointer
          */
-        bool operator()(const NodeType::DofType::Pointer& pDoF1, const NodeType::DofType::Pointer& pDoF2) const
+        bool operator()(const Dof<double>::Pointer& pDoF1, const Dof<double>::Pointer& pDoF2) const
         {
             return (((pDoF1->Id() == pDoF2->Id() && (pDoF1->GetVariable()).Key()) == (pDoF2->GetVariable()).Key()));
+        }
+    };
+
+    /**
+     * @brief This is a hasher for pairs
+     * @details Used for example for edges ids
+     */
+    template<class TType1, class TType2>
+    struct PairHasher
+    {
+        /**
+         * @brief The () operator
+         * @param rPair The index pair to hash
+         */
+        std::size_t operator()(const std::pair<TType1, TType2>& rPair) const
+        {
+            std::size_t seed = 0;
+            HashCombine<TType1>(seed, rPair.first);
+            HashCombine<TType2>(seed, rPair.second);
+            return seed;
+        }
+    };
+
+    /**
+     * @brief This is a key comparer between two indexes pairs
+     * @details Used for example for the B&S
+     */
+    template<class TType1, class TType2>
+    struct PairComparor
+    {
+        /**
+         * @brief The () operator
+         * @param rIndexPair1 The first index pair to hash
+         * @param rIndexPair2 The second index pair to hash
+         */
+        bool operator()(const std::pair<TType1, TType2>& rPair1, const std::pair<TType1, TType2>& rPair2) const
+        {
+            return ((std::get<0>(rPair1) == std::get<0>(rPair2)) && (std::get<1>(rPair1) == std::get<1>(rPair2)));
         }
     };
 

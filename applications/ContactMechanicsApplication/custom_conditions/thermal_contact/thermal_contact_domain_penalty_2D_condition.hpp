@@ -68,7 +68,7 @@ public:
 
 
     /// Counted pointer of ThermalContactDomainPenalty2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION(ThermalContactDomainPenalty2DCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ThermalContactDomainPenalty2DCondition);
     ///@}
     ///@name Life Cycle
     ///@{

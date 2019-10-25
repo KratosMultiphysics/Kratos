@@ -1,8 +1,8 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-import KratosMultiphysics
-import KratosMultiphysics.ShallowWaterApplication as Shallow
-import KratosMultiphysics.MeshingApplication as Meshing
+import KratosMultiphysics as KM
+import KratosMultiphysics.ShallowWaterApplication as SW
+import KratosMultiphysics.MeshingApplication as MSH
 
 ## Import base class file
 from KratosMultiphysics.ShallowWaterApplication.eulerian_primitive_var_solver import EulerianPrimitiveVarSolver
@@ -34,33 +34,33 @@ class MultigridSolver(EulerianPrimitiveVarSolver):
         self.main_model_part = self.multigrid.GetRefinedModelPart()
 
         domain_size = self.settings["domain_size"].GetInt()
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+        self.main_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, domain_size)
 
         ## Construct the linear solver
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
     def ImportModelPart(self):
-        if self.main_model_part.ProcessInfo[Meshing.SUBSCALE_INDEX] == 0:
+        if self.main_model_part.ProcessInfo[MSH.SUBSCALE_INDEX] == 0:
             # Default implementation in the base class
             self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
-        if self.main_model_part.ProcessInfo[Meshing.SUBSCALE_INDEX] == 0:
+        if self.main_model_part.ProcessInfo[MSH.SUBSCALE_INDEX] == 0:
             super(MultigridSolver, self).PrepareModelPart()
         self.multigrid.PrepareModelPart() # It creates the cpp utility instance
 
     def AdvanceInTime(self, current_time):
-        divisions = 2**(self.GetComputingModelPart().GetValue(Meshing.SUBSCALE_INDEX) * self.multigrid.number_of_divisions_at_subscale)
+        divisions = 2**(self.GetComputingModelPart().GetValue(MSH.SUBSCALE_INDEX) * self.multigrid.number_of_divisions_at_subscale)
         dt = self._ComputeDeltaTime() / divisions
         new_time = current_time + dt
 
         self.GetComputingModelPart().CloneTimeStep(new_time)
-        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] += 1
+        self.GetComputingModelPart().ProcessInfo[KM.STEP] += 1
 
         self.multigrid.ExecuteInitializeSolutionStep()
 
-        KratosMultiphysics.Logger.PrintInfo("::[Multigrid solver]::", "Subscale Index:", self.GetComputingModelPart().GetValue(Meshing.SUBSCALE_INDEX))
+        KM.Logger.PrintInfo("::[Multigrid solver]::", "Subscale Index:", self.GetComputingModelPart().GetValue(MSH.SUBSCALE_INDEX))
 
         return new_time
 

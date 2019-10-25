@@ -17,8 +17,10 @@ void ReadProperties(File& rFile, std::string const& rPrefix, PropertiesContainer
     KRATOS_TRY;
 
     Vector<int> prop_ids;
-    rFile.ReadAttribute(rPrefix + "/Properties", "Ids", prop_ids);
-
+    if (rFile.HasAttribute(rPrefix + "/Properties", "Ids"))
+    {
+        rFile.ReadAttribute(rPrefix + "/Properties", "Ids", prop_ids);
+    }
     for (auto pid : prop_ids)
     {
         std::stringstream pstream;
@@ -59,7 +61,10 @@ void WriteProperties(File& rFile, std::string const& rPrefix, PropertiesContaine
         WriteProperties(rFile, rPrefix, r_properties);
     }
     rFile.AddPath(rPrefix + "/Properties");
-    rFile.WriteAttribute(rPrefix + "/Properties", "Ids", prop_ids);
+    if (rProperties.size() > 0) // H5Awrite fails for empty container (sub model parts)
+    {
+        rFile.WriteAttribute(rPrefix + "/Properties", "Ids", prop_ids);
+    }
 
     KRATOS_CATCH("");
 }

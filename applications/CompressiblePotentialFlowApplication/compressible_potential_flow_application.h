@@ -4,10 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		     BSD License
-//					         Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//
+//  Main authors:    Riccardo Rossi, Inigo Lopez and Marc Nunez
 //
 
 #if !defined(KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION_H_INCLUDED )
@@ -23,10 +24,12 @@
 #include "includes/variables.h"
 #include "custom_elements/compressible_potential_flow_element.h"
 #include "custom_elements/incompressible_potential_flow_element.h"
+#include "custom_elements/embedded_incompressible_potential_flow_element.h"
+#include "custom_elements/embedded_compressible_potential_flow_element.h"
 #include "custom_conditions/potential_wall_condition.h"
-
-#include "custom_elements/incompressible_adjoint_potential_flow_element.h"
-#include "custom_conditions/incompressible_adjoint_potential_wall_condition.h"
+#include "custom_elements/adjoint_analytical_incompressible_potential_flow_element.h"
+#include "custom_elements/adjoint_finite_difference_potential_flow_element.h"
+#include "custom_conditions/adjoint_potential_wall_condition.h"
 namespace Kratos {
 
 ///@name Kratos Classes
@@ -99,11 +102,23 @@ private:
     ///@{
 
     const IncompressiblePotentialFlowElement<2,3> mIncompressiblePotentialFlowElement2D3N;
-    const AdjointIncompressiblePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>> mAdjointIncompressiblePotentialFlowElement2D3N;
+    const IncompressiblePotentialFlowElement<3, 4> mIncompressiblePotentialFlowElement3D4N;
+    const CompressiblePotentialFlowElement<2, 3> mCompressiblePotentialFlowElement2D3N;
+    const CompressiblePotentialFlowElement<3, 4> mCompressiblePotentialFlowElement3D4N;
+    const AdjointAnalyticalIncompressiblePotentialFlowElement<IncompressiblePotentialFlowElement<2, 3>> mAdjointAnalyticalIncompressiblePotentialFlowElement2D3N;
+    const AdjointFiniteDifferencePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>> mAdjointIncompressiblePotentialFlowElement2D3N;
+    const AdjointFiniteDifferencePotentialFlowElement<CompressiblePotentialFlowElement<2,3>> mAdjointCompressiblePotentialFlowElement2D3N;
+    const EmbeddedIncompressiblePotentialFlowElement<2,3> mEmbeddedIncompressiblePotentialFlowElement2D3N;
+    const EmbeddedIncompressiblePotentialFlowElement<3,4> mEmbeddedIncompressiblePotentialFlowElement3D4N;
+    const EmbeddedCompressiblePotentialFlowElement<2,3> mEmbeddedCompressiblePotentialFlowElement2D3N;
+    const EmbeddedCompressiblePotentialFlowElement<3,4> mEmbeddedCompressiblePotentialFlowElement3D4N;
+    const AdjointFiniteDifferencePotentialFlowElement<EmbeddedIncompressiblePotentialFlowElement<2,3>> mAdjointEmbeddedIncompressiblePotentialFlowElement2D3N;
+    const AdjointFiniteDifferencePotentialFlowElement<EmbeddedCompressiblePotentialFlowElement<2,3>> mAdjointEmbeddedCompressiblePotentialFlowElement2D3N;
+
 
     const PotentialWallCondition<2,2> mPotentialWallCondition2D2N;
     const PotentialWallCondition<3,3> mPotentialWallCondition3D3N;
-    const AdjointIncompressiblePotentialWallCondition<PotentialWallCondition<2,2>> mAdjointIncompressiblePotentialWallCondition2D2N;
+    const AdjointPotentialWallCondition<PotentialWallCondition<2,2>> mAdjointPotentialWallCondition2D2N;
 
     ///@}
     ///@name Un accessible methods

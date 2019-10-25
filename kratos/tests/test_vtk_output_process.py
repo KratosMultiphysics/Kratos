@@ -5,6 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 import KratosMultiphysics.vtk_output_process as vtk_output_process
+from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 import os
 
@@ -23,6 +24,12 @@ class TestVtkOutputProcess(KratosUnittest.TestCase):
 
     def test_binary_vtk_output_3D(self):
         ExecuteBasicVTKoutputProcessCheck("binary", "3D")
+
+    def test_ascii_vtk_output_quad_3D(self):
+        ExecuteBasicVTKoutputProcessCheck("ascii", "Quad3D")
+
+    def test_binary_vtk_output_quad_3D(self):
+        ExecuteBasicVTKoutputProcessCheck("binary", "Quad3D")
 
     def tearDown(self):
         kratos_utils.DeleteDirectoryIfExisting("test_vtk_output")
@@ -72,6 +79,12 @@ def SetupModelPart2D(model_part):
     bcs = model_part.CreateSubModelPart("FixedEdgeNodes")
     bcs.AddNodes([1, 2, 5])
     bcs.AddConditions([1,2])
+
+    # Setting flags
+    for node in bcs.Nodes:
+        node.Set(KratosMultiphysics.BOUNDARY)
+    for cond in bcs.Conditions:
+        cond.Set(KratosMultiphysics.BOUNDARY)
 
     bcmn = model_part.CreateSubModelPart("MovingNodes")
     bcmn.AddNodes([13, 14, 15])
@@ -125,8 +138,83 @@ def SetupModelPart3D(model_part):
     bcs.AddNodes([1, 2, 5])
     bcs.AddConditions([1,2])
 
+    # Setting flags
+    for node in bcs.Nodes:
+        node.Set(KratosMultiphysics.BOUNDARY)
+    for cond in bcs.Conditions:
+        cond.Set(KratosMultiphysics.BOUNDARY)
+
     bcmn = model_part.CreateSubModelPart("MovingNodes")
     bcmn.AddNodes([13, 14, 15])
+    bcmn.AddConditions([3,4])
+
+def SetupModelPartQuadratic3D(model_part):
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+
+    # Create nodes
+    model_part.CreateNewNode(1, 1.0000000000, 0.0000000000, 1.0000000000)
+    model_part.CreateNewNode(2, 0.5000000000, 0.0000000000, 1.0000000000)
+    model_part.CreateNewNode(3, 1.0000000000, 0.5000000000, 1.0000000000)
+    model_part.CreateNewNode(4, 1.0000000000, 0.0000000000, 0.5000000000)
+    model_part.CreateNewNode(5, 0.5000000000, 0.0000000000, 0.5000000000)
+    model_part.CreateNewNode(6, 1.0000000000, 0.5000000000, 0.5000000000)
+    model_part.CreateNewNode(7, 0.5000000000, 0.5000000000, 1.0000000000)
+    model_part.CreateNewNode(8, 0.5000000000, 0.5000000000, 0.5000000000)
+    model_part.CreateNewNode(9, 0.2019246055, 0.3959160307, 0.6930668948)
+    model_part.CreateNewNode(10, 0.7019246055, 0.8959160307, 0.6930668948)
+    model_part.CreateNewNode(11, 1.0000000000, 0.0000000000, 0.0000000000)
+    model_part.CreateNewNode(12, 0.0000000000, 0.0000000000, 1.0000000000)
+    model_part.CreateNewNode(13, 1.0000000000, 1.0000000000, 1.0000000000)
+    model_part.CreateNewNode(14, 0.5000000000, 0.0000000000, 0.0000000000)
+    model_part.CreateNewNode(15, 1.0000000000, 0.5000000000, 0.0000000000)
+    model_part.CreateNewNode(16, 0.5000000000, 1.0000000000, 1.0000000000)
+    model_part.CreateNewNode(17, 0.0000000000, 0.5000000000, 1.0000000000)
+    model_part.CreateNewNode(18, 0.0000000000, 0.0000000000, 0.5000000000)
+    model_part.CreateNewNode(19, 1.0000000000, 1.0000000000, 0.5000000000)
+    model_part.CreateNewNode(20, 0.4038492111, 0.7918320615, 0.3861337896)
+    model_part.CreateNewNode(21, 0.2019246055, 0.3959160307, 0.1930668948)
+    model_part.CreateNewNode(22, 0.5000000000, 0.5000000000, 0.0000000000)
+    model_part.CreateNewNode(23, 0.5000000000, 1.0000000000, 0.5000000000)
+    model_part.CreateNewNode(24, 0.0000000000, 0.5000000000, 0.5000000000)
+    model_part.CreateNewNode(25, 0.2019246055, 0.8959160307, 0.6930668948)
+    model_part.CreateNewNode(26, 0.7019246055, 0.8959160307, 0.1930668948)
+    model_part.CreateNewNode(27, 0.0000000000, 0.0000000000, 0.0000000000)
+    model_part.CreateNewNode(28, 1.0000000000, 1.0000000000, 0.0000000000)
+    model_part.CreateNewNode(29, 0.0000000000, 1.0000000000, 1.0000000000)
+    model_part.CreateNewNode(30, 0.2019246055, 0.8959160307, 0.1930668948)
+    model_part.CreateNewNode(31, 0.5000000000, 1.0000000000, 0.0000000000)
+    model_part.CreateNewNode(32, 0.0000000000, 0.5000000000, 0.0000000000)
+    model_part.CreateNewNode(33, 0.0000000000, 1.0000000000, 0.5000000000)
+    model_part.CreateNewNode(34, 0.0000000000, 1.0000000000, 0.0000000000)
+
+    # Create elements
+    model_part.CreateNewElement("Element3D10N", 1,  [27, 11, 28, 13, 14, 15, 22,  8,  6, 19], model_part.GetProperties()[1])
+    model_part.CreateNewElement("Element3D10N", 2,  [34, 12, 27, 20, 24, 18, 32, 30,  9, 21], model_part.GetProperties()[1])
+    model_part.CreateNewElement("Element3D10N", 3,  [27, 34, 20, 28, 32, 30, 21, 22, 31, 26], model_part.GetProperties()[1])
+    model_part.CreateNewElement("Element3D10N", 4,  [34, 20, 28, 29, 30, 26, 31, 33, 25, 23], model_part.GetProperties()[1])
+    model_part.CreateNewElement("Element3D10N", 5,  [34, 20, 29, 12, 30, 25, 33, 24,  9, 17], model_part.GetProperties()[1])
+    model_part.CreateNewElement("Element3D10N", 6,  [20, 27, 28, 13, 21, 22, 26, 10,  8, 19], model_part.GetProperties()[1])
+    model_part.CreateNewElement("Element3D10N", 7,  [28, 20, 13, 29, 26, 10, 19, 23, 25, 16], model_part.GetProperties()[1])
+    model_part.CreateNewElement("Element3D10N", 8,  [20, 13, 29, 12, 10, 16, 25,  9,  7, 17], model_part.GetProperties()[1])
+    model_part.CreateNewElement("Element3D10N", 9,  [27,  1, 11, 13,  5,  4, 14,  8,  3,  6], model_part.GetProperties()[1])
+    model_part.CreateNewElement("Element3D10N", 10, [12, 13,  1, 27,  7,  3,  2, 18,  8,  5], model_part.GetProperties()[1])
+    model_part.CreateNewElement("Element3D10N", 11, [12, 27, 20, 13, 18, 21,  9,  7,  8, 10], model_part.GetProperties()[1])
+
+    # Create conditions
+    model_part.CreateNewCondition("SurfaceCondition3D6N", 1, [12, 1, 13, 2, 3, 7], model_part.GetProperties()[1])
+    model_part.CreateNewCondition("SurfaceCondition3D6N", 2, [13, 29, 12, 16, 17, 7], model_part.GetProperties()[1])
+    model_part.CreateNewCondition("SurfaceCondition3D6N", 3, [27, 11, 28, 14, 15, 21], model_part.GetProperties()[1])
+    model_part.CreateNewCondition("SurfaceCondition3D6N", 4, [28, 34, 27, 31, 32, 21], model_part.GetProperties()[1])
+
+    # Create a submodelpart for boundary conditions
+    bcs = model_part.CreateSubModelPart("FixedEdgeNodes")
+    bcs.AddNodes([1,2,3,7,12,13,16,17,29])
+    bcs.AddConditions([1,2])
+
+    bcmn = model_part.CreateSubModelPart("MovingNodes")
+    bcmn.AddNodes([11,14,15,21,27,28,31,32,34])
     bcmn.AddConditions([3,4])
 
 def SetSolution(model_part):
@@ -148,9 +236,7 @@ def SetSolution(model_part):
 def SetupVtkOutputProcess(current_model, parameters):
     return vtk_output_process.Factory(parameters, current_model)
 
-def Check(output_file,reference_file):
-    import KratosMultiphysics.compare_two_files_check_process as compare_process
-
+def Check(output_file,reference_file, file_format):
     ## Settings string in json format
     params = KratosMultiphysics.Parameters("""{
         "reference_file_name" : "",
@@ -158,26 +244,22 @@ def Check(output_file,reference_file):
     }""")
     params["reference_file_name"].SetString(GetFilePath(reference_file))
     params["output_file_name"].SetString(output_file)
+    if file_format == "ascii":
+        params.AddEmptyValue("comparison_type").SetString("vtk")
 
-    cmp_process = compare_process.CompareTwoFilesCheckProcess(params)
+    CompareTwoFilesCheckProcess(params).Execute()
 
-    cmp_process.ExecuteInitialize()
-    cmp_process.ExecuteBeforeSolutionLoop()
-    cmp_process.ExecuteInitializeSolutionStep()
-    cmp_process.ExecuteFinalizeSolutionStep()
-    cmp_process.ExecuteBeforeOutputStep()
-    cmp_process.ExecuteAfterOutputStep()
-    cmp_process.ExecuteFinalize()
-
-def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", dimension = "2D"):
+def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     current_model = KratosMultiphysics.Model()
     model_part_name = "Main"
     model_part = current_model.CreateModelPart(model_part_name)
-    if dimension == "2D":
+    if setup == "2D":
         SetupModelPart2D(model_part)
-    else:
+    elif setup == "3D":
         SetupModelPart3D(model_part)
+    else:
+        SetupModelPartQuadratic3D(model_part)
 
     vtk_output_parameters = KratosMultiphysics.Parameters("""{
         "Parameters" : {
@@ -188,8 +270,10 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", dimension = "2D"):
             "output_sub_model_parts"             : true,
             "folder_name"                        : "test_vtk_output",
             "nodal_solution_step_data_variables" : ["PRESSURE","DISPLACEMENT", "VELOCITY"],
+            "nodal_flags"                        : ["BOUNDARY"],
             "element_data_value_variables"       : ["DETERMINANT"],
-            "condition_data_value_variables"     : ["DENSITY", "YOUNG_MODULUS"]
+            "condition_data_value_variables"     : ["DENSITY", "YOUNG_MODULUS"],
+            "condition_flags"                    : ["BOUNDARY"]
         }
     }""")
 
@@ -215,13 +299,13 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", dimension = "2D"):
             vtk_output_process.PrintOutput()
 
             Check(os.path.join("test_vtk_output","Main_0_" + str(step)+".vtk"),\
-                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + dimension, "Main_0_"+str(step)+".vtk"))
+                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + setup, "Main_0_"+str(step)+".vtk"), file_format)
 
             Check(os.path.join("test_vtk_output","Main_FixedEdgeNodes_0_" + str(step)+".vtk"),\
-                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + dimension, "Main_FixedEdgeNodes_0_"+str(step)+".vtk"))
+                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + setup, "Main_FixedEdgeNodes_0_"+str(step)+".vtk"), file_format)
 
             Check(os.path.join("test_vtk_output","Main_MovingNodes_0_"+str(step)+".vtk"),\
-                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + dimension, "Main_MovingNodes_0_"+str(step)+".vtk"))
+                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + setup, "Main_MovingNodes_0_"+str(step)+".vtk"), file_format)
 
 
 if __name__ == '__main__':

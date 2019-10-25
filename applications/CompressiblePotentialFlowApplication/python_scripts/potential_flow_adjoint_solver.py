@@ -3,7 +3,55 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as KCPFApp
 from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_solver import PotentialFlowSolver
-from KratosMultiphysics.StructuralMechanicsApplication import ReplaceMultipleElementsAndConditionsProcess
+from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_solver import PotentialFlowFormulation
+
+class PotentialFlowAdjointFormulation(PotentialFlowFormulation):
+    def _SetUpIncompressibleElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "",
+            "gradient_mode": ""
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        gradient_mode = formulation_settings["gradient_mode"].GetString()
+        if gradient_mode == "semi_analytic":
+            self.element_name = "AdjointIncompressiblePotentialFlowElement"
+            self.condition_name = "AdjointPotentialWallCondition"
+        elif gradient_mode == "analytic":
+            self.element_name = "AdjointAnalyticalIncompressiblePotentialFlowElement"
+            self.condition_name = "AdjointPotentialWallCondition"
+        else:
+            raise RuntimeError("Gradient mode not yet implemented.")
+
+    def _SetUpCompressibleElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "",
+            "gradient_mode": ""
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "AdjointCompressiblePotentialFlowElement"
+        self.condition_name = "AdjointPotentialWallCondition"
+
+    def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "",
+            "gradient_mode": ""
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "AdjointEmbeddedIncompressiblePotentialFlowElement"
+        self.condition_name = "AdjointPotentialWallCondition"
+
+    def _SetUpEmbeddedCompressibleElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "",
+            "gradient_mode": ""
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "AdjointEmbeddedCompressiblePotentialFlowElement"
+        self.condition_name = "AdjointPotentialWallCondition"
 
 def CreateSolver(model, custom_settings):
     return PotentialFlowAdjointSolver(model, custom_settings)
@@ -17,6 +65,14 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         custom_settings.RemoveValue("sensitivity_settings")
         # Construct the base solver.
         super(PotentialFlowAdjointSolver, self).__init__(model, custom_settings)
+        # Setting the reference chord
+        self.response_function_settings.AddEmptyValue("reference_chord").SetDouble(self.reference_chord)
+
+        gradient_mode = self.response_function_settings["gradient_mode"].GetString()
+        self.settings["formulation"].AddEmptyValue("gradient_mode").SetString(gradient_mode)
+        self.formulation = PotentialFlowAdjointFormulation(self.settings["formulation"])
+        self.element_name = self.formulation.element_name
+        self.condition_name = self.formulation.condition_name
 
         KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Construction finished")
 
@@ -25,6 +81,7 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.ADJOINT_VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
 
         KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Variables ADDED")
 
@@ -33,6 +90,8 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
 
     def Initialize(self):
+        self._ComputeNodalNeighbours()
+
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         if self.response_function_settings["response_type"].GetString() == "adjoint_lift_jump_coordinates":
             self.response_function = KCPFApp.AdjointLiftJumpCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)
@@ -61,26 +120,6 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         self.response_function.Initialize()
 
         KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Finished initialization.")
-
-    def PrepareModelPart(self):
-        super(PotentialFlowAdjointSolver, self).PrepareModelPart()
-       # defines how the primal elements should be replaced with their adjoint counterparts
-        replacement_settings = KratosMultiphysics.Parameters("""
-            {
-                "element_name_table" :
-                {
-                    "IncompressiblePotentialFlowElement2D3N" : "AdjointIncompressiblePotentialFlowElement2D3N"
-                },
-                "condition_name_table" :
-                {
-                    "PotentialWallCondition2D2N"             : "AdjointIncompressiblePotentialWallCondition2D2N"
-                }
-            }
-        """)
-
-        ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
-
-        KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "ModelPart prepared for Solver.")
 
     def InitializeSolutionStep(self):
         super(PotentialFlowAdjointSolver, self).InitializeSolutionStep()

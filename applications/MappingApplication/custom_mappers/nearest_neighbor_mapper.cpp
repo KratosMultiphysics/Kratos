@@ -74,15 +74,20 @@ void NearestNeighborLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     else ResizeToZero(rLocalMappingMatrix, rOriginIds, rDestinationIds, rPairingStatus);
 }
 
-std::string NearestNeighborLocalSystem::PairingInfo(const int EchoLevel, const int CommRank) const
+std::string NearestNeighborLocalSystem::PairingInfo(const int EchoLevel) const
 {
     KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
 
     std::stringstream buffer;
     buffer << "NearestNeighborLocalSystem based on " << mpNode->Info();
-    if (EchoLevel > 1) // TODO leave here?
+    if (EchoLevel > 1) { // TODO leave here?
         buffer << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
-    buffer << " in rank " << CommRank;
+        if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
+            mpNode->SetValue(PAIRING_STATUS, 0);
+        } else {
+            mpNode->SetValue(PAIRING_STATUS, -1);
+        }
+    }
     return buffer.str();
 }
 

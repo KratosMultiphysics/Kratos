@@ -52,7 +52,7 @@ Condition::Pointer AxisymPointLoadCondition::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<AxisymPointLoadCondition>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<AxisymPointLoadCondition>( NewId, pGeom, pProperties );
 }
 
 //************************************************************************************
@@ -64,7 +64,7 @@ Condition::Pointer AxisymPointLoadCondition::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<AxisymPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<AxisymPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -77,7 +77,7 @@ Condition::Pointer AxisymPointLoadCondition::Clone (
 {
     KRATOS_TRY
 
-    Condition::Pointer p_new_cond = Kratos::make_shared<AxisymPointLoadCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    Condition::Pointer p_new_cond = Kratos::make_intrusive<AxisymPointLoadCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     p_new_cond->SetData(this->GetData());
     p_new_cond->Set(Flags(*this));
     return p_new_cond;

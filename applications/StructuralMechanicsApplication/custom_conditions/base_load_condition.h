@@ -48,6 +48,7 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief This is the base class of all the load conditions on StructuralMechanicsApplication
  * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  BaseLoadCondition
     : public Condition
@@ -79,7 +80,7 @@ public:
     typedef BaseType::NodesArrayType NodesArrayType;
 
     // Counted pointer of BaseLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( BaseLoadCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BaseLoadCondition );
 
     ///@}
     ///@name Life Cycle
@@ -153,7 +154,7 @@ public:
         ) const override;
 
     /**
-     * Sets on rResult the ID's of the element degrees of freedom
+     * @brief Sets on rResult the ID's of the element degrees of freedom
      * @param rResult The vector containing the equation id
      * @param rCurrentProcessInfo The current process info instance
      */
@@ -163,7 +164,7 @@ public:
         ) override;
 
     /**
-     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
+     * @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
      * @param rElementalDofList The vector containing the dof of the element
      * @param rCurrentProcessInfo The current process info instance
      */
@@ -173,7 +174,7 @@ public:
         ) override;
 
     /**
-     * Sets on rValues the nodal displacements
+     * @brief Sets on rValues the nodal displacements
      * @param rValues The values of displacements
      * @param Step The step to be computed
      */
@@ -183,7 +184,7 @@ public:
         ) override;
 
     /**
-     * Sets on rValues the nodal velocities
+     * @brief Sets on rValues the nodal velocities
      * @param rValues The values of velocities
      * @param Step The step to be computed
      */
@@ -193,7 +194,7 @@ public:
         ) override;
 
     /**
-     * Sets on rValues the nodal accelerations
+     * @brief Sets on rValues the nodal accelerations
      * @param rValues The values of accelerations
      * @param Step The step to be computed
      */
@@ -203,8 +204,8 @@ public:
         ) override;
 
     /**
-     * This function provides a more general interface to the element.
-     * It is designed so that rLHSvariables and rRHSvariables are passed to the element thus telling what is the desired output
+     * @brief This function provides a more general interface to the element.
+     * @details It is designed so that rLHSvariables and rRHSvariables are passed to the element thus telling what is the desired output
      * @param rLeftHandSideMatrices container with the output left hand side matrices
      * @param rLHSVariables paramter describing the expected LHSs
      * @param rRightHandSideVectors container for the desired RHS output
@@ -217,7 +218,7 @@ public:
         ) override;
 
     /**
-      * This is called during the assembling process in order to calculate the elemental right hand side vector only
+      * @brief This is called during the assembling process in order to calculate the elemental right hand side vector only
       * @param rRightHandSideVector the elemental right hand side vector
       * @param rCurrentProcessInfo the current process info instance
       */
@@ -227,7 +228,7 @@ public:
         ) override;
 
     /**
-      * This is called during the assembling process in order to calculate the elemental mass matrix
+      * @brief This is called during the assembling process in order to calculate the elemental mass matrix
       * @param rMassMatrix the elemental mass matrix
       * @param rCurrentProcessInfo The current process info instance
       */
@@ -237,8 +238,7 @@ public:
         ) override;
 
     /**
-      * This is called during the assembling process in order
-      * to calculate the elemental damping matrix
+      * @brief This is called during the assembling process in order to calculate the elemental damping matrix
       * @param rDampingMatrix the elemental damping matrix
       * @param rCurrentProcessInfo The current process info instance
       */
@@ -248,36 +248,38 @@ public:
         ) override;
 
      /**
-     * this function is designed to make the element to assemble an rRHS vector
-     * identified by a variable rRHSVariable by assembling it to the nodes on the variable
-     * rDestinationVariable.
-     * @param rRHSVector input variable containing the RHS vector to be assembled
-     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
-      * @param rCurrentProcessInfo the current process info instance
+      * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable.
+      * @param rRHSVector input variable containing the RHS vector to be assembled
+      * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+      * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
+      * @param rCurrentProcessInfo The current process info instance
      */
     void AddExplicitContribution(const VectorType& rRHS,
         const Variable<VectorType>& rRHSVariable,
         Variable<array_1d<double,3> >& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
     /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo
+     * @brief This function provides the place to perform checks on the completeness of the input.
+     * @details It is designed to be called only once (or anyway, not often) typically at the beginning of the calculations, so to verify that nothing is missing from the input or that no common error is found.
+     * @param rCurrentProcessInfo The current process info instance
      */
     int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
-     * Check if Rotational Dof existant
+     * @brief Check if Rotational Dof existant
+     * @return Trues if exists, false otherwise
      */
     virtual bool HasRotDof() const
     {
         return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);
     }
 
+    /**
+     * @brief This method computes the DoF block size
+     * @return The size of the DoF block
+     */
     unsigned int GetBlockSize() const
     {
         unsigned int dim = GetGeometry().WorkingSpaceDimension();

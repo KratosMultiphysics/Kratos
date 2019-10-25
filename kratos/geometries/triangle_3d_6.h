@@ -51,14 +51,14 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief A six node 3D triangular geometry with quadratic shape functions
  * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
- * The node ordering corresponds with:       
- *          2                    
- *          |`\              
- *          |  `\           
- *          5    `4           
- *          |      `\          
- *          |        `\          
- *          0-----3----1           
+ * The node ordering corresponds with:
+ *          2
+ *          |`\
+ *          |  `\
+ *          5    `4
+ *          |      `\
+ *          |        `\
+ *          0-----3----1
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -335,7 +335,7 @@ public:
         return typename BaseType::Pointer( new Triangle3D6( ThisPoints ) );
     }
 
-    
+
     // Geometry< Point<3> >::Pointer Clone() const override
     // {
     //     Geometry< Point<3> >::PointsArrayType NewPoints;
@@ -403,13 +403,13 @@ public:
     double Length() const override
     {
         // return sqrt( fabs( DeterminantOfJacobian( PointType() ) ) );
-        // Approximation to avoid errors. Can be improved. 
+        // Approximation to avoid errors. Can be improved.
 
 		array_1d<double, 3> p0 = BaseType::GetPoint( 0 );
 		array_1d<double, 3> p1 = BaseType::GetPoint( 1 );
 
 		array_1d<double, 3> vx( p1 - p0 );
-        
+
 		return MathUtils<double>::Norm3(vx);
     }
 
@@ -432,18 +432,18 @@ public:
     {
         //return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
         // Approximation to avoid errors. Can be improved.
-        
+
         array_1d<double, 3> p0 = BaseType::GetPoint( 0 );
 		array_1d<double, 3> p1 = BaseType::GetPoint( 1 );
 		array_1d<double, 3> p2 = BaseType::GetPoint( 2 );
 		array_1d<double, 3> p3 = BaseType::GetPoint( 3 );
-		
+
 		array_1d<double, 3> vx( p1 - p0 );
 		array_1d<double, 3> vy( p2 - p3 );
-        
+
 		double base = MathUtils<double>::Norm3(vx);
         double length = MathUtils<double>::Norm3(vy);
-        
+
         return base*length*0.5;
     }
 
@@ -465,7 +465,7 @@ public:
     {
         return Area();
     }
-    
+
     /**
      * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
@@ -475,10 +475,10 @@ public:
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
-        ) override
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        )const  override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -935,33 +935,35 @@ public:
         rOStream << "    Jacobian in the origin\t : " << jacobian;
     }
 
-    /** This method gives you number of all edges of this
-    geometry. This method will gives you number of all the edges
-    with one dimension less than this geometry. for example a
-    triangle would return three or a tetrahedral would return
-    four but won't return nine related to its six edge lines.
+    ///@}
+    ///@name Edge
+    ///@{
 
-    @return SizeType containes number of this geometry edges.
-    @see Edges()
-    @see Edge()
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
+     * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
      */
     SizeType EdgesNumber() const override
     {
         return 3;
     }
 
-    /** This method gives you all edges of this geometry. This
-    method will gives you all the edges with one dimension less
-    than this geometry. for example a triangle would return
-    three lines as its edges or a tetrahedral would return four
-    triangle as its edges but won't return its six edge
-    lines by this method.
-
-    @return GeometriesArrayType containes this geometry edges.
-    @see EdgesNumber()
-    @see Edge()
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
      */
-    GeometriesArrayType Edges( void ) override
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
@@ -1193,8 +1195,10 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Serialization
@@ -1429,13 +1433,18 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData Triangle3D6<TPointType>::msGeometryData(
-    2, 3, 2,
+    &msGeometryDimension,
     GeometryData::GI_GAUSS_2,
     Triangle3D6<TPointType>::AllIntegrationPoints(),
     Triangle3D6<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
+
+template<class TPointType> const
+GeometryDimension Triangle3D6<TPointType>::msGeometryDimension(
+    2, 3, 2);
+
 }// namespace Kratos.
 
-#endif // KRATOS_TRIANGLE_3D_6_H_INCLUDED defined 
+#endif // KRATOS_TRIANGLE_3D_6_H_INCLUDED defined
 

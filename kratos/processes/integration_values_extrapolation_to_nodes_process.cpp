@@ -24,12 +24,23 @@
 namespace Kratos
 {
 IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNodesProcess(
-        ModelPart& rMainModelPart,
-        Parameters ThisParameters
-        ) : mrModelPart(rMainModelPart)
+    Model& rModel,
+    Parameters ThisParameters
+    ) : IntegrationValuesExtrapolationToNodesProcess(rModel.GetModelPart(ThisParameters["model_part_name"].GetString()), ThisParameters)
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNodesProcess(
+    ModelPart& rMainModelPart,
+    Parameters ThisParameters
+    ) : mrModelPart(rMainModelPart)
 {
     Parameters default_parameters = Parameters(R"(
     {
+        "model_part_name"            : "",
         "echo_level"                 : 0,
         "area_average"               : true,
         "average_variable"           : "NODAL_AREA",
@@ -104,20 +115,19 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
     const ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
 
     // The list of elements
-    ElementsArrayType& r_elements_array = mrModelPart.Elements();
+    auto& r_elements_array = mrModelPart.Elements();
     const auto it_elem_begin = r_elements_array.begin();
 
     // Auxiliar value
-    double det;
-    Vector vector_J;
+    Vector vector_J, N;
 
-    #pragma omp parallel for private(det, vector_J)
+    #pragma omp parallel for private(vector_J, N)
     for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
         auto it_elem = it_elem_begin + i;
 
         // Only active elements. Detect if the element is active or not. If the user did not make any choice the element
         // NOTE: Is active by default
-        const bool element_is_active = ((it_elem)->IsDefined(ACTIVE)) ? (it_elem)->Is(ACTIVE) : true;
+        const bool element_is_active = it_elem->IsDefined(ACTIVE) ? it_elem->Is(ACTIVE) : true;
         if (element_is_active) {
             auto& r_this_geometry = it_elem->GetGeometry();
 
@@ -128,29 +138,18 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
             const SizeType number_of_nodes = r_this_geometry.size();
 
             // Definition of node coefficient
+            vector_J = r_this_geometry.DeterminantOfJacobian(vector_J , this_integration_method );
             Matrix node_coefficient(number_of_nodes, integration_points_number);
-            if (integration_points_number == 1) { // In case of just one GP the extrapolation it is just one
-                const array_1d<double, 3>& local_coordinates = integration_points[0].Coordinates();
-                Vector N( number_of_nodes );
-                r_this_geometry.ShapeFunctionsValues( N, local_coordinates );
+            if (N.size() != number_of_nodes )
+                N.resize(number_of_nodes);
+            for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
+                const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * vector_J[i_gauss_point] : 1.0;
+                const array_1d<double, 3>& r_local_coordinates = integration_points[i_gauss_point].Coordinates();
+                r_this_geometry.ShapeFunctionsValues( N, r_local_coordinates );
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    node_coefficient(i_node, 0) = N[i_node];
-                }
-            } else { // Otherwise we need to build a matrix to invert or approximate the inverse
-                Matrix shape_function_matrix(integration_points_number, number_of_nodes);
-                for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                    const array_1d<double, 3>& local_coordinates = integration_points[i_gauss_point].Coordinates();
-                    Vector N( number_of_nodes );
-                    r_this_geometry.ShapeFunctionsValues( N, local_coordinates );
-                    for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                        shape_function_matrix(i_gauss_point, i_node) = N[i_node];
-                    }
-                }
-                if (integration_points_number == number_of_nodes) {
-                    MathUtils<double>::InvertMatrix(shape_function_matrix, node_coefficient, det);
-                } else { // TODO: Try to use the QR utility
-                    KRATOS_WARNING_IF("IntegrationValuesExtrapolationToNodesProcess", mEchoLevel > 0) << "Number of integration points higher than the number of nodes in element: " << it_elem->Id() << ". This is costly and could lose accuracy" << std::endl;
-                    MathUtils<double>::GeneralizedInvertMatrix(shape_function_matrix, node_coefficient, det);
+                    const double average_variable_value = r_this_geometry[i_node].GetValue(*mpAverageVariable);
+                    const double coeff_coincident_node = std::abs(average_variable_value) > std::numeric_limits<double>::epsilon() ? area_coeff/average_variable_value : area_coeff;
+                    node_coefficient(i_node, i_gauss_point) = coeff_coincident_node * std::abs(N[i_node]);
                 }
             }
 
@@ -158,13 +157,11 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
             for ( const auto p_var : mDoubleVariable) {
                 std::vector<double> aux_result(integration_points_number);
                 it_elem->GetValueOnIntegrationPoints(*p_var, aux_result, r_process_info);
-                vector_J = r_this_geometry.DeterminantOfJacobian(vector_J , this_integration_method );
                 for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                    const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * vector_J[i_gauss_point] : 1.0;
                     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                         double& aux_value = (mExtrapolateNonHistorical) ? r_this_geometry[i_node].GetValue(*p_var) : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
                         #pragma omp atomic
-                        aux_value += area_coeff * node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                        aux_value += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
                     }
                 }
             }
@@ -173,12 +170,10 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
             for ( const auto p_var : mArrayVariable) {
                 std::vector<array_1d<double, 3>> aux_result(integration_points_number);
                 it_elem->GetValueOnIntegrationPoints(*p_var, aux_result, r_process_info);
-                vector_J = r_this_geometry.DeterminantOfJacobian(vector_J , this_integration_method );
                 for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                    const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * vector_J[i_gauss_point] : 1.0;
                     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                         array_1d<double, 3>& aux_value = (mExtrapolateNonHistorical) ? r_this_geometry[i_node].GetValue(*p_var) : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
-                        const array_1d<double, 3>& aux_sol = area_coeff * node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                        const array_1d<double, 3>& aux_sol = node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
                         for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
                             #pragma omp atomic
                             aux_value[i_comp] += aux_sol[i_comp];
@@ -191,12 +186,10 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
             for ( const auto p_var : mVectorVariable) {
                 std::vector<Vector> aux_result(integration_points_number);
                 it_elem->GetValueOnIntegrationPoints(*p_var, aux_result, r_process_info);
-                vector_J = r_this_geometry.DeterminantOfJacobian(vector_J , this_integration_method );
                 for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                    const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * vector_J[i_gauss_point] : 1.0;
                     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                         Vector& aux_value = (mExtrapolateNonHistorical) ? r_this_geometry[i_node].GetValue(*p_var) : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
-                        const Vector& aux_sol = area_coeff * node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                        const Vector& aux_sol = node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
                         for (IndexType i_comp = 0; i_comp < aux_sol.size(); ++i_comp) {
                             #pragma omp atomic
                             aux_value[i_comp] += aux_sol[i_comp];
@@ -209,12 +202,10 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
             for ( const auto p_var : mMatrixVariable) {
                 std::vector<Matrix> aux_result(integration_points_number);
                 it_elem->GetValueOnIntegrationPoints(*p_var, aux_result, r_process_info);
-                vector_J = r_this_geometry.DeterminantOfJacobian(vector_J , this_integration_method );
                 for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                    const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * vector_J[i_gauss_point] : 1.0;
                     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                         Matrix& aux_value = (mExtrapolateNonHistorical) ? r_this_geometry[i_node].GetValue(*p_var) : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
-                        const Matrix& aux_sol = area_coeff * node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                        const Matrix& aux_sol = node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
                         for (IndexType i_comp = 0; i_comp < aux_sol.size1(); ++i_comp) {
                             for (IndexType j_comp = 0; j_comp < aux_sol.size2(); ++j_comp) {
                                 #pragma omp atomic
@@ -226,43 +217,6 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
             }
         }
     }
-
-    // The list of nodes
-    NodesArrayType& r_nodes_array = mrModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
-
-    // We ponderate the values
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
-
-        const double average_variable_value = it_node->GetValue(*mpAverageVariable);
-        const double coeff_coincident_node = average_variable_value > std::numeric_limits<double>::epsilon() ? 1.0/it_node->GetValue(*mpAverageVariable) : 1.0;
-
-        // We initialize the doubles values
-        for ( const auto p_var : mDoubleVariable) {
-            if (mExtrapolateNonHistorical) it_node->GetValue(*p_var) *= coeff_coincident_node;
-            else it_node->FastGetSolutionStepValue(*p_var) *= coeff_coincident_node;
-        }
-
-        // We initialize the arrays values
-        for ( const auto p_var : mArrayVariable) {
-            if (mExtrapolateNonHistorical) it_node->GetValue(*p_var) *= coeff_coincident_node;
-            else it_node->FastGetSolutionStepValue(*p_var) *= coeff_coincident_node;
-        }
-
-        // We initialize the vectors values
-        for ( const auto p_var : mVectorVariable) {
-            if (mExtrapolateNonHistorical) it_node->GetValue(*p_var) *= coeff_coincident_node;
-            else it_node->FastGetSolutionStepValue(*p_var) *= coeff_coincident_node;
-        }
-
-        // We initialize the matrix values
-        for ( const auto p_var : mMatrixVariable) {
-            if (mExtrapolateNonHistorical) it_node->GetValue(*p_var) *= coeff_coincident_node;
-            else it_node->FastGetSolutionStepValue(*p_var) *= coeff_coincident_node;
-        }
-    }
 }
 
 /***********************************************************************************/
@@ -271,7 +225,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
 void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
 {
     // The list of nodes
-    NodesArrayType& r_nodes_array = mrModelPart.Nodes();
+    auto& r_nodes_array = mrModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
 
     // Remove average variable
@@ -309,16 +263,19 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
 void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
 {
     // The list of elements
-    ElementsArrayType& r_elements_array = mrModelPart.Elements();
+    auto& r_elements_array = mrModelPart.Elements();
     auto it_elem_begin = r_elements_array.begin();
 
+    // Some definitions
+    Vector vector_J, N;
+
     // Fill the average value
-    #pragma omp parallel for
+    #pragma omp parallel for private(vector_J, N)
     for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
         auto it_elem = it_elem_begin + i;
         // Only active elements. Detect if the element is active or not. If the user did not make any choice the element
         // NOTE: Is active by default
-        const bool element_is_active = ((it_elem)->IsDefined(ACTIVE)) ? (it_elem)->Is(ACTIVE) : true;
+        const bool element_is_active = it_elem->IsDefined(ACTIVE) ? it_elem->Is(ACTIVE) : true;
         if (element_is_active) {
             // The geometry of the element
             auto& r_this_geometry = it_elem->GetGeometry();
@@ -330,16 +287,16 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
             const SizeType number_of_nodes = r_this_geometry.size();
 
             // The jacobian of the geometry
-            Vector vector_J;
             vector_J = r_this_geometry.DeterminantOfJacobian(vector_J , this_integration_method );
             for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                const array_1d<double, 3>& local_coordinates = integration_points[i_gauss_point].Coordinates();
-                Vector N( number_of_nodes );
-                r_this_geometry.ShapeFunctionsValues( N, local_coordinates );
+                const array_1d<double, 3>& r_local_coordinates = integration_points[i_gauss_point].Coordinates();
+                if (N.size() != number_of_nodes )
+                    N.resize(number_of_nodes);
+                r_this_geometry.ShapeFunctionsValues( N, r_local_coordinates );
                 const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * vector_J[i_gauss_point] : 1.0;
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     #pragma omp atomic
-                    r_this_geometry[i_node].GetValue(*mpAverageVariable) += N[i_node] * area_coeff;
+                    r_this_geometry[i_node].GetValue(*mpAverageVariable) += std::abs(N[i_node]) * area_coeff;
                 }
             }
         }
@@ -384,7 +341,7 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeVariables()
     array_1d<double, 3> zero_array = ZeroVector(3);
 
     // The list of nodes
-    NodesArrayType& r_nodes_array = mrModelPart.Nodes();
+    auto& r_nodes_array = mrModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
 
     // Initialize values

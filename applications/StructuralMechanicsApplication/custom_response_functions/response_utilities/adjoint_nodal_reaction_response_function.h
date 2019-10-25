@@ -201,8 +201,8 @@ private:
     std::string mTracedDisplacementLabel;
     std::string mTracedReactionLabel;
     PointTypePointer  mpTracedNode;
-    WeakPointerVector<Element> mpNeighborElements;
-    WeakPointerVector<Condition> mpNeighborConditions;
+    GlobalPointersVector<Element> mpNeighborElements;
+    GlobalPointersVector<Condition> mpNeighborConditions;
     bool mAdjustAdjointDisplacement = false;
 
     ///@}

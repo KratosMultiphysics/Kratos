@@ -91,29 +91,49 @@ public:
     {
         // The default parameters
         Parameters default_parameters = GetDefaultParameters();
+        const bool origin_are_conditions_is_defined = ThisParameters.Has("origin_are_conditions");
+        const bool destination_are_conditions_is_defined = ThisParameters.Has("destination_are_conditions");
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
+        // Automatic detect the entities
+        if (!origin_are_conditions_is_defined) {
+            if (rOriginModelPart.NumberOfElements() > 0) {
+                ThisParameters["origin_are_conditions"].SetBool(false);
+                KRATOS_WARNING("SimpleMortarMapperProcessWrapper") << "\'origin_are_conditions\' changed to \'False\'. Mapping from elements." << std::endl;
+            } else if (rOriginModelPart.NumberOfConditions() == 0) {
+                KRATOS_ERROR << "No conditions defined on origin model part" << std::endl;
+            }
+        }
+        if (!destination_are_conditions_is_defined) {
+            if (rDestinationModelPart.NumberOfElements() > 0) {
+                ThisParameters["destination_are_conditions"].SetBool(false);
+                KRATOS_WARNING("SimpleMortarMapperProcessWrapper") << "\'destination_are_conditions\' changed to \'False\'. Mapping from elements." << std::endl;
+            } else if (rDestinationModelPart.NumberOfConditions() == 0) {
+                KRATOS_ERROR << "No conditions defined on destination model part" << std::endl;
+            }
+        }
+
         // The condition iterators
-        auto it_cond_origin_begin = rOriginModelPart.Conditions().begin();
-        auto it_cond_destination_begin = rDestinationModelPart.Conditions().begin();
+        auto& r_geometry_origin = ThisParameters["origin_are_conditions"].GetBool() ? rOriginModelPart.Conditions().begin()->GetGeometry() : rOriginModelPart.Elements().begin()->GetGeometry();
+        auto& r_geometry_destination = ThisParameters["destination_are_conditions"].GetBool() ? rDestinationModelPart.Conditions().begin()->GetGeometry() : rDestinationModelPart.Elements().begin()->GetGeometry();
 
         // The dimensions
-        const SizeType dimension = it_cond_origin_begin->GetGeometry().WorkingSpaceDimension();
-        const SizeType size_1 = it_cond_origin_begin->GetGeometry().size();
-        const SizeType size_2 = it_cond_destination_begin->GetGeometry().size();
+        const SizeType dimension = r_geometry_origin.WorkingSpaceDimension();
+        const SizeType size_1 = r_geometry_origin.size();
+        const SizeType size_2 = r_geometry_destination.size();
 
         // The variable names
-        const std::string& origin_variable_name = ThisParameters["origin_variable"].GetString();
-        const std::string& destination_variable_name = ThisParameters["destination_variable"].GetString();
+        const std::string& r_origin_variable_name = ThisParameters["origin_variable"].GetString();
+        const std::string& r_destination_variable_name = ThisParameters["destination_variable"].GetString();
 
         bool double_variable = true;
-        if(KratosComponents<Variable<double>>::Has(origin_variable_name)) {
-            if (destination_variable_name != "" && !(KratosComponents<Variable<double>>::Has(destination_variable_name))) {
+        if(KratosComponents<Variable<double>>::Has(r_origin_variable_name)) {
+            if (r_destination_variable_name != "" && !(KratosComponents<Variable<double>>::Has(r_destination_variable_name))) {
                 KRATOS_ERROR << "The destination variable is not the same type (double) as the origin" << std::endl;
             }
-        } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(origin_variable_name)) {
+        } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(r_origin_variable_name)) {
             double_variable = false;
-            if (destination_variable_name != "" && !(KratosComponents<Variable<array_1d< double, 3>>>::Has(destination_variable_name)))
+            if (r_destination_variable_name != "" && !(KratosComponents<Variable<array_1d< double, 3>>>::Has(r_destination_variable_name)))
                 KRATOS_ERROR << "The destination variable is not the same type (array_1d< double, 3>) as the origin" << std::endl;
         } else {
             KRATOS_ERROR << "The types of the variables are not supported array_1d< double, 3> or double" << std::endl;
@@ -153,6 +173,8 @@ public:
                 } else {
                     mpMapperProcess = Kratos::make_shared<SimpleMortarMapperProcess<3, 4, Variable<array_1d< double, 3>>, 3>>(rOriginModelPart, rDestinationModelPart, ThisParameters, pThisLinearSolver);
                 }
+            } else {
+                KRATOS_ERROR << "Combination of dimensions and sizes not compatible. Dimension: " << dimension << " Size Origin: " << size_1 << " Size Destination: " << size_2 << std::endl;
             }
         }
     }
@@ -189,9 +211,20 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Execute method is used to execute the Process algorithms.
+     */
     void Execute() override
     {
         mpMapperProcess->Execute();
+    }
+
+    /**
+     * @details This function will be executed at every time step BEFORE performing the solve phase
+     */
+    void ExecuteInitializeSolutionStep() override
+    {
+        mpMapperProcess->ExecuteInitializeSolutionStep();
     }
 
     ///@}
@@ -255,18 +288,23 @@ protected:
         {
             "echo_level"                       : 0,
             "using_average_nodal_normal"       : true,
+            "discontinuous_interface"          : false,
+            "discontinous_interface_factor"    : 1.0e-4,
             "absolute_convergence_tolerance"   : 1.0e-9,
             "relative_convergence_tolerance"   : 1.0e-4,
             "max_number_iterations"            : 10,
             "integration_order"                : 2,
             "distance_threshold"               : 1.0e24,
+            "zero_tolerance_factor"            : 1.0e0,
             "remove_isolated_conditions"       : false,
             "mapping_coefficient"              : 1.0e0,
             "origin_variable"                  : "TEMPERATURE",
             "destination_variable"             : "",
             "origin_variable_historical"       : true,
+            "origin_are_conditions"            : true,
             "destination_variable_historical"  : true,
-            "update_interface"                 : false,
+            "destination_are_conditions"       : true,
+            "update_interface"                 : true,
             "search_parameters"                : {
                 "allocation_size"                  : 1000,
                 "bucket_size"                      : 4,

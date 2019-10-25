@@ -99,9 +99,7 @@ namespace Kratos
                                                                     rSensitivityGradient, process_info);
         }
         else
-        {
             rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
-        }
 
         KRATOS_CATCH("")
     }
@@ -134,9 +132,7 @@ namespace Kratos
                                                                     rSensitivityGradient, process_info);
         }
         else
-        {
             rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
-        }
 
         KRATOS_CATCH("");
     }
@@ -238,17 +234,26 @@ namespace Kratos
         if(mStressTreatment == StressTreatment::Mean)
         {
             rAdjointElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, stress_design_variable_derivative, rProcessInfo);
-            this->ExtractMeanStressDerivative(stress_design_variable_derivative, rSensitivityGradient);
+            if (stress_design_variable_derivative.size1() == 0)
+                rSensitivityGradient = ZeroVector(0);
+            else
+                this->ExtractMeanStressDerivative(stress_design_variable_derivative, rSensitivityGradient);
         }
         else if(mStressTreatment == StressTreatment::GaussPoint)
         {
             rAdjointElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, stress_design_variable_derivative, rProcessInfo);
-            this->ExtractGaussPointStressDerivative(stress_design_variable_derivative, rSensitivityGradient);
+            if (stress_design_variable_derivative.size1() == 0)
+                rSensitivityGradient = ZeroVector(0);
+            else
+                this->ExtractGaussPointStressDerivative(stress_design_variable_derivative, rSensitivityGradient);
         }
         else if(mStressTreatment == StressTreatment::Node)
         {
             rAdjointElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_NODE, stress_design_variable_derivative, rProcessInfo);
-            this->ExtractNodeStressDerivative(stress_design_variable_derivative, rSensitivityGradient);
+            if (stress_design_variable_derivative.size1() == 0)
+                rSensitivityGradient = ZeroVector(0);
+            else
+                this->ExtractNodeStressDerivative(stress_design_variable_derivative, rSensitivityGradient);
         }
 
         KRATOS_ERROR_IF(rSensitivityGradient.size() != rSensitivityMatrix.size1())

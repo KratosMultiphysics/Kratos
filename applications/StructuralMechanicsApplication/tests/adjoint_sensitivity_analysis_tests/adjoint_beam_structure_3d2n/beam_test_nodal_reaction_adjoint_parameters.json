@@ -18,9 +18,10 @@
         "move_mesh_flag"                    : false,
         "response_function_settings" : {
                 "response_type"     : "adjoint_nodal_reaction",
-                "use_kratos"        : true,
+                "analyzer"          : "kratos",
                 "gradient_mode"     : "semi_analytic",
                 "step_size"         : 1e-6,
+                "adapt_step_size"   : true,
                 "traced_node_id"    : 11,
                 "traced_reaction"        : "REACTION_Z",
                 "adjust_adjoint_displacement" : false

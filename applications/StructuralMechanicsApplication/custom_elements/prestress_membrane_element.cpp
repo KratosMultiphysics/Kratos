@@ -48,7 +48,7 @@ Element::Pointer PrestressMembraneElement::Create(
     PropertiesType::Pointer pProperties) const
 
 {
-    return Kratos::make_shared< PrestressMembraneElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+    return Kratos::make_intrusive< PrestressMembraneElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 //***********************************************************************************
@@ -60,7 +60,7 @@ Element::Pointer PrestressMembraneElement::Create(
     PropertiesType::Pointer pProperties) const
 
 {
-    return Kratos::make_shared< PrestressMembraneElement >(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive< PrestressMembraneElement >(NewId, pGeom, pProperties);
 }
 
 //***********************************************************************************
@@ -742,6 +742,12 @@ void PrestressMembraneElement::CalculateAll(
                     // operation performed: rRighthandSideVector -= Weight* IntForce
                     noalias(rRightHandSideVector) -= int_reference_weight* prod(trans(B), strain_deformation);
                 }
+            }
+            else
+            {
+                CalculateAndAddBodyForce(rRightHandSideVector, point_number, int_reference_weight);
+                // operation performed: rRighthandSideVector -= Weight* IntForce
+                noalias(rRightHandSideVector) -= int_reference_weight* prod(trans(B), strain_deformation);
             }
         }
     } // end loop over integration points
@@ -1503,6 +1509,129 @@ void PrestressMembraneElement::InitializeFormfinding(const unsigned int rIntegra
             this->SetValue(LAMBDA_MAX,1.2);
     }
 }
+
+void PrestressMembraneElement::CalculateLumpedMassVector(VectorType& rMassVector)
+{
+    KRATOS_TRY
+    auto& r_geom = GetGeometry();
+    const unsigned int dimension = r_geom.WorkingSpaceDimension();
+    const unsigned int number_of_nodes = r_geom.size();
+    const unsigned int local_size = dimension*number_of_nodes;
+
+    if (rMassVector.size() != local_size) {
+        rMassVector.resize(local_size, false);
+    }
+
+    const double total_mass = mTotalDomainInitialSize * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
+
+    Vector lump_fact;
+    lump_fact = GetGeometry().LumpingFactors(lump_fact);
+
+    for (unsigned int i = 0; i < number_of_nodes; ++i) {
+        const double temp = lump_fact[i] * total_mass;
+
+        for (unsigned int j = 0; j < 3; ++j)
+        {
+            const unsigned int index = i * 3 + j;
+            rMassVector[index] = temp;
+        }
+    }
+    KRATOS_CATCH("")
+}
+
+
+
+void PrestressMembraneElement::AddExplicitContribution(
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    Variable<double >& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+)
+{
+    KRATOS_TRY;
+
+    auto& r_geom = GetGeometry();
+    const unsigned int dimension = r_geom.WorkingSpaceDimension();
+    const unsigned int number_of_nodes = r_geom.size();
+    const unsigned int local_size = dimension*number_of_nodes;
+
+    if (rDestinationVariable == NODAL_MASS) {
+        VectorType element_mass_vector(local_size);
+        CalculateLumpedMassVector(element_mass_vector);
+
+        for (SizeType i = 0; i < number_of_nodes; ++i) {
+            double& r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
+            int index = i * dimension;
+
+            #pragma omp atomic
+            r_nodal_mass += element_mass_vector(index);
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+void PrestressMembraneElement::AddExplicitContribution(
+    const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
+    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+)
+{
+    KRATOS_TRY;
+
+    auto& r_geom = GetGeometry();
+    const unsigned int dimension = r_geom.WorkingSpaceDimension();
+    const unsigned int number_of_nodes = r_geom.size();
+    const unsigned int local_size = dimension*number_of_nodes;
+
+    if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
+
+        Vector damping_residual_contribution = ZeroVector(local_size);
+        Vector current_nodal_velocities = ZeroVector(local_size);
+        GetFirstDerivativesVector(current_nodal_velocities);
+        Matrix damping_matrix;
+        ProcessInfo temp_process_information; // cant pass const ProcessInfo
+        CalculateDampingMatrix(damping_matrix, temp_process_information);
+        // current residual contribution due to damping
+        noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
+
+        for (SizeType i = 0; i < number_of_nodes; ++i) {
+            SizeType index = dimension * i;
+            array_1d<double, 3>& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+            for (size_t j = 0; j < dimension; ++j) {
+                #pragma omp atomic
+                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+            }
+        }
+    } else if (rDestinationVariable == NODAL_INERTIA) {
+
+        // Getting the vector mass
+        VectorType mass_vector(local_size);
+        CalculateLumpedMassVector(mass_vector);
+
+        for (SizeType i = 0; i < number_of_nodes; ++i) {
+            double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
+            array_1d<double, 3>& r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
+            SizeType index = i * dimension;
+
+            #pragma omp atomic
+            r_nodal_mass += mass_vector[index];
+
+            for (SizeType k = 0; k < dimension; ++k) {
+                #pragma omp atomic
+                r_nodal_inertia[k] += 0.0;
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+
+
+
+
+
 //***********************************************************************************
 //***********************************************************************************
 int PrestressMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)

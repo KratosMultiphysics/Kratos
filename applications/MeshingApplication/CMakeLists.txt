@@ -15,18 +15,15 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
     add_definitions( -DTETLIBRARY )
     add_definitions( -DUSE_TETGEN_NONFREE_TPL )
     include_directories(${TETGEN_INCLUDES})
-    #include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
-    #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
 endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
 
 ##add subdirectories for compilation of dependent libraries
-#add_subdirectory(${CMAKE_SOURCE_DIR}/external_libraries/triangle)
-# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/triangle)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt)
 
 ## generate variables with the sources
 set( KRATOS_MESHING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/meshing_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/meshing_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/uniform_refinement_utility.cpp
@@ -45,15 +42,14 @@ set( KRATOS_MESHING_APPLICATION_CORE
 set(KRATOS_MESHING_APPLICATION_CORE_MMG "")
 if(${INCLUDE_MMG} MATCHES ON)
 set( KRATOS_MESHING_APPLICATION_CORE_MMG ${KRATOS_MESHING_APPLICATION_CORE_MMG}
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mmg_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/mmg_io.cpp
 )
 endif(${INCLUDE_MMG} MATCHES ON)
 
-set (KRATOS_MESHING_APPLICATION_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_meshing_python_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_meshers_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+file(GLOB_RECURSE KRATOS_MESHING_APPLICATION_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
@@ -61,8 +57,6 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosMeshingCore SHARED ${KRATOS_MESHING_APPLICATION_CORE} ${KRATOS_MESHING_APPLICATION_CORE_MMG} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosMeshingCore PUBLIC KratosCore triangle tetMeshOpt)
-set_target_properties(KratosMeshingCore PROPERTIES COMPILE_DEFINITIONS "MESHING_APPLICATION=EXPORT,API")
 
 if(${INCLUDE_MMG} MATCHES ON)
     add_definitions( -DINCLUDE_MMG )
@@ -73,7 +67,20 @@ if(${INCLUDE_MMG} MATCHES ON)
     INCLUDE_DIRECTORIES(${MMGS_INCLUDE_DIR})
 
     target_link_libraries(KratosMeshingCore PUBLIC KratosCore triangle tetMeshOpt ${MMG_LIBRARY} ${MMG2D_LIBRARY} ${MMG3D_LIBRARY} ${MMGS_LIBRARY})
+    
+    message("Installed MMG = " ${MMG_LIBRARY})
+    install(FILES ${MMG_LIBRARY} DESTINATION libs)
+    message("Installed MMG2D = " ${MMG2D_LIBRARY})
+    install(FILES ${MMG2D_LIBRARY} DESTINATION libs)
+    message("Installed MMG3D = " ${MMG3D_LIBRARY})
+    install(FILES ${MMG3D_LIBRARY} DESTINATION libs)
+    message("Installed MMGS = " ${MMGS_LIBRARY})
+    install(FILES ${MMGS_LIBRARY} DESTINATION libs)
+else(${INCLUDE_MMG} MATCHES ON)
+    target_link_libraries(KratosMeshingCore PUBLIC KratosCore triangle tetMeshOpt)
 endif(${INCLUDE_MMG} MATCHES ON)
+
+set_target_properties(KratosMeshingCore PROPERTIES COMPILE_DEFINITIONS "MESHING_APPLICATION=EXPORT,API")
 
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
     target_link_libraries(KratosMeshingCore PUBLIC ${TETGEN_LIBRARIES})
@@ -95,18 +102,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosMeshingApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-if(USE_COTIRE MATCHES ON)
-    ## The MMG is not compatibel with cotire
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    cotire(KratosMeshingApplication)
-endif(USE_COTIRE MATCHES ON)
-
-install(TARGETS KratosMeshingCore DESTINATION libs )
-install(TARGETS KratosMeshingApplication DESTINATION libs )
-
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py" PATTERN ".svn" EXCLUDE)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py")
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
@@ -120,6 +118,16 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
     PATTERN "*.hpp" EXCLUDE
   )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
+
+if(USE_COTIRE MATCHES ON)
+    ## The MMG is not compatibel with cotire
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    cotire(KratosMeshingCore)
+    cotire(KratosMeshingApplication)
+endif(USE_COTIRE MATCHES ON)
+
+install(TARGETS KratosMeshingCore DESTINATION libs )
+install(TARGETS KratosMeshingApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/MeshingApplication.py" DESTINATION "KratosMultiphysics/MeshingApplication" RENAME "__init__.py")

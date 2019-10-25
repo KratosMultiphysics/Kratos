@@ -1,5 +1,5 @@
 sudo: false
-dist: trusty
+dist: bionic
 language: cpp
 compiler: g++
 
@@ -28,13 +28,23 @@ addons:
       - libboost-dev
       - libblas-dev
       - liblapack-dev
+      - libopenmpi-dev
+      - openmpi-bin
+      - libmetis-dev
+      - libtrilinos-amesos-dev
+      - libtrilinos-aztecoo-dev
+      - libtrilinos-epetra-dev
+      - libtrilinos-epetraext-dev
+      - libtrilinos-ifpack-dev
+      - libtrilinos-ml-dev
+      - libtrilinos-teuchos-dev
 
 before_script:
 - export PYTHONPATH=${PYTHONPATH}:${TRAVIS_BUILD_DIR}
 - export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${TRAVIS_BUILD_DIR}/libs
 
 script:
-- cp scripts/build/travis/configure_travis_trusty.sh cmake_build/configure.sh
+- cp scripts/build/travis/configure_travis_bionic.sh cmake_build/configure.sh
 - cd cmake_build
 - bash configure.sh
 - make all_unity

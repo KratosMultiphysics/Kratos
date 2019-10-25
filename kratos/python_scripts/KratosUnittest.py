@@ -1,5 +1,8 @@
 from __future__ import print_function, absolute_import, division
-from unittest import *
+from KratosMultiphysics import Logger
+
+from unittest import * # needed to make all functions available to the tests using this file
+from unittest.util import safe_repr
 from contextlib import contextmanager
 
 import getopt
@@ -31,14 +34,49 @@ class TestCase(TestCase):
     def run(self, result=None):
         super(TestCase,self).run(result)
 
-    def failUnlessEqualWithTolerance(self, first, second, tolerance, msg=None):
-        ''' fails if first and second have a difference greater than
+    def assertEqualTolerance(self, first, second, tolerance, msg=None):
+        ''' Fails if first and second have a difference greater than
         tolerance '''
 
         if first < (second - tolerance) or first > (second + tolerance):
             raise self.failureException(msg or '%r != %r within %r places' % (first, second, tolerance))
 
-    assertEqualTolerance = failUnlessEqualWithTolerance
+    def assertIsClose(self, first, second, rel_tol=None, abs_tol=None, msg=None):
+        ''' Fails if the two objects are unequal as determined by their
+        absolute and relative difference
+
+        If the two objects compare equal then they will automatically
+        compare relative almost equal. ''' 
+
+        if first == second:
+            # shortcut
+            return
+
+        if rel_tol is None:
+            rel_tol = 1e-09
+        if abs_tol is None:
+            abs_tol = 0.0
+
+        if isclose(first, second, rel_tol, abs_tol):
+            return
+
+        standardMsg = '%s != %s within %s rel-tol and %s abs-tol' % (safe_repr(first),
+                                                     safe_repr(second),
+                                                     rel_tol, abs_tol)
+        msg = self._formatMessage(msg, standardMsg)
+        raise self.failureException(msg)
+
+    def assertVectorAlmostEqual(self, vector1, vector2, prec=7):
+        self.assertEqual(matrix1.Size1(), matrix2.Size1())
+        for i in range(matrix1.Size1()):
+            self.assertAlmostEqual(vector1[i], vector2[i], prec)
+
+    def assertMatrixAlmostEqual(self, matrix1, matrix2, prec=7):
+        self.assertEqual(matrix1.Size1(), matrix2.Size1())
+        self.assertEqual(matrix1.Size2(), matrix2.Size2())
+        for i in range(matrix1.Size1()):
+            for j in range(matrix1.Size2()):
+                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec)
 
 @contextmanager
 def SupressConsoleOutput():
@@ -81,21 +119,28 @@ def Usage():
         '\t python kratos_run_tests [-l level] [-v verbosity]',
         'Options',
         '\t -h, --help: Shows this command',
-        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'',  # noqa
-        '\t              For MPI tests, use the equivalent distributed test suites: \'(mpi_all)\', \'(mpi_nightly)\' \'(mpi_small)\'',
-        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2'
+        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\' \'(validation)\'',  # noqa
+        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
+        '\t --using-mpi: If running in MPI and executing the MPI-tests'
     ]
-
     for l in lines:
-        print(l)
+        Logger.PrintInfo(l) # using the logger to only print once in MPI
 
+def main():
+    # this deliberately overiddes the function "unittest.main",
+    # because it cannot parse extra command line arguments
+    if "--using-mpi" in sys.argv:
+        sys.argv.remove("--using-mpi") # has to be removed bcs unittest cannot parse it
+    import unittest
+    unittest.main()
 
 def runTests(tests):
     verbose_values = [0, 1, 2]
-    level_values = ['all', 'small', 'nightly', 'validation', 'mpi_all', 'mpi_small', 'mpi_nightly', 'mpi_validation']
+    level_values = ['all', 'small', 'nightly', 'validation']
 
     verbosity = 1
     level = 'all'
+    is_mpi = False
 
     # Parse Commandline
     try:
@@ -104,7 +149,8 @@ def runTests(tests):
             'hv:l:', [
                 'help',
                 'verbose=',
-                'level='
+                'level=',
+                'using-mpi'
             ])
     except getopt.GetoptError as err:
         print(str(err))
@@ -129,8 +175,13 @@ def runTests(tests):
                 print('Error: {} is not a valid level.'.format(a))
                 Usage()
                 sys.exit()
+        elif o in ('--using-mpi'):
+            is_mpi = True
         else:
             assert False, 'unhandled option'
+
+    if is_mpi:
+        level = "mpi_" + level
 
     if tests[level].countTestCases() == 0:
         print(
@@ -142,27 +193,26 @@ def runTests(tests):
 
 
 KratosSuites = {
-    'small': TestSuite(),
-    'nightly': TestSuite(),
-    'all': TestSuite(),
-    'validation': TestSuite(),
-    'mpi_small': TestSuite(),
-    'mpi_nightly': TestSuite(),
-    'mpi_all': TestSuite(),
+    'small':          TestSuite(),
+    'nightly':        TestSuite(),
+    'all':            TestSuite(),
+    'validation':     TestSuite(),
+    'mpi_small':      TestSuite(),
+    'mpi_nightly':    TestSuite(),
+    'mpi_all':        TestSuite(),
     'mpi_validation': TestSuite(),
 }
 
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
-    '''Same implementation as math.isclose
-    self-implemented bcs msth.isclose was only introduced in python3.5
-    '''
+    ''' Same implementation as math.isclose
+    self-implemented bcs math.isclose was only introduced in python3.5
+    see https://www.python.org/dev/peps/pep-0485/ '''
     return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
 
 class WorkFolderScope:
     """ Helper-class to execute test in a specific target path
-
         Input
         -----
         - rel_path_work_folder: String

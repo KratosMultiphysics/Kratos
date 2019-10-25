@@ -62,7 +62,7 @@ namespace Kratos
 					       NodesArrayType const& ThisNodes,
 					       PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<BoundaryCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<BoundaryCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -79,7 +79,7 @@ namespace Kratos
     NewCondition.SetFlags(this->GetFlags());
 
 
-    return Kratos::make_shared<BoundaryCondition>(NewCondition);
+    return Kratos::make_intrusive<BoundaryCondition>(NewCondition);
   }
 
 

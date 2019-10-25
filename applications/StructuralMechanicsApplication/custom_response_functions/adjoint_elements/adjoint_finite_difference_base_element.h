@@ -56,7 +56,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointFiniteDifferencingBaseElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointFiniteDifferencingBaseElement);
     ///@}
 
     ///@name Classes
@@ -69,7 +69,7 @@ public:
     AdjointFiniteDifferencingBaseElement(IndexType NewId = 0,
                         bool HasRotationDofs = false)
     : Element(NewId),
-      mpPrimalElement(std::make_shared<TPrimalElement>(NewId, pGetGeometry())),
+      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGetGeometry())),
       mHasRotationDofs(HasRotationDofs)
     {
     }
@@ -78,7 +78,7 @@ public:
                         GeometryType::Pointer pGeometry,
                         bool HasRotationDofs = false)
     : Element(NewId, pGeometry),
-      mpPrimalElement(std::make_shared<TPrimalElement>(NewId, pGeometry)),
+      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGeometry)),
       mHasRotationDofs(HasRotationDofs)
     {
     }
@@ -88,7 +88,7 @@ public:
                         PropertiesType::Pointer pProperties,
                         bool HasRotationDofs = false)
     : Element(NewId, pGeometry, pProperties),
-      mpPrimalElement(std::make_shared<TPrimalElement>(NewId, pGeometry, pProperties)),
+      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGeometry, pProperties)),
       mHasRotationDofs(HasRotationDofs)
     {
     }
@@ -106,7 +106,7 @@ public:
                               NodesArrayType const& ThisNodes,
                               PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointFiniteDifferencingBaseElement<TPrimalElement>>(
+        return Kratos::make_intrusive<AdjointFiniteDifferencingBaseElement<TPrimalElement>>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
@@ -114,7 +114,7 @@ public:
                               GeometryType::Pointer pGeometry,
                               PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointFiniteDifferencingBaseElement<TPrimalElement>>(
+        return Kratos::make_intrusive<AdjointFiniteDifferencingBaseElement<TPrimalElement>>(
             NewId, pGeometry, pProperties);
     }
 
@@ -458,12 +458,12 @@ private:
     /**
      * Get the perturbation size for a scalar variable
      */
-    double GetPerturbationSize(const Variable<double>& rDesignVariable);
+    double GetPerturbationSize(const Variable<double>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const;
 
     /**
      * Get the perturbation size for a vector variable
      */
-    double GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable);
+    double GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const;
 
     /**
      * Get the perturbation size modification factor for a scalar variable.
@@ -471,7 +471,7 @@ private:
      * Note: This approach is only based on experience.
      * This can be overwritten by derived classes.
      */
-    virtual double GetPerturbationSizeModificationFactor(const Variable<double>& rVariable);
+    virtual double GetPerturbationSizeModificationFactor(const Variable<double>& rVariable) const;
 
     /**
      * Get the perturbation size modification factor for a vector variable.
@@ -479,7 +479,7 @@ private:
      * Note: This approach is only based on experience.
      * This can be overwritten by derived classes.
      */
-    virtual double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable);
+    virtual double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) const;
 
     ///@}
 

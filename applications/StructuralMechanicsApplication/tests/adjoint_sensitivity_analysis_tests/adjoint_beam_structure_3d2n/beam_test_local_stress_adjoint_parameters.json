@@ -18,9 +18,10 @@
         "move_mesh_flag"                    : false,
         "response_function_settings" : {
                 "response_type"     : "adjoint_local_stress",
-                "use_kratos"        : true,
+                "analyzer"          : "kratos",
                 "gradient_mode"     : "semi_analytic",
                 "step_size"         : 1e-6,
+                "adapt_step_size"   : true,
                 "traced_element_id"    : 6,
                 "stress_type"       : "MY",
                 "stress_treatment"  : "node",

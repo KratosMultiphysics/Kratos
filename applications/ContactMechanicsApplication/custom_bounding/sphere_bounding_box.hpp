@@ -665,7 +665,7 @@ protected:
 	  //std::cout<<" ElementA "<<FaceNodesIds<<std::endl;
 
 	  pFace    = Kratos::make_shared<Triangle3D3<NodeType> >( FaceNodes );
-	  pElement = Kratos::make_shared<Element>(ElementId, pFace, pProperties);
+	  pElement = Kratos::make_intrusive<Element>(ElementId, pFace, pProperties);
 
 	  rModelPart.AddElement(pElement);
 	  pElement->Set(ACTIVE,false);
@@ -698,7 +698,7 @@ protected:
 	      //std::cout<<" ElementB "<<FaceNodesIds<<std::endl;
 
 	      pFace    = Kratos::make_shared<Quadrilateral3D4<NodeType> >(FaceNodes);
-	      pElement = Kratos::make_shared<Element>(ElementId, pFace, pProperties);
+	      pElement = Kratos::make_intrusive<Element>(ElementId, pFace, pProperties);
 
 	      rModelPart.AddElement(pElement);
 	      pElement->Set(ACTIVE,false);
@@ -730,7 +730,7 @@ protected:
 	  //std::cout<<" ElementC "<<FaceNodesIds<<std::endl;
 
 	  pFace    = Kratos::make_shared<Triangle3D3<NodeType>>(FaceNodes);
-	  pElement = Kratos::make_shared<Element>(ElementId, pFace, pProperties);
+	  pElement = Kratos::make_intrusive<Element>(ElementId, pFace, pProperties);
 
 	  rModelPart.AddElement(pElement);
 	  pElement->Set(ACTIVE,false);

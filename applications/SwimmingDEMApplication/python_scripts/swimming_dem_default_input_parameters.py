@@ -29,6 +29,7 @@ def GetDefaultInputParameters():
         "ElementType" : "SwimmingDEMElement",
 
         "do_print_results_option" : true,
+        "output_interval" : 0.5,
 
         "processes" : {
         },
@@ -38,7 +39,10 @@ def GetDefaultInputParameters():
             "coupling_weighing_type" : 2,
             "coupling_weighing_type_comment" : "{fluid_to_DEM, DEM_to_fluid, fluid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2), averaging method (3)",
             "interaction_start_time" : 0.0,
-            "time_averaging_type" : 0,
+
+            "forward_coupling" : {
+                "time_averaging_type" : 0
+            },
 
             "backward_coupling" : {
                 "meso_scale_length" : 0.2,
@@ -91,11 +95,12 @@ def GetDefaultInputParameters():
         "stationarity" : {
             "stationary_problem_option" : false,
             "stationary_problem_option_comment" : " stationary, stop calculating the fluid after it reaches the stationary state",
-            "max_pressure_variation_rate_tol" : 1e-3,
-            "max_pressure_variation_rate_tol_comment": " for stationary problems, criterion to stop the fluid calculations",
+            "tolerance" : 1e-3,
+            "tolerance_comment": " fraction of the historically-averaged, spatial-averaged time derivative of the pressure that is considered significant",
             "time_steps_per_stationarity_step" : 15,
-            "time_steps_per_stationarity_step_comment": " number of fluid time steps between consecutive assessment of stationarity steps",
-            "time_steps_per_analytic_processing_step": 1
+            "time_steps_per_stationarity_step_comment" : " number of fluid time steps between consecutive assessment of stationarity steps",
+            "time_steps_per_analytic_processing_step" : 1,
+            "time_steps_before_first_assessment" : 4
         },
 
         "debug_tool_cycle" : 10,
@@ -108,20 +113,21 @@ def GetDefaultInputParameters():
 
         "full_particle_history_watcher" : "Empty",
 
-        "gradient_calculation_type" : 1,
-        "gradient_calculation_type_comment" : "(Not calculated (0), volume-weighed average(1), Superconvergent recovery(2))",
-        "material_acceleration_calculation_type" : 1,
-        "laplacian_calculation_type" : 0,
-        "laplacian_calculation_type_comment" : "(Not calculated (0), Finite element projection (1), Superconvergent recovery(2))",
-        "vorticity_calculation_type" : 5,
-        "store_full_gradient_option" : false,
-        "add_each_hydro_force_option" : true,
-        "add_each_hydro_force_option_comment" : " add each of the hydrodynamic forces (drag, lift and virtual mass)",
-        "pressure_grad_recovery_type" : 0,
-        "recovery_echo_level" : 1,
-        "store_fluid_pressure_option" : false,
 
-        "output_interval" : 0.5,
+            "gradient_calculation_type" : 1,
+            "gradient_calculation_type_comment" : "(Not calculated (0), volume-weighed average(1), Superconvergent recovery(2))",
+            "material_acceleration_calculation_type" : 1,
+            "laplacian_calculation_type" : 0,
+            "laplacian_calculation_type_comment" : "(Not calculated (0), Finite element projection (1), Superconvergent recovery(2))",
+            "vorticity_calculation_type" : 5,
+            "store_full_gradient_option" : false,
+            "add_each_hydro_force_option" : true,
+            "add_each_hydro_force_option_comment" : " add each of the hydrodynamic forces (drag, lift and virtual mass)",
+            "pressure_grad_recovery_type" : 0,
+            "recovery_echo_level" : 1,
+            "store_fluid_pressure_option" : false,
+
+
 
         "print_distance_option" : false,
         "print_steps_per_plot_step" : 1,
@@ -161,7 +167,6 @@ def GetDefaultInputParameters():
             "do_solve_dem" : true,
             "do_search_neighbours" : true,
             "type_of_dem_inlet" : "VelocityImposed",
-            "type_of_dem_inlet_comment" : "VelocityImposed or ForceImposed",
             "translational_integration_scheme" : "Hybrid_Bashforth"
         },
 
@@ -175,9 +180,11 @@ def GetDefaultInputParameters():
             "TOTAL_FORCES" : false,
             "EXTERNAL_APPLIED_FORCE" : false,
             "CATION_CONCENTRATION" : false,
+            "PRESSURE" : false,
             "PRESSURE_GRAD_PROJECTED" : false,
             "HYDRODYNAMIC_FORCE" : false,
             "HYDRODYNAMIC_MOMENT" : false,
+            "FLUID_VEL_PROJECTED" : false,
             "FLUID_VEL_PROJECTED_RATE" : false,
             "FLUID_VEL_LAPL_PROJECTED" : false,
             "FLUID_VEL_LAPL_RATE_PROJECTED" : false,
@@ -192,10 +199,7 @@ def GetDefaultInputParameters():
             "BASSET_FORCE" : false,
             "LIFT_FORCE" : false,
             "IMPACT_WEAR" : false,
-            "NON_DIMENSIONAL_VOLUME_WEAR" : false,
-            "PRESSURE" : false,
-            "HYDRODYNAMIC_MOMENT" : false,
-            "FLUID_VEL_PROJECTED" : false
+            "NON_DIMENSIONAL_VOLUME_WEAR" : false
         },
 
         "fluid_nodal_results" : {
@@ -226,7 +230,8 @@ def GetDefaultInputParameters():
             "CONDUCTIVITY" : false,
             "VECTORIAL_ERROR" : false,
             "VECTORIAL_ERROR_1" : false,
-            "VELOCITY_LAPLACIAN_RATE" : false
+            "VELOCITY_LAPLACIAN_RATE" : false,
+            "MESH_VELOCITY" : false
         }
 
         }""")

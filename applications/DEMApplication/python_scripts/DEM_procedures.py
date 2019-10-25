@@ -10,7 +10,7 @@ from glob import glob
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-import DEM_material_test_script
+import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
 
 def Flush(a):
     a.flush()
@@ -371,7 +371,7 @@ class Procedures(object):
             translational_scheme = SymplecticEulerScheme()
         elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme':
             translational_scheme = TaylorScheme()
-        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
+        elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet':
             translational_scheme = VelocityVerletScheme()
         else:
             self.KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
@@ -494,8 +494,7 @@ class Procedures(object):
                 model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
 
         if "PostGluedSphere" in self.DEM_parameters.keys():
-            if self.DEM_parameters["PostGluedSphere"].GetBool():
-                model_part.AddNodalSolutionStepVariable(IS_STICKY)
+            model_part.AddNodalSolutionStepVariable(IS_STICKY)
 
         # LOCAL AXIS
         if DEM_parameters["PostEulerAngles"].GetBool():
@@ -975,16 +974,18 @@ class DEMFEMProcedures(object):
         evaluate_computation_of_fem_results()
 
     def MoveAllMeshes(self, all_model_parts, time, dt): # TODO: deprecated
+        message = 'Warning!'
+        message += '\nFunction \'MoveAllMeshes\' is deprecated. It is called inside sphere_strategy.py'
+        message += '\nIt will be removed after 10/31/2019.\n'
+        Logger.PrintWarning("DEM_procedures.py", message)
 
         spheres_model_part = all_model_parts.Get("SpheresPart")
         dem_inlet_model_part = all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = all_model_parts.Get("RigidFacePart")
-        cluster_model_part = all_model_parts.Get("ClusterPart")
 
-        self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(dem_inlet_model_part, time, dt)
-        self.mesh_motion.MoveAllMeshes(cluster_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
 
     # def MoveAllMeshesUsingATable(self, model_part, time, dt):
 
@@ -1549,9 +1550,8 @@ class DEMIo(object):
             if self.DEM_parameters["PostBrokenRatio"].GetBool():
                 self.PushPrintVar(self.PostBrokenRatio, NEIGHBOUR_RATIO, self.spheres_variables)
 
-        if "PostGluedSphere" in self.DEM_parameters.keys():
-            if self.DEM_parameters["PostGluedSphere"].GetBool():
-                self.PushPrintVar(self.PostGluedSphere, IS_STICKY, self.spheres_variables)
+        if self.PostGluedSphere:
+            self.PushPrintVar(self.PostGluedSphere, IS_STICKY, self.spheres_variables)
 
         # NANO (TODO: must be removed from here.)
         if self.DEM_parameters["ElementType"].GetString() == "SwimmingNanoParticle":
@@ -2005,8 +2005,7 @@ class ParallelUtils(object):
 
     @classmethod
     def SetCommunicator(self, spheres_model_part, model_part_io_spheres, spheres_mp_filename):
-        MPICommSetup = 0
-        return [model_part_io_spheres, spheres_model_part, MPICommSetup]
+        return [model_part_io_spheres, spheres_model_part]
 
     @classmethod
     def GetSearchStrategy(self, solver, model_part):

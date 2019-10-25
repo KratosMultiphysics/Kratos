@@ -24,6 +24,10 @@
 #include "custom_elements/iga_truss_element.h"
 #include "custom_elements/shell_kl_discrete_element.h"
 
+//conditions
+#include "custom_conditions/load_condition.h"
+
+
 namespace Kratos {
 
 ///@name Kratos Globals
@@ -164,6 +168,9 @@ private:
 
     const IgaTrussElement mIgaTrussElement;
     const ShellKLDiscreteElement mShellKLDiscreteElement;
+
+    //Conditions
+    const LoadCondition mLoadCondition;
 
     ///@}
     ///@name Private Operators

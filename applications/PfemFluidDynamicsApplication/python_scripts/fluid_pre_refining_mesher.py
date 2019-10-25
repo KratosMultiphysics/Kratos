@@ -5,7 +5,7 @@ import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 
 # Import the mesh mesher (the base class for the mesher derivation)
-import fluid_mesher
+from KratosMultiphysics.PfemFluidDynamicsApplication import fluid_mesher
 
 def CreateMesher(main_model_part, meshing_parameters):
     return PreRefiningMesher(main_model_part, meshing_parameters)
@@ -50,7 +50,7 @@ class PreRefiningMesher(fluid_mesher.FluidMesher):
 
         execution_options.Set(KratosDelaunay.MesherUtilities.SELECT_TESSELLATION_ELEMENTS, True)
         execution_options.Set(KratosDelaunay.MesherUtilities.KEEP_ISOLATED_NODES, True)
-
+        execution_options.Set(KratosDelaunay.MesherUtilities.REFINE_WALL_CORNER, False)
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
 

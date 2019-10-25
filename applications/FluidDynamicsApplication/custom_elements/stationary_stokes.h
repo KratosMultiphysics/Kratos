@@ -91,7 +91,7 @@ public:
     ///@{
 
     /// Pointer definition of StationaryStokes
-    KRATOS_CLASS_POINTER_DEFINITION(StationaryStokes);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StationaryStokes);
 
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;
