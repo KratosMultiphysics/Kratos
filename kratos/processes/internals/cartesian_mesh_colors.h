@@ -120,49 +120,43 @@ namespace Kratos
     }
 
     void InitializeRays(array_1d< std::size_t, 3 > const& MinRayPosition, array_1d< std::size_t, 3 > const& MaxRayPosition, std::string EntititesToColor){
+        Point min_point( mNodalCoordinates[0][0] - mTolerance, mNodalCoordinates[1][0] - mTolerance, mNodalCoordinates[2][0] - mTolerance);
+        Point max_point( mNodalCoordinates[0].back() + mTolerance, mNodalCoordinates[1].back() + mTolerance, mNodalCoordinates[2].back() + mTolerance);
+
+        std::vector<double>* p_x_coordinates = &(mNodalCoordinates[0]);
+        std::vector<double>* p_y_coordinates = &(mNodalCoordinates[1]);
+        std::vector<double>* p_z_coordinates = &(mNodalCoordinates[2]);
 
         if(EntititesToColor == "center_of_elements"){
-            #pragma omp parallel for
-            for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
-                for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
-                mXYRays(i,j) = Internals::CartesianRay<Element::GeometryType>(2, GetCenterOfElement(i,j,0), GetCenterOfElement(i,j,mNodalCoordinates[2].size() - 2));
-                }
-            }
-            #pragma omp parallel for
-            for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
-                for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
-                mXZRays(i,k) = Internals::CartesianRay<Element::GeometryType>(1, GetCenterOfElement(i,0, k), GetCenterOfElement(i,mNodalCoordinates[1].size() - 2,k));
-                }
-            }
-            #pragma omp parallel for
-            for(int j = MinRayPosition[1] ; j < static_cast<int>(MaxRayPosition[1]) ; j++){
-                for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
-                mYZRays(j,k) = Internals::CartesianRay<Element::GeometryType>(0, GetCenterOfElement(0,j,k), GetCenterOfElement(mNodalCoordinates[0].size() - 2,j,k));
-                }
+            p_x_coordinates = &(mElementCenterCoordinates[0]);
+            p_y_coordinates = &(mElementCenterCoordinates[1]);
+            p_z_coordinates = &(mElementCenterCoordinates[2]);
+        }
+
+
+        #pragma omp parallel for
+        for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
+            for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
+                mXYRays(i,j) = Internals::CartesianRay<Element::GeometryType>(2, 
+                        Point((*p_x_coordinates)[i], (*p_y_coordinates)[j], min_point[2]),
+                        Point((*p_x_coordinates)[i], (*p_y_coordinates)[j], max_point[2]));
             }
         }
-        else if(EntititesToColor == "nodes"){
-            #pragma omp parallel for
-            for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
-                for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
-                mXYRays(i,j) = Internals::CartesianRay<Element::GeometryType>(2, GetPoint(i,j,0), GetPoint(i,j,mNodalCoordinates[2].size() - 1));
-                }
-            }
-            #pragma omp parallel for
-            for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
-                for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
-                mXZRays(i,k) = Internals::CartesianRay<Element::GeometryType>(1, GetPoint(i,0, k), GetPoint(i,mNodalCoordinates[1].size() - 1,k));
-                }
-            }
-            #pragma omp parallel for
-            for(int j = MinRayPosition[1] ; j < static_cast<int>(MaxRayPosition[1]) ; j++){
-                for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
-                mYZRays(j,k) = Internals::CartesianRay<Element::GeometryType>(0, GetPoint(0,j,k), GetPoint(mNodalCoordinates[0].size() - 1,j,k));
-                }
+        #pragma omp parallel for
+        for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
+            for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
+                mXZRays(i,k) = Internals::CartesianRay<Element::GeometryType>(1,
+                        Point((*p_x_coordinates)[i], min_point[1], (*p_z_coordinates)[k]),
+                        Point((*p_x_coordinates)[i], max_point[1], (*p_z_coordinates)[k]));
             }
         }
-        else{
-            KRATOS_ERROR << "Undefined entities type: \"" << EntititesToColor << "\" The possible options are:  \"ndoe\" and  \"center_of_elements\"" << std::endl;
+        #pragma omp parallel for
+        for(int j = MinRayPosition[1] ; j < static_cast<int>(MaxRayPosition[1]) ; j++){
+            for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
+                mYZRays(j,k) = Internals::CartesianRay<Element::GeometryType>(0,
+                        Point(min_point[0], (*p_y_coordinates)[j], (*p_z_coordinates)[k]),
+                        Point(max_point[0], (*p_y_coordinates)[j], (*p_z_coordinates)[k]));
+            }
         }
     }
 
