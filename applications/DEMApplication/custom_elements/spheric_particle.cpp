@@ -1183,9 +1183,6 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
         double LocalContactForce[3] = { 0.0 };
         double GlobalContactForce[3] = { 0.0 };
 
-        double coordsIGAcond[3] = { 0.0 };
-        DEM_COPY_SECOND_TO_FIRST_3(coordsIGAcond, wall_coordinates)
-
         AddUpFEMForcesAndProject(
             data_buffer.mLocalCoordSystem,
             LocalContactForce,
