@@ -4,8 +4,8 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 import KratosMultiphysics
 
 # Import applications
-import KratosMultiphysics.MeshingApplication as KratosMeshing
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+import KratosMultiphysics.MeshingApplication as MeshingApplication
+import KratosMultiphysics.ExaquteSandboxApplication as ExaquteSandboxApplication
 from KratosMultiphysics.MultilevelMonteCarloApplication.tools import ParametersWrapper
 
 # Import packages
@@ -79,9 +79,9 @@ class AdaptiveRefinement(object):
                     interp_error = original_interp_error/(coefficient_interp_error*current_level)
                     metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
 
-                local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY_X,metric_param)
+                local_gradient = MeshingApplication.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY_X,metric_param)
                 local_gradient.Execute()
-                local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY_Y,metric_param)
+                local_gradient = MeshingApplication.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.VELOCITY_Y,metric_param)
                 local_gradient.Execute()
 
                 # #### OLD APPROACH
@@ -95,7 +95,7 @@ class AdaptiveRefinement(object):
                 # local_gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable(metric_param["local_gradient_variable"].GetString())
                 # set interpolation error value (level dependent)
                 # calculate the gradient of the variable
-                # local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),local_gradient_variable,metric_param)
+                # local_gradient = MeshingApplication.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),local_gradient_variable,metric_param)
                 # local_gradient.Execute()
 
                 # # add again the removed variable parameter
@@ -105,7 +105,7 @@ class AdaptiveRefinement(object):
                 #### OLD APPROACH
 
 
-            elif (problem_type == "monolithic"):
+            elif (problem_type == "Monolithic"):
                 if metric_param.Has("local_gradient_variable"):
                     metric_param.RemoveValue("local_gradient_variable")
                 if current_level > 0:
@@ -117,15 +117,24 @@ class AdaptiveRefinement(object):
                 model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
 
                 # Setting Metric Tensor to 0
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_2D,model_coarse.GetModelPart(model_part_name).Nodes)
+                if (self.wrapper.GetDomainSize() == 2):
+                    KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_2D,model_coarse.GetModelPart(model_part_name).Nodes)
+                elif (self.wrapper.GetDomainSize() == 3):
+                    KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_3D,model_coarse.GetModelPart(model_part_name).Nodes)
+                else:
+                    raise Exception ("Domain dimension not supported. Specify in the project parameters.")
 
                 # calculate NODAL_H
                 find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
                 find_nodal_h.Execute()
-                local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosFluid.AVERAGE_VELOCITY_X,metric_param)
+                local_gradient = MeshingApplication.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),ExaquteSandboxApplication.VELOCITY_WEIGHTED_X,metric_param)
                 local_gradient.Execute()
-                local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosFluid.AVERAGE_VELOCITY_Y,metric_param)
+                local_gradient = MeshingApplication.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),ExaquteSandboxApplication.VELOCITY_WEIGHTED_Y,metric_param)
                 local_gradient.Execute()
+                if (self.wrapper.GetDomainSize() == 3):
+                    local_gradient = MeshingApplication.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),ExaquteSandboxApplication.VELOCITY_WEIGHTED_Z,metric_param)
+                    local_gradient.Execute()
+
 
             elif (problem_type == "stationary"):
                 if current_level > 0:
@@ -139,11 +148,11 @@ class AdaptiveRefinement(object):
                 # calculate NODAL_H
                 find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
                 find_nodal_h.Execute()
-                local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.TEMPERATURE,metric_param)
+                local_gradient = MeshingApplication.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosMultiphysics.TEMPERATURE,metric_param)
                 local_gradient.Execute()
 
             # create the remeshing process
-            MmgProcess = KratosMeshing.MmgProcess2D(model_coarse.GetModelPart(model_part_name),remesh_param)
+            MmgProcess = MeshingApplication.MmgProcess2D(model_coarse.GetModelPart(model_part_name),remesh_param)
             MmgProcess.Execute()
 
             # reset variables if needed
