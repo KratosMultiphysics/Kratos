@@ -212,7 +212,7 @@ public:
     */
     CoordinatesArrayType Normal(
         IndexType IntegrationPointIndex,
-        IntegrationMethod ThisMethod) const override
+        GeometryData::IntegrationMethod ThisMethod) const override
     {
         Matrix J;
         this->Jacobian(J, IntegrationPointIndex, ThisMethod);
@@ -236,7 +236,7 @@ public:
     */
     double DeterminantOfJacobian(
         IndexType IntegrationPointIndex,
-        IntegrationMethod ThisMethod) const override
+        GeometryData::IntegrationMethod ThisMethod) const override
     {
         Matrix J;
         this->Jacobian(J, IntegrationPointIndex, ThisMethod);
