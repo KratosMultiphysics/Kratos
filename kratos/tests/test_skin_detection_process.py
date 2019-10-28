@@ -100,7 +100,7 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         detect_skin.Execute()
 
         ## DEBUG
-        self._post_process(model_part)
+        #self._post_process(model_part)
 
         for node in model_part.Nodes:
             self.assertEqual(node.Is(KratosMultiphysics.INTERFACE), node.Is(KratosMultiphysics.ACTIVE))
