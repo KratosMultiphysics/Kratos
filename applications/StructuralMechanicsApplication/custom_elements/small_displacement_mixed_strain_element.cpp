@@ -361,7 +361,14 @@ void SmallDisplacementMixedStrainElement::CalculateLeftHandSide(
             vol_stress += cons_law_values.GetStressVector()[d];
         }
         vol_stress /= alpha;
-        const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : GetProperties()[YOUNG_MODULUS] / (3 * (1 - 2 * GetProperties()[POISSON_RATIO]));
+        double bulk_modulus = 0.0;
+        for (unsigned int i = 0; i < dim; ++i) {
+            for (unsigned int j = 0; j < dim; ++j) {
+                bulk_modulus += cons_law_values.GetConstitutiveMatrix()(i,j);
+            }
+        }
+        bulk_modulus /= 9.0;
+        // const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : GetProperties()[YOUNG_MODULUS] / (3 * (1 - 2 * GetProperties()[POISSON_RATIO]));
 
         for (unsigned int i = 0; i < n_nodes; ++i) {
             for (unsigned int j = 0; j < n_nodes; ++j) {
@@ -523,7 +530,7 @@ void SmallDisplacementMixedStrainElement::CalculateRightHandSide(
         auto &r_cons_law_options = cons_law_values.GetOptions();
         r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-        r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
         cons_law_values.SetShapeFunctionsValues(rN);
         cons_law_values.SetStrainVector(tot_strain);
         cons_law_values.SetStressVector(tot_stress);
@@ -581,7 +588,14 @@ void SmallDisplacementMixedStrainElement::CalculateRightHandSide(
             vol_stress += cons_law_values.GetStressVector()[d];
         }
         vol_stress /= alpha;
-        const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : GetProperties()[YOUNG_MODULUS] / (3 * (1 - 2 * GetProperties()[POISSON_RATIO]));
+        double bulk_modulus = 0.0;
+        for (unsigned int i = 0; i < dim; ++i) {
+            for (unsigned int j = 0; j < dim; ++j) {
+                bulk_modulus += cons_law_values.GetConstitutiveMatrix()(i,j);
+            }
+        }
+        bulk_modulus /= 9.0;
+        // const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : GetProperties()[YOUNG_MODULUS] / (3 * (1 - 2 * GetProperties()[POISSON_RATIO]));
 
         const double h = ComputeElementSize(DN_DX_container[i_gauss]);
         const double shear_modulus = GetProperties()[YOUNG_MODULUS] / (2.0 * (1.0 + GetProperties()[POISSON_RATIO]));
