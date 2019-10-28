@@ -202,7 +202,7 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
     const SizeType echo_level = mThisParameters["echo_level"].GetInt();
     KRATOS_INFO_IF("SkinDetectionProcess", echo_level > 0) << rInverseFaceMap.size() << " have been created" << std::endl;
 
-    // Now we set the falg on the nodes. The list of nodes of the auxiliar model part
+    // Now we set the flag on the nodes. The list of nodes of the auxiliar model part
     auto& nodes_array = rAuxiliaryModelPart.Nodes();
 
     #pragma omp parallel for
