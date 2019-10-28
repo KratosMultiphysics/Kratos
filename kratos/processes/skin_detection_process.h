@@ -209,9 +209,21 @@ protected:
         HashMapVectorIntType& rInverseFaceMap,
         HashMapVectorIntIdsType& rPropertiesFaceMap) const;
 
-    void GenerateSkinConditions(
+    ModelPart& SetUpAuxiliaryModelPart();
+
+    void FillAuxiliaryModelPart(
+        ModelPart& rAuxiliaryModelPart,
         HashMapVectorIntType& rInverseFaceMap,
         HashMapVectorIntIdsType& rPropertiesFaceMap);
+
+    virtual void CreateConditions(
+        ModelPart& rAuxiliaryModelPart,
+        HashMapVectorIntType& rInverseFaceMap,
+        HashMapVectorIntIdsType& rPropertiesFaceMap,
+        std::unordered_set<IndexType>& rNodesInTheSkin,
+        const std::string& rConditionName) const;
+
+    void SetUpAdditionalSubModelParts(const ModelPart& rAuxiliaryModelPart);
 
     /// Auxiliar function to get default settings.
     /** It is defined as virtual so that it can be overriden by derived classes

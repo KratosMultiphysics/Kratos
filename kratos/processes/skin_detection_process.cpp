@@ -40,7 +40,11 @@ void SkinDetectionProcess<TDim>::Execute()
     HashMapVectorIntType inverse_face_map;
     HashMapVectorIntIdsType properties_face_map;
     this->GenerateFaceMaps(inverse_face_map, properties_face_map);
-    this->GenerateSkinConditions(inverse_face_map, properties_face_map);
+
+    // Generate skin conditions
+    ModelPart& r_work_model_part = this->SetUpAuxiliaryModelPart();
+    this->FillAuxiliaryModelPart(r_work_model_part, inverse_face_map, properties_face_map);
+    this->SetUpAdditionalSubModelParts(r_work_model_part);
 
     KRATOS_CATCH("");
 }
@@ -143,9 +147,7 @@ void SkinDetectionProcess<TDim>::GenerateFaceMaps(
 }
 
 template<SizeType TDim>
-void SkinDetectionProcess<TDim>::GenerateSkinConditions(
-    HashMapVectorIntType& rInverseFaceMap,
-    HashMapVectorIntIdsType& rPropertiesFaceMap)
+ModelPart& SkinDetectionProcess<TDim>::SetUpAuxiliaryModelPart()
 {
     // We create the auxiliar ModelPart
     const std::string& name_auxiliar_model_part = mThisParameters["name_auxiliar_model_part"].GetString();
@@ -165,13 +167,21 @@ void SkinDetectionProcess<TDim>::GenerateSkinConditions(
         mrModelPart.RemoveSubModelPart(name_auxiliar_model_part);
         mrModelPart.CreateSubModelPart(name_auxiliar_model_part);
     }
-    ModelPart& r_auxiliar_model_part = mrModelPart.GetSubModelPart(name_auxiliar_model_part);
+    return mrModelPart.GetSubModelPart(name_auxiliar_model_part);
+}
 
+template<SizeType TDim>
+void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
+    ModelPart& r_auxiliar_model_part,
+    HashMapVectorIntType& rInverseFaceMap,
+    HashMapVectorIntIdsType& rPropertiesFaceMap)
+{
     // The auxiliar name of the condition
     const std::string& name_condition = mThisParameters["name_auxiliar_condition"].GetString();
     std::string pre_name = "";
     if (TDim == 3 && name_condition == "Condition")
         pre_name = "Surface";
+    const std::string base_name = pre_name + name_condition;
 
     // The number of conditions
     ConditionsArrayType& condition_array = mrModelPart.GetRootModelPart().Conditions();
@@ -179,34 +189,10 @@ void SkinDetectionProcess<TDim>::GenerateSkinConditions(
     for(IndexType i = 0; i < condition_array.size(); ++i)
         (it_begin + i)->SetId(i + 1);
 
-    IndexType condition_id = mrModelPart.GetRootModelPart().Conditions().size();
-
     // The indexes of the nodes of the skin
     std::unordered_set<IndexType> nodes_in_the_skin;
 
-    // Create the auxiliar conditions
-    for (auto& map : rInverseFaceMap) {
-        condition_id += 1;
-
-        const VectorIndexType& nodes_face = map.second;
-
-        Properties::Pointer p_prop;
-        const IndexType property_id = rPropertiesFaceMap[map.first];
-         if (mrModelPart.RecursivelyHasProperties(property_id)) {
-             p_prop = mrModelPart.pGetProperties(property_id);
-         } else {
-             p_prop = mrModelPart.CreateNewProperties(property_id);
-         }
-
-        for (auto& index : nodes_face)
-            nodes_in_the_skin.insert(index);
-
-        const std::string complete_name = pre_name + name_condition + std::to_string(TDim) + "D" + std::to_string(nodes_face.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
-        auto p_cond = mrModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop);
-        r_auxiliar_model_part.AddCondition(p_cond);
-        p_cond->Set(INTERFACE, true);
-        p_cond->Initialize();
-    }
+    this->CreateConditions(r_auxiliar_model_part, rInverseFaceMap, rPropertiesFaceMap, nodes_in_the_skin, base_name);
 
     // Adding to the auxiliar model part
     VectorIndexType indexes_skin;
@@ -224,7 +210,47 @@ void SkinDetectionProcess<TDim>::GenerateSkinConditions(
         auto it_node = nodes_array.begin() + i;
         it_node->Set(INTERFACE, true);
     }
+}
 
+template<SizeType TDim>
+void SkinDetectionProcess<TDim>::CreateConditions(
+    ModelPart& rAuxiliaryModelPart,
+    HashMapVectorIntType& rInverseFaceMap,
+    HashMapVectorIntIdsType& rPropertiesFaceMap,
+    std::unordered_set<IndexType>& rNodesInTheSkin,
+    const std::string& rConditionName) const
+{
+
+    IndexType condition_id = mrModelPart.GetRootModelPart().Conditions().size();
+
+    // Create the auxiliar conditions
+    for (auto& map : rInverseFaceMap) {
+        condition_id += 1;
+
+        const VectorIndexType& nodes_face = map.second;
+
+        Properties::Pointer p_prop;
+        const IndexType property_id = rPropertiesFaceMap[map.first];
+         if (mrModelPart.RecursivelyHasProperties(property_id)) {
+             p_prop = mrModelPart.pGetProperties(property_id);
+         } else {
+             p_prop = mrModelPart.CreateNewProperties(property_id);
+         }
+
+        for (auto& index : nodes_face)
+            rNodesInTheSkin.insert(index);
+
+        const std::string complete_name = rConditionName + std::to_string(TDim) + "D" + std::to_string(nodes_face.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
+        auto p_cond = mrModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop);
+        rAuxiliaryModelPart.AddCondition(p_cond);
+        p_cond->Set(INTERFACE, true);
+        p_cond->Initialize();
+    }
+}
+
+template<SizeType TDim>
+void SkinDetectionProcess<TDim>::SetUpAdditionalSubModelParts(const ModelPart& r_auxiliar_model_part)
+{
     // We detect the conditions in the boundary model parts
     const SizeType n_model_parts = mThisParameters["list_model_parts_to_assign_conditions"].size();
     if (n_model_parts > 0) {
