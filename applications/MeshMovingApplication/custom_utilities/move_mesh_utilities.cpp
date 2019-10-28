@@ -78,11 +78,15 @@ ModelPart* GenerateMeshPart(ModelPart &rModelPart,
   const Element &r_reference_element =
       KratosComponents<Element>::Get(rElementName);
 
+
+  // create a new property for the mesh motion
+  Properties::Pointer p_mesh_motion_property = pmesh_model_part->CreateNewProperties(0);
+
   for (int i = 0; i < (int)rModelPart.Elements().size(); i++) {
     ModelPart::ElementsContainerType::iterator it =
         rModelPart.ElementsBegin() + i;
     Element::Pointer p_element = r_reference_element.Create(
-        it->Id(), it->pGetGeometry(), it->pGetProperties());
+        it->Id(), it->pGetGeometry(), p_mesh_motion_property);
     rmesh_elements.push_back(p_element);
   }
 
