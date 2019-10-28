@@ -329,11 +329,42 @@ class CHTWorkflow():
         self.gid_output.PrintOutput()
         self.gid_output.ExecuteFinalizeSolutionStep()
         self.gid_output.ExecuteFinalize()
-
+    
+    def VTKFileOutput(self):
+        
+        vtk_settings = KratosMultiphysics.Parameters("""{
+            "condition_data_value_variables": [],
+            "condition_flags": [],
+            "custom_name_postfix": "",
+            "custom_name_prefix": "",
+            "element_data_value_variables": [],
+            "element_flags": [],
+            "file_format": "ascii",
+            "folder_name": "VTK_Output",
+            "gauss_point_variables_extrapolated_to_nodes": [],
+            "gauss_point_variables_in_elements": [],
+            "model_part_name": "FluidPart",
+            "nodal_data_value_variables": ["ANISOTROPIC_RATIO"],
+            "nodal_flags": [],
+            "nodal_solution_step_data_variables": ["DISTANCE","DISTANCE_GRADIENT"],
+            "output_control_type": "step",
+            "output_frequency": 1.0,
+            "output_precision": 7,
+            "output_sub_model_parts": true,
+            "save_output_files_in_folder": false,
+            "write_deformed_configuration": false,
+            "write_ids": false
+        }""")
+        #vtk_settings["model_part_name"] = str(model_input)
+        vtk_io = KratosMultiphysics.VtkOutput(self.model_fluid, vtk_settings)
+        vtk_io.PrintOutput()
+	
 if __name__ == "__main__":
     
     CHT_tool = CHTWorkflow("/mdpa_files/cavity_fluid3", "/mdpa_files/solid3D_coarse")
     CHT_tool.EmbeddedSkinVisualization()
-    #CHT_tool.RefineMeshnearSolid(0.8, 10, 15, 0.1)
+    CHT_tool.RefineMeshnearSolid(0.8, 10, 15, 0.1)
+    CHT_tool.VTKFileOutput()
     CHT_tool.CreateGIDOutput("vis_model")
-    CHT_tool.SubtractModels(15, 20, 0.1)
+    # CHT_tool.VTKFileOutput("Remesh_final")
+    #CHT_tool.SubtractModels(15, 20, 0.1)
