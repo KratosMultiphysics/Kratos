@@ -90,6 +90,22 @@ ModelPart* GenerateMeshPart(ModelPart &rModelPart,
   KRATOS_CATCH("");
 }
 
+void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariable,
+                                                 Variable< array_1d<double, 3> >& rVariableToSuperImpose)
+{
+  KRATOS_TRY;
+  auto r_nodes = rModelPart.Nodes();
+  const int num_nodes = r_nodes.size();
+  const auto nodes_begin = r_nodes.begin();
+
+  #pragma omp parallel for
+  for (int i=0; i<num_nodes; i++) {
+      const auto it_node  = nodes_begin + i;
+      it_node->GetSolutionStepValue(rVariable,0) += it_node->GetValue(rVariableToSuperImpose)
+  }
+  KRATOS_CATCH("");
+}
+
 } // namespace Move Mesh Utilities.
 
 } // namespace Kratos.
