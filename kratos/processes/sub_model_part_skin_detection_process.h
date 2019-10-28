@@ -28,8 +28,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Create a SubModelPart covering a part of the outside skin of the computation domain where a condition is met.
+/** For example, create the outer skin for the part of the domain belonging to a given SubModelPart.
 */
 template<SizeType TDim>
 class SubModelPartSkinDetectionProcess: public SkinDetectionProcess<TDim>
@@ -37,6 +37,7 @@ class SubModelPartSkinDetectionProcess: public SkinDetectionProcess<TDim>
 
 KRATOS_DEFINE_LOCAL_FLAG( NODE_SELECTED );
 
+// Internal class used to select which faces to create.
 class FaceSelector
 {
 public:
@@ -45,6 +46,7 @@ virtual void Prepare(ModelPart& rMainModelPart) const = 0;
 virtual bool IsSelected(const Geometry<Node<3>>::PointsArrayType&) const = 0;
 };
 
+// Select faces where all nodes belong to given SubModelPart.
 class SelectIfAllNodesOnSubModelPart: public FaceSelector
 {
 std::string mName;
@@ -141,18 +143,7 @@ void PrintData(std::ostream& rOStream) const override
 ///@}
 
 protected:
-///@name Protected static Member Variables
-///@{
 
-///@}
-///@name Protected member Variables
-///@{
-
-///@}
-///@name Protected Operators
-///@{
-
-///@}
 ///@name Protected Operations
 ///@{
 
@@ -167,24 +158,9 @@ void CreateConditions(
 Parameters GetDefaultSettings() const override;
 
 ///@}
-///@name Protected  Access
-///@{
-
-///@}
-///@name Protected Inquiry
-///@{
-
-///@}
-///@name Protected LifeCycle
-///@{
-
-///@}
 
 private:
-///@name Static Member Variables
-///@{
 
-///@}
 ///@name Member Variables
 ///@{
 
