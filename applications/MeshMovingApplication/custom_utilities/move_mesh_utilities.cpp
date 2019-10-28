@@ -91,7 +91,7 @@ ModelPart* GenerateMeshPart(ModelPart &rModelPart,
 }
 
 void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariable,
-                                                 Variable< array_1d<double, 3> >& rVariableToSuperImpose)
+                                                 const Variable< array_1d<double, 3> >& rVariableToSuperImpose)
 {
   KRATOS_TRY;
   auto r_nodes = rModelPart.Nodes();
@@ -101,7 +101,8 @@ void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double
   #pragma omp parallel for
   for (int i=0; i<num_nodes; i++) {
       const auto it_node  = nodes_begin + i;
-      it_node->GetSolutionStepValue(rVariable,0) += it_node->GetValue(rVariableToSuperImpose)
+      if(it_node->Has(rVariableToSuperImpose))
+          it_node->GetSolutionStepValue(rVariable,0) += it_node->GetValue(rVariableToSuperImpose);
   }
   KRATOS_CATCH("");
 }

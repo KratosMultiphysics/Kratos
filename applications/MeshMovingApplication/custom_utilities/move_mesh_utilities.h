@@ -37,7 +37,7 @@ ModelPart* GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName);
 
 void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariable,
-                                                 Variable< array_1d<double, 3> >& rVariableToSuperImpose);
+                                                 const Variable< array_1d<double, 3> >& rVariableToSuperImpose);
 
 } // namespace Move Mesh Utilities.
 
