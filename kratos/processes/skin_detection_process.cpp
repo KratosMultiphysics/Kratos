@@ -172,7 +172,7 @@ ModelPart& SkinDetectionProcess<TDim>::SetUpAuxiliaryModelPart()
 
 template<SizeType TDim>
 void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
-    ModelPart& r_auxiliar_model_part,
+    ModelPart& rAuxiliaryModelPart,
     HashMapVectorIntType& rInverseFaceMap,
     HashMapVectorIntIdsType& rPropertiesFaceMap)
 {
@@ -192,18 +192,18 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
     // The indexes of the nodes of the skin
     std::unordered_set<IndexType> nodes_in_the_skin;
 
-    this->CreateConditions(mrModelPart, r_auxiliar_model_part, rInverseFaceMap, rPropertiesFaceMap, nodes_in_the_skin, base_name);
+    this->CreateConditions(mrModelPart, rAuxiliaryModelPart, rInverseFaceMap, rPropertiesFaceMap, nodes_in_the_skin, base_name);
 
     // Adding to the auxiliar model part
     VectorIndexType indexes_skin;
     indexes_skin.insert(indexes_skin.end(), nodes_in_the_skin.begin(), nodes_in_the_skin.end());
-    r_auxiliar_model_part.AddNodes(indexes_skin);
+    rAuxiliaryModelPart.AddNodes(indexes_skin);
 
     const SizeType echo_level = mThisParameters["echo_level"].GetInt();
     KRATOS_INFO_IF("SkinDetectionProcess", echo_level > 0) << rInverseFaceMap.size() << " have been created" << std::endl;
 
     // Now we set the falg on the nodes. The list of nodes of the auxiliar model part
-    auto& nodes_array = r_auxiliar_model_part.Nodes();
+    auto& nodes_array = rAuxiliaryModelPart.Nodes();
 
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
@@ -251,7 +251,7 @@ void SkinDetectionProcess<TDim>::CreateConditions(
 }
 
 template<SizeType TDim>
-void SkinDetectionProcess<TDim>::SetUpAdditionalSubModelParts(const ModelPart& r_auxiliar_model_part)
+void SkinDetectionProcess<TDim>::SetUpAdditionalSubModelParts(const ModelPart& rAuxiliaryModelPart)
 {
     // We detect the conditions in the boundary model parts
     const SizeType n_model_parts = mThisParameters["list_model_parts_to_assign_conditions"].size();
@@ -260,7 +260,7 @@ void SkinDetectionProcess<TDim>::SetUpAdditionalSubModelParts(const ModelPart& r
         // We build a database of indexes
         std::unordered_map<IndexType, std::unordered_set<IndexType>> conditions_nodes_ids_map;
 
-        for (auto& cond : r_auxiliar_model_part.Conditions()) {
+        for (auto& cond : rAuxiliaryModelPart.Conditions()) {
             auto& geom = cond.GetGeometry();
 
             for (auto& node : geom) {
