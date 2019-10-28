@@ -121,9 +121,6 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     const IndexType mesh_id = 0;
     Properties::Pointer p_prop;
     if (r_model_part.RecursivelyHasProperties(property_id, mesh_id)) {
-        KRATOS_WARNING("ReadMaterialsUtility") << "WARNING:: The properties ID: " << property_id
-            << " in mesh ID: " << mesh_id << " is already defined. "
-            << "This will overwrite the existing values" << std::endl;
         p_prop = r_model_part.pGetProperties(property_id, mesh_id);
 
         // Compute the size using the iterators
@@ -139,6 +136,11 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
                 ++tables_size;
             }
         }
+      
+        KRATOS_WARNING_IF("ReadMaterialsUtility", p_prop->HasVariables() && p_prop->HasTables()) 
+            << "WARNING:: The properties ID: " << property_id
+            << " in mesh ID: " << mesh_id << " is already defined and non empty. "
+            << "Existing values may be overwritten." << std::endl;
 
         KRATOS_WARNING_IF("ReadMaterialsUtility", variables_size > 0 && p_prop->HasVariables())
             << "WARNING:: The properties ID: " << property_id << " already has variables." << std::endl;
