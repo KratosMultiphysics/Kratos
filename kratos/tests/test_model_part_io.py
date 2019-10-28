@@ -250,9 +250,12 @@ class TestModelPartIO(KratosUnittest.TestCase):
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write.out"), KratosMultiphysics.IO.WRITE)
         model_part_io.WriteModelPart(model_part)
 
-        import filecmp
-        value = filecmp.cmp(GetFilePath(os.path.join("auxiliar_files_for_python_unnitest", "mdpa_files", "test_model_part_io_write.mdpa")), GetFilePath("test_model_part_io_write.out.mdpa"))
-        self.assertEqual(value, True)
+        # import filecmp
+        # value = filecmp.cmp(GetFilePath(os.path.join("auxiliar_files_for_python_unnitest", "mdpa_files", "test_model_part_io_write.mdpa")), GetFilePath("test_model_part_io_write.out.mdpa"))
+        
+        with open(GetFilePath("test_model_part_io_write.out.mdpa")) as generated:
+            with open(GetFilePath(os.path.join("auxiliar_files_for_python_unnitest", "mdpa_files", "test_model_part_io_write.mdpa"))) as reference:
+                self.assertEqual(generated==reference, True)
 
     @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
     def test_model_part_io_write_model_part(self):
