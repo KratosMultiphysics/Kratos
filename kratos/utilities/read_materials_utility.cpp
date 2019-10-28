@@ -36,7 +36,7 @@ void CheckIfOverwritingTable(const Properties& rProps,
                              const Variable<TValueType>& rInputVariable,
                              const Variable<TValueType>& rOutputVariable)
 {
-    KRATOS_WARNING_IF("ReadMaterialsUtility", rProps.Has(rInputVariable, rOutputVariable))
+    KRATOS_WARNING_IF("ReadMaterialsUtility", rProps.HasTable(rInputVariable, rOutputVariable))
         << "The properties ID: " << rProps.Id() << " already has a table for "
         << rInputVariable.Name() << " and " << rOutputVariable.Name()
         << ".\nIt is overwritten." << std::endl;
