@@ -39,6 +39,10 @@ ModelPart* GenerateMeshPart(ModelPart &rModelPart,
 void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariable,
                                                  const Variable< array_1d<double, 3> >& rVariableToSuperImpose);
 
+void SuperImposeMeshDisplacement(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose);
+
+void SuperImposeMeshVelocity(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose);
+
 } // namespace Move Mesh Utilities.
 
 } // namespace Kratos.

@@ -107,6 +107,16 @@ void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double
   KRATOS_CATCH("");
 }
 
+void SuperImposeMeshDisplacement(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose)
+{
+  SuperImposeVariables(rModelPart, MESH_DISPLACEMENT, rVariableToSuperImpose);
+}
+
+void SuperImposeMeshVelocity(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose)
+{
+  SuperImposeVariables(rModelPart, MESH_VELOCITY, rVariableToSuperImpose);
+}
+
 } // namespace Move Mesh Utilities.
 
 } // namespace Kratos.
