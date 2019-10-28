@@ -217,7 +217,8 @@ protected:
         HashMapVectorIntIdsType& rPropertiesFaceMap);
 
     virtual void CreateConditions(
-        ModelPart& rAuxiliaryModelPart,
+        ModelPart& rMainModelPart,
+        ModelPart& rSkinModelPart,
         HashMapVectorIntType& rInverseFaceMap,
         HashMapVectorIntIdsType& rPropertiesFaceMap,
         std::unordered_set<IndexType>& rNodesInTheSkin,

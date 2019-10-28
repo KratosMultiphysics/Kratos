@@ -192,7 +192,7 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
     // The indexes of the nodes of the skin
     std::unordered_set<IndexType> nodes_in_the_skin;
 
-    this->CreateConditions(r_auxiliar_model_part, rInverseFaceMap, rPropertiesFaceMap, nodes_in_the_skin, base_name);
+    this->CreateConditions(mrModelPart, r_auxiliar_model_part, rInverseFaceMap, rPropertiesFaceMap, nodes_in_the_skin, base_name);
 
     // Adding to the auxiliar model part
     VectorIndexType indexes_skin;
@@ -214,14 +214,15 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
 
 template<SizeType TDim>
 void SkinDetectionProcess<TDim>::CreateConditions(
-    ModelPart& rAuxiliaryModelPart,
+    ModelPart& rMainModelPart,
+    ModelPart& rSkinModelPart,
     HashMapVectorIntType& rInverseFaceMap,
     HashMapVectorIntIdsType& rPropertiesFaceMap,
     std::unordered_set<IndexType>& rNodesInTheSkin,
     const std::string& rConditionName) const
 {
 
-    IndexType condition_id = mrModelPart.GetRootModelPart().Conditions().size();
+    IndexType condition_id = rMainModelPart.GetRootModelPart().Conditions().size();
 
     // Create the auxiliar conditions
     for (auto& map : rInverseFaceMap) {
@@ -231,18 +232,19 @@ void SkinDetectionProcess<TDim>::CreateConditions(
 
         Properties::Pointer p_prop;
         const IndexType property_id = rPropertiesFaceMap[map.first];
-         if (mrModelPart.RecursivelyHasProperties(property_id)) {
-             p_prop = mrModelPart.pGetProperties(property_id);
+         if (rMainModelPart.RecursivelyHasProperties(property_id)) {
+             p_prop = rMainModelPart.pGetProperties(property_id);
          } else {
-             p_prop = mrModelPart.CreateNewProperties(property_id);
+             p_prop = rMainModelPart.CreateNewProperties(property_id);
          }
 
         for (auto& index : nodes_face)
             rNodesInTheSkin.insert(index);
 
         const std::string complete_name = rConditionName + std::to_string(TDim) + "D" + std::to_string(nodes_face.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
-        auto p_cond = mrModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop);
-        rAuxiliaryModelPart.AddCondition(p_cond);
+        auto p_cond = rMainModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop);
+        ModelPart& rMainModelPart,
+        rSkinModelPart.AddCondition(p_cond);
         p_cond->Set(INTERFACE, true);
         p_cond->Initialize();
     }
