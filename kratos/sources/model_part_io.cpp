@@ -571,17 +571,11 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
         }
     }
 
-    // Check that node indices are consecutive
-    unsigned int n = 0;
-    for (ConnectivitiesContainerType::iterator inode = rAuxConnectivities.begin(); inode != rAuxConnectivities.end(); inode++)
-    {
+    // Check for hanging nodes
+    SizeType n=0;
+    for (const auto r_conn : rAuxConnectivities) {
         n++;
-        if (inode->size() == 0)
-        {
-            std::stringstream msg;
-            msg << "Nodes are not consecutively numbered. Node " << n << " was not found in mdpa file." << std::endl;
-            KRATOS_ERROR << msg.str() << std::endl;
-        }
+        KRATOS_ERROR_IF(r_conn.size() == 0) << "Node #" << n << " is a hanging node, not connected to any element or condition. Hence it is not possible to create the nodal graph, please check your input" << std::endl;
     }
 
     // 3. Sort each entry in the auxiliary connectivities vector, remove duplicates
