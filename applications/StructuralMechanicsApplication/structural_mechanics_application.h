@@ -84,76 +84,79 @@
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
 
 /* CONSTITUTIVE LAWS */
-#include "custom_constitutive/truss_plasticity_constitutive_law.h"
 #include "custom_constitutive/truss_constitutive_law.h"
-#include "custom_constitutive/hyper_elastic_isotropic_ogden_1d.h"
-#include "custom_constitutive/hyper_elastic_isotropic_henky_1d.h"
 #include "custom_constitutive/beam_constitutive_law.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
-#include "custom_constitutive/elastic_isotropic_plane_stress_uncoupled_shear.h"
-#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
-#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.h"
-#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.h"
-#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
-#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
-#include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
-#include "custom_constitutive/small_strain_j2_plasticity_plane_strain_2d.h"
-#include "custom_constitutive/small_strain_j2_plasticity_3d.h"
-#include "custom_constitutive/small_strain_isotropic_damage_3d.h"
-#include "custom_constitutive/small_strain_isotropic_damage_plane_strain_2d.h"
-#include "custom_constitutive/small_strain_isotropic_damage_traction_only_3d.h"
-#include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
-#include "custom_constitutive/d_plus_d_minus_damage_masonry_3d.h"
 
+#ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTIITUTIVE_LAWS
 // Advanced Constitutive laws
-#include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
-#include "custom_constitutive/small_strain_kinematic_plasticity_factory.h"
-#include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
-#include "custom_constitutive/generic_small_strain_kinematic_plasticity.h"
-#include "custom_constitutive/finite_strain_isotropic_plasticity_factory.h"
-#include "custom_constitutive/finite_strain_kinematic_plasticity_factory.h"
-#include "custom_constitutive/generic_finite_strain_isotropic_plasticity.h"
-#include "custom_constitutive/generic_finite_strain_kinematic_plasticity.h"
-#include "custom_constitutive/generic_small_strain_isotropic_damage.h"
-#include "custom_constitutive/small_strain_isotropic_damage_factory.h"
-#include "custom_constitutive/viscous_generalized_kelvin.h"
-#include "custom_constitutive/viscous_generalized_maxwell.h"
-#include "custom_constitutive/generic_small_strain_viscoplasticity_3d.h"
-#include "custom_constitutive/generic_small_strain_d_plus_d_minus_damage.h"
-#include "custom_constitutive/plasticity_isotropic_kinematic_j2.h"
-#include "custom_constitutive/generic_small_strain_plastic_damage_model.h"
-#include "custom_constitutive/generic_small_strain_orthotropic_damage.h"
+#include "custom_advanced_constitutive/truss_plasticity_constitutive_law.h"
+#include "custom_advanced_constitutive/hyper_elastic_isotropic_ogden_1d.h"
+#include "custom_advanced_constitutive/hyper_elastic_isotropic_henky_1d.h"
+#include "custom_advanced_constitutive/elastic_isotropic_plane_stress_uncoupled_shear.h"
+#include "custom_advanced_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
+#include "custom_advanced_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.h"
+#include "custom_advanced_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.h"
+#include "custom_advanced_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_advanced_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
+#include "custom_advanced_constitutive/linear_elastic_orthotropic_2D_law.h"
+#include "custom_advanced_constitutive/small_strain_j2_plasticity_plane_strain_2d.h"
+#include "custom_advanced_constitutive/small_strain_j2_plasticity_3d.h"
+#include "custom_advanced_constitutive/small_strain_isotropic_damage_3d.h"
+#include "custom_advanced_constitutive/small_strain_isotropic_damage_plane_strain_2d.h"
+#include "custom_advanced_constitutive/small_strain_isotropic_damage_traction_only_3d.h"
+#include "custom_advanced_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
+#include "custom_advanced_constitutive/d_plus_d_minus_damage_masonry_3d.h"
+#include "custom_advanced_constitutive/small_strain_isotropic_plasticity_factory.h"
+#include "custom_advanced_constitutive/small_strain_kinematic_plasticity_factory.h"
+#include "custom_advanced_constitutive/generic_small_strain_isotropic_plasticity.h"
+#include "custom_advanced_constitutive/generic_small_strain_kinematic_plasticity.h"
+#include "custom_advanced_constitutive/finite_strain_isotropic_plasticity_factory.h"
+#include "custom_advanced_constitutive/finite_strain_kinematic_plasticity_factory.h"
+#include "custom_advanced_constitutive/generic_finite_strain_isotropic_plasticity.h"
+#include "custom_advanced_constitutive/generic_finite_strain_kinematic_plasticity.h"
+#include "custom_advanced_constitutive/generic_small_strain_isotropic_damage.h"
+#include "custom_advanced_constitutive/small_strain_isotropic_damage_factory.h"
+#include "custom_advanced_constitutive/viscous_generalized_kelvin.h"
+#include "custom_advanced_constitutive/viscous_generalized_maxwell.h"
+#include "custom_advanced_constitutive/generic_small_strain_viscoplasticity_3d.h"
+#include "custom_advanced_constitutive/generic_small_strain_d_plus_d_minus_damage.h"
+#include "custom_advanced_constitutive/plasticity_isotropic_kinematic_j2.h"
+#include "custom_advanced_constitutive/generic_small_strain_plastic_damage_model.h"
+#include "custom_advanced_constitutive/generic_small_strain_orthotropic_damage.h"
 
 // Integrators
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_kinematic_plasticity.h"
-#include "custom_constitutive/constitutive_laws_integrators/generic_finite_strain_constitutive_law_integrator_plasticity.h"
-#include "custom_constitutive/constitutive_laws_integrators/generic_finite_strain_constitutive_law_integrator_kinematic_plasticity.h"
-#include "custom_constitutive/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_compression_constitutive_law_integrator.h"
-#include "custom_constitutive/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_tension_constitutive_law_integrator.h"
-#include "custom_constitutive/generic_small_strain_high_cycle_fatigue_law.h"
+#include "custom_advanced_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
+#include "custom_advanced_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
+#include "custom_advanced_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_kinematic_plasticity.h"
+#include "custom_advanced_constitutive/constitutive_laws_integrators/generic_finite_strain_constitutive_law_integrator_plasticity.h"
+#include "custom_advanced_constitutive/constitutive_laws_integrators/generic_finite_strain_constitutive_law_integrator_kinematic_plasticity.h"
+#include "custom_advanced_constitutive/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_compression_constitutive_law_integrator.h"
+#include "custom_advanced_constitutive/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_tension_constitutive_law_integrator.h"
+#include "custom_advanced_constitutive/generic_small_strain_high_cycle_fatigue_law.h"
 
 // Yield surfaces
-#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/rankine_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/tresca_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/generic_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/mohr_coulomb_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/rankine_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/simo_ju_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/tresca_yield_surface.h"
 
 // Plastic potentials
-#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/tresca_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/generic_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/tresca_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/mohr_coulomb_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
+
+#endif // STRUCTURAL_DISABLE_ADVANCED_CONSTIITUTIVE_LAWS
 
 namespace Kratos
 {
@@ -465,14 +468,14 @@ private:
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws
     const TrussConstitutiveLaw mTrussConstitutiveLaw;
-    const TrussPlasticityConstitutiveLaw mTrussPlasticityConstitutiveLaw;
-    const HyperElasticIsotropicOgden1D mHyperElasticIsotropicOgden1D;
-    const HyperElasticIsotropicHenky1D mHyperElasticIsotropicHenky1D;
     const BeamConstitutiveLaw mBeamConstitutiveLaw;
     const ElasticIsotropic3D mElasticIsotropic3D;
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
     const LinearPlaneStrain  mLinearPlaneStrain;
     const LinearPlaneStress  mLinearPlaneStress;
+
+#ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTIITUTIVE_LAWS
+    // Damage and plasticity laws
     const ElasticIsotropicPlaneStressUncoupledShear  mElasticIsotropicPlaneStressUncoupledShear;
     const HyperElasticIsotropicKirchhoff3D  mHyperElasticIsotropicKirchhoff3D;
     const HyperElasticIsotropicKirchhoffPlaneStress2D  mHyperElasticIsotropicKirchhoffPlaneStress2D;
@@ -486,8 +489,9 @@ private:
     const SmallStrainIsotropicDamage3D mSmallStrainIsotropicDamage3D;
     const SmallStrainIsotropicDamagePlaneStrain2D mSmallStrainIsotropicDamagePlaneStrain2D;
     const SmallStrainIsotropicDamageTractionOnly3D mSmallStrainIsotropicDamageTractionOnly3D;
-
-    // Damage and plasticity laws
+    const TrussPlasticityConstitutiveLaw mTrussPlasticityConstitutiveLaw;
+    const HyperElasticIsotropicOgden1D mHyperElasticIsotropicOgden1D;
+    const HyperElasticIsotropicHenky1D mHyperElasticIsotropicHenky1D;
     const SmallStrainIsotropicPlasticityFactory mSmallStrainIsotropicPlasticityFactory;
     const SmallStrainKinematicPlasticityFactory mSmallStrainKinematicPlasticityFactory;
     const FiniteStrainIsotropicPlasticityFactory mFiniteStrainIsotropicPlasticityFactory;
@@ -864,6 +868,8 @@ private:
     const GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainOrthotropicDamageMohrCoulomb2D;
     const GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainOrthotropicDamageModifiedMohrCoulomb2D;
     const GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainOrthotropicDamageSimoJu2D;
+
+#endif // STRUCTURAL_DISABLE_ADVANCED_CONSTIITUTIVE_LAWS
 
     ///@}
     ///@name Private Operators

@@ -21,16 +21,33 @@ file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
+## StructuralMechanics python interface sources
+file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
+
+if(${STRUCTURAL_DISABLE_ADVANCED_CONSTIITUTIVE_LAWS} MATCHES ON)
+    add_definitions(-DSTRUCTURAL_DISABLE_ADVANCED_CONSTIITUTIVE_LAWS)
+    message("**** WARNING: Manually disabled advanced Constitutive laws ****")
+    list(REMOVE_ITEM KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_advanced_constitutive_laws_to_python.cpp)
+else(${STRUCTURAL_DISABLE_ADVANCED_CONSTIITUTIVE_LAWS} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
+        ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_advanced_constitutive/*.cpp
+    )
+endif(${STRUCTURAL_DISABLE_ADVANCED_CONSTIITUTIVE_LAWS} MATCHES ON)
+
 list(REMOVE_ITEM KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp)
 list(INSERT KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE 0 ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp)
 
-## StructuralMechanics testing sources
+# StructuralMechanics testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+    file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    if(NOT ${STRUCTURAL_DISABLE_ADVANCED_CONSTIITUTIVE_LAWS} MATCHES ON)
+        file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES
+            ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_advanced_constitutive_tests/*.cpp
+    )
+    endif(${STRUCTURAL_DISABLE_ADVANCED_CONSTIITUTIVE_LAWS} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
-
-## StructuralMechanics python interface sources
-file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 add_library(KratosStructuralMechanicsCore SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE} ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosStructuralMechanicsCore PUBLIC KratosCore)
@@ -39,7 +56,7 @@ set_target_properties(KratosStructuralMechanicsCore PROPERTIES COMPILE_DEFINITIO
 ###############################################################
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosStructuralMechanicsApplication MODULE THIN_LTO ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries(KratosStructuralMechanicsApplication PRIVATE KratosStructuralMechanicsCore)
+target_link_libraries(KratosStructuralMechanicsApplication PUBLIC KratosStructuralMechanicsCore)
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd
