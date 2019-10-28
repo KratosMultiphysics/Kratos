@@ -93,6 +93,10 @@ Parameters SubModelPartSkinDetectionProcess<TDim>::GetDefaultSettings() const
     return defaults;
 }
 
+// Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
+template<SizeType TDim>
+const Kratos::Flags SubModelPartSkinDetectionProcess<TDim>::NODE_SELECTED(Kratos::Flags::Create(0));
+
 
 template class SubModelPartSkinDetectionProcess<2>;
 template class SubModelPartSkinDetectionProcess<3>;

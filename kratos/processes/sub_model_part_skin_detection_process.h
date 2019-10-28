@@ -34,6 +34,9 @@ namespace Kratos
 template<SizeType TDim>
 class SubModelPartSkinDetectionProcess: public SkinDetectionProcess<TDim>
 {
+
+KRATOS_DEFINE_LOCAL_FLAG( NODE_SELECTED );
+
 class FaceSelector
 {
 public:
@@ -57,7 +60,7 @@ void Prepare(ModelPart& rMainModelPart) const override
     #pragma omp parallel for
     for (int k = 0; k < num_nodes; k++)
     {
-        (node_begin+k)->Set(MPI_BOUNDARY);
+        (node_begin+k)->Set(SubModelPartSkinDetectionProcess::NODE_SELECTED);
     }
 }
 
@@ -66,7 +69,7 @@ bool IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const override
     bool select = true;
     for (auto i_node = rNodes.begin(); i_node != rNodes.end(); ++i_node)
     {
-        select &= i_node->Is(MPI_BOUNDARY);
+        select &= i_node->Is(SubModelPartSkinDetectionProcess::NODE_SELECTED);
     }
     return select;
 }
