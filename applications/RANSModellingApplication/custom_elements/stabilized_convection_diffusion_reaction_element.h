@@ -18,15 +18,16 @@
 // External includes
 
 // Project includes
-#include "containers/array_1d.h"
-#include "custom_utilities/rans_calculation_utilities.h"
-#include "includes/cfd_variables.h"
 #include "includes/checks.h"
+#include "includes/define.h"
 #include "includes/element.h"
-#include "rans_modelling_application_variables.h"
-#include "stabilized_convection_diffusion_reaction_utilities.h"
+#include "includes/cfd_variables.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/time_discretization.h"
+
+// Application includes
+#include "custom_utilities/rans_calculation_utilities.h"
+#include "stabilized_convection_diffusion_reaction_utilities.h"
 
 namespace Kratos
 {
@@ -801,7 +802,8 @@ public:
                     effective_kinematic_viscosity, reaction, bossak_alpha,
                     bossak_gamma, delta_time, element_length, dynamic_tau);
 
-                positivity_preserving_coefficient = residual * chi / (velocity_magnitude_square * variable_gradient_norm);
+                positivity_preserving_coefficient =
+                    residual * chi / (velocity_magnitude_square * variable_gradient_norm);
             }
 
             const double s = std::abs(reaction);
