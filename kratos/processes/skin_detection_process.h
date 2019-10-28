@@ -235,6 +235,10 @@ protected:
     ///@name Protected  Access
     ///@{
 
+    ModelPart& GetModelPart() const;
+
+    Parameters GetSettings() const;
+
     ///@}
     ///@name Protected Inquiry
     ///@{

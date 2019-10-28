@@ -337,6 +337,24 @@ Parameters SkinDetectionProcess<TDim>::GetDefaultSettings() const
     return default_parameters;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+template<SizeType TDim>
+ModelPart& SkinDetectionProcess<TDim>::GetModelPart() const
+{
+    return this->mrModelPart;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<SizeType TDim>
+Parameters SkinDetectionProcess<TDim>::GetSettings() const
+{
+    return this->mThisParameters;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 template<SizeType TDim>
 SkinDetectionProcess<TDim>::SkinDetectionProcess(
     ModelPart& rModelPart,
