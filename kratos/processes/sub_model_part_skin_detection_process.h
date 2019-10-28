@@ -41,6 +41,12 @@ public:
 /// Pointer definition of SubModelPartSkinDetectionProcess
 KRATOS_CLASS_POINTER_DEFINITION(SubModelPartSkinDetectionProcess);
 
+using typename SkinDetectionProcess<TDim>::HashMapVectorIntType;
+using typename SkinDetectionProcess<TDim>::HashMapVectorIntIdsType;
+using typename SkinDetectionProcess<TDim>::VectorIndexType;
+
+using ConditionCheckType = bool(const Geometry<Node<3>>::PointsArrayType&);
+
 ///@}
 ///@name Life Cycle
 ///@{
@@ -108,6 +114,14 @@ protected:
 ///@name Protected Operations
 ///@{
 
+void CreateConditions(
+    ModelPart& rMainModelPart,
+    ModelPart& rSkinModelPart,
+    HashMapVectorIntType& rInverseFaceMap,
+    HashMapVectorIntIdsType& rPropertiesFaceMap,
+    std::unordered_set<IndexType>& rNodesInTheSkin,
+    const std::string& rConditionName) const override;
+
 Parameters GetDefaultSettings() const override;
 
 ///@}
@@ -132,9 +146,16 @@ private:
 ///@name Member Variables
 ///@{
 
+ConditionCheckType const* CreateThisFace;
+
 ///@}
 ///@name Private Operations
 ///@{
+
+static bool FaceIsNeeded(const Geometry<Node<3>>::PointsArrayType&)
+{
+    return true;
+}
 
 ///@}
 

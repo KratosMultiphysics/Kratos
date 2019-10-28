@@ -20,7 +20,56 @@ template<SizeType TDim>
 SubModelPartSkinDetectionProcess<TDim>::SubModelPartSkinDetectionProcess(
     ModelPart& rModelPart, Parameters Settings)
     : SkinDetectionProcess<TDim>(rModelPart, Settings, this->GetDefaultSettings())
-{}
+{
+    this->CreateThisFace = SubModelPartSkinDetectionProcess<TDim>::FaceIsNeeded;
+}
+
+
+template<SizeType TDim>
+void SubModelPartSkinDetectionProcess<TDim>::CreateConditions(
+    ModelPart& rMainModelPart,
+    ModelPart& rSkinModelPart,
+    HashMapVectorIntType& rInverseFaceMap,
+    HashMapVectorIntIdsType& rPropertiesFaceMap,
+    std::unordered_set<IndexType>& rNodesInTheSkin,
+    const std::string& rConditionName) const
+{
+    IndexType condition_id = rMainModelPart.GetRootModelPart().Conditions().size();
+
+    // Create the auxiliar conditions
+    for (auto& map : rInverseFaceMap) {
+        condition_id += 1;
+
+        const VectorIndexType& nodes_face = map.second;
+
+        Properties::Pointer p_prop;
+        const IndexType property_id = rPropertiesFaceMap[map.first];
+         if (rMainModelPart.RecursivelyHasProperties(property_id)) {
+             p_prop = rMainModelPart.pGetProperties(property_id);
+         } else {
+             p_prop = rMainModelPart.CreateNewProperties(property_id);
+         }
+
+        const std::string complete_name = rConditionName + std::to_string(TDim) + "D" + std::to_string(nodes_face.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
+
+        Geometry<Node<3>>::PointsArrayType condition_nodes;
+        for (unsigned int i = 0; i < nodes_face.size(); i++)
+        {
+            condition_nodes.push_back(rMainModelPart.pGetNode(nodes_face[i]));
+        }
+
+        if (this->CreateThisFace(condition_nodes))
+        {
+            auto p_cond = rMainModelPart.CreateNewCondition(complete_name, condition_id, condition_nodes, p_prop);
+            rSkinModelPart.AddCondition(p_cond);
+            p_cond->Set(INTERFACE, true);
+            p_cond->Initialize();
+
+            for (auto& index : nodes_face)
+                rNodesInTheSkin.insert(index);
+        }
+    }
+}
 
 template<SizeType TDim>
 Parameters SubModelPartSkinDetectionProcess<TDim>::GetDefaultSettings() const
