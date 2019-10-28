@@ -243,7 +243,6 @@ void SkinDetectionProcess<TDim>::CreateConditions(
 
         const std::string complete_name = rConditionName + std::to_string(TDim) + "D" + std::to_string(nodes_face.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
         auto p_cond = rMainModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop);
-        ModelPart& rMainModelPart,
         rSkinModelPart.AddCondition(p_cond);
         p_cond->Set(INTERFACE, true);
         p_cond->Initialize();
