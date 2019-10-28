@@ -51,13 +51,10 @@ namespace Kratos
 struct RansEvmKElementData
 {
     double Gamma;
-
     double TurbulentKineticEnergy;
     double TurbulentKinematicViscosity;
     double KinematicViscosity;
     double VelocityDivergence;
-
-    Matrix ShapeFunctionDerivatives;
 };
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -291,35 +288,31 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateConvectionDiffusionReactionData(RansEvmKElementData& rData,
-                                                  const Vector& rShapeFunctions,
-                                                  const Matrix& rShapeFunctionDerivatives,
-                                                  const ProcessInfo& rCurrentProcessInfo,
-                                                  const int Step = 0) const override;
+    const Variable<double>& GetPrimalVariable() const override;
 
-    double GetEffectiveKinematicViscosity(RansEvmKElementData& rData,
-                                          const Vector& rShapeFunctions,
-                                          const Matrix& rShapeFunctionDerivatives,
-                                          const ProcessInfo& rCurrentProcessInfo,
-                                          const int Step = 0) const override;
+    const Variable<double>& GetPrimalRelaxedRateVariable() const override;
 
-    double GetScalarVariableGradientNorm(RansEvmKElementData& rData,
-                                         const Vector& rShapeFunctions,
-                                         const Matrix& rShapeFunctionDerivatives,
-                                         const ProcessInfo& rCurrentProcessInfo,
-                                         const int Step = 0) const override;
+    void CalculateElementData(RansEvmKElementData& rData,
+                              const Vector& rShapeFunctions,
+                              const Matrix& rShapeFunctionDerivatives,
+                              const ProcessInfo& rCurrentProcessInfo,
+                              const int Step = 0) const override;
 
-    double GetScalarVariableRelaxedAcceleration(RansEvmKElementData& rData,
+    double CalculateEffectiveKinematicViscosity(const RansEvmKElementData& rData,
                                                 const Vector& rShapeFunctions,
                                                 const Matrix& rShapeFunctionDerivatives,
                                                 const ProcessInfo& rCurrentProcessInfo,
                                                 const int Step = 0) const override;
 
     double CalculateReactionTerm(const RansEvmKElementData& rData,
+                                 const Vector& rShapeFunctions,
+                                 const Matrix& rShapeFunctionDerivatives,
                                  const ProcessInfo& rCurrentProcessInfo,
                                  const int Step = 0) const override;
 
     double CalculateSourceTerm(const RansEvmKElementData& rData,
+                               const Vector& rShapeFunctions,
+                               const Matrix& rShapeFunctionDerivatives,
                                const ProcessInfo& rCurrentProcessInfo,
                                const int Step = 0) const override;
 

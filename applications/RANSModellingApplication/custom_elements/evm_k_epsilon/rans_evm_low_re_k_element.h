@@ -53,11 +53,8 @@ struct RansEvmLowReKElementData
     double KinematicViscosity;
     double WallDistance;
     double Gamma;
-
     double TurbulentKineticEnergy;
     double TurbulentKinematicViscosity;
-
-    Matrix ShapeFunctionDerivatives;
 };
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -291,35 +288,31 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateConvectionDiffusionReactionData(RansEvmLowReKElementData& rData,
-                                                  const Vector& rShapeFunctions,
-                                                  const Matrix& rShapeFunctionDerivatives,
-                                                  const ProcessInfo& rCurrentProcessInfo,
-                                                  const int Step = 0) const override;
+    const Variable<double>& GetPrimalVariable() const override;
 
-    double GetEffectiveKinematicViscosity(RansEvmLowReKElementData& rData,
-                                          const Vector& rShapeFunctions,
-                                          const Matrix& rShapeFunctionDerivatives,
-                                          const ProcessInfo& rCurrentProcessInfo,
-                                          const int Step = 0) const override;
+    const Variable<double>& GetPrimalRelaxedRateVariable() const override;
 
-    double GetScalarVariableGradientNorm(RansEvmLowReKElementData& rData,
-                                         const Vector& rShapeFunctions,
-                                         const Matrix& rShapeFunctionDerivatives,
-                                         const ProcessInfo& rCurrentProcessInfo,
-                                         const int Step = 0) const override;
+    void CalculateElementData(RansEvmLowReKElementData& rData,
+                              const Vector& rShapeFunctions,
+                              const Matrix& rShapeFunctionDerivatives,
+                              const ProcessInfo& rCurrentProcessInfo,
+                              const int Step = 0) const override;
 
-    double GetScalarVariableRelaxedAcceleration(RansEvmLowReKElementData& rData,
+    double CalculateEffectiveKinematicViscosity(const RansEvmLowReKElementData& rData,
                                                 const Vector& rShapeFunctions,
                                                 const Matrix& rShapeFunctionDerivatives,
                                                 const ProcessInfo& rCurrentProcessInfo,
                                                 const int Step = 0) const override;
 
     double CalculateReactionTerm(const RansEvmLowReKElementData& rData,
+                                 const Vector& rShapeFunctions,
+                                 const Matrix& rShapeFunctionDerivatives,
                                  const ProcessInfo& rCurrentProcessInfo,
                                  const int Step = 0) const override;
 
     double CalculateSourceTerm(const RansEvmLowReKElementData& rData,
+                               const Vector& rShapeFunctions,
+                               const Matrix& rShapeFunctionDerivatives,
                                const ProcessInfo& rCurrentProcessInfo,
                                const int Step = 0) const override;
 

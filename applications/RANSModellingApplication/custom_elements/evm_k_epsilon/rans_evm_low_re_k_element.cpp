@@ -360,15 +360,25 @@ void RansEvmLowReKElement<TDim, TNumNodes>::PrintData(std::ostream& rOStream) co
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmLowReKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
+const Variable<double>& RansEvmLowReKElement<TDim, TNumNodes>::GetPrimalVariable() const
+{
+    return TURBULENT_KINETIC_ENERGY;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+const Variable<double>& RansEvmLowReKElement<TDim, TNumNodes>::GetPrimalRelaxedRateVariable() const
+{
+    return RANS_AUXILIARY_VARIABLE_1;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void RansEvmLowReKElement<TDim, TNumNodes>::CalculateElementData(
     RansEvmLowReKElementData& rData,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const ProcessInfo& rCurrentProcessInfo,
     const int Step) const
 {
-    rData.ShapeFunctionDerivatives = rShapeFunctionDerivatives;
-
     const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
 
     const double nu_t = this->EvaluateInPoint(TURBULENT_VISCOSITY, rShapeFunctions);
@@ -387,8 +397,8 @@ void RansEvmLowReKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReaction
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double RansEvmLowReKElement<TDim, TNumNodes>::GetEffectiveKinematicViscosity(
-    RansEvmLowReKElementData& rData,
+double RansEvmLowReKElement<TDim, TNumNodes>::CalculateEffectiveKinematicViscosity(
+    const RansEvmLowReKElementData& rData,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const ProcessInfo& rCurrentProcessInfo,
@@ -399,32 +409,12 @@ double RansEvmLowReKElement<TDim, TNumNodes>::GetEffectiveKinematicViscosity(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double RansEvmLowReKElement<TDim, TNumNodes>::GetScalarVariableGradientNorm(
-    RansEvmLowReKElementData& rData,
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives,
-    const ProcessInfo& rCurrentProcessInfo,
-    const int Step) const
-{
-    array_1d<double, 3> tke_gradient;
-    this->CalculateGradient(tke_gradient, TURBULENT_KINETIC_ENERGY, rShapeFunctionDerivatives);
-    return norm_2(tke_gradient);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-double RansEvmLowReKElement<TDim, TNumNodes>::GetScalarVariableRelaxedAcceleration(
-    RansEvmLowReKElementData& rData,
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives,
-    const ProcessInfo& rCurrentProcessInfo,
-    const int Step) const
-{
-    return this->EvaluateInPoint(RANS_AUXILIARY_VARIABLE_1, rShapeFunctions);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 double RansEvmLowReKElement<TDim, TNumNodes>::CalculateReactionTerm(
-    const RansEvmLowReKElementData& rData, const ProcessInfo& rCurrentProcessInfo, const int Step) const
+    const RansEvmLowReKElementData& rData,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives,
+    const ProcessInfo& rCurrentProcessInfo,
+    const int Step) const
 {
     return 2.0 * rData.KinematicViscosity / std::pow(rData.WallDistance, 2) +
            rData.Gamma;
@@ -432,10 +422,14 @@ double RansEvmLowReKElement<TDim, TNumNodes>::CalculateReactionTerm(
 
 template <unsigned int TDim, unsigned int TNumNodes>
 double RansEvmLowReKElement<TDim, TNumNodes>::CalculateSourceTerm(
-    const RansEvmLowReKElementData& rData, const ProcessInfo& rCurrentProcessInfo, const int Step) const
+    const RansEvmLowReKElementData& rData,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives,
+    const ProcessInfo& rCurrentProcessInfo,
+    const int Step) const
 {
     BoundedMatrix<double, TDim, TDim> velocity_gradient_matrix;
-    this->CalculateGradient(velocity_gradient_matrix, VELOCITY, rData.ShapeFunctionDerivatives);
+    this->CalculateGradient(velocity_gradient_matrix, VELOCITY, rShapeFunctionDerivatives);
 
     const double tke_production = EvmKepsilonModelUtilities::CalculateSourceTerm<TDim>(
         velocity_gradient_matrix, rData.TurbulentKinematicViscosity, rData.TurbulentKineticEnergy);

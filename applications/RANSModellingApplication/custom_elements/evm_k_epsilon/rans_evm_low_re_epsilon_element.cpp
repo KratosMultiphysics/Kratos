@@ -365,7 +365,19 @@ void RansEvmLowReEpsilonElement<TDim, TNumNodes>::PrintData(std::ostream& rOStre
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmLowReEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
+const Variable<double>& RansEvmLowReEpsilonElement<TDim, TNumNodes>::GetPrimalVariable() const
+{
+    return TURBULENT_ENERGY_DISSIPATION_RATE;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+const Variable<double>& RansEvmLowReEpsilonElement<TDim, TNumNodes>::GetPrimalRelaxedRateVariable() const
+{
+    return RANS_AUXILIARY_VARIABLE_2;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void RansEvmLowReEpsilonElement<TDim, TNumNodes>::CalculateElementData(
     RansEvmLowReEpsilonElementData& rData,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
@@ -392,7 +404,6 @@ void RansEvmLowReEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionRe
     rData.F2 = f2;
     rData.Gamma = gamma;
     rData.KinematicViscosity = nu;
-    rData.ShapeFunctionDerivatives = rShapeFunctionDerivatives;
     rData.TurbulentKinematicViscosity = nu_t;
     rData.TurbulentKineticEnergy = tke;
     rData.WallDistance = wall_distance;
@@ -400,8 +411,8 @@ void RansEvmLowReEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionRe
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double RansEvmLowReEpsilonElement<TDim, TNumNodes>::GetEffectiveKinematicViscosity(
-    RansEvmLowReEpsilonElementData& rData,
+double RansEvmLowReEpsilonElement<TDim, TNumNodes>::CalculateEffectiveKinematicViscosity(
+    const RansEvmLowReEpsilonElementData& rData,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const ProcessInfo& rCurrentProcessInfo,
@@ -413,33 +424,10 @@ double RansEvmLowReEpsilonElement<TDim, TNumNodes>::GetEffectiveKinematicViscosi
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double RansEvmLowReEpsilonElement<TDim, TNumNodes>::GetScalarVariableGradientNorm(
-    RansEvmLowReEpsilonElementData& rData,
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives,
-    const ProcessInfo& rCurrentProcessInfo,
-    const int Step) const
-{
-    array_1d<double, 3> epsilon_gradient;
-    this->CalculateGradient(epsilon_gradient, TURBULENT_ENERGY_DISSIPATION_RATE,
-                            rShapeFunctionDerivatives);
-    return norm_2(epsilon_gradient);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-double RansEvmLowReEpsilonElement<TDim, TNumNodes>::GetScalarVariableRelaxedAcceleration(
-    RansEvmLowReEpsilonElementData& rData,
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives,
-    const ProcessInfo& rCurrentProcessInfo,
-    const int Step) const
-{
-    return this->EvaluateInPoint(RANS_AUXILIARY_VARIABLE_2, rShapeFunctions);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 double RansEvmLowReEpsilonElement<TDim, TNumNodes>::CalculateReactionTerm(
     const RansEvmLowReEpsilonElementData& rData,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives,
     const ProcessInfo& rCurrentProcessInfo,
     const int Step) const
 {
@@ -451,11 +439,13 @@ double RansEvmLowReEpsilonElement<TDim, TNumNodes>::CalculateReactionTerm(
 template <unsigned int TDim, unsigned int TNumNodes>
 double RansEvmLowReEpsilonElement<TDim, TNumNodes>::CalculateSourceTerm(
     const RansEvmLowReEpsilonElementData& rData,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives,
     const ProcessInfo& rCurrentProcessInfo,
     const int Step) const
 {
     BoundedMatrix<double, TDim, TDim> velocity_gradient_matrix;
-    this->CalculateGradient(velocity_gradient_matrix, VELOCITY, rData.ShapeFunctionDerivatives);
+    this->CalculateGradient(velocity_gradient_matrix, VELOCITY, rShapeFunctionDerivatives);
     double production = EvmKepsilonModelUtilities::CalculateSourceTerm<TDim>(
         velocity_gradient_matrix, rData.TurbulentKinematicViscosity, rData.TurbulentKineticEnergy);
 

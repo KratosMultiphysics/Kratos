@@ -359,16 +359,25 @@ void RansEvmKElement<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
-    RansEvmKElementData& rData,
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives,
-    const ProcessInfo& rCurrentProcessInfo,
-    const int Step) const
+const Variable<double>& RansEvmKElement<TDim, TNumNodes>::GetPrimalVariable() const
+{
+    return TURBULENT_KINETIC_ENERGY;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+const Variable<double>& RansEvmKElement<TDim, TNumNodes>::GetPrimalRelaxedRateVariable() const
+{
+    return RANS_AUXILIARY_VARIABLE_1;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void RansEvmKElement<TDim, TNumNodes>::CalculateElementData(RansEvmKElementData& rData,
+                                                            const Vector& rShapeFunctions,
+                                                            const Matrix& rShapeFunctionDerivatives,
+                                                            const ProcessInfo& rCurrentProcessInfo,
+                                                            const int Step) const
 {
     KRATOS_TRY
-
-    rData.ShapeFunctionDerivatives = rShapeFunctionDerivatives;
 
     const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
 
@@ -388,8 +397,8 @@ void RansEvmKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double RansEvmKElement<TDim, TNumNodes>::GetEffectiveKinematicViscosity(
-    RansEvmKElementData& rData,
+double RansEvmKElement<TDim, TNumNodes>::CalculateEffectiveKinematicViscosity(
+    const RansEvmKElementData& rData,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const ProcessInfo& rCurrentProcessInfo,
@@ -400,46 +409,27 @@ double RansEvmKElement<TDim, TNumNodes>::GetEffectiveKinematicViscosity(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double RansEvmKElement<TDim, TNumNodes>::GetScalarVariableGradientNorm(
-    RansEvmKElementData& rData,
+double RansEvmKElement<TDim, TNumNodes>::CalculateReactionTerm(
+    const RansEvmKElementData& rData,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const ProcessInfo& rCurrentProcessInfo,
     const int Step) const
-{
-    array_1d<double, 3> tke_gradient;
-    this->CalculateGradient(tke_gradient, TURBULENT_KINETIC_ENERGY, rShapeFunctionDerivatives);
-    return norm_2(tke_gradient);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-double RansEvmKElement<TDim, TNumNodes>::GetScalarVariableRelaxedAcceleration(
-    RansEvmKElementData& rData,
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives,
-    const ProcessInfo& rCurrentProcessInfo,
-    const int Step) const
-{
-    return this->EvaluateInPoint(RANS_AUXILIARY_VARIABLE_1, rShapeFunctions);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-double RansEvmKElement<TDim, TNumNodes>::CalculateReactionTerm(const RansEvmKElementData& rData,
-                                                               const ProcessInfo& rCurrentProcessInfo,
-                                                               const int Step) const
 {
     return std::max(rData.Gamma + (2.0 / 3.0) * rData.VelocityDivergence, 0.0);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 double RansEvmKElement<TDim, TNumNodes>::CalculateSourceTerm(const RansEvmKElementData& rData,
+                                                             const Vector& rShapeFunctions,
+                                                             const Matrix& rShapeFunctionDerivatives,
                                                              const ProcessInfo& rCurrentProcessInfo,
                                                              const int Step) const
 {
     double production = 0.0;
 
     BoundedMatrix<double, TDim, TDim> velocity_gradient_matrix;
-    this->CalculateGradient(velocity_gradient_matrix, VELOCITY, rData.ShapeFunctionDerivatives);
+    this->CalculateGradient(velocity_gradient_matrix, VELOCITY, rShapeFunctionDerivatives);
 
     production = EvmKepsilonModelUtilities::CalculateSourceTerm<TDim>(
         velocity_gradient_matrix, rData.TurbulentKinematicViscosity, rData.TurbulentKineticEnergy);
