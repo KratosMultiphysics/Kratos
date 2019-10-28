@@ -125,6 +125,7 @@ class MeshSolverBase(PythonSolver):
         # Calling Solve bcs this is what is currently implemented in the MeshSolverStrategies
         # explicit bool conversion is only needed bcs "Solve" returns a double
         is_converged = bool(self.get_mesh_motion_solving_strategy().Solve())
+        self.MoveMesh()
         for variable in KratosMultiphysics.kratos_utilities.GenerateVariableListFromInput(self.settings["superimpose_mesh_disp_with"]):
             KMM.SuperImposeMeshDisplacement(variable)
         return is_converged
