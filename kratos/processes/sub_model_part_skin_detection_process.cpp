@@ -21,13 +21,25 @@ SubModelPartSkinDetectionProcess<TDim>::SubModelPartSkinDetectionProcess(
     ModelPart& rModelPart, Parameters Settings)
     : SkinDetectionProcess<TDim>(rModelPart, Settings, this->GetDefaultSettings())
 {
+    KRATOS_TRY;
+
     Parameters settings = this->GetSettings();
     if (settings["selection_criteria"].GetString() == "nodes_on_sub_model_part")
     {
+        KRATOS_ERROR_IF_NOT(settings["selection_settings"].Has("sub_model_part_name"))
+        << "When using \"selection_criteria\" == \"nodes_on_sub_model_part\","
+        << " SubModelPartSkinDetectionProcess requires the name of the target SubModelPart,"
+        << " given as the \"sub_model_part_name\" string argument." << std::endl;
         mpFaceSelector = Kratos::make_shared<SelectIfAllNodesOnSubModelPart>(
             settings["selection_settings"]["sub_model_part_name"].GetString()
         );
     }
+    else
+    {
+        KRATOS_ERROR << "Unsupported \"selection_criteria\" \"" << settings["selection_criteria"].GetString() << "\"." << std::endl;
+    }
+
+    KRATOS_CATCH("");
 }
 
 template<SizeType TDim>
