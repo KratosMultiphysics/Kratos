@@ -191,6 +191,10 @@ class AleFluidSolver(PythonSolver):
             is_converged &= mesh_solver.SolveSolutionStep()
 
         for mesh_solver in self.mesh_motion_solvers:
+            KMM.MoveMesh(
+                mesh_solver.GetComputingModelPart().Nodes)
+
+        for mesh_solver in self.mesh_motion_solvers:
             KMM.CalculateMeshVelocities(
                 mesh_solver.GetComputingModelPart(),
                 self.time_int_helper)
