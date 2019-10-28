@@ -86,7 +86,8 @@ public:
     GeometryType::ShapeFunctionsGradientsType CalculateGeometryParameterDerivatives(
         const GeometryType& rGeometry, const GeometryData::IntegrationMethod& rIntegrationMethod);
 
-    void CalculateGeometryParameterDerivativesShapeSensitivity(Matrix& rOutput,
+    template <std::size_t TDim>
+    void CalculateGeometryParameterDerivativesShapeSensitivity(BoundedMatrix<double, TDim, TDim>& rOutput,
                                                                const ShapeParameter& rShapeDerivative,
                                                                const Matrix& rDnDe,
                                                                const Matrix& rDeDx);

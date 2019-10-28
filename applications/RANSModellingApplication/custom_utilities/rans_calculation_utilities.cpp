@@ -129,19 +129,19 @@ RansCalculationUtilities::GeometryType::ShapeFunctionsGradientsType RansCalculat
     return de_dx;
 }
 
+template <std::size_t TDim>
 void RansCalculationUtilities::CalculateGeometryParameterDerivativesShapeSensitivity(
-    Matrix& rOutput, const ShapeParameter& rShapeDerivative, const Matrix& rDnDe, const Matrix& rDeDx)
+    BoundedMatrix<double, TDim, TDim>& rOutput,
+    const ShapeParameter& rShapeDerivative,
+    const Matrix& rDnDe,
+    const Matrix& rDeDx)
 {
-    std::size_t domain_size = rDeDx.size1();
-    if (rOutput.size1() != domain_size || rOutput.size2() != domain_size)
-        rOutput.resize(domain_size, domain_size);
-
     const Vector& r_dnc_de = row(rDnDe, rShapeDerivative.NodeIndex);
 
-    for (std::size_t j = 0; j < domain_size; ++j)
+    for (std::size_t j = 0; j < TDim; ++j)
     {
         const Vector& r_de_dxj = column(rDeDx, j);
-        for (std::size_t i = 0; i < domain_size; ++i)
+        for (std::size_t i = 0; i < TDim; ++i)
         {
             rOutput(i, j) = -1.0 * rDeDx(i, rShapeDerivative.Direction) *
                             inner_prod(r_dnc_de, r_de_dxj);
@@ -259,6 +259,12 @@ template void RansCalculationUtilities::CalculateGradient<3>(
     const Variable<array_1d<double, 3>>&,
     const Matrix&,
     const int) const;
+
+template void RansCalculationUtilities::CalculateGeometryParameterDerivativesShapeSensitivity<2>(
+    BoundedMatrix<double, 2, 2>&, const ShapeParameter&, const Matrix&, const Matrix&);
+
+template void RansCalculationUtilities::CalculateGeometryParameterDerivativesShapeSensitivity<3>(
+    BoundedMatrix<double, 3, 3>&, const ShapeParameter&, const Matrix&, const Matrix&);
 
 template Vector RansCalculationUtilities::GetVector<2>(const array_1d<double, 3>&) const;
 template Vector RansCalculationUtilities::GetVector<3>(const array_1d<double, 3>&) const;
