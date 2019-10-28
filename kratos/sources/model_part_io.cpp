@@ -573,7 +573,7 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
 
     // Check for hanging nodes
     SizeType n=0;
-    for (const auto r_conn : rAuxConnectivities) {
+    for (const auto& r_conn : rAuxConnectivities) {
         n++;
         KRATOS_ERROR_IF(r_conn.size() == 0) << "Node #" << n << " is a hanging node, not connected to any element or condition. Hence it is not possible to create the nodal graph, please check your input" << std::endl;
     }
