@@ -77,5 +77,26 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         gid_output.ExecuteFinalizeSolutionStep()
         gid_output.ExecuteFinalize()
 
+    def test_SubModelPartSkinDetectionProcess(self):
+        current_model = KratosMultiphysics.Model()
+
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+        model_part = current_model.CreateModelPart("Main")
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/coarse_sphere"))
+        model_part_io.ReadModelPart(model_part)
+
+        # We set a flag in the already knon node in the skin
+        for node in model_part.GetSubModelPart("Skin_Part").Nodes:
+            node.Set(KratosMultiphysics.ACTIVE, True)
+
+        detect_skin = KratosMultiphysics.SubModelPartSkinDetectionProcess3D(model_part, KratosMultiphysics.Parameters(r'{}'))
+        detect_skin.Execute()
+
+        ## DEBUG
+        #self._post_process(model_part)
+
+        for node in model_part.Nodes:
+            self.assertEqual(node.Is(KratosMultiphysics.INTERFACE), node.Is(KratosMultiphysics.ACTIVE))
+
 if __name__ == '__main__':
     KratosUnittest.main()
