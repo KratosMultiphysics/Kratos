@@ -80,7 +80,7 @@ class MeshSolverBase(PythonSolver):
             },
             "reform_dofs_each_step"     : false,
             "compute_reactions"         : false,
-            "superimpose_mesh_disp_with": []
+            "superimpose_mesh_disp_with": [],
             "poisson_ratio"             : 0.3
         }""")
         this_defaults.AddMissingParameters(super(MeshSolverBase, cls).GetDefaultSettings())
