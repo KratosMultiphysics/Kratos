@@ -21,9 +21,21 @@ SubModelPartSkinDetectionProcess<TDim>::SubModelPartSkinDetectionProcess(
     ModelPart& rModelPart, Parameters Settings)
     : SkinDetectionProcess<TDim>(rModelPart, Settings, this->GetDefaultSettings())
 {
-    this->CreateThisFace = SubModelPartSkinDetectionProcess<TDim>::FaceIsNeeded;
+    Parameters settings = this->GetSettings();
+    if (settings["selection_criteria"].GetString() == "nodes_on_sub_model_part")
+    {
+        mpFaceSelector = Kratos::make_shared<SelectIfAllNodesOnSubModelPart>(
+            settings["selection_settings"]["sub_model_part_name"].GetString()
+        );
+    }
 }
 
+template<SizeType TDim>
+void SubModelPartSkinDetectionProcess<TDim>::Execute()
+{
+    mpFaceSelector->Prepare(this->GetModelPart());
+    SkinDetectionProcess<TDim>::Execute();
+}
 
 template<SizeType TDim>
 void SubModelPartSkinDetectionProcess<TDim>::CreateConditions(
@@ -58,7 +70,7 @@ void SubModelPartSkinDetectionProcess<TDim>::CreateConditions(
             condition_nodes.push_back(rMainModelPart.pGetNode(nodes_face[i]));
         }
 
-        if (this->CreateThisFace(condition_nodes))
+        if (mpFaceSelector->IsSelected(condition_nodes))
         {
             auto p_cond = rMainModelPart.CreateNewCondition(complete_name, condition_id, condition_nodes, p_prop);
             rSkinModelPart.AddCondition(p_cond);
@@ -74,7 +86,11 @@ void SubModelPartSkinDetectionProcess<TDim>::CreateConditions(
 template<SizeType TDim>
 Parameters SubModelPartSkinDetectionProcess<TDim>::GetDefaultSettings() const
 {
-    return SkinDetectionProcess<TDim>::GetDefaultSettings();
+    Parameters defaults = SkinDetectionProcess<TDim>::GetDefaultSettings();
+    defaults.AddEmptyValue("selection_criteria");
+    defaults["selection_criteria"].SetString("");
+    defaults.AddValue("selection_settings", Parameters("{}"));
+    return defaults;
 }
 
 

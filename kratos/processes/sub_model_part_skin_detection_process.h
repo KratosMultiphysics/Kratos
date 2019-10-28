@@ -34,6 +34,45 @@ namespace Kratos
 template<SizeType TDim>
 class SubModelPartSkinDetectionProcess: public SkinDetectionProcess<TDim>
 {
+class FaceSelector
+{
+public:
+KRATOS_CLASS_POINTER_DEFINITION(FaceSelector);
+virtual void Prepare(ModelPart& rMainModelPart) const = 0;
+virtual bool IsSelected(const Geometry<Node<3>>::PointsArrayType&) const = 0;
+};
+
+class SelectIfAllNodesOnSubModelPart: public FaceSelector
+{
+std::string mName;
+public:
+SelectIfAllNodesOnSubModelPart(const std::string& rName): mName(rName) {}
+
+void Prepare(ModelPart& rMainModelPart) const override
+{
+    ModelPart& r_model_part = rMainModelPart.GetSubModelPart(mName);
+    auto node_begin = r_model_part.NodesBegin();
+    const int num_nodes = r_model_part.NumberOfNodes();
+
+    #pragma omp parallel for
+    for (int k = 0; k < num_nodes; k++)
+    {
+        (node_begin+k)->Set(MPI_BOUNDARY);
+    }
+}
+
+bool IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const override
+{
+    bool select = true;
+    for (auto i_node = rNodes.begin(); i_node != rNodes.end(); ++i_node)
+    {
+        select &= i_node->Is(MPI_BOUNDARY);
+    }
+    return select;
+}
+
+};
+
 public:
 ///@name Type Definitions
 ///@{
@@ -74,7 +113,7 @@ SubModelPartSkinDetectionProcess &operator=(SubModelPartSkinDetectionProcess con
 ///@name Operations
 ///@{
 
-//void Execute() override;
+void Execute() override;
 
 ///@}
 ///@name Input and output
@@ -146,7 +185,7 @@ private:
 ///@name Member Variables
 ///@{
 
-ConditionCheckType const* CreateThisFace;
+typename FaceSelector::Pointer mpFaceSelector;
 
 ///@}
 ///@name Private Operations
