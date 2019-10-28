@@ -1,9 +1,9 @@
 cmake .. -G "Visual Studio 15 2017 Win64"                                       ^
--DCMAKE_CXX_FLAGS="/D EXCLUDE_EMBEDDED_PYTHON_DEBUG" 	                        ^
--DCMAKE_C_FLAGS="/D EXCLUDE_EMBEDDED_PYTHON_DEBUG" 		                        ^
+-DCMAKE_CXX_FLAGS="/D EXCLUDE_EMBEDDED_PYTHON_DEBU0G /Od" 	                    ^
+-DCMAKE_C_FLAGS="/D EXCLUDE_EMBEDDED_PYTHON_DEBUG /Od" 		                    ^
 -DBOOST_ROOT="C:\Libraries\boost_1_65_1"                                        ^
 -DPYTHON_EXECUTABLE="C:\Python36-x64\python.exe"		 	                    ^
--DCMAKE_BUILD_TYPE="Debug"  							                        ^
+-DCMAKE_BUILD_TYPE="Custom"  							                        ^
 -DDEM_APPLICATION=ON                                                            ^
 -DEXTERNAL_SOLVERS_APPLICATION=OFF                                              ^
 -DFLUID_DYNAMICS_APPLICATION=ON                                                 ^
@@ -12,13 +12,13 @@ cmake .. -G "Visual Studio 15 2017 Win64"                                       
 -DSWIMMING_DEM_APPLICATION=ON                                                   ^
 -DMESH_MOVING_APPLICATION=ON                                                    ^
 -DMESHING_APPLICATION=ON                                                        ^
--DSOLID_MECHANICS_APPLICATION=OFF                                                ^
--DCONSTITUTIVE_MODELS_APPLICATION=OFF                                            ^
--DDELAUNAY_MESHING_APPLICATION=OFF                                               ^
--DCONTACT_MECHANICS_APPLICATION=OFF                                              ^
--DPFEM_APPLICATION=OFF                                                           ^
--DPFEM_SOLID_MECHANICS_APPLICATION=OFF                                           ^
--DPFEM_FLUID_DYNAMICS_APPLICATION=OFF                                            ^
+-DSOLID_MECHANICS_APPLICATION=OFF                                               ^
+-DCONSTITUTIVE_MODELS_APPLICATION=OFF                                           ^
+-DDELAUNAY_MESHING_APPLICATION=OFF                                              ^
+-DCONTACT_MECHANICS_APPLICATION=OFF                                             ^
+-DPFEM_APPLICATION=OFF                                                          ^
+-DPFEM_SOLID_MECHANICS_APPLICATION=OFF                                          ^
+-DPFEM_FLUID_DYNAMICS_APPLICATION=OFF                                           ^
 -DMETIS_APPLICATION=OFF                                                         ^
 -DPARMETIS_ROOT_DIR="UNSET"                                                     ^
 -DTRILINOS_APPLICATION=OFF                                                      ^
