@@ -70,7 +70,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             "interval"                      : [0.0,"End"],
             "normal_variation"              : "no_derivatives_computation",
             "frictional_law"                : "Coulomb",
-            "tangent_factor"                : 1.0e0,
+            "tangent_factor"                : 2.5e-2,
             "slip_augmentation_coefficient" : 0.0,
             "slip_threshold"                : 2.0e-2,
             "zero_tolerance_factor"         : 1.0,

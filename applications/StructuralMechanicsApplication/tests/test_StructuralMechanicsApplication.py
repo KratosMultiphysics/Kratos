@@ -133,6 +133,7 @@ from structural_mechanics_test_factory import Simple3D2NBeamCrNonLinearTest as T
 from structural_mechanics_test_factory import Simple3D2NBeamCrLinearTest as T3D2NBeamCrLinearTest
 from structural_mechanics_test_factory import Simple3D2NBeamCrDynamicTest as T3D2NBeamCrDynamicTest
 from structural_mechanics_test_factory import Simple2D2NBeamCrTest as T2D2NBeamCrTest
+from structural_mechanics_test_factory import Simple3D2NTrussNonLinearSnapthroughDisplacementControlTest as T3D2NNLDispCtrlTest
 # Shell tests
 ### OLD Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
 from structural_mechanics_test_factory import ShellQ4ThickBendingRollUpTests as TShellQ4ThickBendingRollUpTests
@@ -355,6 +356,7 @@ def AssembleTestSuites():
     nightSuite.addTest(T3D2NBeamCrNonLinearTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrDynamicTest('test_execution'))
+    nightSuite.addTest(T3D2NNLDispCtrlTest('test_execution'))
     # Shell tests
     nightSuite.addTest(TShellT3IsotropicLinearStaticStructScordelisLoRoofTests('test_execution'))
     nightSuite.addTest(TShellT3AndQ4LinearStaticStructScordelisLoRoofTests('test_execution'))
