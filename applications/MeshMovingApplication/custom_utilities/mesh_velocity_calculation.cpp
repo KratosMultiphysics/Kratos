@@ -47,8 +47,6 @@ void CalculateMeshVelocitiesGeneralizedAlpha(ModelPart& rModelPart,
         const auto& r_mesh_a1 = it_node->FastGetSolutionStepValue(MESH_ACCELERATION, 1);
 
         r_mesh_v0 = const_u * (r_mesh_u0 - r_mesh_u1) + const_v * r_mesh_v1 + const_a * r_mesh_a1;
-        if(it_node->Has(AUX_MESH_VELOCITY))
-            noalias(r_mesh_v0) += it_node->GetValue(AUX_MESH_VELOCITY);
         r_mesh_a0 = (1.0 / (delta_time * Gamma)) * (r_mesh_v0 - r_mesh_v1) - ((1 - Gamma) / Gamma) * r_mesh_a1;
 
     }
@@ -72,8 +70,6 @@ void CalculateMeshVelocities(ModelPart& rModelPart,
         auto& r_mesh_v0       = it_node->FastGetSolutionStepValue(MESH_VELOCITY);
         noalias(r_mesh_v0) = coeffs[0] * it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
         noalias(r_mesh_v0) += coeffs[1] * it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
-        if(it_node->Has(AUX_MESH_VELOCITY))
-            noalias(r_mesh_v0) += it_node->GetValue(AUX_MESH_VELOCITY);
     }
 
     rModelPart.GetCommunicator().SynchronizeVariable(MESH_VELOCITY);
@@ -94,8 +90,6 @@ void CalculateMeshVelocities(ModelPart& rModelPart,
         noalias(r_mesh_v0) = coeffs[0] * it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
         noalias(r_mesh_v0) += coeffs[1] * it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
         noalias(r_mesh_v0) += coeffs[2] * it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 2);
-        if(it_node->Has(AUX_MESH_VELOCITY))
-            noalias(r_mesh_v0) += it_node->GetValue(AUX_MESH_VELOCITY);
     }
 
     rModelPart.GetCommunicator().SynchronizeVariable(MESH_VELOCITY);
