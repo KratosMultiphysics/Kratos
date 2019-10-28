@@ -207,7 +207,7 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
 
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = nodes_array.begin() + i;
+        auto it_node = r_nodes_array.begin() + i;
         it_node->Set(INTERFACE, true);
     }
 }
