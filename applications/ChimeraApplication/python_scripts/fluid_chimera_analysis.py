@@ -12,16 +12,20 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         # Deprecation warnings
         self.full_parameters = parameters
         self.solver_parameters = parameters["solver_settings"]
+        # Checking if the parameters has 'chimera_settings' entry.
+        # This is required.
         if self.solver_parameters.Has("chimera_settings"):
             self.chimera_parameters = self.solver_parameters["chimera_settings"].Clone()
         else:
             raise Exception("The \"solver_settings\" should have the entry \"chimera_settings\" ")
-
+        
+        # Seperating the fluid solver settings. 
         if self.solver_parameters.Has("fluid_solver_settings"):
             self.fluid_parameters = self.solver_parameters["fluid_solver_settings"].Clone()
         else:
             self.fluid_parameters = self.solver_parameters.Clone()
 
+        # Extracting the chimera_parts. this is required for ApplyChimera process.
         if self.chimera_parameters.Has("chimera_parts"):
             self.chimera_levels = self.chimera_parameters["chimera_parts"].Clone()
         else:
@@ -65,6 +69,10 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         domain_size = main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         solver_type = self.fluid_parameters["solver_type"].GetString()
 
+
+        '''
+            Creating the necessary variant of the apply chimera process.
+        '''
         if domain_size == 2:
             if(solver_type == "Monolithic" or solver_type == "monolithic"):
                 self.chimera_process = KratosChimera.ApplyChimeraProcessMonolithic2d(main_model_part,self.chimera_levels)
@@ -82,12 +90,17 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         return list_of_processes
 
     def __SetChimeraInternalPartsFlag(self):
+        '''
+            This function sects the flag CHIMERA_INTERNAL_BOUNDARY on the specified modelparts
+            so that they are excluded from the extract surface operation later on.
+        '''
         for mp_name in self.chimera_internal_parts:
             KratosMultiphysics.VariableUtils().SetFlag(KratosChimera.CHIMERA_INTERNAL_BOUNDARY, True,  self.model[mp_name.GetString()].Nodes)
 
     def InitializeSolutionStep(self):
         self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty
+        ## The following will construct the constraints 
         self.chimera_process.ExecuteInitializeSolutionStep()
         self._GetSolver().InitializeSolutionStep()
         self.PrintAnalysisStageProgressInformation()
@@ -107,6 +120,7 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
 
     def FinalizeSolutionStep(self):
         super(FluidChimeraAnalysis,self).FinalizeSolutionStep()
+        ## Depending on the setting this will clear the created constraits
         self.chimera_process.ExecuteFinalizeSolutionStep()
 
 
