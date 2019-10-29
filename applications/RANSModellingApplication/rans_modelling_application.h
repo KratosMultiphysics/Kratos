@@ -21,14 +21,14 @@
 #include "includes/kratos_application.h"
 
 // Element includes
-#include "custom_elements/evm_k_epsilon/rans_evm_epsilon_element.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_k_element.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_low_re_epsilon_element.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_low_re_k_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_epsilon.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_epsilon.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_k.h"
 
 // Condition includes
-#include "custom_conditions/evm_k_epsilon/rans_evm_epsilon_wall_condition.h"
-#include "custom_conditions/evm_k_epsilon/rans_evm_vms_monolithic_wall_condition.h"
+#include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_epsilon_wall.h"
+#include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_vms_monolithic_wall.h"
 
 namespace Kratos
 {
@@ -186,11 +186,11 @@ private:
     const RansEvmKEpsilonEpsilon<3, 4> mRansEvmKEpsilonEpsilon3D;
 
     /// k-epsilon turbulence model conditions
-    const RansEvmKEpsilonEpsilonWallCondition<2> mRansEvmKEpsilonEpsilonWallCondition2D2N;
-    const RansEvmKEpsilonEpsilonWallCondition<3> mRansEvmKEpsilonEpsilonWallCondition3D3N;
+    const RansEvmKEpsilonEpsilonWall<2> mRansEvmKEpsilonEpsilonWall2D2N;
+    const RansEvmKEpsilonEpsilonWall<3> mRansEvmKEpsilonEpsilonWall3D3N;
 
-    const RansEvmKEpsilonVmsMonolithicWallCondition<2> mRansEvmKEpsilonVmsMonolithicWallCondition2D2N;
-    const RansEvmKEpsilonVmsMonolithicWallCondition<3> mRansEvmKEpsilonVmsMonolithicWallCondition3D3N;
+    const RansEvmKEpsilonVmsMonolithicWall<2> mRansEvmKEpsilonVmsMonolithicWall2D2N;
+    const RansEvmKEpsilonVmsMonolithicWall<3> mRansEvmKEpsilonVmsMonolithicWall3D3N;
 
     ///@}
     ///@name Private Operators

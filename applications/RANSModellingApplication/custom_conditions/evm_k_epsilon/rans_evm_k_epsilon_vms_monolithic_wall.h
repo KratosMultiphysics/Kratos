@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#ifndef KRATOS_RANS_EVM_VMS_MONOLITHIC_WALL_CONDITION_H
-#define KRATOS_RANS_EVM_VMS_MONOLITHIC_WALL_CONDITION_H
+#ifndef KRATOS_RANS_EVM_K_EPSILON_VMS_MONOLITHIC_WALL_H
+#define KRATOS_RANS_EVM_K_EPSILON_VMS_MONOLITHIC_WALL_H
 
 // System includes
 
@@ -53,14 +53,14 @@ namespace Kratos
  * @tparam TNumNodes  Number of nodes in the condition
  */
 template <unsigned int TDim, unsigned int TNumNodes = TDim>
-class RansEvmKEpsilonVmsMonolithicWallCondition : public MonolithicWallCondition<TDim, TNumNodes>
+class RansEvmKEpsilonVmsMonolithicWall : public MonolithicWallCondition<TDim, TNumNodes>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of RansEvmKEpsilonVmsMonolithicWallCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RansEvmKEpsilonVmsMonolithicWallCondition);
+    /// Pointer definition of RansEvmKEpsilonVmsMonolithicWall
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RansEvmKEpsilonVmsMonolithicWall);
 
     using BaseType = MonolithicWallCondition<TDim, TNumNodes>;
     using NodeType = Node<3>;
@@ -79,21 +79,21 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    explicit RansEvmKEpsilonVmsMonolithicWallCondition(IndexType NewId = 0);
+    explicit RansEvmKEpsilonVmsMonolithicWall(IndexType NewId = 0);
 
     /// Constructor using an array of nodes
     /**
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    RansEvmKEpsilonVmsMonolithicWallCondition(IndexType NewId, const NodesArrayType& ThisNodes);
+    RansEvmKEpsilonVmsMonolithicWall(IndexType NewId, const NodesArrayType& ThisNodes);
 
     /// Constructor using Geometry
     /**
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    RansEvmKEpsilonVmsMonolithicWallCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    RansEvmKEpsilonVmsMonolithicWall(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /// Constructor using Properties
     /**
@@ -101,28 +101,28 @@ public:
      @param pGeometry Pointer to a geometry object
      @param pProperties Pointer to the element's properties
      */
-    RansEvmKEpsilonVmsMonolithicWallCondition(IndexType NewId,
+    RansEvmKEpsilonVmsMonolithicWall(IndexType NewId,
                                       GeometryType::Pointer pGeometry,
                                       PropertiesType::Pointer pProperties);
 
     /// Copy constructor.
-    RansEvmKEpsilonVmsMonolithicWallCondition(RansEvmKEpsilonVmsMonolithicWallCondition const& rOther);
+    RansEvmKEpsilonVmsMonolithicWall(RansEvmKEpsilonVmsMonolithicWall const& rOther);
 
     /// Destructor.
-    ~RansEvmKEpsilonVmsMonolithicWallCondition() override;
+    ~RansEvmKEpsilonVmsMonolithicWall() override;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator
-    RansEvmKEpsilonVmsMonolithicWallCondition& operator=(RansEvmKEpsilonVmsMonolithicWallCondition const& rOther);
+    RansEvmKEpsilonVmsMonolithicWall& operator=(RansEvmKEpsilonVmsMonolithicWall const& rOther);
 
     ///@}
     ///@name Operations
     ///@{
 
-    /// Create a new RansEvmKEpsilonVmsMonolithicWallCondition object.
+    /// Create a new RansEvmKEpsilonVmsMonolithicWall object.
     /**
       @param NewId Index of the new condition
       @param ThisNodes An array containing the nodes of the new condition
@@ -289,7 +289,7 @@ private:
 
     ///@}
 
-}; // Class RansEvmKEpsilonVmsMonolithicWallCondition
+}; // Class RansEvmKEpsilonVmsMonolithicWall
 
 ///@}
 
@@ -303,7 +303,7 @@ private:
 /// input stream function
 template <unsigned int TDim, unsigned int TNumNodes>
 inline std::istream& operator>>(std::istream& rIStream,
-                                RansEvmKEpsilonVmsMonolithicWallCondition<TDim, TNumNodes>& rThis)
+                                RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>& rThis)
 {
     return rIStream;
 }
@@ -311,7 +311,7 @@ inline std::istream& operator>>(std::istream& rIStream,
 /// output stream function
 template <unsigned int TDim, unsigned int TNumNodes>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansEvmKEpsilonVmsMonolithicWallCondition<TDim, TNumNodes>& rThis)
+                                const RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -326,4 +326,4 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_RANS_EVM_VMS_MONOLITHIC_WALL_CONDITION_H
+#endif // KRATOS_RANS_EVM_K_EPSILON_VMS_MONOLITHIC_WALL_H

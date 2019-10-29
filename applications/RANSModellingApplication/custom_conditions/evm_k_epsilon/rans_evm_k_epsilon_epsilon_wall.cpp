@@ -19,7 +19,7 @@
 #include "includes/define.h"
 
 // Application includes
-#include "rans_evm_epsilon_wall_condition.h"
+#include "rans_evm_k_epsilon_epsilon_wall.h"
 
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_modelling_application_variables.h"
@@ -27,46 +27,46 @@
 namespace Kratos
 {
 template <unsigned int TNumNodes>
-RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::RansEvmKEpsilonEpsilonWallCondition(IndexType NewId)
+RansEvmKEpsilonEpsilonWall<TNumNodes>::RansEvmKEpsilonEpsilonWall(IndexType NewId)
     : Condition(NewId)
 {
 }
 
 template <unsigned int TNumNodes>
-RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::RansEvmKEpsilonEpsilonWallCondition(IndexType NewId,
+RansEvmKEpsilonEpsilonWall<TNumNodes>::RansEvmKEpsilonEpsilonWall(IndexType NewId,
                                                                     const NodesArrayType& ThisNodes)
     : Condition(NewId, ThisNodes)
 {
 }
 
 template <unsigned int TNumNodes>
-RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::RansEvmKEpsilonEpsilonWallCondition(IndexType NewId,
+RansEvmKEpsilonEpsilonWall<TNumNodes>::RansEvmKEpsilonEpsilonWall(IndexType NewId,
                                                                     GeometryType::Pointer pGeometry)
     : Condition(NewId, pGeometry)
 {
 }
 
 template <unsigned int TNumNodes>
-RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::RansEvmKEpsilonEpsilonWallCondition(
+RansEvmKEpsilonEpsilonWall<TNumNodes>::RansEvmKEpsilonEpsilonWall(
     IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties)
 {
 }
 
 template <unsigned int TNumNodes>
-RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::RansEvmKEpsilonEpsilonWallCondition(RansEvmKEpsilonEpsilonWallCondition const& rOther)
+RansEvmKEpsilonEpsilonWall<TNumNodes>::RansEvmKEpsilonEpsilonWall(RansEvmKEpsilonEpsilonWall const& rOther)
     : Condition(rOther)
 {
 }
 
 template <unsigned int TNumNodes>
-RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::~RansEvmKEpsilonEpsilonWallCondition()
+RansEvmKEpsilonEpsilonWall<TNumNodes>::~RansEvmKEpsilonEpsilonWall()
 {
 }
 
 template <unsigned int TNumNodes>
-RansEvmKEpsilonEpsilonWallCondition<TNumNodes>& RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::operator=(
-    RansEvmKEpsilonEpsilonWallCondition<TNumNodes> const& rOther)
+RansEvmKEpsilonEpsilonWall<TNumNodes>& RansEvmKEpsilonEpsilonWall<TNumNodes>::operator=(
+    RansEvmKEpsilonEpsilonWall<TNumNodes> const& rOther)
 {
     Condition::operator=(rOther);
 
@@ -74,22 +74,22 @@ RansEvmKEpsilonEpsilonWallCondition<TNumNodes>& RansEvmKEpsilonEpsilonWallCondit
 }
 
 template <unsigned int TNumNodes>
-Condition::Pointer RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::Create(
+Condition::Pointer RansEvmKEpsilonEpsilonWall<TNumNodes>::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<RansEvmKEpsilonEpsilonWallCondition>(
+    return Kratos::make_intrusive<RansEvmKEpsilonEpsilonWall>(
         NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 template <unsigned int TNumNodes>
-Condition::Pointer RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::Create(
+Condition::Pointer RansEvmKEpsilonEpsilonWall<TNumNodes>::Create(
     IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<RansEvmKEpsilonEpsilonWallCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<RansEvmKEpsilonEpsilonWall>(NewId, pGeom, pProperties);
 }
 
 template <unsigned int TNumNodes>
-Condition::Pointer RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::Clone(IndexType NewId,
+Condition::Pointer RansEvmKEpsilonEpsilonWall<TNumNodes>::Clone(IndexType NewId,
                                                                  NodesArrayType const& rThisNodes) const
 {
     Condition::Pointer pNewCondition =
@@ -102,7 +102,7 @@ Condition::Pointer RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::Clone(IndexTy
 }
 
 template <unsigned int TNumNodes>
-void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+void RansEvmKEpsilonEpsilonWall<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                                   VectorType& rRightHandSideVector,
                                                                   ProcessInfo& rCurrentProcessInfo)
 {
@@ -117,7 +117,7 @@ void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::CalculateLocalSystem(Matrix
 }
 
 template <unsigned int TNumNodes>
-void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+void RansEvmKEpsilonEpsilonWall<TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                                                    ProcessInfo& rCurrentProcessInfo)
 {
     if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes)
@@ -127,7 +127,7 @@ void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::CalculateLeftHandSide(Matri
 }
 
 template <unsigned int TNumNodes>
-void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
+void RansEvmKEpsilonEpsilonWall<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
                                                                     ProcessInfo& rCurrentProcessInfo)
 {
     if (rRightHandSideVector.size() != TNumNodes)
@@ -137,7 +137,7 @@ void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::CalculateRightHandSide(Vect
 }
 
 template <unsigned int TNumNodes>
-void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix,
+void RansEvmKEpsilonEpsilonWall<TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix,
                                                                     ProcessInfo& rCurrentProcessInfo)
 {
     VectorType RHS;
@@ -145,7 +145,7 @@ void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::CalculateDampingMatrix(Matr
 }
 
 template <unsigned int TNumNodes>
-void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::CalculateLocalVelocityContribution(
+void RansEvmKEpsilonEpsilonWall<TNumNodes>::CalculateLocalVelocityContribution(
     MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -169,7 +169,7 @@ void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::CalculateLocalVelocityContr
 }
 
 template <unsigned int TNumNodes>
-int RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int RansEvmKEpsilonEpsilonWall<TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -196,7 +196,7 @@ int RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::Check(const ProcessInfo& rCu
 }
 
 template <unsigned int TNumNodes>
-void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
+void RansEvmKEpsilonEpsilonWall<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
                                                               ProcessInfo& rCurrentProcessInfo)
 {
     if (rResult.size() != TNumNodes)
@@ -209,7 +209,7 @@ void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::EquationIdVector(EquationId
 }
 
 template <unsigned int TNumNodes>
-void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::GetDofList(DofsVectorType& ConditionDofList,
+void RansEvmKEpsilonEpsilonWall<TNumNodes>::GetDofList(DofsVectorType& ConditionDofList,
                                                         ProcessInfo& CurrentProcessInfo)
 {
     if (ConditionDofList.size() != TNumNodes)
@@ -221,13 +221,13 @@ void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::GetDofList(DofsVectorType& 
 }
 
 template <unsigned int TNumNodes>
-void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::GetValuesVector(VectorType& rValues, int Step)
+void RansEvmKEpsilonEpsilonWall<TNumNodes>::GetValuesVector(VectorType& rValues, int Step)
 {
     this->GetFirstDerivativesVector(rValues, Step);
 }
 
 template <unsigned int TNumNodes>
-void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step)
+void RansEvmKEpsilonEpsilonWall<TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step)
 {
     if (rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
@@ -242,7 +242,7 @@ void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::GetFirstDerivativesVector(V
 }
 
 template <unsigned int TNumNodes>
-void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step)
+void RansEvmKEpsilonEpsilonWall<TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step)
 {
     if (rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
@@ -257,26 +257,26 @@ void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::GetSecondDerivativesVector(
 }
 
 template <unsigned int TNumNodes>
-std::string RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::Info() const
+std::string RansEvmKEpsilonEpsilonWall<TNumNodes>::Info() const
 {
     std::stringstream buffer;
-    buffer << "RansEvmKEpsilonEpsilonWallCondition" << TNumNodes << "N";
+    buffer << "RansEvmKEpsilonEpsilonWall" << TNumNodes << "N";
     return buffer.str();
 }
 
 template <unsigned int TNumNodes>
-void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::PrintInfo(std::ostream& rOStream) const
+void RansEvmKEpsilonEpsilonWall<TNumNodes>::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "RansEvmKEpsilonEpsilonWallCondition";
+    rOStream << "RansEvmKEpsilonEpsilonWall";
 }
 
 template <unsigned int TNumNodes>
-void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::PrintData(std::ostream& rOStream) const
+void RansEvmKEpsilonEpsilonWall<TNumNodes>::PrintData(std::ostream& rOStream) const
 {
 }
 
 template <unsigned int TNumNodes>
-void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::AddLocalVelocityContribution(
+void RansEvmKEpsilonEpsilonWall<TNumNodes>::AddLocalVelocityContribution(
     MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& r_geometry = this->GetGeometry();
@@ -335,20 +335,20 @@ void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::AddLocalVelocityContributio
 }
 
 template <unsigned int TNumNodes>
-void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::save(Serializer& rSerializer) const
+void RansEvmKEpsilonEpsilonWall<TNumNodes>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
 }
 
 template <unsigned int TNumNodes>
-void RansEvmKEpsilonEpsilonWallCondition<TNumNodes>::load(Serializer& rSerializer)
+void RansEvmKEpsilonEpsilonWall<TNumNodes>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
 }
 
 // template instantiation
 
-template class RansEvmKEpsilonEpsilonWallCondition<2>;
-template class RansEvmKEpsilonEpsilonWallCondition<3>;
+template class RansEvmKEpsilonEpsilonWall<2>;
+template class RansEvmKEpsilonEpsilonWall<3>;
 
 } // namespace Kratos.

@@ -49,19 +49,19 @@ KratosRANSModellingApplication::KratosRANSModellingApplication()
       mRansEvmKEpsilonEpsilon3D(0,
                         Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
                             Element::GeometryType::PointsArrayType(4)))),
-      mRansEvmKEpsilonEpsilonWallCondition2D2N(
+      mRansEvmKEpsilonEpsilonWall2D2N(
           0,
           Element::GeometryType::Pointer(
               new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
-      mRansEvmKEpsilonEpsilonWallCondition3D3N(
+      mRansEvmKEpsilonEpsilonWall3D3N(
           0,
           Element::GeometryType::Pointer(
               new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mRansEvmKEpsilonVmsMonolithicWallCondition2D2N(
+      mRansEvmKEpsilonVmsMonolithicWall2D2N(
           0,
           Element::GeometryType::Pointer(
               new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
-      mRansEvmKEpsilonVmsMonolithicWallCondition3D3N(
+      mRansEvmKEpsilonVmsMonolithicWall3D3N(
           0,
           Element::GeometryType::Pointer(
               new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3))))
@@ -106,12 +106,12 @@ void KratosRANSModellingApplication::Register()
     KRATOS_REGISTER_ELEMENT("RansEvmKEpsilonEpsilon2D3N", mRansEvmKEpsilonEpsilon2D);
     KRATOS_REGISTER_ELEMENT("RansEvmKEpsilonEpsilon3D4N", mRansEvmKEpsilonEpsilon3D);
 
-    KRATOS_REGISTER_CONDITION("RansEvmKEpsilonEpsilonWallCondition2D2N", mRansEvmKEpsilonEpsilonWallCondition2D2N);
-    KRATOS_REGISTER_CONDITION("RansEvmKEpsilonEpsilonWallCondition3D3N", mRansEvmKEpsilonEpsilonWallCondition3D3N);
+    KRATOS_REGISTER_CONDITION("RansEvmKEpsilonEpsilonWall2D2N", mRansEvmKEpsilonEpsilonWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansEvmKEpsilonEpsilonWall3D3N", mRansEvmKEpsilonEpsilonWall3D3N);
 
-    KRATOS_REGISTER_CONDITION("RansEvmKEpsilonVmsMonolithicWallCondition2D2N",
-                              mRansEvmKEpsilonVmsMonolithicWallCondition2D2N);
-    KRATOS_REGISTER_CONDITION("RansEvmKEpsilonVmsMonolithicWallCondition3D3N",
-                              mRansEvmKEpsilonVmsMonolithicWallCondition3D3N);
+    KRATOS_REGISTER_CONDITION("RansEvmKEpsilonVmsMonolithicWall2D2N",
+                              mRansEvmKEpsilonVmsMonolithicWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansEvmKEpsilonVmsMonolithicWall3D3N",
+                              mRansEvmKEpsilonVmsMonolithicWall3D3N);
 }
 } // namespace Kratos.

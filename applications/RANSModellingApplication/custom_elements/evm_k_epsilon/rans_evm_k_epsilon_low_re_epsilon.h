@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-#if !defined(KRATOS_RANS_EVM_LOW_RE_EPSILON_ELEMENT_H_INCLUDED)
-#define KRATOS_RANS_EVM_LOW_RE_EPSILON_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_RANS_EVM_K_EPSILON_LOW_RE_EPSILON_H_INCLUDED)
+#define KRATOS_RANS_EVM_K_EPSILON_LOW_RE_EPSILON_H_INCLUDED
 
 // System includes
 
@@ -358,4 +358,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_RANS_EVM_LOW_RE_EPSILON_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_RANS_EVM_K_EPSILON_LOW_RE_EPSILON_H_INCLUDED  defined

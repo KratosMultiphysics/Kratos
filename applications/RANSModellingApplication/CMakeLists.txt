@@ -19,13 +19,13 @@ set( KRATOS_RANS_MODELLING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/rans_modelling_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rans_calculation_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/rans_evm_k_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/rans_evm_low_re_k_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/rans_evm_epsilon_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/rans_evm_low_re_epsilon_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_k.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/rans_evm_k_epsilon_epsilon.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_epsilon.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/relaxed_dof_updater.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/evm_k_epsilon/rans_evm_epsilon_wall_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/evm_k_epsilon/rans_evm_vms_monolithic_wall_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_epsilon_wall.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_vms_monolithic_wall.cpp
 )
 
 set( KRATOS_RANS_MODELLING_APPLICATION_PYTHON_INTERFACE

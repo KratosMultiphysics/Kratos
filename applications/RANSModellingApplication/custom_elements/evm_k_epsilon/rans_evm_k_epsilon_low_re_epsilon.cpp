@@ -15,8 +15,7 @@
 // External includes
 
 // Include Base h
-#include "rans_evm_k_element.h"
-#include "custom_utilities/rans_calculation_utilities.h"
+#include "rans_evm_k_epsilon_low_re_epsilon.h"
 
 namespace Kratos
 {
@@ -43,8 +42,8 @@ namespace Kratos
  * Constructor.
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewId)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonKElementData>(NewId)
+RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::RansEvmKEpsilonLowReEpsilonElement(IndexType NewId)
+    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonLowReEpsilonElementData>(NewId)
 {
 }
 
@@ -52,8 +51,9 @@ RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewI
  * Constructor using an array of nodes
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewId, const NodesArrayType& ThisNodes)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonKElementData>(
+RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::RansEvmKEpsilonLowReEpsilonElement(IndexType NewId,
+                                                                        const NodesArrayType& ThisNodes)
+    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonLowReEpsilonElementData>(
           NewId, ThisNodes)
 {
 }
@@ -62,8 +62,9 @@ RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewI
  * Constructor using Geometry
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewId, GeometryType::Pointer pGeometry)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonKElementData>(
+RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::RansEvmKEpsilonLowReEpsilonElement(IndexType NewId,
+                                                                        GeometryType::Pointer pGeometry)
+    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonLowReEpsilonElementData>(
           NewId, pGeometry)
 {
 }
@@ -72,10 +73,9 @@ RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewI
  * Constructor using Properties
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewId,
-                                                  GeometryType::Pointer pGeometry,
-                                                  PropertiesType::Pointer pProperties)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonKElementData>(
+RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::RansEvmKEpsilonLowReEpsilonElement(
+    IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonLowReEpsilonElementData>(
           NewId, pGeometry, pProperties)
 {
 }
@@ -84,8 +84,9 @@ RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewI
  * Copy Constructor
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(RansEvmKEpsilonKElement<TDim, TNumNodes> const& rOther)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonKElementData>(rOther)
+RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::RansEvmKEpsilonLowReEpsilonElement(
+    RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes> const& rOther)
+    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonLowReEpsilonElementData>(rOther)
 {
 }
 
@@ -93,7 +94,7 @@ RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(RansEvmKEpsilo
  * Destructor
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonKElement<TDim, TNumNodes>::~RansEvmKEpsilonKElement()
+RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::~RansEvmKEpsilonLowReEpsilonElement()
 {
 }
 
@@ -118,12 +119,11 @@ RansEvmKEpsilonKElement<TDim, TNumNodes>::~RansEvmKEpsilonKElement()
  * @return a Pointer to the new element
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer RansEvmKEpsilonKElement<TDim, TNumNodes>::Create(IndexType NewId,
-                                                          NodesArrayType const& ThisNodes,
-                                                          PropertiesType::Pointer pProperties) const
+Element::Pointer RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::Create(
+    IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<RansEvmKEpsilonKElement>(
+    return Kratos::make_intrusive<RansEvmKEpsilonLowReEpsilonElement>(
         NewId, Element::GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
@@ -136,12 +136,11 @@ Element::Pointer RansEvmKEpsilonKElement<TDim, TNumNodes>::Create(IndexType NewI
  * @return a Pointer to the new element
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer RansEvmKEpsilonKElement<TDim, TNumNodes>::Create(IndexType NewId,
-                                                          GeometryType::Pointer pGeom,
-                                                          PropertiesType::Pointer pProperties) const
+Element::Pointer RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::Create(
+    IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<RansEvmKEpsilonKElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<RansEvmKEpsilonLowReEpsilonElement>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
@@ -153,11 +152,11 @@ Element::Pointer RansEvmKEpsilonKElement<TDim, TNumNodes>::Create(IndexType NewI
  * @return a Pointer to the new element
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer RansEvmKEpsilonKElement<TDim, TNumNodes>::Clone(IndexType NewId,
-                                                         NodesArrayType const& ThisNodes) const
+Element::Pointer RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::Clone(IndexType NewId,
+                                                                    NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<RansEvmKEpsilonKElement>(
+    return Kratos::make_intrusive<RansEvmKEpsilonLowReEpsilonElement>(
         NewId, Element::GetGeometry().Create(ThisNodes), Element::pGetProperties());
     KRATOS_CATCH("");
 }
@@ -169,14 +168,15 @@ Element::Pointer RansEvmKEpsilonKElement<TDim, TNumNodes>::Clone(IndexType NewId
  * @param rCurrentProcessInfo: the current process info instance
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonKElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                        ProcessInfo& CurrentProcessInfo)
+void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
+                                                                   ProcessInfo& CurrentProcessInfo)
 {
     if (rResult.size() != TNumNodes)
         rResult.resize(TNumNodes, false);
 
     for (unsigned int i = 0; i < TNumNodes; i++)
-        rResult[i] = Element::GetGeometry()[i].GetDof(TURBULENT_KINETIC_ENERGY).EquationId();
+        rResult[i] =
+            Element::GetGeometry()[i].GetDof(TURBULENT_ENERGY_DISSIPATION_RATE).EquationId();
 }
 
 /**
@@ -185,24 +185,26 @@ void RansEvmKEpsilonKElement<TDim, TNumNodes>::EquationIdVector(EquationIdVector
  * @param rCurrentProcessInfo: the current process info instance
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                  ProcessInfo& rCurrentProcessInfo)
+void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
+                                                             ProcessInfo& rCurrentProcessInfo)
 {
     if (rElementalDofList.size() != TNumNodes)
         rElementalDofList.resize(TNumNodes);
 
     for (unsigned int i = 0; i < TNumNodes; i++)
-        rElementalDofList[i] = Element::GetGeometry()[i].pGetDof(TURBULENT_KINETIC_ENERGY);
+        rElementalDofList[i] =
+            Element::GetGeometry()[i].pGetDof(TURBULENT_ENERGY_DISSIPATION_RATE);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetValuesVector(VectorType& rValues, int Step)
+void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::GetValuesVector(VectorType& rValues, int Step)
 {
     this->GetFirstDerivativesVector(rValues, Step);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetFirstDerivativesVector(VectorType& rValues, int Step)
+void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::GetFirstDerivativesVector(VectorType& rValues,
+                                                                            int Step)
 {
     if (rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
@@ -211,13 +213,14 @@ void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetFirstDerivativesVector(VectorT
     IndexType LocalIndex = 0;
     for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
     {
-        rValues[LocalIndex++] =
-            rGeom[iNode].FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY, Step);
+        rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
+            TURBULENT_ENERGY_DISSIPATION_RATE, Step);
     }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetSecondDerivativesVector(VectorType& rValues, int Step)
+void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::GetSecondDerivativesVector(VectorType& rValues,
+                                                                             int Step)
 {
     if (rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
@@ -226,13 +229,12 @@ void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector
     IndexType LocalIndex = 0;
     for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
     {
-        rValues[LocalIndex++] =
-            rGeom[iNode].FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY_RATE, Step);
+        rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
+            TURBULENT_ENERGY_DISSIPATION_RATE_2, Step);
     }
 }
-
 template <unsigned int TDim, unsigned int TNumNodes>
-GeometryData::IntegrationMethod RansEvmKEpsilonKElement<TDim, TNumNodes>::GetIntegrationMethod() const
+GeometryData::IntegrationMethod RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_2;
 }
@@ -247,7 +249,7 @@ GeometryData::IntegrationMethod RansEvmKEpsilonKElement<TDim, TNumNodes>::GetInt
  * this method is: MANDATORY
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-int RansEvmKEpsilonKElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -256,13 +258,17 @@ int RansEvmKEpsilonKElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
     for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
     {
         NodeType& r_node = this->GetGeometry()[iNode];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY_RATE, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_AUXILIARY_VARIABLE_1, r_node);
 
-        KRATOS_CHECK_DOF_IN_NODE(TURBULENT_KINETIC_ENERGY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE_2, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_Y_PLUS, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_AUXILIARY_VARIABLE_2, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
+
+        KRATOS_CHECK_DOF_IN_NODE(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
     }
 
     return 0;
@@ -285,25 +291,25 @@ int RansEvmKEpsilonKElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
 /// Turn back information as a string.
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::string RansEvmKEpsilonKElement<TDim, TNumNodes>::Info() const
+std::string RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::Info() const
 {
     std::stringstream buffer;
-    buffer << "RansEvmKEpsilonKElement #" << Element::Id();
+    buffer << "RansEvmKEpsilonLowReEpsilonElement #" << Element::Id();
     return buffer.str();
 }
 
 /// Print information about this object.
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonKElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
+void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "RansEvmKEpsilonKElement #" << Element::Id();
+    rOStream << "RansEvmKEpsilonLowReEpsilonElement #" << Element::Id();
 }
 
 /// Print object's data.
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonKElement<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const
+void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const
 {
     Element::pGetGeometry()->PrintData(rOStream);
 }
@@ -359,80 +365,91 @@ void RansEvmKEpsilonKElement<TDim, TNumNodes>::PrintData(std::ostream& rOStream)
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-const Variable<double>& RansEvmKEpsilonKElement<TDim, TNumNodes>::GetPrimalVariable() const
+const Variable<double>& RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::GetPrimalVariable() const
 {
-    return TURBULENT_KINETIC_ENERGY;
+    return TURBULENT_ENERGY_DISSIPATION_RATE;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-const Variable<double>& RansEvmKEpsilonKElement<TDim, TNumNodes>::GetPrimalRelaxedRateVariable() const
+const Variable<double>& RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::GetPrimalRelaxedRateVariable() const
 {
-    return RANS_AUXILIARY_VARIABLE_1;
+    return RANS_AUXILIARY_VARIABLE_2;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonKElement<TDim, TNumNodes>::CalculateElementData(RansEvmKEpsilonKElementData& rData,
-                                                            const Vector& rShapeFunctions,
-                                                            const Matrix& rShapeFunctionDerivatives,
-                                                            const ProcessInfo& rCurrentProcessInfo,
-                                                            const int Step) const
+void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::CalculateElementData(
+    RansEvmKEpsilonLowReEpsilonElementData& rData,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives,
+    const ProcessInfo& rCurrentProcessInfo,
+    const int Step) const
 {
-    KRATOS_TRY
-
+    const double c1 = rCurrentProcessInfo[TURBULENCE_RANS_C1];
+    const double c2 = rCurrentProcessInfo[TURBULENCE_RANS_C2];
     const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
 
+    const double nu = this->EvaluateInPoint(KINEMATIC_VISCOSITY, rShapeFunctions);
     const double nu_t = this->EvaluateInPoint(TURBULENT_VISCOSITY, rShapeFunctions);
     const double tke = this->EvaluateInPoint(TURBULENT_KINETIC_ENERGY, rShapeFunctions);
-    const double nu = this->EvaluateInPoint(KINEMATIC_VISCOSITY, rShapeFunctions);
-    const double gamma = EvmKepsilonModelUtilities::CalculateGamma(c_mu, 1.0, tke, nu_t);
+    const double epsilon =
+        this->EvaluateInPoint(TURBULENT_ENERGY_DISSIPATION_RATE, rShapeFunctions);
+    const double y_plus = this->EvaluateInPoint(RANS_Y_PLUS, rShapeFunctions);
+    const double f_mu = EvmKepsilonModelUtilities::CalculateFmu(y_plus);
+    const double gamma = EvmKepsilonModelUtilities::CalculateGamma(c_mu, f_mu, tke, nu_t);
+    const double f2 = EvmKepsilonModelUtilities::CalculateF2(tke, nu, epsilon);
+    const double wall_distance = this->EvaluateInPoint(DISTANCE, rShapeFunctions);
 
+    rData.C1 = c1;
+    rData.C2 = c2;
+    rData.F2 = f2;
+    rData.Gamma = gamma;
+    rData.KinematicViscosity = nu;
     rData.TurbulentKinematicViscosity = nu_t;
     rData.TurbulentKineticEnergy = tke;
-    rData.KinematicViscosity = nu;
-    rData.Gamma = gamma;
-    rData.VelocityDivergence =
-        this->GetDivergenceOperator(VELOCITY, rShapeFunctionDerivatives);
-
-    KRATOS_CATCH("");
+    rData.WallDistance = wall_distance;
+    rData.YPlus = y_plus;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double RansEvmKEpsilonKElement<TDim, TNumNodes>::CalculateEffectiveKinematicViscosity(
-    const RansEvmKEpsilonKElementData& rData,
+double RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::CalculateEffectiveKinematicViscosity(
+    const RansEvmKEpsilonLowReEpsilonElementData& rData,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const ProcessInfo& rCurrentProcessInfo,
     const int Step) const
 {
-    const double tke_sigma = rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
-    return rData.KinematicViscosity + rData.TurbulentKinematicViscosity / tke_sigma;
+    const double epsilon_sigma =
+        rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
+    return rData.KinematicViscosity + rData.TurbulentKinematicViscosity / epsilon_sigma;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double RansEvmKEpsilonKElement<TDim, TNumNodes>::CalculateReactionTerm(
-    const RansEvmKEpsilonKElementData& rData,
+double RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::CalculateReactionTerm(
+    const RansEvmKEpsilonLowReEpsilonElementData& rData,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const ProcessInfo& rCurrentProcessInfo,
     const int Step) const
 {
-    return std::max(rData.Gamma + (2.0 / 3.0) * rData.VelocityDivergence, 0.0);
+    return rData.C2 * rData.F2 * rData.Gamma + 2.0 * rData.KinematicViscosity *
+                                                   std::exp(-0.5 * rData.YPlus) /
+                                                   std::pow(rData.WallDistance, 2);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double RansEvmKEpsilonKElement<TDim, TNumNodes>::CalculateSourceTerm(const RansEvmKEpsilonKElementData& rData,
-                                                             const Vector& rShapeFunctions,
-                                                             const Matrix& rShapeFunctionDerivatives,
-                                                             const ProcessInfo& rCurrentProcessInfo,
-                                                             const int Step) const
+double RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::CalculateSourceTerm(
+    const RansEvmKEpsilonLowReEpsilonElementData& rData,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives,
+    const ProcessInfo& rCurrentProcessInfo,
+    const int Step) const
 {
-    double production = 0.0;
-
     BoundedMatrix<double, TDim, TDim> velocity_gradient_matrix;
     this->CalculateGradient(velocity_gradient_matrix, VELOCITY, rShapeFunctionDerivatives);
-
-    production = EvmKepsilonModelUtilities::CalculateSourceTerm<TDim>(
+    double production = EvmKepsilonModelUtilities::CalculateSourceTerm<TDim>(
         velocity_gradient_matrix, rData.TurbulentKinematicViscosity, rData.TurbulentKineticEnergy);
+
+    production *= (rData.C1 * rData.Gamma);
 
     return production;
 }
@@ -442,7 +459,7 @@ double RansEvmKEpsilonKElement<TDim, TNumNodes>::CalculateSourceTerm(const RansE
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonKElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 
@@ -451,7 +468,7 @@ void RansEvmKEpsilonKElement<TDim, TNumNodes>::save(Serializer& rSerializer) con
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonKElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 
@@ -483,13 +500,13 @@ void RansEvmKEpsilonKElement<TDim, TNumNodes>::load(Serializer& rSerializer)
 
 template <unsigned int TDim, unsigned int TNumNodes>
 inline std::istream& operator>>(std::istream& rIStream,
-                                RansEvmKEpsilonKElement<TDim, TNumNodes>& rThis);
+                                RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>& rThis);
 
 /// output stream function
 
 template <unsigned int TDim, unsigned int TNumNodes>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansEvmKEpsilonKElement<TDim, TNumNodes>& rThis)
+                                const RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;
@@ -499,9 +516,9 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 
 // Class template instantiation
 
-template class RansEvmKEpsilonKElement<2, 3>;
-template class RansEvmKEpsilonKElement<3, 4>;
-template class RansEvmKEpsilonKElement<2, 4>;
-template class RansEvmKEpsilonKElement<3, 8>;
+template class RansEvmKEpsilonLowReEpsilonElement<2, 3>;
+template class RansEvmKEpsilonLowReEpsilonElement<3, 4>;
+template class RansEvmKEpsilonLowReEpsilonElement<2, 4>;
+template class RansEvmKEpsilonLowReEpsilonElement<3, 8>;
 
 } // namespace Kratos.
