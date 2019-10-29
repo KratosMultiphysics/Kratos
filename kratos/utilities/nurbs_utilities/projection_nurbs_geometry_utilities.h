@@ -32,7 +32,7 @@ namespace Kratos
         /*
         * @brief Returns the projection of a point onto a Nurbs curve
         *        geometry using the Newton-Rapshon iterative method
-        * @param rParameter Intial guess for the Newton-Rapshon algorithm
+        * @param rParameterLocalCoordinates Intial guess for the Newton-Rapshon algorithm
         *        overwritten by the local coordinates of the projected point onto
         *        the Nurbs curve geometry
         * @param rPoint The point to be projected onto the Nurbs curve geometry
@@ -43,7 +43,6 @@ namespace Kratos
         *        to be projected
         * @param MaxIterations Maximum number of iterations for the Newton-Rapshon 
         *        algorithm
-        * @param ModelTolerance Tolerance of the CAD model
         * @param Accuracy Accuracy for the the Newton-Rapshon algorithm
         */
         template <int TDimension, class TPointType>
@@ -99,6 +98,22 @@ namespace Kratos
             return false;
     }
 
+        /*
+        * @brief Returns the projection of a point onto a Nurbs surface
+        *        geometry using the Newton-Rapshon iterative method
+        * @param rParameterLocalCoordinates Intial guess for the Newton-Rapshon algorithm
+        *        overwritten by the local coordinates of the projected point onto
+        *        the Nurbs surface geometry
+        * @param rPoint The point to be projected onto the Nurbs surface geometry
+        *        This is overwritten by the Cartesian coordinates of the projected
+        *        point in case the projection is successful 
+        * @param rResult The projection onto the Nurbs surface geometry
+        * @param rNurbsCurve The Nurbs curve geometry onto which the point is 
+        *        to be projected
+        * @param MaxIterations Maximum number of iterations for the Newton-Rapshon 
+        *        algorithm
+        * @param Accuracy Accuracy for the the Newton-Rapshon algorithm
+        */
     template <int TDimension, class TPointType>
     bool NewtonRaphsonSurface(
         CoordinatesArrayType& rParameterLocalCoordinates,
