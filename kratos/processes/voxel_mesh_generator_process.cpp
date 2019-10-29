@@ -99,6 +99,9 @@ namespace Kratos
 		
 		mColors.SetCoordinates(coordinates[0], coordinates[1], coordinates[2]);
 
+		double Margine = (mMaxPoint[0] - mMinPoint[0]) * 1.0e-2;
+
+		mColors.ExtendBoundingBox(mrSkinPart.Nodes(), Margine);
     }
 
     VoxelMeshGeneratorProcess::VoxelMeshGeneratorProcess(std::vector<double> const& XCoordinates, std::vector<double> const& YCoordinates, std::vector<double> const& ZCoordinates,
@@ -110,6 +113,10 @@ namespace Kratos
         , mrVolumePart(rVolumePart), mrSkinPart(rSkinPart), mCoarseMeshType(false) {
 		
 		mColors.SetCoordinates(XCoordinates, YCoordinates, ZCoordinates);
+
+		double Margine = (XCoordinates.back() - XCoordinates.front()) * 1.0e-2;
+
+		mColors.ExtendBoundingBox(mrSkinPart.Nodes(), Margine);
 
 		Parameters default_parameters(R"(
             {
@@ -375,7 +382,7 @@ namespace Kratos
 
 			auto& colors = mrVolumePart.GetValue(COLORS);
 			colors.resize(mColors.GetNodalColors().size());
-			for(int i = 0 ; i < colors.size() ; i++){
+			for(int i = 0 ; i < static_cast<int>(colors.size()) ; i++){
 				colors[i] = static_cast<int>(mColors.GetNodalColors()[i]);
 			}
 			std::size_t index = 0;
@@ -445,7 +452,7 @@ namespace Kratos
 
 			auto& colors = mrVolumePart.GetValue(COLORS);
 			colors.resize(mColors.GetElementalColors().size());
-			for(int i = 0 ; i < colors.size() ; i++){
+			for(int i = 0 ; i < static_cast<int>(colors.size()) ; i++){
 				colors[i] = static_cast<int>(mColors.GetElementalColors()[i]);
 			}
 

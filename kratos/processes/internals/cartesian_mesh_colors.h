@@ -38,6 +38,8 @@ namespace Kratos
   {
     class CartesianMeshColors{
       double mTolerance;
+      Point mMinPoint;
+      Point mMaxPoint;
       array_1d<std::vector<double>, 3> mNodalCoordinates;
       array_1d<std::vector<double>, 3> mElementCenterCoordinates;
       std::vector<array_1d<double,3>> mNodalRayColors;
@@ -48,11 +50,22 @@ namespace Kratos
       DenseMatrix<Internals::CartesianRay<Element::GeometryType>> mXZRays;
       DenseMatrix<Internals::CartesianRay<Element::GeometryType>> mYZRays;
      public:
-      CartesianMeshColors(): mTolerance(1e-12){}
+      CartesianMeshColors(): mTolerance(1e-12), mMinPoint(0.00, 0.00, 0.00), mMaxPoint(0.00, 0.00, 0.00){}
 
       std::vector<double> const& GetNodalCoordinates(int Index) const {return mNodalCoordinates[Index];}
 
       std::vector<double> const& GetElementCenterCoordinates(int Index) const {return mElementCenterCoordinates[Index];}
+
+    template<typename TPointsContainerType>
+      void ExtendBoundingBox(TPointsContainerType const& Points, double Margine){
+        for(auto const& point : Points){
+            for(std::size_t i = 0; i<3; i++)
+            {
+                mMinPoint[i] =  (mMinPoint[i] >  point[i] - Margine) ?  point[i] - Margine : mMinPoint[i];
+                mMaxPoint[i] =  (mMaxPoint[i] <  point[i] + Margine) ?  point[i] + Margine : mMaxPoint[i];
+            }
+        }
+      }
 
       void SetCoordinates(std::vector<double> const& NodalXCoordinates, std::vector<double> const& NodalYCoordinates, std::vector<double> const& NodalZCoordinates){
 
@@ -78,6 +91,12 @@ namespace Kratos
         mNodalColors.resize(mNodalCoordinates[0].size()*mNodalCoordinates[1].size()*mNodalCoordinates[2].size());
         mElementalRayColors.resize((mNodalCoordinates[0].size() - 1) * (mNodalCoordinates[1].size() - 1)*(mNodalCoordinates[2].size() - 1));
         mElementalColors.resize((mNodalCoordinates[0].size() - 1) * (mNodalCoordinates[1].size() - 1)*(mNodalCoordinates[2].size() - 1));
+
+        Point min_point( mNodalCoordinates[0][0] - mTolerance, mNodalCoordinates[1][0] - mTolerance, mNodalCoordinates[2][0] - mTolerance);
+        Point max_point( mNodalCoordinates[0].back() + mTolerance, mNodalCoordinates[1].back() + mTolerance, mNodalCoordinates[2].back() + mTolerance);
+
+        mMinPoint = min_point;
+        mMaxPoint = max_point;
 
         SetAllColors(0.00);
      }
@@ -110,7 +129,7 @@ namespace Kratos
     }
 
     std::vector<double>& GetNodalColors(){ return mNodalColors;}
-    
+
     std::vector<double>& GetElementalColors(){return mElementalColors;}
 
     Point GetPoint(std::size_t I, std::size_t J, std::size_t K){
@@ -126,8 +145,6 @@ namespace Kratos
     }
 
     void InitializeRays(array_1d< std::size_t, 3 > const& MinRayPosition, array_1d< std::size_t, 3 > const& MaxRayPosition, std::string EntititesToColor){
-        Point min_point( mNodalCoordinates[0][0] - mTolerance, mNodalCoordinates[1][0] - mTolerance, mNodalCoordinates[2][0] - mTolerance);
-        Point max_point( mNodalCoordinates[0].back() + mTolerance, mNodalCoordinates[1].back() + mTolerance, mNodalCoordinates[2].back() + mTolerance);
 
         std::vector<double>* p_x_coordinates = &(mNodalCoordinates[0]);
         std::vector<double>* p_y_coordinates = &(mNodalCoordinates[1]);
@@ -144,24 +161,24 @@ namespace Kratos
         for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
             for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                 mXYRays(i,j) = Internals::CartesianRay<Element::GeometryType>(2, 
-                        Point((*p_x_coordinates)[i], (*p_y_coordinates)[j], min_point[2]),
-                        Point((*p_x_coordinates)[i], (*p_y_coordinates)[j], max_point[2]));
+                        Point((*p_x_coordinates)[i], (*p_y_coordinates)[j], mMinPoint[2]),
+                        Point((*p_x_coordinates)[i], (*p_y_coordinates)[j], mMaxPoint[2]));
             }
         }
         #pragma omp parallel for
         for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
             for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                 mXZRays(i,k) = Internals::CartesianRay<Element::GeometryType>(1,
-                        Point((*p_x_coordinates)[i], min_point[1], (*p_z_coordinates)[k]),
-                        Point((*p_x_coordinates)[i], max_point[1], (*p_z_coordinates)[k]));
+                        Point((*p_x_coordinates)[i], mMinPoint[1], (*p_z_coordinates)[k]),
+                        Point((*p_x_coordinates)[i], mMaxPoint[1], (*p_z_coordinates)[k]));
             }
         }
         #pragma omp parallel for
         for(int j = MinRayPosition[1] ; j < static_cast<int>(MaxRayPosition[1]) ; j++){
             for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                 mYZRays(j,k) = Internals::CartesianRay<Element::GeometryType>(0,
-                        Point(min_point[0], (*p_y_coordinates)[j], (*p_z_coordinates)[k]),
-                        Point(max_point[0], (*p_y_coordinates)[j], (*p_z_coordinates)[k]));
+                        Point(mMinPoint[0], (*p_y_coordinates)[j], (*p_z_coordinates)[k]),
+                        Point(mMaxPoint[0], (*p_y_coordinates)[j], (*p_z_coordinates)[k]));
             }
         }
     }
@@ -351,19 +368,28 @@ namespace Kratos
 
             Point min_point;
             Point max_point;
-            max_point = *(Points.begin());
-            min_point = *(Points.begin());
-            for(auto const& point : Points){
-                for(std::size_t i = 0; i<3; i++)
-                {
-                    min_point[i] =  (min_point[i] >  point[i] ) ?  point[i] : min_point[i];
-                    max_point[i] =  (max_point[i] <  point[i] ) ?  point[i] : max_point[i];
-                }
-            }
-                
+
+            CalculateMinMaxPoints(Points, min_point, max_point);
+
             for(int i = 0; i < 3; i++ ) {
                 MinNodePosition[ i ] = CalculateNodePosition( min_point[i], i );
                 MaxNodePosition[ i ] = CalculateNodePosition( max_point[i], i ) + 1;
+            }
+        }
+
+        template<typename TPointsContainerType>
+        void CalculateMinMaxPoints(TPointsContainerType const& Points, Point& MinPoint, Point& MaxPoint){
+            if(Points.empty())
+                return;
+
+            MinPoint = *(Points.begin());
+            MaxPoint = *(Points.begin());
+            for(auto const& point : Points){
+                for(std::size_t i = 0; i<3; i++)
+                {
+                    MinPoint[i] =  (MinPoint[i] >  point[i] ) ?  point[i] : MinPoint[i];
+                    MaxPoint[i] =  (MaxPoint[i] <  point[i] ) ?  point[i] : MaxPoint[i];
+                }
             }
         }
 
