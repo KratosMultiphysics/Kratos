@@ -14,7 +14,6 @@
 #define SCALAR_CO_SOLVING_PROCESS_H_INCLUDED
 
 // System includes
-#include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -31,7 +30,6 @@
 
 // Application includes
 #include "custom_utilities/rans_variable_utilities.h"
-#include "rans_modelling_application_variables.h"
 
 namespace Kratos
 {
