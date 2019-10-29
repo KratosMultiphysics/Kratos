@@ -14,8 +14,6 @@ else:
     raise Exception(msg)
 
 if CheckIfApplicationsAvailable("TrilinosApplication"):
-    import KratosMultiphysics.mpi as KratosMPI  # MPI-python interface
-    # Import applications
     import KratosMultiphysics.TrilinosApplication as KratosTrilinos  # MPI solvers
 
 
@@ -45,11 +43,7 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
         self.is_distributed = is_distributed
 
         if (self.is_distributed):
-            if CheckIfApplicationsAvailable("TrilinosApplication"):
-                import KratosMultiphysics.mpi as KratosMPI  # MPI-python interface
-                # Import applications
-                import KratosMultiphysics.TrilinosApplication as KratosTrilinos  # MPI solvers
-            else:
+            if not CheckIfApplicationsAvailable("TrilinosApplication"):
                 raise Exception(
                     "MPI parallel type enforced without TrilinosApplication. Please install/compile it and try again."
                 )
