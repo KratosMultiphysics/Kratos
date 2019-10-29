@@ -36,10 +36,6 @@ def Factory(settings, Model):
         ],
         ["CheckScalarBoundsProcess", KratosRANS.RansCheckScalarBoundsProcess],
         [
-            "EpsilonWallFunctionProcess",
-            KratosRANS.RansEpsilonWallFunctionProcess
-        ], ["NuTKWallFunctionProcess", KratosRANS.RansNutKWallFunctionProcess],
-        [
             "NutKEpsilonHighReCalculationProcess",
             KratosRANS.RansNutKEpsilonHighReCalculationProcess
         ],
@@ -50,14 +46,6 @@ def Factory(settings, Model):
         [
             "ApplyEpsilonTurbulentMixingLengthInletProcess",
             KratosRANS.RansEpsilonTurbulentMixingLengthInletProcess
-        ],
-        [
-            "ApplyKWallFrictionVelocityProcess",
-            KratosRANS.RansKWallFrictionVelocityProcess
-        ],
-        [
-            "ApplyEpsilonWallFrictionVelocityProcess",
-            KratosRANS.RansEpsilonWallFrictionVelocityProcess
         ],
         [
             "ClipScalarVariableProcess",

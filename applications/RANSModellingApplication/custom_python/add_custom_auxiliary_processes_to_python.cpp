@@ -26,15 +26,11 @@
 #include "custom_processes/auxiliary_processes/rans_check_vector_bounds_process.h"
 #include "custom_processes/auxiliary_processes/rans_clip_scalar_variable_process.h"
 #include "custom_processes/auxiliary_processes/rans_epsilon_turbulent_mixing_inlet_process.h"
-#include "custom_processes/auxiliary_processes/rans_epsilon_wall_friction_velocity_process.h"
-#include "custom_processes/auxiliary_processes/rans_epsilon_wall_function_process.h"
 #include "custom_processes/auxiliary_processes/rans_find_condition_parent_process.h"
 #include "custom_processes/auxiliary_processes/rans_k_turbulent_intensity_inlet_process.h"
-#include "custom_processes/auxiliary_processes/rans_k_wall_friction_velocity_process.h"
 #include "custom_processes/auxiliary_processes/rans_line_output_process.h"
 #include "custom_processes/auxiliary_processes/rans_logarithmic_y_plus_calculation_process.h"
 #include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_calculation_process.h"
-#include "custom_processes/auxiliary_processes/rans_nut_k_wall_function_process.h"
 #include "custom_processes/auxiliary_processes/rans_nut_low_re_calculation_process.h"
 #include "custom_processes/auxiliary_processes/rans_nut_y_plus_wall_function_process.h"
 #include "custom_processes/auxiliary_processes/rans_scalar_cell_center_averaging_process.h"
@@ -53,16 +49,6 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
     using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
     using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
     using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
-
-    using RansNutKWallFunctionProcessType = RansNutKWallFunctionProcess;
-    py::class_<RansNutKWallFunctionProcessType, RansNutKWallFunctionProcessType::Pointer, Process>(
-        m, "RansNutKWallFunctionProcess")
-        .def(py::init<Model&, Parameters&>());
-
-    using RansEpsilonWallFunctionProcessType = RansEpsilonWallFunctionProcess;
-    py::class_<RansEpsilonWallFunctionProcessType, RansEpsilonWallFunctionProcessType::Pointer, Process>(
-        m, "RansEpsilonWallFunctionProcess")
-        .def(py::init<Model&, Parameters&>());
 
     using RansCheckScalarBoundsProcessType = RansCheckScalarBoundsProcess;
     py::class_<RansCheckScalarBoundsProcessType, RansCheckScalarBoundsProcessType::Pointer, Process>(
@@ -125,16 +111,6 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
     py::class_<RansEpsilonTurbulentMixingLengthInletProcessType,
                RansEpsilonTurbulentMixingLengthInletProcessType::Pointer, Process>(
         m, "RansEpsilonTurbulentMixingLengthInletProcess")
-        .def(py::init<Model&, Parameters&>());
-
-    using RansKWallFrictionVelocityProcessType = RansKWallFrictionVelocityProcess;
-    py::class_<RansKWallFrictionVelocityProcessType, RansKWallFrictionVelocityProcessType::Pointer, Process>(
-        m, "RansKWallFrictionVelocityProcess")
-        .def(py::init<Model&, Parameters&>());
-
-    using RansEpsilonWallFrictionVelocityProcessType = RansEpsilonWallFrictionVelocityProcess;
-    py::class_<RansEpsilonWallFrictionVelocityProcessType, RansEpsilonWallFrictionVelocityProcessType::Pointer, Process>(
-        m, "RansEpsilonWallFrictionVelocityProcess")
         .def(py::init<Model&, Parameters&>());
 
     using RansClipScalarVariableProcessType = RansClipScalarVariableProcess;
