@@ -31,7 +31,7 @@
 // Application includes
 #include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
-#include "custom_utilities/rans_variable_utils.h"
+#include "custom_utilities/rans_variable_utilities.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "rans_modelling_application_variables.h"
 #include "scalar_co_solving_process.h"

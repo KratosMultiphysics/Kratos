@@ -30,7 +30,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 
 // Application includes
-#include "custom_utilities/rans_variable_utils.h"
+#include "custom_utilities/rans_variable_utilities.h"
 #include "rans_modelling_application_variables.h"
 
 namespace Kratos
@@ -250,7 +250,7 @@ protected:
 
         while (!is_converged && iteration <= this->mMaxIterations)
         {
-            RansVariableUtils::GetNodalVariablesVector(
+            RansVariableUtilities::GetNodalVariablesVector(
                 old_values, r_nodes, this->mrConvergenceVariable);
 
             for (int i = 0;
@@ -268,7 +268,7 @@ protected:
 
             this->UpdateConvergenceVariable();
 
-            RansVariableUtils::GetNodalVariablesVector(
+            RansVariableUtilities::GetNodalVariablesVector(
                 new_values, r_nodes, this->mrConvergenceVariable);
             noalias(delta_values) = new_values - old_values;
 
@@ -284,7 +284,7 @@ protected:
                 r_communicator.GetDataCommunicator().SumAll(residual_norms);
 
             noalias(new_values) = old_values + delta_values * mRelaxationFactor;
-            RansVariableUtils::SetNodalVariables(r_nodes, new_values, this->mrConvergenceVariable);
+            RansVariableUtilities::SetNodalVariables(r_nodes, new_values, this->mrConvergenceVariable);
             r_communicator.SynchronizeVariable(this->mrConvergenceVariable);
 
             double convergence_relative =

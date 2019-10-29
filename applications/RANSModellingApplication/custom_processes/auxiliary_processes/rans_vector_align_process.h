@@ -20,7 +20,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "custom_utilities/rans_variable_utils.h"
+#include "custom_utilities/rans_variable_utilities.h"
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/model_part.h"

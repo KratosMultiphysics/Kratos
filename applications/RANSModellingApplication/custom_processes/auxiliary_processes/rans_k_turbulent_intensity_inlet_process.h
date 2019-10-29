@@ -29,7 +29,7 @@
 #include "rans_modelling_application_variables.h"
 
 #include "custom_utilities/rans_check_utilities.h"
-#include "custom_utilities/rans_variable_utils.h"
+#include "custom_utilities/rans_variable_utilities.h"
 
 namespace Kratos
 {

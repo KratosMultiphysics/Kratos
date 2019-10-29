@@ -17,7 +17,7 @@
 
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_utilities/rans_variable_utils.h"
+#include "custom_utilities/rans_variable_utilities.h"
 
 namespace Kratos
 {
@@ -27,14 +27,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    m.def_submodule("RansVariableUtils")
-        .def("ClipScalarVariable", &RansVariableUtils::ClipScalarVariable)
-        .def("GetMinimumScalarValue", &RansVariableUtils::GetMinimumScalarValue)
-        .def("GetMaximumScalarValue", &RansVariableUtils::GetMaximumScalarValue)
-        .def("GetFlaggedMinimumScalarValue", &RansVariableUtils::GetFlaggedMinimumScalarValue)
-        .def("GetFlaggedMaximumScalarValue", &RansVariableUtils::GetFlaggedMaximumScalarValue)
+    m.def_submodule("RansVariableUtilities")
+        .def("ClipScalarVariable", &RansVariableUtilities::ClipScalarVariable)
+        .def("GetMinimumScalarValue", &RansVariableUtilities::GetMinimumScalarValue)
+        .def("GetMaximumScalarValue", &RansVariableUtilities::GetMaximumScalarValue)
         .def("CopyNodalSolutionStepVariablesList",
-             &RansVariableUtils::CopyNodalSolutionStepVariablesList);
+             &RansVariableUtilities::CopyNodalSolutionStepVariablesList);
 }
 
 } // namespace Python.

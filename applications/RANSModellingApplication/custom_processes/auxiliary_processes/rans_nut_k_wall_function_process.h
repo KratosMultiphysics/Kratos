@@ -21,7 +21,7 @@
 // Project includes
 #include "containers/model.h"
 #include "custom_utilities/rans_calculation_utilities.h"
-#include "custom_utilities/rans_variable_utils.h"
+#include "custom_utilities/rans_variable_utilities.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"

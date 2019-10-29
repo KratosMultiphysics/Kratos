@@ -21,7 +21,7 @@
 // Project includes
 #include "containers/model.h"
 #include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
-#include "custom_utilities/rans_variable_utils.h"
+#include "custom_utilities/rans_variable_utilities.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
@@ -160,7 +160,7 @@ public:
         const double nu_t_max = r_process_info[TURBULENT_VISCOSITY_MAX];
 
         unsigned int lower_number_of_nodes, higher_number_of_nodes, total_selected_nodes;
-        RansVariableUtils::ClipScalarVariable(
+        RansVariableUtilities::ClipScalarVariable(
             lower_number_of_nodes, higher_number_of_nodes, total_selected_nodes,
             nu_t_min, nu_t_max, TURBULENT_VISCOSITY, r_model_part);
 

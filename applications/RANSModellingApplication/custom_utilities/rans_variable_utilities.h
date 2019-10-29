@@ -27,7 +27,7 @@ namespace Kratos
 ///@name Kratos Globals
 ///@{
 
-namespace RansVariableUtils
+namespace RansVariableUtilities
 {
 void ClipScalarVariable(unsigned int& rNumberOfNodesBelowMinimum,
                         unsigned int& rNumberOfNodesAboveMaximum,
@@ -39,17 +39,7 @@ void ClipScalarVariable(unsigned int& rNumberOfNodesBelowMinimum,
 
 double GetMinimumScalarValue(const ModelPart& rModelPart, const Variable<double>& rVariable);
 
-double GetFlaggedMinimumScalarValue(const ModelPart& rModelPart,
-                                    const Variable<double>& rVariable,
-                                    const Flags& rCheckFlag,
-                                    const bool CheckFlagValue);
-
 double GetMaximumScalarValue(const ModelPart& rModelPart, const Variable<double>& rVariable);
-
-double GetFlaggedMaximumScalarValue(const ModelPart& rModelPart,
-                                    const Variable<double>& rVariable,
-                                    const Flags& rCheckFlag,
-                                    const bool CheckFlagValue);
 
 void GetNodalVariablesVector(Vector& rValues,
                              const ModelPart::NodesContainerType& rNodes,
@@ -63,7 +53,7 @@ void CopyNodalSolutionStepVariablesList(ModelPart& rOriginModelPart,
                                         ModelPart& rDestinationModelPart);
 
 ///@}
-} // namespace RansVariableUtils
+} // namespace RansVariableUtilities
 
 } /* namespace Kratos.*/
 

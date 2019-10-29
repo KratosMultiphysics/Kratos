@@ -29,7 +29,7 @@
 #include "processes/process.h"
 
 #include "custom_utilities/rans_check_utilities.h"
-#include "custom_utilities/rans_variable_utils.h"
+#include "custom_utilities/rans_variable_utilities.h"
 #include "utilities/brute_force_point_locator.h"
 
 namespace Kratos

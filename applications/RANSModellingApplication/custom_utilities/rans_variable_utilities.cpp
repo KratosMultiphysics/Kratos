@@ -20,11 +20,11 @@
 #include "utilities/openmp_utils.h"
 
 // Include base h
-#include "rans_variable_utils.h"
+#include "rans_variable_utilities.h"
 
 namespace Kratos
 {
-namespace RansVariableUtils
+namespace RansVariableUtilities
 {
 void ClipScalarVariable(unsigned int& rNumberOfNodesBelowMinimum,
                         unsigned int& rNumberOfNodesAboveMaximum,
@@ -131,60 +131,6 @@ double GetMinimumScalarValue(const ModelPart& rModelPart, const Variable<double>
     KRATOS_CATCH("");
 }
 
-double GetFlaggedMinimumScalarValue(const ModelPart& rModelPart,
-                                    const Variable<double>& rVariable,
-                                    const Flags& rCheckFlag,
-                                    const bool CheckFlagValue)
-{
-    KRATOS_TRY
-
-    const Communicator& r_communicator = rModelPart.GetCommunicator();
-    const ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
-
-    double min_value = std::numeric_limits<double>::max();
-
-    const int number_of_nodes = r_nodes.size();
-
-    if (number_of_nodes != 0)
-    {
-        int number_of_threads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector node_partition;
-        OpenMPUtils::DivideInPartitions(number_of_nodes, number_of_threads, node_partition);
-        Vector min_values(number_of_threads);
-
-#pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            auto nodes_begin = r_nodes.begin() + node_partition[k];
-            auto nodes_end = r_nodes.begin() + node_partition[k + 1];
-            min_values[k] = nodes_begin->FastGetSolutionStepValue(rVariable);
-
-            for (auto itNode = nodes_begin; itNode != nodes_end; itNode++)
-            {
-                if ((itNode->Is(rCheckFlag) && CheckFlagValue) ||
-                    (!itNode->Is(rCheckFlag) && !CheckFlagValue))
-                {
-                    const double value = itNode->FastGetSolutionStepValue(rVariable);
-                    min_values[k] = std::min(min_values[k], value);
-                }
-            }
-
-#pragma omp critical
-            {
-                for (int i = 0; i < number_of_threads; ++i)
-                {
-                    min_value = std::min(min_value, min_values[i]);
-                }
-            }
-        }
-    }
-
-    return r_communicator.GetDataCommunicator().MinAll(min_value);
-
-    KRATOS_CATCH("");
-}
-
 double GetMaximumScalarValue(const ModelPart& rModelPart, const Variable<double>& rVariable)
 {
     KRATOS_TRY
@@ -216,60 +162,6 @@ double GetMaximumScalarValue(const ModelPart& rModelPart, const Variable<double>
             {
                 const double value = itNode->FastGetSolutionStepValue(rVariable);
                 max_values[k] = std::max(max_values[k], value);
-            }
-
-#pragma omp critical
-            {
-                for (int i = 0; i < number_of_threads; ++i)
-                {
-                    max_value = std::max(max_value, max_values[i]);
-                }
-            }
-        }
-    }
-
-    return r_communicator.GetDataCommunicator().MaxAll(max_value);
-
-    KRATOS_CATCH("");
-}
-
-double GetFlaggedMaximumScalarValue(const ModelPart& rModelPart,
-                                    const Variable<double>& rVariable,
-                                    const Flags& rCheckFlag,
-                                    const bool CheckFlagValue)
-{
-    KRATOS_TRY
-
-    const Communicator& r_communicator = rModelPart.GetCommunicator();
-    const ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
-
-    double max_value = std::numeric_limits<double>::min();
-
-    const int number_of_nodes = r_nodes.size();
-
-    if (number_of_nodes != 0)
-    {
-        int number_of_threads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector node_partition;
-        OpenMPUtils::DivideInPartitions(number_of_nodes, number_of_threads, node_partition);
-        Vector max_values(number_of_threads);
-
-#pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            auto nodes_begin = r_nodes.begin() + node_partition[k];
-            auto nodes_end = r_nodes.begin() + node_partition[k + 1];
-            max_values[k] = nodes_begin->FastGetSolutionStepValue(rVariable);
-
-            for (auto itNode = nodes_begin; itNode != nodes_end; itNode++)
-            {
-                if ((itNode->Is(rCheckFlag) && CheckFlagValue) ||
-                    (!itNode->Is(rCheckFlag) && !CheckFlagValue))
-                {
-                    const double value = itNode->FastGetSolutionStepValue(rVariable);
-                    max_values[k] = std::max(max_values[k], value);
-                }
             }
 
 #pragma omp critical
@@ -326,6 +218,6 @@ void CopyNodalSolutionStepVariablesList(ModelPart& rOriginModelPart, ModelPart& 
 
     KRATOS_CATCH("");
 }
-} // namespace RansVariableUtils
+} // namespace RansVariableUtilities
 
 } /* namespace Kratos.*/

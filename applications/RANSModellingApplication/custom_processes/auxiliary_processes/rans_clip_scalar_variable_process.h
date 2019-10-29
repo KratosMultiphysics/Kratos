@@ -26,7 +26,7 @@
 #include "processes/process.h"
 
 #include "custom_utilities/rans_check_utilities.h"
-#include "custom_utilities/rans_variable_utils.h"
+#include "custom_utilities/rans_variable_utilities.h"
 
 namespace Kratos
 {
@@ -141,7 +141,7 @@ public:
 
         unsigned int nodes_below, nodes_above, total_nodes;
 
-        RansVariableUtils::ClipScalarVariable(
+        RansVariableUtilities::ClipScalarVariable(
             nodes_below, nodes_above, total_nodes, mMinValue, mMaxValue,
             r_scalar_variable, mrModel.GetModelPart(mModelPartName));
 

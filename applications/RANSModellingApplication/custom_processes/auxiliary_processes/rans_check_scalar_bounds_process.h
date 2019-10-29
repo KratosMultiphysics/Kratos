@@ -26,7 +26,7 @@
 #include "processes/process.h"
 
 #include "custom_utilities/rans_check_utilities.h"
-#include "custom_utilities/rans_variable_utils.h"
+#include "custom_utilities/rans_variable_utilities.h"
 
 namespace Kratos
 {
@@ -136,9 +136,9 @@ public:
         const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
         const double min_value =
-            RansVariableUtils::GetMinimumScalarValue(r_model_part, r_scalar_variable);
+            RansVariableUtilities::GetMinimumScalarValue(r_model_part, r_scalar_variable);
         const double max_value =
-            RansVariableUtils::GetMaximumScalarValue(r_model_part, r_scalar_variable);
+            RansVariableUtilities::GetMaximumScalarValue(r_model_part, r_scalar_variable);
 
         KRATOS_INFO(this->Info())
             << r_scalar_variable.Name() << " is bounded between [ " << min_value

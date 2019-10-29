@@ -22,7 +22,7 @@
 #include "containers/global_pointers_vector.h"
 #include "containers/model.h"
 #include "custom_utilities/rans_calculation_utilities.h"
-#include "custom_utilities/rans_variable_utils.h"
+#include "custom_utilities/rans_variable_utilities.h"
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
