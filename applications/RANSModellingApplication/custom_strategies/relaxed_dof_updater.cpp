@@ -151,8 +151,6 @@ void RelaxedDofUpdater<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>>::Upda
 
     int num_dof = rDofSet.size();
 
-// performing the update
-#pragma omp parallel for
     for (int i = 0; i < num_dof; ++i)
     {
         auto it_dof = rDofSet.begin() + i;
@@ -193,8 +191,6 @@ void RelaxedDofUpdater<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>>::Assi
 
     int num_dof = rDofSet.size();
 
-// performing the update
-#pragma omp parallel for
     for (int i = 0; i < num_dof; ++i)
     {
         auto it_dof = rDofSet.begin() + i;
