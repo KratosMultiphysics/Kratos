@@ -127,7 +127,7 @@ public:
     // Does the time integration and calculates the new theta and omega
     CalculateCurrentRotationState();
 
-    const int num_nodes = mrModelPart.NumberOfNodes();
+    const int num_nodes = static_cast<int> (mrModelPart.NumberOfNodes());
     const NodeIteratorType it_node_begin = mrModelPart.NodesBegin();
 
 #pragma omp parallel for schedule(guided, 512)
@@ -457,7 +457,7 @@ private:
     double torque = 0.0;
     auto& r_model = mrModelPart.GetModel();
     auto& r_torque_model_part = r_model.HasModelPart(mParameters["torque_model_part_name"].GetString()) ? r_model.GetModelPart(mParameters["torque_model_part_name"].GetString()) : mrModelPart;
-    const int num_nodes = r_torque_model_part.NumberOfNodes();
+    const int num_nodes = static_cast<int> (r_torque_model_part.NumberOfNodes());
     const NodeIteratorType it_node_begin = r_torque_model_part.NodesBegin();
 
 #pragma omp parallel for schedule(guided, 512) reduction(+ : torque)

@@ -77,10 +77,10 @@ public:
         typedef LinearSolver<SparseSpaceType, TLocalSpaceType> LinearSolverType;
         typedef VariationalDistanceCalculationProcess<TDim, TSparseSpaceType, TLocalSpaceType, LinearSolverType> VariationalDistanceCalculationProcessType;
         typedef CalculateDistanceToSkinProcess<TDim> CalculateDistanceToSkinProcessType;
-        IndexType nnodes = static_cast<IndexType>(rBackgroundModelPart.NumberOfNodes());
+        const int nnodes = static_cast<int>(rBackgroundModelPart.NumberOfNodes());
 
 #pragma omp parallel for
-        for (IndexType i_node = 0; i_node < nnodes; ++i_node)
+        for (int i_node = 0; i_node < nnodes; ++i_node)
         {
             auto it_node = rBackgroundModelPart.NodesBegin() + i_node;
             it_node->FastGetSolutionStepValue(DISTANCE, 0) = 0.0;

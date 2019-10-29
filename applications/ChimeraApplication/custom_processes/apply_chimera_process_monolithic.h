@@ -157,7 +157,7 @@ protected:
         BaseType::CreateConstraintIds(constraints_id_vector, num_constraints_required);
 
         const int max_results = 10000;
-        const unsigned int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
+        const int n_boundary_nodes = static_cast<int> (rBoundaryModelPart.Nodes().size());
         IndexType counter = 0;
         IndexType removed_counter = 0;
         IndexType not_found_counter = 0;
@@ -172,7 +172,7 @@ protected:
                                                                                                              : not_found_counter) reduction(+                              \
                                                                                                                                             : removed_counter) reduction(+ \
                                                                                                                                                                          : counter)
-        for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
+        for (int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
         {
             Vector shape_fun_weights;
             typename PointLocatorType::ResultContainerType results(max_results);

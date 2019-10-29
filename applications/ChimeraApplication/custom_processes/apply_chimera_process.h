@@ -241,7 +241,7 @@ protected:
      */
     virtual void DoChimeraLoop()
     {
-        const unsigned int num_elements = mrMainModelPart.NumberOfElements();
+        const int num_elements = static_cast<int> (mrMainModelPart.NumberOfElements());
         const auto elem_begin = mrMainModelPart.ElementsBegin();
 
         Parameters parameters_for_validation(R"(
@@ -254,18 +254,18 @@ protected:
         )");
 
 #pragma omp parallel for
-        for (unsigned int i_be = 0; i_be < num_elements; ++i_be)
+        for (int i_be = 0; i_be < num_elements; ++i_be)
         {
             auto i_elem = elem_begin + i_be;
             if (!i_elem->Is(VISITED)) //for multipatch
                 i_elem->Set(ACTIVE, true);
         }
 
-        const unsigned int num_nodes = mrMainModelPart.NumberOfNodes();
+        const int num_nodes = static_cast<int> (mrMainModelPart.NumberOfNodes());
         const auto nodes_begin = mrMainModelPart.ElementsBegin();
 
 #pragma omp parallel for
-        for (unsigned int i_bn = 0; i_bn < num_nodes; ++i_bn)
+        for (int i_bn = 0; i_bn < num_nodes; ++i_bn)
         {
             auto i_node = nodes_begin + i_bn;
             i_node->Set(VISITED, false);
@@ -367,9 +367,9 @@ protected:
             // WriteModelPart(r_background_boundary_model_part);
             // WriteModelPart(r_background_model_part);
 
-            const unsigned int n_elements = r_hole_model_part.NumberOfElements();
+            const int n_elements = static_cast<int> (r_hole_model_part.NumberOfElements());
 #pragma omp parallel for
-            for (IndexType i_elem = 0; i_elem < n_elements; ++i_elem)
+            for (int i_elem = 0; i_elem < n_elements; ++i_elem)
             {
                 ModelPart::ElementsContainerType::iterator it_elem = r_hole_model_part.ElementsBegin() + i_elem;
                 it_elem->Set(VISITED, true); //for multipatch

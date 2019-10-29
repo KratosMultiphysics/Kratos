@@ -261,11 +261,11 @@ public:
 
         // Create map to ask for number of faces for the given set of node ids representing on face in the model part
         hashmap n_faces_map;
-        const unsigned int num_elements = rVolumeModelPart.NumberOfElements();
+        const int num_elements = static_cast<int> (rVolumeModelPart.NumberOfElements());
         const auto elements_begin = rVolumeModelPart.ElementsBegin();
         // Fill map that counts number of faces for given set of nodes
 #pragma omp parallel for
-         for (unsigned int i_e = 0; i_e < num_elements; ++i_e)
+         for (int i_e = 0; i_e < num_elements; ++i_e)
         {
             auto i_element = elements_begin + i_e;
             Element::GeometryType::GeometriesArrayType faces;
@@ -297,7 +297,7 @@ public:
 
         // Fill map that gives original node order for set of nodes
 #pragma omp parallel for
-        for (unsigned int i_e = 0; i_e < num_elements; ++i_e)
+        for (int i_e = 0; i_e < num_elements; ++i_e)
         {
             auto i_element = elements_begin + i_e;
             Element::GeometryType::GeometriesArrayType faces;
@@ -424,21 +424,21 @@ public:
 
 
         //for multipatch
-        const unsigned int num_nodes = rExtractedBoundaryModelPart.NumberOfNodes();
+        const int num_nodes = static_cast<int> (rExtractedBoundaryModelPart.NumberOfNodes());
         const auto nodes_begin = rExtractedBoundaryModelPart.NodesBegin();
 
 #pragma omp parallel for
-        for (unsigned int i_n = 0; i_n < num_nodes; ++i_n)
+        for (int i_n = 0; i_n < num_nodes; ++i_n)
         {
             auto i_node = nodes_begin + i_n;
             i_node->Set(TO_ERASE, false);
         }
 
-        const unsigned int num_conditions = rExtractedBoundaryModelPart.NumberOfConditions();
+        const int num_conditions = static_cast<int> (rExtractedBoundaryModelPart.NumberOfConditions());
         const auto conditions_begin = rExtractedBoundaryModelPart.ConditionsBegin();
 
 #pragma omp parallel for
-        for (unsigned int i_c = 0; i_c < num_conditions; ++i_c)
+        for (int i_c = 0; i_c < num_conditions; ++i_c)
         {
             auto i_condition = conditions_begin + i_c;
             i_condition->Set(TO_ERASE, false);

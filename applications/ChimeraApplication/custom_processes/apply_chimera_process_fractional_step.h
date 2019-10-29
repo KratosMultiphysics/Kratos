@@ -171,7 +171,7 @@ protected:
         BaseType::CreateConstraintIds(constraints_id_vector, num_constraints_required);
 
         const int max_results = 10000;
-        const IndexType n_boundary_nodes = rBoundaryModelPart.Nodes().size();
+        const int n_boundary_nodes = static_cast<int> (rBoundaryModelPart.Nodes().size());
         IndexType counter = 0;
         IndexType removed_counter = 0;
         IndexType not_found_counter = 0;
@@ -190,7 +190,7 @@ protected:
                                                                                                                                           : not_found_counter) reduction(+                              \
                                                                                                                                                                          : removed_counter) reduction(+ \
                                                                                                                                                                                                       : counter)
-        for (IndexType i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
+        for (int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
         {
 
             Vector shape_fun_weights;
@@ -256,10 +256,10 @@ protected:
         IndexType n_vel_constraints = 0;
         for (auto &container : velocity_ms_container_vector)
         {
-            const IndexType n_constraints = container.size();
+            const int n_constraints = static_cast<int> (container.size());
             n_vel_constraints += n_constraints;
             #pragma omp parallel for
-            for (IndexType i_con = 0; i_con < n_constraints; ++i_con)
+            for (int i_con = 0; i_con < n_constraints; ++i_con)
             {
                 auto i_container = container.begin() + i_con;
                 i_container->Set(FS_CHIMERA_PRE_CONSTRAINT, false);
@@ -284,10 +284,10 @@ protected:
         IndexType n_pre_constraints = 0;
         for (auto &container : pressure_ms_container_vector)
         {
-            const IndexType n_constraints = container.size();
+            const int n_constraints = static_cast<int> (container.size());
             n_pre_constraints += n_constraints;
             #pragma omp parallel for
-            for (IndexType i_con = 0; i_con < n_constraints; ++i_con)
+            for (int i_con = 0; i_con < n_constraints; ++i_con)
             {
                 auto i_container = container.begin() + i_con;
                 i_container->Set(FS_CHIMERA_PRE_CONSTRAINT, true);
