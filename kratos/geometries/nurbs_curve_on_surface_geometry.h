@@ -158,10 +158,10 @@ public:
     ) const override
     {
         // Compute the coordinates of the embedded curve in the parametric space of the surface
-        rResult = mpNurbsCurve->GlobalCoordinates(rResult, rLocalCoordinates);
+        CoordinatesArrayType result_local = mpNurbsCurve->GlobalCoordinates(rResult, rLocalCoordinates);
         
         // Compute and return the coordinates of the surface in the geometric space
-        return mpNurbsSurface->GlobalCoordinates(rResult, rResult);
+        return mpNurbsSurface->GlobalCoordinates(rResult, result_local);
     }
 
     /** 
