@@ -78,7 +78,7 @@ public:
 
     /// Constructor
 
-    RansCheckVectorBoundsProcess(Model& rModel, Parameters& rParameters);
+    RansCheckVectorBoundsProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
     ~RansCheckVectorBoundsProcess() override;
@@ -160,7 +160,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
     std::string mModelPartName;
     std::string mVariableName;
 

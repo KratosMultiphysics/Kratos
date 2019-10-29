@@ -25,7 +25,7 @@
 
 namespace Kratos
 {
-RansCheckVectorBoundsProcess::RansCheckVectorBoundsProcess(Model& rModel, Parameters& rParameters)
+RansCheckVectorBoundsProcess::RansCheckVectorBoundsProcess(Model& rModel, Parameters rParameters)
     : mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY

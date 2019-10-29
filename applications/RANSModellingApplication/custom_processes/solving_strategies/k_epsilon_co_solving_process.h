@@ -77,7 +77,7 @@ public:
     ///@{
 
     /// Constructor.
-    KEpsilonCoSolvingProcess(ModelPart& rModelPart, Parameters& rParameters)
+    KEpsilonCoSolvingProcess(ModelPart& rModelPart, Parameters rParameters)
         : BaseType(rModelPart, rParameters, TURBULENT_VISCOSITY)
     {
     }

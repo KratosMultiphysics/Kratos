@@ -28,7 +28,7 @@
 
 namespace Kratos
 {
-RansNutLowReCalculationProcess::RansNutLowReCalculationProcess(Model& rModel, Parameters& rParameters)
+RansNutLowReCalculationProcess::RansNutLowReCalculationProcess(Model& rModel, Parameters rParameters)
     : mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY

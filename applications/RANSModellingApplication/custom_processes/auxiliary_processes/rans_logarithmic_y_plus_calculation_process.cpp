@@ -30,7 +30,7 @@
 namespace Kratos
 {
 RansLogarithmicYPlusCalculationProcess::RansLogarithmicYPlusCalculationProcess(Model& rModel,
-                                                                               Parameters& rParameters)
+                                                                               Parameters rParameters)
     : mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY

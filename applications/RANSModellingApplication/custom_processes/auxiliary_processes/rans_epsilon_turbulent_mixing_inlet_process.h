@@ -80,7 +80,7 @@ public:
     ///@{
 
     /// Constructor
-    RansEpsilonTurbulentMixingLengthInletProcess(Model& rModel, Parameters& rParameters);
+    RansEpsilonTurbulentMixingLengthInletProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
     ~RansEpsilonTurbulentMixingLengthInletProcess() override;
@@ -167,7 +167,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
     std::string mModelPartName;
 
     double mTurbulentMixingLength;

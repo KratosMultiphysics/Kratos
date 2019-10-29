@@ -30,7 +30,7 @@
 
 namespace Kratos
 {
-RansCheckScalarBoundsProcess::RansCheckScalarBoundsProcess(Model& rModel, Parameters& rParameters)
+RansCheckScalarBoundsProcess::RansCheckScalarBoundsProcess(Model& rModel, Parameters rParameters)
     : Process(), mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY

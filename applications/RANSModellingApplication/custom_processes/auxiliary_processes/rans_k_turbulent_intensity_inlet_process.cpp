@@ -28,7 +28,7 @@
 namespace Kratos
 {
 RansKTurbulentIntensityInletProcess::RansKTurbulentIntensityInletProcess(Model& rModel,
-                                                                         Parameters& rParameters)
+                                                                         Parameters rParameters)
     : mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY

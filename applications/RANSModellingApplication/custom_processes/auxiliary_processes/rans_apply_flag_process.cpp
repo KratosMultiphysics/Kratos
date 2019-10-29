@@ -29,7 +29,7 @@
 
 namespace Kratos
 {
-RansApplyFlagProcess::RansApplyFlagProcess(Model& rModel, Parameters& rParameters)
+RansApplyFlagProcess::RansApplyFlagProcess(Model& rModel, Parameters rParameters)
     : mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY

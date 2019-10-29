@@ -63,7 +63,7 @@ public:
 
     /// Constructor
 
-    RansVectorAlignProcess(Model& rModel, Parameters& rParameters);
+    RansVectorAlignProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
     ~RansVectorAlignProcess() override;
@@ -146,7 +146,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
 
     int mEchoLevel;
 

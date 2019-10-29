@@ -69,7 +69,7 @@ public:
     ///@{
 
     /// Constructor
-    RansFindConditionParentProcess(Model& rModel, Parameters& rParameters);
+    RansFindConditionParentProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
     ~RansFindConditionParentProcess() override;
@@ -152,7 +152,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
     int mEchoLevel;
 
     std::string mModelPartName;

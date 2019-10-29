@@ -77,7 +77,7 @@ public:
 
     /// Constructor
 
-    RansNutKEpsilonHighReCalculationProcess(Model& rModel, Parameters& rParameters);
+    RansNutKEpsilonHighReCalculationProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
     ~RansNutKEpsilonHighReCalculationProcess() override;
@@ -160,7 +160,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
     std::string mModelPartName;
 
     int mEchoLevel;

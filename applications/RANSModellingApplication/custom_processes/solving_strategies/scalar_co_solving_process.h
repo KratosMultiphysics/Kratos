@@ -65,7 +65,7 @@ public:
 
     /// Constructor.
     ScalarCoSolvingProcess(ModelPart& rModelPart,
-                           Parameters& rParameters,
+                           Parameters rParameters,
                            Variable<double>& rConvergenceVariable)
         : Process(), mrModelPart(rModelPart), mrConvergenceVariable(rConvergenceVariable)
     {

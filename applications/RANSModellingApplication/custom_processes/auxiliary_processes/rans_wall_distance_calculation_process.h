@@ -63,7 +63,7 @@ public:
     ///@{
 
     /// Constructor
-    RansWallDistanceCalculationProcess(Model& rModel, Parameters& rParameters);
+    RansWallDistanceCalculationProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
     ~RansWallDistanceCalculationProcess() override;
@@ -146,7 +146,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
     std::string mModelPartName;
 
     typename TLinearSolver::Pointer mpLinearSolver;

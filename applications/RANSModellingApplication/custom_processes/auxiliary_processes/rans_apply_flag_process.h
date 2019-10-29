@@ -69,7 +69,7 @@ public:
     ///@{
 
     /// Constructor
-    RansApplyFlagProcess(Model& rModel, Parameters& rParameters);
+    RansApplyFlagProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
     ~RansApplyFlagProcess() override;
@@ -152,7 +152,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
     int mEchoLevel;
 
     std::string mModelPartName;

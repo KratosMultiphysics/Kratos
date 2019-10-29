@@ -83,7 +83,7 @@ public:
     ///@{
 
     /// Constructor
-    RansLogarithmicYPlusCalculationProcess(Model& rModel, Parameters& rParameters);
+    RansLogarithmicYPlusCalculationProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
     ~RansLogarithmicYPlusCalculationProcess() override;
@@ -166,7 +166,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
     std::string mModelPartName;
 
     unsigned int mEchoLevel;

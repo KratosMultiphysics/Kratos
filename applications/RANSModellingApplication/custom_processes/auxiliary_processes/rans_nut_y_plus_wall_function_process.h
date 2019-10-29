@@ -63,7 +63,7 @@ public:
 
     /// Constructor
 
-    RansNutYPlusWallFunctionProcess(Model& rModel, Parameters& rParameters);
+    RansNutYPlusWallFunctionProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
     ~RansNutYPlusWallFunctionProcess() override;
@@ -146,7 +146,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
     std::string mModelPartName;
 
     int mEchoLevel;

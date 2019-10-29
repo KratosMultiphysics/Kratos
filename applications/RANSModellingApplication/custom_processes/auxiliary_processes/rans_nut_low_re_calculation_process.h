@@ -65,7 +65,7 @@ public:
 
     /// Constructor
 
-    RansNutLowReCalculationProcess(Model& rModel, Parameters& rParameters);
+    RansNutLowReCalculationProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
     ~RansNutLowReCalculationProcess() override;
@@ -148,7 +148,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
     std::string mModelPartName;
 
     int mEchoLevel;

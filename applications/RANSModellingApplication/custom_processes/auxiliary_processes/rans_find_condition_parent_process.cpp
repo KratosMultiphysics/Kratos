@@ -26,7 +26,7 @@
 
 namespace Kratos
 {
-RansFindConditionParentProcess::RansFindConditionParentProcess(Model& rModel, Parameters& rParameters)
+RansFindConditionParentProcess::RansFindConditionParentProcess(Model& rModel, Parameters rParameters)
     : mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY

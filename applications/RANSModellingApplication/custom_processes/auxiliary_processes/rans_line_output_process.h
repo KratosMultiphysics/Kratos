@@ -63,7 +63,7 @@ public:
 
     /// Constructor
 
-    RansLineOutputProcess(Model& rModel, Parameters& rParameters);
+    RansLineOutputProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
     ~RansLineOutputProcess() override;
@@ -150,7 +150,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
     std::string mModelPartName;
     std::vector<std::string> mVariableNames;
     array_1d<double, 3> mStartPoint;

@@ -62,7 +62,7 @@ public:
     ///@{
 
     /// Constructor
-    RansVectorCellCenterAveragingProcess(Model& rModel, Parameters& rParameters);
+    RansVectorCellCenterAveragingProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
     ~RansVectorCellCenterAveragingProcess() override;
@@ -145,7 +145,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
     std::string mModelPartName;
 
     int mEchoLevel;

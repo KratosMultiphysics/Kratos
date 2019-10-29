@@ -82,7 +82,7 @@ public:
     ///@{
 
     /// Constructor
-    RansKTurbulentIntensityInletProcess(Model& rModel, Parameters& rParameters);
+    RansKTurbulentIntensityInletProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
     ~RansKTurbulentIntensityInletProcess() override;
@@ -169,7 +169,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
     std::string mModelPartName;
 
     double mTurbulentIntensity;

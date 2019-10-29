@@ -76,7 +76,7 @@ public:
     ///@{
 
     /// Constructor
-    RansApplyExactNodalPeriodicConditionProcess(Model& rModel, Parameters& rParameters);
+    RansApplyExactNodalPeriodicConditionProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
     ~RansApplyExactNodalPeriodicConditionProcess() override;
@@ -159,7 +159,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
     int mEchoLevel;
 
     std::string mBaseModelPartName;

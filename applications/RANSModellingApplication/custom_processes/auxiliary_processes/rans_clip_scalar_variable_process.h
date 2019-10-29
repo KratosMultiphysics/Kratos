@@ -70,7 +70,7 @@ public:
 
     /// Constructor
 
-    RansClipScalarVariableProcess(Model& rModel, Parameters& rParameters);
+    RansClipScalarVariableProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
     ~RansClipScalarVariableProcess() override;
@@ -153,7 +153,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
     std::string mModelPartName;
     std::string mVariableName;
     int mEchoLevel;

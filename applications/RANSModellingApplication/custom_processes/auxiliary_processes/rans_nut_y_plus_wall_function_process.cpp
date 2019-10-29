@@ -28,7 +28,7 @@
 
 namespace Kratos
 {
-RansNutYPlusWallFunctionProcess::RansNutYPlusWallFunctionProcess(Model& rModel, Parameters& rParameters)
+RansNutYPlusWallFunctionProcess::RansNutYPlusWallFunctionProcess(Model& rModel, Parameters rParameters)
     : mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY

@@ -30,7 +30,7 @@ namespace Kratos
 {
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 RansWallDistanceCalculationProcess<TSparseSpace, TDenseSpace, TLinearSolver>::RansWallDistanceCalculationProcess(
-    Model& rModel, Parameters& rParameters)
+    Model& rModel, Parameters rParameters)
     : mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY

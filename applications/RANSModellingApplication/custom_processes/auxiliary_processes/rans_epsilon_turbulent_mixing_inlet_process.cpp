@@ -28,7 +28,7 @@
 namespace Kratos
 {
 RansEpsilonTurbulentMixingLengthInletProcess::RansEpsilonTurbulentMixingLengthInletProcess(
-    Model& rModel, Parameters& rParameters)
+    Model& rModel, Parameters rParameters)
     : mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY

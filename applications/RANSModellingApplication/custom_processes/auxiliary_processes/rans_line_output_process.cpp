@@ -29,7 +29,7 @@
 
 namespace Kratos
 {
-RansLineOutputProcess::RansLineOutputProcess(Model& rModel, Parameters& rParameters)
+RansLineOutputProcess::RansLineOutputProcess(Model& rModel, Parameters rParameters)
     : Process(), mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY

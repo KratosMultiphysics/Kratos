@@ -70,7 +70,7 @@ public:
 
     /// Constructor
 
-    RansCheckScalarBoundsProcess(Model& rModel, Parameters& rParameters);
+    RansCheckScalarBoundsProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
     ~RansCheckScalarBoundsProcess() override;
@@ -153,7 +153,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
     std::string mModelPartName;
     std::string mVariableName;
 

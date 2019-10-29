@@ -25,7 +25,7 @@
 
 namespace Kratos
 {
-RansClipScalarVariableProcess::RansClipScalarVariableProcess(Model& rModel, Parameters& rParameters)
+RansClipScalarVariableProcess::RansClipScalarVariableProcess(Model& rModel, Parameters rParameters)
     : mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY

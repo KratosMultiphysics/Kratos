@@ -25,7 +25,7 @@
 
 namespace Kratos
 {
-RansVectorAlignProcess::RansVectorAlignProcess(Model& rModel, Parameters& rParameters)
+RansVectorAlignProcess::RansVectorAlignProcess(Model& rModel, Parameters rParameters)
     : mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY
