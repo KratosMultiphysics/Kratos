@@ -13,63 +13,19 @@ include(pybind11Tools)
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 
-# generate variables with the sources
-set( KRATOS_RANS_MODELLING_APPLICATION_CORE
+## RANSModellingApplication Core sources
+file(GLOB_RECURSE KRATOS_RANS_MODELLING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/rans_modelling_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/rans_modelling_application_variables.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/relaxed_dof_updater.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
-# add element sources
-set( KRATOS_RANS_MODELLING_APPLICATION_CORE ${KRATOS_RANS_MODELLING_APPLICATION_CORE}
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_k.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/rans_evm_k_epsilon_epsilon.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_epsilon.cpp
-)
-
-# add condition sources
-set( KRATOS_RANS_MODELLING_APPLICATION_CORE ${KRATOS_RANS_MODELLING_APPLICATION_CORE}
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_epsilon_wall.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_vms_monolithic_wall.cpp
-)
-# add utilities sources
-set( KRATOS_RANS_MODELLING_APPLICATION_CORE ${KRATOS_RANS_MODELLING_APPLICATION_CORE}
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rans_calculation_utilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rans_variable_utilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.cpp
-)
-
-# add auxiliary process sources
-set( KRATOS_RANS_MODELLING_APPLICATION_CORE ${KRATOS_RANS_MODELLING_APPLICATION_CORE}
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_apply_exact_nodal_periodic_condition_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_apply_flag_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_check_scalar_bounds_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_check_vector_bounds_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_clip_scalar_variable_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_epsilon_turbulent_mixing_inlet_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_find_condition_parent_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_k_turbulent_intensity_inlet_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_line_output_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_logarithmic_y_plus_calculation_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_calculation_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_nut_low_re_calculation_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_nut_y_plus_wall_function_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_scalar_cell_center_averaging_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_vector_align_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_vector_cell_center_averaging_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_wall_distance_calculation_process.cpp
-)
-
-set( KRATOS_RANS_MODELLING_APPLICATION_PYTHON_INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/rans_modelling_python_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_auxiliary_processes_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_solving_processes_to_python.cpp
+file(GLOB_RECURSE KRATOS_RANS_MODELLING_APPLICATION_PYTHON_INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
 set(KRATOS_RANS_MODELLING_APPLICATION_SOURCES_MPI "")
@@ -99,6 +55,7 @@ target_link_libraries(KratosRANSModellingApplication PRIVATE KratosRANSModelling
 set_target_properties(KratosRANSModellingApplication PROPERTIES PREFIX "")
 
 if(USE_COTIRE MATCHES ON)
+    cotire(KratosRANSModellingCore)
     cotire(KratosRANSModellingApplication)
 endif(USE_COTIRE MATCHES ON)
 
