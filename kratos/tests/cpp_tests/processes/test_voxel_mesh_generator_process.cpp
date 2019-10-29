@@ -236,6 +236,8 @@ namespace Kratos {
 		
 		mesh_colors.SetCoordinates(coordinates[0], coordinates[1], coordinates[2]);
 
+		mesh_colors.ExtendBoundingBox(skin_model_part.Nodes(), 1.0e-6);
+
 		array_1d<std::size_t, 3> min_position;
 		array_1d<std::size_t, 3> max_position;
 
