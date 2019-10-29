@@ -31,7 +31,7 @@ namespace Kratos
 
 namespace Python
 {
-    using namespace pybind11;
+    namespace py = pybind11;
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
 
@@ -49,9 +49,9 @@ namespace Python
                                                                                     const unsigned int);
     SetStrategyByParamsWithBSType ThisSetStrategyOverload = &FractionalStepSettingsForChimeraType::SetStrategy;
 
-    class_< FractionalStepSettingsForChimeraType, BaseSettingsType>
+    py::class_< FractionalStepSettingsForChimeraType, BaseSettingsType>
         (m, "FractionalStepSettings")
-        .def(init<ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
+        .def(py::init<ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
         .def("SetStrategy",ThisSetStrategyOverload)
         .def("GetStrategy",&FractionalStepSettingsForChimeraType::pGetStrategy)
         .def("SetEchoLevel",&FractionalStepSettingsForChimeraType::SetEchoLevel)

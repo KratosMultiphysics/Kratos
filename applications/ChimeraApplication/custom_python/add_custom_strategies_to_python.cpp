@@ -44,10 +44,11 @@ namespace Kratos
 
 namespace Python
 {
-using namespace pybind11;
+
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
@@ -56,17 +57,17 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef FSStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef FSStrategyForChimera< SparseSpaceType,LocalSpaceType, LinearSolverType > FSSTrategyForChimeraType;
     //*************************STRATEGY CLASSES***************************
-    class_< FSSTrategyForChimeraType,
+    py::class_< FSSTrategyForChimeraType,
                 typename FSSTrategyForChimeraType::Pointer,
                 BaseSolvingStrategyType >
                 (m,"FSStrategyForChimera")
-                .def(init< ModelPart&, FractionalStepSettingsForChimera< SparseSpaceType,LocalSpaceType, LinearSolverType >&, bool >() )
+                .def(py::init< ModelPart&, FractionalStepSettingsForChimera< SparseSpaceType,LocalSpaceType, LinearSolverType >&, bool >() )
                 ;
     //*************************B&S CLASSES***************************
-    class_< ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+    py::class_< ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >,
      typename ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
                 ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > >(m,"ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera")
-                .def(init<LinearSolverType::Pointer>());
+                .def(py::init<LinearSolverType::Pointer>());
 }
 
 }  // namespace Python.
