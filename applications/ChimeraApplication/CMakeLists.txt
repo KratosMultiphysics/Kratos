@@ -1,4 +1,4 @@
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON) 
 
 message("**** Configuring KratosChimeraApplication ****")
 
