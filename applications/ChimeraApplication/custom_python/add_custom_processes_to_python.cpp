@@ -20,9 +20,11 @@
 // External includes
 
 // Project includes
-#include "processes/process.h"
-#include "spaces/ublas_space.h"
+#include "containers/model.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "includes/define_python.h"
+#include "includes/model_part.h"
+#include "processes/process.h"
 
 #include "custom_processes/apply_chimera_process.h"
 #include "custom_processes/apply_chimera_process_monolithic.h"
@@ -76,8 +78,7 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def(py::init<ModelPart &, Parameters>());
 
     py::class_<RotateRegionProcess, RotateRegionProcess::Pointer, Process>(m, "RotateRegionProcess")
-        .def(py::init<ModelPart &, Parameters>())
-        .def("SetAngularVelocity", &RotateRegionProcess::SetAngularVelocity);
+        .def(py::init<ModelPart &, Parameters>());
 }
 
 } // namespace Python.

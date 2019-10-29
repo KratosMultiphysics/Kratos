@@ -28,6 +28,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/process_info.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "containers/model.h"
