@@ -20,13 +20,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "includes/checks.h"
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "processes/process.h"
-
-#include "custom_utilities/rans_check_utilities.h"
-#include "custom_utilities/rans_variable_utilities.h"
 
 namespace Kratos
 {
@@ -76,35 +70,10 @@ public:
 
     /// Constructor
 
-    RansClipScalarVariableProcess(Model& rModel, Parameters& rParameters)
-        : mrModel(rModel), mrParameters(rParameters)
-    {
-        KRATOS_TRY
-
-        Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "variable_name"   : "PLEASE_SPECIFY_SCALAR_VARIABLE",
-            "echo_level"      : 0,
-            "min_value"       : 1e-18,
-            "max_value"       : 1e+30
-        })");
-
-        mrParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mVariableName = mrParameters["variable_name"].GetString();
-        mModelPartName = mrParameters["model_part_name"].GetString();
-        mEchoLevel = mrParameters["echo_level"].GetInt();
-        mMinValue = mrParameters["min_value"].GetDouble();
-        mMaxValue = mrParameters["max_value"].GetDouble();
-
-        KRATOS_CATCH("");
-    }
+    RansClipScalarVariableProcess(Model& rModel, Parameters& rParameters);
 
     /// Destructor.
-    ~RansClipScalarVariableProcess() override
-    {
-    }
+    ~RansClipScalarVariableProcess() override;
 
     ///@}
     ///@name Operators
@@ -114,45 +83,9 @@ public:
     ///@name Operations
     ///@{
 
-    int Check() override
-    {
-        KRATOS_TRY
+    int Check() override;
 
-        const Variable<double>& r_scalar_variable =
-            KratosComponents<Variable<double>>::Get(mVariableName);
-
-        RansCheckUtilities rans_check_utilities;
-
-        rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
-        rans_check_utilities.CheckIfVariableExistsInModelPart(
-            mrModel.GetModelPart(mModelPartName), r_scalar_variable);
-
-        return 0;
-
-        KRATOS_CATCH("");
-    }
-
-    void Execute() override
-    {
-        KRATOS_TRY
-
-        const Variable<double>& r_scalar_variable =
-            KratosComponents<Variable<double>>::Get(mVariableName);
-
-        unsigned int nodes_below, nodes_above, total_nodes;
-
-        RansVariableUtilities::ClipScalarVariable(
-            nodes_below, nodes_above, total_nodes, mMinValue, mMaxValue,
-            r_scalar_variable, mrModel.GetModelPart(mModelPartName));
-
-        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0 && (nodes_below > 0 || nodes_above > 0))
-            << mVariableName << " is clipped between [ " << mMinValue << ", "
-            << mMaxValue << " ]. [ " << nodes_below << " nodes < " << mMinValue
-            << " and " << nodes_above << " nodes > " << mMaxValue << " out of "
-            << total_nodes << " total nodes in " << mModelPartName << " ].\n";
-
-        KRATOS_CATCH("");
-    }
+    void Execute() override;
 
     ///@}
     ///@name Access
@@ -167,21 +100,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return std::string("RansClipScalarVariableProcess");
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << this->Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -263,8 +188,7 @@ private:
     RansClipScalarVariableProcess(RansClipScalarVariableProcess const& rOther);
 
     ///@}
-
-}; // Class RansClipScalarVariableProcess
+};
 
 ///@}
 

@@ -40,6 +40,7 @@ def AssembleTestSuites():
 
     nightSuite.addTest(CustomProcessTest('testCheckScalarBoundsProcess'))
     nightSuite.addTest(CustomProcessTest('testCheckVectorBoundsProcess'))
+    nightSuite.addTest(CustomProcessTest('testClipScalarVariableProcess'))
     nightSuite.addTest(CustomProcessTest('testApplyFlagProcess'))
     nightSuite.addTest(CustomProcessTest('testScalarCellCenterAveragingProcess'))
     nightSuite.addTest(CustomProcessTest('testVectorCellCenterAveragingProcess'))

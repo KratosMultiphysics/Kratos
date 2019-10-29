@@ -1,5 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSModellingApplication as KratosRANS
+from KratosMultiphysics.RANSModellingApplication import RansVariableUtilities
 from KratosMultiphysics.process_factory import KratosProcessFactory
 
 import KratosMultiphysics.KratosUnittest as UnitTest
@@ -45,6 +46,37 @@ class CustomProcessTest(UnitTest.TestCase):
         factory = KratosProcessFactory(self.model)
         self.process_list = factory.ConstructListOfProcesses(settings)
         self.__ExecuteProcesses()
+
+    def testClipScalarVariableProcess(self):
+        self.__CreateModel()
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
+                "python_module" : "apply_custom_process",
+                "process_name"  : "ClipScalarVariableProcess",
+                "Parameters" : {
+                    "model_part_name"                : "test",
+                    "variable_name"                  : "DENSITY",
+                    "min_value"                      : 0.5,
+                    "max_value"                      : 0.6
+                }
+            }
+        ]''')
+
+        model_part = self.model["test"]
+        for node in model_part.Nodes:
+            density = node.GetSolutionStepValue(Kratos.DENSITY)
+            node.SetSolutionStepValue(Kratos.DENSITY, 0, math.pow(-1, node.Id) * density)
+
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(settings)
+        self.__ExecuteProcesses()
+
+        for node in model_part.Nodes:
+            density = node.GetSolutionStepValue(Kratos.DENSITY)
+            self.assertEqual(density >= 0.5, True)
+            self.assertEqual(density <= 0.6, True)
 
     def testApplyFlagProcess(self):
         self.__CreateModel()
