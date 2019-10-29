@@ -383,7 +383,7 @@ namespace Kratos
 			auto& colors = mrVolumePart.GetValue(COLORS);
 			colors.resize(mColors.GetNodalColors().size());
 			for(int i = 0 ; i < static_cast<int>(colors.size()) ; i++){
-				colors[i] = static_cast<int>(mColors.GetNodalColors()[i]);
+				colors[i] = mColors.GetNodalColors()[i];
 			}
 			std::size_t index = 0;
 			for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
@@ -453,7 +453,7 @@ namespace Kratos
 			auto& colors = mrVolumePart.GetValue(COLORS);
 			colors.resize(mColors.GetElementalColors().size());
 			for(int i = 0 ; i < static_cast<int>(colors.size()) ; i++){
-				colors[i] = static_cast<int>(mColors.GetElementalColors()[i]);
+				colors[i] = mColors.GetElementalColors()[i];
 			}
 
 			return;
