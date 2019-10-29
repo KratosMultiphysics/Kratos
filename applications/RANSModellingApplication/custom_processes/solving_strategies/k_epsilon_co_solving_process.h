@@ -89,7 +89,7 @@ public:
 
     void ExecuteInitializeSolutionStep() override
     {
-        UpdateBeforeSolveSolutionStep();
+        UpdateBeforeSolveEquations();
     }
 
     ///@}
@@ -169,13 +169,13 @@ private:
     ///@name Operations
     ///@{
 
-    void UpdateBeforeSolveSolutionStep() override
+    void UpdateBeforeSolveEquations() override
     {
         this->ExecuteAuxiliaryProcessesInitializeSolutionStep();
         this->UpdateConvergenceVariable();
     }
 
-    void UpdateAfterSolveSolutionStep() override
+    void UpdateAfterSolveEquations() override
     {
         UpdateEffectiveViscosity();
     }

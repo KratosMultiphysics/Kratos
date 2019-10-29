@@ -116,7 +116,7 @@ public:
     void Execute() override
     {
         if (mrModelPart.GetProcessInfo()[IS_CO_SOLVING_PROCESS_ACTIVE])
-            SolveSolutionStep();
+            SolveEquations();
     }
 
     virtual int Check() override
@@ -188,17 +188,17 @@ protected:
     ///@name Operations
     ///@{
 
-    virtual void UpdateBeforeSolveSolutionStep()
+    virtual void UpdateBeforeSolveEquations()
     {
         KRATOS_ERROR << "Calling the base class "
-                        "ScalarCoSolvingProcess::UpdateBeforeSolveSolutionStep."
+                        "ScalarCoSolvingProcess::UpdateBeforeSolveEquations."
                         " Please override it in derrived class.";
     }
 
-    virtual void UpdateAfterSolveSolutionStep()
+    virtual void UpdateAfterSolveEquations()
     {
         KRATOS_ERROR << "Calling the base class "
-                        "ScalarCoSolvingProcess::UpdateAfterSolveSolutionStep. "
+                        "ScalarCoSolvingProcess::UpdateAfterSolveEquations. "
                         "Please override it in derrived class.";
     }
 
@@ -221,9 +221,9 @@ protected:
             auxiliary_process->ExecuteInitializeSolutionStep();
     }
 
-    void SolveSolutionStep()
+    void SolveEquations()
     {
-        this->UpdateBeforeSolveSolutionStep();
+        this->UpdateBeforeSolveEquations();
 
         for (auto p_solving_strategy : this->mrSolvingStrategiesList)
         {
@@ -321,7 +321,7 @@ protected:
             iteration++;
         }
 
-        this->UpdateAfterSolveSolutionStep();
+        this->UpdateAfterSolveEquations();
 
         KRATOS_WARNING_IF(this->Info(), !is_converged)
             << "\n-------------------------------------------------------"
