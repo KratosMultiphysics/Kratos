@@ -139,7 +139,10 @@ void RansFindConditionParentProcess::SetConditionParent(Condition& rCondition)
         if (std::includes(element_node_ids.begin(), element_node_ids.end(),
                           node_ids.begin(), node_ids.end()))
         {
-            rCondition.SetValue(PARENT_ELEMENT, element_candidates(i_element));
+            GlobalPointersVector<Element> parent_element;
+            parent_element.clear();
+            parent_element.push_back(element_candidates(i_element));
+            rCondition.SetValue(NEIGHBOUR_ELEMENTS, parent_element);
             return;
         }
     }

@@ -17,6 +17,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "includes/define.h"
+#include "includes/cfd_variables.h"
 
 // Application includes
 #include "rans_evm_k_epsilon_epsilon_wall.h"

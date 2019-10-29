@@ -151,9 +151,11 @@ public:
             const std::vector<double>& total_residual_norms =
                 r_communicator.GetDataCommunicator().SumAll(residual_norms);
 
-            const double ratio = residual_norms[0] /
-                                 (residual_norms[1] == 0.0 ? 1.0 : residual_norms[1]);
-            const double ratio_abs = sqrt(residual_norms[0]) / residual_norms[2];
+            const double ratio =
+                total_residual_norms[0] /
+                (total_residual_norms[1] == 0.0 ? 1.0 : total_residual_norms[1]);
+            const double ratio_abs =
+                sqrt(total_residual_norms[0]) / total_residual_norms[2];
 
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
             const unsigned int iteration = r_current_process_info[NL_ITERATION_NUMBER];

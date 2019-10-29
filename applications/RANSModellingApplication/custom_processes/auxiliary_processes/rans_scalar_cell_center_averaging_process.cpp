@@ -164,12 +164,12 @@ void RansScalarCellCenterAveragingProcess::CalculateCellCenterAverage()
         Condition::GeometryType& r_condition_geometry = r_condition.GetGeometry();
         const int number_of_nodes = r_condition_geometry.PointsNumber();
 
-        KRATOS_ERROR_IF(!r_condition.Has(PARENT_ELEMENT))
+        KRATOS_ERROR_IF(!r_condition.Has(NEIGHBOUR_ELEMENTS))
             << "Parent element not found for condition id=" << r_condition.Id()
             << ". Please run \"FindConditionParentProcess\" for "
             << mModelPartName << ".\n";
 
-        const Element::WeakPointer& p_parent_element = r_condition.GetValue(PARENT_ELEMENT);
+        const Element::WeakPointer& p_parent_element = r_condition.GetValue(NEIGHBOUR_ELEMENTS)(0);
         const Element::GeometryType& r_parent_element_geometry =
             p_parent_element->GetGeometry();
 
