@@ -21,10 +21,10 @@
 // Project includes
 #include "containers/model.h"
 #include "custom_utilities/rans_variable_utils.h"
+#include "factories/linear_solver_factory.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
-#include "factories/linear_solver_factory.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "processes/variational_distance_calculation_process.h"
@@ -245,8 +245,10 @@ private:
 
         const Flags& r_wall_flag = KratosComponents<Flags>::Get(mWallFlagVariableName);
 
-        RansVariableUtils().SetScalarVar(DISTANCE, 1.0, r_model_part.Nodes());
-        RansVariableUtils().SetScalarVarForFlag(
+        VariableUtils variable_utilities;
+
+        variable_utilities.SetScalarVar(DISTANCE, 1.0, r_model_part.Nodes());
+        variable_utilities.SetScalarVarForFlag(
             DISTANCE, 0.0, r_model_part.Nodes(), r_wall_flag, mWallFlagVariableValue);
 
         const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];

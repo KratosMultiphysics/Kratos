@@ -215,7 +215,7 @@ private:
 
         ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-        RansVariableUtils().SetNonHistoricalVariableToZero(
+        VariableUtils().SetNonHistoricalVariableToZero(
             NUMBER_OF_NEIGHBOUR_CONDITIONS, r_model_part.Nodes());
 
         RansCalculationUtilities rans_calculation_utilities;
@@ -256,12 +256,12 @@ private:
             KratosComponents<Variable<array_1d<double, 3>>>::Get(mAveragingOutputVariableName);
 
         RansCalculationUtilities rans_calculation_utilities;
-        RansVariableUtils rans_variable_utilities;
+        VariableUtils variable_utilities;
 
-        rans_variable_utilities.SetHistoricalVariableToZero(
-            r_output_variable, r_model_part.Nodes());
-        rans_variable_utilities.SetNonHistoricalVariableToZero(
-            r_output_variable, r_model_part.Nodes());
+        variable_utilities.SetHistoricalVariableToZero(r_output_variable,
+                                                       r_model_part.Nodes());
+        variable_utilities.SetNonHistoricalVariableToZero(r_output_variable,
+                                                          r_model_part.Nodes());
 
         const int number_of_conditions = r_model_part.NumberOfConditions();
 #pragma omp parallel for

@@ -135,11 +135,10 @@ public:
 
         const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-        RansVariableUtils rans_variable_utils;
         const double min_value =
-            rans_variable_utils.GetMinimumScalarValue(r_model_part, r_scalar_variable);
+            RansVariableUtils::GetMinimumScalarValue(r_model_part, r_scalar_variable);
         const double max_value =
-            rans_variable_utils.GetMaximumScalarValue(r_model_part, r_scalar_variable);
+            RansVariableUtils::GetMaximumScalarValue(r_model_part, r_scalar_variable);
 
         KRATOS_INFO(this->Info())
             << r_scalar_variable.Name() << " is bounded between [ " << min_value

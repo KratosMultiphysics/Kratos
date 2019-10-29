@@ -160,7 +160,7 @@ public:
         const double nu_t_max = r_process_info[TURBULENT_VISCOSITY_MAX];
 
         unsigned int lower_number_of_nodes, higher_number_of_nodes, total_selected_nodes;
-        RansVariableUtils().ClipScalarVariable(
+        RansVariableUtils::ClipScalarVariable(
             lower_number_of_nodes, higher_number_of_nodes, total_selected_nodes,
             nu_t_min, nu_t_max, TURBULENT_VISCOSITY, r_model_part);
 

@@ -26,6 +26,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
+#include "rans_modelling_application_variables.h"
 
 namespace Kratos
 {

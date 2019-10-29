@@ -1,5 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSModellingApplication as KratosRANS
+from KratosMultiphysics.RANSModellingApplication import RansVariableUtils
 
 
 def CreateDuplicateModelPart(origin_modelpart, destination_modelpart_name,
@@ -14,7 +15,7 @@ def CreateDuplicateModelPart(origin_modelpart, destination_modelpart_name,
 
         # TODO: Remove this line once the warnings from connectivity preserve modeller is gone, otherwise,
         #       output will be cluttered with lots of missing variable warnings
-        KratosRANS.RansVariableUtils().CopyNodalSolutionStepVariablesList(
+        RansVariableUtils.CopyNodalSolutionStepVariablesList(
             origin_modelpart, model_part)
 
         # TODO: [PeriodicCondition]

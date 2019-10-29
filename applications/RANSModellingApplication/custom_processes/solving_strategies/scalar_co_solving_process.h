@@ -236,8 +236,6 @@ protected:
         bool is_converged = false;
         int iteration = 1;
 
-        RansVariableUtils rans_variable_utils;
-
         Communicator& r_communicator = mrModelPart.GetCommunicator();
 
         ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
@@ -252,7 +250,7 @@ protected:
 
         while (!is_converged && iteration <= this->mMaxIterations)
         {
-            rans_variable_utils.GetNodalVariablesVector(
+            RansVariableUtils::GetNodalVariablesVector(
                 old_values, r_nodes, this->mrConvergenceVariable);
 
             for (int i = 0;
@@ -270,7 +268,7 @@ protected:
 
             this->UpdateConvergenceVariable();
 
-            rans_variable_utils.GetNodalVariablesVector(
+            RansVariableUtils::GetNodalVariablesVector(
                 new_values, r_nodes, this->mrConvergenceVariable);
             noalias(delta_values) = new_values - old_values;
 
@@ -286,8 +284,7 @@ protected:
                 r_communicator.GetDataCommunicator().SumAll(residual_norms);
 
             noalias(new_values) = old_values + delta_values * mRelaxationFactor;
-            rans_variable_utils.SetNodalVariables(r_nodes, new_values,
-                                                  this->mrConvergenceVariable);
+            RansVariableUtils::SetNodalVariables(r_nodes, new_values, this->mrConvergenceVariable);
             r_communicator.SynchronizeVariable(this->mrConvergenceVariable);
 
             double convergence_relative =

@@ -284,8 +284,6 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
         return strategy
 
     def Initialize(self):
-        rans_variable_utils = KratosRANS.RansVariableUtils()
-
         self.PrepareSolvingStrategy()
 
         from KratosMultiphysics.process_factory import KratosProcessFactory

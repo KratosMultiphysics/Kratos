@@ -139,11 +139,9 @@ public:
         const Variable<double>& r_scalar_variable =
             KratosComponents<Variable<double>>::Get(mVariableName);
 
-        RansVariableUtils rans_variable_utils;
-
         unsigned int nodes_below, nodes_above, total_nodes;
 
-        rans_variable_utils.ClipScalarVariable(
+        RansVariableUtils::ClipScalarVariable(
             nodes_below, nodes_above, total_nodes, mMinValue, mMaxValue,
             r_scalar_variable, mrModel.GetModelPart(mModelPartName));
 
