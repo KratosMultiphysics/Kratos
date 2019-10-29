@@ -57,6 +57,7 @@ set( KRATOS_RANS_MODELLING_APPLICATION_CORE ${KRATOS_RANS_MODELLING_APPLICATION_
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_nut_low_re_calculation_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_nut_y_plus_wall_function_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_scalar_cell_center_averaging_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_vector_align_process.cpp
 )
 
 set( KRATOS_RANS_MODELLING_APPLICATION_PYTHON_INTERFACE
