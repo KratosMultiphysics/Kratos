@@ -162,7 +162,7 @@ protected:
         IndexType removed_counter = 0;
         IndexType not_found_counter = 0;
 
-        for (unsigned int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
+        for (int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
         {
             ModelPart::NodesContainerType::iterator i_boundary_node = rBoundaryModelPart.NodesBegin() + i_bn;
             BaseType::mNodeIdToConstraintIdsMap[i_boundary_node->Id()].reserve(150);
