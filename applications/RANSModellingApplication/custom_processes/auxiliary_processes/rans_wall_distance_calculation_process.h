@@ -20,15 +20,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "custom_utilities/rans_variable_utilities.h"
-#include "factories/linear_solver_factory.h"
-#include "includes/cfd_variables.h"
-#include "includes/checks.h"
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "processes/process.h"
-#include "processes/variational_distance_calculation_process.h"
-#include "rans_modelling_application_variables.h"
 
 namespace Kratos
 {
@@ -71,41 +63,10 @@ public:
     ///@{
 
     /// Constructor
-    RansWallDistanceCalculationProcess(Model& rModel, Parameters& rParameters)
-        : mrModel(rModel), mrParameters(rParameters)
-    {
-        KRATOS_TRY
+    RansWallDistanceCalculationProcess(Model& rModel, Parameters& rParameters);
 
-        Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name"          : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "max_iterations"           : 10,
-            "echo_level"               : 0,
-            "wall_flag_variable_name"  : "STRUCTURE",
-            "wall_flag_variable_value" : true,
-            "linear_solver_settings" : {
-                "solver_type"     : "amgcl"
-            }
-        })");
-
-        mrParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-
-        mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(
-            mrParameters["linear_solver_settings"]);
-
-        mMaxIterations = mrParameters["max_iterations"].GetInt();
-        mEchoLevel = mrParameters["echo_level"].GetInt();
-        mModelPartName = mrParameters["model_part_name"].GetString();
-        mWallFlagVariableName = mrParameters["wall_flag_variable_name"].GetString();
-        mWallFlagVariableValue = mrParameters["wall_flag_variable_value"].GetBool();
-
-        KRATOS_CATCH("");
-    }
     /// Destructor.
-    ~RansWallDistanceCalculationProcess() override
-    {
-        // delete mpDistanceCalculator;
-    }
+    ~RansWallDistanceCalculationProcess() override;
 
     ///@}
     ///@name Operators
@@ -115,35 +76,9 @@ public:
     ///@name Operations
     ///@{
 
-    int Check() override
-    {
-        KRATOS_TRY
+    int Check() override;
 
-        const ModelPart::NodesContainerType& r_nodes =
-            mrModel.GetModelPart(mModelPartName).Nodes();
-        int number_of_nodes = r_nodes.size();
-
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            NodeType& r_node = *(r_nodes.begin() + i_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
-        }
-
-        return 0;
-
-        KRATOS_CATCH("");
-    }
-
-    void ExecuteInitialize() override
-    {
-        CalculateWallDistances();
-    }
-
-    void Execute() override
-    {
-        // CalculateWallDistances();
-    }
+    void ExecuteInitialize() override;
 
     ///@}
     ///@name Access
@@ -158,21 +93,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return std::string("RansWallDistanceCalculationProcess");
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << this->Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -237,44 +164,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateWallDistances()
-    {
-        KRATOS_TRY
-
-        ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
-
-        const Flags& r_wall_flag = KratosComponents<Flags>::Get(mWallFlagVariableName);
-
-        VariableUtils variable_utilities;
-
-        variable_utilities.SetScalarVar(DISTANCE, 1.0, r_model_part.Nodes());
-        variable_utilities.SetScalarVarForFlag(
-            DISTANCE, 0.0, r_model_part.Nodes(), r_wall_flag, mWallFlagVariableValue);
-
-        const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
-
-        if (domain_size == 2)
-        {
-            VariationalDistanceCalculationProcess<2, TSparseSpace, TDenseSpace, TLinearSolver> distance_calculation_process(
-                r_model_part, mpLinearSolver, mMaxIterations);
-            distance_calculation_process.Execute();
-        }
-        else if (domain_size == 3)
-        {
-            VariationalDistanceCalculationProcess<3, TSparseSpace, TDenseSpace, TLinearSolver> distance_calculation_process(
-                r_model_part, mpLinearSolver, mMaxIterations);
-            distance_calculation_process.Execute();
-        }
-        else
-        {
-            KRATOS_ERROR << "Unknown domain size = " << domain_size;
-        }
-
-        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-            << "Wall distances calculated in " << mModelPartName << ".\n";
-
-        KRATOS_CATCH("");
-    }
+    void CalculateWallDistances();
 
     ///@}
     ///@name Private  Access
