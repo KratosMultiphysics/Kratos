@@ -52,12 +52,12 @@ class TurbulenceKEpsilonConfiguration(
         self.model_settings = parameters["model_settings"]
 
         if (self.model_settings["use_high_re_elements"].GetBool()):
-            self.model_elements_list = ["RansEvmK", "RansEvmEpsilon"]
+            self.model_elements_list = ["RansEvmKEpsilonK", "RansEvmKEpsilonEpsilon"]
             self.model_conditions_list = [
-                "Condition", "RansEvmEpsilonWallCondition"
+                "Condition", "RansEvmKEpsilonEpsilonWallCondition"
             ]
         else:
-            self.model_elements_list = ["RansEvmLowReK", "RansEvmLowReEpsilon"]
+            self.model_elements_list = ["RansEvmKEpsilonLowReK", "RansEvmKEpsilonLowReEpsilon"]
             self.model_conditions_list = ["Condition", "Condition"]
         self.is_initial_values_assigned = False
 
@@ -193,4 +193,4 @@ class TurbulenceKEpsilonConfiguration(
         return self.turbulence_model_process
 
     def GetFluidVelocityPressureConditionName(self):
-        return "RansEvmVmsMonolithicWallCondition"
+        return "RansEvmKEpsilonVmsMonolithicWallCondition"

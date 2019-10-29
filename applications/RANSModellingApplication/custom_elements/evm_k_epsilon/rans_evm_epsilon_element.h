@@ -23,7 +23,7 @@
 #include "includes/properties.h"
 
 #include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
-#include "custom_elements/stabilized_convection_diffusion_reaction_element.h"
+#include "custom_elements/stabilized_convection_diffusion_reaction.h"
 #include "includes/cfd_variables.h"
 #include "rans_modelling_application_variables.h"
 
@@ -48,7 +48,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-struct RansEvmEpsilonElementData
+struct RansEvmKEpsilonEpsilonData
 {
     double C1;
     double C2;
@@ -60,15 +60,15 @@ struct RansEvmEpsilonElementData
 };
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class RansEvmEpsilonElement
-    : public StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmEpsilonElementData>
+class RansEvmKEpsilonEpsilon
+    : public StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonEpsilonData>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     using BaseType =
-        StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmEpsilonElementData>;
+        StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonEpsilonData>;
 
     /// Node type (default is: Node<3>)
     using NodeType = Node<3>;
@@ -96,8 +96,8 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of RansEvmEpsilonElement
-    KRATOS_CLASS_POINTER_DEFINITION(RansEvmEpsilonElement);
+    /// Pointer definition of RansEvmKEpsilonEpsilon
+    KRATOS_CLASS_POINTER_DEFINITION(RansEvmKEpsilonEpsilon);
 
     ///@}
     ///@name Life Cycle
@@ -106,34 +106,34 @@ public:
     /**
      * Constructor.
      */
-    explicit RansEvmEpsilonElement(IndexType NewId = 0);
+    explicit RansEvmKEpsilonEpsilon(IndexType NewId = 0);
 
     /**
      * Constructor using an array of nodes
      */
-    RansEvmEpsilonElement(IndexType NewId, const NodesArrayType& ThisNodes);
+    RansEvmKEpsilonEpsilon(IndexType NewId, const NodesArrayType& ThisNodes);
 
     /**
      * Constructor using Geometry
      */
-    RansEvmEpsilonElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    RansEvmKEpsilonEpsilon(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /**
      * Constructor using Properties
      */
-    RansEvmEpsilonElement(IndexType NewId,
+    RansEvmKEpsilonEpsilon(IndexType NewId,
                           GeometryType::Pointer pGeometry,
                           PropertiesType::Pointer pProperties);
 
     /**
      * Copy Constructor
      */
-    RansEvmEpsilonElement(RansEvmEpsilonElement const& rOther);
+    RansEvmKEpsilonEpsilon(RansEvmKEpsilonEpsilon const& rOther);
 
     /**
      * Destructor
      */
-    ~RansEvmEpsilonElement() override;
+    ~RansEvmKEpsilonEpsilon() override;
 
     ///@}
     ///@name Operators
@@ -294,25 +294,25 @@ private:
 
     const Variable<double>& GetPrimalRelaxedRateVariable() const override;
 
-    void CalculateElementData(RansEvmEpsilonElementData& rData,
+    void CalculateElementData(RansEvmKEpsilonEpsilonData& rData,
                               const Vector& rShapeFunctions,
                               const Matrix& rShapeFunctionDerivatives,
                               const ProcessInfo& rCurrentProcessInfo,
                               const int Step = 0) const override;
 
-    double CalculateEffectiveKinematicViscosity(const RansEvmEpsilonElementData& rData,
+    double CalculateEffectiveKinematicViscosity(const RansEvmKEpsilonEpsilonData& rData,
                                                 const Vector& rShapeFunctions,
                                                 const Matrix& rShapeFunctionDerivatives,
                                                 const ProcessInfo& rCurrentProcessInfo,
                                                 const int Step = 0) const override;
 
-    double CalculateReactionTerm(const RansEvmEpsilonElementData& rData,
+    double CalculateReactionTerm(const RansEvmKEpsilonEpsilonData& rData,
                                  const Vector& rShapeFunctions,
                                  const Matrix& rShapeFunctionDerivatives,
                                  const ProcessInfo& rCurrentProcessInfo,
                                  const int Step = 0) const override;
 
-    double CalculateSourceTerm(const RansEvmEpsilonElementData& rData,
+    double CalculateSourceTerm(const RansEvmKEpsilonEpsilonData& rData,
                                const Vector& rShapeFunctions,
                                const Matrix& rShapeFunctionDerivatives,
                                const ProcessInfo& rCurrentProcessInfo,

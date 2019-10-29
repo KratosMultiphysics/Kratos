@@ -1,25 +1,28 @@
-#include "evm_k_epsilon_utilities.h"
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//
+
+// System includes
 #include <cmath>
 #include <iostream>
 #include <limits>
 
+// Project includes
+#include "evm_k_epsilon_utilities.h"
+
+// Application includes
+#include "custom_utilities/rans_calculation_utilities.h"
+
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
 namespace EvmKepsilonModelUtilities
 {
 double CalculateTurbulentViscosity(const double C_mu,

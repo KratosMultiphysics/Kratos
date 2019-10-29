@@ -53,14 +53,14 @@ namespace Kratos
  * @tparam TNumNodes  Number of nodes in the condition
  */
 template <unsigned int TDim, unsigned int TNumNodes = TDim>
-class RansEvmVmsMonolithicWallCondition : public MonolithicWallCondition<TDim, TNumNodes>
+class RansEvmKEpsilonVmsMonolithicWallCondition : public MonolithicWallCondition<TDim, TNumNodes>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of RansEvmVmsMonolithicWallCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RansEvmVmsMonolithicWallCondition);
+    /// Pointer definition of RansEvmKEpsilonVmsMonolithicWallCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RansEvmKEpsilonVmsMonolithicWallCondition);
 
     using BaseType = MonolithicWallCondition<TDim, TNumNodes>;
     using NodeType = Node<3>;
@@ -79,21 +79,21 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    explicit RansEvmVmsMonolithicWallCondition(IndexType NewId = 0);
+    explicit RansEvmKEpsilonVmsMonolithicWallCondition(IndexType NewId = 0);
 
     /// Constructor using an array of nodes
     /**
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    RansEvmVmsMonolithicWallCondition(IndexType NewId, const NodesArrayType& ThisNodes);
+    RansEvmKEpsilonVmsMonolithicWallCondition(IndexType NewId, const NodesArrayType& ThisNodes);
 
     /// Constructor using Geometry
     /**
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    RansEvmVmsMonolithicWallCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    RansEvmKEpsilonVmsMonolithicWallCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /// Constructor using Properties
     /**
@@ -101,28 +101,28 @@ public:
      @param pGeometry Pointer to a geometry object
      @param pProperties Pointer to the element's properties
      */
-    RansEvmVmsMonolithicWallCondition(IndexType NewId,
+    RansEvmKEpsilonVmsMonolithicWallCondition(IndexType NewId,
                                       GeometryType::Pointer pGeometry,
                                       PropertiesType::Pointer pProperties);
 
     /// Copy constructor.
-    RansEvmVmsMonolithicWallCondition(RansEvmVmsMonolithicWallCondition const& rOther);
+    RansEvmKEpsilonVmsMonolithicWallCondition(RansEvmKEpsilonVmsMonolithicWallCondition const& rOther);
 
     /// Destructor.
-    ~RansEvmVmsMonolithicWallCondition() override;
+    ~RansEvmKEpsilonVmsMonolithicWallCondition() override;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator
-    RansEvmVmsMonolithicWallCondition& operator=(RansEvmVmsMonolithicWallCondition const& rOther);
+    RansEvmKEpsilonVmsMonolithicWallCondition& operator=(RansEvmKEpsilonVmsMonolithicWallCondition const& rOther);
 
     ///@}
     ///@name Operations
     ///@{
 
-    /// Create a new RansEvmVmsMonolithicWallCondition object.
+    /// Create a new RansEvmKEpsilonVmsMonolithicWallCondition object.
     /**
       @param NewId Index of the new condition
       @param ThisNodes An array containing the nodes of the new condition
@@ -289,7 +289,7 @@ private:
 
     ///@}
 
-}; // Class RansEvmVmsMonolithicWallCondition
+}; // Class RansEvmKEpsilonVmsMonolithicWallCondition
 
 ///@}
 
@@ -303,7 +303,7 @@ private:
 /// input stream function
 template <unsigned int TDim, unsigned int TNumNodes>
 inline std::istream& operator>>(std::istream& rIStream,
-                                RansEvmVmsMonolithicWallCondition<TDim, TNumNodes>& rThis)
+                                RansEvmKEpsilonVmsMonolithicWallCondition<TDim, TNumNodes>& rThis)
 {
     return rIStream;
 }
@@ -311,7 +311,7 @@ inline std::istream& operator>>(std::istream& rIStream,
 /// output stream function
 template <unsigned int TDim, unsigned int TNumNodes>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansEvmVmsMonolithicWallCondition<TDim, TNumNodes>& rThis)
+                                const RansEvmKEpsilonVmsMonolithicWallCondition<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

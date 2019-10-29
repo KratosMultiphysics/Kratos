@@ -173,24 +173,24 @@ private:
     ///@{
 
     /// k-epsilon turbulence model elements
-    const RansEvmLowReKElement<2, 3> mRansEvmLowReK2D;
-    const RansEvmLowReKElement<3, 4> mRansEvmLowReK3D;
+    const RansEvmKEpsilonLowReKElement<2, 3> mRansEvmKEpsilonLowReK2D;
+    const RansEvmKEpsilonLowReKElement<3, 4> mRansEvmKEpsilonLowReK3D;
 
-    const RansEvmLowReEpsilonElement<2, 3> mRansEvmLowReEpsilon2D;
-    const RansEvmLowReEpsilonElement<3, 4> mRansEvmLowReEpsilon3D;
+    const RansEvmKEpsilonLowReEpsilonElement<2, 3> mRansEvmKEpsilonLowReEpsilon2D;
+    const RansEvmKEpsilonLowReEpsilonElement<3, 4> mRansEvmKEpsilonLowReEpsilon3D;
 
-    const RansEvmKElement<2, 3> mRansEvmK2D;
-    const RansEvmKElement<3, 4> mRansEvmK3D;
+    const RansEvmKEpsilonKElement<2, 3> mRansEvmKEpsilonK2D;
+    const RansEvmKEpsilonKElement<3, 4> mRansEvmKEpsilonK3D;
 
-    const RansEvmEpsilonElement<2, 3> mRansEvmEpsilon2D;
-    const RansEvmEpsilonElement<3, 4> mRansEvmEpsilon3D;
+    const RansEvmKEpsilonEpsilon<2, 3> mRansEvmKEpsilonEpsilon2D;
+    const RansEvmKEpsilonEpsilon<3, 4> mRansEvmKEpsilonEpsilon3D;
 
     /// k-epsilon turbulence model conditions
-    const RansEvmEpsilonWallCondition<2> mRansEvmEpsilonWallCondition2D2N;
-    const RansEvmEpsilonWallCondition<3> mRansEvmEpsilonWallCondition3D3N;
+    const RansEvmKEpsilonEpsilonWallCondition<2> mRansEvmKEpsilonEpsilonWallCondition2D2N;
+    const RansEvmKEpsilonEpsilonWallCondition<3> mRansEvmKEpsilonEpsilonWallCondition3D3N;
 
-    const RansEvmVmsMonolithicWallCondition<2> mRansEvmVmsMonolithicWallCondition2D2N;
-    const RansEvmVmsMonolithicWallCondition<3> mRansEvmVmsMonolithicWallCondition3D3N;
+    const RansEvmKEpsilonVmsMonolithicWallCondition<2> mRansEvmKEpsilonVmsMonolithicWallCondition2D2N;
+    const RansEvmKEpsilonVmsMonolithicWallCondition<3> mRansEvmKEpsilonVmsMonolithicWallCondition3D3N;
 
     ///@}
     ///@name Private Operators

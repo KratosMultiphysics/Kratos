@@ -56,14 +56,14 @@ namespace Kratos
  */
 
 template <unsigned int TNumNodes>
-class RansEvmEpsilonWallCondition : public Condition
+class RansEvmKEpsilonEpsilonWallCondition : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of RansEvmEpsilonWallCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RansEvmEpsilonWallCondition);
+    /// Pointer definition of RansEvmKEpsilonEpsilonWallCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RansEvmKEpsilonEpsilonWallCondition);
 
     using NodeType = Node<3>;
     using PropertiesType = Properties;
@@ -83,21 +83,21 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    explicit RansEvmEpsilonWallCondition(IndexType NewId = 0);
+    explicit RansEvmKEpsilonEpsilonWallCondition(IndexType NewId = 0);
 
     /// Constructor using an array of nodes
     /**
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    RansEvmEpsilonWallCondition(IndexType NewId, const NodesArrayType& ThisNodes);
+    RansEvmKEpsilonEpsilonWallCondition(IndexType NewId, const NodesArrayType& ThisNodes);
 
     /// Constructor using Geometry
     /**
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    RansEvmEpsilonWallCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    RansEvmKEpsilonEpsilonWallCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /// Constructor using Properties
     /**
@@ -105,28 +105,28 @@ public:
      @param pGeometry Pointer to a geometry object
      @param pProperties Pointer to the element's properties
      */
-    RansEvmEpsilonWallCondition(IndexType NewId,
+    RansEvmKEpsilonEpsilonWallCondition(IndexType NewId,
                                 GeometryType::Pointer pGeometry,
                                 PropertiesType::Pointer pProperties);
 
     /// Copy constructor.
-    RansEvmEpsilonWallCondition(RansEvmEpsilonWallCondition const& rOther);
+    RansEvmKEpsilonEpsilonWallCondition(RansEvmKEpsilonEpsilonWallCondition const& rOther);
 
     /// Destructor.
-    ~RansEvmEpsilonWallCondition() override;
+    ~RansEvmKEpsilonEpsilonWallCondition() override;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator
-    RansEvmEpsilonWallCondition& operator=(RansEvmEpsilonWallCondition const& rOther);
+    RansEvmKEpsilonEpsilonWallCondition& operator=(RansEvmKEpsilonEpsilonWallCondition const& rOther);
 
     ///@}
     ///@name Operations
     ///@{
 
-    /// Create a new RansEvmEpsilonWallCondition object.
+    /// Create a new RansEvmKEpsilonEpsilonWallCondition object.
     /**
       @param NewId Index of the new condition
       @param ThisNodes An array containing the nodes of the new condition
@@ -319,7 +319,7 @@ private:
 
     ///@}
 
-}; // Class RansEvmEpsilonWallCondition
+}; // Class RansEvmKEpsilonEpsilonWallCondition
 
 ///@}
 
@@ -333,7 +333,7 @@ private:
 /// input stream function
 template <unsigned int TNumNodes>
 inline std::istream& operator>>(std::istream& rIStream,
-                                RansEvmEpsilonWallCondition<TNumNodes>& rThis)
+                                RansEvmKEpsilonEpsilonWallCondition<TNumNodes>& rThis)
 {
     return rIStream;
 }
@@ -341,7 +341,7 @@ inline std::istream& operator>>(std::istream& rIStream,
 /// output stream function
 template <unsigned int TNumNodes>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansEvmEpsilonWallCondition<TNumNodes>& rThis)
+                                const RansEvmKEpsilonEpsilonWallCondition<TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

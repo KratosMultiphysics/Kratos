@@ -16,9 +16,6 @@
 // System includes
 
 // Project includes
-#include "custom_utilities/rans_calculation_utilities.h"
-#include "geometries/geometry.h"
-#include "includes/define.h"
 #include "includes/ublas_interface.h"
 
 namespace Kratos

@@ -10,18 +10,18 @@
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-#if !defined(KRATOS_STABILIZED_CONVECTION_DIFFUSION_REACTION_ELEMENT_H_INCLUDED)
-#define KRATOS_STABILIZED_CONVECTION_DIFFUSION_REACTION_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_STABILIZED_CONVECTION_DIFFUSION_REACTION_H_INCLUDED)
+#define KRATOS_STABILIZED_CONVECTION_DIFFUSION_REACTION_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
+#include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/cfd_variables.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/time_discretization.h"
 
@@ -51,7 +51,7 @@ namespace Kratos
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
-class StabilizedConvectionDiffusionReactionElement : public Element
+class StabilizedConvectionDiffusionReaction : public Element
 {
 public:
     ///@name Type Definitions
@@ -87,8 +87,8 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of StabilizedConvectionDiffusionReactionElement
-    KRATOS_CLASS_POINTER_DEFINITION(StabilizedConvectionDiffusionReactionElement);
+    /// Pointer definition of StabilizedConvectionDiffusionReaction
+    KRATOS_CLASS_POINTER_DEFINITION(StabilizedConvectionDiffusionReaction);
 
     ///@}
     ///@name Life Cycle
@@ -97,7 +97,7 @@ public:
     /**
      * Constructor.
      */
-    explicit StabilizedConvectionDiffusionReactionElement(IndexType NewId = 0)
+    explicit StabilizedConvectionDiffusionReaction(IndexType NewId = 0)
         : Element(NewId)
     {
     }
@@ -105,7 +105,7 @@ public:
     /**
      * Constructor using an array of nodes
      */
-    StabilizedConvectionDiffusionReactionElement(IndexType NewId, const NodesArrayType& ThisNodes)
+    StabilizedConvectionDiffusionReaction(IndexType NewId, const NodesArrayType& ThisNodes)
         : Element(NewId, ThisNodes)
     {
     }
@@ -113,7 +113,7 @@ public:
     /**
      * Constructor using Geometry
      */
-    StabilizedConvectionDiffusionReactionElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    StabilizedConvectionDiffusionReaction(IndexType NewId, GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
     {
     }
@@ -121,9 +121,9 @@ public:
     /**
      * Constructor using Properties
      */
-    StabilizedConvectionDiffusionReactionElement(IndexType NewId,
-                                                 GeometryType::Pointer pGeometry,
-                                                 PropertiesType::Pointer pProperties)
+    StabilizedConvectionDiffusionReaction(IndexType NewId,
+                                          GeometryType::Pointer pGeometry,
+                                          PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties)
     {
     }
@@ -131,7 +131,7 @@ public:
     /**
      * Copy Constructor
      */
-    StabilizedConvectionDiffusionReactionElement(StabilizedConvectionDiffusionReactionElement const& rOther)
+    StabilizedConvectionDiffusionReaction(StabilizedConvectionDiffusionReaction const& rOther)
         : Element(rOther)
     {
     }
@@ -139,7 +139,7 @@ public:
     /**
      * Destructor
      */
-    ~StabilizedConvectionDiffusionReactionElement() override
+    ~StabilizedConvectionDiffusionReaction() override
     {
     }
 
@@ -168,10 +168,9 @@ public:
                             PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY;
-        KRATOS_ERROR
-            << "Attempting to Create base "
-               "StabilizedConvectionDiffusionReactionElement instances."
-            << std::endl;
+        KRATOS_ERROR << "Attempting to Create base "
+                        "StabilizedConvectionDiffusionReaction instances."
+                     << std::endl;
         KRATOS_CATCH("");
     }
 
@@ -187,10 +186,9 @@ public:
                             PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY;
-        KRATOS_ERROR
-            << "Attempting to Create base "
-               "StabilizedConvectionDiffusionReactionElement instances."
-            << std::endl;
+        KRATOS_ERROR << "Attempting to Create base "
+                        "StabilizedConvectionDiffusionReaction instances."
+                     << std::endl;
         KRATOS_CATCH("");
     }
 
@@ -204,10 +202,9 @@ public:
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
         KRATOS_TRY;
-        KRATOS_ERROR
-            << "Attempting to Clone base "
-               "StabilizedConvectionDiffusionReactionElement instances."
-            << std::endl;
+        KRATOS_ERROR << "Attempting to Clone base "
+                        "StabilizedConvectionDiffusionReaction instances."
+                     << std::endl;
         KRATOS_CATCH("");
     }
 
@@ -221,7 +218,7 @@ public:
     {
         KRATOS_TRY;
         KRATOS_ERROR << "Attempting to call base "
-                        "StabilizedConvectionDiffusionReactionElement "
+                        "StabilizedConvectionDiffusionReaction "
                         "EquationIdVector method. Please implement it in the "
                         "derrived class."
                      << std::endl;
@@ -236,11 +233,10 @@ public:
     void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
-        KRATOS_ERROR
-            << "Attempting to call base "
-               "StabilizedConvectionDiffusionReactionElement GetDofList "
-               "method. Please implement it in the derrived class."
-            << std::endl;
+        KRATOS_ERROR << "Attempting to call base "
+                        "StabilizedConvectionDiffusionReaction GetDofList "
+                        "method. Please implement it in the derrived class."
+                     << std::endl;
         KRATOS_CATCH("");
     }
 
@@ -527,7 +523,7 @@ public:
     {
         KRATOS_TRY;
         KRATOS_ERROR << "Attempting to call base "
-                        "StabilizedConvectionDiffusionReactionElement "
+                        "StabilizedConvectionDiffusionReaction "
                         "CalculateElementData method. "
                         "Please implement it in the derrived class."
                      << std::endl;
@@ -556,7 +552,7 @@ public:
     {
         KRATOS_TRY;
         KRATOS_ERROR << "Attempting to call base "
-                        "StabilizedConvectionDiffusionReactionElement "
+                        "StabilizedConvectionDiffusionReaction "
                         "CalculateEffectiveKinematicViscosity method. "
                         "Please implement it in the derrived class."
                      << std::endl;
@@ -678,7 +674,7 @@ public:
     {
         KRATOS_TRY;
         KRATOS_ERROR << "Attempting to call base "
-                        "StabilizedConvectionDiffusionReactionElement "
+                        "StabilizedConvectionDiffusionReaction "
                         "CalculateReactionTerm method. Please implement it in "
                         "the derrived class."
                      << std::endl;
@@ -707,7 +703,7 @@ public:
     {
         KRATOS_TRY;
         KRATOS_ERROR << "Attempting to call base "
-                        "StabilizedConvectionDiffusionReactionElement "
+                        "StabilizedConvectionDiffusionReaction "
                         "CalculateSourceTerm method. Please implement it in "
                         "the derrived class."
                      << std::endl;
@@ -1017,13 +1013,13 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "StabilizedConvectionDiffusionReactionElement #" << Id();
+        buffer << "StabilizedConvectionDiffusionReaction #" << Id();
         return buffer.str();
     }
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "StabilizedConvectionDiffusionReactionElement #" << Id();
+        rOStream << "StabilizedConvectionDiffusionReaction #" << Id();
     }
 
     ///@}
@@ -1138,7 +1134,7 @@ private:
 
     ///@}
 
-}; // Class StabilizedConvectionDiffusionReactionElement
+}; // Class StabilizedConvectionDiffusionReaction
 
 ///@}
 
@@ -1152,13 +1148,13 @@ private:
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 inline std::istream& operator>>(
     std::istream& rIStream,
-    StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>& rThis);
+    StabilizedConvectionDiffusionReaction<TDim, TNumNodes, TConvectionDiffusionReactionData>& rThis);
 
 /// output stream function
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>& rThis)
+    const StabilizedConvectionDiffusionReaction<TDim, TNumNodes, TConvectionDiffusionReactionData>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;
@@ -1170,4 +1166,4 @@ inline std::ostream& operator<<(
 
 } // namespace Kratos.
 
-#endif // KRATOS_STABILIZED_CONVECTION_DIFFUSION_REACTION_ELEMENT_H_INCLUDED defined
+#endif // KRATOS_STABILIZED_CONVECTION_DIFFUSION_REACTION_H_INCLUDED defined
