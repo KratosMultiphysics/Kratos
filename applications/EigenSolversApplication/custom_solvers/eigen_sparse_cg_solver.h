@@ -70,6 +70,10 @@ public:
     {
         rOStream << "EigenDirectSolver <" << Name() << "> finished.";
     }
+
+    void PrintAdditionalErrorMessages() const
+    {
+    }
 };
 
 } // namespace Kratos

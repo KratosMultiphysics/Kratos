@@ -119,6 +119,10 @@ public:
 
         const bool success = m_solver.Solve(b, x);
 
+        if (!success) {
+            m_solver.PrintAdditionalErrorMessages();
+        }
+
         KRATOS_ERROR_IF(!success) << "Solving failed!" << std::endl;
     }
 

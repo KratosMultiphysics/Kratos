@@ -62,14 +62,17 @@ public:
 
         const bool success = m_solver.info() == Eigen::Success;
 
-        KRATOS_ERROR_IF(!success) << m_solver.lastErrorMessage() << std::endl;
-
         return success;
     }
 
     void PrintInfo(std::ostream &rOStream) const
     {
         rOStream << "EigenDirectSolver <" << Name() << "> finished.";
+    }
+
+    void PrintAdditionalErrorMessages() const
+    {
+        KRATOS_WARNING("Solver") << m_solver.lastErrorMessage() << std::endl;
     }
 };
 

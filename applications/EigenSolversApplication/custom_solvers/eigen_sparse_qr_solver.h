@@ -68,6 +68,11 @@ public:
     {
         rOStream << "EigenDirectSolver <" << Name() << "> finished.";
     }
+
+    void PrintAdditionalErrorMessages() const
+    {
+        KRATOS_ERROR << m_solver.lastErrorMessage() << std::endl;
+    }
 };
 
 } // namespace Kratos
