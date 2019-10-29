@@ -37,6 +37,8 @@ def AssembleTestSuites():
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
+
+    nightSuite.addTest(CustomProcessTest('testCheckScalarBoundsProcess'))
     nightSuite.addTest(CustomProcessTest('testApplyFlagProcess'))
     nightSuite.addTest(CustomProcessTest('testScalarCellCenterAveragingProcess'))
     nightSuite.addTest(CustomProcessTest('testVectorCellCenterAveragingProcess'))
@@ -45,6 +47,7 @@ def AssembleTestSuites():
     nightSuite.addTest(CustomProcessTest('testWallDistanceCalculationProcess'))
     nightSuite.addTest(CustomProcessTest('testLogarithmicYPlusCalculationProcess'))
     nightSuite.addTest(CustomProcessTest('testNutKEpsilonHighReCalculationProcess'))
+
     nightSuite.addTest(EvmKEpsilonTest('testBackwardFacingStepKEpsilonTransient'))
     nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteady'))
     nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteadyPeriodic'))

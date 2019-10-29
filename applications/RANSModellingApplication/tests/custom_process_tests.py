@@ -8,6 +8,25 @@ import random, math
 
 
 class CustomProcessTest(UnitTest.TestCase):
+    def testCheckScalarBoundsProcess(self):
+        self.__CreateModel()
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
+                "python_module" : "apply_custom_process",
+                "process_name"  : "CheckScalarBoundsProcess",
+                "Parameters" : {
+                    "model_part_name"                : "test",
+                    "variable_name"                  : "DENSITY"
+                }
+            }
+        ]''')
+
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(settings)
+        self.__ExecuteProcesses()
+
     def testApplyFlagProcess(self):
         self.__CreateModel()
 

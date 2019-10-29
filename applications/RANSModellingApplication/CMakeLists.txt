@@ -45,6 +45,7 @@ set( KRATOS_RANS_MODELLING_APPLICATION_CORE ${KRATOS_RANS_MODELLING_APPLICATION_
 set( KRATOS_RANS_MODELLING_APPLICATION_CORE ${KRATOS_RANS_MODELLING_APPLICATION_CORE}
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_apply_exact_nodal_periodic_condition_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_apply_flag_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_check_scalar_bounds_process.cpp
 )
 
 set( KRATOS_RANS_MODELLING_APPLICATION_PYTHON_INTERFACE
