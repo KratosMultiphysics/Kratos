@@ -14,22 +14,13 @@
 #define KRATOS_RANS_K_TURBULENT_INTENSITY_INLET_PROCESS_H_INCLUDED
 
 // System includes
-#include <cmath>
 #include <string>
 
 // External includes
 
 // Project includes
 #include "containers/model.h"
-#include "includes/cfd_variables.h"
-#include "includes/checks.h"
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "processes/process.h"
-#include "rans_modelling_application_variables.h"
-
-#include "custom_utilities/rans_check_utilities.h"
-#include "custom_utilities/rans_variable_utilities.h"
 
 namespace Kratos
 {
@@ -91,42 +82,10 @@ public:
     ///@{
 
     /// Constructor
-    RansKTurbulentIntensityInletProcess(Model& rModel, Parameters& rParameters)
-        : mrModel(rModel), mrParameters(rParameters)
-    {
-        KRATOS_TRY
+    RansKTurbulentIntensityInletProcess(Model& rModel, Parameters& rParameters);
 
-        Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name"     : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "turbulent_intensity" : 0.05,
-            "echo_level"          : 0,
-            "is_fixed"            : true,
-            "min_k_value"         : 1e-18
-        })");
-
-        mrParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mTurbulentIntensity = mrParameters["turbulent_intensity"].GetDouble();
-        mIsConstrained = mrParameters["is_fixed"].GetBool();
-        mEchoLevel = mrParameters["echo_level"].GetInt();
-        mModelPartName = mrParameters["model_part_name"].GetString();
-        mMinValue = mrParameters["min_k_value"].GetDouble();
-
-        KRATOS_ERROR_IF(mTurbulentIntensity < 0.0)
-            << "Turbulent intensity needs to be positive in the modelpart "
-            << mModelPartName << "\n.";
-        KRATOS_ERROR_IF(mMinValue < 0.0)
-            << "Minimum turbulent kinetic energy needs to be positive in the "
-               "modelpart "
-            << mModelPartName << "\n.";
-
-        KRATOS_CATCH("");
-    }
     /// Destructor.
-    ~RansKTurbulentIntensityInletProcess() override
-    {
-    }
+    ~RansKTurbulentIntensityInletProcess() override;
 
     ///@}
     ///@name Operators
@@ -136,70 +95,13 @@ public:
     ///@name Operations
     ///@{
 
-    void ExecuteInitialize() override
-    {
-        if (mIsConstrained)
-        {
-            ModelPart::NodesContainerType& r_nodes =
-                mrModel.GetModelPart(mModelPartName).Nodes();
-            int number_of_nodes = r_nodes.size();
-#pragma omp parallel for
-            for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-            {
-                NodeType& r_node = *(r_nodes.begin() + i_node);
-                r_node.Fix(TURBULENT_KINETIC_ENERGY);
-            }
+    void ExecuteInitialize() override;
 
-            KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-                << "Fixed TURBULENT_KINETIC_ENERGY dofs in " << mModelPartName << ".\n";
-        }
-    }
+    void ExecuteInitializeSolutionStep() override;
 
-    void ExecuteInitializeSolutionStep() override
-    {
-        Execute();
-    }
+    void Execute() override;
 
-    void Execute() override
-    {
-        KRATOS_TRY
-
-        ModelPart::NodesContainerType& r_nodes =
-            mrModel.GetModelPart(mModelPartName).Nodes();
-        int number_of_nodes = r_nodes.size();
-
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            NodeType& r_node = *(r_nodes.begin() + i_node);
-            CalculateTurbulentValues(r_node);
-        }
-
-        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-            << "Applied k values to " << mModelPartName << ".\n";
-
-        KRATOS_CATCH("");
-    }
-
-    int Check() override
-    {
-        KRATOS_TRY
-
-        RansCheckUtilities rans_check_utilities;
-
-        rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
-
-        ModelPart::NodesContainerType& r_nodes =
-            mrModel.GetModelPart(mModelPartName).Nodes();
-
-        rans_check_utilities.CheckIfVariableExistsInNodesContainer(
-            r_nodes, TURBULENT_KINETIC_ENERGY);
-        rans_check_utilities.CheckIfVariableExistsInNodesContainer(r_nodes, VELOCITY);
-
-        return 0;
-
-        KRATOS_CATCH("");
-    }
+    int Check() override;
 
     ///@}
     ///@name Access
@@ -214,21 +116,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return std::string("RansKTurbulentIntensityInletProcess");
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << this->Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -292,14 +186,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateTurbulentValues(NodeType& rNode)
-    {
-        const array_1d<double, 3>& r_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
-        double velocity_magnitude = norm_2(r_velocity);
-
-        rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) =
-            1.5 * std::pow(mTurbulentIntensity * velocity_magnitude, 2);
-    }
+    void CalculateTurbulentValues(NodeType& rNode);
 
     ///@}
     ///@name Private  Access
