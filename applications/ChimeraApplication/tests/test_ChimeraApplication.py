@@ -5,13 +5,9 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests to test_classes to create the suits
-#from chimera_analysis_test import FlowOverCylinderMonolithic
-#from chimera_analysis_test import FlowOverCylinderFractionalStep
 from chimera_analysis_test import FlowOverCrossFractionalStep
 from chimera_analysis_test import FlowOverCrossMonolithic
 from rotate_region_test import ChimeraRotateRegionTest
-from chimera_analysis_test import MonolithicMultiPatch
-from chimera_analysis_test import FractionalStepMultiPatch
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -37,16 +33,12 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossMonolithic]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCrossFractionalStep]))
     ### Multi-Patch tests
-    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicMultiPatch]))
-    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepMultiPatch]))
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
 
     ## Validation suite. Big cases go here
     validationSuite = suites['validation']
-    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCylinderMonolithic]))
-    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowOverCylinderFractionalStep]))
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']
