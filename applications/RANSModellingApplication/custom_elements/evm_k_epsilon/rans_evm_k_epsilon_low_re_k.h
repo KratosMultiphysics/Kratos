@@ -18,14 +18,7 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
-#include "includes/element.h"
-#include "includes/properties.h"
-
-#include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
 #include "custom_elements/stabilized_convection_diffusion_reaction.h"
-#include "includes/cfd_variables.h"
-#include "rans_modelling_application_variables.h"
 
 namespace Kratos
 {
@@ -120,8 +113,8 @@ public:
      * Constructor using Properties
      */
     RansEvmKEpsilonLowReKElement(IndexType NewId,
-                         GeometryType::Pointer pGeometry,
-                         PropertiesType::Pointer pProperties);
+                                 GeometryType::Pointer pGeometry,
+                                 PropertiesType::Pointer pProperties);
 
     /**
      * Copy Constructor

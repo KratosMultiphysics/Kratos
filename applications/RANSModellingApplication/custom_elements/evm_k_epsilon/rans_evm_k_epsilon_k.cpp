@@ -13,10 +13,11 @@
 // System includes
 
 // External includes
+#include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
+#include "rans_modelling_application_variables.h"
 
 // Include Base h
 #include "rans_evm_k_epsilon_k.h"
-#include "custom_utilities/rans_calculation_utilities.h"
 
 namespace Kratos
 {
@@ -52,7 +53,8 @@ RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewI
  * Constructor using an array of nodes
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewId, const NodesArrayType& ThisNodes)
+RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewId,
+                                                                  const NodesArrayType& ThisNodes)
     : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonKElementData>(
           NewId, ThisNodes)
 {
@@ -62,7 +64,8 @@ RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewI
  * Constructor using Geometry
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewId, GeometryType::Pointer pGeometry)
+RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewId,
+                                                                  GeometryType::Pointer pGeometry)
     : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonKElementData>(
           NewId, pGeometry)
 {
@@ -72,9 +75,8 @@ RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewI
  * Constructor using Properties
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewId,
-                                                  GeometryType::Pointer pGeometry,
-                                                  PropertiesType::Pointer pProperties)
+RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(
+    IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonKElementData>(
           NewId, pGeometry, pProperties)
 {
@@ -84,7 +86,8 @@ RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(IndexType NewI
  * Copy Constructor
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(RansEvmKEpsilonKElement<TDim, TNumNodes> const& rOther)
+RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(
+    RansEvmKEpsilonKElement<TDim, TNumNodes> const& rOther)
     : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonKElementData>(rOther)
 {
 }
@@ -118,9 +121,8 @@ RansEvmKEpsilonKElement<TDim, TNumNodes>::~RansEvmKEpsilonKElement()
  * @return a Pointer to the new element
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer RansEvmKEpsilonKElement<TDim, TNumNodes>::Create(IndexType NewId,
-                                                          NodesArrayType const& ThisNodes,
-                                                          PropertiesType::Pointer pProperties) const
+Element::Pointer RansEvmKEpsilonKElement<TDim, TNumNodes>::Create(
+    IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
     return Kratos::make_intrusive<RansEvmKEpsilonKElement>(
@@ -136,9 +138,8 @@ Element::Pointer RansEvmKEpsilonKElement<TDim, TNumNodes>::Create(IndexType NewI
  * @return a Pointer to the new element
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer RansEvmKEpsilonKElement<TDim, TNumNodes>::Create(IndexType NewId,
-                                                          GeometryType::Pointer pGeom,
-                                                          PropertiesType::Pointer pProperties) const
+Element::Pointer RansEvmKEpsilonKElement<TDim, TNumNodes>::Create(
+    IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
     return Kratos::make_intrusive<RansEvmKEpsilonKElement>(NewId, pGeom, pProperties);
@@ -154,7 +155,7 @@ Element::Pointer RansEvmKEpsilonKElement<TDim, TNumNodes>::Create(IndexType NewI
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer RansEvmKEpsilonKElement<TDim, TNumNodes>::Clone(IndexType NewId,
-                                                         NodesArrayType const& ThisNodes) const
+                                                                 NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
     return Kratos::make_intrusive<RansEvmKEpsilonKElement>(
@@ -170,7 +171,7 @@ Element::Pointer RansEvmKEpsilonKElement<TDim, TNumNodes>::Clone(IndexType NewId
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmKEpsilonKElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                        ProcessInfo& CurrentProcessInfo)
+                                                                ProcessInfo& CurrentProcessInfo)
 {
     if (rResult.size() != TNumNodes)
         rResult.resize(TNumNodes, false);
@@ -186,7 +187,7 @@ void RansEvmKEpsilonKElement<TDim, TNumNodes>::EquationIdVector(EquationIdVector
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                  ProcessInfo& rCurrentProcessInfo)
+                                                          ProcessInfo& rCurrentProcessInfo)
 {
     if (rElementalDofList.size() != TNumNodes)
         rElementalDofList.resize(TNumNodes);
@@ -202,7 +203,8 @@ void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetValuesVector(VectorType& rValu
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetFirstDerivativesVector(VectorType& rValues, int Step)
+void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetFirstDerivativesVector(VectorType& rValues,
+                                                                         int Step)
 {
     if (rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
@@ -217,7 +219,8 @@ void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetFirstDerivativesVector(VectorT
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetSecondDerivativesVector(VectorType& rValues, int Step)
+void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetSecondDerivativesVector(VectorType& rValues,
+                                                                          int Step)
 {
     if (rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
@@ -371,11 +374,12 @@ const Variable<double>& RansEvmKEpsilonKElement<TDim, TNumNodes>::GetPrimalRelax
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonKElement<TDim, TNumNodes>::CalculateElementData(RansEvmKEpsilonKElementData& rData,
-                                                            const Vector& rShapeFunctions,
-                                                            const Matrix& rShapeFunctionDerivatives,
-                                                            const ProcessInfo& rCurrentProcessInfo,
-                                                            const int Step) const
+void RansEvmKEpsilonKElement<TDim, TNumNodes>::CalculateElementData(
+    RansEvmKEpsilonKElementData& rData,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives,
+    const ProcessInfo& rCurrentProcessInfo,
+    const int Step) const
 {
     KRATOS_TRY
 
@@ -420,11 +424,12 @@ double RansEvmKEpsilonKElement<TDim, TNumNodes>::CalculateReactionTerm(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double RansEvmKEpsilonKElement<TDim, TNumNodes>::CalculateSourceTerm(const RansEvmKEpsilonKElementData& rData,
-                                                             const Vector& rShapeFunctions,
-                                                             const Matrix& rShapeFunctionDerivatives,
-                                                             const ProcessInfo& rCurrentProcessInfo,
-                                                             const int Step) const
+double RansEvmKEpsilonKElement<TDim, TNumNodes>::CalculateSourceTerm(
+    const RansEvmKEpsilonKElementData& rData,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives,
+    const ProcessInfo& rCurrentProcessInfo,
+    const int Step) const
 {
     double production = 0.0;
 

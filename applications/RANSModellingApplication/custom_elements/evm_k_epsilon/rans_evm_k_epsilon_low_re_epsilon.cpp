@@ -13,6 +13,8 @@
 // System includes
 
 // External includes
+#include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
+#include "rans_modelling_application_variables.h"
 
 // Include Base h
 #include "rans_evm_k_epsilon_low_re_epsilon.h"
@@ -51,8 +53,8 @@ RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::RansEvmKEpsilonLowReEpsilon
  * Constructor using an array of nodes
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::RansEvmKEpsilonLowReEpsilonElement(IndexType NewId,
-                                                                        const NodesArrayType& ThisNodes)
+RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::RansEvmKEpsilonLowReEpsilonElement(
+    IndexType NewId, const NodesArrayType& ThisNodes)
     : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonLowReEpsilonElementData>(
           NewId, ThisNodes)
 {
@@ -62,8 +64,8 @@ RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::RansEvmKEpsilonLowReEpsilon
  * Constructor using Geometry
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::RansEvmKEpsilonLowReEpsilonElement(IndexType NewId,
-                                                                        GeometryType::Pointer pGeometry)
+RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::RansEvmKEpsilonLowReEpsilonElement(
+    IndexType NewId, GeometryType::Pointer pGeometry)
     : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonLowReEpsilonElementData>(
           NewId, pGeometry)
 {
@@ -152,8 +154,8 @@ Element::Pointer RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::Create(
  * @return a Pointer to the new element
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::Clone(IndexType NewId,
-                                                                    NodesArrayType const& ThisNodes) const
+Element::Pointer RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::Clone(
+    IndexType NewId, NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
     return Kratos::make_intrusive<RansEvmKEpsilonLowReEpsilonElement>(
@@ -168,8 +170,8 @@ Element::Pointer RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::Clone(Inde
  * @param rCurrentProcessInfo: the current process info instance
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                                   ProcessInfo& CurrentProcessInfo)
+void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::EquationIdVector(
+    EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
     if (rResult.size() != TNumNodes)
         rResult.resize(TNumNodes, false);
@@ -186,7 +188,7 @@ void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::EquationIdVector(Equat
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                             ProcessInfo& rCurrentProcessInfo)
+                                                                     ProcessInfo& rCurrentProcessInfo)
 {
     if (rElementalDofList.size() != TNumNodes)
         rElementalDofList.resize(TNumNodes);
@@ -197,14 +199,15 @@ void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::GetDofList(DofsVectorT
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::GetValuesVector(VectorType& rValues, int Step)
+void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::GetValuesVector(VectorType& rValues,
+                                                                          int Step)
 {
     this->GetFirstDerivativesVector(rValues, Step);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::GetFirstDerivativesVector(VectorType& rValues,
-                                                                            int Step)
+void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::GetFirstDerivativesVector(
+    VectorType& rValues, int Step)
 {
     if (rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
@@ -219,8 +222,8 @@ void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::GetFirstDerivativesVec
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::GetSecondDerivativesVector(VectorType& rValues,
-                                                                             int Step)
+void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::GetSecondDerivativesVector(
+    VectorType& rValues, int Step)
 {
     if (rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
