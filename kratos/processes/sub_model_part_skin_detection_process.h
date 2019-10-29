@@ -32,7 +32,7 @@ namespace Kratos
 /** For example, create the outer skin for the part of the domain belonging to a given SubModelPart.
 */
 template<SizeType TDim>
-class SubModelPartSkinDetectionProcess: public SkinDetectionProcess<TDim>
+class KRATOS_API(KRATOS_CORE) SubModelPartSkinDetectionProcess: public SkinDetectionProcess<TDim>
 {
 
 KRATOS_DEFINE_LOCAL_FLAG( NODE_SELECTED );
