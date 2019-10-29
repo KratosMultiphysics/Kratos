@@ -650,6 +650,11 @@ private:
 
     double ComputeElementSize(const Matrix &rDN_DX) const;
 
+    double CalculateApproximatedBulkModulus(
+        const ProcessInfo& rCurrentProcessInfo,
+        const SizeType i_gauss,
+        const Vector &rN) const;
+
     // /**
     //  * @brief This method computes directly in the CL
     //  * @details Avoids code repetition

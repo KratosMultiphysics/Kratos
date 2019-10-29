@@ -361,14 +361,7 @@ void SmallDisplacementMixedStrainElement::CalculateLeftHandSide(
             vol_stress += cons_law_values.GetStressVector()[d];
         }
         vol_stress /= alpha;
-        double bulk_modulus = 0.0;
-        for (unsigned int i = 0; i < dim; ++i) {
-            for (unsigned int j = 0; j < dim; ++j) {
-                bulk_modulus += cons_law_values.GetConstitutiveMatrix()(i,j);
-            }
-        }
-        bulk_modulus /= 9.0;
-        // const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : GetProperties()[YOUNG_MODULUS] / (3 * (1 - 2 * GetProperties()[POISSON_RATIO]));
+        const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : CalculateApproximatedBulkModulus(rCurrentProcessInfo, i_gauss, rN);
 
         for (unsigned int i = 0; i < n_nodes; ++i) {
             for (unsigned int j = 0; j < n_nodes; ++j) {
@@ -402,7 +395,7 @@ void SmallDisplacementMixedStrainElement::CalculateLeftHandSide(
 
         // Calculate stabilization constants
         const double h = ComputeElementSize(DN_DX_container[i_gauss]);
-        const double shear_modulus = GetProperties()[YOUNG_MODULUS] / (2.0 * (1.0 + GetProperties()[POISSON_RATIO]));
+        const double shear_modulus = GetProperties()[YOUNG_MODULUS] / (2.0 * (1.0 + GetProperties()[POISSON_RATIO])); //TODO: Get it from C
         const double tau_1 = 2.0 * std::pow(h, 2) / (2.0 * shear_modulus);
         const double tau_2 = 0.15;
 
@@ -588,17 +581,10 @@ void SmallDisplacementMixedStrainElement::CalculateRightHandSide(
             vol_stress += cons_law_values.GetStressVector()[d];
         }
         vol_stress /= alpha;
-        double bulk_modulus = 0.0;
-        for (unsigned int i = 0; i < dim; ++i) {
-            for (unsigned int j = 0; j < dim; ++j) {
-                bulk_modulus += cons_law_values.GetConstitutiveMatrix()(i,j);
-            }
-        }
-        bulk_modulus /= 9.0;
-        // const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : GetProperties()[YOUNG_MODULUS] / (3 * (1 - 2 * GetProperties()[POISSON_RATIO]));
+        const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : CalculateApproximatedBulkModulus(rCurrentProcessInfo, i_gauss, rN);
 
         const double h = ComputeElementSize(DN_DX_container[i_gauss]);
-        const double shear_modulus = GetProperties()[YOUNG_MODULUS] / (2.0 * (1.0 + GetProperties()[POISSON_RATIO]));
+        const double shear_modulus = GetProperties()[YOUNG_MODULUS] / (2.0 * (1.0 + GetProperties()[POISSON_RATIO])); // TODO: Get it from C
         const double tau_1 = 2.0 * std::pow(h, 2) / (2.0 * shear_modulus);
         const double tau_2 = 0.15;
 
@@ -1031,6 +1017,52 @@ double SmallDisplacementMixedStrainElement::ComputeElementSize(const Matrix &rDN
     }
     h = sqrt(h) / static_cast<double>(GetGeometry().PointsNumber());
     return h;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double SmallDisplacementMixedStrainElement::CalculateApproximatedBulkModulus(
+    const ProcessInfo& rCurrentProcessInfo,
+    const SizeType i_gauss,
+    const Vector &rN) const
+{
+    const auto &r_geom = GetGeometry();
+    const SizeType dim = r_geom.WorkingSpaceDimension();
+
+    // Calculate the bulk modulus with a fake volumetric strain field
+    SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+    Vector aux_vol_stress_vect(strain_size);
+    Vector aux_vol_strain_vect = ZeroVector(strain_size);
+    for (unsigned int d = 0; d < dim; ++d) {
+        aux_vol_strain_vect[d] = 1.0;
+    }
+
+    // Call the constitutive law to get the material response of the fake volumetric strain field
+    Matrix deformation_gradient(dim, dim);
+    ConstitutiveLaw::Parameters aux_cons_law_values(r_geom, GetProperties(), rCurrentProcessInfo);
+    auto &r_aux_cons_law_options = aux_cons_law_values.GetOptions();
+    r_aux_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_aux_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_aux_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    aux_cons_law_values.SetShapeFunctionsValues(rN);
+    aux_cons_law_values.SetStrainVector(aux_vol_strain_vect);
+    aux_cons_law_values.SetStressVector(aux_vol_stress_vect);
+    ComputeEquivalentF(deformation_gradient, aux_vol_strain_vect);
+    aux_cons_law_values.SetDeformationGradientF(deformation_gradient);
+    aux_cons_law_values.SetDeterminantF(MathUtils<double>::Det(deformation_gradient));
+    mConstitutiveLawVector[i_gauss]->CalculateMaterialResponseCauchy(aux_cons_law_values);
+
+    double aux_vol_strain = 0.0;
+    double aux_vol_stress = 0.0;
+    const double alpha = 3.0;
+    for (unsigned int d = 0; d < dim; ++d) {
+        aux_vol_strain += aux_vol_strain_vect[d];
+        aux_vol_stress += aux_cons_law_values.GetStressVector()[d];
+    }
+    aux_vol_stress /= alpha;
+
+    return aux_vol_stress * aux_vol_strain / std::pow(aux_vol_strain, 2);
 }
 
 /***********************************************************************************/
