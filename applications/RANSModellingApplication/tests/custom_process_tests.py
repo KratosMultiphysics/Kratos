@@ -27,6 +27,25 @@ class CustomProcessTest(UnitTest.TestCase):
         self.process_list = factory.ConstructListOfProcesses(settings)
         self.__ExecuteProcesses()
 
+    def testCheckVectorBoundsProcess(self):
+        self.__CreateModel()
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
+                "python_module" : "apply_custom_process",
+                "process_name"  : "CheckVectorBoundsProcess",
+                "Parameters" : {
+                    "model_part_name"                : "test",
+                    "variable_name"                  : "VELOCITY"
+                }
+            }
+        ]''')
+
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(settings)
+        self.__ExecuteProcesses()
+
     def testApplyFlagProcess(self):
         self.__CreateModel()
 

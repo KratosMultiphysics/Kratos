@@ -76,12 +76,12 @@ def Factory(settings, Model):
             KratosRANS.RansNutLowReCalculationProcess
         ],
         [
-            "CheckScalarConditionBoundsProcess",
-            KratosRANS.RansCheckScalarConditionBoundsProcess
-        ],
-        [
             "LineOutputProcess",
             KratosRANS.RansLineOutputProcess
+        ],
+        [
+            "CheckVectorBoundsProcess",
+            KratosRANS.RansCheckVectorBoundsProcess
         ]
     ]
 

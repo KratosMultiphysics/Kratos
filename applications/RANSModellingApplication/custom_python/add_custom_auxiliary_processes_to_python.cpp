@@ -23,7 +23,6 @@
 #include "custom_processes/auxiliary_processes/rans_apply_exact_nodal_periodic_condition_process.h"
 #include "custom_processes/auxiliary_processes/rans_apply_flag_process.h"
 #include "custom_processes/auxiliary_processes/rans_check_scalar_bounds_process.h"
-#include "custom_processes/auxiliary_processes/rans_check_scalar_condition_bounds_process.h"
 #include "custom_processes/auxiliary_processes/rans_check_vector_bounds_process.h"
 #include "custom_processes/auxiliary_processes/rans_clip_scalar_variable_process.h"
 #include "custom_processes/auxiliary_processes/rans_epsilon_turbulent_mixing_inlet_process.h"
@@ -73,11 +72,6 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
     using RansCheckVectorBoundsProcessType = RansCheckVectorBoundsProcess;
     py::class_<RansCheckVectorBoundsProcessType, RansCheckVectorBoundsProcessType::Pointer, Process>(
         m, "RansCheckVectorBoundsProcess")
-        .def(py::init<Model&, Parameters&>());
-
-    using RansCheckScalarConditionBoundsProcessType = RansCheckScalarConditionBoundsProcess;
-    py::class_<RansCheckScalarConditionBoundsProcessType, RansCheckScalarConditionBoundsProcessType::Pointer, Process>(
-        m, "RansCheckScalarConditionBoundsProcess")
         .def(py::init<Model&, Parameters&>());
 
     using RansScalarCellCenterAveragingProcessType = RansScalarCellCenterAveragingProcess;
