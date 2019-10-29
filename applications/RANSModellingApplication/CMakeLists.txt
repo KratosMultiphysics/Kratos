@@ -48,6 +48,8 @@ set( KRATOS_RANS_MODELLING_APPLICATION_CORE ${KRATOS_RANS_MODELLING_APPLICATION_
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_check_scalar_bounds_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_check_vector_bounds_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_clip_scalar_variable_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_epsilon_turbulent_mixing_inlet_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_find_condition_parent_process.cpp
 )
 
 set( KRATOS_RANS_MODELLING_APPLICATION_PYTHON_INTERFACE
