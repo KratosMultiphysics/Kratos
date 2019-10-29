@@ -343,6 +343,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
 #include <math.h>
 #ifndef NO_TIMER
 #include <sys/time.h>
