@@ -54,6 +54,7 @@ set( KRATOS_RANS_MODELLING_APPLICATION_CORE ${KRATOS_RANS_MODELLING_APPLICATION_
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_line_output_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_logarithmic_y_plus_calculation_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_calculation_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/auxiliary_processes/rans_nut_low_re_calculation_process.cpp
 )
 
 set( KRATOS_RANS_MODELLING_APPLICATION_PYTHON_INTERFACE
