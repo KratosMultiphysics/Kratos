@@ -66,7 +66,7 @@ public:
 
     /** 
     * @brief This method tessellates a curve and stores the tessellation in the class
-    * @param pGeometry Pointer to the geometry
+    * @param rGeometry Reference to the geometry
     * @param PolynomialDegree The polynomial degree of the curve
     * @param DomainInterval The curve interval which is to be tessellated
     * @param KnotSpanIntervals The knot span intervals laying in the DomainInterval
@@ -74,14 +74,14 @@ public:
     * @see ComputeTessellation
     */
     void Tessellate(
-        typename GeometryType::Pointer pGeometry, 
+        const GeometryType& rGeometry, 
         int PolynomialDegree,
-        NurbsInterval DomainInterval,
-        std::vector<NurbsInterval> KnotSpanIntervals,
+        const NurbsInterval DomainInterval,
+        const std::vector<NurbsInterval> KnotSpanIntervals,
         const double Tolerance)
     {
         mTesselation = ComputeTessellation<TWorkingSpaceDimension>(
-            pGeometry,
+            rGeometry,
             PolynomialDegree,
             DomainInterval,
             KnotSpanIntervals,
@@ -102,7 +102,7 @@ public:
         const GeometryType& rGeometry,
         const int PolynomialDegree,
         const NurbsInterval DomainInterval,
-        const std::vector<NurbsInterval> KnotSpanIntervals,
+        const std::vector<NurbsInterval>& KnotSpanIntervals,
         const double Tolerance
         )
     {
