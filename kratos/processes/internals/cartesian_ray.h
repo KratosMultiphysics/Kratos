@@ -95,18 +95,6 @@ public:
         std::vector<double> point_1{mPoint1.X(), mPoint1.Y(), mPoint1.Z()};
         std::vector<double> point_2{mPoint2.X(), mPoint2.Y(), mPoint2.Z()};
 
-        Point min_point;
-        Point max_point;
-        max_point = *(rGeometry.begin());
-        min_point = *(rGeometry.begin());
-        for(auto const& point : rGeometry){
-            for(std::size_t i = 0; i<3; i++)
-            {
-                min_point[i] =  (min_point[i] >  point[i] ) ?  point[i] : min_point[i];
-                max_point[i] =  (max_point[i] <  point[i] ) ?  point[i] : max_point[i];
-            }
-        }
-
 		const double relative_tolerance = 1.0e-12*std::sqrt(rGeometry.Length());
         const int is_intersected = IntersectionUtilities::ComputeTriangleRayIntersection(
           rGeometry,
