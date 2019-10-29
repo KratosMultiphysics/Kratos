@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <unordered_map>
 
+#include <pybind11/pybind11.h>
+
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
@@ -26,6 +28,8 @@
 #include "includes/model_part.h"
 #include "includes/key_hash.h"
 #include "shape_optimization_application.h"
+
+#include "spatial_containers/spatial_containers.h"
 
 // ==============================================================================
 
@@ -98,15 +102,21 @@ public:
     // --------------------------------------------------------------------------
     void ComputeUnitSurfaceNormals()
     {
+        _ComputeUnitSurfaceNormals(mrModelPart);
+    }
+
+    // --------------------------------------------------------------------------
+    void _ComputeUnitSurfaceNormals(ModelPart& rModelPart)
+    {
         KRATOS_TRY;
 
-        const unsigned int domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
-        KRATOS_ERROR_IF(mrModelPart.NumberOfConditions() == 0) <<
+        const unsigned int domain_size = rModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
+        KRATOS_ERROR_IF(rModelPart.NumberOfConditions() == 0) <<
             "> Normal calculation requires surface or line conditions to be defined!" << std::endl;
-        KRATOS_ERROR_IF((domain_size == 3 && mrModelPart.ConditionsBegin()->GetGeometry().size() == 2)) <<
+        KRATOS_ERROR_IF((domain_size == 3 && rModelPart.ConditionsBegin()->GetGeometry().size() == 2)) <<
             "> Normal calculation of 2-noded conditions in 3D domains is not possible!" << std::endl;
-        CalculateAreaNormals(mrModelPart.Conditions(),domain_size);
-        CalculateUnitNormals();
+        CalculateAreaNormals(rModelPart.Conditions(),domain_size);
+        CalculateUnitNormals(rModelPart);
 
         KRATOS_CATCH("");
     }
@@ -194,6 +204,68 @@ public:
     	r_boundary_model_part.AddNodes(temp_boundary_node_ids);
 
     	KRATOS_CATCH("");
+    }
+
+    // --------------------------------------------------------------------------
+    void ComputeProjectedDistancesToBoundingModelPart(
+        ModelPart& rBoundingModelPart,
+        pybind11::list& rSignedDistances,
+        pybind11::list& rDirections )
+    {
+        KRATOS_TRY;
+
+        // Type definitions for tree-search
+        typedef Node < 3 > NodeType;
+        typedef NodeType::Pointer NodeTypePointer;
+        typedef std::vector<NodeType::Pointer> NodeVector;
+        typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
+        typedef std::vector<double>::iterator DoubleVectorIterator;
+        typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
+        typedef Tree< KDTreePartition<BucketType> > KDTree;
+
+        size_t bucket_size = 1000;
+
+        NodeVector all_bounding_nodes;
+        all_bounding_nodes.reserve(rBoundingModelPart.Nodes().size());
+
+        for (ModelPart::NodesContainerType::iterator node_it = rBoundingModelPart.NodesBegin(); node_it != rBoundingModelPart.NodesEnd(); ++node_it)
+        {
+            all_bounding_nodes.push_back(*(node_it.base()));
+        }
+
+        // create node search of rBoundingModelPart
+        KDTree search_tree(all_bounding_nodes.begin(), all_bounding_nodes.end(), bucket_size);
+
+        // compute normals of rBoundingModelPart
+        _ComputeUnitSurfaceNormals(rBoundingModelPart);
+
+        // loop mrModelPart
+        size_t i = 0;
+        for (auto& r_node : mrModelPart.Nodes()){
+
+            // find nearest neighbor on rBoundingModelPart
+            double distance;
+            NodeTypePointer p_neighbor = search_tree.SearchNearestPoint(r_node, distance);
+
+            array_3d delta = r_node.Coordinates() - p_neighbor->Coordinates();
+
+            // calculate projection on bounding normal
+            array_3d& bounding_normal = p_neighbor->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
+
+            double projected_length = inner_prod(delta, bounding_normal);
+
+            // store in list
+            rSignedDistances.append(projected_length);
+
+            rDirections.append(bounding_normal[0]);
+            rDirections.append(bounding_normal[1]);
+            rDirections.append(bounding_normal[2]);
+
+            // increment counter
+            ++i;
+        }
+
+        KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------
@@ -403,9 +475,9 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    void CalculateUnitNormals()
+    void CalculateUnitNormals(ModelPart& rModelPart)
     {
-        for (auto& node_i : mrModelPart.Nodes())
+        for (auto& node_i : rModelPart.Nodes())
         {
             const array_1d<double,3>& area_normal = node_i.FastGetSolutionStepValue(NORMAL);
             array_3d& normalized_normal = node_i.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
