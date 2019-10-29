@@ -27,8 +27,19 @@ void CheckIfOverwritingValue(const Properties& rProps,
                              const TValueType& rValue)
 {
     KRATOS_WARNING_IF("ReadMaterialsUtility", rProps.Has(rVariable)) << "The properties ID: "
-        << rProps.Id() << " already has " << rVariable.Name() << "\nOverwriting "
+        << rProps.Id() << " already has " << rVariable.Name() << ".\nOverwriting "
         << rProps[rVariable] << " with " << rValue << std::endl;
+}
+
+template <class TValueType>
+void CheckIfOverwritingTable(const Properties& rProps,
+                             const Variable<TValueType>& rInputVariable,
+                             const Variable<TValueType>& rOutputVariable)
+{
+    KRATOS_WARNING_IF("ReadMaterialsUtility", rProps.HasTable(rInputVariable, rOutputVariable))
+        << "The properties ID: " << rProps.Id() << " already has a table for "
+        << rInputVariable.Name() << " and " << rOutputVariable.Name()
+        << ".\nIt is overwritten." << std::endl;
 }
 
 }
@@ -153,6 +164,33 @@ void ReadMaterialsUtility::CreateProperty(
 {
     KRATOS_TRY;
 
+    // Get the properties for the specified model part.
+    ModelPart& r_model_part = mrModel.GetModelPart(Data["model_part_name"].GetString());
+    const IndexType property_id = Data["properties_id"].GetInt();
+    const IndexType mesh_id = 0;
+    Properties::Pointer p_prop;
+    if (r_model_part.RecursivelyHasProperties(property_id, mesh_id)) {
+        p_prop = r_model_part.pGetProperties(property_id, mesh_id);
+    } else {
+        p_prop = r_model_part.CreateNewProperties(property_id, mesh_id);
+    }
+
+    // Assign the p_properties to the model part's elements and conditions.
+    auto& r_elements_array = r_model_part.Elements();
+    auto& r_conditions_array = r_model_part.Conditions();
+
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+        auto it_elem = r_elements_array.begin() + i;
+        it_elem->SetProperties(p_prop);
+    }
+
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+        auto it_cond = r_conditions_array.begin() + i;
+        it_cond->SetProperties(p_prop);
+    }
+
     // Set the CONSTITUTIVE_LAW for the current p_properties.
     if (Data.Has("constitutive_law")) {
         Parameters cl_parameters = Data["constitutive_law"];
@@ -242,6 +280,9 @@ void ReadMaterialsUtility::CreateProperty(
 
             const auto& r_input_var = KratosComponents<Variable<double>>().Get(input_var_name);
             const auto& r_output_var = KratosComponents<Variable<double>>().Get(output_var_name);
+
+            CheckIfOverwritingTable(*p_prop, r_input_var, r_output_var);
+
             for (IndexType i = 0; i < table_param["data"].size(); ++i) {
                 table.insert(table_param["data"][i][0].GetDouble(),
                             table_param["data"][i][1].GetDouble());
