@@ -49,8 +49,8 @@ namespace Kratos
         template <int TDimension, class TPointType>
         bool NewtonRaphsonCurve(
             CoordinatesArrayType& rParameter,
-            const CoordinatesArrayType& rPoint,
-            CoordinatesArrayType& rResult,
+            const CoordinatesArrayType& rPointGlobal,
+            CoordinatesArrayType& rResultLocal,
             const NurbsCurveGeometry<TDimension, TPointType>& rNurbsCurve,
             const int MaxIterations = 20,
             const double Accuracy = 1e-6,
@@ -68,11 +68,11 @@ namespace Kratos
                     derivatives,
                     rParameter,
                     2);
-                rResult = derivatives[0];
+                rResultLocal = derivatives[0];
 
                 // Compute the distance vector between the point and its 
                 // projection on the curve
-                array_1d<double, 3> distance_vector = rResult - rPoint;
+                array_1d<double, 3> distance_vector = rResultLocal - rPointGlobal;
                 if (norm_2(distance_vector) < std::max(ModelTolerance,Accuracy))
                     return true;
 
@@ -103,8 +103,8 @@ namespace Kratos
     template <int TDimension, class TPointType>
     bool NewtonRaphsonSurface(
         CoordinatesArrayType& rParameter,
-        const CoordinatesArrayType& rPoint,
-        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPointGlobal,
+        CoordinatesArrayType& rResultLocal,
         const NurbsSurfaceGeometry<TDimension, TPointType>& rNurbsSurface,
         const int MaxIterations = 20,
         const double Accuracy = 1e-6,
@@ -123,10 +123,10 @@ namespace Kratos
             // Compute the position, the base and the acceleration vectors
             std::vector<array_1d<double, 3>> s;
             rNurbsSurface.GlobalSpaceDerivatives(s,rParameter, 2);
-            rResult = s[0];
+            rResultLocal = s[0];
 
             // Compute the distance vector
-            const array_1d<double, 3> distance_vector = s[0] - rPoint;
+            const array_1d<double, 3> distance_vector = s[0] - rPointGlobal;
 
             // Compute the distance
             const double distance = norm_2(distance_vector);
