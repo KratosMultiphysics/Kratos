@@ -22,7 +22,7 @@
 #include "factories/standard_linear_solver_factory.h"
 #include "includes/ublas_complex_interface.h"
 #include "includes/ublas_interface.h"
-#include "linear_solvers/direct_solver.h"
+#include "linear_solvers/iterative_solver.h"
 #include "spaces/ublas_space.h"
 
 namespace Kratos {
@@ -49,22 +49,20 @@ template <
     class TSparseSpaceType = typename SpaceType<TSolverType::Scalar>::Global,
     class TDenseSpaceType = typename SpaceType<TSolverType::Scalar>::Local,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
-class EigenDirectSolver
-    : public DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>
+class EigenIterativeSolver
+    : public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>
 {
 private:
     typename TSolverType m_solver;
 
-    EigenDirectSolver &operator=(const EigenDirectSolver &Other);
+    EigenIterativeSolver &operator=(const EigenIterativeSolver &Other);
 
-    EigenDirectSolver(const EigenDirectSolver &Other);
-
-    UblasWrapper<typename TSolverType::Scalar> m_a_wrapper;
+    EigenIterativeSolver(const EigenIterativeSolver &Other);
 
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(EigenDirectSolver);
+    KRATOS_CLASS_POINTER_DEFINITION(EigenIterativeSolver);
 
-    typedef DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
+    typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 
     typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
 
@@ -74,16 +72,16 @@ public:
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
-    typedef StandardLinearSolverFactory<TSparseSpaceType, TDenseSpaceType, EigenDirectSolver> FactoryType;
+    typedef StandardLinearSolverFactory<TSparseSpaceType, TDenseSpaceType, EigenIterativeSolver> FactoryType;
 
-    EigenDirectSolver() {}
+    EigenIterativeSolver() {}
 
-    EigenDirectSolver(Parameters settings) : BaseType(settings)
+    EigenIterativeSolver(Parameters settings) : BaseType(settings)
     {
         m_solver.Initialize(settings);
     }
 
-    ~EigenDirectSolver() override {}
+    ~EigenIterativeSolver() override {}
 
     /**
      * This function is designed to be called every time the coefficients change in the system
@@ -96,9 +94,9 @@ public:
      */
     void InitializeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        m_a_wrapper = UblasWrapper<DataType>(rA);
+        UblasWrapper<DataType> a_wrapper(rA);
 
-        const auto& a = m_a_wrapper.matrix();
+        const auto& a = a_wrapper.matrix();
 
         const bool success = m_solver.Compute(a);
 
@@ -119,7 +117,7 @@ public:
 
         const bool success = m_solver.Solve(b, x);
 
-        KRATOS_ERROR_IF(!success) << "Solving failed!\n" << m_solver.GetSolverErrorMessages() << std::endl;
+        KRATOS_ERROR_IF(!success) << "Decomposition failed!" << std::endl;
     }
 
     /**
@@ -164,11 +162,11 @@ public:
     {
     }
 
-    static StandardLinearSolverFactory<TSparseSpaceType, TDenseSpaceType, EigenDirectSolver> Factory()
+    static StandardLinearSolverFactory<TSparseSpaceType, TDenseSpaceType, EigenIterativeSolver> Factory()
     {
-        return StandardLinearSolverFactory<TSparseSpaceType, TDenseSpaceType, EigenDirectSolver>();
+        return StandardLinearSolverFactory<TSparseSpaceType, TDenseSpaceType, EigenIterativeSolver>();
     }
-}; // class EigenDirectSolver
+}; // class EigenIterativeSolver
 
 /**
  * input stream function
@@ -180,7 +178,7 @@ template<
     class TReordererType>
 inline std::istream &operator>>(
     std::istream &rIStream,
-    EigenDirectSolver<TSolverType, TSparseSpaceType, TDenseSpaceType, TReordererType> &rThis)
+    EigenIterativeSolver<TSolverType, TSparseSpaceType, TDenseSpaceType, TReordererType> &rThis)
 {
     return rIStream;
 }
@@ -196,7 +194,7 @@ template<
     >
 inline std::ostream &operator<<(
     std::ostream &rOStream,
-    const EigenDirectSolver<TSolverType, TSparseSpaceType, TDenseSpaceType, TReordererType> &rThis)
+    const EigenIterativeSolver<TSolverType, TSparseSpaceType, TDenseSpaceType, TReordererType> &rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

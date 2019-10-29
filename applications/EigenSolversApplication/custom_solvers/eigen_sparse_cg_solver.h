@@ -71,8 +71,9 @@ public:
         rOStream << "EigenDirectSolver <" << Name() << "> finished.";
     }
 
-    void PrintAdditionalErrorMessages() const
+    std::string GetSolverErrorMessages() const
     {
+        return "No additional information";
     }
 };
 

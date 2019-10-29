@@ -70,9 +70,9 @@ public:
         rOStream << "EigenDirectSolver <" << Name() << "> finished.";
     }
 
-    void PrintAdditionalErrorMessages() const
+    std::string GetSolverErrorMessages() const
     {
-        KRATOS_WARNING("Solver") << m_solver.lastErrorMessage() << std::endl;
+        return m_solver.lastErrorMessage();
     }
 };
 
