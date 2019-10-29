@@ -48,13 +48,12 @@ namespace Kratos
         */
         template <int TDimension, class TPointType>
         bool NewtonRaphsonCurve(
-            CoordinatesArrayType& rParameter,
+            CoordinatesArrayType& rParameterLocalCoordinates,
             const CoordinatesArrayType& rPointGlobal,
             CoordinatesArrayType& rResultLocal,
             const NurbsCurveGeometry<TDimension, TPointType>& rNurbsCurve,
             const int MaxIterations = 20,
-            const double Accuracy = 1e-6,
-            const double ModelTolerance = 1e-6)
+            const double Accuracy = 1e-6)
         {
             // Intialize variables
             double residual, delta_t;
@@ -66,14 +65,14 @@ namespace Kratos
                 std::vector<array_1d<double, 3>> derivatives;
                 rNurbsCurve.GlobalSpaceDerivatives(
                     derivatives,
-                    rParameter,
+                    rParameterLocalCoordinates,
                     2);
                 rResultLocal = derivatives[0];
 
                 // Compute the distance vector between the point and its 
                 // projection on the curve
                 array_1d<double, 3> distance_vector = rResultLocal - rPointGlobal;
-                if (norm_2(distance_vector) < std::max(ModelTolerance,Accuracy))
+                if (norm_2(distance_vector) < Accuracy)
                     return true;
 
                 // Compute the residual
@@ -85,7 +84,7 @@ namespace Kratos
                 delta_t = residual / (inner_prod(derivatives[2], distance_vector) + pow(norm_2(derivatives[1]), 2));
 
                 // Increment the parametric coordinate
-                rParameter[0] -= delta_t;
+                rParameterLocalCoordinates[0] -= delta_t;
 
                 // Check if the increment is too small and if yes return true
                 if (norm_2(delta_t*derivatives[1]) < Accuracy)
@@ -93,7 +92,7 @@ namespace Kratos
 
                 // Check if the parameter gets out of its interval of definition and if so clamp it 
                 // back to the boundaries
-                rNurbsCurve.DomainInterval().IsInside(rParameter[0]);
+                rNurbsCurve.DomainInterval().IsInside(rParameterLocalCoordinates[0]);
             }
 
             // Return false if the Newton-Raphson iterations did not converge
@@ -102,13 +101,12 @@ namespace Kratos
 
     template <int TDimension, class TPointType>
     bool NewtonRaphsonSurface(
-        CoordinatesArrayType& rParameter,
+        CoordinatesArrayType& rParameterLocalCoordinates,
         const CoordinatesArrayType& rPointGlobal,
         CoordinatesArrayType& rResultLocal,
         const NurbsSurfaceGeometry<TDimension, TPointType>& rNurbsSurface,
         const int MaxIterations = 20,
-        const double Accuracy = 1e-6,
-        const double ModelTolerance = 1e-6)
+        const double Accuracy = 1e-6)
     {
         // Initialize variables
         bool clampU = false;
@@ -122,7 +120,7 @@ namespace Kratos
         for (int i = 0; i < MaxIterations; i++) {
             // Compute the position, the base and the acceleration vectors
             std::vector<array_1d<double, 3>> s;
-            rNurbsSurface.GlobalSpaceDerivatives(s,rParameter, 2);
+            rNurbsSurface.GlobalSpaceDerivatives(s,rParameterLocalCoordinates, 2);
             rResultLocal = s[0];
 
             // Compute the distance vector
@@ -130,7 +128,7 @@ namespace Kratos
 
             // Compute the distance
             const double distance = norm_2(distance_vector);
-            if (distance < std::max(ModelTolerance,Accuracy))
+            if (distance < Accuracy)
                 return true;
 
             // Compute the lengths of the base vectors
@@ -180,13 +178,13 @@ namespace Kratos
                 return true;
 
             // Update the parametric coordinates
-            rParameter[0] += d_u;
-            rParameter[1] += d_v;
+            rParameterLocalCoordinates[0] += d_u;
+            rParameterLocalCoordinates[1] += d_v;
 
             // Check if the parametric coordinates get out of their interval of definition 
             // and if so clamp them back to their boundaries
-            rNurbsSurface.DomainIntervalU().IsInside(rParameter[0]);
-            rNurbsSurface.DomainIntervalV().IsInside(rParameter[1]);
+            rNurbsSurface.DomainIntervalU().IsInside(rParameterLocalCoordinates[0]);
+            rNurbsSurface.DomainIntervalV().IsInside(rParameterLocalCoordinates[1]);
         }
 
         return false;
