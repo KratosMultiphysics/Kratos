@@ -64,46 +64,12 @@ namespace Kratos
 ///@{
 
 /// Short class definition.
-
-template<int TDim>
 class KRATOS_API(CHIMERA_APPLICATION) ChimeraHoleCuttingUtility
 {
 public:
 
     typedef std::size_t IndexType;
     // Needed structures for the ExtractSurfaceMesh operation
-    struct KeyComparator
-    {
-        bool operator()(const vector<IndexType> &lhs, const vector<IndexType> &rhs) const
-        {
-            if (lhs.size() != rhs.size())
-                return false;
-
-            for (IndexType i = 0; i < lhs.size(); i++)
-            {
-                if (lhs[i] != rhs[i])
-                    return false;
-            }
-
-            return true;
-        }
-    };
-
-    struct KeyHasher
-    {
-        IndexType operator()(const vector<int> &k) const
-        {
-            IndexType seed = 0.0;
-            std::hash<int> hasher;
-
-            for (IndexType i = 0; i < k.size(); i++)
-            {
-                seed ^= hasher(k[i]) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-            }
-
-            return seed;
-        }
-    };
 
     ///@name Type Definitions
     ///@{
@@ -117,14 +83,11 @@ public:
     ///@name Life Cycle
     ///@{
 
-    ChimeraHoleCuttingUtility()
-    {
-    }
+    ChimeraHoleCuttingUtility() = delete;
 
     /// Destructor.
-    virtual ~ChimeraHoleCuttingUtility()
-    {
-    }
+    ~ChimeraHoleCuttingUtility()=default;
+
 
     ///@}
     ///@name Operators
@@ -141,11 +104,12 @@ public:
      * @param rHoleBoundaryModelPart Boundary modelpart of the rHoleModelPart
      * @param Distance is the the distance (magnitude) at which hole is to be cut from the zero distance layer.
      */
-    void CreateHoleAfterDistance(ModelPart &rModelPart, ModelPart &rHoleModelPart, ModelPart &rHoleBoundaryModelPart, const double Distance)
+    template<int TDim>
+    static inline void CreateHoleAfterDistance(ModelPart &rModelPart, ModelPart &rHoleModelPart, ModelPart &rHoleBoundaryModelPart, const double Distance)
     {
         KRATOS_TRY;
-        RemoveOutOfDomainElements(rModelPart, rHoleModelPart,1,Distance, true);
-        ExtractBoundaryMesh(rHoleModelPart, rHoleBoundaryModelPart);
+        RemoveOutOfDomainElements<TDim>(rModelPart, rHoleModelPart,1,Distance, true);
+        ExtractBoundaryMesh<TDim>(rHoleModelPart, rHoleBoundaryModelPart);
         KRATOS_CATCH("");
     }
 
@@ -159,7 +123,8 @@ public:
      * @param OverLapDistance is the the distance (magnitude) at which hole is to be cut from the zero distance layer.
      * @param GetInside works in combination with MainDomainOrNot to get the feeling of what is inside or what is outside.
      */
-    void RemoveOutOfDomainElements(ModelPart &rModelPart,
+    template<int TDim>
+    static inline void RemoveOutOfDomainElements(ModelPart &rModelPart,
                                    ModelPart &rModifiedModelPart,
                                    const int MainDomainOrNot,
                                    const double OverLapDistance=0.0,
@@ -248,12 +213,38 @@ public:
      * @param rExtractedBoundaryModelPart The extracted surface/edge modelpart.
      * @param GetInternal A bool specifying which surface/edge extracted. The one marked by CHIMERA_INTERNAL_BOUNDARY or the outside one.
      */
-    //
-    void ExtractBoundaryMesh( ModelPart &rVolumeModelPart, ModelPart &rExtractedBoundaryModelPart, bool GetInternal = false)
+    template<int TDim>
+    static inline void ExtractBoundaryMesh( ModelPart &rVolumeModelPart, ModelPart &rExtractedBoundaryModelPart, bool GetInternal = false)
     {
         KRATOS_TRY;
+
+        struct KeyComparator
+        {
+            bool operator()(const vector<IndexType> &lhs, const vector<IndexType> &rhs) const
+            {
+                if (lhs.size() != rhs.size())
+                    return false;
+                for (IndexType i = 0; i < lhs.size(); i++)
+                    if (lhs[i] != rhs[i])
+                        return false;
+                return true;
+            }
+        };
+
+        struct KeyHasher
+        {
+            IndexType operator()(const vector<int> &k) const
+            {
+                IndexType seed = 0.0;
+                std::hash<int> hasher;
+                for (IndexType i = 0; i < k.size(); i++)
+                    seed ^= hasher(k[i]) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+                return seed;
+            }
+        };
+
         IndexType n_nodes = rVolumeModelPart.ElementsBegin()->GetGeometry().size();
-        KRATOS_ERROR_IF(!(n_nodes!=3 || n_nodes!=4))<<"Hole cutting process is only supported for tetrahedral and triangular elements" <<Info()<< std::endl;
+        KRATOS_ERROR_IF(!(n_nodes!=3 || n_nodes!=4))<<"Hole cutting process is only supported for tetrahedral and triangular elements" << std::endl;
 
         // Some type-definitions
         typedef std::unordered_map<vector<IndexType>, IndexType, KeyHasher, KeyComparator> hashmap;
@@ -488,23 +479,6 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "ChimeraHoleCuttingUtility";
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream &rOStream) const
-    {
-        rOStream << "ChimeraHoleCuttingUtility";
-    }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream &rOStream) const
-    {
-    }
 
     ///@}
     ///@name Friends

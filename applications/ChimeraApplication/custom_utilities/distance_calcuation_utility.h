@@ -36,7 +36,7 @@ namespace Kratos
 
 /// Utility for calculating the Distance on a given modelpart
 template <int TDim, class TSparseSpaceType, class TLocalSpaceType>
-class DistanceCalculationUtility
+class KRATOS_API(CHIMERA_APPLICATION) DistanceCalculationUtility
 {
 public:
     ///@name Type Definitions
@@ -73,9 +73,9 @@ public:
      */
     static inline void CalculateDistance(ModelPart &rBackgroundModelPart, ModelPart &rSkinModelPart)
     {
-        typedef LinearSolverFactory<SparseSpaceType, LocalSparseSpaceType> LinearSolverFactoryType;
-        typedef LinearSolver<SparseSpaceType, TLocalSpaceType> LinearSolverType;
-        typedef VariationalDistanceCalculationProcess<TDim, TSparseSpaceType, TLocalSpaceType, LinearSolverType> VariationalDistanceCalculationProcessType;
+        //typedef LinearSolverFactory<SparseSpaceType, LocalSparseSpaceType> LinearSolverFactoryType;
+        //typedef LinearSolver<SparseSpaceType, TLocalSpaceType> LinearSolverType;
+        //typedef VariationalDistanceCalculationProcess<TDim, TSparseSpaceType, TLocalSpaceType, LinearSolverType> VariationalDistanceCalculationProcessType;
         typedef CalculateDistanceToSkinProcess<TDim> CalculateDistanceToSkinProcessType;
         const int nnodes = static_cast<int>(rBackgroundModelPart.NumberOfNodes());
 
