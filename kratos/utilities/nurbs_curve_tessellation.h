@@ -69,22 +69,22 @@ public:
     * @param rGeometry Reference to the geometry
     * @param PolynomialDegree The polynomial degree of the curve
     * @param DomainInterval The curve interval which is to be tessellated
-    * @param KnotSpanIntervals The knot span intervals laying in the DomainInterval
+    * @param rKnotSpanIntervals Reference to the knot span intervals laying in the DomainInterval
     * @param Tolerance Tolerance for the choral error
     * @see ComputeTessellation
     */
     void Tessellate(
         const GeometryType& rGeometry, 
-        int PolynomialDegree,
+        const int PolynomialDegree,
         const NurbsInterval DomainInterval,
-        const std::vector<NurbsInterval> KnotSpanIntervals,
+        const std::vector<NurbsInterval>& rKnotSpanIntervals,
         const double Tolerance)
     {
         mTesselation = ComputeTessellation<TWorkingSpaceDimension>(
             rGeometry,
             PolynomialDegree,
             DomainInterval,
-            KnotSpanIntervals,
+            rKnotSpanIntervals,
             Tolerance);
     }
 
@@ -95,14 +95,14 @@ public:
     * @param DomainInterval The curve interval which is to be tessellated
     * @param KnotSpanIntervals The knot span intervals laying in the DomainInterval
     * @param Tolerance Tolerance for the choral error
-    * @return std::map<double, typename GeometryType::CoordinatesArrayType> with the coordinates in local and working space
+    * @return std::vector<std::pair<double, Vector>> tessellation
     * @see ANurbs library (https://github.com/oberbichler/ANurbs)
     */
 	static TessellationType ComputeTessellation(
         const GeometryType& rGeometry,
         const int PolynomialDegree,
         const NurbsInterval DomainInterval,
-        const std::vector<NurbsInterval>& KnotSpanIntervals,
+        const std::vector<NurbsInterval>& rKnotSpanIntervals,
         const double Tolerance
         )
     {
@@ -114,7 +114,7 @@ public:
 
         // compute sample points
 
-        for (const auto& span : KnotSpanIntervals) {
+        for (const auto& span : rKnotSpanIntervals) {
             const NurbsInterval normalized_span = DomainInterval.GetNormalizedInterval(span);
 
             if (normalized_span.GetLength() < 1e-7) {
@@ -199,6 +199,14 @@ public:
         return points;
     }
 
+    /** 
+    * @brief This method returns the already computed tessellation of a curve
+    * @return return std::vector<std::pair<double, Vector>> tessellation
+    */
+    TessellationType getTessellation() {
+        return mTesselation;
+    }
+
     private:
     ///@name Private Static Member Variables
     ///@{
@@ -216,8 +224,6 @@ public:
     ///@}
     ///@name Private Serialization
     ///@{
-// 
-    friend class Serializer;
 };
 
 } // namespace NurbsCurveTessellation
