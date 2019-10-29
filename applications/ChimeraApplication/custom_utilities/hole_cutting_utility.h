@@ -20,12 +20,6 @@
 #define CHIMERA_HOLE_CUTTING_UTILITY_H_INCLUDED
 
 // System includes
-
-// External includes
-
-// Project includes
-
-// System includes
 #include <iostream>
 #include <string>
 #include <algorithm>
@@ -70,8 +64,6 @@ class KRATOS_API(CHIMERA_APPLICATION) ChimeraHoleCuttingUtility
 public:
 
     typedef std::size_t IndexType;
-    // Needed structures for the ExtractSurfaceMesh operation
-
     ///@name Type Definitions
     ///@{
 
@@ -84,7 +76,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    ChimeraHoleCuttingUtility() = delete;
+    ChimeraHoleCuttingUtility() = default;
 
     /// Destructor.
     ~ChimeraHoleCuttingUtility() = default;
@@ -106,7 +98,7 @@ public:
      * @param Distance is the the distance (magnitude) at which hole is to be cut from the zero distance layer.
      */
     template<int TDim>
-    static void CreateHoleAfterDistance(ModelPart &rModelPart, ModelPart &rHoleModelPart, ModelPart &rHoleBoundaryModelPart, const double Distance);
+    void CreateHoleAfterDistance(ModelPart &rModelPart, ModelPart &rHoleModelPart, ModelPart &rHoleBoundaryModelPart, const double Distance);
 
 
     /**
@@ -119,7 +111,7 @@ public:
      * @param GetInside works in combination with MainDomainOrNot to get the feeling of what is inside or what is outside.
      */
     template<int TDim>
-    static void RemoveOutOfDomainElements(ModelPart &rModelPart,
+    void RemoveOutOfDomainElements(ModelPart &rModelPart,
                                    ModelPart &rModifiedModelPart,
                                    const int MainDomainOrNot,
                                    const double OverLapDistance=0.0,
@@ -134,7 +126,7 @@ public:
      * @param GetInternal A bool specifying which surface/edge extracted. The one marked by CHIMERA_INTERNAL_BOUNDARY or the outside one.
      */
     template<int TDim>
-    static void ExtractBoundaryMesh( ModelPart &rVolumeModelPart, ModelPart &rExtractedBoundaryModelPart, bool GetInternal = false);
+    void ExtractBoundaryMesh( ModelPart &rVolumeModelPart, ModelPart &rExtractedBoundaryModelPart, bool GetInternal = false);
 
     /// Assignment operator.
     ChimeraHoleCuttingUtility &operator=(ChimeraHoleCuttingUtility const &rOther) = delete;

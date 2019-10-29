@@ -288,9 +288,9 @@ protected:
                             auto& r_boundary_model_part = r_background_model_part.CreateSubModelPart("chimera_boundary_mp");
                             BuiltinTimer extraction_time;
                             if(i_current_level==0){
-                                ChimeraHoleCuttingUtility::ExtractBoundaryMesh<TDim>(r_background_model_part, r_boundary_model_part);
+                                ChimeraHoleCuttingUtility().ExtractBoundaryMesh<TDim>(r_background_model_part, r_boundary_model_part);
                             }else{
-                                ChimeraHoleCuttingUtility::ExtractBoundaryMesh<TDim>(r_background_model_part, r_boundary_model_part, true);
+                                ChimeraHoleCuttingUtility().ExtractBoundaryMesh<TDim>(r_background_model_part, r_boundary_model_part, true);
                             }
                             KRATOS_INFO_IF("Extraction of boundary mesh took : ", mEchoLevel > 0)<< extraction_time.ElapsedSeconds()<< " seconds"<< std::endl;
                         }
@@ -352,7 +352,7 @@ protected:
             KRATOS_INFO_IF("Distance calculation on background took : ", mEchoLevel > 0)<< bg_distance_calc_time.ElapsedSeconds()<< " seconds"<< std::endl;
 
             BuiltinTimer hole_creation_time;
-            ChimeraHoleCuttingUtility::CreateHoleAfterDistance<TDim>(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, over_lap_distance);
+            ChimeraHoleCuttingUtility().CreateHoleAfterDistance<TDim>(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, over_lap_distance);
             KRATOS_INFO_IF("Hole creation took : ", mEchoLevel > 0)<< hole_creation_time.ElapsedSeconds()<< " seconds"<< std::endl;
 
             // WriteModelPart(r_hole_model_part);
@@ -529,11 +529,11 @@ private:
             KRATOS_INFO_IF("Distance calculation on patch took : ", mEchoLevel > 0)<< distance_calc_time_patch.ElapsedSeconds()<< " seconds"<< std::endl;
             //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.
             BuiltinTimer rem_out_domain_time;
-            ChimeraHoleCuttingUtility::RemoveOutOfDomainElements<TDim>(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot, false);
+            ChimeraHoleCuttingUtility().RemoveOutOfDomainElements<TDim>(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot, false);
             KRATOS_INFO_IF("Removing out of domain patch took : ", mEchoLevel > 0)<< rem_out_domain_time.ElapsedSeconds()<< " seconds"<< std::endl;
 
             BuiltinTimer patch_boundary_extraction_time;
-            ChimeraHoleCuttingUtility::ExtractBoundaryMesh<TDim>(r_modified_patch_model_part, r_modified_patch_boundary_model_part);
+            ChimeraHoleCuttingUtility().ExtractBoundaryMesh<TDim>(r_modified_patch_model_part, r_modified_patch_boundary_model_part);
             KRATOS_INFO_IF("Extraction of patch boundary took : ", mEchoLevel > 0)<< patch_boundary_extraction_time.ElapsedSeconds()<< " seconds"<< std::endl;
             current_model.DeleteModelPart("ModifiedPatch");
             return r_modified_patch_boundary_model_part;

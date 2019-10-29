@@ -24,6 +24,7 @@ set( KRATOS_CHIMERA_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fractional_step_settings_for_chimera.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/hole_cutting_utility.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/rotate_region_process.cpp
 )
 
 set(KRATOS_CHIMERA_APPLICATION_EXTRA_LIBS "")

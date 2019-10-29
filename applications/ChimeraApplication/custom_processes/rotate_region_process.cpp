@@ -56,7 +56,7 @@ RotateRegionProcess::RotateRegionProcess(ModelPart &rModelPart, Parameters rPara
 /// Destructor.
 RotateRegionProcess::~RotateRegionProcess() {}
 
-void RotateRegionProcess::ExecuteBeforeSolutionLoop() override {}
+void RotateRegionProcess::ExecuteBeforeSolutionLoop() {}
 
 void RotateRegionProcess::SetAngularVelocity(const double NewAngularVelocity)
 {
@@ -154,7 +154,7 @@ void RotateRegionProcess::PrintInfo(std::ostream &rOStream) const
 void RotateRegionProcess::PrintData() {}
 
 RotateRegionProcess::RotationSystem::RotationSystem(const double MomentOfInertia,
-                                                    const double DampingCoefficient = 0.0)
+                                                    const double DampingCoefficient)
     : mMomentOfInertia(MomentOfInertia), mDampingCoeff(DampingCoefficient),
       mTorque(0.0), mTime(0.0)
 {
@@ -203,35 +203,35 @@ double RotateRegionProcess::RotationSystem::CalculateCurrentRotationState()
   return d_theta;
 }
 
-double RotateRegionProcess::RotationSystem::GetCurrentTheta()
+double RotateRegionProcess::RotationSystem::GetCurrentTheta() const
 {
   return mTheta[0];
 }
 
-double RotateRegionProcess::RotationSystem::GetCurrentOmega()
+double RotateRegionProcess::RotationSystem::GetCurrentOmega() const
 {
   return mOmega[0];
 }
 
-double RotateRegionProcess::RotationSystem::CalculateInertiaTorque()
+double RotateRegionProcess::RotationSystem::CalculateInertiaTorque() const
 {
   return mMomentOfInertia *
          (mBdf2Coeff[0] * mOmega[0] + mBdf2Coeff[1] * mOmega[1] +
           mBdf2Coeff[2] * mOmega[2]);
 }
 
-double RotateRegionProcess::RotationSystem::CalculateDampingTorque()
+double RotateRegionProcess::RotationSystem::CalculateDampingTorque() const
 {
   return mDampingCoeff * mOmega[0];
 }
 
-double RotateRegionProcess::RotationSystem::ComputeLHS()
+double RotateRegionProcess::RotationSystem::ComputeLHS() const
 {
   return std::pow(mBdf2Coeff[0], 2) * mMomentOfInertia +
          mBdf2Coeff[0] * mDampingCoeff;
 }
 
-double RotateRegionProcess::RotationSystem::ComputeRHS()
+double RotateRegionProcess::RotationSystem::ComputeRHS() const
 {
   double t_inertia = CalculateInertiaTorque();
   double t_damping = CalculateDampingTorque();
@@ -250,11 +250,6 @@ void RotateRegionProcess::RotationSystem::Update(double UpdateTheta)
   mTheta[0] += UpdateTheta;
   mOmega[0] = mBdf2Coeff[0] * mTheta[0] + mBdf2Coeff[1] * mTheta[1] +
               mBdf2Coeff[2] * mTheta[2];
-}
-
-RotateRegionProcess::RotateRegionProcess &operator=(RotateRegionProcess const &rOther)
-{
-  return *this;
 }
 
 void RotateRegionProcess::CalculateCurrentRotationState()
@@ -303,7 +298,7 @@ void RotateRegionProcess::CalculateLinearVelocity(const DenseVector<double> &rAx
 
 void RotateRegionProcess::TransformNode(const array_1d<double, 3> &rCoordinates,
                                         array_1d<double, 3> &rTransformedCoordinates,
-                                        double Theta)
+                                        double Theta) const
 {
   // Changing the origin to the center of rotation
   auto new_coordinates = rCoordinates - mCenterOfRotation;
@@ -315,7 +310,7 @@ void RotateRegionProcess::TransformNode(const array_1d<double, 3> &rCoordinates,
   rTransformedCoordinates = rTransformedCoordinates + mCenterOfRotation;
 }
 
-double RotateRegionProcess::CalculateTorque()
+double RotateRegionProcess::CalculateTorque() const
 {
   double torque = 0.0;
   auto &r_model = mrModelPart.GetModel();
@@ -323,8 +318,7 @@ double RotateRegionProcess::CalculateTorque()
   const int num_nodes = static_cast<int>(r_torque_model_part.NumberOfNodes());
   const NodeIteratorType it_node_begin = r_torque_model_part.NodesBegin();
 
-#pragma omp parallel for schedule(guided, 512) reduction(+ \
-                                                         : torque)
+#pragma omp parallel for schedule(guided, 512) reduction(+ : torque)
   for (int i_node = 0; i_node < num_nodes; ++i_node)
   {
     NodeIteratorType it_node = it_node_begin;

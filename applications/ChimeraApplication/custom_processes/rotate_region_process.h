@@ -27,13 +27,16 @@
 
 // Project includes
 #include "includes/define.h"
+#include "containers/model.h"
 #include "includes/kratos_parameters.h"
+#include "includes/model_part.h"
 #include "includes/variables.h"
 #include "processes/process.h"
 #include "utilities/math_utils.h"
 #include "utilities/quaternion.h"
 
 // Application includes
+#include "chimera_application_variables.h"
 
 namespace Kratos {
 
@@ -215,7 +218,10 @@ private:
   ///@}
 
   /// Assignment operator.
-  RotateRegionProcess &operator=(RotateRegionProcess const &rOther);
+  RotateRegionProcess &operator=(RotateRegionProcess const &rOther)
+  {
+    return *this;
+  }
 
   void CalculateCurrentRotationState();
 

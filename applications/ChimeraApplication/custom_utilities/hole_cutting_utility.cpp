@@ -9,9 +9,9 @@ void ChimeraHoleCuttingUtility::CreateHoleAfterDistance(
     ModelPart &rHoleBoundaryModelPart, const double Distance)
 {
     KRATOS_TRY;
-    RemoveOutOfDomainElements<TDim>(rModelPart, rHoleModelPart, 1, Distance,
+    ChimeraHoleCuttingUtility::RemoveOutOfDomainElements<TDim>(rModelPart, rHoleModelPart, 1, Distance,
                                     true);
-    ExtractBoundaryMesh<TDim>(rHoleModelPart, rHoleBoundaryModelPart);
+    ChimeraHoleCuttingUtility::ExtractBoundaryMesh<TDim>(rHoleModelPart, rHoleBoundaryModelPart);
     KRATOS_CATCH("");
 }
 
@@ -113,6 +113,7 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(
 {
     KRATOS_TRY;
 
+   // Needed structures for the ExtractSurfaceMesh operation
     struct KeyComparator
     {
         bool operator()(const vector<IndexType> &lhs,
@@ -407,5 +408,4 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(
     rExtractedBoundaryModelPart.RemoveNodes(TO_ERASE);
     KRATOS_CATCH("");
 }
-
-} // namespace Kratos.
+} // namespace Kratos
