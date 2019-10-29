@@ -191,17 +191,6 @@ protected:
         bool Converged = false;
         int Rank = rModelPart.GetCommunicator().MyPID();
 
-
-        // auto& r_constraints_container = rModelPart.MasterSlaveConstraints();
-        // int count_vel_constraints = 0;
-        // for(auto& constraint : r_constraints_container)
-        // {
-        //     if(constraint.Is(FS_CHIMERA_VEL_CONSTRAINT))
-        //         if(constraint.Is(ACTIVE))
-        //             count_vel_constraints++;
-        // }
-        // KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0)<<"count_vel_constraints :: "<<count_vel_constraints<<std::endl;
-
         // Activate Constraints for VELOCITY and deactivate PRESSURE
         SetActiveStateOnConstraint(FS_CHIMERA_VEL_CONSTRAINT, true);
         SetActiveStateOnConstraint(FS_CHIMERA_PRE_CONSTRAINT, false);
@@ -250,17 +239,6 @@ protected:
                 itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -OldPress;
             }
         }
-
-
-        // int count_pre_constraints = 0;
-        // for(auto& constraint : r_constraints_container)
-        // {
-        //     if(constraint.Is(FS_CHIMERA_PRE_CONSTRAINT))
-        //         if(constraint.Is(ACTIVE))
-        //             count_pre_constraints++;
-        // }
-
-        // KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0)<<"count_pre_constraints :: "<<count_pre_constraints<<std::endl;
 
         KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 && Rank == 0)<<
             "Calculating Pressure."<< std::endl;
@@ -363,41 +341,39 @@ protected:
 
 
          //For correcting projections for chimera
-        auto& r_constraints_container = rModelPart.MasterSlaveConstraints();
+        auto &pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
+        const auto& r_constraints_container = pre_modelpart.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
-            if (constraint.Is(FS_CHIMERA_PRE_CONSTRAINT))
+            const auto& master_dofs = constraint.GetMasterDofsVector();
+            const auto& slave_dofs = constraint.GetSlaveDofsVector();
+            ModelPart::MatrixType r_relation_matrix;
+            ModelPart::VectorType r_constant_vector;
+            constraint.CalculateLocalSystem(r_relation_matrix,r_constant_vector,rModelPart.GetProcessInfo());
+
+            IndexType slave_i = 0;
+            for(const auto& slave_dof : slave_dofs)
             {
-                const auto& master_dofs = constraint.GetMasterDofsVector();
-                const auto& slave_dofs = constraint.GetSlaveDofsVector();
-                ModelPart::MatrixType r_relation_matrix;
-                ModelPart::VectorType r_constant_vector;
-                constraint.CalculateLocalSystem(r_relation_matrix,r_constant_vector,rModelPart.GetProcessInfo());
-
-                IndexType slave_i = 0;
-                for(const auto& slave_dof : slave_dofs)
+                const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
+                auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
+                IndexType master_j = 0;
+                for(const auto& master_dof : master_dofs)
                 {
-                    const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
-                    auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
-                    IndexType master_j = 0;
-                    for(const auto& master_dof : master_dofs)
-                    {
-                        const auto master_node_id = master_dof->Id();
-                        const double weight = r_relation_matrix(slave_i, master_j);
-                        auto& r_master_node = rModelPart.Nodes()[master_node_id];
-                        auto& conv_proj = r_slave_node.FastGetSolutionStepValue(CONV_PROJ);
-                        auto& pres_proj = r_slave_node.FastGetSolutionStepValue(PRESS_PROJ);
-                        auto& dive_proj = r_slave_node.FastGetSolutionStepValue(DIVPROJ);
-                        auto& nodal_area = r_slave_node.FastGetSolutionStepValue(NODAL_AREA);
-                        conv_proj += (r_master_node.FastGetSolutionStepValue(CONV_PROJ))*weight;
-                        pres_proj += (r_master_node.FastGetSolutionStepValue(PRESS_PROJ))*weight;
-                        dive_proj += (r_master_node.FastGetSolutionStepValue(DIVPROJ))*weight;
-                        nodal_area += (r_master_node.FastGetSolutionStepValue(NODAL_AREA))*weight;
+                    const auto master_node_id = master_dof->Id();
+                    const double weight = r_relation_matrix(slave_i, master_j);
+                    auto& r_master_node = rModelPart.Nodes()[master_node_id];
+                    auto& conv_proj = r_slave_node.FastGetSolutionStepValue(CONV_PROJ);
+                    auto& pres_proj = r_slave_node.FastGetSolutionStepValue(PRESS_PROJ);
+                    auto& dive_proj = r_slave_node.FastGetSolutionStepValue(DIVPROJ);
+                    auto& nodal_area = r_slave_node.FastGetSolutionStepValue(NODAL_AREA);
+                    conv_proj += (r_master_node.FastGetSolutionStepValue(CONV_PROJ))*weight;
+                    pres_proj += (r_master_node.FastGetSolutionStepValue(PRESS_PROJ))*weight;
+                    dive_proj += (r_master_node.FastGetSolutionStepValue(DIVPROJ))*weight;
+                    nodal_area += (r_master_node.FastGetSolutionStepValue(NODAL_AREA))*weight;
 
-                        ++master_j;
-                    }
-                    ++slave_i;
+                    ++master_j;
                 }
+                ++slave_i;
             }
         }
     }
@@ -462,53 +438,48 @@ protected:
                 }
             }
 
-            const auto& r_constraints_container = rModelPart.MasterSlaveConstraints();
+            auto &pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
+            const auto& r_constraints_container = pre_modelpart.MasterSlaveConstraints();
             for(const auto& constraint : r_constraints_container)
             {
-                if (constraint.Is(FS_CHIMERA_PRE_CONSTRAINT))
+                const auto& slave_dofs = constraint.GetSlaveDofsVector();
+                for(const auto& slave_dof : slave_dofs)
                 {
-                    const auto& slave_dofs = constraint.GetSlaveDofsVector();
-                    for(const auto& slave_dof : slave_dofs)
-                    {
-                        const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
-                        auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
-                        r_slave_node.FastGetSolutionStepValue(VELOCITY_X)=0;
-                        r_slave_node.FastGetSolutionStepValue(VELOCITY_Y)=0;
-                        r_slave_node.FastGetSolutionStepValue(VELOCITY_Z)=0;
-                    }
+                    const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
+                    auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
+                    r_slave_node.FastGetSolutionStepValue(VELOCITY_X)=0;
+                    r_slave_node.FastGetSolutionStepValue(VELOCITY_Y)=0;
+                    r_slave_node.FastGetSolutionStepValue(VELOCITY_Z)=0;
                 }
             }
 
             for(const auto& constraint : r_constraints_container)
             {
-                if (constraint.Is(FS_CHIMERA_PRE_CONSTRAINT))
+                const auto& master_dofs = constraint.GetMasterDofsVector();
+                const auto& slave_dofs = constraint.GetSlaveDofsVector();
+                ModelPart::MatrixType r_relation_matrix;
+                ModelPart::VectorType r_constant_vector;
+                constraint.CalculateLocalSystem(r_relation_matrix,r_constant_vector,rModelPart.GetProcessInfo());
+
+                IndexType slave_i = 0;
+                for(const auto& slave_dof : slave_dofs)
                 {
-                    const auto& master_dofs = constraint.GetMasterDofsVector();
-                    const auto& slave_dofs = constraint.GetSlaveDofsVector();
-                    ModelPart::MatrixType r_relation_matrix;
-                    ModelPart::VectorType r_constant_vector;
-                    constraint.CalculateLocalSystem(r_relation_matrix,r_constant_vector,rModelPart.GetProcessInfo());
-
-                    IndexType slave_i = 0;
-                    for(const auto& slave_dof : slave_dofs)
+                    const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
+                    auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
+                    IndexType master_j = 0;
+                    for(const auto& master_dof : master_dofs)
                     {
-                        const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
-                        auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
-                        IndexType master_j = 0;
-                        for(const auto& master_dof : master_dofs)
-                        {
-                            const auto master_node_id = master_dof->Id();
-                            const double weight = r_relation_matrix(slave_i, master_j);
-                            auto& r_master_node = rModelPart.Nodes()[master_node_id];
+                        const auto master_node_id = master_dof->Id();
+                        const double weight = r_relation_matrix(slave_i, master_j);
+                        auto& r_master_node = rModelPart.Nodes()[master_node_id];
 
-                            r_slave_node.FastGetSolutionStepValue(VELOCITY_X) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_X))*weight;
-                            r_slave_node.FastGetSolutionStepValue(VELOCITY_Y) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_Y))*weight;
-                            r_slave_node.FastGetSolutionStepValue(VELOCITY_Z) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_Z))*weight;
+                        r_slave_node.FastGetSolutionStepValue(VELOCITY_X) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_X))*weight;
+                        r_slave_node.FastGetSolutionStepValue(VELOCITY_Y) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_Y))*weight;
+                        r_slave_node.FastGetSolutionStepValue(VELOCITY_Z) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_Z))*weight;
 
-                            ++master_j;
-                        }
-                        ++slave_i;
+                        ++master_j;
                     }
+                    ++slave_i;
                 }
             }
         }
@@ -534,81 +505,21 @@ protected:
                 }
             }
 
-            const auto& r_constraints_container = rModelPart.MasterSlaveConstraints();
+        auto &pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
+        const auto& r_constraints_container = pre_modelpart.MasterSlaveConstraints();
             for(const auto& constraint : r_constraints_container)
-            {
-                if (constraint.Is(FS_CHIMERA_PRE_CONSTRAINT))
-                {
-                    const auto& slave_dofs = constraint.GetSlaveDofsVector();
-                    for(const auto& slave_dof : slave_dofs)
-                    {
-                        const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
-                        auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
-                        r_slave_node.FastGetSolutionStepValue(VELOCITY_X)=0;
-                        r_slave_node.FastGetSolutionStepValue(VELOCITY_Y)=0;
-                    }
-                }
-            }
-
-            for(const auto& constraint : r_constraints_container)
-            {
-                if (constraint.Is(FS_CHIMERA_PRE_CONSTRAINT))
-                {
-                    const auto& master_dofs = constraint.GetMasterDofsVector();
-                    const auto& slave_dofs = constraint.GetSlaveDofsVector();
-                    ModelPart::MatrixType r_relation_matrix;
-                    ModelPart::VectorType r_constant_vector;
-                    constraint.CalculateLocalSystem(r_relation_matrix,r_constant_vector,rModelPart.GetProcessInfo());
-
-                    IndexType slave_i = 0;
-                    for(const auto& slave_dof : slave_dofs)
-                    {
-                        const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
-                        auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
-                        IndexType master_j = 0;
-                        for(const auto& master_dof : master_dofs)
-                        {
-                            const auto master_node_id = master_dof->Id();
-                            const double weight = r_relation_matrix(slave_i, master_j);
-                            auto& r_master_node = rModelPart.Nodes()[master_node_id];
-
-                            r_slave_node.FastGetSolutionStepValue(VELOCITY_X) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_X))*weight;
-                            r_slave_node.FastGetSolutionStepValue(VELOCITY_Y) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_Y))*weight;
-
-                            ++master_j;
-                        }
-                        ++slave_i;
-                    }
-                }
-            }
-
-        }
-    }
-
-     void ChimeraProjectionCorrection(ModelPart& rModelPart)
-     {
-
-        const auto& r_constraints_container = rModelPart.MasterSlaveConstraints();
-        for(const auto& constraint : r_constraints_container)
-        {
-            if (constraint.Is(FS_CHIMERA_PRE_CONSTRAINT))
             {
                 const auto& slave_dofs = constraint.GetSlaveDofsVector();
                 for(const auto& slave_dof : slave_dofs)
                 {
                     const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
                     auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
-                    r_slave_node.GetValue(NODAL_AREA)= 0;
-                    r_slave_node.GetValue(CONV_PROJ)= array_1d<double,3>(3,0.0);
-                    r_slave_node.GetValue(PRESS_PROJ)= array_1d<double,3>(3,0.0);
-                    r_slave_node.GetValue(DIVPROJ)= 0 ;
+                    r_slave_node.FastGetSolutionStepValue(VELOCITY_X)=0;
+                    r_slave_node.FastGetSolutionStepValue(VELOCITY_Y)=0;
                 }
             }
-        }
 
-        for(const auto& constraint : r_constraints_container)
-        {
-            if (constraint.Is(FS_CHIMERA_PRE_CONSTRAINT))
+            for(const auto& constraint : r_constraints_container)
             {
                 const auto& master_dofs = constraint.GetMasterDofsVector();
                 const auto& slave_dofs = constraint.GetSlaveDofsVector();
@@ -628,15 +539,63 @@ protected:
                         const double weight = r_relation_matrix(slave_i, master_j);
                         auto& r_master_node = rModelPart.Nodes()[master_node_id];
 
-                        r_slave_node.GetValue(NODAL_AREA) +=(r_master_node.FastGetSolutionStepValue(NODAL_AREA))*weight;
-                        r_slave_node.GetValue(CONV_PROJ) +=(r_master_node.FastGetSolutionStepValue(CONV_PROJ))*weight;
-                        r_slave_node.GetValue(PRESS_PROJ) +=(r_master_node.FastGetSolutionStepValue(PRESS_PROJ))*weight;
-                        r_slave_node.GetValue(DIVPROJ) +=(r_master_node.FastGetSolutionStepValue(DIVPROJ))*weight;
+                        r_slave_node.FastGetSolutionStepValue(VELOCITY_X) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_X))*weight;
+                        r_slave_node.FastGetSolutionStepValue(VELOCITY_Y) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_Y))*weight;
 
                         ++master_j;
                     }
                     ++slave_i;
                 }
+            }
+        }
+    }
+
+     void ChimeraProjectionCorrection(ModelPart& rModelPart)
+     {
+        auto &pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
+        const auto& r_constraints_container = pre_modelpart.MasterSlaveConstraints();
+        for(const auto& constraint : r_constraints_container)
+        {
+            const auto& slave_dofs = constraint.GetSlaveDofsVector();
+            for(const auto& slave_dof : slave_dofs)
+            {
+                const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
+                auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
+                r_slave_node.GetValue(NODAL_AREA)= 0;
+                r_slave_node.GetValue(CONV_PROJ)= array_1d<double,3>(3,0.0);
+                r_slave_node.GetValue(PRESS_PROJ)= array_1d<double,3>(3,0.0);
+                r_slave_node.GetValue(DIVPROJ)= 0 ;
+            }
+        }
+
+        for(const auto& constraint : r_constraints_container)
+        {
+            const auto& master_dofs = constraint.GetMasterDofsVector();
+            const auto& slave_dofs = constraint.GetSlaveDofsVector();
+            ModelPart::MatrixType r_relation_matrix;
+            ModelPart::VectorType r_constant_vector;
+            constraint.CalculateLocalSystem(r_relation_matrix,r_constant_vector,rModelPart.GetProcessInfo());
+
+            IndexType slave_i = 0;
+            for(const auto& slave_dof : slave_dofs)
+            {
+                const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
+                auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
+                IndexType master_j = 0;
+                for(const auto& master_dof : master_dofs)
+                {
+                    const auto master_node_id = master_dof->Id();
+                    const double weight = r_relation_matrix(slave_i, master_j);
+                    auto& r_master_node = rModelPart.Nodes()[master_node_id];
+
+                    r_slave_node.GetValue(NODAL_AREA) +=(r_master_node.FastGetSolutionStepValue(NODAL_AREA))*weight;
+                    r_slave_node.GetValue(CONV_PROJ) +=(r_master_node.FastGetSolutionStepValue(CONV_PROJ))*weight;
+                    r_slave_node.GetValue(PRESS_PROJ) +=(r_master_node.FastGetSolutionStepValue(PRESS_PROJ))*weight;
+                    r_slave_node.GetValue(DIVPROJ) +=(r_master_node.FastGetSolutionStepValue(DIVPROJ))*weight;
+
+                    ++master_j;
+                }
+                ++slave_i;
             }
         }
 
@@ -664,50 +623,45 @@ protected:
 
     void ChimeraVelocityCorrection(ModelPart& rModelPart)
     {
-        const auto& r_constraints_container = rModelPart.MasterSlaveConstraints();
+        auto &pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
+        const auto& r_constraints_container = pre_modelpart.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
-            if (constraint.Is(FS_CHIMERA_PRE_CONSTRAINT))
+            const auto& slave_dofs = constraint.GetSlaveDofsVector();
+            for(const auto& slave_dof : slave_dofs)
             {
-                const auto& slave_dofs = constraint.GetSlaveDofsVector();
-                for(const auto& slave_dof : slave_dofs)
-                {
-                    const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
-                    auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
-                    r_slave_node.FastGetSolutionStepValue(FRACT_VEL_X)=0;
-                    r_slave_node.FastGetSolutionStepValue(FRACT_VEL_Y)=0;
-                }
+                const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
+                auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
+                r_slave_node.FastGetSolutionStepValue(FRACT_VEL_X)=0;
+                r_slave_node.FastGetSolutionStepValue(FRACT_VEL_Y)=0;
             }
         }
 
         for(const auto& constraint : r_constraints_container)
         {
-            if (constraint.Is(FS_CHIMERA_PRE_CONSTRAINT))
+            const auto& master_dofs = constraint.GetMasterDofsVector();
+            const auto& slave_dofs = constraint.GetSlaveDofsVector();
+            ModelPart::MatrixType r_relation_matrix;
+            ModelPart::VectorType r_constant_vector;
+            constraint.CalculateLocalSystem(r_relation_matrix,r_constant_vector,rModelPart.GetProcessInfo());
+
+            IndexType slave_i = 0;
+            for(const auto& slave_dof : slave_dofs)
             {
-                const auto& master_dofs = constraint.GetMasterDofsVector();
-                const auto& slave_dofs = constraint.GetSlaveDofsVector();
-                ModelPart::MatrixType r_relation_matrix;
-                ModelPart::VectorType r_constant_vector;
-                constraint.CalculateLocalSystem(r_relation_matrix,r_constant_vector,rModelPart.GetProcessInfo());
-
-                IndexType slave_i = 0;
-                for(const auto& slave_dof : slave_dofs)
+                const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
+                auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
+                IndexType master_j = 0;
+                for(const auto& master_dof : master_dofs)
                 {
-                    const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
-                    auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
-                    IndexType master_j = 0;
-                    for(const auto& master_dof : master_dofs)
-                    {
-                        const auto master_node_id = master_dof->Id();
-                        const double weight = r_relation_matrix(slave_i, master_j);
-                        auto& r_master_node = rModelPart.Nodes()[master_node_id];
+                    const auto master_node_id = master_dof->Id();
+                    const double weight = r_relation_matrix(slave_i, master_j);
+                    auto& r_master_node = rModelPart.Nodes()[master_node_id];
 
-                        r_slave_node.GetValue(FRACT_VEL) +=(r_master_node.FastGetSolutionStepValue(FRACT_VEL))*weight;
+                    r_slave_node.GetValue(FRACT_VEL) +=(r_master_node.FastGetSolutionStepValue(FRACT_VEL))*weight;
 
-                        ++master_j;
-                    }
-                    ++slave_i;
+                    ++master_j;
                 }
+                ++slave_i;
             }
         }
 
