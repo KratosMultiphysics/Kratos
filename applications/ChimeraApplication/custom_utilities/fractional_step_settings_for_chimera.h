@@ -209,37 +209,6 @@ public:
             return true;
         return false;
     }
-    /* void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
-                                    typename TLinearSolver::Pointer pLinearSolver,
-                                    const double Tolerance,
-                                    const std::size_t MaxIter) override
-    {
-        KRATOS_TRY;
-
-        BaseType::mHaveTurbulenceModel = true;
-
-        ModelPart& rModelPart = BaseType::GetModelPart();
-        std::size_t DomainSize = BaseType::GetDomainSize();
-        std::size_t TimeOrder = BaseType::GetTimeOrder();
-        bool ReformDofSet = BaseType::GetReformDofSet();
-
-        if (rTurbulenceModel == BaseType::SpalartAllmaras)
-        {
-            BaseType::mpTurbulenceModel = ProcessPointerType( new SpalartAllmarasTurbulenceModelForChimera<TSparseSpace,TDenseSpace,TLinearSolver>
-                                                              (rModelPart,pLinearSolver,DomainSize,Tolerance,MaxIter,ReformDofSet,TimeOrder));
-        }
-        else
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Error in FractionalStepSettingsForChimera: Unknown turbulence model label.","");
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    void SetTurbulenceModel(ProcessPointerType pTurbulenceModel) override
-    {
-        BaseType::SetTurbulenceModel(pTurbulenceModel);
-    } */
 
     ///@}
     ///@name Inquiry
