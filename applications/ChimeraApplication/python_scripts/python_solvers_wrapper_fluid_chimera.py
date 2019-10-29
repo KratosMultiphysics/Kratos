@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
+from importlib import import_module
 from KratosMultiphysics.ChimeraApplication import *
 
 def CreateSolverByParameters(model, custom_settings, parallelism):
@@ -23,9 +24,8 @@ def CreateSolverByParameters(model, custom_settings, parallelism):
     else:
         raise Exception("parallelism is neither OpenMP nor MPI")
 
-
     module_full = 'KratosMultiphysics.ChimeraApplication.' + solver_module_name
-    solver = __import__(module_full, fromlist=[solver_module_name]).CreateSolver(model, custom_settings)
+    solver = import_module(module_full).CreateSolver(model, custom_settings)    
 
     return solver
 
