@@ -282,7 +282,7 @@ void RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>::AddLocalVelocityContribution(
 
     const GeometryType& r_geometry = this->GetGeometry();
 
-    RansCalculationUtilities rans_calculation_utilities;
+
 
     // Get Shape function data
     const GeometryType::IntegrationPointsArrayType& integration_points =
@@ -304,15 +304,15 @@ void RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>::AddLocalVelocityContribution(
         const Vector& gauss_shape_functions = row(shape_functions, g);
         const double weight = J * integration_points[g].Weight();
 
-        const double nu = rans_calculation_utilities.EvaluateInPoint(
+        const double nu = RansCalculationUtilities::EvaluateInPoint(
             r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
-        const double nu_t = rans_calculation_utilities.EvaluateInPoint(
+        const double nu_t = RansCalculationUtilities::EvaluateInPoint(
             r_geometry, TURBULENT_VISCOSITY, gauss_shape_functions);
-        const double tke = rans_calculation_utilities.EvaluateInPoint(
+        const double tke = RansCalculationUtilities::EvaluateInPoint(
             r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
-        const double epsilon = rans_calculation_utilities.EvaluateInPoint(
+        const double epsilon = RansCalculationUtilities::EvaluateInPoint(
             r_geometry, TURBULENT_ENERGY_DISSIPATION_RATE, gauss_shape_functions);
-        const double y_plus = rans_calculation_utilities.EvaluateInPoint(
+        const double y_plus = RansCalculationUtilities::EvaluateInPoint(
             r_geometry, RANS_Y_PLUS, gauss_shape_functions);
 
         const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));

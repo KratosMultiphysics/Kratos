@@ -124,7 +124,7 @@ public:
         mVonKarman = mrParameters["constants"]["von_karman"].GetDouble();
         mBeta = mrParameters["constants"]["beta"].GetDouble();
 
-        mLimitYPlus = RansCalculationUtilities().CalculateLogarithmicYPlusLimit(
+        mLimitYPlus = RansCalculationUtilities::CalculateLogarithmicYPlusLimit(
             mVonKarman, mBeta);
 
         KRATOS_CATCH("");

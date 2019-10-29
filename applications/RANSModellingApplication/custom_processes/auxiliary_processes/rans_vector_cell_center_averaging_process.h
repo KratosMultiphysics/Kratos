@@ -218,7 +218,7 @@ private:
         VariableUtils().SetNonHistoricalVariableToZero(
             NUMBER_OF_NEIGHBOUR_CONDITIONS, r_model_part.Nodes());
 
-        RansCalculationUtilities rans_calculation_utilities;
+
         const int number_of_conditions = r_model_part.NumberOfConditions();
 #pragma omp parallel for
         for (int i_condition = 0; i_condition < number_of_conditions; ++i_condition)
@@ -255,7 +255,7 @@ private:
         const Variable<array_1d<double, 3>>& r_output_variable =
             KratosComponents<Variable<array_1d<double, 3>>>::Get(mAveragingOutputVariableName);
 
-        RansCalculationUtilities rans_calculation_utilities;
+
         VariableUtils variable_utilities;
 
         variable_utilities.SetHistoricalVariableToZero(r_output_variable,
@@ -284,12 +284,12 @@ private:
             Matrix shape_functions;
             Element::GeometryType::ShapeFunctionsGradientsType shape_function_derivatives;
 
-            rans_calculation_utilities.CalculateGeometryData(
+            RansCalculationUtilities::CalculateGeometryData(
                 r_parent_element_geometry, GeometryData::GI_GAUSS_1,
                 gauss_weights, shape_functions, shape_function_derivatives);
 
             const Vector& gauss_shape_functions = row(shape_functions, 0);
-            const array_1d<double, 3>& value = rans_calculation_utilities.EvaluateInPoint(
+            const array_1d<double, 3>& value = RansCalculationUtilities::EvaluateInPoint(
                 r_parent_element_geometry, r_input_variable, gauss_shape_functions);
 
             for (int i_node = 0; i_node < number_of_nodes; ++i_node)

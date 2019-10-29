@@ -451,7 +451,7 @@ public:
                            const Vector& rShapeFunction,
                            const int Step = 0) const
     {
-        return RansCalculationUtilities().EvaluateInPoint(
+        return RansCalculationUtilities::EvaluateInPoint(
             this->GetGeometry(), rVariable, rShapeFunction, Step);
     }
 
@@ -467,7 +467,7 @@ public:
                                         const Vector& rShapeFunction,
                                         const int Step = 0) const
     {
-        return RansCalculationUtilities().EvaluateInPoint(
+        return RansCalculationUtilities::EvaluateInPoint(
             this->GetGeometry(), rVariable, rShapeFunction, Step);
     }
 
@@ -648,7 +648,7 @@ public:
     ShapeFunctionDerivativesArrayType GetGeometryParameterDerivatives() const
     {
         const GeometryType& r_geometry = this->GetGeometry();
-        return RansCalculationUtilities().CalculateGeometryParameterDerivatives(
+        return RansCalculationUtilities::CalculateGeometryParameterDerivatives(
             r_geometry, this->GetIntegrationMethod());
     }
 
@@ -962,7 +962,7 @@ public:
     {
         const GeometryType& r_geometry = this->GetGeometry();
 
-        RansCalculationUtilities().CalculateGradient<TDim>(
+        RansCalculationUtilities::CalculateGradient<TDim>(
             rOutput, r_geometry, rVariable, rShapeDerivatives, Step);
     }
 
@@ -982,7 +982,7 @@ public:
                            const int Step = 0) const
     {
         const GeometryType& r_geometry = this->GetGeometry();
-        RansCalculationUtilities().CalculateGradient(
+        RansCalculationUtilities::CalculateGradient(
             rOutput, r_geometry, rVariable, rShapeDerivatives, Step);
     }
 
@@ -1056,7 +1056,7 @@ protected:
     {
         const GeometryType& r_geometry = this->GetGeometry();
 
-        RansCalculationUtilities().CalculateGeometryData(
+        RansCalculationUtilities::CalculateGeometryData(
             r_geometry, this->GetIntegrationMethod(), rGaussWeights, rNContainer, rDN_DX);
     }
 

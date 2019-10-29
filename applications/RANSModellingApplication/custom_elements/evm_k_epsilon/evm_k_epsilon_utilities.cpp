@@ -58,7 +58,7 @@ double CalculateSourceTerm(const BoundedMatrix<double, TDim, TDim>& rVelocityGra
                            const double turbulent_kinetic_energy)
 {
     const double velocity_divergence =
-        RansCalculationUtilities().CalculateMatrixTrace<TDim>(rVelocityGradient);
+        RansCalculationUtilities::CalculateMatrixTrace<TDim>(rVelocityGradient);
     identity_matrix<double> identity(TDim);
 
     BoundedMatrix<double, TDim, TDim> symmetric_velocity_gradient;

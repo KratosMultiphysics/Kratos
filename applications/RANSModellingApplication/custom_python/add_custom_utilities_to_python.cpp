@@ -17,6 +17,8 @@
 
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
+
+#include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/rans_variable_utilities.h"
 
 namespace Kratos
@@ -33,6 +35,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetMaximumScalarValue", &RansVariableUtilities::GetMaximumScalarValue)
         .def("CopyNodalSolutionStepVariablesList",
              &RansVariableUtilities::CopyNodalSolutionStepVariablesList);
+
+    m.def_submodule("RansCalculationUtilities")
+        .def("CalculateLogarithmicYPlusLimit",
+             &RansCalculationUtilities::CalculateLogarithmicYPlusLimit);
 }
 
 } // namespace Python.

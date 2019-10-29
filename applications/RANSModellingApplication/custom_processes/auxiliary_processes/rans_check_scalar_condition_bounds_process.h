@@ -150,7 +150,7 @@ public:
         const ModelPart::ConditionsContainerType& r_conditions =
             mrModel.GetModelPart(mModelPartName).Conditions();
 
-        RansCalculationUtilities rans_calculation_utilities;
+
 
         double scalar_min = 0.0;
         double scalar_max = 0.0;
@@ -176,12 +176,12 @@ public:
             Matrix shape_functions;
             ModelPart::ElementType::GeometryType::ShapeFunctionsGradientsType shape_function_derivatives;
 
-            rans_calculation_utilities.CalculateGeometryData(
+            RansCalculationUtilities::CalculateGeometryData(
                 r_parent_element_geometry, GeometryData::GI_GAUSS_1,
                 gauss_weights, shape_functions, shape_function_derivatives);
 
             const Vector& gauss_shape_functions = row(shape_functions, 0);
-            const double current_value = rans_calculation_utilities.EvaluateInPoint(
+            const double current_value = RansCalculationUtilities::EvaluateInPoint(
                 r_parent_element_geometry, scalar_variable, gauss_shape_functions);
 
             if (!initialized)

@@ -252,7 +252,7 @@ void RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::ApplyRansBasedWallLaw(
 {
     KRATOS_TRY
 
-    RansCalculationUtilities rans_calculation_utilities;
+
 
     GeometryType& r_geometry = this->GetGeometry();
 
@@ -281,15 +281,15 @@ void RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::ApplyRansBasedWallLaw(
         const Vector& gauss_shape_functions = row(shape_functions, g);
         const double weight = J * integration_points[g].Weight();
 
-        const array_1d<double, 3>& r_wall_velocity = rans_calculation_utilities.EvaluateInPoint(
+        const array_1d<double, 3>& r_wall_velocity = RansCalculationUtilities::EvaluateInPoint(
             r_geometry, VELOCITY, gauss_shape_functions);
         const double wall_velocity_magnitude = norm_2(r_wall_velocity);
 
-        const double tke = rans_calculation_utilities.EvaluateInPoint(
+        const double tke = RansCalculationUtilities::EvaluateInPoint(
             r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
-        const double y_plus = rans_calculation_utilities.EvaluateInPoint(
+        const double y_plus = RansCalculationUtilities::EvaluateInPoint(
             r_geometry, RANS_Y_PLUS, gauss_shape_functions);
-        const double rho = rans_calculation_utilities.EvaluateInPoint(
+        const double rho = RansCalculationUtilities::EvaluateInPoint(
             r_geometry, DENSITY, gauss_shape_functions);
 
         if (wall_velocity_magnitude > eps)

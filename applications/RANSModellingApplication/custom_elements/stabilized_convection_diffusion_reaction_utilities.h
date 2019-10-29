@@ -64,7 +64,7 @@ inline void CalculateStabilizationTau(double& rTau,
                                       const double DynamicTau)
 {
     unsigned int dim = rContravariantMetricTensor.size2();
-    const Vector velocity = RansCalculationUtilities().GetVector(rVelocity, dim);
+    const Vector velocity = RansCalculationUtilities::GetVector(rVelocity, dim);
     Vector temp(dim);
     noalias(temp) = prod(rContravariantMetricTensor, velocity);
     const double velocity_norm = norm_2(rVelocity);

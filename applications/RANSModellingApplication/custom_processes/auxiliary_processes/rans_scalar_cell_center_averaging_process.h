@@ -259,7 +259,7 @@ private:
         const Variable<double>& r_output_variable =
             KratosComponents<Variable<double>>::Get(mAveragingOutputVariableName);
 
-        RansCalculationUtilities rans_calculation_utilities;
+
         VariableUtils variable_utilities;
 
         variable_utilities.SetHistoricalVariableToZero(r_output_variable,
@@ -289,12 +289,12 @@ private:
             Matrix shape_functions;
             Element::GeometryType::ShapeFunctionsGradientsType shape_function_derivatives;
 
-            rans_calculation_utilities.CalculateGeometryData(
+            RansCalculationUtilities::CalculateGeometryData(
                 r_parent_element_geometry, GeometryData::GI_GAUSS_1,
                 gauss_weights, shape_functions, shape_function_derivatives);
 
             const Vector& gauss_shape_functions = row(shape_functions, 0);
-            const double value = rans_calculation_utilities.EvaluateInPoint(
+            const double value = RansCalculationUtilities::EvaluateInPoint(
                 r_parent_element_geometry, r_input_variable, gauss_shape_functions);
 
             for (int i_node = 0; i_node < number_of_nodes; ++i_node)
