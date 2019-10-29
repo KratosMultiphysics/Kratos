@@ -158,6 +158,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::ApplyLogarithmicWallLaw(
     MatrixType& rLocalMatrix, VectorType& rLocalVector, ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
+
     GeometryType& rGeometry = this->GetGeometry();
     const size_t BlockSize = TDim + 1;
     const double NodalFactor = 1.0 / double(TDim);
@@ -239,6 +241,8 @@ void RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::ApplyLogarithmicWallLaw(
             }
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -246,6 +250,8 @@ void RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::ApplyRansBasedWallLaw(
     MatrixType& rLocalMatrix, VectorType& rLocalVector, ProcessInfo& rCurrentProcessInfo)
 
 {
+    KRATOS_TRY
+
     RansCalculationUtilities rans_calculation_utilities;
 
     GeometryType& r_geometry = this->GetGeometry();
@@ -308,6 +314,8 @@ void RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::ApplyRansBasedWallLaw(
             }
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

@@ -52,10 +52,11 @@ namespace Kratos
  * This is a Neumann wall condition for $\epsilon$ equation in $k-\epsilon$
  * formulation of RANS based on eddy viscosity model formulation.
  *
+ * @tparam TDim dimension of the wall condition
  * @tparam TNumNodes Number of nodes in the wall condition
  */
 
-template <unsigned int TNumNodes>
+template <unsigned int TDim, unsigned int TNumNodes = TDim>
 class RansEvmKEpsilonEpsilonWall : public Condition
 {
 public:
@@ -106,8 +107,8 @@ public:
      @param pProperties Pointer to the element's properties
      */
     RansEvmKEpsilonEpsilonWall(IndexType NewId,
-                                GeometryType::Pointer pGeometry,
-                                PropertiesType::Pointer pProperties);
+                               GeometryType::Pointer pGeometry,
+                               PropertiesType::Pointer pProperties);
 
     /// Copy constructor.
     RansEvmKEpsilonEpsilonWall(RansEvmKEpsilonEpsilonWall const& rOther);

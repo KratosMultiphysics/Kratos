@@ -12,8 +12,6 @@
 
 // System includes
 #include <cmath>
-#include <iostream>
-#include <limits>
 
 // Project includes
 #include "evm_k_epsilon_utilities.h"
@@ -87,31 +85,6 @@ double CalculateGamma(const double C_mu,
 {
     return std::max<double>(
         0.0, C_mu * f_mu * turbulent_kinetic_energy / turbulent_kinematic_viscosity);
-}
-
-void CalculateTurbulentValues(double& turbulent_kinetic_energy,
-                              double& turbulent_energy_dissipation_rate,
-                              const double y_plus,
-                              const double kinematic_viscosity,
-                              const double wall_distance,
-                              const double c_mu,
-                              const double von_karman)
-{
-    const double u_tau = y_plus * kinematic_viscosity / wall_distance;
-    turbulent_kinetic_energy = std::pow(u_tau, 2) / std::sqrt(c_mu);
-    turbulent_energy_dissipation_rate = std::pow(u_tau, 3) / (von_karman * wall_distance);
-}
-
-void CalculateTurbulentValues(double& turbulent_kinetic_energy,
-                              double& turbulent_energy_dissipation_rate,
-                              const double velocity_mag,
-                              const double turbulence_intensity,
-                              const double mixing_length,
-                              const double c_mu)
-{
-    turbulent_kinetic_energy = 1.5 * std::pow(velocity_mag * turbulence_intensity, 2);
-    turbulent_energy_dissipation_rate =
-        c_mu * std::pow(turbulent_kinetic_energy, 1.5) / mixing_length;
 }
 
 template double CalculateSourceTerm<2>(const BoundedMatrix<double, 2, 2>&, const double, const double);

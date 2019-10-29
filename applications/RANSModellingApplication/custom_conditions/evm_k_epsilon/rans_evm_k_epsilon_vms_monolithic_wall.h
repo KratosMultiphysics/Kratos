@@ -102,8 +102,8 @@ public:
      @param pProperties Pointer to the element's properties
      */
     RansEvmKEpsilonVmsMonolithicWall(IndexType NewId,
-                                      GeometryType::Pointer pGeometry,
-                                      PropertiesType::Pointer pProperties);
+                                     GeometryType::Pointer pGeometry,
+                                     PropertiesType::Pointer pProperties);
 
     /// Copy constructor.
     RansEvmKEpsilonVmsMonolithicWall(RansEvmKEpsilonVmsMonolithicWall const& rOther);
