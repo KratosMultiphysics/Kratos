@@ -203,7 +203,7 @@ public:
     * @brief This method returns the already computed tessellation of a curve
     * @return return std::vector<std::pair<double, Vector>> tessellation
     */
-    TessellationType getTessellation() {
+    TessellationType GetTessellation() {
         return mTesselation;
     }
 
