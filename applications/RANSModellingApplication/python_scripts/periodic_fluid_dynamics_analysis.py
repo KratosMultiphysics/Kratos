@@ -4,22 +4,14 @@ from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 from KratosMultiphysics import IsDistributedRun
 
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
-from KratosMultiphysics.RANSModellingApplication.fluid_solver_no_replace import FluidSolverNoReplace
 if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
-    from KratosMultiphysics.RANSModellingApplication.trilinos_fluid_solver_no_replace import TrilinosFluidSolverNoReplace
+    from KratosMultiphysics.RANSModellingApplication.trilinos_fluid_solver_no_replace import TrilinosFluidSolverNoReplace as fluid_solver_no_replace
+elif (not IsDistributedRun()):
+    from KratosMultiphysics.RANSModellingApplication.fluid_solver_no_replace import FluidSolverNoReplace as fluid_solver_no_replace
+else:
+    raise Exception("Distributed run requires TrilinosApplication")
 
 
 class PeriodicFluidDynamicsAnalysis(FluidDynamicsAnalysis):
     def _CreateSolver(self):
-        if self.project_parameters["problem_data"]["parallel_type"].GetString(
-        ) == "OpenMP":
-            return FluidSolverNoReplace(
-                self.model, self.project_parameters["solver_settings"])
-        else:
-            if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
-                return TrilinosFluidSolverNoReplace(
-                    self.model, self.project_parameters["solver_settings"])
-            else:
-                raise Exception(
-                    "Trying to run PeriodicFluidDynamicAnalysis in MPI without TrilinosApplication. Please re-install/compile Kratos with TrilinosApplication."
-                )
+        return fluid_solver_no_replace(self.model, self.project_parameters["solver_settings"])
