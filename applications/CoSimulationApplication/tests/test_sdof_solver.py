@@ -34,7 +34,7 @@ class TestSdofSolver(KratosUnittest.TestCase):
 
     def _compare_results(self, reference, result):
         ref = np.loadtxt(reference, skiprows=1)
-        res = np.loadtxt(reference, skiprows=1)
+        res = np.loadtxt(result, skiprows=1)
         self.assertEqual(len(ref), len(res))
         for line_ref, line_res in zip(ref, res):
             self.assertEqual(len(line_ref), len(line_res))
@@ -188,7 +188,7 @@ class TestSdofSolver(KratosUnittest.TestCase):
             system.SolveSolutionStep()
             system.OutputSolutionStep()
 
-        self._compare_results("./reference_files/ref_sdof_root_point_displacement_external_force.dat", "./result.dat")
+        self._compare_results("./reference_files/ref_sdof_root_point_displacement_impulse.dat", "./result.dat")
 
 if __name__ == '__main__':
     KratosUnittest.main()
