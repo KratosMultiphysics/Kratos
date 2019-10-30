@@ -381,10 +381,7 @@ namespace Kratos
 			std::copy(z_key_planes.begin(), z_key_planes.end(), z_coordinates.begin());
 
 			auto& colors = mrVolumePart.GetValue(COLORS);
-			colors.resize(mColors.GetNodalColors().size());
-			for(int i = 0 ; i < static_cast<int>(colors.size()) ; i++){
-				colors[i] = mColors.GetNodalColors()[i];
-			}
+			colors.resize((x_key_planes.size() - 1)*(y_key_planes.size() - 1) * (z_key_planes.size() - 1), false);
 			std::size_t index = 0;
 			for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
 				for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
