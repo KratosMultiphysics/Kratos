@@ -7,7 +7,6 @@ import KratosMultiphysics.CoSimulationApplication as KMC
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
 
 # Other imports
-#from importlib import import_module
 from .sdof_solver import SDoFSolver
 
 def Create(settings, solver_name):
@@ -43,21 +42,3 @@ class SdofSolverWrapper(CoSimulationSolverWrapper):
         self._sdof_solver.SolveSolutionStep()
         self.mp[KMC.SCALAR_DISPLACEMENT] = self._sdof_solver.GetSolutionStepValue("DISPLACEMENT", 0)
         self.mp[KMC.SCALAR_REACTION] = self._sdof_solver.GetSolutionStepValue("REACTION", 0)
-
-    def GetBufferSize(self):
-        self._sdof_solver.GetBufferSize()
-
-    def GetDeltaTime(self):
-        self._sdof_solver.GetDeltaTime()
-
-    def GetSolutionStepValue(self, identifier, buffer_idx=0):
-        self._sdof_solver.GetSolutionStepValue(identifier, buffer_idx=0)
-
-    def SetSolutionStepValue(self, identifier, value, buffer_idx=0):
-        self._sdof_solver.SetSolutionStepValue(identifier, value, buffer_idx=0)
-
-    def SetData(self, identifier, data):
-        self._sdof_solver.SetData(identifier, data)
-
-    def GetData(self, identifier):
-        self._sdof_solver.GetData(identifier)
