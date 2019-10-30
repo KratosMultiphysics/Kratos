@@ -13,6 +13,11 @@ include(pybind11Tools)
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 
+if((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON))
+  message("Enabling trilinos extension for KratosRANSModellingApplication")
+  add_subdirectory(trilinos_extension)
+endif((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON) )
+
 ## RANSModellingApplication Core sources
 file(GLOB_RECURSE KRATOS_RANS_MODELLING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/rans_modelling_application.cpp

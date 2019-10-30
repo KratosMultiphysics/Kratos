@@ -12,11 +12,6 @@
 #include "linear_solvers/linear_solver.h"
 #include "spaces/ublas_space.h"
 
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-#include "Epetra_FEVector.h"
-#include "trilinos_space.h"
-#endif
-
 #include "custom_python/add_custom_solving_processes_to_python.h"
 
 // Application includes
@@ -49,25 +44,6 @@ void AddCustomSolvingProcessesToPython(pybind11::module& m)
     py::class_<KEpsilonCoSolvingProcessType, KEpsilonCoSolvingProcessType::Pointer, ScalarCoSolvingProcessType, Process>(
         m, "KEpsilonCoSolvingProcess")
         .def(py::init<ModelPart&, Parameters&>());
-
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    using MPISparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-    using MPILinearSolverType = LinearSolver<MPISparseSpaceType, LocalSpaceType>;
-
-    using MPIScalarCoSolvingProcessType =
-        ScalarCoSolvingProcess<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>;
-    py::class_<MPIScalarCoSolvingProcessType, MPIScalarCoSolvingProcessType::Pointer, Process>(
-        m, "MPIScalarCoSolvingProcess")
-        .def(py::init<ModelPart&, Parameters&, Variable<double>&>())
-        .def("AddStrategy", &MPIScalarCoSolvingProcessType::AddStrategy)
-        .def("AddAuxiliaryProcess", &MPIScalarCoSolvingProcessType::AddAuxiliaryProcess);
-
-    using MPIKEpsilonCoSolvingProcessType =
-        KEpsilonCoSolvingProcess<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>;
-    py::class_<MPIKEpsilonCoSolvingProcessType, MPIKEpsilonCoSolvingProcessType::Pointer, MPIScalarCoSolvingProcessType, Process>(
-        m, "MPIKEpsilonCoSolvingProcess")
-        .def(py::init<ModelPart&, Parameters&>());
-#endif
 }
 
 } // namespace Python.

@@ -15,6 +15,7 @@
 
 // System includes
 #include <string>
+#include <unordered_map>
 
 /* Project includes */
 #include "includes/model_part.h"
@@ -68,10 +69,16 @@ public:
      * @param PrsRatioTolerance Relative tolerance for presssure error
      * @param PrsAbsTolerance Absolute tolerance for presssure error
      */
-    GenericConvergenceCriteria(double rRatioTolerance, double rAbsTolerance);
+    GenericConvergenceCriteria(double rRatioTolerance, double rAbsTolerance)
+        : BaseType(), mRatioTolerance(rRatioTolerance), mAbsTolerance(rAbsTolerance)
+    {
+        mSolutionVariables = "";
+    }
 
     /// Destructor.
-    ~GenericConvergenceCriteria() override;
+    ~GenericConvergenceCriteria() override
+    {
+    }
 
     ///@}
     ///@name Operators
@@ -90,22 +97,94 @@ public:
                       DofsArrayType& rDofSet,
                       const TSystemMatrixType& A,
                       const TSystemVectorType& Dx,
-                      const TSystemVectorType& b) override;
+                      const TSystemVectorType& b) override
+    {
+        if (SparseSpaceType::Size(Dx) != 0) // if we are solving for something
+        {
+            double solution_norm, increase_norm, dof_size;
+
+            this->CalculateConvergenceCheckNorms(solution_norm, increase_norm, dof_size,
+                                                 rModelPart, rDofSet, A, Dx, b);
+
+            if (solution_norm == 0.0)
+                solution_norm = 1.0;
+
+            const double ratio = increase_norm / solution_norm;
+            const double ratio_abs = increase_norm / dof_size;
+
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            const unsigned int iteration = r_current_process_info[NL_ITERATION_NUMBER];
+
+            if (this->GetEchoLevel() > 0)
+            {
+                std::stringstream msg;
+                msg << "[" << iteration << "] CONVERGENCE CHECK: ";
+                msg << mSolutionVariables;
+                msg << ": ratio = " << std::scientific << ratio
+                    << "; exp.ratio = " << std::scientific << mRatioTolerance;
+                msg << ": abs = " << std::scientific << ratio_abs
+                    << "; exp.abs = " << std::scientific << mAbsTolerance << std::endl;
+                KRATOS_INFO(this->Info()) << msg.str();
+            }
+
+            if ((std::abs(ratio) > mRatioTolerance) && (std::abs(ratio_abs) > mAbsTolerance))
+                return false;
+
+            KRATOS_INFO_IF(this->Info(), this->GetEchoLevel() > 0)
+                << "CONVERGENCE CHECK: " << mSolutionVariables
+                << ": *** CONVERGENCE IS ACHIEVED ***\n";
+
+            return true;
+        }
+        else // in this case all the displacements are imposed!
+        {
+            return true;
+        }
+    }
 
     /// Initialize this class before using it
     /**
      * @param rModelPart Reference to the ModelPart containing the fluid problem. (unused)
      */
-    void Initialize(ModelPart& rModelPart) override;
+    void Initialize(ModelPart& rModelPart) override
+    {
+        BaseType::mConvergenceCriteriaIsInitialized = true;
+    }
 
     void InitializeSolutionStep(ModelPart& rModelPart,
                                 DofsArrayType& rDofSet,
                                 const TSystemMatrixType& A,
                                 const TSystemVectorType& Dx,
-                                const TSystemVectorType& b) override;
+                                const TSystemVectorType& b) override
+    {
+        if (mSolutionVariables == "")
+        {
+            const int number_of_dofs = rDofSet.size();
+
+            // create the variable list
+            std::unordered_map<std::string, int> variables_map;
+            for (int i_dof = 0; i_dof < number_of_dofs; ++i_dof)
+            {
+                variables_map.insert(std::make_pair(
+                    (rDofSet.begin() + i_dof)->GetVariable().Name(), 1));
+            }
+
+            for (const auto& pair : variables_map)
+            {
+                mSolutionVariables += pair.first + ", ";
+            }
+
+            // remove last two characters
+            mSolutionVariables.pop_back();
+            mSolutionVariables.pop_back();
+        }
+    }
 
     /// Turn back information as a string.
-    std::string Info() const override;
+    std::string Info() const override
+    {
+        return "GenericConvergenceCriteria";
+    }
 
     ///@} // Operations
 

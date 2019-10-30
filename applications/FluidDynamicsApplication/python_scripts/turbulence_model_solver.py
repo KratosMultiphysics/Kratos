@@ -3,14 +3,14 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
-def CreateTurbulenceModel(model, settings, is_distributed = False):
+def CreateTurbulenceModel(model, settings):
     if not CheckIfApplicationsAvailable("RANSModellingApplication"):
         msg = "Using a turbulence model requires the RANSModellingApplication. "
         msg += "Please re-install/re-compile with RANSModellingApplication."
         raise Exception(msg)
 
     from KratosMultiphysics.RANSModellingApplication.turbulence_model_factory import Factory
-    return Factory(settings, model, is_distributed)
+    return Factory(settings, model)
 
 class TurbulenceModelSolver(PythonSolver):
     def AddVariables(self):

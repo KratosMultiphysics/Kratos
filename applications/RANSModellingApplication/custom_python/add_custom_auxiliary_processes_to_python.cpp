@@ -12,11 +12,6 @@
 #include "linear_solvers/linear_solver.h"
 #include "spaces/ublas_space.h"
 
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-#include "Epetra_FEVector.h"
-#include "trilinos_space.h"
-#endif
-
 #include "custom_python/add_custom_auxiliary_processes_to_python.h"
 
 // RANS auxiliary processes

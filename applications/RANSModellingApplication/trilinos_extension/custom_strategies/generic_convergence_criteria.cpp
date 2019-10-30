@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <unordered_map>
 #include <cmath>
 
 /* Project includes */
@@ -18,13 +19,16 @@
 #include "spaces/ublas_space.h"
 #include "utilities/openmp_utils.h"
 
+#include "Epetra_FEVector.h"
+#include "trilinos_space.h"
+
 // Include base h
-#include "generic_convergence_criteria.h"
+#include "custom_strategies/generic_convergence_criteria.h"
 
 namespace Kratos
 {
 template <>
-void GenericConvergenceCriteria<UblasSpace<double, CompressedMatrix, Vector>, UblasSpace<double, Matrix, Vector>>::CalculateConvergenceCheckNorms(
+void GenericConvergenceCriteria<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>, UblasSpace<double, Matrix, Vector>>::CalculateConvergenceCheckNorms(
     double& rSolutionNorm,
     double& rIncreaseNorm,
     double& rDofSize,
@@ -46,6 +50,9 @@ void GenericConvergenceCriteria<UblasSpace<double, CompressedMatrix, Vector>, Ub
     int NumThreads = OpenMPUtils::GetNumThreads();
     OpenMPUtils::DivideInPartitions(NumDofs, NumThreads, DofPartition);
 
+    const Communicator& r_communicator = rModelPart.GetCommunicator();
+    const int my_pid = r_communicator.MyPID();
+
     // Loop over Dofs
 #pragma omp parallel reduction(+ : solution_norm, increase_norm, dof_num)
     {
@@ -59,11 +66,11 @@ void GenericConvergenceCriteria<UblasSpace<double, CompressedMatrix, Vector>, Ub
 
         for (typename DofsArrayType::iterator itDof = DofBegin; itDof != DofEnd; ++itDof)
         {
-            if (itDof->IsFree())
+            if (itDof->IsFree() && itDof->GetSolutionStepValue(PARTITION_INDEX) == my_pid)
             {
                 DofId = itDof->EquationId();
                 DofValue = itDof->GetSolutionStepValue(0);
-                DofIncr = Dx[DofId];
+                DofIncr = SparseSpaceType::GetValue(Dx, DofId);
 
                 solution_norm += DofValue * DofValue;
                 increase_norm += DofIncr * DofIncr;
@@ -72,16 +79,21 @@ void GenericConvergenceCriteria<UblasSpace<double, CompressedMatrix, Vector>, Ub
         }
     }
 
-    rSolutionNorm = std::sqrt(solution_norm);
-    rIncreaseNorm = std::sqrt(increase_norm);
-    rDofSize = static_cast<double>(dof_num);
+    std::vector<double> residual_norms = {increase_norm, solution_norm,
+                                          static_cast<double>(dof_num)};
+    const std::vector<double>& total_residual_norms =
+        r_communicator.GetDataCommunicator().SumAll(residual_norms);
+
+    rSolutionNorm = std::sqrt(total_residual_norms[1]);
+    rIncreaseNorm = std::sqrt(total_residual_norms[0]);
+    rDofSize = total_residual_norms[2];
 
     KRATOS_CATCH("");
 }
 
 // template instantiations
 
-template class GenericConvergenceCriteria<UblasSpace<double, CompressedMatrix, Vector>,
+template class GenericConvergenceCriteria<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>,
                                           UblasSpace<double, Matrix, Vector>>;
 
 } // namespace Kratos
