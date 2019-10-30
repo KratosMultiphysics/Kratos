@@ -45,7 +45,9 @@
 namespace Kratos
 {
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateMaterialResponsePK1(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     this->CalculateMaterialResponsePK2(rValues);
 
