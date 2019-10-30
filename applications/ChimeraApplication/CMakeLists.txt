@@ -1,60 +1,83 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-message("**** Configuring KratosChimeraApplication ****")
+message("**** configuring KratosChimeraApplicationApplication ****")
 
+
+## Check if fluid dynamics app is being compile dor not
 if(${FLUID_DYNAMICS_APPLICATION} MATCHES OFF )
     MESSAGE( FATAL_ERROR "ChimeraApplication needs FluidDynamicsApplicaiton to work. Please set FLUID_DYNAMICS_APPLICATION=ON in the configuration file." )
 endif(${FLUID_DYNAMICS_APPLICATION} MATCHES OFF)
 
+################### PYBIND11
 include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-#dependecies on other applications
 include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/ChimeraApplication )
 
-
-# generate variables with the sources
-set( KRATOS_CHIMERA_APPLICATION_SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/chimera_application.cpp
+## ChimeraApplication Core sources
+file(GLOB_RECURSE KRATOS_CHIMERA_APPLICATION_CORE
+    ${CMAKE_CURRENT_SOURCE_DIR}/chimera_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/chimera_application_variables.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/chimera_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fractional_step_settings_for_chimera.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/hole_cutting_utility.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/rotate_region_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
-set(KRATOS_CHIMERA_APPLICATION_EXTRA_LIBS "")
-## If we have mpi support, use it
-if(${MPI_NEEDED} MATCHES ON )
-	set(KRATOS_CHIMERA_APPLICATION_EXTRA_LIBS ${KRATOS_CHIMERA_APPLICATION_EXTRA_LIBS} ${MPI_LIBRARIES})
-endif(${MPI_NEEDED} MATCHES ON )
+## ChimeraApplication testing sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_CHIMERA_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
+## ChimeraApplication python interface sources
+file(GLOB_RECURSE KRATOS_CHIMERA_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
-# define library Kratos which defines the basic python interface
-pybind11_add_module(KratosChimeraApplication MODULE THIN_LTO ${KRATOS_CHIMERA_APPLICATION_SOURCES})
-target_link_libraries(KratosChimeraApplication PRIVATE KratosCore KratosFluidDynamicsCore ${KRATOS_CHIMERA_APPLICATION_EXTRA_LIBS})
+add_library(KratosChimeraApplicationCore SHARED ${KRATOS_CHIMERA_APPLICATION_CORE} ${KRATOS_CHIMERA_APPLICATION_TESTING_SOURCES})
+target_link_libraries(KratosChimeraApplicationCore PUBLIC KratosCore KratosFluidDynamicsCore)
+set_target_properties(KratosChimeraApplicationCore PROPERTIES COMPILE_DEFINITIONS "CHIMERA_APPLICATION=EXPORT,API")
+
+###############################################################
+## define library Kratos which defines the basic python interface
+pybind11_add_module(KratosChimeraApplication MODULE THIN_LTO ${KRATOS_CHIMERA_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosChimeraApplication PRIVATE KratosChimeraApplicationCore)
 set_target_properties(KratosChimeraApplication PROPERTIES PREFIX "")
-install(TARGETS KratosChimeraApplication DESTINATION libs )
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set_target_properties(KratosChimeraApplication PROPERTIES SUFFIX .pyd)
+    set_target_properties(KratosChimeraApplicationApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 # changing the .dylib suffix to .so (OS X)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	set_target_properties(KratosChimeraApplication PROPERTIES SUFFIX .so)
+    set_target_properties(KratosChimeraApplicationApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # install the python files
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py")
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
+  )
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
+
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosChimeraApplicationCore)
+    cotire(KratosChimeraApplication)
+endif(USE_COTIRE MATCHES ON)
+
+install(TARGETS KratosChimeraApplicationCore DESTINATION libs )
+install(TARGETS KratosChimeraApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ChimeraApplication.py" DESTINATION "KratosMultiphysics/ChimeraApplication" RENAME "__init__.py")
