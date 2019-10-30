@@ -112,7 +112,7 @@ public:
           mPlasticDissipation(rOther.mPlasticDissipation),
           mThreshold(rOther.mThreshold),
           mPlasticStrain(rOther.mPlasticStrain),
-          mPreviousStressVector(rOther.mPreviousStressVector)
+          mPreviousStressVector(rOther.mPreviousStressVector),
           mBackStressVector(rOther.mBackStressVector)
     {
     }
