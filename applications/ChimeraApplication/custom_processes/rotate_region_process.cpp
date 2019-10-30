@@ -13,7 +13,7 @@ RotateRegionProcess::RotateRegionProcess(ModelPart &rModelPart, Parameters rPara
   Parameters default_parameters(R"(
             {
                 "model_part_name":"SPECIFY_MODELPART_NAME",
-                "torque_model_part_name":"",
+                "torque_model_part_name":"PLEASE_SPECITY",
                 "center_of_rotation":[],
                 "calculate_torque":false,
                 "moment_of_inertia":0.0,
