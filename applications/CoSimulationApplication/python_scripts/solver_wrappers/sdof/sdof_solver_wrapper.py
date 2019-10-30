@@ -13,17 +13,14 @@ def Create(settings, solver_name):
     return SdofSolverWrapper(settings, solver_name)
 
 class SdofSolverWrapper(CoSimulationSolverWrapper):
-    """This class serves as basis for
+    """ This class implements a wrapper for an SDof solver to be used in CoSimulation
     """
     def __init__(self, settings, solver_name):
         super(SdofSolverWrapper, self).__init__(settings, solver_name)
 
         input_file_name = self.settings["solver_wrapper_settings"]["input_file"].GetString()
 
-        #current_model = KM.Model()
         self.mp = self.model.CreateModelPart("Sdof")
-
-        # this creates
         self._sdof_solver = SDoFSolver(input_file_name)
 
     def Initialize(self):
@@ -34,7 +31,6 @@ class SdofSolverWrapper(CoSimulationSolverWrapper):
 
     def AdvanceInTime(self, current_time):
         return self._sdof_solver.AdvanceInTime(current_time)
-
 
     def SolveSolutionStep(self):
         self._sdof_solver.SetSolutionStepValue("ROOT_POINT_DISPLACEMENT", self.mp[KMC.SCALAR_ROOT_POINT_DISPLACEMENT], 0)
