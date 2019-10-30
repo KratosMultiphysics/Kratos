@@ -6,7 +6,6 @@
     },
     "time_integration_parameters":{
         "alpha_m": -0.3,
-        "alpha_f":  -0.0,
         "time_step": 0.01
     },
      "initial_values":{
@@ -27,6 +26,6 @@
          "buffer_size": 3
      },
      "output_parameters":{
-        "file_name": "fsi_sdof/results_sdof.dat"
+        "write_output_file": false
      }
 }
