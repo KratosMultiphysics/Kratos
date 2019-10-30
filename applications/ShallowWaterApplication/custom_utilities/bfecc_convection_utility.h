@@ -30,42 +30,112 @@
 
 namespace Kratos
 {
+///@addtogroup ShallowWaterApplication
+///@{
 
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Explicit convection utility
+/** Convection of scalars and vectors for shallow water equations using BFECC correction
+*/
 template<std::size_t TDim> class BFECCConvectionUtility
 {
 
 public:
+    ///@name Type Definitions
+    ///@{
 
     KRATOS_CLASS_POINTER_DEFINITION(BFECCConvectionUtility<TDim>);
 
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     BFECCConvectionUtility(ModelPart& rThisModelPart, Parameters ThisParameters = Parameters());
 
 
     ~BFECCConvectionUtility() = default;
 
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     template<class TVarType, class TType>
     void Convect(const TVarType& rVar, const Variable<array_1d<double,3>>& conv_var);
 
-
     void UpdateSearchDatabase();
-
 
     template<class TVarType>
     void ResetBoundaryConditions(const TVarType& rVar);
 
-
     template<class TVarType>
     void CopyVariableToPreviousTimeStep(const TVarType& rVar);
 
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
 
 private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
 
     ModelPart& mrModelPart;
     BinBasedFastPointLocator<TDim> mSearchStructure;
     int mMaxResults;
 
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
 
     bool RK2Convect(
         const double Dt,
@@ -77,7 +147,28 @@ private:
         const int VelocitySign,
         const Variable<array_1d<double,3> >& rConvVar);
 
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+
+    ///@}
+
 };
+
+///@}
+
+///@} addtogroup block
 
 } // namespace Kratos.
 
