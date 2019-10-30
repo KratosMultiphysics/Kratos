@@ -27,7 +27,7 @@ namespace Testing
     * Checks the Small Displacement Mixed Strain Element
     * Simple test
     */
-    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedStrainElement, KratosStructuralMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedStrainElement2D3N, KratosStructuralMechanicsFastSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -72,8 +72,8 @@ namespace Testing
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-5;
-        const std::vector<double> expected_RHS({-49572.6,-49572.6,0.00640046,38461.5,11111.1,0.00177083,11111.1,38461.5,-0.00250463});
-        const std::vector<double> expected_LHS_row_0({-1.06838e+06,-299145,918803,384615,-85470.1,918803,683761,384615,918803});
+        const std::vector<double> expected_RHS({-53205.1,-53205.1,0.00107639,38461.5,14743.6,-0.00239583,14743.6,38461.5,-0.00634722});
+        const std::vector<double> expected_LHS_row_0({-625000,144231,368590,384615,-528846,368590,240385,384615,368590});
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
     }
@@ -86,13 +86,16 @@ namespace Testing
     {
         array_1d<double, 3> aux_disp;
         for (auto &r_node : rModelPart.Nodes()) {
-            aux_disp[0] = c_1 * r_node.X();
-            aux_disp[1] = c_2 * r_node.Y();
+            aux_disp[0] = c_1 * r_node.X0();
+            aux_disp[1] = c_2 * r_node.Y0();
             aux_disp[2] = 0.0;
             r_node.FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
             if (SetVolumetricStrain) {
                 r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = c_1 + c_2;
             }
+
+            r_node.X() = r_node.X0() + c_1 * r_node.X0();
+            r_node.Y() = r_node.Y0() + c_2 * r_node.Y0();
         }
     }
 
@@ -100,7 +103,7 @@ namespace Testing
     * Checks the Small Displacement Mixed Strain Element
     * Simple test with known analytical solution
     */
-    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedStrainElementVolumetricDeformationField, KratosStructuralMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedStrainElement2D3NResidual, KratosStructuralMechanicsFastSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -116,9 +119,9 @@ namespace Testing
         p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
         // Create the test element
-        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-        auto p_node_2 = r_model_part.CreateNewNode(2, 0.0 , 1.0 , 0.0);
-        auto p_node_3 = r_model_part.CreateNewNode(3, 1.0 , 0.0 , 0.0);
+        auto p_node_1 = r_model_part.CreateNewNode(1, 0.1 , 0.1 , 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(2, 0.9 , 0.4 , 0.0);
+        auto p_node_3 = r_model_part.CreateNewNode(3, 0.5 , 0.2 , 0.0);
         std::vector<ModelPart::IndexType> element_nodes {1,2,3};
         auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedStrainElement2D3N", 1, element_nodes, p_elem_prop);
 
@@ -126,7 +129,7 @@ namespace Testing
         p_element->Initialize();
 
         // Set a fake displacement and volumetric strain field to compute the residual
-        const double alpha = 1.0;
+        const double alpha = -2.0;
         const double beta = 1.0;
         const bool set_volumetric_field = false;
         LinearPerturbationField(r_model_part, alpha, beta, set_volumetric_field);
@@ -137,8 +140,9 @@ namespace Testing
 
         // Perturb the previous displacement and volumetric strain field to compute the residual
         const double alpha_perturbed = 1.25;
-        const double beta_perturbed = 1.25;
+        const double beta_perturbed = 0.25;
         LinearPerturbationField(r_model_part, alpha_perturbed, beta_perturbed, set_volumetric_field);
+
 
         Vector RHS_perturbed = ZeroVector(9);
         p_element->CalculateRightHandSide(RHS_perturbed, r_model_part.GetProcessInfo());
@@ -157,37 +161,19 @@ namespace Testing
         // Check the LHS
         array_1d<double, 9> perturbation_vector = ZeroVector(9);
         for (auto &r_node : r_model_part.Nodes()) {
-            perturbation_vector[(r_node.Id() - 1) * 3] = delta_alpha * r_node.X();
-            perturbation_vector[(r_node.Id() - 1) * 3 + 1] = delta_beta * r_node.Y();
+            perturbation_vector[(r_node.Id() - 1) * 3] = delta_alpha * r_node.X0();
+            perturbation_vector[(r_node.Id() - 1) * 3 + 1] = delta_beta * r_node.Y0();
             if (set_volumetric_field) {
                 perturbation_vector[(r_node.Id() - 1) * 3 + 2] = delta_alpha + delta_beta;
             }
         }
-        const Vector RHS_from_LHS = RHS  - prod(LHS,perturbation_vector);
+        const Vector RHS_from_LHS = RHS - prod(LHS,perturbation_vector);
         const Vector RHS_from_LHS_error = RHS_perturbed - RHS_from_LHS;
 
-        KRATOS_WATCH("")
-        KRATOS_WATCH(RHS)
-        KRATOS_WATCH(RHS_perturbed)
-        KRATOS_WATCH(RHS_delta)
-        KRATOS_WATCH(RHS_error)
-        KRATOS_WATCH("")
-        KRATOS_WATCH(RHS_from_LHS)
-        KRATOS_WATCH(RHS_from_LHS_error)
-        // KRATOS_WATCH(RHS_perturbation_vol)
-        // KRATOS_WATCH(RHS_perturbation_dev)
-        // KRATOS_WATCH("")
-        // KRATOS_WATCH(RHS_error)
-        // KRATOS_WATCH(RHS_error_vol)
-        // KRATOS_WATCH(RHS_error_dev)
-
-
         // Check RHS and LHS results
-        const double tolerance = 1.0e-5;
-        // const std::vector<double> expected_RHS({-49572.6,-49572.6,0.00640046,38461.5,11111.1,0.00177083,11111.1,38461.5,-0.00250463});
-        // const std::vector<double> expected_LHS_row_0({-1.06838e+06,-299145,918803,384615,-85470.1,918803,683761,384615,918803});
-        // KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
-        // KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
+        const double tolerance = 1.0e-8;
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS_error, ZeroVector(r_model_part.NumberOfNodes() * 3), tolerance);
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS_from_LHS_error, ZeroVector(r_model_part.NumberOfNodes() * 3), tolerance);
     }
 
 } // namespace Testing
