@@ -132,13 +132,8 @@ public:
      * @brief Sets the pointer to the geometry
      * @param pGeometry The pointer of the geometry
      */
-    void pSetGeometry(GeometryType::Pointer pGeometry)
+    virtual void SetGeometry(GeometryType::Pointer pGeometry)
     {
-//         // TODO: This is more right?
-//         GeometryType::Pointer p_geometry_aux(std::move(pGeometry)); // Invokes move constructor
-//         pGeometry = std::move(mpGeometry);                          // Invokes move assignment
-//         mpGeometry = std::move(p_geometry_aux);                     // Invokes move assignment
-
         mpGeometry = pGeometry;
     }
 

@@ -133,7 +133,7 @@ namespace Kratos {
             auto p_element = r_model_part.CreateNewElement("Element2D3N", 1, p_triangle_master->Points(), p_elem_prop); // Creating the element
 
             // Setting coupled geometry from element
-            p_element->pSetGeometry(p_coupling_geometry);
+            p_element->SetGeometry(p_coupling_geometry);
 
             // Checking it works
             auto& r_coupling_geometry = p_element->GetGeometry();
