@@ -106,13 +106,14 @@ namespace Kratos
     //            (*mStressTensor)(i,j) += (x_centroid[j]) * GlobalElasticContactForce[i]; //ref: Katalin Bagi 1995 Mean stress tensor
     //        }
     //    }
-    //  } //AddNeighbourContributionToStressTensor
+    //  }
 
-    void CylinderContinuumParticle::AddNeighbourContributionToStressTensor(const double Force[3],
-                                                             const double other_to_me_vect[3],
-                                                             const double distance,
-                                                             const double radius_sum,
-                                                             SphericParticle* element) {
+    void CylinderContinuumParticle::AddNeighbourContributionToStressTensor(ProcessInfo& r_process_info,
+                                                                            const double Force[3],
+                                                                            const double other_to_me_vect[3],
+                                                                            const double distance,
+                                                                            const double radius_sum,
+                                                                            SphericParticle* element) {
     KRATOS_TRY
 
     double gap = distance - radius_sum;
@@ -130,20 +131,42 @@ namespace Kratos
             (*mStressTensor)(i,j) += x_centroid[j] * Force[i];
         }
     }
+
+    // how to access the imposed velocity: for example if defined in submodelpart as imposed Z veloctty on particles
+    // Node<3>& node = element->GetGeometry()[0];
+
+    // KRATOS_WATCH(node.pGetDof(VELOCITY_Z))
+    // KRATOS_WATCH(node)
+    // KRATOS_WATCH((*node.pGetDof(VELOCITY_Z)))
+
+    KRATOS_WATCH(element->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY))
+    KRATOS_WATCH(element->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z))
+
     // pseudo
     //falta access a const ProcessInfo& r_process_info per al flag
     //falta valor de z_displacement. estara al mdpa?
-    if (!r_process_info[IMPOSED_Z_STRAIN_OPTION]) return;
-    (*mStressTensor)(3,3) += E*z_displacement - poisson*(sigma_xx + sigma_yy);
+    double axial_deformation_rate = element->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z);
+
+    //z_displacement = temps*velocitat de deformacio
+    double current_time = r_process_info[TIME];
+    KRATOS_WATCH(current_time)
+    double z_deformation_value = current_time * axial_deformation_rate;
+    KRATOS_WATCH(z_deformation_value)
+
+    // if (!r_process_info[IMPOSED_Z_STRAIN_OPTION]) return;     // add this to prescribed boundarycontions too.
+    // (*mStressTensor)(3,3) += E*z_displacement - poisson*(sigma_xx + sigma_yy);
 
     double myYoung = GetYoung();
     KRATOS_WATCH(myYoung)
     double myPoisson = GetPoisson();
     KRATOS_WATCH(myPoisson)
 
-    (*mStressTensor)(3,3) += myYoung*z_displacement - myPoisson*((*mStressTensor)(1,1) + (*mStressTensor)(2,2));
+    //(*mStressTensor)(3,3) = myYoung*z_deformation_value - myPoisson*((*mStressTensor)(1,1) + (*mStressTensor)(2,2));
     KRATOS_WATCH(*mStressTensor)
-    KRATOS_WATCH((*mStressTensor)(3,3))
+    // KRATOS_WATCH((*mStressTensor)(3,3))
+
+
+
 
 
     // Getting neighbor properties

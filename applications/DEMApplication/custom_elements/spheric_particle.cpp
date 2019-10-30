@@ -866,7 +866,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
             }
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
-                AddNeighbourContributionToStressTensor(GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, data_buffer.mRadiusSum, this);
+                AddNeighbourContributionToStressTensor(r_process_info,GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, data_buffer.mRadiusSum, this);
             }
 
             if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) { //TODO: we should avoid calling a processinfo for each neighbour. We can put it once per time step in the buffer??
@@ -1439,7 +1439,8 @@ void SphericParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
     KRATOS_CATCH("")
 }
 
-void SphericParticle::AddNeighbourContributionToStressTensor(const double Force[3],
+void SphericParticle::AddNeighbourContributionToStressTensor(ProcessInfo& r_process_info,
+                                                             const double Force[3],
                                                              const double other_to_me_vect[3],
                                                              const double distance,
                                                              const double radius_sum,

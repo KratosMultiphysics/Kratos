@@ -61,7 +61,8 @@ namespace Kratos
       void AddContributionToRepresentativeVolume(const double distance, const double radius_sum, const double contact_area) override ;
 
 
-      virtual void AddNeighbourContributionToStressTensor(const double GlobalElasticContactForce[3],
+      virtual void AddNeighbourContributionToStressTensor(ProcessInfo& r_process_info,
+                                                    const double GlobalElasticContactForce[3],
                                                     const double other_to_me_vect[3],
                                                     const double distance,
                                                     const double radius_sum,
