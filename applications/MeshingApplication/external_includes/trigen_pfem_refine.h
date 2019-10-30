@@ -22,11 +22,10 @@
 #include "triangle.h"
 #endif
 
-#include <boost/timer.hpp>
-
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/timer.h"
 #include "geometries/triangle_2d_3.h"
 #include "meshing_application_variables.h"
 #include "processes/node_erase_process.h"
@@ -129,7 +128,7 @@ public:
             KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_FLUID---- variable!!!!!! ERROR","");
 
         KRATOS_WATCH("Trigen PFEM Refining Mesher")
-        boost::timer auxiliary;
+        const auto inital_time = std::chrono::steady_clock::now();
 
 
 //clearing elements
@@ -222,7 +221,7 @@ public:
         char options1[] = "Pne";
         triangulate(options1, &in_mid, &out_mid, &vorout_mid);
         //print out the mesh generation time
-        std::cout<<"mesh generation time = "<<auxiliary.elapsed();
+        std::cout << "Mesh generation time = " << Timer::ElapsedSeconds(inital_time) << std::endl;
         //number of newly generated triangles
         unsigned int el_number=out_mid.numberoftriangles;
 
@@ -1220,6 +1219,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_TRIGEN_PFEM_MODELER_H_INCLUDED  defined
-
-
-

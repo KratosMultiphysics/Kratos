@@ -79,7 +79,8 @@ class MeshSolverBase(PythonSolver):
                 "coarse_enough" : 5000
             },
             "reform_dofs_each_step"     : false,
-            "compute_reactions"         : false
+            "compute_reactions"         : false,
+            "poisson_ratio"             : 0.3
         }""")
         this_defaults.AddMissingParameters(super(MeshSolverBase, cls).GetDefaultSettings())
         return this_defaults
