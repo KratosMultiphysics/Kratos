@@ -23,6 +23,7 @@ class EvmKEpsilonTest(UnitTest.TestCase):
             self._runTest(settings_file_name)
             kratos_utilities.DeleteTimeFiles(".")
 
+    @UnitTest.skipUnless(km.IsDistributedRun(), "Running without MPI")
     def testChannelFlowKEpsilonTransientMPI(self):
         work_folder = "ChannelFlowTest"
         settings_file_name = "channel_flow_k_epsilon_transient_mpi_parameters.json"
@@ -43,6 +44,7 @@ class EvmKEpsilonTest(UnitTest.TestCase):
             self._runTest(settings_file_name)
             kratos_utilities.DeleteTimeFiles(".")
 
+    @UnitTest.skipUnless(km.IsDistributedRun(), "Running without MPI")
     def testChannelFlowKEpsilonSteadyMPI(self):
         work_folder = "ChannelFlowTest"
         settings_file_name = "channel_flow_k_epsilon_steady_mpi_parameters.json"
