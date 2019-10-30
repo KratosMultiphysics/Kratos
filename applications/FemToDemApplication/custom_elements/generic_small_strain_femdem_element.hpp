@@ -55,63 +55,6 @@ class GenericSmallStrainFemDemElement
     : public GenericTotalLagrangianFemDemElement<TDim,TyieldSurf> // Derived Element from SolidMechanics
 {
 public:
-    struct KinematicVariables
-    {
-        Vector  N;
-        Matrix  B;
-        double  detF;
-        Matrix  F;
-        double  detJ0;
-        Matrix  J0;
-        Matrix  InvJ0;
-        Matrix  DN_DX;
-        Vector Displacements;
-
-        /**
-         * The default constructor
-         * @param StrainSize The size of the strain vector in Voigt notation
-         * @param Dimension The problem dimension: 2D or 3D
-         * @param NumberOfNodes The number of nodes in the element
-         */
-        KinematicVariables(
-            const SizeType StrainSize,
-            const SizeType Dimension,
-            const SizeType NumberOfNodes
-            )
-        {
-            detF = 1.0;
-            detJ0 = 1.0;
-            N = ZeroVector(NumberOfNodes);
-            B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
-            F = IdentityMatrix(Dimension);
-            DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
-            J0 = ZeroMatrix(Dimension, Dimension);
-            InvJ0 = ZeroMatrix(Dimension, Dimension);
-            Displacements = ZeroVector(Dimension * NumberOfNodes);
-        }
-    };
-
-    /**
-     * Internal variables used in the kinematic calculations
-     */
-    struct ConstitutiveVariables
-    {
-        Vector StrainVector;
-        Vector StressVector;
-        Matrix D;
-
-        /**
-         * The default constructor
-         * @param StrainSize The size of the strain vector in Voigt notation
-         */
-        ConstitutiveVariables(const SizeType StrainSize)
-        {
-            StrainVector = ZeroVector(StrainSize);
-            StressVector = ZeroVector(StrainSize);
-            D = ZeroMatrix(StrainSize, StrainSize);
-        }
-    };
-
 
     ///@name Type Definitions
     ///@{
@@ -179,13 +122,16 @@ public:
     GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    GenericSmallStrainFemDemElement(GenericSmallStrainFemDemElement const &rOther);
+    // GenericSmallStrainFemDemElement(GenericSmallStrainFemDemElement const &rOther);
 
     /// Destructor.
     virtual ~GenericSmallStrainFemDemElement();
 
     /// Assignment operator.
-    GenericSmallStrainFemDemElement &operator=(GenericSmallStrainFemDemElement const &rOther);
+    GenericSmallStrainFemDemElement(GenericSmallStrainFemDemElement const& rOther)
+        : BaseType(rOther)
+    {};
+
     /**
      * @brief Creates a new element
      * @param NewId The Id of the new created element
@@ -243,12 +189,11 @@ public:
      */
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
-
-    // ************** Methods to compute the tangent constitutive tensor via numerical derivation ************** 
     /**
      * this computes the Tangent tensor via numerical derivation (perturbations)
      */
     void CalculateTangentTensor(Matrix& rTangentTensor,const Vector& rStrainVectorGP,const Vector& rStressVectorGP,const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
+    void CalculateTangentTensorSecondOrder(Matrix& rTangentTensor,const Vector& rStrainVectorGP,const Vector& rStressVectorGP,const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
 
     void ComputeEquivalentF(Matrix& rF,const Vector& rStrainTensor);
 protected:
@@ -276,7 +221,7 @@ protected:
      * @param rIntegrationMethod The integration method considered
      */
     void CalculateKinematicVariables(
-        KinematicVariables& rThisKinematicVariables,
+        BaseSolidElement::KinematicVariables& rThisKinematicVariables,
         const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         );
@@ -294,16 +239,16 @@ protected:
     // void ComputeEquivalentF(Matrix& rF, const Vector& rStrainTensor);
 
     void CalculateConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables,
-        ConstitutiveVariables& rThisConstitutiveVariables,
+        BaseSolidElement::KinematicVariables& rThisKinematicVariables,
+        BaseSolidElement::ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure);
 
     void SetConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables,
-        ConstitutiveVariables& rThisConstitutiveVariables,
+        BaseSolidElement::KinematicVariables& rThisKinematicVariables,
+        BaseSolidElement::ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints);
@@ -320,23 +265,6 @@ protected:
 
     bool UseElementProvidedStrain() const;
 
-    /**
-     * @brief Calculation of the RHS
-     * @param rRightHandSideVector The local component of the RHS due to external forces
-     * @param rThisKinematicVariables The kinematic variables like shape functions
-     * @param rCurrentProcessInfo rCurrentProcessInfo the current process info instance
-     * @param rBodyForce The component of external forces due to self weight
-     * @param rStressVector The vector containing the stress components
-     * @param IntegrationWeight The integration weight of the corresponding Gauss point
-     */
-    void CalculateAndAddResidualVector(
-        VectorType& rRightHandSideVector,
-        const KinematicVariables& rThisKinematicVariables,
-        const ProcessInfo& rCurrentProcessInfo,
-        const array_1d<double, 3>& rBodyForce,
-        const Vector& rStressVector,
-        const double IntegrationWeight
-        ) const;
         
     ///@name Static Member Variables
     ///@{

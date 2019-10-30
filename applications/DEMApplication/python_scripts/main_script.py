@@ -436,6 +436,8 @@ class Solution(object):
 
             self.InitializeSolutionStep()
 
+            self.solver.Predict()
+
             self.SolverSolve()
 
             self.FinalizeSolutionStep()
@@ -501,22 +503,6 @@ class Solution(object):
     def SetInitialNodalValues(self):
         self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.dem_inlet_model_part, self.rigid_face_model_part)
 
-    def InitializeTimeStep(self):
-        message = 'Warning!'
-        message += '\nFunction \'InitializeTimeStep\' is deprecated.'
-        message += '\nIt will be removed after 09/28/2019.\n'
-        Logger.PrintWarning("DEM_analysis_stage.py", message)
-        pass
-
-    def _BeforeSolveOperations(self, time):
-        message = 'Warning!'
-        message += '\nFunction \'_BeforeSolveOperations\' is deprecated.'
-        message += '\nIt will be removed after 09/28/2019.\n'
-        Logger.PrintWarning("DEM_analysis_stage.py", message)
-        if self.post_normal_impact_velocity_option:
-            if self.IsCountStep():
-                self.FillAnalyticSubModelPartsWithNewParticles()
-
     def InitializeSolutionStep(self):
         self.solver.InitializeSolutionStep()
         if self.post_normal_impact_velocity_option:
@@ -540,7 +526,7 @@ class Solution(object):
     def AfterSolveOperations(self):
         message = 'Warning!'
         message += '\nFunction \'AfterSolveOperations\' is deprecated.'
-        message += '\nIt will be removed after 09/28/2019.\n'
+        message += '\nIt will be removed after 10/31/2019.\n'
         Logger.PrintWarning("DEM_analysis_stage.py", message)
         if self.post_normal_impact_velocity_option:
             self.particle_watcher.MakeMeasurements(self.analytic_model_part)
@@ -649,15 +635,6 @@ class Solution(object):
         self.step = 0
         self.time = 0.0
         self.time_old_print = 0.0
-
-    #TODO: deprecated
-    def UpdateTimeParameters(self):
-        message = 'Warning!'
-        message += '\nFunction \'UpdateTimeParameters\' is deprecated.'
-        message += '\nPlease call \'_UpdateTimeParameters\' instead.'
-        message += '\nThe deprecated version will be removed after 02/28/2019.\n'
-        Logger.PrintWarning("main_script.py", message)
-        self._UpdateTimeParameters()
 
     def _UpdateTimeParameters(self):
         self.time = self.time + self.solver.dt
