@@ -55,7 +55,8 @@ using namespace pybind11;
     class_<GetRomResiduals, typename GetRomResiduals::Pointer>(m, "GetRomResiduals")
     .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer>()) // 
     .def("Execute",&GetRomResiduals::Calculate) //
-    .def("GetVolumeVector",&GetRomResiduals::Volumes)
+    .def("GetVolumeVector",&GetRomResiduals::Volumes) //
+    .def("ToNumpy",&GetRomResiduals::convert_to_numpy)
     ;  
 
     // class_<GetRomResiduals<SparseSpaceType, LocalSpaceType, LinearSolverType>,

@@ -23,6 +23,9 @@
 #include "linear_solvers/linear_solver.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 
+/* Include pybind to convert residual matrix to numpy  */
+#include <pybind11/pybind11.h>
+
 /* Application includes */
 #include "rom_application_variables.h"
 
@@ -168,6 +171,30 @@ namespace Kratos
             }
         return MatrixResiduals;        
         }
+
+
+        void convert_to_numpy(const Matrix & input, pybind11::object obj)
+        {
+            PyObject* pobj = obj.ptr();
+            Py_buffer pybuf;
+            PyObject_GetBuffer(pobj, &pybuf, PyBUF_SIMPLE);
+            void *buf = pybuf.buf;
+            double *p = (double*)buf;
+            Py_XDECREF(pobj);
+
+            u_int n_rows = input.size1();
+            u_int n_cols = input.size2();
+            for (u_int i = 0; i < n_rows; i++)
+            {
+                for (u_int j = 0; j < n_cols; j++)
+                {
+                    p[i*n_cols+j] = input(i,j);
+                }
+            }
+        }
+
+
+
 
 
         Vector Volumes() 

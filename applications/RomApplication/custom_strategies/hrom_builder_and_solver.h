@@ -105,7 +105,7 @@ public:
 
         mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();
         
-        //Need to read the type of the variable and optain its size, incorrectly done here
+        //Need to read the type of the variable and obtain its size, incorrectly done here
         mNodalDofs = mNodalVariablesNames.size();
         mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();
     }
