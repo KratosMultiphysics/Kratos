@@ -20,11 +20,14 @@
 #include "custom_solvers/eigen_sparse_cg_solver.h"
 #include "custom_solvers/eigen_sparse_lu_solver.h"
 #include "custom_solvers/eigen_sparse_qr_solver.h"
+#include "custom_solvers/eigen_direct_solver.h"
+#include "custom_solvers/eigensystem_solver.h"
+
+#if defined USE_EIGEN_MKL
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
 #include "custom_solvers/eigen_pardiso_llt_solver.h"
 #include "custom_solvers/eigen_pardiso_ldlt_solver.h"
-#include "custom_solvers/eigen_direct_solver.h"
-#include "custom_solvers/eigensystem_solver.h"
+#endif
 
 #include "factories/standard_linear_solver_factory.h"
 #include "eigen_solvers_application.h"
@@ -76,11 +79,11 @@ void AddCustomSolversToPython(pybind11::module& m)
     register_solver<EigenSparseCGSolver<double>>(m, "SparseCGSolver");
     register_solver<EigenSparseQRSolver<double>>(m, "SparseQRSolver");
 
-    #if defined USE_EIGEN_MKL
+#if defined USE_EIGEN_MKL
     register_solver<EigenPardisoLUSolver<double>>(m, "PardisoLUSolver");
     register_solver<EigenPardisoLDLTSolver<double>>(m, "PardisoLDLTSolver");
     register_solver<EigenPardisoLLTSolver<double>>(m, "PardisoLLTSolver");
-    #endif // defined USE_EIGEN_MKL
+#endif // defined USE_EIGEN_MKL
 
     // --- eigensystem solver
 
