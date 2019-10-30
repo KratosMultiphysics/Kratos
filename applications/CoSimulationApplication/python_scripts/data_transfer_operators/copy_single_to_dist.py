@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes these 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_transfer_operator import CoSimulationDataTransferOperator
 
-# Other imports
-
-
 def Create(settings):
     return CopySingleToDist(settings)
 
@@ -27,9 +24,11 @@ class CopySingleToDist(CoSimulationDataTransferOperator):
             to_solver_values *= (-1)
         if "redistribute_data" in transfer_options.GetStringArray():
             to_solver_values /= to_solver_data.Size()
+        if "add_values" in transfer_options.GetStringArray():
+            to_solver_values += to_solver_data.GetData()
 
         to_solver_data.SetData(to_solver_values)
 
     @classmethod
     def _GetListAvailableTransferOptions(cls):
-        return ["swap_sign", "redistribute_data"]
+        return ["swap_sign", "redistribute_data", "add_values"]
