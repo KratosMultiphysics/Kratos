@@ -25,6 +25,8 @@ if (IsDistributedRun()
     from KratosMultiphysics.RANSModellingApplication.TrilinosExtension import MPIGenericScalarConvergenceCriteria as scalar_convergence_criteria
     from KratosMultiphysics.TrilinosApplication import TrilinosResidualCriteria as residual_criteria
     from KratosMultiphysics.TrilinosApplication import TrilinosNewtonRaphsonStrategy as newton_raphson_strategy
+    from KratosMultiphysics.RANSModellingApplication.block_builder_and_solvers import TrilinosPeriodicBlockBuilderAndSolver as periodic_block_builder_and_solver
+    from KratosMultiphysics.RANSModellingApplication.block_builder_and_solvers import TrilinosBlockBuilderAndSolver as block_builder_and_solver
 elif (not Kratos.IsDistributedRun()):
     from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
     from KratosMultiphysics.RANSModellingApplication import GenericResidualBasedSimpleSteadyScalarScheme as steady_scheme
@@ -32,6 +34,8 @@ elif (not Kratos.IsDistributedRun()):
     from KratosMultiphysics.RANSModellingApplication import GenericScalarConvergenceCriteria as scalar_convergence_criteria
     from Kratos import ResidualCriteria as residual_criteria
     from Kratos import ResidualBasedNewtonRaphsonStrategy as newton_raphson_strategy
+    from KratosMultiphysics.RANSModellingApplication.block_builder_and_solvers import PeriodicBlockBuilderAndSolver as periodic_block_builder_and_solver
+    from KratosMultiphysics.RANSModellingApplication.block_builder_and_solvers import BlockBuilderAndSolver as block_builder_and_solver
 else:
     raise Exception("Distributed run requires TrilinosApplication")
 
@@ -52,6 +56,7 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
         # TODO: Implement stuff for mesh_moving
 
         self.is_computing_solution = False
+        self.EpetraCommunicator = None
 
         self.model_elements_list = []
         self.model_conditions_list = []
@@ -111,20 +116,10 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
         return linear_solver_factory.ConstructSolver(linear_solver_settings)
 
     def __CreateBuilderAndSolver(self, linear_solver, is_periodic):
-        if (IsDistributedRun()):
-            if (is_periodic):
-                return KratosTrilinos.TrilinosBlockBuilderAndSolverPeriodic(
-                    self.EpetraCommunicator, 30, linear_solver,
-                    KratosCFD.PATCH_INDEX)
-            else:
-                return KratosTrilinos.TrilinosBlockBuilderAndSolver(
-                    self.EpetraCommunicator, 30, linear_solver)
+        if (is_periodic):
+            return periodic_block_builder_and_solver(linear_solver, self.EpetraCommunicator)
         else:
-            if (is_periodic):
-                return KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(
-                    linear_solver, KratosCFD.PATCH_INDEX)
-            else:
-                return Kratos.ResidualBasedBlockBuilderAndSolver(linear_solver)
+            return block_builder_and_solver(linear_solver,  self.EpetraCommunicator)
 
     def __CreateConvergenceCriteria(self, scheme_type, relative_tolerance,
                                     absolute_tolerance, is_periodic):
