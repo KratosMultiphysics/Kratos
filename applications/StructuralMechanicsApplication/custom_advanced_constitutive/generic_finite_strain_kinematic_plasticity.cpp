@@ -126,7 +126,7 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             double plastic_dissipation = this->GetPlasticDissipation();
             Vector plastic_strain;
             Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
-            Vector back_stress_vector(VoigtSize);
+            Vector back_stress_vector = this->GetBackStressVector();
 
             // We backup the deformation gradient
             const double& r_det_deformation_gradient_backup = rValues.GetDeterminantF();
@@ -282,7 +282,7 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             double plastic_dissipation = this->GetPlasticDissipation();
             Vector plastic_strain;
             Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
-            Vector back_stress_vector(VoigtSize);
+            Vector back_stress_vector = this->GetBackStressVector();
 
             // We backup the deformation gradient
             const double& r_det_deformation_gradient_backup = rValues.GetDeterminantF();
@@ -443,7 +443,7 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     double plastic_dissipation = this->GetPlasticDissipation();
     Vector plastic_strain;
     Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
-    Vector back_stress_vector(VoigtSize);
+    Vector back_stress_vector = this->GetBackStressVector();
 
     // We backup the deformation gradient
     const double& r_det_deformation_gradient_backup = rValues.GetDeterminantF();
@@ -548,7 +548,7 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     double plastic_dissipation = this->GetPlasticDissipation();
     Vector plastic_strain;
     Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
-    Vector back_stress_vector(VoigtSize);
+    Vector back_stress_vector = this->GetBackStressVector();
 
     // We backup the deformation gradient
     const double& r_det_deformation_gradient_backup = rValues.GetDeterminantF();
@@ -875,7 +875,7 @@ Vector& GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIn
         double plastic_dissipation = this->GetPlasticDissipation();
         Vector plastic_strain;
         Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
-        Vector back_stress_vector(VoigtSize);
+        Vector back_stress_vector = this->GetBackStressVector();
 
         // We backup the deformation gradient
         const double& r_det_deformation_gradient_backup = rParameterValues.GetDeterminantF();

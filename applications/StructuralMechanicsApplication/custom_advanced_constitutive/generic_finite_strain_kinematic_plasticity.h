@@ -115,7 +115,8 @@ public:
           mPlasticDissipation(rOther.mPlasticDissipation),
           mThreshold(rOther.mThreshold),
           mPlasticDeformationGradient(rOther.mPlasticDeformationGradient),
-          mPreviousDeformationGradient(rOther.mPreviousDeformationGradient)
+          mPreviousDeformationGradient(rOther.mPreviousDeformationGradient),
+          mBackStressVector(rOther.mBackStressVector)
     {
     }
 
@@ -377,6 +378,8 @@ protected:
     void SetPlasticDeformationGradient(const Matrix& rmPlasticDeformationGradient) { mPlasticDeformationGradient = rmPlasticDeformationGradient; }
     void SetPreviousDeformationGradient(const Matrix& rmPreviousDeformationGradient) { mPreviousDeformationGradient = rmPreviousDeformationGradient; }
 
+    void SetBackStressVector(const Vector& toBS) {mBackStressVector = toBS; }
+    Vector& GetBackStressVector() { return mBackStressVector;}
     ///@}
     ///@name Protected Operations
     ///@{
@@ -407,7 +410,7 @@ protected:
     double mThreshold = 0.0;
     Matrix mPlasticDeformationGradient  = IdentityMatrix(Dimension);
     Matrix mPreviousDeformationGradient = IdentityMatrix(Dimension);
-    Matrix mBackStressVector            = IdentityMatrix(Dimension);
+    Matrix mBackStressVector            = ZeroVector(VoigtSize);
 
     ///@}
     ///@name Private Operators
