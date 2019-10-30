@@ -37,8 +37,8 @@ void register_solver(pybind11::module& m, const std::string& name)
 {
     namespace py = pybind11;
 
-    using GlobalSpace = typename SpaceType<SolverType::Scalar>::Global;
-    using LocalSpace = typename SpaceType<SolverType::Scalar>::Local;
+    using GlobalSpace = typename SpaceType<typename SolverType::Scalar>::Global;
+    using LocalSpace = typename SpaceType<typename SolverType::Scalar>::Local;
 
     using Type = EigenDirectSolver<SolverType>;
     using Holder = typename Type::Pointer;
@@ -100,7 +100,7 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
     using SparseLUType = EigenDirectSolver<EigenSparseLUSolver<double>>;
 
     static auto SparseLUFactory = SparseLUType::Factory();
-    
+
     KRATOS_REGISTER_LINEAR_SOLVER("sparse_lu", SparseLUFactory);
 
 
@@ -118,7 +118,7 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
     using SparseQRType = EigenDirectSolver<EigenSparseQRSolver<double>>;
 
     static auto SparseQRFactory = SparseQRType::Factory();
-    
+
     KRATOS_REGISTER_LINEAR_SOLVER("sparse_qr", SparseQRFactory);
 
 
@@ -127,7 +127,7 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
     using SparseCGType = EigenDirectSolver<EigenSparseCGSolver<double>>;
 
     static auto SparseCGFactory = SparseCGType::Factory();
-    
+
     KRATOS_REGISTER_LINEAR_SOLVER("sparse_cg", SparseCGFactory);
 
 
@@ -138,7 +138,7 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
     using PardisoLUType = EigenDirectSolver<EigenPardisoLUSolver<double>>;
 
     static auto PardisoLUFactory = PardisoLUType::Factory();
-    
+
     KRATOS_REGISTER_LINEAR_SOLVER("pardiso_lu", PardisoLUFactory);
 
 
@@ -147,7 +147,7 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
     using PardisoLDLTType = EigenDirectSolver<EigenPardisoLDLTSolver<double>>;
 
     static auto PardisoLDLTFactory = PardisoLDLTType::Factory();
-    
+
     KRATOS_REGISTER_LINEAR_SOLVER("pardiso_ldlt", PardisoLDLTFactory);
 
 
@@ -156,7 +156,7 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
     using PardisoLLTType = EigenDirectSolver<EigenPardisoLLTSolver<double>>;
 
     static auto PardisoLLTFactory = PardisoLLTType::Factory();
-    
+
     KRATOS_REGISTER_LINEAR_SOLVER("pardiso_llt", PardisoLLTFactory);
 
     #endif // defined USE_EIGEN_MKL

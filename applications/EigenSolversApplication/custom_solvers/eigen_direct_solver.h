@@ -46,14 +46,14 @@ struct SpaceType<std::complex<double>>
 
 template <
     class TSolverType,
-    class TSparseSpaceType = typename SpaceType<TSolverType::Scalar>::Global,
-    class TDenseSpaceType = typename SpaceType<TSolverType::Scalar>::Local,
+    class TSparseSpaceType = typename SpaceType<typename TSolverType::Scalar>::Global,
+    class TDenseSpaceType = typename SpaceType<typename TSolverType::Scalar>::Local,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
 class EigenDirectSolver
     : public DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>
 {
 private:
-    typename TSolverType m_solver;
+    TSolverType m_solver;
 
     EigenDirectSolver &operator=(const EigenDirectSolver &Other);
 
