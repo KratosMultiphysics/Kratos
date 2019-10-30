@@ -45,7 +45,6 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
             model, settings)
 
         # self.mesh_moving = self.settings["mesh_moving"].GetBool()
-        self.turbulence_model_process = None
         self.strategies_list = []
         self.nu_t_min = self.settings["turbulent_viscosity_min"].GetDouble()
         self.nu_t_max = self.settings["turbulent_viscosity_max"].GetDouble()

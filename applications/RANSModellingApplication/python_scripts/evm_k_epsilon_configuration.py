@@ -22,6 +22,8 @@ class TurbulenceKEpsilonConfiguration(
         super(TurbulenceKEpsilonConfiguration, self).__init__(
             model, parameters)
 
+        self.turbulence_model_process = None
+
         default_settings = Kratos.Parameters(r'''{
             "scheme_settings": {},
             "echo_level"          :0,
