@@ -223,6 +223,9 @@ private:
     return *this;
   }
 
+  /*
+   * @brief Calculates the current rotation of modelpart.
+   */
   void CalculateCurrentRotationState();
 
   /*

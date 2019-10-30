@@ -80,11 +80,14 @@ class ChimeraRotateRegionTest(UnitTest.TestCase):
     def __MakeModelPart(self, model_part):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
 
         # Create nodes
         model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         model_part.CreateNewNode(1, 0.00000, 1.00000, 2.00000)
         model_part.CreateNewNode(2, 0.00000, 0.50000, 1.00000)
+        model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.DENSITY,1)
+        model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.DENSITY,1)
 
     def __CheckRotation_only_rotation(self, model_part):
         self.assertAlmostEqual(model_part.Nodes[1].X, 1.5773539423908345)
@@ -96,5 +99,5 @@ class ChimeraRotateRegionTest(UnitTest.TestCase):
         self.assertAlmostEqual(model_part.Nodes[2].Z, 0.7886732979903135)
 
     def __CheckRotation_with_torque(self, model_part):
-        self.assertAlmostEqual(model_part.Nodes[2].Z, 0.8159416708229201)
-        self.assertAlmostEqual(model_part.GetValue(chm.ROTATIONAL_ANGLE), 0.0955993170666295)
+        self.assertAlmostEqual(model_part.Nodes[2].Z, 0.9637133210892261)
+        self.assertAlmostEqual(model_part.GetValue(chm.ROTATIONAL_ANGLE), 1.8363209179941489)
