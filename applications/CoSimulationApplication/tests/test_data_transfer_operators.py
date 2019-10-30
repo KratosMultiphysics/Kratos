@@ -198,13 +198,13 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
                                         self.origin_data_single_node.GetModelPart().Nodes,
                                         KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT,-1)
 
-    def test_copy_single_to_dist_transfer_operator_redistribute_data(self):
+    def test_copy_single_to_dist_transfer_operator_distribute_values(self):
         data_transfer_op_settings = KM.Parameters("""{
             "type" : "copy_single_to_distributed"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
-        transfer_options = KM.Parameters(""" ["redistribute_data"] """)
+        transfer_options = KM.Parameters(""" ["distribute_values"] """)
 
         for node in self.origin_data_single_node.GetModelPart().Nodes:
             node.SetSolutionStepValue(KMC.SCALAR_DISPLACEMENT, 0, 100.0)
@@ -217,13 +217,13 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
                                         self.origin_data_single_node.GetModelPart().Nodes,
                                         KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, 0.2)
 
-    def test_copy_single_to_dist_transfer_operator_redistribute_data_swap_sign(self):
+    def test_copy_single_to_dist_transfer_operator_distribute_values_swap_sign(self):
         data_transfer_op_settings = KM.Parameters("""{
             "type" : "copy_single_to_distributed"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
-        transfer_options = KM.Parameters(""" ["redistribute_data", "swap_sign"] """)
+        transfer_options = KM.Parameters(""" ["distribute_values", "swap_sign"] """)
 
         for node in self.origin_data_single_node.GetModelPart().Nodes:
             node.SetSolutionStepValue(KMC.SCALAR_DISPLACEMENT, 0, 100.0)
