@@ -9,18 +9,24 @@ import json
 import os
 
 class SDoFSolver(object):
-    def __init__(self, input_file_name):
+    """ This class implements an SDof solver, independent of Kratos
+    Several types of applying loads are available
+    """
+    def __init__(self, input_name):
 
-        #input_file_name = self.solver_settings["input_file"]
-        if isinstance(input_file_name, dict):
-            parameters = input_file_name
+        # mimicing two constructors
+        if isinstance(input_name, dict):
+            parameters = input_name
 
-        if isinstance(input_file_name, str):
-            if not input_file_name.endswith(".json"):
-                input_file_name += ".json"
+        elif isinstance(input_name, str):
+            if not input_name.endswith(".json"):
+                input_name += ".json"
 
-            with open(input_file_name,'r') as ProjectParameters:
+            with open(input_name,'r') as ProjectParameters:
                 parameters = json.load(ProjectParameters)
+
+        else:
+            raise Exception("The input has to be provided as a dict or a string")
 
         default_settings = {
                 "system_parameters":{
@@ -99,8 +105,6 @@ class SDoFSolver(object):
         self.output_file_name = parameters["output_parameters"]["file_name"]
         self.write_output_file = parameters["output_parameters"]["write_output_file"]
 
-
-
     def Initialize(self):
         #solution buffer
         self.x = np.zeros((3, self.buffer_size))
@@ -126,7 +130,6 @@ class SDoFSolver(object):
         self.load_vector = np.array([0,
                                      0,
                                      self.load_impulse])
-
 
     def InitializeOutput(self):
         with open(self.output_file_name, "w") as results_sdof:
@@ -156,8 +159,6 @@ class SDoFSolver(object):
                                 str(self.dx[0] - self.dx_f[0]) + " " +
                                 str(self.dx[1] - self.dx_f[1]) + " " +
                                 str(self.dx[2] - self.dx_f[2]) + "\n")
-        else:
-            pass
 
     def AdvanceInTime(self, current_time):
         # similar to the Kratos CloneTimeStep function
@@ -236,12 +237,6 @@ class SDoFSolver(object):
             self.root_point_displacement = value
         else:
             raise Exception("Identifier is unknown!")
-
-    def _GetIOName(self):
-        return "sdof"
-
-    def _Name(self):
-        return self.__class__.__name__
 
 def ValidateAndAssignDefaults(defaults, settings, recursive=False):
     for key, val in settings.items():
