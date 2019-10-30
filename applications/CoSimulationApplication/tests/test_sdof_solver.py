@@ -35,7 +35,9 @@ class TestSdofSolver(KratosUnittest.TestCase):
     def _compare_results(self, reference, result):
         ref = np.loadtxt(reference, skiprows=1)
         res = np.loadtxt(reference, skiprows=1)
+        self.assertEqual(len(ref), len(res))
         for line_ref, line_res in zip(ref, res):
+            self.assertEqual(len(line_ref), len(line_res))
             for entry_ref, entry_res in zip(line_ref, line_res):
                 self.assertAlmostEqual(entry_ref, entry_res)
 
