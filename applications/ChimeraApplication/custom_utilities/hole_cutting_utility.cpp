@@ -408,4 +408,28 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(
     rExtractedBoundaryModelPart.RemoveNodes(TO_ERASE);
     KRATOS_CATCH("");
 }
+
+//
+// Specializeing the functions for diff templates
+//
+template void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements<2>(ModelPart &rModelPart,
+                                ModelPart &rModifiedModelPart,
+                                const int MainDomainOrNot,
+                                const double OverLapDistance,
+                                const bool GetInside);
+
+template void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements<3>(ModelPart &rModelPart,
+                                ModelPart &rModifiedModelPart,
+                                const int MainDomainOrNot,
+                                const double OverLapDistance,
+                                const bool GetInside);
+
+template void ChimeraHoleCuttingUtility::ExtractBoundaryMesh<2>( ModelPart &rVolumeModelPart, ModelPart &rExtractedBoundaryModelPart, bool GetInternal);
+template void ChimeraHoleCuttingUtility::ExtractBoundaryMesh<3>( ModelPart &rVolumeModelPart, ModelPart &rExtractedBoundaryModelPart, bool GetInternal);
+
+
+template void ChimeraHoleCuttingUtility::CreateHoleAfterDistance<2>(ModelPart &rModelPart, ModelPart &rHoleModelPart, ModelPart &rHoleBoundaryModelPart, const double Distance);
+template void ChimeraHoleCuttingUtility::CreateHoleAfterDistance<3>(ModelPart &rModelPart, ModelPart &rHoleModelPart, ModelPart &rHoleBoundaryModelPart, const double Distance);
+
+
 } // namespace Kratos
