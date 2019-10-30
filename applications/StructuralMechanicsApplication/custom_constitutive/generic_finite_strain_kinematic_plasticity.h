@@ -405,8 +405,9 @@ protected:
     // Converged values
     double mPlasticDissipation = 0.0;
     double mThreshold = 0.0;
-    Matrix mPlasticDeformationGradient = IdentityMatrix(Dimension);
+    Matrix mPlasticDeformationGradient  = IdentityMatrix(Dimension);
     Matrix mPreviousDeformationGradient = IdentityMatrix(Dimension);
+    Matrix mBackStressVector            = IdentityMatrix(Dimension);
 
     ///@}
     ///@name Private Operators
@@ -449,6 +450,7 @@ protected:
         rSerializer.save("Threshold", mThreshold);
         rSerializer.save("PlasticDeformationGradient", mPlasticDeformationGradient);
         rSerializer.save("PreviousDeformationGradient", mPreviousDeformationGradient);
+        rSerializer.save("BackStressVector", mBackStressVector);
     }
 
     void load(Serializer &rSerializer) override
@@ -458,6 +460,7 @@ protected:
         rSerializer.load("Threshold", mThreshold);
         rSerializer.load("PlasticDeformationGradient", mPlasticDeformationGradient);
         rSerializer.load("PreviousDeformationGradient", mPreviousDeformationGradient);
+        rSerializer.load("BackStressVector", mBackStressVector);
     }
 
     ///@}
