@@ -31,9 +31,6 @@
 
 // convergence criterians
 #include "custom_strategies/generic_convergence_criteria.h"
-#ifdef KRATOS_USING_MPI
-#include "custom_strategies/generic_convergence_criteria_mpi.h"
-#endif
 
 namespace Kratos
 {
@@ -72,8 +69,8 @@ void AddCustomStrategiesToPython(pybind11::module& m)
 
     using MPIConvergenceCriteria = ConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>;
 
-    py::class_<MPIGenericConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>,
-               typename MPIGenericConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>::Pointer, MPIConvergenceCriteria>(
+    py::class_<GenericConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>,
+               typename GenericConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>::Pointer, MPIConvergenceCriteria>(
         m, "MPIGenericScalarConvergenceCriteria")
         .def(py::init<MPISparseSpaceType::DataType, MPISparseSpaceType::DataType>());
 
