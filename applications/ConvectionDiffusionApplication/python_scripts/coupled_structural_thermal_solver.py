@@ -110,9 +110,6 @@ class CoupledThermoMechanicalSolver(PythonSolver):
     def GetOutputVariables(self):
         pass
 
-    def ComputeDeltaTime(self):
-        return self.structural_solver._ComputeDeltaTime()
-
     def GetMinimumBufferSize(self):
         buffer_size_fluid = self.structural_solver.GetMinimumBufferSize()
         buffer_size_thermal = self.thermal_solver.GetMinimumBufferSize()
@@ -157,8 +154,3 @@ class CoupledThermoMechanicalSolver(PythonSolver):
         self.structural_solver.FinalizeSolutionStep()
         self.thermal_solver.FinalizeSolutionStep()
 
-    def Solve(self):
-        self.InitializeSolutionStep()
-        self.Predict()
-        self.SolveSolutionStep()
-        self.FinalizeSolutionStep()
