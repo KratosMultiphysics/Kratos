@@ -14,18 +14,18 @@
             "chimera_parts": [
                 [
                     {
-                        "model_part_name": "GENERIC_background_surface",
+                        "model_part_name": "FluidModelPart.GENERIC_background_surface",
                         "overlap_distance": 0.01
                     }
                 ],
                 [
                     {
-                        "model_part_name": "GENERIC_patch_surface",
+                        "model_part_name": "FluidModelPart.GENERIC_patch_surface",
                         "overlap_distance": 0.7
                     }
                 ]
             ],
-            "internal_parts_for_chimera":["NoSlip2D_cross"]
+            "internal_parts_for_chimera":["FluidModelPart.NoSlip2D_cross"]
         },
         "model_part_name": "FluidModelPart",
         "domain_size": 2,
@@ -110,14 +110,14 @@
                 "python_module": "apply_noslip_process",
                 "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
                 "Parameters": {
-                    "model_part_name": "NoSlip2D_top"
+                    "model_part_name": "FluidModelPart.NoSlip2D_top"
                 }
             },
             {
                 "python_module": "apply_noslip_process",
                 "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
                 "Parameters": {
-                    "model_part_name": "NoSlip2D_bottom"
+                    "model_part_name": "FluidModelPart.NoSlip2D_bottom"
                 }
             }
         ],
@@ -144,7 +144,7 @@
             "kratos_module": "ChimeraApplication",
             "process_name": "RotateRegionProcess",
             "Parameters": {
-                "model_part_name": "GENERIC_patch_surface",
+                "model_part_name": "FluidModelPart.GENERIC_patch_surface",
                 "center_of_rotation":[5.91526,4.84748,0],
                 "angular_velocity_radians":0.005,
                 "axis_of_rotation":[0.0,0.0,1.0],
@@ -164,7 +164,7 @@
                         "PRESSURE"
                     ],
                     "input_file_name": "flow_over_cross_monolithic_results.json",
-                    "model_part_name": "part_for_testing",
+                    "model_part_name": "FluidModelPart.part_for_testing",
                     "time_frequency": 0.1
                 }
             }
@@ -183,7 +183,7 @@
                     "PRESSURE"
                 ],
                 "input_file_name": "flow_over_cross_monolithic_results.json",
-                "model_part_name": "part_for_testing",
+                "model_part_name": "FluidModelPart.part_for_testing",
                 "time_frequency": 0.1
             }
         }
@@ -201,7 +201,7 @@
                     "PRESSURE"
                 ],
                 "output_file_name": "flow_over_cross_monolithic_results.json",
-                "model_part_name": "part_for_testing",
+                "model_part_name": "FluidModelPart.part_for_testing",
                 "time_frequency": 0.1
             }
         }
