@@ -82,14 +82,30 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This method sets at Tn+1 the material value from Tn, using the velocity variable to convect
+     * @param rVar The variable to convect
+     * @param rConvVar The velocity variable
+     */
     template<class TVarType, class TType>
-    void Convect(const TVarType& rVar, const Variable<array_1d<double,3>>& conv_var);
+    void Convect(const TVarType& rVar, const Variable<array_1d<double,3>>& rConvVar);
 
+    /**
+     * @brief This method updates the search structure if the mesh has been modified
+     */
     void UpdateSearchDatabase();
 
+    /**
+     * @brief This method copy the value from Tn to Tn+1 if the variable is fixed
+     * @param The variable to reset if is fixed
+     */
     template<class TVarType>
     void ResetBoundaryConditions(const TVarType& rVar);
 
+    /**
+     * This method copies the variable from Tn+1 to Tn
+     * @param rVar The variable to copy to the previous time step
+     */
     template<class TVarType>
     void CopyVariableToPreviousTimeStep(const TVarType& rVar);
 

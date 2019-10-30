@@ -50,11 +50,10 @@ void BFECCConvectionUtility<TDim>::UpdateSearchDatabase()
 
 template<std::size_t TDim>
 template<class TVarType, class TType>
-void BFECCConvectionUtility<TDim>::Convect(const TVarType& rVar, const Variable<array_1d<double,3>>& conv_var)
+void BFECCConvectionUtility<TDim>::Convect(const TVarType& rVar, const Variable<array_1d<double,3>>& rConvVar)
 {
     const double dt = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
-    //do movement
     Vector N(TDim + 1);
     typename BinBasedFastPointLocator<TDim>::ResultContainerType results(mMaxResults);
 
@@ -64,7 +63,7 @@ void BFECCConvectionUtility<TDim>::Convect(const TVarType& rVar, const Variable<
     std::vector< Vector > Ns(mrModelPart.Nodes().size());
     std::vector< bool > found(mrModelPart.Nodes().size());
 
-    //FIRST LOOP: estimate rVar(n+1)
+    // First loop: estimate rVar(n+1)
     #pragma omp parallel for firstprivate(results, N)
     for (int i = 0; i < nparticles; i++)
     {
@@ -75,8 +74,8 @@ void BFECCConvectionUtility<TDim>::Convect(const TVarType& rVar, const Variable<
         Element::Pointer p_element;
 
         array_1d<double,3> bck_pos = i_particle->Coordinates();
-        const array_1d<double,3>& vel = i_particle->FastGetSolutionStepValue(conv_var);
-        bool is_found = RK2Convect(dt, bck_pos, vel, N, p_element, result_begin, -1, conv_var);
+        const array_1d<double,3>& vel = i_particle->FastGetSolutionStepValue(rConvVar);
+        bool is_found = RK2Convect(dt, bck_pos, vel, N, p_element, result_begin, -1, rConvVar);
         found[i] = is_found;
 
         if(is_found) {
@@ -94,7 +93,7 @@ void BFECCConvectionUtility<TDim>::Convect(const TVarType& rVar, const Variable<
         }
     }
 
-    //now obtain the value AT TIME STEP N by taking it from N+1
+    // Second loop: obtain the value at time step N by taking it from N+1
     #pragma omp parallel for firstprivate(results, N)
     for (int i = 0; i < nparticles; i++)
     {
@@ -105,8 +104,8 @@ void BFECCConvectionUtility<TDim>::Convect(const TVarType& rVar, const Variable<
         Element::Pointer p_element;
 
         array_1d<double,3> fwd_pos = i_particle->Coordinates();
-        const array_1d<double,3>& vel = i_particle->FastGetSolutionStepValue(conv_var,1);
-        bool is_found = RK2Convect(dt, fwd_pos, vel, N, p_element, result_begin, 1, conv_var);
+        const array_1d<double,3>& vel = i_particle->FastGetSolutionStepValue(rConvVar,1);
+        bool is_found = RK2Convect(dt, fwd_pos, vel, N, p_element, result_begin, 1, rConvVar);
 
         if(is_found) {
             Geometry< Node < 3 > >& geom = p_element->GetGeometry();
@@ -116,7 +115,7 @@ void BFECCConvectionUtility<TDim>::Convect(const TVarType& rVar, const Variable<
                 phi_old  += N[k] * ( geom[k].FastGetSolutionStepValue(rVar) );
             }
 
-            //store correction
+            // Store the correction
             i_particle->SetValue(rVar, 1.5*i_particle->FastGetSolutionStepValue(rVar,1) - 0.5 * phi_old);
         }
         else
@@ -125,6 +124,7 @@ void BFECCConvectionUtility<TDim>::Convect(const TVarType& rVar, const Variable<
         }
     }
 
+    // Third loop: apply the correction
     #pragma omp parallel for
     for (int i = 0; i < nparticles; i++)
     {
