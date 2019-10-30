@@ -16,9 +16,6 @@ else:
 
 if (IsDistributedRun()
         and CheckIfApplicationsAvailable("TrilinosApplication")):
-    import KratosMultiphysics.TrilinosApplication as KratosTrilinos  # MPI solvers
-    from KratosMultiphysics.RANSModellingApplication import TrilinosExtension as RANSTrilinosExtension
-
     from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory as linear_solver_factory
     from KratosMultiphysics.RANSModellingApplication.TrilinosExtension import MPIGenericResidualBasedSimpleSteadyScalarScheme as steady_scheme
     from KratosMultiphysics.RANSModellingApplication.TrilinosExtension import MPIGenericResidualBasedBossakVelocityDynamicScalarScheme as dynamic_scheme
@@ -27,7 +24,7 @@ if (IsDistributedRun()
     from KratosMultiphysics.TrilinosApplication import TrilinosNewtonRaphsonStrategy as newton_raphson_strategy
     from KratosMultiphysics.RANSModellingApplication.block_builder_and_solvers import TrilinosPeriodicBlockBuilderAndSolver as periodic_block_builder_and_solver
     from KratosMultiphysics.RANSModellingApplication.block_builder_and_solvers import TrilinosBlockBuilderAndSolver as block_builder_and_solver
-elif (not Kratos.IsDistributedRun()):
+elif (not IsDistributedRun()):
     from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
     from KratosMultiphysics.RANSModellingApplication import GenericResidualBasedSimpleSteadyScalarScheme as steady_scheme
     from KratosMultiphysics.RANSModellingApplication import GenericResidualBasedBossakVelocityDynamicScalarScheme as dynamic_scheme
