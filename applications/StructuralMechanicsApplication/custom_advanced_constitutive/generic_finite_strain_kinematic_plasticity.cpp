@@ -45,7 +45,9 @@
 namespace Kratos
 {
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateMaterialResponsePK1(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     this->CalculateMaterialResponsePK2(rValues);
 
@@ -60,7 +62,9 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateMaterialResponsePK2(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     // Auxiliar values
     const Flags& r_constitutive_law_options = rValues.GetOptions();
@@ -126,14 +130,14 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             double plastic_dissipation = this->GetPlasticDissipation();
             Vector plastic_strain;
             Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
-            Vector back_stress_vector(VoigtSize);
+            Vector back_stress_vector = this->GetBackStressVector();
 
             // We backup the deformation gradient
             const double& r_det_deformation_gradient_backup = rValues.GetDeterminantF();
             const Matrix& r_deformation_gradient_backup = rValues.GetDeformationGradientF();
 
             // We compute the predicted stress vector
-            BoundedArrayType predictive_stress_vector;
+            BoundedArrayType predictive_stress_vector, kin_hard_stress_vector;
             if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
                 predictive_stress_vector = rValues.GetStressVector();
             } else {
@@ -181,9 +185,11 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             // Elastic Matrix
             this->CalculateValue(rValues, CONSTITUTIVE_MATRIX_PK2, r_constitutive_matrix);
 
+            noalias(kin_hard_stress_vector) = predictive_stress_vector - back_stress_vector;
+
             // Compute the plastic parameters
             const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(
-                predictive_stress_vector, r_strain_vector, uniaxial_stress,
+                kin_hard_stress_vector, r_strain_vector, uniaxial_stress,
                 threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
                 plastic_dissipation, dummy_plastic_strain_increment,
                 r_constitutive_matrix, rValues, characteristic_length,
@@ -214,7 +220,9 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateMaterialResponseKirchhoff(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     // Auxiliar values
     const Flags& r_constitutive_law_options = rValues.GetOptions();
@@ -282,14 +290,14 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             double plastic_dissipation = this->GetPlasticDissipation();
             Vector plastic_strain;
             Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
-            Vector back_stress_vector(VoigtSize);
+            Vector back_stress_vector = this->GetBackStressVector();
 
             // We backup the deformation gradient
             const double& r_det_deformation_gradient_backup = rValues.GetDeterminantF();
             const Matrix& r_deformation_gradient_backup = rValues.GetDeformationGradientF();
 
             // We compute the predicted stress vector
-            BoundedArrayType predictive_stress_vector;
+            BoundedArrayType predictive_stress_vector, kin_hard_stress_vector;
             if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
                 predictive_stress_vector = rValues.GetStressVector();
             } else {
@@ -330,9 +338,11 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             // Elastic Matrix
             this->CalculateValue(rValues, CONSTITUTIVE_MATRIX_KIRCHHOFF, r_constitutive_matrix);
 
+            noalias(kin_hard_stress_vector) = predictive_stress_vector - back_stress_vector;
+
             // Compute the plastic parameters
             const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(
-                predictive_stress_vector, r_strain_vector, uniaxial_stress,
+                kin_hard_stress_vector, r_strain_vector, uniaxial_stress,
                 threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
                 plastic_dissipation, dummy_plastic_strain_increment,
                 r_constitutive_matrix, rValues, characteristic_length,
@@ -363,7 +373,9 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateMaterialResponseCauchy(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     this->CalculateMaterialResponseKirchhoff(rValues);
 
@@ -413,7 +425,9 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::FinalizeMaterialResponsePK1(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     FinalizeMaterialResponsePK2(rValues);
 }
@@ -422,7 +436,9 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::FinalizeMaterialResponsePK2(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     // Auxiliar values
     const Flags& r_constitutive_law_options = rValues.GetOptions();
@@ -443,14 +459,14 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     double plastic_dissipation = this->GetPlasticDissipation();
     Vector plastic_strain;
     Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
-    Vector back_stress_vector(VoigtSize);
+    Vector back_stress_vector = this->GetBackStressVector();
 
     // We backup the deformation gradient
     const double& r_det_deformation_gradient_backup = rValues.GetDeterminantF();
     const Matrix& r_deformation_gradient_backup = rValues.GetDeformationGradientF();
 
     // We compute the predicted stress vector
-    BoundedArrayType predictive_stress_vector;
+    BoundedArrayType predictive_stress_vector, kin_hard_stress_vector;
     if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
         predictive_stress_vector = rValues.GetStressVector();
     } else {
@@ -498,9 +514,11 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     // Elastic Matrix
     this->CalculateValue(rValues, CONSTITUTIVE_MATRIX_PK2, r_constitutive_matrix);
 
+    noalias(kin_hard_stress_vector) = predictive_stress_vector - back_stress_vector;
+
     // Compute the plastic parameters
     const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(
-        predictive_stress_vector, r_strain_vector, uniaxial_stress,
+        kin_hard_stress_vector, r_strain_vector, uniaxial_stress,
         threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
         plastic_dissipation, dummy_plastic_strain_increment,
         r_constitutive_matrix, rValues, characteristic_length,
@@ -521,13 +539,16 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     noalias(mPlasticDeformationGradient) = plastic_deformation_gradient;
     noalias(mPreviousDeformationGradient) = deformation_gradient;
     mThreshold = threshold;
+    noalias(mBackStressVector) = back_stress_vector;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::FinalizeMaterialResponseKirchhoff(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     // Auxiliar values
     const Flags& r_constitutive_law_options = rValues.GetOptions();
@@ -548,14 +569,14 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     double plastic_dissipation = this->GetPlasticDissipation();
     Vector plastic_strain;
     Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
-    Vector back_stress_vector(VoigtSize);
+    Vector back_stress_vector = this->GetBackStressVector();
 
     // We backup the deformation gradient
     const double& r_det_deformation_gradient_backup = rValues.GetDeterminantF();
     const Matrix& r_deformation_gradient_backup = rValues.GetDeformationGradientF();
 
     // We compute the predicted stress vector
-    BoundedArrayType predictive_stress_vector;
+    BoundedArrayType predictive_stress_vector, kin_hard_stress_vector;
     if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
         predictive_stress_vector = rValues.GetStressVector();
     } else {
@@ -603,9 +624,11 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     // Elastic Matrix
     this->CalculateValue(rValues, CONSTITUTIVE_MATRIX_KIRCHHOFF, r_constitutive_matrix);
 
+    noalias(kin_hard_stress_vector) = predictive_stress_vector - back_stress_vector;
+
     // Compute the plastic parameters
     const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(
-        predictive_stress_vector, r_strain_vector, uniaxial_stress,
+        kin_hard_stress_vector, r_strain_vector, uniaxial_stress,
         threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
         plastic_dissipation, dummy_plastic_strain_increment,
         r_constitutive_matrix, rValues, characteristic_length,
@@ -626,13 +649,16 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     noalias(mPlasticDeformationGradient) = plastic_deformation_gradient;
     noalias(mPreviousDeformationGradient) = deformation_gradient;
     mThreshold = threshold;
+    noalias(mBackStressVector) = back_stress_vector;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::FinalizeMaterialResponseCauchy(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     FinalizeMaterialResponseKirchhoff(rValues);
 }
@@ -641,7 +667,9 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-bool GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::Has(const Variable<double>& rThisVariable)
+bool GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::Has(
+    const Variable<double>& rThisVariable
+    )
 {
     if (rThisVariable == PLASTIC_DISSIPATION) {
         return true;
@@ -656,7 +684,9 @@ bool GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-bool GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::Has(const Variable<Vector>& rThisVariable)
+bool GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::Has(
+    const Variable<Vector>& rThisVariable
+    )
 {
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         return true;
@@ -673,7 +703,9 @@ bool GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-bool GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::Has(const Variable<Matrix>& rThisVariable)
+bool GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::Has(
+    const Variable<Matrix>& rThisVariable
+    )
 {
     return BaseType::Has(rThisVariable);
 }
@@ -875,14 +907,14 @@ Vector& GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIn
         double plastic_dissipation = this->GetPlasticDissipation();
         Vector plastic_strain;
         Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
-        Vector back_stress_vector(VoigtSize);
+        Vector back_stress_vector = this->GetBackStressVector();
 
         // We backup the deformation gradient
         const double& r_det_deformation_gradient_backup = rParameterValues.GetDeterminantF();
         const Matrix& r_deformation_gradient_backup = rParameterValues.GetDeformationGradientF();
 
         // We compute the predicted stress vector
-        BoundedArrayType predictive_stress_vector;
+        BoundedArrayType predictive_stress_vector, kin_hard_stress_vector;
         if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
             predictive_stress_vector = rParameterValues.GetStressVector();
         } else {
@@ -930,9 +962,11 @@ Vector& GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIn
         // Elastic Matrix
         this->CalculateValue(rParameterValues, CONSTITUTIVE_MATRIX_PK2, r_constitutive_matrix);
 
+        noalias(kin_hard_stress_vector) = predictive_stress_vector - back_stress_vector;
+
         // Compute the plastic parameters
         const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(
-            predictive_stress_vector, r_strain_vector, uniaxial_stress,
+            kin_hard_stress_vector, r_strain_vector, uniaxial_stress,
             threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
             plastic_dissipation, dummy_plastic_strain_increment,
             r_constitutive_matrix, rParameterValues, characteristic_length,
