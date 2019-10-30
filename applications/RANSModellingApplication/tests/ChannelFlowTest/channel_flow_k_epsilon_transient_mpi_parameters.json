@@ -68,7 +68,7 @@
                 {
                     "python_module": "apply_custom_process",
                     "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                    "process_name": "ApplyNutYPlusWallFunctionProcess",
+                    "process_name": "NutYPlusWallFunctionProcess",
                     "Parameters": {
                         "model_part_name": "FluidModelPartTransientMPI.Slip2D",
                         "echo_level": 0
@@ -211,7 +211,7 @@
             {
                 "python_module": "apply_custom_process",
                 "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                "process_name" : "ApplyKTurbulentIntensityInletProcess",
+                "process_name" : "KTurbulentIntensityInletProcess",
                 "Parameters": {
                     "model_part_name": "FluidModelPartTransientMPI.AutomaticInlet2D_inlet",
                     "turbulent_intensity": 6.1e-4
@@ -220,7 +220,7 @@
             {
                 "python_module": "apply_custom_process",
                 "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                "process_name" : "ApplyEpsilonTurbulentMixingLengthInletProcess",
+                "process_name" : "EpsilonTurbulentMixingLengthInletProcess",
                 "Parameters": {
                     "model_part_name": "FluidModelPartTransientMPI.AutomaticInlet2D_inlet",
                     "turbulent_mixing_length": 0.0588

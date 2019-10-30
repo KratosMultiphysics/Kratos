@@ -18,14 +18,20 @@ def Factory(settings, Model):
             KratosRANS.RansFindConditionParentProcess
         ],
         [
-            "ApplyScalarCellCenteredAveragingProcess",
+            "ScalarCellCenteredAveragingProcess",
             KratosRANS.RansScalarCellCenterAveragingProcess
         ],
         [
-            "ApplyVectorCellCenteredAveragingProcess",
+            "VectorCellCenteredAveragingProcess",
             KratosRANS.RansVectorCellCenterAveragingProcess
-        ], ["ApplyVectorAlignProcess", KratosRANS.RansVectorAlignProcess],
-        ["CalculateNormalsProcess", CalculateNormalsProcess],
+        ],
+        [   "VectorAlignProcess",
+            KratosRANS.RansVectorAlignProcess
+        ],
+        [
+            "CalculateNormalsProcess",
+            CalculateNormalsProcess
+        ],
         [
             "WallDistanceCalculationProcess",
             KratosRANS.RansWallDistanceCalculationProcess
@@ -34,17 +40,19 @@ def Factory(settings, Model):
             "LogarithmicYPlusCalculationProcess",
             KratosRANS.RansLogarithmicYPlusCalculationProcess
         ],
-        ["CheckScalarBoundsProcess", KratosRANS.RansCheckScalarBoundsProcess],
+        [
+            "CheckScalarBoundsProcess",
+            KratosRANS.RansCheckScalarBoundsProcess],
         [
             "NutKEpsilonHighReCalculationProcess",
             KratosRANS.RansNutKEpsilonHighReCalculationProcess
         ],
         [
-            "ApplyKTurbulentIntensityInletProcess",
+            "KTurbulentIntensityInletProcess",
             KratosRANS.RansKTurbulentIntensityInletProcess
         ],
         [
-            "ApplyEpsilonTurbulentMixingLengthInletProcess",
+            "EpsilonTurbulentMixingLengthInletProcess",
             KratosRANS.RansEpsilonTurbulentMixingLengthInletProcess
         ],
         [
@@ -56,7 +64,7 @@ def Factory(settings, Model):
             KratosRANS.RansApplyExactNodalPeriodicConditionProcess
         ],
         [
-            "ApplyNutYPlusWallFunctionProcess",
+            "NutYPlusWallFunctionProcess",
             KratosRANS.RansNutYPlusWallFunctionProcess
         ],
         [

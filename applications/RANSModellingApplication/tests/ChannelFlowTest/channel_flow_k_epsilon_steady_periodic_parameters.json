@@ -69,7 +69,7 @@
                 {
                     "python_module": "apply_custom_process",
                     "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                    "process_name": "ApplyNutYPlusWallFunctionProcess",
+                    "process_name": "NutYPlusWallFunctionProcess",
                     "Parameters": {
                         "model_part_name": "FluidModelPartSteadyPeriodic.Slip2D",
                         "echo_level": 0

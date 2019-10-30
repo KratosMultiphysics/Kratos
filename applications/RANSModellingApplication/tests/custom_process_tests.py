@@ -153,7 +153,7 @@ class CustomProcessTest(UnitTest.TestCase):
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
                 "python_module" : "apply_custom_process",
-                "process_name"  : "ApplyScalarCellCenteredAveragingProcess",
+                "process_name"  : "ScalarCellCenteredAveragingProcess",
                 "Parameters" : {
                     "echo_level"           : 0,
                     "model_part_name"      : "test.submodelpart_1",
@@ -203,7 +203,7 @@ class CustomProcessTest(UnitTest.TestCase):
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
                 "python_module" : "apply_custom_process",
-                "process_name"  : "ApplyVectorCellCenteredAveragingProcess",
+                "process_name"  : "VectorCellCenteredAveragingProcess",
                 "Parameters" : {
                     "echo_level"           : 0,
                     "model_part_name"      : "test.submodelpart_1",
@@ -244,7 +244,7 @@ class CustomProcessTest(UnitTest.TestCase):
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
                 "python_module" : "apply_custom_process",
-                "process_name"  : "ApplyVectorAlignProcess",
+                "process_name"  : "VectorAlignProcess",
                 "Parameters" : {
                     "model_part_name"         : "test.submodelpart_1",
                     "input_variable_name"     : "VELOCITY",
@@ -302,7 +302,7 @@ class CustomProcessTest(UnitTest.TestCase):
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
                 "python_module" : "apply_custom_process",
-                "process_name"  : "ApplyVectorAlignProcess",
+                "process_name"  : "VectorAlignProcess",
                 "Parameters" : {
                     "model_part_name"         : "test.submodelpart_1",
                     "input_variable_name"     : "VELOCITY",
