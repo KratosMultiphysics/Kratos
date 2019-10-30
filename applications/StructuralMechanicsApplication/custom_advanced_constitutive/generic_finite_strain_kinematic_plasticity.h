@@ -410,7 +410,7 @@ protected:
     double mThreshold = 0.0;
     Matrix mPlasticDeformationGradient  = IdentityMatrix(Dimension);
     Matrix mPreviousDeformationGradient = IdentityMatrix(Dimension);
-    Matrix mBackStressVector            = ZeroVector(VoigtSize);
+    Vector mBackStressVector            = ZeroVector(VoigtSize);
 
     ///@}
     ///@name Private Operators
