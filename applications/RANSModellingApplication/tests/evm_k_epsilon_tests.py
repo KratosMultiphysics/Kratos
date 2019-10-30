@@ -1,7 +1,5 @@
 import os
 import KratosMultiphysics as km
-import KratosMultiphysics.FluidDynamicsApplication as kfd
-import KratosMultiphysics.RANSModellingApplication
 
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 from KratosMultiphysics.RANSModellingApplication.periodic_fluid_dynamics_analysis import PeriodicFluidDynamicsAnalysis

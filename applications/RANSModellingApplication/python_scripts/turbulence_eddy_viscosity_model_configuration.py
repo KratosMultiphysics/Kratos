@@ -1,9 +1,9 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSModellingApplication as KratosRANS
-import math
 
-from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 from KratosMultiphysics import IsDistributedRun
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.RANSModellingApplication.model_part_factory import CreateDuplicateModelPart
 
 if CheckIfApplicationsAvailable("FluidDynamicsApplication"):
@@ -16,9 +16,6 @@ else:
 
 if (IsDistributedRun()
         and CheckIfApplicationsAvailable("TrilinosApplication")):
-    import KratosMultiphysics.TrilinosApplication as KratosTrilinos  # MPI solvers
-    from KratosMultiphysics.RANSModellingApplication import TrilinosExtension as RANSTrilinosExtension
-
     from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory as linear_solver_factory
     from KratosMultiphysics.RANSModellingApplication.TrilinosExtension import MPIGenericResidualBasedSimpleSteadyScalarScheme as steady_scheme
     from KratosMultiphysics.RANSModellingApplication.TrilinosExtension import MPIGenericResidualBasedBossakVelocityDynamicScalarScheme as dynamic_scheme
@@ -112,22 +109,11 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
                 element_name, condition_name, original_condition_name)
             self.model_parts_list.append(model_part)
 
-    def __CreateLinearSolver(self, linear_solver_settings):
-        return linear_solver_factory.ConstructSolver(linear_solver_settings)
-
     def __CreateBuilderAndSolver(self, linear_solver, is_periodic):
         if (is_periodic):
             return periodic_block_builder_and_solver(linear_solver, self.EpetraCommunicator)
         else:
             return block_builder_and_solver(linear_solver,  self.EpetraCommunicator)
-
-    def __CreateConvergenceCriteria(self, scheme_type, relative_tolerance,
-                                    absolute_tolerance, is_periodic):
-        if (scheme_type == "bossak"):
-            return scalar_convergence_criteria(relative_tolerance,
-                                               absolute_tolerance)
-        elif (scheme_type == "steady"):
-            return residual_criteria(relative_tolerance, absolute_tolerance)
 
     def CreateStrategy(self, solver_settings, scheme_settings, model_part,
                        scalar_variable, scalar_variable_rate,
@@ -156,7 +142,7 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
         solver_settings.ValidateAndAssignDefaults(default_solver_settings)
         scheme_settings.ValidateAndAssignDefaults(default_scheme_settings)
 
-        linear_solver = self.__CreateLinearSolver(
+        linear_solver = linear_solver_factory.ConstructSolver(
             solver_settings["linear_solver_settings"])
 
         is_periodic = solver_settings["is_periodic"].GetBool()
@@ -185,10 +171,14 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
         builder_and_solver = self.__CreateBuilderAndSolver(
             linear_solver, is_periodic)
 
-        convergence_criteria = self.__CreateConvergenceCriteria(
-            scheme_settings["scheme_type"].GetString(),
+        if (scheme_settings["scheme_type"].GetString() == "bossak"):
+            convergence_criteria_type = scalar_convergence_criteria
+        elif (scheme_settings["scheme_type"].GetString() == "steady"):
+            convergence_criteria_type = residual_criteria
+
+        convergence_criteria = convergence_criteria_type(
             solver_settings["relative_tolerance"].GetDouble(),
-            solver_settings["absolute_tolerance"].GetDouble(), is_periodic)
+            solver_settings["absolute_tolerance"].GetDouble())
 
         if (scheme_settings["scheme_type"].GetString() == "bossak"):
             time_scheme = dynamic_scheme(
@@ -245,7 +235,6 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
     def Initialize(self):
         self.PrepareSolvingStrategy()
 
-        from KratosMultiphysics.process_factory import KratosProcessFactory
         factory = KratosProcessFactory(self.model)
         self.auxiliar_process_list = factory.ConstructListOfProcesses(
             self.settings["auxiliar_process_list"])

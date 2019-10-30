@@ -1,12 +1,11 @@
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.RANSModellingApplication as KratosRANS
 from KratosMultiphysics.RANSModellingApplication import RansVariableUtilities
 
 
 def CreateDuplicateModelPart(origin_modelpart, destination_modelpart_name,
                              element_name, condition_name,
                              original_condition_name):
-    domain_size = origin_modelpart.ProcessInfo[Kratos.DOMAIN_SIZE]
+    # domain_size = origin_modelpart.ProcessInfo[Kratos.DOMAIN_SIZE]
     model = origin_modelpart.GetModel()
     connectivity_preserve_modeler = Kratos.ConnectivityPreserveModeler()
 

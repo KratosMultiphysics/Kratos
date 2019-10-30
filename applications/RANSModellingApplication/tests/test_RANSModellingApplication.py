@@ -6,8 +6,6 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.RANSModellingApplication
 
-import subprocess
-
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -57,7 +55,7 @@ def AssembleTestSuites():
     nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteadyPeriodic'))
 
     # For very long tests that should not be in nighly and you can use to validate
-    validationSuite = suites['validation']
+    # validationSuite = suites['validation']
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']

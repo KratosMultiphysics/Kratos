@@ -1,8 +1,3 @@
-# import Kratos
-import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication
-import KratosMultiphysics.RANSModellingApplication
-
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -35,7 +30,7 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     ### Small MPI tests ########################################################
-    smallMPISuite = suites['mpi_small']
+    # smallMPISuite = suites['mpi_small']
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
