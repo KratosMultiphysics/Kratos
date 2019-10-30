@@ -16,7 +16,7 @@ namespace Kratos {
         DEM_D_Linear_viscous_Coulomb2D() {
         }
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         ~DEM_D_Linear_viscous_Coulomb2D() {
         }
