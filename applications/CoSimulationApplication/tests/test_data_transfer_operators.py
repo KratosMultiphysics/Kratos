@@ -217,6 +217,34 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
                                         self.origin_data_single_node.GetModelPart().Nodes,
                                         KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, 0.2)
 
+    def test_copy_single_to_dist_transfer_operator_add_values(self):
+        data_transfer_op_settings = KM.Parameters("""{
+            "type" : "copy_single_to_distributed"
+        }""")
+
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        transfer_options_empty = KM.Parameters(""" [] """)
+        transfer_options_add = KM.Parameters(""" ["add_values"] """)
+
+        for node in self.origin_data_single_node.GetModelPart().Nodes:
+            node.SetSolutionStepValue(KMC.SCALAR_DISPLACEMENT, 0, 100.0)
+
+        data_transfer_op.TransferData(self.origin_data_single_node,
+                                      self.destination_matching_data_scalar,
+                                      transfer_options_empty)
+
+        self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes,
+                                        self.origin_data_single_node.GetModelPart().Nodes,
+                                        KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, 1)
+
+        data_transfer_op.TransferData(self.origin_data_single_node,
+                                      self.destination_matching_data_scalar,
+                                      transfer_options_add)
+
+        self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes,
+                                        self.origin_data_single_node.GetModelPart().Nodes,
+                                        KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, 2)
+
     def test_copy_single_to_dist_transfer_operator_distribute_values_swap_sign(self):
         data_transfer_op_settings = KM.Parameters("""{
             "type" : "copy_single_to_distributed"
@@ -235,6 +263,34 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes,
                                         self.origin_data_single_node.GetModelPart().Nodes,
                                         KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, -0.2)
+
+    def test_copy_single_to_dist_transfer_operator_distribute_values_swap_sign_add_values(self):
+        data_transfer_op_settings = KM.Parameters("""{
+            "type" : "copy_single_to_distributed"
+        }""")
+
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        transfer_options = KM.Parameters(""" ["distribute_values", "swap_sign"] """)
+        transfer_options_with_add_vals = KM.Parameters(""" ["distribute_values", "swap_sign", "add_values"] """)
+
+        for node in self.origin_data_single_node.GetModelPart().Nodes:
+            node.SetSolutionStepValue(KMC.SCALAR_DISPLACEMENT, 0, 100.0)
+
+        data_transfer_op.TransferData(self.origin_data_single_node,
+                                      self.destination_matching_data_scalar,
+                                      transfer_options)
+
+        self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes,
+                                        self.origin_data_single_node.GetModelPart().Nodes,
+                                        KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, -0.2)
+
+        data_transfer_op.TransferData(self.origin_data_single_node,
+                                      self.destination_matching_data_scalar,
+                                      transfer_options_with_add_vals)
+
+        self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes,
+                                        self.origin_data_single_node.GetModelPart().Nodes,
+                                        KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, -0.4)
 
     def test_sum_dist_to_single(self):
         data_transfer_op_settings = KM.Parameters("""{
