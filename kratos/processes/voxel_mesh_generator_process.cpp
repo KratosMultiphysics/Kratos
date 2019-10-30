@@ -514,6 +514,16 @@ namespace Kratos
 			std::copy(mColors.GetElementCenterCoordinates(1).begin(), mColors.GetElementCenterCoordinates(1).end(), y_coordinates.begin());
 			std::copy(mColors.GetElementCenterCoordinates(2).begin(), mColors.GetElementCenterCoordinates(2).end(), z_coordinates.begin());
 
+			auto& colors = mrVolumePart.GetValue(COLORS);
+			colors.resize(mColors.GetElementalColors().size(), false);
+			std::size_t index = 0;
+			for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
+				for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
+					for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
+							colors[index++] = mColors.GetElementalColor(i,j,k);
+					}
+				}
+			}
 
 			return;
 		}
