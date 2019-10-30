@@ -742,15 +742,31 @@ namespace Kratos {
 		auto& x_coordinates = volume_part.GetValue(RECTILINEAR_X_COORDINATES);
 		auto& y_coordinates = volume_part.GetValue(RECTILINEAR_Y_COORDINATES);
 		auto& z_coordinates = volume_part.GetValue(RECTILINEAR_Z_COORDINATES);
+		auto& colors = volume_part.GetValue(COLORS);
 
 		KRATOS_CHECK_EQUAL(x_coordinates.size(), 4);
 		KRATOS_CHECK_EQUAL(y_coordinates.size(), 4);
 		KRATOS_CHECK_EQUAL(z_coordinates.size(), 4);
+		KRATOS_CHECK_EQUAL(colors.size(), 27);
 
 		for(int i = 0 ; i < 4 ; i++){
 			KRATOS_CHECK_EQUAL(x_coordinates[i], xy[i]);
 			KRATOS_CHECK_EQUAL(y_coordinates[i], xy[i]);
 			KRATOS_CHECK_EQUAL(z_coordinates[i], z[i]);
+		}
+
+		auto i_color = colors.begin();
+		for(int k = 0 ; k < 3 ; k++){
+			for(int j = 0 ; j < 3 ; j++){
+				for(int i = 0 ; i < 3 ; i++){
+					if((i==1) && (j==1) && (k == 1)){
+						KRATOS_CHECK_EQUAL(*i_color++, -1);
+					}
+					else {
+						KRATOS_CHECK_EQUAL(*i_color++, 1);
+					}
+				}
+			}
 		}
 	}
 
@@ -770,7 +786,8 @@ namespace Kratos {
 					"apply_outside_color": true,
 					"coloring_entities": "nodes"
 				}
-			]
+			],
+    		"output_filename": "cubeTest.vtr"
 		})");
 
         Model current_model;
