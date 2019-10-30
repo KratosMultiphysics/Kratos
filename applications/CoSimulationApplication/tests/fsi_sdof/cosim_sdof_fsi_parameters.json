@@ -20,10 +20,10 @@
         ],
         "data_transfer_operators" : {
             "transfer_forces" : {
-                "type" : "sum_dist_to_single"
+                "type" : "sum_distributed_to_single"
             },
             "transfer_disp" : {
-                "type" : "copy_single_to_dist"
+                "type" : "copy_single_to_distributed"
             }
         },
         "coupling_sequence":

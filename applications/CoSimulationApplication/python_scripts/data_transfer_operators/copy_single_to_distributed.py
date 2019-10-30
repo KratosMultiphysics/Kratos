@@ -4,10 +4,12 @@ from __future__ import print_function, absolute_import, division  # makes these 
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_transfer_operator import CoSimulationDataTransferOperator
 
 def Create(settings):
-    return CopySingleToDist(settings)
+    return CopySingleToDistributed(settings)
 
-class CopySingleToDist(CoSimulationDataTransferOperator):
-
+class CopySingleToDistributed(CoSimulationDataTransferOperator):
+    """DataTransferOperator to take one single value and set it to all values on another interface.
+    Used e.g. for FSI with SDof, where the SDof has one value and the fluid interface has many
+    """
     def TransferData(self, from_solver_data, to_solver_data, transfer_options):
         self._CheckAvailabilityTransferOptions(transfer_options)
 
@@ -19,7 +21,7 @@ class CopySingleToDist(CoSimulationDataTransferOperator):
 
         to_solver_values.fill(data_value[0])
 
-        #the order is IMPORTANT here!
+        # the order is IMPORTANT here!
         if "swap_sign" in transfer_options.GetStringArray():
             to_solver_values *= (-1)
         if "redistribute_data" in transfer_options.GetStringArray():

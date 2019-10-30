@@ -161,7 +161,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
     def test_copy_single_to_dist_transfer_operator(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "copy_single_to_dist"
+            "type" : "copy_single_to_distributed"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
@@ -181,7 +181,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
     def test_copy_single_to_dist_transfer_operator_swap_sign(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "copy_single_to_dist"
+            "type" : "copy_single_to_distributed"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
@@ -200,7 +200,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
     def test_copy_single_to_dist_transfer_operator_redistribute_data(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "copy_single_to_dist"
+            "type" : "copy_single_to_distributed"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
@@ -219,7 +219,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
     def test_copy_single_to_dist_transfer_operator_redistribute_data_swap_sign(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "copy_single_to_dist"
+            "type" : "copy_single_to_distributed"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
@@ -238,7 +238,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
     def test_sum_dist_to_single(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "sum_dist_to_single"
+            "type" : "sum_distributed_to_single"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
@@ -258,7 +258,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
     def test_sum_dist_to_single_swap_sign(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "sum_dist_to_single"
+            "type" : "sum_distributed_to_single"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
@@ -278,7 +278,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
     def test_sum_dist_to_single_add_values(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "sum_dist_to_single"
+            "type" : "sum_distributed_to_single"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
@@ -300,7 +300,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
     def test_sum_dist_to_single_add_values_swap_sign(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "sum_dist_to_single"
+            "type" : "sum_distributed_to_single"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)

@@ -7,10 +7,12 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_
 import numpy as np
 
 def Create(settings):
-    return SumDistToSingle(settings)
+    return SumDistributedToSingle(settings)
 
-class SumDistToSingle(CoSimulationDataTransferOperator):
-
+class SumDistributedToSingle(CoSimulationDataTransferOperator):
+    """DataTransferOperator to sum values on one interface and put it to another interface.
+    Used e.g. for FSI with SDof, where the loads on teh fluid interface are summed up and set to the SDofinterface has many
+    """
     def TransferData(self, from_solver_data, to_solver_data, transfer_options):
         self._CheckAvailabilityTransferOptions(transfer_options)
 
@@ -22,7 +24,7 @@ class SumDistToSingle(CoSimulationDataTransferOperator):
             value = from_solver_data.GetModelPart.GetCommunicator().GetDataCommunicator().SumAll(value)
         summed_data_array = np.array([value])
 
-        #the order is IMPORTANT here!
+        # the order is IMPORTANT here!
         if "swap_sign" in transfer_options.GetStringArray():
             summed_data_array *= (-1)
         if "add_values" in transfer_options.GetStringArray():
