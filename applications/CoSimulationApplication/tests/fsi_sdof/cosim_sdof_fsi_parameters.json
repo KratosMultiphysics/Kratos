@@ -19,10 +19,10 @@
             }
         ],
         "data_transfer_operators" : {
-            "mapper_1" : {
+            "transfer_forces" : {
                 "type" : "sum_dist_to_single"
             },
-            "mapper_2" : {
+            "transfer_disp" : {
                 "type" : "copy_single_to_dist"
             }
         },
@@ -35,9 +35,8 @@
                     "data"              : "load",
                     "from_solver"       : "fluid",
                     "from_solver_data"  : "load",
-                    "data_transfer_operator" : "mapper_1",
-                    "data_transfer_operator_options" : ["swap_sign"],
-                    "interval"                        : [0.0, 1e30]
+                    "data_transfer_operator" : "transfer_forces",
+                    "data_transfer_operator_options" : ["swap_sign"]
                 }
             ],
             "output_data_list": [
@@ -45,7 +44,7 @@
                     "data"           : "disp",
                     "to_solver"      : "fluid",
                     "to_solver_data" : "disp",
-                    "data_transfer_operator" : "mapper_2"
+                    "data_transfer_operator" : "transfer_disp"
                 }
             ]
         },
