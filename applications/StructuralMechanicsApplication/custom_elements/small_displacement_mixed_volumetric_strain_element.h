@@ -70,15 +70,18 @@ protected:
      */
     struct KinematicVariables
     {
-        Vector  N;
-        Matrix  B;
-        double  detF;
-        Matrix  F;
-        double  detJ0;
-        Matrix  J0;
-        Matrix  InvJ0;
-        Matrix  DN_DX;
+        Vector N;
+        Matrix B;
+        double detF;
+        Matrix F;
+        double detJ0;
+        Matrix J0;
+        Matrix InvJ0;
+        Matrix DN_DX;
+        Matrix DevStrainOp;
         Vector Displacements;
+        Vector VolumetricNodalStrains;
+        Vector EquivalentStrain;
 
         /**
          * The default constructor
@@ -101,6 +104,32 @@ protected:
             J0 = ZeroMatrix(Dimension, Dimension);
             InvJ0 = ZeroMatrix(Dimension, Dimension);
             Displacements = ZeroVector(Dimension * NumberOfNodes);
+            VolumetricNodalStrains = ZeroVector(NumberOfNodes);
+            DevStrainOp = GetDeviatoricStrainOperator(StrainSize, Dimension);
+            EquivalentStrain = ZeroVector(StrainSize);
+        }
+
+        Matrix GetDeviatoricStrainOperator(
+            const SizeType StrainSize,
+            const SizeType Dimension)
+        {
+            KRATOS_TRY;
+
+            DevStrainOp = IdentityMatrix(StrainSize, StrainSize);
+            const double aux = 1.0/Dimension;
+
+            if (StrainSize == 3) {
+                DevStrainOp(0,0) -= aux; DevStrainOp(0,1) -= aux;
+                DevStrainOp(1,0) -= aux; DevStrainOp(1,1) -= aux;
+            } else if (StrainSize == 6) {
+                DevStrainOp(0,0) -= aux; DevStrainOp(0,1) -= aux; DevStrainOp(0,2) -= aux;
+                DevStrainOp(1,0) -= aux; DevStrainOp(1,1) -= aux; DevStrainOp(1,2) -= aux;
+                DevStrainOp(2,0) -= aux; DevStrainOp(2,1) -= aux; DevStrainOp(2,2) -= aux;
+            }
+
+            return DevStrainOp;
+
+            KRATOS_CATCH( "" );
         }
     };
 
@@ -427,54 +456,38 @@ protected:
     virtual bool UseElementProvidedStrain() const;
 
     /**
-     * @brief This functions calculates both the RHS and the LHS
-     * @param rLeftHandSideMatrix The LHS matrix
-     * @param rRightHandSideVector The RHS vector
-     * @param rCurrentProcessInfo The current process info instance
-     * @param CalculateStiffnessMatrixFlag The flag to set if compute the LHS
-     * @param CalculateResidualVectorFlag The flag to set if compute the RHS
+     * @brief This functions updates the data structure passed to the CL
+     * @param rThisKinematicVariables The kinematic variables to be calculated
+     * @param rThisConstitutiveVariables The constitutive variables
+     * @param rValues The CL parameters
+     * @param PointNumber The integration point considered
+     * @param IntegrationPoints The list of integration points
      */
-    virtual void CalculateAll(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag
+    virtual void SetConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveLaw::Parameters& rValues,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
         );
 
-    // /**
-    //  * @brief This functions updates the data structure passed to the CL
-    //  * @param rThisKinematicVariables The kinematic variables to be calculated
-    //  * @param rThisConstitutiveVariables The constitutive variables
-    //  * @param rValues The CL parameters
-    //  * @param PointNumber The integration point considered
-    //  * @param IntegrationPoints The list of integration points
-    //  */
-    // virtual void SetConstitutiveVariables(
-    //     KinematicVariables& rThisKinematicVariables,
-    //     ConstitutiveVariables& rThisConstitutiveVariables,
-    //     ConstitutiveLaw::Parameters& rValues,
-    //     const IndexType PointNumber,
-    //     const GeometryType::IntegrationPointsArrayType& IntegrationPoints
-    //     );
-
-    // /**
-    //  * @brief This functions updates the constitutive variables
-    //  * @param rThisKinematicVariables The kinematic variables to be calculated
-    //  * @param rThisConstitutiveVariables The constitutive variables
-    //  * @param rValues The CL parameters
-    //  * @param PointNumber The integration point considered
-    //  * @param IntegrationPoints The list of integration points
-    //  * @param ThisStressMeasure The stress measure considered
-    //  */
-    // virtual void CalculateConstitutiveVariables(
-    //     KinematicVariables& rThisKinematicVariables,
-    //     ConstitutiveVariables& rThisConstitutiveVariables,
-    //     ConstitutiveLaw::Parameters& rValues,
-    //     const IndexType PointNumber,
-    //     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    //     const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2
-    //     );
+    /**
+     * @brief This functions updates the constitutive variables
+     * @param rThisKinematicVariables The kinematic variables to be calculated
+     * @param rThisConstitutiveVariables The constitutive variables
+     * @param rValues The CL parameters
+     * @param PointNumber The integration point considered
+     * @param IntegrationPoints The list of integration points
+     * @param ThisStressMeasure The stress measure considered
+     */
+    virtual void CalculateConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveLaw::Parameters& rValues,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2
+        );
 
     /**
      * @brief This function computes the body force
@@ -603,6 +616,30 @@ private:
         GeometryType::ShapeFunctionsGradientsType &rDNDX0Container) const;
 
     /**
+     * @brief Calculate the kinematics
+     * This method calculates the kinematics of the element for
+     * a given integration point
+     * @param rThisKinematicVariables Integration point kinematics container
+     * @param PointNumber Integration point index
+     * @param rIntegrationMethod Integration rule
+     */
+    void CalculateKinematicVariables(
+        KinematicVariables& rThisKinematicVariables,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationMethod& rIntegrationMethod) const;
+
+    // /**
+    //  * @brief Calculate the material response
+    //  * This method calculates the kinematics and material constitutive
+    //  * response for a given integration point
+    //  * @param PointIndex Integration point index
+    //  * @param rConsLawParams Constitutive law parameters. Note that this already includes the total strain
+    //  */
+    // void CalculateMaterialResponse(
+    //     const SizeType PointIndex,
+    //     ConstitutiveLaw::Parameters &rConsLawParams) const;
+
+    /**
      * Calculation of the Deformation Matrix B
      * @param rB The deformation matrix
      * @param rDN_DX The derivatives of the shape functions
@@ -631,6 +668,16 @@ private:
         Vector &rEquivalentStrain) const;
 
     /**
+     * @brief Calculate the equivalent strain
+     * This function computes the equivalent strain vector.
+     * The equivalent strain is defined as the deviatoric part of the displacement
+     * symmetric gradient plus a volumetric strain coming from the interpolation
+     * of the nodal volumetric strain.
+     * @param rThisKinematicVariables Kinematic variables container
+     */
+    void CalculateEquivalentStrain(KinematicVariables& rThisKinematicVariables) const;
+
+    /**
      * @brief Calculation of the deformation gradient F
      * @param rF The deformation gradient
      * @param rStrainTensor The strain tensor in Voigt notation
@@ -638,12 +685,6 @@ private:
     void ComputeEquivalentF(
         Matrix &rF,
         const Vector &rStrainTensor) const;
-
-    /**
-     * Calculation of the deviatoric strain operator
-     * @param rDevStrainOp Reference to the deviatoric strain operator
-     */
-    void CalculateDeviatoricStrainOperator(Matrix& rDevStrainOp) const;
 
     /**
      * @brief This method gets a value directly in the CL
