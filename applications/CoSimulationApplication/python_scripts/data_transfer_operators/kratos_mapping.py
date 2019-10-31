@@ -37,15 +37,16 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
 
         self._CheckAvailabilityTransferOptions(transfer_options)
 
-        model_part_origin = from_solver_data.GetModelPart()
-        identifier_origin = from_solver_data.GetIdentifier()
-        variable_origin   = from_solver_data.variable
+        model_part_origin      = from_solver_data.GetModelPart()
+        model_part_origin_name = from_solver_data.model_part_name
+        variable_origin        = from_solver_data.variable
+        identifier_origin      = from_solver_data.solver_name + "." + model_part_origin_name
 
-        model_part_destination = to_solver_data.GetModelPart()
-        identifier_destination = to_solver_data.GetIdentifier()
-        variable_destination   = to_solver_data.variable
+        model_part_destination      = to_solver_data.GetModelPart()
+        model_part_destination_name = to_solver_data.model_part_name
+        variable_destination        = to_solver_data.variable
+        identifier_destination      = to_solver_data.solver_name + "." + model_part_destination_name
 
-        # TODO the flags for to / from non-hist should come from the interfacedata-location
         mapper_flags = self.__GetMapperFlags(transfer_options)
 
         identifier_tuple         = (identifier_origin, identifier_destination)
@@ -64,8 +65,8 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
 
             if self.echo_level > 0:
                 info_msg  = "Creating Mapper:\n"
-                info_msg += '    Origin: ModePart "{}" of solver "{}"\n'.format(from_solver_data.model_part_name, from_solver_data.solver_name)
-                info_msg += '    Destination: ModePart "{}" of solver "{}"'.format(to_solver_data.model_part_name, to_solver_data.solver_name)
+                info_msg += '    Origin: ModePart "{}" of solver "{}"\n'.format(model_part_origin_name, from_solver_data.solver_name)
+                info_msg += '    Destination: ModePart "{}" of solver "{}"'.format(model_part_destination_name, to_solver_data.solver_name)
 
                 cs_tools.cs_print_info(colors.bold(self._ClassName()), info_msg)
 
