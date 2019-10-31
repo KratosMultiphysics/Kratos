@@ -4,6 +4,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
+import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
 using_pykratos = UsingPyKratos()
@@ -109,6 +110,7 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         coupling_data = CouplingInterfaceData(settings, self.model)
         coupling_data.Initialize()
+        colors.PRINT_COLORS = False # required for checking the printing
         self.assertMultiLineEqual(str(coupling_data), coupling_interface_data_str)
 
     def test_identifier(self):
