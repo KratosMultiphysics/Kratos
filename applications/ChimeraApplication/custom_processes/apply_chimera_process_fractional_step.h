@@ -144,27 +144,15 @@ protected:
     /**
      * @brief Applies the continuity between the boundary modelpart and the background.
      * @param rBoundaryModelPart The boundary modelpart for which the continuity is to be enforced.
-     * @param pBinLocator The bin based locator formulated on the background. This is used to locate nodes on rBoundaryModelPart.
+     * @param rBinLocator The bin based locator formulated on the background. This is used to locate nodes on rBoundaryModelPart.
      */
-    void ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, PointLocatorPointerType &pBinLocator) override
+    void ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, PointLocatorType &rBinLocator) override
     {
         //loop over nodes and find the triangle in which it falls, then do interpolation
         MasterSlaveContainerVectorType velocity_ms_container_vector;
         MasterSlaveContainerVectorType pressure_ms_container_vector;
-#pragma omp parallel
-        {
-            const IndexType num_constraints_per_thread = (rBoundaryModelPart.NumberOfNodes() * 4)/omp_get_num_threads();
-#pragma omp single
-            {
-                velocity_ms_container_vector.resize(omp_get_num_threads());
-                for (auto &container : velocity_ms_container_vector)
-                    container.reserve(num_constraints_per_thread);
-
-                pressure_ms_container_vector.resize(omp_get_num_threads());
-                for (auto &container : pressure_ms_container_vector)
-                    container.reserve(num_constraints_per_thread);
-            }
-        }
+        BaseType::ReserveMemoryForConstraintContainers(rBoundaryModelPart, velocity_ms_container_vector);
+        BaseType::ReserveMemoryForConstraintContainers(rBoundaryModelPart, pressure_ms_container_vector);
         std::vector<int> constraints_id_vector;
 
         int num_constraints_required = (TDim + 1) * (rBoundaryModelPart.Nodes().size());
@@ -186,7 +174,7 @@ protected:
 
         BuiltinTimer loop_over_b_nodes;
 
-#pragma omp parallel for shared(constraints_id_vector, velocity_ms_container_vector, pressure_ms_container_vector, pBinLocator) reduction(+                                                             \
+#pragma omp parallel for shared(constraints_id_vector, velocity_ms_container_vector, pressure_ms_container_vector, rBinLocator) reduction(+                                                             \
                                                                                                                                           : not_found_counter) reduction(+                              \
                                                                                                                                                                          : removed_counter) reduction(+ \
                                                                                                                                                                                                       : counter)
@@ -200,7 +188,6 @@ protected:
 
             ModelPart::NodesContainerType::iterator i_boundary_node = rBoundaryModelPart.NodesBegin() + i_bn;
             Node<3>::Pointer p_boundary_node = *(i_boundary_node.base());
-            ConstraintIdsVectorType constrainIds_for_the_node;
             IndexType start_constraint_id = i_bn * (TDim + 1) * (TDim + 1);
             bool node_coupled = false;
             if ((p_boundary_node)->IsDefined(VISITED))
@@ -209,20 +196,11 @@ protected:
             typename PointLocatorType::ResultIteratorType result_begin = results.begin();
             Element::Pointer p_element;
             bool is_found = false;
-            is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), shape_fun_weights, p_element, result_begin, max_results);
+            is_found = rBinLocator.FindPointOnMesh(p_boundary_node->Coordinates(), shape_fun_weights, p_element, result_begin, max_results);
 
             if (node_coupled && is_found)
             {
-                constrainIds_for_the_node = BaseType::mNodeIdToConstraintIdsMap[p_boundary_node->Id()];
-                for (auto const &constraint_id : constrainIds_for_the_node)
-                {
-#pragma omp critical
-                    {
-                        BaseType::mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(constraint_id);
-                        removed_counter++;
-                    }
-                }
-                constrainIds_for_the_node.clear();
+                removed_counter+=BaseType::RemoveExistingConstraintsForNode(*p_boundary_node);
                 p_boundary_node->Set(VISITED, false);
             }
 
@@ -253,61 +231,17 @@ protected:
         KRATOS_INFO_IF("Loop over boundary nodes took : ", BaseType::mEchoLevel > 1)<< loop_over_b_nodes.ElapsedSeconds()<< " seconds"<< std::endl;
 
         BuiltinTimer mpc_add_time;
-        IndexType n_vel_constraints = 0;
-        for (auto &container : velocity_ms_container_vector)
-        {
-            const int n_constraints = static_cast<int> (container.size());
-            n_vel_constraints += n_constraints;
-            #pragma omp parallel for
-            for (int i_con = 0; i_con < n_constraints; ++i_con)
-            {
-                auto i_container = container.begin() + i_con;
-                i_container->Set(FS_CHIMERA_PRE_CONSTRAINT, false);
-                i_container->Set(FS_CHIMERA_VEL_CONSTRAINT, true);
-                i_container->Set(ACTIVE);
-            }
-            // auto &vel_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_velocity_model_part");
-            // vel_modelpart.AddMasterSlaveConstraints(container.begin(), container.end());
-        }
-
         auto &vel_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_velocity_model_part");
-        auto& vel_constraints = vel_modelpart.MasterSlaveConstraints();
-        vel_constraints.reserve(n_vel_constraints);
-        auto& vel_constraints_data = vel_constraints.GetContainer();
-        for (auto &container : velocity_ms_container_vector)
-        {
-            vel_constraints_data.insert( vel_constraints_data.end(), container.ptr_begin(), container.ptr_end() );
-        }
-        vel_constraints.Sort();
-
-
-        IndexType n_pre_constraints = 0;
-        for (auto &container : pressure_ms_container_vector)
-        {
-            const int n_constraints = static_cast<int> (container.size());
-            n_pre_constraints += n_constraints;
-            #pragma omp parallel for
-            for (int i_con = 0; i_con < n_constraints; ++i_con)
-            {
-                auto i_container = container.begin() + i_con;
-                i_container->Set(FS_CHIMERA_PRE_CONSTRAINT, true);
-                i_container->Set(FS_CHIMERA_VEL_CONSTRAINT, false);
-                i_container->Set(ACTIVE);
-            }
-            // auto &pre_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_pressure_model_part");
-            // pre_modelpart.AddMasterSlaveConstraints(container.begin(), container.end());
-        }
+        BaseType::AddConstraintsToModelpart(vel_modelpart, velocity_ms_container_vector);
+        VariableUtils().SetFlag(FS_CHIMERA_PRESSURE_CONSTRAINT, false, vel_modelpart.MasterSlaveConstraints());
+        VariableUtils().SetFlag(FS_CHIMERA_VELOCITY_CONSTRAINT, true, vel_modelpart.MasterSlaveConstraints());
+        VariableUtils().SetFlag(ACTIVE, true, vel_modelpart.MasterSlaveConstraints());
 
         auto &pre_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_pressure_model_part");
-        auto& pre_constraints = pre_modelpart.MasterSlaveConstraints();
-        pre_constraints.reserve(n_pre_constraints);
-        auto& pre_constraints_data = pre_constraints.GetContainer();
-        for (auto &container : pressure_ms_container_vector)
-        {
-            pre_constraints_data.insert( pre_constraints_data.end(), container.ptr_begin(), container.ptr_end() );
-        }
-        pre_constraints.Sort();
-
+        BaseType::AddConstraintsToModelpart(pre_modelpart, pressure_ms_container_vector);
+        VariableUtils().SetFlag(FS_CHIMERA_PRESSURE_CONSTRAINT, true, vel_modelpart.MasterSlaveConstraints());
+        VariableUtils().SetFlag(FS_CHIMERA_VELOCITY_CONSTRAINT, false, vel_modelpart.MasterSlaveConstraints());
+        VariableUtils().SetFlag(ACTIVE, true, pre_modelpart.MasterSlaveConstraints());
 
         KRATOS_INFO_IF("Adding of MPCs from containers to modelpart took : ", BaseType::mEchoLevel > 1)<< mpc_add_time.ElapsedSeconds()<< " seconds"<< std::endl;
 
