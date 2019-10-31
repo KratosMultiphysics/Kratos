@@ -67,6 +67,18 @@ public:
     ///@name Type Definitions
     ///@{
 
+    enum SideToExtract
+    {
+        INSIDE=0,
+        OUTSIDE=1
+    };
+
+    enum Domain
+    {
+        MAIN_BACKGROUND=1,
+        OTHER=-1
+    };
+
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of ChimeraHoleCuttingUtility
@@ -98,7 +110,10 @@ public:
      * @param Distance is the the distance (magnitude) at which hole is to be cut from the zero distance layer.
      */
     template<int TDim>
-    void CreateHoleAfterDistance(ModelPart &rModelPart, ModelPart &rHoleModelPart, ModelPart &rHoleBoundaryModelPart, const double Distance);
+    void CreateHoleAfterDistance(ModelPart &rModelPart,
+                                 ModelPart &rHoleModelPart,
+                                 ModelPart &rHoleBoundaryModelPart,
+                                 const double Distance);
 
 
     /**
@@ -106,16 +121,16 @@ public:
      *          An element is removed even if one of its nodes is out of the domain (-ve or +ve) as indicated by GetInside and MainDomainOrNot
      * @param rModelPart The modelpart From where the elements are to be removed.
      * @param rModifiedModelPart The modified modelpart without the the elements which are out side.
-     * @param MainDomainOrNot says which sign (-ve or +ve) is inside
+     * @param DomainType says which sign (-ve or +ve) is inside
      * @param OverLapDistance is the the distance (magnitude) at which hole is to be cut from the zero distance layer.
      * @param GetInside works in combination with MainDomainOrNot to get the feeling of what is inside or what is outside.
      */
     template<int TDim>
     void RemoveOutOfDomainElements(ModelPart &rModelPart,
                                    ModelPart &rModifiedModelPart,
-                                   const int MainDomainOrNot,
+                                   const ChimeraHoleCuttingUtility::Domain DomainType,
                                    const double OverLapDistance=0.0,
-                                   const bool GetInside=false);
+                                   const ChimeraHoleCuttingUtility::SideToExtract Side = ChimeraHoleCuttingUtility::SideToExtract::OUTSIDE);
 
     /**
      * @brief Extracts the outside surface/edges of a modelpart.This uses the flag CHIMERA_INTERNAL_BOUNDARY
@@ -126,7 +141,9 @@ public:
      * @param GetInternal A bool specifying which surface/edge extracted. The one marked by CHIMERA_INTERNAL_BOUNDARY or the outside one.
      */
     template<int TDim>
-    void ExtractBoundaryMesh( ModelPart &rVolumeModelPart, ModelPart &rExtractedBoundaryModelPart, bool GetInternal = false);
+    void ExtractBoundaryMesh( ModelPart &rVolumeModelPart,
+                              ModelPart &rExtractedBoundaryModelPart,
+                              const ChimeraHoleCuttingUtility::SideToExtract GetInternal = ChimeraHoleCuttingUtility::SideToExtract::OUTSIDE);
 
     /// Assignment operator.
     ChimeraHoleCuttingUtility &operator=(ChimeraHoleCuttingUtility const &rOther) = delete;

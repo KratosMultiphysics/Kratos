@@ -9,8 +9,11 @@ void ChimeraHoleCuttingUtility::CreateHoleAfterDistance(
     ModelPart &rHoleBoundaryModelPart, const double Distance)
 {
     KRATOS_TRY;
-    ChimeraHoleCuttingUtility::RemoveOutOfDomainElements<TDim>(rModelPart, rHoleModelPart, 1, Distance,
-                                    true);
+    ChimeraHoleCuttingUtility::RemoveOutOfDomainElements<TDim>(rModelPart,
+                                                               rHoleModelPart,
+                                                               ChimeraHoleCuttingUtility::Domain::MAIN_BACKGROUND,
+                                                               Distance,
+                                                               ChimeraHoleCuttingUtility::SideToExtract::INSIDE);
     ChimeraHoleCuttingUtility::ExtractBoundaryMesh<TDim>(rHoleModelPart, rHoleBoundaryModelPart);
     KRATOS_CATCH("");
 }
@@ -18,8 +21,8 @@ void ChimeraHoleCuttingUtility::CreateHoleAfterDistance(
 template <int TDim>
 void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
     ModelPart &rModelPart, ModelPart &rModifiedModelPart,
-    const int MainDomainOrNot, const double OverLapDistance,
-    const bool GetInside)
+    const ChimeraHoleCuttingUtility::Domain DomainType, const double OverLapDistance,
+    const ChimeraHoleCuttingUtility::SideToExtract Side)
 {
     KRATOS_TRY;
     std::vector<IndexType> vector_of_node_ids;
@@ -38,7 +41,7 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
             nodal_distance =
                 i_element.GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
 
-            nodal_distance = nodal_distance * MainDomainOrNot;
+            nodal_distance = nodal_distance * DomainType;
             if (nodal_distance < -1 * OverLapDistance)
             {
                 numPointsOutside++;
@@ -52,7 +55,7 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
         {
             i_element.Set(ACTIVE, false);
             IndexType num_nodes_per_elem = i_element.GetGeometry().PointsNumber();
-            if (GetInside)
+            if (Side == ChimeraHoleCuttingUtility::SideToExtract::INSIDE)
                 rModifiedModelPart.AddElement(rModelPart.pGetElement(i_element.Id()));
             for (j = 0; j < num_nodes_per_elem; j++)
             {
@@ -72,13 +75,13 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
                     i_element.GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 1) =
                         0.0;
                 i_element.GetGeometry()[j].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
-                if (GetInside)
+                if (Side == ChimeraHoleCuttingUtility::SideToExtract::INSIDE)
                     vector_of_node_ids.push_back(i_element.GetGeometry()[j].Id());
             }
         }
         else
         {
-            if (!GetInside)
+            if (Side == ChimeraHoleCuttingUtility::SideToExtract::OUTSIDE)
             {
                 count++;
                 IndexType num_nodes_per_elem =
@@ -109,7 +112,7 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
 template <int TDim>
 void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(
     ModelPart &rVolumeModelPart, ModelPart &rExtractedBoundaryModelPart,
-    bool GetInternal)
+    const ChimeraHoleCuttingUtility::SideToExtract GetInternal)
 {
     KRATOS_TRY;
 
@@ -386,7 +389,7 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(
             is_internal = is_internal && node.Is(CHIMERA_INTERNAL_BOUNDARY);
         if (is_internal)
         {
-            if (!GetInternal)
+            if (GetInternal == ChimeraHoleCuttingUtility::SideToExtract::OUTSIDE)
             {
                 i_condition.Set(TO_ERASE);
                 for (auto &node : geo)
@@ -395,7 +398,7 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(
         }
         else
         {
-            if (GetInternal)
+            if (GetInternal == ChimeraHoleCuttingUtility::SideToExtract::INSIDE)
             {
                 i_condition.Set(TO_ERASE);
                 for (auto &node : geo)
@@ -414,22 +417,32 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(
 //
 template void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements<2>(ModelPart &rModelPart,
                                 ModelPart &rModifiedModelPart,
-                                const int MainDomainOrNot,
+                                const ChimeraHoleCuttingUtility::Domain DomainType,
                                 const double OverLapDistance,
-                                const bool GetInside);
+                                const ChimeraHoleCuttingUtility::SideToExtract Side);
 
 template void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements<3>(ModelPart &rModelPart,
                                 ModelPart &rModifiedModelPart,
-                                const int MainDomainOrNot,
+                                const ChimeraHoleCuttingUtility::Domain DomainType,
                                 const double OverLapDistance,
-                                const bool GetInside);
+                                const ChimeraHoleCuttingUtility::SideToExtract Side);
 
-template void ChimeraHoleCuttingUtility::ExtractBoundaryMesh<2>( ModelPart &rVolumeModelPart, ModelPart &rExtractedBoundaryModelPart, bool GetInternal);
-template void ChimeraHoleCuttingUtility::ExtractBoundaryMesh<3>( ModelPart &rVolumeModelPart, ModelPart &rExtractedBoundaryModelPart, bool GetInternal);
+template void ChimeraHoleCuttingUtility::ExtractBoundaryMesh<2>( ModelPart &rVolumeModelPart,
+                                                                 ModelPart &rExtractedBoundaryModelPart,
+                                                                 const ChimeraHoleCuttingUtility::SideToExtract GetInternal);
+template void ChimeraHoleCuttingUtility::ExtractBoundaryMesh<3>( ModelPart &rVolumeModelPart,
+                                                                 ModelPart &rExtractedBoundaryModelPart,
+                                                                 const ChimeraHoleCuttingUtility::SideToExtract GetInternal);
 
 
-template void ChimeraHoleCuttingUtility::CreateHoleAfterDistance<2>(ModelPart &rModelPart, ModelPart &rHoleModelPart, ModelPart &rHoleBoundaryModelPart, const double Distance);
-template void ChimeraHoleCuttingUtility::CreateHoleAfterDistance<3>(ModelPart &rModelPart, ModelPart &rHoleModelPart, ModelPart &rHoleBoundaryModelPart, const double Distance);
+template void ChimeraHoleCuttingUtility::CreateHoleAfterDistance<2>(ModelPart &rModelPart,
+                                                                    ModelPart &rHoleModelPart,
+                                                                    ModelPart &rHoleBoundaryModelPart,
+                                                                    const double Distance);
+template void ChimeraHoleCuttingUtility::CreateHoleAfterDistance<3>(ModelPart &rModelPart,
+                                                                    ModelPart &rHoleModelPart,
+                                                                    ModelPart &rHoleBoundaryModelPart,
+                                                                    const double Distance);
 
 
 } // namespace Kratos

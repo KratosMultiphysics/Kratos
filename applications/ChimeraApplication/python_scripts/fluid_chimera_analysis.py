@@ -18,8 +18,8 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
             self.chimera_parameters = self.solver_parameters["chimera_settings"].Clone()
         else:
             raise Exception("The \"solver_settings\" should have the entry \"chimera_settings\" ")
-        
-        # Seperating the fluid solver settings. 
+
+        # Seperating the fluid solver settings.
         if self.solver_parameters.Has("fluid_solver_settings"):
             self.fluid_parameters = self.solver_parameters["fluid_solver_settings"].Clone()
         else:

@@ -133,7 +133,6 @@ public:
         mEchoLevel = 0;
         mReformulateEveryStep = false;
         mIsFormulated = false;
-        mTime = 0.0;
     }
 
     /// Destructor.
@@ -197,7 +196,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream &rOStream) const override
     {
-        KRATOS_INFO("ApplyChimera") << std::endl;
+        rOStream << "ApplyChimera" << std::endl;
     }
 
     ///@}
@@ -214,7 +213,6 @@ protected:
     ///@name Protected member Variables
     ///@{
     ModelPart &mrMainModelPart;
-    double mOverlapDistance;
     IndexType mNumberOfLevels;
     Parameters mParameters;
     std::unordered_map<IndexType, ConstraintIdsVectorType> mNodeIdToConstraintIdsMap;
@@ -222,7 +220,6 @@ protected:
     bool mReformulateEveryStep;
     std::map<std::string, PointLocatorPointerType> mPointLocatorsMap;
     bool mIsFormulated;
-    double mTime;
     ///@}
     ///@name Protected Operators
     ///@{
@@ -270,7 +267,7 @@ protected:
         int i_current_level = 0;
         for (auto &current_level : mParameters)
         {
-            int is_main_background = 1;
+            ChimeraHoleCuttingUtility::Domain domain_type = ChimeraHoleCuttingUtility::Domain::MAIN_BACKGROUND;
             for (auto &background_patch_param : current_level)
             { // Gives the current background patch
                 background_patch_param.ValidateAndAssignDefaults(parameters_for_validation);
@@ -281,7 +278,7 @@ protected:
                     {
                         slave_patch_param.ValidateAndAssignDefaults(parameters_for_validation);
                         if (i_current_level == 0) // a check to identify computational Domain boundary
-                            is_main_background = -1;
+                            domain_type = ChimeraHoleCuttingUtility::Domain::OTHER;
                         Model &current_model = mrMainModelPart.GetModel();
                         ModelPart &r_background_model_part = current_model.GetModelPart(background_patch_param["model_part_name"].GetString());
                         if(!r_background_model_part.HasSubModelPart("chimera_boundary_mp")){
@@ -290,12 +287,12 @@ protected:
                             if(i_current_level==0){
                                 ChimeraHoleCuttingUtility().ExtractBoundaryMesh<TDim>(r_background_model_part, r_boundary_model_part);
                             }else{
-                                ChimeraHoleCuttingUtility().ExtractBoundaryMesh<TDim>(r_background_model_part, r_boundary_model_part, true);
+                                ChimeraHoleCuttingUtility().ExtractBoundaryMesh<TDim>(r_background_model_part, r_boundary_model_part, ChimeraHoleCuttingUtility::SideToExtract::INSIDE);
                             }
                             KRATOS_INFO_IF("Extraction of boundary mesh took : ", mEchoLevel > 0)<< extraction_time.ElapsedSeconds()<< " seconds"<< std::endl;
                         }
                         KRATOS_INFO_IF("Formulating Chimera for the combination :: ", mEchoLevel > 0) << "Background" << background_patch_param << "\n Patch::" << slave_patch_param << std::endl;
-                        FormulateChimera(background_patch_param, slave_patch_param, is_main_background);
+                        FormulateChimera(background_patch_param, slave_patch_param, domain_type);
                         mPointLocatorsMap.erase(background_patch_param["model_part_name"].GetString());
                     }
                 }
@@ -316,9 +313,9 @@ protected:
      * @brief Formulates the Chimera conditions with a given set of background and patch combination.
      * @param BackgroundParam Parameters/Settings for the background
      * @param PatchParameters Parameters/Settings for the Patch
-     * @param MainDomainOrNot Flag specifying if the background is the main bg or not
+     * @param DomainType Flag specifying if the background is the main bg or not
      */
-    virtual void FormulateChimera(const Parameters BackgroundParam, const Parameters PatchParameters, int MainDomainOrNot)
+    virtual void FormulateChimera(const Parameters BackgroundParam, const Parameters PatchParameters, ChimeraHoleCuttingUtility::Domain DomainType)
     {
         Model &current_model = mrMainModelPart.GetModel();
         ModelPart &r_background_model_part = current_model.GetModelPart(BackgroundParam["model_part_name"].GetString());
@@ -344,7 +341,7 @@ protected:
             ModelPart &r_hole_model_part = current_model.CreateModelPart("HoleModelpart");
             ModelPart &r_hole_boundary_model_part = current_model.CreateModelPart("HoleBoundaryModelPart");
 
-            auto& r_modified_patch_boundary_model_part = ExtractPatchBoundary(PatchParameters, r_background_boundary_model_part, MainDomainOrNot);
+            auto& r_modified_patch_boundary_model_part = ExtractPatchBoundary(PatchParameters, r_background_boundary_model_part, DomainType);
 
             BuiltinTimer bg_distance_calc_time;
             DistanceCalculationUtility <TDim, TSparseSpaceType, TLocalSpaceType>::CalculateDistance(r_background_model_part,
@@ -354,13 +351,6 @@ protected:
             BuiltinTimer hole_creation_time;
             ChimeraHoleCuttingUtility().CreateHoleAfterDistance<TDim>(r_background_model_part, r_hole_model_part, r_hole_boundary_model_part, over_lap_distance);
             KRATOS_INFO_IF("Hole creation took : ", mEchoLevel > 0)<< hole_creation_time.ElapsedSeconds()<< " seconds"<< std::endl;
-
-            // WriteModelPart(r_hole_model_part);
-            // WriteModelPart(r_modified_patch_boundary_model_part);
-            // WriteModelPart(r_modified_patch_model_part);
-            // WriteModelPart(r_patch_model_part);
-            // WriteModelPart(r_background_boundary_model_part);
-            // WriteModelPart(r_background_model_part);
 
             const int n_elements = static_cast<int> (r_hole_model_part.NumberOfElements());
 #pragma omp parallel for
@@ -512,9 +502,9 @@ private:
      * @brief Extracts the patch boundary modelpart
      * @param rBackgroundBoundaryModelpart background boundary to remove out of domain patch
      * @param PatchParameters Parameters/Settings for the Patch
-     * @param MainDomainOrNot Flag specifying if the background is the main bg or not
+     * @param DomainType Flag specifying if the background is the main bg or not
      */
-    ModelPart& ExtractPatchBoundary(const Parameters PatchParameters, ModelPart &rBackgroundBoundaryModelpart, const int MainDomainOrNot)
+    ModelPart& ExtractPatchBoundary(const Parameters PatchParameters, ModelPart &rBackgroundBoundaryModelpart, const ChimeraHoleCuttingUtility::Domain DomainType)
     {
         Model &current_model = rBackgroundBoundaryModelpart.GetModel();
         const std::string patch_boundary_mp_name = PatchParameters["boundary_model_part_name"].GetString();
@@ -529,7 +519,7 @@ private:
             KRATOS_INFO_IF("Distance calculation on patch took : ", mEchoLevel > 0)<< distance_calc_time_patch.ElapsedSeconds()<< " seconds"<< std::endl;
             //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.
             BuiltinTimer rem_out_domain_time;
-            ChimeraHoleCuttingUtility().RemoveOutOfDomainElements<TDim>(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot, false);
+            ChimeraHoleCuttingUtility().RemoveOutOfDomainElements<TDim>(r_patch_model_part, r_modified_patch_model_part, DomainType, ChimeraHoleCuttingUtility::SideToExtract::INSIDE);
             KRATOS_INFO_IF("Removing out of domain patch took : ", mEchoLevel > 0)<< rem_out_domain_time.ElapsedSeconds()<< " seconds"<< std::endl;
 
             BuiltinTimer patch_boundary_extraction_time;
@@ -559,35 +549,6 @@ private:
                 p_point_locator->UpdateSearchDatabase();
             return p_point_locator;
         }
-    }
-
-    /**
-     * @brief Utility function to print out various intermediate modelparts
-     * @param rModelPart ModelPart to be printed.
-     */
-    void WriteModelPart(ModelPart &rModelPart)
-    {
-        Parameters vtk_parameters(R"(
-                {
-                    "model_part_name"                    : "HoleModelpart",
-                    "output_control_type"                : "step",
-                    "output_frequency"                   : 1,
-                    "file_format"                        : "ascii",
-                    "output_precision"                   : 3,
-                    "output_sub_model_parts"             : false,
-                    "folder_name"                        : "test_vtk_output",
-                    "save_output_files_in_folder"        : true,
-                    "nodal_solution_step_data_variables" : ["VELOCITY","PRESSURE","DISTANCE"],
-                    "nodal_data_value_variables"         : [],
-                    "element_flags"                      : ["ACTIVE"],
-                    "nodal_flags"                        : ["VISITED"],
-                    "element_data_value_variables"       : [],
-                    "condition_data_value_variables"     : []
-                }
-                )");
-
-        VtkOutput vtk_output(rModelPart, vtk_parameters);
-        vtk_output.PrintOutput();
     }
 
     ///@}
