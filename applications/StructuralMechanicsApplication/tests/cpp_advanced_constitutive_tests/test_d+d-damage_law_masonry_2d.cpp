@@ -112,6 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DInternalVariables, KratosStructura
     cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
     Vector internal_variables_r;  // CL should internally resize it to 6
     cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
+    KRATOS_CHECK_NEAR(internal_variables_r.size(), 6., 1.e-5);  // = True
     KRATOS_CHECK_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
     KRATOS_CHECK_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
     KRATOS_CHECK_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
