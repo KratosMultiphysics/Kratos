@@ -384,7 +384,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
         transfer_options = KM.Parameters(""" [] """)
 
-        with self.assertRaisesRegex(Exception, 'Variable of interface data "default_solver.default" has to be a scalar!'):
+        with self.assertRaisesRegex(Exception, 'Variable of interface data "default" of solver "default_solver" has to be a scalar!'):
             data_transfer_op.TransferData(self.destination_matching_data_vector,
                                         self.destination_data_single_node,
                                         transfer_options)
@@ -397,7 +397,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
         transfer_options = KM.Parameters(""" [] """)
 
-        with self.assertRaisesRegex(Exception, 'Variable of interface data "default_solver.default" has to be a scalar!'):
+        with self.assertRaisesRegex(Exception, 'Variable of interface data "default" of solver "default_solver" has to be a scalar!'):
             data_transfer_op.TransferData(self.destination_data_single_node,
                                         self.destination_matching_data_vector,
                                         transfer_options)

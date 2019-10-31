@@ -14,7 +14,7 @@ class CopySingleToDistributed(CoSimulationDataTransferOperator):
         self._CheckAvailabilityTransferOptions(transfer_options)
 
         if not to_solver_data.is_scalar_variable:
-            raise Exception('Variable of interface data "{}" has to be a scalar!'.format(from_solver_data.GetFullNameFancy()))
+            raise Exception('Variable of interface data "{}" of solver "{}" has to be a scalar!'.format(from_solver_data.name, from_solver_data.solver_name))
 
         to_solver_values = to_solver_data.GetData()
         data_value = from_solver_data.GetData()

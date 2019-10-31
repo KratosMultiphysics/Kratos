@@ -17,7 +17,7 @@ class SumDistributedToSingle(CoSimulationDataTransferOperator):
         self._CheckAvailabilityTransferOptions(transfer_options)
 
         if not from_solver_data.is_scalar_variable:
-            raise Exception('Variable of interface data "{}" has to be a scalar!'.format(from_solver_data.GetFullNameFancy()))
+            raise Exception('Variable of interface data "{}" of solver "{}" has to be a scalar!'.format(from_solver_data.name, from_solver_data.solver_name))
 
         data_array = np.array([])
         data_array = from_solver_data.GetData()
