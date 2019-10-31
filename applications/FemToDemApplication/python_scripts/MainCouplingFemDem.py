@@ -141,7 +141,7 @@ class MainCoupledFemDem_Solution:
             self.CreateInitialSkin = False
         else:
             self.CreateInitialSkin = self.FEM_Solution.ProjectParameters["create_initial_skin"].GetBool()
-        self.CreateInitialSkin = True
+
         if self.CreateInitialSkin:
             self.ComputeSkinSubModelPart()
             KratosFemDem.GenerateInitialSkinDEMProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart).Execute()
