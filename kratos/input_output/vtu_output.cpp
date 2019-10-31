@@ -14,32 +14,32 @@
 // System includes
 
 // External includes
-#ifdef KRATOS_USE_VTU11
-#include "inc/vtu11.hpp"
-#else
-namespace vtu11 { // dummy namespace that mimics vtu11 such that we don't need conditionals in the code
+// #ifdef KRATOS_USE_VTU11
+#include "vtu11.hpp"
+// #else
+// namespace vtu11 { // dummy namespace that mimics vtu11 such that we don't need conditionals in the code
 
-using DataSet = std::tuple<std::string, size_t, std::vector<double>>;
+// using DataSet = std::tuple<std::string, size_t, std::vector<double>>;
 
-using VtkCellType = std::uint8_t;
+// using VtkCellType = std::uint8_t;
 
-template<typename MeshGenerator, typename Writer>
-void write( const std::string& filename,
-            MeshGenerator& mesh,
-            const std::vector<DataSet>& pointData,
-            const std::vector<DataSet>& cellData,
-            Writer writer = Writer( ) );
+// template<typename MeshGenerator, typename Writer>
+// void write( const std::string& filename,
+//             MeshGenerator& mesh,
+//             const std::vector<DataSet>& pointData,
+//             const std::vector<DataSet>& cellData,
+//             Writer writer = Writer( ) );
 
-struct Vtu11UnstructuredMesh
-{
-  std::vector<double>& points_;
-  std::vector<size_t>& connectivity_;
-  std::vector<size_t>& offsets_;
-  std::vector<VtkCellType>& types_;
-};
+// struct Vtu11UnstructuredMesh
+// {
+//   std::vector<double>& points_;
+//   std::vector<size_t>& connectivity_;
+//   std::vector<size_t>& offsets_;
+//   std::vector<VtkCellType>& types_;
+// };
 
-}
-#endif
+// }
+// #endif
 
 // Project includes
 #include "vtu_output.h"
