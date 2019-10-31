@@ -55,4 +55,4 @@ class SdofSolverWrapper(CoSimulationSolverWrapper):
         ]
         for data in self.data_dict.values():
             if data.variable.Name() not in admissible_variables:
-                raise Exception('Variable "{}" of interface data "{}" cannot be used for the SDof Solver!\nOnly the following variables are allowed: {}'.format(data.variable.Name(), data.GetFullNameFancy(), admissible_variables))
+                raise Exception('Variable "{}" of interface data "{}" of solver "{}" cannot be used for the SDof Solver!\nOnly the following variables are allowed: {}'.format(data.variable.Name(), data.name, data.solver_name, admissible_variables))
