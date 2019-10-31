@@ -88,6 +88,10 @@ void CalculateMeshVelocities(ModelPart& rModelPart,
         const auto it_node  = nodes_begin + i;
         auto& r_mesh_v0 = it_node->FastGetSolutionStepValue(MESH_VELOCITY);
         noalias(r_mesh_v0) = coeffs[0] * it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+        noalias(r_mesh_v0) += coeffs[1] * it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
+        noalias(r_mesh_v0) += coeffs[2] * it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 2);
+    }
+
     rModelPart.GetCommunicator().SynchronizeVariable(MESH_VELOCITY);
 }
 
