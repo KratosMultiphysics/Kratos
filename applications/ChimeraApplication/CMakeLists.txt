@@ -1,6 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-message("**** configuring KratosChimeraApplicationApplication ****")
+message("**** configuring KratosChimeraApplicationApplicationApplicationApplication ****")
 
 
 ## Check if fluid dynamics app is being compile dor not
