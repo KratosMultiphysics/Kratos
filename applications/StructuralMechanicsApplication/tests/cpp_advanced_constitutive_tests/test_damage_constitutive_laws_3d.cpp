@@ -52,9 +52,6 @@ namespace Testing
 // We test the associated damage Constitutive laws...
 typedef Node<3> NodeType;
 
-/**
-    * Check the correct calculation of the integrated stress with the CL's
-    */
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageInternalVariables, KratosStructuralMechanicsFastSuite) {
     typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
     typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> VM;
@@ -112,11 +109,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageInternalVariables,
     Matrix const_matrix;
     cl_parameters.SetConstitutiveMatrix(const_matrix);
 
-    Vector internal_variables_w(3);
-    internal_variables_w[0] = 0.0;
-    internal_variables_w[1] = 0.1;
-    internal_variables_w[2] = 0.2;
-    Vector internal_variables_r;
+
     //
     // MC Test: check correct behavior of internal and calculated variables
     //
@@ -125,96 +118,21 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageInternalVariables,
     KRATOS_CHECK(mc_cl.Has(THRESHOLD));  // = True
     KRATOS_CHECK(mc_cl.Has(UNIAXIAL_STRESS));  // = True
     KRATOS_CHECK(mc_cl.Has(INTERNAL_VARIABLES));  // = True
+    Vector internal_variables_w(3);
+    internal_variables_w[0] = 0.0;
+    internal_variables_w[1] = 0.1;
+    internal_variables_w[2] = 0.2;
     mc_cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
-    internal_variables_r.resize(1);  // CL GetValue must resize it later
+    Vector internal_variables_r;
     mc_cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 3., 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
-
-    //
-    // VM Test: check correct behavior of internal and calculated variables
-    //
-    VM vm_cl = VM();
-    KRATOS_CHECK(vm_cl.Has(DAMAGE));  // = True
-    KRATOS_CHECK(vm_cl.Has(THRESHOLD));  // = True
-    KRATOS_CHECK(vm_cl.Has(UNIAXIAL_STRESS));  // = True
-    KRATOS_CHECK(vm_cl.Has(INTERNAL_VARIABLES));  // = True
-    vm_cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
-    internal_variables_r.resize(1);  // CL GetValue must resize it later
-    vm_cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 3., 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
-
-    //
-    // DP Test: check correct behavior of internal and calculated variables
-    //
-    DP dp_cl = DP();
-    KRATOS_CHECK(dp_cl.Has(DAMAGE));  // = True
-    KRATOS_CHECK(dp_cl.Has(THRESHOLD));  // = True
-    KRATOS_CHECK(dp_cl.Has(UNIAXIAL_STRESS));  // = True
-    KRATOS_CHECK(dp_cl.Has(INTERNAL_VARIABLES));  // = True
-    dp_cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
-    internal_variables_r.resize(1);  // CL GetValue must resize it later
-    dp_cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 3., 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
-
-    //
-    // T Test: check correct behavior of internal and calculated variables
-    //
-    T t_cl = T();
-    KRATOS_CHECK(t_cl.Has(DAMAGE));  // = True
-    KRATOS_CHECK(t_cl.Has(THRESHOLD));  // = True
-    KRATOS_CHECK(t_cl.Has(UNIAXIAL_STRESS));  // = True
-    KRATOS_CHECK(t_cl.Has(INTERNAL_VARIABLES));  // = True
-    t_cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
-    internal_variables_r.resize(1);  // CL GetValue must resize it later
-    t_cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 3., 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
-
-    //
-    // R Test: check correct behavior of internal and calculated variables
-    //
-    R r_cl = R();
-    KRATOS_CHECK(r_cl.Has(DAMAGE));  // = True
-    KRATOS_CHECK(r_cl.Has(THRESHOLD));  // = True
-    KRATOS_CHECK(r_cl.Has(UNIAXIAL_STRESS));  // = True
-    KRATOS_CHECK(r_cl.Has(INTERNAL_VARIABLES));  // = True
-    r_cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
-    internal_variables_r.resize(1);  // CL GetValue must resize it later
-    r_cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 3., 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
-
-    //
-    // SJ Test: check correct behavior of internal and calculated variables
-    //
-    SJ sj_cl = SJ();
-    KRATOS_CHECK(sj_cl.Has(DAMAGE));  // = True
-    KRATOS_CHECK(sj_cl.Has(THRESHOLD));  // = True
-    KRATOS_CHECK(sj_cl.Has(UNIAXIAL_STRESS));  // = True
-    KRATOS_CHECK(sj_cl.Has(INTERNAL_VARIABLES));  // = True
-    sj_cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
-    internal_variables_r.resize(1);  // CL GetValue must resize it later
-    sj_cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
     KRATOS_CHECK_NEAR(internal_variables_r.size(), 3., 1.e-5);  // = True
     KRATOS_CHECK_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
     KRATOS_CHECK_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
     KRATOS_CHECK_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
 }
 
-    KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStructuralMechanicsFastSuite)
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStructuralMechanicsFastSuite)
 {
     typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
     typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> VM;
