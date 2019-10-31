@@ -76,8 +76,14 @@ const bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& 
 template <int Dim>
 void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel);
 
+template <int Dim>
+void CheckIfPressureEqualityWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel);
+
 template <int Dim, int NumNodes>
 const bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+
+template <int Dim, int NumNodes>
+const bool CheckPressureEqualityWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 
 } // namespace PotentialFlow
 } // namespace Kratos

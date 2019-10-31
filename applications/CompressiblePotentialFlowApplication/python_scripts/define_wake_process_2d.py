@@ -52,6 +52,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
         absolute_tolerance = 1e-9
         CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled2D(self.wake_sub_model_part, absolute_tolerance, self.echo_level)
+        CPFApp.PotentialFlowUtilities.CheckIfPressureEqualityWakeConditionsAreFulfilled2D(self.wake_sub_model_part, absolute_tolerance, self.echo_level)
 
 
     def __FindWakeElements(self):

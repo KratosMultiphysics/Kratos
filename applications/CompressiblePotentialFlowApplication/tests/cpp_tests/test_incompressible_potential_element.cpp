@@ -160,6 +160,8 @@ namespace Kratos {
       Vector RHS = ZeroVector(6);
       Matrix LHS = ZeroMatrix(6, 6);
 
+      KRATOS_WATCH(pElement->Id())
+
       pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,

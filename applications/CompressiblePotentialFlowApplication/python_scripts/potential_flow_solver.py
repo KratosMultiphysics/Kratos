@@ -148,14 +148,31 @@ class PotentialFlowSolver(FluidSolver):
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         if "incompressible" in self.settings["formulation"]["element_type"].GetString():
-            # TODO: Rename to self.strategy once we upgrade the base FluidDynamicsApplication solvers
-            self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
+            # # TODO: Rename to self.strategy once we upgrade the base FluidDynamicsApplication solvers
+            # self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
+            #     self.GetComputingModelPart(),
+            #     time_scheme,
+            #     self.linear_solver,
+            #     self.settings["compute_reactions"].GetBool(),
+            #     self.settings["reform_dofs_at_each_step"].GetBool(),
+            #     self.settings["calculate_solution_norm"].GetBool(),
+            #     self.settings["move_mesh_flag"].GetBool())
+
+            conv_criteria = KratosMultiphysics.ResidualCriteria(
+                self.settings["relative_tolerance"].GetDouble(),
+                self.settings["absolute_tolerance"].GetDouble())
+            max_iterations = self.settings["maximum_iterations"].GetInt()
+
+            conv_criteria.SetEchoLevel(2)
+
+            self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
                 self.GetComputingModelPart(),
                 time_scheme,
                 self.linear_solver,
+                conv_criteria,
+                max_iterations,
                 self.settings["compute_reactions"].GetBool(),
                 self.settings["reform_dofs_at_each_step"].GetBool(),
-                self.settings["calculate_solution_norm"].GetBool(),
                 self.settings["move_mesh_flag"].GetBool())
         elif "compressible" in self.settings["formulation"]["element_type"].GetString():
             conv_criteria = KratosMultiphysics.ResidualCriteria(
@@ -187,3 +204,58 @@ class PotentialFlowSolver(FluidSolver):
         avg_node_num = 10
         KratosMultiphysics.FindNodalNeighboursProcess(
             self.main_model_part, avg_elem_num, avg_node_num).Execute()
+
+    def SolveSolutionStep(self):
+        import time as time
+        start_time = time.time()
+        super(PotentialFlowSolver, self).SolveSolutionStep()
+        exe_time = time.time() - start_time
+        print('Executing SolveSolutionStep took ' + str(round(exe_time/60, 2)) + ' min')
+        # start_time = time.time()
+        # self._ComputeConditionNumber()
+        # exe_time = time.time() - start_time
+        # print('Executing _ComputeConditionNumber took ' + str(round(exe_time, 2)) + ' sec')
+
+    def _ComputeConditionNumber(self):
+        KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowSolver]:: ", "Computing Condition Number")
+
+        # Import eigen solver factory
+        from KratosMultiphysics import eigen_solver_factory
+
+        settings_max = KratosMultiphysics.Parameters("""
+        {
+            "solver_type"             : "power_iteration_highest_eigenvalue_solver",
+            "max_iteration"           : 10000,
+            "tolerance"               : 1e-9,
+            "required_eigen_number"   : 1,
+            "verbosity"               : 0,
+            "linear_solver_settings"  : {
+                "solver_type"             : "EigenSolversApplication.pardiso_lu",
+                "max_iteration"           : 500,
+                "tolerance"               : 1e-9,
+                "scaling"                 : false,
+                "verbosity"               : 0
+            }
+        }
+        """)
+        eigen_solver_max = eigen_solver_factory.ConstructSolver(settings_max)
+        settings_min = KratosMultiphysics.Parameters("""
+        {
+            "solver_type"             : "power_iteration_eigenvalue_solver",
+            "max_iteration"           : 10000,
+            "tolerance"               : 1e-9,
+            "required_eigen_number"   : 1,
+            "verbosity"               : 0,
+            "linear_solver_settings"  : {
+                "solver_type"             : "EigenSolversApplication.pardiso_lu",
+                "max_iteration"           : 500,
+                "tolerance"               : 1e-9,
+                "scaling"                 : false,
+                "verbosity"               : 0
+            }
+        }
+        """)
+
+        eigen_solver_min = eigen_solver_factory.ConstructSolver(settings_min)
+        condition_number = KratosMultiphysics.ConditionNumberUtility().GetConditionNumber(self.solver.GetSystemMatrix(), eigen_solver_max, eigen_solver_min)
+        KratosMultiphysics.Logger.PrintInfo(' condition_number = ', "{:.2e}".format(condition_number))

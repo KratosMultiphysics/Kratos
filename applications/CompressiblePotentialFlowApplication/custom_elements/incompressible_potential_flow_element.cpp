@@ -419,23 +419,244 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
 
     BoundedMatrix<double, NumNodes, NumNodes> lhs_total = ZeroMatrix(NumNodes, NumNodes);
 
-    ComputeLHSGaussPointContribution(data.vol*free_stream_density, lhs_total, data);
+    noalias(lhs_total) += data.vol*free_stream_density * prod(data.DN_DX, trans(data.DN_DX));
 
-    if (this->Is(STRUCTURE))
-    {
-        BoundedMatrix<double, NumNodes, NumNodes> lhs_positive = ZeroMatrix(NumNodes, NumNodes);
-        BoundedMatrix<double, NumNodes, NumNodes> lhs_negative = ZeroMatrix(NumNodes, NumNodes);
+    array_1d<double, Dim> velocity_upper = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
+    BoundedVector<double, NumNodes> dU2dPhi_upper = 2*data.vol*prod(data.DN_DX, velocity_upper);
+    const double velocity_upper_2 = inner_prod(velocity_upper, velocity_upper);
 
-        CalculateLocalSystemSubdividedElement(lhs_positive, lhs_negative, rCurrentProcessInfo);
-        AssignLocalSystemSubdividedElement(rLeftHandSideMatrix, lhs_positive,
-                                           lhs_negative, lhs_total, data);
+    array_1d<double, Dim> velocity_lower = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(*this);
+    BoundedVector<double, NumNodes> dU2dPhi_lower = 2*data.vol*prod(data.DN_DX, velocity_lower);
+    const double velocity_lower_2 = inner_prod(velocity_lower, velocity_lower);
+
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_pressure_upper = ZeroMatrix(NumNodes, NumNodes);
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_pressure_lower = ZeroMatrix(NumNodes, NumNodes);
+    BoundedVector<double, NumNodes> residual_pressure = ZeroVector(NumNodes);
+
+    for(unsigned int row = 0; row < NumNodes; ++row){
+        for(unsigned int column = 0; column < NumNodes; ++column){
+            lhs_pressure_upper(row, column) = data.N[row] * dU2dPhi_upper[column];
+            lhs_pressure_lower(row, column) = data.N[row] * dU2dPhi_lower[column];
+        }
+        residual_pressure(row) = data.N[row] * (velocity_upper_2 - velocity_lower_2) * data.vol;
     }
-    else
-        AssignLocalSystemWakeElement(rLeftHandSideMatrix, lhs_total, data);
+
+    // if(this->Id()==22927 || this->Id()==1){
+    //     KRATOS_WATCH(velocity_upper)
+    //     KRATOS_WATCH(velocity_lower)
+    //     KRATOS_WATCH(data.DN_DX)
+    //     KRATOS_WATCH(lhs_pressure_upper)
+    //     KRATOS_WATCH(lhs_pressure_lower)
+    //     KRATOS_WATCH(lhs_total)
+    //     KRATOS_WATCH(residual_pressure)
+    //     KRATOS_WATCH(data.N)
+    // }
+
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_positive = ZeroMatrix(NumNodes, NumNodes);
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_negative = ZeroMatrix(NumNodes, NumNodes);
+
+    CalculateLocalSystemSubdividedElement(lhs_positive, lhs_negative, rCurrentProcessInfo);
+
+    unsigned int pressure_counter = 0;
+    unsigned int pressure_counter_up = 0;
+    for (unsigned int row = 0; row < NumNodes; ++row)
+    {
+        // The TE node takes the contribution of the subdivided element and
+        // we do not apply the wake condition on the TE node
+        if (GetGeometry()[row].GetValue(TRAILING_EDGE))
+        {
+            for (unsigned int column = 0; column < NumNodes; ++column)
+            {
+                rLeftHandSideMatrix(row, column) = lhs_positive(row, column);
+                rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_negative(row, column);
+            }
+        }
+        else{
+            if (data.distances[row] < 0.0){
+                for (unsigned int column = 0; column < NumNodes; ++column){
+                    // Consevation of mass
+                    rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total(row, column);
+                    // // Constraint
+                    // rLeftHandSideMatrix(row, column) = lhs_pressure_upper(row, column);
+                    // rLeftHandSideMatrix(row, column + NumNodes) = -lhs_pressure_lower(row, column); // Side 1
+                    if(pressure_counter < 3){
+                        // Applying pressure equality constraint for one node under the wake
+                        rLeftHandSideMatrix(row, column) = lhs_pressure_upper(row, column);
+                        rLeftHandSideMatrix(row, column + NumNodes) = -lhs_pressure_lower(row, column); // Side 1
+                        // rLeftHandSideMatrix(row, column) = lhs_total(row, column);
+                        // rLeftHandSideMatrix(row, column + NumNodes) = -lhs_total(row, column); // Side 1
+                        pressure_counter += 1;
+                    }
+                    else{
+                        rLeftHandSideMatrix(row, column) = lhs_total(row, column);
+                        rLeftHandSideMatrix(row, column + NumNodes) = -lhs_total(row, column); // Side 1
+                    }
+
+                }
+            }
+            else if (data.distances[row] > 0.0){
+                for (unsigned int column = 0; column < NumNodes; ++column){
+                    // Conservation of mass
+                    rLeftHandSideMatrix(row, column) = lhs_total(row, column);
+                    // Constraint
+                    // rLeftHandSideMatrix(row + NumNodes, column) = - lhs_pressure_upper(row, column); // Side 2
+                    // rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_pressure_lower(row, column);
+                    rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total(row, column);
+                    rLeftHandSideMatrix(row + NumNodes, column) = -lhs_total(row, column); // Side 2
+                    // if(pressure_counter_up < 3){
+                    //     // Applying pressure equality constraint for one node under the wake
+                    //     // rLeftHandSideMatrix(row + NumNodes, column) = - lhs_pressure_upper(row, column); // Side 2
+                    //     // rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_pressure_lower(row, column);
+                    //     rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total(row, column);
+                    //     rLeftHandSideMatrix(row + NumNodes, column) = -lhs_total(row, column); // Side 2
+                    //     pressure_counter_up += 1;
+
+                    // }
+                    // else{
+                    //     rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total(row, column);
+                    //     rLeftHandSideMatrix(row + NumNodes, column) = -lhs_total(row, column); // Side 2
+                    // }
+
+                }
+            }
+        }
+    }
 
     BoundedVector<double, 2*NumNodes> split_element_values;
     split_element_values = PotentialFlowUtilities::GetPotentialOnWakeElement<Dim, NumNodes>(*this, data.distances);
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
+
+    pressure_counter = 0;
+    for (unsigned int row = 0; row < NumNodes; ++row){
+        if (data.distances[row] < 0.0){
+            //rRightHandSideVector[row] = - residual_pressure[row];
+            if(pressure_counter < 1){
+                rRightHandSideVector[row] = - residual_pressure[row];
+                pressure_counter += 1;
+            }
+        }
+    }
+
+    // pressure_counter_up = 0;
+    // for (unsigned int row = 0; row < NumNodes; ++row){
+    //     if (data.distances[row] > 0.0){
+    //         rRightHandSideVector[row + NumNodes] = residual_pressure[row];
+    //         // if(pressure_counter_up < 1){
+    //         //     rRightHandSideVector[row + NumNodes] = residual_pressure[row];
+    //         //     pressure_counter_up += 1;
+    //         // }
+    //     }
+    // }
+
+    // std::cout.precision(1);
+    // std::cout << std::scientific;
+    // std::cout << std::showpos;
+    // if(this->Id()==22927 || this->Id()==1){
+    //     KRATOS_WATCH(rRightHandSideVector)
+
+    //     std::cout << std::endl;
+    //     KRATOS_WATCH(this->Id())
+    //     for(unsigned int row = 0; row < lhs_pressure_upper.size1(); ++row){
+    //         for(unsigned int column = 0; column < lhs_pressure_upper.size2(); column++){
+    //             if(column == 2){
+    //                 std::cout << " " << lhs_pressure_upper(row, column) << " |";
+    //             }
+    //             else{
+    //                 std::cout << " " << lhs_pressure_upper(row, column) << " ";
+    //             }
+    //         }
+
+    //         std::cout << std::endl;
+
+    //         if(row ==2){
+    //             for(unsigned int j = 0; j < 10*lhs_pressure_upper.size1(); j++){
+    //             std::cout << "_" ;
+    //             }
+    //             std::cout << " " << std::endl;
+    //         }
+    //         else{
+    //             for(unsigned int i = 0; i < 2; i++){
+    //                 for(unsigned int j = 0; j < 10*3; j++){
+    //                     std::cout << " " ;
+    //                 }
+    //                 if(i == 0){
+    //                     std::cout << "|" ;
+    //                 }
+    //             }
+    //         }
+    //         std::cout << std::endl;
+    //     }
+    //     std::cout << std::endl;
+
+
+    //     std::cout << std::endl;
+    //     for(unsigned int row = 0; row < lhs_pressure_lower.size1(); ++row){
+    //         for(unsigned int column = 0; column < lhs_pressure_lower.size2(); column++){
+    //             if(column == 2){
+    //                 std::cout << " " << lhs_pressure_lower(row, column) << " |";
+    //             }
+    //             else{
+    //                 std::cout << " " << lhs_pressure_lower(row, column) << " ";
+    //             }
+    //         }
+
+    //         std::cout << std::endl;
+
+    //         if(row ==2){
+    //             for(unsigned int j = 0; j < 10*lhs_pressure_lower.size1(); j++){
+    //             std::cout << "_" ;
+    //             }
+    //             std::cout << " " << std::endl;
+    //         }
+    //         else{
+    //             for(unsigned int i = 0; i < 2; i++){
+    //                 for(unsigned int j = 0; j < 10*3; j++){
+    //                     std::cout << " " ;
+    //                 }
+    //                 if(i == 0){
+    //                     std::cout << "|" ;
+    //                 }
+    //             }
+    //         }
+    //         std::cout << std::endl;
+    //     }
+    //     std::cout << std::endl;
+
+    //     std::cout << std::endl;
+    //     KRATOS_WATCH(this->Id())
+    //     for(unsigned int row = 0; row < rLeftHandSideMatrix.size1(); ++row){
+    //         for(unsigned int column = 0; column < rLeftHandSideMatrix.size2(); column++){
+    //             if(column == 2){
+    //                 std::cout << " " << rLeftHandSideMatrix(row, column) << " |";
+    //             }
+    //             else{
+    //                 std::cout << " " << rLeftHandSideMatrix(row, column) << " ";
+    //             }
+    //         }
+
+    //         std::cout << std::endl;
+
+    //         if(row ==2){
+    //             for(unsigned int j = 0; j < 10*rLeftHandSideMatrix.size1(); j++){
+    //             std::cout << "_" ;
+    //             }
+    //             std::cout << " " << std::endl;
+    //         }
+    //         else{
+    //             for(unsigned int i = 0; i < 2; i++){
+    //                 for(unsigned int j = 0; j < 10*3; j++){
+    //                     std::cout << " " ;
+    //                 }
+    //                 if(i == 0){
+    //                     std::cout << "|" ;
+    //                 }
+    //             }
+    //         }
+    //         std::cout << std::endl;
+    //     }
+    //     std::cout << std::endl;
+
+    // }
 }
 
 template <int Dim, int NumNodes>
