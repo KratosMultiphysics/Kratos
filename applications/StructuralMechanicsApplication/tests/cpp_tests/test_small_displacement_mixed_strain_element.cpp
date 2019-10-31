@@ -82,20 +82,18 @@ namespace Testing
         ModelPart &rModelPart,
         const double c_1,
         const double c_2,
-        const bool SetVolumetricStrain)
+        const double c_3 = 0.0)
     {
         array_1d<double, 3> aux_disp;
         for (auto &r_node : rModelPart.Nodes()) {
             aux_disp[0] = c_1 * r_node.X0();
             aux_disp[1] = c_2 * r_node.Y0();
-            aux_disp[2] = 0.0;
+            aux_disp[2] = c_3 * r_node.Z0();
             r_node.FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
-            if (SetVolumetricStrain) {
-                r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = c_1 + c_2;
-            }
 
-            r_node.X() = r_node.X0() + c_1 * r_node.X0();
-            r_node.Y() = r_node.Y0() + c_2 * r_node.Y0();
+            r_node.X() = (1 + c_1) * r_node.X0();
+            r_node.Y() = (1 + c_2) * r_node.Y0();
+            r_node.Z() = (1 + c_3) * r_node.Z0();
         }
     }
 
@@ -131,8 +129,7 @@ namespace Testing
         // Set a fake displacement and volumetric strain field to compute the residual
         const double alpha = -2.0;
         const double beta = 1.0;
-        const bool set_volumetric_field = false;
-        LinearPerturbationField(r_model_part, alpha, beta, set_volumetric_field);
+        LinearPerturbationField(r_model_part, alpha, beta);
 
         Vector RHS = ZeroVector(9);
         Matrix LHS = ZeroMatrix(9,9);
@@ -141,7 +138,7 @@ namespace Testing
         // Perturb the previous displacement and volumetric strain field to compute the residual
         const double alpha_perturbed = 1.25;
         const double beta_perturbed = 0.25;
-        LinearPerturbationField(r_model_part, alpha_perturbed, beta_perturbed, set_volumetric_field);
+        LinearPerturbationField(r_model_part, alpha_perturbed, beta_perturbed);
 
 
         Vector RHS_perturbed = ZeroVector(9);
@@ -150,7 +147,7 @@ namespace Testing
         // Calculate the perturbation RHS
         const double delta_alpha = alpha_perturbed - alpha;
         const double delta_beta = beta_perturbed - beta;
-        LinearPerturbationField(r_model_part, delta_alpha, delta_beta, set_volumetric_field);
+        LinearPerturbationField(r_model_part, delta_alpha, delta_beta);
 
         Vector RHS_delta = ZeroVector(9);
         p_element->CalculateRightHandSide(RHS_delta, r_model_part.GetProcessInfo());
@@ -163,17 +160,91 @@ namespace Testing
         for (auto &r_node : r_model_part.Nodes()) {
             perturbation_vector[(r_node.Id() - 1) * 3] = delta_alpha * r_node.X0();
             perturbation_vector[(r_node.Id() - 1) * 3 + 1] = delta_beta * r_node.Y0();
-            if (set_volumetric_field) {
-                perturbation_vector[(r_node.Id() - 1) * 3 + 2] = delta_alpha + delta_beta;
-            }
         }
-        const Vector RHS_from_LHS = RHS - prod(LHS,perturbation_vector);
+        const Vector RHS_from_LHS = RHS - prod(LHS, perturbation_vector);
         const Vector RHS_from_LHS_error = RHS_perturbed - RHS_from_LHS;
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-8;
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS_error, ZeroVector(r_model_part.NumberOfNodes() * 3), tolerance);
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS_from_LHS_error, ZeroVector(r_model_part.NumberOfNodes() * 3), tolerance);
+    }
+
+    /**
+    * Checks the Small Displacement Mixed Strain Element
+    * Simple test with known analytical solution
+    */
+    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedStrainElement3D4NResidual, KratosStructuralMechanicsFastSuite)
+    {
+        Model current_model;
+        auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+
+        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
+
+        // Set the element properties
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
+        p_elem_prop->SetValue(POISSON_RATIO, 0.3);
+        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
+        // Create the test element
+        auto p_node_1 = r_model_part.CreateNewNode(1, 0.1 , 0.1 , 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(2, 0.9 , 0.4 , 0.0);
+        auto p_node_3 = r_model_part.CreateNewNode(3, 0.5 , 0.2 , 0.0);
+        auto p_node_4 = r_model_part.CreateNewNode(4, 0.3 , 0.3 , 0.5);
+        std::vector<ModelPart::IndexType> element_nodes {1,2,3,4};
+        auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedStrainElement3D4N", 1, element_nodes, p_elem_prop);
+
+        // Initialize the element to initialize the constitutive law
+        p_element->Initialize();
+
+        // Set a fake displacement and volumetric strain field to compute the residual
+        const double alpha = -2.0;
+        const double beta = 1.0;
+        const double gamma = 0.5;
+        LinearPerturbationField(r_model_part, alpha, beta, gamma);
+
+        Vector RHS = ZeroVector(16);
+        Matrix LHS = ZeroMatrix(16,16);
+        p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+
+        // Perturb the previous displacement and volumetric strain field to compute the residual
+        const double alpha_perturbed = 1.25;
+        const double beta_perturbed = 0.25;
+        const double gamma_perturbed = -0.5;
+        LinearPerturbationField(r_model_part, alpha_perturbed, beta_perturbed, gamma_perturbed);
+
+        Vector RHS_perturbed = ZeroVector(16);
+        p_element->CalculateRightHandSide(RHS_perturbed, r_model_part.GetProcessInfo());
+
+        // Calculate the perturbation RHS
+        const double delta_alpha = alpha_perturbed - alpha;
+        const double delta_beta = beta_perturbed - beta;
+        const double delta_gamma = gamma_perturbed - gamma;
+        LinearPerturbationField(r_model_part, delta_alpha, delta_beta, delta_gamma);
+
+        Vector RHS_delta = ZeroVector(16);
+        p_element->CalculateRightHandSide(RHS_delta, r_model_part.GetProcessInfo());
+
+        // Check the error
+        const Vector RHS_error = RHS_perturbed - (RHS + RHS_delta);
+
+        // Check the LHS
+        array_1d<double, 16> perturbation_vector = ZeroVector(16);
+        for (auto &r_node : r_model_part.Nodes()) {
+            perturbation_vector[(r_node.Id() - 1) * 4] = delta_alpha * r_node.X0();
+            perturbation_vector[(r_node.Id() - 1) * 4 + 1] = delta_beta * r_node.Y0();
+            perturbation_vector[(r_node.Id() - 1) * 4 + 2] = delta_gamma * r_node.Z0();
+        }
+        const Vector RHS_from_LHS = RHS - prod(LHS, perturbation_vector);
+        const Vector RHS_from_LHS_error = RHS_perturbed - RHS_from_LHS;
+
+        // Check RHS and LHS results
+        const double tolerance = 1.0e-8;
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS_error, ZeroVector(r_model_part.NumberOfNodes() * 4), tolerance);
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS_from_LHS_error, ZeroVector(r_model_part.NumberOfNodes() * 4), tolerance);
     }
 
 } // namespace Testing
