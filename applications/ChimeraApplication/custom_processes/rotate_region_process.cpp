@@ -98,7 +98,6 @@ void RotateRegionProcess::ExecuteInitializeSolutionStep()
       it_node->Z() = transformed_coordinates[2];
 
     it_node->FastGetSolutionStepValue(DISPLACEMENT) = transformed_coordinates - it_node->GetInitialPosition().Coordinates();
-    ;
 
     // Computing the linear velocity at this it_node
     DenseVector<double> radius(3);

@@ -192,8 +192,8 @@ protected:
         int Rank = rModelPart.GetCommunicator().MyPID();
 
         // Activate Constraints for VELOCITY and deactivate PRESSURE
-        SetActiveStateOnConstraint(FS_CHIMERA_VEL_CONSTRAINT, true);
-        SetActiveStateOnConstraint(FS_CHIMERA_PRE_CONSTRAINT, false);
+        SetActiveStateOnConstraint(FS_CHIMERA_VELOCITY_CONSTRAINT, true);
+        SetActiveStateOnConstraint(FS_CHIMERA_PRESSURE_CONSTRAINT, false);
 
         for(std::size_t it = 0; it < BaseType::mMaxVelocityIter; ++it)
         {
@@ -214,8 +214,8 @@ protected:
         }
 
         // Activate Constraints for PRESSURE and deactivate VELOCITY
-        SetActiveStateOnConstraint(FS_CHIMERA_VEL_CONSTRAINT, false);
-        SetActiveStateOnConstraint(FS_CHIMERA_PRE_CONSTRAINT, true);
+        SetActiveStateOnConstraint(FS_CHIMERA_VELOCITY_CONSTRAINT, false);
+        SetActiveStateOnConstraint(FS_CHIMERA_PRESSURE_CONSTRAINT, true);
 
         KRATOS_INFO_IF("FSStrategyForChimera ", (BaseType::GetEchoLevel() > 0 && Rank == 0) && !Converged)<<
             "Fractional velocity iterations did not converge "<< std::endl;
@@ -262,8 +262,8 @@ protected:
         CalculateEndOfStepVelocity();
 
         // Activate Constraints for PRESSURE and deactivate VELOCITY
-        SetActiveStateOnConstraint(FS_CHIMERA_VEL_CONSTRAINT, true);
-        SetActiveStateOnConstraint(FS_CHIMERA_PRE_CONSTRAINT, true);
+        SetActiveStateOnConstraint(FS_CHIMERA_VELOCITY_CONSTRAINT, true);
+        SetActiveStateOnConstraint(FS_CHIMERA_PRESSURE_CONSTRAINT, true);
 
        // Additional steps
         for (std::vector<Process::Pointer>::iterator iExtraSteps = BaseType::mExtraIterationSteps.begin();
