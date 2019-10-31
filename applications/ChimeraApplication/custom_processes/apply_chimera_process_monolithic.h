@@ -135,24 +135,14 @@ protected:
     /**
      * @brief Applies the continuity between the boundary modelpart and the background.
      * @param rBoundaryModelPart The boundary modelpart for which the continuity is to be enforced.
-     * @param pBinLocator The bin based locator formulated on the background. This is used to locate nodes of rBoundaryModelPart on background.
+     * @param rBinLocator The bin based locator formulated on the background. This is used to locate nodes of rBoundaryModelPart on background.
      */
-    void ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, PointLocatorPointerType &pBinLocator) override
+    void ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, PointLocatorType &rBinLocator) override
     {
         //loop over nodes and find the triangle in which it falls, then do interpolation
         MasterSlaveContainerVectorType master_slave_container_vector;
-#pragma omp parallel
-        {
-            const IndexType num_constraints_per_thread = (rBoundaryModelPart.NumberOfNodes() * 4)/omp_get_num_threads();
-#pragma omp single
-            {
-                master_slave_container_vector.resize(omp_get_num_threads());
-                for (auto &container : master_slave_container_vector)
-                    container.reserve(num_constraints_per_thread);
-            }
-        }
+        BaseType::ReserveMemoryForConstraintContainers(rBoundaryModelPart, master_slave_container_vector);
         std::vector<int> constraints_id_vector;
-
         int num_constraints_required = (TDim + 1) * (rBoundaryModelPart.Nodes().size());
         BaseType::CreateConstraintIds(constraints_id_vector, num_constraints_required);
 
@@ -168,7 +158,7 @@ protected:
             BaseType::mNodeIdToConstraintIdsMap[i_boundary_node->Id()].reserve(150);
         }
 
-#pragma omp parallel for shared(constraints_id_vector, master_slave_container_vector, pBinLocator) reduction(+                                                             \
+#pragma omp parallel for shared(constraints_id_vector, master_slave_container_vector, rBinLocator) reduction(+                                                             \
                                                                                                              : not_found_counter) reduction(+                              \
                                                                                                                                             : removed_counter) reduction(+ \
                                                                                                                                                                          : counter)
@@ -188,7 +178,7 @@ protected:
             typename PointLocatorType::ResultIteratorType result_begin = results.begin();
             Element::Pointer p_element;
             bool is_found = false;
-            is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), shape_fun_weights, p_element, result_begin, max_results);
+            is_found = rBinLocator.FindPointOnMesh(p_boundary_node->Coordinates(), shape_fun_weights, p_element, result_begin, max_results);
 
             if (node_coupled && is_found)
             {
@@ -229,8 +219,7 @@ protected:
             p_boundary_node->Set(VISITED, true);
         } // end of loop over boundary nodes
 
-        for (auto &container : master_slave_container_vector)
-            BaseType::mrMainModelPart.AddMasterSlaveConstraints(container.begin(), container.end());
+        BaseType::AddConstraintsToModelpart(BaseType::mrMainModelPart, master_slave_container_vector);
 
         KRATOS_INFO_IF("Number of boundary nodes in : ", BaseType::mEchoLevel > 1) << rBoundaryModelPart.Name() << " is coupled " << rBoundaryModelPart.NumberOfNodes() << std::endl;
         KRATOS_INFO_IF("Number of Boundary nodes found : ", BaseType::mEchoLevel > 1) << counter << ". Number of constraints : " << counter * 9 << std::endl;
