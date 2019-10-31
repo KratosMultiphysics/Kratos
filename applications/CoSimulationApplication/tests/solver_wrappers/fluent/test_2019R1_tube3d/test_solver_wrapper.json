@@ -7,7 +7,7 @@
         {
             "type": "solver_wrappers.fluent.2019R1",
             "settings": {
-                "working_directory" : "solver_wrappers/Fluent2019R1/test_tube3d/CFD",
+                "working_directory" : "solver_wrappers/fluent/test_2019R1_tube3d/CFD",
                 "case_file": "case_tube3d.cas",
                 "dimensions": 3,
                 "unsteady": true,
