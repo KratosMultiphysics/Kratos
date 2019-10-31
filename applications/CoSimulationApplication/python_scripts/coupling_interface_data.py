@@ -114,10 +114,6 @@ class CouplingInterfaceData(object):
         # used for unifying the prints
         return colors.blue(self.solver_name) + "." + colors.magenta(self.name)
 
-    def GetIdentifier(self):
-        # returns a string which is unique in a simulation and can hence be used as an identifier
-        return self.solver_name + "." + self.name
-
     def GetModelPart(self):
         return self.model_part
 

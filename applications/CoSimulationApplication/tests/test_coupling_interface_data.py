@@ -113,20 +113,6 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         colors.PRINT_COLORS = False # required for checking the printing
         self.assertMultiLineEqual(str(coupling_data), coupling_interface_data_str)
 
-    def test_identifier(self):
-        settings = KM.Parameters("""{
-            "model_part_name" : "mp_4_test",
-            "variable_name"   : "PRESSURE"
-        }""")
-
-        data_name = "custom_data_name"
-        solver_name = "custom_solver_name"
-
-        coupling_data = CouplingInterfaceData(settings, self.model, data_name, solver_name)
-        coupling_data.Initialize()
-
-        self.assertEqual(coupling_data.GetIdentifier(), solver_name  + "." + data_name)
-
     def test_var_does_not_exist(self):
         settings = KM.Parameters("""{
             "model_part_name" : "mp_4_test",
