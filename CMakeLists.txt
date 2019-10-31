@@ -359,17 +359,8 @@ else()
     message(STATUS "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
 endif()
 
-if( VTU11_DIR )
-    message(STATUS "VTU11_DIR : ${VTU11_DIR}")
-    include_directories(${VTU11_DIR})
-    include_directories(${VTU11_DIR}/inc)
-    include_directories(${VTU11_DIR}/impl)
-    include_directories(${VTU11_DIR}/external/zlib/inc)
-    add_definitions(-DKRATOS_USE_VTU11)
-    add_definitions(-DVTU11_ENABLE_ZLIB) # this can be always added since Kratos anyway uses ZLIB
-else()
-    message(STATUS "vtu11 not found. Please define the VTU11_DIR pointing to the vtu11 root directory to enable the vtu output.")
-endif()
+add_subdirectory(external_libraries/vtu11)
+include_directories(${VTU11_INCLUDE_DIRECTORIES})
 
 ##echo user options
 message( " ")
