@@ -69,7 +69,7 @@
 #include "custom_elements/small_displacement_bbar.h"
 
 /* Adding the mixed solid elements */
-#include "custom_elements/small_displacement_mixed_strain_element.h"
+#include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
 
 /* CONDITIONS */
 #include "custom_conditions/base_load_condition.h"
@@ -370,8 +370,8 @@ private:
     const SmallDisplacementBbar mSmallDisplacementBbar2D4N;
     const SmallDisplacementBbar mSmallDisplacementBbar3D8N;
 
-    const SmallDisplacementMixedStrainElement mSmallDisplacementMixedStrainElement2D3N;
-    const SmallDisplacementMixedStrainElement mSmallDisplacementMixedStrainElement3D4N;
+    const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement2D3N;
+    const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D4N;
 
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D3N;
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D4N;

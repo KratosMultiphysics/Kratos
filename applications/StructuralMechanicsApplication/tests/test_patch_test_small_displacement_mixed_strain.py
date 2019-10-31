@@ -127,7 +127,7 @@ class TestPatchTestSmallDisplacementMixedStrain(KratosUnittest.TestCase):
                        print("NODE ", node.Id,": Component ", coor_list[i],":\t",u[i],"\t",d[i], "\tError: ", error)
                     self.assertLess(error, self.tolerance)
 
-    def testSmallDisplacementMixedStrainElement2DTriangle(self):
+    def testSmallDisplacementMixedVolumetricStrainElement2DTriangle(self):
         dimension = 2
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("MainModelPartTriangle")
@@ -152,10 +152,10 @@ class TestPatchTestSmallDisplacementMixedStrain(KratosUnittest.TestCase):
         boundary_model_part.AddNodes([1,2,3,4])
 
         # Create elements
-        model_part.CreateNewElement("SmallDisplacementMixedStrainElement2D3N", 1, [1,2,5], model_part.GetProperties()[1])
-        model_part.CreateNewElement("SmallDisplacementMixedStrainElement2D3N", 2, [2,3,5], model_part.GetProperties()[1])
-        model_part.CreateNewElement("SmallDisplacementMixedStrainElement2D3N", 3, [3,4,5], model_part.GetProperties()[1])
-        model_part.CreateNewElement("SmallDisplacementMixedStrainElement2D3N", 4, [4,1,5], model_part.GetProperties()[1])
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement2D3N", 1, [1,2,5], model_part.GetProperties()[1])
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement2D3N", 2, [2,3,5], model_part.GetProperties()[1])
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement2D3N", 3, [3,4,5], model_part.GetProperties()[1])
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement2D3N", 4, [4,1,5], model_part.GetProperties()[1])
 
         A,b = self._define_movement(dimension)
 
@@ -165,7 +165,7 @@ class TestPatchTestSmallDisplacementMixedStrain(KratosUnittest.TestCase):
         if self.print_output:
             self.__post_process(model_part)
 
-    def testSmallDisplacementMixedStrainElement3DTetrahedra(self):
+    def testSmallDisplacementMixedVolumetricStrainElement3DTetrahedra(self):
         dimension = 3
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("MainModelPartTetrahedra")

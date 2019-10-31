@@ -52,14 +52,14 @@ namespace Kratos
 ///@{
 
 /**
- * @class SmallDisplacementMixedStrainElement
+ * @class SmallDisplacementMixedVolumetricStrainElement
  * @ingroup StructuralMechanicsApplication
  * @brief Small displacement with strain based mixed formulation element
  * @details This implements a small displacements element formulation with an extra volumetric strain nodal DOF
  * @author Ruben Zorrilla
  * @author Riccardo Rossi
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementMixedStrainElement
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementMixedVolumetricStrainElement
     : public Element
 {
 
@@ -148,19 +148,19 @@ public:
     /// The base element type
     typedef Element BaseType;
 
-    // Counted pointer of SmallDisplacementMixedStrainElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SmallDisplacementMixedStrainElement );
+    // Counted pointer of SmallDisplacementMixedVolumetricStrainElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SmallDisplacementMixedVolumetricStrainElement );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    SmallDisplacementMixedStrainElement()
+    SmallDisplacementMixedVolumetricStrainElement()
     {};
 
     // Constructor using an array of nodes
-    SmallDisplacementMixedStrainElement(
+    SmallDisplacementMixedVolumetricStrainElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry
         ) : Element(
@@ -169,7 +169,7 @@ public:
     {};
 
     // Constructor using an array of nodes with properties
-    SmallDisplacementMixedStrainElement(
+    SmallDisplacementMixedVolumetricStrainElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
@@ -180,14 +180,14 @@ public:
     {};
 
     // Copy constructor
-    SmallDisplacementMixedStrainElement(SmallDisplacementMixedStrainElement const& rOther)
+    SmallDisplacementMixedVolumetricStrainElement(SmallDisplacementMixedVolumetricStrainElement const& rOther)
         : BaseType(rOther),
           mThisIntegrationMethod(rOther.mThisIntegrationMethod),
           mConstitutiveLawVector(rOther.mConstitutiveLawVector)
     {};
 
     // Destructor
-    ~SmallDisplacementMixedStrainElement() override
+    ~SmallDisplacementMixedVolumetricStrainElement() override
     {};
 
     ///@}
@@ -735,7 +735,7 @@ private:
 
     void load( Serializer& rSerializer ) override;
 
-}; // class SmallDisplacementMixedStrainElement.
+}; // class SmallDisplacementMixedVolumetricStrainElement.
 
 ///@}
 ///@name Type Definitions

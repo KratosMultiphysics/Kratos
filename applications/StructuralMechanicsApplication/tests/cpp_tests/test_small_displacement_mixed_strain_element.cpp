@@ -17,7 +17,7 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/gid_io.h"
-#include "custom_elements/small_displacement_mixed_strain_element.h"
+#include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
 
 namespace Kratos
 {
@@ -27,7 +27,7 @@ namespace Testing
     * Checks the Small Displacement Mixed Strain Element
     * Simple test
     */
-    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedStrainElement2D3N, KratosStructuralMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElement2D3N, KratosStructuralMechanicsFastSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -47,7 +47,7 @@ namespace Testing
         auto p_node_2 = r_model_part.CreateNewNode(2, 0.0 , 1.0 , 0.0);
         auto p_node_3 = r_model_part.CreateNewNode(3, 1.0 , 0.0 , 0.0);
         std::vector<ModelPart::IndexType> element_nodes {1,2,3};
-        auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedStrainElement2D3N", 1, element_nodes, p_elem_prop);
+        auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement2D3N", 1, element_nodes, p_elem_prop);
 
         // Set a fake displacement and volumetric strain field to compute the residual
         array_1d<double, 3> aux_disp;
@@ -101,7 +101,7 @@ namespace Testing
     * Checks the Small Displacement Mixed Strain Element
     * Simple test with known analytical solution
     */
-    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedStrainElement2D3NResidual, KratosStructuralMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElement2D3NResidual, KratosStructuralMechanicsFastSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -121,7 +121,7 @@ namespace Testing
         auto p_node_2 = r_model_part.CreateNewNode(2, 0.9 , 0.4 , 0.0);
         auto p_node_3 = r_model_part.CreateNewNode(3, 0.5 , 0.2 , 0.0);
         std::vector<ModelPart::IndexType> element_nodes {1,2,3};
-        auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedStrainElement2D3N", 1, element_nodes, p_elem_prop);
+        auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement2D3N", 1, element_nodes, p_elem_prop);
 
         // Initialize the element to initialize the constitutive law
         p_element->Initialize();
@@ -174,7 +174,7 @@ namespace Testing
     * Checks the Small Displacement Mixed Strain Element
     * Simple test with known analytical solution
     */
-    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedStrainElement3D4NResidual, KratosStructuralMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElement3D4NResidual, KratosStructuralMechanicsFastSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -195,7 +195,7 @@ namespace Testing
         auto p_node_3 = r_model_part.CreateNewNode(3, 0.5 , 0.2 , 0.0);
         auto p_node_4 = r_model_part.CreateNewNode(4, 0.3 , 0.3 , 0.5);
         std::vector<ModelPart::IndexType> element_nodes {1,2,3,4};
-        auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedStrainElement3D4N", 1, element_nodes, p_elem_prop);
+        auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement3D4N", 1, element_nodes, p_elem_prop);
 
         // Initialize the element to initialize the constitutive law
         p_element->Initialize();
