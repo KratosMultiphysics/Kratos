@@ -37,6 +37,10 @@ class CouplingInterfaceData(object):
         variable_name = self.settings["variable_name"].GetString()
         if variable_name == "":
             raise Exception('No "variable_name" was specified!')
+        if not KM.KratosGlobals.HasVariable(variable_name):
+            # TODO here maybe we could construct a new var if necessary (maybe clashes with delayed app-import ...?)
+            raise Exception('Variable "{}" does not exist!'.format(variable_name))
+
         self.variable_type = KM.KratosGlobals.GetVariableType(variable_name)
 
         admissible_scalar_variable_types = ["Bool", "Integer", "Unsigned Integer", "Double", "Component"]
@@ -45,7 +49,7 @@ class CouplingInterfaceData(object):
         if not self.variable_type in admissible_scalar_variable_types and not self.variable_type in admissible_vector_variable_types:
             raise Exception('The input for "variable" "{}" is of variable type "{}" which is not allowed, only the following variable types are allowed:\n{}, {}'.format(variable_name, self.variable_type, ", ".join(admissible_scalar_variable_types), ", ".join(admissible_vector_variable_types)))
 
-        self.variable = KM.KratosGlobals.GetVariable(variable_name) # TODO here maybe we could construct a new var if necessary (maybe clashes with delayed app-import ...?)
+        self.variable = KM.KratosGlobals.GetVariable(variable_name)
 
         self.dtype = GetNumpyDataType(self.variable_type) # required for numpy array creation
 

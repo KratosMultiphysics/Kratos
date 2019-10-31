@@ -125,6 +125,15 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
 
         self.assertEqual(coupling_data.GetIdentifier(), solver_name  + "." + data_name)
 
+    def test_var_does_not_exist(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "var_that_hopefully_none_will_ever_create_otherwise_this_test_will_be_wrong"
+        }""")
+
+        with self.assertRaisesRegex(Exception, 'does not exist!'):
+            coupling_data = CouplingInterfaceData(settings, self.model)
+
     def test_wrong_input_dim_scalar(self):
         settings = KM.Parameters("""{
             "model_part_name" : "mp_4_test",
