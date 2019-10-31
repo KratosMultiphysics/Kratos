@@ -138,5 +138,12 @@ class TestSdofSolver(KratosUnittest.TestCase):
         }
         self.__ExecuteTest(settings, "ref_sdof_root_point_displacement_impulse.dat")
 
+    def test_self_weight_calculation(self):
+
+        system = SDoFSolver(self.system_settings)
+        system.Initialize()
+        self_weight = system.GetSolutionStepValue("VOLUME_ACCELERATION")
+        self.assertAlmostEqual(98.10000000000001, self_weight)
+
 if __name__ == '__main__':
     KratosUnittest.main()

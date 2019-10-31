@@ -32,7 +32,8 @@ class SDoFSolver(object):
                 "system_parameters":{
                     "mass"      : 100.0,
                     "stiffness" : 4000.0,
-                    "damping"   : 0.0
+                    "damping"   : 0.0,
+                    "modulus_self_weight": 9.81
                 },
                 "time_integration_parameters":{
                     "alpha_m"   : -0.3,
@@ -66,6 +67,8 @@ class SDoFSolver(object):
         self.mass = parameters["system_parameters"]["mass"]
         self.stiffness = parameters["system_parameters"]["stiffness"]
         self.damping = parameters["system_parameters"]["damping"]
+        self.modulus_self_weight = parameters["system_parameters"]["modulus_self_weight"]
+
 
         self.alpha_m = parameters["time_integration_parameters"]["alpha_m"]
         self.delta_t = parameters["time_integration_parameters"]["time_step"]
@@ -210,6 +213,10 @@ class SDoFSolver(object):
                  + self.stiffness * (self.dx[0] - self.dx_f[0])
         return reaction
 
+    def CalculateSelfWeight(self):
+        self_weight = self.mass * self.modulus_self_weight
+        return self_weight
+
     def GetSolutionStepValue(self, identifier, buffer_idx=0):
         if identifier == "DISPLACEMENT":
             return self.x[:,buffer_idx][0]
@@ -219,6 +226,8 @@ class SDoFSolver(object):
             return self.x[:,buffer_idx][2]
         elif identifier == "REACTION":
             return self.CalculateReaction()
+        elif identifier == "VOLUME_ACCELERATION":
+            return self.CalculateSelfWeight()
         else:
             raise Exception("Identifier is unknown!")
 
