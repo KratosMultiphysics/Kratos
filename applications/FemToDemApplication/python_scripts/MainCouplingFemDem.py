@@ -87,6 +87,12 @@ class MainCoupledFemDem_Solution:
             self.PressureLoad = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
         if self.PressureLoad:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
+        if self.FEM_Solution.ProjectParameters.Has("tangent_operator") == True:
+            # 0 -> Elastic , 1 -> Secant , 2 -> Tangent , 3 -> Tangent 2nd Order
+            tangent_type = self.FEM_Solution.ProjectParameters["tangent_operator"].GetInt()
+            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.TANGENT_CONSTITUTIVE_TENSOR] = tangent_type
+        else:
+            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.TANGENT_CONSTITUTIVE_TENSOR] = 2
 
         self.SkinDetectionProcessParameters = KratosMultiphysics.Parameters("""
         {

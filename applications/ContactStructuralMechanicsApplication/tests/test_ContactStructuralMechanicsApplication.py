@@ -136,6 +136,7 @@ from NightlyTests import PlateTest as TPlateTest
 
 ## VALIDATION TESTS
 from ValidationTests import LargeDisplacementPatchTestHexa as TLargeDisplacementPatchTestHexa
+from ValidationTests import MeshTyingValidationTest        as TMeshTyingValidationTest
 
 # ALM frictionless tests
 from ValidationTests import ALMTaylorPatchDynamicTestContact as TALMTaylorPatchDynamicTestContact
@@ -344,6 +345,7 @@ def AssembleTestSuites():
 
     # Some large displacement tests
     validationSuite.addTest(TLargeDisplacementPatchTestHexa('test_execution'))
+    validationSuite.addTest(TMeshTyingValidationTest('test_execution'))
 
     # ALM frictionless tests
     validationSuite.addTest(TALMTaylorPatchDynamicTestContact('test_execution'))
@@ -488,6 +490,7 @@ def AssembleTestSuites():
             #####TALMIroningTestContact,
             #####TALMIroningDieTestContact,
             #TLargeDisplacementPatchTestHexa,
+            #TMeshTyingValidationTest,
             #TALMLargeDisplacementPatchTestTetra,
             #TALMLargeDisplacementPatchTestHexa,
             #TALMMultiLayerContactTest,
