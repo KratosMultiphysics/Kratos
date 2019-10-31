@@ -1,0 +1,6 @@
+#ifndef VTU11_CONFIG_HPP
+#define VTU11_CONFIG_HPP
+
+#cmakedefine VTU11_ENABLE_ZLIB
+
+#endif // VTU11_CONFIG_HPP
