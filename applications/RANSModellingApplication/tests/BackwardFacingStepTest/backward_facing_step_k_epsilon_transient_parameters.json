@@ -29,6 +29,9 @@
             "Outlet2D_outlet",
             "Slip2D"
         ],
+        "material_import_settings": {
+            "materials_filename": "backward_facing_step_k_epsilon_material_properties.json"
+        },
         "no_skin_parts": [],
         "time_stepping": {
             "automatic_time_step": false,
