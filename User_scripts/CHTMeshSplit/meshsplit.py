@@ -125,8 +125,12 @@ class CHTWorkflow():
     
     def RefineMeshnearSolid(self, single_parameter, min_size, max_size, hausdorff_value):
         
-        find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess( self.model_fluid )
+        find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.model_fluid)
         find_nodal_h.Execute()
+
+        #boussineqs_part = self.model_fluid.GetSubModelPart("Boussinesq__Boussinesq_hidden_")
+        #Fluid_temp_part = self.model_fluid.GetSubModelPart("TEMPERATURE_fluid")
+        
 
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, self.model_fluid.Nodes)
         local_gradient = KratosMultiphysics.ComputeNodalGradientProcess3D(self.model_fluid, KratosMultiphysics.DISTANCE, KratosMultiphysics.DISTANCE_GRADIENT, KratosMultiphysics.NODAL_AREA)
@@ -163,7 +167,7 @@ class CHTWorkflow():
                 "deactivate_detect_angle": false,
                 "force_gradation_value": true,
                 "force_hausdorff_value": true,
-                "gradation_value": 1.2,
+                "gradation_value": 3.0,
                 "hausdorff_value": """ + str( hausdorff_value ) + """,
                 "no_insert_mesh": false,
                 "no_move_mesh": false,
@@ -320,8 +324,24 @@ class CHTWorkflow():
         
         print(main_model_part)
     
-    def CreateGIDOutput(self, model_name):    
+    def CleanFluidModel(self):
+
+        self.model_fluid.RemoveSubModelPart("Boussinesq__Boussinesq_hidden_")
+        self.model_fluid.RemoveSubModelPart("TEMPERATURE_fluid")
+
+        self.model_fluid.CreateSubModelPart("Boussinesq__Boussinesq_hidden_")
+        self.model_fluid.CreateSubModelPart("TEMPERATURE_fluid")
+
+        for node in self.model_fluid.Nodes:
+            self.model_fluid.GetSubModelPart("Boussinesq__Boussinesq_hidden_").AddNode(node, 0)
+            self.model_fluid.GetSubModelPart("TEMPERATURE_fluid").AddNode(node, 0)
+
+        print(self.model_fluid)
         
+    
+    def CreateGIDOutput(self, model_name):
+
+        KratosMultiphysics.ModelPartIO("Modified_Fluid", KratosMultiphysics.IO.WRITE).WriteModelPart(self.model_fluid)
         self.gid_output = GiDOutputProcess(self.model_fluid, model_name, self.settings["output_configuration"])
         self.gid_output.ExecuteInitialize()
         self.gid_output.ExecuteBeforeSolutionLoop()
@@ -363,8 +383,7 @@ if __name__ == "__main__":
     
     CHT_tool = CHTWorkflow("/mdpa_files/cavity_fluid3", "/mdpa_files/solid3D_coarse")
     CHT_tool.EmbeddedSkinVisualization()
-    CHT_tool.RefineMeshnearSolid(0.8, 10, 15, 0.1)
+    CHT_tool.RefineMeshnearSolid(2.5, 10, 15, 1.5)
+    CHT_tool.CleanFluidModel()
     CHT_tool.VTKFileOutput()
-    CHT_tool.CreateGIDOutput("vis_model")
-    # CHT_tool.VTKFileOutput("Remesh_final")
-    #CHT_tool.SubtractModels(15, 20, 0.1)
+    CHT_tool.CreateGIDOutput("modified_fluid")
