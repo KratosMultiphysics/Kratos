@@ -40,7 +40,9 @@
 namespace Kratos
 {
 template <class TConstLawIntegratorType>
-void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMaterialResponsePK2(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -49,7 +51,9 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
-void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMaterialResponseKirchhoff(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -58,7 +62,9 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
-void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMaterialResponsePK1(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -67,7 +73,9 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
-void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMaterialResponseCauchy(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     // Auxiliar values
     const Flags& r_constitutive_law_options = rValues.GetOptions();
@@ -122,8 +130,8 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
             // We get some variables
             double threshold = this->GetThreshold();
             double plastic_dissipation = this->GetPlasticDissipation();
-            Vector plastic_strain = this->GetPlasticStrain();
-            Vector back_stress_vector(VoigtSize);
+            Vector plastic_strain      = this->GetPlasticStrain();
+            Vector back_stress_vector  = this->GetBackStressVector();
             const Vector previous_stress_vector = this->GetPreviousStressVector();
 
             array_1d<double, VoigtSize> predictive_stress_vector, kin_hard_stress_vector;
@@ -177,7 +185,9 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
-void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
+void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateTangentTensor(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
@@ -219,7 +229,9 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::InitializeM
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
-void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMaterialResponsePK1(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     // Small deformation so we can call the Cauchy method
     FinalizeMaterialResponseCauchy(rValues);
@@ -229,7 +241,9 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMat
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
-void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMaterialResponsePK2(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     // Small deformation so we can call the Cauchy method
     FinalizeMaterialResponseCauchy(rValues);
@@ -239,7 +253,9 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMat
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
-void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMaterialResponseKirchhoff(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     // Small deformation so we can call the Cauchy method
     FinalizeMaterialResponseCauchy(rValues);
@@ -249,7 +265,9 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMat
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
-void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMaterialResponseCauchy(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
     const Flags& r_constitutive_law_options = rValues.GetOptions();
@@ -267,8 +285,8 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMat
     // We get some variables
     double threshold = this->GetThreshold();
     double plastic_dissipation = this->GetPlasticDissipation();
-    Vector plastic_strain = this->GetPlasticStrain();
-    Vector back_stress_vector(VoigtSize);
+    Vector plastic_strain      = this->GetPlasticStrain();
+    Vector back_stress_vector  = this->GetBackStressVector();
     const Vector previous_stress_vector = this->GetPreviousStressVector();
 
     array_1d<double, VoigtSize> predictive_stress_vector, kin_hard_stress_vector;
@@ -314,6 +332,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMat
 
     noalias(mPlasticStrain) = plastic_strain;
     noalias(mPreviousStressVector) = predictive_stress_vector;
+    noalias(mBackStressVector) = back_stress_vector;
 }
 
 /***********************************************************************************/
@@ -535,8 +554,8 @@ Vector& GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::Calculat
         // We get some variables
         double threshold = this->GetThreshold();
         double plastic_dissipation = this->GetPlasticDissipation();
-        Vector plastic_strain = this->GetPlasticStrain();
-        Vector back_stress_vector(VoigtSize);
+        Vector plastic_strain      = this->GetPlasticStrain();
+        Vector back_stress_vector  = this->GetBackStressVector();
         const Vector previous_stress_vector = this->GetPreviousStressVector();
 
         array_1d<double, VoigtSize> predictive_stress_vector, kin_hard_stress_vector;
@@ -574,7 +593,6 @@ Vector& GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::Calculat
                 characteristic_length, back_stress_vector,
                 previous_stress_vector);
         }
-
         rValue = back_stress_vector;
     } else {
         BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
