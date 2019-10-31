@@ -28,6 +28,7 @@ KRATOS_CREATE_VARIABLE(double, AVERAGE_NODAL_ERROR);                          //
 KRATOS_CREATE_VARIABLE(double, ANISOTROPIC_RATIO);                            // The anisotropic aspect ratio
 KRATOS_CREATE_VARIABLE(Vector3, AUXILIAR_GRADIENT);                           // An auxiliar gradient needed to compute the metric
 KRATOS_CREATE_VARIABLE(Vector, AUXILIAR_HESSIAN);                             // An auxiliar hessian needed to compute the metric
+KRATOS_CREATE_VARIABLE(double, METRIC_SCALAR);                                // A single scalar metric
 KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_2D); // A 2D metric vector
 KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_3D); // A 3D metric vector
 

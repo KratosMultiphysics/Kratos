@@ -103,7 +103,7 @@ public:
         ModelPart& rPart1,
         ModelPart& rPart2,
         const double BoundingBoxFactor = -1.0,
-        const Flags Options = FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS|FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS|FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS|FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS|FindIntersectedGeometricalObjectsWithOBBProcess::NOT_DEBUG_OBB|FindIntersectedGeometricalObjectsWithOBBProcess::SEPARATING_AXIS_THEOREM
+        const Flags Options = BaseProcessType::INTERSECTING_CONDITIONS|BaseProcessType::INTERSECTING_ELEMENTS|BaseProcessType::INTERSECTED_CONDITIONS|BaseProcessType::INTERSECTED_ELEMENTS|BaseType::NOT_DEBUG_OBB|BaseType::SEPARATING_AXIS_THEOREM|BaseType::BUILD_OBB_FROM_BB
         );
 
     /**
@@ -145,7 +145,7 @@ public:
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override  {
-
+        BaseType::PrintData(rOStream);
     }
 
     ///@}

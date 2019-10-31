@@ -53,7 +53,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
 
     // The normal of the master condition
-    const array_1d<double, 3>& r_normal_master = pCondition->GetValue(PAIRED_NORMAL);
+    const array_1d<double, 3>& r_normal_master = pCondition->GetPairedNormal();
 
     // Reading integration points
     ConditionArrayListType conditions_points_slave;
@@ -172,7 +172,8 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     const bool AxisymmetricCase,
     const bool ComputeNodalArea,
     const bool ComputeDualLM,
-    Variable<double>& rAreaVariable
+    Variable<double>& rAreaVariable,
+    const bool ConsiderObjetiveFormulation
     )
 {
     KRATOS_TRY;
@@ -199,7 +200,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
 
     // The normal of the master condition
-    const array_1d<double, 3>& r_normal_master = pCondition->GetValue(PAIRED_NORMAL);
+    const array_1d<double, 3>& r_normal_master = pCondition->GetPairedNormal();
 
     // Reading integration points
     ConditionArrayListType conditions_points_slave;
@@ -286,7 +287,8 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
         // The estimation of the slip time derivative
         BoundedMatrix<double, TNumNodes, TDim> slip_time_derivative;
-        const bool objective_formulation = pCondition->IsDefined(MODIFIED) ? pCondition->IsNot(MODIFIED) : true;
+        const bool objective_formulation = ConsiderObjetiveFormulation ? true : pCondition->IsDefined(MODIFIED) ? pCondition->IsNot(MODIFIED) : true;
+
         if (objective_formulation) {
             // Delta mortar condition matrices - DOperator and MOperator
             const BoundedMatrix<double, TNumNodes, TNumNodes> DeltaDOperator = DOperator - rPreviousMortarOperators.DOperator;
@@ -392,7 +394,7 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
 
     // The normal of the master condition
-    const array_1d<double, 3>& r_normal_master = pCondition->GetValue(PAIRED_NORMAL);
+    const array_1d<double, 3>& r_normal_master = pCondition->GetPairedNormal();
 
     // Reading integration points
     ConditionArrayListType conditions_points_slave;

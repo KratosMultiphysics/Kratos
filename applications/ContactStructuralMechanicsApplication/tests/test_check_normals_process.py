@@ -17,7 +17,7 @@ class TestCheckNormals(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    def _normal_check_process_tests(self, input_filename):
+    def _normal_check_process_tests(self, input_filename, custom_submodel_part = ""):
         KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
         self.model = KM.Model()
@@ -29,8 +29,11 @@ class TestCheckNormals(KratosUnittest.TestCase):
 
         KM.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
 
-        KM.VariableUtils().SetFlag(KM.INTERFACE, True, self.main_model_part.GetSubModelPart("CONTACT_Contact_slave_Auto1").Nodes)
-        KM.VariableUtils().SetFlag(KM.INTERFACE, True, self.main_model_part.GetSubModelPart("CONTACT_Contact_master_Auto1").Nodes)
+        if custom_submodel_part == "":
+            KM.VariableUtils().SetFlag(KM.INTERFACE, True, self.main_model_part.GetSubModelPart("CONTACT_Contact_slave_Auto1").Nodes)
+            KM.VariableUtils().SetFlag(KM.INTERFACE, True, self.main_model_part.GetSubModelPart("CONTACT_Contact_master_Auto1").Nodes)
+        else:
+            KM.VariableUtils().SetFlag(KM.INTERFACE, True, self.main_model_part.GetSubModelPart(custom_submodel_part).Nodes)
 
         ## DEBUG
         #KM.ComputeNodesMeanNormalModelPart(self.main_model_part, True)
@@ -87,6 +90,11 @@ class TestCheckNormals(KratosUnittest.TestCase):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/inverted_normals_quads"
 
         self._normal_check_process_tests(input_filename)
+
+    def test_check_normals_s_shape(self):
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/inverted_normals_s_shape"
+
+        self._normal_check_process_tests(input_filename, "GENERIC_Contact_Auto1")
 
     def __post_process(self, debug = "GiD"):
         if debug == "GiD":

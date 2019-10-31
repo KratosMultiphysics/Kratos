@@ -90,10 +90,6 @@ namespace Kratos {
     double* PropertiesProxy::pGetLevelOfFouling()                                             { return  mLevelOfFouling;                     }
     void    PropertiesProxy::SetLevelOfFoulingFromProperties(double* level_of_fouling)        { mLevelOfFouling = level_of_fouling;          }
 
-    double  PropertiesProxy::GetContactSigmaMin()                                             { return *mContactSigmaMin;                    }
-    double* PropertiesProxy::pGetContactSigmaMin()                                            { return  mContactSigmaMin;                    }
-    void    PropertiesProxy::SetContactSigmaMinFromProperties(double* contact_sigma_min)      { mContactSigmaMin = contact_sigma_min;        }
-
     double  PropertiesProxy::GetContactTauZero()                                              { return *mContactTauZero;                     }
     double* PropertiesProxy::pGetContactTauZero()                                             { return  mContactTauZero;                     }
     void    PropertiesProxy::SetContactTauZeroFromProperties(double* contact_tau_zero)        { mContactTauZero = contact_tau_zero;          }
@@ -123,30 +119,9 @@ namespace Kratos {
     }
 
     void PropertiesProxy::save(Serializer& rSerializer) const {
-
-        rSerializer.save("mId",mId);
-        /*rSerializer.save("mYoung",mYoung);
-        rSerializer.save("mPoisson",mPoisson);
-        rSerializer.save("mRollingFriction",mRollingFriction);
-        rSerializer.save("mTgOfFrictionAngle",mTgOfFrictionAngle);
-        rSerializer.save("mLnOfRestitCoeff",mLnOfRestitCoeff);
-        rSerializer.save("mDensity",mDensity);
-        rSerializer.save("mParticleMaterial",mParticleMaterial);*/
-        rSerializer.save("mParticleCohesion",mParticleCohesion);
     }
 
     void PropertiesProxy::load(Serializer& rSerializer) {
-
-        rSerializer.load("mId",mId);
-        /*rSerializer.load("mYoung",mYoung);
-        rSerializer.load("mPoisson",mPoisson);
-        rSerializer.load("mRollingFriction",mRollingFriction);
-        rSerializer.load("mTgOfFrictionAngle",mTgOfFrictionAngle);
-        rSerializer.load("mLnOfRestitCoeff",mLnOfRestitCoeff);
-        rSerializer.load("mDensity",mDensity);
-        rSerializer.load("mParticleMaterial",mParticleMaterial);
-        rSerializer.load("mParticleCohesion",mParticleCohesion);
-        rSerializer.load("mParticleMaterial",mParticleMaterial);*/
     }
 
     void PropertiesProxiesManager::AddPropertiesProxiesFromModelPartProperties(std::vector<PropertiesProxy>& vector_of_proxies,
@@ -216,9 +191,6 @@ namespace Kratos {
 
             aux_pointer = &(props_it->GetValue(LEVEL_OF_FOULING));
             vector_of_proxies[properties_counter].SetLevelOfFoulingFromProperties(aux_pointer);
-
-            aux_pointer = &(props_it->GetValue(CONTACT_SIGMA_MIN));
-            vector_of_proxies[properties_counter].SetContactSigmaMinFromProperties(aux_pointer);
 
             aux_pointer = &(props_it->GetValue(CONTACT_TAU_ZERO));
             vector_of_proxies[properties_counter].SetContactTauZeroFromProperties(aux_pointer);

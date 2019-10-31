@@ -30,6 +30,14 @@ addons:
       - liblapack-dev
       - libopenmpi-dev
       - openmpi-bin
+      - libmetis-dev
+      - libtrilinos-amesos-dev
+      - libtrilinos-aztecoo-dev
+      - libtrilinos-epetra-dev
+      - libtrilinos-epetraext-dev
+      - libtrilinos-ifpack-dev
+      - libtrilinos-ml-dev
+      - libtrilinos-teuchos-dev
 
 before_script:
 - export PYTHONPATH=${PYTHONPATH}:${TRAVIS_BUILD_DIR}
