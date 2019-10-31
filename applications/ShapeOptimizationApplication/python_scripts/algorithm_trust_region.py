@@ -327,7 +327,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         # 2. Determine step following two different modes depending on the previos found step length to the feasible domain
         if is_projection_sucessfull:
             if test_norm_dX < 1: # Minimizing mode
-                print ("\n> Computing projection case 1...")
+                KM.Logger.Print("")
+                KM.Logger.PrintInfo("ShapeOpt", "Computing projection case 1...")
 
                 func = lambda len_obj: projector.RunProjection(len_obj, inactive_threshold)
 
@@ -341,7 +342,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 projection_results = projector.GetDetailedResultsOfLatestProjection()
 
             else: # Correction mode
-                print ("\n> Computing projection case 2...")
+                KM.Logger.Print("")
+                KM.Logger.PrintInfo("ShapeOpt", "Computing projection case 2...")
 
                 len_obj = self.algorithm_settings["obj_share_during_correction"].GetDouble()
                 func = lambda threshold: projector.RunProjection(len_obj, threshold)

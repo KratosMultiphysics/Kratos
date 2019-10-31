@@ -134,6 +134,7 @@
             "input_type" : "mdpa",
             "input_filename" : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test"
         },
+        "move_mesh_flag": false,
         "maximum_pressure_iterations" : 7,
         "velocity_tolerance" : 1e-5,
         "pressure_tolerance" : 1e-5,
@@ -351,7 +352,7 @@
     "do_search_neighbours" : true,
     "type_of_dem_inlet" : "VelocityImposed",
     "type_of_dem_inlet_comment" : "VelocityImposed or ForceImposed",
-    "translational_integration_scheme" : "Hybrid_Bashforth"
+    "translational_integration_scheme" : "Symplectic_Euler"
 },
 
 "dem_parameters" : {
