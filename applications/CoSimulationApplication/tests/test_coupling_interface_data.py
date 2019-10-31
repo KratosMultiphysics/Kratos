@@ -10,7 +10,7 @@ using_pykratos = UsingPyKratos()
 
 # The expected definitions are here to make the handling of the
 # multiline-stings easier (no need to deal with indentation)
-coupling_interface_data_str = '''CouplingInterfaceData:
+coupling_interface_data_str = '''CouplingInterfaceData "default_solver.default":
 	ModelPart: "mp_4_test"
 	IsDistributed: False
 	Variable: "DISPLACEMENT" (Vector with dimension: 2)
