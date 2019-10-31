@@ -35,6 +35,8 @@ class ControlModuleProcess(KratosMultiphysics.Process):
             x_params.AddValue("velocity_factor",settings["velocity_factor"])
             x_params.AddValue("compression_length",settings["compression_length"])
             x_params.AddValue("young_modulus",settings["young_modulus"])
+            x_params.AddValue("stress_increment_tolerance",settings["stress_increment_tolerance"])
+            x_params.AddValue("update_stiffness",settings["update_stiffness"])
             x_params.AddValue("start_time",settings["start_time"])
             self.components_process_list.append(DemFem.ControlModuleProcess(model_part, x_params))
 
@@ -52,6 +54,8 @@ class ControlModuleProcess(KratosMultiphysics.Process):
             y_params.AddValue("velocity_factor",settings["velocity_factor"])
             y_params.AddValue("compression_length",settings["compression_length"])
             y_params.AddValue("young_modulus",settings["young_modulus"])
+            y_params.AddValue("stress_increment_tolerance",settings["stress_increment_tolerance"])
+            y_params.AddValue("update_stiffness",settings["update_stiffness"])
             y_params.AddValue("start_time",settings["start_time"])
             self.components_process_list.append(DemFem.ControlModuleProcess(model_part, y_params))
 
@@ -69,6 +73,8 @@ class ControlModuleProcess(KratosMultiphysics.Process):
             z_params.AddValue("velocity_factor",settings["velocity_factor"])
             z_params.AddValue("compression_length",settings["compression_length"])
             z_params.AddValue("young_modulus",settings["young_modulus"])
+            z_params.AddValue("stress_increment_tolerance",settings["stress_increment_tolerance"])
+            z_params.AddValue("update_stiffness",settings["update_stiffness"])
             z_params.AddValue("start_time",settings["start_time"])
             self.components_process_list.append(DemFem.ControlModuleProcess(model_part, z_params))
 

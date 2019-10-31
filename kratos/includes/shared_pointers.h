@@ -15,6 +15,7 @@
 #define  KRATOS_MEMORY_H_INCLUDED
 
 /* System includes */
+#include <iostream>
 #include <utility>
 
 /* External includes */
@@ -45,6 +46,23 @@ template<typename C, typename...Args>
 unique_ptr<C> make_unique(Args &&...args) {
     // Note: std::make_unique is C++14, this can be updated once we upgrade from C++11
     return unique_ptr<C>(new C(std::forward<Args>(args)...));
+}
+
+template<class T>
+std::ostream& operator <<(std::ostream& rOStream, const Kratos::weak_ptr<T>& rData) {
+
+  if(!rData.expired())
+    rOStream << *rData.lock().get();
+  else
+    rOStream <<" expired weak_ptr ";
+
+  return rOStream;
+}
+
+template<class T>
+std::ostream& operator <<(std::ostream& rOStream, const Kratos::intrusive_ptr<T>& rData) {
+  rOStream << *rData.get();
+  return rOStream;
 }
 
 } // namespace Kratos

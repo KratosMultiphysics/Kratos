@@ -216,6 +216,18 @@ namespace Python
         py::implicitly_convertible<py::list, Vector>();
         py::implicitly_convertible<array_1d<double,3>, Vector>();
 
+        auto int_vector_binder = CreateVectorInterface<DenseVector<int>>(m, "DenseVectorInt");
+        int_vector_binder.def(py::init<typename DenseVector<int>::size_type>());
+        int_vector_binder.def(py::init<typename DenseVector<int>::size_type, int>());
+        int_vector_binder.def(py::init<DenseVector<int>>());
+        int_vector_binder.def(py::init( [](const py::list& input){
+                                DenseVector<int> tmp(input.size());
+                                for(unsigned int i=0; i<tmp.size(); ++i)
+                                    tmp[i] = py::cast<int>(input[i]);
+                                return tmp;
+                                }));
+        py::implicitly_convertible<py::list, DenseVector<int>>();
+
         CreateArray1DInterface< 3 >(m,"Array3");
         CreateArray1DInterface< 4 >(m,"Array4");
         CreateArray1DInterface< 6 >(m,"Array6");

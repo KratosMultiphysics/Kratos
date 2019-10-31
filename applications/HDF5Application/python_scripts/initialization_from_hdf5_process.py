@@ -16,7 +16,7 @@ from KratosMultiphysics.HDF5Application.utils import CreateOperationSettings
 
 def Factory(settings, Model):
     """Return the process for initialization from HDF5.
-    
+
     The input settings are given in the following table:
     +-------------------------------------+------------+---------------------------------+
     | Setting                             | Type       | Default Value                   |
@@ -87,4 +87,4 @@ def CreateCoreSettings(user_settings):
         CreateOperationSettings("element_data_value_input",
                                 user_settings["element_data_value_settings"])
     ]
-    return core_settings.parameters
+    return core_settings

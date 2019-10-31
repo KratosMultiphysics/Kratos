@@ -22,7 +22,7 @@
 #include "custom_elements/cr_beam_element_linear_3D2N.hpp"
 #include "custom_elements/truss_element_3D2N.hpp"
 #include "custom_elements/truss_element_linear_3D2N.hpp"
-
+#include "custom_elements/small_displacement.h"
 
 namespace Kratos
 {
@@ -650,6 +650,7 @@ template class AdjointFiniteDifferencingBaseElement<ShellThinElement3D3N>;
 template class AdjointFiniteDifferencingBaseElement<CrBeamElementLinear3D2N>;
 template class AdjointFiniteDifferencingBaseElement<TrussElement3D2N>;
 template class AdjointFiniteDifferencingBaseElement<TrussElementLinear3D2N>;
+template class AdjointFiniteDifferencingBaseElement<SmallDisplacement>;
 
 } // namespace Kratos
 

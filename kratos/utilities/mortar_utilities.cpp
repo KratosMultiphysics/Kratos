@@ -155,9 +155,14 @@ void ComputeNodesMeanNormalModelPart(
         const auto it_cond_begin = r_conditions_array.begin();
 
         #pragma omp parallel for firstprivate(aux_coords)
-        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+        for (int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
             auto it_cond = it_cond_begin + i;
             const GeometryType& r_geometry = it_cond->GetGeometry();
+
+            // Avoid not "flat" conditions
+            if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
+                continue;
+            }
 
             // Set condition normal
             r_geometry.PointLocalCoordinates(aux_coords, r_geometry.Center());
@@ -165,8 +170,13 @@ void ComputeNodesMeanNormalModelPart(
         }
 
         // Adding the normal contribution of each node
-        for(Condition& r_cond : r_conditions_array) {
+        for (Condition& r_cond : r_conditions_array) {
             GeometryType& r_geometry = r_cond.GetGeometry();
+
+            // Avoid not "flat" conditions
+            if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
+                continue;
+            }
 
             // Iterate over nodes
             for (NodeType& r_node : r_geometry) {
@@ -179,9 +189,14 @@ void ComputeNodesMeanNormalModelPart(
         const auto it_elem_begin = r_elements_array.begin();
 
         #pragma omp parallel for firstprivate(aux_coords)
-        for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+        for (int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
             auto it_elem = it_elem_begin + i;
             const GeometryType& r_geometry = it_elem->GetGeometry();
+
+            // Avoid not "flat" elements
+            if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
+                continue;
+            }
 
             // Set elemition normal
             r_geometry.PointLocalCoordinates(aux_coords, r_geometry.Center());
@@ -189,8 +204,13 @@ void ComputeNodesMeanNormalModelPart(
         }
 
         // Adding the normal contribution of each node
-        for(Element& r_elem : r_elements_array) {
+        for (Element& r_elem : r_elements_array) {
             GeometryType& r_geometry = r_elem.GetGeometry();
+
+            // Avoid not "flat" elements
+            if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
+                continue;
+            }
 
             // Iterate over nodes
             for (NodeType& r_node : r_geometry) {
@@ -201,7 +221,7 @@ void ComputeNodesMeanNormalModelPart(
     }
 
     #pragma omp parallel for
-    for(int i = 0; i < num_nodes; ++i) {
+    for (int i = 0; i < num_nodes; ++i) {
         auto it_node = it_node_begin + i;
 
         array_1d<double, 3>& r_normal = it_node->FastGetSolutionStepValue(NORMAL);

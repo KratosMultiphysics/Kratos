@@ -14,7 +14,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
         super(Pfem2PrimitiveVarSolver, self).__init__(model, settings)
 
         # Set the element and condition names for the replace settings
-        self.element_name = "ShallowElement"
+        self.element_name = "PFEM2ReducedSWE"
         self.condition_name = "Condition"
         self.min_buffer_size = 2
 
@@ -34,9 +34,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
         super(Pfem2PrimitiveVarSolver, self).AddVariables()
         # Variables to project unknown and update particles
         self.main_model_part.AddNodalSolutionStepVariable(SW.DELTA_SCALAR1)
-        self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_SCALAR1)
         self.main_model_part.AddNodalSolutionStepVariable(SW.DELTA_VECTOR1)
-        self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_VECTOR1)
         # Specific variables to convect particles
         self.main_model_part.AddNodalSolutionStepVariable(KM.YP)
         self.main_model_part.AddNodalSolutionStepVariable(SW.MEAN_SIZE)

@@ -25,6 +25,10 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 
+#ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTIITUTIVE_LAWS
+#include "custom_python/add_custom_advanced_constitutive_laws_to_python.h"
+#endif // STRUCTURAL_DISABLE_ADVANCED_CONSTIITUTIVE_LAWS
+
 namespace Kratos {
 namespace Python {
 
@@ -43,6 +47,10 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     AddCustomUtilitiesToPython(m);
     AddCustomConstitutiveLawsToPython(m);
     AddCustomResponseFunctionUtilitiesToPython(m);
+
+#ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTIITUTIVE_LAWS
+    AddCustomAdvancedConstitutiveLawsToPython(m);
+#endif // STRUCTURAL_DISABLE_ADVANCED_CONSTIITUTIVE_LAWS
 
     py::class_<Variable<ShellCrossSection::Pointer>,VariableData >(m,"ShellCrossSectionVariable");
 
@@ -215,6 +223,10 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,INELASTIC_FLAG)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,INFINITY_YIELD_STRESS)
 
+    // Displacement-Control variables
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOAD_FACTOR)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PRESCRIBED_DISPLACEMENT)
+
     // Response function variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RESPONSE_VALUE)
 
@@ -227,6 +239,7 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SOFTENING_TYPE)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SOFTENING_TYPE_COMPRESSION)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HARDENING_CURVE)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MAX_NUMBER_NL_CL_ITERATIONS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VISCOUS_PARAMETER)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DELAY_TIME)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, UNIAXIAL_STRESS)
@@ -266,6 +279,8 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BACK_STRESS_TENSOR)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FRACTURE_ENERGY_DAMAGE_PROCESS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HARDENING_MODULI_VECTOR)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, OGDEN_BETA_1)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, OGDEN_BETA_2)
 
     // D+D- Damage Constitutive laws variables, additional Masonry 2D & 3D
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DAMAGE_ONSET_STRESS_COMPRESSION)

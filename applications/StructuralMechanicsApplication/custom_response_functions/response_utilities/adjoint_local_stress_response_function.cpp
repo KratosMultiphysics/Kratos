@@ -121,9 +121,7 @@ namespace Kratos
             }
         }
         else
-        {
             rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
-        }
 
         KRATOS_CATCH("")
     }
@@ -156,9 +154,7 @@ namespace Kratos
                                                                     rSensitivityGradient, process_info);
         }
         else
-        {
             rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
-        }
 
         KRATOS_CATCH("");
     }

@@ -27,7 +27,7 @@ from KratosMultiphysics.HDF5Application.utils import CreateOperationSettings
 
 def Factory(settings, Model):
     """Return a process for single mesh temporal results output with Xdmf and HDF5.
-    
+
     The input settings are given in the following table:
     +-------------------------------------+------------+---------------------------------+
     | Setting                             | Type       | Default Value                   |
@@ -64,7 +64,7 @@ def SingleMeshXdmfOutputProcessFactory(core_settings, Model):
 
 def CreateCoreSettings(user_settings):
     """Return the core settings.
-    
+
     The core setting "io_type" cannot be overwritten by the user. It is
     automatically set depending on whether or not MPI is used.
     """
@@ -139,13 +139,15 @@ def CreateCoreSettings(user_settings):
     core_settings[0]["io_settings"]["io_type"] = "mock_hdf5_file_io"
     core_settings[3]["io_settings"]["io_type"] = "mock_hdf5_file_io"
     if IsDistributed():
+        model_part_output_type = "partitioned_model_part_output"
         core_settings[1]["io_settings"]["io_type"] = "parallel_hdf5_file_io"
         core_settings[2]["io_settings"]["io_type"] = "parallel_hdf5_file_io"
     else:
+        model_part_output_type = "model_part_output"
         core_settings[1]["io_settings"]["io_type"] = "serial_hdf5_file_io"
         core_settings[2]["io_settings"]["io_type"] = "serial_hdf5_file_io"
     core_settings[1]["list_of_operations"] = [
-        CreateOperationSettings("model_part_output",
+        CreateOperationSettings(model_part_output_type,
                                 user_settings["model_part_output_settings"]),
         CreateOperationSettings("nodal_solution_step_data_output",
                                 user_settings["nodal_solution_step_data_settings"]),
@@ -165,4 +167,4 @@ def CreateCoreSettings(user_settings):
     for key in user_settings["output_time_settings"]:
         core_settings[2]["controller_settings"][key] = user_settings["output_time_settings"][key]
         core_settings[3]["controller_settings"][key] = user_settings["output_time_settings"][key]
-    return core_settings.parameters
+    return core_settings

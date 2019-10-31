@@ -34,8 +34,6 @@
         "linear_solver_settings"             : {
             "solver_type" : "ExternalSolversApplication.super_lu"
         },
-        "problem_domain_sub_model_part_list" : ["Parts_Beam"],
-        "processes_sub_model_part_list"      : ["Structure","DISPLACEMENT_support", "ROTATION_support","PointLoad3D_load"],
         "rotation_dofs"                      : true
 
     },

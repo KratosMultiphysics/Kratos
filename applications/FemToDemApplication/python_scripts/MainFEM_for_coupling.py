@@ -1,106 +1,106 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-import MainFemDem
 import KratosMultiphysics
+import KratosMultiphysics.FemToDemApplication.MainFemDem as MainFemDem
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 
 # Python script created to modify the existing one due to the coupling of the DEM app in 2D
 
 class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
 
-	def Info(self):
-		print("FEM part of the FEMDEM application") 
+    def Info(self):
+        print("FEM part of the FEMDEM application") 
 
 
-	def Initialize(self):
+    def Initialize(self):
 
-		#### INITIALIZE ####
-		
-		# Add variables (always before importing the model part)
-		self.solver.AddVariables()
+        #### INITIALIZE ####
+        
+        # Add variables (always before importing the model part)
+        self.solver.AddVariables()
 
-		# For remeshing purposes
-		self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.NODAL_STRESS_VECTOR)
-		self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-		self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
-		self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.EQUIVALENT_NODAL_STRESS)
-		self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.EQUIVALENT_NODAL_STRESS_GRADIENT)
-		self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.NODAL_DAMAGE)
-		self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.EQUIVALENT_STRESS_VM)
-		self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.DISPLACEMENT_INCREMENT)
+        # For remeshing purposes
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.NODAL_STRESS_VECTOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.EQUIVALENT_NODAL_STRESS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.EQUIVALENT_NODAL_STRESS_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.NODAL_DAMAGE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.EQUIVALENT_STRESS_VM)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.DISPLACEMENT_INCREMENT)
 
-		
-		# Read model_part (note: the buffer_size is set here) (restart is read here)
-		self.solver.ImportModelPart()
 
-		# Add dofs (always after importing the model part)
-		if((self.main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
-			if(self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
-				self.solver.AddDofs()
-		else:
-			self.solver.AddDofs()
+        # Read model_part (note: the buffer_size is set here) (restart is read here)
+        self.solver.ImportModelPart()
 
-		# Add materials (assign material to model_parts if Materials.json exists)
-		self.AddMaterials()
-		
-		# Add processes
-		self.model_processes = self.AddProcesses()
-		self.model_processes.ExecuteInitialize()
+        # Add dofs (always after importing the model part)
+        if((self.main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
+            if(self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
+                self.solver.AddDofs()
+        else:
+            self.solver.AddDofs()
 
-		# Print model_part and properties
-		if(self.echo_level > 1):
-			print("")
-			print(self.main_model_part)
-			for properties in self.main_model_part.Properties:
-				print(properties)
+        # Add materials (assign material to model_parts if Materials.json exists)
+        self.AddMaterials()
+        
+        # Add processes
+        self.model_processes = self.AddProcesses()
+        self.model_processes.ExecuteInitialize()
 
-		#### START SOLUTION ####
-		self.computing_model_part = self.solver.GetComputingModelPart()
+        # Print model_part and properties
+        if(self.echo_level > 1):
+            print("")
+            print(self.main_model_part)
+            for properties in self.main_model_part.Properties:
+                print(properties)
 
-		## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
-		self.solver.Initialize()
-		#self.solver.InitializeStrategy()
-		self.solver.SetEchoLevel(self.echo_level)
+        #### START SOLUTION ####
+        self.computing_model_part = self.solver.GetComputingModelPart()
 
-		# Initialize GiD  I/O (gid outputs, file_lists)
-		self.SetGraphicalOutput()
-		
-		self.GraphicalOutputExecuteInitialize()
+        ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
+        self.solver.Initialize()
+        #self.solver.InitializeStrategy()
+        self.solver.SetEchoLevel(self.echo_level)
 
-		print(" ")
-		print("=================================================")
-		print(" - Kratos FemDem Application Calculation Start - ")
-		print("=================================================")
+        # Initialize GiD  I/O (gid outputs, file_lists)
+        self.SetGraphicalOutput()
+        
+        self.GraphicalOutputExecuteInitialize()
 
-		self.model_processes.ExecuteBeforeSolutionLoop()
+        print(" ")
+        print("=================================================")
+        print(" - Kratos FemDem Application Calculation Start - ")
+        print("=================================================")
 
-		self.GraphicalOutputExecuteBeforeSolutionLoop()		
+        self.model_processes.ExecuteBeforeSolutionLoop()
 
-		# Set time settings
-		self.step	   = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-		self.time	   = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        self.GraphicalOutputExecuteBeforeSolutionLoop()        
 
-		self.end_time   = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
-		self.delta_time = self.ComputeDeltaTime()
+        # Set time settings
+        self.step       = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+        self.time       = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+
+        self.end_time   = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
+        self.delta_time = self.ComputeDeltaTime()
 
 
 #============================================================================================================================
 
-	def ComputeDeltaTime(self):
+    def ComputeDeltaTime(self):
 
-		if self.ProjectParameters["problem_data"].Has("time_step"):
-			return self.ProjectParameters["problem_data"]["time_step"].GetDouble()
+        if self.ProjectParameters["problem_data"].Has("time_step"):
+            return self.ProjectParameters["problem_data"]["time_step"].GetDouble()
 
-		elif self.ProjectParameters["problem_data"].Has("variable_time_steps"):
+        elif self.ProjectParameters["problem_data"].Has("variable_time_steps"):
 
-			current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-			for key in self.ProjectParameters["problem_data"]["variable_time_steps"].keys():
-				interval_settings = self.ProjectParameters["problem_data"]["variable_time_steps"][key]
-				interval = KratosMultiphysics.IntervalUtility(interval_settings)			
-				# Getting the time step of the interval
-				if interval.IsInInterval(current_time):
-					return interval_settings["time_step"].GetDouble()
-				# If we arrive here we raise an error because the intervals are not well defined
-				raise Exception("::[MechanicalSolver]:: Time stepping not well defined!")
-		else:
-			raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
+            current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            for key in self.ProjectParameters["problem_data"]["variable_time_steps"].keys():
+                interval_settings = self.ProjectParameters["problem_data"]["variable_time_steps"][key]
+                interval = KratosMultiphysics.IntervalUtility(interval_settings)            
+                # Getting the time step of the interval
+                if interval.IsInInterval(current_time):
+                    return interval_settings["time_step"].GetDouble()
+                # If we arrive here we raise an error because the intervals are not well defined
+                raise Exception("::[MechanicalSolver]:: Time stepping not well defined!")
+        else:
+            raise Exception("::[MechanicalSolver]:: Time stepping not defined!")

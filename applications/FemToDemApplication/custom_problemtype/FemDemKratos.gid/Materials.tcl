@@ -29,11 +29,11 @@ proc WriteMaterials { basename dir problemtypedir TableDict} {
 
         if {[GiD_AccessValue get gendata Plane_state] eq "Plane_Strain"} {
 
-        	puts $FileVar "    mat = LinearElasticPlaneStrain2DLaw()"
+        	puts $FileVar "    mat = LinearPlaneStrain()"
 
         } else {
 
-        	puts $FileVar "    mat = LinearElasticPlaneStress2DLaw()"
+        	puts $FileVar "    mat = LinearPlaneStress()"
         }
         puts $FileVar "    prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())"
         puts $FileVar ""

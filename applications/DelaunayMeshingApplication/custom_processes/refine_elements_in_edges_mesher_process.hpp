@@ -368,7 +368,7 @@ class RefineElementsInEdgesMesherProcess
       //generating the dofs
       for(auto& i_dof : ReferenceDofs)
       {
-        Node<3>::DofType& rDof = i_dof;
+        Node<3>::DofType& rDof = *i_dof;
         Node<3>::DofType::Pointer pNewDof = pNode->pAddDof( rDof );
 
         // in rigid edges set it fix has no sense:
