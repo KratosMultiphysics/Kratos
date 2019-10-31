@@ -72,7 +72,6 @@ Element::Pointer SmallDisplacementMixedStrainElement::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
-//TODO: Use GetDofPositopn()
 void SmallDisplacementMixedStrainElement::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo)
@@ -82,24 +81,29 @@ void SmallDisplacementMixedStrainElement::EquationIdVector(
     const auto &r_geometry = GetGeometry();
     const unsigned int n_nodes = r_geometry.PointsNumber();
     const unsigned int dim = r_geometry.WorkingSpaceDimension();
-    const unsigned int dof_size  = n_nodes*(dim+1);
+    const unsigned int dof_size = n_nodes*(dim+1);
 
     if (rResult.size() != dof_size){
         rResult.resize(dof_size);
     }
 
+    const unsigned int disp_pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    const unsigned int eps_vol_pos = r_geometry[0].GetDofPosition(VOLUMETRIC_STRAIN);
+
+    unsigned int aux_index = 0;
     if (dim == 2) {
-        for(unsigned int i = 0; i < n_nodes; ++i) {
-            rResult[i * (dim + 1)] = this->GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[i * (dim + 1) + 1] = this->GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-            rResult[i * (dim + 1) + 2] = this->GetGeometry()[i].GetDof(VOLUMETRIC_STRAIN).EquationId();
+        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_X, disp_pos).EquationId();
+            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y, disp_pos + 1).EquationId();
+            rResult[aux_index++] = r_geometry[i_node].GetDof(VOLUMETRIC_STRAIN, eps_vol_pos).EquationId();
         }
-    } else if (dim == 3) {
-        for(unsigned int i = 0; i < n_nodes; ++i){
-            rResult[i * (dim + 1)] = this->GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[i * (dim + 1) + 1] = this->GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-            rResult[i * (dim + 1) + 2] = this->GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
-            rResult[i * (dim + 1) + 3] = this->GetGeometry()[i].GetDof(VOLUMETRIC_STRAIN).EquationId();
+    } else {
+        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+            KRATOS_WATCH(aux_index)
+            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_X, disp_pos).EquationId();
+            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y, disp_pos + 1).EquationId();
+            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Z, disp_pos + 2).EquationId();
+            rResult[aux_index++] = r_geometry[i_node].GetDof(VOLUMETRIC_STRAIN, eps_vol_pos).EquationId();
         }
     }
 
@@ -260,8 +264,8 @@ void SmallDisplacementMixedStrainElement::CalculateLeftHandSide(
     // Calculate the RHS contributions
     rLeftHandSideMatrix.clear();
 
-    Matrix B_mat(strain_size, n_nodes*dim);
     Matrix dev_strain_op;
+    Matrix B_mat(strain_size, n_nodes*dim);
     CalculateDeviatoricStrainOperator(dev_strain_op);
 
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
@@ -270,31 +274,10 @@ void SmallDisplacementMixedStrainElement::CalculateLeftHandSide(
         const auto &rN = row(N_gauss_container, i_gauss);
         const double w_gauss = w_gauss_container[i_gauss];
 
-        // Add the deviatoric strain contribution
-        // TODO: MOVE TO A FUNCTION
+        // Calculate the equivalent strain
         Vector tot_strain = ZeroVector(strain_size);
         CalculateB(B_mat, DN_DX_container[i_gauss]);
-        for (unsigned int i = 0; i < strain_size; ++i) {
-            for (unsigned int j = 0; j < strain_size ; ++j) {
-                for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-                    const auto &r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-                    for (unsigned int d = 0; d < dim; ++d) {
-                        const unsigned int aux = i_node * dim + d;
-                        tot_strain[i] += dev_strain_op(i,j) * B_mat(j,aux) * r_disp[d];
-                    }
-                }
-            }
-        }
-
-        // Interpolate and add the nodal volumetric strain
-        double gauss_vol_strain = 0.0;
-        const double alpha = GetGeometry().WorkingSpaceDimension();
-        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-            gauss_vol_strain += rN[i_node] * r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
-        }
-        for (unsigned int d = 0; d < dim; ++d) {
-            tot_strain[d] += (1.0/alpha) * gauss_vol_strain;
-        }
+        CalculateEquivalentStrain(rN, B_mat, dev_strain_op, tot_strain);
 
         // Get the stress from the constitutive law
         // TODO: MOVE TO A FUNCTION
@@ -333,25 +316,6 @@ void SmallDisplacementMixedStrainElement::CalculateLeftHandSide(
                 }
             }
         }
-        // for (unsigned int i = 0; i < n_nodes; ++i) {
-        //     for (unsigned int j = 0; j < n_nodes; ++j) {
-        //         for (unsigned int d1 = 0; d1 < dim; ++d1) {
-        //             const unsigned int aux_i = i * block_size + d1;
-        //             for (unsigned int d2 = 0; d2 < dim; ++d2) {
-        //                 const unsigned int aux_j = j * block_size + d2;
-        //                 for (unsigned int l = 0; l < strain_size; ++l) {
-        //                     for (unsigned int k = 0; k < strain_size; ++k) {
-        //                         for (unsigned int m = 0; m < strain_size; ++m) {
-        //                             for (unsigned int n = 0; n < strain_size; ++n) {
-        //                                 rLeftHandSideMatrix(aux_i, aux_j) += w_gauss * B_mat(l,i*dim+d1) * dev_strain_op(k,l) * cons_law_values.GetConstitutiveMatrix()(k,m) * dev_strain_op(m,n) * B_mat(n,j*dim+d2);
-        //                             }
-        //                         }
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
 
         // Add momentum volume stress contribution
         double vol_strain = 0.0;
@@ -360,7 +324,7 @@ void SmallDisplacementMixedStrainElement::CalculateLeftHandSide(
             vol_strain += tot_strain[d];
             vol_stress += cons_law_values.GetStressVector()[d];
         }
-        vol_stress /= alpha;
+        vol_stress /= dim;
         const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : CalculateApproximatedBulkModulus(rCurrentProcessInfo, i_gauss, rN);
 
         for (unsigned int i = 0; i < n_nodes; ++i) {
@@ -395,7 +359,7 @@ void SmallDisplacementMixedStrainElement::CalculateLeftHandSide(
 
         // Calculate stabilization constants
         const double h = ComputeElementSize(DN_DX_container[i_gauss]);
-        const double shear_modulus = GetProperties()[YOUNG_MODULUS] / (2.0 * (1.0 + GetProperties()[POISSON_RATIO])); //TODO: Get it from C
+        const double shear_modulus = cons_law_values.GetConstitutiveMatrix()(dim,dim);
         const double tau_1 = 2.0 * std::pow(h, 2) / (2.0 * shear_modulus);
         const double tau_2 = 0.15;
 
@@ -487,31 +451,10 @@ void SmallDisplacementMixedStrainElement::CalculateRightHandSide(
         const auto &rN = row(N_gauss_container, i_gauss);
         const double w_gauss = w_gauss_container[i_gauss];
 
-        // Add the deviatoric strain contribution
-        // TODO: MOVE TO A FUNCTION
+        // Calculate the equivalent strain
         Vector tot_strain = ZeroVector(strain_size);
         CalculateB(B_mat, DN_DX_container[i_gauss]);
-        for (unsigned int i = 0; i < strain_size; ++i) {
-            for (unsigned int j = 0; j < strain_size ; ++j) {
-                for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-                    const auto &r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-                    for (unsigned int d = 0; d < dim; ++d) {
-                        const unsigned int aux = i_node * dim + d;
-                        tot_strain[i] += dev_strain_op(i,j) * B_mat(j,aux) * r_disp[d];
-                    }
-                }
-            }
-        }
-
-        // Interpolate and add the nodal volumetric strain
-        double gauss_vol_strain = 0.0;
-        const double alpha = GetGeometry().WorkingSpaceDimension();
-        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-            gauss_vol_strain += rN[i_node] * r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
-        }
-        for (unsigned int d = 0; d < dim; ++d) {
-            tot_strain[d] += (1.0/alpha) * gauss_vol_strain;
-        }
+        CalculateEquivalentStrain(rN, B_mat, dev_strain_op, tot_strain);
 
         // Get the stress from the constitutive law
         // TODO: MOVE TO A FUNCTION
@@ -579,11 +522,11 @@ void SmallDisplacementMixedStrainElement::CalculateRightHandSide(
             vol_strain += tot_strain[d];
             vol_stress += cons_law_values.GetStressVector()[d];
         }
-        vol_stress /= alpha;
+        vol_stress /= dim;
         const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : CalculateApproximatedBulkModulus(rCurrentProcessInfo, i_gauss, rN);
 
         const double h = ComputeElementSize(DN_DX_container[i_gauss]);
-        const double shear_modulus = GetProperties()[YOUNG_MODULUS] / (2.0 * (1.0 + GetProperties()[POISSON_RATIO])); // TODO: Get it from C
+        const double shear_modulus = cons_law_values.GetConstitutiveMatrix()(dim,dim);
         const double tau_1 = 2.0 * std::pow(h, 2) / (2.0 * shear_modulus);
         const double tau_2 = 0.15;
 
@@ -939,6 +882,47 @@ void SmallDisplacementMixedStrainElement::CalculateB(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SmallDisplacementMixedStrainElement::CalculateEquivalentStrain(
+    const Vector &rN,
+    const Matrix &rB,
+    const Matrix &rDevStrainOp,
+    Vector &rEquivalentStrain) const
+{
+    const auto &r_geometry = GetGeometry();
+    const SizeType n_nodes = r_geometry.PointsNumber();
+    const SizeType dim = r_geometry.WorkingSpaceDimension();
+    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+
+    // Initialize the equivalent total strain vector
+    rEquivalentStrain = ZeroVector(strain_size);
+
+    // Calculate the equivalent total strain
+    // Add the deviatoric contribution
+    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+        const auto &r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+        for (unsigned int d = 0; d < dim; ++d) {
+            const unsigned int aux = i_node * dim + d;
+            for (unsigned int i = 0; i < strain_size; ++i) {
+                for (unsigned int j = 0; j < strain_size ; ++j) {
+                    rEquivalentStrain[i] += rDevStrainOp(i,j) * rB(j,aux) * r_disp[d];
+                }
+            }
+        }
+    }
+
+    // Interpolate and add the nodal volumetric strain
+    double gauss_vol_strain = 0.0;
+    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+        gauss_vol_strain += rN[i_node] * r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+    }
+    for (unsigned int d = 0; d < dim; ++d) {
+        rEquivalentStrain[d] += (1.0/dim) * gauss_vol_strain;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SmallDisplacementMixedStrainElement::ComputeEquivalentF(
     Matrix &rF,
     const Vector &rStrainTensor) const
@@ -971,31 +955,16 @@ void SmallDisplacementMixedStrainElement::CalculateDeviatoricStrainOperator(Matr
     KRATOS_TRY;
 
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-    rDevStrainOp = ZeroMatrix(strain_size, strain_size); //TODO: Use IdentityMatrix()
-
-    const double alpha = GetGeometry().WorkingSpaceDimension();
-    const double aux_a = 1.0 - 1.0/alpha;
-    const double aux_b = -1.0/alpha;
+    rDevStrainOp = IdentityMatrix(strain_size, strain_size);
+    const double aux = 1.0/GetGeometry().WorkingSpaceDimension();
 
     if (strain_size == 3) {
-        rDevStrainOp(0,0) = aux_a;
-        rDevStrainOp(0,1) = aux_b;
-        rDevStrainOp(1,0) = aux_b;
-        rDevStrainOp(1,1) = aux_a;
-        rDevStrainOp(2,2) = 1.0;
+        rDevStrainOp(0,0) -= aux; rDevStrainOp(0,1) -= aux;
+        rDevStrainOp(1,0) -= aux; rDevStrainOp(1,1) -= aux;
     } else if (strain_size == 6) {
-        rDevStrainOp(0,0) = aux_a;
-        rDevStrainOp(0,1) = aux_b;
-        rDevStrainOp(0,2) = aux_b;
-        rDevStrainOp(1,0) = aux_b;
-        rDevStrainOp(1,1) = aux_a;
-        rDevStrainOp(1,2) = aux_b;
-        rDevStrainOp(2,0) = aux_b;
-        rDevStrainOp(2,1) = aux_b;
-        rDevStrainOp(2,2) = aux_a;
-        rDevStrainOp(3,3) = 1.0;
-        rDevStrainOp(4,4) = 1.0;
-        rDevStrainOp(5,5) = 1.0;
+        rDevStrainOp(0,0) -= aux; rDevStrainOp(0,1) -= aux; rDevStrainOp(0,2) -= aux;
+        rDevStrainOp(1,0) -= aux; rDevStrainOp(1,1) -= aux; rDevStrainOp(1,2) -= aux;
+        rDevStrainOp(2,0) -= aux; rDevStrainOp(2,1) -= aux; rDevStrainOp(2,2) -= aux;
     }
 
     KRATOS_CATCH( "" );

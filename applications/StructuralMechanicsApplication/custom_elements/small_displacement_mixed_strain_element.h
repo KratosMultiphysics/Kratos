@@ -614,6 +614,23 @@ private:
         const Matrix& rDN_DX) const;
 
     /**
+     * @brief Calculate the equivalent strain
+     * This function computes the equivalent strain vector.
+     * The equivalent strain is defined as the deviatoric part of the displacement
+     * symmetric gradient plus a volumetric strain coming from the interpolation
+     * of the nodal volumetric strain.
+     * @param rN The shape functions
+     * @param rB The symmetric gradient strain operator in Voigt notation
+     * @param rDevStrainOp The deviatoric strain operator
+     * @param rEquivalentStrain The computed equivalent strain
+     */
+    void CalculateEquivalentStrain(
+        const Vector &rN,
+        const Matrix &rB,
+        const Matrix &rDevStrainOp,
+        Vector &rEquivalentStrain) const;
+
+    /**
      * @brief Calculation of the deformation gradient F
      * @param rF The deformation gradient
      * @param rStrainTensor The strain tensor in Voigt notation
