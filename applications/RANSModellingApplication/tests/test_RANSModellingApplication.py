@@ -55,7 +55,7 @@ def AssembleTestSuites():
     nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteadyPeriodic'))
 
     # Adjoint tests
-    nightSuite.addTest(AdjointKEpsilonSensitivity2D('testOneElement'))
+    nightSuite.addTest(AdjointKEpsilonSensitivity2D('testOneElementSteady'))
 
 
     # For very long tests that should not be in nighly and you can use to validate
