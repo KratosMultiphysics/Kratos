@@ -20,7 +20,7 @@ if(${TRILINOS_EXCLUDE_AMESOS_SOLVER} MATCHES ON)
     message("**** WARNING: Manually disabled Amesos-Solver ****")
 endif(${TRILINOS_EXCLUDE_AMESOS_SOLVER} MATCHES ON)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 # Find trilinos solver package -- this is our own find package!!
 if (NOT TRILINOS_FOUND)

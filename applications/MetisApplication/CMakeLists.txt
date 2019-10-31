@@ -4,7 +4,7 @@ message("**** configuring KratosMetisApplication ****")
 
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 # Use Metis 5 by default
 if(NOT DEFINED USE_METIS_5)
