@@ -1540,8 +1540,27 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
             }
         }*/
 
+        FinalizeStressTensor(r_process_info, rRepresentative_Volume);
+
         SymmetrizeStressTensor();
     }
+    KRATOS_CATCH("")
+}
+
+void SphericParticle::FinalizeStressTensor(ProcessInfo& r_process_info, double& rRepresentative_Volume){
+
+    KRATOS_TRY
+    if (!r_process_info[IMPOSED_Z_STRAIN_OPTION]) return;
+
+    double z_strain_value = r_process_info[IMPOSED_Z_STRAIN_VALUE];
+    //KRATOS_WATCH(z_strain_value)
+    double myYoung = GetYoung();
+    double myPoisson = GetPoisson();
+
+    // (*mStressTensor)(2,2) += E*z_displacement - poisson*(sigma_xx + sigma_yy);
+    (*mStressTensor)(2, 2) = myYoung*z_strain_value - myPoisson*((*mStressTensor)(0, 0) + (*mStressTensor)(1, 1));
+
+
     KRATOS_CATCH("")
 }
 
