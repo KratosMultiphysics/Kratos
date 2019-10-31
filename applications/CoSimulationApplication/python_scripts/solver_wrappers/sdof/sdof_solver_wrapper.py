@@ -38,3 +38,5 @@ class SdofSolverWrapper(CoSimulationSolverWrapper):
         self._sdof_solver.SolveSolutionStep()
         self.mp[KMC.SCALAR_DISPLACEMENT] = self._sdof_solver.GetSolutionStepValue("DISPLACEMENT", 0)
         self.mp[KMC.SCALAR_REACTION] = self._sdof_solver.GetSolutionStepValue("REACTION", 0)
+        self.mp[KMC.SCALAR_VOLUME_ACCELERATION] = self._sdof_solver.GetSolutionStepValue("VOLUME_ACCELERATION", 0)
+
