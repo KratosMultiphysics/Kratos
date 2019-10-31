@@ -1,10 +1,8 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSModellingApplication as KratosRANS
-from KratosMultiphysics.RANSModellingApplication import RansVariableUtilities
 from KratosMultiphysics.process_factory import KratosProcessFactory
 
 import KratosMultiphysics.KratosUnittest as UnitTest
-import KratosMultiphysics.kratos_utilities as kratos_utilities
 import random, math
 
 
@@ -387,7 +385,6 @@ class CustomProcessTest(UnitTest.TestCase):
             }
         ]''')
 
-        node_ids = [1, 2, 3, 4, 5, 6]
         check_values = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
 
         factory = KratosProcessFactory(self.model)

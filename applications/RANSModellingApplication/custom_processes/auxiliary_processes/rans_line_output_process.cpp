@@ -84,6 +84,8 @@ RansLineOutputProcess::RansLineOutputProcess(Model& rModel, Parameters rParamete
         mrParameters["output_step_control_variable_name"].GetString();
     mOutputStepInterval = mrParameters["output_step_interval"].GetInt();
 
+    mPreviousStepValue = 0.0;
+
     KRATOS_CATCH("");
 }
 
