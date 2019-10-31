@@ -20,6 +20,28 @@ set (KratosMultiphysics_MAJOR_VERSION 7)
 set (KratosMultiphysics_MINOR_VERSION 0)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
+# If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
+if(NOT DEFINED KRATOS_SOURCE_DIR)
+  message("-- No KRATOS_SOURCE_DIR is defined, using: ${CMAKE_SOURCE_DIR}")
+  set (KRATOS_SOURCE_DIR "${CMAKE_SOURCE_DIR}")
+endif(NOT DEFINED KRATOS_SOURCE_DIR)
+
+if(NOT DEFINED KRATOS_BINARY_DIR)
+message("-- No KRATOS_BINARY_DIR is defined, using: ${CMAKE_BINARY_DIR}")
+set(KRATOS_BINARY_DIR ${CMAKE_BINARY_DIR})
+endif(NOT DEFINED KRATOS_BINARY_DIR)
+
+if(NOT DEFINED INSTALL_RUNKRATOS)
+message("-- No INSTALL_RUNKRATOS is defined, setting to ON")
+set(INSTALL_RUNKRATOS ON)
+endif(NOT DEFINED INSTALL_RUNKRATOS)
+
+# Set kratos specific module path
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${KRATOS_SOURCE_DIR}/cmake_modules")
+
+# Include cmake modules
+include(DownloadLib)
+
 # Define custom compiler build types
 SET( CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug FullDebug Custom)
 SET( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
@@ -44,18 +66,6 @@ if(USE_COTIRE MATCHES ON)
     set(CMAKE_SKIP_RPATH ON)
 endif(USE_COTIRE MATCHES ON)
 
-# If build mode is not defined, assume Release
-if(NOT CMAKE_BUILD_TYPE)
-  message("Undefined CMAKE_BUILD_TYPE, building in 'Release' mode.")
-  set(CMAKE_BUILD_TYPE Release)
-else(NOT CMAKE_BUILD_TYPE)
-  list(FIND CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE} FOUND_MODE)
-  if(FOUND_MODE EQUAL -1)
-    message("Unknown CMAKE_BUILD_TYPE '${CMAKE_BUILD_TYPE}', using 'Release'.")
-    set(CMAKE_BUILD_TYPE Release)
-  endif(FOUND_MODE EQUAL -1)
-endif(NOT CMAKE_BUILD_TYPE)
-
 # Get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
 
@@ -72,6 +82,21 @@ else(GIT_FOUND)
   set (KratosMultiphysics_SHA1_NUMBER 0)
 endif(GIT_FOUND)
 
+# If build mode is not defined, assume Release
+if(DEFINED ENV{KRATOS_BUILD_TYPE})
+    list(FIND CMAKE_CONFIGURATION_TYPES $ENV{KRATOS_BUILD_TYPE} FOUND_MODE)
+    if(FOUND_MODE EQUAL -1)
+        message("Unknown CMAKE_BUILD_TYPE '${CMAKE_BUILD_TYPE}', using 'Release'.")
+        set(CMAKE_BUILD_TYPE Release)
+    else(FOUND_MODE EQUAL -1)
+        set(CMAKE_BUILD_TYPE $ENV{KRATOS_BUILD_TYPE})
+    endif(FOUND_MODE EQUAL -1)
+else(DEFINED ENV{KRATOS_BUILD_TYPE})
+    message("Undefined CMAKE_BUILD_TYPE, building in 'Release' mode.")
+    set(CMAKE_BUILD_TYPE Release)
+endif(DEFINED ENV{KRATOS_BUILD_TYPE})
+
+# Configure files depending on the build type
 set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 if( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
   set (KratosMultiphysics_BUILD_SUFFIX "")
@@ -181,11 +206,8 @@ if(NOT DEFINED INSTALL_PYTHON_USING_LINKS)
   SET(INSTALL_PYTHON_USING_LINKS OFF)
 endif(NOT DEFINED INSTALL_PYTHON_USING_LINKS)
 
-# Set kratos specific module path
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
-
 #include the file with custom installation properties
-include(${CMAKE_MODULE_PATH}/install_function.cmake)
+include(install_function)
 
 if(USE_COTIRE MATCHES ON)
     include(cotire)
@@ -238,6 +260,12 @@ endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 # Finding and including BOOST library (version should not matter anymore)
 find_package(Boost)
 
+if(NOT Boost_FOUND)
+    # Trying to find in in external libraries
+	set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost")
+    find_package(Boost)
+endif(NOT Boost_FOUND)
+
 set(Boost_USE_STATIC_LIBS   OFF)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_REALPATH ON)
@@ -255,14 +283,14 @@ message(STATUS "Boost Linkdir: ${Boost_LIBRARY_DIRS}")
 ##*****************************
 
 # Follow the symbolic links for the python lib only if needed
-if(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
-  foreach( l ${PYTHON_LIBRARIES})
-    GET_FILENAME_COMPONENT(aaa ${l} REALPATH)
-    set(PYTHON_LIBRARIES_REALPATH ${PYTHON_LIBRARIES_REALPATH} ${aaa})
-  endforeach(l)
+if(${INSTALL_RUNKRATOS} MATCHES ON )
+    foreach( library ${PYTHON_LIBRARIES})
+        get_filename_component(python_lib ${library} REALPATH)
+        set(PYTHON_LIBRARIES_REALPATH ${PYTHON_LIBRARIES_REALPATH} ${python_lib})
+    endforeach(library)
 
-  set(PYTHON_LIBRARIES ${PYTHON_LIBRARIES_REALPATH} CACHE STRING "exact file of the PYTHON library" FORCE)
-endif(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
+    set(PYTHON_LIBRARIES ${PYTHON_LIBRARIES_REALPATH} CACHE STRING "exact file of the PYTHON library" FORCE)
+endif(${INSTALL_RUNKRATOS} MATCHES ON )
 
 ##*****************************
 # Finding blas and lapack if needed
@@ -354,11 +382,11 @@ if( ZLIB_FOUND )
   include_directories( ${ZLIB_INCLUDE_DIRS} )
 else( ZLIB_FOUND )
   message(STATUS "Preparing local ZLIB compilation.")
-  include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/zlib )
+  include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
   # Compile our own
   add_subdirectory(external_libraries/zlib)
   # we have to add this for zconf
-  include_directories( ${CMAKE_BINARY_DIR}/external_libraries/zlib )
+  include_directories( ${KRATOS_BINARY_DIR}/external_libraries/zlib )
   set( ZLIB_LIBRARIES zlib )
 endif( ZLIB_FOUND )
 
@@ -376,11 +404,9 @@ endif()
 message( " ")
 message("CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}")
 message( " ")
-######################################################################################
-######################################################################################
-######################################################################################
-#include internal dependencies
-include_directories( ${CMAKE_SOURCE_DIR}/external_libraries )
+
+# Include dir for external libraries
+include_directories( ${KRATOS_SOURCE_DIR}/external_libraries )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
@@ -393,29 +419,34 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 
-# Applications
-# Internal applicatons work as usual.
-add_subdirectory(applications)
+# Add external applications by directory (Thrid party apps, located elsewhere)
+message("-- This external applications will be compiled:")
+if(DEFINED ENV{KRATOS_APPLICATIONS})
+    set(KRATOS_APPLICATIONS ${KRATOS_APPLICATIONS};$ENV{KRATOS_APPLICATIONS})
+	message("ENV{KRATOS_APPLICATIONS} : $ENV{KRATOS_APPLICATIONS}")
+    foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
+        get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
+        message("\t${APPLICATION_NAME}")
+    endforeach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
+endif(DEFINED ENV{KRATOS_APPLICATIONS})
 
-# External applications
-# if -DKRATOS_EXTERNAL_APPLICATION_DIR is defined iterate over all the directories and look for applications
-# in them
-if(DEFINED KRATOS_EXTERNAL_APPLICATION_DIR)
-    foreach(APPLICATION_EXTERNAL_DIR ${KRATOS_EXTERNAL_APPLICATION_DIR})
-        get_filename_component(APPLICATION_EXTERNAL_FOLDER ${APPLICATION_EXTERNAL_DIR} NAME)
-        message("Trying to add external application directory '${APPLICATION_EXTERNAL_FOLDER}' located in '${APPLICATION_EXTERNAL_DIR}'")
-        add_subdirectory(${APPLICATION_EXTERNAL_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${APPLICATION_EXTERNAL_FOLDER})
-    endforeach(APPLICATION_EXTERNAL_DIR ${KRATOS_EXTERNAL_APPLICATION_DIR})
-endif(DEFINED KRATOS_EXTERNAL_APPLICATION_DIR)
+# Configure kratos applications
+message("-- Configuring external applications (ENV):")
+if(DEFINED ENV{KRATOS_APPLICATIONS})
+    foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
+        get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
+        message("Adding application '${APPLICATION_PATH}'")
+        add_subdirectory(${APPLICATION_PATH} ${CMAKE_CURRENT_BINARY_DIR}/applications/${APPLICATION_NAME})
+    endforeach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
+endif(DEFINED ENV{KRATOS_APPLICATIONS})
 
 #compiling the triangle library
-add_subdirectory(${CMAKE_SOURCE_DIR}/external_libraries/triangle)
+add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
 
-
-# Embedded python - compiles "krun and packages the python lib needed"
-if(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
-  add_subdirectory(embedded_python)
-endif(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
+# runkratos - compiles "runkratos and packages the python lib needed"
+if(${INSTALL_RUNKRATOS} MATCHES ON )
+    add_subdirectory(kratos/run_kratos)
+endif(${INSTALL_RUNKRATOS} MATCHES ON )
 
 # Clean the Module and libs install directories
 install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
