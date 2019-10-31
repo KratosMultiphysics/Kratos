@@ -5,7 +5,6 @@ import KratosMultiphysics as KM
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 # Other imports
 import numpy as np
@@ -93,7 +92,9 @@ class CouplingInterfaceData(object):
                 raise Exception('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(var_to_check.Name(), self.model_part_name))
 
     def __str__(self):
-        self_str =  'CouplingInterfaceData "{}":\n'.format(self.GetFullNameFancy())
+        self_str =  'CouplingInterfaceData:\n'
+        self_str += '\tName: "{}"\n'.format(self.name)
+        self_str += '\tSolver: "{}"\n'.format(self.solver_name)
         self_str += '\tModelPart: "{}"\n'.format(self.model_part_name)
         self_str += '\tIsDistributed: {}\n'.format(self.IsDistributed())
         self_str += '\tVariable: "{}"'.format(self.variable.Name())
@@ -108,11 +109,6 @@ class CouplingInterfaceData(object):
 
     def PrintInfo(self):
         print(self)
-
-    def GetFullNameFancy(self):
-        # returns the full name of the interface-data
-        # used for unifying the prints
-        return colors.blue(self.solver_name) + "." + colors.magenta(self.name)
 
     def GetModelPart(self):
         return self.model_part
