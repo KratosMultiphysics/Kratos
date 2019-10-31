@@ -2,12 +2,50 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** Configuring KratosExternalSolversApplication ****")
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/SuperLU_4.3 )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
 
 ################### PYBIND11
 include(pybind11Tools)
+
+########### Add Libblas and lapack to compilation
+# Linux needs Fortran
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	  enable_language( Fortran )
+  include(FortranCInterface)
+	  FortranCInterface_HEADER(FC.h MACRO_NAMESPACE "FC_")
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+
+# Linking to the absolute value of the blas
+find_package(BLAS REQUIRED)
+include_directories(${BLAS_INCLUDE_DIRS})
+
+foreach( l ${BLAS_LIBRARIES})
+  GET_FILENAME_COMPONENT(aaa ${l} REALPATH)
+	set(BLAS_LIBRARIES_REALPATH ${BLAS_LIBRARIES_REALPATH} ${aaa})
+endforeach(l)
+
+set(BLAS_LIBRARIES ${BLAS_LIBRARIES_REALPATH} CACHE STRING "exact file of the blas library" FORCE)
+link_directories(${BLAS_LIBRARIES})
+
+set( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${BLAS_LINKER_FLAGS}" CACHE STRING "Linker flags for shared libs" FORCE)
+message("linker flags with blas =" ${BLAS_LINKER_FLAGS})
+message("BLA_VENDOR = " ${BLA_VENDOR})
+
+# Linking to the absolute value of the lapack
+find_package(LAPACK REQUIRED)
+message("LAPACK = " ${LAPACK_LIBRARIES})
+foreach( l ${LAPACK_LIBRARIES})
+  GET_FILENAME_COMPONENT(aux ${l} REALPATH)
+  set(LAPACK_LIBRARIES_REALPATH ${LAPACK_LIBRARIES_REALPATH} ${aux})
+endforeach(l)
+
+set(LAPACK_LIBRARIES ${LAPACK_LIBRARIES_REALPATH} CACHE STRING "exact file of the lapack library" FORCE)
+message("LAPACK modified = " ${LAPACK_LIBRARIES})
+
+include_directories(${LAPACK_INCLUDE_DIRS})
+link_directories(${LAPACK_LIBRARIES})
 
 ## Add subdirectories for compilation of dependent libraries
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/SuperLU_4.3)
