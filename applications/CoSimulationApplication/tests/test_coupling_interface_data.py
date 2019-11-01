@@ -120,7 +120,7 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         }""")
 
         with self.assertRaisesRegex(Exception, 'does not exist!'):
-            coupling_data = CouplingInterfaceData(settings, self.model)
+            CouplingInterfaceData(settings, self.model)
 
     def test_wrong_input_dim_scalar(self):
         settings = KM.Parameters("""{
