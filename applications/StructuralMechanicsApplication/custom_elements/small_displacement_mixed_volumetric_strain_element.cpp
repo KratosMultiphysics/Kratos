@@ -272,46 +272,18 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
     r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    // Compute the geometry data
-    // TODO: To be eventually removed
-    Vector w_gauss_container;
-    Matrix N_gauss_container;
-    GeometryType::ShapeFunctionsGradientsType DN_DX_container;
-    CalculateGeometryData(r_geometry, w_gauss_container, N_gauss_container, DN_DX_container);
-
-    // Calculate the RHS contributions
+    // Calculate the LHS contributions
     rLeftHandSideMatrix.clear();
 
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
+    const auto &r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-        // Get Gauss pt. values
-        const auto &rN = row(N_gauss_container, i_gauss);
-        const double w_gauss = w_gauss_container[i_gauss];
-
         // Calculate kinematics
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+        const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
-
-        // Add momentum deviatoric stress contribution
-        for (unsigned int i = 0; i < n_nodes; ++i) {
-            for (unsigned int j = 0; j < n_nodes; ++j) {
-                for (unsigned int d1 = 0; d1 < dim; ++d1) {
-                    const unsigned int aux_i = i * block_size + d1;
-                    for (unsigned int d2 = 0; d2 < dim; ++d2) {
-                        const unsigned int aux_j = j * block_size + d2;
-                        for (unsigned int l = 0; l < strain_size; ++l) {
-                            for (unsigned int m = 0; m < strain_size; ++m) {
-                                for (unsigned int n = 0; n < strain_size; ++n) {
-                                    rLeftHandSideMatrix(aux_i, aux_j) += w_gauss * kinematic_variables.B(l,i*dim+d1) * cons_law_values.GetConstitutiveMatrix()(l,m) * kinematic_variables.DevStrainOp(m,n) * kinematic_variables.B(n,j*dim+d2);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
 
         // Add momentum volume stress contribution
         double vol_strain = 0.0;
@@ -321,89 +293,53 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
             vol_stress += cons_law_values.GetStressVector()[d];
         }
         vol_stress /= dim;
-        const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : CalculateApproximatedBulkModulus(rCurrentProcessInfo, i_gauss, rN);
-
-        for (unsigned int i = 0; i < n_nodes; ++i) {
-            for (unsigned int j = 0; j < n_nodes; ++j) {
-                const unsigned int aux_j = j * block_size + dim;
-                for (unsigned int d = 0; d < dim; ++d) {
-                    const unsigned int aux_i = i * block_size + d;
-                    rLeftHandSideMatrix(aux_i, aux_j) += w_gauss * bulk_modulus * DN_DX_container[i_gauss](i,d) * rN[j];
-                }
-            }
-        }
-
-        // Add mass conservation divergence contribution
-        for (unsigned int i = 0; i < n_nodes; ++i) {
-            const unsigned int aux_i = i * block_size + dim;
-            for (unsigned int j = 0; j < n_nodes; ++j) {
-                for (unsigned int d = 0; d < dim; ++d) {
-                    const unsigned int aux_j = j * block_size + d;
-                    rLeftHandSideMatrix(aux_i, aux_j) += w_gauss * rN[i] * DN_DX_container[i_gauss](j,d);
-                }
-            }
-        }
-
-        // Add mass conservation volumetric strain contribution
-        for (unsigned int i = 0; i < n_nodes; ++i) {
-            const unsigned int aux_i = i * block_size + dim;
-            for (unsigned int j = 0; j < n_nodes; ++j) {
-                const unsigned int aux_j = j * block_size + dim;
-                rLeftHandSideMatrix(aux_i, aux_j) -= w_gauss * rN[i] * rN[j];
-            }
-        }
+        const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : CalculateApproximatedBulkModulus(rCurrentProcessInfo, i_gauss, kinematic_variables.N);
 
         // Calculate stabilization constants
-        const double h = ComputeElementSize(DN_DX_container[i_gauss]);
+        const double h = ComputeElementSize(kinematic_variables.DN_DX);
         const double shear_modulus = cons_law_values.GetConstitutiveMatrix()(dim,dim);
         const double tau_1 = 2.0 * std::pow(h, 2) / (2.0 * shear_modulus);
         const double tau_2 = 0.15;
 
-        // Add the volumetric strain momentum stabilization term - term 1
+        // Add the LHS contributions
         const double aux_1 = w_gauss * bulk_modulus * tau_2;
-        for (unsigned int i = 0; i < n_nodes; ++i) {
-            for (unsigned int d1 = 0; d1 < dim; ++d1) {
-                for (unsigned int j = 0; j < n_nodes; ++j) {
-                    for (unsigned int d2 = 0; d2 < dim; ++d2) {
-                        rLeftHandSideMatrix(i * block_size + d1, j * block_size + d2) -= aux_1 * DN_DX_container[i_gauss](i, d1) * DN_DX_container[i_gauss](j, d2);
-                    }
-                }
-            }
-        }
-
-        // Add the volumetric strain momentum stabilization term - term 2
-        for (unsigned int i = 0; i < n_nodes; ++i) {
-            for (unsigned int d = 0; d < dim; ++d) {
-                for (unsigned int j = 0; j < n_nodes; ++j) {
-                    rLeftHandSideMatrix(i * block_size + d, j * block_size + dim) += aux_1 * DN_DX_container[i_gauss](i,d) * rN(j);
-                }
-            }
-        }
-
-        // Add the volumetric strain mass stabilization term - term 2
         const double aux_2 = w_gauss * tau_1 * bulk_modulus;
-        for (unsigned int i = 0; i < n_nodes; ++i) {
-            for (unsigned int j = 0; j < n_nodes; ++j) {
-                for (unsigned int d = 0; d < dim; ++d) {
-                    rLeftHandSideMatrix(i * block_size + dim, j * block_size + dim) -= aux_2 * DN_DX_container[i_gauss](i, d) * DN_DX_container[i_gauss](j, d);
-                }
-            }
-        }
-
-        // Add the divergence mass stabilization term
         const double aux_3 = w_gauss * tau_2;
         for (unsigned int i = 0; i < n_nodes; ++i) {
+            const unsigned int i_mass_row = i * block_size + dim;
             for (unsigned int j = 0; j < n_nodes; ++j) {
+                const unsigned int j_mass_col = j * block_size + dim;
+                // Add mass conservation volumetric strain contribution
+                rLeftHandSideMatrix(i_mass_row, j_mass_col) -= w_gauss * kinematic_variables.N[i] * kinematic_variables.N[j];
+                // Add the volumetric strain stabilization term
+                rLeftHandSideMatrix(i_mass_row, j_mass_col) -= aux_3 * kinematic_variables.N(i) * kinematic_variables.N(j);
                 for (unsigned int d = 0; d < dim; ++d) {
-                    rLeftHandSideMatrix(i * block_size + dim, j * block_size + d) += aux_3 * rN(i) * DN_DX_container[i_gauss](j,d);
+                    const unsigned int i_mom_row = i * block_size + d;
+                    const unsigned int j_mom_col = j * block_size + d;
+                    // Add momentum volume stress contribution
+                    rLeftHandSideMatrix(i_mom_row, j_mass_col) += w_gauss * bulk_modulus * kinematic_variables.DN_DX(i, d) * kinematic_variables.N[j];
+                    // Add mass conservation divergence contribution
+                    rLeftHandSideMatrix(i_mass_row, j_mom_col) += w_gauss * kinematic_variables.N[i] * kinematic_variables.DN_DX(j,d);
+                    for (unsigned int d2 = 0; d2 < dim; ++d2) {
+                        const unsigned int j_mom_col_d2 = j * block_size + d2;
+                        // Add the volumetric strain momentum stabilization term - term 1
+                        rLeftHandSideMatrix(i_mom_row, j_mom_col_d2) -= aux_1 * kinematic_variables.DN_DX(i, d) * kinematic_variables.DN_DX(j, d2);
+                        // Add momentum deviatoric stress contribution
+                        for (unsigned int l = 0; l < strain_size; ++l) {
+                            for (unsigned int m = 0; m < strain_size; ++m) {
+                                for (unsigned int n = 0; n < strain_size; ++n) {
+                                    rLeftHandSideMatrix(i_mom_row, j_mom_col_d2) += w_gauss * kinematic_variables.B(l, i * dim + d) * cons_law_values.GetConstitutiveMatrix()(l, m) * kinematic_variables.DevStrainOp(m, n) * kinematic_variables.B(n, j * dim + d2);
+                                }
+                            }
+                        }
+                    }
+                    // Add the volumetric strain momentum stabilization term - term 2
+                    rLeftHandSideMatrix(i_mom_row, j_mass_col) += aux_1 * kinematic_variables.DN_DX(i,d) * kinematic_variables.N(j);
+                    // Add the volumetric strain mass stabilization term - term 2
+                    rLeftHandSideMatrix(i_mass_row, j_mass_col) -= aux_2 * kinematic_variables.DN_DX(i, d) * kinematic_variables.DN_DX(j, d);
+                    // Add the divergence mass stabilization term
+                    rLeftHandSideMatrix(i_mass_row, j_mom_col) += aux_3 * kinematic_variables.N(i) * kinematic_variables.DN_DX(j,d);
                 }
-            }
-        }
-
-        // Add the volumetric strain stabilization term
-        for (unsigned int i = 0; i < n_nodes; ++i) {
-            for (unsigned int j = 0; j < n_nodes; ++j) {
-                rLeftHandSideMatrix(i * block_size + dim, j * block_size + dim) -= aux_3 * rN(i) * rN(j);
             }
         }
     }
