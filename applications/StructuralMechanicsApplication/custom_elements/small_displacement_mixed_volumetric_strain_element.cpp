@@ -446,67 +446,18 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
     r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    // Compute the geometry data
-    // TODO: To be eventually removed
-    Vector w_gauss_container;
-    Matrix N_gauss_container;
-    GeometryType::ShapeFunctionsGradientsType DN_DX_container;
-    CalculateGeometryData(r_geometry, w_gauss_container, N_gauss_container, DN_DX_container);
-
     // Calculate the RHS contributions
     rRightHandSideVector.clear();
 
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
+    const auto &r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-        // Get Gauss pt. values
-        const auto &rN = row(N_gauss_container, i_gauss);
-        const double w_gauss = w_gauss_container[i_gauss];
-
         // Calculate kinematics
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+        const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
 
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
-
-        // Add momentum body force contribution
-        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
-        for (unsigned int i = 0; i < n_nodes; ++i) {
-            for (unsigned int j = 0; j < n_nodes; ++j) {
-                const double aux = rN[i] * rN[j];
-                for (unsigned int d = 0; d < dim; ++d) {
-                    rRightHandSideVector[i * block_size + d] += w_gauss * aux * body_force[d];
-                }
-            }
-        }
-
-        // Add momentum stress contribution
-        // Note that this includes both the deviatoric and volumetric stress contributions
-        for (unsigned int i = 0; i < n_nodes; ++i) {
-            for (unsigned int d = 0; d < dim; ++d) {
-                for (unsigned int j = 0; j < strain_size; ++j) {
-                    rRightHandSideVector(i * block_size + d) -= w_gauss * kinematic_variables.B(j, i * dim + d) * cons_law_values.GetStressVector()[j];
-                }
-            }
-        }
-
-        // Add mass conservation divergence contribution
-        // TODO: These can be included in the body force contribution loop
-        for (unsigned int i = 0; i < n_nodes; ++i) {
-            for (unsigned int j = 0; j < n_nodes; ++j) {
-                const auto &r_disp = r_geometry[j].FastGetSolutionStepValue(DISPLACEMENT);
-                for (unsigned int d = 0; d < dim; ++d) {
-                    rRightHandSideVector(i * block_size + dim) -= w_gauss * rN[i] * DN_DX_container[i_gauss](j,d) * r_disp[d];
-                }
-            }
-        }
-
-        // Add mass conservation volumetric strain contribution
-        for (unsigned int i = 0; i < n_nodes; ++i) {
-            for (unsigned int j = 0; j < n_nodes; ++j) {
-                const double &r_vol_strain = r_geometry[j].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
-                rRightHandSideVector(i * block_size + dim) += w_gauss * rN[i] * rN[j] * r_vol_strain;
-            }
-        }
 
         // Calculate stabilization constants
         double vol_strain = 0.0;
@@ -516,70 +467,54 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
             vol_stress += cons_law_values.GetStressVector()[d];
         }
         vol_stress /= dim;
-        const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : CalculateApproximatedBulkModulus(rCurrentProcessInfo, i_gauss, rN);
+        const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : CalculateApproximatedBulkModulus(rCurrentProcessInfo, i_gauss, kinematic_variables.N);
 
-        const double h = ComputeElementSize(DN_DX_container[i_gauss]);
+        const double h = ComputeElementSize(kinematic_variables.DN_DX);
         const double shear_modulus = cons_law_values.GetConstitutiveMatrix()(dim,dim);
         const double tau_1 = 2.0 * std::pow(h, 2) / (2.0 * shear_modulus);
         const double tau_2 = 0.15;
 
-        // Add the volumetric strain momentum stabilization term - term 1
+        // Add the RHS contributions
         const double aux_1 = w_gauss * bulk_modulus * tau_2;
+        const double aux_2 = w_gauss * tau_1 * bulk_modulus;
+        const double aux_3 = w_gauss * tau_2;
+        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
         for (unsigned int i = 0; i < n_nodes; ++i) {
-            for (unsigned int d1 = 0; d1 < dim; ++d1) {
-                for (unsigned int j = 0; j < n_nodes; ++j) {
-                    const auto &r_disp = r_geometry[j].FastGetSolutionStepValue(DISPLACEMENT);
+            for (unsigned int j = 0; j < n_nodes; ++j) {
+                double &r_rhs_mass_row = rRightHandSideVector[i * block_size + dim];
+                // Add mass conservation volumetric strain contribution
+                r_rhs_mass_row += w_gauss * kinematic_variables.N[i] * kinematic_variables.N[j] * kinematic_variables.VolumetricNodalStrains[j];
+                // Add the volumetric strain mass stabilization term - term 2
+                r_rhs_mass_row += aux_3 * kinematic_variables.N(i) * kinematic_variables.N(j) * kinematic_variables.VolumetricNodalStrains[j];
+                const double aux_mass = kinematic_variables.N[i] * kinematic_variables.N[j];
+                for (unsigned int d = 0; d < dim; ++d) {
+                    double &r_rhs_mom_row = rRightHandSideVector[i * block_size + d];
+                    // Add momentum body force contribution
+                    r_rhs_mom_row += w_gauss * aux_mass * body_force[d];
+                    // Add momentum stress contribution
+                    // Note that this includes both the deviatoric and volumetric stress contributions
+                    r_rhs_mom_row -= w_gauss * kinematic_variables.B(j, i * dim + d) * cons_law_values.GetStressVector()[j];
+                    // Add mass conservation divergence contribution
+                    r_rhs_mass_row -= w_gauss * kinematic_variables.N[i] * kinematic_variables.DN_DX(j, d) * kinematic_variables.Displacements[j * dim + d];
+                    // Add the volumetric strain momentum stabilization term - term 2
+                    r_rhs_mom_row -= aux_1 * kinematic_variables.DN_DX(i, d) * kinematic_variables.N(j) * kinematic_variables.VolumetricNodalStrains[j];
+                    // Add the divergence mass stabilization term - term 2
+                    r_rhs_mass_row += aux_2 * kinematic_variables.DN_DX(i, d) * kinematic_variables.DN_DX(j, d) * kinematic_variables.VolumetricNodalStrains[j];
+                    // Add the volumetric strain mass stabilization term - term 1
+                    r_rhs_mass_row -= aux_3 * kinematic_variables.N(i) * kinematic_variables.DN_DX(j, d) * kinematic_variables.Displacements[j * dim + d];
+                    // Add the volumetric strain momentum stabilization term - term 1
                     for (unsigned int d2 = 0; d2 < dim; ++d2) {
-                        rRightHandSideVector(i * block_size + d1) += aux_1 * DN_DX_container[i_gauss](i,d1) * DN_DX_container[i_gauss](j,d2) * r_disp(d2);
+                        r_rhs_mom_row += aux_1 * kinematic_variables.DN_DX(i, d) * kinematic_variables.DN_DX(j, d2) * kinematic_variables.Displacements[j * dim + d2];
                     }
-                }
-            }
-        }
-
-        // Add the volumetric strain momentum stabilization term - term 2
-        for (unsigned int i = 0; i < n_nodes; ++i) {
-            for (unsigned int d = 0; d < dim; ++d) {
-                for (unsigned int j = 0; j < n_nodes; ++j) {
-                    const double &r_vol_strain = r_geometry[j].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
-                    rRightHandSideVector(i * block_size + d) -= aux_1 * DN_DX_container[i_gauss](i,d) * rN(j) * r_vol_strain;
                 }
             }
         }
 
         // Add the divergence mass stabilization term - term 1
         for (unsigned int i = 0; i < n_nodes; ++i) {
+            double &r_rhs_mass_row = rRightHandSideVector[i * block_size + dim];
             for (unsigned int d = 0; d < dim; ++d) {
-                rRightHandSideVector(i * block_size + dim) += w_gauss * tau_1 * DN_DX_container[i_gauss](i,d) * body_force[d];
-            }
-        }
-
-        // Add the divergence mass stabilization term - term 2
-        const double aux_2 = w_gauss * tau_1 * bulk_modulus;
-        for (unsigned int i = 0; i < n_nodes; ++i) {
-            for (unsigned int j = 0; j < n_nodes; ++j) {
-                const double &r_vol_strain = r_geometry[j].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
-                for (unsigned int d = 0; d < dim; ++d) {
-                    rRightHandSideVector(i * block_size + dim) += aux_2 * DN_DX_container[i_gauss](i, d) * DN_DX_container[i_gauss](j, d) * r_vol_strain;
-                }
-            }
-        }
-
-        // Add the volumetric strain mass stabilization term - term 1
-        const double aux_3 = w_gauss * tau_2;
-        for (unsigned int i = 0; i < n_nodes; ++i) {
-            for (unsigned int j = 0; j < n_nodes; ++j) {
-                const auto &r_disp = r_geometry[j].FastGetSolutionStepValue(DISPLACEMENT);
-                for (unsigned int d = 0; d < dim; ++d) {
-                    rRightHandSideVector(i * block_size + dim) -= aux_3 * rN(i) * DN_DX_container[i_gauss](j,d) * r_disp(d);
-                }
-            }
-        }
-
-        // Add the volumetric strain mass stabilization term - term 2
-        for (unsigned int i = 0; i < n_nodes; ++i) {
-            for (unsigned int j = 0; j < n_nodes; ++j) {
-                const double &r_vol_strain = r_geometry[j].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
-                rRightHandSideVector(i * block_size + dim) += aux_3 * rN(i) * rN(j) * r_vol_strain;
+                r_rhs_mass_row += w_gauss * tau_1 * kinematic_variables.DN_DX(i,d) * body_force[d];
             }
         }
     }
