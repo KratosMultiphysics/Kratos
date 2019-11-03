@@ -53,7 +53,7 @@ def create_property_perturbed_elements(model_part, delta, new_element_name):
         copy_solution_step_data_of_node(node, old_node, 0, 0)
 
     for element in perturbed_model_part.Elements:
-        element.Initialize()
+        element.Initialize(perturbed_model_part.ProcessInfo)
 
     return perturbed_model_part
 
@@ -94,7 +94,7 @@ def create_shape_perturbed_elements(model_part, delta, new_element_name):
         copy_solution_step_data_of_node(perturbed_model_part.Nodes[i*4+4], old_node, 0, 0)
 
     for element in perturbed_model_part.Elements:
-        element.Initialize()
+        element.Initialize(perturbed_model_part.ProcessInfo)
 
     return perturbed_model_part
 
@@ -145,8 +145,8 @@ class TestTrussLinearAdjointElement(KratosUnittest.TestCase):
         self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, 0.002400)
         self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, 0, 0.377976)
 
-        self.truss_element.Initialize()
-        self.adjoint_truss_element.Initialize()
+        self.truss_element.Initialize(self.model_part.ProcessInfo)
+        self.adjoint_truss_element.Initialize(self.model_part.ProcessInfo)
 
 
     def test_CalculateSensitivityMatrix_Property(self):
@@ -217,8 +217,8 @@ class TestTrussAdjointElement(KratosUnittest.TestCase):
         self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, 0.2400)
         self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, 0, 0.377976)
 
-        self.truss_element.Initialize()
-        self.adjoint_truss_element.Initialize()
+        self.truss_element.Initialize(self.model_part.ProcessInfo)
+        self.adjoint_truss_element.Initialize(self.model_part.ProcessInfo)
 
 
     def test_CalculateSensitivityMatrix_Property(self):
