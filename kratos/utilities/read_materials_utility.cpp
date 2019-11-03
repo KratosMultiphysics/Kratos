@@ -31,6 +31,9 @@ void CheckIfOverwritingValue(const Properties& rProps,
         << rProps[rVariable] << " with " << rValue << std::endl;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <class TValueType>
 void CheckIfOverwritingTable(const Properties& rProps,
                              const Variable<TValueType>& rInputVariable,
@@ -192,8 +195,8 @@ void ReadMaterialsUtility::CreateProperty(
     }
 
     // Set the CONSTITUTIVE_LAW for the current p_properties.
-    if (Data.Has("constitutive_law")) {
-        Parameters cl_parameters = Data["constitutive_law"];
+    if (Data["Material"].Has("constitutive_law")) {
+        Parameters cl_parameters = Data["Material"]["constitutive_law"];
         std::string constitutive_law_name = cl_parameters["name"].GetString();
         TrimComponentName(constitutive_law_name);
         cl_parameters["name"].SetString(constitutive_law_name);
@@ -206,8 +209,8 @@ void ReadMaterialsUtility::CreateProperty(
     }
 
     // Add / override the values of material parameters in the p_properties
-    if (Data.Has("Variables")) {
-        Parameters variables = Data["Variables"];
+    if (Data["Material"].Has("Variables")) {
+        Parameters variables = Data["Material"]["Variables"];
         for (auto iter = variables.begin(); iter != variables.end(); ++iter) {
             const Parameters value = variables.GetValue(iter.name());
 
@@ -266,8 +269,8 @@ void ReadMaterialsUtility::CreateProperty(
     }
 
     // Add / override tables in the p_properties
-    if (Data.Has("Tables")) {
-        Parameters tables = Data["Tables"];
+    if (Data["Material"].Has("Tables")) {
+        Parameters tables = Data["Material"]["Tables"];
         for (auto iter = tables.begin(); iter != tables.end(); ++iter) {
             auto table_param = tables.GetValue(iter.name());
             // Case table is double, double. TODO(marandra): Does it make sense to consider other cases?
@@ -360,7 +363,7 @@ void ReadMaterialsUtility::CreateSubProperties(
 
                 // We create the new sub property
                 if (sub_prop.Has("Material")) {
-                    CreateProperty(sub_prop["Material"], p_new_sub_prop);
+                    CreateProperty(sub_prop, p_new_sub_prop);
                 }
             }
 
@@ -433,7 +436,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     CreateSubProperties(r_model_part, Data, p_prop);
 
     // We create the new property
-    CreateProperty(Data["Material"], p_prop);
+    CreateProperty(Data, p_prop);
 
     KRATOS_CATCH("");
 }
@@ -445,14 +448,18 @@ void ReadMaterialsUtility::CheckUniqueMaterialAssignment(Parameters Materials)
 {
     KRATOS_TRY;
 
-    const std::size_t num_props = Materials["properties"].size();
-
-    // save all ModelPartNames in a vector
-    std::vector<std::string> model_part_names(num_props);
-    for (IndexType i = 0; i < num_props; ++i) {
-        model_part_names[i] = Materials["properties"].GetArrayItem(i)["model_part_name"].GetString();
+    // Save all ModelPartNames in a vector
+    std::vector<std::string> model_part_names;
+    for (IndexType i = 0; i < Materials["properties"].size(); ++i) {
+        if (Materials["properties"].GetArrayItem(i).Has("model_part_name")) {
+            model_part_names.push_back(Materials["properties"].GetArrayItem(i)["model_part_name"].GetString());
+        }
     }
 
+    // Number of properties (not subproperties)
+    const std::size_t num_props = model_part_names.size();
+
+    // Check not repeated names
     CheckModelPartIsNotRepeated(model_part_names);
 
     // checking if a parent also has a materials definition, i.e. if the assignment is unique
