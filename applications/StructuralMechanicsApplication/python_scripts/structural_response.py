@@ -98,24 +98,24 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
         self.primal_analysis.InitializeSolutionStep()
 
     def CalculateValue(self):
-        Logger.PrintInfo("\n> Starting primal analysis for response", self.identifier)
+        Logger.PrintInfo("StrainEnergyResponse", "Starting primal analysis for response", self.identifier)
 
         startTime = timer.time()
         self.primal_analysis._GetSolver().Predict()
         self.primal_analysis._GetSolver().SolveSolutionStep()
-        Logger.PrintInfo("> Time needed for solving the primal analysis",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo("StrainEnergyResponse", "Time needed for solving the primal analysis",round(timer.time() - startTime,2),"s")
 
         startTime = timer.time()
         value = self.response_function_utility.CalculateValue()
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
-        Logger.PrintInfo("> Time needed for calculating the response value",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo("StrainEnergyResponse", "Time needed for calculating the response value",round(timer.time() - startTime,2),"s")
 
     def CalculateGradient(self):
-        Logger.PrintInfo("\n> Starting gradient calculation for response", self.identifier)
+        Logger.PrintInfo("StrainEnergyResponse", "Starting gradient calculation for response", self.identifier)
 
         startTime = timer.time()
         self.response_function_utility.CalculateGradient()
-        Logger.PrintInfo("> Time needed for calculating gradients",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo("StrainEnergyResponse", "Time needed for calculating gradients",round(timer.time() - startTime,2),"s")
 
     def FinalizeSolutionStep(self):
         self.primal_analysis.FinalizeSolutionStep()
@@ -157,20 +157,20 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
 
         max_required_eigenfrequency = int(max(response_settings["traced_eigenfrequencies"].GetVector()))
         if max_required_eigenfrequency is not eigen_solver_settings["number_of_eigenvalues"].GetInt():
-            Logger.PrintWarning("\n> WARNING: Specified number of eigenvalues in the primal analysis and the max required eigenvalue according the response settings do not match!!!")
-            Logger.PrintWarning("  Primal parameters were adjusted accordingly!\n")
+            Logger.PrintWarning("EigenFrequencyResponse", "Specified number of eigenvalues in the primal analysis and the max required eigenvalue according the response settings do not match!!!")
+            Logger.PrintWarning("EigenFrequencyResponse", "Primal parameters were adjusted accordingly!\n")
             eigen_solver_settings["number_of_eigenvalues"].SetInt(max_required_eigenfrequency)
 
         if not eigen_solver_settings.Has("normalize_eigenvectors"):
             eigen_solver_settings.AddEmptyValue("normalize_eigenvectors")
             eigen_solver_settings["normalize_eigenvectors"].SetBool(True)
-            Logger.PrintWarning("\n> WARNING: Eigenfrequency response function requires mass normalization of eigenvectors!")
-            Logger.PrintWarning("  Primal parameters were adjusted accordingly!\n")
+            Logger.PrintWarning("EigenFrequencyResponse", "Eigenfrequency response function requires mass normalization of eigenvectors!")
+            Logger.PrintWarning("EigenFrequencyResponse", "Primal parameters were adjusted accordingly!\n")
 
         if not eigen_solver_settings["normalize_eigenvectors"].GetBool():
             eigen_solver_settings["normalize_eigenvectors"].SetBool(True)
-            Logger.PrintWarning("\n> WARNING: Eigenfrequency response function requires mass normalization of eigenvectors!")
-            Logger.PrintWarning("  Primal parameters were adjusted accordingly!\n")
+            Logger.PrintWarning("EigenFrequencyResponse", "Eigenfrequency response function requires mass normalization of eigenvectors!")
+            Logger.PrintWarning("EigenFrequencyResponse", "Primal parameters were adjusted accordingly!\n")
 
         self.primal_model_part = _GetModelPart(model, ProjectParametersPrimal["solver_settings"])
 
@@ -229,19 +229,19 @@ class MassResponseFunction(ResponseFunctionBase):
         self.response_function_utility.Initialize()
 
     def CalculateValue(self):
-        Logger.PrintInfo("\n> Starting primal analysis for response", self.identifier)
+        Logger.PrintInfo("MassResponse", "Starting primal analysis for response", self.identifier)
 
         startTime = timer.time()
         value = self.response_function_utility.CalculateValue()
         self.model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
-        Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo("MassResponse", "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
     def CalculateGradient(self):
-        Logger.PrintInfo("\n> Starting gradient calculation for response", self.identifier)
+        Logger.PrintInfo("MassResponse", "Starting gradient calculation for response", self.identifier)
 
         startTime = timer.time()
         self.response_function_utility.CalculateGradient()
-        Logger.PrintInfo("> Time needed for calculating gradients",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo("MassResponse", "Time needed for calculating gradients",round(timer.time() - startTime,2),"s")
 
     def GetValue(self):
         return self.model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
@@ -297,17 +297,17 @@ class AdjointResponseFunction(ResponseFunctionBase):
     def InitializeSolutionStep(self):
         # Run the primal analysis.
         # TODO if primal_analysis.status==solved: return
-        Logger.PrintInfo("\n> Starting primal analysis for response:", self.identifier)
+        Logger.PrintInfo(self._GetLabel(), "Starting primal analysis for response:", self.identifier)
         startTime = timer.time()
         if not self.primal_analysis.time < self.primal_analysis.end_time:
             self.primal_analysis.end_time += 1
         self.primal_analysis.RunSolutionLoop()
-        Logger.PrintInfo("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo(self._GetLabel(), "Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
 
     def CalculateValue(self):
         startTime = timer.time()
         value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
-        Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo(self._GetLabel(), "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
 
@@ -315,11 +315,11 @@ class AdjointResponseFunction(ResponseFunctionBase):
         # synchronize the modelparts
         self._SynchronizeAdjointFromPrimal()
         startTime = timer.time()
-        Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
+        Logger.PrintInfo(self._GetLabel(), "Starting adjoint analysis for response:", self.identifier)
         if not self.adjoint_analysis.time < self.adjoint_analysis.end_time:
             self.adjoint_analysis.end_time += 1
         self.adjoint_analysis.RunSolutionLoop()
-        Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo(self._GetLabel(), "Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
 
     def GetValue(self):
         return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
@@ -338,7 +338,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
         return self.adjoint_analysis._GetSolver().response_function
 
     def _SynchronizeAdjointFromPrimal(self):
-        Logger.PrintInfo("\n> Synchronize primal and adjoint modelpart for response:", self.identifier)
+        Logger.PrintInfo(self._GetLabel(), "Synchronize primal and adjoint modelpart for response:", self.identifier)
 
         if len(self.primal_model_part.Nodes) != len(self.adjoint_model_part.Nodes):
             raise RuntimeError("_SynchronizeAdjointFromPrimal: Model parts have a different number of nodes!")
@@ -354,7 +354,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
         # Put primal solution on adjoint model - for "auto" setting, else it has to be done by the user e.g. using hdf5 process
         if self.response_settings["adjoint_settings"].GetString() == "auto":
-            Logger.PrintInfo("> Transfer primal state to adjoint model part.")
+            Logger.PrintInfo(self._GetLabel(), "Transfer primal state to adjoint model part.")
             variable_utils = KratosMultiphysics.VariableUtils()
             for variable in self.primal_state_variables:
                 variable_utils.CopyModelPartNodalVar(variable, self.primal_model_part, self.adjoint_model_part, 0)
@@ -365,7 +365,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
         adjoint_settings = self.response_settings["adjoint_settings"].GetString()
 
         if adjoint_settings == "auto":
-            Logger.PrintInfo("\n> Automatic set up adjoint parameters for response:", self.identifier)
+            Logger.PrintInfo(self._GetLabel(), "Automatic set up adjoint parameters for response:", self.identifier)
 
             with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
                 primal_parameters = Parameters( parameter_file.read() )
@@ -396,7 +396,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
             if solver_settings.Has("scheme_settings"):
                 depr_msg = '\nDEPRECATION-WARNING: "scheme_settings" is deprecated, please remove it from your json parameters.\n'
-                KratosMultiphysics.Logger.PrintWarning(__name__, depr_msg)
+                Logger.PrintWarning(__name__, depr_msg)
                 solver_settings.RemoveValue("scheme_settings")
 
             if solver_settings["model_import_settings"]["input_type"].GetString() == "use_input_model_part":
@@ -416,7 +416,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
             # Output process:
             # TODO how to add the output process? How find out about the variables?
             if adjoint_parameters.Has("output_processes"):
-                Logger.PrintInfo("> Output process is removed for adjoint analysis. To enable it define adjoint_parameters yourself.")
+                Logger.PrintInfo(self._GetLabel(), "Output process is removed for adjoint analysis. To enable it define adjoint_parameters yourself.")
                 adjoint_parameters.RemoveValue("output_processes")
 
             # sensitivity settings
@@ -430,3 +430,15 @@ class AdjointResponseFunction(ResponseFunctionBase):
                 adjoint_parameters = Parameters( parameter_file.read() )
 
         return adjoint_parameters
+
+
+    def _GetLabel(self):
+        type_labels = {
+            "adjoint_nodal_displacement" : "NodalDisplacement",
+            "adjoint_linear_strain_energy" : "StrainEnergy",
+            "adjoint_local_stress" : "LocalStress",
+            "adjoint_max_stress" : "MaxStress",
+            "adjoint_nodal_reaction" : "NodalReaction"
+        }
+        response_type = self.response_settings["response_type"].GetString()
+        return "Adjoint" + type_labels[response_type] + "Response"

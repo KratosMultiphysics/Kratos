@@ -43,8 +43,10 @@ void AssignPressureIdProcess::Execute()
             int pressure_id;
             if (submodel_parts_names[i].size() == ref_string_size) { // from 1 to 9
                 pressure_id = std::stoi(submodel_parts_names[i].substr(string_size - 1, string_size));
-            } else { // from 10 to 99
+            } else if (submodel_parts_names[i].size() == ref_string_size + 1) { // from 10 to 99
                 pressure_id = std::stoi(submodel_parts_names[i].substr(string_size - 2, string_size));
+            } else { // from 100 to 999
+                pressure_id = std::stoi(submodel_parts_names[i].substr(string_size - 3, string_size));
             }
             this->AssignPressureIdToNodes(submodel_parts_names[i], pressure_id);
         }

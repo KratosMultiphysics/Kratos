@@ -974,16 +974,18 @@ class DEMFEMProcedures(object):
         evaluate_computation_of_fem_results()
 
     def MoveAllMeshes(self, all_model_parts, time, dt): # TODO: deprecated
+        message = 'Warning!'
+        message += '\nFunction \'MoveAllMeshes\' is deprecated. It is called inside sphere_strategy.py'
+        message += '\nIt will be removed after 10/31/2019.\n'
+        Logger.PrintWarning("DEM_procedures.py", message)
 
         spheres_model_part = all_model_parts.Get("SpheresPart")
         dem_inlet_model_part = all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = all_model_parts.Get("RigidFacePart")
-        cluster_model_part = all_model_parts.Get("ClusterPart")
 
-        self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(dem_inlet_model_part, time, dt)
-        self.mesh_motion.MoveAllMeshes(cluster_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
 
     # def MoveAllMeshesUsingATable(self, model_part, time, dt):
 
