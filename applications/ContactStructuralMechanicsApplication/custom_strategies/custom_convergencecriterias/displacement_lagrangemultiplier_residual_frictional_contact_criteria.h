@@ -97,6 +97,9 @@ public:
     /// The key type definition
     typedef std::size_t                                       KeyType;
 
+    /// Zero tolerance definition
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -302,7 +305,7 @@ public:
                             const auto it_node = r_nodes_array.find(it_dof->Id());
                             const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
 
-                            if (mu < std::numeric_limits<double>::epsilon()) {
+                            if (mu < ZeroTolerance) {
                                 normal_lm_residual_solution_norm += std::pow(residual_dof_value, 2);
                             } else {
                                 const double normal_x = it_node->FastGetSolutionStepValue(NORMAL_X);
@@ -322,7 +325,7 @@ public:
                             // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
                             const auto it_node = r_nodes_array.find(it_dof->Id());
                             const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
-                            if (mu < std::numeric_limits<double>::epsilon()) {
+                            if (mu < ZeroTolerance) {
                                 normal_lm_residual_solution_norm += std::pow(residual_dof_value, 2);
                             } else {
                                 const double normal_y = it_node->FastGetSolutionStepValue(NORMAL_Y);
@@ -342,7 +345,7 @@ public:
                             // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
                             const auto it_node = r_nodes_array.find(it_dof->Id());
                             const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
-                            if (mu < std::numeric_limits<double>::epsilon()) {
+                            if (mu < ZeroTolerance) {
                                 normal_lm_residual_solution_norm += std::pow(residual_dof_value, 2);
                             } else {
                                 const double normal_z = it_node->FastGetSolutionStepValue(NORMAL_Z);
@@ -517,8 +520,9 @@ public:
                 }
                 return false;
             }
-        } else // In this case all the displacements are imposed!
+        } else { // In this case all the displacements are imposed!
             return true;
+        }
     }
 
     /**
