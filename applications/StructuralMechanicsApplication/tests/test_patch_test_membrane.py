@@ -269,6 +269,7 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
     def _set_up_system_3d3n(self,current_model,explicit_dynamics=False):
         mp = current_model.CreateModelPart("Structure")
         mp.SetBufferSize(2)
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
         self._add_variables(mp,explicit_dynamics)
         self._apply_material_properties(mp)
@@ -287,6 +288,7 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
     def _set_up_system_3d4n(self,current_model):
         mp = current_model.CreateModelPart("Structure")
         mp.SetBufferSize(2)
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
         self._add_variables(mp)
         self._apply_material_properties(mp)
@@ -437,7 +439,6 @@ class DynamicPatchTestMembrane(BasePatchTestMembrane):
 
         current_model = KratosMultiphysics.Model()
         mp = self._set_up_system_3d3n(current_model,explicit_dynamics=True)
-        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
 
         #time integration parameters

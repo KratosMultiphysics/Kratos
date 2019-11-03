@@ -57,6 +57,8 @@ class SPAlgorithm(Algorithm):
     def Initialize(self):
         super(SPAlgorithm,self).Initialize()
 
+        self.InitializeAdditionalProcessInfoVars()
+
         if self.test_number:
             from KratosMultiphysics.DemStructuresCouplingApplication.control_module_fem_dem_utility import ControlModuleFemDemUtility
             self.control_module_fem_dem_utility = ControlModuleFemDemUtility(self.model, self.dem_solution.spheres_model_part, self.test_number)
@@ -70,6 +72,9 @@ class SPAlgorithm(Algorithm):
 
         from KratosMultiphysics.DemStructuresCouplingApplication import stress_failure_check_utility
         self.stress_failure_check_utility = stress_failure_check_utility.StressFailureCheckUtility(self.dem_solution.spheres_model_part, self.test_number)
+
+    def InitializeAdditionalProcessInfoVars(self):
+        self.dem_solution.spheres_model_part.ProcessInfo.SetValue(SIGMA_3_AVERAGE, 0.0)
 
     def RunSolutionLoop(self):
 
@@ -121,6 +126,8 @@ class SPAlgorithm(Algorithm):
 
                 self.dem_solution.InitializeSolutionStep()
 
+                self.dem_solution._GetSolver().Predict()
+
                 DemFem.InterpolateStructuralSolutionForDEM().InterpolateStructuralSolution(self.structural_mp, self.Dt_structural, self.structural_solution.time, self.dem_solution._GetSolver().dt, self.dem_solution.time)
 
                 self.dem_solution.SolverSolve()
@@ -149,9 +156,6 @@ class SPAlgorithm(Algorithm):
                 self.dem_solution.FinalizeSolutionStep()
 
                 DemFem.ComputeDEMFaceLoadUtility().CalculateDEMFaceLoads(self.skin_mp, self.dem_solution._GetSolver().dt, self.Dt_structural)
-
-                self.dem_solution.DEMFEMProcedures.MoveAllMeshes(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution._GetSolver().dt)
-                #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
 
                 #### PRINTING GRAPHS ####
                 os.chdir(self.dem_solution.graphs_path)
