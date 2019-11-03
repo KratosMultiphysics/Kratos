@@ -25,6 +25,7 @@
 #include "custom_utilities/contact_utilities.h"
 #include "custom_utilities/active_set_utilities.h"
 #include "custom_utilities/interface_preprocess.h"
+#include "custom_utilities/self_contact_utilities.h"
 
 namespace Kratos
 {
@@ -67,8 +68,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     ;
 
     // Active set utilities
-    m.def("ComputePenaltyFrictionlessActiveSet",&ActiveSetUtilities::ComputePenaltyFrictionlessActiveSet);
-    m.def("ComputePenaltyFrictionalActiveSet",&ActiveSetUtilities::ComputePenaltyFrictionalActiveSet);
+    auto active_set_utilities = m.def_submodule("ActiveSetUtilities");
+    active_set_utilities.def("ComputePenaltyFrictionlessActiveSet",&ActiveSetUtilities::ComputePenaltyFrictionlessActiveSet);
+    active_set_utilities.def("ComputePenaltyFrictionalActiveSet",&ActiveSetUtilities::ComputePenaltyFrictionalActiveSet);
+
+    // Self-contact utilities
+    auto self_contact_utilities = m.def_submodule("SelfContactUtilities");
+    self_contact_utilities.def("ComputeSelfContactPairing",&SelfContactUtilities::ComputeSelfContactPairing);
+    self_contact_utilities.def("FullAssignmentOfPairs",&SelfContactUtilities::FullAssignmentOfPairs);
+    self_contact_utilities.def("NotPredefinedMasterSlave",&SelfContactUtilities::NotPredefinedMasterSlave);
 
     // Interface preprocess
     py::class_<InterfacePreprocessCondition, typename InterfacePreprocessCondition::Pointer>(m, "InterfacePreprocessCondition")

@@ -139,6 +139,18 @@ public:
      */
     void Initialize() override;
 
+   /**
+    * @brief Called at the beginning of each solution step
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+   /**
+    * @brief Called at the beginning of each iteration
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
     /**
      * @brief Creates a new element pointer from an arry of nodes
      * @param NewId the ID of the new element
@@ -220,6 +232,24 @@ public:
         return this->GetGeometry().GetGeometryPart(CouplingGeometryType::Slave);
     }
 
+    /**
+     * @brief This method sets the paired normal
+     * @param rPairedNormal The master geometry normal
+     */
+    void SetPairedNormal(const array_1d<double, 3>& rPairedNormal)
+    {
+        noalias(mPairedNormal) = rPairedNormal;
+    }
+
+    /**
+     * @brief This method returns the paired normal
+     * @return The master geometry normal
+     */
+    array_1d<double, 3> const& GetPairedNormal() const
+    {
+        return mPairedNormal;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -293,6 +323,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    array_1d<double, 3> mPairedNormal = ZeroVector(3);
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -320,11 +352,13 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+        rSerializer.save("PairedNormal", mPairedNormal);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+        rSerializer.load("PairedNormal", mPairedNormal);
     }
 
     ///@}

@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 from KratosMultiphysics import *
-CheckForPreviousImport()
 
 from gid_output_process import GiDOutputProcess
 
@@ -48,7 +47,7 @@ class PfemGiDOutputProcess(GiDOutputProcess):
                 self._GiDOutputProcess__write_step_to_list()
             else:
                 self._GiDOutputProcess__write_step_to_list(0)
-        
+
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
             label = 0.0
             self._GiDOutputProcess__write_mesh(label)

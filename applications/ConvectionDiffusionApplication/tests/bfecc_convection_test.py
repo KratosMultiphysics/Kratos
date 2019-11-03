@@ -3,9 +3,15 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
+from KratosMultiphysics.json_output_process import JsonOutputProcess
+from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
+import os
 import math
+
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class BFECCConvectionTest(UnitTest.TestCase):
     def setUp(self):
@@ -17,7 +23,6 @@ class BFECCConvectionTest(UnitTest.TestCase):
         self.check_tolerance = 1.0e-8
         self.print_reference_values = False
         self.work_folder = "BFECCConvectionTest"
-        self.reference_file = "bfecc_convection_test"
 
     def runTest(self):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):
@@ -53,15 +58,26 @@ class BFECCConvectionTest(UnitTest.TestCase):
                 y_local = node.Y - 0.5
                 r = math.sqrt(x_local**2 + y_local**2)
                 if(r < 0.45):
+                    aux_temp = math.sqrt((x_local - x_c)**2 + (y_local - y_c)**2) - 0.1
+                    node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, aux_temp)
                     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, [-y_local, x_local, 0.0])
-                    node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, math.sqrt((x_local - x_c)**2 + (y_local - y_c)**2) - 0.1)
+                    # If the limiter is used, set some initial overshoots
+                    # if self.has_limiter:
+                    #     if aux_temp <= 0.0:
+                    #         node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, 1.0)
+                    #     else:
+                    #         node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, 0.0)
 
             # Create the search structure
             locator = KratosMultiphysics.BinBasedFastPointLocator2D(self.main_model_part)
             locator.UpdateSearchDatabase()
 
             # Construct the BFECC utility
-            bfecc_utility = ConvectionDiffusionApplication.BFECCConvection2D(locator)
+            if self.has_limiter:
+                bfecc_utility = ConvectionDiffusionApplication.BFECCConvection2D(locator)
+            else:
+                bfecc_utility = ConvectionDiffusionApplication.BFECCLimiterConvection2D(locator)
+
             self.main_model_part.CloneTimeStep(0.0)
 
             # Set output
@@ -100,27 +116,41 @@ class BFECCConvectionTest(UnitTest.TestCase):
     def checkResults(self):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):
             if self.print_reference_values:
-                with open(self.reference_file + '.csv','w') as reference_file:
-                    reference_file.write("#ID, TEMPERATURE\n")
-                    for node in self.main_model_part.Nodes:
-                        reference_file.write("{0}, {1}\n".format(node.Id, node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)))
-                    reference_file.close()
-            else:
-                with open(self.reference_file + '_results' + '.csv','w') as reference_file:
-                    reference_file.write("#ID, TEMPERATURE\n")
-                    for node in self.main_model_part.Nodes:
-                        reference_file.write("{0}, {1}\n".format(node.Id, node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)))
-                    reference_file.close()
-
-                compare_files_settings = KratosMultiphysics.Parameters(r'''{
-                    "reference_file_name"   : "bfecc_convection_test.csv",
-                    "output_file_name"      : "bfecc_convection_test_results.csv",
-                    "remove_output_file"    : true,
-                    "comparison_type"       : "deterministic"
+                json_output_settings = KratosMultiphysics.Parameters(r'''{
+                        "output_variables": ["TEMPERATURE"],
+                        "output_file_name": "",
+                        "model_part_name": "MainModelPart",
+                        "time_frequency": 0.0
                 }''')
-                CompareTwoFilesCheckProcess(compare_files_settings).Execute()
+                json_output_settings["output_file_name"].SetString(GetFilePath("BFECCConvectionTest/" + self.reference_file + "_results.json"))
+                json_output_process = JsonOutputProcess(self.model, json_output_settings)
+                json_output_process.ExecuteInitialize()
+                json_output_process.ExecuteBeforeSolutionLoop()
+                json_output_process.ExecuteFinalizeSolutionStep()
+            else:
+                json_check_parameters = KratosMultiphysics.Parameters(r'''{
+                    "check_variables"      : ["TEMPERATURE"],
+                    "input_file_name"      : "",
+                    "model_part_name"      : "MainModelPart",
+                    "time_frequency"       : 0.0
+                }''')
+                json_check_parameters["input_file_name"].SetString(GetFilePath("BFECCConvectionTest/" + self.reference_file + "_results.json"))
+                json_check_process = FromJsonCheckResultProcess(self.model, json_check_parameters)
+                json_check_process.ExecuteInitialize()
+                json_check_process.ExecuteBeforeSolutionLoop()
+                json_check_process.ExecuteFinalizeSolutionStep()
 
     def testBFECCConvection(self):
+        self.has_limiter = False
+        self.reference_file = "bfecc_convection_test"
+        self.setUp()
+        self.runTest()
+        self.checkResults()
+        self.tearDown()
+
+    def testBFECCElementalLimiterConvection(self):
+        self.has_limiter = True
+        self.reference_file = "bfecc_elemental_limiter_convection_test"
         self.setUp()
         self.runTest()
         self.checkResults()
@@ -128,6 +158,5 @@ class BFECCConvectionTest(UnitTest.TestCase):
 
 if __name__ == '__main__':
     test = BFECCConvectionTest()
-    test.setUp()
     test.testBFECCConvection()
-    test.tearDown()
+    # test.testBFECCElementalLimiterConvection()

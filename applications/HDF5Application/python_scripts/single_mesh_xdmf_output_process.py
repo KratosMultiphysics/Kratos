@@ -139,13 +139,15 @@ def CreateCoreSettings(user_settings):
     core_settings[0]["io_settings"]["io_type"] = "mock_hdf5_file_io"
     core_settings[3]["io_settings"]["io_type"] = "mock_hdf5_file_io"
     if IsDistributed():
+        model_part_output_type = "partitioned_model_part_output"
         core_settings[1]["io_settings"]["io_type"] = "parallel_hdf5_file_io"
         core_settings[2]["io_settings"]["io_type"] = "parallel_hdf5_file_io"
     else:
+        model_part_output_type = "model_part_output"
         core_settings[1]["io_settings"]["io_type"] = "serial_hdf5_file_io"
         core_settings[2]["io_settings"]["io_type"] = "serial_hdf5_file_io"
     core_settings[1]["list_of_operations"] = [
-        CreateOperationSettings("model_part_output",
+        CreateOperationSettings(model_part_output_type,
                                 user_settings["model_part_output_settings"]),
         CreateOperationSettings("nodal_solution_step_data_output",
                                 user_settings["nodal_solution_step_data_settings"]),

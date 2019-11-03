@@ -732,7 +732,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeDofIds, KratosMP
         auto& r_dofs = i_node->GetDofs();
         for (auto i_dof = r_dofs.begin(); i_dof != r_dofs.end(); ++i_dof)
         {
-            i_dof->SetEquationId(id_offset + i);
+            (*i_dof)->SetEquationId(id_offset + i);
             ++i;
         }
     }
@@ -743,7 +743,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeDofIds, KratosMP
         auto& r_dofs = i_node->GetDofs();
         for (auto i_dof = r_dofs.begin(); i_dof != r_dofs.end(); ++i_dof)
         {
-            KRATOS_CHECK_NOT_EQUAL(i_dof->EquationId(), 0);
+            KRATOS_CHECK_NOT_EQUAL((*i_dof)->EquationId(), 0);
         }
     }
 }

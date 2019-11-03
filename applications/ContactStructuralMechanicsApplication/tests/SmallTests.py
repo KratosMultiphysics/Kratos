@@ -181,3 +181,24 @@ class PenaltyHyperSimplePatchFrictionalSlipTestContact(TestFactory):
 
 class PenaltyHyperSimplePatchFrictionalStickTestContact(TestFactory):
     file_name = "penalty_frictional_contact_test_2D/hyper_simple_stick_patch_test"
+
+class TwoDSimplestPatchMatchingTestContact(TestFactory):
+    file_name = "mpc_contact_tests/2D_contact_simplest_patch_matching_test"
+
+class TwoDSimplestWithFrictionPatchMatchingTestContact(TestFactory):
+    file_name = "mpc_contact_tests/2D_contact_simplest_with_friction_patch_matching_test"
+
+class ThreeDSimplestPatchMatchingTestContact(TestFactory):
+    file_name = "mpc_contact_tests/3D_contact_simplest_patch_matching_test"
+
+class ThreeDSimplestWithFrictionPatchMatchingTestContact(TestFactory):
+    file_name = "mpc_contact_tests/3D_contact_simplest_with_friction_patch_matching_test"
+
+class ThreeDSimplestPatchMatchingSlopeTestContact(TestFactory):
+    file_name = "mpc_contact_tests/3D_contact_simplest_patch_matching_slope_test"
+
+class ThreeDPatchMatchingTestContact(TestFactory):
+    file_name = "mpc_contact_tests/3D_contact_patch_matching_test"
+
+class ThreeDPatchNotMatchingTestContact(TestFactory):
+    file_name = "mpc_contact_tests/3D_contact_patch_nonmatching_test"
