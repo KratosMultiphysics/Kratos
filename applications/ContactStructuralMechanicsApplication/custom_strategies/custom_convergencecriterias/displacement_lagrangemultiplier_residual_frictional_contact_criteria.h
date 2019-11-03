@@ -265,23 +265,6 @@ public:
             // Getting process info
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
-            // Compute the active set
-            if (!r_process_info[ACTIVE_SET_COMPUTED]) {
-                // Recompute the WEIGHTED_GAP and WEIGHTED_GAP
-                NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-                VariableUtils().SetHistoricalVariableToZero(WEIGHTED_GAP, r_nodes_array);
-                VariableUtils().SetHistoricalVariableToZero(WEIGHTED_SLIP, r_nodes_array);
-                ContactUtilities::ComputeExplicitContributionConditions(rModelPart.GetSubModelPart("ComputingContact"));
-
-                // Actually compute active set
-                const array_1d<std::size_t, 2> is_converged = ActiveSetUtilities::ComputeALMFrictionalActiveSet(rModelPart, mOptions.Is(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP), this->GetEchoLevel());
-
-                // We save to the process info if the active set has converged
-                r_process_info[ACTIVE_SET_CONVERGED] = is_converged[0] == 0 ? true : false;
-                r_process_info[SLIP_SET_CONVERGED] = is_converged[1] == 0 ? true : false;
-                r_process_info[ACTIVE_SET_COMPUTED] = true;
-            }
-
             // Initialize
             TDataType disp_residual_solution_norm = 0.0, normal_lm_residual_solution_norm = 0.0, tangent_lm_stick_residual_solution_norm = 0.0, tangent_lm_slip_residual_solution_norm = 0.0;
             IndexType disp_dof_num(0),lm_dof_num(0), lm_stick_dof_num(0), lm_slip_dof_num(0);
