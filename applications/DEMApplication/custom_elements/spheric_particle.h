@@ -351,7 +351,13 @@ virtual void ComputeMoments(double normalLocalContactForce,
                             double LocalCoordSystem_2[3],
                             SphericParticle* neighbour_iterator,
                             double indentation,
-                            bool wall=false) final;
+                            bool wall,
+                            unsigned int i);
+
+virtual void ComputeRollingResistance(double& RollingResistance,
+                                      const double& NormalLocalContactForce,
+                                      const double& equiv_rolling_friction_coeff,
+                                      const unsigned int i);
 
 virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt) final;
 

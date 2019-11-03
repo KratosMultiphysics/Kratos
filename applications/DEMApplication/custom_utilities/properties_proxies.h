@@ -99,10 +99,6 @@ namespace Kratos {
         double* pGetLevelOfFouling();
         void    SetLevelOfFoulingFromProperties(double* level_of_fouling);
 
-        double  GetContactSigmaMin();
-        double* pGetContactSigmaMin();
-        void    SetContactSigmaMinFromProperties(double* contact_sigma_min);
-
         double  GetContactTauZero();
         double* pGetContactTauZero();
         void    SetContactTauZeroFromProperties(double* contact_tau_zero);
