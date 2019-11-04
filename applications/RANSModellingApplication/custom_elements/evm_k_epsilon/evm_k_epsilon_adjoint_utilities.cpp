@@ -147,7 +147,7 @@ void CalculateProductionVelocitySensitivities(Matrix& rOutput,
 
     double velocity_divergence = 0.0;
     velocity_divergence =
-        RansCalculationUtilities().CalculateMatrixTrace<TDim>(rVelocityGradient);
+        RansCalculationUtilities::CalculateMatrixTrace<TDim>(rVelocityGradient);
     identity_matrix<double> identity(TDim);
 
     BoundedMatrix<double, TDim, TDim> reynolds_stress_tensor;
@@ -196,7 +196,7 @@ void CalculateProductionShapeSensitivities(
 
     double velocity_divergence = 0.0;
     velocity_divergence =
-        RansCalculationUtilities().CalculateMatrixTrace<TDim>(rVelocityGradient);
+        RansCalculationUtilities::CalculateMatrixTrace<TDim>(rVelocityGradient);
     identity_matrix<double> identity(TDim);
 
     BoundedMatrix<double, TDim, TDim> reynolds_stress_tensor;
@@ -252,7 +252,7 @@ void CalculateProductionScalarSensitivities(Vector& rOutput,
 
     double velocity_divergence = 0.0;
     velocity_divergence =
-        RansCalculationUtilities().CalculateMatrixTrace<TDim>(rVelocityGradient);
+        RansCalculationUtilities::CalculateMatrixTrace<TDim>(rVelocityGradient);
     identity_matrix<double> identity(TDim);
 
     BoundedMatrix<double, TDim, TDim> reynolds_stress_tensor;

@@ -63,7 +63,7 @@ void GenerateTestModelPart(ModelPart& rModelPart)
     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
     rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
     std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3};
-    rModelPart.CreateNewElement("RansEvmK2D3N", 1, elem_nodes, p_elem_prop);
+    rModelPart.CreateNewElement("RansEvmKEpsilonK2D3N", 1, elem_nodes, p_elem_prop);
 
     // Set the VELOCITY and PRESSURE nodal values
     array_1d<double, 3> v_1 = ZeroVector(3);
@@ -95,7 +95,7 @@ void GenerateTestModelPart(ModelPart& rModelPart)
 /**
  * Checks the RANSYPlusModelLogarithmic process.
  */
-KRATOS_TEST_CASE_IN_SUITE(RansLogarithmicYPlusVelocitySensitivitiesProcess, RANSYPlusModelSensitivities)
+KRATOS_TEST_CASE_IN_SUITE(RansLogarithmicYPlusVelocitySensitivitiesProcess, KratosRansFastSuite)
 {
     Model model;
     ModelPart& r_model_part =

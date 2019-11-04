@@ -19,7 +19,6 @@
 // External includes
 
 // Project includes
-#include "containers/array_1d.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "includes/ublas_interface.h"
 
@@ -65,7 +64,7 @@ inline void CalculateStabilizationTau(double& rTau,
                                       const double DynamicTau)
 {
     unsigned int dim = rContravariantMetricTensor.size2();
-    const Vector velocity = RansCalculationUtilities().GetVector(rVelocity, dim);
+    const Vector velocity = RansCalculationUtilities::GetVector(rVelocity, dim);
     Vector temp(dim);
     noalias(temp) = prod(rContravariantMetricTensor, velocity);
     const double velocity_norm = norm_2(rVelocity);
@@ -114,7 +113,8 @@ inline void CalculateCrossWindDiffusionParameters(double& rChi,
     const double psi_one = CalculatePsiOne(VelocityMagnitude, Tau, reaction_dynamics);
     const double psi_two = CalculatePsiTwo(reaction_dynamics, Tau, ElementLength);
 
-    double value = 0.5 * std::abs(psi_one - Tau * VelocityMagnitude * reaction_dynamics) * ElementLength;
+    double value =
+        0.5 * std::abs(psi_one - Tau * VelocityMagnitude * reaction_dynamics) * ElementLength;
     value -= (EffectiveKinematicViscosity + Tau * std::pow(VelocityMagnitude, 2));
     value += psi_two;
 

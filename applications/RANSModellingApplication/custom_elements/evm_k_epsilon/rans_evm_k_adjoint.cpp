@@ -19,7 +19,7 @@
 
 #include "custom_elements/evm_k_epsilon/evm_k_epsilon_adjoint_utilities.h"
 #include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
-#include "custom_utilities/rans_variable_utils.h"
+#include "custom_utilities/rans_variable_utilities.h"
 #include "includes/cfd_variables.h"
 #include "rans_modelling_application_variables.h"
 
@@ -402,13 +402,12 @@ void RansEvmKAdjoint<TDim, TNumNodes>::CalculateElementData(RansEvmKAdjointData&
     rData.VelocityDivergence =
         this->GetDivergenceOperator(VELOCITY, rShapeFunctionDerivatives);
 
-    RansVariableUtils rans_variable_utils;
 
-    rans_variable_utils.GetNodalArray(rData.NodalTurbulentKineticEnergy, *this,
+    RansVariableUtilities::GetNodalArray(rData.NodalTurbulentKineticEnergy, *this,
                                       TURBULENT_KINETIC_ENERGY);
-    rans_variable_utils.GetNodalArray(rData.NodalTurbulentEnergyDissipationRate,
+    RansVariableUtilities::GetNodalArray(rData.NodalTurbulentEnergyDissipationRate,
                                       *this, TURBULENT_ENERGY_DISSIPATION_RATE);
-    rans_variable_utils.GetNodalArray(rData.NodalYPlus, *this, RANS_Y_PLUS);
+    RansVariableUtilities::GetNodalArray(rData.NodalYPlus, *this, RANS_Y_PLUS);
 
     std::size_t number_of_nodes = rData.NodalYPlus.size();
 

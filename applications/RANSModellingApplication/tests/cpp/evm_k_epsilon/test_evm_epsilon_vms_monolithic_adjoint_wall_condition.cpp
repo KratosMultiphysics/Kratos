@@ -37,7 +37,7 @@ namespace Kratos
 namespace Testing
 {
 KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_EquationIdVector,
-                          RANSEvModelsKEpsilonConditionMethods)
+                          KratosRansFastSuite)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -67,7 +67,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_EquationI
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_GetDofList,
-                          RANSEvModelsKEpsilonConditionMethods)
+                          KratosRansFastSuite)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -94,7 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_GetDofLis
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_GetValuesVector,
-                          RANSEvModelsKEpsilonConditionMethods)
+                          KratosRansFastSuite)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -128,7 +128,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_GetValues
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_GetFirstDerivativesVector,
-                          RANSEvModelsKEpsilonConditionMethods)
+                          KratosRansFastSuite)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -150,7 +150,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_GetFirstD
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_GetSecondDerivativesVector,
-                          RANSEvModelsKEpsilonConditionMethods)
+                          KratosRansFastSuite)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");

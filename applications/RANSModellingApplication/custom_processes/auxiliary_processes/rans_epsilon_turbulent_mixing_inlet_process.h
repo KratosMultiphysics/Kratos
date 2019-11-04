@@ -14,21 +14,13 @@
 #define KRATOS_RANS_EPSILON_TURBULENT_MIXING_LENGTH_INLET_PROCESS_H_INCLUDED
 
 // System includes
-#include <cmath>
 #include <string>
 
 // External includes
 
 // Project includes
 #include "containers/model.h"
-#include "includes/checks.h"
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "processes/process.h"
-#include "rans_modelling_application_variables.h"
-
-#include "custom_utilities/rans_check_utilities.h"
-#include "custom_utilities/rans_variable_utils.h"
 
 namespace Kratos
 {
@@ -88,39 +80,10 @@ public:
     ///@{
 
     /// Constructor
-    RansEpsilonTurbulentMixingLengthInletProcess(Model& rModel, Parameters& rParameters)
-        : mrModel(rModel), mrParameters(rParameters)
-    {
-        KRATOS_TRY
+    RansEpsilonTurbulentMixingLengthInletProcess(Model& rModel, Parameters rParameters);
 
-        Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name"         : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "turbulent_mixing_length" : 0.005,
-            "c_mu"                    : 0.09,
-            "echo_level"              : 0,
-            "is_fixed"                : true,
-            "min_value"               : 1e-18
-        })");
-
-        mrParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-
-        mTurbulentMixingLength = mrParameters["turbulent_mixing_length"].GetDouble();
-        mIsConstrained = mrParameters["is_fixed"].GetBool();
-        mEchoLevel = mrParameters["echo_level"].GetInt();
-        mModelPartName = mrParameters["model_part_name"].GetString();
-        mCmu_75 = std::pow(mrParameters["c_mu"].GetDouble(), 0.75);
-        mMinValue = mrParameters["min_value"].GetDouble();
-
-        KRATOS_ERROR_IF(mTurbulentMixingLength < std::numeric_limits<double>::epsilon())
-            << "turbulent_mixing_length should be greater than zero.\n";
-
-        KRATOS_CATCH("");
-    }
     /// Destructor.
-    ~RansEpsilonTurbulentMixingLengthInletProcess() override
-    {
-    }
+    ~RansEpsilonTurbulentMixingLengthInletProcess() override;
 
     ///@}
     ///@name Operators
@@ -130,68 +93,13 @@ public:
     ///@name Operations
     ///@{
 
-    void ExecuteInitialize() override
-    {
-        if (mIsConstrained)
-        {
-            ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    void ExecuteInitialize() override;
 
-            const int number_of_nodes = r_model_part.NumberOfNodes();
-#pragma omp parallel for
-            for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-            {
-                NodeType& r_node = *(r_model_part.NodesBegin() + i_node);
-                r_node.Fix(TURBULENT_ENERGY_DISSIPATION_RATE);
-            }
+    void ExecuteInitializeSolutionStep() override;
 
-            KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-                << "Fixed TURBULENT_ENERGY_DISSIPATION_RATE dofs in "
-                << mModelPartName << ".\n";
-        }
-    }
+    void Execute() override;
 
-    void ExecuteInitializeSolutionStep() override
-    {
-        Execute();
-    }
-
-    void Execute() override
-    {
-        KRATOS_TRY
-
-        ModelPart::NodesContainerType& r_nodes =
-            mrModel.GetModelPart(mModelPartName).Nodes();
-        int number_of_nodes = r_nodes.size();
-
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            NodeType& r_node = *(r_nodes.begin() + i_node);
-            CalculateTurbulentValues(r_node);
-        }
-
-        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-            << "Applied epsilon values to " << mModelPartName << ".\n";
-
-        KRATOS_CATCH("");
-    }
-
-    int Check() override
-    {
-        RansCheckUtilities rans_check_utilities;
-
-        rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
-
-        ModelPart::NodesContainerType& r_nodes =
-            mrModel.GetModelPart(mModelPartName).Nodes();
-
-        rans_check_utilities.CheckIfVariableExistsInNodesContainer(
-            r_nodes, TURBULENT_KINETIC_ENERGY);
-        rans_check_utilities.CheckIfVariableExistsInNodesContainer(
-            r_nodes, TURBULENT_ENERGY_DISSIPATION_RATE);
-
-        return 0;
-    }
+    int Check() override;
 
     ///@}
     ///@name Access
@@ -206,21 +114,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return std::string("RansEpsilonTurbulentMixingLengthInletProcess");
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << this->Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -267,7 +167,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
     std::string mModelPartName;
 
     double mTurbulentMixingLength;
@@ -284,12 +184,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateTurbulentValues(NodeType& rNode)
-    {
-        const double tke = rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-        rNode.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE) = std::max(
-            mCmu_75 * std::pow(std::max(tke, 0.0), 1.5) / mTurbulentMixingLength, mMinValue);
-    }
+    void CalculateTurbulentValues(NodeType& rNode);
 
     ///@}
     ///@name Private  Access

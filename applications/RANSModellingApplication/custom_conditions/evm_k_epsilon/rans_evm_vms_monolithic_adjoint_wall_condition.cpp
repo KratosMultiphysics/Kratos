@@ -823,7 +823,7 @@ template <unsigned int TDim>
 double RansEvmVmsMonolithicAdjointWallCondition<TDim>::EvaluateInPoint(
     const Variable<double>& rVariable, const Vector& rShapeFunction, const int Step) const
 {
-    return RansCalculationUtilities().EvaluateInPoint(
+    return RansCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), rVariable, rShapeFunction, Step);
 }
 
@@ -831,7 +831,7 @@ template <unsigned int TDim>
 array_1d<double, 3> RansEvmVmsMonolithicAdjointWallCondition<TDim>::EvaluateInPoint(
     const Variable<array_1d<double, 3>>& rVariable, const Vector& rShapeFunction, const int Step) const
 {
-    return RansCalculationUtilities().EvaluateInPoint(
+    return RansCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), rVariable, rShapeFunction, Step);
 }
 

@@ -3,14 +3,7 @@ from __future__ import absolute_import, division  # makes KratosMultiphysics bac
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-# KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
-
-# Import applications
-import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-
 # Import base class file
-from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 from KratosMultiphysics.FluidDynamicsApplication.trilinos_navier_stokes_solver_vmsmonolithic import TrilinosNavierStokesSolverMonolithic
 
 class TrilinosFluidSolverNoReplace(TrilinosNavierStokesSolverMonolithic):

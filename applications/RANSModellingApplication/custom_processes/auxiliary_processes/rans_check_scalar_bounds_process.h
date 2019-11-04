@@ -20,13 +20,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "includes/checks.h"
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "processes/process.h"
-
-#include "custom_utilities/rans_check_utilities.h"
-#include "custom_utilities/rans_variable_utils.h"
 
 namespace Kratos
 {
@@ -76,29 +70,10 @@ public:
 
     /// Constructor
 
-    RansCheckScalarBoundsProcess(Model& rModel, Parameters& rParameters)
-        : Process(), mrModel(rModel), mrParameters(rParameters)
-    {
-        KRATOS_TRY
-
-        Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "variable_name"   : "PLEASE_SPECIFY_SCALAR_VARIABLE"
-        })");
-
-        mrParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mVariableName = mrParameters["variable_name"].GetString();
-        mModelPartName = mrParameters["model_part_name"].GetString();
-
-        KRATOS_CATCH("");
-    }
+    RansCheckScalarBoundsProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansCheckScalarBoundsProcess() override
-    {
-    }
+    ~RansCheckScalarBoundsProcess() override;
 
     ///@}
     ///@name Operators
@@ -108,45 +83,9 @@ public:
     ///@name Operations
     ///@{
 
-    int Check() override
-    {
-        KRATOS_TRY
+    int Check() override;
 
-        const Variable<double>& r_scalar_variable =
-            KratosComponents<Variable<double>>::Get(mVariableName);
-
-        RansCheckUtilities rans_check_utilities;
-
-        rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
-        rans_check_utilities.CheckIfVariableExistsInModelPart(
-            mrModel.GetModelPart(mModelPartName), r_scalar_variable);
-
-        return 0;
-
-        KRATOS_CATCH("");
-    }
-
-    void Execute() override
-    {
-        KRATOS_TRY
-
-        const Variable<double>& r_scalar_variable =
-            KratosComponents<Variable<double>>::Get(mVariableName);
-
-        const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
-
-        RansVariableUtils rans_variable_utils;
-        const double min_value =
-            rans_variable_utils.GetMinimumScalarValue(r_model_part, r_scalar_variable);
-        const double max_value =
-            rans_variable_utils.GetMaximumScalarValue(r_model_part, r_scalar_variable);
-
-        KRATOS_INFO(this->Info())
-            << r_scalar_variable.Name() << " is bounded between [ " << min_value
-            << ", " << max_value << " ] in " << mModelPartName << ".\n";
-
-        KRATOS_CATCH("");
-    }
+    void Execute() override;
 
     ///@}
     ///@name Access
@@ -161,21 +100,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return std::string("RansCheckScalarBoundsProcess");
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << this->Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -222,7 +153,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
     std::string mModelPartName;
     std::string mVariableName;
 

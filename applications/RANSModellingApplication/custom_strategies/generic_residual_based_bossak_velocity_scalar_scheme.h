@@ -59,8 +59,8 @@ public:
                                                    const Variable<double>& rRelaxedScalarRateVariable)
         : ResidualBasedBossakVelocityScheme<TSparseSpace, TDenseSpace>(
               AlphaBossak, RelaxationFactor, {}, {&rScalarVariable}, {&rScalarRateVariable}, {}, {}, {}),
-          mrScalarRateVariable(rScalarRateVariable),
-          mrRelaxedScalarRateVariable(rRelaxedScalarRateVariable)
+          mpScalarRateVariable(&rScalarRateVariable),
+          mpRelaxedScalarRateVariable(&rRelaxedScalarRateVariable)
     {
     }
 
@@ -81,11 +81,11 @@ public:
         {
             NodeType& r_node = *(rModelPart.NodesBegin() + iNode);
             const double scalar_rate_dot_old =
-                r_node.FastGetSolutionStepValue(mrScalarRateVariable, 1);
+                r_node.FastGetSolutionStepValue(*mpScalarRateVariable, 1);
             const double scalar_rate_dot =
-                r_node.FastGetSolutionStepValue(mrScalarRateVariable, 0);
+                r_node.FastGetSolutionStepValue(*mpScalarRateVariable, 0);
 
-            r_node.FastGetSolutionStepValue(mrRelaxedScalarRateVariable) =
+            r_node.FastGetSolutionStepValue(*mpRelaxedScalarRateVariable) =
                 this->mAlphaBossak * scalar_rate_dot_old +
                 (1.0 - this->mAlphaBossak) * scalar_rate_dot;
         }
@@ -104,8 +104,8 @@ public:
         for (int iNode = 0; iNode < number_of_nodes; ++iNode)
         {
             NodeType& r_node = *(rModelPart.NodesBegin() + iNode);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mrScalarRateVariable, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mrRelaxedScalarRateVariable, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA((*mpScalarRateVariable), r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA((*mpScalarRateVariable), r_node);
         }
 
         return value;
@@ -113,8 +113,8 @@ public:
     }
 
 private:
-    Variable<double> const mrScalarRateVariable;
-    Variable<double> const mrRelaxedScalarRateVariable;
+    Variable<double> const *mpScalarRateVariable;
+    Variable<double> const *mpRelaxedScalarRateVariable;
 
     ///@}
 };

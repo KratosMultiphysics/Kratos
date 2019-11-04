@@ -37,7 +37,7 @@ namespace Kratos
 namespace Testing
 {
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjoint2D3N_EquationIdVector,
-                          RANSEvModelsKEpsilonElementMethods)
+                          KratosRansFastSuite)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -63,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjoint2D3N_EquationIdVector,
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjoint2D3N_GetDofList, RANSEvModelsKEpsilonElementMethods)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjoint2D3N_GetDofList, KratosRansFastSuite)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -90,7 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjoint2D3N_GetDofList, RANSEvModels
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjoint2D3N_GetValuesVector,
-                          RANSEvModelsKEpsilonElementMethods)
+                          KratosRansFastSuite)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part =
@@ -125,7 +125,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjoint2D3N_GetValuesVector,
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjoint2D3N_GetFirstDerivativesVector,
-                          RANSEvModelsKEpsilonElementMethods)
+                          KratosRansFastSuite)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part =
@@ -148,7 +148,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjoint2D3N_GetFirstDerivativesVecto
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjoint2D3N_GetSecondDerivativesVector,
-                          RANSEvModelsKEpsilonElementMethods)
+                          KratosRansFastSuite)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part =

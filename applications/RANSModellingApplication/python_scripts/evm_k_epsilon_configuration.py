@@ -5,12 +5,15 @@ import KratosMultiphysics.RANSModellingApplication as KratosRANS
 from KratosMultiphysics.RANSModellingApplication.turbulence_eddy_viscosity_model_configuration import TurbulenceEddyViscosityModelConfiguration
 
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
-if CheckIfApplicationsAvailable("FluidDynamicsApplication"):
-    import KratosMultiphysics.FluidDynamicsApplication
-else:
+if not CheckIfApplicationsAvailable("FluidDynamicsApplication"):
     msg = "k-epsilon turbulence model depends on the FluidDynamicsApplication which is not found."
     msg += " Please re-install/compile with FluidDynamicsApplication"
     raise Exception(msg)
+
+if (Kratos.IsDistributedRun()):
+    from KratosMultiphysics.RANSModellingApplication.TrilinosExtension import MPIKEpsilonCoSolvingProcess as k_epsilon_co_solving_process
+else:
+    from KratosMultiphysics.RANSModellingApplication import KEpsilonCoSolvingProcess as k_epsilon_co_solving_process
 
 
 class TurbulenceKEpsilonConfiguration(
@@ -18,6 +21,8 @@ class TurbulenceKEpsilonConfiguration(
     def __init__(self, model, parameters):
         super(TurbulenceKEpsilonConfiguration, self).__init__(
             model, parameters)
+
+        self.turbulence_model_process = None
 
         default_settings = Kratos.Parameters(r'''{
             "scheme_settings": {},
@@ -52,12 +57,16 @@ class TurbulenceKEpsilonConfiguration(
         self.model_settings = parameters["model_settings"]
 
         if (self.model_settings["use_high_re_elements"].GetBool()):
-            self.model_elements_list = ["RansEvmK", "RansEvmEpsilon"]
+            self.model_elements_list = [
+                "RansEvmKEpsilonK", "RansEvmKEpsilonEpsilon"
+            ]
             self.model_conditions_list = [
-                "Condition", "RansEvmEpsilonWallCondition"
+                "Condition", "RansEvmKEpsilonEpsilonWall"
             ]
         else:
-            self.model_elements_list = ["RansEvmLowReK", "RansEvmLowReEpsilon"]
+            self.model_elements_list = [
+                "RansEvmKEpsilonLowReK", "RansEvmKEpsilonLowReEpsilon"
+            ]
             self.model_conditions_list = ["Condition", "Condition"]
         self.is_initial_values_assigned = False
 
@@ -173,24 +182,13 @@ class TurbulenceKEpsilonConfiguration(
 
     def GetTurbulenceSolvingProcess(self):
         if self.turbulence_model_process is None:
-            if (self.is_distributed):
-                self.turbulence_model_process = KratosRANS.MPIKEpsilonCoSolvingProcess(
-                    self.fluid_model_part,
-                    self.model_settings["coupling_settings"])
-
-                Kratos.Logger.PrintInfo(
-                    self.__class__.__name__,
-                    "Created MPI turbulence solving process.")
-            else:
-                self.turbulence_model_process = KratosRANS.KEpsilonCoSolvingProcess(
-                    self.fluid_model_part,
-                    self.model_settings["coupling_settings"])
-
-                Kratos.Logger.PrintInfo(
-                    self.__class__.__name__,
-                    "Created non-MPI turbulence solving process.")
+            self.turbulence_model_process = k_epsilon_co_solving_process(
+                self.fluid_model_part,
+                self.model_settings["coupling_settings"])
+            Kratos.Logger.PrintInfo(self.__class__.__name__,
+                                    "Created turbulence solving process.")
 
         return self.turbulence_model_process
 
     def GetFluidVelocityPressureConditionName(self):
-        return "RansEvmVmsMonolithicWallCondition"
+        return "RansEvmKEpsilonVmsMonolithicWall"

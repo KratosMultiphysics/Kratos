@@ -3,11 +3,79 @@ import KratosMultiphysics.RANSModellingApplication as KratosRANS
 from KratosMultiphysics.process_factory import KratosProcessFactory
 
 import KratosMultiphysics.KratosUnittest as UnitTest
-import KratosMultiphysics.kratos_utilities as kratos_utilities
 import random, math
 
 
 class CustomProcessTest(UnitTest.TestCase):
+    def testCheckScalarBoundsProcess(self):
+        self.__CreateModel()
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
+                "python_module" : "apply_custom_process",
+                "process_name"  : "CheckScalarBoundsProcess",
+                "Parameters" : {
+                    "model_part_name"                : "test",
+                    "variable_name"                  : "DENSITY"
+                }
+            }
+        ]''')
+
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(settings)
+        self.__ExecuteProcesses()
+
+    def testCheckVectorBoundsProcess(self):
+        self.__CreateModel()
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
+                "python_module" : "apply_custom_process",
+                "process_name"  : "CheckVectorBoundsProcess",
+                "Parameters" : {
+                    "model_part_name"                : "test",
+                    "variable_name"                  : "VELOCITY"
+                }
+            }
+        ]''')
+
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(settings)
+        self.__ExecuteProcesses()
+
+    def testClipScalarVariableProcess(self):
+        self.__CreateModel()
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
+                "python_module" : "apply_custom_process",
+                "process_name"  : "ClipScalarVariableProcess",
+                "Parameters" : {
+                    "model_part_name"                : "test",
+                    "variable_name"                  : "DENSITY",
+                    "min_value"                      : 0.5,
+                    "max_value"                      : 0.6
+                }
+            }
+        ]''')
+
+        model_part = self.model["test"]
+        for node in model_part.Nodes:
+            density = node.GetSolutionStepValue(Kratos.DENSITY)
+            node.SetSolutionStepValue(Kratos.DENSITY, 0, math.pow(-1, node.Id) * density)
+
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(settings)
+        self.__ExecuteProcesses()
+
+        for node in model_part.Nodes:
+            density = node.GetSolutionStepValue(Kratos.DENSITY)
+            self.assertEqual(density >= 0.5, True)
+            self.assertEqual(density <= 0.6, True)
+
     def testApplyFlagProcess(self):
         self.__CreateModel()
 
@@ -83,7 +151,7 @@ class CustomProcessTest(UnitTest.TestCase):
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
                 "python_module" : "apply_custom_process",
-                "process_name"  : "ApplyScalarCellCenteredAveragingProcess",
+                "process_name"  : "ScalarCellCenteredAveragingProcess",
                 "Parameters" : {
                     "echo_level"           : 0,
                     "model_part_name"      : "test.submodelpart_1",
@@ -133,7 +201,7 @@ class CustomProcessTest(UnitTest.TestCase):
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
                 "python_module" : "apply_custom_process",
-                "process_name"  : "ApplyVectorCellCenteredAveragingProcess",
+                "process_name"  : "VectorCellCenteredAveragingProcess",
                 "Parameters" : {
                     "echo_level"           : 0,
                     "model_part_name"      : "test.submodelpart_1",
@@ -174,7 +242,7 @@ class CustomProcessTest(UnitTest.TestCase):
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
                 "python_module" : "apply_custom_process",
-                "process_name"  : "ApplyVectorAlignProcess",
+                "process_name"  : "VectorAlignProcess",
                 "Parameters" : {
                     "model_part_name"         : "test.submodelpart_1",
                     "input_variable_name"     : "VELOCITY",
@@ -232,7 +300,7 @@ class CustomProcessTest(UnitTest.TestCase):
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
                 "python_module" : "apply_custom_process",
-                "process_name"  : "ApplyVectorAlignProcess",
+                "process_name"  : "VectorAlignProcess",
                 "Parameters" : {
                     "model_part_name"         : "test.submodelpart_1",
                     "input_variable_name"     : "VELOCITY",
@@ -317,7 +385,6 @@ class CustomProcessTest(UnitTest.TestCase):
             }
         ]''')
 
-        node_ids = [1, 2, 3, 4, 5, 6]
         check_values = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
 
         factory = KratosProcessFactory(self.model)

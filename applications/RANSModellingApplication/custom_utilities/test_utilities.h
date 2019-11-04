@@ -82,6 +82,19 @@ void RunResidualScalarSensitivityTest(
 void RunResidualScalarSensitivityTest(
     ModelPart& rPrimalModelPart,
     ModelPart& rAdjointModelPart,
+    std::vector<Process*>& rPrimalProcesses,
+    std::vector<Process*>& rAdjointProcesses,
+    std::function<void(ModelPart&)> UpdateVariablesInModelPart,
+    std::function<void(Matrix&, ElementType&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
+    std::function<double&(NodeType&)> PerturbVariable,
+    const double Delta,
+    const double Tolerance,
+    const int DerivativesOffset = 0,
+    const int EquationOffset = 0);
+
+void RunResidualScalarSensitivityTest(
+    ModelPart& rPrimalModelPart,
+    ModelPart& rAdjointModelPart,
     Process& rPrimalYPlusProcess,
     Process& rPrimalNutProcess,
     Process& rAdjointYPlusProcess,

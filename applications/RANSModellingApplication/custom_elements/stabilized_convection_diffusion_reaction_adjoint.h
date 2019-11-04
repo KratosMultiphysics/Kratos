@@ -20,10 +20,11 @@
 
 // Project includes
 #include "includes/element.h"
+#include "includes/checks.h"
 
 // Application includes
 #include "custom_utilities/rans_calculation_utilities.h"
-#include "custom_utilities/rans_variable_utils.h"
+#include "custom_utilities/rans_variable_utilities.h"
 #include "includes/cfd_variables.h"
 #include "rans_modelling_application_variables.h"
 #include "stabilized_convection_diffusion_reaction_utilities.h"
@@ -1581,7 +1582,7 @@ protected:
     {
         const GeometryType& r_geometry = this->GetGeometry();
 
-        RansCalculationUtilities().CalculateGeometryData(
+        RansCalculationUtilities::CalculateGeometryData(
             r_geometry, this->GetIntegrationMethod(), rGaussWeights, rNContainer, rDN_DX);
     }
 
@@ -1600,7 +1601,7 @@ protected:
     ShapeFunctionDerivativesArrayType GetGeometryParameterDerivatives() const
     {
         const GeometryType& r_geometry = this->GetGeometry();
-        return RansCalculationUtilities().CalculateGeometryParameterDerivatives(
+        return RansCalculationUtilities::CalculateGeometryParameterDerivatives(
             r_geometry, this->GetIntegrationMethod());
     }
 
@@ -1616,7 +1617,7 @@ protected:
                            const Vector& rShapeFunction,
                            const int Step = 0) const
     {
-        return RansCalculationUtilities().EvaluateInPoint(
+        return RansCalculationUtilities::EvaluateInPoint(
             this->GetGeometry(), rVariable, rShapeFunction, Step);
     }
 
@@ -1632,7 +1633,7 @@ protected:
                                         const Vector& rShapeFunction,
                                         const int Step = 0) const
     {
-        return RansCalculationUtilities().EvaluateInPoint(
+        return RansCalculationUtilities::EvaluateInPoint(
             this->GetGeometry(), rVariable, rShapeFunction, Step);
     }
 
@@ -1712,7 +1713,7 @@ protected:
     {
         const GeometryType& r_geometry = this->GetGeometry();
 
-        RansCalculationUtilities().CalculateGradient<TDim>(
+        RansCalculationUtilities::CalculateGradient<TDim>(
             rOutput, r_geometry, rVariable, rShapeDerivatives, Step);
     }
 
@@ -1732,7 +1733,7 @@ protected:
                            const int Step = 0) const
     {
         const GeometryType& r_geometry = this->GetGeometry();
-        RansCalculationUtilities().CalculateGradient(
+        RansCalculationUtilities::CalculateGradient(
             rOutput, r_geometry, rVariable, rShapeDerivatives, Step);
     }
 
@@ -1807,7 +1808,7 @@ private:
         const Vector& rGaussShapeFunctions) const
     {
         Vector contravariant_metric_velocity(TDim);
-        const Vector& velocity = RansCalculationUtilities().GetVector<TDim>(rVelocity);
+        const Vector& velocity = RansCalculationUtilities::GetVector<TDim>(rVelocity);
 
         noalias(contravariant_metric_velocity) =
             prod(rContravariantMetricTensor, velocity) +
@@ -1884,7 +1885,7 @@ private:
         }
         else
         {
-            const Vector& velocity = RansCalculationUtilities().GetVector<TDim>(rVelocity);
+            const Vector& velocity = RansCalculationUtilities::GetVector<TDim>(rVelocity);
 
             const double sqrt_u_e_u = std::sqrt(inner_prod(
                 velocity, prod(rContravariantMetricTensor, velocity)));
@@ -1926,7 +1927,7 @@ private:
         }
         else
         {
-            const Vector& velocity = RansCalculationUtilities().GetVector<TDim>(rVelocity);
+            const Vector& velocity = RansCalculationUtilities::GetVector<TDim>(rVelocity);
 
             const double u_e_u = std::pow(
                 inner_prod(velocity, prod(rContravariantMetricTensor, velocity)), 1.5);
@@ -2040,7 +2041,7 @@ private:
                 prod(trans(rShapeFunctionDerivShapeSensitivity), rNodalScalarValues);
 
             const Vector& scalar_gradient =
-                RansCalculationUtilities().GetVector<TDim>(rScalarGradient);
+                RansCalculationUtilities::GetVector<TDim>(rScalarGradient);
             return inner_prod(scalar_gradient_shape_sensitivity, scalar_gradient) / scalar_gradient_norm;
         }
     }
@@ -2105,7 +2106,7 @@ private:
         else
         {
             const Vector& r_velocity =
-                RansCalculationUtilities().GetVector<TDim>(rVelocity);
+                RansCalculationUtilities::GetVector<TDim>(rVelocity);
             Vector primal_variable_gradient_shape_sensitivity(TDim);
             noalias(primal_variable_gradient_shape_sensitivity) =
                 prod(trans(rShapeFunctionDerivShapeSensitivity), rNodalScalarValues);
@@ -3226,8 +3227,6 @@ private:
         Geometry<Point>::ShapeFunctionsGradientsType DN_De;
         DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
 
-        RansCalculationUtilities rans_calculation_utilities;
-        RansVariableUtils rans_variable_utils;
 
         const double delta_time = -1.0 * rCurrentProcessInfo[DELTA_TIME];
         const double bossak_alpha = rCurrentProcessInfo[BOSSAK_ALPHA];
@@ -3238,9 +3237,9 @@ private:
         const GeometryType::ShapeFunctionsGradientsType& r_dn_de =
             this->GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
 
-        Matrix contravariant_metric_tensor(TDim, TDim),
-            parameter_derivatives_shape_derivs(TDim, TDim),
-            contravariant_metric_tensor_deriv(TDim, TDim);
+        BoundedMatrix<double, TDim, TDim> contravariant_metric_tensor,
+            parameter_derivatives_shape_derivs,
+            contravariant_metric_tensor_deriv;
 
         TElementData current_data;
 
@@ -3298,7 +3297,7 @@ private:
             const double primal_variable_relaxed_rate = this->EvaluateInPoint(
                 this->GetPrimalRelaxedRateVariable(), gauss_shape_functions);
 
-            rans_variable_utils.GetNodalArray(
+            RansVariableUtilities::GetNodalArray(
                 primal_variable_relaxed_rate_nodal_values, *this,
                 this->GetPrimalRelaxedRateVariable());
 
@@ -3337,7 +3336,7 @@ private:
                     chi * residual / (primal_variable_gradient_norm * velocity_magnitude_square);
             }
 
-            rans_variable_utils.GetNodalArray(primal_variable_nodal_values,
+            RansVariableUtilities::GetNodalArray(primal_variable_nodal_values,
                                               *this, primal_variable);
             const double psi_one = StabilizedConvectionDiffusionReactionUtilities::CalculatePsiOne(
                 velocity_magnitude, tau,
@@ -3362,7 +3361,7 @@ private:
                     const double gauss_weight_deriv =
                         detJ_deriv * inv_detJ * gauss_weights[g];
 
-                    rans_calculation_utilities.CalculateGeometryParameterDerivativesShapeSensitivity(
+                    RansCalculationUtilities::CalculateGeometryParameterDerivativesShapeSensitivity(
                         parameter_derivatives_shape_derivs, deriv,
                         gauss_r_dn_de, r_parameter_derivatives_g);
 

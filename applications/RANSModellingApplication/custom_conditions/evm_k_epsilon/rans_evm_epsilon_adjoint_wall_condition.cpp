@@ -690,7 +690,7 @@ template <unsigned int TNumNodes, unsigned int TDim>
 double RansEvmEpsilonAdjointWallCondition<TNumNodes, TDim>::EvaluateInPoint(
     const Variable<double>& rVariable, const Vector& rShapeFunction, const int Step) const
 {
-    return RansCalculationUtilities().EvaluateInPoint(
+    return RansCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), rVariable, rShapeFunction, Step);
 }
 

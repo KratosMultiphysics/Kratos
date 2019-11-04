@@ -20,12 +20,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "custom_utilities/rans_variable_utils.h"
-#include "includes/checks.h"
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "processes/process.h"
-#include "rans_modelling_application_variables.h"
 
 namespace Kratos
 {
@@ -68,38 +63,10 @@ public:
 
     /// Constructor
 
-    RansVectorAlignProcess(Model& rModel, Parameters& rParameters)
-        : mrModel(rModel), mrParameters(rParameters)
-    {
-        KRATOS_TRY
-
-        Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name"         : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "input_variable_name"     : "PLEASE_SPECIFY_INPUT_VARIABLE_NAME",
-            "output_variable_name"    : "PLEASE_SPECIFY_OUTPUT_VARIABLE_NAME",
-            "alignment_variable_name" : "NORMAL",
-            "is_tangential_alignment" : true,
-            "echo_level"              : 0
-        })");
-
-        mrParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mModelPartName = mrParameters["model_part_name"].GetString();
-        mInputVariableName = mrParameters["input_variable_name"].GetString();
-        mOutputVariableName = mrParameters["output_variable_name"].GetString();
-        mAlignmentVariableName = mrParameters["alignment_variable_name"].GetString();
-        mIsTangentialAlignment = mrParameters["is_tangential_alignment"].GetBool();
-        mEchoLevel = mrParameters["echo_level"].GetInt();
-
-        KRATOS_CATCH("");
-    }
+    RansVectorAlignProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansVectorAlignProcess() override
-    {
-        // delete mpDistanceCalculator;
-    }
+    ~RansVectorAlignProcess() override;
 
     ///@}
     ///@name Operators
@@ -109,15 +76,9 @@ public:
     ///@name Operations
     ///@{
 
-    int Check() override
-    {
-        return 0;
-    }
+    int Check() override;
 
-    void Execute() override
-    {
-        CalculateAlignmentVectors();
-    }
+    void Execute() override;
 
     ///@}
     ///@name Access
@@ -132,21 +93,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return std::string("RansVectorAlignProcess");
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << this->Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -193,7 +146,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
 
     int mEchoLevel;
 
@@ -212,77 +165,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateAlignmentVectors()
-    {
-        KRATOS_TRY
-
-        const Variable<array_1d<double, 3>>& r_input_variable =
-            KratosComponents<Variable<array_1d<double, 3>>>::Get(mInputVariableName);
-        const Variable<array_1d<double, 3>>& r_output_variable =
-            KratosComponents<Variable<array_1d<double, 3>>>::Get(mOutputVariableName);
-        const Variable<array_1d<double, 3>>& r_alignment_variable =
-            KratosComponents<Variable<array_1d<double, 3>>>::Get(mAlignmentVariableName);
-
-        ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
-
-        const int number_of_nodes = r_model_part.NumberOfNodes();
-
-        if (mIsTangentialAlignment)
-        {
-#pragma omp parallel for
-            for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-            {
-                NodeType& r_node = *(r_model_part.NodesBegin() + i_node);
-
-                const array_1d<double, 3>& r_normal =
-                    r_node.FastGetSolutionStepValue(r_alignment_variable);
-                const double normal_magnitude = norm_2(r_normal);
-
-                KRATOS_ERROR_IF(normal_magnitude < std::numeric_limits<double>::epsilon())
-                    << "NORMAL magnitude is zero in node " << r_node.Id()
-                    << " at " << r_node.Coordinates() << " in "
-                    << mModelPartName << " [ NORMAL = " << r_normal << " ].\n";
-
-                const array_1d<double, 3> r_unit_normal = r_normal / norm_2(r_normal);
-
-                const array_1d<double, 3>& r_velocity =
-                    r_node.FastGetSolutionStepValue(r_input_variable);
-                r_node.FastGetSolutionStepValue(r_output_variable) =
-                    r_velocity - r_unit_normal * inner_prod(r_velocity, r_unit_normal);
-            }
-        }
-        else
-        {
-#pragma omp parallel for
-            for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-            {
-                NodeType& r_node = *(r_model_part.NodesBegin() + i_node);
-
-                const array_1d<double, 3>& r_normal =
-                    r_node.FastGetSolutionStepValue(r_alignment_variable);
-                const double normal_magnitude = norm_2(r_normal);
-
-                KRATOS_ERROR_IF(normal_magnitude < std::numeric_limits<double>::epsilon())
-                    << "NORMAL magnitude is zero in node " << r_node.Id()
-                    << " at " << r_node.Coordinates() << " in "
-                    << mModelPartName << " [ NORMAL = " << r_normal << " ].\n";
-
-                const array_1d<double, 3> r_unit_normal = r_normal / norm_2(r_normal);
-
-                const array_1d<double, 3>& r_velocity =
-                    r_node.FastGetSolutionStepValue(r_input_variable);
-                r_node.FastGetSolutionStepValue(r_output_variable) =
-                    r_unit_normal * inner_prod(r_velocity, r_unit_normal);
-            }
-        }
-
-        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-            << r_input_variable.Name() << " is aligned using "
-            << r_alignment_variable.Name() << " and stored at "
-            << r_output_variable.Name() << " for nodes in " << mModelPartName << ".\n";
-
-        KRATOS_CATCH("");
-    }
+    void CalculateAlignmentVectors();
 
     ///@}
     ///@name Private  Access

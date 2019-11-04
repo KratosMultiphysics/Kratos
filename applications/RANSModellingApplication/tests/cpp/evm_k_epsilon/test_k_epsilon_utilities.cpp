@@ -27,7 +27,7 @@
 // Application includes
 #include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
-#include "custom_utilities/rans_variable_utils.h"
+#include "custom_utilities/rans_variable_utilities.h"
 #include "custom_utilities/test_utilities.h"
 #include "rans_modelling_application_variables.h"
 
@@ -351,21 +351,20 @@ void CalculatePrimalQuantities(std::vector<double>& rValues,
                                const Matrix& rGaussShapeFunctionDerivatives,
                                const ProcessInfo& rCurrentProcessInfo)
 {
-    RansCalculationUtilities rans_calculation_utilities;
 
     const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
 
     const GeometryType& r_geometry = rElement.GetGeometry();
 
-    const double y_plus = rans_calculation_utilities.EvaluateInPoint(
+    const double y_plus = RansCalculationUtilities::EvaluateInPoint(
         r_geometry, RANS_Y_PLUS, rGaussShapeFunctions);
-    const double tke = rans_calculation_utilities.EvaluateInPoint(
+    const double tke = RansCalculationUtilities::EvaluateInPoint(
         r_geometry, TURBULENT_KINETIC_ENERGY, rGaussShapeFunctions);
-    const double epsilon = rans_calculation_utilities.EvaluateInPoint(
+    const double epsilon = RansCalculationUtilities::EvaluateInPoint(
         r_geometry, TURBULENT_ENERGY_DISSIPATION_RATE, rGaussShapeFunctions);
-    const double nu_t = rans_calculation_utilities.EvaluateInPoint(
+    const double nu_t = RansCalculationUtilities::EvaluateInPoint(
         r_geometry, TURBULENT_VISCOSITY, rGaussShapeFunctions);
-    const double nu = rans_calculation_utilities.EvaluateInPoint(
+    const double nu = RansCalculationUtilities::EvaluateInPoint(
         r_geometry, KINEMATIC_VISCOSITY, rGaussShapeFunctions);
 
     const double f_mu = EvmKepsilonModelUtilities::CalculateFmu(y_plus);
@@ -374,7 +373,7 @@ void CalculatePrimalQuantities(std::vector<double>& rValues,
     const double f2 = EvmKepsilonModelUtilities::CalculateF2(tke, nu, epsilon);
 
     BoundedMatrix<double, 2, 2> velocity_gradient_matrix;
-    rans_calculation_utilities.CalculateGradient<2>(
+    RansCalculationUtilities::CalculateGradient<2>(
         velocity_gradient_matrix, r_geometry, VELOCITY, rGaussShapeFunctionDerivatives);
     const double P_k = EvmKepsilonModelUtilities::CalculateSourceTerm<2>(
         velocity_gradient_matrix, nu_t, tke);
@@ -402,12 +401,11 @@ void ReadNodalDataFromElement(Vector& rYPlus,
     const auto& r_geometry = rElement.GetGeometry();
     std::size_t number_of_nodes = r_geometry.PointsNumber();
 
-    RansVariableUtils rans_variable_utils;
 
-    rans_variable_utils.GetNodalArray(rTKE, rElement, TURBULENT_KINETIC_ENERGY);
-    rans_variable_utils.GetNodalArray(rEpsilon, rElement, TURBULENT_ENERGY_DISSIPATION_RATE);
-    rans_variable_utils.GetNodalArray(rYPlus, rElement, RANS_Y_PLUS);
-    rans_variable_utils.GetNodalArray(rNut, rElement, TURBULENT_VISCOSITY);
+    RansVariableUtilities::GetNodalArray(rTKE, rElement, TURBULENT_KINETIC_ENERGY);
+    RansVariableUtilities::GetNodalArray(rEpsilon, rElement, TURBULENT_ENERGY_DISSIPATION_RATE);
+    RansVariableUtilities::GetNodalArray(rYPlus, rElement, RANS_Y_PLUS);
+    RansVariableUtilities::GetNodalArray(rNut, rElement, TURBULENT_VISCOSITY);
 
     for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node)
         rFmu[i_node] = EvmKepsilonModelUtilities::CalculateFmu(rYPlus[i_node]);

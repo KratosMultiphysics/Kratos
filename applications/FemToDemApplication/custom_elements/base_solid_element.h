@@ -24,6 +24,7 @@
 #include "utilities/integration_utilities.h"
 #include "fem_to_dem_application_variables.h"
 #include "utilities/geometrical_sensitivity_utility.h"
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -61,7 +62,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) BaseSolidElement
+class BaseSolidElement
     : public Element
 {
 protected:
