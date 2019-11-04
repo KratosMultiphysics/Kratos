@@ -51,6 +51,13 @@ class MeshControllerWithSolver(MeshController) :
             },
             "processes" : {
                 "boundary_conditions_process_list" : []
+            },
+            "mesh_output_settings" :
+            {
+                "write_output_mdpa" : false,
+                "output_file_name"  : "PLEASE_SPECIFY_OUTPUT_FILE_NAME"
+                "step_format"       : "d",
+                "time_format"       : "0.4f"
             }
         }""")
         self.MeshSolverSettings = MeshSolverSettings
@@ -111,11 +118,46 @@ class MeshControllerWithSolver(MeshController) :
         self.OptimizationModelPart.ProcessInfo.SetValue(KM.TIME, time_before_update)
         self.OptimizationModelPart.ProcessInfo.SetValue(KM.DELTA_TIME, delta_time_before_update)
 
+        if (self.MeshSolverSettings["mesh_output_settings"]["write_output_mdpa"].GetBool()):
+            current_model_part_output_name = MeshControllerWithSolver.__GetOutputFileName(
+                self.MeshSolverSettings["mesh_output_settings"]["output_file_name"].GetString() + ".mdpa",
+                self.MeshSolverSettings["mesh_output_settings"]["step_format"].GetString(),
+                self.MeshSolverSettings["mesh_output_settings"]["time_format"].GetString())
+            MeshControllerWithSolver.__WriteUpdatedMDPAModelPart(current_model_part_output_name, self.OptimizationModelPart)
+
         KM.Logger.PrintInfo("ShapeOpt", "Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 
     # --------------------------------------------------------------------------
     def Finalize(self):
         self._mesh_moving_analysis.Finalize()
+
+    @staticmethod
+    def __GetOutputFileName(file_name, step_format, time_format):
+        current_step = self.OptimizationModelPart.ProcessInfo[KM.STEP]
+        step_format_str = "{0:%s}" % (step_format)
+        step_str = step_format_str.format(current_step)
+
+        current_time = self.OptimizationModelPart.ProcessInfo[KM.TIME]
+        time_format_str = "{0:%s}" % (time_format)
+        time_str = time_format_str.format(current_time)
+
+        output_file_name = file_name.replace("<STEP>", step_str)
+        output_file_name = output_file_name.replace("<TIME>", time_str)
+
+        return output_file_name
+
+    @staticmethod
+    def __WriteUpdatedMDPAModelPart(output_file_name, updated_model_part):
+        with open(output_file_name, "r") as file_input:
+            input_lines = file_input.readlines()
+
+        begin_nodes_index = input_lines.index("Begin Nodes\n")
+
+        for node in updated_model_part.Nodes:
+            input_lines[node.Id + begin_nodes_index] = "{0:5d}\t{1:16.10f}\t{2:16.10f}\t{3:16.10f}\n".format(int(node.Id), float(node.X()), float(node.Y()), float(node.Z()))
+
+        with open(output_file_name, "w") as file_output:
+            file_output.write(input_lines)
 
     # --------------------------------------------------------------------------
     @staticmethod
