@@ -725,7 +725,7 @@ inline void CalculateCrossWindDiffusionCoeffScalarDerivatives(
     const BoundedVector<double, TNumNodes>& rPsiTwoScalarDerivatives,
     const BoundedVector<double, TNumNodes>& rEffectiveKinematicViscosityScalarDerivatives)
 {
-    if (cross_wind_diffusion_coefficient >= 0.0)
+    if (cross_wind_diffusion_coefficient > 0.0)
     {
         noalias(rOutput) =
             rPsiOneScalarDerivatives *
