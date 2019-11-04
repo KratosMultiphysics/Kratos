@@ -8,7 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
-class TestPatchTestSmallDisplacementMixedStrain(KratosUnittest.TestCase):
+class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCase):
     def setUp(self):
         self.tolerance = 1.0e-6
         self.print_output = True
@@ -191,14 +191,14 @@ class TestPatchTestSmallDisplacementMixedStrain(KratosUnittest.TestCase):
         boundary_model_part.AddNodes([1,2,4,5,6,7])
 
         #create Element
-        model_part.CreateNewElement("SmallDisplacementElement3D4N", 1,[5,3,1,2], model_part.GetProperties()[1])
-        model_part.CreateNewElement("SmallDisplacementElement3D4N", 2,[3,1,2,6], model_part.GetProperties()[1])
-        model_part.CreateNewElement("SmallDisplacementElement3D4N", 3,[6,4,7,3], model_part.GetProperties()[1])
-        model_part.CreateNewElement("SmallDisplacementElement3D4N", 4,[5,4,1,3], model_part.GetProperties()[1])
-        model_part.CreateNewElement("SmallDisplacementElement3D4N", 5,[4,1,3,6], model_part.GetProperties()[1])
-        model_part.CreateNewElement("SmallDisplacementElement3D4N", 6,[5,4,3,7], model_part.GetProperties()[1])
-        model_part.CreateNewElement("SmallDisplacementElement3D4N", 7,[3,5,7,2], model_part.GetProperties()[1])
-        model_part.CreateNewElement("SmallDisplacementElement3D4N", 8,[6,7,2,3], model_part.GetProperties()[1])
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement3D4N", 1,[5,3,1,2], model_part.GetProperties()[1])
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement3D4N", 2,[3,1,2,6], model_part.GetProperties()[1])
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement3D4N", 3,[6,4,7,3], model_part.GetProperties()[1])
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement3D4N", 4,[5,4,1,3], model_part.GetProperties()[1])
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement3D4N", 5,[4,1,3,6], model_part.GetProperties()[1])
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement3D4N", 6,[5,4,3,7], model_part.GetProperties()[1])
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement3D4N", 7,[3,5,7,2], model_part.GetProperties()[1])
+        model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement3D4N", 8,[6,7,2,3], model_part.GetProperties()[1])
 
         A,b = self._define_movement(dimension)
 
