@@ -120,8 +120,8 @@ class AdjointKEpsilonSensitivity2D(KratosUnittest.TestCase):
             # calculate sensitivity by finite difference
             step_size = 0.00000001
             FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1],step_size,'./AdjointKEpsilonSensitivity2DTest/one_element_steady_test',[1.0,0.0,0.0],'./MainModelPart.Structure_drag.dat')
-            self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 3)
-            self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 3)
+            self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
+            self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 4)
             self._removeH5Files("MainModelPart")
             kratos_utils.DeleteFileIfExisting("./AdjointKEpsilonSensitivity2DTest/one_element_test.time")
             kratos_utils.DeleteFileIfExisting("./Structure_drag.dat")
