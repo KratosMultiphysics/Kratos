@@ -16,8 +16,8 @@
 // External includes
 
 // Project includes
-#include "includes/variables.h"
 #include "includes/define.h"
+#include "includes/variables.h"
 #include "rans_modelling_application_variables.h"
 
 #include "custom_utilities/rans_check_utilities.h"
@@ -27,8 +27,7 @@
 
 namespace Kratos
 {
-RansKTurbulentIntensityInletProcess::RansKTurbulentIntensityInletProcess(Model& rModel,
-                                                                         Parameters rParameters)
+RansKTurbulentIntensityInletProcess::RansKTurbulentIntensityInletProcess(Model& rModel, Parameters rParameters)
     : mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY
@@ -147,8 +146,8 @@ void RansKTurbulentIntensityInletProcess::CalculateTurbulentValues(NodeType& rNo
     const array_1d<double, 3>& r_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
     double velocity_magnitude = norm_2(r_velocity);
 
-    rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) =
-        1.5 * std::pow(mTurbulentIntensity * velocity_magnitude, 2);
+    rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) = std::max(
+        1.5 * std::pow(mTurbulentIntensity * velocity_magnitude, 2), mMinValue);
 }
 
 } // namespace Kratos.
