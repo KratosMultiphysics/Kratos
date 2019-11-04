@@ -184,12 +184,12 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_GetSecond
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_CalculateFirstDerivativesLHS,
-                          RANSModellingApplicationConditionInterfaces)
+                          KratosRansFastSuite)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
-        r_primal_model_part, "RansEvmVmsMonolithicWallCondition2D2N");
+        r_primal_model_part, "RansEvmKEpsilonVmsMonolithicWall2D2N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -225,12 +225,12 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_Calculate
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_Calculate_RANS_TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE,
-                          RANSModellingApplicationConditionInterfaces)
+                          KratosRansFastSuite)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
-        r_primal_model_part, "RansEvmVmsMonolithicWallCondition2D2N");
+        r_primal_model_part, "RansEvmKEpsilonVmsMonolithicWall2D2N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -266,12 +266,12 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_Calculate
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_Calculate_RANS_TURBULENT_ENERGY_DISSIPATION_RATE_PARTIAL_DERIVATIVE,
-                          RANSModellingApplicationConditionInterfaces)
+                          KratosRansFastSuite)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
-        r_primal_model_part, "RansEvmVmsMonolithicWallCondition2D2N");
+        r_primal_model_part, "RansEvmKEpsilonVmsMonolithicWall2D2N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -307,12 +307,12 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_Calculate
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_CalculateSecondDerivativesLHS,
-                          RANSModellingApplicationConditionInterfaces)
+                          KratosRansFastSuite)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
-        r_primal_model_part, "RansEvmVmsMonolithicWallCondition2D2N");
+        r_primal_model_part, "RansEvmKEpsilonVmsMonolithicWall2D2N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -348,12 +348,12 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_Calculate
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmVmsMonolithicAdjointWallCondition2D2N_CalculateSensitivityMatrix,
-                          RANSModellingApplicationConditionInterfaces)
+                          KratosRansFastSuite)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
-        r_primal_model_part, "RansEvmVmsMonolithicWallCondition2D2N");
+        r_primal_model_part, "RansEvmKEpsilonVmsMonolithicWall2D2N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");

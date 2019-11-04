@@ -4,11 +4,9 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 
 
 def run():
-    Tester.SetVerbosity(Tester.Verbosity.TESTS_OUTPUTS) # TESTS_OUTPUTS
-    # Tester.RunTestSuite("KratosRansFastSuite")
-    Tester.RunTestSuite("TEMPTEST")
-    # Tester.RunTestSuite("RANSModellingApplicationElementInterfaces")
-    # Tester.RunTestSuite("RANSModellingApplicationConditionInterfaces")
+    Tester.SetVerbosity(Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
+    Tester.RunTestSuite("KratosRansFastSuite")
+    # Tester.RunTestSuite("TEMPTEST")
 
 if __name__ == '__main__':
     run()

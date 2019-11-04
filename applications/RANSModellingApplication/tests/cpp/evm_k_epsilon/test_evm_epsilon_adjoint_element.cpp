@@ -167,7 +167,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_GetSecondDerivativesVector,
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_CalculateFirstDerivativesLHS,
-                          RANSModellingApplicationElementInterfaces)
+                          KratosRansFastSuite)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
@@ -215,7 +215,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_CalculateFirstDerivativesLHS
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_Calculate_RANS_TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE,
-                          RANSModellingApplicationElementInterfaces)
+                          KratosRansFastSuite)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
@@ -264,7 +264,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_Calculate_RANS_TURBULENT_KIN
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_CalculateSecondDerivativesLHS,
-                          RANSModellingApplicationElementInterfaces)
+                          KratosRansFastSuite)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
@@ -310,11 +310,11 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_CalculateSecondDerivativesLH
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process,
         nut_sensitivities_process, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
-        calculate_sensitivity_matrix, perturb_variable, 1e-6, 1e-5);
+        calculate_sensitivity_matrix, perturb_variable, 1e-5, 1e-5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_CalculateSensitivityMatrix,
-                          RANSModellingApplicationElementInterfaces)
+                          KratosRansFastSuite)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
@@ -363,7 +363,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_CalculateSensitivityMatrix,
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_Calculate_RANS_VELOCITY_PRESSURE_PARTIAL_DERIVATIVE,
-                          RANSModellingApplicationElementInterfaces)
+                          KratosRansFastSuite)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");

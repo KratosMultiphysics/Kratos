@@ -192,7 +192,7 @@ KRATOS_TEST_CASE_IN_SUITE(TEMPTEST_1, TEMPTEST)
     RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_processes,
         adjoint_processes, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
-        calculate_sensitivity_matrix, perturb_variable, 1e-7, 1e-5);
+        calculate_sensitivity_matrix, perturb_variable, 1e-8, 1e-5);
 }
 } // namespace Testing
 } // namespace Kratos

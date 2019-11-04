@@ -1846,10 +1846,26 @@ private:
                     effective_kinematic_viscosity, reaction, bossak_alpha,
                     bossak_gamma, delta_time, element_length, dynamic_tau);
 
-                noalias(positivity_preserving_coeff_derivatives) =
-                    gauss_shape_functions *
-                    ((residual / (std::abs(residual) + std::numeric_limits<double>::epsilon())) *
-                     chi / (scalar_gradient_norm * velocity_magnitude_square));
+                const double abs_residual = std::abs(residual);
+                if (abs_residual <= std::numeric_limits<double>::epsilon())
+                {
+                    positivity_preserving_coeff_derivatives.clear();
+                }
+                else
+                {
+                    if (residual > 0.0)
+                    {
+                        noalias(positivity_preserving_coeff_derivatives) =
+                            gauss_shape_functions * chi /
+                            (scalar_gradient_norm * velocity_magnitude_square);
+                    }
+                    else
+                    {
+                        noalias(positivity_preserving_coeff_derivatives) =
+                            -1.0 * gauss_shape_functions * chi /
+                            (scalar_gradient_norm * velocity_magnitude_square);
+                    }
+                }
             }
             else
             {
@@ -2031,7 +2047,6 @@ private:
         Geometry<Point>::ShapeFunctionsGradientsType DN_De;
         DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
 
-
         const double delta_time = this->GetDeltaTime(rCurrentProcessInfo);
         const double bossak_alpha = rCurrentProcessInfo[BOSSAK_ALPHA];
         const double bossak_gamma =
@@ -2140,7 +2155,7 @@ private:
             }
 
             RansVariableUtilities::GetNodalArray(primal_variable_nodal_values,
-                                              *this, primal_variable);
+                                                 *this, primal_variable);
             const double psi_one = StabilizedConvectionDiffusionReactionUtilities::CalculatePsiOne(
                 velocity_magnitude, tau,
                 reaction + dynamic_tau * (1 - bossak_alpha) / (bossak_gamma * delta_time));

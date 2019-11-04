@@ -167,7 +167,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_GetSecondDerivativesVector,
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_CalculateFirstDerivativesLHS,
-                          RANSModellingApplicationElementInterfaces)
+                          KratosRansFastSuite)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
@@ -215,7 +215,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_CalculateFirstDerivativesLHS,
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_Calculate_RANS_TURBULENT_ENERGY_DISSIPATION_RATE_PARTIAL_DERIVATIVE,
-                          RANSModellingApplicationElementInterfaces)
+                          KratosRansFastSuite)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
@@ -264,7 +264,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_Calculate_RANS_TURBULENT_ENERGY_DI
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_CalculateSecondDerivativesLHS,
-                          RANSModellingApplicationElementInterfaces)
+                          KratosRansFastSuite)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
@@ -314,7 +314,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_CalculateSecondDerivativesLHS,
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_Calculate_RANS_VELOCITY_PRESSURE_PARTIAL_DERIVATIVE,
-                          RANSModellingApplicationElementInterfaces)
+                          KratosRansFastSuite)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
@@ -363,7 +363,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_Calculate_RANS_VELOCITY_PRESSURE_P
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_CalculateSensitivityMatrix,
-                          RANSModellingApplicationElementInterfaces)
+                          KratosRansFastSuite)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
