@@ -44,8 +44,8 @@ namespace Testing
 
         // Create the test element
         auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-        auto p_node_2 = r_model_part.CreateNewNode(2, 0.0 , 1.0 , 0.0);
-        auto p_node_3 = r_model_part.CreateNewNode(3, 1.0 , 0.0 , 0.0);
+        auto p_node_3 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.0);
         std::vector<ModelPart::IndexType> element_nodes {1,2,3};
         auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement2D3N", 1, element_nodes, p_elem_prop);
 
@@ -72,8 +72,8 @@ namespace Testing
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-5;
-        const std::vector<double> expected_RHS({-53205.1,-53205.1,0.00107639,38461.5,14743.6,-0.00239583,14743.6,38461.5,-0.00634722});
-        const std::vector<double> expected_LHS_row_0({-625000,144231,368590,384615,-528846,368590,240385,384615,368590});
+        const std::vector<double> expected_RHS({53205.1, 53205.1, -0.00107639, -14743.6, -38461.5, 0.00634722, -38461.5, -14743.6, 0.00239583});
+        const std::vector<double> expected_LHS_row_0({625000, -144231, -368590, -240385, -384615, -368590, -384615, 528846, -368590});
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
     }
@@ -118,8 +118,8 @@ namespace Testing
 
         // Create the test element
         auto p_node_1 = r_model_part.CreateNewNode(1, 0.1 , 0.1 , 0.0);
-        auto p_node_2 = r_model_part.CreateNewNode(2, 0.9 , 0.4 , 0.0);
-        auto p_node_3 = r_model_part.CreateNewNode(3, 0.5 , 0.2 , 0.0);
+        auto p_node_3 = r_model_part.CreateNewNode(2, 0.5 , 0.2 , 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(3, 0.9 , 0.4 , 0.0);
         std::vector<ModelPart::IndexType> element_nodes {1,2,3};
         auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement2D3N", 1, element_nodes, p_elem_prop);
 
@@ -191,8 +191,8 @@ namespace Testing
 
         // Create the test element
         auto p_node_1 = r_model_part.CreateNewNode(1, 0.1 , 0.1 , 0.0);
-        auto p_node_2 = r_model_part.CreateNewNode(2, 0.9 , 0.4 , 0.0);
-        auto p_node_3 = r_model_part.CreateNewNode(3, 0.5 , 0.2 , 0.0);
+        auto p_node_3 = r_model_part.CreateNewNode(2, 0.5 , 0.2 , 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(3, 0.9 , 0.4 , 0.0);
         auto p_node_4 = r_model_part.CreateNewNode(4, 0.3 , 0.3 , 0.5);
         std::vector<ModelPart::IndexType> element_nodes {1,2,3,4};
         auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement3D4N", 1, element_nodes, p_elem_prop);
