@@ -43,6 +43,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+template <std::size_t TNumNodes>
 struct RansEvmEpsilonAdjointData
 {
     double C1;
@@ -63,28 +64,21 @@ struct RansEvmEpsilonAdjointData
 
     double TurbulentReynoldsNumber;
 
-    Matrix ShapeFunctionDerivatives;
-    Vector ShapeFunctions;
-
-    Vector NodalTurbulentKineticEnergy;
-    Vector NodalTurbulentEnergyDissipationRate;
-    Vector NodalFmu;
-    Vector NodalYPlus;
     Matrix NodalVelocity;
 
-    Vector TurbulentKinematicViscositySensitivitiesK;
-    Vector TurbulentKinematicViscositySensitivitiesEpsilon;
+    BoundedVector<double, TNumNodes> TurbulentKinematicViscositySensitivitiesK;
+    BoundedVector<double, TNumNodes> TurbulentKinematicViscositySensitivitiesEpsilon;
 };
 
 template <unsigned int TDim, unsigned int TNumNodes>
 class RansEvmEpsilonAdjoint
-    : public StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, RansEvmEpsilonAdjointData>
+    : public StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, RansEvmEpsilonAdjointData<TNumNodes>>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    typedef StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, RansEvmEpsilonAdjointData> BaseType;
+    typedef StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, RansEvmEpsilonAdjointData<TNumNodes>> BaseType;
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
@@ -154,8 +148,8 @@ public:
      * Constructor using Properties
      */
     RansEvmEpsilonAdjoint(IndexType NewId,
-                             GeometryType::Pointer pGeometry,
-                             PropertiesType::Pointer pProperties);
+                          GeometryType::Pointer pGeometry,
+                          PropertiesType::Pointer pProperties);
 
     /**
      * Copy Constructor
@@ -316,65 +310,97 @@ private:
 
     const Variable<double>& GetAdjointSecondVariable() const override;
 
-    void CalculateElementData(RansEvmEpsilonAdjointData& rData,
+    void CalculateElementData(RansEvmEpsilonAdjointData<TNumNodes>& rData,
                               const Vector& rShapeFunctions,
                               const Matrix& rShapeFunctionDerivatives,
-                              const ProcessInfo& rCurrentProcessInfo) const override;
+                              const ProcessInfo& rCurrentProcessInfo,
+                              const int Step = 0) const override;
 
-    double CalculateEffectiveKinematicViscosity(const RansEvmEpsilonAdjointData& rCurrentData,
-                                                const ProcessInfo& rCurrentProcessInfo) const override;
+    double CalculateEffectiveKinematicViscosity(const RansEvmEpsilonAdjointData<TNumNodes>& rCurrentData,
+                                                const Vector& rShapeFunctions,
+                                                const Matrix& rShapeFunctionDerivatives,
+                                                const ProcessInfo& rCurrentProcessInfo,
+                                                const int Step = 0) const override;
 
-    double CalculateReactionTerm(const RansEvmEpsilonAdjointData& rCurrentData,
-                                 const ProcessInfo& rCurrentProcessInfo) const override;
+    double CalculateReactionTerm(const RansEvmEpsilonAdjointData<TNumNodes>& rCurrentData,
+                                 const Vector& rShapeFunctions,
+                                 const Matrix& rShapeFunctionDerivatives,
+                                 const ProcessInfo& rCurrentProcessInfo,
+                                 const int Step = 0) const override;
 
-    double CalculateSourceTerm(const RansEvmEpsilonAdjointData& rCurrentData,
-                               const ProcessInfo& rCurrentProcessInfo) const override;
+    double CalculateSourceTerm(const RansEvmEpsilonAdjointData<TNumNodes>& rCurrentData,
+                               const Vector& rShapeFunctions,
+                               const Matrix& rShapeFunctionDerivatives,
+                               const ProcessInfo& rCurrentProcessInfo,
+                               const int Step = 0) const override;
 
     void CalculateEffectiveKinematicViscosityScalarDerivatives(
-        Vector& rOutput,
+        BoundedVector<double, TNumNodes>& rOutput,
         const Variable<double>& rDerivativeVariable,
-        const RansEvmEpsilonAdjointData& rCurrentData,
+        const RansEvmEpsilonAdjointData<TNumNodes>& rCurrentData,
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives,
         const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void CalculateReactionTermScalarDerivatives(Vector& rOutput,
-                                                const Variable<double>& rDerivativeVariable,
-                                                const RansEvmEpsilonAdjointData& rCurrentData,
-                                                const ProcessInfo& rCurrentProcessInfo) const override;
+    void CalculateReactionTermScalarDerivatives(
+        BoundedVector<double, TNumNodes>& rOutput,
+        const Variable<double>& rDerivativeVariable,
+        const RansEvmEpsilonAdjointData<TNumNodes>& rCurrentData,
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives,
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void CalculateSourceTermScalarDerivatives(Vector& rOutput,
-                                              const Variable<double>& rDerivativeVariable,
-                                              const RansEvmEpsilonAdjointData& rCurrentData,
-                                              const ProcessInfo& rCurrentProcessInfo) const override;
+    void CalculateSourceTermScalarDerivatives(
+        BoundedVector<double, TNumNodes>& rOutput,
+        const Variable<double>& rDerivativeVariable,
+        const RansEvmEpsilonAdjointData<TNumNodes>& rCurrentData,
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives,
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     void CalculateEffectiveKinematicViscosityVelocityDerivatives(
-        Matrix& rOutput,
-        const RansEvmEpsilonAdjointData& rCurrentData,
+        BoundedMatrix<double, TNumNodes, TDim>& rOutput,
+        const RansEvmEpsilonAdjointData<TNumNodes>& rCurrentData,
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives,
         const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void CalculateReactionTermVelocityDerivatives(Matrix& rOutput,
-                                                  const RansEvmEpsilonAdjointData& rCurrentData,
-                                                  const ProcessInfo& rCurrentProcessInfo) const override;
+    void CalculateReactionTermVelocityDerivatives(
+        BoundedMatrix<double, TNumNodes, TDim>& rOutput,
+        const RansEvmEpsilonAdjointData<TNumNodes>& rCurrentData,
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives,
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void CalculateSourceTermVelocityDerivatives(Matrix& rOutput,
-                                                const RansEvmEpsilonAdjointData& rCurrentData,
-                                                const ProcessInfo& rCurrentProcessInfo) const override;
+    void CalculateSourceTermVelocityDerivatives(
+        BoundedMatrix<double, TNumNodes, TDim>& rOutput,
+        const RansEvmEpsilonAdjointData<TNumNodes>& rCurrentData,
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives,
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     double CalculateEffectiveKinematicViscosityShapeSensitivity(
-        const RansEvmEpsilonAdjointData& rCurrentData,
+        const RansEvmEpsilonAdjointData<TNumNodes>& rCurrentData,
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives,
         const ShapeParameter& rShapeDerivative,
         const double detJ_deriv,
         const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv,
         const ProcessInfo& rCurrentProcessInfo) const override;
 
     double CalculateReactionTermShapeSensitivity(
-        const RansEvmEpsilonAdjointData& rCurrentData,
+        const RansEvmEpsilonAdjointData<TNumNodes>& rCurrentData,
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives,
         const ShapeParameter& rShapeDerivative,
         const double detJ_deriv,
         const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv,
         const ProcessInfo& rCurrentProcessInfo) const override;
 
     double CalculateSourceTermShapeSensitivity(
-        const RansEvmEpsilonAdjointData& rCurrentData,
+        const RansEvmEpsilonAdjointData<TNumNodes>& rCurrentData,
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives,
         const ShapeParameter& rShapeDerivative,
         const double detJ_deriv,
         const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv,

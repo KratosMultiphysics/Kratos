@@ -44,23 +44,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+template<std::size_t TNumNodes>
 struct RANSEvmVMSAdjointData
 {
     Matrix ShapeFunctionDerivatives;
     Vector ShapeFunctions;
 
-    Vector NodalTurbulentKineticEnergy;
-    Vector NodalTurbulentEnergyDissipationRate;
-    Vector NodalYPlus;
-    Vector NodalFmu;
-
-    Vector TurbulentKinematicViscositySensitivitiesK;
-    Vector TurbulentKinematicViscositySensitivitiesEpsilon;
+    BoundedVector<double, TNumNodes> TurbulentKinematicViscositySensitivitiesK;
+    BoundedVector<double, TNumNodes> TurbulentKinematicViscositySensitivitiesEpsilon;
 };
 
 template <unsigned int TDim, unsigned int TNumNodes = TDim + 1>
 class RansEvmKEpsilonVMSAdjoint
-    : public RANSEvmVMSAdjoint<TDim, RANSEvmVMSAdjointData, TNumNodes>
+    : public RANSEvmVMSAdjoint<TDim, RANSEvmVMSAdjointData<TNumNodes>, TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -68,7 +64,7 @@ public:
 
     constexpr static unsigned int TFluidLocalSize = (TDim + 1) * TNumNodes;
 
-    typedef RANSEvmVMSAdjoint<TDim, RANSEvmVMSAdjointData, TNumNodes> BaseType;
+    typedef RANSEvmVMSAdjoint<TDim, RANSEvmVMSAdjointData<TNumNodes>, TNumNodes> BaseType;
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
@@ -267,20 +263,20 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateElementData(RANSEvmVMSAdjointData& rData,
+    void CalculateElementData(RANSEvmVMSAdjointData<TNumNodes>& rData,
                               const Vector& rShapeFunctions,
                               const Matrix& rShapeFunctionDerivatives,
                               const ProcessInfo& rCurrentProcessInfo) const override;
 
     void CalculateTurbulentKinematicViscosityScalarDerivatives(
-        Vector& rOutput,
+        BoundedVector<double, TNumNodes>& rOutput,
         const Variable<double>& rDerivativeVariable,
-        const RANSEvmVMSAdjointData& rCurrentData,
+        const RANSEvmVMSAdjointData<TNumNodes>& rCurrentData,
         const ProcessInfo& rCurrentProcessInfo) const override;
 
     void CalculateTurbulentKinematicViscosityVelocityDerivatives(
-        Matrix& rOutput,
-        const RANSEvmVMSAdjointData& rCurrentData,
+        BoundedMatrix<double, TNumNodes, TDim>& rOutput,
+        const RANSEvmVMSAdjointData<TNumNodes>& rCurrentData,
         const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
