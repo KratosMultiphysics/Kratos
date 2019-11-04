@@ -499,79 +499,6 @@ protected:
         const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
         const IndexType PointNumber) const;
 
-    // /**
-    //  * @brief Calculation of the Material Stiffness Matrix. Km = B^T * D *B
-    //  * @param rLeftHandSideMatrix The local LHS of the element
-    //  * @param B The deformationmmatrix
-    //  * @param D The constitutive matrix
-    //  * @param IntegrationWeight The integration weight of the corresponding Gauss point
-    //  */
-    // virtual void CalculateAndAddKm(
-    //     MatrixType& rLeftHandSideMatrix,
-    //     const Matrix& B,
-    //     const Matrix& D,
-    //     const double IntegrationWeight
-    //     ) const;
-
-    // /**
-    //  * @brief Calculation of the Geometric Stiffness Matrix. Kg = dB * S
-    //  * @param rLeftHandSideMatrix The local LHS of the element
-    //  * @param DN_DX The gradient derivative of the shape function
-    //  * @param rStressVector The vector containing the stress components
-    //  * @param IntegrationWeight The integration weight of the corresponding Gauss point
-    //  */
-    // void CalculateAndAddKg(
-    //     MatrixType& rLeftHandSideMatrix,
-    //     const Matrix& DN_DX,
-    //     const Vector& rStressVector,
-    //     const double IntegrationWeight
-    //     ) const;
-
-    // /**
-    //  * @brief Calculation of the RHS
-    //  * @param rRightHandSideVector The local component of the RHS due to external forces
-    //  * @param rThisKinematicVariables The kinematic variables like shape functions
-    //  * @param rCurrentProcessInfo rCurrentProcessInfo the current process info instance
-    //  * @param rBodyForce The component of external forces due to self weight
-    //  * @param rStressVector The vector containing the stress components
-    //  * @param IntegrationWeight The integration weight of the corresponding Gauss point
-    //  */
-    // virtual void CalculateAndAddResidualVector(
-    //     VectorType& rRightHandSideVector,
-    //     const KinematicVariables& rThisKinematicVariables,
-    //     const ProcessInfo& rCurrentProcessInfo,
-    //     const array_1d<double, 3>& rBodyForce,
-    //     const Vector& rStressVector,
-    //     const double IntegrationWeight
-    //     ) const;
-
-    // /**
-    //  * @brief This function add the external force contribution
-    //  * @param rN Shape function
-    //  * @param rCurrentProcessInfo rCurrentProcessInfo the current process info instance
-    //  * @param rBodyForce The component of external forces due to self weight
-    //  * @param rRightHandSideVector The local component of the RHS due to external forces
-    //  * @param IntegrationWeight The integration weight of the corresponding Gauss point
-    //  */
-    // void CalculateAndAddExtForceContribution(
-    //     const Vector& rN,
-    //     const ProcessInfo& rCurrentProcessInfo,
-    //     const array_1d<double, 3>& rBodyForce,
-    //     VectorType& rRightHandSideVector,
-    //     const double IntegrationWeight
-    //     ) const;
-
-    // /**
-    //  * @brief This functions computes the integration weight to consider
-    //  * @param ThisIntegrationMethod The array containing the integration points
-    //  * @param PointNumber The id of the integration point considered
-    //  * @param detJ The determinant of the jacobian of the element
-    //  */
-    // virtual double GetIntegrationWeight(
-    //     const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
-    //     const IndexType PointNumber,
-    //     const double detJ) const;
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -601,21 +528,6 @@ private:
     ///@{
 
     /**
-     * @brief Calculate the geometry date
-     * For a given geometry, this method calculates the Gauss point
-     * Jacobian determinants, weights, shape functions and gradients
-     * @param rGeometry Geometry of interest
-     * @param rWeightsContainer Weights container
-     * @param rShapeFunctionsContainer Shape functions container
-     * @param rDNDXContainer Gracients container
-     */
-    void CalculateGeometryData(
-        const GeometryType &rGeometry,
-        Vector &rWeightsContainer,
-        Matrix &rShapeFunctionsContainer,
-        GeometryType::ShapeFunctionsGradientsType &rDNDX0Container) const;
-
-    /**
      * @brief Calculate the kinematics
      * This method calculates the kinematics of the element for
      * a given integration point
@@ -628,19 +540,8 @@ private:
         const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod) const;
 
-    // /**
-    //  * @brief Calculate the material response
-    //  * This method calculates the kinematics and material constitutive
-    //  * response for a given integration point
-    //  * @param PointIndex Integration point index
-    //  * @param rConsLawParams Constitutive law parameters. Note that this already includes the total strain
-    //  */
-    // void CalculateMaterialResponse(
-    //     const SizeType PointIndex,
-    //     ConstitutiveLaw::Parameters &rConsLawParams) const;
-
     /**
-     * Calculation of the Deformation Matrix B
+     * @brief Calculation of the Deformation Matrix B
      * @param rB The deformation matrix
      * @param rDN_DX The derivatives of the shape functions
      * @param IntegrationPoints The array containing the integration points

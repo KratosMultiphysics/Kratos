@@ -99,7 +99,6 @@ void SmallDisplacementMixedVolumetricStrainElement::EquationIdVector(
         }
     } else {
         for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-            KRATOS_WATCH(aux_index)
             rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_X, disp_pos).EquationId();
             rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y, disp_pos + 1).EquationId();
             rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Z, disp_pos + 2).EquationId();
@@ -692,51 +691,6 @@ array_1d<double, 3> SmallDisplacementMixedVolumetricStrainElement::GetBodyForce(
     }
 
     return body_force;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SmallDisplacementMixedVolumetricStrainElement::CalculateGeometryData(
-    const GeometryType &rGeometry,
-    Vector &rWeightsContainer,
-    Matrix &rShapeFunctionsContainer,
-    GeometryType::ShapeFunctionsGradientsType &rDNDX0Container) const
-{
-    // Compute the geometry data
-    const SizeType n_nodes = rGeometry.PointsNumber();
-    const auto r_integration_method = GetIntegrationMethod();
-    const SizeType n_gauss = rGeometry.IntegrationPointsNumber(r_integration_method);
-    const auto& r_integration_points = rGeometry.IntegrationPoints(r_integration_method);
-
-    // Check Gauss points containers size
-    if (rShapeFunctionsContainer.size1() != n_gauss || rShapeFunctionsContainer.size2() != n_nodes) {
-        rShapeFunctionsContainer.resize(n_gauss, n_nodes,false);
-    }
-    if (rWeightsContainer.size() != n_gauss) {
-        rWeightsContainer.resize(n_gauss, false);
-    }
-    if (rDNDX0Container.size() != n_gauss){
-        rDNDX0Container.resize(n_gauss, false);
-    }
-
-    // Calculate the shape function values
-    rShapeFunctionsContainer = rGeometry.ShapeFunctionsValues(r_integration_method);
-
-    // Calculate the shape function local gradients
-    const auto &rDN_De_container = rGeometry.ShapeFunctionsLocalGradients(r_integration_method);
-
-    for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-        // Calculate InvJ0
-        double detJ0;
-        Matrix J0, invJ0;
-        GeometryUtils::JacobianOnInitialConfiguration(rGeometry, r_integration_points[i_gauss], J0);
-        MathUtils<double>::InvertMatrix(J0, invJ0, detJ0);
-        // Calculate shape functions gradients
-        GeometryUtils::ShapeFunctionsGradients(rDN_De_container[i_gauss], invJ0, rDNDX0Container[i_gauss]);
-        // Calculate integration weights (already multiplied by det(J))
-        rWeightsContainer[i_gauss] = detJ0 * r_integration_points[i_gauss].Weight();
-    }
 }
 
 /***********************************************************************************/
