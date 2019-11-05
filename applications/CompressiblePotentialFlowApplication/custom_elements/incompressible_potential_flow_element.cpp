@@ -102,8 +102,8 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::EquationIdVector(
     }
     else // Wake element
     {
-        if (rResult.size() != 2 * NumNodes)
-            rResult.resize(2 * NumNodes, false);
+        if (rResult.size() != 2 * NumNodes + 1)
+            rResult.resize(2 * NumNodes + 1, false);
 
         GetEquationIdVectorWakeElement(rResult);
     }
@@ -130,8 +130,8 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVectorTyp
     }
     else // wake element
     {
-        if (rElementalDofList.size() != 2 * NumNodes)
-            rElementalDofList.resize(2 * NumNodes);
+        if (rElementalDofList.size() != 2 * NumNodes + 1)
+            rElementalDofList.resize(2 * NumNodes + 1);
 
         GetDofListWakeElement(rElementalDofList);
     }
@@ -323,6 +323,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorWakeE
             rResult[NumNodes + i] =
                 GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
     }
+    rResult[2*NumNodes] = GetGeometry()[0].GetDof(PSI).EquationId();
 }
 
 template <int Dim, int NumNodes>
@@ -369,6 +370,8 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListWakeElement(Do
             rElementalDofList[NumNodes + i] =
                 GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
     }
+
+    rElementalDofList[2*NumNodes] = GetGeometry()[0].pGetDof(PSI);
 }
 
 template <int Dim, int NumNodes>
@@ -400,11 +403,11 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     // Note that the lhs and rhs have double the size
-    if (rLeftHandSideMatrix.size1() != 2 * NumNodes ||
-        rLeftHandSideMatrix.size2() != 2 * NumNodes)
-        rLeftHandSideMatrix.resize(2 * NumNodes, 2 * NumNodes, false);
-    if (rRightHandSideVector.size() != 2 * NumNodes)
-        rRightHandSideVector.resize(2 * NumNodes, false);
+    if (rLeftHandSideMatrix.size1() != 2 * NumNodes + 1 ||
+        rLeftHandSideMatrix.size2() != 2 * NumNodes + 1)
+        rLeftHandSideMatrix.resize(2 * NumNodes + 1, 2 * NumNodes + 1, false);
+    if (rRightHandSideVector.size() != 2 * NumNodes + 1)
+        rRightHandSideVector.resize(2 * NumNodes + 1, false);
     rLeftHandSideMatrix.clear();
     rRightHandSideVector.clear();
 
@@ -439,6 +442,21 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
             lhs_pressure_lower(row, column) = data.N[row] * dU2dPhi_lower[column];
         }
         residual_pressure(row) = data.N[row] * (velocity_upper_2 - velocity_lower_2) * data.vol;
+    }
+
+    BoundedMatrix<double, Dim, Dim> condition_matrix = IdentityMatrix(Dim,Dim);
+    condition_matrix(0,0) = 1.0;
+    condition_matrix(1,1) = 1.0;
+
+    auto filter = prod(condition_matrix, trans(data.DN_DX));
+
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_total2 = ZeroMatrix(NumNodes, NumNodes);
+    for (unsigned int i = 0; i < NumNodes; i++){
+        for(unsigned int j = 0; j < NumNodes; j++){
+            for(unsigned int k = 0; k < Dim; k++){
+                lhs_total2(i,j) += data.vol*free_stream_density*data.DN_DX(i,k)*filter(k,j);
+            }
+        }
     }
 
     // if(this->Id()==22927 || this->Id()==1){
@@ -479,18 +497,20 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
                     // // Constraint
                     // rLeftHandSideMatrix(row, column) = lhs_pressure_upper(row, column);
                     // rLeftHandSideMatrix(row, column + NumNodes) = -lhs_pressure_lower(row, column); // Side 1
-                    if(pressure_counter < 3){
-                        // Applying pressure equality constraint for one node under the wake
-                        rLeftHandSideMatrix(row, column) = lhs_pressure_upper(row, column);
-                        rLeftHandSideMatrix(row, column + NumNodes) = -lhs_pressure_lower(row, column); // Side 1
-                        // rLeftHandSideMatrix(row, column) = lhs_total(row, column);
-                        // rLeftHandSideMatrix(row, column + NumNodes) = -lhs_total(row, column); // Side 1
-                        pressure_counter += 1;
-                    }
-                    else{
-                        rLeftHandSideMatrix(row, column) = lhs_total(row, column);
-                        rLeftHandSideMatrix(row, column + NumNodes) = -lhs_total(row, column); // Side 1
-                    }
+                    rLeftHandSideMatrix(row, column) = lhs_total(row, column);
+                    rLeftHandSideMatrix(row, column + NumNodes) = -lhs_total(row, column); // Side 1
+                    // if(pressure_counter < 3){
+                    //     // Applying pressure equality constraint for one node under the wake
+                    //     rLeftHandSideMatrix(row, column) = lhs_pressure_upper(row, column);
+                    //     rLeftHandSideMatrix(row, column + NumNodes) = -lhs_pressure_lower(row, column); // Side 1
+                    //     // rLeftHandSideMatrix(row, column) = lhs_total(row, column);
+                    //     // rLeftHandSideMatrix(row, column + NumNodes) = -lhs_total(row, column); // Side 1
+                    //     pressure_counter += 1;
+                    // }
+                    // else{
+                    //     rLeftHandSideMatrix(row, column) = lhs_total(row, column);
+                    //     rLeftHandSideMatrix(row, column + NumNodes) = -lhs_total(row, column); // Side 1
+                    // }
 
                 }
             }
@@ -522,20 +542,52 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
         }
     }
 
+    // if (data.distances[0] < 0.0){
+
+    // }
+    // else{
+
+    // }
+
+    for (unsigned int column = 0; column < NumNodes; ++column){
+        rLeftHandSideMatrix(2*NumNodes, column) = lhs_pressure_upper(0, column);
+        rLeftHandSideMatrix(2*NumNodes, column + NumNodes) = - lhs_pressure_lower(0, column);
+
+        rLeftHandSideMatrix(column, 2*NumNodes) = lhs_pressure_upper(0, column);
+        rLeftHandSideMatrix(column + NumNodes, 2*NumNodes) = - lhs_pressure_lower(0, column);
+    }
+
     BoundedVector<double, 2*NumNodes> split_element_values;
     split_element_values = PotentialFlowUtilities::GetPotentialOnWakeElement<Dim, NumNodes>(*this, data.distances);
-    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
+    //noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
 
-    pressure_counter = 0;
-    for (unsigned int row = 0; row < NumNodes; ++row){
-        if (data.distances[row] < 0.0){
-            //rRightHandSideVector[row] = - residual_pressure[row];
-            if(pressure_counter < 1){
-                rRightHandSideVector[row] = - residual_pressure[row];
-                pressure_counter += 1;
-            }
+    for (unsigned int row = 0; row < 2*NumNodes; ++row){
+        for (unsigned int column = 0; column < 2*NumNodes; ++column){
+            rRightHandSideVector(row) -= rLeftHandSideMatrix(row, column) * split_element_values(column);
         }
     }
+
+    if(this->Id()==22927 || this->Id()==1){
+        KRATOS_WATCH(rRightHandSideVector)
+        KRATOS_WATCH(split_element_values)
+    }
+
+    rRightHandSideVector(2*NumNodes) = - residual_pressure[0];
+
+    // if(this->Id()==22927 || this->Id()==1){
+    //     KRATOS_WATCH(rRightHandSideVector)
+    // }
+
+    // pressure_counter = 0;
+    // for (unsigned int row = 0; row < NumNodes; ++row){
+    //     if (data.distances[row] < 0.0){
+    //         //rRightHandSideVector[row] = - residual_pressure[row];
+    //         if(pressure_counter < 1){
+    //             rRightHandSideVector[row] = - residual_pressure[row];
+    //             pressure_counter += 1;
+    //         }
+    //     }
+    // }
 
     // pressure_counter_up = 0;
     // for (unsigned int row = 0; row < NumNodes; ++row){
@@ -548,115 +600,115 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     //     }
     // }
 
-    // std::cout.precision(1);
-    // std::cout << std::scientific;
-    // std::cout << std::showpos;
-    // if(this->Id()==22927 || this->Id()==1){
-    //     KRATOS_WATCH(rRightHandSideVector)
+    std::cout.precision(6);
+    //std::cout << std::scientific;
+    std::cout << std::showpos;
+    if(this->Id()==22927 || this->Id()==1){
+        // KRATOS_WATCH(rRightHandSideVector)
 
-    //     std::cout << std::endl;
-    //     KRATOS_WATCH(this->Id())
-    //     for(unsigned int row = 0; row < lhs_pressure_upper.size1(); ++row){
-    //         for(unsigned int column = 0; column < lhs_pressure_upper.size2(); column++){
-    //             if(column == 2){
-    //                 std::cout << " " << lhs_pressure_upper(row, column) << " |";
-    //             }
-    //             else{
-    //                 std::cout << " " << lhs_pressure_upper(row, column) << " ";
-    //             }
-    //         }
+        // std::cout << std::endl;
+        // KRATOS_WATCH(this->Id())
+        // for(unsigned int row = 0; row < lhs_pressure_upper.size1(); ++row){
+        //     for(unsigned int column = 0; column < lhs_pressure_upper.size2(); column++){
+        //         if(column == 2){
+        //             std::cout << " " << lhs_pressure_upper(row, column) << " |";
+        //         }
+        //         else{
+        //             std::cout << " " << lhs_pressure_upper(row, column) << " ";
+        //         }
+        //     }
 
-    //         std::cout << std::endl;
+        //     std::cout << std::endl;
 
-    //         if(row ==2){
-    //             for(unsigned int j = 0; j < 10*lhs_pressure_upper.size1(); j++){
-    //             std::cout << "_" ;
-    //             }
-    //             std::cout << " " << std::endl;
-    //         }
-    //         else{
-    //             for(unsigned int i = 0; i < 2; i++){
-    //                 for(unsigned int j = 0; j < 10*3; j++){
-    //                     std::cout << " " ;
-    //                 }
-    //                 if(i == 0){
-    //                     std::cout << "|" ;
-    //                 }
-    //             }
-    //         }
-    //         std::cout << std::endl;
-    //     }
-    //     std::cout << std::endl;
+        //     if(row ==2){
+        //         for(unsigned int j = 0; j < 10*lhs_pressure_upper.size1(); j++){
+        //         std::cout << "_" ;
+        //         }
+        //         std::cout << " " << std::endl;
+        //     }
+        //     else{
+        //         for(unsigned int i = 0; i < 2; i++){
+        //             for(unsigned int j = 0; j < 10*3; j++){
+        //                 std::cout << " " ;
+        //             }
+        //             if(i == 0){
+        //                 std::cout << "|" ;
+        //             }
+        //         }
+        //     }
+        //     std::cout << std::endl;
+        // }
+        // std::cout << std::endl;
 
 
-    //     std::cout << std::endl;
-    //     for(unsigned int row = 0; row < lhs_pressure_lower.size1(); ++row){
-    //         for(unsigned int column = 0; column < lhs_pressure_lower.size2(); column++){
-    //             if(column == 2){
-    //                 std::cout << " " << lhs_pressure_lower(row, column) << " |";
-    //             }
-    //             else{
-    //                 std::cout << " " << lhs_pressure_lower(row, column) << " ";
-    //             }
-    //         }
+        // std::cout << std::endl;
+        // for(unsigned int row = 0; row < lhs_pressure_lower.size1(); ++row){
+        //     for(unsigned int column = 0; column < lhs_pressure_lower.size2(); column++){
+        //         if(column == 2){
+        //             std::cout << " " << lhs_pressure_lower(row, column) << " |";
+        //         }
+        //         else{
+        //             std::cout << " " << lhs_pressure_lower(row, column) << " ";
+        //         }
+        //     }
 
-    //         std::cout << std::endl;
+        //     std::cout << std::endl;
 
-    //         if(row ==2){
-    //             for(unsigned int j = 0; j < 10*lhs_pressure_lower.size1(); j++){
-    //             std::cout << "_" ;
-    //             }
-    //             std::cout << " " << std::endl;
-    //         }
-    //         else{
-    //             for(unsigned int i = 0; i < 2; i++){
-    //                 for(unsigned int j = 0; j < 10*3; j++){
-    //                     std::cout << " " ;
-    //                 }
-    //                 if(i == 0){
-    //                     std::cout << "|" ;
-    //                 }
-    //             }
-    //         }
-    //         std::cout << std::endl;
-    //     }
-    //     std::cout << std::endl;
+        //     if(row ==2){
+        //         for(unsigned int j = 0; j < 10*lhs_pressure_lower.size1(); j++){
+        //         std::cout << "_" ;
+        //         }
+        //         std::cout << " " << std::endl;
+        //     }
+        //     else{
+        //         for(unsigned int i = 0; i < 2; i++){
+        //             for(unsigned int j = 0; j < 10*3; j++){
+        //                 std::cout << " " ;
+        //             }
+        //             if(i == 0){
+        //                 std::cout << "|" ;
+        //             }
+        //         }
+        //     }
+        //     std::cout << std::endl;
+        // }
+        // std::cout << std::endl;
 
-    //     std::cout << std::endl;
-    //     KRATOS_WATCH(this->Id())
-    //     for(unsigned int row = 0; row < rLeftHandSideMatrix.size1(); ++row){
-    //         for(unsigned int column = 0; column < rLeftHandSideMatrix.size2(); column++){
-    //             if(column == 2){
-    //                 std::cout << " " << rLeftHandSideMatrix(row, column) << " |";
-    //             }
-    //             else{
-    //                 std::cout << " " << rLeftHandSideMatrix(row, column) << " ";
-    //             }
-    //         }
+        std::cout << std::endl;
+        KRATOS_WATCH(this->Id())
+        for(unsigned int row = 0; row < rLeftHandSideMatrix.size1(); ++row){
+            for(unsigned int column = 0; column < rLeftHandSideMatrix.size2(); column++){
+                if(column == 2){
+                    std::cout << " " << rLeftHandSideMatrix(row, column) << " |";
+                }
+                else{
+                    std::cout << " " << rLeftHandSideMatrix(row, column) << " ";
+                }
+            }
 
-    //         std::cout << std::endl;
+            std::cout << std::endl;
 
-    //         if(row ==2){
-    //             for(unsigned int j = 0; j < 10*rLeftHandSideMatrix.size1(); j++){
-    //             std::cout << "_" ;
-    //             }
-    //             std::cout << " " << std::endl;
-    //         }
-    //         else{
-    //             for(unsigned int i = 0; i < 2; i++){
-    //                 for(unsigned int j = 0; j < 10*3; j++){
-    //                     std::cout << " " ;
-    //                 }
-    //                 if(i == 0){
-    //                     std::cout << "|" ;
-    //                 }
-    //             }
-    //         }
-    //         std::cout << std::endl;
-    //     }
-    //     std::cout << std::endl;
+            if(row ==2){
+                for(unsigned int j = 0; j < 10*rLeftHandSideMatrix.size1(); j++){
+                std::cout << "_" ;
+                }
+                std::cout << " " << std::endl;
+            }
+            else{
+                for(unsigned int i = 0; i < 2; i++){
+                    for(unsigned int j = 0; j < 10*3; j++){
+                        std::cout << " " ;
+                    }
+                    if(i == 0){
+                        std::cout << "|" ;
+                    }
+                }
+            }
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
 
-    // }
+    }
 }
 
 template <int Dim, int NumNodes>

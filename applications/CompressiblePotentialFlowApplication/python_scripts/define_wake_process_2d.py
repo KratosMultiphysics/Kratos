@@ -50,7 +50,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             raise Exception("Fluid model part does not have a wake_sub_model_part")
         else: self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake_sub_model_part")
 
-        absolute_tolerance = 1e-9
+        absolute_tolerance = 1e-10
         CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled2D(self.wake_sub_model_part, absolute_tolerance, self.echo_level)
         CPFApp.PotentialFlowUtilities.CheckIfPressureEqualityWakeConditionsAreFulfilled2D(self.wake_sub_model_part, absolute_tolerance, self.echo_level)
 
