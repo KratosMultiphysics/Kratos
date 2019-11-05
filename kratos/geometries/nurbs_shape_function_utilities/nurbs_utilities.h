@@ -26,18 +26,20 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// Utility functions for NURBS computation
-/*
-* Provides universal geometrical utiltity functions for the computation of
-* curve and surface NURBS/ B-Spline shape functions.
+/**
+ * @namespace NurbsUtilities
+ * @ingroup KratosCore
+ * @brief Utility functions for NURBS computation
+ * @details Provides universal geometrical utiltity functions for the computation of curve and surface NURBS/ B-Spline shape functions.
+ * @author Thomas Oberbichler
  */
 namespace NurbsUtilities
 {
     ///@name Type Definitions
     ///@{
 
-    typedef typename std::size_t IndexType;
-    typedef typename std::size_t SizeType;
+    typedef std::size_t IndexType;
+    typedef std::size_t SizeType;
 
     ///@}
     ///@name Static Operations
