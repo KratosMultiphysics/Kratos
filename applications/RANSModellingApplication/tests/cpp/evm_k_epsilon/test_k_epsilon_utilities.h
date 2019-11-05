@@ -56,29 +56,23 @@ void CreateEquationIds(ModelPart& rModelPart);
 
 void InitializeNodalVariables(ModelPart& rModelPart);
 
-void GenerateRansEvmKEpsilonElementTestModelPart(ModelPart& rModelPart, std::string ElementName);
-
-void GenerateRansEvmKEpsilonConditionTestModelPart(ModelPart& rModelPart,
-                                                   std::string ConditionName);
+template <typename TContainerType>
+void GenerateRansEvmKEpsilonTestModelPart(ModelPart& rModelPart,
+                                          std::string TContainerDataTypeName);
 
 void UpdateVariablesInModelPart(ModelPart& rModelPart);
 
-void UpdateVariablesInModelPartLowRe(ModelPart& rModelPart);
-
-void CalculatePrimalQuantities(std::vector<double>& rValues,
-                               const ElementType& rElement,
-                               const Vector& rGaussShapeFunctions,
-                               const Matrix& rGaussShapeFunctionDerivatives,
-                               const ProcessInfo& rCurrentProcessInfo);
-
-void ReadNodalDataFromElement(Vector& rYPlus,
-                              Vector& rTKE,
-                              Vector& rEpsilon,
-                              Vector& rNut,
-                              Vector& rFmu,
-                              const Element& rElement);
-
 void InitializeYPlus(ModelPart& rModelPart);
+
+template <typename TDataType, typename TContainer>
+void RunRansEvmKEpsilonTest(const std::string PrimalName,
+                            const std::string AdjointName,
+                            const Variable<TDataType>& rPerturbationVariable,
+                            std::function<void(Matrix&, typename TContainer::data_type&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
+                            const double Delta,
+                            const double Tolerance,
+                            const int DerivativesOffset = 0,
+                            const int EquationOffset = 0);
 
 } // namespace RansEvmKEpsilonModel
 } // namespace Testing

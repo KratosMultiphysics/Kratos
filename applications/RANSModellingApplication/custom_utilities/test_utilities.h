@@ -62,86 +62,41 @@ void InitializeVariableWithRandomValues(ModelPart& rModelPart,
                                         const double MaxValue,
                                         const std::size_t TimeSteps);
 
-void RunResidualScalarSensitivityTest(
-    ModelPart& rPrimalModelPart,
-    ModelPart& rAdjointModelPart,
-    Process& rPrimalYPlusProcess,
-    Process& rPrimalNutProcess,
-    Process& rAdjointYPlusProcess,
-    Process& rAdjointNutProcess,
-    Process& rYPlusSensitivitiesProcess,
-    Process& rNutSensitivitiesProcess,
-    std::function<void(ModelPart&)> UpdateVariablesInModelPart,
-    std::function<void(Matrix&, ElementType&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
-    std::function<double&(NodeType&)> PerturbVariable,
-    const double Delta,
-    const double Tolerance,
-    const int DerivativesOffset = 0,
-    const int EquationOffset = 0);
-
-void RunResidualScalarSensitivityTest(
+template <typename TContainer>
+void RunResidualSensitivityTest(
     ModelPart& rPrimalModelPart,
     ModelPart& rAdjointModelPart,
     std::vector<Process*>& rPrimalProcesses,
     std::vector<Process*>& rAdjointProcesses,
     std::function<void(ModelPart&)> UpdateVariablesInModelPart,
-    std::function<void(Matrix&, ElementType&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
+    std::function<void(Matrix&, typename TContainer::data_type&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
     std::function<double&(NodeType&)> PerturbVariable,
     const double Delta,
     const double Tolerance,
     const int DerivativesOffset = 0,
     const int EquationOffset = 0);
 
-void RunResidualScalarSensitivityTest(
+template <typename TContainer>
+void RunResidualSensitivityTest(
     ModelPart& rPrimalModelPart,
     ModelPart& rAdjointModelPart,
-    Process& rPrimalYPlusProcess,
-    Process& rPrimalNutProcess,
-    Process& rAdjointYPlusProcess,
-    Process& rAdjointNutProcess,
-    Process& rYPlusSensitivitiesProcess,
-    Process& rNutSensitivitiesProcess,
+    std::vector<Process*>& rPrimalProcesses,
+    std::vector<Process*>& rAdjointProcesses,
     std::function<void(ModelPart&)> UpdateVariablesInModelPart,
-    std::function<void(Matrix&, ConditionType&, ProcessInfo&)> CalculateConditionResidualScalarSensitivity,
-    std::function<double&(NodeType&)> PerturbVariable,
-    const double Delta,
-    const double Tolerance,
-    const int DerivativesOffset = 0,
-    const int EquationOffset = 0);
-
-void RunResidualVectorSensitivityTest(
-    ModelPart& rPrimalModelPart,
-    ModelPart& rAdjointModelPart,
-    Process& rPrimalYPlusProcess,
-    Process& rPrimalNutProcess,
-    Process& rAdjointYPlusProcess,
-    Process& rAdjointNutProcess,
-    Process& rYPlusSensitivitiesProcess,
-    Process& rNutSensitivitiesProcess,
-    std::function<void(ModelPart&)> UpdateVariablesInModelPart,
-    std::function<void(Matrix&, ElementType&, ProcessInfo&)> CalculateElementResidualVectorSensitivity,
+    std::function<void(Matrix&, typename TContainer::data_type&, ProcessInfo&)> CalculateElementResidualVectorSensitivity,
     std::function<double&(NodeType&, const int)> PerturbVariable,
     const double Delta,
     const double Tolerance,
     const int DerivativesOffset = 0,
     const int EquationOffset = 0);
 
-void RunResidualVectorSensitivityTest(
-    ModelPart& rPrimalModelPart,
-    ModelPart& rAdjointModelPart,
-    Process& rPrimalYPlusProcess,
-    Process& rPrimalNutProcess,
-    Process& rAdjointYPlusProcess,
-    Process& rAdjointNutProcess,
-    Process& rYPlusSensitivitiesProcess,
-    Process& rNutSensitivitiesProcess,
-    std::function<void(ModelPart&)> UpdateVariablesInModelPart,
-    std::function<void(Matrix&, ConditionType&, ProcessInfo&)> CalculateConditionResidualVectorSensitivity,
-    std::function<double&(NodeType&, const int)> PerturbVariable,
-    const double Delta,
-    const double Tolerance,
-    const int DerivativesOffset = 0,
-    const int EquationOffset = 0);
+template <typename TContainer>
+TContainer& GetContainerItems(ModelPart& rModelPart);
+
+std::function<double&(NodeType&)> GetPerturbationMethod(const Variable<double>&);
+
+std::function<double&(NodeType&, const int)> GetPerturbationMethod(
+    const Variable<array_1d<double, 3>>&);
 
 } // namespace RansModellingApplicationTestUtilities
 } // namespace Kratos
