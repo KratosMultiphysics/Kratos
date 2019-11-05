@@ -45,8 +45,7 @@ namespace Kratos
  * @see VMS monolithic fluid element
  */
 template <unsigned int TDim, class TRANSEvmVMSAdjointData, unsigned int TNumNodes = TDim + 1>
-class RANSEvmVMSAdjoint
-    : public VMSAdjointElement<TDim>
+class RANSEvmVMSAdjoint : public VMSAdjointElement<TDim>
 {
 public:
     ///@name Type Definitions
@@ -100,9 +99,7 @@ public:
     {
     }
 
-    RANSEvmVMSAdjoint(IndexType NewId,
-                             GeometryType::Pointer pGeometry,
-                             PropertiesType::Pointer pProperties)
+    RANSEvmVMSAdjoint(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseType(NewId, pGeometry, pProperties)
     {
     }
@@ -197,9 +194,11 @@ public:
         if (rSensitivityVariable == SHAPE_SENSITIVITY)
         {
             BoundedMatrix<double, TCoordLocalSize, TFluidLocalSize> local_matrix;
-            this->CalculateSensitivityMatrix(rSensitivityVariable, local_matrix, rCurrentProcessInfo);
+            this->CalculateSensitivityMatrix(rSensitivityVariable, local_matrix,
+                                             rCurrentProcessInfo);
 
-            if (rOutput.size1()  != local_matrix.size1() || rOutput.size2() != local_matrix.size2())
+            if (rOutput.size1() != local_matrix.size1() ||
+                rOutput.size2() != local_matrix.size2())
                 rOutput.resize(local_matrix.size1(), local_matrix.size2(), false);
             noalias(rOutput) = local_matrix;
         }
@@ -234,8 +233,8 @@ public:
     }
 
     void CalculateResidualScalarDerivatives(const Variable<double>& rVariable,
-                                                        BoundedMatrix<double, TNumNodes, TFluidLocalSize>& rOutput,
-                                                        const ProcessInfo& rCurrentProcessInfo)
+                                            BoundedMatrix<double, TNumNodes, TFluidLocalSize>& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo)
     {
         this->CalculateElementTotalSteadyResidualScalarDerivatives(
             rOutput, rVariable, rCurrentProcessInfo);
@@ -250,16 +249,15 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "RANSEvmVMSAdjoint"
-               << this->GetGeometry().WorkingSpaceDimension() << "D #" << this->Id();
+        buffer << "RANSEvmVMSAdjoint" << this->GetGeometry().WorkingSpaceDimension()
+               << "D #" << this->Id();
         return buffer.str();
     }
 
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "RANSEvmVMSAdjoint"
-                 << this->GetGeometry().WorkingSpaceDimension() << "D #"
-                 << this->Id() << std::endl;
+        rOStream << "RANSEvmVMSAdjoint" << this->GetGeometry().WorkingSpaceDimension()
+                 << "D #" << this->Id() << std::endl;
         rOStream << "Number of Nodes: " << this->GetGeometry().PointsNumber() << std::endl;
     }
 
@@ -324,11 +322,12 @@ protected:
         KRATOS_CATCH("");
     }
 
-    void AddElementTotalMassResidualScalarDerivatives(BoundedMatrix<double, TNumNodes, TFluidLocalSize>& rOutputMatrix,
-                                                      const Variable<array_1d<double, 3>>& rVariable,
-                                                      const Variable<double>& rDerivativeVariable,
-                                                      double alpha,
-                                                      const ProcessInfo& rCurrentProcessInfo)
+    void AddElementTotalMassResidualScalarDerivatives(
+        BoundedMatrix<double, TNumNodes, TFluidLocalSize>& rOutputMatrix,
+        const Variable<array_1d<double, 3>>& rVariable,
+        const Variable<double>& rDerivativeVariable,
+        double alpha,
+        const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -381,18 +380,15 @@ protected:
         // BoundedVector<double, TNumNodes> TauTwoDeriv;
         TauOneDeriv.clear();
 
-        if (VelNorm > 0.0)
+        BoundedVector<double, TNumNodes> NuTDerivative;
+        this->CalculateTurbulentKinematicViscosityScalarDerivatives(
+            NuTDerivative, rDerivativeVariable, current_data, rCurrentProcessInfo);
+
+        const double CoefOne = -4.0 * Density * TauOne * TauOne / (ElemSize * ElemSize);
+
+        for (IndexType i = 0; i < TNumNodes; ++i)
         {
-            BoundedVector<double, TNumNodes> NuTDerivative;
-            this->CalculateTurbulentKinematicViscosityScalarDerivatives(
-                NuTDerivative, rDerivativeVariable, current_data, rCurrentProcessInfo);
-
-            const double CoefOne = -4.0 * Density * TauOne * TauOne / (ElemSize * ElemSize);
-
-            for (IndexType i = 0; i < TNumNodes; ++i)
-            {
-                TauOneDeriv[i] = CoefOne * NuTDerivative[i];
-            }
+            TauOneDeriv[i] = CoefOne * NuTDerivative[i];
         }
 
         // rVariable (x)
@@ -528,15 +524,12 @@ protected:
         this->CalculateTurbulentKinematicViscosityScalarDerivatives(
             NuTDerivative, rDerivativeVariable, current_data, rCurrentProcessInfo);
 
-        if (VelNorm > 0.0)
-        {
-            const double CoefOne = -4.0 * Density * TauOne * TauOne / (ElemSize * ElemSize);
+        const double CoefOne = -4.0 * Density * TauOne * TauOne / (ElemSize * ElemSize);
 
-            for (IndexType i = 0; i < TNumNodes; ++i)
-            {
-                TauOneDeriv[i] = CoefOne * NuTDerivative[i];
-                TauTwoDeriv[i] = Density * NuTDerivative[i];
-            }
+        for (IndexType i = 0; i < TNumNodes; ++i)
+        {
+            TauOneDeriv[i] = CoefOne * NuTDerivative[i];
+            TauTwoDeriv[i] = Density * NuTDerivative[i];
         }
 
         // Here, -(\partial R / \partial W) is calculated. This is the discrete
@@ -670,22 +663,18 @@ protected:
         // depend on the definitions of TauOne and TauTwo and should be consistent
         // with the fluid element used to solve for VELOCITY and PRESSURE.
         BoundedMatrix<double, TNumNodes, TDim> TauOneDeriv;
-        BoundedMatrix<double, TNumNodes, TDim> TauTwoDeriv;
+        BoundedMatrix<double, TNumNodes, TDim> NuTDerivative;
 
-        if (VelNorm > 0.0)
+        this->CalculateTurbulentKinematicViscosityVelocityDerivatives(
+            NuTDerivative, current_data, rCurrentProcessInfo);
+
+        const double CoefOne = -4.0 * Density * TauOne * TauOne / (ElemSize * ElemSize);
+
+        for (IndexType i = 0; i < TNumNodes; ++i)
         {
-            BoundedMatrix<double, TNumNodes, TDim> NuTDerivative;
-            this->CalculateTurbulentKinematicViscosityVelocityDerivatives(
-                NuTDerivative, current_data, rCurrentProcessInfo);
-
-            const double CoefOne = -4.0 * Density * TauOne * TauOne / (ElemSize * ElemSize);
-
-            for (IndexType i = 0; i < TNumNodes; ++i)
+            for (IndexType d = 0; d < TDim; ++d)
             {
-                for (IndexType d = 0; d < TDim; ++d)
-                {
-                    TauOneDeriv(i, d) = CoefOne * NuTDerivative(i, d);
-                }
+                TauOneDeriv(i, d) = CoefOne * NuTDerivative(i, d);
             }
         }
 
@@ -836,17 +825,14 @@ protected:
         this->CalculateTurbulentKinematicViscosityVelocityDerivatives(
             NuTDerivative, current_data, rCurrentProcessInfo);
 
-        if (VelNorm > 0.0)
-        {
-            const double CoefOne = -4.0 * Density * TauOne * TauOne / (ElemSize * ElemSize);
+        const double CoefOne = -4.0 * Density * TauOne * TauOne / (ElemSize * ElemSize);
 
-            for (IndexType i = 0; i < TNumNodes; ++i)
+        for (IndexType i = 0; i < TNumNodes; ++i)
+        {
+            for (IndexType d = 0; d < TDim; ++d)
             {
-                for (IndexType d = 0; d < TDim; ++d)
-                {
-                    TauOneDeriv(i, d) = CoefOne * NuTDerivative(i, d);
-                    TauTwoDeriv(i, d) = Density * NuTDerivative(i, d);
-                }
+                TauOneDeriv(i, d) = CoefOne * NuTDerivative(i, d);
+                TauTwoDeriv(i, d) = Density * NuTDerivative(i, d);
             }
         }
 
