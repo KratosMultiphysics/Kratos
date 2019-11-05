@@ -44,22 +44,5 @@ namespace Kratos
       void CylinderParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info){}
       void CylinderParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info){}
 
-      void CylinderParticle::FinalizeStressTensor(ProcessInfo& r_process_info, double& rRepresentative_Volume){
-
-        KRATOS_TRY
-        SphericParticle::FinalizeStressTensor(r_process_info, rRepresentative_Volume);
-
-        if (!r_process_info[IMPOSED_Z_STRAIN_OPTION]) return;
-
-        double z_strain_value = r_process_info[IMPOSED_Z_STRAIN_VALUE];
-        double myYoung = GetYoung();
-        double myPoisson = GetPoisson();
-
-        // (*mStressTensor)(2,2) += E*z_displacement - poisson*(sigma_xx + sigma_yy);
-        (*mStressTensor)(2, 2) = myYoung*z_strain_value - myPoisson*((*mStressTensor)(0, 0) + (*mStressTensor)(1, 1));
-
-        KRATOS_CATCH("")
-    }
-
 }  // namespace Kratos.
 
