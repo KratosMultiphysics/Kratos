@@ -16,10 +16,15 @@
 #define  KRATOS_NURBS_UTILITY_H_INCLUDED
 
 // System includes
+#include <utility>
+#include <algorithm>
+#include <iterator>
 
 // External includes
 
 // Project includes
+#include "includes/define.h"
+#include "spaces/ublas_space.h"
 
 namespace Kratos {
 
@@ -47,76 +52,71 @@ namespace NurbsUtilities
     
     /**
      * @brief the index of the upper limit of the span in which the ParameterT lays.
-     * From Piegl and Tiller, The NURBS Book, Algorithm A2.1
+     * @note From Piegl and Tiller, The NURBS Book, Algorithm A2.1
      */
-    static IndexType GetUpperSpan(
+    IndexType KRATOS_API(KRATOS_CORE) GetUpperSpan(
         const SizeType PolynomialDegree,
         const Vector& rKnots,
-        const double ParameterT)
-    {
-        const auto span = std::upper_bound(std::begin(rKnots) + PolynomialDegree,
-            std::end(rKnots) - PolynomialDegree, ParameterT) - std::begin(rKnots) - 1;
-        return span;
-    }
+        const double ParameterT
+        );
 
     /**
      * @brief the index of the lower limit of the span in which the ParameterT lays.
-     * From Piegl and Tiller, The NURBS Book, Algorithm A2.1
+     * @note From Piegl and Tiller, The NURBS Book, Algorithm A2.1
      */
-    static IndexType GetLowerSpan(
+    IndexType KRATOS_API(KRATOS_CORE) GetLowerSpan(
         const SizeType PolynomialDegree,
         const Vector& rKnots,
-        const double ParameterT)
-    {
-        const auto span = std::lower_bound(std::begin(rKnots) + PolynomialDegree,
-            std::end(rKnots) - PolynomialDegree, ParameterT) - std::begin(rKnots) - 1;
-        return span;
-    }
+        const double ParameterT
+        );
 
     /**
      * @brief Computes the degree of a nurbs/ b-spline shape by:
      * @param NumberOfKnots and
      * @param NumberOfControlPoints
      */
-    static SizeType GetPolynomialDegree(const SizeType NumberOfKnots, const SizeType NumberOfControlPoints)
-    {
-        return NumberOfKnots - NumberOfControlPoints + 1;
-    }
-
+    SizeType KRATOS_API(KRATOS_CORE) GetPolynomialDegree(
+        const SizeType NumberOfKnots, 
+        const SizeType NumberOfControlPoints
+        );
+    
     /**
      * @brief Computes the number of knots of a nurbs/ b-spline shape by:
      * @param PolynomialDegree and
      * @param NumberOfControlPoints
      */
-    static SizeType GetNumberOfKnots(const SizeType PolynomialDegree, const SizeType NumberOfControlPoints)
-    {
-        return NumberOfControlPoints + PolynomialDegree - 1;
-    }
+    SizeType KRATOS_API(KRATOS_CORE) GetNumberOfKnots(
+        const SizeType PolynomialDegree, 
+        const SizeType NumberOfControlPoints
+        );
 
     /**
      * @brief Computes the number of control points of a nurbs/ b-spline shape by:
      * @param PolynomialDegree and
      * @param NumberOfKnots
      */
-    static SizeType GetNumberOfControlPoints(const SizeType PolynomialDegree, const SizeType NumberOfKnots)
-    {
-        return NumberOfKnots - PolynomialDegree + 1;
-    }
+    SizeType KRATOS_API(KRATOS_CORE) GetNumberOfControlPoints(
+        const SizeType PolynomialDegree, 
+        const SizeType NumberOfKnots
+        );
 
     /**
      * @brief Computes the number of spans of a nurbs/ b-spline shape by:
      * @param PolynomialDegree and
      * @param NumberOfKnots
      */
-    SizeType GetNumberOfSpans(const SizeType PolynomialDegree, const SizeType NumberOfKnots)
-    {
-        return NumberOfKnots - 2 * PolynomialDegree + 1;
-    }
+    SizeType KRATOS_API(KRATOS_CORE) GetNumberOfSpans(
+        const SizeType PolynomialDegree, 
+        const SizeType NumberOfKnots
+        );
 
-    /*
-    * @brief Computes the binomial coefficient for (N || K).
-    */
-    static constexpr inline SizeType GetBinomCoefficient(const SizeType N, const SizeType K) noexcept
+    /**
+     * @brief Computes the binomial coefficient for (N || K).
+     */
+    constexpr inline SizeType GetBinomCoefficient(
+        const SizeType N, 
+        const SizeType K
+        ) noexcept
     {
         // clang-format off
         return
@@ -129,32 +129,31 @@ namespace NurbsUtilities
         // clang-format on
     }
 
-
     /**
      * @brief Computes a vector index from two matrix indicies.
      * @return index within vector
      */
-    static constexpr inline IndexType GetVectorIndexFromMatrixIndices(
-        const SizeType NumberPerRow, const SizeType NumberPerColumn,
-        const IndexType RowIndex, const IndexType ColumnIndex) noexcept
+    constexpr inline IndexType GetVectorIndexFromMatrixIndices(
+        const SizeType NumberPerRow, 
+        const SizeType NumberPerColumn,
+        const IndexType RowIndex, 
+        const IndexType ColumnIndex
+        ) noexcept
     {
         return ColumnIndex * NumberPerRow + RowIndex;
     }
+
 
     /**
      * @brief Computes two matrix indices from vector index.
      * @return indices within Matrix
      */
-    static inline std::pair<IndexType, IndexType> GetMatrixIndicesFromVectorIndex(
+    inline std::pair<IndexType, IndexType> KRATOS_API(KRATOS_CORE) GetMatrixIndicesFromVectorIndex(
         const SizeType NumberPerRow,
         const SizeType NumberPerColumn,
-        const IndexType Index) noexcept
-    {
-        const IndexType row = Index % NumberPerRow;
-        const IndexType col = Index / NumberPerRow;
-
-        return std::make_pair(row, col);
-    }
+        const IndexType Index
+        ) noexcept;
+        
     ///@}
 }; // class NurbsUtility
 ///@}
