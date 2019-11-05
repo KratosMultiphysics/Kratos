@@ -9,8 +9,8 @@
 //  Main authors: Mahmoud Zidan
 //
 
-#if !defined(KRATOS_FIBER_BEAM_COLUMN_UNIAXIAL_FIBER_H_INCLUDED )
-#define  KRATOS_FIBER_BEAM_COLUMN_UNIAXIAL_FIBER_H_INCLUDED
+#if !defined(KRATOS_UNIAXIAL_FIBER_BEAM_COLUMN_STEEL_MATERIAL_LAW_H_INCLUDED )
+#define  KRATOS_UNIAXIAL_FIBER_BEAM_COLUMN_STEEL_MATERIAL_LAW_H_INCLUDED
 
 // System includes
 
@@ -21,8 +21,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
-#include "includes/element.h"
-
+#include "structural_mechanics_application_variables.h"
 #include "custom_constitutive/uniaxial_fiber_beam_column_material_law.hpp"
 
 namespace Kratos
@@ -49,14 +48,16 @@ namespace Kratos
 ///@{
 
 /**
- * @class FiberBeamColumnUniaxialFiber
+ * @class UniaxialFiberBeamColumnSteelMaterialLaw
  *
- * @brief A 3D unaxial fiber for the beam-column element for reinforced concrete modeling
+ * @brief A constitutive model for the steel uniaxial fibers of the beam-column element.
+ * @details The constitutive law is a Menegotto-Pinto material law
  *
  * @author Mahmoud Zidan
  */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiberBeamColumnUniaxialFiber
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) UniaxialFiberBeamColumnSteelMaterialLaw
+    : public UniaxialFiberBeamColumnMaterialLaw
 {
 
 public:
@@ -64,36 +65,22 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Element                                     BaseType;
-    typedef BaseType::GeometryType                  GeometryType;
-    typedef BaseType::NodesArrayType              NodesArrayType;
+    typedef UniaxialFiberBeamColumnMaterialLaw          BaseType;
     typedef BaseType::PropertiesType              PropertiesType;
-    typedef BaseType::IndexType                        IndexType;
-    typedef BaseType::SizeType                          SizeType;
-    typedef BaseType::MatrixType                      MatrixType;
-    typedef BaseType::VectorType                      VectorType;
-    typedef BaseType::EquationIdVectorType  EquationIdVectorType;
-    typedef BaseType::DofsVectorType              DofsVectorType;
+    typedef std::size_t                                 SizeType;
 
     ///@}
     ///@name Pointer Definitions
     ///@{
 
+    KRATOS_CLASS_POINTER_DEFINITION(UniaxialFiberBeamColumnSteelMaterialLaw);
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default Constructor
-    FiberBeamColumnUniaxialFiber(IndexType NewId = 0);
-
-    /// Constructor using an array of nodes
-    FiberBeamColumnUniaxialFiber(
-        IndexType NewId, double Y, double Z, double Area, UniaxialFiberBeamColumnMaterialLaw::Pointer pMaterial);
-
-    Matrix CreateGlobalFiberStiffnessMatrix();
-    void SetStrainIncrements(Vector ChangeSectionDeformationIncrements);
-    Vector CreateGlobalFiberResistingForces();
-    void FinalizeSolutionStep();
+    UniaxialFiberBeamColumnSteelMaterialLaw();
+    UniaxialFiberBeamColumnSteelMaterialLaw(PropertiesType::Pointer pProperties);
 
     ///@}
     ///@name Operators
@@ -103,11 +90,18 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize();
+    void Initialize() override;
+    void CalculateMaterialResponse() override;
+    void FinalizeMaterialResponse() override;
 
     ///@}
     ///@name Access
     ///@{
+
+    void SetStrain(const double Strain) override { mStrain = Strain; }
+
+    double& GetStress() override         { return mStress; }
+    double& GetTangentModulus() override { return mTangentModulus; }
 
     ///@}
     ///@name Inquiry
@@ -118,13 +112,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const;
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -142,18 +136,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    IndexType mId;
-    Vector mTransformationVector = ZeroVector(3);
-    double mArea = 0;
-    UniaxialFiberBeamColumnMaterialLaw::Pointer mpMaterial = nullptr;
-
-    double mChangeStrainIncrement;
-    double mStrainIncrement;
-    double mStrain;
-    double mConvergedStrain;
-
     double mStress;
-    double mConvergedStress;
+    double mStrain;
+    double mTangentModulus;
 
     ///@}
     ///@name Protected Operators
@@ -162,8 +147,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    void CalculateTransformationMatrix(Matrix& rTransformationMatrix);
 
     ///@}
     ///@name Protected  Access
@@ -189,6 +172,26 @@ private:
     ///@name Member Variables
     ///@{
 
+    int mLoadingIndex = 0;
+    double mStrain0 = 0.0;
+    double mStress0 = 0.0;
+    double mStrainR = 0.0;
+    double mStressR = 0.0;
+    double mStrainPlastic = 0.0;
+    double mStrainMax = 0.0;
+    double mStrainMin = 0.0;
+
+    int mConvergedLoadingIndex = 0;
+    double mConvergedStrain0 = 0.0;
+    double mConvergedStress0 = 0.0;
+    double mConvergedStrainR = 0.0;
+    double mConvergedStressR = 0.0;
+    double mConvergedStrainPlastic = 0.0;
+    double mConvergedStrainMax = 0.0;
+    double mConvergedStrainMin = 0.0;
+    double mConvergedStrain = 0.0;
+    double mConvergedStress = 0.0;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -197,15 +200,13 @@ private:
     ///@name Private Operations
     ///@{
 
-    IndexType Id() const { return mId; }
-
     ///@}
     ///@name Serialization
     ///@{
 
     friend Serializer;
-    void save(Serializer& rSerializer) const;
-    void load(Serializer& rSerializer);
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private  Access
@@ -221,10 +222,10 @@ private:
 
     ///@}
 
-};  // class FiberBeamColumnUniaxialFiber
+};  // class UniaxialFiberBeamColumnSteelMaterialLaw
 
 /// output stream
-inline std::ostream & operator <<(std::ostream& rOStream, const FiberBeamColumnUniaxialFiber& rThis)
+inline std::ostream & operator <<(std::ostream& rOStream, const UniaxialFiberBeamColumnSteelMaterialLaw& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;

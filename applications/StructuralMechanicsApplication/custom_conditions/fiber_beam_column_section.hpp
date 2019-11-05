@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:     BSD License
-//           license: structural_mechanics_application/license.txt
+//  license:     structural_mechanics_application/license.txt
 //
 //  Main authors: Mahmoud Zidan
 //
@@ -48,9 +48,10 @@ namespace Kratos
 ///@{
 
 /**
- * @class FiberBeamColumnElement3D2N
+ * @class FiberBeamColumnSection
  *
- * @brief A 3D-2node fiber beam-column element for reinforced concrete modeling
+ * @brief A 3D section for fiber beam-column element
+ * @details If a properties pointer is given to the constructor, it generates the fibers
  *
  * @author Mahmoud Zidan
  */
@@ -64,40 +65,47 @@ public:
     ///@{
 
     typedef Element                                     BaseType;
-    typedef BaseType::GeometryType                  GeometryType;
-    typedef BaseType::NodesArrayType              NodesArrayType;
     typedef BaseType::PropertiesType              PropertiesType;
     typedef BaseType::IndexType                        IndexType;
     typedef BaseType::SizeType                          SizeType;
     typedef BaseType::MatrixType                      MatrixType;
     typedef BaseType::VectorType                      VectorType;
-    typedef BaseType::EquationIdVectorType  EquationIdVectorType;
-    typedef BaseType::DofsVectorType              DofsVectorType;
+
+    // by default: integration point is 3-dimensional
+    typedef IntegrationPoint<3>             IntegrationPointType;
 
     ///@}
     ///@name Pointer Definitions
-    ///@brief Pointer definition of FiberBeamColumnElement3D2N
     ///@{
-
-    KRATOS_CLASS_POINTER_DEFINITION(FiberBeamColumnSection);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Constructor
+    /// Default Constructor
     FiberBeamColumnSection(IndexType NewId = 0);
 
     /// Constructor using an array of nodes
-    // FiberBeamColumnSection(IndexType NewId, IntegrationPoint<1>& rIntegrationPoint);
-    // FiberBeamColumnSection(IndexType NewId, double position, double weight, PropertiesType::Pointer pProperties);
-    FiberBeamColumnSection(IndexType, double, double, int, int, double, double);
+    FiberBeamColumnSection(IndexType NewId, IntegrationPointType integrationPoint, PropertiesType::Pointer pProperties);
 
     // /// Copy Constructor
     // FiberBeamColumnSection(FiberBeamColumnSection const& rOther);
 
     // /// Destructor
     // ~FiberBeamColumnSection() ;//override;
+
+    void CalculateLocalStiffnessMatrix(Matrix& rLocalStiffnessMatrix);
+    void CalculateLocalFlexibilityMatrix(Matrix& rLocalFlexibilityMatrix);
+    void CalculateBMatrix(Matrix& rBMatrix);
+    Matrix GetGlobalFlexibilityMatrix();
+    Vector GetGlobalDeformationResiduals();
+    void SetSectionForces(Vector ChangeElementForceIncrements);
+    void CalculateDeformationIncrements();
+    void CalculateFiberState();
+    void CalculateResiduals();
+    bool CheckConvergence();
+
+    void FinalizeSolutionStep();
 
     // ///@}
     // ///@name Operators
@@ -116,6 +124,11 @@ public:
     ///@name Access
     ///@{
 
+    /// number of fibers
+    SizeType Size() { return mFibers.size(); }
+
+    double GetWeight() { return mWeight; }
+    Vector GetResiduals() { return mDeformationResiduals; }
 
     ///@}
     ///@name Inquiry
@@ -147,14 +160,25 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-    std::vector<FiberBeamColumnUniaxialFiber> mFibers;
-
     ///@}
     ///@name Protected member Variables
     ///@{
 
-    /// FIXME: we need the constitutive law on the fiber level ...
-    // ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
+    std::vector<FiberBeamColumnUniaxialFiber> mFibers;
+
+    Matrix mBMatrix = ZeroMatrix(3, 5);
+    Matrix mLocalFlexibilityMatrix = ZeroMatrix(3, 3);
+
+    double mTolerance = 0.05;
+
+    Vector mChangeForceIncrements = ZeroVector(3);
+    Vector mForceIncrements = ZeroVector(3);
+    Vector mForces = ZeroVector(3);
+    Vector mConvergedForces = ZeroVector(3);
+    Vector mUnbalanceForces = ZeroVector(3);
+
+    Vector mChangeDeformationIncrements = ZeroVector(3);
+    Vector mDeformationResiduals = ZeroVector(3);
 
     ///@}
     ///@name Protected Operators
@@ -207,7 +231,6 @@ private:
     ///@{
 
     friend Serializer;
-
     void save(Serializer& rSerializer) const ;//override;
     void load(Serializer& rSerializer) ;//override;
 

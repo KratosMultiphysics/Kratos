@@ -422,6 +422,18 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(BACK_STRESS_TENSOR)
     KRATOS_REGISTER_VARIABLE(HARDENING_MODULI_VECTOR)
 
+    // Fiber Beam-Column Constitutive parameters
+    KRATOS_REGISTER_VARIABLE(CONCRETE_YIELD_STRENGTH)
+    KRATOS_REGISTER_VARIABLE(CONCRETE_YIELD_STRAIN)
+    KRATOS_REGISTER_VARIABLE(CONCRETE_CONFINEMENT_FACTOR)
+    KRATOS_REGISTER_VARIABLE(CONCRETE_SOFTENING_SLOPE)
+    KRATOS_REGISTER_VARIABLE(STEEL_YOUNGS_MODULUS)
+    KRATOS_REGISTER_VARIABLE(STEEL_HARDENING_RATIO)
+    KRATOS_REGISTER_VARIABLE(STEEL_TRANSITION_VARIABLE)
+    KRATOS_REGISTER_VARIABLE(STEEL_YIELD_STRENGTH)
+    KRATOS_REGISTER_VARIABLE(STEEL_A1_COEFFICIENT)
+    KRATOS_REGISTER_VARIABLE(STEEL_A2_COEFFICIENT)
+
     // D+D- Damage Constitutive laws variables
     KRATOS_REGISTER_VARIABLE(DAMAGE_TENSION)
     KRATOS_REGISTER_VARIABLE(DAMAGE_COMPRESSION)
@@ -667,6 +679,10 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ViscousGeneralizedMaxwell3D", mViscousGeneralizedMaxwell3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GenericSmallStrainViscoplasticity3D", mGenericSmallStrainViscoplasticity3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("PlasticityIsotropicKinematicJ2Law", mPlasticityIsotropicKinematicJ2);
+
+    // // Uniaxial Fiber Beam-Column constitutives
+    // KRATOS_REGISTER_CONSTITUTIVE_LAW("UniaxialFiberBeamColumnConcreteMaterialLaw", mUniaxialFiberBeamColumnConcreteMaterialLaw)
+    // KRATOS_REGISTER_CONSTITUTIVE_LAW("UniaxialFiberBeamColumnSteelMaterialLaw", mUniaxialFiberBeamColumnSteelMaterialLaw)
 
     // Custom Constitutive laws
     /// Plasticity

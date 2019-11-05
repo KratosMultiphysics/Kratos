@@ -130,6 +130,10 @@
 #include "custom_constitutive/generic_small_strain_plastic_damage_model.h"
 #include "custom_constitutive/generic_small_strain_orthotropic_damage.h"
 
+// // Uniaxial Fiber Beam-Column constitutives
+// #include "custom_constitutive/uniaxial_fiber_beam_column_concrete_material_law.hpp"
+// #include "custom_constitutive/uniaxial_fiber_beam_column_steel_material_law.hpp"
+
 // Integrators
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
@@ -502,6 +506,10 @@ private:
     const ViscousGeneralizedMaxwell<ElasticIsotropic3D> mViscousGeneralizedMaxwell3D;
     const GenericSmallStrainViscoplasticity3D mGenericSmallStrainViscoplasticity3D;
     const PlasticityIsotropicKinematicJ2 mPlasticityIsotropicKinematicJ2;
+
+    // // Uniaxial Fiber Beam-Column constitutives
+    // const UniaxialFiberBeamColumnConcreteMaterialLaw mUniaxialFiberBeamColumnConcreteMaterialLaw;
+    // const UniaxialFiberBeamColumnSteelMaterialLaw mUniaxialFiberBeamColumnSteelMaterialLaw;
 
     /// Plasticity
     /* Small strain */
