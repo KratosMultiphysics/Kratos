@@ -44,10 +44,11 @@ namespace NurbsUtilities
     ///@}
     ///@name Static Operations
     ///@{
-    /*
-    * @brief the index of the upper limit of the span in which the ParameterT lays.
-    * From Piegl and Tiller, The NURBS Book, Algorithm A2.1
-    */
+    
+    /**
+     * @brief the index of the upper limit of the span in which the ParameterT lays.
+     * From Piegl and Tiller, The NURBS Book, Algorithm A2.1
+     */
     static IndexType GetUpperSpan(
         const SizeType PolynomialDegree,
         const Vector& rKnots,
@@ -58,10 +59,10 @@ namespace NurbsUtilities
         return span;
     }
 
-    /*
-    * @brief the index of the lower limit of the span in which the ParameterT lays.
-    * From Piegl and Tiller, The NURBS Book, Algorithm A2.1
-    */
+    /**
+     * @brief the index of the lower limit of the span in which the ParameterT lays.
+     * From Piegl and Tiller, The NURBS Book, Algorithm A2.1
+     */
     static IndexType GetLowerSpan(
         const SizeType PolynomialDegree,
         const Vector& rKnots,
@@ -72,42 +73,42 @@ namespace NurbsUtilities
         return span;
     }
 
-    /*
-    * @brief Computes the degree of a nurbs/ b-spline shape by:
-    * @param NumberOfKnots and
-    * @param NumberOfControlPoints
-    */
+    /**
+     * @brief Computes the degree of a nurbs/ b-spline shape by:
+     * @param NumberOfKnots and
+     * @param NumberOfControlPoints
+     */
     static SizeType GetPolynomialDegree(const SizeType NumberOfKnots, const SizeType NumberOfControlPoints)
     {
         return NumberOfKnots - NumberOfControlPoints + 1;
     }
 
-    /*
-    * @brief Computes the number of knots of a nurbs/ b-spline shape by:
-    * @param PolynomialDegree and
-    * @param NumberOfControlPoints
-    */
+    /**
+     * @brief Computes the number of knots of a nurbs/ b-spline shape by:
+     * @param PolynomialDegree and
+     * @param NumberOfControlPoints
+     */
     static SizeType GetNumberOfKnots(const SizeType PolynomialDegree, const SizeType NumberOfControlPoints)
     {
         return NumberOfControlPoints + PolynomialDegree - 1;
     }
 
-    /*
-    * @brief Computes the number of control points of a nurbs/ b-spline shape by:
-    * @param PolynomialDegree and
-    * @param NumberOfKnots
-    */
+    /**
+     * @brief Computes the number of control points of a nurbs/ b-spline shape by:
+     * @param PolynomialDegree and
+     * @param NumberOfKnots
+     */
     static SizeType GetNumberOfControlPoints(const SizeType PolynomialDegree, const SizeType NumberOfKnots)
     {
         return NumberOfKnots - PolynomialDegree + 1;
     }
 
-    /*
-    * @brief Computes the number of spans of a nurbs/ b-spline shape by:
-    * @param PolynomialDegree and
-    * @param NumberOfKnots
-    */
-    static SizeType GetNumberOfSpans(const SizeType PolynomialDegree, const SizeType NumberOfKnots)
+    /**
+     * @brief Computes the number of spans of a nurbs/ b-spline shape by:
+     * @param PolynomialDegree and
+     * @param NumberOfKnots
+     */
+    SizeType GetNumberOfSpans(const SizeType PolynomialDegree, const SizeType NumberOfKnots)
     {
         return NumberOfKnots - 2 * PolynomialDegree + 1;
     }
@@ -129,10 +130,10 @@ namespace NurbsUtilities
     }
 
 
-    /*
-    * @brief Computes a vector index from two matrix indicies.
-    * @return index within vector
-    */
+    /**
+     * @brief Computes a vector index from two matrix indicies.
+     * @return index within vector
+     */
     static constexpr inline IndexType GetVectorIndexFromMatrixIndices(
         const SizeType NumberPerRow, const SizeType NumberPerColumn,
         const IndexType RowIndex, const IndexType ColumnIndex) noexcept
@@ -140,10 +141,10 @@ namespace NurbsUtilities
         return ColumnIndex * NumberPerRow + RowIndex;
     }
 
-    /*
-    * @brief Computes two matrix indices from vector index.
-    * @return indices within Matrix
-    */
+    /**
+     * @brief Computes two matrix indices from vector index.
+     * @return indices within Matrix
+     */
     static inline std::pair<IndexType, IndexType> GetMatrixIndicesFromVectorIndex(
         const SizeType NumberPerRow,
         const SizeType NumberPerColumn,
