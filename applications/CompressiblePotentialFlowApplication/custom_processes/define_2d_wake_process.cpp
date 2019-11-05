@@ -143,6 +143,12 @@ void Define2DWakeProcess::MarkWakeElements()
     std::vector<std::size_t> wake_elements_ordered_ids;
 
     #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(root_model_part.Nodes().size()); i++){
+        ModelPart::NodeIterator it_node = root_model_part.NodesBegin() + i;
+        it_node->SetValue(TE_ELEMENT_COUNTER, 0);
+    }
+
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(root_model_part.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = root_model_part.ElementsBegin() + i;
 

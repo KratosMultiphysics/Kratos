@@ -131,6 +131,9 @@ class PotentialFlowSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.PSI)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_0)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_1)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_2)
 
         # Add variables that the user defined in the ProjectParameters
         for i in range(self.settings["auxiliary_variables_list"].size()):
@@ -144,9 +147,13 @@ class PotentialFlowSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.PSI, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_0, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_1, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_2, self.main_model_part)
 
     def Initialize(self):
         self._ComputeNodalNeighbours()
+        #KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KCPFApp.TE_ELEMENT_COUNTER, 0, self.GetComputingModelPart())
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         if "incompressible" in self.settings["formulation"]["element_type"].GetString():
