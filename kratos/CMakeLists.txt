@@ -91,6 +91,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/timer.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_transformation_utilities.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/geometries/nurbs_shape_function_utilities/nurbs_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/modified_shape_functions.cpp;
