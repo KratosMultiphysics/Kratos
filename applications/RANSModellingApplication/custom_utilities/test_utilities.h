@@ -62,8 +62,8 @@ void InitializeVariableWithRandomValues(ModelPart& rModelPart,
                                         const double MaxValue,
                                         const std::size_t TimeSteps);
 
-template<typename TContainer>
-void RunResidualScalarSensitivityTest(
+template <typename TContainer>
+void RunResidualSensitivityTest(
     ModelPart& rPrimalModelPart,
     ModelPart& rAdjointModelPart,
     std::vector<Process*>& rPrimalProcesses,
@@ -76,8 +76,8 @@ void RunResidualScalarSensitivityTest(
     const int DerivativesOffset = 0,
     const int EquationOffset = 0);
 
-template<typename TContainer>
-void RunResidualVectorSensitivityTest(
+template <typename TContainer>
+void RunResidualSensitivityTest(
     ModelPart& rPrimalModelPart,
     ModelPart& rAdjointModelPart,
     std::vector<Process*>& rPrimalProcesses,
@@ -90,8 +90,13 @@ void RunResidualVectorSensitivityTest(
     const int DerivativesOffset = 0,
     const int EquationOffset = 0);
 
-template<typename TContainer>
+template <typename TContainer>
 TContainer& GetContainerItems(ModelPart& rModelPart);
+
+std::function<double&(NodeType&)> GetPerturbationMethod(const Variable<double>&);
+
+std::function<double&(NodeType&, const int)> GetPerturbationMethod(
+    const Variable<array_1d<double, 3>>&);
 
 } // namespace RansModellingApplicationTestUtilities
 } // namespace Kratos

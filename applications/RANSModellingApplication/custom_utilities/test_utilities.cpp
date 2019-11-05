@@ -248,7 +248,7 @@ void InitializeVariableWithRandomValues(ModelPart& rModelPart,
 }
 
 template <typename TContainer>
-void RunResidualScalarSensitivityTest(
+void RunResidualSensitivityTest(
     ModelPart& rPrimalModelPart,
     ModelPart& rAdjointModelPart,
     std::vector<Process*>& rPrimalProcesses,
@@ -360,7 +360,7 @@ void RunResidualScalarSensitivityTest(
 }
 
 template <typename TContainer>
-void RunResidualVectorSensitivityTest(
+void RunResidualSensitivityTest(
     ModelPart& rPrimalModelPart,
     ModelPart& rAdjointModelPart,
     std::vector<Process*>& rPrimalProcesses,
@@ -405,7 +405,7 @@ void RunResidualVectorSensitivityTest(
             return PerturbVariable(rNode, i_dim);
         };
 
-        RunResidualScalarSensitivityTest<TContainer>(
+        RunResidualSensitivityTest<TContainer>(
             rPrimalModelPart, rAdjointModelPart, rPrimalProcesses,
             rAdjointProcesses, UpdateVariablesInModelPart, calculate_sensitivities,
             perturb_variable, Delta, Tolerance, DerivativesOffset, EquationOffset);
@@ -424,11 +424,45 @@ ModelPart::ConditionsContainerType& GetContainerItems<ModelPart::ConditionsConta
     return rModelPart.Conditions();
 }
 
-// method instantiation
+std::function<double&(NodeType&)> GetPerturbationMethod(const Variable<double>& rPerturbationVariable)
+{
+    std::function<double&(NodeType&)> perturbation_method =
+        [rPerturbationVariable](NodeType& rNode) -> double& {
+        return rNode.FastGetSolutionStepValue(rPerturbationVariable);
+    };
+
+    return perturbation_method;
+}
+
+std::function<double&(NodeType&, const int)> GetPerturbationMethod(
+    const Variable<array_1d<double, 3>>& rPerturbationVariable)
+{
+    if (rPerturbationVariable == SHAPE_SENSITIVITY)
+    {
+        std::function<double&(NodeType&, const int)> perturbation_method =
+            [rPerturbationVariable](NodeType& rNode, const int iDim) -> double& {
+            array_1d<double, 3>& r_coordinates = rNode.Coordinates();
+            return r_coordinates[iDim];
+        };
+        return perturbation_method;
+    }
+    else
+    {
+        std::function<double&(NodeType&, const int)> perturbation_method =
+            [rPerturbationVariable](NodeType& rNode, const int iDim) -> double& {
+            array_1d<double, 3>& r_vector =
+                rNode.FastGetSolutionStepValue(rPerturbationVariable);
+            return r_vector[iDim];
+        };
+        return perturbation_method;
+    }
+}
+
+// templated method instantiation
 template void CalculateResidual(Vector&, ElementType&, ProcessInfo&);
 template void CalculateResidual(Vector&, ConditionType&, ProcessInfo&);
 
-template void RunResidualScalarSensitivityTest<ModelPart::ElementsContainerType>(
+template void RunResidualSensitivityTest<ModelPart::ElementsContainerType>(
     ModelPart&,
     ModelPart&,
     std::vector<Process*>&,
@@ -440,7 +474,8 @@ template void RunResidualScalarSensitivityTest<ModelPart::ElementsContainerType>
     const double,
     const int,
     const int);
-template void RunResidualScalarSensitivityTest<ModelPart::ConditionsContainerType>(
+
+template void RunResidualSensitivityTest<ModelPart::ConditionsContainerType>(
     ModelPart&,
     ModelPart&,
     std::vector<Process*>&,
@@ -453,7 +488,7 @@ template void RunResidualScalarSensitivityTest<ModelPart::ConditionsContainerTyp
     const int,
     const int);
 
-template void RunResidualVectorSensitivityTest<ModelPart::ElementsContainerType>(
+template void RunResidualSensitivityTest<ModelPart::ElementsContainerType>(
     ModelPart&,
     ModelPart&,
     std::vector<Process*>&,
@@ -466,7 +501,7 @@ template void RunResidualVectorSensitivityTest<ModelPart::ElementsContainerType>
     const int,
     const int);
 
-template void RunResidualVectorSensitivityTest<ModelPart::ConditionsContainerType>(
+template void RunResidualSensitivityTest<ModelPart::ConditionsContainerType>(
     ModelPart&,
     ModelPart&,
     std::vector<Process*>&,

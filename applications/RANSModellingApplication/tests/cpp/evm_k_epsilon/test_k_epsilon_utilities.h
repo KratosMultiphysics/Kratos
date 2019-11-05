@@ -56,31 +56,22 @@ void CreateEquationIds(ModelPart& rModelPart);
 
 void InitializeNodalVariables(ModelPart& rModelPart);
 
-void GenerateRansEvmKEpsilonElementTestModelPart(ModelPart& rModelPart, std::string ElementName);
-
-void GenerateRansEvmKEpsilonConditionTestModelPart(ModelPart& rModelPart,
-                                                   std::string ConditionName);
+template <typename TContainerType>
+void GenerateRansEvmKEpsilonTestModelPart(ModelPart& rModelPart,
+                                          std::string TContainerDataTypeName);
 
 void UpdateVariablesInModelPart(ModelPart& rModelPart);
 
 void InitializeYPlus(ModelPart& rModelPart);
 
-template <typename TVariable, typename TElement>
+template <typename TDataType, typename TContainer>
 void RunRansEvmKEpsilonTest(const std::string PrimalName,
                             const std::string AdjointName,
-                            const TVariable& rPerturbVariable,
-                            std::function<void(Matrix&, TElement&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
+                            const Variable<TDataType>& rPerturbationVariable,
+                            std::function<void(Matrix&, typename TContainer::data_type&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
                             const double Delta,
                             const double Tolerance,
                             const int DerivativesOffset = 0,
-                            const int EquationOffset = 0);
-
-template <typename TElement>
-void RunRansEvmKEpsilonTest(const std::string PrimalName,
-                            const std::string AdjointName,
-                            std::function<void(Matrix&, TElement&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
-                            const double Delta,
-                            const double Tolerance,
                             const int EquationOffset = 0);
 
 } // namespace RansEvmKEpsilonModel
