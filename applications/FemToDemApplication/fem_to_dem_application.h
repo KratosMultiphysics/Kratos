@@ -135,10 +135,12 @@ private:
     const GenericTotalLagrangianFemDemElement<2,6> mTotalLagrangianMohrCoulombFemDemElement2D;
     const GenericTotalLagrangianFemDemElement<3,6> mTotalLagrangianMohrCoulombFemDemElement3D;
 
-    //elastic laws
+    //Hiperelastic and elastic laws
    const LinearPlaneStrain mLinearPlaneStrain;
    const LinearPlaneStress mLinearPlaneStress;
    const ElasticIsotropic3D mElasticIsotropic3D;
+   const HyperElasticIsotropicNeoHookeanPlaneStrain2D mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
+   const HyperElasticIsotropicNeoHookean3D mHyperElasticIsotropicNeoHookean3D;
     
 
     /// Assignment operator.
