@@ -63,22 +63,25 @@ void GenerateRansEvmKEpsilonConditionTestModelPart(ModelPart& rModelPart,
 
 void UpdateVariablesInModelPart(ModelPart& rModelPart);
 
-void UpdateVariablesInModelPartLowRe(ModelPart& rModelPart);
-
-void CalculatePrimalQuantities(std::vector<double>& rValues,
-                               const ElementType& rElement,
-                               const Vector& rGaussShapeFunctions,
-                               const Matrix& rGaussShapeFunctionDerivatives,
-                               const ProcessInfo& rCurrentProcessInfo);
-
-void ReadNodalDataFromElement(Vector& rYPlus,
-                              Vector& rTKE,
-                              Vector& rEpsilon,
-                              Vector& rNut,
-                              Vector& rFmu,
-                              const Element& rElement);
-
 void InitializeYPlus(ModelPart& rModelPart);
+
+template <typename TVariable, typename TElement>
+void RunRansEvmKEpsilonTest(const std::string PrimalName,
+                            const std::string AdjointName,
+                            const TVariable& rPerturbVariable,
+                            std::function<void(Matrix&, TElement&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
+                            const double Delta,
+                            const double Tolerance,
+                            const int DerivativesOffset = 0,
+                            const int EquationOffset = 0);
+
+template <typename TElement>
+void RunRansEvmKEpsilonTest(const std::string PrimalName,
+                            const std::string AdjointName,
+                            std::function<void(Matrix&, TElement&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
+                            const double Delta,
+                            const double Tolerance,
+                            const int EquationOffset = 0);
 
 } // namespace RansEvmKEpsilonModel
 } // namespace Testing

@@ -20,6 +20,7 @@
 #include "fluid_dynamics_application_variables.h"
 
 // Project includes
+#include "containers/model.h"
 #include "includes/cfd_variables.h"
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
@@ -30,6 +31,9 @@
 #include "custom_utilities/rans_variable_utilities.h"
 #include "custom_utilities/test_utilities.h"
 #include "rans_modelling_application_variables.h"
+
+#include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_calculation_process.h"
+#include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_sensitivities_process.h"
 
 namespace Kratos
 {
@@ -154,19 +158,25 @@ void CreateModelPartConditions(ModelPart& rModelPart, std::string ConditionName)
     Properties::Pointer p_cond_prop = rModelPart.pGetProperties(0);
 
     std::vector<ModelPart::IndexType> cond_nodes_1{1, 2};
-    rModelPart.CreateNewCondition(
-        ConditionName, rModelPart.GetRootModelPart().NumberOfConditions() + 1,
-        cond_nodes_1, p_cond_prop)->Set(SLIP, true);
+    rModelPart
+        .CreateNewCondition(ConditionName,
+                            rModelPart.GetRootModelPart().NumberOfConditions() + 1,
+                            cond_nodes_1, p_cond_prop)
+        ->Set(SLIP, true);
 
     std::vector<ModelPart::IndexType> cond_nodes_2{2, 3};
-    rModelPart.CreateNewCondition(
-        ConditionName, rModelPart.GetRootModelPart().NumberOfConditions() + 1,
-        cond_nodes_2, p_cond_prop)->Set(SLIP, true);
+    rModelPart
+        .CreateNewCondition(ConditionName,
+                            rModelPart.GetRootModelPart().NumberOfConditions() + 1,
+                            cond_nodes_2, p_cond_prop)
+        ->Set(SLIP, true);
 
     std::vector<ModelPart::IndexType> cond_nodes_3{3, 1};
-    rModelPart.CreateNewCondition(
-        ConditionName, rModelPart.GetRootModelPart().NumberOfConditions() + 1,
-        cond_nodes_3, p_cond_prop)->Set(SLIP, false);
+    rModelPart
+        .CreateNewCondition(ConditionName,
+                            rModelPart.GetRootModelPart().NumberOfConditions() + 1,
+                            cond_nodes_3, p_cond_prop)
+        ->Set(SLIP, false);
 }
 
 void InitializeNodalVariables(ModelPart& rModelPart)
@@ -227,7 +237,9 @@ void InitializeYPlus(ModelPart& rModelPart)
 
         double& y_plus = r_node.FastGetSolutionStepValue(RANS_Y_PLUS);
 
-        y_plus = std::exp(von_karman * (velocity_magnitude / (c_mu_25 * std::sqrt(tke)) - beta)) * std::pow(-1, i_node) * 1.1;
+        y_plus = std::exp(von_karman *
+                          (velocity_magnitude / (c_mu_25 * std::sqrt(tke)) - beta)) *
+                 std::pow(-1, i_node) * 1.1;
     }
 }
 
@@ -300,116 +312,288 @@ void UpdateVariablesInModelPart(ModelPart& rModelPart)
     }
 }
 
-void UpdateVariablesInModelPartLowRe(ModelPart& rModelPart)
+template <>
+void RunRansEvmKEpsilonTest(const std::string PrimalName,
+                            const std::string AdjointName,
+                            const Variable<double>& rPerturbVariable,
+                            std::function<void(Matrix&, ElementType&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
+                            const double Delta,
+                            const double Tolerance,
+                            const int DerivativesOffset,
+                            const int EquationOffset)
 {
-    const int number_of_nodes = rModelPart.NumberOfNodes();
+    Model primal_model;
+    ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
+        r_primal_model_part, PrimalName);
 
-    const double c_mu = rModelPart.GetProcessInfo()[TURBULENCE_RANS_C_MU];
-    const double bossak_alpha = rModelPart.GetProcessInfo()[BOSSAK_ALPHA];
+    Model adjoint_model;
+    ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
+        r_adjoint_model_part, AdjointName);
 
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        NodeType& r_node = *(rModelPart.NodesBegin() + i_node);
-        const double y_plus = r_node.FastGetSolutionStepValue(RANS_Y_PLUS);
-        const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-        const double epsilon =
-            r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
-        const double f_mu = EvmKepsilonModelUtilities::CalculateFmu(y_plus);
-        const double nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
+    Parameters empty_nut_parameters = Parameters(R"({
+        "model_part_name" : "test"
+    })");
+    RansNutKEpsilonHighReSensitivitiesProcess nut_sensitivities_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess adjoint_nut_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess primal_nut_process(primal_model, empty_nut_parameters);
 
-        double& nu_t = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
-        nu_t = EvmKepsilonModelUtilities::CalculateTurbulentViscosity(
-            c_mu, tke, epsilon, f_mu);
-        r_node.FastGetSolutionStepValue(VISCOSITY) = nu + nu_t;
+    std::vector<Process*> primal_processes;
+    std::vector<Process*> adjoint_processes;
 
-        const double tke_rate =
-            r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY_RATE);
-        const double old_tke_rate =
-            r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY_RATE, 1);
-        const double epsilon_rate =
-            r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE_2);
-        const double old_epsilon_rate =
-            r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE_2, 1);
-        r_node.FastGetSolutionStepValue(RANS_AUXILIARY_VARIABLE_1) =
-            (1 - bossak_alpha) * tke_rate + bossak_alpha * old_tke_rate;
-        r_node.FastGetSolutionStepValue(RANS_AUXILIARY_VARIABLE_2) =
-            (1 - bossak_alpha) * epsilon_rate + bossak_alpha * old_epsilon_rate;
+    primal_processes.push_back(&primal_nut_process);
+    adjoint_processes.push_back(&adjoint_nut_process);
+    adjoint_processes.push_back(&nut_sensitivities_process);
 
-        const array_1d<double, 3>& acceleration =
-            r_node.FastGetSolutionStepValue(ACCELERATION);
-        const array_1d<double, 3>& old_acceleration =
-            r_node.FastGetSolutionStepValue(ACCELERATION, 1);
+    auto perturb_variable = [rPerturbVariable](NodeType& rNode) -> double& {
+        return rNode.FastGetSolutionStepValue(rPerturbVariable);
+    };
 
-        r_node.FastGetSolutionStepValue(RELAXED_ACCELERATION) =
-            acceleration * (1 - bossak_alpha) + bossak_alpha * old_acceleration;
-    }
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest<ModelPart::ElementsContainerType>(
+        r_primal_model_part, r_adjoint_model_part, primal_processes,
+        adjoint_processes, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
+        CalculateElementResidualScalarSensitivity, perturb_variable, Delta,
+        Tolerance, DerivativesOffset, EquationOffset);
 }
 
-void CalculatePrimalQuantities(std::vector<double>& rValues,
-                               const ElementType& rElement,
-                               const Vector& rGaussShapeFunctions,
-                               const Matrix& rGaussShapeFunctionDerivatives,
-                               const ProcessInfo& rCurrentProcessInfo)
+template <>
+void RunRansEvmKEpsilonTest(const std::string PrimalName,
+                            const std::string AdjointName,
+                            const Variable<double>& rPerturbVariable,
+                            std::function<void(Matrix&, ConditionType&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
+                            const double Delta,
+                            const double Tolerance,
+                            const int DerivativesOffset,
+                            const int EquationOffset)
 {
+    Model primal_model;
+    ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
+        r_primal_model_part, PrimalName);
 
-    const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
+    Model adjoint_model;
+    ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
+        r_adjoint_model_part, AdjointName);
 
-    const GeometryType& r_geometry = rElement.GetGeometry();
+    Parameters empty_nut_parameters = Parameters(R"({
+        "model_part_name" : "test"
+    })");
+    RansNutKEpsilonHighReSensitivitiesProcess nut_sensitivities_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess adjoint_nut_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess primal_nut_process(primal_model, empty_nut_parameters);
 
-    const double y_plus = RansCalculationUtilities::EvaluateInPoint(
-        r_geometry, RANS_Y_PLUS, rGaussShapeFunctions);
-    const double tke = RansCalculationUtilities::EvaluateInPoint(
-        r_geometry, TURBULENT_KINETIC_ENERGY, rGaussShapeFunctions);
-    const double epsilon = RansCalculationUtilities::EvaluateInPoint(
-        r_geometry, TURBULENT_ENERGY_DISSIPATION_RATE, rGaussShapeFunctions);
-    const double nu_t = RansCalculationUtilities::EvaluateInPoint(
-        r_geometry, TURBULENT_VISCOSITY, rGaussShapeFunctions);
-    const double nu = RansCalculationUtilities::EvaluateInPoint(
-        r_geometry, KINEMATIC_VISCOSITY, rGaussShapeFunctions);
+    std::vector<Process*> primal_processes;
+    std::vector<Process*> adjoint_processes;
 
-    const double f_mu = EvmKepsilonModelUtilities::CalculateFmu(y_plus);
-    const double Re_t = std::pow(tke, 2) / (nu * epsilon);
-    const double theta = EvmKepsilonModelUtilities::CalculateGamma(c_mu, f_mu, tke, nu_t);
-    const double f2 = EvmKepsilonModelUtilities::CalculateF2(tke, nu, epsilon);
+    primal_processes.push_back(&primal_nut_process);
+    adjoint_processes.push_back(&adjoint_nut_process);
+    adjoint_processes.push_back(&nut_sensitivities_process);
 
-    BoundedMatrix<double, 2, 2> velocity_gradient_matrix;
-    RansCalculationUtilities::CalculateGradient<2>(
-        velocity_gradient_matrix, r_geometry, VELOCITY, rGaussShapeFunctionDerivatives);
-    const double P_k = EvmKepsilonModelUtilities::CalculateSourceTerm<2>(
-        velocity_gradient_matrix, nu_t, tke);
+    auto perturb_variable = [rPerturbVariable](NodeType& rNode) -> double& {
+        return rNode.FastGetSolutionStepValue(rPerturbVariable);
+    };
 
-    rValues.clear();
-    rValues.push_back(nu_t);
-    rValues.push_back(P_k);
-    rValues.push_back(theta);
-    rValues.push_back(Re_t);
-    rValues.push_back(f2);
-    rValues.push_back(f_mu);
-    rValues.push_back(nu);
-    rValues.push_back(epsilon);
-    rValues.push_back(tke);
-    rValues.push_back(y_plus);
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest<ModelPart::ConditionsContainerType>(
+        r_primal_model_part, r_adjoint_model_part, primal_processes,
+        adjoint_processes, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
+        CalculateElementResidualScalarSensitivity, perturb_variable, Delta,
+        Tolerance, DerivativesOffset, EquationOffset);
 }
 
-void ReadNodalDataFromElement(Vector& rYPlus,
-                              Vector& rTKE,
-                              Vector& rEpsilon,
-                              Vector& rNut,
-                              Vector& rFmu,
-                              const Element& rElement)
+template <>
+void RunRansEvmKEpsilonTest(const std::string PrimalName,
+                            const std::string AdjointName,
+                            const Variable<array_1d<double, 3>>& rPerturbVariable,
+                            std::function<void(Matrix&, ElementType&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
+                            const double Delta,
+                            const double Tolerance,
+                            const int DerivativesOffset,
+                            const int EquationOffset)
 {
-    const auto& r_geometry = rElement.GetGeometry();
-    std::size_t number_of_nodes = r_geometry.PointsNumber();
+    Model primal_model;
+    ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
+        r_primal_model_part, PrimalName);
 
+    Model adjoint_model;
+    ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
+        r_adjoint_model_part, AdjointName);
 
-    RansVariableUtilities::GetNodalArray(rTKE, rElement, TURBULENT_KINETIC_ENERGY);
-    RansVariableUtilities::GetNodalArray(rEpsilon, rElement, TURBULENT_ENERGY_DISSIPATION_RATE);
-    RansVariableUtilities::GetNodalArray(rYPlus, rElement, RANS_Y_PLUS);
-    RansVariableUtilities::GetNodalArray(rNut, rElement, TURBULENT_VISCOSITY);
+    Parameters empty_nut_parameters = Parameters(R"({
+        "model_part_name" : "test"
+    })");
+    RansNutKEpsilonHighReSensitivitiesProcess nut_sensitivities_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess adjoint_nut_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess primal_nut_process(primal_model, empty_nut_parameters);
 
-    for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node)
-        rFmu[i_node] = EvmKepsilonModelUtilities::CalculateFmu(rYPlus[i_node]);
+    std::vector<Process*> primal_processes;
+    std::vector<Process*> adjoint_processes;
+
+    primal_processes.push_back(&primal_nut_process);
+    adjoint_processes.push_back(&adjoint_nut_process);
+    adjoint_processes.push_back(&nut_sensitivities_process);
+
+    auto perturb_variable = [rPerturbVariable](NodeType& rNode, const int Dim) -> double& {
+        array_1d<double, 3>& r_vector = rNode.FastGetSolutionStepValue(rPerturbVariable);
+        return r_vector[Dim];
+    };
+
+    RansModellingApplicationTestUtilities::RunResidualVectorSensitivityTest<ModelPart::ElementsContainerType>(
+        r_primal_model_part, r_adjoint_model_part, primal_processes,
+        adjoint_processes, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
+        CalculateElementResidualScalarSensitivity, perturb_variable, Delta,
+        Tolerance, DerivativesOffset, EquationOffset);
 }
+
+template <>
+void RunRansEvmKEpsilonTest(const std::string PrimalName,
+                            const std::string AdjointName,
+                            const Variable<array_1d<double, 3>>& rPerturbVariable,
+                            std::function<void(Matrix&, ConditionType&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
+                            const double Delta,
+                            const double Tolerance,
+                            const int DerivativesOffset,
+                            const int EquationOffset)
+{
+    Model primal_model;
+    ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
+        r_primal_model_part, PrimalName);
+
+    Model adjoint_model;
+    ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
+        r_adjoint_model_part, AdjointName);
+
+    Parameters empty_nut_parameters = Parameters(R"({
+        "model_part_name" : "test"
+    })");
+    RansNutKEpsilonHighReSensitivitiesProcess nut_sensitivities_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess adjoint_nut_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess primal_nut_process(primal_model, empty_nut_parameters);
+
+    std::vector<Process*> primal_processes;
+    std::vector<Process*> adjoint_processes;
+
+    primal_processes.push_back(&primal_nut_process);
+    adjoint_processes.push_back(&adjoint_nut_process);
+    adjoint_processes.push_back(&nut_sensitivities_process);
+
+    auto perturb_variable = [rPerturbVariable](NodeType& rNode, const int Dim) -> double& {
+        array_1d<double, 3>& r_vector = rNode.FastGetSolutionStepValue(rPerturbVariable);
+        return r_vector[Dim];
+    };
+
+    RansModellingApplicationTestUtilities::RunResidualVectorSensitivityTest<ModelPart::ConditionsContainerType>(
+        r_primal_model_part, r_adjoint_model_part, primal_processes,
+        adjoint_processes, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
+        CalculateElementResidualScalarSensitivity, perturb_variable, Delta,
+        Tolerance, DerivativesOffset, EquationOffset);
+}
+
+template <>
+void RunRansEvmKEpsilonTest(const std::string PrimalName,
+                            const std::string AdjointName,
+                            std::function<void(Matrix&, ElementType&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
+                            const double Delta,
+                            const double Tolerance,
+                            const int EquationOffset)
+{
+    Model primal_model;
+    ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
+        r_primal_model_part, PrimalName);
+
+    Model adjoint_model;
+    ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
+        r_adjoint_model_part, AdjointName);
+
+    Parameters empty_nut_parameters = Parameters(R"({
+        "model_part_name" : "test"
+    })");
+    RansNutKEpsilonHighReSensitivitiesProcess nut_sensitivities_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess adjoint_nut_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess primal_nut_process(primal_model, empty_nut_parameters);
+
+    std::vector<Process*> primal_processes;
+    std::vector<Process*> adjoint_processes;
+
+    primal_processes.push_back(&primal_nut_process);
+    adjoint_processes.push_back(&adjoint_nut_process);
+    adjoint_processes.push_back(&nut_sensitivities_process);
+
+    auto perturb_variable = [](NodeType& rNode, const int Dim) -> double& {
+        array_1d<double, 3>& r_coordinates = rNode.Coordinates();
+        return r_coordinates[Dim];
+    };
+
+    RansModellingApplicationTestUtilities::RunResidualVectorSensitivityTest<ModelPart::ElementsContainerType>(
+        r_primal_model_part, r_adjoint_model_part, primal_processes,
+        adjoint_processes, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
+        CalculateElementResidualScalarSensitivity, perturb_variable, Delta,
+        Tolerance, 0, EquationOffset);
+}
+
+template <>
+void RunRansEvmKEpsilonTest(const std::string PrimalName,
+                            const std::string AdjointName,
+                            std::function<void(Matrix&, ConditionType&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
+                            const double Delta,
+                            const double Tolerance,
+                            const int EquationOffset)
+{
+    Model primal_model;
+    ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
+        r_primal_model_part, PrimalName);
+
+    Model adjoint_model;
+    ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
+        r_adjoint_model_part, AdjointName);
+
+    Parameters empty_nut_parameters = Parameters(R"({
+        "model_part_name" : "test"
+    })");
+    RansNutKEpsilonHighReSensitivitiesProcess nut_sensitivities_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess adjoint_nut_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess primal_nut_process(primal_model, empty_nut_parameters);
+
+    std::vector<Process*> primal_processes;
+    std::vector<Process*> adjoint_processes;
+
+    primal_processes.push_back(&primal_nut_process);
+    adjoint_processes.push_back(&adjoint_nut_process);
+    adjoint_processes.push_back(&nut_sensitivities_process);
+
+    auto perturb_variable = [](NodeType& rNode, const int Dim) -> double& {
+        array_1d<double, 3>& r_coordinates = rNode.Coordinates();
+        return r_coordinates[Dim];
+    };
+
+    RansModellingApplicationTestUtilities::RunResidualVectorSensitivityTest<ModelPart::ConditionsContainerType>(
+        r_primal_model_part, r_adjoint_model_part, primal_processes,
+        adjoint_processes, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
+        CalculateElementResidualScalarSensitivity, perturb_variable, Delta,
+        Tolerance, 0, EquationOffset);
+}
+
 } // namespace RansEvmKEpsilonModel
 } // namespace Testing
 } // namespace Kratos
