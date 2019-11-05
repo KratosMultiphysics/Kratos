@@ -148,7 +148,7 @@ virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& r_proces
 virtual void ComputeNewNeighboursHistoricalData(DenseVector<int>& temp_neighbours_ids, std::vector<array_1d<double, 3> >& temp_neighbour_elastic_contact_forces);
 virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
-virtual void FinalizeStressTensor(ProcessInfo& r_process_info, double& rRepresentative_Volume);
+virtual void FinalizeStressTensor(ProcessInfo& r_process_info, double& rRepresentative_Volume){};
 virtual void SymmetrizeStressTensor();
 virtual void CorrectRepresentativeVolume(double& rRepresentative_Volume/*, bool& is_smaller_than_sphere*/);
 virtual void ComputeReactions();

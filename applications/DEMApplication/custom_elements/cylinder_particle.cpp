@@ -29,20 +29,37 @@ namespace Kratos
       }
 
       /// Destructor.
-      CylinderParticle::~CylinderParticle() {}      
+      CylinderParticle::~CylinderParticle() {}
 
       double CylinderParticle::CalculateVolume(){
           return Globals::Pi * GetRadius() * GetRadius();
       }
-      
+
       double CylinderParticle::CalculateMomentOfInertia() {
-          return 0.5 * GetMass() * GetRadius() * GetRadius(); 
+          return 0.5 * GetMass() * GetRadius() * GetRadius();
       }
 
       void CylinderParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info){}
       void CylinderParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& r_process_info){}
       void CylinderParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info){}
       void CylinderParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info){}
+
+      void CylinderParticle::FinalizeStressTensor(ProcessInfo& r_process_info, double& rRepresentative_Volume){
+
+        KRATOS_TRY
+        SphericParticle::FinalizeStressTensor(r_process_info, rRepresentative_Volume);
+
+        if (!r_process_info[IMPOSED_Z_STRAIN_OPTION]) return;
+
+        double z_strain_value = r_process_info[IMPOSED_Z_STRAIN_VALUE];
+        double myYoung = GetYoung();
+        double myPoisson = GetPoisson();
+
+        // (*mStressTensor)(2,2) += E*z_displacement - poisson*(sigma_xx + sigma_yy);
+        (*mStressTensor)(2, 2) = myYoung*z_strain_value - myPoisson*((*mStressTensor)(0, 0) + (*mStressTensor)(1, 1));
+
+        KRATOS_CATCH("")
+    }
 
 }  // namespace Kratos.
 
