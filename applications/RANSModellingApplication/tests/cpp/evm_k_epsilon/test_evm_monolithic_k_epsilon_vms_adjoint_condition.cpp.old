@@ -41,12 +41,12 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_primal_model_part, "RansEvmKEpsilonVmsMonolithicWall2D2N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_adjoint_model_part, "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N");
 
     Process dummy_y_plus_process;
@@ -118,12 +118,12 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_primal_model_part, "RansEvmKEpsilonEpsilonWall2D2N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_adjoint_model_part, "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N");
 
     Process dummy_y_plus_process;
@@ -195,12 +195,12 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_primal_model_part, "Condition2D2N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_adjoint_model_part, "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N");
 
     Process dummy_y_plus_process;
@@ -272,12 +272,12 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_primal_model_part, "RansEvmKEpsilonVmsMonolithicWall2D2N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_adjoint_model_part, "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N");
 
     Process dummy_y_plus_process;
@@ -343,12 +343,12 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_primal_model_part, "Condition2D2N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_adjoint_model_part, "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N");
 
     Process dummy_y_plus_process;
@@ -414,12 +414,12 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_primal_model_part, "RansEvmKEpsilonEpsilonWall2D2N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_adjoint_model_part, "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N");
 
     Process dummy_y_plus_process;
@@ -485,12 +485,12 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_primal_model_part, "RansEvmKEpsilonVmsMonolithicWall2D2N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_adjoint_model_part, "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N");
 
     Process dummy_y_plus_process;
@@ -530,12 +530,12 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_primal_model_part, "RansEvmKEpsilonEpsilonWall2D2N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_adjoint_model_part, "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N");
 
     Process dummy_y_plus_process;
@@ -574,12 +574,12 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_C
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_primal_model_part, "Condition2D2N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_adjoint_model_part, "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N");
 
     Process dummy_y_plus_process;
@@ -618,7 +618,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_G
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_adjoint_model_part, "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N");
 
     for (IndexType i_element = 0;
@@ -654,7 +654,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_G
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_adjoint_model_part, "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N");
 
     for (IndexType i_element = 0;
@@ -676,7 +676,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_G
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_adjoint_model_part, "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N");
 
     for (IndexType i_element = 0;
@@ -712,7 +712,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_G
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_adjoint_model_part, "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N");
 
     ProcessInfo& r_process_info = r_adjoint_model_part.GetProcessInfo();
@@ -750,7 +750,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N_E
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonConditionTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
         r_adjoint_model_part, "RansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N");
 
     ProcessInfo& r_process_info = r_adjoint_model_part.GetProcessInfo();
