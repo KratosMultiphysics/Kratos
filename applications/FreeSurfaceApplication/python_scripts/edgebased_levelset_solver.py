@@ -7,6 +7,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.FreeSurfaceApplication as KratosFreeSurf
 
 
+
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
     model_part.AddNodalSolutionStepVariable(KM.PRESSURE)

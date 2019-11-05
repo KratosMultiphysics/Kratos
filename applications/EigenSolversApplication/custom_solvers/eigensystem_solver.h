@@ -16,13 +16,14 @@
 // External includes
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
-#if defined EIGEN_USE_MKL_ALL
-#include <Eigen/PardisoSupport>
-#endif
-#include <Eigen/Sparse>
 
 // Project includes
 #include "includes/define.h"
+#if defined EIGEN_USE_MKL_ALL
+#include "eigen_pardiso_ldlt_solver.h"
+#else // defined EIGEN_USE_MKL_ALL
+#include "eigen_sparse_lu_solver.h"
+#endif // defined EIGEN_USE_MKL_ALL
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/iterative_solver.h"
 #include "utilities/openmp_utils.h"
@@ -32,9 +33,8 @@ namespace Kratos
 {
 
 template<
-    class TSolverType,
-    class TSparseSpaceType = typename TSolverType::TGlobalSpace,
-    class TDenseSpaceType = typename TSolverType::TLocalSpace,
+    class TSparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>,
+    class TDenseSpaceType = UblasSpace<double, Matrix, Vector>,
     class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
 class EigensystemSolver
@@ -176,8 +176,13 @@ class EigensystemSolver
             r(ij, j) = 1.0;
         }
 
-        typename TSolverType::TSolver solver;
-        solver.compute(a);
+        #if defined USE_EIGEN_MKL
+        EigenPardisoLDLTSolver<double> solver;
+        #else  // defined USE_EIGEN_MKL
+        EigenSparseLUSolver<double> solver;
+        #endif // defined USE_EIGEN_MKL
+
+        solver.Compute(a);
 
         int iteration = 0;
 
@@ -190,7 +195,7 @@ class EigensystemSolver
 
             for (int j = 0; j != nc; ++j) {
                 tmp = r.col(j);
-                tt = solver.solve(tmp);
+                solver.Solve(tmp, tt);
 
                 for (int i = j; i != nc; ++i) {
                     ar(i, j) = r.col(i).dot(tt);
@@ -257,7 +262,8 @@ class EigensystemSolver
 
         for (int i = 0; i != nroot; ++i) {
             tmp = r.col(i);
-            eigvecs.row(i) = solver.solve(tmp).normalized();
+            solver.Solve(tmp, eigvecs.row(i));
+            eigvecs.row(i).normalize();
         }
 
         // --- normalization

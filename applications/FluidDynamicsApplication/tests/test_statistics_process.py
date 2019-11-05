@@ -34,7 +34,7 @@ class IntegrationPointStatisticsTest(UnitTest.TestCase):
                     "kratos_module" : "KratosMultiphysics",
                     "process_name"  : "GiDOutputProcess",
                     "Parameters"    : {
-                        "model_part_name"        : "Cavity.fluid_computational_model_part",
+                        "model_part_name"        : "MainModelPart.fluid_computational_model_part",
                         "output_name"            : "cavity",
                         "postprocess_parameters" : {
                             "result_file_configuration" : {

@@ -39,9 +39,7 @@
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
                 "solver_type": "skyline_lu_factorization"
-        },
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_Parts_Auto2","Parts_Parts_Auto3"],
-        "processes_sub_model_part_list"      : ["Structure","Contact_Part","Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_LOAD_Auto1"]
+        }
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -51,7 +49,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,true,true],
                 "value"           : [0.0,0.0,0.0]
@@ -63,7 +61,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0]
@@ -75,7 +73,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "Parts_Parts_Auto2",
+                "model_part_name" : "Structure.Parts_Parts_Auto2",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,true],
                 "value"           : [0.0,0.0,0.0]
@@ -87,7 +85,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "Parts_Parts_Auto3",
+                "model_part_name" : "Structure.Parts_Parts_Auto3",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,true],
                 "value"           : [0.0,0.0,0.0]
@@ -95,12 +93,12 @@
         }],
         "loads_process_list"       : [{
             "python_module"   : "assign_vector_by_direction_to_condition_process",
-            "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+            "kratos_module" : "KratosMultiphysics",
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorByDirectionToConditionProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "IMPOSE_LOAD_Auto1",
+                "model_part_name" : "Structure.IMPOSE_LOAD_Auto1",
                 "variable_name"   : "LINE_LOAD",
                 "modulus"         : 1.0e11,
                 "direction"       : [0.0,-1.0,0.0]
@@ -129,7 +127,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
                 "input_file_name"      : "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test_results.json",
-                "model_part_name"      : "Contact_Part",
+                "model_part_name"      : "Structure.Contact_Part",
                 "time_frequency"       : 1.00
             }
         },{
@@ -140,7 +138,7 @@
             "Parameters"            : {
                 "check_variables"      : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
                 "input_file_name"      : "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test_results_LM.json",
-                "model_part_name"      : "Contact_Part",
+                "model_part_name"      : "Structure.Contact_Part",
                 "historical_value"     : false,
                 "relative_tolerance"   : 1e-3,
                 "time_frequency"       : 1.00
@@ -157,7 +155,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test_results.json",
-            "model_part_name"      : "Contact_Part",
+            "model_part_name"      : "Structure.Contact_Part",
             "time_frequency"       : 1.00
         }
     },{
@@ -168,7 +166,7 @@
         "Parameters"            : {
             "output_variables"     : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test_results_LM.json",
-            "model_part_name"      : "Contact_Part",
+            "model_part_name"      : "Structure.Contact_Part",
             "historical_value"     : false,
             "time_frequency"       : 1.00
         }

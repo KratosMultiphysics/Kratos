@@ -1,0 +1,197 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "friction_block_test",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1.4
+    },
+    "solver_settings"  : {
+        "solver_type"                     : "Dynamic",
+        "model_part_name"                 : "Structure",
+        "domain_size"                     : 3,
+        "echo_level"                      : 0,
+        "analysis_type"                   : "non_linear",
+        "model_import_settings"           : {
+            "input_type"     : "mdpa",
+            "input_filename" : "ALM_frictional_contact_test_3D/friction_block_test"
+        },
+        "material_import_settings"        : {
+            "materials_filename" : "ALM_frictional_contact_test_3D/friction_block_test_materials.json"
+        },
+        "time_stepping"                   : {
+            "time_step_intervals" : {
+                "0" : {
+                    "interval"  : [0.0, "End"],
+                    "time_step" : 5.0e-3
+                }
+            }
+        },
+        "convergence_criterion"           : "contact_residual_criterion",
+        "displacement_relative_tolerance" : 0.0001,
+        "displacement_absolute_tolerance" : 1e-9,
+        "residual_relative_tolerance"     : 0.0001,
+        "residual_absolute_tolerance"     : 1e-9,
+        "max_iteration"                   : 10,
+        "buffer_size"                     : 3,
+        "contact_settings"                : {
+            "mortar_type" : "ALMContactFrictional"
+        }
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [false,true,true],
+                "value"           : [null,"-0.1*t",0.0],
+                "interval"        : [0.0,0.01]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [false,true,true],
+                "value"           : [null,-0.001,0.0],
+                "interval"        : [0.01,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto3",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [false,false,true],
+                "value"           : [null,null,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto4",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,false,false],
+                "value"           : ["t-0.01",null,null],
+                "interval"        : [0.01,"End"]
+            }
+        }],
+        "contact_process_list"     : [{
+            "python_module" : "alm_contact_process",
+            "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+            "process_name"  : "ALMContactProcess",
+            "Parameters"    : {
+                "model_part_name"     : "Structure",
+                "contact_model_part"  : {
+                    "0" : ["CONTACT_Contact_slave_Auto1","CONTACT_Contact_master_Auto1"]
+                },
+                "assume_master_slave" : {
+                    "0" : ["CONTACT_Contact_slave_Auto1"]
+                },
+                "contact_type"                  : "Frictional"
+            }
+        }],
+        "loads_process_list"       : [],
+        "list_other_processes"     : [],
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"      : ["REACTION_X","REACTION_Y","REACTION_Z"],
+                "input_file_name"      : "ALM_frictional_contact_test_3D/friction_block_test_results.json",
+                "model_part_name"      : "Structure.DISPLACEMENT_Displacement_Auto2",
+                "time_frequency"       : 0.1
+            }
+        }
+        ]
+    },
+    "_json_output_process" : [
+    {
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables"     : ["REACTION_X","REACTION_Y","REACTION_Z"],
+            "output_file_name"     : "ALM_frictional_contact_test_3D/friction_block_test_results.json",
+            "model_part_name"      : "Structure.DISPLACEMENT_Displacement_Auto2",
+            "time_frequency"       : 0.1
+        }
+    }
+    ],
+    "_output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "Structure.computing_domain",
+                "output_name"            : "friction_test",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteElementsOnly",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "step",
+                        "output_control_type" : "step",
+                        "output_frequency"    : 1,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                    "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER","WEIGHTED_GAP","WEIGHTED_SLIP"],
+                    "nodal_nonhistorical_results": ["AUGMENTED_NORMAL_CONTACT_PRESSURE","AUGMENTED_TANGENT_CONTACT_PRESSURE","TANGENT_XI","TANGENT_ETA"],
+                    "nodal_flags_results": ["ACTIVE","SLAVE","SLIP"],
+                    "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
+                },
+                "point_data_configuration"  : []
+                }
+            }
+        }],
+        "vtk_output" : [{
+            "python_module" : "vtk_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "VtkOutputProcess",
+            "help"          : "This process writes postprocessing files for Paraview",
+            "Parameters"    : {
+                "model_part_name"                    : "Structure.computing_domain",
+                "output_control_type"                : "step",
+                "output_frequency"                   : 1,
+                "file_format"                        : "ascii",
+                "output_precision"                   : 7,
+                "output_sub_model_parts"             : false,
+                "folder_name"                        : "vtk_output",
+                "save_output_files_in_folder"        : true,
+                "nodal_solution_step_data_variables" : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER","WEIGHTED_GAP","WEIGHTED_SLIP"],
+                "nodal_data_value_variables"         : ["AUGMENTED_NORMAL_CONTACT_PRESSURE","AUGMENTED_TANGENT_CONTACT_PRESSURE","TANGENT_XI","TANGENT_ETA"],
+                "nodal_flags"                        : ["ACTIVE","MASTER","SLAVE","SLIP"],
+                "element_data_value_variables"       : [],
+                "element_flags"                      : [],
+                "condition_data_value_variables"     : [],
+                "condition_flags"                    : [],
+                "gauss_point_variables_extrapolated_to_nodes" : ["VON_MISES_STRESS"]
+            }
+        }]
+    }
+}

@@ -36,15 +36,11 @@
 #include "custom_strategies/builder_and_solvers/trilinos_elimination_builder_and_solver.h"
 #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
 #include "custom_strategies/convergencecriterias/trilinos_up_criteria.h"
-#include "custom_strategies/strategies/trilinos_convdiff_strategy.h"
 #include "custom_strategies/strategies/trilinos_laplacian_meshmoving_strategy.h"
 #include "custom_strategies/strategies/trilinos_structural_meshmoving_strategy.h"
 
 //configuration files
 #include "linear_solvers/linear_solver.h"
-
-#include "FluidDynamicsApplication/custom_strategies/strategies/fs_strategy.h"
-#include "FluidDynamicsApplication/custom_utilities/solver_settings.h"
 
 namespace Kratos
 {
@@ -119,13 +115,6 @@ void AddStrategies(pybind11::module& m)
     (m, "TrilinosBlockBuilderAndSolverPeriodic").def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer, Kratos::Variable<int>& >() )
     ;
 
-    //********************************************************************************************
-    py::class_< TrilinosConvectionDiffusionStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > >
-    (m, "TrilinosConvectionDiffusionStrategy")
-    .def(py::init < Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, bool, int, int > () )
-    .def( "Solve", &TrilinosConvectionDiffusionStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::Solve )
-    ;
-
     // Strategy base class
     py::class_< TrilinosBaseSolvingStrategyType, typename TrilinosBaseSolvingStrategyType::Pointer >(m, "TrilinosSolvingStrategy")
     .def(py::init< ModelPart&, bool >())
@@ -147,15 +136,6 @@ void AddStrategies(pybind11::module& m)
     .def("FinalizeSolutionStep", &TrilinosBaseSolvingStrategyType::FinalizeSolutionStep)
     .def("SolveSolutionStep", &TrilinosBaseSolvingStrategyType::SolveSolutionStep)
     //.def("GetModelPart", &BaseSolvingStrategyType::GetModelPart )
-    ;
-
-    typedef FSStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosFSStrategy;
-    py::class_< TrilinosFSStrategy, typename TrilinosFSStrategy::Pointer, TrilinosBaseSolvingStrategyType >
-    (m,"TrilinosFSStrategy").def(py::init< ModelPart&, SolverSettings< TrilinosSparseSpaceType,TrilinosLocalSpaceType, TrilinosLinearSolverType >&, bool >())
-    .def(py::init< ModelPart&, SolverSettings< TrilinosSparseSpaceType,TrilinosLocalSpaceType, TrilinosLinearSolverType >&, bool, const Kratos::Variable<int>& >())
-    .def("CalculateReactions",&TrilinosFSStrategy::CalculateReactions)
-    .def("AddIterationStep",&TrilinosFSStrategy::AddIterationStep)
-    .def("ClearExtraIterationSteps",&TrilinosFSStrategy::ClearExtraIterationSteps)
     ;
 
     typedef ResidualBasedLinearStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosLinearStrategy;

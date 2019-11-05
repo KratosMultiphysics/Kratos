@@ -38,7 +38,6 @@
 #include "includes/global_pointer_variables.h"
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
-#include "utilities/divide_elem_utils.h"
 #include "utilities/timer.h"
 
 #include "utilities/binbased_fast_point_locator.h"
@@ -59,6 +58,7 @@
 #include "utilities/sensitivity_builder.h"
 #include "utilities/auxiliar_model_part_utilities.h"
 #include "utilities/time_discretization.h"
+#include "utilities/geometrical_transformation_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -214,7 +214,8 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
 
 void VariableUtilsUpdateCurrentPosition(
     VariableUtils &rVariableUtils,
-    const ModelPart::NodesContainerType &rNodes)
+    const ModelPart::NodesContainerType &rNodes
+    )
 {
     rVariableUtils.UpdateCurrentPosition(rNodes);
 }
@@ -222,9 +223,20 @@ void VariableUtilsUpdateCurrentPosition(
 void VariableUtilsUpdateCurrentPositionWithVariable(
     VariableUtils &rVariableUtils,
     const ModelPart::NodesContainerType &rNodes,
-    const VariableUtils::ArrayVarType &rUpdateVariable)
+    const VariableUtils::ArrayVarType &rUpdateVariable
+    )
 {
     rVariableUtils.UpdateCurrentPosition(rNodes, rUpdateVariable);
+}
+
+void VariableUtilsUpdateCurrentPositionWithVariableAndPosition(
+    VariableUtils &rVariableUtils,
+    const ModelPart::NodesContainerType &rNodes,
+    const VariableUtils::ArrayVarType &rUpdateVariable,
+    const IndexType BufferPosition
+    )
+{
+    rVariableUtils.UpdateCurrentPosition(rNodes, rUpdateVariable, BufferPosition);
 }
 
 template<class TVarType>
@@ -319,7 +331,7 @@ void AddUtilitiesToPython(pybind11::module &m)
     InputGetConditionNumber ThisGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
     DirectGetConditionNumber ThisDirectGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
 
-    py::class_<ConditionNumberUtility>(m,"ConditionNumberUtility")
+    py::class_<ConditionNumberUtility,ConditionNumberUtility::Pointer>(m,"ConditionNumberUtility")
         .def(py::init<>())
         .def(py::init<LinearSolverType::Pointer, LinearSolverType::Pointer>())
         .def("GetConditionNumber", ThisGetConditionNumber)
@@ -380,12 +392,14 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
         .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
         .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<int, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
         .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
         .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
         .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
         .def("SetNonHistoricalVectorVar", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)
+        .def("SetVariable", &VariableUtils::SetVariable<int>)
         .def("SetVariable", &VariableUtils::SetVariable<bool>)
         .def("SetVariable", &VariableUtils::SetVariable<double>)
         .def("SetVariable", &VariableUtils::SetVariable<array_1d<double, 3>>)
@@ -399,11 +413,15 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("SetVariable", &VariableUtils::SetVariableForFlag<array_1d<double, 9>>)
         .def("SetVariable", &VariableUtils::SetVariableForFlag<Vector>)
         .def("SetVariable", &VariableUtils::SetVariableForFlag<Matrix>)
+        .def("SetHistoricalVariableToZero", &VariableUtils::SetHistoricalVariableToZero<int>)
         .def("SetHistoricalVariableToZero", &VariableUtils::SetHistoricalVariableToZero<double>)
         .def("SetHistoricalVariableToZero", &VariableUtils::SetHistoricalVariableToZero<array_1d<double, 3>>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<int, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<double, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<double, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<int, ModelPart::ElementsContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<double, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<int, ModelPart::ConditionsContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<double, ModelPart::MasterSlaveConstraintContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 3>, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 3>, ModelPart::ElementsContainerType>)
@@ -421,6 +439,7 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 9>, ModelPart::ElementsContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 9>, ModelPart::ConditionsContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 9>, ModelPart::MasterSlaveConstraintContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<int, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<bool, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)
@@ -551,6 +570,7 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("UpdateInitialToCurrentConfiguration", &VariableUtils::UpdateInitialToCurrentConfiguration)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPosition)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
+        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition)
         ;
 
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
@@ -661,11 +681,6 @@ void AddUtilitiesToPython(pybind11::module &m)
 //             .def("CalculateDistances",&SignedDistanceCalculationBinBased<3>::CalculateDistances )
 //                             .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<3>::FindMaximumEdgeSize )
 //             ;
-
-    py::class_<DivideElemUtils >(m,"DivideElemUtils")
-        .def(py::init<>())
-        .def("DivideElement_2D", &DivideElemUtils::DivideElement_2D)
-        ;
 
     py::class_<Timer >(m,"Timer")
         .def(py::init<>())
@@ -861,6 +876,8 @@ void AddUtilitiesToPython(pybind11::module &m)
     m.def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart);
     m.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Element, IndexedObject>>);
     m.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>);
+    m.def("InvertNormal",&MortarUtilities::InvertNormalForFlag<PointerVectorSet<Element, IndexedObject>>);
+    m.def("InvertNormal",&MortarUtilities::InvertNormalForFlag<PointerVectorSet<Condition, IndexedObject>>);
 
     // Read materials utility
     py::class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")
@@ -938,7 +955,7 @@ void AddUtilitiesToPython(pybind11::module &m)
 
     py::class_<TimeDiscretization::BDF>(mod_time_discretization, "BDF")
         .def(py::init<const unsigned int>())
-        .def("GetTimeOrder", (const unsigned int (TimeDiscretization::BDF::*)() const) & TimeDiscretization::BDF::GetTimeOrder)
+        .def("GetTimeOrder", (unsigned int (TimeDiscretization::BDF::*)() const) & TimeDiscretization::BDF::GetTimeOrder)
         .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF::*)(double) const) & TimeDiscretization::BDF::ComputeBDFCoefficients)
         .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF::*)(double, double) const) & TimeDiscretization::BDF::ComputeBDFCoefficients)
         .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF::*)(const ProcessInfo &) const) & TimeDiscretization::BDF::ComputeBDFCoefficients)
@@ -1020,6 +1037,11 @@ void AddUtilitiesToPython(pybind11::module &m)
     mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeNewmark );
     mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeBossak );
     mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeGeneralizedAlpha );
+
+    // GeometricalTransformationUtilities
+    auto mod_geom_trans_utils = m.def_submodule("GeometricalTransformationUtilities");
+    mod_geom_trans_utils.def("CalculateTranslationMatrix", &GeometricalTransformationUtilities::CalculateTranslationMatrix );
+    mod_geom_trans_utils.def("CalculateRotationMatrix", &GeometricalTransformationUtilities::CalculateRotationMatrix );
 }
 
 } // namespace Python.

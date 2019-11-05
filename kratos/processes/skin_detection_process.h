@@ -205,9 +205,62 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /** @brief Create auxiliary data structures identifying the element faces on the outer boundary.
+     *  @param[out] rInverseFaceMap describes the outer faces of the domain.
+     *  @param[out] rPropertiesFaceMap identifies the property of the element the face belongs to.
+     */
+    void GenerateFaceMaps(
+        HashMapVectorIntType& rInverseFaceMap,
+        HashMapVectorIntIdsType& rPropertiesFaceMap) const;
+
+    /** @brief Create and prepare the SubModelPart containing the new face conditions.
+     *  @return A reference to the new SubModelPart.
+     */
+    ModelPart& SetUpAuxiliaryModelPart();
+
+    /** @brief Assign new conditions to the target SubModelPart.
+     *  @param[out] rAuxiliaryModelPart Empty ModelPart to be filled with the new conditions.
+     *  @param[in] rInverseFaceMap auxiliary data structure describing the outer faces of the domain.
+     *  @param[in] rPropertiesFaceMap auxiliary data structure identifying the property of the element the face belongs to.
+     */
+    void FillAuxiliaryModelPart(
+        ModelPart& rAuxiliaryModelPart,
+        HashMapVectorIntType& rInverseFaceMap,
+        HashMapVectorIntIdsType& rPropertiesFaceMap);
+
+    /** @brief Create new Conditions based on the results of the face detection algorithm.
+     *  @param[in/out] rMainModelPart Complete ModelPart for the domain.
+     *  @param[in/out] rSkinModelPart Target ModelPart that will contain the new conditions.
+     *  @param[in] rInverseFaceMap auxiliary data structure describing the outer faces of the domain.
+     *  @param[in] rPropertiesFaceMap auxiliary data structure identifying the property of the element the face belongs to.
+     *  @param[out] rNodesInTheSkin list of all nodes belonging to the model skin.
+     *  @param[in] rConditionName base name for the conditions to be created (number of nodes and dimension will be added dynamically).
+     */
+    virtual void CreateConditions(
+        ModelPart& rMainModelPart,
+        ModelPart& rSkinModelPart,
+        HashMapVectorIntType& rInverseFaceMap,
+        HashMapVectorIntIdsType& rPropertiesFaceMap,
+        std::unordered_set<IndexType>& rNodesInTheSkin,
+        const std::string& rConditionName) const;
+
+    /** @brief Assing new conditions to additional ModelParts (if requested by user).
+     *  @param[in] rAuxiliaryModelPart ModelPart containing the new conditions.
+     */
+    void SetUpAdditionalSubModelParts(const ModelPart& rAuxiliaryModelPart);
+
+    /// Auxiliar function to get default settings.
+    /** It is defined as virtual so that it can be overriden by derived classes
+     */
+    virtual Parameters GetDefaultSettings() const;
+
     ///@}
     ///@name Protected  Access
     ///@{
+
+    ModelPart& GetModelPart() const;
+
+    Parameters GetSettings() const;
 
     ///@}
     ///@name Protected Inquiry
@@ -216,6 +269,9 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
+
+    /// Protected constructor with modified default settings to be defined by derived class.
+    SkinDetectionProcess(ModelPart& rModelPart, Parameters Settings, Parameters DefaultSettings);
 
     ///@}
 

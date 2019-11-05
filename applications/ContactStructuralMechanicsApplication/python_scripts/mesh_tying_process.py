@@ -47,6 +47,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
             "mesh_tying_property_ids"     : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
             "interval"                    : [0.0,"End"],
             "variable_name"               : "DISPLACEMENT",
+            "zero_tolerance_factor"       : 1.0,
             "search_parameters" : {
                 "type_search"                 : "in_radius_with_obb",
                 "search_factor"               : 3.5,
@@ -82,6 +83,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         base_process_settings.AddValue("assume_master_slave", self.mesh_tying_settings["assume_master_slave"])
         base_process_settings.AddValue("search_property_ids", self.mesh_tying_settings["mesh_tying_property_ids"])
         base_process_settings.AddValue("interval", self.mesh_tying_settings["interval"])
+        base_process_settings.AddValue("zero_tolerance_factor", self.mesh_tying_settings["zero_tolerance_factor"])
         base_process_settings.AddValue("integration_order", self.mesh_tying_settings["integration_order"])
         base_process_settings.AddValue("search_parameters", self.mesh_tying_settings["search_parameters"])
 

@@ -84,6 +84,7 @@ void  AddProcessesToPython(pybind11::module& m)
 
     // HESSIAN PROCESS
     py::class_<ComputeHessianSolMetricProcess, ComputeHessianSolMetricProcess::Pointer, Process>(m, "ComputeHessianSolMetricProcess")
+    .def(py::init<ModelPart&, Parameters>())
     .def(py::init<ModelPart&, Variable<double>&>())
     .def(py::init<ModelPart&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, ComponentType&>())

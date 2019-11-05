@@ -227,7 +227,7 @@ protected:
 
     virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void CalculateAndAddAdvectionMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    virtual void CalculateAndAddAdvectionMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     void CalculateAndAddDiffusiveMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
@@ -239,7 +239,7 @@ protected:
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddRHSAdvection(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    virtual void CalculateAndAddRHSAdvection(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddRHSDiffusive(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
