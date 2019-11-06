@@ -316,7 +316,7 @@ void ReadMaterialsUtility::CreateSubProperties(
 
     if (Data.Has("sub_properties")) {
 
-        PointerVectorSet<Properties, IndexedObject> list_sub_properties;
+        PointerVectorSet<Properties, IndexedObject>& r_list_sub_properties = pNewProperty->GetSubProperties();
 
         const std::size_t number_of_subproperties = Data["sub_properties"].size();
 
@@ -332,21 +332,16 @@ void ReadMaterialsUtility::CreateSubProperties(
             bool already_defined = false;
             Properties::Pointer p_new_sub_prop = nullptr;
             if (r_use_existing_property != "") {
-                auto& r_root_model_part = rModelPart.GetRootModelPart();
-                for (auto& p_prop : r_root_model_part.PropertiesArray(mesh_id)) {
-                    if (r_use_existing_property.size() > 1) {
-                        if (p_prop->HasSubProperties(r_use_existing_property)) {
-                            p_new_sub_prop = p_prop->pGetSubProperties(r_use_existing_property);
-                            already_defined = true;
-                            break;
-                        }
-                    } else {
-                        const IndexType property_id = std::stoi(r_use_existing_property);
-                        if (rModelPart.RecursivelyHasProperties(property_id)) {
-                            p_new_sub_prop = rModelPart.pGetProperties(property_id);
-                            already_defined = true;
-                            break;
-                        }
+                if (r_use_existing_property.size() > 1) {
+                    if (rModelPart.HasSubProperties(r_use_existing_property, mesh_id)) {
+                        p_new_sub_prop = rModelPart.pGetSubProperties(r_use_existing_property, mesh_id);
+                        already_defined = true;
+                    }
+                } else {
+                    const IndexType property_id = std::stoi(r_use_existing_property);
+                    if (rModelPart.RecursivelyHasProperties(property_id)) {
+                        p_new_sub_prop = rModelPart.pGetProperties(property_id);
+                        already_defined = true;
                     }
                 }
             }
@@ -371,10 +366,8 @@ void ReadMaterialsUtility::CreateSubProperties(
                 }
             }
 
-            list_sub_properties.insert(list_sub_properties.begin(), p_new_sub_prop);
+            r_list_sub_properties.insert(r_list_sub_properties.begin(), p_new_sub_prop);
         }
-
-        pNewProperty->SetSubProperties(list_sub_properties);
     }
 
     KRATOS_CATCH("");
