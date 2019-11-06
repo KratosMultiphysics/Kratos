@@ -50,7 +50,8 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
                 "automatic_time_step" : false,
                 "time_step"           : -0.1
             },
-            "adjoint_turbulence_model_solver_settings": {}
+            "adjoint_turbulence_model_solver_settings": {},
+            "consider_periodic_conditions": false
         }""")
 
         default_settings.AddMissingParameters(super(AdjointVMSMonolithicSolver, cls).GetDefaultSettings())
@@ -101,6 +102,9 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
             self._adjoint_turbulence_model_solver.fluid_model_part = self.main_model_part
             self._adjoint_turbulence_model_solver.AddVariables()
 
+        if self.settings["consider_periodic_conditions"].GetBool() == True:
+            self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
+
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Adjoint fluid solver variables added correctly.")
 
     def AddDofs(self):
@@ -124,7 +128,11 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         else:
             raise Exception("invalid scheme_type: " + self.settings["scheme_settings"]["scheme_type"].GetString())
 
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+        if self.settings["consider_periodic_conditions"].GetBool() == True:
+            builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(
+                    self.linear_solver, KratosCFD.PATCH_INDEX)
+        else:
+            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
         self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(self.main_model_part,
                                                                      self.time_scheme,
