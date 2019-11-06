@@ -252,7 +252,14 @@ void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const do
                 reference = 1e-8;
             }
 
-            const double absolute_error = std::abs(upper_velocity[i] - lower_velocity[i]);
+            double absolute_error;
+            if(i == 1){
+                absolute_error = std::abs(upper_velocity[i] + lower_velocity[i]);
+            }
+            else{
+                absolute_error = std::abs(upper_velocity[i] - lower_velocity[i]);
+
+            }
             const double relative_error = absolute_error/reference;
 
             if(absolute_error > absolute_tolerance){
@@ -332,12 +339,61 @@ const bool CheckWakeCondition(const Element& rElement, const double& rTolerance,
         << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id()
         << " upper_velocity  = " << upper_velocity
         << " lower_velocity  = " << lower_velocity << std::endl;
-    if(!wake_condition_is_fulfilled && rEchoLevel > 1){
-        std::ofstream outfile;
-        outfile.open("unfulfilled_wake_elements_id.txt", std::ios_base::app);
-        outfile << rElement.Id();
-        outfile << "\n";
+    // if(!wake_condition_is_fulfilled && rEchoLevel > 1){
+    //     std::ofstream outfile;
+    //     outfile.open("unfulfilled_wake_elements_id.txt", std::ios_base::app);
+    //     outfile << rElement.Id();
+    //     outfile << "\n";
+    // }
+
+    return wake_condition_is_fulfilled;
+}
+
+template <int Dim>
+void CheckIfPressureEqualityWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel)
+{
+    unsigned int number_of_unfulfilled_wake_conditions = 0;
+    for (auto& r_element : rWakeModelPart.Elements()){
+        const bool wake_condition_is_fulfilled =
+            CheckPressureEqualityWakeCondition<Dim, Dim + 1>(r_element, rTolerance, rEchoLevel);
+        if (!wake_condition_is_fulfilled)
+        {
+            number_of_unfulfilled_wake_conditions += 1;
+        }
     }
+    const double percentage_unfulfilled = number_of_unfulfilled_wake_conditions * 100.0 / rWakeModelPart.NumberOfElements();
+
+    KRATOS_WARNING_IF("\nCheckIfPressureEqualityWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
+        << " THE PRESSURE EQUALITY WAKE CONDITION IS NOT FULFILLED IN " << percentage_unfulfilled
+        << " % OF THE WAKE ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
+
+
+    KRATOS_WARNING_IF("CheckIfPressureEqualityWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
+        << "THE PRESSURE EQUALITY WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_wake_conditions
+        << " OF " << rWakeModelPart.NumberOfElements()
+        << " ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
+}
+
+template <int Dim, int NumNodes>
+const bool CheckPressureEqualityWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel)
+{
+    const auto upper_velocity = ComputeVelocityUpperWakeElement<Dim,NumNodes>(rElement);
+    const auto lower_velocity = ComputeVelocityLowerWakeElement<Dim,NumNodes>(rElement);
+
+    const double upper_velocity_2 = inner_prod(upper_velocity, upper_velocity);
+    const double lower_velocity_2 = inner_prod(lower_velocity, lower_velocity);
+
+    bool wake_condition_is_fulfilled = true;
+    if(std::abs(upper_velocity_2 - lower_velocity_2) > rTolerance){
+            wake_condition_is_fulfilled = false;
+    }
+
+    KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 2)
+        << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id() << std::endl;
+    KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 3)
+        << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id()
+        << " upper_velocity  = " << upper_velocity
+        << " lower_velocity  = " << lower_velocity << std::endl;
 
     return wake_condition_is_fulfilled;
 }
@@ -394,7 +450,9 @@ template double ComputeIncompressiblePressureCoefficient<2, 3>(const Element& rE
 template double ComputeCompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template const bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
+template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfPressureEqualityWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template const bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+template const bool CheckPressureEqualityWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 template const bool CheckWakeConditionXDirection<2, 3>(const Element& rElement, const int& rComponent, const double& rTolerance, const int& rEchoLevel);
 
 // 3D
@@ -414,7 +472,9 @@ template double ComputeIncompressiblePressureCoefficient<3, 4>(const Element& rE
 template double ComputeCompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template const bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
+template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfPressureEqualityWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template const bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+template const bool CheckPressureEqualityWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 template const bool CheckWakeConditionXDirection<3, 4>(const Element& rElement, const int& rComponent, const double& rTolerance, const int& rEchoLevel);
 } // namespace PotentialFlow
 } // namespace Kratos
