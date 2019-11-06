@@ -53,7 +53,7 @@ namespace Kratos
  *
  */
 
-class RansCheckVectorBoundsProcess : public Process
+class KRATOS_API(RANS_MODELLING_APPLICATION) RansCheckVectorBoundsProcess : public Process
 {
     enum VectorComponent
     {

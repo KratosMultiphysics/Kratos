@@ -67,7 +67,7 @@ namespace Kratos
  *
  */
 
-class RansLogarithmicYPlusCalculationProcess : public Process
+class KRATOS_API(RANS_MODELLING_APPLICATION) RansLogarithmicYPlusCalculationProcess : public Process
 {
 public:
     ///@name Type Definitions

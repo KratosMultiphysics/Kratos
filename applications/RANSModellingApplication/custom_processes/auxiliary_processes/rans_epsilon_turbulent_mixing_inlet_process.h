@@ -62,7 +62,7 @@ namespace Kratos
  *
  */
 
-class RansEpsilonTurbulentMixingLengthInletProcess : public Process
+class KRATOS_API(RANS_MODELLING_APPLICATION) RansEpsilonTurbulentMixingLengthInletProcess : public Process
 {
 public:
     ///@name Type Definitions

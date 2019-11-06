@@ -46,7 +46,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class RansNutYPlusWallFunctionProcess : public Process
+class KRATOS_API(RANS_MODELLING_APPLICATION) RansNutYPlusWallFunctionProcess : public Process
 {
 public:
     ///@name Type Definitions

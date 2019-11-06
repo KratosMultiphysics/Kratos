@@ -55,7 +55,7 @@ namespace Kratos
  *
  */
 
-class RansApplyFlagProcess : public Process
+class KRATOS_API(RANS_MODELLING_APPLICATION) RansApplyFlagProcess : public Process
 {
 public:
     ///@name Type Definitions

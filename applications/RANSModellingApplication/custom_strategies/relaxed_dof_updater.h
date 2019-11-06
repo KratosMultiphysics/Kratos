@@ -39,7 +39,7 @@ namespace Kratos
  *  auxiliary infrastructure.
   */
 template< class TSparseSpace >
-class RelaxedDofUpdater
+class KRATOS_API(RANS_MODELLING_APPLICATION) RelaxedDofUpdater
 {
 public:
     ///@name Type Definitions

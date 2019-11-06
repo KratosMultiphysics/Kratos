@@ -47,7 +47,7 @@ namespace Kratos
 ///@{
 
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class RansWallDistanceCalculationProcess : public Process
+class KRATOS_API(RANS_MODELLING_APPLICATION) RansWallDistanceCalculationProcess : public Process
 {
 public:
     ///@name Type Definitions

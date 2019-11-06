@@ -53,7 +53,7 @@ namespace Kratos
  *
  */
 
-class RansCheckScalarBoundsProcess : public Process
+class KRATOS_API(RANS_MODELLING_APPLICATION) RansCheckScalarBoundsProcess : public Process
 {
 public:
     ///@name Type Definitions

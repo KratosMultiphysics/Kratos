@@ -36,7 +36,7 @@ namespace Kratos
  relative and absolute tolerances for both must be specified.
  */
 template <class TSparseSpace, class TDenseSpace>
-class GenericConvergenceCriteria : public ConvergenceCriteria<TSparseSpace, TDenseSpace>
+class KRATOS_API(RANS_MODELLING_APPLICATION) GenericConvergenceCriteria : public ConvergenceCriteria<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
