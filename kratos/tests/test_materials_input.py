@@ -97,11 +97,6 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
         self.assertEqual(sub_prop11.NumberOfSubproperties(), 3)
 
-        self.assertEqual(prop1.HasSubProperties("11"), True)
-        self.assertEqual(prop1.HasSubProperties("110"), False)
-        sub_prop11_adress = prop1.GetSubProperties("11")
-        self.assertEqual(sub_prop11.Id, sub_prop11_adress.Id)
-
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication or FluidDynamicsApplication are not available")
     def test_input_python(self):
         self._prepare_test()
