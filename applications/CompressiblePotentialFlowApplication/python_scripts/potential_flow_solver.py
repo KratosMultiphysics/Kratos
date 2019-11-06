@@ -31,7 +31,7 @@ class PotentialFlowFormulation(object):
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
-        self.element_name = "IncompressiblePotentialFlowElement"
+        self.element_name = "IncompressiblePotentialFlowPressureElement"
         self.condition_name = "PotentialWallCondition"
 
     def _SetUpCompressibleElement(self, formulation_settings):
@@ -170,14 +170,31 @@ class PotentialFlowSolver(FluidSolver):
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         if "incompressible" in self.settings["formulation"]["element_type"].GetString():
-            # TODO: Rename to self.strategy once we upgrade the base FluidDynamicsApplication solvers
-            self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
+            # # TODO: Rename to self.strategy once we upgrade the base FluidDynamicsApplication solvers
+            # self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
+            #     self.GetComputingModelPart(),
+            #     time_scheme,
+            #     self.linear_solver,
+            #     self.settings["compute_reactions"].GetBool(),
+            #     self.settings["reform_dofs_at_each_step"].GetBool(),
+            #     self.settings["calculate_solution_norm"].GetBool(),
+            #     self.settings["move_mesh_flag"].GetBool())
+
+            conv_criteria = KratosMultiphysics.ResidualCriteria(
+                self.settings["relative_tolerance"].GetDouble(),
+                self.settings["absolute_tolerance"].GetDouble())
+            max_iterations = self.settings["maximum_iterations"].GetInt()
+
+            conv_criteria.SetEchoLevel(2)
+
+            self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
                 self.GetComputingModelPart(),
                 time_scheme,
                 self.linear_solver,
+                conv_criteria,
+                max_iterations,
                 self.settings["compute_reactions"].GetBool(),
                 self.settings["reform_dofs_at_each_step"].GetBool(),
-                self.settings["calculate_solution_norm"].GetBool(),
                 self.settings["move_mesh_flag"].GetBool())
         elif "compressible" in self.settings["formulation"]["element_type"].GetString():
             conv_criteria = KratosMultiphysics.ResidualCriteria(
