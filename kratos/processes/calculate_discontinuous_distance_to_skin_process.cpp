@@ -171,15 +171,21 @@ namespace Kratos
 					}
 				}
 				else {
-					// Create a plane using the intersected object
-					std::vector<array_1d<double,3>> int_pts_tangent;
-					int_pts_tangent.push_back(rIntersectedObjects[0].GetGeometry()[0].Coordinates());
-					int_pts_tangent.push_back(rIntersectedObjects[0].GetGeometry()[1].Coordinates());
-					int_pts_tangent.push_back(rIntersectedObjects[0].GetGeometry()[2].Coordinates());
-					Plane3D plane = SetIntersectionPlane(int_pts_tangent);
+					// Not enough intersection points to build a plane
+					// Use the intersected objects to create an approximation plane
+					std::vector<array_1d<double,3>> int_pts_vector;
+					for (const auto &r_int_obj : rIntersectedObjects) {
+						for (std::size_t i_int = 0; i_int < r_int_obj.GetGeometry().size(); i_int++) {
+							int_pts_vector.push_back(r_int_obj.GetGeometry()[i_int].Coordinates());
+						}
+					}
+					array_1d<double,3> base_pt, normal;
+					ComputePlaneApproximation(rElement1, int_pts_vector, base_pt, normal);
+					Plane3D approximation_plane(normal, Point{base_pt});
+
 					// Compute the distance to the intersection plane
 					for (int i = 0; i < number_of_tetrahedra_points; i++) {
-						elemental_distances[i] = plane.CalculateSignedDistance(r_geometry[i]);
+						elemental_distances[i] = approximation_plane.CalculateSignedDistance(r_geometry[i]);
 					}
 				}
 			}
