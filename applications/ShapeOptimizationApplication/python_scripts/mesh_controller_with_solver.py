@@ -47,8 +47,7 @@ class MeshControllerWithSolver(MeshController) :
                     "verbosity" : 0,
                     "tolerance": 1e-7
                 },
-                "compute_reactions"         : false,
-                "calculate_mesh_velocities" : false
+                "compute_reactions"         : false
             },
             "processes" : {
                 "boundary_conditions_process_list" : []
