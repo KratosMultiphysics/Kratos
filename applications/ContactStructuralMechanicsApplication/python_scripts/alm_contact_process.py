@@ -71,6 +71,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             "normal_variation"              : "no_derivatives_computation",
             "frictional_law"                : "Coulomb",
             "tangent_factor"                : 2.5e-2,
+            "operator_threshold"            : 1.0e-3,
             "slip_augmentation_coefficient" : 0.0,
             "slip_threshold"                : 2.0e-2,
             "zero_tolerance_factor"         : 1.0,
@@ -386,6 +387,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         max_gap_factor = self.contact_settings["advance_ALM_parameters"]["max_gap_factor"].GetDouble()
         process_info[CSMA.ADAPT_PENALTY] = self.contact_settings["advance_ALM_parameters"]["adapt_penalty"].GetBool()
         process_info[CSMA.MAX_GAP_FACTOR] = max_gap_factor
+        process_info[CSMA.OPERATOR_THRESHOLD] = self.contact_settings["operator_threshold"].GetDouble()
 
     def _initialize_search_values(self):
         """ This method initializes some values and variables used during contact computations

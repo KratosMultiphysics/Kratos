@@ -80,6 +80,7 @@ class MeshSolverBase(PythonSolver):
             },
             "reform_dofs_each_step"     : false,
             "compute_reactions"         : false,
+            "superimpose_mesh_disp_with": [],
             "poisson_ratio"             : 0.3
         }""")
         this_defaults.AddMissingParameters(super(MeshSolverBase, cls).GetDefaultSettings())
@@ -123,7 +124,11 @@ class MeshSolverBase(PythonSolver):
     def SolveSolutionStep(self):
         # Calling Solve bcs this is what is currently implemented in the MeshSolverStrategies
         # explicit bool conversion is only needed bcs "Solve" returns a double
-        return bool(self.get_mesh_motion_solving_strategy().Solve())
+        is_converged = bool(self.get_mesh_motion_solving_strategy().Solve())
+        self.MoveMesh()
+        for variable in KratosMultiphysics.kratos_utilities.GenerateVariableListFromInput(self.settings["superimpose_mesh_disp_with"]):
+            KMM.SuperImposeMeshDisplacement(variable)
+        return is_converged
 
     def SetEchoLevel(self, level):
         self.get_mesh_motion_solving_strategy().SetEchoLevel(level)
