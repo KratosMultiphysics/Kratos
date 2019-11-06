@@ -627,20 +627,19 @@ void ConstitutiveLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 }
 
 
-    /**
-     * Initialize the material response,  called by the element in InitializeSolutionStep.
-     * @see Parameters
-     * @see StressMeasures
-     */
+/**
+ * @brief Initialize the material response,  called by the element in InitializeSolutionStep.
+ * @see Parameters
+ * @see StressMeasures
+ */
+void ConstitutiveLaw::InitializeMaterialResponse(Parameters& rValues,const StressMeasure& rStressMeasure)
+{
+    if (!RequiresInitializeMaterialResponse()) {
+        KRATOS_WARNING_FIRST_N("ConstitutiveLaw", 10) << "calling \"InitializeMaterialResponse\" even though it is not required by the Constitutive Law. Please update your element" << std::endl;
+    }
 
-    void ConstitutiveLaw::InitializeMaterialResponse(Parameters& rValues,const StressMeasure& rStressMeasure)
+    switch(rStressMeasure)
     {
-        if (!RequiresInitializeMaterialResponse()) {
-            KRATOS_WARNING_FIRST_N("ConstitutiveLaw", 10) << "calling \"InitializeMaterialResponse\" even though it is not required by the Constitutive Law. Please update your element" << std::endl;
-        }
-
-        switch(rStressMeasure)
-        {
         case StressMeasure_PK1:         InitializeMaterialResponsePK1(rValues);
         break;
 
@@ -654,12 +653,10 @@ void ConstitutiveLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
         break;
 
         default:
-        KRATOS_THROW_ERROR(std::logic_error, " Stress Measure not Defined ", "");
+        KRATOS_ERROR << " Stress Measure not Defined " << std::endl;
         break;
-
-        }
     }
-
+}
 
 /**
  * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
@@ -697,13 +694,11 @@ void ConstitutiveLaw::InitializeMaterialResponseCauchy (Parameters& rValues)
     KRATOS_ERROR_IF(RequiresInitializeMaterialResponse()) <<  "Calling virtual function for InitializeMaterialResponseCauchy. Please implement InitializeMaterialResponseCauchy or RequiresInitializeMaterialResponse in case this CL does not require it" << std::endl;
 }
 
-
 /**
- * Updates the material response,  called by the element in FinalizeSolutionStep.
+ * @brief Updates the material response,  called by the element in FinalizeSolutionStep.
  * @see Parameters
  * @see StressMeasures
  */
-
 void ConstitutiveLaw::FinalizeMaterialResponse(Parameters& rValues,const StressMeasure& rStressMeasure)
 {
     if (!RequiresFinalizeMaterialResponse()) {
