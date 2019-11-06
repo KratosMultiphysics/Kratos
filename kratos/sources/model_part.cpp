@@ -679,10 +679,18 @@ bool ModelPart::HasSubProperties(
     IndexType MeshIndex
     ) const
 {
-    const IndexType first_component = FirstComponentName(rAddress);
-    if (HasProperties(first_component, MeshIndex)) {
-        Properties& r_prop = GetProperties(first_component, MeshIndex);
-        return r_prop.HasSubProperties(LastComponentName(rAddress));
+    const std::vector<IndexType> component_name = TrimComponentName(rAddress);
+    if (HasProperties(component_name[0], MeshIndex)) {
+        bool has_properties = true;
+        Properties::Pointer p_prop = pGetProperties(component_name[0], MeshIndex);
+        for (IndexType i = 1; i < component_name.size(); ++i) {
+            if (p_prop->HasSubProperties(component_name[i])) {
+                p_prop = p_prop->pGetSubProperties(component_name[i]);
+            } else {
+                return false;
+            }
+        }
+        return has_properties;
     } else {
         return false;
     }
@@ -696,9 +704,20 @@ Properties::Pointer ModelPart::pGetSubProperties(
     IndexType MeshIndex
     )
 {
-    const IndexType first_component = FirstComponentName(rAddress);
-    Properties& r_prop = GetProperties(first_component, MeshIndex);
-    return r_prop.pGetSubProperties(LastComponentName(rAddress));
+    const std::vector<IndexType> component_name = TrimComponentName(rAddress);
+    if (HasProperties(component_name[0], MeshIndex)) {
+        Properties::Pointer p_prop = pGetProperties(component_name[0], MeshIndex);
+        for (IndexType i = 1; i < component_name.size(); ++i) {
+            if (p_prop->HasSubProperties(component_name[i])) {
+                p_prop = p_prop->pGetSubProperties(component_name[i]);
+            } else {
+                KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
+            }
+        }
+        return p_prop;
+    } else {
+        KRATOS_ERROR << "First index is wrong, does not correspond with any sub Properties Id: " << component_name[0] << std::endl;
+    }
 }
 
 /***********************************************************************************/
@@ -709,9 +728,20 @@ const Properties::Pointer ModelPart::pGetSubProperties(
     IndexType MeshIndex
     ) const
 {
-    const IndexType first_component = FirstComponentName(rAddress);
-    Properties& r_prop = GetProperties(first_component, MeshIndex);
-    return r_prop.pGetSubProperties(LastComponentName(rAddress));
+    const std::vector<IndexType> component_name = TrimComponentName(rAddress);
+    if (HasProperties(component_name[0], MeshIndex)) {
+        Properties::Pointer p_prop = pGetProperties(component_name[0], MeshIndex);
+        for (IndexType i = 1; i < component_name.size(); ++i) {
+            if (p_prop->HasSubProperties(component_name[i])) {
+                p_prop = p_prop->pGetSubProperties(component_name[i]);
+            } else {
+                KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
+            }
+        }
+        return p_prop;
+    } else {
+        KRATOS_ERROR << "First index is wrong, does not correspond with any sub Properties Id: " << component_name[0] << std::endl;
+    }
 }
 
 /***********************************************************************************/
@@ -722,9 +752,7 @@ Properties& ModelPart::GetSubProperties(
     IndexType MeshIndex
     )
 {
-    const IndexType first_component = FirstComponentName(rAddress);
-    Properties& r_prop = GetProperties(first_component, MeshIndex);
-    return r_prop.GetSubProperties(LastComponentName(rAddress));
+    return *pGetSubProperties(rAddress, MeshIndex);
 }
 
 /***********************************************************************************/
@@ -735,9 +763,7 @@ const Properties& ModelPart::GetSubProperties(
     IndexType MeshIndex
     ) const
 {
-    const IndexType first_component = FirstComponentName(rAddress);
-    Properties& r_prop = GetProperties(first_component, MeshIndex);
-    return r_prop.GetSubProperties(LastComponentName(rAddress));
+    return *pGetSubProperties(rAddress, MeshIndex);
 }
 
 /** Remove the Properties with given Id from mesh with ThisIndex in this modelpart and all its subs.

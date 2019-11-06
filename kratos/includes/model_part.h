@@ -1644,46 +1644,22 @@ private:
     ///@{
 
     /**
-     * @brief This method trims a string and returns the first component (constant version)
+     * @brief This method trims a string in the different components to access recursively to any subproperty
      * @param rStringName The given name to be trimmed
-     * @return The first index
+     * @return The list of indexes
      */
-    IndexType FirstComponentName(const std::string& rStringName) const
+    std::vector<IndexType> TrimComponentName(const std::string& rStringName) const
     {
+        std::vector<IndexType> list_indexes;
+
         std::stringstream ss(rStringName);
         for (std::string index_string; std::getline(ss, index_string, '.'); ) {
-            return std::stoi(index_string);
+            list_indexes.push_back(std::stoi(index_string));
         }
 
-        KRATOS_ERROR << "ModelPart:: Empty list of indexes when reading suproperties" << std::endl;
+        KRATOS_ERROR_IF(list_indexes.size() == 0) << "Properties:: Empty list of indexes when reading suproperties" << std::endl;
 
-        return 0;
-    }
-
-    /**
-     * @brief This method trims a string and returns the first component (constant version)
-     * @param rStringName The given name to be trimmed
-     * @return The first index
-     */
-    std::string LastComponentName(const std::string& rStringName) const
-    {
-        std::stringstream ss(rStringName);
-        std::string last_component = "";
-        std::size_t counter = 0;
-        for (std::string index_string; std::getline(ss, index_string, '.'); ) {
-            if (counter > 0) {
-                last_component += index_string + ".";
-            }
-            ++counter;
-        }
-
-        if (last_component == "") {
-            KRATOS_ERROR << "ModelPart:: Empty list of indexes when reading suproperties" << std::endl;
-        } else {
-            last_component = last_component.substr(0, last_component.size()-1);
-        }
-
-        return last_component;
+        return list_indexes;
     }
 
     /**
