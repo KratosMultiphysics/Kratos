@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Antonia Larese
@@ -122,6 +122,11 @@ public:
             }
             GiD_fEndResult(ResultFile);
         }
+    }
+
+    virtual void PrintResults( GiD_FILE ResultFile, Variable<bool> rVariable, ModelPart& r_model_part,
+                               double SolutionTag, unsigned int value_index )
+    {
     }
 
     virtual void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& r_model_part,
