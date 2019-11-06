@@ -625,5 +625,6 @@ void IncompressiblePotentialFlowPressureElement<Dim, NumNodes>::load(Serializer&
 // Template class instantiation
 
 template class IncompressiblePotentialFlowPressureElement<2, 3>;
+template class IncompressiblePotentialFlowPressureElement<3, 4>;
 
 } // namespace Kratos

@@ -24,6 +24,7 @@
 #include "includes/variables.h"
 #include "custom_elements/compressible_potential_flow_element.h"
 #include "custom_elements/incompressible_potential_flow_element.h"
+#include "custom_elements/incompressible_potential_flow_pressure_element.h"
 #include "custom_elements/embedded_incompressible_potential_flow_element.h"
 #include "custom_elements/embedded_compressible_potential_flow_element.h"
 #include "custom_conditions/potential_wall_condition.h"
@@ -103,6 +104,8 @@ private:
 
     const IncompressiblePotentialFlowElement<2,3> mIncompressiblePotentialFlowElement2D3N;
     const IncompressiblePotentialFlowElement<3, 4> mIncompressiblePotentialFlowElement3D4N;
+	const IncompressiblePotentialFlowPressureElement<2,3> mIncompressiblePotentialFlowPressureElement2D3N;
+	const IncompressiblePotentialFlowPressureElement<3, 4> mIncompressiblePotentialFlowPressureElement3D4N;
     const CompressiblePotentialFlowElement<2, 3> mCompressiblePotentialFlowElement2D3N;
     const CompressiblePotentialFlowElement<3, 4> mCompressiblePotentialFlowElement3D4N;
     const AdjointAnalyticalIncompressiblePotentialFlowElement<IncompressiblePotentialFlowElement<2, 3>> mAdjointAnalyticalIncompressiblePotentialFlowElement2D3N;
