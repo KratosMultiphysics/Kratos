@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//
+//                   Raul Bravo
 //
 #if !defined(KRATOS_ROM_BUILDER_AND_SOLVER )
 #define  KRATOS_ROM_BUILDER_AND_SOLVER
@@ -205,7 +205,7 @@ public:
 		Doftemp.reserve(dof_global_set.size());
 		for (auto it = dof_global_set.begin(); it != dof_global_set.end(); it++)
 		{
-			Doftemp.push_back(it->get());
+			Doftemp.push_back(*it);
 		}
 		Doftemp.Sort();
 
@@ -345,10 +345,10 @@ public:
         //find the rom basis
         this->GetDofValues(mDofList,x);
 
-		double start_build4 = OpenMPUtils::GetCurrentTime();
+		double project_to_reduced_start = OpenMPUtils::GetCurrentTime();
 		Vector xrom = this->ProjectToReducedBasis(x, rModelPart.Nodes());
-		const double stop_build4 = OpenMPUtils::GetCurrentTime();
-		KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to reduced basis time: " << stop_build4 - start_build4 << std::endl;
+		const double project_to_reduced_end = OpenMPUtils::GetCurrentTime();
+		KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to reduced basis time: " << project_to_reduced_end - project_to_reduced_start << std::endl;
 
 
         //build the system matrix by looping over elements and conditions and assembling to A
@@ -375,13 +375,10 @@ public:
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
 
-//       #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
         {
-//            # pragma omp for  schedule(guided, 512) nowait
             for (int k = 0; k < nelements; k++)
             {
                 auto it_el = el_begin + k;
-
                 //detect if the element is active or not. If the user did not make any choice the element
                 //is active by default
                 bool element_is_active = true;
@@ -395,9 +392,9 @@ public:
 					Element::DofsVectorType dofs;
 					it_el->GetDofList(dofs, CurrentProcessInfo);
                     //assemble the elemental contribution - here is where the ROM acts
-                    //compute the elemental reduction matrix T
+                    //compute the elemental reduction matrix Phi
                     const auto& geom = it_el->GetGeometry();
-                    Matrix Telemental(geom.size()*mNodalDofs, mRomDofs);
+                    Matrix PhiElemental(geom.size()*mNodalDofs, mRomDofs);
 
                     for(unsigned int i=0; i<geom.size(); ++i)
                     {
@@ -405,15 +402,15 @@ public:
                         for(unsigned int k=0; k<rom_nodal_basis.size1(); ++k)
                         {
 							if (dofs[i*mNodalDofs + k]->IsFixed())
-								row(Telemental, i*mNodalDofs + k) = ZeroVector(Telemental.size2());
+								row(PhiElemental, i*mNodalDofs + k) = ZeroVector(PhiElemental.size2());
 							else
-								row(Telemental, i*mNodalDofs+k) = row(rom_nodal_basis,k);
+								row(PhiElemental, i*mNodalDofs+k) = row(rom_nodal_basis,k);
 						}
                     }
 
-                    Matrix aux = prod(LHS_Contribution, Telemental);
-					noalias(Arom) += prod(trans(Telemental), aux);
-                    noalias(brom) += prod(trans(Telemental), RHS_Contribution);
+                    Matrix aux = prod(LHS_Contribution, PhiElemental);
+					noalias(Arom) += prod(trans(PhiElemental), aux);
+                    noalias(brom) += prod(trans(PhiElemental), RHS_Contribution);
 
                     // clean local elemental me overridemory
                     pScheme->CleanMemory(*(it_el.base()));
@@ -421,7 +418,6 @@ public:
             }
 
 
-            // #pragma omp for  schedule(guided , 512)
             for (int k = 0; k < nconditions;  k++)
             {
                 ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
@@ -440,9 +436,9 @@ public:
                     pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution - here is where the ROM acts
-                    //compute the elemental reduction matrix T
+                    //compute the elemental reduction matrix Phi
                     const auto& r_geom = it->GetGeometry();
-                    Matrix Telemental(r_geom.size()*mNodalDofs, mRomDofs);
+                    Matrix PhiElemental(r_geom.size()*mNodalDofs, mRomDofs);
 
                     for(unsigned int i=0; i<r_geom.size(); ++i)
                     {
@@ -450,14 +446,14 @@ public:
                         for(unsigned int k=0; k<rom_nodal_basis.size1(); ++k)
                         {
 							if (dofs[i*mNodalDofs + k]->IsFixed())
-								row(Telemental, i*mNodalDofs + k) = ZeroVector(Telemental.size2());
+								row(PhiElemental, i*mNodalDofs + k) = ZeroVector(PhiElemental.size2());
 							else
-								row(Telemental, i*mNodalDofs+k) = row(rom_nodal_basis,k);
+								row(PhiElemental, i*mNodalDofs+k) = row(rom_nodal_basis,k);
                         }
                     }
-                    Matrix aux = prod(LHS_Contribution, Telemental);
-                    noalias(Arom) += prod(trans(Telemental), aux);
-                    noalias(brom) += prod(trans(Telemental), RHS_Contribution);
+                    Matrix aux = prod(LHS_Contribution, PhiElemental);
+                    noalias(Arom) += prod(trans(PhiElemental), aux);
+                    noalias(brom) += prod(trans(PhiElemental), RHS_Contribution);
 
                     // clean local elemental memory
                     pScheme->CleanMemory(*(it.base()));
@@ -472,19 +468,19 @@ public:
 
         //solve for the rom unkowns dunk = Arom^-1 * brom
         Vector dxrom(xrom.size());
-		double start_build2 = OpenMPUtils::GetCurrentTime();
+		double start_solve = OpenMPUtils::GetCurrentTime();
 		MathUtils<double>::Solve(Arom, dxrom, brom);
-		const double stop_build2 = OpenMPUtils::GetCurrentTime();
+		const double stop_solve = OpenMPUtils::GetCurrentTime();
 
-		KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << stop_build2 - start_build2 << std::endl;
+		KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << stop_solve - start_solve  << std::endl;
 
 		//update database
 		noalias(xrom) += dxrom;
 
-		double start_build3 = OpenMPUtils::GetCurrentTime();
+		double project_to_fine_start = OpenMPUtils::GetCurrentTime();
 		ProjectToFineBasis(dxrom, rModelPart.Nodes(), Dx);
-		const double stop_build3 = OpenMPUtils::GetCurrentTime();
-		KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << stop_build3 - start_build3 << std::endl;
+		const double project_to_fine_end = OpenMPUtils::GetCurrentTime();
+		KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << project_to_fine_end - project_to_fine_start << std::endl;
 
     }
 

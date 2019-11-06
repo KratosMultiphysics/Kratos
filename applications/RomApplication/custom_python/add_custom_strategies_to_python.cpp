@@ -7,8 +7,8 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author1 Fullname
-//                   Author2 Fullname
+//  Main authors:    Raul Bravo
+//
 //
 
 
@@ -54,7 +54,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
      py::class_<ROMBuilderAndSolverType, typename ROMBuilderAndSolverType::Pointer, BuilderAndSolverType>(m, "ROMBuilderAndSolver")
      	.def(py::init< LinearSolverType::Pointer, Parameters>() )
-     	//.def("MoveNodes",&ROMBuilderAndSolverType::MoveNodes)
      	;
 
 }
@@ -62,9 +61,3 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 } // namespace Python.
 } // Namespace Kratos
 
-
-
-            // typedef ROMBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ROMBuilderAndSolverType;
-            // py::class_< ROMBuilderAndSolverType, ROMBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ROMBuilderAndSolver")
-            // .def(py::init< LinearSolverType::Pointer, Parameters > ())
-            // ;

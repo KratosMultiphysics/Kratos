@@ -7,8 +7,8 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author1 Fullname
-//                   Author2 Fullname
+//  Main authors:    Raul Bravo
+//                   
 //
 
 
@@ -44,10 +44,8 @@ PYBIND11_MODULE(KratosRomApplication,m)
     AddCustomUtilitiesToPython(m);
 
     //registering variables in python
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUX_ID )
-  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ROM_BASIS )
-
-    //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUX_ID )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ROM_BASIS )
 
 }
 
