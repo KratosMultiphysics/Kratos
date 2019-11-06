@@ -186,6 +186,11 @@ public:
      */
     void SavePreviousProperties();
 
+    /**
+     * @brief returns the pressure Id
+     */
+    int GetPressureIdSubModel(const std::string &rSubModelName);
+
 protected:
     // Member Variables
     ModelPart& mrModelPart;

@@ -27,8 +27,19 @@ void CheckIfOverwritingValue(const Properties& rProps,
                              const TValueType& rValue)
 {
     KRATOS_WARNING_IF("ReadMaterialsUtility", rProps.Has(rVariable)) << "The properties ID: "
-        << rProps.Id() << " already has " << rVariable.Name() << "\nOverwriting "
+        << rProps.Id() << " already has " << rVariable.Name() << ".\nOverwriting "
         << rProps[rVariable] << " with " << rValue << std::endl;
+}
+
+template <class TValueType>
+void CheckIfOverwritingTable(const Properties& rProps,
+                             const Variable<TValueType>& rInputVariable,
+                             const Variable<TValueType>& rOutputVariable)
+{
+    KRATOS_WARNING_IF("ReadMaterialsUtility", rProps.HasTable(rInputVariable, rOutputVariable))
+        << "The properties ID: " << rProps.Id() << " already has a table for "
+        << rInputVariable.Name() << " and " << rOutputVariable.Name()
+        << ".\nIt is overwritten." << std::endl;
 }
 
 }
@@ -121,29 +132,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     const IndexType mesh_id = 0;
     Properties::Pointer p_prop;
     if (r_model_part.RecursivelyHasProperties(property_id, mesh_id)) {
-        KRATOS_WARNING("ReadMaterialsUtility") << "WARNING:: The properties ID: " << property_id
-            << " in mesh ID: " << mesh_id << " is already defined. "
-            << "This will overwrite the existing values" << std::endl;
         p_prop = r_model_part.pGetProperties(property_id, mesh_id);
-
-        // Compute the size using the iterators
-        std::size_t variables_size = 0;
-        if (Data["Material"].Has("Variables")) {
-            for(auto it=Data["Material"]["Variables"].begin(); it!=Data["Material"]["Variables"].end(); ++it) {
-                ++variables_size;
-            }
-        }
-        std::size_t tables_size = 0;
-        if (Data["Material"].Has("Tables")) {
-            for(auto it=Data["Material"]["Tables"].begin(); it!=Data["Material"]["Tables"].end(); ++it) {
-                ++tables_size;
-            }
-        }
-
-        KRATOS_WARNING_IF("ReadMaterialsUtility", variables_size > 0 && p_prop->HasVariables())
-            << "WARNING:: The properties ID: " << property_id << " already has variables." << std::endl;
-        KRATOS_WARNING_IF("ReadMaterialsUtility", tables_size > 0 && p_prop->HasTables())
-            << "WARNING:: The properties ID: " << property_id << " already has tables." << std::endl;
     } else {
         p_prop = r_model_part.CreateNewProperties(property_id, mesh_id);
     }
@@ -255,6 +244,9 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
 
             const auto& r_input_var = KratosComponents<Variable<double>>().Get(input_var_name);
             const auto& r_output_var = KratosComponents<Variable<double>>().Get(output_var_name);
+
+            CheckIfOverwritingTable(*p_prop, r_input_var, r_output_var);
+
             for (IndexType i = 0; i < table_param["data"].size(); ++i) {
                 table.insert(table_param["data"][i][0].GetDouble(),
                             table_param["data"][i][1].GetDouble());

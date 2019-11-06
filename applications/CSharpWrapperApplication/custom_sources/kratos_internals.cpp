@@ -23,7 +23,7 @@
 #include "custom_includes/kratos_internals.h"
 #include "utilities/variable_utils.h"
 #include "utilities/read_materials_utility.h"
-#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_advanced_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
 
 //#define SKIN_SUBMODEL_PART_NAME "skin_model_part"
 
