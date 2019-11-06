@@ -31,6 +31,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     mod_potential_flow_utilities.def("CheckIfWakeConditionsAreFulfilled2D",&PotentialFlowUtilities::CheckIfWakeConditionsAreFulfilled<2>);
     mod_potential_flow_utilities.def("CheckIfWakeConditionsAreFulfilled3D",&PotentialFlowUtilities::CheckIfWakeConditionsAreFulfilled<3>);
+
+    mod_potential_flow_utilities.def("CheckIfPressureEqualityWakeConditionsAreFulfilled2D",&PotentialFlowUtilities::CheckIfPressureEqualityWakeConditionsAreFulfilled<2>);
+    mod_potential_flow_utilities.def("CheckIfPressureEqualityWakeConditionsAreFulfilled3D",&PotentialFlowUtilities::CheckIfPressureEqualityWakeConditionsAreFulfilled<3>);
 }
 
 }  // namespace Python.
