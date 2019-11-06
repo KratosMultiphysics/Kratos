@@ -10,8 +10,8 @@
 //  Main authors:    Inigo Lopez and Riccardo Rossi
 //
 
-#if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H)
-#define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H
+#if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_PRESSURE_H)
+#define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_PRESSURE_H
 
 // Project includes
 #include "includes/element.h"
@@ -36,7 +36,7 @@ struct ElementalData
 ///@{
 
 template <int Dim, int NumNodes>
-class IncompressiblePotentialFlowElement : public Element
+class IncompressiblePotentialFlowPressureElement : public Element
 {
 public:
     ///@name Type Definitions
@@ -48,8 +48,8 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of IncompressiblePotentialFlowElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(IncompressiblePotentialFlowElement);
+    /// Pointer definition of IncompressiblePotentialFlowPressureElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(IncompressiblePotentialFlowPressureElement);
 
     ///@}
     ///@name Life Cycle
@@ -61,24 +61,24 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    explicit IncompressiblePotentialFlowElement(IndexType NewId = 0){}
+    explicit IncompressiblePotentialFlowPressureElement(IndexType NewId = 0){}
 
     /**
      * Constructor using an array of nodes
      */
-    IncompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes)
+    IncompressiblePotentialFlowPressureElement(IndexType NewId, const NodesArrayType& ThisNodes)
         : Element(NewId, ThisNodes){}
 
     /**
      * Constructor using Geometry
      */
-    IncompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    IncompressiblePotentialFlowPressureElement(IndexType NewId, GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry){}
 
     /**
      * Constructor using Properties
      */
-    IncompressiblePotentialFlowElement(IndexType NewId,
+    IncompressiblePotentialFlowPressureElement(IndexType NewId,
                                        GeometryType::Pointer pGeometry,
                                        PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties){}
@@ -86,27 +86,27 @@ public:
     /**
      * Copy Constructor
      */
-    IncompressiblePotentialFlowElement(IncompressiblePotentialFlowElement const& rOther) = delete;
+    IncompressiblePotentialFlowPressureElement(IncompressiblePotentialFlowPressureElement const& rOther) = delete;
 
     /**
      * Move Constructor
      */
-    IncompressiblePotentialFlowElement(IncompressiblePotentialFlowElement&& rOther) = delete;
+    IncompressiblePotentialFlowPressureElement(IncompressiblePotentialFlowPressureElement&& rOther) = delete;
 
     /**
      * Destructor
      */
-    ~IncompressiblePotentialFlowElement() override{}
+    ~IncompressiblePotentialFlowPressureElement() override{}
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement const& rOther) = delete;
+    IncompressiblePotentialFlowPressureElement& operator=(IncompressiblePotentialFlowPressureElement const& rOther) = delete;
 
     /// Move operator.
-    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement&& rOther) = delete;
+    IncompressiblePotentialFlowPressureElement& operator=(IncompressiblePotentialFlowPressureElement&& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -242,9 +242,9 @@ private:
 
     ///@}
 
-}; // Class IncompressiblePotentialFlowElement
+}; // Class IncompressiblePotentialFlowPressureElement
 
 ///@}
 } // namespace Kratos.
 
-#endif // KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H  defined
+#endif // KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_PRESSURE_H  defined
