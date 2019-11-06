@@ -47,6 +47,7 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL )           
 KRATOS_CREATE_VARIABLE( bool, ACTIVE_SET_COMPUTED )                               // To know if the active set has been computed
 KRATOS_CREATE_VARIABLE( bool, ACTIVE_SET_CONVERGED )                              // To know if the active set has converged
 KRATOS_CREATE_VARIABLE( bool, SLIP_SET_CONVERGED )                                // To know if the slip set has converged
+KRATOS_CREATE_VARIABLE( double, OPERATOR_THRESHOLD )                              // Consider objetive/non-objetive formulation threshold
 KRATOS_CREATE_VARIABLE( double, SLIP_AUGMENTATION_COEFFICIENT )                   // Coefficient to improve the slip computation convergence (augmented part related)
 KRATOS_CREATE_VARIABLE( double, DYNAMIC_FACTOR )                                  // The factor considered for dynamic problems (in order to take intro account the gap evolution)
 KRATOS_CREATE_VARIABLE( double, LAGRANGE_MULTIPLIER_CONTACT_PRESSURE )            // The lagrange multiplier for normal contact pressure
