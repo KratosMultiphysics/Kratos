@@ -394,7 +394,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements SmallDisplacementElement2D3N// GUI group identifier: Solid Auto1
+Begin Elements Element2D3N// GUI group identifier: Solid Auto1
         1          0        382        383        378 
         2          0         94         89         91 
         3          0          2          6          4 
@@ -717,7 +717,7 @@ Begin Elements SmallDisplacementElement2D3N// GUI group identifier: Solid Auto1
       320          0         15         10          8 
 End Elements
 
-Begin Elements SmallDisplacementElement2D3N// GUI group identifier: Solid Auto2
+Begin Elements Element2D3N// GUI group identifier: Solid Auto2
       321          0        125        119        133 
       322          0        166        177        175 
       323          0        322        324        308 

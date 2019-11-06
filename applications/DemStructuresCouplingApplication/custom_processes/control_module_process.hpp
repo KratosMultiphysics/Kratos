@@ -54,10 +54,12 @@ public:
                 "loading_velocity_variable_name": "LOADING_VELOCITY_VARIABLE_NAME",
                 "target_stress_table_id" : 1,
                 "initial_velocity" : 0.0,
-                "limit_velocity" : 1.0e3,
+                "limit_velocity" : 1.0,
                 "velocity_factor" : 1.0,
                 "compression_length" : 0.0,
                 "young_modulus" : 1.0e7,
+                "stress_increment_tolerance": 1000.0,
+                "update_stiffness": true,
                 "start_time" : 0.0
             }  )" );
 
@@ -76,6 +78,10 @@ public:
         mCompressionLength = rParameters["compression_length"].GetDouble();
         mYoungModulus = rParameters["young_modulus"].GetDouble();
         mStartTime = rParameters["start_time"].GetDouble();
+        mStressIncrementTolerance = rParameters["stress_increment_tolerance"].GetDouble();
+        mUpdateStiffness = rParameters["update_stiffness"].GetBool();
+        mReactionStressOld = 0.0;
+        mStiffness = mYoungModulus/mCompressionLength;
 
         KRATOS_CATCH("");
     }
@@ -146,6 +152,7 @@ public:
 
         if(CurrentTime >= mStartTime && mTargetStressTableId > 0)
         {
+            // Calculate ReactionStress
             const int NCons = static_cast<int>(mrModelPart.Conditions().size());
             ModelPart::ConditionsContainerType::iterator con_begin = mrModelPart.ConditionsBegin();
             double FaceArea = 0.0;
@@ -173,12 +180,33 @@ public:
             }
 
             const double ReactionStress = FaceReaction/FaceArea;
-            TableType::Pointer pTargetStressTable = mrModelPart.pGetTable(mTargetStressTableId);
-            const double DeltaTime = mrModelPart.GetProcessInfo()[DELTA_TIME];
-            const double NextTargetStress = pTargetStressTable->GetValue(CurrentTime+DeltaTime);
 
-            const double DeltaVelocity = (NextTargetStress - ReactionStress)*mCompressionLength/(mYoungModulus*DeltaTime) - mVelocity;
-            mVelocity += mVelocityFactor * DeltaVelocity;
+            // Update K if required
+            const double DeltaTime = mrModelPart.GetProcessInfo()[DELTA_TIME];
+            double K_estimated = mStiffness;
+            if(mUpdateStiffness == true) {
+                if(std::abs(mVelocity) > 1.0e-4*std::abs(mLimitVelocity) &&
+                   std::abs(ReactionStress-mReactionStressOld) > mStressIncrementTolerance) {
+
+                    K_estimated = std::abs((ReactionStress-mReactionStressOld)/(mVelocity * DeltaTime));
+                }
+                mReactionStressOld = ReactionStress;
+                mStiffness = K_estimated;
+            }
+
+            // Update velocity
+            TableType::Pointer pTargetStressTable = mrModelPart.pGetTable(mTargetStressTableId);
+            const double NextTargetStress = pTargetStressTable->GetValue(CurrentTime+DeltaTime);
+            const double df_target = NextTargetStress - ReactionStress;
+
+            double delta_velocity = df_target/(K_estimated * DeltaTime) - mVelocity;
+
+            if(std::abs(df_target) < mStressIncrementTolerance) {
+
+                delta_velocity = -mVelocity;
+            }
+
+            mVelocity += mVelocityFactor * delta_velocity;
 
             if(std::abs(mVelocity) > std::abs(mLimitVelocity))
             {
@@ -188,7 +216,7 @@ public:
                 }
                 else
                 {
-                    mVelocity = -1.0*std::abs(mLimitVelocity);
+                    mVelocity = - std::abs(mLimitVelocity);
                 }
             }
 
@@ -202,6 +230,7 @@ public:
 
                 it->FastGetSolutionStepValue(TargetStressVarComponent) = pTargetStressTable->GetValue(CurrentTime);
                 it->FastGetSolutionStepValue(ReactionStressVarComponent) = ReactionStress;
+                // it->FastGetSolutionStepValue(ReactionStressVarComponent) = pTargetStressTable->GetValue(CurrentTime)-ReactionStress;
                 it->FastGetSolutionStepValue(LoadingVelocityVarComponent) = mVelocity;
             }
         }
@@ -246,6 +275,10 @@ protected:
     double mCompressionLength;
     double mYoungModulus;
     double mStartTime;
+    double mReactionStressOld;
+    double mStressIncrementTolerance;
+    double mStiffness;
+    bool mUpdateStiffness;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

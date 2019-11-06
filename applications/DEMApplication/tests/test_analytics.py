@@ -58,7 +58,7 @@ class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage
                     expected_value = 2.842938
                     self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
                 elif time > 0.43:
-                    expected_value = 14.4637
+                    expected_value = 14.581124070140564
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
                     expected_value = 7.9635188
                     self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
@@ -73,7 +73,7 @@ class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage
                     expected_value = 3.941702
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
                 elif time > 0.43:
-                    expected_value = 14.4637
+                    expected_value = 14.581124070140564
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
             if node.Id == 3:
                 if time < 0.13:

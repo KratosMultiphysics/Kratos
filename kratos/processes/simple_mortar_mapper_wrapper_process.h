@@ -295,6 +295,7 @@ protected:
             "max_number_iterations"            : 10,
             "integration_order"                : 2,
             "distance_threshold"               : 1.0e24,
+            "zero_tolerance_factor"            : 1.0e0,
             "remove_isolated_conditions"       : false,
             "mapping_coefficient"              : 1.0e0,
             "origin_variable"                  : "TEMPERATURE",

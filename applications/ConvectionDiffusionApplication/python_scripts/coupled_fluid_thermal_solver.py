@@ -141,8 +141,10 @@ class CoupledFluidThermalSolver(PythonSolver):
         self.thermal_solver.Predict()
 
     def SolveSolutionStep(self):
-        self.fluid_solver.SolveSolutionStep()
-        self.thermal_solver.SolveSolutionStep()
+        fluid_is_converged = self.fluid_solver.SolveSolutionStep()
+        thermal_is_converged = self.thermal_solver.SolveSolutionStep()
+
+        return (fluid_is_converged and thermal_is_converged)
 
     def FinalizeSolutionStep(self):
         self.fluid_solver.FinalizeSolutionStep()

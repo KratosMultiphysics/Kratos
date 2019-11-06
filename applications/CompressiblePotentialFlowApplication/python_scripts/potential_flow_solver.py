@@ -20,6 +20,8 @@ class PotentialFlowFormulation(object):
                 self._SetUpCompressibleElement(formulation_settings)
             elif element_type == "embedded_incompressible":
                 self._SetUpEmbeddedIncompressibleElement(formulation_settings)
+            elif element_type == "embedded_compressible":
+                self._SetUpEmbeddedCompressibleElement(formulation_settings)
         else:
             raise RuntimeError("Argument \'element_type\' not found in formulation settings.")
 
@@ -50,6 +52,15 @@ class PotentialFlowFormulation(object):
         self.element_name = "EmbeddedIncompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
 
+    def _SetUpEmbeddedCompressibleElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "embedded_compressible"
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "EmbeddedCompressiblePotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+
 def CreateSolver(model, custom_settings):
     return PotentialFlowSolver(model, custom_settings)
 
@@ -67,7 +78,7 @@ class PotentialFlowSolver(FluidSolver):
                 "input_filename": "unknown_name"
             },
             "material_import_settings": {
-                "materials_filename": "unknown_materials.json"
+                "materials_filename": ""
             },
             "formulation": {
                 "element_type": "incompressible"
@@ -109,6 +120,7 @@ class PotentialFlowSolver(FluidSolver):
         self.domain_size = custom_settings["domain_size"].GetInt()
         self.reference_chord = custom_settings["reference_chord"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KCPFApp.REFERENCE_CHORD,self.reference_chord)
+        self.element_has_nodal_properties = False
 
         #construct the linear solvers
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
