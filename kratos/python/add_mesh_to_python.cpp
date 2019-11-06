@@ -639,6 +639,8 @@ void  AddMeshToPython(pybind11::module& m)
     .def("Initialize", &ElementInitialize)
     .def("Initialize", &ElementInitializeOld)
     //.def("CalculateLocalSystem", &Element::CalculateLocalSystem)
+    .def("GetSpecifications", &Element::GetSpecifications)
+    .def("Info", &Element::Info)
     .def("__str__", PrintObject<Element>)
     ;
 
@@ -748,6 +750,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("Initialize", &ConditionInitialize)
     .def("Initialize", &ConditionInitializeOld)
     .def("CalculateLocalSystem", &ConditionCalculateLocalSystemStandard)
+    .def("GetSpecifications", &Condition::GetSpecifications)
     .def("Info", &Condition::Info)
     .def("__str__", PrintObject<Condition>)
     ;
