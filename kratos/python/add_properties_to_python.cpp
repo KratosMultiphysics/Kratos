@@ -80,22 +80,6 @@ Properties::Pointer GetSubProperties1(
     return rProperties.pGetSubProperties(Index);
 }
 
-bool HasSubProperties2(
-    Properties& rProperties,
-    const std::string& rAdress
-    )
-{
-    return rProperties.HasSubProperties(rAdress);
-}
-
-Properties::Pointer GetSubProperties2(
-    Properties& rProperties,
-    const std::string& rAdress
-    )
-{
-    return rProperties.pGetSubProperties(rAdress);
-}
-
 void SetArrayValue(
     Properties& rProperties,
     const Variable<array_1d<double,3>>& rVar,
@@ -223,8 +207,6 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("AddSubProperties", &Properties::AddSubProperties)
     .def("HasSubProperties", HasSubProperties1)
     .def("GetSubProperties", GetSubProperties1)
-    .def("GetSubProperties", GetSubProperties2)
-    .def("HasSubProperties", HasSubProperties2)
     .def("GetSubProperties", GetSubPropertiesArray1)
     .def("GetSubProperties", GetSubPropertiesArray2)
     .def("SetSubProperties", &Properties::SetSubProperties)
