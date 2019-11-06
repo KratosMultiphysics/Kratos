@@ -384,7 +384,7 @@ public:
             //is active by default
             bool element_is_active = false;
             if ((it_el)->Has(HROM_WEIGHT))
-                KRATOS_WATCH(k);
+                //KRATOS_WATCH(k);
                 element_is_active = true;            
             
             if (element_is_active)
@@ -432,7 +432,7 @@ public:
             //is active by default
             bool condition_is_active = false;
             if ((it)->Has(HROM_WEIGHT))
-                KRATOS_WATCH(k);
+                //KRATOS_WATCH(k);
                 condition_is_active = true;
 
             if (condition_is_active)
@@ -472,8 +472,8 @@ public:
         }
         // Checking the already fully built matrices 
 
-        KRATOS_WATCH(Arom);
-        KRATOS_WATCH(brom);
+        //KRATOS_WATCH(Arom);
+        //KRATOS_WATCH(brom);
 
 
 
