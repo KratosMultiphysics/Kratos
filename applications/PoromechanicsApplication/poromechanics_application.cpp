@@ -184,8 +184,18 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ExponentialCohesive3DLaw",mExponentialCohesive3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ExponentialCohesive2DLaw",mExponentialCohesive2DLaw);
 
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DLaw", mLinearElastic3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElastic3DLaw", mHyperElastic3DLaw);
+
+    Serializer::Register("IsotropicDamageFlowRule", mIsotropicDamageFlowRule);
     Serializer::Register( "LocalDamageFlowRule", mLocalDamageFlowRule );
     Serializer::Register( "NonlocalDamageFlowRule", mNonlocalDamageFlowRule );
+
+    Serializer::Register("SimoJuYieldCriterion", mSimoJuYieldCriterion);
+    Serializer::Register("ModifiedMisesYieldCriterion", mModifiedMisesYieldCriterion);
+
+    Serializer::Register("ExponentialDamageHardeningLaw", mExponentialDamageHardeningLaw);
+    Serializer::Register("ModifiedExponentialDamageHardeningLaw", mModifiedExponentialDamageHardeningLaw);
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SimoJuLocalDamage3DLaw",mSimoJuLocalDamage3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SimoJuLocalDamagePlaneStrain2DLaw",mSimoJuLocalDamagePlaneStrain2DLaw);
