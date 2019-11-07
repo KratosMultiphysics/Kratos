@@ -40,6 +40,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             "subopt_tolerance"              : 1e-10,
             "bisectioning_max_itr"          : 30,
             "bisectioning_tolerance"        : 1e-2,
+            "relative_tolerance"            : 1e-12,
             "obj_share_during_correction"   : 1
         }""")
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
@@ -129,10 +130,29 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             KM.Logger.PrintInfo("ShapeOpt", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
             KM.Logger.PrintInfo("ShapeOpt", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
+            if self.__isAlgorithmConverged():
+                break
+
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop(self):
         self.analyzer.FinalizeAfterOptimizationLoop()
         self.data_logger.FinalizeDataLogging()
+
+    def __isAlgorithmConverged(self):
+
+        if self.opt_iteration > 1 :
+            # Check if maximum iterations were reached
+            if self.opt_iteration == self.algorithm_settings["max_iterations"].GetInt():
+                KM.Logger.Print("")
+                KM.Logger.PrintInfo("ShapeOpt", "Maximal iterations of optimization problem reached!")
+                return True
+
+            # Check for relative tolerance
+            relativeChangeOfObjectiveValue = self.data_logger.GetValues("rel_change_objective")[self.opt_iteration]
+            if abs(relativeChangeOfObjectiveValue) < self.algorithm_settings["relative_tolerance"].GetDouble():
+                KM.Logger.Print("")
+                KM.Logger.PrintInfo("ShapeOpt", "Optimization problem converged within a relative objective tolerance of ",self.algorithm_settings["relative_tolerance"].GetDouble(),"%.")
+                return True
 
     # --------------------------------------------------------------------------
     def __InitializeNewShape(self):
