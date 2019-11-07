@@ -133,19 +133,25 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "name" : "ResidualBasedBlockBuilderAndSolver"
+            "name"           : "ResidualBasedBlockBuilderAndSolver",
+            "scale_diagonal" : false
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        // Setting flags
+        mOptions.Set(SCALE_DIAGONAL, ThisParameters["scale_diagonal"].GetBool());
     }
 
     /**
      * @brief Default constructor.
      */
     explicit ResidualBasedBlockBuilderAndSolver(
-        typename TLinearSolver::Pointer pNewLinearSystemSolver)
-        : BaseType(pNewLinearSystemSolver)
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        const bool ScaleDiagonal = false
+        ) : BaseType(pNewLinearSystemSolver)
     {
+        mOptions.Set(SCALE_DIAGONAL, ScaleDiagonal);
     }
 
     /** Destructor.
