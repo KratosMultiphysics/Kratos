@@ -40,5 +40,3 @@ namespace Kratos
  	}
 
 }  // namespace Kratos.
-
-

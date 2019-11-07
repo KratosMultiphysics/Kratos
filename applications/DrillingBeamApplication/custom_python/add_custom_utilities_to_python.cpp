@@ -7,15 +7,12 @@
 
 // External includes
 
-
 // Project includes
+
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/post_utilities.h"
 
 #include "includes/define.h"
-#include "processes/process.h"
-#include "includes/gid_io.h"
-#include "includes/gid_gauss_point_container.h"
-
 
 namespace Kratos
 {
@@ -23,11 +20,19 @@ namespace Kratos
 namespace Python
 {
 
-    void  AddCustomUtilitiesToPython(pybind11::module& m){
+namespace py = pybind11;
 
-    }
+void AddCustomUtilitiesToPython(pybind11::module &m)
+{
 
-}  // namespace Python.
+    py::class_<PostUtilities, PostUtilities::Pointer>(m, "PostUtilities", py::module_local())
+        .def(py::init<>())
+        // .def("ComputeCurvatureOfBeamSolids", &PostUtilities::ComputeCurvatureOfBeamSolids)
+        // .def("ComputeCurvatureOfBeam", &PostUtilities::ComputeCurvatureOfBeam)
+        // .def("CreateSkinForBeam", &PostUtilities::CreateSkinForBeam)
+        ;
+}
+
+} // namespace Python.
 
 } // Namespace Kratos
-

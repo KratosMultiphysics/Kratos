@@ -83,6 +83,7 @@ class CoupledDrillingBeamAlgorithm(dem_fem_coupling_algorithm.Algorithm):
             self.structural_solution._GetSolver().Predict()
             self.structural_solution._GetSolver().SolveSolutionStep()
             self.structural_solution.FinalizeSolutionStep()
+            
             self.structural_solution.OutputSolutionStep()
 
             time_final_DEM_substepping = self.structural_solution.time
@@ -151,6 +152,7 @@ class CoupledDrillingBeamAlgorithm(dem_fem_coupling_algorithm.Algorithm):
                 self.dem_solution.DEMEnergyCalculator.CalculateEnergyAndPlot(self.dem_solution.time)
 
                 self.dem_solution.BeforePrintingOperations(self.dem_solution.time)
+                
 
                 #### GiD IO ##########################################
                 if self.dem_solution.IsTimeToPrintPostProcess():
@@ -165,6 +167,7 @@ class CoupledDrillingBeamAlgorithm(dem_fem_coupling_algorithm.Algorithm):
 
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
 
+    # DBA.PostUtilities().ComputeCurvatureOfBeamSolids(self.structural_mp)
 
 if __name__ == "__main__":
     CoupledDrillingBeamAlgorithm().Run()
