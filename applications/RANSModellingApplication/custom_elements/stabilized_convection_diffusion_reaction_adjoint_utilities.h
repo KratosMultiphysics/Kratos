@@ -204,11 +204,7 @@ inline void CalculateAbsoluteScalarGradientScalarDerivative(
 {
     const double scalar_gradient_norm = norm_2(rScalarGradient);
 
-    if (scalar_gradient_norm <= std::numeric_limits<double>::epsilon())
-    {
-        rOutput.clear();
-    }
-    else
+    if (scalar_gradient_norm > 0.0)
     {
         for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node)
         {
@@ -216,6 +212,10 @@ inline void CalculateAbsoluteScalarGradientScalarDerivative(
             rOutput[i_node] =
                 CalculateScalarProduct(shape_function_gradient, rScalarGradient) / scalar_gradient_norm;
         }
+    }
+    else
+    {
+        rOutput.clear();
     }
 }
 
@@ -226,11 +226,7 @@ inline double CalculateAbsoluteScalarGradientShapeSensitivity(
 {
     const double scalar_gradient_norm = norm_2(rScalarGradient);
 
-    if (scalar_gradient_norm <= std::numeric_limits<double>::epsilon())
-    {
-        return 0.0;
-    }
-    else
+    if (scalar_gradient_norm > 0.0)
     {
         Vector scalar_gradient_shape_sensitivity(
             rShapeFunctionDerivShapeSensitivity.size2());
@@ -242,6 +238,10 @@ inline double CalculateAbsoluteScalarGradientShapeSensitivity(
             scalar_gradient[i] = rScalarGradient[i];
         return inner_prod(scalar_gradient_shape_sensitivity, scalar_gradient) / scalar_gradient_norm;
     }
+    else
+    {
+        return 0.0;
+    }
 }
 
 template <std::size_t TDim, std::size_t TNumNodes>
@@ -251,16 +251,16 @@ inline void CalculateVelocityMagnitudeVelocityDerivative(
     const array_1d<double, 3>& rVelocity,
     const Vector& rGaussShapeFunctions)
 {
-    if (VelocityMagnitude <= std::numeric_limits<double>::epsilon())
-    {
-        rOutput.clear();
-    }
-    else
+    if (VelocityMagnitude > 0.0)
     {
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
             for (unsigned int i_dim = 0; i_dim < TDim; ++i_dim)
                 rOutput(i_node, i_dim) =
                     rVelocity[i_dim] * rGaussShapeFunctions[i_node] / VelocityMagnitude;
+    }
+    else
+    {
+        rOutput.clear();
     }
 }
 
@@ -273,11 +273,7 @@ inline void CalculateElementLengthH2VelocityDerivative(
     const BoundedMatrix<double, TDim, TDim>& rContravariantMetricTensor,
     const Vector& rGaussShapeFunctions)
 {
-    if (VelocityMagnitude <= std::numeric_limits<double>::epsilon())
-    {
-        rOutput.clear();
-    }
-    else
+    if (VelocityMagnitude > 0.0)
     {
         const Vector& velocity = RansCalculationUtilities::GetVector<TDim>(rVelocity);
 
@@ -298,6 +294,10 @@ inline void CalculateElementLengthH2VelocityDerivative(
             rOutput * (-1.0 * VelocityMagnitude / std::pow(sqrt_u_e_u, 3));
         noalias(rOutput) += (rVelocityMagnitudeVelocityDerivatives) * (2.0 / sqrt_u_e_u);
     }
+    else
+    {
+        rOutput.clear();
+    }
 }
 
 template <std::size_t TDim>
@@ -307,7 +307,18 @@ inline double CalculateElementLengthH2ShapeSensitivity(
     const BoundedMatrix<double, TDim, TDim>& rContravariantMetricTensor,
     const BoundedMatrix<double, TDim, TDim>& rContravariantMetricTensorShapeSensitivity)
 {
-    if (VelocityMagnitude <= std::numeric_limits<double>::epsilon())
+    if (VelocityMagnitude > 0.0)
+    {
+        const Vector& velocity = RansCalculationUtilities::GetVector<TDim>(rVelocity);
+
+        const double u_e_u = std::pow(
+            inner_prod(velocity, prod(rContravariantMetricTensor, velocity)), 1.5);
+
+        return -VelocityMagnitude *
+               (inner_prod(velocity, prod(rContravariantMetricTensorShapeSensitivity, velocity))) /
+               u_e_u;
+    }
+    else
     {
         double sensitivity = 0.0;
         double element_length = 0.0;
@@ -320,17 +331,6 @@ inline double CalculateElementLengthH2ShapeSensitivity(
         element_length = std::sqrt(1.0 / element_length) * 2.0;
 
         return sensitivity * std::pow(element_length, 3) * (-1.0 / 8.0);
-    }
-    else
-    {
-        const Vector& velocity = RansCalculationUtilities::GetVector<TDim>(rVelocity);
-
-        const double u_e_u = std::pow(
-            inner_prod(velocity, prod(rContravariantMetricTensor, velocity)), 1.5);
-
-        return -VelocityMagnitude *
-               (inner_prod(velocity, prod(rContravariantMetricTensorShapeSensitivity, velocity))) /
-               u_e_u;
     }
 }
 
@@ -379,9 +379,15 @@ inline double CalculatePsiOneShapeSensitivity(const double tau,
         reaction + DynamicTau * (1 - bossak_alpha) / (bossak_gamma * delta_time);
     const double abs_reaction_dynamics = std::abs(reaction_dynamics);
 
-    return tau_deriv * velocity_magnitude * abs_reaction_dynamics +
-           tau * velocity_magnitude * reaction_dynamics * reaction_deriv /
-               (abs_reaction_dynamics + std::numeric_limits<double>::epsilon());
+    if (abs_reaction_dynamics > 0.0)
+    {
+        return tau_deriv * velocity_magnitude * abs_reaction_dynamics +
+               tau * velocity_magnitude * reaction_dynamics * reaction_deriv / abs_reaction_dynamics;
+    }
+    else
+    {
+        return 0.0;
+    }
 }
 
 template <std::size_t TNumNodes>
@@ -445,11 +451,13 @@ inline double CalculatePsiTwoShapeSensitivity(const double psi_two,
     const double abs_reaction_dynamics = std::abs(reaction_dynamics);
 
     shape_sensitivity += reaction_deriv;
-    shape_sensitivity += tau_deriv * reaction_dynamics * abs_reaction_dynamics;
-    shape_sensitivity += tau * reaction_deriv * abs_reaction_dynamics;
-    shape_sensitivity +=
-        tau * reaction_dynamics * reaction_dynamics * reaction_deriv /
-        (abs_reaction_dynamics + std::numeric_limits<double>::epsilon());
+    if (abs_reaction_dynamics > 0.0)
+    {
+        shape_sensitivity += tau_deriv * reaction_dynamics * abs_reaction_dynamics;
+        shape_sensitivity += tau * reaction_deriv * abs_reaction_dynamics;
+        shape_sensitivity += tau * reaction_dynamics * reaction_dynamics *
+                             reaction_deriv / abs_reaction_dynamics;
+    }
 
     shape_sensitivity *= std::pow(element_length, 2) / 6.0;
 
@@ -516,10 +524,16 @@ inline double CalculateChiShapeSensitivity(const double chi,
         reaction + DynamicTau * (1 - bossak_alpha) / (bossak_gamma * delta_time);
     const double abs_reaction_tilde = std::abs(reaction_tilde);
 
-    return -0.5 * std::pow(chi, 2) *
-           (abs_reaction_tilde * element_length_deriv +
-            reaction_tilde * element_length * reaction_deriv /
-                (abs_reaction_tilde + std::numeric_limits<double>::epsilon()));
+    if (abs_reaction_tilde > 0.0)
+    {
+        return -0.5 * std::pow(chi, 2) *
+               (abs_reaction_tilde * element_length_deriv +
+                reaction_tilde * element_length * reaction_deriv / abs_reaction_tilde);
+    }
+    else
+    {
+        return 0.0;
+    }
 }
 
 template <std::size_t TNumNodes>
@@ -580,11 +594,7 @@ inline double CalculateResidualShapeSensitivity(const double residual,
 {
     const double abs_residual = std::abs(residual);
 
-    if (abs_residual <= std::numeric_limits<double>::epsilon())
-    {
-        return 0.0;
-    }
-    else
+    if (abs_residual > 0.0)
     {
         Vector r_velocity(rShapeFunctionDerivShapeSensitivity.size2());
         for (std::size_t i = 0; i < rShapeFunctionDerivShapeSensitivity.size2(); ++i)
@@ -599,6 +609,10 @@ inline double CalculateResidualShapeSensitivity(const double residual,
                (inner_prod(r_velocity, primal_variable_gradient_shape_sensitivity) +
                 reaction_deriv * scalar_value - source_deriv) /
                abs_residual;
+    }
+    else
+    {
+        return 0.0;
     }
 }
 
@@ -678,11 +692,14 @@ inline void CalculateCrossWindDiffusionCoeffVelocityDerivatives(
     {
         const double abs_psi_one = std::abs(psi_one);
 
-        noalias(rOutput) =
-            rPsiOneDerivatives * (0.5 * psi_one * element_length /
-                                  (abs_psi_one + std::numeric_limits<double>::epsilon())) +
-            rElementLengthDerivatives * (0.5 * abs_psi_one) -
-            rEffectiveKinematicViscosityDerivatives + rPsiTwoDerivatives;
+        noalias(rOutput) = rPsiTwoDerivatives - rEffectiveKinematicViscosityDerivatives;
+
+        if (abs_psi_one > 0.0)
+        {
+            noalias(rOutput) +=
+                rPsiOneDerivatives * (0.5 * psi_one * element_length / abs_psi_one) +
+                rElementLengthDerivatives * (0.5 * abs_psi_one);
+        }
     }
     else
     {
@@ -702,10 +719,15 @@ inline double CalculateCrossWindDiffusionCoeffShapeSensitivity(
     if (cross_wind_diffusion_coefficient > 0.0)
     {
         const double abs_psi_one = std::abs(psi_one);
-        return 0.5 * psi_one * element_length * psi_one_deriv /
-                   (abs_psi_one + std::numeric_limits<double>::epsilon()) +
-               0.5 * abs_psi_one * element_length_deriv -
-               effective_kinematic_viscosity_deriv + psi_two_deriv;
+
+        double value = psi_two_deriv - effective_kinematic_viscosity_deriv;
+
+        if (abs_psi_one > 0.0)
+        {
+            value += 0.5 * psi_one * element_length * psi_one_deriv / abs_psi_one +
+                     0.5 * abs_psi_one * element_length_deriv;
+        }
+        return value;
     }
     else
     {
@@ -727,12 +749,15 @@ inline void CalculateCrossWindDiffusionCoeffScalarDerivatives(
 {
     if (cross_wind_diffusion_coefficient > 0.0)
     {
-        noalias(rOutput) =
-            rPsiOneScalarDerivatives *
-            (0.5 * psi_one * element_length /
-             (std::abs(psi_one) + std::numeric_limits<double>::epsilon()));
+        noalias(rOutput) = rPsiTwoScalarDerivatives;
         noalias(rOutput) -= rEffectiveKinematicViscosityScalarDerivatives;
-        noalias(rOutput) += rPsiTwoScalarDerivatives;
+
+        const double abs_psi_one = std::abs(psi_one);
+        if (abs_psi_one > 0.0)
+        {
+            noalias(rOutput) += rPsiOneScalarDerivatives *
+                                (0.5 * psi_one * element_length / abs_psi_one);
+        }
     }
     else
     {
@@ -763,8 +788,16 @@ inline void CalculateStreamLineDiffusionCoeffScalarDerivatives(
         noalias(rOutput) -= rReactionTildeScalarDerivatives * (tau * velocity_norm);
 
         const double coeff = psi_one - tau * velocity_norm * reaction_tilde;
-        noalias(rOutput) = rOutput * (0.5 * element_length * (coeff) / (std::abs(coeff)) +
-                                      std::numeric_limits<double>::epsilon());
+        const double abs_coeff = std::abs(coeff);
+
+        if (abs_coeff > 0.0)
+        {
+            noalias(rOutput) = rOutput * (0.5 * element_length * coeff / abs_coeff);
+        }
+        else
+        {
+            rOutput.clear();
+        }
 
         noalias(rOutput) += rPsiTwoScalarDerivatives;
         noalias(rOutput) -= rEffectiveViscosityScalarDerivatives;
@@ -802,10 +835,17 @@ inline void CalculateStreamLineDiffusionCoeffVelocityDerivatives(
              rReactionTildeDerivatives * (tau * velocity_norm));
 
         const double coeff = psi_one - tau * velocity_norm * reaction_tilde;
-        noalias(rOutput) = rOutput * (0.5 * element_length * (coeff) / (std::abs(coeff)) +
-                                      std::numeric_limits<double>::epsilon());
+        const double abs_coeff = std::abs(coeff);
+        if (abs_coeff > 0.0)
+        {
+            noalias(rOutput) = rOutput * (0.5 * element_length * coeff / abs_coeff);
+        }
+        else
+        {
+            rOutput.clear();
+        }
 
-        noalias(rOutput) += rElementLengthDerivatives * (0.5 * std::abs(coeff));
+        noalias(rOutput) += rElementLengthDerivatives * (0.5 * abs_coeff);
 
         noalias(rOutput) += rPsiTwoDerivatives;
         noalias(rOutput) -= rEffectiveViscosityDerivatives;
@@ -846,8 +886,15 @@ inline double CalculateStreamLineDiffusionCoeffShapeSensitivity(
 
         shape_sensitivity += psi_one_deriv - tau_deriv * velocity_magnitude * reaction_dynamics -
                              tau * velocity_magnitude * reaction_deriv;
-        shape_sensitivity *= 0.5 * coeff * element_length /
-                             (abs_coeff + std::numeric_limits<double>::epsilon());
+        if (abs_coeff > 0.0)
+        {
+            shape_sensitivity *= 0.5 * coeff * element_length / abs_coeff;
+        }
+        else
+        {
+            shape_sensitivity = 0.0;
+        }
+
         shape_sensitivity += 0.5 * abs_coeff * element_length_deriv;
         shape_sensitivity -= effective_kinematic_viscosity_deriv +
                              tau_deriv * std::pow(velocity_magnitude, 2);
