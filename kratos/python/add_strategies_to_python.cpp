@@ -420,6 +420,7 @@ namespace Kratos
             py::class_< ResidualBasedBlockBuilderAndSolverType, ResidualBasedBlockBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolver")
             .def(py::init< LinearSolverType::Pointer > ())
             .def(py::init< LinearSolverType::Pointer, const bool > ())
+            .def(py::init< LinearSolverType::Pointer, const bool, const bool > ())
             ;
 
             //********************************************************************

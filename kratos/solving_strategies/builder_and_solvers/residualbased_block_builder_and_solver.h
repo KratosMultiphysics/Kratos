@@ -14,7 +14,6 @@
 #if !defined(KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER )
 #define  KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER
 
-
 /* System includes */
 #include <unordered_set>
 
@@ -30,7 +29,6 @@
 #include "includes/kratos_flags.h"
 #include "includes/lock_object.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
-
 
 namespace Kratos
 {
@@ -82,6 +80,7 @@ public:
 
     /// Definition of the flags
     KRATOS_DEFINE_LOCAL_FLAG( SCALE_DIAGONAL );
+    KRATOS_DEFINE_LOCAL_FLAG( SILENT_WARNINGS );
 
     /// Definition of the pointer
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolver);
@@ -133,14 +132,16 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "name"           : "ResidualBasedBlockBuilderAndSolver",
-            "scale_diagonal" : false
+            "name"            : "ResidualBasedBlockBuilderAndSolver",
+            "scale_diagonal"  : false,
+            "silent_warnings" : false
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         // Setting flags
         mOptions.Set(SCALE_DIAGONAL, ThisParameters["scale_diagonal"].GetBool());
+        mOptions.Set(SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
     }
 
     /**
@@ -148,10 +149,12 @@ public:
      */
     explicit ResidualBasedBlockBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
-        const bool ScaleDiagonal = false
+        const bool ScaleDiagonal = false,
+        const bool SilentWarnings = false
         ) : BaseType(pNewLinearSystemSolver)
     {
         mOptions.Set(SCALE_DIAGONAL, ScaleDiagonal);
+        mOptions.Set(SILENT_WARNINGS, SilentWarnings);
     }
 
     /** Destructor.
@@ -401,7 +404,7 @@ public:
             BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
         } else {
             TSparseSpace::SetToZero(Dx);
-            KRATOS_WARNING("ResidualBasedBlockBuilderAndSolver") << "ATTENTION! setting the RHS to zero!" << std::endl;
+            KRATOS_WARNING_IF("ResidualBasedBlockBuilderAndSolver", mOptions.IsNot(SILENT_WARNINGS)) << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
         // Prints informations about the current time
@@ -1569,6 +1572,8 @@ private:
 // Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::SCALE_DIAGONAL(Kratos::Flags::Create(0));
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
+const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::SILENT_WARNINGS(Kratos::Flags::Create(1));
 
 ///@}
 
