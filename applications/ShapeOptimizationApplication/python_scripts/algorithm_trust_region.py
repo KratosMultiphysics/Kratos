@@ -149,8 +149,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 return True
 
             # Check for relative tolerance
-            relativeChangeOfObjectiveValue = self.data_logger.GetValues("rel_change_objective")[self.opt_iteration]
-            if abs(relativeChangeOfObjectiveValue) < self.algorithm_settings["relative_tolerance"].GetDouble():
+            relative_change_of_objective_value = self.data_logger.GetValues("rel_change_objective")[self.opt_iteration]
+            if abs(relative_change_of_objective_value) < self.algorithm_settings["relative_tolerance"].GetDouble():
                 KM.Logger.Print("")
                 KM.Logger.PrintInfo("ShapeOpt", "Optimization problem converged within a relative objective tolerance of ",self.algorithm_settings["relative_tolerance"].GetDouble(),"%.")
                 return True
