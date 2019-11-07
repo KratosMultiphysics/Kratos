@@ -127,6 +127,27 @@ void ApplyFarFieldProcess::InitializeFlowField()
 
         it_node->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = inlet_potential + mReferencePotential;
         it_node->FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = inlet_potential + mReferencePotential;
+
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_0) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_1) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_2) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_3) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_4) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_5) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_6) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_7) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_8) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_9) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_10) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_11) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_12) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_13) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_14) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_15) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_16) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_17) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_18) = 0.0;
+        it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_19) = 0.0;
     }
 }
 
