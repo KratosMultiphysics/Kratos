@@ -557,7 +557,7 @@ void ModelPartAddMasterSlaveConstraint(ModelPart& rModelPart, ModelPart::MasterS
     rModelPart.AddMasterSlaveConstraint(pMasterSlaveConstraint);
 }
 
-void AddMasterSlaveConstraintss(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& ConstraintIds )
+void AddMasterSlaveConstraintsByIds(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& ConstraintIds )
 {
     rModelPart.AddMasterSlaveConstraints(ConstraintIds);
 }
@@ -983,7 +983,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("RemoveMasterSlaveConstraints", &ModelPart::RemoveMasterSlaveConstraints)
         .def("RemoveMasterSlaveConstraintsFromAllLevels", &ModelPart::RemoveMasterSlaveConstraintsFromAllLevels)
         .def("AddMasterSlaveConstraint", ModelPartAddMasterSlaveConstraint)
-        .def("AddMasterSlaveConstraints", AddMasterSlaveConstraintss)
+        .def("AddMasterSlaveConstraints", AddMasterSlaveConstraintsByIds)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint1, py::return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint2, py::return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint3, py::return_value_policy::reference_internal)
