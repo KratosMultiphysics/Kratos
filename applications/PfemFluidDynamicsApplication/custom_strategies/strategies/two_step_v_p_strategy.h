@@ -423,8 +423,11 @@ public:
       else if ((i)->Is(RIGID))
       {
         array_1d<double, 3> Zeros(3, 0.0);
-        (i)->FastGetSolutionStepValue(ACCELERATION, 0) = Zeros;
-        (i)->FastGetSolutionStepValue(ACCELERATION, 1) = Zeros;
+        if (!(i)->IsFixed(ACCELERATION_X) && !(i)->IsFixed(ACCELERATION_Y) && !(i)->IsFixed(ACCELERATION_Z)) {
+          (i)->FastGetSolutionStepValue(ACCELERATION, 0) = Zeros;
+          (i)->FastGetSolutionStepValue(ACCELERATION, 1) = Zeros;
+        }
+
       }
       else
       {
