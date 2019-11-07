@@ -134,7 +134,7 @@ private:
 
     void MarkKuttaElements();
 
-    void ComputeNodalDistancesToWakeAndLowerSurface(Element& rElement, NodeType::Pointer pTrailingEdgeNode, Vector& rNodalDistancesToTe);
+    void ComputeNodalDistancesToWakeAndLowerSurface(const Element::GeometryType& rGeom, NodeType::Pointer pTrailingEdgeNode, Vector& rNodalDistancesToTe) const;
 
     void AddWakeNodes() const;
 
