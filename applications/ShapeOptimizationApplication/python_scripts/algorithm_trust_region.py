@@ -138,6 +138,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.analyzer.FinalizeAfterOptimizationLoop()
         self.data_logger.FinalizeDataLogging()
 
+    # --------------------------------------------------------------------------
     def __isAlgorithmConverged(self):
 
         if self.opt_iteration > 1 :
