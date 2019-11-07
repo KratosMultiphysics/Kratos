@@ -67,40 +67,51 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
 
-        self.__SetWakeAndSpanDirections()
-        # Save the trailing edge and wing tip nodes for further computations
-        self.__MarkTrailingEdgeNodes()
-        # Save the lower surface normals to help mark kutta elements later on
-        self.__ComputeLowerSurfaceNormals()
+        import time as time
+        start_time = time.time()
         # Read wake from stl and create the wake model part
         self.__CreateWakeModelPart()
-        # Check which elements are cut and mark them as wake
-        self.__MarkWakeElements()
-        # Mark the elements touching the trailing edge from below as kutta
-        self.__MarkKuttaElements()
-        # Output the wake in GiD for visualization
-        if(self.output_wake):
-            self.__VisualizeWake()
+        CPFApp.Define3DWakeProcess(self.trailing_edge_model_part, self.body_model_part, self.wake_model_part, self.epsilon, self.wake_normal).ExecuteInitialize()
+        exe_time = time.time() - start_time
+        print('Executing Define3DWakeProcess took ' + str(round(exe_time, 2)) + ' sec')
+        print('Executing Define3DWakeProcess took ' + str(round(exe_time/60, 2)) + ' min')
 
-        # Output element ids in the terminal
-        self.__TerminalPrint()
+        # start_time = time.time()
+        # self.__SetWakeAndSpanDirections()
+        # # Save the trailing edge and wing tip nodes for further computations
+        # self.__MarkTrailingEdgeNodes()
+        # # Save the lower surface normals to help mark kutta elements later on
+        # self.__ComputeLowerSurfaceNormals()
+        # # Check which elements are cut and mark them as wake
+        # self.__MarkWakeElements()
+        # # Mark the elements touching the trailing edge from below as kutta
+        # self.__MarkKuttaElements()
+        # # Output the wake in GiD for visualization
+        # if(self.output_wake):
+        #     self.__VisualizeWake()
 
-        self.wake_node_id_list = []
-        #with open("wake_sides_elements_id.dat", 'w') as wake_elements_file:
-        for elem in self.wake_sub_model_part.Elements:
-            counter = 0
-            for elnode in elem.GetNodes():
-                elnode.SetValue(CPFApp.WAKE, True)
-                self.wake_node_id_list.append(elnode.Id)
-                if (elnode.Y > 1.9999 and elnode.Y < 2.0001) or (elnode.Y < -1.9999 and elnode.Y > -2.0001):
-                    if elnode.Z < -0.0435 and elnode.Z > -0.0436:
-                        if not elnode.GetValue(CPFApp.TRAILING_EDGE):
-                            elnode.SetValue(KratosMultiphysics.WATER_PRESSURE, 1.0)
-                            counter += 1
-            if counter > 1:
-                elem.SetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT, 1)
-                #wake_elements_file.write('{0:15d}\n'.format(elem.Id))
-        self.wake_sub_model_part.AddNodes(self.wake_node_id_list)
+        # # Output element ids in the terminal
+        # self.__TerminalPrint()
+        # exe_time = time.time() - start_time
+        # print('Executing Define3DWakeProcess python took ' + str(round(exe_time, 2)) + ' sec')
+        # print('Executing Define3DWakeProcess python took ' + str(round(exe_time/60, 2)) + ' min')
+
+        # self.wake_node_id_list = []
+        # #with open("wake_sides_elements_id.dat", 'w') as wake_elements_file:
+        # for elem in self.wake_sub_model_part.Elements:
+        #     counter = 0
+        #     for elnode in elem.GetNodes():
+        #         elnode.SetValue(CPFApp.WAKE, True)
+        #         self.wake_node_id_list.append(elnode.Id)
+        #     #     if (elnode.Y > 1.9999 and elnode.Y < 2.0001) or (elnode.Y < -1.9999 and elnode.Y > -2.0001):
+        #     #         if elnode.Z < -0.0435 and elnode.Z > -0.0436:
+        #     #             if not elnode.GetValue(CPFApp.TRAILING_EDGE):
+        #     #                 elnode.SetValue(KratosMultiphysics.WATER_PRESSURE, 1.0)
+        #     #                 counter += 1
+        #     # if counter > 1:
+        #     #     elem.SetValue(CPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT, 1)
+        #     #     #wake_elements_file.write('{0:15d}\n'.format(elem.Id))
+        # self.wake_sub_model_part.AddNodes(self.wake_node_id_list)
 
         # for elem in self.wake_sub_model_part.Elements:
         #     for elnode in elem.GetNodes():
@@ -146,7 +157,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
         # print(' number of elements with no free nodes = ', number_of_elements_with_no_free_nodes)
         # print(' number of elements with free nodes = ', number_of_elements_with_free_nodes)
-        print(' number of wake elements = ', self.wake_sub_model_part.NumberOfElements())
+        #print(' number of wake elements = ', self.wake_sub_model_part.NumberOfElements())
 
     def __SetWakeAndSpanDirections(self):
         free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
@@ -185,6 +196,8 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         self.right_wing_tip.SetValue(CPFApp.WING_TIP, True)
         self.left_wing_tip.SetValue(CPFApp.WING_TIP, True)
 
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(CPFApp.WAKE_DISTANCE,self.fluid_model_part.Nodes)
+
     def __ComputeLowerSurfaceNormals(self):
         for cond in self.body_model_part.Conditions:
             # The surface normal points outisde the domain
@@ -214,15 +227,16 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         dummy_property = self.wake_model_part.Properties[0]
         node_id = 1
         elem_id = 1
+        z= 0.0#-1e-4
 
         # Looping over stl meshes
         for stl_mesh in wake_stl_mesh:
             for vertex in stl_mesh.points:
-                node1 = self.wake_model_part.CreateNewNode(node_id, float(vertex[0]), float(vertex[1]), float(vertex[2]))
+                node1 = self.wake_model_part.CreateNewNode(node_id, float(vertex[0]), float(vertex[1]), float(vertex[2]) + z )
                 node_id+=1
-                node2 = self.wake_model_part.CreateNewNode(node_id, float(vertex[3]), float(vertex[4]), float(vertex[5]))
+                node2 = self.wake_model_part.CreateNewNode(node_id, float(vertex[3]), float(vertex[4]), float(vertex[5]) + z )
                 node_id+=1
-                node3 = self.wake_model_part.CreateNewNode(node_id, float(vertex[6]), float(vertex[7]), float(vertex[8]))
+                node3 = self.wake_model_part.CreateNewNode(node_id, float(vertex[6]), float(vertex[7]), float(vertex[8]) + z )
                 node_id+=1
 
                 self.wake_model_part.CreateNewElement("Element3D3N", elem_id,  [
@@ -296,6 +310,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
     def __SaveTrailingEdgeElements(self):
         # This function stores the trailing edge elements in its submodelpart.
         if(self.fluid_model_part.HasSubModelPart("trailing_edge_elements_model_part")):
+            self.trailing_edge_elements_model_part = self.fluid_model_part.GetSubModelPart("trailing_edge_elements_model_part")
             for elem in self.trailing_edge_elements_model_part.Elements:
                 elem.Set(KratosMultiphysics.TO_ERASE)
             self.trailing_edge_elements_model_part.RemoveElements(KratosMultiphysics.TO_ERASE)
@@ -358,22 +373,42 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 # Compute the distance in the free stream direction
                 free_stream_direction_distance = DotProduct(distance_vector, self.wake_direction)
 
-                if(elnode.GetValue(CPFApp.UPPER_SURFACE)):
-                    distance = self.epsilon
-                elif(elnode.GetValue(CPFApp.LOWER_SURFACE)):
+                if(elnode.GetValue(CPFApp.LOWER_SURFACE)):
                     distance = -self.epsilon
+                    if elem.Id == 131644:
+                        print('aaaa')
+                        print(elnode.Id)
+                        print(distance)
+                elif(elnode.GetValue(CPFApp.UPPER_SURFACE)):
+                    distance = +self.epsilon
+                    if elem.Id == 131644:
+                        print('bbbb')
+                        print(elnode.Id)
+                        print(distance)
                 # Node laying either above or below the lower surface
                 elif(free_stream_direction_distance < 0.0):
                     # Compute the distance in the lower surface normal direction
                     distance = DotProduct(distance_vector, trailing_edge_node.GetValue(KratosMultiphysics.NORMAL))
+                    if(abs(distance) < self.epsilon):
+                        distance = -self.epsilon
+                    # if elem.Id == 148883:
+                    #     print('cccc')
+                    #     print(elnode.Id)
+                    #     print(distance)
                 # Node laying either above or below the wake
                 else:
                     # Compute the distance in the wake normal direction
                     distance = DotProduct(distance_vector, self.wake_normal)
+                    if(abs(distance) < self.epsilon):
+                        distance = -self.epsilon
+                    # if elem.Id == 148883:
+                    #     print('dddd')
+                    #     print(elnode.Id)
+                    #     print(distance)
 
-                # Nodes laying on the wake or on the lower surface have a negative distance
-                if(abs(distance) < self.epsilon):
-                    distance = -self.epsilon
+                # # Nodes laying on the wake or on the lower surface have a negative distance
+                # if(abs(distance) < self.epsilon):
+                #     distance = +self.epsilon
 
                 # if distance < 0.0:
                 #     elnode.SetValue(CPFApp.TRAILING_EDGE, True)
@@ -388,7 +423,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
         # Count number of nodes above and below the wake and lower surface
         number_of_nodes_with_positive_distance, number_of_nodes_with_negative_distance = self.__CountNodes(nodal_distances)
-        # if elem.Id == 125253:
+        # if elem.Id == 148883:
         #     print('nodal_distances = ', nodal_distances)
         #     print('number_of_nodes_with_positive_distance = ', number_of_nodes_with_positive_distance)
         #     print('number_of_nodes_with_negative_distance = ', number_of_nodes_with_negative_distance)
@@ -399,9 +434,35 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
         # Elements with all non trailing edge nodes below the wake and the lower surface are kutta
         if(number_of_nodes_with_negative_distance > number_of_non_te_nodes - 1):
-            elem.SetValue(CPFApp.KUTTA, True)
-            elem.SetValue(CPFApp.WAKE, False)
-            self.wake_sub_model_part.RemoveElement(elem)
+            # elem.SetValue(CPFApp.KUTTA, True)
+            # elem.SetValue(CPFApp.WAKE, False)
+            # self.wake_sub_model_part.RemoveElement(elem)
+
+            elem.Set(KratosMultiphysics.STRUCTURE)
+            elem.SetValue(CPFApp.WAKE, True)
+            self.wake_sub_model_part.AddElement(elem,0)
+            wake_elemental_distances = KratosMultiphysics.Vector(4)
+            counter = 0
+            counter2 = 0
+            for elnode in elem.GetNodes():
+                if elnode.GetValue(CPFApp.TRAILING_EDGE):
+                    # Setting the distance at the trailing edge to positive
+                    elnode.SetValue(CPFApp.WAKE_DISTANCE,self.epsilon)
+                    wake_elemental_distances[counter] = self.epsilon
+                    number_of_neighbour_elements = elnode.GetValue(KratosMultiphysics.NUMBER_OF_NEIGHBOUR_ELEMENTS)
+                    number_of_neighbour_elements += 1
+                    elnode.SetValue(KratosMultiphysics.NUMBER_OF_NEIGHBOUR_ELEMENTS, number_of_neighbour_elements)
+                    if number_of_neighbour_elements > self.max_number_of_elements:
+                        self.max_number_of_elements = number_of_neighbour_elements
+                        self.node_id = elnode.Id
+                else:
+                    elnode.SetValue(CPFApp.WAKE_DISTANCE,nodal_distances[counter2])
+                    wake_elemental_distances[counter] = nodal_distances[counter2]
+                    counter2 +=1
+                counter +=1
+            elem.SetValue(CPFApp.WAKE_ELEMENTAL_DISTANCES,wake_elemental_distances)
+
+
             # for elnode in elem.GetNodes():
             #     #if not elnode.GetValue(CPFApp.TRAILING_EDGE):
             #     self.wake_sub_model_part.RemoveNode(elnode)
@@ -765,20 +826,40 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         #     for elem in self.trailing_edge_elements_model_part.Elements:
         #         if(elem.GetValue(CPFApp.KUTTA)):
         #             kutta_elements_file.write('{0:15d}\n'.format(elem.Id))
-        #     #print( elem.Id)
-        #     #break
+        # with open("structure_elements_id.dat", 'w') as structure_elements_file:
+        #     for elem in self.trailing_edge_elements_model_part.Elements:
+        #         if(elem.Is(KratosMultiphysics.STRUCTURE)):
+        #             structure_elements_file.write('{0:15d}\n'.format(elem.Id))
+        #             if(elem.GetValue(CPFApp.WING_TIP_ELEMENT)):
+        #                 print(elem.Id)
+
+        # with open("normal_elements_id_python.dat", 'w') as normal_elements_file:
+        #     for elem in self.trailing_edge_elements_model_part.Elements:
+        #         if not elem.Is(KratosMultiphysics.STRUCTURE):
+        #             normal_elements_file.write('{0:15d}\n'.format(elem.Id))
+
+
+            #print( elem.Id)
+            #break
 
 
         print('\ncounter_structure = ', counter_structure)
         print('counter_kutta = ', counter_kutta)
         print('\ncounter_wake = ', counter_wake)
 
-        counter_wake = 0
-        for elem in self.wake_sub_model_part.Elements:
-            #print(elem.Id)
-            counter_wake += 1
+        # counter_wake = 0
+        # with open("wake_elements_id.dat", 'w') as wake_elements_file:
+        #     for elem in self.wake_sub_model_part.Elements:
+        #         #print(elem.Id)
+        #         wake_elements_file.write('{0:15d}\n'.format(elem.Id))
+        #         counter_wake += 1
 
         print('counter_wake = ', counter_wake)
 
     def ExecuteFinalizeSolutionStep(self):
+        if not self.fluid_model_part.HasSubModelPart("wake_elements_model_part"):
+            raise Exception("Fluid model part does not have a wake_elements_model_part")
+        else: self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake_elements_model_part")
+
         CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, 2)
+        CPFApp.PotentialFlowUtilities.CheckIfPressureEqualityWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, 2)
