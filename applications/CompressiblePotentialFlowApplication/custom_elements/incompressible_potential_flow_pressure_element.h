@@ -176,6 +176,7 @@ public:
     ///@}
 
 private:
+    int mTeElementCounter;
     ///@name Private Operators
     ///@{
 
@@ -191,7 +192,7 @@ private:
 
     void GetDofListKuttaElement(DofsVectorType& rElementalDofList) const;
 
-    void GetDofListWakeElement(DofsVectorType& rElementalDofList) const;
+    void GetDofListWakeElement(DofsVectorType& rElementalDofList);
 
     void CalculateLocalSystemNormalElement(MatrixType& rLeftHandSideMatrix,
                                            VectorType& rRightHandSideVector,
