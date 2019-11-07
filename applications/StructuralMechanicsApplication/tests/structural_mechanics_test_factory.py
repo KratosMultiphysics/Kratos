@@ -29,6 +29,9 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
                     "verbosity": 0
                 }""")
                 ProjectParameters["solver_settings"].AddValue("linear_solver_settings", default_lin_solver_settings)
+            if not ProjectParameters["solver_settings"].Has("silent_warnings_block_builder_and_solver"):
+                silent_warnings_block_builder_and_solver = KratosMultiphysics.Parameters("""{"silent_warnings_block_builder_and_solver" : true}""")
+                ProjectParameters["solver_settings"].AddValue("silent_warnings_block_builder_and_solver", silent_warnings_block_builder_and_solver["silent_warnings_block_builder_and_solver"])
 
             self.modify_parameters(ProjectParameters)
 

@@ -105,7 +105,9 @@ class MechanicalSolver(PythonSolver):
             "reform_dofs_at_each_step": false,
             "line_search": false,
             "compute_reactions": true,
-            "block_builder": true,
+            "block_builder" : true,
+            "scale_diagonal_block_builder_and_solver" : false,
+            "silent_warnings_block_builder_and_solver" : false,
             "clear_storage": false,
             "move_mesh_flag": true,
             "multi_point_constraints_used": true,
@@ -403,7 +405,9 @@ class MechanicalSolver(PythonSolver):
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
         if self.settings["block_builder"].GetBool():
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+            scale_diagonal_block_builder_and_solver = self.settings["scale_diagonal_block_builder_and_solver"].GetBool()
+            silent_warnings_block_builder_and_solver = self.settings["silent_warnings_block_builder_and_solver"].GetBool()
+            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, scale_diagonal_block_builder_and_solver, silent_warnings_block_builder_and_solver)
         else:
             if self.settings["multi_point_constraints_used"].GetBool():
                 builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
