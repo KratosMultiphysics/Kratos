@@ -38,10 +38,16 @@ void FixFreeVelocityOnNodesProcess::Execute()
             it_node->Fix(VELOCITY_X);
             it_node->Fix(VELOCITY_Y);
             it_node->Fix(VELOCITY_Z);
+            it_node->Fix(ACCELERATION_X);
+            it_node->Fix(ACCELERATION_Y);
+            it_node->Fix(ACCELERATION_Z);
         } else {
             it_node->Free(VELOCITY_X);
             it_node->Free(VELOCITY_Y);
             it_node->Free(VELOCITY_Z);
+            it_node->Free(ACCELERATION_X);
+            it_node->Free(ACCELERATION_Y);
+            it_node->Free(ACCELERATION_Z);
         }
     }
 }
