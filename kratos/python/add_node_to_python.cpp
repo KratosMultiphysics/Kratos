@@ -141,6 +141,8 @@ void  AddNodeToPython(pybind11::module& m)
     ;
 
     py::class_<Dof<double>>(m,"Dof")
+    .def("GetId", &Dof<double>::GetId)
+    .def("GetVariable", &Dof<double>::GetVariable)
     ;
 
     typedef  py::class_<NodeType, NodeType::Pointer, NodeType::BaseType, Flags > NodeBinderType;
