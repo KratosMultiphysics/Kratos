@@ -132,6 +132,10 @@ private:
 
     void AddTrailingEdgeAndWakeElements(std::vector<std::size_t>& rWakeElementsOrderedIds);
 
+    void MarkKuttaElements();
+
+    void ComputeNodalDistancesToWakeAndLowerSurface(Element& rElement, NodeType::Pointer pTrailingEdgeNode, Vector& rNodalDistancesToTe);
+
     void SetWakeDirectionAndNormal();
 
     void SaveTrailingEdgeNode();
@@ -140,7 +144,11 @@ private:
 
     const BoundedVector<double, 3> ComputeNodalDistancesToWake(const Element& rElement) const;
 
-    void MarkKuttaElements() const;
+    void AddWakeNodes() const;
+
+    void Print() const;
+
+
 
     void MarkWakeTrailingEdgeElement() const;
 
