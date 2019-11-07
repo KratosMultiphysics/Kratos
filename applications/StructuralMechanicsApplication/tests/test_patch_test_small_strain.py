@@ -4,8 +4,6 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-from KratosMultiphysics import eigen_solver_factory
-
 # Importing post-process
 from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
@@ -85,11 +83,11 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
 
         return A,b
 
-    def _solve(self, mp, scale_diagonal = False):
+    def _solve(self,mp):
 
         #define a minimal newton raphson solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, scale_diagonal)
+        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
 
@@ -98,36 +96,30 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         reform_step_dofs = True
         calculate_norm_dx = False
         move_mesh_flag = True
-        #strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp,
-                                                                #scheme,
-                                                                #linear_solver,
-                                                                #builder_and_solver,
-                                                                #compute_reactions,
-                                                                #reform_step_dofs,
-                                                                #calculate_norm_dx,
-                                                                #move_mesh_flag)
-
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
+        strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp,
                                                                         scheme,
                                                                         linear_solver,
-                                                                        convergence_criterion,
                                                                         builder_and_solver,
-                                                                        max_iters,
                                                                         compute_reactions,
                                                                         reform_step_dofs,
+                                                                        calculate_norm_dx,
                                                                         move_mesh_flag)
+
+
+        #strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
+                                                                        #scheme,
+                                                                        #linear_solver,
+                                                                        #convergence_criterion,
+                                                                        #builder_and_solver,
+                                                                        #max_iters,
+                                                                        #compute_reactions,
+                                                                        #reform_step_dofs,
+                                                                        #move_mesh_flag)
         strategy.SetEchoLevel(0)
 
         strategy.Check()
-        strategy.Initialize()
-        strategy.InitializeSolutionStep()
-        strategy.Predict()
-        strategy.SolveSolutionStep()
-        lhs = strategy.GetSystemMatrix()
-        lhs_copy = KratosMultiphysics.CompressedMatrix(lhs)
-        strategy.FinalizeSolutionStep()
+        strategy.Solve()
 
-        return lhs_copy
 
     def _check_results(self,mp,A,b):
 
@@ -330,73 +322,6 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         self._solve(mp)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
-
-        #self.__post_process(mp)
-
-    def test_SmallDisplacementElement_2D_quadrilateral_condition_number(self):
-        dim = 2
-        current_model = KratosMultiphysics.Model()
-        mp = current_model.CreateModelPart("solid_part")
-        self._add_variables(mp)
-        self._apply_material_properties(mp,dim)
-
-        #create nodes
-        mp.CreateNewNode(1,0.00,3.00,0.00)
-        mp.CreateNewNode(2,1.00,2.25,0.00)
-        mp.CreateNewNode(3,0.75,1.00,0.00)
-        mp.CreateNewNode(4,2.25,2.00,0.00)
-        mp.CreateNewNode(5,0.00,0.00,0.00)
-        mp.CreateNewNode(6,3.00,3.00,0.00)
-        mp.CreateNewNode(7,2.00,0.75,0.00)
-        mp.CreateNewNode(8,3.00,0.00,0.00)
-
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
-
-        #create a submodelpart for boundary conditions
-        bcs = mp.CreateSubModelPart("BoundaryCondtions")
-        bcs.AddNodes([1,5,6,8])
-
-        #create Element
-        mp.CreateNewElement("SmallDisplacementElement2D4N", 1, [8,7,3,5], mp.GetProperties()[1])
-        mp.CreateNewElement("SmallDisplacementElement2D4N", 2, [6,4,7,8], mp.GetProperties()[1])
-        mp.CreateNewElement("SmallDisplacementElement2D4N", 3, [1,2,4,6], mp.GetProperties()[1])
-        mp.CreateNewElement("SmallDisplacementElement2D4N", 4, [4,2,3,7], mp.GetProperties()[1])
-        mp.CreateNewElement("SmallDisplacementElement2D4N", 5, [2,1,5,3], mp.GetProperties()[1])
-
-        A,b = self._define_movement(dim)
-
-        self._apply_BCs(bcs,A,b)
-        system_matrix = self._solve(mp, True)
-        self._check_results(mp,A,b)
-        self._check_outputs(mp,A,dim)
-
-        # Construct the solver
-        settings_max = KratosMultiphysics.Parameters("""
-        {
-            "solver_type"             : "power_iteration_highest_eigenvalue_solver",
-            "linear_solver_settings"  : {
-                "solver_type"             : "amgcl"
-            }
-        }
-        """)
-        eigen_solver_max = eigen_solver_factory.ConstructSolver(settings_max)
-        settings_min = KratosMultiphysics.Parameters("""
-        {
-            "solver_type"             : "power_iteration_eigenvalue_solver",
-            "linear_solver_settings"  : {
-                "solver_type"             : "amgcl"
-            }
-        }
-        """)
-        eigen_solver_min = eigen_solver_factory.ConstructSolver(settings_min)
-
-        # Solve
-        condition_number_utility = KratosMultiphysics.ConditionNumberUtility()
-        condition_number = condition_number_utility.GetConditionNumber(system_matrix, eigen_solver_max, eigen_solver_min)
-
-        self.assertAlmostEqual(condition_number, 2.688215343472082)
 
         #self.__post_process(mp)
 
