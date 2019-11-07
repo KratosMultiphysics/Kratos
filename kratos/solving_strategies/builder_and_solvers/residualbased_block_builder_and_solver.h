@@ -64,6 +64,9 @@ namespace Kratos
  * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
  * this information.
  * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
+ * @tparam TSparseSpace The sparse system considered
+ * @tparam TDenseSpace The dense system considered
+ * @tparam TLinearSolver The linear solver considered
  * @author Riccardo Rossi
  */
 template<class TSparseSpace,
