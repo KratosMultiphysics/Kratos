@@ -27,9 +27,9 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
 
     py::class_<PostUtilities, PostUtilities::Pointer>(m, "PostUtilities", py::module_local())
         .def(py::init<>())
-        // .def("ComputeCurvatureOfBeamSolids", &PostUtilities::ComputeCurvatureOfBeamSolids)
-        // .def("ComputeCurvatureOfBeam", &PostUtilities::ComputeCurvatureOfBeam)
-        // .def("CreateSkinForBeam", &PostUtilities::CreateSkinForBeam)
+        .def("ComputeCurvatureOfBeamSolids", &PostUtilities::ComputeCurvatureOfBeamSolids)
+        .def("ComputeCurvatureOfBeam", &PostUtilities::ComputeCurvatureOfBeam)
+        .def("CreateSkinForBeam", &PostUtilities::CreateSkinForBeam)
         ;
 }
 
