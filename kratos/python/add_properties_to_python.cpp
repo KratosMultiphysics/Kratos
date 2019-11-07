@@ -106,6 +106,12 @@ typename Properties::TableType& GetTableHelperFunction1( TContainerType& el,
     return el.GetTable(XVar, YVar);
 }
 
+Properties::Pointer CloneProperties(const Properties& rReference){
+    Properties::Pointer p_new_properties = Kratos::make_shared<Properties>(rReference.Id());
+    *p_new_properties = rReference;
+    return p_new_properties;
+}
+
 void  AddPropertiesToPython(pybind11::module& m)
 {
     py::class_<Properties, Properties::Pointer, Properties::BaseType >(m,"Properties")
@@ -178,6 +184,8 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("HasTables", &Properties::HasTables)
     .def("IsEmpty", &Properties::IsEmpty)
     .def("__str__", PrintObject<Properties>)
+
+    .def("Clone", [](const Properties& rSelf){ return CloneProperties(rSelf); })
     ;
 
     PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>().CreateInterface(m,"PropertiesArray");
