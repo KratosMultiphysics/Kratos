@@ -806,78 +806,76 @@ public:
      * should refer to the particular Builder And Solver choosen
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
      */
     void ApplyDirichletConditions(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
     {
-        std::size_t system_size = A.size1();
+        std::size_t system_size = rA.size1();
         std::vector<double> scaling_factors (system_size, 0.0);
 
+        const auto it_dof_iterator_begin = BaseType::mDofSet.begin();
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
-        //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        #pragma omp parallel for firstprivate(ndofs)
+        // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        #pragma omp parallel for
         for (int k = 0; k<ndofs; k++) {
-            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
-            if(dof_iterator->IsFixed())
-                scaling_factors[k] = 0.0;
-            else
+            auto it_dof_iterator = it_dof_iterator_begin + k;
+            if (!it_dof_iterator->IsFixed())
                 scaling_factors[k] = 1.0;
 
         }
 
-        double* Avalues = A.value_data().begin();
-        std::size_t* Arow_indices = A.index1_data().begin();
-        std::size_t* Acol_indices = A.index2_data().begin();
+        double* Avalues = rA.value_data().begin();
+        std::size_t* Arow_indices = rA.index1_data().begin();
+        std::size_t* Acol_indices = rA.index2_data().begin();
 
-        //detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        #pragma omp parallel for firstprivate(system_size)
-        for (int k = 0; k < static_cast<int>(system_size); ++k){
-            std::size_t col_begin = Arow_indices[k];
-            std::size_t col_end = Arow_indices[k+1];
-            bool empty = true;
-            for (std::size_t j = col_begin; j < col_end; ++j)
-            {
-                if(Avalues[j] != 0.0)
-                {
+        // The diagonal considered
+        const bool diagonal_value = mOptions.Is(SCALE_DIAGONAL) ? TSparseSpace::TwoNorm(rA) : 1.0;
+
+        // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+        std::size_t col_begin, col_end;
+        bool empty;
+        #pragma omp parallel for firstprivate(col_begin, col_end, empty)
+        for (int k = 0; k < static_cast<int>(system_size); ++k) {
+            col_begin = Arow_indices[k];
+            col_end = Arow_indices[k + 1];
+            empty = true;
+            for (std::size_t j = col_begin; j < col_end; ++j) {
+                if(Avalues[j] != 0.0) {
                     empty = false;
                     break;
                 }
             }
 
-            if(empty == true)
-            {
-                A(k,k) = 1.0;
-                b[k] = 0.0;
+            if(empty) {
+                rA(k, k) = diagonal_value;
+                rb[k] = 0.0;
             }
         }
 
         #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(system_size); ++k)
-        {
+        for (int k = 0; k < static_cast<int>(system_size); ++k) {
             std::size_t col_begin = Arow_indices[k];
             std::size_t col_end = Arow_indices[k+1];
-            double k_factor = scaling_factors[k];
-            if (k_factor == 0)
-            {
-                // zero out the whole row, except the diagonal
+            const double k_factor = scaling_factors[k];
+            if (k_factor == 0.0) {
+                // Zero out the whole row, except the diagonal
                 for (std::size_t j = col_begin; j < col_end; ++j)
                     if (static_cast<int>(Acol_indices[j]) != k )
                         Avalues[j] = 0.0;
 
-                // zero out the RHS
-                b[k] = 0.0;
-            }
-            else
-            {
-                // zero out the column which is associated with the zero'ed row
+                // Zero out the RHS
+                rb[k] = 0.0;
+            } else {
+                // Zero out the column which is associated with the zero'ed row
                 for (std::size_t j = col_begin; j < col_end; ++j)
                     if(scaling_factors[ Acol_indices[j] ] == 0 )
                         Avalues[j] = 0.0;
@@ -885,11 +883,19 @@ public:
         }
     }
 
+    /**
+     * @brief Applies the constraints with master-slave relation matrix
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rA The LHS matrix
+     * @param rb The RHS vector
+     */
     void ApplyConstraints(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
         TSystemMatrixType& rA,
-        TSystemVectorType& rb) override
+        TSystemVectorType& rb
+        ) override
     {
         KRATOS_TRY
 
