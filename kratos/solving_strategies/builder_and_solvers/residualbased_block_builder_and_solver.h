@@ -79,6 +79,11 @@ class ResidualBasedBlockBuilderAndSolver
 public:
     ///@name Type Definitions
     ///@{
+
+    /// Definition of the flags
+    KRATOS_DEFINE_LOCAL_FLAG( SCALE_DIAGONAL );
+
+    /// Definition of the pointer
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolver);
 
     /// Definition of the base class
@@ -999,6 +1004,8 @@ protected:
     std::vector<IndexType> mMasterIds; /// The equation ids of the master
     std::unordered_set<IndexType> mInactiveSlaveDofs; /// The set containing the inactive slave dofs
 
+    Flags mOptions; /// Some flags used internally
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -1547,6 +1554,9 @@ private:
 ///@name Type Definitions
 ///@{
 
+// Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
+const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::SCALE_DIAGONAL(Kratos::Flags::Create(0));
 
 ///@}
 
