@@ -30,6 +30,7 @@ FixFreeVelocityOnNodesProcess::FixFreeVelocityOnNodesProcess(
 
 void FixFreeVelocityOnNodesProcess::Execute() 
 {
+    auto &r_process_info = mrModelPart.GetProcessInfo();
     const auto& it_node_begin = mrModelPart.NodesBegin();
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
@@ -38,16 +39,31 @@ void FixFreeVelocityOnNodesProcess::Execute()
             it_node->Fix(VELOCITY_X);
             it_node->Fix(VELOCITY_Y);
             it_node->Fix(VELOCITY_Z);
-            it_node->Fix(ACCELERATION_X);
-            it_node->Fix(ACCELERATION_Y);
-            it_node->Fix(ACCELERATION_Z);
+
+            // We store previous info in order to reset after PFEM Solve
+            if (r_process_info[STEP] > 1) { // We have the previous acc
+                auto current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 0);
+                auto prev_acceleration    = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
+                auto &r_current_accel_backup = it_node->FastGetSolutionStepValue(ACCELERATION_BACKUP);
+                auto &r_prev_accel_backup    = it_node->FastGetSolutionStepValue(ACCELERATION_PREVIOUS_BACKUP);
+                r_current_accel_backup = current_acceleration;
+                r_prev_accel_backup    = prev_acceleration;
+            }
+
         } else {
             it_node->Free(VELOCITY_X);
             it_node->Free(VELOCITY_Y);
             it_node->Free(VELOCITY_Z);
-            it_node->Free(ACCELERATION_X);
-            it_node->Free(ACCELERATION_Y);
-            it_node->Free(ACCELERATION_Z);
+
+            // We store previous info in order to reset after PFEM Solve
+            if (r_process_info[STEP] > 1) { // We have the previous acc
+                auto &r_current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 0);
+                auto &r_prev_acceleration    = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
+                auto current_accel_backup = it_node->FastGetSolutionStepValue(ACCELERATION_BACKUP);
+                auto prev_accel_backup    = it_node->FastGetSolutionStepValue(ACCELERATION_PREVIOUS_BACKUP);
+                r_current_acceleration = current_accel_backup;
+                r_prev_acceleration = prev_accel_backup;
+            }
         }
     }
 }
