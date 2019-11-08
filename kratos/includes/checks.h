@@ -45,7 +45,7 @@ KRATOS_ERROR << "The string \"" << SubString << "\" was not found in the given s
 #define KRATOS_CHECK_NEAR(a,b, tolerance) if(std::abs(a - b) > tolerance) KRATOS_ERROR << "Check failed because " << #a << " = " << a << \
 " is not near to " << #b << " = " << b << " within the tolerance " << tolerance
 #define KRATOS_CHECK_RELATIVE_NEAR(a,b, tolerance) if(std::abs(b) > std::numeric_limits<double>::epsilon()) { KRATOS_ERROR_IF(std::abs((a - b)/b) > tolerance) << "Check failed because " << #a << " = " << a << \
-" is not near to " << #b << " = " << b << " within the relative tolerance " << tolerance } else {KRATOS_CHECK_NEAR(a,b,tolerance);}
+" is not near to " << #b << " = " << b << " within the relative tolerance " << tolerance << std::endl; } else {KRATOS_CHECK_NEAR(a,b,tolerance);}
 #define KRATOS_CHECK_DOUBLE_EQUAL(a,b) KRATOS_CHECK_NEAR(a,b,std::numeric_limits<double>::epsilon())
 
 #define KRATOS_CHECK_VECTOR_NEAR(a, b, tolerance) {                        \
