@@ -12,9 +12,7 @@ def Factory(settings, Model):
 
 class AssignScalarVariableProcess(KratosMultiphysics.Process):
     """This process sets a given scalar value for a certain variable in all the nodes of a submodelpart
-
     Only the member variables listed below should be accessed directly.
-
     Public member variables:
     Model -- the container of the different model parts.
     settings -- Kratos parameters containing solver settings.
@@ -22,7 +20,6 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
 
     def __init__(self, Model, settings ):
         """ The default constructor of the class
-
         Keyword arguments:
         self -- It signifies an instance of a class.
         Model -- the container of the different model parts.
@@ -40,6 +37,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             "variable_name"   : "SPECIFY_VARIABLE_NAME",
             "interval"        : [0.0, 1e30],
             "constrained"     : true,
+            "fill_buffer"     : true,
             "value"           : 0.0,
             "local_axes"      : {}
         }
@@ -56,15 +54,23 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
 
         settings.ValidateAndAssignDefaults(default_settings)
 
+        # We get the variable, could be a double or a component of a 3D variable
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
         if not isinstance(self.variable, KratosMultiphysics.Array1DComponentVariable) and not isinstance(self.variable, KratosMultiphysics.DoubleVariable) and not isinstance(self.variable, KratosMultiphysics.VectorVariable):
             msg = "Error in AssignScalarToNodesProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a scalar or a component"
             raise Exception(msg)
 
+        # We get the model part and the corresponding mesh (NOTE: Mesh ID is deprecated, will be eventually removed)
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.mesh = self.model_part.GetMesh(settings["mesh_id"].GetInt())
+        
+        # If the value imposed is fixed or not
         self.is_fixed = settings["constrained"].GetBool()
+        
+        # To know if we will fill the buffer of the solution
+        self.fill_buffer = settings["fill_buffer"].GetBool()
 
+        # Depending if the value is numeric or a function we create the corresponding function
         self.value_is_numeric = False
         if settings["value"].IsNumber():
             self.value_is_numeric = True
@@ -82,15 +88,36 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed in before initialize the solution step
-
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        self.ExecuteInitializeSolutionStep()
+        # We fill the buffer if necessary (common in fluid problems)
+        if self.fill_buffer:
+            buffer_size = self.model_part.GetBufferSize()
+            current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+            delta_time = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+            
+            if self.is_fixed:
+                self.variable_utils.ApplyFixity(self.variable, self.is_fixed, self.mesh.Nodes)
+
+            step = buffer_size
+            time = current_time - delta_time * buffer_size
+    
+            for i in range(0, buffer_size):
+                step = step - 1
+                time = time + delta_time
+
+                if self.value_is_numeric:
+                    self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes, step)
+                else:
+                    if not self.aux_function.DependsOnSpace(): #depends on time only
+                        self.value = self.aux_function.CallFunction(0.0,0.0,0.0,time)
+                        self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes, step)
+                    else: #most general case - space varying function (possibly also time varying)
+                        self.cpp_apply_function_utility.ApplyFunction(self.variable, time, step)
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
-
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
@@ -107,14 +134,13 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
                 self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
             else:
                 if self.aux_function.DependsOnSpace() == False: #depends on time only
-                    self.value = self.aux_function.CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0)
+                    self.value = self.aux_function.CallFunction(0.0,0.0,0.0,current_time)
                     self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
                 else: #most general case - space varying function (possibly also time varying)
                     self.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
-
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
