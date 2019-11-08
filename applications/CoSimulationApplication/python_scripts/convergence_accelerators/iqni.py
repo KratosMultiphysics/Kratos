@@ -19,13 +19,13 @@ class ConvergenceAcceleratorIQNI(CoSimulationComponent):
         self.omega = self.settings["omega"].GetDouble()
 
         self.added = False
-        self.rref = np.array([])
-        self.xtref = np.array([])
-        self.v = np.matrix([])
-        self.w = np.matrix([])
+        self.rref = None
+        self.xtref = None
+        self.v = np.array([[]])
+        self.w = np.array([[]])
 
     def Predict(self, r_in):
-        r = r_in.GetNumpyArray()
+        r = r_in.GetNumpyArray().reshape(-1, 1)
         # Remove columns resulting in small diagonal elements in R
         singular = True
         while singular and self.v.shape[1]:
@@ -43,37 +43,36 @@ class ConvergenceAcceleratorIQNI(CoSimulationComponent):
         if self.v.shape[1]:
             # Interface Quasi-Newton with approximation for the inverse of the Jacobian from a least-squares model
             qq, rr, *_ = qr(self.v, mode='economic')
-            dr = np.reshape(-r, (-1, 1))
+            dr = -r
             b = qq.T @ dr
             c = solve_triangular(rr, b)
             dx = self.w @ c - dr
-            dx = np.asarray(dx).reshape(-1)
+
         else:
             if self.added:
                 dx = self.omega * r
             else:
                 raise RuntimeError("No information to predict")
+        dx = dx.flatten()
         dx_out = r_in.deepcopy()
         dx_out.SetNumpyArray(dx)
         return dx_out
 
     def Update(self, x_in, xt_in):
-        x = x_in.GetNumpyArray()
-        xt = xt_in.GetNumpyArray()
+        x = x_in.GetNumpyArray().reshape(-1, 1)
+        xt = xt_in.GetNumpyArray().reshape(-1, 1)
         r = xt - x
         if self.added:
             dr = r - self.rref
             dxt = xt - self.xtref
-            dr = np.reshape(dr, (-1, 1))
-            dxt = np.reshape(dxt, (-1, 1))
             if self.v.shape[1]:
-                self.v = np.concatenate((dr, self.v), 1)
-                self.w = np.concatenate((dxt, self.w), 1)
+                self.v = np.hstack((dr, self.v))
+                self.w = np.hstack((dxt, self.w))
             else:
-                self.v = np.matrix(dr)
-                self.w = np.matrix(dxt)
+                self.v = dr
+                self.w = dxt
         self.rref = r
-        self.xtref = np.array(xt)
+        self.xtref = xt
         self.added = True
 
     def IsReady(self):
@@ -82,8 +81,8 @@ class ConvergenceAcceleratorIQNI(CoSimulationComponent):
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
 
-        self.rref = np.array([])
-        self.xtref = np.array([])
-        self.v = np.matrix([])
-        self.w = np.matrix([])
+        self.rref = None
+        self.xtref = None
+        self.v = np.array([[]])
+        self.w = np.array([[]])
         self.added = False
