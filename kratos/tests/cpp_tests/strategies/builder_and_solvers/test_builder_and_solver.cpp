@@ -24,6 +24,7 @@
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
+#include "utilities/condition_number_utility.h"
 
 /* Element include */
 #include "geometries/line_2d_2.h"
@@ -306,6 +307,21 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 2069000000.000000000)/rA(4,4)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1.000000000)/rA(5,5)), tolerance);
 
+//             SparseSpaceType::MatrixType copy_A(rA);
+//             const double condition_number_not_scale = ConditionNumberUtility().GetConditionNumber(copy_A);
+//
+//             // Testing scale
+//             BuilderAndSolverType::Pointer p_builder_and_solver_scale = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, true) );
+//
+//             const SparseSpaceType::MatrixType& rA_scale = BuildSystem(r_model_part, p_scheme, p_builder_and_solver_scale);
+//
+//             SparseSpaceType::MatrixType copy_A_scale(rA_scale);
+//             const double condition_number_scale = ConditionNumberUtility().GetConditionNumber(copy_A_scale);
+//
+//             KRATOS_WATCH(rA)
+//             KRATOS_WATCH(condition_number_not_scale)
+//             KRATOS_WATCH(rA_scale)
+//             KRATOS_WATCH(condition_number_scale)
         }
 
         /**
