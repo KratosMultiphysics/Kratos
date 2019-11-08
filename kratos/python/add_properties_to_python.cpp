@@ -111,6 +111,7 @@ void  AddPropertiesToPython(pybind11::module& m)
 {
     py::class_<Properties, Properties::Pointer, Properties::BaseType >(m,"Properties")
     .def(py::init<Kratos::Properties::IndexType>())
+    .def(py::init<const Properties&>())
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
     .def("Has", HasHelperFunction_Element< Properties, Variable< array_1d<double, 6> > >)
@@ -179,8 +180,6 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("HasTables", &Properties::HasTables)
     .def("IsEmpty", &Properties::IsEmpty)
     .def("__str__", PrintObject<Properties>)
-
-    .def("Clone", [](Properties::Pointer pSelf){ return Kratos::make_shared<Properties>(*pSelf); })
     ;
 
     PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>().CreateInterface(m,"PropertiesArray");
