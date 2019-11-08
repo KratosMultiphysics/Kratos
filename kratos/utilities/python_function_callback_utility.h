@@ -290,13 +290,15 @@ public:
     /**
      * @brief This method applies the function for a given variable at a certain time
      * @param rVariable The variable type
-     * @param t The time variable
+     * @param Time The time variable
+     * @param BuffStep The current step index
      * @tparam TVarType The type of variable considered
      */
     template<class TVarType>
     void ApplyFunction(
         const TVarType& rVariable,
-        const double t
+        const double Time,
+        const IndexType BuffStep = 0
         )
     {
         // The first node iterator
@@ -306,24 +308,24 @@ public:
             //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
             for (IndexType k = 0; k< mrNodes.size(); k++) {
                 auto it_node = it_node_begin + k;
-                const double value = mpFunction->CallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
-                it_node->FastGetSolutionStepValue(rVariable) = value;
+                const double value = mpFunction->CallFunction(it_node->X(), it_node->Y(), it_node->Z(), Time, it_node->X0(), it_node->Y0(), it_node->Z0());
+                it_node->FastGetSolutionStepValue(rVariable, BuffStep) = value;
             }
         } else {
             //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
             for (IndexType k = 0; k< mrNodes.size(); k++) {
                 auto it_node = it_node_begin + k;
-                const double value = mpFunction->RotateAndCallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
-                it_node->FastGetSolutionStepValue(rVariable) = value;
+                const double value = mpFunction->RotateAndCallFunction(it_node->X(), it_node->Y(), it_node->Z(), Time, it_node->X0(), it_node->Y0(), it_node->Z0());
+                it_node->FastGetSolutionStepValue(rVariable, BuffStep) = value;
             }
         }
     }
 
     /**
      * @brief This method returns all the evaluated values in a given time
-     * @param t The time variable
+     * @param Time The time variable
      */
-    std::vector<double> ReturnFunction(const double t)
+    std::vector<double> ReturnFunction(const double Time)
     {
         // The first node iterator
         const auto it_node_begin = mrNodes.begin();
@@ -335,13 +337,13 @@ public:
         if(!mpFunction->UseLocalSystem()) {
             for (IndexType k = 0; k< mrNodes.size(); k++) {
                 auto it_node = it_node_begin + k;
-                const double value = mpFunction->CallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
+                const double value = mpFunction->CallFunction(it_node->X(), it_node->Y(), it_node->Z(), Time, it_node->X0(), it_node->Y0(), it_node->Z0());
                 values[k] = value;
             }
         } else {
             for (IndexType k = 0; k< mrNodes.size(); k++) {
                 auto it_node = it_node_begin + k;
-                const double value = mpFunction->RotateAndCallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
+                const double value = mpFunction->RotateAndCallFunction(it_node->X(), it_node->Y(), it_node->Z(), Time, it_node->X0(), it_node->Y0(), it_node->Z0());
                 values[k] = value;
             }
         }
