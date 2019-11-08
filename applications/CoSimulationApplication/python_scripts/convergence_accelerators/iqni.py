@@ -47,7 +47,6 @@ class ConvergenceAcceleratorIQNI(CoSimulationComponent):
             b = qq.T @ dr
             c = solve_triangular(rr, b)
             dx = self.w @ c - dr
-
         else:
             if self.added:
                 dx = self.omega * r
