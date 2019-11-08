@@ -74,6 +74,77 @@ void SetOnProcessInfo(
     rCurrentProcessInfo[TABLE_UTILITY] = pTable;
 }
 
+double RotateAndCallFunctionCurrentConfiguration(
+    PythonGenericFunctionUtility& rPythonGenericFunctionUtility,
+    const double x,
+    const double y,
+    const double z,
+    const double t
+    )
+{
+    return rPythonGenericFunctionUtility.RotateAndCallFunction(x, y, z, t);
+}
+
+double RotateAndCallFunctionCurrentConfigurationAndInitialConfiguration(
+    PythonGenericFunctionUtility& rPythonGenericFunctionUtility,
+    const double x,
+    const double y,
+    const double z,
+    const double t,
+    const double X,
+    const double Y,
+    const double Z
+    )
+{
+    return rPythonGenericFunctionUtility.RotateAndCallFunction(x, y, z, t, X, Y, Z);
+}
+
+double CallFunctionCurrentConfiguration(
+    PythonGenericFunctionUtility& rPythonGenericFunctionUtility,
+    const double x,
+    const double y,
+    const double z,
+    const double t
+    )
+{
+    return rPythonGenericFunctionUtility.CallFunction(x, y, z, t);
+}
+
+double CallFunctionCurrentConfigurationAndInitialConfiguration(
+    PythonGenericFunctionUtility& rPythonGenericFunctionUtility,
+    const double x,
+    const double y,
+    const double z,
+    const double t,
+    const double X,
+    const double Y,
+    const double Z
+    )
+{
+    return rPythonGenericFunctionUtility.CallFunction(x, y, z, t, X, Y, Z);
+}
+
+template<class TVarType>
+void ApplyFunctionWithoutBuffer(
+    ApplyFunctionToNodesUtility& rApplyFunctionToNodesUtility,
+    const TVarType& rVariable,
+    const double Time
+    )
+{
+    rApplyFunctionToNodesUtility.ApplyFunction(rVariable, Time);
+}
+
+template<class TVarType>
+void ApplyFunctionWithBuffer(
+    ApplyFunctionToNodesUtility& rApplyFunctionToNodesUtility,
+    const TVarType& rVariable,
+    const double Time,
+    const IndexType BuffStep
+    )
+{
+    rApplyFunctionToNodesUtility.ApplyFunction(rVariable, Time, BuffStep);
+}
+
 // Embedded skin utility auxiliar functions
 template<std::size_t TDim>
 void InterpolateMeshVariableToSkinDouble(
@@ -285,6 +356,81 @@ void CopyModelPartNodalVarToNonHistoricalVarWithDestination(
     rVariableUtils.CopyModelPartNodalVarToNonHistoricalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
 }
 
+template<class TVarType>
+void SetScalarVarWithoutBuffer(
+    VariableUtils &rVariableUtils,
+    const TVarType& rVariable,
+    const double Value,
+    NodesContainerType& rNodes
+    )
+{
+    rVariableUtils.SetScalarVar(rVariable, Value, rNodes);
+}
+
+template<class TVarType>
+void SetScalarVarWithBuffer(
+    VariableUtils &rVariableUtils,
+    const TVarType& rVariable,
+    const double Value,
+    NodesContainerType& rNodes,
+    const IndexType BuffStep
+    )
+{
+    rVariableUtils.SetScalarVar(rVariable, Value, rNodes, BuffStep);
+}
+
+template<class TVarType>
+void SetScalarVarForFlagWithoutBufferNotCustomCheck(
+    VariableUtils &rVariableUtils,
+    const TVarType& rVariable,
+    const double Value,
+    NodesContainerType& rNodes,
+    const Flags Flag
+    )
+{
+    rVariableUtils.SetScalarVarForFlag(rVariable, Value, rNodes, Flag);
+}
+
+template<class TVarType>
+void SetScalarVarForFlagWithoutBufferCustomCheck(
+    VariableUtils &rVariableUtils,
+    const TVarType& rVariable,
+    const double Value,
+    NodesContainerType& rNodes,
+    const Flags Flag,
+    const bool Check
+    )
+{
+    rVariableUtils.SetScalarVarForFlag(rVariable, Value, rNodes, Flag, Check);
+}
+
+template<class TVarType>
+void SetScalarVarForFlagWithBufferNotCustomCheck(
+    VariableUtils &rVariableUtils,
+    const TVarType& rVariable,
+    const double Value,
+    NodesContainerType& rNodes,
+    const Flags Flag,
+    const IndexType BuffStep
+    )
+{
+    rVariableUtils.SetScalarVarForFlag(rVariable, Value, rNodes, Flag, true, BuffStep);
+}
+
+template<class TVarType>
+void SetScalarVarForFlagWithBufferCustomCheck(
+    VariableUtils &rVariableUtils,
+    const TVarType& rVariable,
+    const double Value,
+    NodesContainerType& rNodes,
+    const Flags Flag,
+    const bool Check,
+    const IndexType BuffStep
+    )
+{
+    rVariableUtils.SetScalarVarForFlag(rVariable, Value, rNodes, Flag, Check, BuffStep);
+}
+
 void PrintTimingInformation(Timer& rTimer)
 {
     rTimer.PrintTimingInformation();
@@ -304,17 +450,24 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::string&, Parameters>())
         .def("UseLocalSystem", &PythonGenericFunctionUtility::UseLocalSystem)
         .def("DependsOnSpace", &PythonGenericFunctionUtility::DependsOnSpace)
-        .def("RotateAndCallFunction", &PythonGenericFunctionUtility::RotateAndCallFunction)
-        .def("CallFunction", &PythonGenericFunctionUtility::CallFunction)
+        .def("RotateAndCallFunction", RotateAndCallFunctionCurrentConfiguration)
+        .def("RotateAndCallFunction", RotateAndCallFunctionCurrentConfigurationAndInitialConfiguration)
+        .def("CallFunction", CallFunctionCurrentConfiguration)
+        .def("CallFunction", CallFunctionCurrentConfigurationAndInitialConfiguration)
         ;
 
     py::class_<ApplyFunctionToNodesUtility >(m,"ApplyFunctionToNodesUtility")
         .def(py::init<ModelPart::NodesContainerType&, PythonGenericFunctionUtility::Pointer >() )
-        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction< Variable<double> >)
-        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
-        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >)
-        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >)
-        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >)
+        .def("ApplyFunction", ApplyFunctionWithoutBuffer< Variable<double> >)
+        .def("ApplyFunction", ApplyFunctionWithoutBuffer<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
+        .def("ApplyFunction", ApplyFunctionWithoutBuffer<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >)
+        .def("ApplyFunction", ApplyFunctionWithoutBuffer<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >)
+        .def("ApplyFunction", ApplyFunctionWithoutBuffer<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >)
+        .def("ApplyFunction", ApplyFunctionWithBuffer< Variable<double> >)
+        .def("ApplyFunction", ApplyFunctionWithBuffer<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
+        .def("ApplyFunction", ApplyFunctionWithBuffer<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >)
+        .def("ApplyFunction", ApplyFunctionWithBuffer<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >)
+        .def("ApplyFunction", ApplyFunctionWithBuffer<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >)
         .def("ReturnFunction", &ApplyFunctionToNodesUtility::ReturnFunction)
         ;
 
@@ -382,16 +535,36 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<Matrix>>)
         .def("SetVectorVar", &VariableUtils::SetVectorVar)
         .def("SetVectorVar", &VariableUtils::SetVectorVarForFlag)
-        .def("SetScalarVar", &VariableUtils::SetScalarVar<Variable<double>>)
-        .def("SetScalarVar", &VariableUtils::SetScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
-        .def("SetScalarVar", &VariableUtils::SetScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
-        .def("SetScalarVar", &VariableUtils::SetScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
-        .def("SetScalarVar", &VariableUtils::SetScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
-        .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<Variable<double>>)
-        .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
-        .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
-        .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
-        .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
+        .def("SetScalarVar", SetScalarVarWithoutBuffer<Variable<double>>)
+        .def("SetScalarVar", SetScalarVarWithoutBuffer<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SetScalarVar", SetScalarVarWithoutBuffer<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
+        .def("SetScalarVar", SetScalarVarWithoutBuffer<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
+        .def("SetScalarVar", SetScalarVarWithoutBuffer<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
+        .def("SetScalarVar", SetScalarVarWithBuffer<Variable<double>>)
+        .def("SetScalarVar", SetScalarVarWithBuffer<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SetScalarVar", SetScalarVarWithBuffer<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
+        .def("SetScalarVar", SetScalarVarWithBuffer<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
+        .def("SetScalarVar", SetScalarVarWithBuffer<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithoutBufferNotCustomCheck<Variable<double>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithoutBufferNotCustomCheck<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithoutBufferNotCustomCheck<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithoutBufferNotCustomCheck<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithoutBufferNotCustomCheck<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithoutBufferCustomCheck<Variable<double>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithoutBufferCustomCheck<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithoutBufferCustomCheck<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithoutBufferCustomCheck<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithoutBufferCustomCheck<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithBufferNotCustomCheck<Variable<double>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithBufferNotCustomCheck<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithBufferNotCustomCheck<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithBufferNotCustomCheck<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithBufferNotCustomCheck<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithBufferCustomCheck<Variable<double>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithBufferCustomCheck<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithBufferCustomCheck<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithBufferCustomCheck<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
+        .def("SetScalarVar", SetScalarVarForFlagWithBufferCustomCheck<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
         .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<int, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
