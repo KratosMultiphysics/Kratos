@@ -48,7 +48,7 @@ namespace Kratos
 
 /// A collection of functions to compute element size, to be used as the h parameter in stabilized CFD formulations.
 template< std::size_t TDim, std::size_t TNumNodes >
-class ElementSizeCalculator {
+class KRATOS_API(KRATOS_CORE) ElementSizeCalculator {
 public:
     ///@name Type Definitions
     ///@{
