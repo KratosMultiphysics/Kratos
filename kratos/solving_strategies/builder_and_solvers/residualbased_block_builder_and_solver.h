@@ -844,8 +844,8 @@ public:
         const bool diagonal_value = mOptions.Is(SCALE_DIAGONAL) ? TSparseSpace::TwoNorm(rA) : 1.0;
 
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        std::size_t col_begin, col_end;
-        bool empty;
+        std::size_t col_begin = 0, col_end  = 0;
+        bool empty = true;
         #pragma omp parallel for firstprivate(col_begin, col_end, empty)
         for (int k = 0; k < static_cast<int>(system_size); ++k) {
             col_begin = Arow_indices[k];
