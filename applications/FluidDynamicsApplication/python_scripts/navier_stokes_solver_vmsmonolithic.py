@@ -17,7 +17,7 @@ class StabilizedFormulation(object):
     """Helper class to define stabilization-dependent parameters."""
     def __init__(self,settings):
         self.element_name = None
-        self.condition_name = "MonolithicWallCondition"
+        self.condition_name = "NavierStokesWallCondition"
         self.element_integrates_in_time = False
         self.element_has_nodal_properties = False
         self.process_data = {}
@@ -304,6 +304,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.Y_WALL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)
@@ -464,3 +465,19 @@ class NavierStokesSolverMonolithic(FluidSolver):
         self.settings["time_stepping"]["automatic_time_step"].SetBool(False)
         if self.settings["formulation"].Has("dynamic_tau"):
             self.settings["formulation"]["dynamic_tau"].SetDouble(0.0)
+
+    def _SetNodalProperties(self):
+        # Get density and dynamic viscostity from the properties of the first element
+        for el in self.main_model_part.Elements:
+            rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
+            if rho <= 0.0:
+                raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho,el.Properties.Id))
+            dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
+            if dyn_viscosity <= 0.0:
+                raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
+            break
+        else:
+            raise Exception("No fluid elements found in the main model part.")
+        # Transfer the obtained properties to the nodes
+        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DYNAMIC_VISCOSITY, dyn_viscosity, self.main_model_part.Nodes)
