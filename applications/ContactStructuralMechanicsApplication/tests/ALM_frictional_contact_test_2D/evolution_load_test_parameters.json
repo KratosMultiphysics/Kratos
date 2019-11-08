@@ -152,6 +152,20 @@
                 "model_part_name"      : "Structure.GENERIC_Add_SubModelPart_Auto1",
                 "time_frequency"       : 5.0e-2
             }
+        },
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"      : ["AUGMENTED_NORMAL_CONTACT_PRESSURE","AUGMENTED_TANGENT_CONTACT_PRESSURE_X"],
+                "check_for_flag"       : "ACTIVE",
+                "input_file_name"      : "ALM_frictional_contact_test_2D/evolution_load_test_LM_results.json",
+                "historical_value"     : false,
+                "model_part_name"      : "Structure.GENERIC_Add_SubModelPart_Auto1",
+                "time_frequency"       : 5.0e-2
+            }
         }
         ]
     },
@@ -198,7 +212,7 @@
                 "output_frequency"                   : 1,
                 "file_format"                        : "ascii",
                 "output_precision"                   : 7,
-                "output_sub_model_parts"             : true,
+                "output_sub_model_parts"             : false,
                 "folder_name"                        : "vtk_output",
                 "save_output_files_in_folder"        : true,
                 "nodal_solution_step_data_variables" : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER","WEIGHTED_GAP","WEIGHTED_SLIP"],
@@ -208,7 +222,7 @@
                 "element_flags"                      : [],
                 "condition_data_value_variables"     : [],
                 "condition_flags"                    : [],
-                "gauss_point_variables"              : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
+                "gauss_point_variables_extrapolated_to_nodes"              : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
             }
         }]
     },

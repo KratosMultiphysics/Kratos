@@ -50,6 +50,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "AdjointVMSSensitivity2DTest/steady_cylinder_test"
         },
+        "material_import_settings": {
+            "materials_filename": "AdjointVMSSensitivity2DTest/steady_cylinder_test_materials.json"
+        },
         "model_part_name"              : "MainModelPart",
         "maximum_iterations"           : 1000,
         "domain_size"                  : 2,
@@ -57,9 +60,9 @@
         "compute_reactions"            : true,
         "reform_dofs_at_each_step"     : false,
         "relative_velocity_tolerance"  : 1e-5,
-        "absolute_velocity_tolerance"  : 1e-7,
+        "absolute_velocity_tolerance"  : 1e-9,
         "relative_pressure_tolerance"  : 1e-5,
-        "absolute_pressure_tolerance"  : 1e-7,
+        "absolute_pressure_tolerance"  : 1e-9,
         "linear_solver_settings"       : {
             "solver_type"         : "amgcl",
             "max_iteration"       : 200,

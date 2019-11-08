@@ -153,8 +153,20 @@ public:
 
         // We update the normals if necessary
         const auto normal_variation = r_process_info.Has(CONSIDER_NORMAL_VARIATION) ? static_cast<NormalDerivativesComputation>(r_process_info.GetValue(CONSIDER_NORMAL_VARIATION)) : NO_DERIVATIVES_COMPUTATION;
-        if (normal_variation != NO_DERIVATIVES_COMPUTATION)
+        if (normal_variation != NO_DERIVATIVES_COMPUTATION) {
             ComputeNodesMeanNormalModelPartWithPairedNormal(rModelPart); // Update normal of the conditions
+        }
+
+        // Update tangent (must be updated even for constant normal)
+        const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
+        if (frictional_problem) {
+            const bool has_lm = rModelPart.HasNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
+            if (has_lm && mOptions.IsNot(BaseMortarConvergenceCriteria::PURE_SLIP)) {
+                MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part);
+            } else {
+                MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part, &WEIGHTED_SLIP, 1.0, true);
+            }
+        }
 
         const bool adapt_penalty = r_process_info.Has(ADAPT_PENALTY) ? r_process_info.GetValue(ADAPT_PENALTY) : false;
         const bool dynamic_case = rModelPart.HasNodalSolutionStepVariable(VELOCITY);
@@ -439,15 +451,6 @@ private:
         // Compute normal and tangent
         ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
         MortarUtilities::ComputeNodesMeanNormalModelPart(r_contact_model_part);
-        const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
-        if (frictional_problem) {
-            const bool has_lm = rModelPart.HasNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
-            if (has_lm && mOptions.IsNot(BaseMortarConvergenceCriteria::PURE_SLIP)) {
-                MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part);
-            } else {
-                MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part, &WEIGHTED_SLIP, 1.0, true);
-            }
-        }
 
         // Iterate over the computing conditions
         ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");

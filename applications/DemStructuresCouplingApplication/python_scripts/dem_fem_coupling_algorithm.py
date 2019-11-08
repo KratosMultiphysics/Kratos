@@ -183,6 +183,8 @@ class Algorithm(object):
 
                 self.dem_solution.InitializeSolutionStep()
 
+                self.dem_solution._GetSolver().Predict()
+
                 DemFem.InterpolateStructuralSolutionForDEM().InterpolateStructuralSolution(self.structural_mp, self.Dt_structural, self.structural_solution.time, self.dem_solution._GetSolver().dt, self.dem_solution.time)
 
                 self.dem_solution.SolverSolve()
@@ -190,17 +192,6 @@ class Algorithm(object):
                 self.dem_solution.FinalizeSolutionStep()
 
                 DemFem.ComputeDEMFaceLoadUtility().CalculateDEMFaceLoads(self.skin_mp, self.dem_solution._GetSolver().dt, self.Dt_structural)
-
-                self.dem_solution.DEMFEMProcedures.MoveAllMeshes(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution._GetSolver().dt)
-                #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
-
-                ##### adding DEM elements by the inlet ######
-                if self.dem_solution.DEM_parameters["dem_inlet_option"].GetBool():
-                    self.dem_solution.DEM_inlet.CreateElementsFromInletMesh(self.dem_solution.spheres_model_part, self.dem_solution.cluster_model_part, self.dem_solution.creator_destructor)  # After solving, to make sure that neighbours are already set.
-
-                stepinfo = self.dem_solution.report.StepiReport(timer, self.dem_solution.time, self.dem_solution.step)
-                if stepinfo:
-                    self.dem_solution.KratosPrintInfo(stepinfo)
 
                 #### PRINTING GRAPHS ####
                 os.chdir(self.dem_solution.graphs_path)

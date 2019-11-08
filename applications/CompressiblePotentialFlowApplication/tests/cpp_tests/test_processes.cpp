@@ -14,7 +14,9 @@
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
+#include "compressible_potential_flow_application_variables.h"
 #include "custom_processes/move_model_part_process.h"
+#include "custom_processes/compute_embedded_lift_process.h"
 #include "custom_processes/define_2d_wake_process.h"
 #include "custom_processes/apply_far_field_process.h"
 #include "custom_processes/compute_nodal_potential_flow_velocity_process.h"
@@ -56,6 +58,62 @@ namespace Kratos {
         for (std::size_t i_dim = 0; i_dim<reference.size2(); i_dim++){
           KRATOS_CHECK_NEAR(model_part.GetNode(i_node+1).Coordinates()[i_dim], reference(i_node,i_dim), 1e-6);
         }
+      }
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ComputeEmbeddedLiftProcess, CompressiblePotentialApplicationFastSuite)
+    {
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      model_part.AddNodalSolutionStepVariable(GEOMETRY_DISTANCE);
+      model_part.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
+      model_part.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
+
+      array_1d<double, 3> free_stream_velocity;
+      free_stream_velocity[0] = 1.0; free_stream_velocity[1] = 0.0; free_stream_velocity[2] = 0.0;
+      model_part.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
+
+      // Set the element properties
+      model_part.CreateNewProperties(0);
+      Properties::Pointer pElemProp = model_part.pGetProperties(0);
+
+      // Geometry creation
+      model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+      model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+      model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+      std::vector<std::size_t> elemNodes{ 1, 2, 3 };
+      model_part.CreateNewElement("EmbeddedIncompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
+
+      Element::Pointer pElement = model_part.pGetElement(1);
+      pElement -> Set(ACTIVE);
+
+      // Define the nodal values
+      std::array<double,3> potential;
+      potential[0] = 1.0;
+      potential[1] = 2.0;
+      potential[2] = 3.0;
+
+      std::array<double,3> distances;
+      distances[0] = -1.0;
+      distances[1] = -1.0;
+      distances[2] = 1.0;
+
+
+      for (unsigned int i = 0; i < 3; i++)
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
+
+      for (unsigned int i = 0; i < 3; i++)
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = distances[i];
+
+      Vector resultant_force(3);
+      ComputeEmbeddedLiftProcess<2,3>(model_part, resultant_force).Execute();
+
+      std::array<double,3> reference({0.0, 0.5, 0.0});
+      KRATOS_WATCH(resultant_force)
+
+      for (unsigned int i = 0; i < 3; i++) {
+        KRATOS_CHECK_NEAR(resultant_force(i), reference[i], 1e-6);
       }
     }
 

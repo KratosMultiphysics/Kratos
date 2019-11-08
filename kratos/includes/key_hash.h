@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/dof.h"
+#include "utilities/indexed_object.h"
 
 namespace Kratos
 {
@@ -216,6 +217,82 @@ namespace Kratos
             ) const
         {
             return pFirst->Key() == pSecond->Key();
+        }
+    };
+
+    /**
+     * @brief This is a hasher for indexed objects
+     */
+    struct IndexedObjectHasher
+    {
+        /**
+         * @brief This is the () operator
+         * @param rIndexedObject The indexed object to be hashed
+         * @return The corresponding hash
+         */
+        HashType operator()(const IndexedObject& rIndexedObject) const
+        {
+            return rIndexedObject.Id();
+        }
+    };
+
+    /**
+     * @brief This is a key comparer between two indexed objects
+     */
+    struct IndexedObjectComparator
+    {
+        /**
+         * @brief This is the () operator
+         * @param rFirst The first class to be compared
+         * @param rSecond The second class to be compared
+         */
+        bool operator()(
+            const IndexedObject& rFirst,
+            const IndexedObject& rSecond
+            ) const
+        {
+            return rFirst.Id() == rSecond.Id();
+        }
+    };
+
+    /**
+     * @brief This is a hasher for indexed objects (pointer)
+     * @param TpIndexedObject Pointer type to indexed object
+     * @note Must be tenmplated to take into account the shared, intrussive,etc... pointers
+     */
+    template<class TpIndexedObject>
+    struct IndexedObjecPointertHasher
+    {
+        /**
+         * @brief This is the () operator
+         * @param pIndexedObject The indexed object pointer to be hashed
+         * @return The corresponding hash
+         */
+        HashType operator()(const TpIndexedObject pIndexedObject) const
+        {
+            return pIndexedObject->Id();
+        }
+    };
+
+    /**
+     * @brief This is a key comparer between two indexed objects (pointer)
+     * @param TpIndexedObject Pointer type to indexed object
+     * @note Must be tenmplated to take into account the shared, intrussive,etc... pointers
+     */
+    template<class TpIndexedObject>
+    struct IndexedObjectPointerComparator
+    {
+        /**
+         * @brief This is the () operator
+         * @param pFirst The first class to be compared
+         * @param pSecond The second class to be compared
+         */
+        bool operator()(
+            const TpIndexedObject pFirst,
+            const TpIndexedObject pSecond
+            ) const
+        {
+            return pFirst->Id() == pSecond->Id();
         }
     };
 

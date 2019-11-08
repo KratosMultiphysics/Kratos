@@ -12,32 +12,36 @@ def  AuxiliarContactSettings():
     {
         "contact_settings" :
         {
-            "mortar_type"                                       : "",
-            "condn_convergence_criterion"                       : false,
-            "fancy_convergence_criterion"                       : true,
-            "print_convergence_criterion"                       : false,
-            "ensure_contact"                                    : false,
-            "frictional_decomposed"                             : true,
-            "compute_dynamic_factor"                            : false,
-            "gidio_debug"                                       : false,
-            "adaptative_strategy"                               : false,
-            "split_factor"                                      : 10.0,
-            "max_number_splits"                                 : 3,
-            "inner_loop_iterations"                             : 5,
-            "inner_loop_adaptive"                               : false,
-            "contact_displacement_relative_tolerance"           : 1.0e-4,
-            "contact_displacement_absolute_tolerance"           : 1.0e-9,
-            "contact_residual_relative_tolerance"               : 1.0e-4,
-            "contact_residual_absolute_tolerance"               : 1.0e-9,
-            "frictional_contact_displacement_relative_tolerance": 1.0e-4,
-            "frictional_contact_displacement_absolute_tolerance": 1.0e-9,
-            "frictional_contact_residual_relative_tolerance"    : 1.0e-4,
-            "frictional_contact_residual_absolute_tolerance"    : 1.0e-9,
-            "ratio_normal_tangent_threshold"                    : 1.0e-4,
-            "silent_strategy"                                   : true,
-            "simplified_semi_smooth_newton"                     : false,
-            "rescale_linear_solver"                             : false,
-            "use_mixed_ulm_solver"                              : true,
+            "mortar_type"                                             : "",
+            "condn_convergence_criterion"                             : false,
+            "fancy_convergence_criterion"                             : true,
+            "print_convergence_criterion"                             : false,
+            "ensure_contact"                                          : false,
+            "frictional_decomposed"                                   : true,
+            "compute_dynamic_factor"                                  : false,
+            "gidio_debug"                                             : false,
+            "adaptative_strategy"                                     : false,
+            "split_factor"                                            : 10.0,
+            "max_number_splits"                                       : 3,
+            "inner_loop_iterations"                                   : 5,
+            "inner_loop_adaptive"                                     : false,
+            "contact_displacement_relative_tolerance"                 : 1.0e-4,
+            "contact_displacement_absolute_tolerance"                 : 1.0e-9,
+            "contact_residual_relative_tolerance"                     : 1.0e-4,
+            "contact_residual_absolute_tolerance"                     : 1.0e-9,
+            "frictional_stick_contact_displacement_relative_tolerance": 1.0e-4,
+            "frictional_stick_contact_displacement_absolute_tolerance": 1.0e-9,
+            "frictional_stick_contact_residual_relative_tolerance"    : 1.0e-4,
+            "frictional_stick_contact_residual_absolute_tolerance"    : 1.0e-9,
+            "frictional_slip_contact_displacement_relative_tolerance" : 1.0e-4,
+            "frictional_slip_contact_displacement_absolute_tolerance" : 1.0e-9,
+            "frictional_slip_contact_residual_relative_tolerance"     : 1.0e-4,
+            "frictional_slip_contact_residual_absolute_tolerance"     : 1.0e-9,
+            "ratio_normal_tangent_threshold"                          : 1.0e-4,
+            "silent_strategy"                                         : true,
+            "simplified_semi_smooth_newton"                           : false,
+            "rescale_linear_solver"                                   : false,
+            "use_mixed_ulm_solver"                                    : true,
             "mixed_ulm_solver_parameters" :
             {
                 "solver_type"          : "mixed_ulm_linear_solver",
@@ -45,6 +49,22 @@ def  AuxiliarContactSettings():
                 "max_iteration_number" : 200,
                 "echo_level"           : 0
             }
+        }
+    }
+    """)
+
+    return contact_settings
+
+def  AuxiliarMPCContactSettings():
+    contact_settings = KM.Parameters("""
+    {
+        "mpc_contact_settings" :
+        {
+            "contact_type"                  : "Frictionless",
+            "simplified_semi_smooth_newton" : false,
+            "inner_loop_iterations"         : 10,
+            "update_each_nl_iteration"      : false,
+            "enforce_ntn"                   : false
         }
     }
     """)
@@ -74,11 +94,31 @@ def  AuxiliarSetSettings(settings, contact_settings):
     if not settings["reform_dofs_at_each_step"].GetBool():
         KM.Logger.PrintInfo("Reform DoFs", "DoF must be reformed each time step. Switching to True")
         settings["reform_dofs_at_each_step"].SetBool(True)
+    if not settings["use_computing_model_part"].GetBool():
+        KM.Logger.PrintInfo("Using Computing-ModelPart", "Computing ModelPart must currently be used in Contact. Switching to True")
+        settings["use_computing_model_part"].SetBool(True)
     mortar_type = contact_settings["mortar_type"].GetString()
     if "Frictional" in mortar_type:
         if not settings["buffer_size"].GetInt() < 3:
             KM.Logger.PrintInfo("Reform Buffer Size", "Buffer size requires a size of at least 3. Switching to 3")
             settings["buffer_size"].SetInt(3)
+
+    return settings
+
+def  AuxiliarMPCSetSettings(settings, contact_settings):
+    # Setting the parameters
+    if not settings["compute_reactions"].GetBool():
+        KM.Logger.PrintInfo("Compute reactions", "Storage must be cleared each step. Switching to True")
+        settings["compute_reactions"].SetBool(True)
+    if not settings["clear_storage"].GetBool():
+        KM.Logger.PrintInfo("Clear storage", "Storage must be cleared each step. Switching to True")
+        settings["clear_storage"].SetBool(True)
+    if not settings["reform_dofs_at_each_step"].GetBool():
+        KM.Logger.PrintInfo("Reform DoFs", "DoF must be reformed each time step. Switching to True")
+        settings["reform_dofs_at_each_step"].SetBool(True)
+    if not settings["use_computing_model_part"].GetBool():
+        KM.Logger.PrintInfo("Using Computing-ModelPart", "Computing ModelPart must currently be used in Contact. Switching to True")
+        settings["use_computing_model_part"].SetBool(True)
 
     return settings
 
@@ -115,6 +155,13 @@ def  AuxiliarAddVariables(main_model_part, mortar_type = ""):
         elif mortar_type == "ComponentsMeshTying":
             main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)             # Add vector LM
             main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)             # Add vector LM residual
+
+def  AuxiliarMPCAddVariables(main_model_part, contact_type = ""):
+    main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)  # Add normal
+    main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H) # Add nodal size variable
+    main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)  # Add normal contact gap
+    if contact_type == "Frictional":
+        main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SLIP) # Add contact slip
 
 def  AuxiliarAddDofs(main_model_part, mortar_type = ""):
     if mortar_type == "ALMContactFrictionless":                                                      # TODO Remove WEIGHTED_SCALAR_RESIDUAL in case of check for reaction is defined
@@ -183,10 +230,14 @@ def  AuxiliarCreateConvergenceParameters(main_model_part, settings, contact_sett
     conv_params.AddValue("contact_displacement_absolute_tolerance", contact_settings["contact_displacement_absolute_tolerance"])
     conv_params.AddValue("contact_residual_relative_tolerance", contact_settings["contact_residual_relative_tolerance"])
     conv_params.AddValue("contact_residual_absolute_tolerance", contact_settings["contact_residual_absolute_tolerance"])
-    conv_params.AddValue("frictional_contact_displacement_relative_tolerance", contact_settings["frictional_contact_displacement_relative_tolerance"])
-    conv_params.AddValue("frictional_contact_displacement_absolute_tolerance", contact_settings["frictional_contact_displacement_absolute_tolerance"])
-    conv_params.AddValue("frictional_contact_residual_relative_tolerance", contact_settings["frictional_contact_residual_relative_tolerance"])
-    conv_params.AddValue("frictional_contact_residual_absolute_tolerance", contact_settings["frictional_contact_residual_absolute_tolerance"])
+    conv_params.AddValue("frictional_stick_contact_displacement_relative_tolerance", contact_settings["frictional_stick_contact_displacement_relative_tolerance"])
+    conv_params.AddValue("frictional_stick_contact_displacement_absolute_tolerance", contact_settings["frictional_stick_contact_displacement_absolute_tolerance"])
+    conv_params.AddValue("frictional_stick_contact_residual_relative_tolerance", contact_settings["frictional_stick_contact_residual_relative_tolerance"])
+    conv_params.AddValue("frictional_stick_contact_residual_absolute_tolerance", contact_settings["frictional_stick_contact_residual_absolute_tolerance"])
+    conv_params.AddValue("frictional_slip_contact_displacement_relative_tolerance", contact_settings["frictional_slip_contact_displacement_relative_tolerance"])
+    conv_params.AddValue("frictional_slip_contact_displacement_absolute_tolerance", contact_settings["frictional_slip_contact_displacement_absolute_tolerance"])
+    conv_params.AddValue("frictional_slip_contact_residual_relative_tolerance", contact_settings["frictional_slip_contact_residual_relative_tolerance"])
+    conv_params.AddValue("frictional_slip_contact_residual_absolute_tolerance", contact_settings["frictional_slip_contact_residual_absolute_tolerance"])
     conv_params.AddValue("ratio_normal_tangent_threshold", contact_settings["ratio_normal_tangent_threshold"])
     conv_params.AddValue("mortar_type", contact_settings["mortar_type"])
     conv_params.AddValue("condn_convergence_criterion", contact_settings["condn_convergence_criterion"])
@@ -207,30 +258,36 @@ def  AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, lin
             KM.Logger.PrintInfo("::[Contact Mechanical Solver]:: ", "Using MixedULMLinearSolver, definition of ALM parameters recommended")
             name_mixed_solver = contact_settings["mixed_ulm_solver_parameters"]["solver_type"].GetString()
             if name_mixed_solver == "mixed_ulm_linear_solver":
-                linear_solver_name = settings["linear_solver_settings"]["solver_type"].GetString()
-                if linear_solver_name == "amgcl" or linear_solver_name == "AMGCL" or linear_solver_name == "AMGCLSolver":
-                    amgcl_param = KM.Parameters("""
-                    {
-                        "solver_type"                    : "amgcl",
-                        "smoother_type"                  : "ilu0",
-                        "krylov_type"                    : "lgmres",
-                        "coarsening_type"                : "aggregation",
-                        "max_iteration"                  : 100,
-                        "provide_coordinates"            : false,
-                        "gmres_krylov_space_dimension"   : 100,
-                        "verbosity"                      : 1,
-                        "tolerance"                      : 1e-6,
-                        "scaling"                        : false,
-                        "block_size"                     : 3,
-                        "use_block_matrices_if_possible" : true,
-                        "coarse_enough"                  : 500
-                    }
-                    """)
-                    amgcl_param["block_size"].SetInt(main_model_part.ProcessInfo[KM.DOMAIN_SIZE])
-                    linear_solver_settings.RecursivelyValidateAndAssignDefaults(amgcl_param)
-                    linear_solver = KM.AMGCLSolver(linear_solver_settings)
-                mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, contact_settings["mixed_ulm_solver_parameters"])
-                return mixed_ulm_solver
+                if settings.Has("linear_solver_settings"):
+                    if settings["linear_solver_settings"].Has("solver_type"):
+                        linear_solver_name = settings["linear_solver_settings"]["solver_type"].GetString()
+                        if linear_solver_name == "amgcl" or linear_solver_name == "AMGCL" or linear_solver_name == "AMGCLSolver":
+                            amgcl_param = KM.Parameters("""
+                            {
+                                "solver_type"                    : "amgcl",
+                                "smoother_type"                  : "ilu0",
+                                "krylov_type"                    : "lgmres",
+                                "coarsening_type"                : "aggregation",
+                                "max_iteration"                  : 100,
+                                "provide_coordinates"            : false,
+                                "gmres_krylov_space_dimension"   : 100,
+                                "verbosity"                      : 1,
+                                "tolerance"                      : 1e-6,
+                                "scaling"                        : false,
+                                "block_size"                     : 3,
+                                "use_block_matrices_if_possible" : true,
+                                "coarse_enough"                  : 500
+                            }
+                            """)
+                            amgcl_param["block_size"].SetInt(main_model_part.ProcessInfo[KM.DOMAIN_SIZE])
+                            linear_solver_settings.RecursivelyValidateAndAssignDefaults(amgcl_param)
+                            linear_solver = KM.AMGCLSolver(linear_solver_settings)
+                        mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, contact_settings["mixed_ulm_solver_parameters"])
+                        return mixed_ulm_solver
+                    else:
+                        return linear_solver
+                else:
+                    return linear_solver
             else:
                 KM.Logger.PrintInfo("::[Contact Mechanical Solver]:: ", "Mixed solver not available: " + name_mixed_solver + ". Using not mixed linear solver")
                 return linear_solver
@@ -278,3 +335,20 @@ def  AuxiliarNewton(computing_model_part, mechanical_scheme, linear_solver, mech
                                                             processes_list,
                                                             post_process
                                                             )
+
+def  AuxiliarMPCNewton(computing_model_part, mechanical_scheme, linear_solver, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings):
+    newton_parameters = KM.Parameters("""{}""")
+    newton_parameters.AddValue("inner_loop_iterations", contact_settings["inner_loop_iterations"])
+    newton_parameters.AddValue("update_each_nl_iteration", contact_settings["update_each_nl_iteration"])
+    newton_parameters.AddValue("enforce_ntn", contact_settings["enforce_ntn"])
+    return CSMA.ResidualBasedNewtonRaphsonMPCContactStrategy(computing_model_part,
+                                                                mechanical_scheme,
+                                                                linear_solver,
+                                                                mechanical_convergence_criterion,
+                                                                builder_and_solver,
+                                                                settings["max_iteration"].GetInt(),
+                                                                settings["compute_reactions"].GetBool(),
+                                                                settings["reform_dofs_at_each_step"].GetBool(),
+                                                                settings["move_mesh_flag"].GetBool(),
+                                                                newton_parameters
+                                                                )

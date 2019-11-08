@@ -1,10 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-# Mpi
-if(${MPI_NEEDED} MATCHES ON )
-  add_subdirectory(mpi)
-endif(${MPI_NEEDED} MATCHES ON )
-
 ## Kratos main source code
 set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/flags.cpp
@@ -63,6 +58,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_h_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_nodal_area_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/skin_detection_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/sub_model_part_skin_detection_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/replace_elements_and_condition_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/entity_erase_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_variable_to_entities_process.cpp
@@ -270,6 +266,7 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
     PATTERN "*.h" EXCLUDE
     PATTERN "*.cpp" EXCLUDE
     PATTERN "*.hpp" EXCLUDE
+    PATTERN "*.pyc" EXCLUDE
     )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
@@ -278,3 +275,10 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
     get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION kratos/ FILES_MATCHING PATTERN "*.py" PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+
+
+# Mpi
+if(${MPI_NEEDED} MATCHES ON )
+  add_subdirectory(mpi)
+endif(${MPI_NEEDED} MATCHES ON )
+

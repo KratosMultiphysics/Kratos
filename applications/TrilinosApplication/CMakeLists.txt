@@ -4,15 +4,28 @@ message("**** configuring KratosTrilinosApplication ****")
 
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/ )
 
-# Dependencies on other application -- TRILINOS specific
-include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
+if(${TRILINOS_EXCLUDE_ML_SOLVER} MATCHES ON)
+    add_definitions(-DTRILINOS_EXCLUDE_ML_SOLVER)
+    message("**** WARNING: Manually disabled ML-Solver ****")
+endif(${TRILINOS_EXCLUDE_ML_SOLVER} MATCHES ON)
+
+if(${TRILINOS_EXCLUDE_AZTEC_SOLVER} MATCHES ON)
+    add_definitions(-DTRILINOS_EXCLUDE_AZTEC_SOLVER)
+    message("**** WARNING: Manually disabled Aztec-Solver ****")
+endif(${TRILINOS_EXCLUDE_AZTEC_SOLVER} MATCHES ON)
+
+if(${TRILINOS_EXCLUDE_AMESOS_SOLVER} MATCHES ON)
+    add_definitions(-DTRILINOS_EXCLUDE_AMESOS_SOLVER)
+    message("**** WARNING: Manually disabled Amesos-Solver ****")
+endif(${TRILINOS_EXCLUDE_AMESOS_SOLVER} MATCHES ON)
+
+include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 # Find trilinos solver package -- this is our own find package!!
-find_package(TRILINOS REQUIRED)
+if (NOT TRILINOS_FOUND)
+    find_package(TRILINOS REQUIRED)
+endif()
 include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
 link_directories(${TRILINOS_LIBRARIES})
 
@@ -23,15 +36,14 @@ include_directories("../../external_libraries")
 set( KRATOS_TRILINOS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/external_includes/amgcl_mpi_solver_impl.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/trilinos_linear_solver_factory.cpp
-    ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/fluid_dynamics_application_variables.cpp  #TODO: this should REALLY NOT BE HERE
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/trilinos_linear_solver_factory.cpp
 )
 
 # Sources for the Python module
 file(
-  GLOB_RECURSE
-  KRATOS_TRILINOS_PYTHON_INTERFACE_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
+    GLOB_RECURSE
+    KRATOS_TRILINOS_PYTHON_INTERFACE_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
 ## Kratos tests sources. Enabled by default
@@ -52,12 +64,12 @@ set_target_properties( KratosTrilinosApplication PROPERTIES PREFIX "")
 
 # Changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set_target_properties(KratosTrilinosApplication PROPERTIES SUFFIX .pyd)
+    set_target_properties(KratosTrilinosApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 # Changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	set_target_properties(KratosTrilinosApplication PROPERTIES SUFFIX .so)
+    set_target_properties(KratosTrilinosApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 if(USE_COTIRE MATCHES ON)

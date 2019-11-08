@@ -113,6 +113,7 @@ Parameters ContactSearchWrapperProcess::GetDefaultParameters()
         "static_check_movement"                : false,
         "predefined_master_slave"              : true,
         "id_name"                              : "",
+        "normal_orientation_threshold"         : 1.0e-1,
         "consider_gap_threshold"               : false,
         "predict_correct_lagrange_multiplier"  : false,
         "pure_slip"                            : false,

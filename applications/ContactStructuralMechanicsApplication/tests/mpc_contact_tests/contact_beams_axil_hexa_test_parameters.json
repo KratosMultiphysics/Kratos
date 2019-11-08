@@ -218,7 +218,7 @@
                 "nodal_flags"                        : ["ACTIVE","MASTER","SLAVE"],
                 "element_data_value_variables"       : [],
                 "condition_data_value_variables"     : [],
-                "gauss_point_variables"              : []
+                "gauss_point_variables_extrapolated_to_nodes"              : []
             }
         }]
     }

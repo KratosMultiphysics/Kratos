@@ -48,7 +48,7 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
             self.problem_name = parameters["problem_data"]["problem_name"].GetString()
 
             model = KratosMultiphysics.Model()
-            self.response_function = structural_response_function_factory.CreateResponseFunction("dummy", parameters["kratos_response_settings"], model)
+            self.response_function = structural_response_function_factory.CreateResponseFunction("dummy", parameters["response_settings"], model)
 
             # call response function
             self.response_function.Initialize()
@@ -120,6 +120,23 @@ class TestAdjointStressResponseFunction(StructuralResponseFunctionTestFactory):
         self.assertAlmostEqual(self.gradient[4][1], -0.6917210464170941)
         self.assertAlmostEqual(self.gradient[4][2], 0.00011013551613132068)
 
+class TestAdjointMaxStressResponseFunction(StructuralResponseFunctionTestFactory):
+    file_name = "adjoint_max_stress_response"
+
+    def test_execution(self):
+        self._calculate_response_and_gradient()
+
+        model_part = self.response_function.adjoint_analysis.model.GetModelPart("cantilever_beam")
+        self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(ADJOINT_DISPLACEMENT_X), 7.657448651571309, 10)
+        self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(ADJOINT_DISPLACEMENT_Y), -19.9044491754745, 10)
+        self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(ADJOINT_DISPLACEMENT_Z), -8.37326311561973, 10)
+
+        self.assertIsClose(self.value, 1610060.3904999627)
+
+        self.assertIsClose(self.gradient[5][0], 1787255.3702425747)
+        self.assertIsClose(self.gradient[5][1], -247.0446103799622, rel_tol=1e-5)
+        self.assertIsClose(self.gradient[5][2], -562640.0306970887)
+
 class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "mass_response"
 
@@ -165,6 +182,7 @@ if __name__ == "__main__":
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointStrainEnergyResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointDisplacementResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointStressResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointMaxStressResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStrainEnergyResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenfrequencyResponseFunction]))

@@ -16,7 +16,7 @@ namespace Kratos {
         DEM_KDEM() {
         }
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
         void Check(Properties::Pointer pProp) const override;
 
         ~DEM_KDEM() {
@@ -79,10 +79,10 @@ namespace Kratos {
                 SphericContinuumParticle* element1,
                 SphericContinuumParticle* element2,
                 int i_neighbour_count,
-                int time_steps) override;
+                int time_steps,
+            const ProcessInfo& r_process_info) override;
 
-
-
+        double GetContactSigmaMax(SphericContinuumParticle* element);
 
         void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],
@@ -139,6 +139,9 @@ namespace Kratos {
                                     double& normal_force,
                                     double calculation_area, BoundedMatrix<double, 3, 3>* mSymmStressTensor, SphericContinuumParticle* element1,
                                     SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation) override;
+
+        virtual void AdjustEquivalentYoung(double& equiv_young, const SphericContinuumParticle* element, const SphericContinuumParticle* neighbor);
+
     protected:
 
         virtual double GetTauZero(SphericContinuumParticle* element1);
