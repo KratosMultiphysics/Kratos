@@ -75,6 +75,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_geometry.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_triangle_2d_3.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_tetrahedra_3d_4.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/element_size_calculator.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/embedded_skin_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_sensitivity_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/line_sensitivity_utility.cpp;
@@ -280,4 +281,3 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 if(${MPI_NEEDED} MATCHES ON )
   add_subdirectory(mpi)
 endif(${MPI_NEEDED} MATCHES ON )
-
