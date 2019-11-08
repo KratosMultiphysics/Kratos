@@ -121,7 +121,6 @@ class TestConvergenceAcceleratorAITKEN(KratosUnittest.TestCase):
         convergence_accelerator.FinalizeSolutionStep()
         convergence_accelerator.InitializeSolutionStep()
 
-        print('test')
         # Test Update()
         convergence_accelerator.Update(interface_x, interface_xt0)
         omega = convergence_accelerator.omega
