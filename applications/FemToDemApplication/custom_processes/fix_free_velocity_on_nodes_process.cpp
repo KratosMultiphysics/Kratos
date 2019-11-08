@@ -48,6 +48,13 @@ void FixFreeVelocityOnNodesProcess::Execute()
                 auto &r_prev_accel_backup    = it_node->FastGetSolutionStepValue(ACCELERATION_PREVIOUS_BACKUP);
                 r_current_accel_backup = current_acceleration;
                 r_prev_accel_backup    = prev_acceleration;
+
+                auto current_displ = it_node->FastGetSolutionStepValue(DISPLACEMENT, 0);
+                auto prev_displ    = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
+                auto &r_current_displ_backup = it_node->FastGetSolutionStepValue(DISPLACEMENT_BACKUP);
+                auto &r_prev_displ_backup    = it_node->FastGetSolutionStepValue(DISPLACEMENT_PREVIOUS_BACKUP);
+                r_current_displ_backup = current_displ;
+                r_prev_displ_backup    = prev_displ;
             }
 
         } else {
@@ -63,6 +70,13 @@ void FixFreeVelocityOnNodesProcess::Execute()
                 auto prev_accel_backup    = it_node->FastGetSolutionStepValue(ACCELERATION_PREVIOUS_BACKUP);
                 r_current_acceleration = current_accel_backup;
                 r_prev_acceleration = prev_accel_backup;
+
+                auto &r_current_displ = it_node->FastGetSolutionStepValue(DISPLACEMENT, 0);
+                auto &r_prev_displ    = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
+                auto current_displ_backup = it_node->FastGetSolutionStepValue(DISPLACEMENT_BACKUP);
+                auto prev_displ_backup    = it_node->FastGetSolutionStepValue(DISPLACEMENT_PREVIOUS_BACKUP);
+                r_current_displ = current_displ_backup;
+                r_prev_displ = prev_displ_backup;
             }
         }
     }
