@@ -781,12 +781,13 @@ public:
                             ComputeNonZeroBlocks<TMatrix>(*rMatricespBlocks(i, j), k, matrix_cols_aux);
                         }
                     }
-                    matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k + 1] = matrix_cols_aux;
+                    matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k + 1] += matrix_cols_aux;
                 }
             }
         }
 
         // Auxiliar values
+        std::partial_sum(matrix_ptr, matrix_ptr + nrows + 1, matrix_ptr);
         const SizeType nonzero_values = matrix_ptr[nrows];
 
         // Initialize matrix with the corresponding non-zero values
