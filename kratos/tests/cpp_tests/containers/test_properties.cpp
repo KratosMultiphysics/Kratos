@@ -42,27 +42,27 @@ KRATOS_TEST_CASE_IN_SUITE(SubpropertiesInterface, KratosCoreFastSuite)
 
     KRATOS_CHECK(p1->HasSubProperties(11));
     KRATOS_CHECK(p11->HasSubProperties(111));
-    KRATOS_CHECK(r_model_part.HasSubProperties("1.11"));
-    KRATOS_CHECK(r_model_part.HasSubProperties("1.11.111"));
+    KRATOS_CHECK(r_model_part.HasProperties("1.11"));
+    KRATOS_CHECK(r_model_part.HasProperties("1.11.111"));
 
     // Add a new one
     // Note that i am creating a new property "1", belonging to 1.12 IT IS DIFFERENT FROM p1
-    r_model_part.GetSubProperties("1.12").AddSubProperties(Kratos::make_shared<Properties>(1)); 
+    r_model_part.GetProperties("1.12").AddSubProperties(Kratos::make_shared<Properties>(1));
 
     p1->SetValue(YOUNG_MODULUS,1.0);
     p11->SetValue(YOUNG_MODULUS,11.0);
     KRATOS_CHECK_EQUAL(p1->GetSubProperties(11).GetValue(YOUNG_MODULUS), 11.0);
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubProperties("1.11").GetValue(YOUNG_MODULUS), 11.0);  //SUGGESTION TODO: this should be called GetProperties
+    KRATOS_CHECK_EQUAL(r_model_part.GetProperties("1.11").GetValue(YOUNG_MODULUS), 11.0);  //SUGGESTION TODO: this should be called GetProperties
     
-    r_model_part.GetSubProperties("1.11.111").SetValue(YOUNG_MODULUS,111.0);
+    r_model_part.GetProperties("1.11.111").SetValue(YOUNG_MODULUS,111.0);
     KRATOS_CHECK_EQUAL(p111->GetValue(YOUNG_MODULUS), 111.0);
 
     //1.12.1 is different from 1, even though it has the same index
-    r_model_part.GetSubProperties("1.12.1").SetValue(YOUNG_MODULUS,12345.0);
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubProperties("1.12.1").GetValue(YOUNG_MODULUS), 12345.0);
+    r_model_part.GetProperties("1.12.1").SetValue(YOUNG_MODULUS,12345.0);
+    KRATOS_CHECK_EQUAL(r_model_part.GetProperties("1.12.1").GetValue(YOUNG_MODULUS), 12345.0);
 
-    r_model_part.GetSubProperties("1.12").GetSubProperties(1).SetValue(YOUNG_MODULUS,12345.0);
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubProperties("1.12").GetSubProperties(1).GetValue(YOUNG_MODULUS), 12345.0);
+    r_model_part.GetProperties("1.12").GetSubProperties(1).SetValue(YOUNG_MODULUS,12345.0);
+    KRATOS_CHECK_EQUAL(r_model_part.GetProperties("1.12").GetSubProperties(1).GetValue(YOUNG_MODULUS), 12345.0);
 
     KRATOS_CHECK_EQUAL(p1->GetValue(YOUNG_MODULUS), 1.0);
 
