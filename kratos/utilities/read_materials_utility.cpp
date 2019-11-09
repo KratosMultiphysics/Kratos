@@ -316,7 +316,7 @@ void ReadMaterialsUtility::CreateSubProperties(
 
     if (Data.Has("sub_properties")) {
 
-        PointerVectorSet<Properties, IndexedObject>& r_list_sub_properties = pNewProperty->GetSubProperties();
+        auto& r_list_sub_properties = pNewProperty->GetSubProperties();
 
         const std::size_t number_of_subproperties = Data["sub_properties"].size();
 
