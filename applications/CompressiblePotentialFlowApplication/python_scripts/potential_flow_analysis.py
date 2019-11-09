@@ -114,7 +114,6 @@ class PotentialFlowAnalysis(AnalysisStage):
             self._GetSolver().reference_chord = math.sqrt((le[0].X-te[0].X)**2+(le[0].Y-te[0].Y)**2)
             self._GetSolver().main_model_part.ProcessInfo.SetValue(KCPFApp.REFERENCE_CHORD,self._GetSolver().reference_chord)
         else:
-            print(self.project_parameters)
             self._GetSolver().reference_chord = self.project_parameters["solver_settings"]["reference_chord"].GetDouble()
             self._GetSolver().main_model_part.ProcessInfo.SetValue(KCPFApp.REFERENCE_CHORD,self._GetSolver().reference_chord)
 

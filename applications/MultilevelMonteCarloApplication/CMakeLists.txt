@@ -8,10 +8,19 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 set( KRATOS_MULTILEVEL_MONTE_CARLO_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/multilevel_monte_carlo_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/multilevel_monte_carlo_application_variables.cpp
+
+    # python
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/multilevel_monte_carlo_python_application.cpp
-#    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-#    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_statistics_to_python.cpp
+
+    # statistics
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_statistics/power_sums_statistics.cpp
 )
+
+## define mesh moving test sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+        file(GLOB_RECURSE KRATOS_MESH_MOVING_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 # define library Kratos which defines the basic python interface
 pybind11_add_module(KratosMultilevelMonteCarloApplication MODULE THIN_LTO ${KRATOS_MULTILEVEL_MONTE_CARLO_APPLICATION_SOURCES})
