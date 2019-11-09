@@ -874,9 +874,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("CreateNewProperties", ModelPartCreateNewProperties1)
         .def("CreateNewProperties", ModelPartCreateNewProperties2)
         .def("GetProperties", ModelPartGetPropertiesDirect1)
-//         .def("GetProperties", ModelPartGetProperties2) // NOTE: This method conflicts with the other GetProperties methods
         .def("GetProperties", ModelPartGetSubProperties1)
-//         .def("GetProperties", ModelPartGetSubProperties2)// NOTE: This method conflicts with the other GetProperties methods
         .def_property("Properties", ModelPartGetProperties1, ModelPartSetProperties1)
         .def("AddProperties", ModelPartAddProperties1)
         .def("AddProperties", ModelPartAddProperties2)
