@@ -283,7 +283,7 @@
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorComponentsToNodesProcess",
             "Parameters"    : {
-                "model_part_name"     : "VELOCITY_Velocity_Auto1",
+                "model_part_name"     : "PfemFluidModelPart.VELOCITY_Velocity_Auto1",
                 "variable_name"       : "VELOCITY",
                 "value"               : [0.0,0.0,0.0],
                 "compound_assignment" : "direct",
