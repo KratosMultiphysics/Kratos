@@ -9,12 +9,13 @@
 //
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
-#include "custom_utilities/rans_calculation_utilities.h"
-#include "includes/define.h"
-#include "includes/ublas_interface.h"
 
 #if !defined(KRATOS_STABILIZED_CONVECTION_DIFFUSION_REACTION_ADJOINT_UTILITIES)
 #define KRATOS_STABILIZED_CONVECTION_DIFFUSION_REACTION_ADJOINT_UTILITIES
+
+#include "custom_utilities/rans_calculation_utilities.h"
+#include "includes/define.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -67,6 +68,20 @@ inline void CalculateStabilizationTauScalarDerivatives(
              (144 * EffectiveKinematicViscosity / std::pow(ElementLength, 4)) +
          rReactionScalarDerivatives * (Reaction)) *
         (-1.0 * std::pow(Tau, 3));
+}
+
+inline double SmoothPositiveDerivative(const double value, const double value_derivative)
+{
+    return SmoothMaxDerivative(value, value_derivative, 0.0, 0.0);
+}
+
+inline double SmoothMaxDerivative(const double value_1,
+                                  const double value_1_derivative,
+                                  const double value_2,
+                                  const double value_2_derivative)
+{
+    return (1.0 / (std::exp(value_1) + std::exp(value_2))) *
+           (value_1_derivative * std::exp(value_1) + value_2_derivative * std::exp(value_2));
 }
 
 template <std::size_t TDim, std::size_t TNumNodes>

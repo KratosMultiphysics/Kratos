@@ -21,6 +21,7 @@
 // Project includes
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "includes/ublas_interface.h"
+#include "custom_elements/stabilized_convection_diffusion_reaction_utilities.h"
 
 namespace Kratos
 {
@@ -41,6 +42,16 @@ namespace Kratos
 
 namespace StabilizedConvectionDiffusionReactionUtilities
 {
+inline double SmoothPositive(const double value)
+{
+    return SmoothMax(value, 0.0);
+}
+
+inline double SmoothMax(const double value_1, const double value_2)
+{
+    return std::log(std::exp(value_1) + std::exp(value_2));
+}
+
 inline double CalculatePsiOne(const double VelocityNorm, const double Tau, const double DynamicReaction)
 {
     return VelocityNorm + Tau * VelocityNorm * DynamicReaction;
