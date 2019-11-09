@@ -64,8 +64,18 @@ namespace Kratos
         this->PrintInfo(rOStream);
     }
 
-    // Execution
-    void WeightedVelocityCalculationProcess::Execute()
+    void WeightedVelocityCalculationProcess::ExecuteInitialize()
+    {
+        KRATOS_TRY;
+
+        auto& r_nodes_array = mrModelPart.Nodes();
+        // Initialize variable
+        VariableUtils().SetNonHistoricalVariableToZero(VELOCITY_WEIGHTED, r_nodes_array);
+
+        KRATOS_CATCH("");
+    }
+
+    void WeightedVelocityCalculationProcess::ExecuteFinalizeSolutionStep()
     {
         KRATOS_TRY;
 
