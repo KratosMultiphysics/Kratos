@@ -697,43 +697,98 @@ public:
         DenseMatrix<bool> TransposeBlocks = DenseMatrix<bool>(0,0)
         )
     {
-        const SizeType number_of_rows = rMatricespBlocks.size1();
-        const SizeType number_of_columns = rMatricespBlocks.size2();
+        const SizeType number_of_rows_blocks = rMatricespBlocks.size1();
+        const SizeType number_of_columns_blocks = rMatricespBlocks.size2();
 
         // Fill the matrices if they are empty
         if (ContributionCoefficients.size1() == 0 && ContributionCoefficients.size2() == 0) {
-            ContributionCoefficients.resize(number_of_rows, number_of_columns);
-            for (IndexType i = 0; i < number_of_rows; ++i) {
-                for (IndexType j = 0; j < number_of_rows; ++j) {
+            ContributionCoefficients.resize(number_of_rows_blocks, number_of_columns_blocks);
+            for (IndexType i = 0; i < number_of_rows_blocks; ++i) {
+                for (IndexType j = 0; j < number_of_columns_blocks; ++j) {
                     ContributionCoefficients(i, j) = 1.0;
                 }
             }
         } else {
-            KRATOS_ERROR_IF(ContributionCoefficients.size1() != number_of_rows || ContributionCoefficients.size2() != number_of_columns) << "The ContributionCoefficients dimensions" << ContributionCoefficients.size1() << " and " << ContributionCoefficients.size2() << "do not coincide with the dimensions of rMatricespBlocks" << number_of_rows << "and " << number_of_columns << std::endl;
+            KRATOS_ERROR_IF(ContributionCoefficients.size1() != number_of_rows_blocks || ContributionCoefficients.size2() != number_of_columns_blocks) << "The ContributionCoefficients dimensions" << ContributionCoefficients.size1() << " and " << ContributionCoefficients.size2() << "do not coincide with the dimensions of rMatricespBlocks" << number_of_rows_blocks << "and " << number_of_columns_blocks << std::endl;
         }
         if (TransposeBlocks.size1() == 0 && TransposeBlocks.size2() == 0) {
-            TransposeBlocks.resize(number_of_rows, number_of_columns);
-            for (IndexType i = 0; i < number_of_rows; ++i) {
-                for (IndexType j = 0; j < number_of_rows; ++j) {
+            TransposeBlocks.resize(number_of_rows_blocks, number_of_columns_blocks);
+            for (IndexType i = 0; i < number_of_rows_blocks; ++i) {
+                for (IndexType j = 0; j < number_of_rows_blocks; ++j) {
                     TransposeBlocks(i, j) = false;
                 }
             }
         } else {
-            KRATOS_ERROR_IF(TransposeBlocks.size1() != number_of_rows || TransposeBlocks.size2() != number_of_columns) << "The TransposeBlocks dimensions" << TransposeBlocks.size1() << " and " << TransposeBlocks.size2() << "do not coincide with the dimensions of rMatricespBlocks" << number_of_rows << "and " << number_of_columns << std::endl;
+            KRATOS_ERROR_IF(TransposeBlocks.size1() != number_of_rows_blocks || TransposeBlocks.size2() != number_of_columns_blocks) << "The TransposeBlocks dimensions" << TransposeBlocks.size1() << " and " << TransposeBlocks.size2() << "do not coincide with the dimensions of rMatricespBlocks" << number_of_rows_blocks << "and " << number_of_columns_blocks << std::endl;
         }
 
-        double* Matrix_values = rMatrix.value_data().begin();
-        const IndexType* Matrix_index1 = rMatrix.index1_data().begin();
-        const IndexType* Matrix_index2 = rMatrix.index2_data().begin();
+        // Compute total size and check consistency of the different blocks
+        SizeType nrows = 0, ncols = 0;
+        std::vector<SizeType> row_sizes(number_of_rows_blocks);
+        std::vector<SizeType> column_sizes(number_of_columns_blocks);
+        for (int i=0; i<static_cast<int>(number_of_rows_blocks); i++) {
+            row_sizes[i] = (*rMatricespBlocks(i, 0)).size1();
+            nrows += row_sizes[i];
+        }
+        for (int j=0; j<static_cast<int>(number_of_columns_blocks); j++) {
+            column_sizes[j] = (*rMatricespBlocks(0, j)).size2();
+            ncols += column_sizes[j];
+        }
+
+        // Check consistency of all blocks
+        for (int i=0; i<static_cast<int>(number_of_rows_blocks); i++) {
+            for (int j=0; j<static_cast<int>(number_of_columns_blocks); j++) {
+                KRATOS_ERROR_IF((*rMatricespBlocks(i, j)).size1() != row_sizes[i] || (*rMatricespBlocks(i, j)).size2() != column_sizes[j]) << " Not consistent size in block " << i << ", " << j << ".\t" << (*rMatricespBlocks(i, j)).size1() << ", " << (*rMatricespBlocks(i, j)).size2() << " vs " <<  row_sizes[i] << ", " << row_sizes[j] << std::endl;
+            }
+        }
+        // Exiting just in case of empty matrix
+        if ((nrows == 0) || (ncols == 0))
+            return void();
+
+        // We will compute nonzero terms
+        IndexType* matrix_ptr = new IndexType[nrows + 1];
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(nrows + 1); i++)
+            matrix_ptr[i] = 0;
 
         #pragma omp parallel
         {
             #pragma omp for
-            for (int i=0; i<static_cast<int>(number_of_rows); i++) {
-                for (int j=0; j<static_cast<int>(number_of_columns); j++) {
+            for (int i=0; i<static_cast<int>(number_of_rows_blocks); i++) {
+                for (int k=0; k<static_cast<int>(row_sizes[i]); k++) {
+                    IndexType matrix_cols_aux = 0;
+                    for (int j=0; j<static_cast<int>(number_of_columns_blocks); j++) {
+                        ComputeNonZeroBlocks<TMatrix>(*rMatricespBlocks(i, j), k, matrix_cols_aux);
+                    }
+                    matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k + 1] = matrix_cols_aux;
                 }
             }
         }
+
+        // Auxiliar values
+        const SizeType nonzero_values = matrix_ptr[nrows];
+
+        // Initialize matrix with the corresponding non-zero values
+        rMatrix = TMatrix(nrows, ncols, nonzero_values);
+
+        // Fill the new matrix
+        double* Matrix_values = rMatrix.value_data().begin();
+        IndexType* Matrix_index1 = rMatrix.index1_data().begin();
+        IndexType* Matrix_index2 = rMatrix.index2_data().begin();
+
+//         #pragma omp parallel
+//         {
+//             #pragma omp for
+//             for (int i=0; i<static_cast<int>(number_of_rows_blocks); i++) {
+//                 for (int k=0; k<static_cast<int>(row_sizes[i]); k++) {
+//                     IndexType matrix_cols_aux = 0;
+//                     for (int j=0; j<static_cast<int>(number_of_columns_blocks); j++) {
+//                         ComputeNonZeroBlocks<TMatrix>(*rMatricespBlocks(i, j), k, matrix_cols_aux);
+//                     }
+//                     matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k + 1] = matrix_cols_aux;
+//                 }
+//             }
+//         }
     }
 
     /**
