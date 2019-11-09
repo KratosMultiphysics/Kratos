@@ -770,7 +770,16 @@ public:
                 for (int k=0; k<static_cast<int>(row_sizes[i]); ++k) {
                     IndexType matrix_cols_aux = 0;
                     for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
-                        ComputeNonZeroBlocks<TMatrix>(*rMatricespBlocks(i, j), k, matrix_cols_aux);
+                        if (TransposeBlocks(i, j)) {
+                            // We compute the transposed matrix
+                            const SizeType size_system_1 = *rMatricespBlocks(i, j).size1();
+                            const SizeType size_system_2 = *rMatricespBlocks(i, j).size2();
+                            TMatrix transpose(size_system_2, size_system_1);
+                            TransposeMatrix<TMatrix, TMatrix>(transpose, *rMatricespBlocks(i, j));
+                            ComputeNonZeroBlocks<TMatrix>(transpose, k, matrix_cols_aux);
+                        } else {
+                            ComputeNonZeroBlocks<TMatrix>(*rMatricespBlocks(i, j), k, matrix_cols_aux);
+                        }
                     }
                     matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k + 1] = matrix_cols_aux;
                 }
@@ -795,7 +804,16 @@ public:
 //                 for (int k=0; k<static_cast<int>(row_sizes[i]); ++k) {
 //                     IndexType matrix_cols_aux = 0;
 //                     for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
-//                         ComputeNonZeroBlocks<TMatrix>(*rMatricespBlocks(i, j), k, matrix_cols_aux);
+//                         if (TransposeBlocks(i, j)) {
+//                             // We compute the transposed matrix
+//                             const SizeType size_system_1 = *rMatricespBlocks(i, j).size1();
+//                             const SizeType size_system_2 = *rMatricespBlocks(i, j).size2();
+//                             TMatrix transpose(size_system_2, size_system_1);
+//                             TransposeMatrix<TMatrix, TMatrix>(transpose, *rMatricespBlocks(i, j));
+//                             ComputeNonZeroBlocks<TMatrix>(transpose, k, matrix_cols_aux);
+//                         } else {
+//                             ComputeNonZeroBlocks<TMatrix>(*rMatricespBlocks(i, j), k, matrix_cols_aux);
+//                         }
 //                     }
 //                     matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k + 1] = matrix_cols_aux;
 //                 }
