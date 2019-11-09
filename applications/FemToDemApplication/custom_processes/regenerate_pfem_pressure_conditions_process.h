@@ -109,6 +109,46 @@ public:
         int &rMaximumConditionId,
         ElementIterator itElem);
 
+    /**
+     * @brief Creates line loads for an element if there are 2 wet nodes
+     * @param NonWetLocalIdNode the local id of the non wet node
+     * @param PressureId the pressure id
+     * @param rMaximumConditionId the maximum condition id just to not repeat
+     * @param itElem the element analysed
+     */
+    void GenerateLineLoads2Nodes(
+        const int NonWetLocalIdNode,
+        int& rMaximumConditionId,
+        ElementIterator itElem);
+
+    /**
+     * @brief Creates line loads for an element if there are 3 wet nodes
+     * @param PressureId the pressure id
+     * @param rMaximumConditionId the maximum condition id just to not repeat
+     * @param itElem the element analysed
+     */
+    void GenerateLineLoads3Nodes(
+        int& rMaximumConditionId,
+        ElementIterator itElem);
+
+    /**
+     * @brief Creates surface loads 
+     * @param Id1 The node 1 Id
+     * @param Id2 The node 2 Id
+     * @param itElem the element analysed
+     * @param rMaximumConditionId the maximum condition id just to not repeat
+     * @param itElem the element analysed
+     * @param rSubModelPart the submodel part to add the condition
+     * @param pProperties the properties of the condition
+     */
+    void CreateLineLoads(
+        const int Id1,
+        const int Id2,
+        ElementIterator itElem,
+        ModelPart& rSubModelPart,
+        ModelPart::PropertiesType::Pointer pProperties,
+        int& rMaximumConditionId);
+
 protected:
     // Member Variables
     ModelPart& mrModelPart;
