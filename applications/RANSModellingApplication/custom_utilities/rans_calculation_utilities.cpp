@@ -1,28 +1,26 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//
+
 #include "rans_calculation_utilities.h"
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-void RansCalculationUtilities::CalculateGeometryData(
-    const RansCalculationUtilities::GeometryType& rGeometry,
-    const GeometryData::IntegrationMethod& rIntegrationMethod,
-    Vector& rGaussWeights,
-    Matrix& rNContainer,
-    RansCalculationUtilities::GeometryType::ShapeFunctionsGradientsType& rDN_DX)
+namespace RansCalculationUtilities
+{
+void CalculateGeometryData(const GeometryType& rGeometry,
+                           const GeometryData::IntegrationMethod& rIntegrationMethod,
+                           Vector& rGaussWeights,
+                           Matrix& rNContainer,
+                           GeometryType::ShapeFunctionsGradientsType& rDN_DX)
 {
     const unsigned int number_of_gauss_points =
         rGeometry.IntegrationPointsNumber(rIntegrationMethod);
@@ -38,7 +36,7 @@ void RansCalculationUtilities::CalculateGeometryData(
     }
     rNContainer = rGeometry.ShapeFunctionsValues(rIntegrationMethod);
 
-    const RansCalculationUtilities::GeometryType::IntegrationPointsArrayType& IntegrationPoints =
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         rGeometry.IntegrationPoints(rIntegrationMethod);
 
     if (rGaussWeights.size() != number_of_gauss_points)
@@ -50,10 +48,10 @@ void RansCalculationUtilities::CalculateGeometryData(
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
 }
 
-double RansCalculationUtilities::EvaluateInPoint(const RansCalculationUtilities::GeometryType& rGeometry,
-                                                 const Variable<double>& rVariable,
-                                                 const Vector& rShapeFunction,
-                                                 const int Step)
+double EvaluateInPoint(const GeometryType& rGeometry,
+                       const Variable<double>& rVariable,
+                       const Vector& rShapeFunction,
+                       const int Step)
 {
     const unsigned int number_of_nodes = rGeometry.PointsNumber();
     double value = 0.0;
@@ -65,11 +63,10 @@ double RansCalculationUtilities::EvaluateInPoint(const RansCalculationUtilities:
     return value;
 }
 
-array_1d<double, 3> RansCalculationUtilities::EvaluateInPoint(
-    const RansCalculationUtilities::GeometryType& rGeometry,
-    const Variable<array_1d<double, 3>>& rVariable,
-    const Vector& rShapeFunction,
-    const int Step)
+array_1d<double, 3> EvaluateInPoint(const GeometryType& rGeometry,
+                                    const Variable<array_1d<double, 3>>& rVariable,
+                                    const Vector& rShapeFunction,
+                                    const int Step)
 {
     const unsigned int number_of_nodes = rGeometry.PointsNumber();
     array_1d<double, 3> value = ZeroVector(3);
@@ -82,7 +79,7 @@ array_1d<double, 3> RansCalculationUtilities::EvaluateInPoint(
 }
 
 template <unsigned int TDim>
-double RansCalculationUtilities::CalculateMatrixTrace(const BoundedMatrix<double, TDim, TDim>& rMatrix)
+double CalculateMatrixTrace(const BoundedMatrix<double, TDim, TDim>& rMatrix)
 {
     double value = 0.0;
     for (unsigned int i = 0; i < TDim; ++i)
@@ -91,18 +88,17 @@ double RansCalculationUtilities::CalculateMatrixTrace(const BoundedMatrix<double
     return value;
 }
 
-RansCalculationUtilities::GeometryType::ShapeFunctionsGradientsType RansCalculationUtilities::CalculateGeometryParameterDerivatives(
-    const RansCalculationUtilities::GeometryType& rGeometry,
-    const GeometryData::IntegrationMethod& rIntegrationMethod)
+GeometryType::ShapeFunctionsGradientsType CalculateGeometryParameterDerivatives(
+    const GeometryType& rGeometry, const GeometryData::IntegrationMethod& rIntegrationMethod)
 {
-    const RansCalculationUtilities::GeometryType::ShapeFunctionsGradientsType& DN_De =
+    const GeometryType::ShapeFunctionsGradientsType& DN_De =
         rGeometry.ShapeFunctionsLocalGradients(rIntegrationMethod);
     const std::size_t number_of_nodes = rGeometry.PointsNumber();
     const unsigned int number_of_gauss_points =
         rGeometry.IntegrationPointsNumber(rIntegrationMethod);
     const std::size_t dim = rGeometry.WorkingSpaceDimension();
 
-    RansCalculationUtilities::GeometryType::ShapeFunctionsGradientsType de_dx(number_of_gauss_points);
+    GeometryType::ShapeFunctionsGradientsType de_dx(number_of_gauss_points);
 
     Matrix geometry_coordinates(dim, number_of_nodes);
 
@@ -129,19 +125,18 @@ RansCalculationUtilities::GeometryType::ShapeFunctionsGradientsType RansCalculat
     return de_dx;
 }
 
-void RansCalculationUtilities::CalculateGeometryParameterDerivativesShapeSensitivity(
-    Matrix& rOutput, const ShapeParameter& rShapeDerivative, const Matrix& rDnDe, const Matrix& rDeDx)
+template <std::size_t TDim>
+void CalculateGeometryParameterDerivativesShapeSensitivity(BoundedMatrix<double, TDim, TDim>& rOutput,
+                                                           const ShapeParameter& rShapeDerivative,
+                                                           const Matrix& rDnDe,
+                                                           const Matrix& rDeDx)
 {
-    std::size_t domain_size = rDeDx.size1();
-    if (rOutput.size1() != domain_size || rOutput.size2() != domain_size)
-        rOutput.resize(domain_size, domain_size);
-
     const Vector& r_dnc_de = row(rDnDe, rShapeDerivative.NodeIndex);
 
-    for (std::size_t j = 0; j < domain_size; ++j)
+    for (std::size_t j = 0; j < TDim; ++j)
     {
         const Vector& r_de_dxj = column(rDeDx, j);
-        for (std::size_t i = 0; i < domain_size; ++i)
+        for (std::size_t i = 0; i < TDim; ++i)
         {
             rOutput(i, j) = -1.0 * rDeDx(i, rShapeDerivative.Direction) *
                             inner_prod(r_dnc_de, r_de_dxj);
@@ -150,11 +145,11 @@ void RansCalculationUtilities::CalculateGeometryParameterDerivativesShapeSensiti
 }
 
 template <unsigned int TDim>
-void RansCalculationUtilities::CalculateGradient(BoundedMatrix<double, TDim, TDim>& rOutput,
-                                                 const Geometry<ModelPart::NodeType>& rGeometry,
-                                                 const Variable<array_1d<double, 3>>& rVariable,
-                                                 const Matrix& rShapeDerivatives,
-                                                 const int Step) const
+void CalculateGradient(BoundedMatrix<double, TDim, TDim>& rOutput,
+                       const Geometry<ModelPart::NodeType>& rGeometry,
+                       const Variable<array_1d<double, 3>>& rVariable,
+                       const Matrix& rShapeDerivatives,
+                       const int Step)
 {
     rOutput.clear();
     std::size_t number_of_nodes = rGeometry.PointsNumber();
@@ -173,11 +168,11 @@ void RansCalculationUtilities::CalculateGradient(BoundedMatrix<double, TDim, TDi
     }
 }
 
-void RansCalculationUtilities::CalculateGradient(array_1d<double, 3>& rOutput,
-                                                 const Geometry<ModelPart::NodeType>& rGeometry,
-                                                 const Variable<double>& rVariable,
-                                                 const Matrix& rShapeDerivatives,
-                                                 const int Step) const
+void CalculateGradient(array_1d<double, 3>& rOutput,
+                       const Geometry<ModelPart::NodeType>& rGeometry,
+                       const Variable<double>& rVariable,
+                       const Matrix& rShapeDerivatives,
+                       const int Step)
 {
     rOutput.clear();
     std::size_t number_of_nodes = rGeometry.PointsNumber();
@@ -192,7 +187,7 @@ void RansCalculationUtilities::CalculateGradient(array_1d<double, 3>& rOutput,
 }
 
 template <unsigned int TDim>
-Vector RansCalculationUtilities::GetVector(const array_1d<double, 3>& rVector) const
+Vector GetVector(const array_1d<double, 3>& rVector)
 {
     Vector result(TDim);
 
@@ -202,8 +197,7 @@ Vector RansCalculationUtilities::GetVector(const array_1d<double, 3>& rVector) c
     return result;
 }
 
-Vector RansCalculationUtilities::GetVector(const array_1d<double, 3>& rVector,
-                                           const unsigned int Dim) const
+Vector GetVector(const array_1d<double, 3>& rVector, const unsigned int Dim)
 {
     Vector result(Dim);
 
@@ -213,10 +207,10 @@ Vector RansCalculationUtilities::GetVector(const array_1d<double, 3>& rVector,
     return result;
 }
 
-double RansCalculationUtilities::CalculateLogarithmicYPlusLimit(const double Kappa,
-                                                                const double Beta,
-                                                                const int MaxIterations,
-                                                                const double Tolerance)
+double CalculateLogarithmicYPlusLimit(const double Kappa,
+                                      const double Beta,
+                                      const int MaxIterations,
+                                      const double Tolerance)
 {
     double y_plus = 11.06;
     const double inv_kappa = 1.0 / Kappa;
@@ -241,28 +235,31 @@ double RansCalculationUtilities::CalculateLogarithmicYPlusLimit(const double Kap
 
 // template instantiations
 
-template double RansCalculationUtilities::CalculateMatrixTrace<2>(
-    const BoundedMatrix<double, 2, 2>&);
-template double RansCalculationUtilities::CalculateMatrixTrace<3>(
-    const BoundedMatrix<double, 3, 3>&);
+template double CalculateMatrixTrace<2>(const BoundedMatrix<double, 2, 2>&);
+template double CalculateMatrixTrace<3>(const BoundedMatrix<double, 3, 3>&);
 
-template void RansCalculationUtilities::CalculateGradient<2>(
-    BoundedMatrix<double, 2, 2>&,
-    const Geometry<ModelPart::NodeType>&,
-    const Variable<array_1d<double, 3>>&,
-    const Matrix&,
-    const int) const;
+template void CalculateGradient<2>(BoundedMatrix<double, 2, 2>&,
+                                   const Geometry<ModelPart::NodeType>&,
+                                   const Variable<array_1d<double, 3>>&,
+                                   const Matrix&,
+                                   const int);
 
-template void RansCalculationUtilities::CalculateGradient<3>(
-    BoundedMatrix<double, 3, 3>&,
-    const Geometry<ModelPart::NodeType>&,
-    const Variable<array_1d<double, 3>>&,
-    const Matrix&,
-    const int) const;
+template void CalculateGradient<3>(BoundedMatrix<double, 3, 3>&,
+                                   const Geometry<ModelPart::NodeType>&,
+                                   const Variable<array_1d<double, 3>>&,
+                                   const Matrix&,
+                                   const int);
 
-template Vector RansCalculationUtilities::GetVector<2>(const array_1d<double, 3>&) const;
-template Vector RansCalculationUtilities::GetVector<3>(const array_1d<double, 3>&) const;
+template void CalculateGeometryParameterDerivativesShapeSensitivity<2>(
+    BoundedMatrix<double, 2, 2>&, const ShapeParameter&, const Matrix&, const Matrix&);
 
+template void CalculateGeometryParameterDerivativesShapeSensitivity<3>(
+    BoundedMatrix<double, 3, 3>&, const ShapeParameter&, const Matrix&, const Matrix&);
+
+template Vector GetVector<2>(const array_1d<double, 3>&);
+template Vector GetVector<3>(const array_1d<double, 3>&);
+
+} // namespace RansCalculationUtilities
 ///@}
 
 } // namespace Kratos

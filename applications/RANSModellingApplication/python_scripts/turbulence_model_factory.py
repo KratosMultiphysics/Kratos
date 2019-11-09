@@ -3,7 +3,7 @@ import KratosMultiphysics.RANSModellingApplication
 
 from KratosMultiphysics.RANSModellingApplication.evm_k_epsilon_configuration import TurbulenceKEpsilonConfiguration
 
-def Factory(settings, Model, parallel_type = "OpenMP"):
+def Factory(settings, Model):
     if (type(settings) != KratosMultiphysics.Parameters):
         raise Exception(
             "expected input shall be a Parameters object, encapsulating a json string"
@@ -21,5 +21,4 @@ def Factory(settings, Model, parallel_type = "OpenMP"):
 
     if model_type == "k_epsilon":
         turbulence_model = TurbulenceKEpsilonConfiguration(Model, settings)
-        turbulence_model.SetParallelType(parallel_type)
         return turbulence_model

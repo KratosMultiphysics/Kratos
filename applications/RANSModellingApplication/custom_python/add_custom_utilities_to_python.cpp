@@ -10,33 +10,35 @@
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-
 // System includes
 
 // External includes
 #include <pybind11/pybind11.h>
 
-
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_utilities/rans_variable_utils.h"
 
-namespace Kratos {
-namespace Python {
+#include "custom_utilities/rans_calculation_utilities.h"
+#include "custom_utilities/rans_variable_utilities.h"
 
+namespace Kratos
+{
+namespace Python
+{
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<RansVariableUtils, VariableUtils>(m, "RansVariableUtils")
-        .def(py::init<>())
-        .def("ClipScalarVariable", &RansVariableUtils::ClipScalarVariable)
-        .def("GetMinimumScalarValue", &RansVariableUtils::GetMinimumScalarValue)
-        .def("GetMaximumScalarValue", &RansVariableUtils::GetMaximumScalarValue)
-        .def("GetFlaggedMinimumScalarValue", &RansVariableUtils::GetFlaggedMinimumScalarValue)
-        .def("GetFlaggedMaximumScalarValue", &RansVariableUtils::GetFlaggedMaximumScalarValue)
+    m.def_submodule("RansVariableUtilities")
+        .def("ClipScalarVariable", &RansVariableUtilities::ClipScalarVariable)
+        .def("GetMinimumScalarValue", &RansVariableUtilities::GetMinimumScalarValue)
+        .def("GetMaximumScalarValue", &RansVariableUtilities::GetMaximumScalarValue)
         .def("CopyNodalSolutionStepVariablesList",
-             &RansVariableUtils::CopyNodalSolutionStepVariablesList);
+             &RansVariableUtilities::CopyNodalSolutionStepVariablesList);
+
+    m.def_submodule("RansCalculationUtilities")
+        .def("CalculateLogarithmicYPlusLimit",
+             &RansCalculationUtilities::CalculateLogarithmicYPlusLimit);
 }
 
 } // namespace Python.

@@ -3,7 +3,8 @@ from __future__ import print_function, absolute_import, division
 
 # Application dependent names and paths
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
-if (CheckIfApplicationsAvailable("TrilinosApplication")):
+from KratosMultiphysics import IsDistributedRun
+if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
     from KratosMultiphysics.TrilinosApplication import *
 from KratosRANSModellingApplication import *
 

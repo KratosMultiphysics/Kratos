@@ -1,5 +1,5 @@
 from collections import namedtuple
-from math import isclose
+from KratosMultiphysics.KratosUnittest import isclose
 from math import exp
 from itertools import chain
 

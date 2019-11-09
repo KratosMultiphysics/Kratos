@@ -13,11 +13,13 @@
 #ifndef KRATOS_GENERIC_CONVERGENCE_CRITERIA_H
 #define KRATOS_GENERIC_CONVERGENCE_CRITERIA_H
 
+// System includes
+#include <string>
+#include <unordered_map>
+
 /* Project includes */
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -34,7 +36,7 @@ namespace Kratos
  relative and absolute tolerances for both must be specified.
  */
 template <class TSparseSpace, class TDenseSpace>
-class GenericConvergenceCriteria : public ConvergenceCriteria<TSparseSpace, TDenseSpace>
+class KRATOS_API(RANS_MODELLING_APPLICATION) GenericConvergenceCriteria : public ConvergenceCriteria<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
@@ -68,10 +70,9 @@ public:
      * @param PrsAbsTolerance Absolute tolerance for presssure error
      */
     GenericConvergenceCriteria(double rRatioTolerance, double rAbsTolerance)
-        : ConvergenceCriteria<TSparseSpace, TDenseSpace>(),
-          mRatioTolerance(rRatioTolerance),
-          mAbsTolerance(rAbsTolerance)
+        : BaseType(), mRatioTolerance(rRatioTolerance), mAbsTolerance(rAbsTolerance)
     {
+        mSolutionVariables = "";
     }
 
     /// Destructor.
@@ -100,78 +101,38 @@ public:
     {
         if (SparseSpaceType::Size(Dx) != 0) // if we are solving for something
         {
-            int NumDofs = rDofSet.size();
+            double solution_norm, increase_norm, dof_size;
 
-            // Initialize
-            double solution_norm = 0.0;
-            double increase_norm = 0.0;
-            unsigned int dof_num = 0;
-
-            std::string dof_name = rDofSet.begin()->GetVariable().Name();
-
-            // Set a partition for OpenMP
-            PartitionVector DofPartition;
-            int NumThreads = OpenMPUtils::GetNumThreads();
-            OpenMPUtils::DivideInPartitions(NumDofs, NumThreads, DofPartition);
-
-            // Loop over Dofs
-#pragma omp parallel reduction(+ : solution_norm, increase_norm, dof_num)
-            {
-                int k = OpenMPUtils::ThisThread();
-                typename DofsArrayType::iterator DofBegin =
-                    rDofSet.begin() + DofPartition[k];
-                typename DofsArrayType::iterator DofEnd =
-                    rDofSet.begin() + DofPartition[k + 1];
-
-                std::size_t DofId;
-                TDataType DofValue;
-                TDataType DofIncr;
-
-                for (typename DofsArrayType::iterator itDof = DofBegin;
-                     itDof != DofEnd; ++itDof)
-                {
-                    if (itDof->IsFree())
-                    {
-                        DofId = itDof->EquationId();
-                        DofValue = itDof->GetSolutionStepValue(0);
-                        DofIncr = Dx[DofId];
-
-                        solution_norm += DofValue * DofValue;
-                        increase_norm += DofIncr * DofIncr;
-                        dof_num += 1;
-                    }
-                }
-            }
+            this->CalculateConvergenceCheckNorms(solution_norm, increase_norm, dof_size,
+                                                 rModelPart, rDofSet, A, Dx, b);
 
             if (solution_norm == 0.0)
                 solution_norm = 1.0;
 
             const double ratio = increase_norm / solution_norm;
-            const double ratio_abs = sqrt(increase_norm) / static_cast<int>(dof_num);
+            const double ratio_abs = increase_norm / dof_size;
 
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
             const unsigned int iteration = r_current_process_info[NL_ITERATION_NUMBER];
 
-            if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
+            if (this->GetEchoLevel() > 0)
             {
-                std::cout << "[" << iteration << "] CONVERGENCE CHECK: ";
-                std::cout << dof_name;
-                std::cout << ": ratio = " << std::scientific << ratio
-                          << "; exp.ratio = " << std::scientific << mRatioTolerance;
-                std::cout << ": abs = " << std::scientific << ratio_abs
-                          << "; exp.abs = " << std::scientific << mAbsTolerance
-                          << std::endl;
+                std::stringstream msg;
+                msg << "[" << iteration << "] CONVERGENCE CHECK: ";
+                msg << mSolutionVariables;
+                msg << ": ratio = " << std::scientific << ratio
+                    << "; exp.ratio = " << std::scientific << mRatioTolerance;
+                msg << ": abs = " << std::scientific << ratio_abs
+                    << "; exp.abs = " << std::scientific << mAbsTolerance << std::endl;
+                KRATOS_INFO(this->Info()) << msg.str();
             }
 
             if ((std::abs(ratio) > mRatioTolerance) && (std::abs(ratio_abs) > mAbsTolerance))
                 return false;
 
-            if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-            {
-                std::cout << "CONVERGENCE CHECK: ";
-                std::cout << dof_name;
-                std::cout << ": *** CONVERGENCE IS ACHIEVED ***" << std::endl;
-            }
+            KRATOS_INFO_IF(this->Info(), this->GetEchoLevel() > 0)
+                << "CONVERGENCE CHECK: " << mSolutionVariables
+                << ": *** CONVERGENCE IS ACHIEVED ***\n";
 
             return true;
         }
@@ -196,14 +157,33 @@ public:
                                 const TSystemVectorType& Dx,
                                 const TSystemVectorType& b) override
     {
+        if (mSolutionVariables == "")
+        {
+            const int number_of_dofs = rDofSet.size();
+
+            // create the variable list
+            std::unordered_map<std::string, int> variables_map;
+            for (int i_dof = 0; i_dof < number_of_dofs; ++i_dof)
+            {
+                variables_map.insert(std::make_pair(
+                    (rDofSet.begin() + i_dof)->GetVariable().Name(), 1));
+            }
+
+            for (const auto& pair : variables_map)
+            {
+                mSolutionVariables += pair.first + ", ";
+            }
+
+            // remove last two characters
+            mSolutionVariables.pop_back();
+            mSolutionVariables.pop_back();
+        }
     }
 
-    void FinalizeSolutionStep(ModelPart& rModelPart,
-                              DofsArrayType& rDofSet,
-                              const TSystemMatrixType& A,
-                              const TSystemVectorType& Dx,
-                              const TSystemVectorType& b) override
+    /// Turn back information as a string.
+    std::string Info() const override
     {
+        return "GenericConvergenceCriteria";
     }
 
     ///@} // Operations
@@ -211,6 +191,18 @@ public:
 private:
     double mRatioTolerance;
     double mAbsTolerance;
+
+    std::string mSolutionVariables;
+
+    void CalculateConvergenceCheckNorms(double& rSolutionNorm,
+                                        double& rIncreaseNorm,
+                                        double& rDofSize,
+                                        ModelPart& rModelPart,
+                                        DofsArrayType& rDofSet,
+                                        const TSystemMatrixType& A,
+                                        const TSystemVectorType& Dx,
+                                        const TSystemVectorType& b);
+
 }; // namespace Kratos
 
 ///@} // Kratos classes

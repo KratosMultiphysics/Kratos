@@ -23,10 +23,10 @@
 #include "testing/testing.h"
 
 // Application includes
-#include "custom_elements/evm_k_epsilon/rans_evm_epsilon_element.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_k_element.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_low_re_epsilon_element.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_low_re_k_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_epsilon.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_epsilon.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_k.h"
 #include "custom_elements/stabilized_convection_diffusion_reaction_utilities.h"
 #include "rans_modelling_application_variables.h"
 
@@ -73,8 +73,8 @@ double EffectiveKinematicViscosity(const Element& rElement, const ProcessInfo& r
     r_geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::GI_GAUSS_1);
     typename EvmElement::BaseType::ConvectionDiffusionReactionDataType data;
     auto& rRANSElement = dynamic_cast<const typename EvmElement::BaseType&>(rElement);
-    rRANSElement.CalculateConvectionDiffusionReactionData(data, N, DN_DX[0], rProcessInfo);
-    return rRANSElement.GetEffectiveKinematicViscosity(data, N, DN_DX[0], rProcessInfo);
+    rRANSElement.CalculateElementData(data, N, DN_DX[0], rProcessInfo);
+    return rRANSElement.CalculateEffectiveKinematicViscosity(data, N, DN_DX[0], rProcessInfo);
 }
 
 template <typename EvmElement>
@@ -87,7 +87,7 @@ typename EvmElement::BaseType::ConvectionDiffusionReactionDataType ConvectionRea
     r_geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::GI_GAUSS_1);
     typename EvmElement::BaseType::ConvectionDiffusionReactionDataType data;
     auto& rRANSElement = dynamic_cast<const typename EvmElement::BaseType&>(rElement);
-    rRANSElement.CalculateConvectionDiffusionReactionData(data, N, DN_DX[0], rProcessInfo);
+    rRANSElement.CalculateElementData(data, N, DN_DX[0], rProcessInfo);
     return data;
 }
 
@@ -96,7 +96,11 @@ double ReactionTerm(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
     const auto data = ConvectionReactionDiffusionData<EvmElement>(rElement, rProcessInfo);
     auto& rRANSElement = dynamic_cast<const typename EvmElement::BaseType&>(rElement);
-    return rRANSElement.CalculateReactionTerm(data, rProcessInfo);
+    auto& r_geom = rElement.GetGeometry();
+    const Vector N = row(r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1), 0);
+    typename Element::GeometryType::ShapeFunctionsGradientsType DN_DX;
+    r_geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::GI_GAUSS_1);
+    return rRANSElement.CalculateReactionTerm(data, N, DN_DX[0], rProcessInfo);
 }
 
 template <typename EvmElement>
@@ -104,7 +108,12 @@ double DynamicReactionTerm(const Element& rElement, const ProcessInfo& rProcessI
 {
     const auto data = ConvectionReactionDiffusionData<EvmElement>(rElement, rProcessInfo);
     auto& rRANSElement = dynamic_cast<const typename EvmElement::BaseType&>(rElement);
-    const double reaction = rRANSElement.CalculateReactionTerm(data, rProcessInfo);
+    auto& r_geom = rElement.GetGeometry();
+    const Vector N = row(r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1), 0);
+    typename Element::GeometryType::ShapeFunctionsGradientsType DN_DX;
+    r_geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::GI_GAUSS_1);
+    const double reaction =
+        rRANSElement.CalculateReactionTerm(data, N, DN_DX[0], rProcessInfo);
     const double delta_time = rProcessInfo[DELTA_TIME];
     const double dynamic_tau = rProcessInfo[DYNAMIC_TAU];
     const double bossak_alpha = rProcessInfo[BOSSAK_ALPHA];
@@ -119,7 +128,11 @@ double SourceTerm(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
     auto data = ConvectionReactionDiffusionData<EvmElement>(rElement, rProcessInfo);
     auto& rRANSElement = dynamic_cast<const typename EvmElement::BaseType&>(rElement);
-    return rRANSElement.CalculateSourceTerm(data, rProcessInfo);
+    auto& r_geom = rElement.GetGeometry();
+    const Vector N = row(r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1), 0);
+    typename Element::GeometryType::ShapeFunctionsGradientsType DN_DX;
+    r_geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::GI_GAUSS_1);
+    return rRANSElement.CalculateSourceTerm(data, N, DN_DX[0], rProcessInfo);
 }
 
 template <typename EvmElement>
@@ -150,7 +163,7 @@ void CalculateStreamlineAndCrossWindDiffusionParameters(double& rChi,
                                                         const Element& rElement,
                                                         const ProcessInfo& rProcessInfo)
 {
-    // This code was extracted from StabilizedConvectionDiffusionReactionElement::CalculateDampingMatrix.
+    // This code was extracted from StabilizedConvectionDiffusionReaction::CalculateDampingMatrix.
     // We needed to add the tests before changing code, but this should be cleaned during refactoring.
     auto& r_geom = rElement.GetGeometry();
     const Vector N = row(r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1), 0);
@@ -158,9 +171,9 @@ void CalculateStreamlineAndCrossWindDiffusionParameters(double& rChi,
     r_geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::GI_GAUSS_1);
     typename EvmElement::BaseType::ConvectionDiffusionReactionDataType data;
     auto& rRANSElement = dynamic_cast<const typename EvmElement::BaseType&>(rElement);
-    rRANSElement.CalculateConvectionDiffusionReactionData(data, N, DN_DX[0], rProcessInfo);
+    rRANSElement.CalculateElementData(data, N, DN_DX[0], rProcessInfo);
     const double effective_kinematic_viscosity =
-        rRANSElement.GetEffectiveKinematicViscosity(data, N, DN_DX[0], rProcessInfo);
+        rRANSElement.CalculateEffectiveKinematicViscosity(data, N, DN_DX[0], rProcessInfo);
     const array_1d<double, 3> velocity = rRANSElement.EvaluateInPoint(VELOCITY, N);
     const double velocity_magnitude = norm_2(velocity);
     const Matrix r_parameter_derivatives_g =
@@ -169,7 +182,8 @@ void CalculateStreamlineAndCrossWindDiffusionParameters(double& rChi,
                                        r_parameter_derivatives_g.size2());
     noalias(contravariant_metric_tensor) =
         prod(trans(r_parameter_derivatives_g), r_parameter_derivatives_g);
-    const double reaction = rRANSElement.CalculateReactionTerm(data, rProcessInfo);
+    const double reaction =
+        rRANSElement.CalculateReactionTerm(data, N, DN_DX[0], rProcessInfo);
     const double delta_time = rProcessInfo[DELTA_TIME];
     const double bossak_alpha = rProcessInfo[BOSSAK_ALPHA];
     const double bossak_gamma =
@@ -195,7 +209,7 @@ void EvmKElement2D3N_SetUp(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY_RATE);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-    CreateEvmUnitTestModelPart("RansEvmK2D3N", TURBULENT_KINETIC_ENERGY, rModelPart);
+    CreateEvmUnitTestModelPart("RansEvmKEpsilonK2D3N", TURBULENT_KINETIC_ENERGY, rModelPart);
 }
 
 void EvmEpsilonElement2D3N_SetUp(ModelPart& rModelPart)
@@ -210,7 +224,7 @@ void EvmEpsilonElement2D3N_SetUp(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-    CreateEvmUnitTestModelPart("RansEvmEpsilon2D3N",
+    CreateEvmUnitTestModelPart("RansEvmKEpsilonEpsilon2D3N",
                                TURBULENT_ENERGY_DISSIPATION_RATE, rModelPart);
 }
 
@@ -224,7 +238,7 @@ void EvmLowReKElement2D3N_SetUp(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY_RATE);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-    CreateEvmUnitTestModelPart("RansEvmLowReK2D3N", TURBULENT_KINETIC_ENERGY, rModelPart);
+    CreateEvmUnitTestModelPart("RansEvmKEpsilonLowReK2D3N", TURBULENT_KINETIC_ENERGY, rModelPart);
 }
 
 void EvmLowReEpsilonElement2D3N_SetUp(ModelPart& rModelPart)
@@ -238,7 +252,7 @@ void EvmLowReEpsilonElement2D3N_SetUp(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-    CreateEvmUnitTestModelPart("RansEvmLowReEpsilon2D3N",
+    CreateEvmUnitTestModelPart("RansEvmKEpsilonLowReEpsilon2D3N",
                                TURBULENT_ENERGY_DISSIPATION_RATE, rModelPart);
 }
 
@@ -295,7 +309,7 @@ void EvmKElement2D3N_AssignTestData(ModelPart& rModelPart)
     node3.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = 1.11;
     node3.FastGetSolutionStepValue(VELOCITY_X) = 0.01;
     node3.FastGetSolutionStepValue(VELOCITY_Y) = -0.65;
-    CheckEvmElementTestData<RansEvmKElement<2, 3>>(
+    CheckEvmElementTestData<RansEvmKEpsilonKElement<2, 3>>(
         rModelPart.Elements().front(), rModelPart.GetProcessInfo());
 }
 
@@ -332,7 +346,7 @@ void EvmEpsilonElement2D3N_AssignTestData(ModelPart& rModelPart)
     node3.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = 0.90;
     node3.FastGetSolutionStepValue(VELOCITY_X) = 0.01;
     node3.FastGetSolutionStepValue(VELOCITY_Y) = -0.65;
-    CheckEvmElementTestData<RansEvmEpsilonElement<2, 3>>(
+    CheckEvmElementTestData<RansEvmKEpsilonEpsilon<2, 3>>(
         rModelPart.Elements().front(), rModelPart.GetProcessInfo());
 }
 
@@ -370,7 +384,7 @@ void EvmLowReKElement2D3N_AssignTestData(ModelPart& rModelPart)
     node3.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = 1.11;
     node3.FastGetSolutionStepValue(VELOCITY_X) = 0.01;
     node3.FastGetSolutionStepValue(VELOCITY_Y) = -0.65;
-    CheckEvmElementTestData<RansEvmLowReKElement<2, 3>>(
+    CheckEvmElementTestData<RansEvmKEpsilonLowReKElement<2, 3>>(
         rModelPart.Elements().front(), rModelPart.GetProcessInfo());
 }
 
@@ -413,13 +427,13 @@ void EvmLowReEpsilonElement2D3N_AssignTestData(ModelPart& rModelPart)
     node3.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = 0.90;
     node3.FastGetSolutionStepValue(VELOCITY_X) = 0.01;
     node3.FastGetSolutionStepValue(VELOCITY_Y) = -0.65;
-    CheckEvmElementTestData<RansEvmLowReEpsilonElement<2, 3>>(
+    CheckEvmElementTestData<RansEvmKEpsilonLowReEpsilonElement<2, 3>>(
         rModelPart.Elements().front(), rModelPart.GetProcessInfo());
 }
 
 } // namespace
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_EquationIdVector, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonKElement2D3N_EquationIdVector, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -436,7 +450,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_EquationIdVector, KratosRANSTestSu
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_GetDofList, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonKElement2D3N_GetDofList, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -454,7 +468,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_GetDofList, KratosRANSTestSuite)
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateLocalSystem, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonKElement2D3N_CalculateLocalSystem, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -477,7 +491,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateLocalSystem, KratosRANSTe
             KRATOS_CHECK_EQUAL(LHS(i, j), 0.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateRightHandSide, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonKElement2D3N_CalculateRightHandSide, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -494,7 +508,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateRightHandSide, KratosRANS
     KRATOS_CHECK_NEAR(RHS(2), 3.24946053021652, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateLocalVelocityContribution, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonKElement2D3N_CalculateLocalVelocityContribution, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -518,7 +532,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateLocalVelocityContribution
     KRATOS_CHECK_NEAR(residual(2), 17.26466653284805, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateMassMatrix, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonKElement2D3N_CalculateMassMatrix, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -537,7 +551,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateMassMatrix, KratosRANSTes
     KRATOS_CHECK_NEAR(M(2, 1), -0.002696120305636151, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateDampingMatrix, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonKElement2D3N_CalculateDampingMatrix, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -556,7 +570,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateDampingMatrix, KratosRANS
     KRATOS_CHECK_NEAR(D(2, 1), -0.107605521531425, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_EquationIdVector, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilon2D3N_EquationIdVector, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -573,7 +587,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_EquationIdVector, KratosRANS
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_GetDofList, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilon2D3N_GetDofList, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -591,7 +605,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_GetDofList, KratosRANSTestSu
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateLocalSystem, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilon2D3N_CalculateLocalSystem, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -614,7 +628,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateLocalSystem, Kratos
             KRATOS_CHECK_EQUAL(LHS(i, j), 0.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateRightHandSide, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilon2D3N_CalculateRightHandSide, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -631,7 +645,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateRightHandSide, Krat
     KRATOS_CHECK_NEAR(RHS(2), 4.712758721178501, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateLocalVelocityContribution, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilon2D3N_CalculateLocalVelocityContribution, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -655,7 +669,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateLocalVelocityContri
     KRATOS_CHECK_NEAR(residual(2), 17.43249290638806, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateMassMatrix, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilon2D3N_CalculateMassMatrix, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -674,7 +688,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateMassMatrix, KratosR
     KRATOS_CHECK_NEAR(M(2, 1), 0.01028818435474877, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateDampingMatrix, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonEpsilon2D3N_CalculateDampingMatrix, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -693,7 +707,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateDampingMatrix, Krat
     KRATOS_CHECK_NEAR(D(2, 1), -0.046572613695112, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_EquationIdVector, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonLowReKElement2D3N_EquationIdVector, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -710,7 +724,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_EquationIdVector, KratosRANST
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_GetDofList, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonLowReKElement2D3N_GetDofList, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -728,7 +742,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_GetDofList, KratosRANSTestSui
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateLocalSystem, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonLowReKElement2D3N_CalculateLocalSystem, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -751,7 +765,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateLocalSystem, KratosR
             KRATOS_CHECK_EQUAL(LHS(i, j), 0.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateRightHandSide, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonLowReKElement2D3N_CalculateRightHandSide, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -768,7 +782,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateRightHandSide, Krato
     KRATOS_CHECK_NEAR(RHS(2), 2.641938862593186, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateLocalVelocityContribution, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonLowReKElement2D3N_CalculateLocalVelocityContribution, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -792,7 +806,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateLocalVelocityContrib
     KRATOS_CHECK_NEAR(residual(2), 15.70892686764402, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateMassMatrix, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonLowReKElement2D3N_CalculateMassMatrix, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -811,7 +825,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateMassMatrix, KratosRA
     KRATOS_CHECK_NEAR(M(2, 1), -0.009531438219569609, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateDampingMatrix, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonLowReKElement2D3N_CalculateDampingMatrix, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -830,7 +844,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateDampingMatrix, Krato
     KRATOS_CHECK_NEAR(D(2, 1), -0.1119304885412467, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_EquationIdVector, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonLowReEpsilonElement2D3N_EquationIdVector, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -847,7 +861,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_EquationIdVector, Krato
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_GetDofList, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonLowReEpsilonElement2D3N_GetDofList, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -865,7 +879,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_GetDofList, KratosRANST
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateLocalSystem, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonLowReEpsilonElement2D3N_CalculateLocalSystem, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -888,7 +902,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateLocalSystem, K
             KRATOS_CHECK_EQUAL(LHS(i, j), 0.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateRightHandSide, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonLowReEpsilonElement2D3N_CalculateRightHandSide, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -905,8 +919,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateRightHandSide,
     KRATOS_CHECK_NEAR(RHS(2), 2.143795867326259, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateLocalVelocityContribution,
-                          KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonLowReEpsilonElement2D3N_CalculateLocalVelocityContribution,
+                          KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -930,7 +944,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateLocalVelocityC
     KRATOS_CHECK_NEAR(residual(2), 13.64919472880242, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateMassMatrix, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonLowReEpsilonElement2D3N_CalculateMassMatrix, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -949,7 +963,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateMassMatrix, Kr
     KRATOS_CHECK_NEAR(M(2, 1), -0.01381400849385327, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateDampingMatrix, KratosRANSTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonLowReEpsilonElement2D3N_CalculateDampingMatrix, KratosRansFastSuite)
 {
     // Setup:
     Model model;

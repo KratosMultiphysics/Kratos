@@ -272,19 +272,38 @@ void MmgProcess<TMMGLibrary>::ExecuteFinalize()
     auto& r_nodes_array = mrThisModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
+    // In case of considering meric tensor
+    if (it_node_begin->Has(r_tensor_variable)) {
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
 
-        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
-        if (!old_entity) {
-            KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
+            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+            if (!old_entity) {
+                KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
 
-            // We get the metric
-            TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
+                // We get the metric
+                TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
 
-            // We set the metric
-            mMmmgUtilities.GetMetricTensor(r_metric);
+                // We set the metric
+                mMmmgUtilities.GetMetricTensor(r_metric);
+            }
+        }
+    } else {
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
+
+            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+            if (!old_entity) {
+                KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(METRIC_SCALAR)) << "METRIC_SCALAR not defined for node " << it_node->Id() << std::endl;
+
+                // We get the metric
+                double& r_metric = it_node->GetValue(METRIC_SCALAR);
+
+                // We set the metric
+                mMmmgUtilities.GetMetricScalar(r_metric);
+            }
         }
     }
 
@@ -803,7 +822,12 @@ void MmgProcess<TMMGLibrary>::CollapsePrismsToTriangles()
 
         auto p_new_node = r_auxiliar_model_part.CreateNewNode(total_number_of_nodes + r_pair.first, average_coordinates[0], average_coordinates[1], average_coordinates[2]);
         p_new_node->SetValue(THICKNESS, distance);
-        p_new_node->SetValue(METRIC_TENSOR_3D, 0.5 * (pnode1->GetValue(METRIC_TENSOR_3D) + pnode2->GetValue(METRIC_TENSOR_3D))); // Average metric
+        // In case of considering metric tensor
+        if (pnode1->Has(METRIC_TENSOR_3D)) {
+            p_new_node->SetValue(METRIC_TENSOR_3D, 0.5 * (pnode1->GetValue(METRIC_TENSOR_3D) + pnode2->GetValue(METRIC_TENSOR_3D))); // Average metric
+        } else {
+            p_new_node->SetValue(METRIC_SCALAR, 0.5 * (pnode1->GetValue(METRIC_SCALAR) + pnode2->GetValue(METRIC_SCALAR))); // Average metric
+        }
     }
 
     // Create the new elements

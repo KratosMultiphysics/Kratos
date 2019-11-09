@@ -1,4 +1,4 @@
-# Body fitted drag for model part FluidModelPartTransientMPI.Slip2D
+# Body fitted drag for model part FluidModelPart.Slip2D
 # Time Fx Fy Fz
 0.0001 -10484.63909815 0.00029682 -0.00000000
 0.0002 5030.76405140 -0.17525452 -0.00000000

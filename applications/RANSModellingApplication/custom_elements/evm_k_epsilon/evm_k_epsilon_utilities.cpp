@@ -1,25 +1,26 @@
-#include "evm_k_epsilon_utilities.h"
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//
+
+// System includes
 #include <cmath>
-#include <iostream>
-#include <limits>
+
+// Project includes
+#include "evm_k_epsilon_utilities.h"
+
+// Application includes
+#include "custom_utilities/rans_calculation_utilities.h"
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
 namespace EvmKepsilonModelUtilities
 {
 double CalculateTurbulentViscosity(const double C_mu,
@@ -57,7 +58,7 @@ double CalculateSourceTerm(const BoundedMatrix<double, TDim, TDim>& rVelocityGra
                            const double turbulent_kinetic_energy)
 {
     const double velocity_divergence =
-        RansCalculationUtilities().CalculateMatrixTrace<TDim>(rVelocityGradient);
+        RansCalculationUtilities::CalculateMatrixTrace<TDim>(rVelocityGradient);
     identity_matrix<double> identity(TDim);
 
     BoundedMatrix<double, TDim, TDim> symmetric_velocity_gradient;
@@ -84,31 +85,6 @@ double CalculateGamma(const double C_mu,
 {
     return std::max<double>(
         0.0, C_mu * f_mu * turbulent_kinetic_energy / turbulent_kinematic_viscosity);
-}
-
-void CalculateTurbulentValues(double& turbulent_kinetic_energy,
-                              double& turbulent_energy_dissipation_rate,
-                              const double y_plus,
-                              const double kinematic_viscosity,
-                              const double wall_distance,
-                              const double c_mu,
-                              const double von_karman)
-{
-    const double u_tau = y_plus * kinematic_viscosity / wall_distance;
-    turbulent_kinetic_energy = std::pow(u_tau, 2) / std::sqrt(c_mu);
-    turbulent_energy_dissipation_rate = std::pow(u_tau, 3) / (von_karman * wall_distance);
-}
-
-void CalculateTurbulentValues(double& turbulent_kinetic_energy,
-                              double& turbulent_energy_dissipation_rate,
-                              const double velocity_mag,
-                              const double turbulence_intensity,
-                              const double mixing_length,
-                              const double c_mu)
-{
-    turbulent_kinetic_energy = 1.5 * std::pow(velocity_mag * turbulence_intensity, 2);
-    turbulent_energy_dissipation_rate =
-        c_mu * std::pow(turbulent_kinetic_energy, 1.5) / mixing_length;
 }
 
 template double CalculateSourceTerm<2>(const BoundedMatrix<double, 2, 2>&, const double, const double);

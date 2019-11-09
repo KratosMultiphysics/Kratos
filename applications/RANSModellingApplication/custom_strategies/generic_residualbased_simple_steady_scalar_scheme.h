@@ -86,10 +86,6 @@ public:
                                 TSystemVectorType& b) override
     {
         BaseType::InitializeSolutionStep(r_model_part, A, Dx, b);
-        // if (TSparseSpace::Size(mPreviousB) != TSparseSpace::Size(b)) {
-        //     TSparseSpace::Resize(mPreviousB, TSparseSpace::Size(b));
-        // }
-        // TSparseSpace::SetToZero(mPreviousB);
         mIterationCounter = 0;
     }
 
@@ -212,8 +208,6 @@ private:
     DofUpdaterPointerType mpDofUpdater = Kratos::make_unique<DofUpdaterType>();
 
     double mRelaxationFactor;
-    // typename TSparseSpace::DofUpdaterPointerType mpDofUpdater =
-    //     TSparseSpace::CreateDofUpdater();
 
     ///@}
 };

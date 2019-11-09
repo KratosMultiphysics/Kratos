@@ -14,7 +14,6 @@
 #define SCALAR_CO_SOLVING_PROCESS_H_INCLUDED
 
 // System includes
-#include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -30,8 +29,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 
 // Application includes
-#include "custom_utilities/rans_variable_utils.h"
-#include "rans_modelling_application_variables.h"
+#include "custom_utilities/rans_variable_utilities.h"
 
 namespace Kratos
 {
@@ -67,7 +65,7 @@ public:
 
     /// Constructor.
     ScalarCoSolvingProcess(ModelPart& rModelPart,
-                           Parameters& rParameters,
+                           Parameters rParameters,
                            Variable<double>& rConvergenceVariable)
         : Process(), mrModelPart(rModelPart), mrConvergenceVariable(rConvergenceVariable)
     {
@@ -118,7 +116,7 @@ public:
     void Execute() override
     {
         if (mrModelPart.GetProcessInfo()[IS_CO_SOLVING_PROCESS_ACTIVE])
-            SolveSolutionStep();
+            SolveEquations();
     }
 
     virtual int Check() override
@@ -190,17 +188,17 @@ protected:
     ///@name Operations
     ///@{
 
-    virtual void UpdateBeforeSolveSolutionStep()
+    virtual void UpdateBeforeSolveEquations()
     {
         KRATOS_ERROR << "Calling the base class "
-                        "ScalarCoSolvingProcess::UpdateBeforeSolveSolutionStep."
+                        "ScalarCoSolvingProcess::UpdateBeforeSolveEquations."
                         " Please override it in derrived class.";
     }
 
-    virtual void UpdateAfterSolveSolutionStep()
+    virtual void UpdateAfterSolveEquations()
     {
         KRATOS_ERROR << "Calling the base class "
-                        "ScalarCoSolvingProcess::UpdateAfterSolveSolutionStep. "
+                        "ScalarCoSolvingProcess::UpdateAfterSolveEquations. "
                         "Please override it in derrived class.";
     }
 
@@ -223,9 +221,9 @@ protected:
             auxiliary_process->ExecuteInitializeSolutionStep();
     }
 
-    void SolveSolutionStep()
+    void SolveEquations()
     {
-        this->UpdateBeforeSolveSolutionStep();
+        this->UpdateBeforeSolveEquations();
 
         for (auto p_solving_strategy : this->mrSolvingStrategiesList)
         {
@@ -235,8 +233,6 @@ protected:
 
         bool is_converged = false;
         int iteration = 1;
-
-        RansVariableUtils rans_variable_utils;
 
         Communicator& r_communicator = mrModelPart.GetCommunicator();
 
@@ -252,7 +248,7 @@ protected:
 
         while (!is_converged && iteration <= this->mMaxIterations)
         {
-            rans_variable_utils.GetNodalVariablesVector(
+            RansVariableUtilities::GetNodalVariablesVector(
                 old_values, r_nodes, this->mrConvergenceVariable);
 
             for (int i = 0;
@@ -270,7 +266,7 @@ protected:
 
             this->UpdateConvergenceVariable();
 
-            rans_variable_utils.GetNodalVariablesVector(
+            RansVariableUtilities::GetNodalVariablesVector(
                 new_values, r_nodes, this->mrConvergenceVariable);
             noalias(delta_values) = new_values - old_values;
 
@@ -286,8 +282,7 @@ protected:
                 r_communicator.GetDataCommunicator().SumAll(residual_norms);
 
             noalias(new_values) = old_values + delta_values * mRelaxationFactor;
-            rans_variable_utils.SetNodalVariables(r_nodes, new_values,
-                                                  this->mrConvergenceVariable);
+            RansVariableUtilities::SetNodalVariables(r_nodes, new_values, this->mrConvergenceVariable);
             r_communicator.SynchronizeVariable(this->mrConvergenceVariable);
 
             double convergence_relative =
@@ -326,7 +321,7 @@ protected:
             iteration++;
         }
 
-        this->UpdateAfterSolveSolutionStep();
+        this->UpdateAfterSolveEquations();
 
         KRATOS_WARNING_IF(this->Info(), !is_converged)
             << "\n-------------------------------------------------------"

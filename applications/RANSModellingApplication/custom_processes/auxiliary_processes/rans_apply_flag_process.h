@@ -20,12 +20,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "includes/checks.h"
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "processes/process.h"
-
-#include "custom_utilities/rans_check_utilities.h"
 
 namespace Kratos
 {
@@ -60,7 +55,7 @@ namespace Kratos
  *
  */
 
-class RansApplyFlagProcess : public Process
+class KRATOS_API(RANS_MODELLING_APPLICATION) RansApplyFlagProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -74,35 +69,10 @@ public:
     ///@{
 
     /// Constructor
-    RansApplyFlagProcess(Model& rModel, Parameters& rParameters)
-        : mrModel(rModel), mrParameters(rParameters)
-    {
-        KRATOS_TRY
+    RansApplyFlagProcess(Model& rModel, Parameters rParameters);
 
-        Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name"                : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "echo_level"                     : 0,
-            "flag_variable_name"             : "PLEASE_SPECIFY_FLAG_VARIABLE_NAME",
-            "flag_variable_value"            : true,
-            "apply_to_model_part_conditions" : ["ALL_MODEL_PARTS"]
-        })");
-
-        mrParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-
-        mModelPartName = mrParameters["model_part_name"].GetString();
-        mFlagVariableName = mrParameters["flag_variable_name"].GetString();
-        mFlagVariableValue = mrParameters["flag_variable_value"].GetBool();
-        mEchoLevel = mrParameters["echo_level"].GetInt();
-        mModelPartsForConditionFlags =
-            mrParameters["apply_to_model_part_conditions"].GetStringArray();
-
-        KRATOS_CATCH("");
-    }
     /// Destructor.
-    ~RansApplyFlagProcess() override
-    {
-    }
+    ~RansApplyFlagProcess() override;
 
     ///@}
     ///@name Operators
@@ -112,40 +82,9 @@ public:
     ///@name Operations
     ///@{
 
-    int Check() override
-    {
-        KRATOS_TRY
+    int Check() override;
 
-        RansCheckUtilities().CheckIfModelPartExists(mrModel, mModelPartName);
-
-        return 0;
-
-        KRATOS_CATCH("");
-    }
-
-    void ExecuteInitialize() override
-    {
-        ApplyNodeFlags();
-
-        if (mModelPartsForConditionFlags.size() == 1 &&
-            mModelPartsForConditionFlags[0] == "ALL_MODEL_PARTS")
-        {
-            mModelPartsForConditionFlags.clear();
-            for (const std::string model_part_name : mrModel.GetModelPartNames())
-            {
-                mModelPartsForConditionFlags.push_back(model_part_name);
-            }
-        }
-
-        for (std::string model_part_name : mModelPartsForConditionFlags)
-        {
-            ModelPart& r_model_part = mrModel.GetModelPart(model_part_name);
-            ApplyConditionFlags(r_model_part);
-        }
-
-        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-            << mFlagVariableName << " condition flag set for " << mModelPartName << ".\n";
-    }
+    void ExecuteInitialize() override;
 
     ///@}
     ///@name Access
@@ -160,21 +99,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return std::string("RansApplyFlagProcess");
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << this->Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -221,13 +152,14 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
+    Parameters mrParameters;
     int mEchoLevel;
 
     std::string mModelPartName;
-
     std::string mFlagVariableName;
+
     bool mFlagVariableValue;
+
     std::vector<std::string> mModelPartsForConditionFlags;
 
     ///@}
@@ -238,59 +170,9 @@ private:
     ///@name Private Operations
     ///@{
 
-    void ApplyNodeFlags()
-    {
-        KRATOS_TRY
+    void ApplyNodeFlags();
 
-        ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
-        const int number_of_nodes = r_model_part.NumberOfNodes();
-
-        const Flags& r_flag = KratosComponents<Flags>::Get(mFlagVariableName);
-
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-            (r_model_part.NodesBegin() + i_node)->Set(r_flag, mFlagVariableValue);
-
-        KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
-            << mFlagVariableName << " is set to nodes " << mFlagVariableValue
-            << " in " << mModelPartName << ".\n";
-
-        KRATOS_CATCH("");
-    }
-
-    void ApplyConditionFlags(ModelPart& rModelPart)
-    {
-        KRATOS_TRY
-
-        const int number_of_conditions = rModelPart.NumberOfConditions();
-
-        const Flags& r_flag = KratosComponents<Flags>::Get(mFlagVariableName);
-
-#pragma omp parallel for
-        for (int i_condition = 0; i_condition < number_of_conditions; ++i_condition)
-        {
-            Condition& r_condition = *(rModelPart.ConditionsBegin() + i_condition);
-            Condition::GeometryType& r_condition_geometry = r_condition.GetGeometry();
-            const int number_of_nodes = r_condition_geometry.PointsNumber();
-
-            bool condition_flag = true;
-            for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-            {
-                if (!r_condition_geometry[i_node].Is(r_flag))
-                {
-                    condition_flag = false;
-                    break;
-                }
-            }
-            r_condition.Set(r_flag, condition_flag);
-        }
-
-        KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
-            << mFlagVariableName << " flags set for conditions in "
-            << rModelPart.Name() << ".\n";
-
-        KRATOS_CATCH("");
-    }
+    void ApplyConditionFlags(ModelPart& rModelPart);
 
     ///@}
     ///@name Private  Access
