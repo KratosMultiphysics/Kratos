@@ -99,8 +99,8 @@ EmpiricalSpringElement3D2N::CreateElementStiffnessMatrix(
     const double current_spring_stiffness = EvaluatePolynomialFirstDerivative(polynomial);
 
     stiffness_matrix(0,0) = current_spring_stiffness;
-    stiffness_matrix(0,msDimension) = current_spring_stiffness;
-    stiffness_matrix(msDimension,0) = current_spring_stiffness;
+    stiffness_matrix(0,msDimension) = -current_spring_stiffness;
+    stiffness_matrix(msDimension,0) = -current_spring_stiffness;
     stiffness_matrix(msDimension,msDimension) = current_spring_stiffness;
     GlobalizeMatrix(stiffness_matrix);
     return stiffness_matrix;
