@@ -25,9 +25,6 @@
 #include "custom_constitutive/linear_plane_stress.h"
 #include "custom_constitutive/linear_plane_strain.h"
 
-// Rules of mixtures
-#include "custom_constitutive/rule_of_mixtures_law.h"
-
 namespace Kratos {
 namespace Python {
 
@@ -57,10 +54,6 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     py::class_< AxisymElasticIsotropic, typename AxisymElasticIsotropic::Pointer, ConstitutiveLaw >
     (m, "LinearElasticAxisym2DLaw").def(py::init<>() )
-    ;
-
-    py::class_< RuleOfMixturesLaw, typename RuleOfMixturesLaw::Pointer,  ConstitutiveLaw  >
-    (m,"RuleOfMixturesLaw").def(py::init<>())
     ;
 }
 
