@@ -690,7 +690,7 @@ public:
      * @param TransposeBlocks The matrix containing the flags telling us to transpose the blocks (copy, so we don't need to provide it)
      */
     template <class TMatrix>
-    static inline void ComputeAuxiliarValuesBlocks(
+    static inline void AssembleSparseMatrixByBlocks(
         TMatrix& rMatrix,
         const DenseMatrix<TMatrix*>& rMatricespBlocks,
         DenseMatrix<double> ContributionCoefficients = DenseMatrix<double>(0,0),
@@ -794,31 +794,31 @@ public:
 
         // Fill the new matrix
         double* Matrix_values = rMatrix.value_data().begin();
-        IndexType* Matrix_index1 = rMatrix.index1_data().begin();
         IndexType* Matrix_index2 = rMatrix.index2_data().begin();
 
-//         #pragma omp parallel
-//         {
-//             #pragma omp for
-//             for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
-//                 for (int k=0; k<static_cast<int>(row_sizes[i]); ++k) {
-//                     IndexType matrix_cols_aux = 0;
-//                     for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
-//                         if (TransposeBlocks(i, j)) {
-//                             // We compute the transposed matrix
-//                             const SizeType size_system_1 = *rMatricespBlocks(i, j).size1();
-//                             const SizeType size_system_2 = *rMatricespBlocks(i, j).size2();
-//                             TMatrix transpose(size_system_2, size_system_1);
-//                             TransposeMatrix<TMatrix, TMatrix>(transpose, *rMatricespBlocks(i, j));
-//                             ComputeNonZeroBlocks<TMatrix>(transpose, k, matrix_cols_aux);
-//                         } else {
-//                             ComputeNonZeroBlocks<TMatrix>(*rMatricespBlocks(i, j), k, matrix_cols_aux);
-//                         }
-//                     }
-//                     matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k + 1] = matrix_cols_aux;
-//                 }
-//             }
-//         }
+        #pragma omp parallel
+        {
+            #pragma omp for
+            for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
+                for (int k=0; k<static_cast<int>(row_sizes[i]); ++k) {
+                    const IndexType row_beg = matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k];
+                    IndexType row_end = row_beg;
+                    for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
+                        const SizeType initial_index_column = std::accumulate(column_sizes.begin(), column_sizes.begin() + j, 0);
+                        if (TransposeBlocks(i, j)) {
+                            // We compute the transposed matrix
+                            const SizeType size_system_1 = *rMatricespBlocks(i, j).size1();
+                            const SizeType size_system_2 = *rMatricespBlocks(i, j).size2();
+                            TMatrix transpose(size_system_2, size_system_1);
+                            TransposeMatrix<TMatrix, TMatrix>(transpose, *rMatricespBlocks(i, j));
+                            ComputeAuxiliarValuesBlocks<TMatrix>(transpose, Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
+                        } else {
+                            ComputeAuxiliarValuesBlocks<TMatrix>(*rMatricespBlocks(i, j), Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
