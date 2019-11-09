@@ -1220,22 +1220,22 @@ protected:
 
                 // Get access to master_auxKSAN data
                 if (master_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    ComputeAuxiliarValuesBlocks(master_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index);
+                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks<SparseMatrixType>(master_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index);
                 }
 
                 // Get access to master_auxKSAM data
                 if (master_auxKSAM.nnz() > 0) {
-                    ComputeAuxiliarValuesBlocks(master_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index);
+                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks<SparseMatrixType>(master_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index);
                 }
 
                 // Get access to master_auxKSASI data
                 if (master_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    ComputeAuxiliarValuesBlocks(master_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index);
+                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks<SparseMatrixType>(master_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index);
                 }
 
                 // Get access to master_auxKSASA data
                 if (master_auxKSASA.nnz() > 0 && slave_active_size > 0) {
-                    ComputeAuxiliarValuesBlocks(master_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index);
+                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks<SparseMatrixType>(master_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index);
                 }
             }
 
@@ -1246,22 +1246,22 @@ protected:
 
                 // Get access to aslave_auxKSAN data
                 if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    ComputeAuxiliarValuesBlocks(aslave_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index);
+                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks<SparseMatrixType>(aslave_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index);
                 }
 
                 // Get access to aslave_auxKSAM data
                 if (aslave_auxKSAM.nnz() > 0 && master_size > 0) {
-                    ComputeAuxiliarValuesBlocks(aslave_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index);
+                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks<SparseMatrixType>(aslave_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index);
                 }
 
                 // Get access to aslave_auxKSASI data
                 if (aslave_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    ComputeAuxiliarValuesBlocks(aslave_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index);
+                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks<SparseMatrixType>(aslave_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index);
                 }
 
                 // Get access to aslave_auxKSASA data
                 if (aslave_auxKSASA.nnz() > 0) {
-                    ComputeAuxiliarValuesBlocks(aslave_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index);
+                    SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks<SparseMatrixType>(aslave_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index);
                 }
             }
         }
@@ -1271,7 +1271,7 @@ protected:
         CreateMatrix(K_disp_modified_aux2, nrows, ncols, K_disp_modified_ptr_aux2, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2);
 
         // We sum the auxiliar matrices
-        SparseMatrixMultiplicationUtility::MatrixAdd<SparseMatrixType, SparseMatrixType>(mKDispModified, K_disp_modified_aux2, 1.0);
+        SparseMatrixMultiplicationUtility::MatrixAdd<SparseMatrixType, SparseMatrixType>(mKDispModified, K_disp_modified_aux2, - 1.0);
 
         // Finally we ensure that the matrix is structurally symmetric
         EnsureStructuralSymmetryMatrix(mKDispModified);
@@ -1576,39 +1576,7 @@ private:
         }
     }
 
-    /**
-     * @brief This is a method to compute the contribution of the auxiliar blocks
-     * @param AuxK The auxiliar block
-     * @param AuxIndex2 The indexes of the non zero columns
-     * @param AuxVals The values of the final matrix
-     * @param CurrentRow The current row computed
-     * @param RowEnd The last column computed
-     * @param InitialIndexColumn The initial column index of the auxiliar block in the final matrix
-     */
-    inline void ComputeAuxiliarValuesBlocks(
-        const SparseMatrixType& AuxK,
-        IndexType* AuxIndex2,
-        double* AuxVals,
-        const int CurrentRow,
-        IndexType& RowEnd,
-        const SizeType InitialIndexColumn
-        )
-    {
-        // Get access to aux_K data
-        const double* aux_values = AuxK.value_data().begin();
-        const IndexType* aux_K_index1 = AuxK.index1_data().begin();
-        const IndexType* aux_K_index2 = AuxK.index2_data().begin();
 
-        const IndexType aux_K_row_begin = aux_K_index1[CurrentRow];
-        const IndexType aux_K_row_end   = aux_K_index1[CurrentRow + 1];
-
-        for (IndexType j=aux_K_row_begin; j<aux_K_row_end; j++) {
-            const IndexType col_index = InitialIndexColumn + aux_K_index2[j];
-            AuxIndex2[RowEnd] = col_index;
-            AuxVals[RowEnd] = -aux_values[j];
-            ++RowEnd;
-        }
-    }
 
     /**
      * @brief It allocates all the blocks and operators

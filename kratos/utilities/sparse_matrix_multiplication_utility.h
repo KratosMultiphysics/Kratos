@@ -683,6 +683,42 @@ public:
         }
     }
 
+    /**
+     * @brief This is a method to compute the contribution of the auxiliar blocks
+     * @param AuxK The auxiliar block
+     * @param AuxIndex2 The indexes of the non zero columns
+     * @param AuxVals The values of the final matrix
+     * @param CurrentRow The current row computed
+     * @param RowEnd The last column computed
+     * @param InitialIndexColumn The initial column index of the auxiliar block in the final matrix
+     */
+    template <class TMatrix>
+    static inline void ComputeAuxiliarValuesBlocks(
+        const TMatrix& rMatrix,
+        IndexType* AuxIndex2,
+        double* AuxVals,
+        const int CurrentRow,
+        IndexType& RowEnd,
+        const SizeType InitialIndexColumn,
+        const double ContributionCoefficient = 1.0
+        )
+    {
+        // Get access to aux_K data
+        const double* aux_values = rMatrix.value_data().begin();
+        const IndexType* aux_K_index1 = rMatrix.index1_data().begin();
+        const IndexType* aux_K_index2 = rMatrix.index2_data().begin();
+
+        const IndexType aux_K_row_begin = aux_K_index1[CurrentRow];
+        const IndexType aux_K_row_end   = aux_K_index1[CurrentRow + 1];
+
+        for (IndexType j=aux_K_row_begin; j<aux_K_row_end; j++) {
+            const IndexType col_index = InitialIndexColumn + aux_K_index2[j];
+            AuxIndex2[RowEnd] = col_index;
+            AuxVals[RowEnd] = ContributionCoefficient * aux_values[j];
+            ++RowEnd;
+        }
+    }
+
     ///@}
     ///@name Access
     ///@{
