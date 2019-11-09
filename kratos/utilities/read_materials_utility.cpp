@@ -333,8 +333,8 @@ void ReadMaterialsUtility::CreateSubProperties(
             Properties::Pointer p_new_sub_prop = nullptr;
             if (r_use_existing_property != "") {
                 if (r_use_existing_property.size() > 1) {
-                    if (rModelPart.HasSubProperties(r_use_existing_property, mesh_id)) {
-                        p_new_sub_prop = rModelPart.pGetSubProperties(r_use_existing_property, mesh_id);
+                    if (rModelPart.HasProperties(r_use_existing_property, mesh_id)) {
+                        p_new_sub_prop = rModelPart.pGetProperties(r_use_existing_property, mesh_id);
                         already_defined = true;
                     }
                 } else {
