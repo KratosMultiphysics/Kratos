@@ -221,12 +221,12 @@ bool ModelPartHasProperties2(const ModelPart& rModelPart, const unsigned int Pro
 
 bool ModelPartHasSubProperties1(const ModelPart& rModelPart, const std::string& rAdress, const unsigned int MeshId)
 {
-    return rModelPart.HasSubProperties(rAdress, MeshId);
+    return rModelPart.HasProperties(rAdress, MeshId);
 }
 
 bool ModelPartHasSubProperties2(const ModelPart& rModelPart, const std::string& rAdress)
 {
-    return rModelPart.HasSubProperties(rAdress, 0);
+    return rModelPart.HasProperties(rAdress, 0);
 }
 
 bool ModelPartRecursivelyHasProperties1(const ModelPart& rModelPart, const unsigned int PropertiesId, const unsigned int MeshId)
@@ -261,12 +261,12 @@ Properties::Pointer ModelPartGetPropertiesDirect2(ModelPart& rModelPart, unsigne
 
 Properties::Pointer ModelPartGetSubProperties1(ModelPart& rModelPart, const std::string& rAdress, unsigned int MeshId)
 {
-    return rModelPart.pGetSubProperties(rAdress, MeshId);
+    return rModelPart.pGetProperties(rAdress, MeshId);
 }
 
 Properties::Pointer ModelPartSubProperties2(ModelPart& rModelPart, const std::string& rAdress)
 {
-    return rModelPart.pGetSubProperties(rAdress);
+    return rModelPart.pGetProperties(rAdress);
 }
 
 ModelPart::PropertiesContainerType::Pointer ModelPartGetProperties1(ModelPart& rModelPart)
@@ -867,16 +867,16 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GetTable", &ModelPart::pGetTable)
         .def("HasProperties", ModelPartHasProperties1)
         .def("HasProperties", ModelPartHasProperties2)
-        .def("HasSubProperties", ModelPartHasSubProperties1)
-        .def("HasSubProperties", ModelPartHasSubProperties2)
+        .def("HasProperties", ModelPartHasSubProperties1)
+        .def("HasProperties", ModelPartHasSubProperties2)
         .def("RecursivelyHasProperties", ModelPartRecursivelyHasProperties1)
         .def("RecursivelyHasProperties", ModelPartRecursivelyHasProperties2)
         .def("CreateNewProperties", ModelPartCreateNewProperties1)
         .def("CreateNewProperties", ModelPartCreateNewProperties2)
         .def("GetProperties", ModelPartGetPropertiesDirect1)
 //         .def("GetProperties", ModelPartGetProperties2) // NOTE: This method conflicts with the other GetProperties methods
-        .def("GetSubProperties", ModelPartGetSubProperties1)
-//         .def("GetSubProperties", ModelPartGetSubProperties2)// NOTE: This method conflicts with the other GetSubProperties methods
+        .def("GetProperties", ModelPartGetSubProperties1)
+//         .def("GetProperties", ModelPartGetSubProperties2)// NOTE: This method conflicts with the other GetProperties methods
         .def_property("Properties", ModelPartGetProperties1, ModelPartSetProperties1)
         .def("AddProperties", ModelPartAddProperties1)
         .def("AddProperties", ModelPartAddProperties2)
