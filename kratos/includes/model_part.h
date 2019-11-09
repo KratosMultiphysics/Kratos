@@ -859,7 +859,7 @@ public:
      * @param ThisIndex The index identifying the mesh
      * @return True if the properties exist, false otherwise
      */
-    bool HasSubProperties(
+    bool HasProperties(
         const std::string& rAddress,
         IndexType MeshIndex = 0
         ) const;
@@ -871,7 +871,7 @@ public:
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (pointer)
      */
-    PropertiesType::Pointer pGetSubProperties(
+    PropertiesType::Pointer pGetProperties(
         const std::string& rAddress,
         IndexType MeshIndex = 0
         );
@@ -883,7 +883,7 @@ public:
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (pointer)
      */
-    const PropertiesType::Pointer pGetSubProperties(
+    const PropertiesType::Pointer pGetProperties(
         const std::string& rAddress,
         IndexType MeshIndex = 0
         ) const;
@@ -895,7 +895,7 @@ public:
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (reference)
      */
-    PropertiesType& GetSubProperties(
+    PropertiesType& GetProperties(
         const std::string& rAddress,
         IndexType MeshIndex = 0
         );
@@ -907,7 +907,7 @@ public:
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (reference)
      */
-    const PropertiesType& GetSubProperties(
+    const PropertiesType& GetProperties(
         const std::string& rAddress,
         IndexType MeshIndex = 0
         ) const;

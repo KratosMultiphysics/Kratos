@@ -674,7 +674,7 @@ ModelPart::PropertiesType& ModelPart::GetProperties(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool ModelPart::HasSubProperties(
+bool ModelPart::HasProperties(
     const std::string& rAddress,
     IndexType MeshIndex
     ) const
@@ -699,7 +699,7 @@ bool ModelPart::HasSubProperties(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Properties::Pointer ModelPart::pGetSubProperties(
+Properties::Pointer ModelPart::pGetProperties(
     const std::string& rAddress,
     IndexType MeshIndex
     )
@@ -723,7 +723,7 @@ Properties::Pointer ModelPart::pGetSubProperties(
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Properties::Pointer ModelPart::pGetSubProperties(
+const Properties::Pointer ModelPart::pGetProperties(
     const std::string& rAddress,
     IndexType MeshIndex
     ) const
@@ -747,23 +747,23 @@ const Properties::Pointer ModelPart::pGetSubProperties(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Properties& ModelPart::GetSubProperties(
+Properties& ModelPart::GetProperties(
     const std::string& rAddress,
     IndexType MeshIndex
     )
 {
-    return *pGetSubProperties(rAddress, MeshIndex);
+    return *pGetProperties(rAddress, MeshIndex);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Properties& ModelPart::GetSubProperties(
+const Properties& ModelPart::GetProperties(
     const std::string& rAddress,
     IndexType MeshIndex
     ) const
 {
-    return *pGetSubProperties(rAddress, MeshIndex);
+    return *pGetProperties(rAddress, MeshIndex);
 }
 
 /** Remove the Properties with given Id from mesh with ThisIndex in this modelpart and all its subs.
