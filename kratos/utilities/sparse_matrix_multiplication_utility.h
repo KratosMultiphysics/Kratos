@@ -726,19 +726,31 @@ public:
         SizeType nrows = 0, ncols = 0;
         std::vector<SizeType> row_sizes(number_of_rows_blocks);
         std::vector<SizeType> column_sizes(number_of_columns_blocks);
-        for (int i=0; i<static_cast<int>(number_of_rows_blocks); i++) {
-            row_sizes[i] = (*rMatricespBlocks(i, 0)).size1();
+        for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
+            if (TransposeBlocks(i, 0)) {
+                row_sizes[i] = (*rMatricespBlocks(i, 0)).size2();
+            } else {
+                row_sizes[i] = (*rMatricespBlocks(i, 0)).size1();
+            }
             nrows += row_sizes[i];
         }
-        for (int j=0; j<static_cast<int>(number_of_columns_blocks); j++) {
-            column_sizes[j] = (*rMatricespBlocks(0, j)).size2();
+        for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
+            if (TransposeBlocks(0, j)) {
+                column_sizes[j] = (*rMatricespBlocks(0, j)).size1();
+            } else {
+                column_sizes[j] = (*rMatricespBlocks(0, j)).size2();
+            }
             ncols += column_sizes[j];
         }
 
         // Check consistency of all blocks
-        for (int i=0; i<static_cast<int>(number_of_rows_blocks); i++) {
-            for (int j=0; j<static_cast<int>(number_of_columns_blocks); j++) {
-                KRATOS_ERROR_IF((*rMatricespBlocks(i, j)).size1() != row_sizes[i] || (*rMatricespBlocks(i, j)).size2() != column_sizes[j]) << " Not consistent size in block " << i << ", " << j << ".\t" << (*rMatricespBlocks(i, j)).size1() << ", " << (*rMatricespBlocks(i, j)).size2() << " vs " <<  row_sizes[i] << ", " << row_sizes[j] << std::endl;
+        for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
+            for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
+                if (TransposeBlocks(i, j)) {
+                    KRATOS_ERROR_IF((*rMatricespBlocks(i, j)).size2() != row_sizes[i] || (*rMatricespBlocks(i, j)).size1() != column_sizes[j]) << " Not consistent size in block " << i << ", " << j << ".\t" << (*rMatricespBlocks(i, j)).size2() << ", " << (*rMatricespBlocks(i, j)).size1() << " vs " <<  row_sizes[i] << ", " << row_sizes[j] << std::endl;
+                } else {
+                    KRATOS_ERROR_IF((*rMatricespBlocks(i, j)).size1() != row_sizes[i] || (*rMatricespBlocks(i, j)).size2() != column_sizes[j]) << " Not consistent size in block " << i << ", " << j << ".\t" << (*rMatricespBlocks(i, j)).size1() << ", " << (*rMatricespBlocks(i, j)).size2() << " vs " <<  row_sizes[i] << ", " << row_sizes[j] << std::endl;
+                }
             }
         }
         // Exiting just in case of empty matrix
@@ -748,16 +760,16 @@ public:
         // We will compute nonzero terms
         IndexType* matrix_ptr = new IndexType[nrows + 1];
         #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(nrows + 1); i++)
+        for (int i = 0; i < static_cast<int>(nrows + 1); ++i)
             matrix_ptr[i] = 0;
 
         #pragma omp parallel
         {
             #pragma omp for
-            for (int i=0; i<static_cast<int>(number_of_rows_blocks); i++) {
-                for (int k=0; k<static_cast<int>(row_sizes[i]); k++) {
+            for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
+                for (int k=0; k<static_cast<int>(row_sizes[i]); ++k) {
                     IndexType matrix_cols_aux = 0;
-                    for (int j=0; j<static_cast<int>(number_of_columns_blocks); j++) {
+                    for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
                         ComputeNonZeroBlocks<TMatrix>(*rMatricespBlocks(i, j), k, matrix_cols_aux);
                     }
                     matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k + 1] = matrix_cols_aux;
@@ -779,10 +791,10 @@ public:
 //         #pragma omp parallel
 //         {
 //             #pragma omp for
-//             for (int i=0; i<static_cast<int>(number_of_rows_blocks); i++) {
-//                 for (int k=0; k<static_cast<int>(row_sizes[i]); k++) {
+//             for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
+//                 for (int k=0; k<static_cast<int>(row_sizes[i]); ++k) {
 //                     IndexType matrix_cols_aux = 0;
-//                     for (int j=0; j<static_cast<int>(number_of_columns_blocks); j++) {
+//                     for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
 //                         ComputeNonZeroBlocks<TMatrix>(*rMatricespBlocks(i, j), k, matrix_cols_aux);
 //                     }
 //                     matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k + 1] = matrix_cols_aux;
