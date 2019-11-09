@@ -683,6 +683,213 @@ public:
         }
     }
 
+    /**
+     * @brief This method assembles several sparse matrices into one large sparse matrix
+     * @param rMatricespBlocks The pointers to the matrices we are interested in assemble
+     * @param ContributionCoefficients The matrix containing the coefficients to be considered (copy, so we don't need to provide it)
+     * @param TransposeBlocks The matrix containing the flags telling us to transpose the blocks (copy, so we don't need to provide it)
+     */
+    template <class TMatrix>
+    static inline void AssembleSparseMatrixByBlocks(
+        TMatrix& rMatrix,
+        const DenseMatrix<TMatrix*>& rMatricespBlocks,
+        DenseMatrix<double> ContributionCoefficients = DenseMatrix<double>(0,0),
+        DenseMatrix<bool> TransposeBlocks = DenseMatrix<bool>(0,0)
+        )
+    {
+        const SizeType number_of_rows_blocks = rMatricespBlocks.size1();
+        const SizeType number_of_columns_blocks = rMatricespBlocks.size2();
+
+        // Fill the matrices if they are empty
+        if (ContributionCoefficients.size1() == 0 && ContributionCoefficients.size2() == 0) {
+            ContributionCoefficients.resize(number_of_rows_blocks, number_of_columns_blocks);
+            for (IndexType i = 0; i < number_of_rows_blocks; ++i) {
+                for (IndexType j = 0; j < number_of_columns_blocks; ++j) {
+                    ContributionCoefficients(i, j) = 1.0;
+                }
+            }
+        } else {
+            KRATOS_ERROR_IF(ContributionCoefficients.size1() != number_of_rows_blocks || ContributionCoefficients.size2() != number_of_columns_blocks) << "The ContributionCoefficients dimensions" << ContributionCoefficients.size1() << " and " << ContributionCoefficients.size2() << "do not coincide with the dimensions of rMatricespBlocks" << number_of_rows_blocks << "and " << number_of_columns_blocks << std::endl;
+        }
+        if (TransposeBlocks.size1() == 0 && TransposeBlocks.size2() == 0) {
+            TransposeBlocks.resize(number_of_rows_blocks, number_of_columns_blocks);
+            for (IndexType i = 0; i < number_of_rows_blocks; ++i) {
+                for (IndexType j = 0; j < number_of_rows_blocks; ++j) {
+                    TransposeBlocks(i, j) = false;
+                }
+            }
+        } else {
+            KRATOS_ERROR_IF(TransposeBlocks.size1() != number_of_rows_blocks || TransposeBlocks.size2() != number_of_columns_blocks) << "The TransposeBlocks dimensions" << TransposeBlocks.size1() << " and " << TransposeBlocks.size2() << "do not coincide with the dimensions of rMatricespBlocks" << number_of_rows_blocks << "and " << number_of_columns_blocks << std::endl;
+        }
+
+        // Compute total size and check consistency of the different blocks
+        SizeType nrows = 0, ncols = 0;
+        std::vector<SizeType> row_sizes(number_of_rows_blocks);
+        std::vector<SizeType> column_sizes(number_of_columns_blocks);
+        for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
+            if (TransposeBlocks(i, 0)) {
+                row_sizes[i] = (*rMatricespBlocks(i, 0)).size2();
+            } else {
+                row_sizes[i] = (*rMatricespBlocks(i, 0)).size1();
+            }
+            nrows += row_sizes[i];
+        }
+        for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
+            if (TransposeBlocks(0, j)) {
+                column_sizes[j] = (*rMatricespBlocks(0, j)).size1();
+            } else {
+                column_sizes[j] = (*rMatricespBlocks(0, j)).size2();
+            }
+            ncols += column_sizes[j];
+        }
+
+        // Check consistency of all blocks
+        for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
+            for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
+                if (TransposeBlocks(i, j)) {
+                    KRATOS_ERROR_IF((*rMatricespBlocks(i, j)).size2() != row_sizes[i] || (*rMatricespBlocks(i, j)).size1() != column_sizes[j]) << " Not consistent size in block " << i << ", " << j << ".\t" << (*rMatricespBlocks(i, j)).size2() << ", " << (*rMatricespBlocks(i, j)).size1() << " vs " <<  row_sizes[i] << ", " << row_sizes[j] << std::endl;
+                } else {
+                    KRATOS_ERROR_IF((*rMatricespBlocks(i, j)).size1() != row_sizes[i] || (*rMatricespBlocks(i, j)).size2() != column_sizes[j]) << " Not consistent size in block " << i << ", " << j << ".\t" << (*rMatricespBlocks(i, j)).size1() << ", " << (*rMatricespBlocks(i, j)).size2() << " vs " <<  row_sizes[i] << ", " << row_sizes[j] << std::endl;
+                }
+            }
+        }
+        // Exiting just in case of empty matrix
+        if ((nrows == 0) || (ncols == 0))
+            return void();
+
+        // We will compute nonzero terms
+        IndexType* matrix_ptr = new IndexType[nrows + 1];
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(nrows + 1); ++i)
+            matrix_ptr[i] = 0;
+
+        #pragma omp parallel
+        {
+            #pragma omp for
+            for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
+                for (int k=0; k<static_cast<int>(row_sizes[i]); ++k) {
+                    IndexType matrix_cols_aux = 0;
+                    for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
+                        if (TransposeBlocks(i, j)) {
+                            // We compute the transposed matrix
+                            const SizeType size_system_1 = rMatricespBlocks(i, j)->size1();
+                            const SizeType size_system_2 = rMatricespBlocks(i, j)->size2();
+                            TMatrix transpose(size_system_2, size_system_1);
+                            TransposeMatrix<TMatrix, TMatrix>(transpose, *rMatricespBlocks(i, j));
+                            ComputeNonZeroBlocks<TMatrix>(transpose, k, matrix_cols_aux);
+                        } else {
+                            ComputeNonZeroBlocks<TMatrix>(*rMatricespBlocks(i, j), k, matrix_cols_aux);
+                        }
+                    }
+                    matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k + 1] += matrix_cols_aux;
+                }
+            }
+        }
+
+        // Auxiliar values
+        std::partial_sum(matrix_ptr, matrix_ptr + nrows + 1, matrix_ptr);
+        const SizeType nonzero_values = matrix_ptr[nrows];
+
+        // Initialize matrix with the corresponding non-zero values
+        rMatrix = TMatrix(nrows, ncols, nonzero_values);
+
+        // Fill the new matrix
+        double* Matrix_values = rMatrix.value_data().begin();
+        IndexType* Matrix_index1 = rMatrix.index1_data().begin();
+        IndexType* Matrix_index2 = rMatrix.index2_data().begin();
+
+        Matrix_index1[0] = 0;
+        for (IndexType i = 0; i < nrows; ++i)
+            Matrix_index1[i+1] = Matrix_index1[i] + (matrix_ptr[i + 1] - matrix_ptr[i]);
+
+        #pragma omp parallel
+        {
+            #pragma omp for
+            for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
+                for (int k=0; k<static_cast<int>(row_sizes[i]); ++k) {
+                    const IndexType row_beg = matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k];
+                    IndexType row_end = row_beg;
+                    for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
+                        const SizeType initial_index_column = std::accumulate(column_sizes.begin(), column_sizes.begin() + j, 0);
+                        if (TransposeBlocks(i, j)) {
+                            // We compute the transposed matrix
+                            const SizeType size_system_1 = rMatricespBlocks(i, j)->size1();
+                            const SizeType size_system_2 = rMatricespBlocks(i, j)->size2();
+                            TMatrix transpose(size_system_2, size_system_1);
+                            TransposeMatrix<TMatrix, TMatrix>(transpose, *rMatricespBlocks(i, j));
+                            ComputeAuxiliarValuesBlocks<TMatrix>(transpose, Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
+                        } else {
+                            ComputeAuxiliarValuesBlocks<TMatrix>(*rMatricespBlocks(i, j), Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
+                        }
+                    }
+                }
+            }
+        }
+
+        // Close the matrix
+        rMatrix.set_filled(nrows+1, nonzero_values);
+    }
+
+    /**
+     * @brief This is a method to check the block containing nonzero values
+     * @param rMatrix The auxiliar block
+     * @param CurrentRow The current row computed
+     * @param rNonZeroColsAux2 The nonzero rows array
+     */
+    template <class TMatrix>
+    static inline void ComputeNonZeroBlocks(
+        const TMatrix& rMatrix,
+        const int CurrentRow,
+        IndexType& rNonZeroColsAux2
+        )
+    {
+        // Get access to aux_K data
+        const IndexType* aux_matrix_index1 = rMatrix.index1_data().begin();
+
+        const IndexType row_begin = aux_matrix_index1[CurrentRow];
+        const IndexType row_end   = aux_matrix_index1[CurrentRow + 1];
+
+        for (IndexType j=row_begin; j<row_end; j++) {
+            ++rNonZeroColsAux2;
+        }
+    }
+
+    /**
+     * @brief This is a method to compute the contribution of the auxiliar blocks
+     * @param AuxK The auxiliar block
+     * @param AuxIndex2 The indexes of the non zero columns
+     * @param AuxVals The values of the final matrix
+     * @param CurrentRow The current row computed
+     * @param RowEnd The last column computed
+     * @param InitialIndexColumn The initial column index of the auxiliar block in the final matrix
+     */
+    template <class TMatrix>
+    static inline void ComputeAuxiliarValuesBlocks(
+        const TMatrix& rMatrix,
+        IndexType* AuxIndex2,
+        double* AuxVals,
+        const int CurrentRow,
+        IndexType& RowEnd,
+        const SizeType InitialIndexColumn,
+        const double ContributionCoefficient = 1.0
+        )
+    {
+        // Get access to aux_K data
+        const double* aux_values = rMatrix.value_data().begin();
+        const IndexType* aux_Matrix_index1 = rMatrix.index1_data().begin();
+        const IndexType* aux_Matrix_index2 = rMatrix.index2_data().begin();
+
+        const IndexType aux_Matrix_row_begin = aux_Matrix_index1[CurrentRow];
+        const IndexType aux_Matrix_row_end   = aux_Matrix_index1[CurrentRow + 1];
+
+        for (IndexType j=aux_Matrix_row_begin; j<aux_Matrix_row_end; j++) {
+            const IndexType col_index = InitialIndexColumn + aux_Matrix_index2[j];
+            AuxIndex2[RowEnd] = col_index;
+            AuxVals[RowEnd] = ContributionCoefficient * aux_values[j];
+            ++RowEnd;
+        }
+    }
+
     ///@}
     ///@name Access
     ///@{
