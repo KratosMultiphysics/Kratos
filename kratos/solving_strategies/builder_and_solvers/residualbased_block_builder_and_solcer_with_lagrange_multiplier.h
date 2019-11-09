@@ -76,6 +76,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier);
 
     /// Definition of the base class
+    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>   BaseBuilderAndSolverType;
     typedef ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     // The size_t types
@@ -210,7 +211,21 @@ public:
         ) override
     {
         KRATOS_TRY;
+
+        BaseType::SetUpDofSet(pScheme, rModelPart);
+
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Organises the dofset in order to speed up the building phase
+     * @param rModelPart The model part of the problem to solve
+     */
+    void SetUpSystem(
+        ModelPart& rModelPart
+        ) override
+    {
+        BaseType::SetUpSystem(rModelPart);
     }
 
     /**
