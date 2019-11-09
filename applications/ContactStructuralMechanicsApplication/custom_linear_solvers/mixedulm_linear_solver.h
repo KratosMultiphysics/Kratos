@@ -1155,22 +1155,22 @@ protected:
 
                 // Get access to master_auxKSAN data
                 if (master_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    ComputeNonZeroBlocks(master_auxKSAN, i, K_disp_modified_cols_aux2);
+                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks<SparseMatrixType>(master_auxKSAN, i, K_disp_modified_cols_aux2);
                 }
 
                 // Get access to master_auxKSAM data
                 if (master_auxKSAM.nnz() > 0) {
-                    ComputeNonZeroBlocks(master_auxKSAM, i, K_disp_modified_cols_aux2);
+                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks<SparseMatrixType>(master_auxKSAM, i, K_disp_modified_cols_aux2);
                 }
 
                 // Get access to master_auxKSASI data
                 if (master_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    ComputeNonZeroBlocks(master_auxKSASI, i, K_disp_modified_cols_aux2);
+                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks<SparseMatrixType>(master_auxKSASI, i, K_disp_modified_cols_aux2);
                 }
 
                 // Get access to master_auxKSASA data
                 if (master_auxKSASA.nnz() > 0 && slave_active_size > 0) {
-                    ComputeNonZeroBlocks(master_auxKSASA, i, K_disp_modified_cols_aux2);
+                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks<SparseMatrixType>(master_auxKSASA, i, K_disp_modified_cols_aux2);
                 }
 
                 K_disp_modified_ptr_aux2[master_dof_initial_index + i + 1] = K_disp_modified_cols_aux2;
@@ -1183,22 +1183,22 @@ protected:
 
                 // Get access to aslave_auxKSAN data
                 if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSAN, i, K_disp_modified_cols_aux2);
+                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks<SparseMatrixType>(aslave_auxKSAN, i, K_disp_modified_cols_aux2);
                 }
 
                 // Get access to aslave_auxKSAM data
                 if (aslave_auxKSAM.nnz() > 0 && master_size > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSAM, i, K_disp_modified_cols_aux2);
+                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks<SparseMatrixType>(aslave_auxKSAM, i, K_disp_modified_cols_aux2);
                 }
 
                 // Get access to aslave_auxKSASI data
                 if (aslave_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSASI, i, K_disp_modified_cols_aux2);
+                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks<SparseMatrixType>(aslave_auxKSASI, i, K_disp_modified_cols_aux2);
                 }
 
                 // Get access to aslave_auxKSASA data
                 if (aslave_auxKSASA.nnz() > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSASA, i, K_disp_modified_cols_aux2);
+                    SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks<SparseMatrixType>(aslave_auxKSASA, i, K_disp_modified_cols_aux2);
                 }
 
                 K_disp_modified_ptr_aux2[assembling_slave_dof_initial_index + i + 1] = K_disp_modified_cols_aux2;
@@ -1552,31 +1552,6 @@ private:
             }
         }
     }
-
-    /**
-     * @brief This is a method to check the block containing nonzero values
-     * @param AuxK The auxiliar block
-     * @param CurrentRow The current row computed
-     * @param KDispModifiedColsAux2 The nonzero rows array
-     */
-    inline void ComputeNonZeroBlocks(
-        const SparseMatrixType& AuxK,
-        const int CurrentRow,
-        IndexType& KDispModifiedColsAux2
-        )
-    {
-        // Get access to aux_K data
-        const IndexType* aux_K_index1 = AuxK.index1_data().begin();
-
-        const IndexType row_begin = aux_K_index1[CurrentRow];
-        const IndexType row_end   = aux_K_index1[CurrentRow + 1];
-
-        for (IndexType j=row_begin; j<row_end; j++) {
-            ++KDispModifiedColsAux2;
-        }
-    }
-
-
 
     /**
      * @brief It allocates all the blocks and operators

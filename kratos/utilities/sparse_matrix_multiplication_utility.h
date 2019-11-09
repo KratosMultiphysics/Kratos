@@ -728,6 +728,35 @@ public:
 
         #pragma omp parallel
         {
+            #pragma omp for
+            for (int i=0; i<static_cast<int>(number_of_rows); i++) {
+                for (int j=0; j<static_cast<int>(number_of_columns); j++) {
+                }
+            }
+        }
+    }
+
+    /**
+     * @brief This is a method to check the block containing nonzero values
+     * @param rMatrix The auxiliar block
+     * @param CurrentRow The current row computed
+     * @param rNonZeroColsAux2 The nonzero rows array
+     */
+    template <class TMatrix>
+    static inline void ComputeNonZeroBlocks(
+        const TMatrix& rMatrix,
+        const int CurrentRow,
+        IndexType& rNonZeroColsAux2
+        )
+    {
+        // Get access to aux_K data
+        const IndexType* aux_matrix_index1 = rMatrix.index1_data().begin();
+
+        const IndexType row_begin = aux_matrix_index1[CurrentRow];
+        const IndexType row_end   = aux_matrix_index1[CurrentRow + 1];
+
+        for (IndexType j=row_begin; j<row_end; j++) {
+            ++rNonZeroColsAux2;
         }
     }
 
