@@ -395,7 +395,7 @@ public:
      */
     SubPropertiesContainerType& GetSubProperties()
     {
-        return SubPropertiesList();
+        return mSubPropertiesList;
     }
 
     /**
@@ -404,7 +404,7 @@ public:
      */
     SubPropertiesContainerType const& GetSubProperties() const
     {
-        return SubPropertiesList();
+        return mSubPropertiesList;
     }
 
     /**
