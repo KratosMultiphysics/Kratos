@@ -22,13 +22,8 @@
 #include "includes/define_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 
-#include "spaces/ublas_space.h"
-
 //statistics
 #include "custom_statistics/power_sums_statistics.h"
-
-//linear solvers
-#include "linear_solvers/linear_solver.h"
 
 
 namespace Kratos {

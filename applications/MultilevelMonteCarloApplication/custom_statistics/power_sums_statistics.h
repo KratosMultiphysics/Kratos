@@ -23,6 +23,7 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "geometries/geometry.h"
+#include "utilities/variable_utils.h"
 #include "multilevel_monte_carlo_application_variables.h"
 
 // Application includes
@@ -96,9 +97,14 @@ namespace Kratos
         ///@{
 
         /**
-         * @brief Function executing the weighted time average of PRESSURE_WEIGHTED
+         * @brief Function initializing the statistic utilities
          */
-        void Execute() override;
+        void ExecuteInitialize() override;
+
+        /**
+         * @brief Function updating statistics at each time step
+         */
+        void ExecuteFinalizeSolutionStep() override;
 
         ///@}
         ///@name Access

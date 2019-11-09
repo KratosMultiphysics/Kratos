@@ -65,8 +65,21 @@ namespace Kratos
         this->PrintInfo(rOStream);
     }
 
-    // Execution
-    void PowerSumsStatistics::Execute()
+    void PowerSumsStatistics::ExecuteInitialize()
+    {
+        KRATOS_TRY;
+
+        auto& r_nodes_array = mrModelPart.Nodes();
+        // Initialize power sums variables
+        VariableUtils().SetNonHistoricalVariableToZero(POWER_SUM_1, r_nodes_array);
+        VariableUtils().SetNonHistoricalVariableToZero(POWER_SUM_2, r_nodes_array);
+        // VariableUtils().SetNonHistoricalVariableToZero(POWER_SUM_3, r_nodes_array);
+        // VariableUtils().SetNonHistoricalVariableToZero(POWER_SUM_4, r_nodes_array);
+
+        KRATOS_CATCH("");
+    }
+
+    void PowerSumsStatistics::ExecuteFinalizeSolutionStep()
     {
         KRATOS_TRY;
 
