@@ -71,8 +71,6 @@ void register_eigensystem_solver(pybind11::module& m, const std::string& name)
 
 void AddCustomSolversToPython(pybind11::module& m)
 {
-    using complex = std::complex<double>;
-
     // --- direct solvers
 
     register_solver<EigenSparseLUSolver<double>>(m, "SparseLUSolver");
