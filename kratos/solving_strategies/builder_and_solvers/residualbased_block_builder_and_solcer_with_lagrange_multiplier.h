@@ -1,0 +1,394 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
+//
+//  Main authors:    Vicente Mataix
+//
+//
+#if !defined(KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER_WITH_LAGRANGE_MULTIPLIER )
+#define  KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER_WITH_LAGRANGE_MULTIPLIER
+
+/* System includes */
+
+/* External includes */
+
+/* Project includes */
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+
+namespace Kratos
+{
+
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/**
+ * @class ResidualBasedEliminationBuilderAndSolverWithLagrangeMultiplier
+ * @ingroup KratosCore
+ * @brief Current class provides an implementation for standard builder and solving operations.
+ * @details The RHS is constituted by the unbalanced loads (residual)
+ * Degrees of freedom are reordered putting the restrained degrees of freedom at
+ * the end of the system ordered in reverse order with respect to the DofSet.
+ * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
+ * this information.
+ * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
+ * Additionally the constraints are solver considering Lagrange multiplier (or double Lagrange multiplier)
+ * @tparam TSparseSpace The sparse system considered
+ * @tparam TDenseSpace The dense system considered
+ * @tparam TLinearSolver The linear solver considered
+ * @author Riccardo Rossi
+ */
+template<class TSparseSpace,
+         class TDenseSpace, //= DenseSpace<double>,
+         class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
+         >
+class ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier
+    : public ResidualBasedBlockBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Definition of the flags
+    KRATOS_DEFINE_LOCAL_FLAG( DOUBLE_LAGRANGE_MULTIPLIER );
+
+    /// Definition of the pointer
+    KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier);
+
+    /// Definition of the base class
+    typedef ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+
+    // The size_t types
+    typedef std::size_t SizeType;
+    typedef std::size_t IndexType;
+
+    /// Definition of the classes from the base class
+    typedef typename BaseType::TSchemeType TSchemeType;
+    typedef typename BaseType::TDataType TDataType;
+    typedef typename BaseType::DofsArrayType DofsArrayType;
+    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
+    typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
+    typedef typename BaseType::NodesArrayType NodesArrayType;
+    typedef typename BaseType::ElementsArrayType ElementsArrayType;
+    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
+
+    /// Additional definitions
+    typedef PointerVectorSet<Element, IndexedObject> ElementsContainerType;
+    typedef Element::EquationIdVectorType EquationIdVectorType;
+    typedef Element::DofsVectorType DofsVectorType;
+    typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrixType;
+
+    /// DoF types definition
+    typedef Node<3> NodeType;
+    typedef typename NodeType::DofType DofType;
+    typedef typename DofType::Pointer DofPointerType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /**
+     * @brief Default constructor. (with parameters)
+     */
+    explicit ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : BaseType(pNewLinearSystemSolver, ThisParameters)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                : "ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier",
+            "scale_diagonal"                      : true,
+            "silent_warnings"                     : false,
+            "consider_double_lagrange_multiplier" : true
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        // Setting flags
+        BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, ThisParameters["consider_double_lagrange_multiplier"].GetBool());
+    }
+
+    /**
+     * @brief Default constructor.
+     */
+    explicit ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        const bool ScaleDiagonal = true,
+        const bool SilentWarnings = false,
+        const bool ConsiderDoubleLagrangeMultiplier = true
+        ) : BaseType(pNewLinearSystemSolver, ScaleDiagonal, SilentWarnings)
+    {
+        // Setting flags
+        BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, ConsiderDoubleLagrangeMultiplier);
+    }
+
+    /** Destructor.
+     */
+    ~ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier() override
+    {
+    }
+
+    /**
+     * @brief Function to perform the build of the RHS. The vector could be sized as the total number
+     * of dofs or as the number of unrestrained ones
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rA The LHS matrix
+     * @param rb The RHS vector
+     */
+    void Build(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY
+
+        // Base build
+        BaseType::Build(pScheme, rModelPart, rA, rb);
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This function is designed to be called once to perform all the checks needed
+     * on the input provided. Checks can be "expensive" as the function is designed
+     * to catch user's errors.
+     * @param rModelPart The model part of the problem to solve
+     * @return 0 all ok
+     */
+    int Check(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        return 0;
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Function to perform the build of the RHS.
+     * @details The vector could be sized as the total number of dofs or as the number of unrestrained ones
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     */
+    void BuildRHS(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        KRATOS_CATCH("")
+    }
+
+
+    /**
+     * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
+     * and condition its Dofs.
+     * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the
+     * way the matrix and RHS are built
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     */
+    void SetUpDofSet(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart
+        ) override
+    {
+        KRATOS_TRY;
+        KRATOS_CATCH("");
+    }
+
+    void ResizeAndInitializeVectors(
+        typename TSchemeType::Pointer pScheme,
+        TSystemMatrixPointerType& pA,
+        TSystemVectorPointerType& pDx,
+        TSystemVectorPointerType& pb,
+        ModelPart& rModelPart
+        ) override
+    {
+    }
+
+    /**
+     * @brief
+     */
+    void CalculateReactions(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+    }
+
+    /**
+     * @brief Applies the constraints with master-slave relation matrix
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rA The LHS matrix
+     * @param rb The RHS vector
+     */
+    void ApplyConstraints(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This function is intended to be called at the end of the solution step to clean up memory storage not needed
+     */
+    void Clear() override
+    {
+        BaseType::Clear();
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    ///@}
+
+}; /* Class ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier */
+
+///@}
+
+///@name Type Definitions
+///@{
+
+// Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
+const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::DOUBLE_LAGRANGE_MULTIPLIER(Kratos::Flags::Create(3));
+
+///@}
+
+} /* namespace Kratos.*/
+
+#endif /* KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER  defined */
