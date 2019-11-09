@@ -317,10 +317,10 @@ class TestModelPart(KratosUnittest.TestCase):
         subsubprop4 = KratosMultiphysics.Properties(4)
         subprop3.AddSubProperties(subsubprop4)
 
-        self.assertEqual(model_part.HasSubProperties("1.2"), True)
-        self.assertEqual(model_part.HasSubProperties("1.3.2"), True)
-        self.assertEqual(model_part.HasSubProperties("1.2.3"), False)
-        self.assertEqual(model_part.HasSubProperties("3.1.1"), False)
+        self.assertEqual(model_part.HasProperties("1.2"), True)
+        self.assertEqual(model_part.HasProperties("1.3.2"), True)
+        self.assertEqual(model_part.HasProperties("1.2.3"), False)
+        self.assertEqual(model_part.HasProperties("3.1.1"), False)
 
     def test_model_part_elements(self):
         current_model = KratosMultiphysics.Model()
