@@ -684,6 +684,54 @@ public:
     }
 
     /**
+     * @brief This method assembles several sparse matrices into one large sparse matrix
+     * @param rMatricespBlocks The pointers to the matrices we are interested in assemble
+     * @param ContributionCoefficients The matrix containing the coefficients to be considered (copy, so we don't need to provide it)
+     * @param TransposeBlocks The matrix containing the flags telling us to transpose the blocks (copy, so we don't need to provide it)
+     */
+    template <class TMatrix>
+    static inline void ComputeAuxiliarValuesBlocks(
+        TMatrix& rMatrix,
+        const DenseMatrix<TMatrix*>& rMatricespBlocks,
+        DenseMatrix<double> ContributionCoefficients = DenseMatrix<double>(0,0),
+        DenseMatrix<bool> TransposeBlocks = DenseMatrix<bool>(0,0)
+        )
+    {
+        const SizeType number_of_rows = rMatricespBlocks.size1();
+        const SizeType number_of_columns = rMatricespBlocks.size2();
+
+        // Fill the matrices if they are empty
+        if (ContributionCoefficients.size1() == 0 && ContributionCoefficients.size2() == 0) {
+            ContributionCoefficients.resize(number_of_rows, number_of_columns);
+            for (IndexType i = 0; i < number_of_rows; ++i) {
+                for (IndexType j = 0; j < number_of_rows; ++j) {
+                    ContributionCoefficients(i, j) = 1.0;
+                }
+            }
+        } else {
+            KRATOS_ERROR_IF(ContributionCoefficients.size1() != number_of_rows || ContributionCoefficients.size2() != number_of_columns) << "The ContributionCoefficients dimensions" << ContributionCoefficients.size1() << " and " << ContributionCoefficients.size2() << "do not coincide with the dimensions of rMatricespBlocks" << number_of_rows << "and " << number_of_columns << std::endl;
+        }
+        if (TransposeBlocks.size1() == 0 && TransposeBlocks.size2() == 0) {
+            TransposeBlocks.resize(number_of_rows, number_of_columns);
+            for (IndexType i = 0; i < number_of_rows; ++i) {
+                for (IndexType j = 0; j < number_of_rows; ++j) {
+                    TransposeBlocks(i, j) = false;
+                }
+            }
+        } else {
+            KRATOS_ERROR_IF(TransposeBlocks.size1() != number_of_rows || TransposeBlocks.size2() != number_of_columns) << "The TransposeBlocks dimensions" << TransposeBlocks.size1() << " and " << TransposeBlocks.size2() << "do not coincide with the dimensions of rMatricespBlocks" << number_of_rows << "and " << number_of_columns << std::endl;
+        }
+
+        double* Matrix_values = rMatrix.value_data().begin();
+        const IndexType* Matrix_index1 = rMatrix.index1_data().begin();
+        const IndexType* Matrix_index2 = rMatrix.index2_data().begin();
+
+        #pragma omp parallel
+        {
+        }
+    }
+
+    /**
      * @brief This is a method to compute the contribution of the auxiliar blocks
      * @param AuxK The auxiliar block
      * @param AuxIndex2 The indexes of the non zero columns
