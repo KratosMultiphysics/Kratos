@@ -215,7 +215,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
             const std::size_t variable_key = it_variable->second->Key();
 
-            KRATOS_ERROR_IF(variable_key == 0) << This variable is not initialized in Kernel : " << *(i_variable->second)) << std::endl;
+            KRATOS_ERROR_IF(variable_key == 0) << "This variable is not initialized in Kernel : " << *(i_variable->second)) << std::endl;
 
             it->second->SetKey(variable_key);
         }
