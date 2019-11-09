@@ -79,6 +79,12 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// The flag that indicates if the blocks are allocated
+    KRATOS_DEFINE_LOCAL_FLAG( BLOCKS_ARE_ALLOCATED );
+
+    /// The flag that indicates if the solution is initialized
+    KRATOS_DEFINE_LOCAL_FLAG( IS_INITIALIZED );
+
     /// Pointer definition of MixedULMLinearSolver
     KRATOS_CLASS_POINTER_DEFINITION (MixedULMLinearSolver);
 
@@ -150,8 +156,8 @@ public:
             mpSolverDispBlock(pSolverDispBlock)
     {
         // Initializing the remaining variables
-        mBlocksAreAllocated = false;
-        mIsInitialized = false;
+        mOptions.Set(BLOCKS_ARE_ALLOCATED, false);
+        mOptions.Set(IS_INITIALIZED, false);
     }
 
     /**
@@ -177,8 +183,8 @@ public:
         this->SetTolerance( ThisParameters["tolerance"].GetDouble() );
         this->SetMaxIterationsNumber( ThisParameters["max_iteration_number"].GetInt() );
         mEchoLevel = ThisParameters["echo_level"].GetInt();
-        mBlocksAreAllocated = false;
-        mIsInitialized = false;
+        mOptions.Set(BLOCKS_ARE_ALLOCATED, false);
+        mOptions.Set(IS_INITIALIZED, false);
 
         KRATOS_CATCH("")
     }
@@ -188,8 +194,7 @@ public:
     MixedULMLinearSolver (const MixedULMLinearSolver& rOther)
         : BaseType(rOther),
           mpSolverDispBlock(rOther.mpSolverDispBlock),
-          mBlocksAreAllocated(rOther.mBlocksAreAllocated),
-          mIsInitialized(rOther.mIsInitialized),
+          mOptions(rOther.mOptions),
           mMasterIndices(rOther.mMasterIndices),
           mSlaveInactiveIndices(rOther.mSlaveInactiveIndices),
           mSlaveActiveIndices(rOther.mSlaveActiveIndices),
@@ -250,9 +255,9 @@ public:
         VectorType& rB
         ) override
     {
-        if (mBlocksAreAllocated == true) {
+        if (mOptions.Is(BLOCKS_ARE_ALLOCATED)) {
             mpSolverDispBlock->Initialize(mKDispModified, mDisp, mResidualDisp);
-            mIsInitialized = true;
+            mOptions.Set(IS_INITIALIZED, true);
         } else
             KRATOS_DETAIL("MixedULM Initialize") << "Linear solver intialization is deferred to the moment at which blocks are available" << std::endl;
     }
@@ -273,15 +278,15 @@ public:
         ) override
     {
         // Copy to local matrices
-        if (mBlocksAreAllocated == false) {
+        if (mOptions.IsNot(BLOCKS_ARE_ALLOCATED)) {
             FillBlockMatrices (true, rA, rX, rB);
-            mBlocksAreAllocated = true;
+            mOptions.Set(BLOCKS_ARE_ALLOCATED, true);
         } else {
             FillBlockMatrices (false, rA, rX, rB);
-            mBlocksAreAllocated = true;
+            mOptions.Set(BLOCKS_ARE_ALLOCATED, true);
         }
 
-        if(mIsInitialized == false)
+        if(mOptions.IsNot(IS_INITIALIZED))
             this->Initialize(rA,rX,rB);
 
         mpSolverDispBlock->InitializeSolutionStep(mKDispModified, mDisp, mResidualDisp);
@@ -366,7 +371,7 @@ public:
      */
     void Clear() override
     {
-        mBlocksAreAllocated = false;
+        mOptions.Set(BLOCKS_ARE_ALLOCATED, false);
         mpSolverDispBlock->Clear();
 
         // We clear the matrixes and vectors
@@ -390,7 +395,7 @@ public:
         mLMInactive.clear(); /// The solution of the inactive LM
         mDisp.clear();       /// The solution of the displacement
 
-        mIsInitialized = false;
+        mOptions.Set(IS_INITIALIZED, false);
     }
 
     /**
@@ -420,7 +425,7 @@ public:
             TSparseSpaceType::WriteMatrixMarketVector(matrix_market_vectname.c_str(), rB);
         }
 
-        if (mIsInitialized == false)
+        if (mOptions.IsNot(IS_INITIALIZED))
             this->Initialize (rA,rX,rB);
 
         this->InitializeSolutionStep (rA,rX,rB);
@@ -1301,8 +1306,7 @@ private:
 
     LinearSolverPointerType mpSolverDispBlock; /// The pointer to the displacement linear solver
 
-    bool mBlocksAreAllocated; /// The flag that indicates if the blocks are allocated
-    bool mIsInitialized;      /// The flag that indicates if the solution is mIsInitialized
+    Flags mOptions; /// This stores the flags
 
     IndexVectorType mMasterIndices;         /// The vector storing the indices of the master nodes in contact
     IndexVectorType mSlaveInactiveIndices;  /// The vector storing the indices of the slave nodes in contact (Inactive)
@@ -2076,6 +2080,13 @@ private:
 ///@}
 ///@name Type Definitions
 ///@{
+
+// Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
+template<class TSparseSpaceType, class TDenseSpaceType, class TPreconditionerType, class TReordererType>
+const Kratos::Flags MixedULMLinearSolver<TSparseSpaceType, TDenseSpaceType,TPreconditionerType, TReordererType>::BLOCKS_ARE_ALLOCATED(Kratos::Flags::Create(0));
+template<class TSparseSpaceType, class TDenseSpaceType, class TPreconditionerType, class TReordererType>
+const Kratos::Flags MixedULMLinearSolver<TSparseSpaceType, TDenseSpaceType,TPreconditionerType, TReordererType>::IS_INITIALIZED(Kratos::Flags::Create(1));
+
 ///@}
 ///@name Input and output
 ///@{
