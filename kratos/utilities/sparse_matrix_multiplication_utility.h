@@ -772,8 +772,8 @@ public:
                     for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
                         if (TransposeBlocks(i, j)) {
                             // We compute the transposed matrix
-                            const SizeType size_system_1 = *rMatricespBlocks(i, j).size1();
-                            const SizeType size_system_2 = *rMatricespBlocks(i, j).size2();
+                            const SizeType size_system_1 = rMatricespBlocks(i, j)->size1();
+                            const SizeType size_system_2 = rMatricespBlocks(i, j)->size2();
                             TMatrix transpose(size_system_2, size_system_1);
                             TransposeMatrix<TMatrix, TMatrix>(transpose, *rMatricespBlocks(i, j));
                             ComputeNonZeroBlocks<TMatrix>(transpose, k, matrix_cols_aux);
@@ -807,8 +807,8 @@ public:
                         const SizeType initial_index_column = std::accumulate(column_sizes.begin(), column_sizes.begin() + j, 0);
                         if (TransposeBlocks(i, j)) {
                             // We compute the transposed matrix
-                            const SizeType size_system_1 = *rMatricespBlocks(i, j).size1();
-                            const SizeType size_system_2 = *rMatricespBlocks(i, j).size2();
+                            const SizeType size_system_1 = rMatricespBlocks(i, j)->size1();
+                            const SizeType size_system_2 = rMatricespBlocks(i, j)->size2();
                             TMatrix transpose(size_system_2, size_system_1);
                             TransposeMatrix<TMatrix, TMatrix>(transpose, *rMatricespBlocks(i, j));
                             ComputeAuxiliarValuesBlocks<TMatrix>(transpose, Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
