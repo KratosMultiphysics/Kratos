@@ -178,30 +178,17 @@ public:
     }
 
     /**
-     * @brief This function is designed to be called once to perform all the checks needed
-     * on the input provided. Checks can be "expensive" as the function is designed
-     * to catch user's errors.
-     * @param rModelPart The model part of the problem to solve
-     * @return 0 all ok
-     */
-    int Check(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
-
-        return 0;
-        KRATOS_CATCH("");
-    }
-
-    /**
      * @brief Function to perform the build of the RHS.
      * @details The vector could be sized as the total number of dofs or as the number of unrestrained ones
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
+     * @param rb The RHS vector
      */
     void BuildRHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemVectorType& b) override
+        TSystemVectorType& rb
+        ) override
     {
         KRATOS_TRY
 
@@ -226,6 +213,9 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief
+     */
     void ResizeAndInitializeVectors(
         typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType& pA,
@@ -247,6 +237,27 @@ public:
         TSystemVectorType& rb
         ) override
     {
+        TSparseSpace::SetToZero(rb);
+
+        // Refresh RHS to have the correct reactions
+        BaseType::BuildRHSNoDirichlet(pScheme, rModelPart, rb);
+
+        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
+
+        // First iterator
+        const auto it_dof_begin = BaseType::mDofSet.begin();
+
+        //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        #pragma omp parallel for
+        for (int k = 0; k<ndofs; k++) {
+            auto it_dof =  it_dof_begin + k;
+
+            if (it_dof->IsFixed()) {
+                it_dof->GetSolutionStepReactionValue() = -rb[it_dof->EquationId()];
+            }
+        }
+
+        // NOTE: The constraints reactions are already computed when solving the dofs
     }
 
     /**
@@ -274,6 +285,22 @@ public:
     void Clear() override
     {
         BaseType::Clear();
+    }
+
+    /**
+     * @brief This function is designed to be called once to perform all the checks needed
+     * on the input provided. Checks can be "expensive" as the function is designed
+     * to catch user's errors.
+     * @param rModelPart The model part of the problem to solve
+     * @return 0 all ok
+     */
+    int Check(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        return BaseType::Check(rModelPart);
+
+        KRATOS_CATCH("");
     }
 
     ///@}
