@@ -795,7 +795,12 @@ public:
 
         // Fill the new matrix
         double* Matrix_values = rMatrix.value_data().begin();
+        IndexType* Matrix_index1 = rMatrix.index1_data().begin();
         IndexType* Matrix_index2 = rMatrix.index2_data().begin();
+
+        Matrix_index1[0] = 0;
+        for (IndexType i = 0; i < nrows; ++i)
+            Matrix_index1[i+1] = Matrix_index1[i] + (matrix_ptr[i + 1] - matrix_ptr[i]);
 
         #pragma omp parallel
         {
@@ -820,6 +825,9 @@ public:
                 }
             }
         }
+
+        // Close the matrix
+        rMatrix.set_filled(nrows+1, nonzero_values);
     }
 
     /**
