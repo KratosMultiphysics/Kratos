@@ -841,7 +841,8 @@ public:
         std::size_t* Acol_indices = rA.index2_data().begin();
 
         // The diagonal considered
-        const double diagonal_value = mOptions.Is(SCALE_DIAGONAL) ? TSparseSpace::TwoNorm(rA) : 1.0;
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+        const double diagonal_value = mOptions.Is(SCALE_DIAGONAL) ? r_process_info.Has(BUILD_SCALE_FACTOR) ? r_process_info[BUILD_SCALE_FACTOR] : TSparseSpace::TwoNorm(rA) : 1.0;
         
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         std::size_t col_begin = 0, col_end  = 0;
