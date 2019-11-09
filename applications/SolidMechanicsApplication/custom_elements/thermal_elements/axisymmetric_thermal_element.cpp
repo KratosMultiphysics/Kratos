@@ -71,7 +71,7 @@ AxisymmetricThermalElement&  AxisymmetricThermalElement::operator=(AxisymmetricT
 
 Element::Pointer AxisymmetricThermalElement::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared<AxisymmetricThermalElement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+  return Kratos::make_intrusive<AxisymmetricThermalElement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 

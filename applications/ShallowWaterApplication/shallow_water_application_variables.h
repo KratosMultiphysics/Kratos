@@ -20,9 +20,8 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/kratos_application.h"
-#include "includes/variables.h"
-#include "includes/cfd_variables.h"
+#include "containers/variable_component.h"
+#include "containers/vector_component_adaptor.h"
 
 namespace Kratos
 {
@@ -31,12 +30,17 @@ namespace Kratos
     enum Variables {FREE_SURFACE_VARIABLE = 0, VELOCITY_VARIABLE = 1, FREE_SURFACE_AND_VELOCITY = 2};
 
     // Shallow water variables
-    KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, HEIGHT)                               // Main variable
-    KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, BATHYMETRY)                           // Topographic definition of the marine domain
-    KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, TOPOGRAPHY)                           // Topographic definition of the domain
-    KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, RAIN)                                 // Source term
-    KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, FREE_SURFACE_ELEVATION)               // Free surface elevation from z=0 (HEIGHT = FREE_SURFACE - BATHYMETRY)
-    KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, MANNING)                              // Friction coefficient
+    KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, HEIGHT)                    // Main variable
+    KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, BATHYMETRY)                // Topographic definition of the marine domain
+    KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, TOPOGRAPHY)                // Topographic definition of the domain
+    KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, RAIN)                      // Source term
+    KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, FREE_SURFACE_ELEVATION)    // Free surface elevation from z=0 (HEIGHT = FREE_SURFACE - BATHYMETRY)
+    KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, MANNING)                   // Friction coefficient
+    KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, EQUIVALENT_MANNING)        // Redefinition of manning for the wetting drying model
+    KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, DRY_HEIGHT)                // Definition of the dry domain
+    KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, WATER_HEIGHT)              // For visualization purpose
+    KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, PERMEABILITY)              // Dry domain permeability
+    KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SHALLOW_WATER_APPLICATION, WATER_SURFACE)  // For visualization purpose, equivalent to free surface
     KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SHALLOW_WATER_APPLICATION, TOPOGRAPHY_GRADIENT)
 
     // Specific variables for PFEM2

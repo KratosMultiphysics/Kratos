@@ -133,7 +133,7 @@ public:
     ///@{
 
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(VMSAdjointElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(VMSAdjointElement);
 
     constexpr static unsigned int TNumNodes = TDim + 1;
 

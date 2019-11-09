@@ -291,9 +291,9 @@ public:
 
             // Compute smoothed nodal variables
             #pragma omp parallel for
-            for(int i = 0; i < NNodes; i++)
+            for(int n = 0; n < NNodes; n++)
             {
-                ModelPart::NodesContainerType::iterator itNode = node_begin + i;
+                ModelPart::NodesContainerType::iterator itNode = node_begin + n;
 
                 const double& NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
                 if (NodalArea>1.0e-20)

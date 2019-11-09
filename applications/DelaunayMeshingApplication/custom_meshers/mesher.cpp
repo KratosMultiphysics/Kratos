@@ -362,10 +362,10 @@ namespace Kratos
       std::cout<<"   Initial Faces : "<<rModelPart.Conditions().size()<<std::endl;
     }
 
-    ModelPart::ElementsContainerType::const_iterator el_begin = rModelPart.ElementsBegin();
+    ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
 
     int facecounter=0;
-    for(ModelPart::ElementsContainerType::const_iterator ci_elem = rModelPart.ElementsBegin();
+    for(ModelPart::ElementsContainerType::iterator ci_elem = rModelPart.ElementsBegin();
 	ci_elem != rModelPart.ElementsEnd(); ++ci_elem)
       {
 	int Id= ci_elem->Id() - 1;
@@ -385,11 +385,11 @@ namespace Kratos
 
 	    if(index > 0)
 	      {
-		nElements(i) = *(el_begin + index -1).base();
+		nElements(i) = GlobalPointer<Element>(*(el_begin + index -1).base());
 	      }
 	    else
 	      {
-		nElements(i) = *ci_elem.base();
+		nElements(i) = GlobalPointer<Element>(*ci_elem.base());
 		facecounter++;
 	      }
 	  }

@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 # other imports
-from time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
+from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -33,6 +33,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
             "position"          : [],
             "output_variables"  : [],
             "historical_value"  : true,
+            "search_tolerance"  : 1e-6,
             "print_format"      : "",
             "output_file_settings": {}
         }''')
@@ -51,6 +52,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
 
         self.format = self.params["print_format"].GetString()
         self.historical_value = self.params["historical_value"].GetBool()
+        self.search_tolerance = self.params["search_tolerance"].GetDouble()
 
     def ExecuteInitialize(self):
         # getting the ModelPart from the Model
@@ -93,20 +95,19 @@ class PointOutputProcess(KratosMultiphysics.Process):
         entity_type = self.params["entity_type"].GetString()
 
         if entity_type == "node":
-            tol = 1e-6
-            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindNode(point, tol)
+            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindNode(point, self.search_tolerance)
             if found_id > -1:
                 self.entity.append(self.model_part.Nodes[found_id]) # note that this is a find!
                 self.area_coordinates.append("dummy") # needed for looping later
         elif entity_type == "element":
             self.sf_values = KratosMultiphysics.Vector()
-            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindElement(point, self.sf_values)
+            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindElement(point, self.sf_values, self.search_tolerance)
             if found_id > -1:
                 self.entity.append(self.model_part.Elements[found_id]) # note that this is a find!
                 self.area_coordinates.append(self.sf_values)
         elif entity_type == "condition":
             self.sf_values = KratosMultiphysics.Vector()
-            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindCondition(point, self.sf_values)
+            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindCondition(point, self.sf_values, self.search_tolerance)
             if found_id > -1:
                 self.entity.append(self.model_part.Conditions[found_id]) # note that this is a find!
                 self.area_coordinates.append(self.sf_values)
@@ -122,9 +123,10 @@ class PointOutputProcess(KratosMultiphysics.Process):
         # Here we also check if the point has been found in more than one partition
         # In sich a case only one rank (the one with the larger PID) writes the output!
         my_rank = -1 # dummy to indicate that the point is not in my partition
+        comm = self.model_part.GetCommunicator().GetDataCommunicator()
         if found_id > -1: # the point lies in my partition
-            my_rank = self.model_part.GetCommunicator().MyPID()
-        writing_rank = self.model_part.GetCommunicator().MaxAll(my_rank) # The partition with the larger rank writes
+            my_rank = comm.Rank()
+        writing_rank = comm.MaxAll(my_rank) # The partition with the larger rank writes
 
         if my_rank == writing_rank:
 

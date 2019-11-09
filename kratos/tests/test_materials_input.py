@@ -7,6 +7,7 @@ import sys
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtils
+from KratosMultiphysics import read_materials_process
 
 dependencies_are_available = KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication", "FluidDynamicsApplication")
 if dependencies_are_available:
@@ -41,13 +42,13 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
     def _check_results(self):
         #test if the element properties are assigned correctly to the elements and conditions
-        for elem in self.current_model["Inlets"].Elements:
+        for elem in self.current_model["Main.Inlets"].Elements:
             self.assertEqual(elem.Properties.Id, 1)
-        for cond in self.current_model["Inlets"].Conditions:
+        for cond in self.current_model["Main.Inlets"].Conditions:
             self.assertEqual(cond.Properties.Id, 1)
-        for elem in self.current_model["Outlet"].Elements:
+        for elem in self.current_model["Main.Outlet"].Elements:
             self.assertEqual(elem.Properties.Id, 2)
-        for cond in self.current_model["Outlet"].Conditions:
+        for cond in self.current_model["Main.Outlet"].Conditions:
             self.assertEqual(cond.Properties.Id, 2)
 
         #test that the properties are read correctly
@@ -84,7 +85,6 @@ class TestMaterialsInput(KratosUnittest.TestCase):
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication or FluidDynamicsApplication are not available")
     def test_input_python(self):
         self._prepare_test()
-        import read_materials_process
         read_materials_process.Factory(self.test_settings,self.current_model)
         self._check_results()
 
@@ -96,7 +96,6 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         self._check_results()
 
     def test_overdefined_materials(self):
-        import read_materials_process
         current_model = KratosMultiphysics.Model()
         test_settings = KratosMultiphysics.Parameters(""" { "Parameters": { "materials_filename": ""}} """)
 
@@ -104,43 +103,47 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         test_settings["Parameters"]["materials_filename"].SetString(
             GetFilePath(os.path.join("auxiliar_files_for_python_unnitest","materials_files","wrong_materials_input","wrong_materials_1.json")))
         expected_error_msg = "Error: Materials for ModelPart \"Main\" are specified multiple times!"
-
         with self.assertRaisesRegex(RuntimeError, expected_error_msg):
             KratosMultiphysics.ReadMaterialsUtility(test_settings, current_model)
-        with self.assertRaisesRegex(Exception, expected_error_msg):
-            read_materials_process.Factory(test_settings, current_model)
-
 
         test_settings["Parameters"]["materials_filename"].SetString(
             GetFilePath(os.path.join("auxiliar_files_for_python_unnitest","materials_files","wrong_materials_input","wrong_materials_2.json")))
         expected_error_msg = "Error: Materials for ModelPart \"Main.sub\" are specified multiple times!"
-
         with self.assertRaisesRegex(RuntimeError, expected_error_msg):
             KratosMultiphysics.ReadMaterialsUtility(test_settings, current_model)
-        with self.assertRaisesRegex(Exception, expected_error_msg):
-            read_materials_process.Factory(test_settings, current_model)
-
 
         test_settings["Parameters"]["materials_filename"].SetString(
             GetFilePath(os.path.join("auxiliar_files_for_python_unnitest","materials_files","wrong_materials_input","wrong_materials_3.json")))
-        expected_error_msg =  "Error: Materials for ModelPart \"Main.sub\" are specified multiple times!\n"
-        expected_error_msg += "Overdefined due to also specifying the materials for Parent-ModelPart \"Main\"!"
-
+        expected_error_msg =  "Error: Materials for SubModelPart \"Main.sub\" is being overrided by Parent Model Part \"Main\"!\n"
         with self.assertRaisesRegex(RuntimeError, expected_error_msg):
             KratosMultiphysics.ReadMaterialsUtility(test_settings, current_model)
-        with self.assertRaisesRegex(Exception, expected_error_msg):
-            read_materials_process.Factory(test_settings, current_model)
-
 
         test_settings["Parameters"]["materials_filename"].SetString(
             GetFilePath(os.path.join("auxiliar_files_for_python_unnitest","materials_files","wrong_materials_input","wrong_materials_4.json")))
-        expected_error_msg =  "Error: Materials for ModelPart \"Main.sub1.subsub\" are specified multiple times!\n"
-        expected_error_msg += "Overdefined due to also specifying the materials for Parent-ModelPart \"Main.sub1\"!"
-
+        expected_error_msg =  "Error: Materials for SubModelPart \"Main.sub1.subsub\" is being overrided by Parent Model Part \"Main.sub1\"!\n"
         with self.assertRaisesRegex(RuntimeError, expected_error_msg):
             KratosMultiphysics.ReadMaterialsUtility(test_settings, current_model)
-        with self.assertRaisesRegex(Exception, expected_error_msg):
-            read_materials_process.Factory(test_settings, current_model)
+
+        test_settings["Parameters"]["materials_filename"].SetString(
+            GetFilePath(os.path.join("auxiliar_files_for_python_unnitest","materials_files","wrong_materials_input","wrong_materials_5.json")))
+        expected_error_msg =  "Error: Materials for SubModelPart \"Main.sub1.subsub\" is being overrided by Parent Model Part \"Main\"!\n"
+        with self.assertRaisesRegex(RuntimeError, expected_error_msg):
+            KratosMultiphysics.ReadMaterialsUtility(test_settings, current_model)
+
+    @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication or FluidDynamicsApplication are not available")
+    def test_input_without_tables_and_variables(self):
+        self._prepare_test()
+        self.test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("auxiliar_files_for_python_unnitest/materials_files/material_without_tables_and_variables.json"))
+
+        KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
+        for elem in self.current_model["Main.Inlets"].Elements:
+            self.assertEqual(elem.Properties.Id, 1)
+        for cond in self.current_model["Main.Inlets"].Conditions:
+            self.assertEqual(cond.Properties.Id, 1)
+        for elem in self.current_model["Main.Outlet"].Elements:
+            self.assertEqual(elem.Properties.Id, 2)
+        for cond in self.current_model["Main.Outlet"].Conditions:
+            self.assertEqual(cond.Properties.Id, 2)
 
 
 if __name__ == '__main__':

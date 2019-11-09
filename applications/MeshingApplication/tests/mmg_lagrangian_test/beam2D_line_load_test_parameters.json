@@ -32,7 +32,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","LineLoad2D_Load_on_lines_Auto1"],
+        "processes_sub_model_part_list"      : ["Structure","Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","LineLoad2D_Load_on_lines_Auto1"],
         "auxiliary_variables_list" : []
     },
     "processes"        : {
@@ -86,6 +86,7 @@
                     "refer_type"                       : "Mean"
                 },
                 "initial_remeshing"                : false,
+                "initial_step"                     : 10,
                 "step_frequency"                   : 10,
                 "enforce_current"                   : true,
                 "filename"                         : "mmg_lagrangian_test/beam2D_line_load_test",
@@ -105,7 +106,8 @@
                 "reference_file_name"   : "mmg_lagrangian_test/beam2D_line_load_test_result.sol",
                 "output_file_name"      : "mmg_lagrangian_test/beam2D_line_load_test_step=10.sol",
                 "dimension"             : 2,
-                "decimal_places"        : 5,
+                "tolerance"             : 1.0e-3,
+                "relative_tolerance"    : 1.0e-3,
                 "comparison_type"       : "sol_file"
             }
         }

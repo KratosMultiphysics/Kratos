@@ -60,7 +60,7 @@ public:
     ///@{
 
     /// Pointer definition of FIC
-    KRATOS_CLASS_POINTER_DEFINITION(FIC);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FIC);
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;

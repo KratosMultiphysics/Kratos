@@ -77,7 +77,7 @@ namespace Kratos
 
   Condition::Pointer ContactDomainCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
   {
-    return Kratos::make_shared<ContactDomainCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
+    return Kratos::make_intrusive<ContactDomainCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
   }
 
 
@@ -434,7 +434,7 @@ namespace Kratos
 
     MeshDataTransferUtilities DataTransfer;
     Element*   MasterElement   = &GetValue(MASTER_ELEMENTS).front();
-    Condition* MasterCondition = GetValue(MASTER_CONDITION).lock().get();
+    Condition* MasterCondition = GetValue(MASTER_CONDITION).get();
     DataTransfer.TransferBoundaryData(MasterElement,MasterCondition,TransferVariables,CurrentProcessInfo);
 
     KRATOS_CATCH( "" )

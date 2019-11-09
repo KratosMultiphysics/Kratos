@@ -71,7 +71,7 @@ public:
     typedef typename BaseType::IntegrationMethod IntegrationMethod;
     typedef typename BaseType::GeometryDataType GeometryDataType;
 
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointFiniteDifferencingShellElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointFiniteDifferencingShellElement);
     ///@}
 
     ///@name Classes
@@ -109,7 +109,7 @@ public:
                               NodesArrayType const& ThisNodes,
                               typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointFiniteDifferencingShellElement<TPrimalElement>>(
+        return Kratos::make_intrusive<AdjointFiniteDifferencingShellElement<TPrimalElement>>(
             NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
@@ -117,7 +117,7 @@ public:
                               typename GeometryType::Pointer pGeometry,
                               typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointFiniteDifferencingShellElement<TPrimalElement>>(
+        return Kratos::make_intrusive<AdjointFiniteDifferencingShellElement<TPrimalElement>>(
             NewId, pGeometry, pProperties);
     }
 

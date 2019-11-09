@@ -9,24 +9,22 @@
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_D_Linear_Custom_Constants : public DEM_D_Linear_viscous_Coulomb {
-    
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Linear_Custom_Constants);
 
         DEM_D_Linear_Custom_Constants() {}
 
-        void Initialize(const ProcessInfo& r_process_info) override;
-
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         ~DEM_D_Linear_Custom_Constants() {}
 
-        DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;       
+        DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
-        void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override;  
+        void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override;
         void InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta = 0.0) override;
-        
+
     private:
 
         friend class Serializer;

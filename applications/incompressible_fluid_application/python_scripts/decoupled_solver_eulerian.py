@@ -4,9 +4,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 # from KratosMultiphysics.ExternalSolversApplication import * # For SuperLU solver
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY)

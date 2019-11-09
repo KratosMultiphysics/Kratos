@@ -33,7 +33,7 @@ class TwoFluidHydrostaticPoolTest(UnitTest.TestCase):
         self.waterLevel = 0.5
         self.work_folder = "TwoFluidStaticPoolTest"
         self.settings = "TwoFluidStaticPoolTest2D.json"
-        self.check_tolerance = 1e-10
+        self.check_tolerance = 1e-9
         self.check_toleranceDistance = 0.05
         self.gravitationalAcceleration = 9.81
         self.domainHeight = 1.0

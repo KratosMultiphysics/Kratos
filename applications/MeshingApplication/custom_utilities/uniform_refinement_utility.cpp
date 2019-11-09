@@ -1,8 +1,8 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
+//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
+//        | |  | | |___ ___) |  _  || || |\  | |_| |
+//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "includes/global_pointer_variables.h"
 #include "uniform_refinement_utility.h"
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
 
@@ -96,11 +97,12 @@ void UniformRefinementUtility::Refine(int& rFinalRefinementLevel)
 {
     if (mrModelPart.Nodes().size() == 0)
         KRATOS_WARNING("UniformRefinementUtility") << "Attempting to refine an empty model part" << std::endl;
-    else
-    {
-        mDofs = mrModelPart.NodesBegin()->GetDofs();
-        for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
-            it_dof->FreeDof();
+    else {
+        const auto& r_old_dofs = mrModelPart.NodesBegin()->GetDofs();
+        for (auto it_dof = r_old_dofs.begin(); it_dof != r_old_dofs.end(); ++it_dof)
+            mDofs.push_back(Kratos::make_unique<NodeType::DofType>(**it_dof));
+        for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
+            (**it_dof).FreeDof();
     }
 
     // Get the lowest refinement level
@@ -255,9 +257,9 @@ void UniformRefinementUtility::ExecuteDivision(
             std::vector<NodeType::Pointer> middle_nodes(3); // 3 edges
 
             // Loop the edges to get or create the middle nodes
-            for (auto edge : geom.Edges())
+            for (auto edge : geom.GenerateEdges())
                 middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
-            
+
             // Split the triangle
             PointerVector<NodeType> sub_element_nodes(3);    // a triangle is defined by 3 nodes
             for (int position = 0; position < 4; position++) // there are 4 sub triangles
@@ -273,7 +275,7 @@ void UniformRefinementUtility::ExecuteDivision(
             std::vector<NodeType::Pointer> middle_nodes(5); // 4 edges and the quadrilateral itself
 
             // Loop the edges to get or create the middle nodes
-            for (auto edge : geom.Edges())
+            for (auto edge : geom.GenerateEdges())
                 middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
             middle_nodes[i_node++] = GetNodeInFace(FaceType{geom}, step_divisions_level, rTagNodes, collection_tag);
 
@@ -292,7 +294,7 @@ void UniformRefinementUtility::ExecuteDivision(
             std::vector<NodeType::Pointer> middle_nodes(6); // 6 edges
 
             // Loop the edges to get or create the middle nodes
-            for (auto edge : geom.Edges())
+            for (auto edge : geom.GenerateEdges())
                 middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
 
             // Split the tetrahedra
@@ -310,9 +312,9 @@ void UniformRefinementUtility::ExecuteDivision(
             std::vector<NodeType::Pointer> middle_nodes(19); // 12 edges, 6 faces and the hexahedra itself
 
             // Loop the edges to get or create the middle nodes
-            for (auto edge : geom.Edges())
+            for (auto edge : geom.GenerateEdges())
                 middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
-            for (auto face : geom.Faces())
+            for (auto face : geom.GenerateFaces())
                 middle_nodes[i_node++] = GetNodeInFace(FaceType{face}, step_divisions_level, rTagNodes, collection_tag);
             middle_nodes[i_node++] = GetNodeInBody(BodyType{geom}, step_divisions_level, rTagNodes,collection_tag);
 
@@ -367,7 +369,7 @@ void UniformRefinementUtility::ExecuteDivision(
             IndexType i_node = 0;
             std::vector<NodeType::Pointer> middle_nodes(3);
             // Loop the edges to get or create the middle nodes
-            for (auto edge : geom.Edges())
+            for (auto edge : geom.GenerateEdges())
                 middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
 
             PointerVector<NodeType> sub_condition_nodes(3);    // a triangle is defined by 3 nodes
@@ -383,7 +385,7 @@ void UniformRefinementUtility::ExecuteDivision(
             IndexType i_node = 0;
             std::vector<NodeType::Pointer> middle_nodes(5);
             // Loop the edges to get or create the middle nodes
-            for (auto edge : geom.Edges())
+            for (auto edge : geom.GenerateEdges())
                 middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
             middle_nodes[i_node++] = GetNodeInFace(FaceType{geom}, step_divisions_level, rTagNodes, collection_tag);
 
@@ -475,8 +477,8 @@ typename NodeType::Pointer UniformRefinementUtility::CreateNodeInEdge(
     middle_node->Set(NEW_ENTITY, true);
 
     // Set the DoF's
-    for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
-        middle_node->pAddDof(*it_dof);
+    for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
+        middle_node->pAddDof(**it_dof);
 
     return middle_node;
 }
@@ -549,8 +551,8 @@ typename NodeType::Pointer UniformRefinementUtility::CreateNodeInFace(
     middle_node->Set(NEW_ENTITY, true);
 
     // Set the DoF's
-    for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
-        middle_node->pAddDof(*it_dof);
+    for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
+        middle_node->pAddDof(**it_dof);
 
     return middle_node;
 }
@@ -587,8 +589,8 @@ typename NodeType::Pointer UniformRefinementUtility::GetNodeInBody(
     middle_node->Set(NEW_ENTITY, true);
 
     // Set the DoF's
-    for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
-        middle_node->pAddDof(*it_dof);
+    for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
+        middle_node->pAddDof(**it_dof);
 
     // Store the created node on the tags map in order to later add it to the sub model parts
     // IndexType tag = mNodesTags[rBody(0)->Id()];
@@ -616,7 +618,7 @@ void UniformRefinementUtility::CalculateNodalStepData(
             new_node_data[variable] = 0.5 * node_data_0[variable] + 0.5 * node_data_1[variable];
     }
 
-    WeakPointerVector<NodeType>& r_new_father_nodes = pNewNode->GetValue(FATHER_NODES);
+    GlobalPointersVector<NodeType>& r_new_father_nodes = pNewNode->GetValue(FATHER_NODES);
     r_new_father_nodes.clear();
     r_new_father_nodes = pNode0->GetValue(FATHER_NODES);
 
@@ -652,7 +654,7 @@ void UniformRefinementUtility::CalculateNodalStepData(
                                       0.25 * node_data_2[variable] + 0.25 * node_data_3[variable];
     }
 
-    WeakPointerVector<NodeType>& r_new_father_nodes = pNewNode->GetValue(FATHER_NODES);
+    GlobalPointersVector<NodeType>& r_new_father_nodes = pNewNode->GetValue(FATHER_NODES);
     r_new_father_nodes.clear();
     r_new_father_nodes = pNode0->GetValue(FATHER_NODES);
 
@@ -691,9 +693,9 @@ void UniformRefinementUtility::CalculateNodalStepData(
 
 /// Add the father nodes which does not exist in the current father nodes
 void UniformRefinementUtility::AddOtherFatherNodes(
-    WeakPointerVector<NodeType>& rThisFatherNodes,
+    GlobalPointersVector<NodeType>& rThisFatherNodes,
     std::vector<double>& rThisFatherWeights,
-    WeakPointerVector<NodeType>& rOtherFatherNodes,
+    GlobalPointersVector<NodeType>& rOtherFatherNodes,
     const std::vector<double>& rOtherFatherWeights,
     const double& rWeight
 )
@@ -701,13 +703,13 @@ void UniformRefinementUtility::AddOtherFatherNodes(
     for (auto& weight : rThisFatherWeights)
         weight *= (1-rWeight);
 
-    WeakPointerVector<NodeType>::iterator other_nodes_begin = rOtherFatherNodes.begin();
+    GlobalPointersVector<NodeType>::iterator other_nodes_begin = rOtherFatherNodes.begin();
     for (IndexType o = 0; o < rOtherFatherNodes.size(); o++)
     {
         auto other_node = other_nodes_begin + o;
         bool other_not_found = true;
 
-        WeakPointerVector<NodeType>::iterator this_nodes_begin = rThisFatherNodes.begin();
+        GlobalPointersVector<NodeType>::iterator this_nodes_begin = rThisFatherNodes.begin();
         for (IndexType t = 0; (t < rThisFatherNodes.size()) && (other_not_found); t++)
         {
             auto this_node = this_nodes_begin + t;
@@ -736,7 +738,7 @@ void UniformRefinementUtility::CreateElement(
 {
     Element::Pointer sub_element = pOriginElement->Clone(++mLastElemId, rThisNodes);
 
-    if (sub_element != nullptr)
+    if (sub_element.get() != nullptr)
     {
         // Add the element to the origin model part
         mrModelPart.AddElement(sub_element);
@@ -766,7 +768,7 @@ void UniformRefinementUtility::CreateCondition(
 {
     Condition::Pointer sub_condition = pOriginCondition->Clone(++mLastCondId, rThisNodes);
 
-    if (sub_condition != nullptr)
+    if (sub_condition.get() != nullptr)
     {
         // Add the condition to the origin model part
         mrModelPart.AddCondition(sub_condition);

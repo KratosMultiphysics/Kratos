@@ -95,7 +95,7 @@ def ReadModelPart(model_part, mdpa_file_name):
     KM.ModelPartIO(mdpa_file_name, import_flags).ReadModelPart(model_part)
 
 def ReadDistributedModelPart(model_part, mdpa_file_name):
-    from KratosMultiphysics.TrilinosApplication import trilinos_import_model_part_utility
+    from KratosMultiphysics.mpi import distributed_import_model_part_utility
     model_part.AddNodalSolutionStepVariable(KM.PARTITION_INDEX)
 
     importer_settings = KM.Parameters("""{
@@ -107,7 +107,7 @@ def ReadDistributedModelPart(model_part, mdpa_file_name):
         "echo_level" : 0
     }""")
 
-    model_part_import_util = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(model_part, importer_settings)
+    model_part_import_util = distributed_import_model_part_utility.DistributedImportModelPartUtility(model_part, importer_settings)
     model_part_import_util.ImportModelPart()
     model_part_import_util.CreateCommunicators()
 

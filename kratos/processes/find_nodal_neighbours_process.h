@@ -30,6 +30,7 @@
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
+#include "includes/global_pointer_variables.h"
 
 
 namespace Kratos
@@ -138,7 +139,7 @@ public:
         //adding the neighbouring nodes
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
-            WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
+            auto& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
 
             for(unsigned int ie = 0; ie < rE.size(); ie++)
             {
@@ -147,7 +148,7 @@ public:
                 {
                     if(pGeom[i].Id() != in->Id() )
                     {
-                        Element::NodeType::WeakPointer temp = pGeom(i);
+                        GlobalPointer<Node<3>> temp(pGeom(i));
                         AddUniqueWeakPointer< Node<3> >(in->GetValue(NEIGHBOUR_NODES), temp);
                     }
                 }
@@ -264,11 +265,11 @@ private:
     //******************************************************************************************
     //******************************************************************************************
     template< class TDataType > void  AddUniqueWeakPointer
-    (WeakPointerVector<TDataType, typename TDataType::WeakPointer, std::vector<typename TDataType::WeakPointer>>& v, const typename TDataType::WeakPointer candidate)
+    (GlobalPointersVector<TDataType>& v, const GlobalPointer<TDataType> candidate)
     {
         auto i = v.begin();
         auto endit = v.end();
-        while ( i != endit && (i)->Id() != (candidate.lock())->Id())
+        while ( i != endit && (i)->Id() != (candidate)->Id())
         {
             i++;
         }

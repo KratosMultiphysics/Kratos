@@ -38,7 +38,7 @@ namespace Kratos
 class CrBeamElementLinear2D2N : public CrBeamElement2D2N
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(CrBeamElementLinear2D2N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CrBeamElementLinear2D2N);
 
 
     CrBeamElementLinear2D2N(IndexType NewId, GeometryType::Pointer pGeometry);

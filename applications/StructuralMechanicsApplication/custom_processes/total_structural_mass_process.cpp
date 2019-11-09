@@ -100,7 +100,7 @@ void TotalStructuralMassProcess::Execute()
     }
 
     // sum up across partitions
-    mrThisModelPart.GetCommunicator().SumAll(total_mass);
+   total_mass = mrThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(total_mass);
 
     std::stringstream info_stream;
     info_stream << "Total Mass of ModelPart \"" << mrThisModelPart.Name() << "\"";

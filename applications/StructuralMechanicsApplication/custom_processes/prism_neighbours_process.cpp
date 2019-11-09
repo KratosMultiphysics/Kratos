@@ -16,6 +16,7 @@
 // Project includes
 #include "custom_processes/prism_neighbours_process.h"
 #include "structural_mechanics_application_variables.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {

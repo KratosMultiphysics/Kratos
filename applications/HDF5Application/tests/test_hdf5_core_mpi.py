@@ -1,8 +1,9 @@
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
 from KratosMultiphysics.HDF5Application import core
-from core import operations, file_io
+from KratosMultiphysics.HDF5Application.core import operations, file_io
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.HDF5Application.core.utils import ParametersWrapper
 from unittest.mock import patch, MagicMock
 import test_hdf5_core
 
@@ -18,13 +19,12 @@ class TestFileIO(KratosUnittest.TestCase):
 class TestOperations(KratosUnittest.TestCase):
 
     def test_PartitionedModelPartOutput(self):
-        settings = KratosMultiphysics.Parameters()
-        settings.AddEmptyValue('operation_type').SetString(
-            'partitioned_model_part_output')
+        settings = ParametersWrapper()
+        settings['operation_type'] = 'partitioned_model_part_output'
         partitioned_model_part_output = operations.Create(settings)
         self.assertTrue(settings.Has('operation_type'))
         self.assertTrue(settings.Has('prefix'))
-        with patch('core.operations.KratosHDF5.HDF5PartitionedModelPartIO') as p:
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5PartitionedModelPartIO') as p:
             partitioned_model_part_io = p.return_value
             model_part = test_hdf5_core._SurrogateModelPart()
             hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileParallel)
@@ -34,15 +34,15 @@ class TestOperations(KratosUnittest.TestCase):
                 model_part)
 
     def test_PartitionedModelPartOutput_NonTerminalPrefix(self):
-        settings = KratosMultiphysics.Parameters('''
+        settings = ParametersWrapper('''
             {
                 "operation_type": "partitioned_model_part_output",
-                "prefix": "/ModelData/<identifier>/<time>",
+                "prefix": "/ModelData/<model_part_name>/<time>",
                 "time_format": "0.2f"
             }
             ''')
         partitioned_model_part_output = operations.Create(settings)
-        with patch('core.operations.KratosHDF5.HDF5PartitionedModelPartIO', autospec=True) as p:
+        with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5PartitionedModelPartIO', autospec=True) as p:
             model_part = test_hdf5_core._SurrogateModelPart()
             hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileParallel)
             partitioned_model_part_output(model_part, hdf5_file)

@@ -6,12 +6,23 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 class BasePatchTestMembrane(KratosUnittest.TestCase):
 
-    def _add_variables(self,mp):
+    def _add_variables(self,mp,explicit_dynamics=False):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        if explicit_dynamics:
+            mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
+            mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ACCELERATION)
+            mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ANGULAR_ACCELERATION)
+            mp.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+            mp.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
+            mp.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUAL_VECTOR)
+            mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY)
+            mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_INERTIA)
+            mp.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT_RESIDUAL)
+
 
     def _add_dofs(self,mp):
         # Adding the dofs AND their corresponding reaction!
@@ -226,7 +237,6 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         strategy.Check()
         strategy.Solve()
 
-
     def _check_static_results(self,node,displacement_results):
         #check that the results are exact on the node
         displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
@@ -256,11 +266,12 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
 
-    def _set_up_system_3d3n(self,current_model):
+    def _set_up_system_3d3n(self,current_model,explicit_dynamics=False):
         mp = current_model.CreateModelPart("Structure")
         mp.SetBufferSize(2)
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
-        self._add_variables(mp)
+        self._add_variables(mp,explicit_dynamics)
         self._apply_material_properties(mp)
         self._create_nodes_3d3n(mp)
         self._add_dofs(mp)
@@ -277,6 +288,7 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
     def _set_up_system_3d4n(self,current_model):
         mp = current_model.CreateModelPart("Structure")
         mp.SetBufferSize(2)
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
         self._add_variables(mp)
         self._apply_material_properties(mp)
@@ -407,6 +419,52 @@ class DynamicPatchTestMembrane(BasePatchTestMembrane):
             self._check_dynamic_results(mp.Nodes[9],step-1,displacement_results)
 
         #self.__post_process(mp)
+
+    def test_membrane_3d3n_dynamic_explicit(self):
+
+        displacement_results = [-0.0002841599939540823,-0.0011349887342934934,-0.002540748817246621,
+                -0.004486283106381001,-0.006952490877638977,-0.009915186333892944,-0.013343609643875768,
+                -0.017199017551113673,-0.021433683516078342,-0.025990540792088512,-0.03080359387145972,
+                -0.0357991109971861,-0.04089750763614265,-0.04601575056299923,-0.05107006212101212,
+                -0.05597868657695468,-0.0606644929233863,-0.0650572252543451,-0.06909526517143542,
+                -0.07272683204340089,-0.07591060817216749,-0.07861583005624559,-0.08082192886443668,
+                -0.08251782999198577,-0.08370103245035691,-0.0843765851212886,-0.0845560614007888,
+                -0.08425661021793271,-0.08350013389169322,-0.08231261559304502,-0.08072359445158465,
+                -0.07876576681569612,-0.07647467907426633,-0.07388847105969688,-0.07104762886242932,
+                -0.06799471079549385,-0.0647740188006934,-0.0614311982085442,-0.05801275994687986,
+                -0.054565529754844445,-0.051136037733349404,-0.04776986804045347,-0.044510992460366265,
+                -0.041401112982577225,-0.03847903770465099,-0.03578011175897693,-0.03333572108221476,
+                -0.031172882231822595,-0.029313926602011157,-0.027776282718925252]
+
+
+        current_model = KratosMultiphysics.Model()
+        mp = self._set_up_system_3d3n(current_model,explicit_dynamics=True)
+
+
+        #time integration parameters
+        dt = 0.01
+        time = 0.0
+        end_time = 0.5
+        step = 0
+
+        self._set_and_fill_buffer(mp,3,dt)
+        strategy_expl = _create_dynamic_explicit_strategy(mp,'central_differences')
+        while(time <= end_time):
+            time = time + dt
+            step = step + 1
+            mp.CloneTimeStep(time)
+            strategy_expl.Solve()
+            self._check_dynamic_results(mp.Nodes[10],step-1,displacement_results)
+
+def _create_dynamic_explicit_strategy(mp,scheme_name):
+    if (scheme_name=='central_differences'):
+        scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(0.00,0.00,0.00)
+    elif scheme_name=='multi_stage':
+        scheme = StructuralMechanicsApplication.ExplicitMultiStageKimScheme(0.33333333333333333)
+
+    strategy = StructuralMechanicsApplication.MechanicalExplicitStrategy(mp,scheme,0,0,1)
+    strategy.SetEchoLevel(0)
+    return strategy
 
 if __name__ == '__main__':
     KratosUnittest.main()

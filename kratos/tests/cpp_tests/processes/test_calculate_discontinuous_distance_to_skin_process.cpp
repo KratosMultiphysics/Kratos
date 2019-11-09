@@ -27,7 +27,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessHorizontalPlane2D, KratosCoreFastSuite)
     {
         Model current_model;
-        
+
         // Generate the element
         ModelPart &fluid_part = current_model.CreateModelPart("Surface");
         fluid_part.AddNodalSolutionStepVariable(DISTANCE);
@@ -208,10 +208,10 @@ namespace Testing {
         // Check values
         const auto &r_dist_begin = (volume_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
         const auto &r_dist_end = (volume_part.ElementsEnd() - 1)->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_dist_begin[0], 1.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_dist_begin[1], 1.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_dist_begin[2], 1.0, 1e-6);
-        KRATOS_CHECK_NEAR(r_dist_begin[3], 1.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_dist_begin[0], 1.73205, 1e-6);
+        KRATOS_CHECK_NEAR(r_dist_begin[1], 1.73205, 1e-6);
+        KRATOS_CHECK_NEAR(r_dist_begin[2], 1.73205, 1e-6);
+        KRATOS_CHECK_NEAR(r_dist_begin[3], 1.73205, 1e-6);
         KRATOS_CHECK_NEAR(r_dist_end[0], -0.406059, 1e-6);
         KRATOS_CHECK_NEAR(r_dist_end[1], -0.489839, 1e-6);
         KRATOS_CHECK_NEAR(r_dist_end[2], 0.388306, 1e-6);
@@ -221,7 +221,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessHorizontalPlane3D, KratosCoreFastSuite)
     {
         Model current_model;
-        
+
         // Generate the evil element
         ModelPart& volume_part = current_model.CreateModelPart("Volume");
         volume_part.AddNodalSolutionStepVariable(DISTANCE);
@@ -308,9 +308,9 @@ namespace Testing {
         volume_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_0);
 
         // Generate the skin such that there is 4 intersection pts.
-        // Recall that with more than 3 intersection pts. the plane 
-        // approximation is used. Since the skin in here yields a 
-        // uniplanar intersection, the approximated plane is the 
+        // Recall that with more than 3 intersection pts. the plane
+        // approximation is used. Since the skin in here yields a
+        // uniplanar intersection, the approximated plane is the
         // same one as the original intersection one.
         ModelPart& skin_part = current_model.CreateModelPart("Skin");
         skin_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -364,10 +364,10 @@ namespace Testing {
 
         // Check elemental distance values
         const auto &r_elem_dist = volume_part.ElementsBegin()->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], 1.0, 1e-10);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], 1.0, 1e-10);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], 1.0, 1e-10);
-        KRATOS_CHECK_NEAR(r_elem_dist[3], 1.0, 1e-10);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], 1.22382, 1e-5);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], 1.22382, 1e-5);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], 1.22382, 1e-5);
+        KRATOS_CHECK_NEAR(r_elem_dist[3], 1.22382, 1e-5);
 
 
     }

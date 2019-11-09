@@ -36,7 +36,7 @@ namespace Kratos
 typedef ModelPart::NodesContainerType                      NodesContainerType;
 typedef ModelPart::ElementsContainerType                ElementsContainerType;
 typedef ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
-typedef WeakPointerVector<Node<3> >                     NodeWeakPtrVectorType;
+typedef GlobalPointersVector<Node<3> >                     NodeWeakPtrVectorType;
 
 ///@}
 ///@name  Enum's

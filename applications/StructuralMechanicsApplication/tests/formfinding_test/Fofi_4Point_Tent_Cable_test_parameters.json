@@ -30,11 +30,7 @@
         "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_membrane","Parts_cable"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_supports", "Structure"],
-        "rotation_dofs"                      : false,
-        "linear_solver_settings"             : {
-            "solver_type" : "ExternalSolversApplication.super_lu",
-            "scaling"     : false
-        }
+        "rotation_dofs"                      : false
     },
     "processes" : {
     "constraints_process_list" : [{
@@ -44,7 +40,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_supports",
+            "model_part_name" : "Structure.DISPLACEMENT_supports",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]

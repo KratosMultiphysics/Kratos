@@ -83,6 +83,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "custom_utilities/mesh_rotation_utility.h"
 #include "custom_utilities/renumbering_nodes_utility.h"
+#include "custom_utilities/stationarity_check.h"
 
 namespace Kratos{
 
@@ -371,6 +372,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 //    RecoverGradientScalar RecoverSuperconvergentGradientScalar = &DerivativeRecovery<3>::RecoverSuperconvergentGradient<std::size_t TDim, class TScalarVariable>;
 //    RecoverGradientComponent RecoverSuperconvergentGradientComponent = &DerivativeRecovery<3>::RecoverSuperconvergentGradient<std::size_t TDim, class TScalarVariable>;
 
+    py::class_<FlowStationarityCheck> (m, "FlowStationarityCheck")
+        .def(py::init<ModelPart& , const double>())
+        .def("AssessStationarity", &FlowStationarityCheck::AssessStationarity)
+        .def("GetCharacteristicPressureDerivative", &FlowStationarityCheck::GetCharacteristicPressureDerivative)
+        .def("GetCurrentPressureDerivative", &FlowStationarityCheck::GetCurrentPressureDerivative)
+        .def("GetTolerance", &FlowStationarityCheck::GetTolerance)
+        .def("GetTransienceMeasure", &FlowStationarityCheck::GetTransienceMeasure)
+        ;
 
     py::class_<DerivativeRecovery <3> > (m, "DerivativeRecoveryTool3D")
         .def(py::init<ModelPart&, Parameters&>())

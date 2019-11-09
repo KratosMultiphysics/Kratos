@@ -14,9 +14,11 @@
             "input_type"     : "mdpa",
             "input_filename" : "TwoFluidStaticPoolTest/TwoFluidStaticPoolTest2D"
         },
+        "material_import_settings": {
+            "materials_filename" : "TwoFluidStaticPoolTest/TwoFluidStaticPoolTest2DMaterials.json"
+        },
         "echo_level"                  : 0,
         "compute_reactions"           : false,
-        "dynamic_tau"                 : 1.0,
         "maximum_iterations"          : 10,
         "relative_velocity_tolerance" : 1e-5,
         "absolute_velocity_tolerance" : 1e-7,

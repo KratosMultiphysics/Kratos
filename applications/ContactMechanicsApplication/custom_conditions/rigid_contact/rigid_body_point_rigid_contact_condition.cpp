@@ -68,7 +68,7 @@ Condition::Pointer RigidBodyPointRigidContactCondition::Create(
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-  return Kratos::make_shared<RigidBodyPointRigidContactCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+  return Kratos::make_intrusive<RigidBodyPointRigidContactCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 

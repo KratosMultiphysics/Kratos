@@ -7,8 +7,8 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "model_part_name" : "Structure",
-        "domain_size"     : 2,
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 2,
         "solver_type"                        : "Dynamic",
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
@@ -35,9 +35,7 @@
         "buffer_size"                        : 3,
         "linear_solver_settings"             : {
                 "solver_type": "skyline_lu_factorization"
-        },
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_Parts_Auto2","Parts_Parts_Auto3"],
-        "processes_sub_model_part_list"      : ["Structure","Contact_Part","Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1"]
+        }
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -47,7 +45,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,true,true],
                 "value"           : [0.0,0.0,0.0]
@@ -59,7 +57,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0]
@@ -71,7 +69,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "IMPOSE_DISP_Auto1",
+                "model_part_name" : "Structure.IMPOSE_DISP_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,false],
                 "value"           : [4.0e-2,-4.0e-2,0.0]
@@ -102,7 +100,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
                 "input_file_name"      : "ALM_frictional_contact_test_2D/hyper_simple_patch_test_results.json",
-                "model_part_name"      : "Contact_Part",
+                "model_part_name"      : "Structure.Contact_Part",
                 "time_frequency"       : 1.0e-3
             }
         }
@@ -117,7 +115,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictional_contact_test_2D/hyper_simple_patch_test_results.json",
-            "model_part_name"      : "Contact_Part",
+            "model_part_name"      : "Structure.Contact_Part",
             "time_frequency"       : 1.0e-3
         }
     }
@@ -132,24 +130,51 @@
                 "model_part_name"        : "Structure.computing_domain",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostBinary",
-                            "WriteDeformedMeshFlag" : "WriteDeformed",
-                            "MultiFileFlag"         : "SingleFile"
-                        },
-                        "file_label"          : "step",
-                        "output_control_type" : "step",
-                        "output_frequency"    : 1.0,
-                        "body_output"         : true,
-                        "node_output"         : false,
-                        "skin_output"         : false,
-                        "plane_output"        : [],
-                        "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER","WEIGHTED_GAP","WEIGHTED_SLIP"],
-                        "nodal_nonhistorical_results": ["AUGMENTED_NORMAL_CONTACT_PRESSURE","AUGMENTED_TANGENT_CONTACT_PRESSURE"],
-                        "nodal_flags_results": ["ACTIVE","SLAVE","SLIP"],
-                        "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
+                "result_file_configuration" : {
+                    "gidpost_flags"       : {
+                        "GiDPostMode"           : "GiD_PostBinary",
+                        "WriteDeformedMeshFlag" : "WriteDeformed",
+                        "MultiFileFlag"         : "SingleFile"
                     },
-                    "point_data_configuration"  : []}}}]
+                    "file_label"          : "step",
+                    "output_control_type" : "step",
+                    "output_frequency"    : 1.0,
+                    "body_output"         : true,
+                    "node_output"         : false,
+                    "skin_output"         : false,
+                    "plane_output"        : [],
+                    "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER","WEIGHTED_GAP","WEIGHTED_SLIP"],
+                    "nodal_nonhistorical_results": ["AUGMENTED_NORMAL_CONTACT_PRESSURE","AUGMENTED_TANGENT_CONTACT_PRESSURE"],
+                    "nodal_flags_results": ["ACTIVE","SLAVE","SLIP"],
+                    "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
+                },
+                "point_data_configuration"  : []
+                }
+            }
+        }],
+        "vtk_output" : [{
+            "python_module" : "vtk_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "VtkOutputProcess",
+            "help"          : "This process writes postprocessing files for Paraview",
+            "Parameters"    : {
+                "model_part_name"                    : "Structure.computing_domain",
+                "output_control_type"                : "step",
+                "output_frequency"                   : 1,
+                "file_format"                        : "ascii",
+                "output_precision"                   : 7,
+                "output_sub_model_parts"             : false,
+                "folder_name"                        : "vtk_output",
+                "save_output_files_in_folder"        : true,
+                "nodal_solution_step_data_variables" : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER","WEIGHTED_GAP","WEIGHTED_SLIP"],
+                "nodal_data_value_variables"         : ["AUGMENTED_NORMAL_CONTACT_PRESSURE","AUGMENTED_TANGENT_CONTACT_PRESSURE"],
+                "nodal_flags"                        : ["ACTIVE","MASTER","SLAVE","SLIP"],
+                "element_data_value_variables"       : [],
+                "element_flags"                      : [],
+                "condition_data_value_variables"     : [],
+                "condition_flags"                    : [],
+                "gauss_point_variables_extrapolated_to_nodes"              : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
+            }
+        }]
     }
 }

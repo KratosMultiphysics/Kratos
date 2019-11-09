@@ -21,8 +21,8 @@
 #include "includes/cfd_variables.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
-#include "custom_elements/shallow_element.h"
 #include "shallow_water_application_variables.h"
+#include "shallow_element.h"
 
 namespace Kratos
 {
@@ -197,7 +197,7 @@ void ShallowElement::CalculateLocalSystem(
 
     // Build RHS
     // Source terms (bathymetry contribution)
-    noalias(rRightHandSideVector)  = -data.gravity * sign * prod(vel_wave, data.depth);
+    noalias(rRightHandSideVector)  = data.gravity * sign * prod(vel_wave, data.depth);
 
     // Inertia terms
     noalias(rRightHandSideVector) += data.dt_inv * prod(vel_mass_matrix, data.proj_unk);
@@ -224,7 +224,7 @@ void ShallowElement::CalculateLocalSystem(
     // Mass balance LHS stabilization terms
     BoundedMatrix<double,msElemSize,msElemSize> diff_h = prod(trans(DN_DX_height), DN_DX_height);
     noalias(rLeftHandSideMatrix) += k_dc * diff_h; // Second order FIC shock capturing
-    noalias(rRightHandSideVector) -= k_dc * prod(diff_h, data.depth); // Substracting the bottom diffusion
+    noalias(rRightHandSideVector) += k_dc * prod(diff_h, data.depth); // Substracting the bottom diffusion
 
     // Momentum balance stabilization terms
     BoundedMatrix<double,msElemSize,msElemSize> diff_v = outer_prod(DN_DX_vel, DN_DX_vel);
@@ -284,13 +284,15 @@ void ShallowElement::InitializeElement(ElementData& rData, const ProcessInfo& rC
     rData.lumping_factor = 1.0 / msNodes;
     rData.c_tau = rCurrentProcessInfo[DYNAMIC_TAU];
     rData.gravity = rCurrentProcessInfo[GRAVITY_Z];
-    rData.manning2 = std::pow( GetProperties()[MANNING], 2);
+    rData.manning2 = 0.0;//std::pow( GetProperties()[MANNING], 2);
 
     // Nodal data
     GeometryType& rGeom = GetGeometry();
     unsigned int counter = 0;
     for (unsigned int i = 0; i < msNodes; i++)
     {
+        rData.manning2 += rGeom[i].FastGetSolutionStepValue(EQUIVALENT_MANNING);
+
         rData.depth[counter] = 0;
         rData.rain[counter]  = 0;
         rData.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(VELOCITY_X);
@@ -309,6 +311,8 @@ void ShallowElement::InitializeElement(ElementData& rData, const ProcessInfo& rC
         rData.proj_unk[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1);
         counter++;
     }
+    rData.manning2 *= rData.lumping_factor;
+    rData.manning2 = std::pow(rData.manning2, 2);
 }
 
 void ShallowElement::ComputeMassMatrices(

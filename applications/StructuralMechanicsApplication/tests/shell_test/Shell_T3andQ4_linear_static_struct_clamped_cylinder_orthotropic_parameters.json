@@ -29,8 +29,6 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_Surface_Q4_thin","Parts_Surface_T3_thin","Parts_Surface_T3_thick","Parts_Surface_Q4_thick"],
-        "processes_sub_model_part_list"      : ["GENERIC_ref_node","DISPLACEMENT_ends","DISPLACEMENT_sym_XY","DISPLACEMENT_sym_XZ","DISPLACEMENT_sym_YZ","ROTATION_ends","ROTATION_sym_XY","ROTATION_sym_XZ","ROTATION_sym_YZ","SurfacePressure3D_Surface_Q4_thick","SurfacePressure3D_Surface_Q4_thin","SurfacePressure3D_Surface_T3_thick","SurfacePressure3D_Surface_T3_thin"],
         "rotation_dofs"                      : true
     },
     "processes" : {
@@ -41,7 +39,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_ends",
+            "model_part_name" : "Structure.DISPLACEMENT_ends",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0],
@@ -54,7 +52,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_sym_XY",
+            "model_part_name" : "Structure.DISPLACEMENT_sym_XY",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,false,true],
             "value"           : [0.0,0.0,0.0],
@@ -67,7 +65,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_sym_XZ",
+            "model_part_name" : "Structure.DISPLACEMENT_sym_XZ",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,true,false],
             "value"           : [0.0,0.0,0.0],
@@ -80,7 +78,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_sym_YZ",
+            "model_part_name" : "Structure.DISPLACEMENT_sym_YZ",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,false,false],
             "value"           : [0.0,0.0,0.0],
@@ -93,7 +91,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_ends",
+            "model_part_name" : "Structure.ROTATION_ends",
             "variable_name"   : "ROTATION",
             "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0],
@@ -106,7 +104,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_sym_XY",
+            "model_part_name" : "Structure.ROTATION_sym_XY",
             "variable_name"   : "ROTATION",
             "constrained"     : [true,true,false],
             "value"           : [0.0,0.0,0.0],
@@ -119,7 +117,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_sym_XZ",
+            "model_part_name" : "Structure.ROTATION_sym_XZ",
             "variable_name"   : "ROTATION",
             "constrained"     : [true,false,true],
             "value"           : [0.0,0.0,0.0],
@@ -132,7 +130,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_sym_YZ",
+            "model_part_name" : "Structure.ROTATION_sym_YZ",
             "variable_name"   : "ROTATION",
             "constrained"     : [false,true,true],
             "value"           : [0.0,0.0,0.0],
@@ -147,7 +145,7 @@
         "process_name"  : "AssignScalarVariableToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SurfacePressure3D_Surface_Q4_thick",
+            "model_part_name" : "Structure.SurfacePressure3D_Surface_Q4_thick",
             "variable_name"   : "POSITIVE_FACE_PRESSURE",
             "value"           : 2040.37,
             "interval"        : [0.0,"End"]
@@ -159,7 +157,7 @@
         "process_name"  : "AssignScalarVariableToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SurfacePressure3D_Surface_Q4_thin",
+            "model_part_name" : "Structure.SurfacePressure3D_Surface_Q4_thin",
             "variable_name"   : "POSITIVE_FACE_PRESSURE",
             "value"           : 2040.37,
             "interval"        : [0.0,"End"]
@@ -171,7 +169,7 @@
         "process_name"  : "AssignScalarVariableToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SurfacePressure3D_Surface_T3_thick",
+            "model_part_name" : "Structure.SurfacePressure3D_Surface_T3_thick",
             "variable_name"   : "POSITIVE_FACE_PRESSURE",
             "value"           : 2040.37,
             "interval"        : [0.0,"End"]
@@ -183,7 +181,7 @@
         "process_name"  : "AssignScalarVariableToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SurfacePressure3D_Surface_T3_thin",
+            "model_part_name" : "Structure.SurfacePressure3D_Surface_T3_thin",
             "variable_name"   : "POSITIVE_FACE_PRESSURE",
             "value"           : 2040.37,
             "interval"        : [0.0,"End"]
@@ -198,7 +196,7 @@
         "Parameters"            : {
             "check_variables"  : ["DISPLACEMENT_Y","DISPLACEMENT_Z"],
             "input_file_name"  : "shell_test/Shell_T3andQ4_linear_static_struct_clamped_cylinder_orthotropic_results.json",
-            "model_part_name"  : "GENERIC_ref_node",
+            "model_part_name"  : "Structure.GENERIC_ref_node",
             "time_frequency"   : 1
         }
     }]},
@@ -231,7 +229,7 @@
         "Parameters"            : {
             "output_variables" : ["DISPLACEMENT_Y","DISPLACEMENT_Z"],
             "output_file_name" : "shell_test/Shell_T3andQ4_linear_static_struct_clamped_cylinder_orthotropic_results.json",
-            "model_part_name"  : "GENERIC_ref_node",
+            "model_part_name"  : "Structure.GENERIC_ref_node",
             "time_frequency"   : 1
         }
     }]

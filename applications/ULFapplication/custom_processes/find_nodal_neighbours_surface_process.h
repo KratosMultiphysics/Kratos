@@ -120,11 +120,11 @@ public:
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
         {
             (in->GetValue(NEIGHBOUR_NODES)).reserve(mavg_nodes);
-            WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
             rN.erase(rN.begin(),rN.end() );
 	    
             (in->GetValue(NEIGHBOUR_CONDITIONS)).reserve(mavg_conds);
-            WeakPointerVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
+            GlobalPointersVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
             rC.erase(rC.begin(),rC.end() );	    
         }
 
@@ -143,7 +143,7 @@ public:
         //adding the neighbouring nodes
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
         {
-            WeakPointerVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
+            GlobalPointersVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
 
             for(unsigned int ic = 0; ic < rC.size(); ic++)
             {
@@ -167,10 +167,10 @@ public:
         NodesContainerType& rNodes = mr_model_part.Nodes();
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
         {
-            WeakPointerVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
+            GlobalPointersVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
             rC.erase(rC.begin(),rC.end());
 
-            WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
             rN.erase(rN.begin(),rN.end() );
         }
     }
@@ -271,10 +271,10 @@ private:
     //******************************************************************************************
     //******************************************************************************************
     template< class TDataType > void  AddUniqueWeakPointer
-    (WeakPointerVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
+    (GlobalPointersVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
     {
-        typename WeakPointerVector< TDataType >::iterator i = v.begin();
-        typename WeakPointerVector< TDataType >::iterator endit = v.end();
+        typename GlobalPointersVector< TDataType >::iterator i = v.begin();
+        typename GlobalPointersVector< TDataType >::iterator endit = v.end();
         while ( i != endit && (i)->Id() != (candidate.lock())->Id())
         {
             i++;

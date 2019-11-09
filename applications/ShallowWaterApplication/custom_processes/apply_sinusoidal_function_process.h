@@ -52,9 +52,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/** 
+ * @ingroup ShallowWaterApplication
+ * @class ApplySinusoidalFunctionProcess
+ * @brief The aim of this process is to generate sinusoidal waves
+ */
 template< class TVarType >
 class KRATOS_API(SHALLOW_WATER_APPLICATION) ApplySinusoidalFunctionProcess : public Process
 {

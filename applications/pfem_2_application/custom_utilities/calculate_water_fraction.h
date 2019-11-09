@@ -8,7 +8,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "includes/ublas_interface.h"
@@ -146,8 +146,6 @@ namespace Kratos
 				sum_areas = thread_sum_areas;
 
 			}
-			//const double mean_temperature = sum_temperatures / sum_areas;
-			std::cout << "Finished, the water volume is " << sum_areas << std::endl;
 			return sum_areas;
 
 			KRATOS_CATCH("")

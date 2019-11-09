@@ -432,12 +432,13 @@ public:
     }
 
     /**
-            Adds the point loads to the RHS
+            applies the constraints
      */
-    virtual void ApplyPointLoads(
+    virtual void ApplyConstraints(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb)
     {
     }
 
