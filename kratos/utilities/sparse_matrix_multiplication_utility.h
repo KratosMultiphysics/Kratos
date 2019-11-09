@@ -705,14 +705,14 @@ public:
     {
         // Get access to aux_K data
         const double* aux_values = rMatrix.value_data().begin();
-        const IndexType* aux_K_index1 = rMatrix.index1_data().begin();
-        const IndexType* aux_K_index2 = rMatrix.index2_data().begin();
+        const IndexType* aux_Matrix_index1 = rMatrix.index1_data().begin();
+        const IndexType* aux_Matrix_index2 = rMatrix.index2_data().begin();
 
-        const IndexType aux_K_row_begin = aux_K_index1[CurrentRow];
-        const IndexType aux_K_row_end   = aux_K_index1[CurrentRow + 1];
+        const IndexType aux_Matrix_row_begin = aux_Matrix_index1[CurrentRow];
+        const IndexType aux_Matrix_row_end   = aux_Matrix_index1[CurrentRow + 1];
 
-        for (IndexType j=aux_K_row_begin; j<aux_K_row_end; j++) {
-            const IndexType col_index = InitialIndexColumn + aux_K_index2[j];
+        for (IndexType j=aux_Matrix_row_begin; j<aux_Matrix_row_end; j++) {
+            const IndexType col_index = InitialIndexColumn + aux_Matrix_index2[j];
             AuxIndex2[RowEnd] = col_index;
             AuxVals[RowEnd] = ContributionCoefficient * aux_values[j];
             ++RowEnd;
