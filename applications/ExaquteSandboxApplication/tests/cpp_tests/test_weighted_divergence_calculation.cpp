@@ -92,7 +92,7 @@ namespace Kratos {
             p_element->Initialize();
 
             // Call the body fitted drag utility
-            WeightedDivergenceCalculationProcess(model_part).Execute();
+            WeightedDivergenceCalculationProcess(model_part).ExecuteFinalizeSolutionStep();
 
             // Check computed values over the elements
             auto elements_begin = model_part.ElementsBegin();
