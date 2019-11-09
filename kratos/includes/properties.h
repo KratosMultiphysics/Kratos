@@ -766,7 +766,7 @@ private:
     ///@{
 
     /**
-     * @brief This method returns the whole list of subproperties (constant)
+     * @brief This method returns the whole list of subproperties
      * @return The whole lis of subproperties
      */
     SubPropertiesContainerType& SubPropertiesList()
