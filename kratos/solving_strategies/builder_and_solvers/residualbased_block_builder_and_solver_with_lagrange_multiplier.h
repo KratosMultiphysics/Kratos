@@ -655,7 +655,7 @@ protected:
                 }
 
                 // Merging all the temporal indexes
-                for (int i = 0; i < static_cast<int>(temp_size_indices); ++i) {
+                for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
                     lock_array[i].SetLock();
                     indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
                     lock_array[i].UnSetLock();
