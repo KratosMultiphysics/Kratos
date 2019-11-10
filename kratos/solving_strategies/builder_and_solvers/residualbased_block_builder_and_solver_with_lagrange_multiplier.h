@@ -380,7 +380,7 @@ public:
 
             // Some common values
             const SizeType number_of_dofs = rb.size();
-            const SizeType number_of_lm = BaseType::mT.size2();
+            const SizeType number_of_lm = BaseType::mT.size1();
 
             // Assemble the blocks
             if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
@@ -432,10 +432,10 @@ public:
 
                 // Fill transpose positions
                 transpose_blocks(0, 0) = false;
-                transpose_blocks(0, 1) = false;
-                transpose_blocks(1, 0) = true;
-                transpose_blocks(0, 2) = false;
-                transpose_blocks(2, 0) = true;
+                transpose_blocks(0, 1) = true;
+                transpose_blocks(1, 0) = false;
+                transpose_blocks(0, 2) = true;
+                transpose_blocks(2, 0) = false;
                 transpose_blocks(1, 1) = false;
                 transpose_blocks(2, 1) = false;
                 transpose_blocks(2, 1) = false;
@@ -495,8 +495,8 @@ public:
 
                 // Fill transpose positions
                 transpose_blocks(0, 0) = false;
-                transpose_blocks(0, 1) = false;
-                transpose_blocks(1, 0) = true;
+                transpose_blocks(0, 1) = true;
+                transpose_blocks(1, 0) = false;
                 transpose_blocks(0, 2) = false;
 
                 SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
@@ -614,6 +614,8 @@ protected:
      */
     void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart) override
     {
+        KRATOS_TRY
+
         if (rModelPart.MasterSlaveConstraints().size() > 0) {
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
@@ -677,14 +679,18 @@ protected:
                 }
             }
 
+            // The slave size
+            const std::size_t slave_size = BaseType::mSlaveIds.size();
+
             // Count the row sizes
             std::size_t nnz = 0;
-            for (IndexType i = 0; i < size_indices; ++i) {
-                nnz += indices[i].size();
+            #pragma omp parallel for reduction(+:nnz)
+            for (int i = 0; i < static_cast<int>(slave_size); ++i) {
+                nnz += indices[BaseType::mSlaveIds[i]].size();
             }
 
-            BaseType::mT = TSystemMatrixType(size_indices, BaseType::mSlaveIds.size(), nnz);
-            BaseType::mConstantVector.resize(BaseType::mSlaveIds.size(), false);
+            BaseType::mT = TSystemMatrixType(slave_size, size_indices, nnz);
+            BaseType::mConstantVector.resize(slave_size, false);
 
             double *Tvalues = BaseType::mT.value_data().begin();
             IndexType *Trow_indices = BaseType::mT.index1_data().begin();
@@ -692,30 +698,33 @@ protected:
 
             // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
             Trow_indices[0] = 0;
-            for (int i = 0; i < static_cast<int>(size_indices); ++i) {
-                Trow_indices[i + 1] = Trow_indices[i] + indices[i].size();
+            for (int i = 0; i < static_cast<int>(slave_size); ++i) {
+                Trow_indices[i + 1] = Trow_indices[i] + indices[BaseType::mSlaveIds[i]].size();
             }
 
             #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(size_indices); ++i) {
+            for (int i = 0; i < static_cast<int>(slave_size); ++i) {
                 const IndexType row_begin = Trow_indices[i];
                 const IndexType row_end = Trow_indices[i + 1];
                 IndexType k = row_begin;
-                for (auto it = indices[i].begin(); it != indices[i].end(); ++it) {
-                    Tcol_indices[k] = mCorrespondanceDofsSlave[*it];
+                const IndexType i_slave = BaseType::mSlaveIds[i];
+                for (auto it = indices[i_slave].begin(); it != indices[i_slave].end(); ++it) {
+                    Tcol_indices[k] = *it;
                     Tvalues[k] = 0.0;
                     ++k;
                 }
 
-                indices[i].clear(); //deallocating the memory
+                indices[i_slave].clear(); //deallocating the memory
 
                 std::sort(&Tcol_indices[row_begin], &Tcol_indices[row_end]);
             }
 
-            BaseType::mT.set_filled(size_indices + 1, nnz);
+            BaseType::mT.set_filled(slave_size + 1, nnz);
 
             Timer::Stop("ConstraintsRelationMatrixStructure");
         }
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -830,7 +839,7 @@ private:
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         // Our auxiliar vector
-        const SizeType number_of_slave_dofs = BaseType::mT.size2();
+        const SizeType number_of_slave_dofs = BaseType::mT.size1();
         if (rbLM.size() != number_of_slave_dofs)
             rbLM.resize(number_of_slave_dofs, false);
         Vector aux_whole_dof_vector(ndofs);
@@ -842,9 +851,13 @@ private:
             aux_whole_dof_vector[k] = it_dof->GetSolutionStepValue();
         }
 
+        // We compute the transposed matrix of the global relation matrix
+        TSystemMatrixType T_transpose_matrix(BaseType::mT.size2(), BaseType::mT.size1());
+        SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, BaseType::mT, 1.0);
+
         // Compute auxiliar contribution
         TSystemVectorType aux_slave_dof_vector(number_of_slave_dofs);
-        TSparseSpace::Mult(BaseType::mT, aux_whole_dof_vector, aux_slave_dof_vector);
+        TSparseSpace::Mult(T_transpose_matrix, aux_whole_dof_vector, aux_slave_dof_vector);
 
         // Finally compute the RHS LM contribution
         noalias(rbLM) = ScaleFactor * (BaseType::mConstantVector -  aux_slave_dof_vector);
