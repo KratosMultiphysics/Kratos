@@ -531,6 +531,9 @@ public:
     void Clear() override
     {
         BaseType::Clear();
+
+        // Clear member variables
+        mCorrespondanceDofsSlave.clear();
     }
 
     /**
@@ -593,6 +596,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    std::unordered_map<IndexType, IndexType> mCorrespondanceDofsSlave;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -654,8 +659,8 @@ protected:
                 }
             }
 
-            std::unordered_map<IndexType, IndexType> correspondance_dofs_slave;
             IndexType counter = 0;
+            mCorrespondanceDofsSlave.clear();
             BaseType::mSlaveIds.clear();
             BaseType::mMasterIds.clear();
             for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
@@ -663,7 +668,7 @@ protected:
                     BaseType::mMasterIds.push_back(i);
                 } else { // Slave dof
                     BaseType::mSlaveIds.push_back(i);
-                    correspondance_dofs_slave.insert(std::pair<IndexType, IndexType>(i, counter));
+                    mCorrespondanceDofsSlave.insert(std::pair<IndexType, IndexType>(i, counter));
                     ++counter;
                 }
                 indices[i].insert(i); // Ensure that the diagonal is there in T
@@ -692,7 +697,7 @@ protected:
                 const IndexType row_end = Trow_indices[i + 1];
                 IndexType k = row_begin;
                 for (auto it = indices[i].begin(); it != indices[i].end(); ++it) {
-                    Tcol_indices[k] = correspondance_dofs_slave[*it];
+                    Tcol_indices[k] = mCorrespondanceDofsSlave[*it];
                     Tvalues[k] = 0.0;
                     ++k;
                 }
