@@ -316,6 +316,45 @@ public:
     {
         KRATOS_TRY
 
+//         if (rModelPart.MasterSlaveConstraints().size() != 0) {
+//             BuildMasterSlaveConstraints(rModelPart);
+//
+//             // Copy the LHS to avoid memory errors
+//             TSystemMatrixType copy_of_A(rA);
+//
+//             if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
+//                 DenseMatrix<TSystemMatrixType*> matrices_p_blocks(3,3);
+//                 DenseMatrix<double> contribution_coefficients(3,3);
+//                 DenseMatrix<bool> transpose_blocks(3,3);
+//
+//                 // Fill blocks
+//                 matrices_p_blocks(0,0) = &copy_of_A;
+//                 matrices_p_blocks(0,1) = &BaseType::mT;
+//                 matrices_p_blocks(0,2) = &BaseType::mT;
+//                 matrices_p_blocks(1,0) = &BaseType::mT;
+//                 matrices_p_blocks(2,0) = &BaseType::mT;
+//
+//                 // Fill coefficients
+//                 contribution_coefficients(0, 0) = 1.0;
+//                 contribution_coefficients(0, 1) = 1.0;
+//                 contribution_coefficients(1, 0) = 1.0;
+//
+//                 SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
+//             } else {
+//
+//                 DenseMatrix<TSystemMatrixType*> matrices_p_blocks(2,2);
+//                 DenseMatrix<double> contribution_coefficients(2,2);
+//                 DenseMatrix<bool> transpose_blocks(2,2);
+//
+//                 // Fill blocks
+//                 matrices_p_blocks(0,0) = &copy_of_A;
+//                 matrices_p_blocks(0,1) = &BaseType::mT;
+//                 matrices_p_blocks(1,0) = &BaseType::mT;
+//
+//                 SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
+//             }
+//         }
+
         KRATOS_CATCH("")
     }
 
