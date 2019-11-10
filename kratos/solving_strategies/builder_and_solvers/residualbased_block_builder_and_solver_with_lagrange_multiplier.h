@@ -857,7 +857,7 @@ private:
 
         // Compute auxiliar contribution
         TSystemVectorType aux_slave_dof_vector(number_of_slave_dofs);
-        TSparseSpace::Mult(T_transpose_matrix, aux_whole_dof_vector, aux_slave_dof_vector);
+        TSparseSpace::Mult(BaseType::mT, aux_whole_dof_vector, aux_slave_dof_vector);
 
         // Finally compute the RHS LM contribution
         noalias(rbLM) = ScaleFactor * (BaseType::mConstantVector -  aux_slave_dof_vector);
