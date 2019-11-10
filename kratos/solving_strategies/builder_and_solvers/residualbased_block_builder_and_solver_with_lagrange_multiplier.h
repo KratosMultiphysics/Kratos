@@ -787,7 +787,7 @@ protected:
 
         // Setting the slave dofs into the T system
         for (auto eq_id : BaseType::mSlaveIds) {
-            BaseType::mT(eq_id, mCorrespondanceDofsSlave[eq_id]) = 1.0;
+            BaseType::mT(mCorrespondanceDofsSlave[eq_id], eq_id) = 1.0;
         }
 
         KRATOS_CATCH("")
