@@ -757,14 +757,14 @@ protected:
                     it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
 
                     for (IndexType i = 0; i < slave_equation_ids.size(); ++i) {
-                        const IndexType i_global = slave_equation_ids[i];
+                        const IndexType i_global = mCorrespondanceDofsSlave[slave_equation_ids[i]];
 
                         // Assemble matrix row
                         BaseType::AssembleRowContribution(BaseType::mT, transformation_matrix, i_global, i, master_equation_ids);
 
                         // Assemble constant vector
                         const double constant_value = constant_vector[i];
-                        double& r_value = BaseType::mConstantVector[i_global];
+                        double& r_value = BaseType::mConstantVector[mCorrespondanceDofsSlave[i_global]];
                         #pragma omp atomic
                         r_value += constant_value;
                     }
