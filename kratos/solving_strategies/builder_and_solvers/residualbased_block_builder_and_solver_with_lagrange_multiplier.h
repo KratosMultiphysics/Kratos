@@ -316,44 +316,124 @@ public:
     {
         KRATOS_TRY
 
-//         if (rModelPart.MasterSlaveConstraints().size() != 0) {
-//             BuildMasterSlaveConstraints(rModelPart);
-//
-//             // Copy the LHS to avoid memory errors
-//             TSystemMatrixType copy_of_A(rA);
-//
-//             if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
-//                 DenseMatrix<TSystemMatrixType*> matrices_p_blocks(3,3);
-//                 DenseMatrix<double> contribution_coefficients(3,3);
-//                 DenseMatrix<bool> transpose_blocks(3,3);
-//
-//                 // Fill blocks
-//                 matrices_p_blocks(0,0) = &copy_of_A;
-//                 matrices_p_blocks(0,1) = &BaseType::mT;
-//                 matrices_p_blocks(0,2) = &BaseType::mT;
-//                 matrices_p_blocks(1,0) = &BaseType::mT;
-//                 matrices_p_blocks(2,0) = &BaseType::mT;
-//
-//                 // Fill coefficients
-//                 contribution_coefficients(0, 0) = 1.0;
-//                 contribution_coefficients(0, 1) = 1.0;
-//                 contribution_coefficients(1, 0) = 1.0;
-//
-//                 SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
-//             } else {
-//
-//                 DenseMatrix<TSystemMatrixType*> matrices_p_blocks(2,2);
-//                 DenseMatrix<double> contribution_coefficients(2,2);
-//                 DenseMatrix<bool> transpose_blocks(2,2);
-//
-//                 // Fill blocks
-//                 matrices_p_blocks(0,0) = &copy_of_A;
-//                 matrices_p_blocks(0,1) = &BaseType::mT;
-//                 matrices_p_blocks(1,0) = &BaseType::mT;
-//
-//                 SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
-//             }
-//         }
+        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+            BuildMasterSlaveConstraints(rModelPart);
+
+            // Copy the LHS to avoid memory errors
+            TSystemMatrixType copy_of_A(rA);
+            TSystemMatrixType copy_of_T(BaseType::mT);
+
+            if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
+                // Create LHS
+                DenseMatrix<TSystemMatrixType*> matrices_p_blocks(3,3);
+                DenseMatrix<double> contribution_coefficients(3,3);
+                DenseMatrix<bool> transpose_blocks(3,3);
+
+                // Create auxiliar identity matrix
+                const SizeType number_of_lm = BaseType::mT.size1();
+                TSystemMatrixType identity_matrix(number_of_lm, number_of_lm);
+                for (IndexType i = 0; i < number_of_lm; ++i) {
+                    identity_matrix.push_back(i, i, 1.0);
+                }
+
+                // Fill blocks
+                matrices_p_blocks(0,0) = &copy_of_A;
+                matrices_p_blocks(0,1) = &copy_of_T;
+                matrices_p_blocks(0,2) = &copy_of_T;
+                matrices_p_blocks(1,0) = &copy_of_T;
+                matrices_p_blocks(2,0) = &copy_of_T;
+                matrices_p_blocks(1,1) = &identity_matrix;
+                matrices_p_blocks(1,2) = &identity_matrix;
+                matrices_p_blocks(2,1) = &identity_matrix;
+                matrices_p_blocks(2,2) = &identity_matrix;
+
+                // Auxiliar values
+                auto& r_process_info = rModelPart.GetProcessInfo();
+                const bool has_build_scale_factor = r_process_info.Has(BUILD_SCALE_FACTOR);
+                const double build_scale_factor = has_build_scale_factor ? r_process_info[BUILD_SCALE_FACTOR] : TSparseSpace::TwoNorm(rA);
+                if (!has_build_scale_factor) {
+                    r_process_info.SetValue(CONSTRAINT_SCALE_FACTOR, build_scale_factor);
+                }
+                const bool has_constraint_scale_factor = r_process_info.Has(CONSTRAINT_SCALE_FACTOR);
+                const double constraint_scale_factor = has_constraint_scale_factor ? r_process_info[CONSTRAINT_SCALE_FACTOR] : build_scale_factor;
+                if (!has_constraint_scale_factor) {
+                    r_process_info.SetValue(CONSTRAINT_SCALE_FACTOR, constraint_scale_factor);
+                }
+
+                // Fill coefficients
+                contribution_coefficients(0, 0) = 1.0;
+                contribution_coefficients(0, 1) = constraint_scale_factor;
+                contribution_coefficients(1, 0) = constraint_scale_factor;
+                contribution_coefficients(0, 2) = constraint_scale_factor;
+                contribution_coefficients(2, 0) = constraint_scale_factor;
+                contribution_coefficients(1, 1) = -build_scale_factor;
+                contribution_coefficients(2, 1) = build_scale_factor;
+                contribution_coefficients(2, 1) = build_scale_factor;
+                contribution_coefficients(2, 2) = -build_scale_factor;
+
+                // Fill transpose positions
+                transpose_blocks(0, 0) = false;
+                transpose_blocks(0, 1) = true;
+                transpose_blocks(1, 0) = false;
+                transpose_blocks(0, 2) = true;
+                transpose_blocks(2, 0) = false;
+                transpose_blocks(1, 1) = false;
+                transpose_blocks(2, 1) = false;
+                transpose_blocks(2, 1) = false;
+                transpose_blocks(2, 2) = false;
+
+                SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
+
+                // Compute the RHS
+                Vector aux_b(rb.size() + 2 * number_of_lm);
+                for (IndexType i = 0; i < rb.size(); ++i) {
+                    aux_b[i] = rb[i];
+                }
+            } else {
+                // Create LHS
+                DenseMatrix<TSystemMatrixType*> matrices_p_blocks(2,2);
+                DenseMatrix<double> contribution_coefficients(2,2);
+                DenseMatrix<bool> transpose_blocks(2,2);
+
+                // Create auxiliar zero matrix
+                const SizeType number_of_lm = BaseType::mT.size1();
+                TSystemMatrixType zero_matrix(number_of_lm, number_of_lm);
+
+                // Fill blocks
+                matrices_p_blocks(0,0) = &copy_of_A;
+                matrices_p_blocks(0,1) = &copy_of_T;
+                matrices_p_blocks(1,0) = &copy_of_T;
+                matrices_p_blocks(1,1) = &zero_matrix;
+
+                // Auxiliar values
+                auto& r_process_info = rModelPart.GetProcessInfo();
+                const bool has_constraint_scale_factor = r_process_info.Has(CONSTRAINT_SCALE_FACTOR);
+                const double constraint_scale_factor = has_constraint_scale_factor ? r_process_info[CONSTRAINT_SCALE_FACTOR] : TSparseSpace::TwoNorm(rA);
+                if (!has_constraint_scale_factor) {
+                    r_process_info.SetValue(CONSTRAINT_SCALE_FACTOR, constraint_scale_factor);
+                }
+
+                // Fill coefficients
+                contribution_coefficients(0, 0) = 1.0;
+                contribution_coefficients(0, 1) = constraint_scale_factor;
+                contribution_coefficients(1, 0) = constraint_scale_factor;
+                contribution_coefficients(1, 1) = 0.0;
+
+                // Fill transpose positions
+                transpose_blocks(0, 0) = false;
+                transpose_blocks(0, 1) = true;
+                transpose_blocks(1, 0) = false;
+                transpose_blocks(0, 2) = false;
+
+                SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
+
+                // Compute the RHS
+                Vector aux_b(rb.size() + number_of_lm);
+                for (IndexType i = 0; i < rb.size(); ++i) {
+                    aux_b[i] = rb[i];
+                }
+            }
+        }
 
         KRATOS_CATCH("")
     }
