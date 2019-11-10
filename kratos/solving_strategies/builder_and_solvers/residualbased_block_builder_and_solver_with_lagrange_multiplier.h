@@ -193,6 +193,11 @@ public:
     {
         KRATOS_TRY
 
+        // Build the base RHS
+        BaseType::BuildRHS(pScheme, rModelPart, rb);
+
+        // Extend with the LM constribution
+
         KRATOS_CATCH("")
     }
 
@@ -290,7 +295,6 @@ public:
         for (int k = 0; k<number_slave_dofs; k++) {
             const IndexType equation_id = BaseType::mSlaveIds[k];
             auto it_dof =  BaseType::mDofSet.begin() + equation_id;
-            KRATOS_ERROR_IF(it_dof == BaseType::mDofSet.end()) << "Inconsistent slave dofs with assembled system" << std::endl;
             it_dof->GetSolutionStepReactionValue() += rDx[equation_id];
         }
 
@@ -519,12 +523,8 @@ protected:
 
         const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
 
-        // We clear the set
-        BaseType::mInactiveSlaveDofs.clear();
-
         #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_ids, master_equation_ids)
         {
-            std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;
 
             #pragma omp for schedule(guided, 512)
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
@@ -552,29 +552,8 @@ protected:
                         #pragma omp atomic
                         r_value += constant_value;
                     }
-                } else { // Taking into account inactive constraints
-                    it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
-                    auxiliar_inactive_slave_dofs.insert(slave_equation_ids.begin(), slave_equation_ids.end());
                 }
             }
-
-            // We merge all the sets in one thread
-            #pragma omp critical
-            {
-                BaseType::mInactiveSlaveDofs.insert(auxiliar_inactive_slave_dofs.begin(), auxiliar_inactive_slave_dofs.end());
-            }
-        }
-
-        // Setting the master dofs into the T and C system
-        for (auto eq_id : BaseType::mMasterIds) {
-            BaseType::mConstantVector[eq_id] = 0.0;
-            BaseType::mT(eq_id, eq_id) = 1.0;
-        }
-
-        // Setting inactive slave dofs in the T and C system
-        for (auto eq_id : BaseType::mInactiveSlaveDofs) {
-            BaseType::mConstantVector[eq_id] = 0.0;
-            BaseType::mT(eq_id, eq_id) = 1.0;
         }
 
         KRATOS_CATCH("")
@@ -609,6 +588,29 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Applies the constraints LM contribution to the RHS
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rb The RHS vector
+     */
+    void ComputeRHSLMContributions(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& rb
+        )
+    {
+        KRATOS_TRY
+
+        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+            if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
+            } else {
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
 
     ///@}
     ///@name Private Operations
