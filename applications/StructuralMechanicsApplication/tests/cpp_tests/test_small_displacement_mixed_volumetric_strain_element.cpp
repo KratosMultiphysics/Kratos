@@ -59,10 +59,7 @@ namespace Testing
         auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement2D3N", 1, element_nodes, p_elem_prop);
 
         // Set a fake displacement and volumetric strain field to compute the residual
-        array_1d<double, 3> aux_disp;
-        aux_disp[0] = 0.0;
-        aux_disp[1] = 0.0;
-        aux_disp[2] = 0.0;
+        array_1d<double, 3> aux_disp = ZeroVector(3);
         p_node_1->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
         p_node_2->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
         aux_disp[1] = 0.1;
@@ -70,7 +67,6 @@ namespace Testing
         p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.01;
         p_node_2->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.01;
         p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.02;
-
 
         // Compute RHS and LHS
         Vector RHS = ZeroVector(9);
@@ -83,6 +79,118 @@ namespace Testing
         const double tolerance = 1.0e-5;
         const std::vector<double> expected_RHS({51153.8,51153.8,-0.00140972,-12692.3,-38461.5,0.00594722,-38461.5,-12692.3,0.0020625});
         const std::vector<double> expected_LHS_row_0({778846, 9615.38, -317308, -394231, -384615, -317308, -384615, 375000, -317308});
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
+    }
+
+    /**
+    * Checks the Small Displacement Mixed Strain Element
+    * Simple test
+    */
+    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElement2D4N, KratosStructuralMechanicsFastSuite)
+    {
+        Model current_model;
+        auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+
+        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
+
+        // Set the element properties
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
+        p_elem_prop->SetValue(POISSON_RATIO, 0.3);
+        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
+        // Create the test element
+        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+        auto p_node_3 = r_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
+        auto p_node_4 = r_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
+        std::vector<ModelPart::IndexType> element_nodes {1,2,3,4};
+        auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement2D4N", 1, element_nodes, p_elem_prop);
+
+        // Set a fake displacement and volumetric strain field to compute the residual
+        array_1d<double, 3> aux_disp = ZeroVector(3);
+        p_node_1->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
+        p_node_2->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
+        aux_disp[1] = 0.1;
+        p_node_3->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
+        p_node_4->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
+        p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.01;
+        p_node_2->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.01;
+        p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.02;
+        p_node_4->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.03;
+
+        // Compute RHS and LHS
+        Vector RHS = ZeroVector(12);
+        Matrix LHS = ZeroMatrix(12,12);
+
+        p_element->Initialize(); // Initialize the element to initialize the constitutive law
+        p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+
+        // Check RHS and LHS results
+        const double tolerance = 1.0e-5;
+        const std::vector<double> expected_RHS({-23221.2,56875,-0.0375667,23221.2,55288.5,-0.0420083,18461.5,-55288.5,-0.0117417,-18461.5,-56875,0.00964167});
+        const std::vector<double> expected_LHS_row_0({519231,4807.69,-317308,-134615,-379808,-317308,-259615,-4807.69,-158654,-125000,379808,-158654});
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
+    }
+
+    /**
+    * Checks the Small Displacement Mixed Strain Element
+    * Simple test
+    */
+    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElement3D8N, KratosStructuralMechanicsFastSuite)
+    {
+        Model current_model;
+        auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+
+        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
+
+        // Set the element properties
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
+        p_elem_prop->SetValue(POISSON_RATIO, 0.3);
+        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
+        // Create the test element
+        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+        auto p_node_3 = r_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
+        auto p_node_4 = r_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
+        auto p_node_5 = r_model_part.CreateNewNode(5, 0.0 , 0.0 , 1.0);
+        auto p_node_6 = r_model_part.CreateNewNode(6, 1.0 , 0.0 , 1.0);
+        auto p_node_7 = r_model_part.CreateNewNode(7, 1.0 , 1.0 , 1.0);
+        auto p_node_8 = r_model_part.CreateNewNode(8, 0.0 , 1.0 , 1.0);
+        std::vector<ModelPart::IndexType> element_nodes {1,2,3,4,5,6,7,8};
+        auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement3D8N", 1, element_nodes, p_elem_prop);
+
+        // Set a fake displacement and volumetric strain field to compute the residual
+        array_1d<double, 3> aux_disp = ZeroVector(3);
+        p_node_1->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
+        p_node_2->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
+        aux_disp[1] = 0.1;
+        p_node_3->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
+        p_node_4->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
+        p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.01;
+        p_node_2->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.01;
+        p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.02;
+        p_node_4->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.03;
+
+        // Compute RHS and LHS
+        Vector RHS = ZeroVector(32);
+        Matrix LHS = ZeroMatrix(32,32);
+
+        p_element->Initialize(); // Initialize the element to initialize the constitutive law
+        p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+
+        // Check RHS and LHS results
+        const double tolerance = 1.0e-5;
+        const std::vector<double> expected_RHS({-4144.23,16003.2,-12609,-0.00335556,4144.23,15544.9,-12838.1,-0.00525278,2769.23,-34775.6,7309.29,0.00594722,-2769.23,-35234,7767.63,0.0133528,-2072.12,17617,-6621.79,-0.0143167,2072.12,17387.8,-6392.63,-0.0143625,1384.62,1842.95,11921.5,-0.0123736,-1384.62,1613.78,11463.1,-0.0104764});
+        const std::vector<double> expected_LHS_row_0({286752,22756.4,22756.4,-91666.7,-30341.9,-105449,-105449,-91666.7,-79273.5,-22756.4,-52724.4,-45833.3,15170.9,105449,11378.2,-45833.3,15170.9,11378.2,105449,-45833.3,-79273.5,-52724.4,-22756.4,-45833.3,-71688,-11378.2,-11378.2,-22916.7,-56517.1,52724.4,52724.4,-22916.7});
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
     }

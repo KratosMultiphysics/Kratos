@@ -371,7 +371,9 @@ private:
     const SmallDisplacementBbar mSmallDisplacementBbar3D8N;
 
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement2D3N;
+    const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement2D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D4N;
+    const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D8N;
 
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D3N;
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D4N;

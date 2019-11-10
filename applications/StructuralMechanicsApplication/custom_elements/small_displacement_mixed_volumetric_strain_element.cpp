@@ -14,14 +14,15 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
+#include "includes/constitutive_law.h"
+#include "utilities/element_size_calculator.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/math_utils.h"
-#include "includes/constitutive_law.h"
-#include "structural_mechanics_application_variables.h"
+
+// Application includes
+#include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
 
 namespace Kratos
 {
@@ -293,7 +294,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
     //     const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : CalculateApproximatedBulkModulus(rCurrentProcessInfo, i_gauss, kinematic_variables.N);
 
     //     // Calculate stabilization constants
-    //     const double h = ComputeElementSize(kinematic_variables.DN_DX);
+    //     const double h = CalculateElementSize(kinematic_variables);
     //     const double shear_modulus = cons_law_values.GetConstitutiveMatrix()(dim, dim);
     //     const double tau_1 = 2.0 * std::pow(h, 2) / (2.0 * shear_modulus);
     //     const double tau_2 = 0.0;
@@ -434,7 +435,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
         const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : CalculateApproximatedBulkModulus(rCurrentProcessInfo, i_gauss, kinematic_variables.N);
 
         // Calculate stabilization constants
-        const double h = ComputeElementSize(kinematic_variables.DN_DX); // TODO: Improve it to use quads and hexas!
+        const double h = CalculateElementSize(kinematic_variables);
         const double shear_modulus = cons_law_values.GetConstitutiveMatrix()(dim,dim);
         const double tau_1 = 2.0 * std::pow(h, 2) / (2.0 * shear_modulus);
         const double tau_2 = std::min(1.0e-2, 4.0*shear_modulus/bulk_modulus);
@@ -549,7 +550,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
         vol_stress /= dim;
         const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : CalculateApproximatedBulkModulus(rCurrentProcessInfo, i_gauss, kinematic_variables.N);
 
-        const double h = ComputeElementSize(kinematic_variables.DN_DX);
+        const double h = CalculateElementSize(kinematic_variables);
         const double shear_modulus = cons_law_values.GetConstitutiveMatrix()(dim,dim);
         const double tau_1 = 2.0 * std::pow(h, 2) / (2.0 * shear_modulus);
         const double tau_2 = std::min(1.0e-2, 4.0*shear_modulus/bulk_modulus);
@@ -855,18 +856,34 @@ void SmallDisplacementMixedVolumetricStrainElement::ComputeEquivalentF(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double SmallDisplacementMixedVolumetricStrainElement::ComputeElementSize(const Matrix &rDN_DX) const
+double SmallDisplacementMixedVolumetricStrainElement::CalculateElementSize(const KinematicVariables &rThisKinematicVariables) const
 {
-    double h = 0.0;
-    for (unsigned int i_node = 0; i_node < GetGeometry().PointsNumber(); ++i_node) {
-        double h_inv = 0.0;
-        for (unsigned int d = 0; d < GetGeometry().WorkingSpaceDimension(); ++d) {
-            h_inv += rDN_DX(i_node, d) * rDN_DX(i_node, d);
+    const auto &r_geometry = GetGeometry();
+    switch (r_geometry.GetGeometryType())
+    {
+        case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+        {
+            const BoundedMatrix<double,3,2> aux_grads(rThisKinematicVariables.DN_DX);
+            return ElementSizeCalculator<2,3>::GradientsElementSize(aux_grads);
         }
-        h += 1.0 / h_inv;
+        case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+        {
+            const BoundedMatrix<double,4,3> aux_grads(rThisKinematicVariables.DN_DX);
+            return ElementSizeCalculator<3,4>::GradientsElementSize(aux_grads);
+        }
+        case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4:
+        {
+            return ElementSizeCalculator<2,4>::AverageElementSize(r_geometry);
+        }
+        case GeometryData::KratosGeometryType::Kratos_Hexahedra3D8:
+        {
+            return ElementSizeCalculator<3,8>::AverageElementSize(r_geometry);
+        }
+        default:
+        {
+            KRATOS_ERROR << "Asking for a non-implemented geometry element size calculation." << std::endl;
+        }
     }
-    h = sqrt(h) / static_cast<double>(GetGeometry().PointsNumber());
-    return h;
 }
 
 /***********************************************************************************/

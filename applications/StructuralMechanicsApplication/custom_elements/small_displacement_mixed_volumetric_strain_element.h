@@ -21,6 +21,8 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "utilities/integration_utilities.h"
+
+// Application includes
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -590,7 +592,14 @@ private:
         }
     }
 
-    double ComputeElementSize(const Matrix &rDN_DX) const;
+    /**
+     * @brief Calculate the element size
+     * This method calculates the element size used in the stabilization terms
+     * @param rThisKinematicVariables Kinematic variables container. Required
+     * in case h is computed using the gradients (triangles and tetrahedas)
+     * @return double The element size
+     */
+    double CalculateElementSize(const KinematicVariables &rThisKinematicVariables) const;
 
     double CalculateApproximatedBulkModulus(
         const ProcessInfo& rCurrentProcessInfo,
