@@ -285,6 +285,15 @@ public:
         }
 
         // NOTE: The constraints reactions are already computed when solving the dofs
+        const int number_slave_dofs = BaseType::mSlaveIds.size();
+        #pragma omp parallel for
+        for (int k = 0; k<number_slave_dofs; k++) {
+            const IndexType equation_id = BaseType::mSlaveIds[k];
+            auto it_dof =  BaseType::mDofSet.begin() + equation_id;
+            KRATOS_ERROR_IF(it_dof == BaseType::mDofSet.end()) << "Inconsistent slave dofs with assembled system" << std::endl;
+            it_dof->GetSolutionStepReactionValue() += rDx[equation_id];
+        }
+
     }
 
     /**
