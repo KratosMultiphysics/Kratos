@@ -462,7 +462,7 @@ public:
                 }
 
                 // Finally reassign
-                rb.resize(aux_b.size());
+                rb.resize(aux_b.size(), false);
                 noalias(rb) = aux_b;
             } else {
                 // Create LHS
@@ -497,7 +497,7 @@ public:
                 transpose_blocks(0, 0) = false;
                 transpose_blocks(0, 1) = true;
                 transpose_blocks(1, 0) = false;
-                transpose_blocks(0, 2) = false;
+                transpose_blocks(1, 1) = false;
 
                 SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
 
@@ -519,7 +519,7 @@ public:
                 }
 
                 // Finally reassign
-                rb.resize(aux_b.size());
+                rb.resize(aux_b.size(), false);
                 noalias(rb) = aux_b;
             }
         }
