@@ -649,6 +649,7 @@ protected:
 
                         // Slave DoFs
                         for (auto &id_i : slave_ids) {
+                            temp_indices[id_i].insert(id_i);
                             temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
                         }
                     }
@@ -674,13 +675,13 @@ protected:
                     mCorrespondanceDofsSlave.insert(std::pair<IndexType, IndexType>(i, counter));
                     ++counter;
                 }
-                indices[i].insert(i); // Ensure that the diagonal is there in T
             }
 
             // Count the row sizes
             std::size_t nnz = 0;
-            for (IndexType i = 0; i < size_indices; ++i)
+            for (IndexType i = 0; i < size_indices; ++i) {
                 nnz += indices[i].size();
+            }
 
             BaseType::mT = TSystemMatrixType(size_indices, BaseType::mSlaveIds.size(), nnz);
             BaseType::mConstantVector.resize(BaseType::mSlaveIds.size(), false);
