@@ -43,7 +43,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class ResidualBasedEliminationBuilderAndSolverWithLagrangeMultiplier
+ * @class ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier
  * @ingroup KratosCore
  * @brief Current class provides an implementation for standard builder and solving operations.
  * @details The RHS is constituted by the unbalanced loads (residual)
