@@ -654,13 +654,18 @@ protected:
                 }
             }
 
+            std::unordered_map<IndexType, IndexType> correspondance_dofs_slave;
+            IndexType counter = 0;
             BaseType::mSlaveIds.clear();
             BaseType::mMasterIds.clear();
             for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
-                if (indices[i].size() == 0) // Master dof!
+                if (indices[i].size() == 0) { // Master dof!
                     BaseType::mMasterIds.push_back(i);
-                else // Slave dof
+                } else { // Slave dof
                     BaseType::mSlaveIds.push_back(i);
+                    correspondance_dofs_slave.insert(std::pair<IndexType, IndexType>(i, counter));
+                    ++counter;
+                }
                 indices[i].insert(i); // Ensure that the diagonal is there in T
             }
 
@@ -669,8 +674,8 @@ protected:
             for (IndexType i = 0; i < indices.size(); ++i)
                 nnz += indices[i].size();
 
-            BaseType::mT = TSystemMatrixType(indices.size(), indices.size(), nnz);
-            BaseType::mConstantVector.resize(indices.size(), false);
+            BaseType::mT = TSystemMatrixType(indices.size(), BaseType::mSlaveIds.size(), nnz);
+            BaseType::mConstantVector.resize(BaseType::mSlaveIds.size(), false);
 
             double *Tvalues = BaseType::mT.value_data().begin();
             IndexType *Trow_indices = BaseType::mT.index1_data().begin();
@@ -687,9 +692,9 @@ protected:
                 const IndexType row_end = Trow_indices[i + 1];
                 IndexType k = row_begin;
                 for (auto it = indices[i].begin(); it != indices[i].end(); ++it) {
-                    Tcol_indices[k] = *it;
+                    Tcol_indices[k] = correspondance_dofs_slave[*it];
                     Tvalues[k] = 0.0;
-                    k++;
+                    ++k;
                 }
 
                 indices[i].clear(); //deallocating the memory
