@@ -53,10 +53,11 @@ namespace Kratos
  * this information.
  * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
  * Additionally the constraints are solver considering Lagrange multiplier (or double Lagrange multiplier)
+ * @note Based on https://www.code-aster.org/V2/doc/default/en/man_r/r3/r3.03.01.pdf
  * @tparam TSparseSpace The sparse system considered
  * @tparam TDenseSpace The dense system considered
  * @tparam TLinearSolver The linear solver considered
- * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
  */
 template<class TSparseSpace,
          class TDenseSpace, //= DenseSpace<double>,
