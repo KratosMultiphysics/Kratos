@@ -622,9 +622,10 @@ protected:
 
             // Constraint initial iterator
             const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
-            std::vector<std::unordered_set<IndexType>> indices(BaseType::mDofSet.size());
+            const std::size_t size_indices = BaseType::mDofSet.size();
+            std::vector<std::unordered_set<IndexType>> indices(size_indices);
 
-            std::vector<LockObject> lock_array(indices.size());
+            std::vector<LockObject> lock_array(size_indices);
 
             #pragma omp parallel firstprivate(slave_dof_list, master_dof_list)
             {
@@ -654,7 +655,7 @@ protected:
                 }
 
                 // Merging all the temporal indexes
-                for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
+                for (int i = 0; i < static_cast<int>(temp_size_indices); ++i) {
                     lock_array[i].SetLock();
                     indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
                     lock_array[i].UnSetLock();
@@ -665,7 +666,7 @@ protected:
             mCorrespondanceDofsSlave.clear();
             BaseType::mSlaveIds.clear();
             BaseType::mMasterIds.clear();
-            for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
+            for (int i = 0; i < static_cast<int>(size_indices); ++i) {
                 if (indices[i].size() == 0) { // Master dof!
                     BaseType::mMasterIds.push_back(i);
                 } else { // Slave dof
@@ -678,10 +679,10 @@ protected:
 
             // Count the row sizes
             std::size_t nnz = 0;
-            for (IndexType i = 0; i < indices.size(); ++i)
+            for (IndexType i = 0; i < size_indices; ++i)
                 nnz += indices[i].size();
 
-            BaseType::mT = TSystemMatrixType(indices.size(), BaseType::mSlaveIds.size(), nnz);
+            BaseType::mT = TSystemMatrixType(size_indices, BaseType::mSlaveIds.size(), nnz);
             BaseType::mConstantVector.resize(BaseType::mSlaveIds.size(), false);
 
             double *Tvalues = BaseType::mT.value_data().begin();
@@ -690,11 +691,12 @@ protected:
 
             // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
             Trow_indices[0] = 0;
-            for (int i = 0; i < static_cast<int>(BaseType::mT.size1()); i++)
+            for (int i = 0; i < static_cast<int>(size_indices); ++i) {
                 Trow_indices[i + 1] = Trow_indices[i] + indices[i].size();
+            }
 
             #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(BaseType::mT.size1()); ++i) {
+            for (int i = 0; i < static_cast<int>(size_indices); ++i) {
                 const IndexType row_begin = Trow_indices[i];
                 const IndexType row_end = Trow_indices[i + 1];
                 IndexType k = row_begin;
@@ -709,7 +711,7 @@ protected:
                 std::sort(&Tcol_indices[row_begin], &Tcol_indices[row_end]);
             }
 
-            BaseType::mT.set_filled(indices.size() + 1, nnz);
+            BaseType::mT.set_filled(size_indices + 1, nnz);
 
             Timer::Stop("ConstraintsRelationMatrixStructure");
         }
@@ -743,7 +745,6 @@ protected:
 
         #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_ids, master_equation_ids)
         {
-
             #pragma omp for schedule(guided, 512)
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
