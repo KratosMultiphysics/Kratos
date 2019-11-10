@@ -763,7 +763,7 @@ protected:
                         const IndexType i_global = mCorrespondanceDofsSlave[slave_equation_ids[i]];
 
                         // Assemble matrix row
-                        BaseType::AssembleRowContribution(BaseType::mT, transformation_matrix, i_global, i, master_equation_ids);
+                        BaseType::AssembleRowContribution(BaseType::mT, - transformation_matrix, i_global, i, master_equation_ids);
 
                         // Assemble constant vector
                         const double constant_value = constant_vector[i];
@@ -773,6 +773,11 @@ protected:
                     }
                 }
             }
+        }
+
+        // Setting the slave dofs into the T system
+        for (auto eq_id : BaseType::mSlaveIds) {
+            BaseType::mT(eq_id, mCorrespondanceDofsSlave[eq_id]) = 1.0;
         }
 
         KRATOS_CATCH("")
