@@ -119,7 +119,7 @@ public:
     explicit ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
         Parameters ThisParameters
-        ) : BaseType(pNewLinearSystemSolver, ThisParameters)
+        ) : BaseType(pNewLinearSystemSolver)
     {
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
@@ -133,6 +133,8 @@ public:
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         // Setting flags
+        BaseType::mOptions.Set(BaseType::SCALE_DIAGONAL, ThisParameters["scale_diagonal"].GetBool());
+        BaseType::mOptions.Set(BaseType::SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
         BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, ThisParameters["consider_double_lagrange_multiplier"].GetBool());
     }
 
