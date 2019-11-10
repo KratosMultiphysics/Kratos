@@ -197,6 +197,58 @@ public:
         BaseType::BuildRHS(pScheme, rModelPart, rb);
 
         // Extend with the LM constribution
+        const SizeType number_of_dofs = rb.size();
+        const SizeType number_of_lm = BaseType::mT.size1();
+
+        // Auxiliar values
+        auto& r_process_info = rModelPart.GetProcessInfo();
+        KRATOS_ERROR_IF(r_process_info.Has(CONSTRAINT_SCALE_FACTOR)) << "CONSTRAINT_SCALE_FACTOR must be assigned in order to compute the RHS" << std::endl;
+        const double constraint_scale_factor = r_process_info[CONSTRAINT_SCALE_FACTOR];
+
+        if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
+            // Compute the RHS
+            Vector aux_b(number_of_dofs + 2 * number_of_lm);
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(number_of_dofs); ++i) {
+                aux_b[i] = rb[i];
+            }
+
+            // Compute LM contributions
+            TSystemVectorType b_lm(number_of_lm);
+            ComputeRHSLMContributions(b_lm, constraint_scale_factor);
+
+            // Fill auxiliar vector
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
+                aux_b[number_of_dofs + i] = b_lm[i];
+                aux_b[number_of_dofs + number_of_lm + i] = b_lm[i];
+            }
+
+            // Finally reassign
+            rb.resize(aux_b.size());
+            noalias(rb) = aux_b;
+        } else {
+            // Compute the RHS
+            Vector aux_b(number_of_dofs + number_of_lm);
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(number_of_dofs); ++i) {
+                aux_b[i] = rb[i];
+            }
+
+            // Compute LM contributions
+            TSystemVectorType b_lm(number_of_lm);
+            ComputeRHSLMContributions(b_lm, constraint_scale_factor);
+
+            // Fill auxiliar vector
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
+                aux_b[number_of_dofs + i] = b_lm[i];
+            }
+
+            // Finally reassign
+            rb.resize(aux_b.size());
+            noalias(rb) = aux_b;
+        }
 
         KRATOS_CATCH("")
     }
@@ -323,6 +375,11 @@ public:
             TSystemMatrixType copy_of_A(rA);
             TSystemMatrixType copy_of_T(BaseType::mT);
 
+            // Some common values
+            const SizeType number_of_dofs = rb.size();
+            const SizeType number_of_lm = BaseType::mT.size1();
+
+            // Assemble the blocks
             if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
                 // Create LHS
                 DenseMatrix<TSystemMatrixType*> matrices_p_blocks(3,3);
@@ -330,7 +387,6 @@ public:
                 DenseMatrix<bool> transpose_blocks(3,3);
 
                 // Create auxiliar identity matrix
-                const SizeType number_of_lm = BaseType::mT.size1();
                 TSystemMatrixType identity_matrix(number_of_lm, number_of_lm);
                 for (IndexType i = 0; i < number_of_lm; ++i) {
                     identity_matrix.push_back(i, i, 1.0);
@@ -385,10 +441,26 @@ public:
                 SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
 
                 // Compute the RHS
-                Vector aux_b(rb.size() + 2 * number_of_lm);
-                for (IndexType i = 0; i < rb.size(); ++i) {
+                Vector aux_b(number_of_dofs + 2 * number_of_lm);
+                #pragma omp parallel for
+                for (int i = 0; i < static_cast<int>(number_of_dofs); ++i) {
                     aux_b[i] = rb[i];
                 }
+
+                // Compute LM contributions
+                TSystemVectorType b_lm(number_of_lm);
+                ComputeRHSLMContributions(b_lm, constraint_scale_factor);
+
+                // Fill auxiliar vector
+                #pragma omp parallel for
+                for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
+                    aux_b[number_of_dofs + i] = b_lm[i];
+                    aux_b[number_of_dofs + number_of_lm + i] = b_lm[i];
+                }
+
+                // Finally reassign
+                rb.resize(aux_b.size());
+                noalias(rb) = aux_b;
             } else {
                 // Create LHS
                 DenseMatrix<TSystemMatrixType*> matrices_p_blocks(2,2);
@@ -396,7 +468,6 @@ public:
                 DenseMatrix<bool> transpose_blocks(2,2);
 
                 // Create auxiliar zero matrix
-                const SizeType number_of_lm = BaseType::mT.size1();
                 TSystemMatrixType zero_matrix(number_of_lm, number_of_lm);
 
                 // Fill blocks
@@ -428,10 +499,25 @@ public:
                 SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
 
                 // Compute the RHS
-                Vector aux_b(rb.size() + number_of_lm);
-                for (IndexType i = 0; i < rb.size(); ++i) {
+                Vector aux_b(number_of_dofs + number_of_lm);
+                #pragma omp parallel for
+                for (int i = 0; i < static_cast<int>(number_of_dofs); ++i) {
                     aux_b[i] = rb[i];
                 }
+
+                // Compute LM contributions
+                TSystemVectorType b_lm(number_of_lm);
+                ComputeRHSLMContributions(b_lm, constraint_scale_factor);
+
+                // Fill auxiliar vector
+                #pragma omp parallel for
+                for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
+                    aux_b[number_of_dofs + i] = b_lm[i];
+                }
+
+                // Finally reassign
+                rb.resize(aux_b.size());
+                noalias(rb) = aux_b;
             }
         }
 
@@ -710,23 +796,42 @@ private:
 
     /**
      * @brief Applies the constraints LM contribution to the RHS
-     * @param pScheme The integration scheme considered
-     * @param rModelPart The model part of the problem to solve
-     * @param rb The RHS vector
+     * @param rbLM The RHS vector
+     * @param ScaleFactor The scale factor considered
      */
     void ComputeRHSLMContributions(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart,
-        TSystemVectorType& rb
+        TSystemVectorType& rbLM,
+        const double ScaleFactor = 1.0
         )
     {
         KRATOS_TRY
 
-        if (rModelPart.MasterSlaveConstraints().size() != 0) {
-            if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
-            } else {
-            }
+        const auto it_dof_begin = BaseType::mDofSet.begin();
+        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
+
+        // Our auxiliar vector
+        const SizeType number_of_slave_dofs = BaseType::mSlaveIds.size();
+        if (rbLM.size() != number_of_slave_dofs)
+            rbLM.resize(number_of_slave_dofs, false);
+        Vector aux_whole_dof_vector(ndofs);
+
+        // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        #pragma omp parallel for
+        for (int k = 0; k<ndofs; ++k) {
+            auto it_dof = it_dof_begin + k;
+            aux_whole_dof_vector[k] = it_dof->GetSolutionStepValue();
         }
+
+        // We compute the transposed matrix of the global relation matrix
+        TSystemMatrixType T_transpose_matrix(BaseType::mT.size2(), BaseType::mT.size1());
+        SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, BaseType::mT, 1.0);
+
+        // Compute auxiliar contribution
+        TSystemVectorType aux_slave_dof_vector(number_of_slave_dofs);
+        TSparseSpace::Mult(T_transpose_matrix, aux_whole_dof_vector, aux_slave_dof_vector);
+
+        // Finally compute the RHS LM contribution
+        noalias(rbLM) = ScaleFactor * (BaseType::mConstantVector -  aux_slave_dof_vector);
 
         KRATOS_CATCH("")
     }
