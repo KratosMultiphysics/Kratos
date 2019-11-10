@@ -380,7 +380,7 @@ public:
 
             // Some common values
             const SizeType number_of_dofs = rb.size();
-            const SizeType number_of_lm = BaseType::mT.size1();
+            const SizeType number_of_lm = BaseType::mT.size2();
 
             // Assemble the blocks
             if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
@@ -432,10 +432,10 @@ public:
 
                 // Fill transpose positions
                 transpose_blocks(0, 0) = false;
-                transpose_blocks(0, 1) = true;
-                transpose_blocks(1, 0) = false;
-                transpose_blocks(0, 2) = true;
-                transpose_blocks(2, 0) = false;
+                transpose_blocks(0, 1) = false;
+                transpose_blocks(1, 0) = true;
+                transpose_blocks(0, 2) = false;
+                transpose_blocks(2, 0) = true;
                 transpose_blocks(1, 1) = false;
                 transpose_blocks(2, 1) = false;
                 transpose_blocks(2, 1) = false;
@@ -495,8 +495,8 @@ public:
 
                 // Fill transpose positions
                 transpose_blocks(0, 0) = false;
-                transpose_blocks(0, 1) = true;
-                transpose_blocks(1, 0) = false;
+                transpose_blocks(0, 1) = false;
+                transpose_blocks(1, 0) = true;
                 transpose_blocks(0, 2) = false;
 
                 SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
@@ -768,7 +768,7 @@ protected:
 
                         // Assemble constant vector
                         const double constant_value = constant_vector[i];
-                        double& r_value = BaseType::mConstantVector[mCorrespondanceDofsSlave[i_global]];
+                        double& r_value = BaseType::mConstantVector[i_global];
                         #pragma omp atomic
                         r_value += constant_value;
                     }
@@ -830,7 +830,7 @@ private:
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         // Our auxiliar vector
-        const SizeType number_of_slave_dofs = BaseType::mSlaveIds.size();
+        const SizeType number_of_slave_dofs = BaseType::mT.size2();
         if (rbLM.size() != number_of_slave_dofs)
             rbLM.resize(number_of_slave_dofs, false);
         Vector aux_whole_dof_vector(ndofs);
@@ -842,13 +842,9 @@ private:
             aux_whole_dof_vector[k] = it_dof->GetSolutionStepValue();
         }
 
-        // We compute the transposed matrix of the global relation matrix
-        TSystemMatrixType T_transpose_matrix(BaseType::mT.size2(), BaseType::mT.size1());
-        SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, BaseType::mT, 1.0);
-
         // Compute auxiliar contribution
         TSystemVectorType aux_slave_dof_vector(number_of_slave_dofs);
-        TSparseSpace::Mult(T_transpose_matrix, aux_whole_dof_vector, aux_slave_dof_vector);
+        TSparseSpace::Mult(BaseType::mT, aux_whole_dof_vector, aux_slave_dof_vector);
 
         // Finally compute the RHS LM contribution
         noalias(rbLM) = ScaleFactor * (BaseType::mConstantVector -  aux_slave_dof_vector);
