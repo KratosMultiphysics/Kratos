@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    , KratosAppGenerator
+//  Main authors:   KratosAppGenerator
 //
 
 // System includes
@@ -46,7 +46,7 @@ namespace Kratos
  * Constructor.
  */
 CustomTestCondition::CustomTestCondition(IndexType NewId)
-    : Condition(NewId) 
+    : Condition(NewId)
 {
 }
 
@@ -54,7 +54,7 @@ CustomTestCondition::CustomTestCondition(IndexType NewId)
  * Constructor using an array of nodes
  */
 CustomTestCondition::CustomTestCondition(IndexType NewId, const NodesArrayType& ThisNodes)
-    : Condition(NewId, ThisNodes) 
+    : Condition(NewId, ThisNodes)
 {
 }
 
@@ -62,7 +62,7 @@ CustomTestCondition::CustomTestCondition(IndexType NewId, const NodesArrayType& 
  * Constructor using Geometry
  */
 CustomTestCondition::CustomTestCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Condition(NewId, pGeometry) 
+    : Condition(NewId, pGeometry)
 {
 }
 
@@ -70,7 +70,7 @@ CustomTestCondition::CustomTestCondition(IndexType NewId, GeometryType::Pointer 
  * Constructor using Properties
  */
 CustomTestCondition::CustomTestCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Condition(NewId, pGeometry, pProperties) 
+    : Condition(NewId, pGeometry, pProperties)
 {
 }
 
@@ -78,7 +78,7 @@ CustomTestCondition::CustomTestCondition(IndexType NewId, GeometryType::Pointer 
  * Copy Constructor
  */
 CustomTestCondition::CustomTestCondition(CustomTestCondition const& rOther)
-    : Condition(rOther) 
+    : Condition(rOther)
 {
 }
 
@@ -171,7 +171,7 @@ void CustomTestCondition::EquationIdVector(EquationIdVectorType& rResult, Proces
     if (rResult.size() != number_of_nodes)
         rResult.resize(number_of_nodes, false);
 
-    
+
 }
 
 /**
@@ -185,7 +185,7 @@ void CustomTestCondition::GetDofList(DofsVectorType& rConditionDofList, ProcessI
     if (rConditionDofList.size() != number_of_nodes)
         rConditionDofList.resize(number_of_nodes);
 
-    
+
 }
 
 /**

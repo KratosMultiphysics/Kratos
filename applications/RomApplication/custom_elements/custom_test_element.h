@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    , KratosAppGenerator
+//  Main authors:   KratosAppGenerator
 //
 
 #if !defined(KRATOS_CUSTOM_TEST_ELEMENT_H_INCLUDED )
@@ -52,7 +52,7 @@ class CustomTestElement : public Element
 {
 public:
 
-    
+
 
     ///@name Type Definitions
     ///@{
@@ -354,13 +354,13 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    
+
 
     ///@}
     ///@name Member Variables
     ///@{
 
-    
+
 
     ///@}
     ///@name Private Operators

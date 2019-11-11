@@ -4,11 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:      BSD License
+//                Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                   Raul Bravo
+//  Main authors: Riccardo Rossi
+//                Raul Bravo
 //
 
 
@@ -31,12 +31,10 @@ KratosRomApplication::KratosRomApplication():
 
 void KratosRomApplication::Register()
 {
-     // calling base class register to register Kratos components
-     KratosApplication::Register();
-     KRATOS_INFO("") << "Initializing KratosRomApplication..." << std::endl;
-
-  KRATOS_REGISTER_VARIABLE( AUX_ID )
-  KRATOS_REGISTER_VARIABLE( ROM_BASIS )
-
+    // calling base class register to register Kratos components
+    KratosApplication::Register();
+    KRATOS_INFO("") << "Initializing KratosRomApplication..." << std::endl;
+    KRATOS_REGISTER_VARIABLE( AUX_ID )
+    KRATOS_REGISTER_VARIABLE( ROM_BASIS )
 }
 }  // namespace Kratos.

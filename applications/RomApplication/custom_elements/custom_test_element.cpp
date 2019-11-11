@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    , KratosAppGenerator
+//  Main authors:   KratosAppGenerator
 //
 
 // System includes
@@ -46,7 +46,7 @@ namespace Kratos
  * Constructor.
  */
 CustomTestElement::CustomTestElement(IndexType NewId)
-    : Element(NewId) 
+    : Element(NewId)
 {
 }
 
@@ -54,7 +54,7 @@ CustomTestElement::CustomTestElement(IndexType NewId)
  * Constructor using an array of nodes
  */
 CustomTestElement::CustomTestElement(IndexType NewId, const NodesArrayType& ThisNodes)
-    : Element(NewId, ThisNodes) 
+    : Element(NewId, ThisNodes)
 {
 }
 
@@ -62,7 +62,7 @@ CustomTestElement::CustomTestElement(IndexType NewId, const NodesArrayType& This
  * Constructor using Geometry
  */
 CustomTestElement::CustomTestElement(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry) 
+    : Element(NewId, pGeometry)
 {
 }
 
@@ -70,7 +70,7 @@ CustomTestElement::CustomTestElement(IndexType NewId, GeometryType::Pointer pGeo
  * Constructor using Properties
  */
 CustomTestElement::CustomTestElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties) 
+    : Element(NewId, pGeometry, pProperties)
 {
 }
 
@@ -78,7 +78,7 @@ CustomTestElement::CustomTestElement(IndexType NewId, GeometryType::Pointer pGeo
  * Copy Constructor
  */
 CustomTestElement::CustomTestElement(CustomTestElement const& rOther)
-    : Element(rOther) 
+    : Element(rOther)
 {
 }
 
@@ -171,7 +171,7 @@ void CustomTestElement::EquationIdVector(EquationIdVectorType& rResult, ProcessI
     if (rResult.size() != number_of_nodes)
         rResult.resize(number_of_nodes, false);
 
-    
+
 }
 
 /**
@@ -185,7 +185,7 @@ void CustomTestElement::GetDofList(DofsVectorType& rElementalDofList, ProcessInf
     if (rElementalDofList.size() != number_of_nodes)
         rElementalDofList.resize(number_of_nodes);
 
-    
+
 }
 
 /**

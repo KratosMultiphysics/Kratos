@@ -4,11 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Raul Bravo
-//                   
+//  Main authors:   Raul Bravo
+//
 //
 
 
@@ -16,7 +16,6 @@
 
 namespace Kratos
 {
-KRATOS_CREATE_VARIABLE( int, AUX_ID )
-KRATOS_CREATE_VARIABLE( Matrix, ROM_BASIS )
-
+    KRATOS_CREATE_VARIABLE( int, AUX_ID )
+    KRATOS_CREATE_VARIABLE( Matrix, ROM_BASIS )
 }

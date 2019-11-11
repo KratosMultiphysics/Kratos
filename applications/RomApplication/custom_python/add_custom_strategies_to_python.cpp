@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Raul Bravo
+//  Main authors:   Raul Bravo
 //
 //
 
@@ -53,8 +53,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef ROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ROMBuilderAndSolverType;
 
      py::class_<ROMBuilderAndSolverType, typename ROMBuilderAndSolverType::Pointer, BuilderAndSolverType>(m, "ROMBuilderAndSolver")
-     	.def(py::init< LinearSolverType::Pointer, Parameters>() )
-     	;
+        .def(py::init< LinearSolverType::Pointer, Parameters>() )
+        ;
 
 }
 
