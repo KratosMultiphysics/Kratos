@@ -159,13 +159,77 @@ void MarkBrokenSpheres(ModelPart& dem_model_part) {
     }
 }
 
+void ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {
+
+    const std::string filename = "sand_production_graph_with_chunks_non_recursive.txt";
+    std::ifstream ifile(filename.c_str());
+    static bool first_time_entered = true;
+    if ((bool) ifile && first_time_entered) {
+        std::remove(filename.c_str());
+        first_time_entered = false;
+    }
+
+    ModelPart::ElementsContainerType& pElements = dem_model_part.GetCommunicator().LocalMesh().Elements();
+
+    std::vector<double> chunks_masses;
+
+    for (unsigned int k = 0; k < pElements.size(); k++) {
+        ModelPart::ElementsContainerType::iterator it = pElements.ptr_begin() + k;
+        it->Set(VISITED, false);
+    }
+
+    std::vector<SphericContinuumParticle*> stack_of_particles_to_check;
+
+    for (unsigned int k = 0; k < pElements.size(); k++) {
+        ModelPart::ElementsContainerType::iterator it = pElements.ptr_begin() + k;
+        Element* raw_p_element = &(*it);
+        SphericContinuumParticle* p_sphere = dynamic_cast<SphericContinuumParticle*>(raw_p_element);
+        double this_chunk_mass = 0.0;
+        stack_of_particles_to_check.push_back(p_sphere);
+        while(stack_of_particles_to_check.size()) {
+            SphericContinuumParticle* current_particle = stack_of_particles_to_check.back();
+            stack_of_particles_to_check.pop_back();
+            if( current_particle->Is(VISITED) ) {
+                continue;
+            }
+            const double particle_radius = current_particle->GetRadius();
+            const double particle_density = current_particle->GetDensity();
+            this_chunk_mass += (4.0/3.0) * Globals::Pi * particle_density * particle_radius * particle_radius * particle_radius * 1000.0;
+
+            current_particle->Set(VISITED, true);
+
+            for (size_t i=0; i<current_particle->mContinuumInitialNeighborsSize; i++) {
+                SphericParticle* p_neighbour_sphere = current_particle->mNeighbourElements[i];
+                if( p_neighbour_sphere->Is(VISITED) ) continue; //not necessary, but saves increasing and decreasing stack_of_particles_to_check's size
+                if (p_neighbour_sphere == NULL) continue;
+                if (current_particle->mIniNeighbourFailureId[i]) continue;
+                SphericContinuumParticle* p_neigh_cont_sphere = dynamic_cast<SphericContinuumParticle*>(p_neighbour_sphere);
+                stack_of_particles_to_check.push_back(p_neigh_cont_sphere);
+            }
+        }
+        chunks_masses.push_back(this_chunk_mass);
+    }
+
+    const double max_mass_of_a_single_chunck = *std::max_element(chunks_masses.begin(), chunks_masses.end());
+    const double current_total_mass_in_grams = max_mass_of_a_single_chunck;
+    static const double initial_total_mass_in_grams = current_total_mass_in_grams;
+    const double cumulative_sand_mass_in_grams = initial_total_mass_in_grams - current_total_mass_in_grams;
+
+    ModelPart::ConditionsContainerType::iterator condition_begin = outer_walls_model_part.ConditionsBegin();
+    const double face_pressure_in_psi = condition_begin->GetValue(POSITIVE_FACE_PRESSURE) * 0.000145;
+
+    static std::ofstream sand_prod_file(filename, std::ios_base::out | std::ios_base::app);
+    sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
+    sand_prod_file.flush();
+}
+
 void ComputeSandProductionWithDepthFirstSearch(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {
 
     const std::string filename = "sand_production_graph_with_chunks.txt";
     std::ifstream ifile(filename.c_str());
     static bool first_time_entered = true;
     if ((bool) ifile && first_time_entered) {
-        std::remove("sand_production_graph_with_chunks.txt");
+        std::remove(filename.c_str());
         first_time_entered = false;
     }
 
@@ -197,7 +261,7 @@ void ComputeSandProductionWithDepthFirstSearch(ModelPart& dem_model_part, ModelP
     ModelPart::ConditionsContainerType::iterator condition_begin = outer_walls_model_part.ConditionsBegin();
     const double face_pressure_in_psi = condition_begin->GetValue(POSITIVE_FACE_PRESSURE) * 0.000145;
 
-    static std::ofstream sand_prod_file("sand_production_graph_with_chunks.txt", std::ios_base::out | std::ios_base::app);
+    static std::ofstream sand_prod_file(filename, std::ios_base::out | std::ios_base::app);
     sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
     sand_prod_file.flush();
 }
@@ -224,7 +288,7 @@ void ComputeTriaxialSandProduction(ModelPart& dem_model_part, ModelPart& outer_w
     std::ifstream ifile(filename.c_str());
     static bool first_time_entered = true;
     if ((bool) ifile && first_time_entered) {
-        std::remove("sand_production_graph.txt");
+        std::remove(filename.c_str());
         first_time_entered = false;
     }
 
@@ -251,7 +315,7 @@ void ComputeTriaxialSandProduction(ModelPart& dem_model_part, ModelPart& outer_w
                                          condition_begin_2->GetValue(POSITIVE_FACE_PRESSURE) +
                                          3.45e6) * 0.000145 * 0.33333333333333; // 3.45e6 is the sigma_z constant pressure
 
-    static std::ofstream sand_prod_file("sand_production_graph.txt", std::ios_base::out | std::ios_base::app);
+    static std::ofstream sand_prod_file(filename, std::ios_base::out | std::ios_base::app);
     sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
     sand_prod_file.flush();
 }
