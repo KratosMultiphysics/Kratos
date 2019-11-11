@@ -917,10 +917,6 @@ private:
             aux_whole_dof_vector[k] = it_dof->GetSolutionStepValue();
         }
 
-        // We compute the transposed matrix of the global relation matrix
-        TSystemMatrixType T_transpose_matrix(BaseType::mT.size2(), BaseType::mT.size1());
-        SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, BaseType::mT, 1.0);
-
         // Compute auxiliar contribution
         TSystemVectorType aux_slave_dof_vector(number_of_slave_dofs);
         TSparseSpace::Mult(BaseType::mT, aux_whole_dof_vector, aux_slave_dof_vector);
