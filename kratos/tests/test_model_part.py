@@ -317,6 +317,7 @@ class TestModelPart(KratosUnittest.TestCase):
         subsubprop4 = KratosMultiphysics.Properties(4)
         subprop3.AddSubProperties(subsubprop4)
 
+        self.assertEqual(model_part.HasProperties("1"), True)
         self.assertEqual(model_part.HasProperties("1.2"), True)
         self.assertEqual(model_part.HasProperties("1.3.2"), True)
         self.assertEqual(model_part.HasProperties("1.2.3"), False)
