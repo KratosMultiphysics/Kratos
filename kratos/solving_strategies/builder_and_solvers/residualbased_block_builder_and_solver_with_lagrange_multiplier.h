@@ -305,7 +305,7 @@ public:
             }
 
             // Finally reassign
-            rb.resize(aux_b.size());
+            rb.resize(aux_b.size(), false);
             noalias(rb) = aux_b;
         } else {
             // Compute the RHS
@@ -326,7 +326,7 @@ public:
             }
 
             // Finally reassign
-            rb.resize(aux_b.size());
+            rb.resize(aux_b.size(), false);
             noalias(rb) = aux_b;
         }
 
