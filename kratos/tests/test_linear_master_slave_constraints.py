@@ -54,15 +54,13 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         self.mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY, 1.0)
 
         g = [0, 0, 0]
-        self.mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,
-                                       g)
+        self.mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION, g)
 
+        self.mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = dim
         if dim == 2:
-            cl = KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStrain2DLaw(
-            )
+            cl = KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStrain2DLaw()
         else:
-            cl = KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw(
-            )
+            cl = KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw()
         self.mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, cl)
 
     def _apply_BCs(self):
@@ -87,16 +85,20 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().ApplyFixity(
             KratosMultiphysics.DISPLACEMENT_Y, True, bcmn.Nodes)
 
-    def _setup_solver(self):
+    def _setup_solver(self, solving_with = "Block"):
 
         #define a minimal newton raphson solver
         self.linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(
-            self.linear_solver)
-        self.scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(
-            -0.01)
-        self.convergence_criterion = KratosMultiphysics.ResidualCriteria(
-            1e-10, 1e-12)
+        if solving_with == "Block":
+            self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+        elif solving_with == "LM":
+            self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(self.linear_solver, True, False, False)
+        elif olving_with == "DoubleLM":
+            self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(self.linear_solver, True, False, True)
+        else: # Block default
+            self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+        self.scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(-0.01)
+        self.convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-10, 1e-12)
         self.convergence_criterion.SetEchoLevel(0)
 
         max_iters = 100
@@ -263,8 +265,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
 
         self.mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
-    @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
-    def test_MPC_Constraints(self):
+    def _setup_test(self, solving_with = "Block"):
         dim = 2
         current_model = KratosMultiphysics.Model()
         self.mp= current_model.CreateModelPart("MainModelPart")
@@ -285,7 +286,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         # Applying constraints
         self._apply_mpc_constraints()
         # Solving the system of equations
-        self._setup_solver()
+        self._setup_solver(solving_with)
 
         while (time <= end_time):
             time = time + dt
@@ -295,6 +296,18 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         # Checking the results
         self._check_results()
         self._reset()
+
+    @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
+    def test_MPC_Constraints(self):
+        self._setup_test("Block")
+
+    #@KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
+    #def test_LM_MPC_Constraints(self):
+        #self._setup_test("LM")
+
+    #@KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
+    #def test_Double_LM_MPC_Constraints(self):
+        #self._setup_test("DoubleLM")
 
 if __name__ == '__main__':
     KratosUnittest.main()
