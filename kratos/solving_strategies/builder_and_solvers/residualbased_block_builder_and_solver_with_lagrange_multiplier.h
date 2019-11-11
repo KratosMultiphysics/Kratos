@@ -187,6 +187,35 @@ public:
     }
 
     /**
+     * @brief This is a call to the linear system solver
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     */
+    void SystemSolve(
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY
+
+        // Compute the norm
+        const double norm_b = (TSparseSpace::Size(rb) != 0) ? TSparseSpace::TwoNorm(rb) : 0.0;
+        if (norm_b < std::numeric_limits<double>::epsilon()) {
+            // Do solve
+            BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
+        } else {
+            TSparseSpace::SetToZero(rDx);
+        }
+
+        // Prints informations about the current time
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
      * @param rA The LHS matrix
      * @param rDx The Unknowns vector
