@@ -286,60 +286,59 @@ void ReadMaterialsUtility::CreateSubProperties(
 {
     KRATOS_TRY;
 
-    if (Data.Has("sub_properties")) {
+    auto& r_list_sub_properties = pNewProperty->GetSubProperties();
 
-        auto& r_list_sub_properties = pNewProperty->GetSubProperties();
+    const std::size_t number_of_subproperties = Data["sub_properties"].size();
 
-        const std::size_t number_of_subproperties = Data["sub_properties"].size();
+    // We assign the subproperties now
+    for(std::size_t i_sub_prop=0; i_sub_prop < number_of_subproperties; ++i_sub_prop) {
+        // Copy of the current parameters
+        Parameters sub_prop = Data["sub_properties"][i_sub_prop];
 
-        // We assign the subproperties now
-        for(std::size_t i_sub_prop=0; i_sub_prop < number_of_subproperties; ++i_sub_prop) {
-            // Copy of the current parameters
-            Parameters sub_prop = Data["sub_properties"][i_sub_prop];
+        // Define subproperties
+        Properties::Pointer p_new_sub_prop = nullptr;
+        if (sub_prop.Has("use_existing_property")) {
+            // We get the adress if any
+            const std::string& r_use_existing_property = sub_prop["use_existing_property"].GetString();
 
-            // Define subproperties
-            Properties::Pointer p_new_sub_prop = nullptr;
-            if (sub_prop.Has("use_existing_property")) {
-                // We get the adress if any
-                const std::string& r_use_existing_property = sub_prop["use_existing_property"].GetString();
-
-                // We check if already defined
-                bool already_defined = false;
-                if (r_use_existing_property != "") { // NOTE: This means that is not marked as existing
-                    if (r_use_existing_property.size() > 1) {
-                        if (rModelPart.HasProperties(r_use_existing_property, mesh_id)) {
-                            p_new_sub_prop = rModelPart.pGetProperties(r_use_existing_property, mesh_id);
-                            already_defined = true;
-                        }
-                    } else {
-                        const IndexType property_id = std::stoi(r_use_existing_property);
-                        if (rModelPart.RecursivelyHasProperties(property_id)) {
-                            p_new_sub_prop = rModelPart.pGetProperties(property_id);
-                            already_defined = true;
-                        }
+            // We check if already defined
+            bool already_defined = false;
+            if (r_use_existing_property != "") { // NOTE: This means that is not marked as existing
+                if (r_use_existing_property.size() > 1) {
+                    if (rModelPart.HasProperties(r_use_existing_property, mesh_id)) {
+                        p_new_sub_prop = rModelPart.pGetProperties(r_use_existing_property, mesh_id);
+                        already_defined = true;
                     }
-                }
-
-                // Check if properly read use_existing_property
-                KRATOS_ERROR_IF_NOT(already_defined) << "Subproperties " << r_use_existing_property << " is not already defined. You need to check the structure of your materials file" << std::endl;
-            } else { // We get or create the new subproperty
-                // We get the subproperty id
-                const int sub_property_id = sub_prop["properties_id"].GetInt();
-
-                // Actually creating it
-                p_new_sub_prop = rModelPart.HasProperties(sub_property_id, mesh_id) ? rModelPart.pGetProperties(sub_property_id, mesh_id) : rModelPart.CreateNewProperties(sub_property_id, mesh_id);
-
-                // Read the recursively subproperties
-                CreateSubProperties(rModelPart, sub_prop, p_new_sub_prop);
-
-                // We create the new sub property
-                if (sub_prop.Has("Material")) {
-                    AssingMaterialToProperty(sub_prop["Material"], *p_new_sub_prop);
+                } else {
+                    const IndexType property_id = std::stoi(r_use_existing_property);
+                    if (rModelPart.RecursivelyHasProperties(property_id)) {
+                        p_new_sub_prop = rModelPart.pGetProperties(property_id);
+                        already_defined = true;
+                    }
                 }
             }
 
-            r_list_sub_properties.insert(r_list_sub_properties.begin(), p_new_sub_prop);
+            // Check if properly read use_existing_property
+            KRATOS_ERROR_IF_NOT(already_defined) << "Subproperties " << r_use_existing_property << " is not already defined. You need to check the structure of your materials file" << std::endl;
+        } else { // We get or create the new subproperty
+            // We get the subproperty id
+            const int sub_property_id = sub_prop["properties_id"].GetInt();
+
+            // Actually creating it
+            p_new_sub_prop = rModelPart.HasProperties(sub_property_id, mesh_id) ? rModelPart.pGetProperties(sub_property_id, mesh_id) : rModelPart.CreateNewProperties(sub_property_id, mesh_id);
+
+            // Read the recursively subproperties
+            if (sub_prop.Has("sub_properties")) {
+                CreateSubProperties(rModelPart, sub_prop, p_new_sub_prop);
+            }
+
+            // We create the new sub property
+            if (sub_prop.Has("Material")) {
+                AssingMaterialToProperty(sub_prop["Material"], *p_new_sub_prop);
+            }
         }
+
+        r_list_sub_properties.insert(r_list_sub_properties.begin(), p_new_sub_prop);
     }
 
     KRATOS_CATCH("");
@@ -403,7 +402,9 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     AssingMaterialToProperty(material_data, *p_prop);
 
     // If the property has subproperties block we allocate this properties first
-    CreateSubProperties(r_model_part, Data, p_prop);
+    if (Data.Has("sub_properties")) {
+        CreateSubProperties(r_model_part, Data, p_prop);
+    }
 
     KRATOS_CATCH("");
 }
