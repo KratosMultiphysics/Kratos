@@ -7,11 +7,17 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_
 import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
 
+# CoSimulation imports
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.colors as colors
+
 def Create(settings):
     return KratosMappingDataTransferOperator(settings)
 
 class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
-
+    """DataTransferOperator that mapps values from one interface (ModelPart) to another.
+    The mappers of the Kratos-MappingApplication are used
+    """
     # currently available mapper-flags aka transfer-options
     __mapper_flags_dict = {
         "add_values"    : KratosMapping.Mapper.ADD_VALUES,
@@ -32,30 +38,40 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         self._CheckAvailabilityTransferOptions(transfer_options)
 
         model_part_origin      = from_solver_data.GetModelPart()
-        model_part_origin_name = model_part_origin.Name
+        model_part_origin_name = from_solver_data.model_part_name
         variable_origin        = from_solver_data.variable
+        identifier_origin      = from_solver_data.solver_name + "." + model_part_origin_name
 
-        model_part_destinatinon      = to_solver_data.GetModelPart()
-        model_part_destinatinon_name = model_part_destinatinon.Name
-        variable_destination         = to_solver_data.variable
+        model_part_destination      = to_solver_data.GetModelPart()
+        model_part_destination_name = to_solver_data.model_part_name
+        variable_destination        = to_solver_data.variable
+        identifier_destination      = to_solver_data.solver_name + "." + model_part_destination_name
 
         mapper_flags = self.__GetMapperFlags(transfer_options)
 
-        name_tuple         = (model_part_origin_name, model_part_destinatinon_name)
-        inverse_name_tuple = (model_part_destinatinon_name, model_part_origin_name)
+        identifier_tuple         = (identifier_origin, identifier_destination)
+        inverse_identifier_tuple = (identifier_destination, identifier_origin)
 
-        if name_tuple in self.__mappers:
-            self.__mappers[name_tuple].Map(variable_origin, variable_destination, mapper_flags)
-        elif inverse_name_tuple in self.__mappers:
-            self.__mappers[inverse_name_tuple].InverseMap(variable_destination, variable_origin, mapper_flags)
+        if identifier_tuple in self.__mappers:
+            self.__mappers[identifier_tuple].Map(variable_origin, variable_destination, mapper_flags)
+        elif inverse_identifier_tuple in self.__mappers:
+            self.__mappers[inverse_identifier_tuple].InverseMap(variable_destination, variable_origin, mapper_flags)
         else:
-            if model_part_origin.IsDistributed() or model_part_destinatinon.IsDistributed():
+            # CheckIfInterfaceDataIsSuitable() # TODO
+            if model_part_origin.IsDistributed() or model_part_destination.IsDistributed():
                 mapper_create_fct = KratosMapping.MapperFactory.CreateMPIMapper
             else:
                 mapper_create_fct = KratosMapping.MapperFactory.CreateMapper
 
-            self.__mappers[name_tuple] = mapper_create_fct(model_part_origin, model_part_destinatinon, self.settings["mapper_settings"].Clone()) # Clone is necessary here bcs settings are influenced among mappers otherwise. TODO check in the MapperFactory how to solve this better
-            self.__mappers[name_tuple].Map(variable_origin, variable_destination, mapper_flags)
+            if self.echo_level > 0:
+                info_msg  = "Creating Mapper:\n"
+                info_msg += '    Origin: ModePart "{}" of solver "{}"\n'.format(model_part_origin_name, from_solver_data.solver_name)
+                info_msg += '    Destination: ModePart "{}" of solver "{}"'.format(model_part_destination_name, to_solver_data.solver_name)
+
+                cs_tools.cs_print_info(colors.bold(self._ClassName()), info_msg)
+
+            self.__mappers[identifier_tuple] = mapper_create_fct(model_part_origin, model_part_destination, self.settings["mapper_settings"].Clone()) # Clone is necessary here bcs settings are influenced among mappers otherwise. TODO check in the MapperFactory how to solve this better
+            self.__mappers[identifier_tuple].Map(variable_origin, variable_destination, mapper_flags)
 
     @classmethod
     def _GetDefaultSettings(cls):

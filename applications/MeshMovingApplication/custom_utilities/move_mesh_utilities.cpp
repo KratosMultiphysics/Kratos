@@ -56,7 +56,6 @@ void MoveMesh(const ModelPart::NodesContainerType& rNodes) {
         noalias(it_node->Coordinates()) = it_node->GetInitialPosition()
             + it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
     }
-
     KRATOS_CATCH("");
 }
 
@@ -93,6 +92,33 @@ ModelPart* GenerateMeshPart(ModelPart &rModelPart,
   return std::move(pmesh_model_part);
 
   KRATOS_CATCH("");
+}
+
+void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariable,
+                                                 const Variable< array_1d<double, 3> >& rVariableToSuperImpose)
+{
+  KRATOS_TRY;
+  auto r_nodes = rModelPart.Nodes();
+  const int num_nodes = r_nodes.size();
+  const auto nodes_begin = r_nodes.begin();
+
+  #pragma omp parallel for
+  for (int i=0; i<num_nodes; i++) {
+      const auto it_node  = nodes_begin + i;
+      if(it_node->Has(rVariableToSuperImpose))
+          it_node->GetSolutionStepValue(rVariable,0) += it_node->GetValue(rVariableToSuperImpose);
+  }
+  KRATOS_CATCH("");
+}
+
+void SuperImposeMeshDisplacement(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose)
+{
+  SuperImposeVariables(rModelPart, MESH_DISPLACEMENT, rVariableToSuperImpose);
+}
+
+void SuperImposeMeshVelocity(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose)
+{
+  SuperImposeVariables(rModelPart, MESH_VELOCITY, rVariableToSuperImpose);
 }
 
 } // namespace Move Mesh Utilities.

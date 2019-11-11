@@ -423,3 +423,25 @@ Begin SubModelPart Skin_Part
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
+
+Begin SubModelPart Partial_Skin_Part
+    Begin SubModelPartNodes
+            34
+            37
+            48
+            51
+            52
+            60
+            64
+            68
+            70
+            73
+            74
+            79
+            80
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
