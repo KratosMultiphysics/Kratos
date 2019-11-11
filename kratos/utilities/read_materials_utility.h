@@ -205,9 +205,8 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * @param TreatAsSubproperty This flag indicates if we are reading a subproperties instead of a properties
      */
     void AssingMaterialToProperty(
-        Parameters Data,
-        Properties::Pointer& pNewProperty,
-        const bool TreatAsSubproperty = false
+        const Parameters MaterialData,
+        Properties& rProperty
         );
 
     /**
