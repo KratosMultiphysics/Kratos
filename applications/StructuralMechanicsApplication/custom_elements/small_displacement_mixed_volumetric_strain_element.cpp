@@ -949,6 +949,85 @@ int  SmallDisplacementMixedVolumetricStrainElement::Check(const ProcessInfo& rCu
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SmallDisplacementMixedVolumetricStrainElement::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const auto &r_geometry = GetGeometry();
+    const auto &r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+
+    const SizeType n_gauss = r_integration_points.size();
+    if (rOutput.size() != n_gauss) {
+        rOutput.resize(n_gauss);
+    }
+
+    if (rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR) {
+        // Create and initialize element variables:
+        const SizeType n_nodes = r_geometry.PointsNumber();
+        const SizeType dim = r_geometry.WorkingSpaceDimension();
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+        // Create the kinematics container and fill the nodal data
+        KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+            const auto &r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+            for (unsigned int d = 0; d < dim; ++d) {
+                kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
+            }
+            kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+        }
+
+        // Create the constitutive variables and values containers
+        ConstitutiveVariables constitutive_variables(strain_size);
+        ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rCurrentProcessInfo);
+        auto &r_cons_law_options = cons_law_values.GetOptions();
+        r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+
+        for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+            // Calculate kinematics
+            CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+
+            // Call the constitutive law to update material variables
+            if( rVariable == CAUCHY_STRESS_VECTOR) {
+                // Compute material reponse
+                CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
+            } else {
+                // Compute material reponse
+                CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_integration_points, ConstitutiveLaw::StressMeasure_PK2);
+            }
+
+            // Check sizes and save the output stress
+            if (rOutput[i_gauss].size() != strain_size) {
+                rOutput[i_gauss].resize(strain_size, false);
+            }
+            rOutput[i_gauss] = constitutive_variables.StressVector;
+        }
+    } else {
+        std::string err_msg = "Integration point variable " + rVariable.Name() + " not implemented yet.\n";
+        KRATOS_ERROR << err_msg;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacementMixedVolumetricStrainElement::GetValueOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SmallDisplacementMixedVolumetricStrainElement::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallDisplacementMixedVolumetricStrainElement::BaseType);

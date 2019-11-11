@@ -363,7 +363,29 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo the current process info instance
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Calculate a Vector Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Get on rVariable a Vector Value from the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rValues The results in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void GetValueOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -573,26 +595,6 @@ private:
         const Vector &rStrainTensor) const;
 
     /**
-     * @brief This method gets a value directly in the CL
-     * @details Avoids code repetition
-     * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
-     * @tparam TType The type considered
-     */
-    template<class TType>
-    void GetValueOnConstitutiveLaw(
-        const Variable<TType>& rVariable,
-        std::vector<TType>& rOutput
-        )
-    {
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
-
-        for (IndexType point_number = 0; point_number <integration_points.size(); ++point_number) {
-            mConstitutiveLawVector[point_number]->GetValue(rVariable, rOutput[point_number]);
-        }
-    }
-
-    /**
      * @brief Calculate the element size
      * This method calculates the element size used in the stabilization terms
      * @param rThisKinematicVariables Kinematic variables container. Required
@@ -601,55 +603,18 @@ private:
      */
     double CalculateElementSize(const KinematicVariables &rThisKinematicVariables) const;
 
+    /**
+     * @brief Calculates the linearised bulk modulus
+     * This method approximates the bulk modulus for the current volumetric strain
+     * @param rCurrentProcessInfo Process info
+     * @param i_gauss Integration point index
+     * @param rN Shape function values
+     * @return double Approximated bulk modulus
+     */
     double CalculateApproximatedBulkModulus(
         const ProcessInfo& rCurrentProcessInfo,
         const SizeType i_gauss,
         const Vector &rN) const;
-
-    // /**
-    //  * @brief This method computes directly in the CL
-    //  * @details Avoids code repetition
-    //  * @param rVariable The variable we want to get
-    //  * @param rOutput The values obtained int the integration points
-    //  * @param rCurrentProcessInfo the current process info instance
-    //  * @tparam TType The type considered
-    //  */
-    // template<class TType>
-    // void CalculateOnConstitutiveLaw(
-    //     const Variable<TType>& rVariable,
-    //     std::vector<TType>& rOutput,
-    //     const ProcessInfo& rCurrentProcessInfo)
-    // {
-    //     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
-
-    //     const SizeType number_of_nodes = GetGeometry().size();
-    //     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    //     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-
-    //     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
-    //     ConstitutiveVariables this_constitutive_variables(strain_size);
-
-    //     // Create constitutive law parameters:
-    //     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-
-    //     // Set constitutive law flags:
-    //     Flags& ConstitutiveLawOptions=Values.GetOptions();
-    //     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
-    //     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    //     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-
-    //     Values.SetStrainVector(this_constitutive_variables.StrainVector);
-
-    //     for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
-    //         // Compute element kinematics B, F, DN_DX ...
-    //         this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-
-    //         // Compute material reponse
-    //         this->SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
-
-    //         rOutput[point_number] = mConstitutiveLawVector[point_number]->CalculateValue( Values, rVariable, rOutput[point_number] );
-    //     }
-    // }
 
     ///@}
     ///@name Private  Access
