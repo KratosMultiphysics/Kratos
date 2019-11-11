@@ -15,9 +15,6 @@ class CoSimulationDataTransferOperator(object):
     def TransferData(self, from_solver_data, to_solver_data, transfer_options):
         raise NotImplementedError("This function has to be implemented in the derived class!")
 
-    def PrintInfo(self):
-        pass
-
     def Check(self):
         pass
 
