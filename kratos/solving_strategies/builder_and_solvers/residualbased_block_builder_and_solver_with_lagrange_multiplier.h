@@ -187,6 +187,23 @@ public:
     }
 
     /**
+     * @brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     * @param rModelPart The model part of the problem to solve
+     */
+    void SystemSolveWithPhysics(
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb,
+        ModelPart& rModelPart
+        ) override
+    {
+        BaseType::InternalSystemSolveWithPhysics(rA, rDx, rb, rModelPart);
+    }
+
+    /**
      * @brief Function to perform the building and solving phase at the same time.
      * @details It is ideally the fastest and safer function to use when it is possible to solve
      * just after building
