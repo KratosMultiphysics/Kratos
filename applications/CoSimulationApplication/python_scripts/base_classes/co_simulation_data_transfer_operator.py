@@ -13,6 +13,7 @@ class CoSimulationDataTransferOperator(object):
         self.echo_level = self.settings["echo_level"].GetInt()
 
     def TransferData(self, from_solver_data, to_solver_data, transfer_options):
+        self._CheckAvailabilityTransferOptions(transfer_options)
         self._ExecuteTransferData(from_solver_data, to_solver_data, transfer_options)
 
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):

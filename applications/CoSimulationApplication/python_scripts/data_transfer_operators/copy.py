@@ -10,8 +10,6 @@ class CopyDataTransferOperator(CoSimulationDataTransferOperator):
     """DataTransferOperator that copies values from one interface to another, without any checks
     """
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
-        self._CheckAvailabilityTransferOptions(transfer_options)
-
         from_solver_data_size = from_solver_data.Size()
         to_solver_data_size = to_solver_data.Size()
         if not from_solver_data_size == to_solver_data_size:
