@@ -11,9 +11,6 @@ class CopySingleToDistributed(CoSimulationDataTransferOperator):
     Used e.g. for FSI with SDof, where the SDof has one value and the fluid interface has many
     """
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
-        if not to_solver_data.is_scalar_variable:
-            raise Exception('Variable of interface data "{}" of solver "{}" has to be a scalar!'.format(from_solver_data.name, from_solver_data.solver_name))
-
         to_solver_values = to_solver_data.GetData()
         data_value = from_solver_data.GetData()
 
@@ -31,6 +28,10 @@ class CopySingleToDistributed(CoSimulationDataTransferOperator):
             to_solver_values += to_solver_data.GetData()
 
         to_solver_data.SetData(to_solver_values)
+
+    def _Check(self, from_solver_data, to_solver_data):
+        if not to_solver_data.is_scalar_variable:
+            raise Exception('Variable of interface data "{}" of solver "{}" has to be a scalar!'.format(to_solver_data.name, to_solver_data.solver_name))
 
     @classmethod
     def _GetListAvailableTransferOptions(cls):
