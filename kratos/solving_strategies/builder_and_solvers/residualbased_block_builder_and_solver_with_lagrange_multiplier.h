@@ -353,6 +353,7 @@ public:
             // Finally reassign
             rb.resize(b_modified.size(), false);
             TSparseSpace::Copy(b_modified, rb);
+            b_modified.resize(0, false); // Free memory
         } else {
             // Compute the RHS
             Vector b_modified(BaseType::mEquationSystemSize + number_of_lm);
@@ -374,6 +375,7 @@ public:
             // Finally reassign
             rb.resize(b_modified.size(), false);
             TSparseSpace::Copy(b_modified, rb);
+            b_modified.resize(0, false); // Free memory
         }
 
         KRATOS_CATCH("")
@@ -586,6 +588,7 @@ public:
                 // Finally reassign
                 rb.resize(b_modified.size(), false);
                 TSparseSpace::Copy(b_modified, rb);
+                b_modified.resize(0, false); // Free memory
             } else {
                 // Create LHS
                 DenseMatrix<TSystemMatrixType*> matrices_p_blocks(2,2);
@@ -643,6 +646,7 @@ public:
                 // Finally reassign
                 rb.resize(b_modified.size(), false);
                 TSparseSpace::Copy(b_modified, rb);
+                b_modified.resize(0, false); // Free memory
             }
         }
 
