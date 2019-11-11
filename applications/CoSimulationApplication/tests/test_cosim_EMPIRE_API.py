@@ -21,7 +21,8 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # to silence prints
-        KratosCoSim.EMPIRE_API.EMPIRE_API_Connect("EMPIRE_API.conf")
+        KratosCoSim.EMPIRE_API.EMPIRE_API_SetEchoLevel(0)
+        KratosCoSim.EMPIRE_API.EMPIRE_API_PrintTiming(False)
 
     def setUp(self):
         # delete and recreate communication folder to avoid leftover files

@@ -24,7 +24,6 @@ class DummyFLOWerSolver(object):
             "coupling_interfaces"         : [],
             "receive_meshes"              : [],
             "mdpa_file_name"              : "UNSPECIFIED",
-            "api_configuration_file_name" : "UNSPECIFIED",
             "debugging_settings" : { }
         }""")
 
@@ -36,10 +35,11 @@ class DummyFLOWerSolver(object):
         self.name = self.settings["name"].GetString()
 
         debugging_settings_defaults = KM.Parameters("""{
-            "echo_level"   : 0,
-            "dry_run"      : true,
-            "solving_time" : 0.0,
-            "print_colors" : false
+            "echo_level"         : 0,
+            "api_print_timing"   : false,
+            "dry_run"            : true,
+            "solving_time"       : 0.0,
+            "print_colors"       : false
         }""")
 
         self.settings["debugging_settings"].ValidateAndAssignDefaults(debugging_settings_defaults)
@@ -62,7 +62,9 @@ class DummyFLOWerSolver(object):
         model_part_io.ReadModelPart(self.model_part)
         KM.Logger.GetDefaultOutput().SetSeverity(severity)
 
-        KratosCoSim.EMPIRE_API.EMPIRE_API_Connect(self.settings["api_configuration_file_name"].GetString())
+        # Note: calling "EMPIRE_API_Connect" is NOT necessary, it is replaced by the next two lines
+        KratosCoSim.EMPIRE_API.EMPIRE_API_SetEchoLevel(self.echo_level)
+        KratosCoSim.EMPIRE_API.EMPIRE_API_PrintTiming(debugging_settings["api_print_timing"].GetBool())
 
     def Run(self):
         num_coupling_interfaces = self.settings["coupling_interfaces"].size()
