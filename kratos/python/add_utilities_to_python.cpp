@@ -290,6 +290,55 @@ void PrintTimingInformation(Timer& rTimer)
     rTimer.PrintTimingInformation();
 }
 
+void ComputeNodesTangentModelPartWithSlipVariable(
+    ModelPart& rModelPart,
+    const Variable<array_1d<double, 3>>& rSlipVariable,
+    const double SlipCoefficient,
+    const bool SlipAlways
+    )
+{
+    MortarUtilities::ComputeNodesTangentModelPart(rModelPart, &rSlipVariable, SlipCoefficient, SlipAlways);
+}
+
+void ComputeNodesTangentModelPartWithOutSlipVariable(
+    ModelPart& rModelPart,
+    const double SlipCoefficient,
+    const bool SlipAlways
+    )
+{
+    MortarUtilities::ComputeNodesTangentModelPart(rModelPart, NULL, SlipCoefficient, SlipAlways);
+}
+
+void ComputeNodesTangentModelPartWithSlipVariableNotAlwaysSlip(
+    ModelPart& rModelPart,
+    const Variable<array_1d<double, 3>>& rSlipVariable,
+    const double SlipCoefficient
+    )
+{
+    MortarUtilities::ComputeNodesTangentModelPart(rModelPart, &rSlipVariable, SlipCoefficient, false);
+}
+
+void ComputeNodesTangentModelPartWithOutSlipVariableNotAlwaysSlip(
+    ModelPart& rModelPart,
+    const double SlipCoefficient
+    )
+{
+    MortarUtilities::ComputeNodesTangentModelPart(rModelPart, NULL, SlipCoefficient, false);
+}
+
+void ComputeNodesTangentModelPartWithSlipVariableNotAlwaysSlipUnitary(
+    ModelPart& rModelPart,
+    const Variable<array_1d<double, 3>>& rSlipVariable
+    )
+{
+    MortarUtilities::ComputeNodesTangentModelPart(rModelPart, &rSlipVariable, 1.0, false);
+}
+
+void ComputeNodesTangentModelPartWithOutSlipVariableNotAlwaysSlipUnitary(ModelPart& rModelPart)
+{
+    MortarUtilities::ComputeNodesTangentModelPart(rModelPart, NULL, 1.0, false);
+}
+
 void AddUtilitiesToPython(pybind11::module &m)
 {
     namespace py = pybind11;
@@ -873,11 +922,19 @@ void AddUtilitiesToPython(pybind11::module &m)
         ;
 
     // Mortar utilities
-    m.def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart);
-    m.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Element, IndexedObject>>);
-    m.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>);
-    m.def("InvertNormal",&MortarUtilities::InvertNormalForFlag<PointerVectorSet<Element, IndexedObject>>);
-    m.def("InvertNormal",&MortarUtilities::InvertNormalForFlag<PointerVectorSet<Condition, IndexedObject>>);
+    auto mortar_utilities = m.def_submodule("MortarUtilities");
+    mortar_utilities.def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart);
+    mortar_utilities.def("ComputeNodesTangentFromNormalModelPart",&MortarUtilities::ComputeNodesTangentFromNormalModelPart);
+    mortar_utilities.def("ComputeNodesTangentModelPart",ComputeNodesTangentModelPartWithSlipVariable);
+    mortar_utilities.def("ComputeNodesTangentModelPart",ComputeNodesTangentModelPartWithOutSlipVariable);
+    mortar_utilities.def("ComputeNodesTangentModelPart",ComputeNodesTangentModelPartWithSlipVariableNotAlwaysSlip);
+    mortar_utilities.def("ComputeNodesTangentModelPart",ComputeNodesTangentModelPartWithOutSlipVariableNotAlwaysSlip);
+    mortar_utilities.def("ComputeNodesTangentModelPart",ComputeNodesTangentModelPartWithSlipVariableNotAlwaysSlipUnitary);
+    mortar_utilities.def("ComputeNodesTangentModelPart",ComputeNodesTangentModelPartWithOutSlipVariableNotAlwaysSlipUnitary);
+    mortar_utilities.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Element, IndexedObject>>);
+    mortar_utilities.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>);
+    mortar_utilities.def("InvertNormal",&MortarUtilities::InvertNormalForFlag<PointerVectorSet<Element, IndexedObject>>);
+    mortar_utilities.def("InvertNormal",&MortarUtilities::InvertNormalForFlag<PointerVectorSet<Condition, IndexedObject>>);
 
     // Read materials utility
     py::class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")
