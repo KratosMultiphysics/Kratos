@@ -28,6 +28,7 @@ class CouplingInterfaceData(object):
         self.name = name
         self.solver_name = solver_name
         self.is_outdated = True
+        self.is_initialized = False
         self.model_part_name = self.settings["model_part_name"].GetString()
         if self.model_part_name == "":
             self.__RaiseException('No "model_part_name" was specified!')
@@ -76,10 +77,10 @@ class CouplingInterfaceData(object):
             else:
                 if self.variable_type == "Array" and self.dimension not in [1,2,3]:
                     self.__RaiseException('"dimension" can only be 1,2,3 when using variables of type "Array"')
-                if not KM.DOMAIN_SIZE in self.GetModelPart().ProcessInfo:
+                if not KM.DOMAIN_SIZE in self.model_part.ProcessInfo:
                     cs_tools.cs_print_warning('CouplingInterfaceData', 'No "DOMAIN_SIZE" was specified for ModelPart "{}"'.format(self.model_part_name))
                 else:
-                    domain_size = self.GetModelPart().ProcessInfo[KM.DOMAIN_SIZE]
+                    domain_size = self.model_part.ProcessInfo[KM.DOMAIN_SIZE]
                     if domain_size != self.dimension:
                         cs_tools.cs_print_warning('CouplingInterfaceData', '"DOMAIN_SIZE" ({}) of ModelPart "{}" does not match dimension ({})'.format(domain_size, self.model_part_name, self.dimension))
 
@@ -88,9 +89,21 @@ class CouplingInterfaceData(object):
                 var_to_check = self.variable.GetSourceVariable()
             else:
                 var_to_check = self.variable
-            if not self.GetModelPart().HasNodalSolutionStepVariable(var_to_check):
+            if not self.model_part.HasNodalSolutionStepVariable(var_to_check):
                 self.__RaiseException('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(var_to_check.Name(), self.model_part_name))
 
+        self.is_initialized = True
+
+    def _RequiresInitialization(fct_ptr):
+        # to be used as a decorator for functions that require the
+        # CouplingInterfaceData to be initialized before they can be called
+        def forward_call(self, *args) :
+            if not self.is_initialized:
+                self.__RaiseException('"{}" can onyl be called after initializing the CouplingInterfaceData!'.format(fct_ptr.__name__))
+            return fct_ptr(self, *args)
+        return forward_call
+
+    @_RequiresInitialization
     def __str__(self):
         self_str =  'CouplingInterfaceData:\n'
         self_str += '\tName: "{}"\n'.format(self.name)
@@ -107,21 +120,26 @@ class CouplingInterfaceData(object):
 
         return self_str
 
+    @_RequiresInitialization
     def PrintInfo(self):
         print(self)
 
+    @_RequiresInitialization
     def GetModelPart(self):
         return self.model_part
 
+    @_RequiresInitialization
     def IsDistributed(self):
         return self.GetModelPart().IsDistributed()
 
+    @_RequiresInitialization
     def Size(self):
         if self.location == "model_part":
             return 1 * self.dimension
         else:
             return len(self.__GetDataContainer()) * self.dimension
 
+    @_RequiresInitialization
     def GetBufferSize(self):
         # only historical nodal data can store multiple steps!
         if self.location == "node_historical":
@@ -139,6 +157,7 @@ class CouplingInterfaceData(object):
         else:
             return {}
 
+    @_RequiresInitialization
     def GetData(self, solution_step_index=0):
         self.__CheckBufferSize(solution_step_index)
 
@@ -155,6 +174,7 @@ class CouplingInterfaceData(object):
 
         return np.asarray(data, dtype=self.dtype)
 
+    @_RequiresInitialization
     def SetData(self, new_data, solution_step_index=0):
         self.__CheckBufferSize(solution_step_index)
 
@@ -177,6 +197,7 @@ class CouplingInterfaceData(object):
                 else:
                     self.GetModelPart()[self.variable] = new_data
 
+    @_RequiresInitialization
     def PrintToVTK(self):
         raise NotImplementedError
 
