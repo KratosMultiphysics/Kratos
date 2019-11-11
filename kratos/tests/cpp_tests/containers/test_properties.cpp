@@ -52,7 +52,7 @@ KRATOS_TEST_CASE_IN_SUITE(SubpropertiesInterface, KratosCoreFastSuite)
     p1->SetValue(YOUNG_MODULUS,1.0);
     p11->SetValue(YOUNG_MODULUS,11.0);
     KRATOS_CHECK_EQUAL(p1->GetSubProperties(11).GetValue(YOUNG_MODULUS), 11.0);
-    KRATOS_CHECK_EQUAL(r_model_part.GetProperties("1.11").GetValue(YOUNG_MODULUS), 11.0);  //SUGGESTION TODO: this should be called GetProperties
+    KRATOS_CHECK_EQUAL(r_model_part.GetProperties("1.11").GetValue(YOUNG_MODULUS), 11.0);
     
     r_model_part.GetProperties("1.11.111").SetValue(YOUNG_MODULUS,111.0);
     KRATOS_CHECK_EQUAL(p111->GetValue(YOUNG_MODULUS), 111.0);
