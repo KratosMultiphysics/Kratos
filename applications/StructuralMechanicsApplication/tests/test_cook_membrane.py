@@ -15,8 +15,8 @@ from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResul
 
 class TestCookMembrane(KratosUnittest.TestCase):
     def setUp(self):
-        self.print_output = True
-        self.print_results = True
+        self.print_output = False
+        self.print_results = False
 
     def test_cook_membrane_2d(self):
         results_filename = "cook_membrane_test/cook_membrane_results.json"
