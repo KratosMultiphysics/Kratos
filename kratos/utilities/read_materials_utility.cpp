@@ -163,7 +163,7 @@ void ReadMaterialsUtility::TrimComponentName(std::string& rLine)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ReadMaterialsUtility::CreateProperty(
+void ReadMaterialsUtility::AssingMaterialToProperty(
     Parameters Data,
     Properties::Pointer& pNewProperty,
     const bool TreatAsSubproperty
@@ -350,7 +350,7 @@ void ReadMaterialsUtility::CreateSubProperties(
 
                 // We create the new sub property
                 if (sub_prop.Has("Material")) {
-                    CreateProperty(sub_prop, p_new_sub_prop, true);
+                    AssingMaterialToProperty(sub_prop, p_new_sub_prop, true);
                 }
             }
 
@@ -418,7 +418,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     CreateSubProperties(r_model_part, Data, p_prop);
 
     // We create the new property
-    CreateProperty(Data, p_prop);
+    AssingMaterialToProperty(Data, p_prop);
 
     KRATOS_CATCH("");
 }

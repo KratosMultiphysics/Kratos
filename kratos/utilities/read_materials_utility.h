@@ -199,12 +199,12 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@{
 
     /**
-     * @brief This method creates a property from configuration parameters
+     * @brief This method assigns the material parameters to a property from configuration parameters
      * @param Data The parameters containing all the configurations of the materials
      * @param pNewProperty The pointer to the new property created
      * @param TreatAsSubproperty This flag indicates if we are reading a subproperties instead of a properties
      */
-    void CreateProperty(
+    void AssingMaterialToProperty(
         Parameters Data,
         Properties::Pointer& pNewProperty,
         const bool TreatAsSubproperty = false
