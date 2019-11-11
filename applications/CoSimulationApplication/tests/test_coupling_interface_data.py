@@ -146,6 +146,22 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
             coupling_data.SetData([])
 
+    def test_unallowed_names(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "PRESSURE"
+        }""")
+
+        with self.assertRaisesRegex(Exception, 'The name cannot be empty, contain whitespaces or "."!'):
+            CouplingInterfaceData(settings, self.model, "")
+
+        with self.assertRaisesRegex(Exception, 'The name cannot be empty, contain whitespaces or "."!'):
+            CouplingInterfaceData(settings, self.model, "aaa.bbbb")
+
+        with self.assertRaisesRegex(Exception, 'The name cannot be empty, contain whitespaces or "."!'):
+            CouplingInterfaceData(settings, self.model, "aaa bbb")
+
+
     def test_var_does_not_exist(self):
         settings = KM.Parameters("""{
             "model_part_name" : "mp_4_test",

@@ -30,6 +30,10 @@ class CouplingInterfaceData(object):
         self.is_outdated = True
         self.is_initialized = False
         self.model_part_name = self.settings["model_part_name"].GetString()
+
+        # checking names
+        if self.name =="" or "." in self.name or " " in self.name:
+            self.__RaiseException('The name cannot be empty, contain whitespaces or "."!')
         if self.model_part_name == "":
             self.__RaiseException('No "model_part_name" was specified!')
 
