@@ -88,7 +88,7 @@ namespace Kratos {
             // Initialize the element
             p_element->Initialize();
 
-            // Call the body fitted drag utility
+            // Call the velocity time average process
             WeightedVelocityCalculationProcess(model_part).ExecuteFinalizeSolutionStep();
 
             // Check computed values over the nodes
