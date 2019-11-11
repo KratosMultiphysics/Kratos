@@ -124,7 +124,18 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
     def _solve(self):
         self.strategy.Solve()
 
-    def _check_results(self):
+    def _basic_check_results(self):
+        dispx13 = self.mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
+        self.assertAlmostEqual(dispx13, 0.01, 4)
+        dispy13 = self.mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
+        self.assertAlmostEqual(dispy13, 0.0, 4)
+
+        dispx14 = self.mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
+        self.assertAlmostEqual(dispx14, 0.01, 4)
+        dispy14 = self.mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
+        self.assertAlmostEqual(dispy14, 0.0, 4)
+
+    def _advanced_check_results(self):
         dispx13 = self.mp.Nodes[13].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
         self.assertAlmostEqual(dispx13, 0.01, 4)
         dispy13 = self.mp.Nodes[13].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
@@ -191,7 +202,24 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         self.assertAlmostEqual(disp1, 0.0011584, 4)
         #print("Test 6 :: ", disp1," == ",disp2)
 
-    def _setup_model_part(self):
+    def _basic_setup_model_part(self):
+        #create nodes
+        self.mp.CreateNewNode(1, 0.00000, 0.00000, 0.00000)
+        self.mp.CreateNewNode(2, 1.00000, 0.00000, 0.00000)
+        self.mp.CreateNewNode(3, 1.00000, 1.00000, 0.00000)
+        self.mp.CreateNewNode(4, 0.00000, 1.00000, 0.00000)
+
+        #create a submodelpart for boundary conditions
+        bcs = self.mp.CreateSubModelPart("FixedEdgeNodes")
+        bcs.AddNodes([1, 4])
+
+        bcmn = self.mp.CreateSubModelPart("MovingNodes")
+        bcmn.AddNodes([2])
+
+        #create Element
+        self.mp.CreateNewElement("SmallDisplacementElement2D4N", 1, [1, 2, 3, 4], self.mp.GetProperties()[1])
+
+    def _advanced_setup_model_part(self):
         #create nodes
         self.mp.CreateNewNode(1, 0.00000, 1.00000, 0.00000)
         self.mp.CreateNewNode(2, 0.00000, 0.50000, 0.00000)
@@ -237,7 +265,10 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         self.mp.CreateNewElement("SmallDisplacementElement2D4N", 8, [8, 9, 7, 4],
                             self.mp.GetProperties()[1])
 
-    def _apply_mpc_constraints(self):
+    def _basic_apply_mpc_constraints(self):
+        self.mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, self.mp.Nodes[2], KratosMultiphysics.DISPLACEMENT_Y, self.mp.Nodes[3], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
+
+    def _advanced_apply_mpc_constraints(self):
 
         self.mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, self.mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_X, self.mp.Nodes[6], KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
         self.mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, self.mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, self.mp.Nodes[6], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
@@ -265,12 +296,12 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
 
         self.mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
-    def _setup_test(self, solving_with = "Block"):
+    def _basic_setup_test(self, solving_with = "Block"):
         dim = 2
         current_model = KratosMultiphysics.Model()
         self.mp= current_model.CreateModelPart("MainModelPart")
         self._add_variables()
-        self._setup_model_part()
+        self._basic_setup_model_part()
         self._add_dofs()
         self._apply_material_properties(dim)
 
@@ -284,7 +315,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         # Applying boundary conditions
         self._apply_BCs()
         # Applying constraints
-        self._apply_mpc_constraints()
+        self._basic_apply_mpc_constraints()
         # Solving the system of equations
         self._setup_solver(solving_with)
 
@@ -294,20 +325,64 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
             self.mp.CloneTimeStep(time)
             self._solve()
         # Checking the results
-        self._check_results()
+        self._basic_check_results()
+        self._reset()
+
+    def _advanced_setup_test(self, solving_with = "Block"):
+        dim = 2
+        current_model = KratosMultiphysics.Model()
+        self.mp= current_model.CreateModelPart("MainModelPart")
+        self._add_variables()
+        self._advanced_setup_model_part()
+        self._add_dofs()
+        self._apply_material_properties(dim)
+
+        #time integration parameters
+        dt = 0.002
+        time = 0.0
+        end_time = 0.01
+        step = 0
+
+        self._set_and_fill_buffer(2, dt)
+        # Applying boundary conditions
+        self._apply_BCs()
+        # Applying constraints
+        self._advanced_apply_mpc_constraints()
+        # Solving the system of equations
+        self._setup_solver(solving_with)
+
+        while (time <= end_time):
+            time = time + dt
+            step = step + 1
+            self.mp.CloneTimeStep(time)
+            self._solve()
+        # Checking the results
+        self._advanced_check_results()
         self._reset()
 
     @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
-    def test_MPC_Constraints(self):
-        self._setup_test("Block")
+    def test_basic_MPC_Constraints(self):
+        self._basic_setup_test("Block")
+
+    @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
+    def test_advanced_MPC_Constraints(self):
+        self._advanced_setup_test("Block")
 
     #@KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
-    #def test_LM_MPC_Constraints(self):
-        #self._setup_test("LM")
+    #def test_basic_LM_MPC_Constraints(self):
+        #self._basic_setup_test("LM")
 
     #@KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
-    #def test_Double_LM_MPC_Constraints(self):
-        #self._setup_test("DoubleLM")
+    #def test_advanced_LM_MPC_Constraints(self):
+        #self._advanced_setup_test("LM")
+
+    #@KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
+    #def test_basic_Double_LM_MPC_Constraints(self):
+        #self._basic_setup_test("DoubleLM")
+
+    #@KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
+    #def test_advanced_Double_LM_MPC_Constraints(self):
+        #self._advanced_setup_test("DoubleLM")
 
 if __name__ == '__main__':
     KratosUnittest.main()
