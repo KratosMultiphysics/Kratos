@@ -354,22 +354,29 @@ public:
         KRATOS_CATCH("")
     }
 
-    void SystemSolveWithPhysics(
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b,
+    /**
+     * @brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     * @param rModelPart The model part of the problem to solve
+     */
+    virtual void SystemSolveWithPhysics(
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb,
         ModelPart& rModelPart
-    )
+        )
     {
         if(rModelPart.MasterSlaveConstraints().size() != 0) {
-            TSystemVectorType Dxmodified(b.size());
+            TSystemVectorType Dxmodified(rb.size());
 
-            InternalSystemSolveWithPhysics(A, Dxmodified, b, rModelPart);
+            InternalSystemSolveWithPhysics(rA, Dxmodified, rb, rModelPart);
 
             //recover solution of the original problem
-            TSparseSpace::Mult(mT, Dxmodified, Dx);
+            TSparseSpace::Mult(mT, Dxmodified, rDx);
         } else {
-            InternalSystemSolveWithPhysics(A, Dx, b, rModelPart);
+            InternalSystemSolveWithPhysics(rA, rDx, rb, rModelPart);
         }
     }
 
