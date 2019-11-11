@@ -181,6 +181,60 @@ public:
     }
 
     /**
+     * @brief Function to perform the building and solving phase at the same time.
+     * @details It is ideally the fastest and safer function to use when it is possible to solve
+     * just after building
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     */
+    void BuildAndSolve(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY
+
+        // Base build and solve
+        BaseType::BuildAndSolve(pScheme, rModelPart, rA, rDx, rb);
+
+        // Resize again the system to the original size
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Corresponds to the previews, but the System's matrix is considered already built and only the RHS is built again
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     */
+    void BuildRHSAndSolve(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY
+
+        // Base build and solve
+        BaseType::BuildRHSAndSolve(pScheme, rModelPart, rA, rDx, rb);
+
+        // Resize again the system to the original size
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Function to perform the build of the RHS.
      * @details The vector could be sized as the total number of dofs or as the number of unrestrained ones
      * @param pScheme The integration scheme considered
