@@ -162,14 +162,15 @@ void ReadMaterialsUtility::TrimComponentName(std::string& rLine)
 
 void ReadMaterialsUtility::CreateProperty(
     Parameters Data,
-    Properties::Pointer& pNewProperty
+    Properties::Pointer& pNewProperty,
+    const bool TreatAsSubproperty
     )
 {
     KRATOS_TRY;
 
     // Get the properties for the specified model part.
     Properties::Pointer p_prop;
-    if (Data.Has("model_part_name")) {
+    if (!TreatAsSubproperty) {
         ModelPart& r_model_part = mrModel.GetModelPart(Data["model_part_name"].GetString());
         const IndexType property_id = Data["properties_id"].GetInt();
         const IndexType mesh_id = 0;
@@ -286,7 +287,7 @@ void ReadMaterialsUtility::CreateProperty(
             const auto& r_input_var = KratosComponents<Variable<double>>().Get(input_var_name);
             const auto& r_output_var = KratosComponents<Variable<double>>().Get(output_var_name);
 
-            if (Data.Has("model_part_name")) {
+            if (!TreatAsSubproperty) {
                 CheckIfOverwritingTable(*p_prop, r_input_var, r_output_var);
             }
 
@@ -362,7 +363,7 @@ void ReadMaterialsUtility::CreateSubProperties(
 
                 // We create the new sub property
                 if (sub_prop.Has("Material")) {
-                    CreateProperty(sub_prop, p_new_sub_prop);
+                    CreateProperty(sub_prop, p_new_sub_prop, true);
                 }
             }
 
