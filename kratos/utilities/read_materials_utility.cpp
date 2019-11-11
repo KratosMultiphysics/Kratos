@@ -326,32 +326,32 @@ void ReadMaterialsUtility::CreateSubProperties(
             // Copy of the current parameters
             Parameters sub_prop = Data["sub_properties"][i_sub_prop];
 
-            // We get the adress if any
-            const std::string& r_use_existing_property = sub_prop.Has("use_existing_property") ? sub_prop["use_existing_property"].GetString() : "";
-
-            // We check if already defined
-            bool already_defined = false;
+            // Define subproperties
             Properties::Pointer p_new_sub_prop = nullptr;
-            if (r_use_existing_property != "") { // NOTE: This means that is not marked as existing
-                if (r_use_existing_property.size() > 1) {
-                    if (rModelPart.HasProperties(r_use_existing_property, mesh_id)) {
-                        p_new_sub_prop = rModelPart.pGetProperties(r_use_existing_property, mesh_id);
-                        already_defined = true;
-                    }
-                } else {
-                    const IndexType property_id = std::stoi(r_use_existing_property);
-                    if (rModelPart.RecursivelyHasProperties(property_id)) {
-                        p_new_sub_prop = rModelPart.pGetProperties(property_id);
-                        already_defined = true;
+            if (sub_prop.Has("use_existing_property")) {
+                // We get the adress if any
+                const std::string& r_use_existing_property = sub_prop["use_existing_property"].GetString();
+
+                // We check if already defined
+                bool already_defined = false;
+                if (r_use_existing_property != "") { // NOTE: This means that is not marked as existing
+                    if (r_use_existing_property.size() > 1) {
+                        if (rModelPart.HasProperties(r_use_existing_property, mesh_id)) {
+                            p_new_sub_prop = rModelPart.pGetProperties(r_use_existing_property, mesh_id);
+                            already_defined = true;
+                        }
+                    } else {
+                        const IndexType property_id = std::stoi(r_use_existing_property);
+                        if (rModelPart.RecursivelyHasProperties(property_id)) {
+                            p_new_sub_prop = rModelPart.pGetProperties(property_id);
+                            already_defined = true;
+                        }
                     }
                 }
-            }
 
-            // We get or create the new subproperty
-            if (!already_defined) {
                 // Check if properly read use_existing_property
-                KRATOS_ERROR_IF(r_use_existing_property != "") << "Subproperties " << r_use_existing_property << " is not already defined. You need to check the structure of your materials file" << std::endl;
-
+                KRATOS_ERROR_IF_NOT(already_defined) << "Subproperties " << r_use_existing_property << " is not already defined. You need to check the structure of your materials file" << std::endl;
+            } else { // We get or create the new subproperty
                 // We get the subproperty id
                 const int sub_property_id = sub_prop["properties_id"].GetInt();
 
