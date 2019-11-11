@@ -256,6 +256,9 @@ public:
             rb.resize(BaseType::mEquationSystemSize, false);
         }
 
+        // Build the base RHS
+        BaseType::BuildRHS(pScheme, rModelPart, rb);
+
         // First we check if CONSTRAINT_SCALE_FACTOR is defined
         auto& r_process_info = rModelPart.GetProcessInfo();
         if (!r_process_info.Has(CONSTRAINT_SCALE_FACTOR)) {
@@ -265,8 +268,16 @@ public:
             r_process_info.SetValue(CONSTRAINT_SCALE_FACTOR, TSparseSpace::TwoNorm(A));
         }
 
-        // Build the base RHS
-        BaseType::BuildRHS(pScheme, rModelPart, rb);
+        // Check T has been computed
+        if (BaseType::mT.size1() != BaseType::mSlaveIds.size() || BaseType::mT.size2() != BaseType::mEquationSystemSize) {
+            BaseType::mT.resize(BaseType::mSlaveIds.size(), BaseType::mEquationSystemSize, false);
+            ConstructMasterSlaveConstraintsStructure(rModelPart);
+        }
+
+        // If not previously computed we compute
+        if (TSparseSpace::TwoNorm(BaseType::mT) < std::numeric_limits<double>::epsilon()) {
+            BuildMasterSlaveConstraints(rModelPart);
+        }
 
         // Extend with the LM constribution
         const SizeType number_of_lm = BaseType::mT.size1();
