@@ -4,11 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                   Raul Bravo
+//  Main authors:   Riccardo Rossi
+//                  Raul Bravo
 //
 #if !defined(KRATOS_ROM_BUILDER_AND_SOLVER)
 #define KRATOS_ROM_BUILDER_AND_SOLVER
@@ -129,8 +129,7 @@ public:
 
         typedef std::unordered_set<NodeType::DofType::Pointer, DofPointerHasher> set_type;
 
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n"
-                                                                          << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n" << std::endl;
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
 
@@ -196,7 +195,7 @@ public:
         }
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
-        
+
         DofsArrayType Doftemp;
         BaseType::mDofSet = DofsArrayType();
 
@@ -251,8 +250,7 @@ public:
         int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         #pragma omp parallel for firstprivate(ndofs)
-        for (int i = 0; i < static_cast<int>(ndofs); i++)
-        {
+        for (int i = 0; i < static_cast<int>(ndofs); i++){
             typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + i;
             dof_iterator->SetEquationId(i);
         }
@@ -263,14 +261,11 @@ public:
         ModelPart::NodesContainerType &rNodes,
         Vector rom_unknowns)
     {
-        for (const auto &node : rNodes)
-        {
+        for (const auto &node : rNodes){
             unsigned int node_aux_id = node.GetValue(AUX_ID);
             const auto &nodal_rom_basis = node.GetValue(ROM_BASIS);
-            for (int i = 0; i < mRomDofs; ++i)
-            {
-                for (int j = 0; j < mNodalDofs; ++j)
-                {
+            for (int i = 0; i < mRomDofs; ++i){
+                for (int j = 0; j < mNodalDofs; ++j){
                     rom_unknowns[i] += nodal_rom_basis(j, i) * rX(node_aux_id * mNodalDofs + j);
                 }
             }
@@ -283,13 +278,11 @@ public:
         TSystemVectorType &rX)
     {
         TSparseSpace::SetToZero(rX);
-        for (const auto &node : rNodes)
-        {
+        for (const auto &node : rNodes){
             unsigned int node_aux_id = node.GetValue(AUX_ID);
             const auto &nodal_rom_basis = node.GetValue(ROM_BASIS);
             Vector tmp = prod(nodal_rom_basis, rRomUnkowns);
-            for (unsigned int i = 0; i < tmp.size(); ++i)
-            {
+            for (unsigned int i = 0; i < tmp.size(); ++i){
                 rX[node_aux_id * mNodalDofs + i] = tmp[i];
             }
         }
@@ -363,8 +356,7 @@ public:
             if ((it_el)->IsDefined(ACTIVE))
                 element_is_active = (it_el)->Is(ACTIVE);
 
-            if (element_is_active)
-            {
+            if (element_is_active){
                 //calculate elemental contribution
                 pScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                 Element::DofsVectorType dofs;
@@ -374,11 +366,9 @@ public:
                 const auto &geom = it_el->GetGeometry();
                 Matrix PhiElemental(geom.size() * mNodalDofs, mRomDofs);
 
-                for (unsigned int i = 0; i < geom.size(); ++i)
-                {
+                for (unsigned int i = 0; i < geom.size(); ++i){
                     const Matrix &rom_nodal_basis = geom[i].GetValue(ROM_BASIS);
-                    for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k)
-                    {
+                    for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k){
                         if (dofs[i * mNodalDofs + k]->IsFixed())
                             row(PhiElemental, i * mNodalDofs + k) = ZeroVector(PhiElemental.size2());
                         else
@@ -394,8 +384,7 @@ public:
             }
         }
 
-        for (int k = 0; k < nconditions; k++)
-        {
+        for (int k = 0; k < nconditions; k++){
             ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
 
             //detect if the element is active or not. If the user did not make any choice the element
@@ -404,8 +393,7 @@ public:
             if ((it)->IsDefined(ACTIVE))
                 condition_is_active = (it)->Is(ACTIVE);
 
-            if (condition_is_active)
-            {
+            if (condition_is_active){
                 Condition::DofsVectorType dofs;
                 it->GetDofList(dofs, CurrentProcessInfo);
                 //calculate elemental contribution
@@ -416,11 +404,9 @@ public:
                 const auto &r_geom = it->GetGeometry();
                 Matrix PhiElemental(r_geom.size() * mNodalDofs, mRomDofs);
 
-                for (unsigned int i = 0; i < r_geom.size(); ++i)
-                {
+                for (unsigned int i = 0; i < r_geom.size(); ++i){
                     const Matrix &rom_nodal_basis = r_geom[i].GetValue(ROM_BASIS);
-                    for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k)
-                    {
+                    for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k){
                         if (dofs[i * mNodalDofs + k]->IsFixed())
                             row(PhiElemental, i * mNodalDofs + k) = ZeroVector(PhiElemental.size2());
                         else

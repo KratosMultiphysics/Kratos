@@ -7,27 +7,33 @@ include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
-# generate variables with the sources
-set( KRATOS_ROM_APPLICATION_SOURCES
+## RomApplication Core sources
+file(GLOB_RECURSE KRATOS_ROM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/rom_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/rom_application_variables.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/rom_python_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_test_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_test_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
-# define library Kratos which defines the basic python interface
-pybind11_add_module(KratosRomApplication MODULE THIN_LTO ${KRATOS_ROM_APPLICATION_SOURCES})
-target_link_libraries(KratosRomApplication PRIVATE KratosCore )
+## RomApplication testing sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_ROM_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
+## RomApplication python interface sources
+file(GLOB_RECURSE KRATOS_ROM_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
+
+add_library(KratosRomApplicationCore SHARED ${KRATOS_ROM_APPLICATION_CORE} ${KRATOS_ROM_APPLICATION_TESTING_SOURCES})
+target_link_libraries(KratosRomApplicationCore PUBLIC KratosCore)
+set_target_properties(KratosRomApplicationCore PROPERTIES COMPILE_DEFINITIONS "ROM_APPLICATION=EXPORT,API")
+
+###############################################################
+## define library Kratos which defines the basic python interface
+pybind11_add_module(KratosRomApplication MODULE THIN_LTO ${KRATOS_ROM_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosRomApplication PRIVATE KratosRomApplicationCore)
 set_target_properties(KratosRomApplication PROPERTIES PREFIX "")
-
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosRomApplication)
-endif(USE_COTIRE MATCHES ON)
-
-install(TARGETS KratosRomApplication DESTINATION libs )
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -41,9 +47,30 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # install the python files
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py")
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
+  )
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
+
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosRomApplicationCore)
+    cotire(KratosRomApplication)
+endif(USE_COTIRE MATCHES ON)
+
+install(TARGETS KratosRomApplicationCore DESTINATION libs )
+install(TARGETS KratosRomApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/RomApplication.py" DESTINATION "KratosMultiphysics/RomApplication" RENAME "__init__.py")
+
