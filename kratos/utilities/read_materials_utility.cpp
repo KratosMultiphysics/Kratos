@@ -179,22 +179,6 @@ void ReadMaterialsUtility::CreateProperty(
         } else {
             p_prop = r_model_part.CreateNewProperties(property_id, mesh_id);
         }
-
-        // Assign the p_properties to the model part's elements and conditions.
-        auto& r_elements_array = r_model_part.Elements();
-        auto& r_conditions_array = r_model_part.Conditions();
-
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
-            auto it_elem = r_elements_array.begin() + i;
-            it_elem->SetProperties(p_prop);
-        }
-
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-            auto it_cond = r_conditions_array.begin() + i;
-            it_cond->SetProperties(p_prop);
-        }
     }
 
     // Set the CONSTITUTIVE_LAW for the current p_properties.
