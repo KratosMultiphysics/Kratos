@@ -596,24 +596,6 @@ private:
     ///@name Private  Access
     ///@{
 
-    /**
-     * @brief This method returns the whole list of subproperties
-     * @return The whole lis of subproperties
-     */
-    SubPropertiesContainerType& SubPropertiesList()
-    {
-        return mSubPropertiesList;
-    }
-
-    /**
-     * @brief This method returns the whole list of subproperties (constant)
-     * @return The whole lis of subproperties
-     */
-    SubPropertiesContainerType const& SubPropertiesList() const
-    {
-        return mSubPropertiesList;
-    }
-
     ///@}
     ///@name Private Inquiry
     ///@{
