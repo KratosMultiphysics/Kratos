@@ -414,6 +414,56 @@ namespace Kratos
 
         }
 
+        /**
+         * Checks if the block builder and solver with double lagrange multiplier performs correctly the assemble of the system
+         */
+        KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverWithDoubleLagrangeMultiplier, KratosCoreFastSuite)
+        {
+            Model current_model;
+            ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
+
+            BasicTestBuilderAndSolverDisplacement(r_model_part, true);
+
+            SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
+            LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+            Parameters parameters = Parameters(R"(
+            {
+                "scale_diagonal"                      : true,
+                "silent_warnings"                     : false,
+                "consider_double_lagrange_multiplier" : true
+            })" );
+            BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType(p_solver, parameters) );
+
+            const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+
+//             // To create the solution of reference
+//             DebugLHS(rA);
+
+            // The solution check
+            constexpr double tolerance = 1e-8;
+            KRATOS_CHECK(rA.size1() == 8);
+            KRATOS_CHECK(rA.size2() == 8);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 2069000000.0000000000000000)/rA(0,0)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 22664759429.5637741088867188)/rA(1,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 4138000000.0000000000000000)/rA(2,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,4) - -2069000000.0000000000000000)/rA(2,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,6) - -6542752478.8883762359619141)/rA(2,6)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,7) - -6542752478.8883762359619141)/rA(2,7)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 22664759429.5637741088867188)/rA(3,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,2) - -2069000000.0000000000000000)/rA(4,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 2069000000.0000000000000000)/rA(4,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,6) - 6542752478.8883762359619141)/rA(4,6)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,7) - 6542752478.8883762359619141)/rA(4,7)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 22664759429.5637741088867188)/rA(5,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,2) - -6542752478.8883762359619141)/rA(6,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,4) - 6542752478.8883762359619141)/rA(6,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,6) - -6542752478.8883762359619141)/rA(6,6)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,2) - -6542752478.8883762359619141)/rA(7,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,4) - 6542752478.8883762359619141)/rA(7,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,6) - 6542752478.8883762359619141)/rA(7,6)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,7) - -6542752478.8883762359619141)/rA(7,7)), tolerance);
+        }
+
 //         TODO this test should be updated to use the BlockBuilder (which can handle constraints)
 //         /**
 //          * Checks if the block builder and solver with constraints performs correctly the assemble of the system
