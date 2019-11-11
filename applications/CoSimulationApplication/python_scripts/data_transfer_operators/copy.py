@@ -9,7 +9,7 @@ def Create(settings):
 class CopyDataTransferOperator(CoSimulationDataTransferOperator):
     """DataTransferOperator that copies values from one interface to another, without any checks
     """
-    def TransferData(self, from_solver_data, to_solver_data, transfer_options):
+    def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
         self._CheckAvailabilityTransferOptions(transfer_options)
 
         from_solver_data_size = from_solver_data.Size()

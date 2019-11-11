@@ -31,7 +31,7 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         super(KratosMappingDataTransferOperator, self).__init__(settings)
         self.__mappers = {}
 
-    def TransferData(self, from_solver_data, to_solver_data, transfer_options):
+    def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
         # TODO check location of data => should coincide with the one for the mapper
         # or throw if it is not in a suitable location (e.g. on the ProcessInfo)
 
@@ -65,8 +65,8 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
 
             if self.echo_level > 0:
                 info_msg  = "Creating Mapper:\n"
-                info_msg += '    Origin: ModePart "{}" of solver "{}"\n'.format(model_part_origin_name, from_solver_data.solver_name)
-                info_msg += '    Destination: ModePart "{}" of solver "{}"'.format(model_part_destination_name, to_solver_data.solver_name)
+                info_msg += '    Origin: ModelPart "{}" of solver "{}"\n'.format(model_part_origin_name, from_solver_data.solver_name)
+                info_msg += '    Destination: ModelPart "{}" of solver "{}"'.format(model_part_destination_name, to_solver_data.solver_name)
 
                 cs_tools.cs_print_info(colors.bold(self._ClassName()), info_msg)
 

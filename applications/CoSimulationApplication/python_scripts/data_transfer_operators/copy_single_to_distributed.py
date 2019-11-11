@@ -10,7 +10,7 @@ class CopySingleToDistributed(CoSimulationDataTransferOperator):
     """DataTransferOperator to take one single value and set it to all values on another interface.
     Used e.g. for FSI with SDof, where the SDof has one value and the fluid interface has many
     """
-    def TransferData(self, from_solver_data, to_solver_data, transfer_options):
+    def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
         self._CheckAvailabilityTransferOptions(transfer_options)
 
         if not to_solver_data.is_scalar_variable:

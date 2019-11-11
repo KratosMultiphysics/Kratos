@@ -13,7 +13,7 @@ class SumDistributedToSingle(CoSimulationDataTransferOperator):
     """DataTransferOperator to sum values on one interface and put it to another interface.
     Used e.g. for FSI with SDof, where the loads on the fluid interface are summed up and set to the SDof interface
     """
-    def TransferData(self, from_solver_data, to_solver_data, transfer_options):
+    def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
         self._CheckAvailabilityTransferOptions(transfer_options)
 
         if not from_solver_data.is_scalar_variable:
