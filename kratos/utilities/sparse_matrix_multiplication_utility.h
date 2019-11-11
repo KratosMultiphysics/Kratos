@@ -790,6 +790,16 @@ public:
         std::partial_sum(matrix_ptr, matrix_ptr + nrows + 1, matrix_ptr);
         const SizeType nonzero_values = matrix_ptr[nrows];
 
+#ifdef KRATOS_DEBUG
+        SizeType total_nnz = 0;
+        for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
+            for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
+                total_nnz += rMatricespBlocks(i, j)->nnz();
+            }
+        }
+        KRATOS_ERROR_IF_NOT(nonzero_values == total_nnz) << "Inconsistent number of non-zero values" << std::endl;
+#endif
+
         // Initialize matrix with the corresponding non-zero values
         rMatrix = TMatrix(nrows, ncols, nonzero_values);
 
