@@ -4,7 +4,7 @@ language: cpp
 compiler: g++
 
 git:
-  depth: 3
+  depth: 1
 
 cache: ccache
 
@@ -46,9 +46,6 @@ before_script:
 script:
 - cp scripts/build/travis/configure_travis_bionic.sh configure.sh
 - bash configure.sh
-- make all_unity
-- make runkratos
-- make install/fast
 - cd ../kratos/python_scripts
 - python3 run_tests.py -l small -c python3
 - ccache -s
