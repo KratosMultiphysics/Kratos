@@ -301,6 +301,7 @@ void ReadMaterialsUtility::CreateSubProperties(
             // We get the adress if any
             const std::string& r_use_existing_property = sub_prop["use_existing_property"].GetString();
 
+            // TODO why cannot we directly ask the modelpart with the address?
             // We check if already defined
             bool already_defined = false;
             if (r_use_existing_property != "") { // NOTE: This means that is not marked as existing
@@ -325,8 +326,8 @@ void ReadMaterialsUtility::CreateSubProperties(
             // We get the subproperty id
             const int sub_property_id = sub_prop["properties_id"].GetInt();
 
-            // Actually creating it
-            p_new_sub_prop = rModelPart.HasProperties(sub_property_id, mesh_id) ? rModelPart.pGetProperties(sub_property_id, mesh_id) : rModelPart.CreateNewProperties(sub_property_id, mesh_id);
+            // Actually creating it (ensures uniqueness)
+            p_new_sub_prop = rModelPart.CreateNewProperties(sub_property_id, mesh_id);
 
             // If existing, assigning the materials
             if (sub_prop.Has("Material")) {
