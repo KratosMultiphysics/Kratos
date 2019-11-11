@@ -125,15 +125,15 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         self.strategy.Solve()
 
     def _basic_check_results(self):
-        dispx13 = self.mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
-        self.assertAlmostEqual(dispx13, 0.01, 4)
-        dispy13 = self.mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
-        self.assertAlmostEqual(dispy13, 0.0, 4)
+        dispx2 = self.mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
+        self.assertAlmostEqual(dispx2, 0.01, 4)
+        dispy2 = self.mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
+        self.assertAlmostEqual(dispy2, 0.0, 4)
 
-        dispx14 = self.mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
-        self.assertAlmostEqual(dispx14, 0.01, 4)
-        dispy14 = self.mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
-        self.assertAlmostEqual(dispy14, 0.0, 4)
+        dispx3 = self.mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
+        self.assertAlmostEqual(dispx3, 0.01, 4)
+        dispy3 = self.mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
+        self.assertAlmostEqual(dispy3, 0.0, 4)
 
     def _advanced_check_results(self):
         dispx13 = self.mp.Nodes[13].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
@@ -266,7 +266,8 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
                             self.mp.GetProperties()[1])
 
     def _basic_apply_mpc_constraints(self):
-        self.mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, self.mp.Nodes[2], KratosMultiphysics.DISPLACEMENT_Y, self.mp.Nodes[3], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
+        self.mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, self.mp.Nodes[2], KratosMultiphysics.DISPLACEMENT_X, self.mp.Nodes[3], KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
+        self.mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, self.mp.Nodes[2], KratosMultiphysics.DISPLACEMENT_Y, self.mp.Nodes[3], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
 
     def _advanced_apply_mpc_constraints(self):
 
