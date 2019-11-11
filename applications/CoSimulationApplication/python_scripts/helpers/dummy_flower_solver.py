@@ -96,7 +96,7 @@ class DummyFLOWerSolver(object):
         # time loop
         self.__CustomPrint(1, "Starting Solution Loop")
         for i in range(self.settings["num_steps"].GetInt()):
-            print() # newline
+            if self.echo_level > 0: print() # newline
             self.__CustomPrint(1, colors.bold('Step: {}/{}'.format(i+1, self.settings["num_steps"].GetInt())))
             self.SolveSolutionStep()
         self.__CustomPrint(1, "Finished")
@@ -126,11 +126,11 @@ class DummyFLOWerSolver(object):
 
         self.__CustomPrint(1, colors.green("Finished import") + " of CouplingInterfaceData")
 
-        print() # newline
+        if self.echo_level > 0: print() # newline
         self.__CustomPrint(1, colors.blue("Solving ..."))
         time.sleep(self.solving_time)
         self.__CustomPrint(2, "Solving took {} [sec]".format(self.solving_time))
-        print() # newline
+        if self.echo_level > 0: print() # newline
         # TODO implement random values ... ?
 
         self.__CustomPrint(1, colors.cyan("Starting export") + " of CouplingInterfaceData ...")

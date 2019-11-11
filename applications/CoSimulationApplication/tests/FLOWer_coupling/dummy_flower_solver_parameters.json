@@ -33,6 +33,7 @@
         }
     ],
     "mdpa_file_name"      : "generic_mdpa_files/Mok_CFD",
+    "api_configuration_file_name" : "EMPIRE_API.conf",
     "debugging_settings" : {
         "dry_run"      : false,
         "print_colors" : true,

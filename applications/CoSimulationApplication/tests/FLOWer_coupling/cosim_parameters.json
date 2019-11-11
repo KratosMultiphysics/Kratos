@@ -76,7 +76,8 @@
                     }
                 },
                 "io_settings" : {
-                    "type" : "empire_io"
+                    "type" : "empire_io",
+                    "api_configuration_file_name" : "EMPIRE_API.conf"
                 },
                 "data" : {
                     "Interface_1_disp" : {
