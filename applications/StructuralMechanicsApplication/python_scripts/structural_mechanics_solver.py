@@ -106,6 +106,7 @@ class MechanicalSolver(PythonSolver):
             "line_search": false,
             "compute_reactions": true,
             "block_builder" : true,
+            "consider_lagrange_multiplier_constraint_resolution" : "None",
             "scale_diagonal_block_builder_and_solver" : false,
             "silent_warnings_block_builder_and_solver" : false,
             "clear_storage": false,
@@ -407,7 +408,12 @@ class MechanicalSolver(PythonSolver):
         if self.settings["block_builder"].GetBool():
             scale_diagonal_block_builder_and_solver = self.settings["scale_diagonal_block_builder_and_solver"].GetBool()
             silent_warnings_block_builder_and_solver = self.settings["silent_warnings_block_builder_and_solver"].GetBool()
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, scale_diagonal_block_builder_and_solver, silent_warnings_block_builder_and_solver)
+            consider_lagrange_multiplier_constraint_resolution = self.settings["consider_lagrange_multiplier_constraint_resolution"].GetString()
+            if consider_lagrange_multiplier_constraint_resolution == "None":
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, scale_diagonal_block_builder_and_solver, silent_warnings_block_builder_and_solver)
+            else:
+                double_lm = True if consider_lagrange_multiplier_constraint_resolution == 'Double' else False
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(linear_solver, scale_diagonal_block_builder_and_solver, silent_warnings_block_builder_and_solver, double_lm)
         else:
             if self.settings["multi_point_constraints_used"].GetBool():
                 builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
