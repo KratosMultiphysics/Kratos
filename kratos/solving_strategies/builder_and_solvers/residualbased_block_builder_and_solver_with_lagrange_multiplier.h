@@ -333,10 +333,10 @@ public:
 
         if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
             // Compute the RHS
-            Vector aux_b(BaseType::mEquationSystemSize + 2 * number_of_lm);
+            Vector b_modified(BaseType::mEquationSystemSize + 2 * number_of_lm);
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                aux_b[i] = rb[i];
+                b_modified[i] = rb[i];
             }
 
             // Compute LM contributions
@@ -346,19 +346,19 @@ public:
             // Fill auxiliar vector
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
-                aux_b[BaseType::mEquationSystemSize + i] = b_lm[i];
-                aux_b[BaseType::mEquationSystemSize + number_of_lm + i] = b_lm[i];
+                b_modified[BaseType::mEquationSystemSize + i] = b_lm[i];
+                b_modified[BaseType::mEquationSystemSize + number_of_lm + i] = b_lm[i];
             }
 
             // Finally reassign
-            rb.resize(aux_b.size(), false);
-            noalias(rb) = aux_b;
+            rb.resize(b_modified.size(), false);
+            TSparseSpace::Copy(b_modified, rb);
         } else {
             // Compute the RHS
-            Vector aux_b(BaseType::mEquationSystemSize + number_of_lm);
+            Vector b_modified(BaseType::mEquationSystemSize + number_of_lm);
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                aux_b[i] = rb[i];
+                b_modified[i] = rb[i];
             }
 
             // Compute LM contributions
@@ -368,12 +368,12 @@ public:
             // Fill auxiliar vector
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
-                aux_b[BaseType::mEquationSystemSize + i] = b_lm[i];
+                b_modified[BaseType::mEquationSystemSize + i] = b_lm[i];
             }
 
             // Finally reassign
-            rb.resize(aux_b.size(), false);
-            noalias(rb) = aux_b;
+            rb.resize(b_modified.size(), false);
+            TSparseSpace::Copy(b_modified, rb);
         }
 
         KRATOS_CATCH("")
@@ -566,10 +566,10 @@ public:
                 SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
 
                 // Compute the RHS
-                Vector aux_b(BaseType::mEquationSystemSize + 2 * number_of_lm);
+                Vector b_modified(BaseType::mEquationSystemSize + 2 * number_of_lm);
                 #pragma omp parallel for
                 for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                    aux_b[i] = rb[i];
+                    b_modified[i] = rb[i];
                 }
 
                 // Compute LM contributions
@@ -579,13 +579,13 @@ public:
                 // Fill auxiliar vector
                 #pragma omp parallel for
                 for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
-                    aux_b[BaseType::mEquationSystemSize + i] = b_lm[i];
-                    aux_b[BaseType::mEquationSystemSize + number_of_lm + i] = b_lm[i];
+                    b_modified[BaseType::mEquationSystemSize + i] = b_lm[i];
+                    b_modified[BaseType::mEquationSystemSize + number_of_lm + i] = b_lm[i];
                 }
 
                 // Finally reassign
-                rb.resize(aux_b.size(), false);
-                noalias(rb) = aux_b;
+                rb.resize(b_modified.size(), false);
+                TSparseSpace::Copy(b_modified, rb);
             } else {
                 // Create LHS
                 DenseMatrix<TSystemMatrixType*> matrices_p_blocks(2,2);
@@ -624,10 +624,10 @@ public:
                 SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
 
                 // Compute the RHS
-                Vector aux_b(BaseType::mEquationSystemSize + number_of_lm);
+                Vector b_modified(BaseType::mEquationSystemSize + number_of_lm);
                 #pragma omp parallel for
                 for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                    aux_b[i] = rb[i];
+                    b_modified[i] = rb[i];
                 }
 
                 // Compute LM contributions
@@ -637,12 +637,12 @@ public:
                 // Fill auxiliar vector
                 #pragma omp parallel for
                 for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
-                    aux_b[BaseType::mEquationSystemSize + i] = b_lm[i];
+                    b_modified[BaseType::mEquationSystemSize + i] = b_lm[i];
                 }
 
                 // Finally reassign
-                rb.resize(aux_b.size(), false);
-                noalias(rb) = aux_b;
+                rb.resize(b_modified.size(), false);
+                TSparseSpace::Copy(b_modified, rb);
             }
         }
 
