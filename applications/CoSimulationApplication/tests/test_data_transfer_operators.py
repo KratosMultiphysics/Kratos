@@ -159,6 +159,19 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         self.__TestTransferMatchingAddValues(data_transfer_op)
         self.__TestTransferMatchingAddValuesAndSwapSign(data_transfer_op)
 
+        # with this we make sure that only one mapper is created (and not several ones for each mapping operation!)
+        # Hint: requires access to private member
+        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator__mappers), 1)
+
+        self.__TestTransferMatchingInverse(data_transfer_op)
+        # here we check explicitly the InverseMap fct
+        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator__mappers), 1)
+
+        transfer_options_empty = KM.Parameters(""" [] """)
+        data_transfer_op.TransferData(self.origin_data_scalar, self.destination_non_matching_data_scalar, transfer_options_empty)
+        # here we check explicitly the creation of a second mapper, which is required since the interfaces are not the same this time
+        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator__mappers), 2)
+
     def test_copy_single_to_dist_transfer_operator(self):
         data_transfer_op_settings = KM.Parameters("""{
             "type" : "copy_single_to_distributed"
@@ -407,6 +420,13 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         data_transfer_op.TransferData(self.origin_data_scalar, self.destination_matching_data_scalar, transfer_options_empty)
         self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes, self.origin_data_scalar.GetModelPart().Nodes, KM.TEMPERATURE, KM.PRESSURE)
         data_transfer_op.TransferData(self.origin_data_vector, self.destination_matching_data_vector, transfer_options_empty)
+        self.__CompareVectorNodalValues(self.destination_matching_data_vector.GetModelPart().Nodes, self.origin_data_vector.GetModelPart().Nodes, KM.FORCE, KM.DISPLACEMENT, 2)
+
+    def __TestTransferMatchingInverse(self, data_transfer_op):
+        transfer_options_empty = KM.Parameters(""" [] """)
+        data_transfer_op.TransferData(self.destination_matching_data_scalar, self.origin_data_scalar, transfer_options_empty)
+        self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes, self.origin_data_scalar.GetModelPart().Nodes, KM.TEMPERATURE, KM.PRESSURE)
+        data_transfer_op.TransferData(self.destination_matching_data_vector, self.origin_data_vector, transfer_options_empty)
         self.__CompareVectorNodalValues(self.destination_matching_data_vector.GetModelPart().Nodes, self.origin_data_vector.GetModelPart().Nodes, KM.FORCE, KM.DISPLACEMENT, 2)
 
         transfer_options_fail = KM.Parameters(""" ["thisWillHopefullyNeverBeImplementedOtherWiseThisTestWillFail"] """)
