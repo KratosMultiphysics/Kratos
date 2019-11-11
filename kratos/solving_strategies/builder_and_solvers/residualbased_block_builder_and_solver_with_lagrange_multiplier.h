@@ -410,7 +410,7 @@ public:
                 const bool has_build_scale_factor = r_process_info.Has(BUILD_SCALE_FACTOR);
                 const double build_scale_factor = has_build_scale_factor ? r_process_info[BUILD_SCALE_FACTOR] : TSparseSpace::TwoNorm(rA);
                 if (!has_build_scale_factor) {
-                    r_process_info.SetValue(CONSTRAINT_SCALE_FACTOR, build_scale_factor);
+                    r_process_info.SetValue(BUILD_SCALE_FACTOR, build_scale_factor);
                 }
                 const bool has_constraint_scale_factor = r_process_info.Has(CONSTRAINT_SCALE_FACTOR);
                 const double constraint_scale_factor = has_constraint_scale_factor ? r_process_info[CONSTRAINT_SCALE_FACTOR] : build_scale_factor;
