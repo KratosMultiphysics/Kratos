@@ -174,6 +174,12 @@ public:
     {
         KRATOS_TRY
 
+        // Resize again the system to the original size
+        if (rA.size1() != BaseType::mEquationSystemSize || rA.size2() != BaseType::mEquationSystemSize) {
+            rA.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
+            BaseType::ConstructMatrixStructure(pScheme, rA, rModelPart);
+        }
+
         // Base build
         BaseType::Build(pScheme, rModelPart, rA, rb);
 
@@ -203,8 +209,6 @@ public:
         // Base build and solve
         BaseType::BuildAndSolve(pScheme, rModelPart, rA, rDx, rb);
 
-        // Resize again the system to the original size
-
         KRATOS_CATCH("")
     }
 
@@ -229,8 +233,6 @@ public:
         // Base build and solve
         BaseType::BuildRHSAndSolve(pScheme, rModelPart, rA, rDx, rb);
 
-        // Resize again the system to the original size
-
         KRATOS_CATCH("")
     }
 
@@ -248,6 +250,11 @@ public:
         ) override
     {
         KRATOS_TRY
+
+        // Resize again the system to the original size
+        if (rb.size() != BaseType::mEquationSystemSize) {
+            rb.resize(BaseType::mEquationSystemSize, false);
+        }
 
         // First we check if CONSTRAINT_SCALE_FACTOR is defined
         auto& r_process_info = rModelPart.GetProcessInfo();
