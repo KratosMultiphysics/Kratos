@@ -172,6 +172,18 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         # here we check explicitly the creation of a second mapper, which is required since the interfaces are not the same this time
         self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator__mappers), 2)
 
+        data_settings_model_part = KM.Parameters("""{
+            "model_part_name" : "mp_single_node",
+            "variable_name"   : "TEMPERATURE",
+            "location"        : "model_part"
+        }""")
+
+        data_model_part = CouplingInterfaceData(data_settings_model_part, self.model)
+        data_model_part.Initialize()
+
+        with self.assertRaisesRegex(Exception, 'Currently only historical nodal values are supported'):
+            data_transfer_op.TransferData(self.origin_data_scalar, data_model_part, transfer_options_empty)
+
     def test_copy_single_to_dist_transfer_operator(self):
         data_transfer_op_settings = KM.Parameters("""{
             "type" : "copy_single_to_distributed"

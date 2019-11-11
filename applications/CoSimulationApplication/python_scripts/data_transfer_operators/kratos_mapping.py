@@ -32,9 +32,6 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         self.__mappers = {}
 
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
-        # TODO check location of data => should coincide with the one for the mapper
-        # or throw if it is not in a suitable location (e.g. on the ProcessInfo)
-
         model_part_origin      = from_solver_data.GetModelPart()
         model_part_origin_name = from_solver_data.model_part_name
         variable_origin        = from_solver_data.variable
@@ -46,6 +43,7 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         identifier_destination      = to_solver_data.solver_name + "." + model_part_destination_name
 
         mapper_flags = self.__GetMapperFlags(transfer_options)
+        # TODO in the future automatically add the flags if the values are non-historical
 
         identifier_tuple         = (identifier_origin, identifier_destination)
         inverse_identifier_tuple = (identifier_destination, identifier_origin)
@@ -55,7 +53,6 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         elif inverse_identifier_tuple in self.__mappers:
             self.__mappers[inverse_identifier_tuple].InverseMap(variable_destination, variable_origin, mapper_flags)
         else:
-            # CheckIfInterfaceDataIsSuitable() # TODO
             if model_part_origin.IsDistributed() or model_part_destination.IsDistributed():
                 mapper_create_fct = KratosMapping.MapperFactory.CreateMPIMapper
             else:
@@ -68,8 +65,18 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
 
                 cs_tools.cs_print_info(colors.bold(self._ClassName()), info_msg)
 
-            self.__mappers[identifier_tuple] = mapper_create_fct(model_part_origin, model_part_destination, self.settings["mapper_settings"].Clone()) # Clone is necessary here bcs settings are influenced among mappers otherwise. TODO check in the MapperFactory how to solve this better
+            self.__mappers[identifier_tuple] = mapper_create_fct(model_part_origin, model_part_destination, self.settings["mapper_settings"].Clone()) # Clone is necessary because the settings are validated and defaults assigned, which could influence the creation of other mappers
             self.__mappers[identifier_tuple].Map(variable_origin, variable_destination, mapper_flags)
+
+    def _Check(self, from_solver_data, to_solver_data):
+        def CheckData(data_to_check):
+            if data_to_check.location != "node_historical":
+                raise Exception('Currently only historical nodal values are supported by the "{}"\nChecking ModelPart "{}" of solver "{}"'.format(self._ClassName(), data_to_check.model_part_name, data_to_check.solver_name))
+
+        CheckData(from_solver_data)
+        CheckData(to_solver_data)
+
+        # TODO in the future also non-historical nodal values will be supported, but this still requires some improvements in the MappingApp
 
     @classmethod
     def _GetDefaultSettings(cls):
