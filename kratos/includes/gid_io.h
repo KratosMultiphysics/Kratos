@@ -59,7 +59,7 @@ enum WriteConditionsFlag {WriteConditions, WriteElementsOnly, WriteConditionsOnl
 enum MultiFileFlag {SingleFile, MultipleFiles};
 
 
-class KRATOS_API(KRATOS_CORE) GiDIOBase : public IO {
+class KRATOS_API(KRATOS_CORE) GidIOBase : public IO {
 
     protected:
     /**
@@ -74,7 +74,7 @@ class KRATOS_API(KRATOS_CORE) GiDIOBase : public IO {
  * in order to provide GiD compliant I/O functionality
  */
 template<class TGaussPointContainer = GidGaussPointsContainer, class TMeshContainer = GidMeshContainer>
-class KRATOS_API(KRATOS_CORE) GidIO : public GiDIOBase
+class KRATOS_API(KRATOS_CORE) GidIO : public GidIOBase
 {
 public:
     ///pointer definition of GidIO
@@ -110,11 +110,11 @@ public:
         SetUpMeshContainers();
         SetUpGaussPointContainers();
 
-        if (msLiveInstances == 0)
+        if (GidIOBase::msLiveInstances == 0)
         {
           GiD_PostInit();
         }
-        msLiveInstances += 1;
+        GidIOBase::msLiveInstances += 1;
     }
 
     ///Destructor.
@@ -128,8 +128,8 @@ public:
             mResultFileOpen = false;
         }
 
-        msLiveInstances -= 1;
-        if (msLiveInstances == 0)
+        GidIOBase::msLiveInstances -= 1;
+        if (GidIOBase::msLiveInstances == 0)
         {
           GiD_PostDone();
         }
