@@ -22,7 +22,7 @@
 #include "includes/variables.h"
 
 // Application includes
-#include "custom_processes/weighted_divergence_calculation_process.h"
+#include "custom_processes/weighted_pressure_calculation_process.h"
 #include "exaqute_sandbox_application_variables.h"
 
 namespace Kratos {
@@ -31,11 +31,11 @@ namespace Kratos {
         /**
 	     * Auxiliar function to generate a triangular element to be tested.
 	     */
-        void GenerateModelPartToTestDivergence(
+        void GenerateModelPartToTestPressure(
             ModelPart& rModelPart) {
 
             // Variables addition
-            rModelPart.AddNodalSolutionStepVariable(VELOCITY);
+            rModelPart.AddNodalSolutionStepVariable(PRESSURE);
 
             // Process info creation
             const int buffer_size = 2;
@@ -60,48 +60,34 @@ namespace Kratos {
             auto nodes_begin = rModelPart.NodesBegin();
             for (unsigned int i_node = 1; i_node <= rModelPart.NumberOfNodes(); ++i_node){
                 auto it_node = nodes_begin + (i_node-1);
-                it_node->AddDof(VELOCITY_X);
-                it_node->AddDof(VELOCITY_Y);
-                it_node->AddDof(VELOCITY_Z);
-                it_node->FastGetSolutionStepValue(VELOCITY_X) = 1.0 * i_node;
-                it_node->FastGetSolutionStepValue(VELOCITY_Y) = 2.0 * i_node;
-                it_node->FastGetSolutionStepValue(VELOCITY_Z) = 0.0 * i_node;
-            }
-
-            // Add element data
-            auto elements_begin = rModelPart.ElementsBegin();
-            for (unsigned int i_elem = 0; i_elem < rModelPart.NumberOfElements(); ++i_elem){
-                auto it_elem = elements_begin + i_elem;
-                it_elem->SetValue(DIVERGENCE_WEIGHTED,0.5);
-                it_elem->SetValue(VELOCITY_H1_SEMINORM,0.5);
+                it_node->AddDof(PRESSURE_WEIGHTED);
+                it_node->SetValue(PRESSURE_WEIGHTED,1.0 * i_node);
             }
         }
 
 	    /**
-	     * Checks the time average divergence utility.
+	     * Checks the time average pressure utility.
 	     */
-	    KRATOS_TEST_CASE_IN_SUITE(CalculationWeightedDivergence, ExaquteSandboxApplicationFastSuite)
+	    KRATOS_TEST_CASE_IN_SUITE(CalculationWeightedPressure, ExaquteSandboxApplicationFastSuite)
 		{
             // Create a test element inside a modelpart
             Model model;
             ModelPart& model_part = model.CreateModelPart("Main", 3);
-            GenerateModelPartToTestDivergence(model_part);
+            GenerateModelPartToTestPressure(model_part);
             Element::Pointer p_element = model_part.pGetElement(1);
 
             // Initialize the element
             p_element->Initialize();
 
             // Call the body fitted drag utility
-            WeightedDivergenceCalculationProcess(model_part).ExecuteFinalizeSolutionStep();
+            WeightedPressureCalculationProcess(model_part).ExecuteFinalizeSolutionStep();
 
-            // Check computed values over the elements
-            auto elements_begin = model_part.ElementsBegin();
-            for (unsigned int i_elem = 0; i_elem < model_part.NumberOfElements(); ++i_elem){
-                auto it_elem = elements_begin + i_elem;
-                double divergence_value = it_elem->GetValue(DIVERGENCE_WEIGHTED);
-                double velocity_seminorm_value = it_elem->GetValue(VELOCITY_H1_SEMINORM);
-                KRATOS_CHECK_NEAR(divergence_value, 1.3416407865, 1e-10);
-                KRATOS_CHECK_NEAR(velocity_seminorm_value, 1.3509256086, 1e-10);
+            // Check computed values over the nodes
+            auto nodes_begin = model_part.NodesBegin();
+            for (unsigned int i_node = 0; i_node < model_part.NumberOfNodes(); ++i_node){
+                auto it_node = nodes_begin + (i_node);
+                double pressure_value = it_node->GetValue(PRESSURE_WEIGHTED);
+                KRATOS_CHECK_NEAR(pressure_value, 0.8*(i_node+1), 1e-10);
             }
         }
 
