@@ -124,7 +124,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         self.__TestTransferMatching(data_transfer_op)
         self.__TestTransferMatchingSwapSign(data_transfer_op)
         self.__TestTransferMatchingAddValues(data_transfer_op)
-        self.__TestTransferMatchingAddValuesAdSwapSign(data_transfer_op)
+        self.__TestTransferMatchingAddValuesAndSwapSign(data_transfer_op)
 
         transfer_options_empty = KM.Parameters(""" [] """)
         exp_error = 'The sizes of the data are not matching: {} != {}!'.format(self.origin_data_scalar.Size(), self.destination_non_matching_data_scalar.Size())
@@ -157,7 +157,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         self.__TestTransferMatching(data_transfer_op)
         self.__TestTransferMatchingSwapSign(data_transfer_op)
         self.__TestTransferMatchingAddValues(data_transfer_op)
-        self.__TestTransferMatchingAddValuesAdSwapSign(data_transfer_op)
+        self.__TestTransferMatchingAddValuesAndSwapSign(data_transfer_op)
 
     def test_copy_single_to_dist_transfer_operator(self):
         data_transfer_op_settings = KM.Parameters("""{
@@ -409,6 +409,10 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         data_transfer_op.TransferData(self.origin_data_vector, self.destination_matching_data_vector, transfer_options_empty)
         self.__CompareVectorNodalValues(self.destination_matching_data_vector.GetModelPart().Nodes, self.origin_data_vector.GetModelPart().Nodes, KM.FORCE, KM.DISPLACEMENT, 2)
 
+        transfer_options_fail = KM.Parameters(""" ["thisWillHopefullyNeverBeImplementedOtherWiseThisTestWillFail"] """)
+        with self.assertRaisesRegex(Exception, ' not recognized for '):
+            data_transfer_op.TransferData(self.origin_data_scalar, self.destination_matching_data_scalar, transfer_options_fail)
+
     def __TestTransferMatchingSwapSign(self, data_transfer_op):
         transfer_options_swap_sign = KM.Parameters(""" ["swap_sign"] """)
         data_transfer_op.TransferData(self.origin_data_scalar, self.destination_matching_data_scalar, transfer_options_swap_sign)
@@ -426,7 +430,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         data_transfer_op.TransferData(self.origin_data_vector, self.destination_matching_data_vector, transfer_options_add_values)
         self.__CompareVectorNodalValues(self.destination_matching_data_vector.GetModelPart().Nodes, self.origin_data_vector.GetModelPart().Nodes, KM.FORCE, KM.DISPLACEMENT, 2, 2.0)
 
-    def __TestTransferMatchingAddValuesAdSwapSign(self, data_transfer_op):
+    def __TestTransferMatchingAddValuesAndSwapSign(self, data_transfer_op):
         transfer_options_empty = KM.Parameters(""" [] """)
         transfer_options_add_values = KM.Parameters(""" ["add_values"] """)
         transfer_options_add_values_swap_sign = KM.Parameters(""" ["add_values", "swap_sign"] """)
