@@ -342,7 +342,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
     def _import_project_parameters(self, input_file):
         """This function reads the ProjectsParameters.json
         """
-        from KratosMultiphysics.SolidMechanicsApplication.input_manager import InputManager
+        from KratosMultiphysics.PfemFluidDynamicsApplication.input_manager import InputManager
         self.input_manager = InputManager(input_file)
         return self.input_manager.Getparameters()
 
