@@ -356,20 +356,21 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     ModelPart& r_model_part = mrModel.GetModelPart(Data["model_part_name"].GetString());
     const IndexType property_id = Data["properties_id"].GetInt();
     const IndexType mesh_id = 0;
+    Parameters material_data = Data["Material"];
     Properties::Pointer p_prop;
     if (r_model_part.RecursivelyHasProperties(property_id, mesh_id)) {
         p_prop = r_model_part.pGetProperties(property_id, mesh_id);
 
         // Compute the size using the iterators
         std::size_t variables_size = 0;
-        if (Data["Material"].Has("Variables")) {
-            for(auto it=Data["Material"]["Variables"].begin(); it!=Data["Material"]["Variables"].end(); ++it) {
+        if (material_data.Has("Variables")) {
+            for(auto it=material_data["Variables"].begin(); it!=material_data["Variables"].end(); ++it) {
                 ++variables_size;
             }
         }
         std::size_t tables_size = 0;
-        if (Data["Material"].Has("Tables")) {
-            for(auto it=Data["Material"]["Tables"].begin(); it!=Data["Material"]["Tables"].end(); ++it) {
+        if (material_data.Has("Tables")) {
+            for(auto it=material_data["Tables"].begin(); it!=material_data["Tables"].end(); ++it) {
                 ++tables_size;
             }
         }
@@ -402,7 +403,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     CreateSubProperties(r_model_part, Data, p_prop);
 
     // We create the new property
-    AssingMaterialToProperty(Data["Material"], *p_prop);
+    AssingMaterialToProperty(material_data, *p_prop);
 
     KRATOS_CATCH("");
 }
