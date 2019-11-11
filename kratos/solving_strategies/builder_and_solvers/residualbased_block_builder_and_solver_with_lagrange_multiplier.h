@@ -269,7 +269,6 @@ public:
         BaseType::BuildRHS(pScheme, rModelPart, rb);
 
         // Extend with the LM constribution
-        const SizeType number_of_dofs = rb.size();
         const SizeType number_of_lm = BaseType::mT.size1();
 
         // Auxiliar values
@@ -277,9 +276,9 @@ public:
 
         if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
             // Compute the RHS
-            Vector aux_b(number_of_dofs + 2 * number_of_lm);
+            Vector aux_b(BaseType::mEquationSystemSize + 2 * number_of_lm);
             #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(number_of_dofs); ++i) {
+            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
                 aux_b[i] = rb[i];
             }
 
@@ -290,8 +289,8 @@ public:
             // Fill auxiliar vector
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
-                aux_b[number_of_dofs + i] = b_lm[i];
-                aux_b[number_of_dofs + number_of_lm + i] = b_lm[i];
+                aux_b[BaseType::mEquationSystemSize + i] = b_lm[i];
+                aux_b[BaseType::mEquationSystemSize + number_of_lm + i] = b_lm[i];
             }
 
             // Finally reassign
@@ -299,9 +298,9 @@ public:
             noalias(rb) = aux_b;
         } else {
             // Compute the RHS
-            Vector aux_b(number_of_dofs + number_of_lm);
+            Vector aux_b(BaseType::mEquationSystemSize + number_of_lm);
             #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(number_of_dofs); ++i) {
+            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
                 aux_b[i] = rb[i];
             }
 
@@ -312,7 +311,7 @@ public:
             // Fill auxiliar vector
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
-                aux_b[number_of_dofs + i] = b_lm[i];
+                aux_b[BaseType::mEquationSystemSize + i] = b_lm[i];
             }
 
             // Finally reassign
@@ -446,7 +445,6 @@ public:
             TSystemMatrixType copy_of_T(BaseType::mT);
 
             // Some common values
-            const SizeType number_of_dofs = rb.size();
             const SizeType number_of_lm = BaseType::mT.size1();
 
             // Assemble the blocks
@@ -511,9 +509,9 @@ public:
                 SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
 
                 // Compute the RHS
-                Vector aux_b(number_of_dofs + 2 * number_of_lm);
+                Vector aux_b(BaseType::mEquationSystemSize + 2 * number_of_lm);
                 #pragma omp parallel for
-                for (int i = 0; i < static_cast<int>(number_of_dofs); ++i) {
+                for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
                     aux_b[i] = rb[i];
                 }
 
@@ -524,8 +522,8 @@ public:
                 // Fill auxiliar vector
                 #pragma omp parallel for
                 for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
-                    aux_b[number_of_dofs + i] = b_lm[i];
-                    aux_b[number_of_dofs + number_of_lm + i] = b_lm[i];
+                    aux_b[BaseType::mEquationSystemSize + i] = b_lm[i];
+                    aux_b[BaseType::mEquationSystemSize + number_of_lm + i] = b_lm[i];
                 }
 
                 // Finally reassign
@@ -569,9 +567,9 @@ public:
                 SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
 
                 // Compute the RHS
-                Vector aux_b(number_of_dofs + number_of_lm);
+                Vector aux_b(BaseType::mEquationSystemSize + number_of_lm);
                 #pragma omp parallel for
-                for (int i = 0; i < static_cast<int>(number_of_dofs); ++i) {
+                for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
                     aux_b[i] = rb[i];
                 }
 
@@ -582,7 +580,7 @@ public:
                 // Fill auxiliar vector
                 #pragma omp parallel for
                 for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
-                    aux_b[number_of_dofs + i] = b_lm[i];
+                    aux_b[BaseType::mEquationSystemSize + i] = b_lm[i];
                 }
 
                 // Finally reassign
