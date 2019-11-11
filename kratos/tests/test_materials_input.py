@@ -1,4 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
+from __future__ import print_function, absolute_import, division
 
 import os
 import sys
@@ -125,13 +125,6 @@ class TestMaterialsInput(KratosUnittest.TestCase):
             self.skipTest("Dependencies are not available")
         self._prepare_test("materials_with_subproperties_expected_failure.json")
         KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
-        # An error shall be thrown while reading the input since the format is not correct
-        try:
-            with self.assertRaisesRegex(RuntimeError, "Wrong input format while reading Properties"): #ideally a more specific error message shall be devised
-                pass #the real line shall be the one below but it segfaults badly
-        except:
-            raise Exception("A segmentation fault is issued!!")
-            self.fail("A segmentation fault is issued!!")
 
     def test_overdefined_materials(self):
         current_model = KratosMultiphysics.Model()
