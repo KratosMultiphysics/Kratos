@@ -107,10 +107,20 @@ public:
 		TLocalVectorType& rLocalVector,
 		GeometryType& rGeometry) const override
 	{
-		if (this->GetBlockSize() == this->GetDomainSize()) // irreducible case
+
+		const unsigned int num_nodes = rGeometry.PointsNumber();
+		const unsigned int dimension = this->GetDomainSize();
+		const unsigned int local_size = num_nodes * dimension;
+
+		if (rLocalVector.size() == local_size) // irreducible case
 		{
 			if (this->GetDomainSize() == 2) this->template RotateAuxPure<2>(rLocalMatrix,rLocalVector,rGeometry);
 			else if (this->GetDomainSize() == 3) this->template RotateAuxPure<3>(rLocalMatrix,rLocalVector,rGeometry);
+		}
+		else if (rLocalVector.size() == 2 * local_size) //lagrange multiplier condition
+		{
+			if (this->GetDomainSize() == 2) this->template RotateAux<2,4>(rLocalMatrix,rLocalVector,rGeometry);
+			else if (this->GetDomainSize() == 3) this->template RotateAux<3,6>(rLocalMatrix,rLocalVector,rGeometry);
 		}
 		else // mixed formulation case
 		{

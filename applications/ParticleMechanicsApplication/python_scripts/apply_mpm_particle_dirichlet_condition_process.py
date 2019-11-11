@@ -17,6 +17,8 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 "particles_per_condition"   : 0,
                 "imposition_type"           : "penalty",
                 "penalty_factor"            : 0,
+                "augmentation_factor"         : 0,
+                "stabilization"             : false,
                 "variable_name"             : "DISPLACEMENT",
                 "modulus"                   : 1.0,
                 "constrained"               : "fixed",
@@ -33,12 +35,22 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         self.is_neumann_boundary = False
         self.option = settings["option"].GetString()
 
-        # set type of boundary
+        """
+        Set boundary_condition_type:
+        1. penalty
+        2. lagrange
+        """
+
         if (self.imposition_type == "penalty" or self.imposition_type == "Penalty"):
             self.penalty_factor = settings["penalty_factor"].GetDouble()
+            self.boundary_condition_type = 1
+        elif (self.imposition_type == "lagrange" or self.imposition_type == "Lagrange"):
+            self.augmentation_factor = settings["augmentation_factor"].GetDouble()
+            self.boundary_condition_type = 2
+            self.stabilization = settings["stabilization"].GetBool()
         else:
             err_msg =  "The requested type of Dirichlet boundary imposition: \"" + self.imposition_type + "\" is not available!\n"
-            err_msg += "Available option is: \"penalty\"."
+            err_msg += "Available option is: \"penalty\"or \"lagrange\"."
             raise Exception(err_msg)
 
         # check constraint
@@ -90,7 +102,15 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 condition.Set(KratosMultiphysics.MODIFIED, self.modified_normal)
                 condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
                 condition.SetValue(KratosParticle.MPC_IS_NEUMANN, self.is_neumann_boundary)
-                condition.SetValue(KratosParticle.PENALTY_FACTOR, self.penalty_factor)
+                condition.SetValue(KratosParticle.MPC_BOUNDARY_CONDITION_TYPE, self.boundary_condition_type)
+
+                ### Set necessary essential BC variables
+                if self.boundary_condition_type==1:
+                    condition.SetValue(KratosParticle.PENALTY_FACTOR, self.penalty_factor)
+                elif self.boundary_condition_type==2:
+                    condition.SetValue(KratosParticle.AUGMENTATION_FACTOR, self.augmentation_factor)
+                    condition.SetValue(KratosParticle.STABILIZATION_LAGRANGE_MULTIPLIER, self.stabilization)
+
                 condition.SetValue(self.variable, self.vector)
         else:
             err_msg = '\n::[ApplyMPMParticleDirichletConditionProcess]:: W-A-R-N-I-N-G: You have specified invalid "particles_per_condition", '
