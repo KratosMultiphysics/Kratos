@@ -44,7 +44,8 @@
 #include "custom_processes/generate_new_conditions_mesher_for_fluids_process.hpp"
 #include "custom_processes/lagrangian_rotation_process.hpp"
 #include "custom_processes/compute_average_pfem_mesh_parameters_process.hpp"
-
+#include "custom_processes/fix_scalar_pfem_dof_process.hpp"
+#include "custom_processes/free_scalar_pfem_dof_process.hpp"
 
 //Processes
 
@@ -126,6 +127,30 @@ void AddCustomProcessesToPython(pybind11::module &m)
 
     py::class_<ComputeAveragePfemMeshParametersProcess, ComputeAveragePfemMeshParametersProcess::Pointer, MesherProcess>(m, "ComputeAveragePfemMeshParameters")
         .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
+
+    //**********FIX AND FREE DOFS PROCESSES*********//
+
+    py::class_<FixScalarPfemDofProcess, FixScalarPfemDofProcess::Pointer, Process>(m, "FixScalarPfemDofProcess")
+        .def(py::init<ModelPart &, Parameters>())
+        .def(py::init<ModelPart &, Parameters &>())
+        .def(py::init<ModelPart &, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> &>())
+        .def(py::init<ModelPart &, const Variable<double> &>())
+        .def(py::init<ModelPart &, const Variable<int> &>())
+        .def(py::init<ModelPart &, const Variable<bool> &>())
+        .def("Execute", &FixScalarPfemDofProcess::Execute)
+
+        ;
+
+    py::class_<FreeScalarPfemDofProcess, FreeScalarPfemDofProcess::Pointer, Process>(m, "FreeScalarPfemDofProcess")
+        .def(py::init<ModelPart &, Parameters>())
+        .def(py::init<ModelPart &, Parameters &>())
+        .def(py::init<ModelPart &, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> &>())
+        .def(py::init<ModelPart &, const Variable<double> &>())
+        .def(py::init<ModelPart &, const Variable<int> &>())
+        .def(py::init<ModelPart &, const Variable<bool> &>())
+        .def("Execute", &FreeScalarPfemDofProcess::Execute)
+
+        ;
 
     ;
 }

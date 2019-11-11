@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.PfemFluidDynamicsApplication as PfemFluid
 
 
 ## This proces sets the value of a scalar variable
@@ -220,9 +221,9 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             if( self.primary_variable_name != self.variable_name ):
                 params["variable_name"].SetString(self.primary_variable_name)
 
-        fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
+        fix_dof_process  =  PfemFluid.FixScalarPfemDofProcess(self.model_part, params)
         self.FixDofsProcesses.append(fix_dof_process)
-        free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
+        free_dof_process = PfemFluid.FreeScalarPfemDofProcess(self.model_part, params)
         self.FreeDofsProcesses.append(free_dof_process)
 
     #
