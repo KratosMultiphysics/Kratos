@@ -399,11 +399,11 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
         it_cond->SetProperties(p_prop);
     }
 
-    // If the property has subproperties block we allocate this properties first
-    CreateSubProperties(r_model_part, Data, p_prop);
-
     // We create the new property
     AssingMaterialToProperty(material_data, *p_prop);
+
+    // If the property has subproperties block we allocate this properties first
+    CreateSubProperties(r_model_part, Data, p_prop);
 
     KRATOS_CATCH("");
 }
