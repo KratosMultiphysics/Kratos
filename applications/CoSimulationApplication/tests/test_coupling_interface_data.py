@@ -12,7 +12,7 @@ using_pykratos = UsingPyKratos()
 # multiline-stings easier (no need to deal with indentation)
 coupling_interface_data_str = '''CouplingInterfaceData:
 	Name: "default"
-	Solver: "default_solver"
+	SolverWrapper: "default_solver"
 	ModelPart: "mp_4_test"
 	IsDistributed: False
 	Variable: "DISPLACEMENT" (Vector with dimension: 2)
