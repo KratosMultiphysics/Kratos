@@ -328,12 +328,12 @@ void ReadMaterialsUtility::CreateSubProperties(
             // Actually creating it
             p_new_sub_prop = rModelPart.HasProperties(sub_property_id, mesh_id) ? rModelPart.pGetProperties(sub_property_id, mesh_id) : rModelPart.CreateNewProperties(sub_property_id, mesh_id);
 
-            // We create the new sub property
+            // If existing, assigning the materials
             if (sub_prop.Has("Material")) {
                 AssingMaterialToProperty(sub_prop["Material"], *p_new_sub_prop);
             }
 
-            // Read the recursively subproperties
+            // If existing, recursively creating SubProperties
             if (sub_prop.Has("sub_properties")) {
                 CreateSubProperties(rModelPart, sub_prop["sub_properties"], *p_new_sub_prop);
             }
@@ -399,10 +399,10 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
         it_cond->SetProperties(p_prop);
     }
 
-    // We create the new property
+    // Assigning the materials
     AssingMaterialToProperty(material_data, *p_prop);
 
-    // If the property has subproperties block we allocate this properties first
+    // If existing, creating SubProperties
     if (Data.Has("sub_properties")) {
         CreateSubProperties(r_model_part, Data["sub_properties"], *p_prop);
     }
