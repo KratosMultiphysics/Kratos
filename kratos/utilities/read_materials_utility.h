@@ -217,8 +217,8 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      */
     void CreateSubProperties(
         ModelPart& rModelPart,
-        Parameters Data,
-        Properties::Pointer& pNewProperty
+        const Parameters SubPropertiesData,
+        Properties& rProperty
         );
 
     /**
