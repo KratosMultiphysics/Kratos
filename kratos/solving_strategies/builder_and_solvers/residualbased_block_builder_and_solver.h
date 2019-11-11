@@ -473,21 +473,46 @@ public:
      * @brief Corresponds to the previews, but the System's matrix is considered already built and only the RHS is built again
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
      */
     void BuildRHSAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
     {
         KRATOS_TRY
 
-        BuildRHS(pScheme, rModelPart, b);
-        SystemSolve(A, Dx, b);
+        Timer::Start("BuildRHS");
+
+        BuildRHS(pScheme, rModelPart, rb);
+
+        Timer::Stop("BuildRHS");
+
+        if(rModelPart.MasterSlaveConstraints().size() != 0) {
+            Timer::Start("ApplyRHSConstraints");
+            ApplyRHSConstraints(pScheme, rModelPart, rb);
+            Timer::Stop("ApplyRHSConstraints");
+        }
+
+        ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
+
+        const double start_solve = OpenMPUtils::GetCurrentTime();
+        Timer::Start("Solve");
+
+        SystemSolve(rA, rDx, rb);
+
+        Timer::Stop("Solve");
+        const double stop_solve = OpenMPUtils::GetCurrentTime();
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -892,6 +917,45 @@ public:
                         Avalues[j] = 0.0;
             }
         }
+    }
+
+    /**
+     * @brief Applies the constraints with master-slave relation matrix (RHS only)
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rb The RHS vector
+     */
+    void ApplyRHSConstraints(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY
+
+        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+            BuildMasterSlaveConstraints(rModelPart);
+
+            // We compute the transposed matrix of the global relation matrix
+            TSystemMatrixType T_transpose_matrix(mT.size2(), mT.size1());
+            SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, mT, 1.0);
+
+            TSystemVectorType b_modified(rb.size());
+            TSparseSpace::Mult(T_transpose_matrix, rb, b_modified);
+            TSparseSpace::Copy(b_modified, rb);
+            b_modified.resize(0, false); //free memory
+
+            // Apply diagonal values on slaves
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(mSlaveIds.size()); ++i) {
+                const IndexType slave_equation_id = mSlaveIds[i];
+                if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
+                    rb[slave_equation_id] = 0.0;
+                }
+            }
+        }
+
+        KRATOS_CATCH("")
     }
 
     /**
