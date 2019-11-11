@@ -15,7 +15,7 @@ def Create(settings):
     return KratosMappingDataTransferOperator(settings)
 
 class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
-    """DataTransferOperator that mapps values from one interface (ModelPart) to another.
+    """DataTransferOperator that maps values from one interface (ModelPart) to another.
     The mappers of the Kratos-MappingApplication are used
     """
     # currently available mapper-flags aka transfer-options
