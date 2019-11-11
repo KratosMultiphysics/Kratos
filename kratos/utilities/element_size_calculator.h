@@ -16,11 +16,10 @@
 // External includes
 
 // Project includes
+#include "includes/node.h"
 #include "includes/define.h"
+#include "geometries/geometry.h"
 #include "utilities/math_utils.h"
-
-// Application includes
-#include "custom_utilities/fluid_element_data.h"
 
 
 namespace Kratos
@@ -49,7 +48,7 @@ namespace Kratos
 
 /// A collection of functions to compute element size, to be used as the h parameter in stabilized CFD formulations.
 template< std::size_t TDim, std::size_t TNumNodes >
-class ElementSizeCalculator {
+class KRATOS_API(KRATOS_CORE) ElementSizeCalculator {
 public:
     ///@name Type Definitions
     ///@{
@@ -57,7 +56,7 @@ public:
     /// Pointer definition of ElementSizeCalculator
     KRATOS_CLASS_POINTER_DEFINITION(ElementSizeCalculator);
 
-    using ShapeDerivativesType = typename FluidElementData<TDim,TNumNodes,false>::ShapeDerivativesType;
+    typedef BoundedMatrix<double,TNumNodes,TDim> ShapeDerivativesType;
 
     ///@}
     ///@name Life Cycle
@@ -126,5 +125,3 @@ public:
 }  // namespace Kratos.
 
 #endif // KRATOS_ELEMENT_SIZE_CALCULATOR_H  defined
-
-

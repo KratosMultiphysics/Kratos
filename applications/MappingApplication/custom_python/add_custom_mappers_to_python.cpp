@@ -142,10 +142,12 @@ void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
             ;
 
     // Adding the flags that can be used for mapping
-    mapper.attr("SWAP_SIGN")        = MapperFlags::SWAP_SIGN;
-    mapper.attr("ADD_VALUES")       = MapperFlags::ADD_VALUES;
-    mapper.attr("REMESHED")         = MapperFlags::REMESHED;
-    mapper.attr("USE_TRANSPOSE")    = MapperFlags::USE_TRANSPOSE;
+    mapper.attr("SWAP_SIGN")           = MapperFlags::SWAP_SIGN;
+    mapper.attr("ADD_VALUES")          = MapperFlags::ADD_VALUES;
+    mapper.attr("REMESHED")            = MapperFlags::REMESHED;
+    mapper.attr("USE_TRANSPOSE")       = MapperFlags::USE_TRANSPOSE;
+    mapper.attr("TO_NON_HISTORICAL")   = MapperFlags::TO_NON_HISTORICAL;
+    mapper.attr("FROM_NON_HISTORICAL") = MapperFlags::FROM_NON_HISTORICAL;
 }
 
 void  AddCustomMappersToPython(pybind11::module& m)
