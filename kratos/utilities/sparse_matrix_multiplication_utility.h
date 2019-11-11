@@ -797,7 +797,7 @@ public:
                 total_nnz += rMatricespBlocks(i, j)->nnz();
             }
         }
-        KRATOS_ERROR_IF_NOT(nonzero_values == total_nnz) << "Inconsistent number of non-zero values" << std::endl;
+        KRATOS_ERROR_IF_NOT(nonzero_values == total_nnz) << "Inconsistent number of non-zero values: " << total_nnz << " vs " << nonzero_values << std::endl;
 #endif
 
         // Initialize matrix with the corresponding non-zero values
