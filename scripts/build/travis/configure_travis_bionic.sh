@@ -32,10 +32,10 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 
 # Configure
-cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" -DC_PERF_FLAGS="-O0 -fopenmp" \
--DPYTHON_EXECUTABLE="/usr/bin/python3.6" -DCXX_PERF_FLAGS="-O0 -fopenmp" -DMPI_NEEDED=ON \
+cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
+-DPYTHON_EXECUTABLE="/usr/bin/python3.6" -DMPI_NEEDED=ON \
 -DPYBIND11_PYTHON_VERSION="3.6" \
--DCMAKE_CXX_FLAGS="-Wall \
+-DCMAKE_CXX_FLAGS="-O0 -fopenmp -Wall \
 -Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable \
 -Werror=misleading-indentation -Werror=return-type \
 -Werror=sign-compare -Werror=unused-but-set-variable \
