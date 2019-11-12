@@ -28,6 +28,7 @@
 #include "linear_solvers/linear_solver.h"
 
 #include "custom_utilities/drag_utilities.h"
+#include "custom_utilities/drag_and_moment_utilities.h"
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
 #include "custom_utilities/estimate_dt_utilities.h"
 #include "custom_utilities/fractional_step_settings_periodic.h"
@@ -156,6 +157,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<>())
         .def("CalculateBodyFittedDrag", &DragUtilities::CalculateBodyFittedDrag)
         .def("CalculateEmbeddedDrag", &DragUtilities::CalculateEmbeddedDrag)
+        ;
+
+    py::class_< DragAndMomentUtilities> (m,"DragAndMomentUtilities")
+        .def(py::init<>())
+        .def("CalculateBodyFittedDragAndMoment", &DragAndMomentUtilities::CalculateBodyFittedDragAndMoment)
         ;
 
     py::class_<
