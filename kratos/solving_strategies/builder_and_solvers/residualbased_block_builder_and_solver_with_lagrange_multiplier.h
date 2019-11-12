@@ -473,11 +473,7 @@ public:
                 ComputeRHSLMContributions(b_lm, constraint_scale_factor);
 
                 // Fill auxiliar vector
-                #pragma omp parallel for
-                for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
-                    b_modified[BaseType::mEquationSystemSize + i] = b_lm[i];
-                    b_modified[BaseType::mEquationSystemSize + number_of_lm + i] = b_lm[i];
-                }
+                TSparseSpace::UnaliasedAdd(b_modified, 1.0, b_lm);
 
                 // Finally reassign
                 rb.resize(b_modified.size(), false);
@@ -496,10 +492,7 @@ public:
                 ComputeRHSLMContributions(b_lm, constraint_scale_factor);
 
                 // Fill auxiliar vector
-                #pragma omp parallel for
-                for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
-                    b_modified[BaseType::mEquationSystemSize + i] = b_lm[i];
-                }
+                TSparseSpace::UnaliasedAdd(b_modified, 1.0, b_lm);
 
                 // Finally reassign
                 rb.resize(b_modified.size(), false);
@@ -610,11 +603,7 @@ public:
                 ComputeRHSLMContributions(b_lm, constraint_scale_factor);
 
                 // Fill auxiliar vector
-                #pragma omp parallel for
-                for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
-                    b_modified[BaseType::mEquationSystemSize + i] = b_lm[i];
-                    b_modified[BaseType::mEquationSystemSize + number_of_lm + i] = b_lm[i];
-                }
+                TSparseSpace::UnaliasedAdd(b_modified, 1.0, b_lm);
 
                 // Finally reassign
                 rb.resize(b_modified.size(), false);
@@ -669,10 +658,7 @@ public:
                 ComputeRHSLMContributions(b_lm, constraint_scale_factor);
 
                 // Fill auxiliar vector
-                #pragma omp parallel for
-                for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
-                    b_modified[BaseType::mEquationSystemSize + i] = b_lm[i];
-                }
+                TSparseSpace::UnaliasedAdd(b_modified, 1.0, b_lm);
 
                 // Finally reassign
                 rb.resize(b_modified.size(), false);
@@ -1003,8 +989,14 @@ private:
 
         // Our auxiliar vector
         const SizeType number_of_slave_dofs = BaseType::mT.size1();
-        if (rbLM.size() != number_of_slave_dofs)
-            rbLM.resize(number_of_slave_dofs, false);
+        if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
+            if (rbLM.size() != number_of_slave_dofs + 2 * ndofs)
+                rbLM.resize(number_of_slave_dofs + 2 * ndofs, false);
+        } else {
+            if (rbLM.size() != number_of_slave_dofs + ndofs)
+                rbLM.resize(number_of_slave_dofs + ndofs, false);
+        }
+        Vector aux_lm_rhs_contribution(number_of_slave_dofs);
         Vector aux_whole_dof_vector(ndofs);
 
         // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
@@ -1019,7 +1011,34 @@ private:
         TSparseSpace::Mult(BaseType::mT, aux_whole_dof_vector, aux_slave_dof_vector);
 
         // Finally compute the RHS LM contribution
-        noalias(rbLM) = ScaleFactor * (BaseType::mConstantVector -  aux_slave_dof_vector);
+        noalias(aux_lm_rhs_contribution) = ScaleFactor * (BaseType::mConstantVector -  aux_slave_dof_vector);
+        aux_slave_dof_vector.resize(0, false); // Free memory
+
+        if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(number_of_slave_dofs); ++i) {
+                rbLM[ndofs + i] = aux_lm_rhs_contribution[i];
+                rbLM[ndofs + number_of_slave_dofs + i] = aux_lm_rhs_contribution[i];
+            }
+        } else {
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(number_of_slave_dofs); ++i) {
+                rbLM[ndofs + i] = aux_lm_rhs_contribution[i];
+            }
+        }
+        aux_lm_rhs_contribution.resize(0, false); // Free memory
+
+        // We compute the transposed matrix of the global relation matrix
+        TSystemMatrixType T_transpose_matrix(ndofs, number_of_slave_dofs);
+        SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, BaseType::mT, 1.0);
+
+        TSparseSpace::Mult(T_transpose_matrix, mLagrangeMultiplierVector, aux_whole_dof_vector);
+
+        #pragma omp parallel for
+        for (int i = 0; i < ndofs; ++i) {
+            rbLM[i] = aux_whole_dof_vector[i];
+        }
+        aux_whole_dof_vector.resize(0, false); // Free memory
 
         KRATOS_CATCH("")
     }
