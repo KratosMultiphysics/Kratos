@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Anoop Kodakkal
+//  Main authors:    Anoop Kodakkal, Mate Pentek
 //
 //
 
