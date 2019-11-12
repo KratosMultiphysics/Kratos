@@ -31,15 +31,15 @@ set KRATOS_APPLICATIONS="%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\PfemFluidDynamocs
 set KRATOS_APPLICATIONS="%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\PfemSolidMechanicsApplication;"
 
 rem Clean
-del /F /Q "%POESIS_BLD%\%POESIS_BUILD_TYPE%\cmake_install.cmake"
-del /F /Q "%POESIS_BLD%\%POESIS_BUILD_TYPE%\CMakeCache.txt"
-del /F /Q "%POESIS_BLD%\%POESIS_BUILD_TYPE%\CMakeFiles"
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
 rem Configure
  cmake                                              ^
  -G "Visual Studio 15 2017 Win64"                   ^
- -H"%POESIS_SRC%"                                   ^
- -B"%POESIS_BLD%/%POESIS_BUILD_TYPE%"               ^
+ -H"%KRATOS_SOURCE%"                                ^
+ -B"%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%"             ^
  -DBOOST_ROOT="C:\Libraries\boost_1_65_1"           ^
  -DPYTHON_EXECUTABLE="C:\Python36-x64\python.exe"	^
  -DINCLUDE_FEAST=OFF                                ^
