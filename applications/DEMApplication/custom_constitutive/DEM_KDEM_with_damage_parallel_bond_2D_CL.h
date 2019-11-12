@@ -3,13 +3,12 @@
 
 /* Project includes */
 #include "DEM_KDEM_with_damage_parallel_bond_CL.h"
-#include "DEM_discontinuum_constitutive_law.h"
 
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_KDEM_with_damage_parallel_bond_2D : public DEM_KDEM_with_damage_parallel_bond {
 
-        typedef DEM_KDEM_with_damage_parallel_bond BaseClassType;
+        //typedef DEM_KDEM_with_damage_parallel_bond BaseClassType;
 
     public:
 
@@ -29,12 +28,12 @@ namespace Kratos {
         friend class Serializer;
 
         virtual void save(Serializer& rSerializer) const override {
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseClassType)
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
                     //rSerializer.save("MyMemberName",myMember);
         }
 
         virtual void load(Serializer& rSerializer) override {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseClassType)
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
                     //rSerializer.load("MyMemberName",myMember);
         }
     };
