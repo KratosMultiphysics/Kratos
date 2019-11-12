@@ -14,32 +14,7 @@
 // System includes
 
 // External includes
-// #ifdef KRATOS_USE_VTU11
 #include "vtu11.hpp"
-// #else
-// namespace vtu11 { // dummy namespace that mimics vtu11 such that we don't need conditionals in the code
-
-// using DataSet = std::tuple<std::string, size_t, std::vector<double>>;
-
-// using VtkCellType = std::uint8_t;
-
-// template<typename MeshGenerator, typename Writer>
-// void write( const std::string& filename,
-//             MeshGenerator& mesh,
-//             const std::vector<DataSet>& pointData,
-//             const std::vector<DataSet>& cellData,
-//             Writer writer = Writer( ) );
-
-// struct Vtu11UnstructuredMesh
-// {
-//   std::vector<double>& points_;
-//   std::vector<size_t>& connectivity_;
-//   std::vector<size_t>& offsets_;
-//   std::vector<VtkCellType>& types_;
-// };
-
-// }
-// #endif
 
 // Project includes
 #include "vtu_output.h"
@@ -146,17 +121,12 @@ void CreateMapFromKratosIdToVtuId(const ModelPart& rModelPart, std::unordered_ma
 } // helpers namespace
 
 
-
 VtuOutput::VtuOutput(
     ModelPart& rModelPart,
     Parameters ThisParameters
     ) : mrModelPart(rModelPart),
         mOutputSettings(ThisParameters)
 {
-#ifndef KRATOS_USE_VTU11
-    KRATOS_ERROR << "The vtu output process has to be enabled at compile time by adding \"VTU11_DIR\" in the configure-script" << std::endl;
-#endif
-
     // The default parameters
     Parameters default_parameters = GetDefaultParameters();
     mOutputSettings.ValidateAndAssignDefaults(default_parameters);
