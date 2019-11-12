@@ -160,9 +160,9 @@ class DomainUtilities(object):
             print("::[--Domain Utilities-]:: Add boundary nodes to fluid domains ")
 
             try:
-                import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+                import KratosMultiphysics.PfemFluidDynamicsApplication as PfemFluid
             except:
-                raise Exception("SolidMechanicsApplication not imported and needed in this operation")
+                raise Exception("PfemFluidDynamicsApplication not imported and needed in this operation")
 
             transfer_flags = [KratosMultiphysics.BOUNDARY,KratosMultiphysics.NOT_FLUID]
             entity_type = "Nodes"
@@ -171,7 +171,7 @@ class DomainUtilities(object):
                     for part in model_part.SubModelParts:
                         if part.IsNot(KratosMultiphysics.ACTIVE):
                             if( part.Is(KratosMultiphysics.SOLID) or part.Is(KratosMultiphysics.RIGID) ):
-                                transfer_process = KratosSolid.TransferEntitiesProcess(fluid_part,part,entity_type,transfer_flags)
+                                transfer_process = PfemFluid.TransferEntitiesProcess(fluid_part,part,entity_type,transfer_flags)
                                 transfer_process.Execute()
     #
     @classmethod
