@@ -1,3 +1,13 @@
+#          __        ____ ____
+# ___  ___/  |_ __ _/_   /_   |
+# \  \/ /\   __\  |  \   ||   |
+#  \   /  |  | |  |  /   ||   |
+#   \_/   |__| |____/|___||___|
+#
+#  License: BSD License ; see LICENSE
+#
+
+
 cmake_minimum_required( VERSION 3.4.3 )
 
 project( vtu11 CXX )
@@ -13,8 +23,6 @@ include_directories( ${CMAKE_CURRENT_BINARY_DIR}/config )
 OPTION ( VTU11_ENABLE_TESTS "Enable unit tests." ON )
 
 if( VTU11_ENABLE_TESTS )
-
-    include_directories( external/catch2 )
 
     file( GLOB TEST_FILES test/*.cpp)
 
@@ -65,14 +73,19 @@ endif( VTU11_STRICT_COMPILER )
 find_package( ZLIB )
 
 if ( ZLIB_FOUND )
-    message( "Enabling zlib extension" )
+
+    message( STATUS "Enabling vtu11 with zlib compression" )
 
     include_directories( ${ZLIB_INCLUDE_DIRS} )
 
     if( VTU11_ENABLE_TESTS )
         target_link_libraries( vtu11_testrunner ${ZLIB_LIBRARIES} )
     endif( VTU11_ENABLE_TESTS )
+    
+else ( ZLIB_FOUND )
 
+    message( STATUS "Enabling vtu11 without zlib compression" )
+    
 endif( ZLIB_FOUND )
 
 # ---------------------- Copy / install ----------------------------

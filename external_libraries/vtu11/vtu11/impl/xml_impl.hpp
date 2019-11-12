@@ -1,3 +1,12 @@
+//          __        ____ ____
+// ___  ___/  |_ __ _/_   /_   |
+// \  \/ /\   __\  |  \   ||   |
+//  \   /  |  | |  |  /   ||   |
+//   \_/   |__| |____/|___||___|
+//
+//  License: BSD License ; see LICENSE
+//
+
 #ifndef VTU11_XML_IMPL_HPP
 #define VTU11_XML_IMPL_HPP
 
@@ -29,7 +38,7 @@ inline ScopedXmlTag::ScopedXmlTag( std::ostream& output,
    closeTag( [ &output, name ]( ){ output << "</" << name << ">\n"; } )
 {
   detail::writeTag( output, name, attributes, ">" );
-}   
+}
 
 
 inline ScopedXmlTag::~ScopedXmlTag( )

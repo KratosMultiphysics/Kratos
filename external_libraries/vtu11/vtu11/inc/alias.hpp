@@ -1,3 +1,12 @@
+//          __        ____ ____
+// ___  ___/  |_ __ _/_   /_   |
+// \  \/ /\   __\  |  \   ||   |
+//  \   /  |  | |  |  /   ||   |
+//   \_/   |__| |____/|___||___|
+//
+//  License: BSD License ; see LICENSE
+//
+
 #ifndef VTU11_ALIAS_HPP
 #define VTU11_ALIAS_HPP
 
@@ -11,7 +20,7 @@ namespace vtu11
 
 using StringStringMap = std::map<std::string, std::string>;
 
-using DataSet = std::tuple<std::string, size_t, std::vector<double>>; 
+using DataSet = std::tuple<std::string, size_t, std::vector<double>>;
 
 using VtkCellType = std::uint8_t;
 
