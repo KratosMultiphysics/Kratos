@@ -252,6 +252,12 @@ public:
     {
         KRATOS_TRY
 
+        // Resize to the proper size
+        const SizeType total_system_size = (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) ? BaseType::mEquationSystemSize + 2 * BaseType::mSlaveIds.size() : BaseType::mEquationSystemSize + BaseType::mSlaveIds.size();
+        if (rDx.size() != total_system_size) {
+            rDx.resize(total_system_size,  false);
+        }
+
         // Base build and solve
         BaseType::BuildAndSolve(pScheme, rModelPart, rA, rDx, rb);
 
@@ -281,6 +287,12 @@ public:
         ) override
     {
         KRATOS_TRY
+
+        // Resize to the proper size
+        const SizeType total_system_size = (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) ? BaseType::mEquationSystemSize + 2 * BaseType::mSlaveIds.size() : BaseType::mEquationSystemSize + BaseType::mSlaveIds.size();
+        if (rDx.size() != total_system_size) {
+            rDx.resize(total_system_size,  false);
+        }
 
         // Base build and solve
         BaseType::BuildRHSAndSolve(pScheme, rModelPart, rA, rDx, rb);
