@@ -19,9 +19,8 @@ env:
 
 addons:
   apt:
-    sources:
-      - sourceline: 'ppa:ubuntu-toolchain-r/test'
     packages:
+      - gfortran-7
       - libboost-dev
       - libblas-dev
       - liblapack-dev
