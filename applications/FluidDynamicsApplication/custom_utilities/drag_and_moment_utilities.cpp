@@ -31,28 +31,35 @@ namespace Kratos
     array_1d<double, 6> DragAndMomentUtilities::CalculateBodyFittedDragAndMoment(ModelPart& rModelPart, array_1d<double, 3> rReferencePoint) {
 
         array_1d<double, 6> drag_force_moment = ZeroVector(6);
-        array_1d<double, 6> private_drag_force_moment = ZeroVector(6);
+        double dx = 0.0;
+        double dy = 0.0;
+        double dz = 0.0;
+        double fx = 0.0;
+        double fy = 0.0;
+        double fz = 0.0;
 
-        //#pragma omp parallel for
+        #pragma omp parallel for reduction(+:dx,dy,dz,fx,fy,fz)
         for(int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); i_node++){
             auto it_node = rModelPart.NodesBegin() + i_node;
             auto drag = it_node->GetSolutionStepValue(REACTION,0);
             auto x = it_node->X() - rReferencePoint[0];
             auto y = it_node->Y() - rReferencePoint[1];
             auto z = it_node->Z() - rReferencePoint[2];
-            private_drag_force_moment[0] += -1 * drag[0];
-            private_drag_force_moment[1] += -1 * drag[1];
-            private_drag_force_moment[2] += -1 * drag[2];
-            private_drag_force_moment[3] +=  y * (-1) * drag[2] - z * (-1) * drag[1];
-            private_drag_force_moment[4] +=  z * (-1) * drag[0] - x * (-1) * drag[2];
-            private_drag_force_moment[5] +=  x * (-1) * drag[1] - y * (-1) * drag[0];
+            dx += -1 * drag[0];
+            dy += -1 * drag[1];
+            dz += -1 * drag[2];
+            fx +=  y * (-1) * drag[2] - z * (-1) * drag[1];
+            fy +=  z * (-1) * drag[0] - x * (-1) * drag[2];
+            fz +=  x * (-1) * drag[1] - y * (-1) * drag[0];
         }
-        drag_force_moment[0] += private_drag_force_moment[0];
-        drag_force_moment[1] += private_drag_force_moment[1];
-        drag_force_moment[2] += private_drag_force_moment[2];
-        drag_force_moment[3] += private_drag_force_moment[3];
-        drag_force_moment[4] += private_drag_force_moment[4];
-        drag_force_moment[5] += private_drag_force_moment[5];
+        // three drag components
+        drag_force_moment[0] = dx;
+        drag_force_moment[1] = dy;
+        drag_force_moment[2] = dz;
+        // three base moment components
+        drag_force_moment[3] = fx;
+        drag_force_moment[4] = fy;
+        drag_force_moment[5] = fz;
 
         // Perform MPI synchronization
         //drag_force_moment = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(drag_force_moment);
