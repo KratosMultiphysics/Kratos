@@ -93,7 +93,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
             self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         elif solving_with == "LM":
             self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(self.linear_solver, True, False, False)
-        elif olving_with == "DoubleLM":
+        elif solving_with == "DoubleLM":
             self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(self.linear_solver, True, False, True)
         else: # Block default
             self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
