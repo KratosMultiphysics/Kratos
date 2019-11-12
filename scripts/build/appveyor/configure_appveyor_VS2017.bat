@@ -2,6 +2,7 @@ rem For any question please contact with us in:
 rem  - https://github.com/KratosMultiphysics/Kratos
 
 rem Set compiler
+@echo on
 set CC=cl.exe
 set CXX=cl.exe
 
@@ -28,7 +29,6 @@ CALL :add_app %KRATOS_APP_DIR%\PfemApplication;
 CALL :add_app %KRATOS_APP_DIR%\PfemFluidDynamicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\PfemSolidMechanicsApplication;
 
-@echo on
 echo %KRATOS_APPLICATIONS%
 
 rem Clean
