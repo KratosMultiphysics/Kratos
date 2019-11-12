@@ -3,6 +3,8 @@ from __future__ import print_function, absolute_import, division  # makes these 
 # Other imports
 from copy import deepcopy
 
+import KratosMultiphysics as KM
+
 class Variable(object):
     def __init__(self, var_name, var_type, zero_val):
         self.__name = var_name
@@ -44,55 +46,32 @@ class VariableComponent(Variable):
         return 'Variable-Component "{}"'.format(self.Name())
 
 
-# TODO maybe separate the class-declarations from the variable declarations?
-def CreateDoubleVariable(name):
-    if name in globals():
+def CreateDoubleVariable(module, name):
+    if name in KM._registered_variables:
         raise NameError('Variable "{}" exists already!'.format(name))
-    globals()[name] = Variable(name, "Double", 0.0)
 
-def CreateComponentVariable(name, source_variable, component_index):
-    if name in globals():
+    KM._registered_variables[name] = Variable(name, "Double", 0.0)
+    setattr(module, name, KM._registered_variables[name])
+
+def CreateComponentVariable(module, name, source_variable, component_index):
+    if name in KM._registered_variables:
         raise NameError('Variable "{}" exists already!'.format(name))
-    globals()[name] = VariableComponent(name, source_variable, component_index)
+    KM._registered_variables[name] = VariableComponent(name, source_variable, component_index)
+    setattr(module, name, KM._registered_variables[name])
 
-def CreateArray3Variable(name):
-    if name in globals():
+def CreateArray3Variable(module, name):
+    if name in KM._registered_variables:
         raise NameError('Variable "{}" exists already!'.format(name))
 
     array_var = Variable(name, "Array", [0.0, 0.0, 0.0])
-    globals()[name] = array_var
+    KM._registered_variables[name] = array_var
+    setattr(module, name, KM._registered_variables[name])
 
     for i_comp, comp in enumerate(["X", "Y", "Z"]):
-        CreateComponentVariable(name + "_" + comp, array_var, i_comp)
+        CreateComponentVariable(module, name + "_" + comp, array_var, i_comp)
 
-def CreateVectorVariable(name):
-    if name in globals():
+def CreateVectorVariable(module, name):
+    if name in KM._registered_variables:
         raise NameError('Variable "{}" exists already!'.format(name))
-    globals()[name] = Variable(name, "Vector", [])
-
-CreateArray3Variable("DISPLACEMENT")
-CreateArray3Variable("MESH_DISPLACEMENT")
-CreateArray3Variable("ROTATION")
-CreateArray3Variable("VELOCITY")
-CreateArray3Variable("POINT_LOAD")
-CreateArray3Variable("FORCE")
-CreateArray3Variable("REACTION")
-CreateArray3Variable("EXTERNAL_FORCE")
-CreateArray3Variable("MOMENT")
-CreateArray3Variable("TORQUE")
-CreateArray3Variable("NORMAL")
-
-CreateDoubleVariable("PRESSURE")
-CreateDoubleVariable("YOUNG_MODULUS")
-CreateDoubleVariable("POISSON_RATIO")
-CreateDoubleVariable("DOMAIN_SIZE")
-CreateDoubleVariable("DENSITY")
-CreateDoubleVariable("VISCOSITY")
-CreateDoubleVariable("TIME")
-CreateDoubleVariable("STEP")
-CreateDoubleVariable("DELTA_TIME")
-CreateDoubleVariable("TEMPERATURE")
-CreateDoubleVariable("NODAL_MASS")
-CreateDoubleVariable("NODAL_ERROR")
-
-CreateVectorVariable("EXTERNAL_FORCES_VECTOR")
+    KM._registered_variables[name] = Variable(name, "Vector", [])
+    setattr(module, name, KM._registered_variables[name])

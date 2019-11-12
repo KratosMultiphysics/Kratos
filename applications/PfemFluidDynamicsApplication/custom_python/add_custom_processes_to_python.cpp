@@ -44,7 +44,7 @@
 #include "custom_processes/generate_new_conditions_mesher_for_fluids_process.hpp"
 #include "custom_processes/lagrangian_rotation_process.hpp"
 #include "custom_processes/compute_average_pfem_mesh_parameters_process.hpp"
-
+#include "custom_processes/transfer_between_model_parts_process.hpp"
 
 //Processes
 
@@ -53,6 +53,8 @@ namespace Kratos
 
 namespace Python
 {
+
+typedef std::vector<Flags> FlagsContainer;
 
 void AddCustomProcessesToPython(pybind11::module &m)
 {
@@ -112,11 +114,18 @@ void AddCustomProcessesToPython(pybind11::module &m)
     py::class_<BuildModelPartBoundaryForFluidsProcess, BuildModelPartBoundaryForFluidsProcess::Pointer, MesherProcess>(m, "BuildModelPartBoundaryForFluids")
         .def(py::init<ModelPart &, std::string, int>())
         .def("SearchConditionMasters", &BuildModelPartBoundaryForFluidsProcess::SearchConditionMasters);
-    //**********TRANSFER ELEMENTS TO MODEL PART*********//
 
+    //**********TRANSFER ELEMENTS TO MODEL PART*********//
     py::class_<TransferModelPartElementsProcess, TransferModelPartElementsProcess::Pointer, ProcessBaseType>(m, "TransferModelPartElementsProcess")
         .def(py::init<ModelPart &, ModelPart &>())
         .def("Execute", &TransferModelPartElementsProcess::Execute);
+
+    //**********TRANSFER BETWEEN MODEL PARTS*********//
+    py::class_<TransferBetweenModelPartsProcess, TransferBetweenModelPartsProcess::Pointer, Process>(m, "TransferProcess")
+        .def(py::init<ModelPart &, ModelPart &, const std::string>())
+        .def(py::init<ModelPart &, ModelPart &, const std::string, const FlagsContainer &>())
+        .def(py::init<ModelPart &, ModelPart &, const std::string, const FlagsContainer &, const FlagsContainer &>())
+        .def("Execute", &TransferBetweenModelPartsProcess::Execute);
 
     py::class_<GenerateNewConditionsMesherForFluidsProcess, GenerateNewConditionsMesherForFluidsProcess::Pointer, BuildModelPartBoundaryProcess>(m, "GenerateNewConditionsForFluids")
         .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
