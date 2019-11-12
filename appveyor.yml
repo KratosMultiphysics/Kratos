@@ -47,7 +47,7 @@ before_build:
   - cmd: cd external_modules
   - cmd: curl -L https://github.com/PFEM/tetgen/archive/0f0c1c95388d9a515e2383533c6b4f18524d9e76.zip -o tetgen.zip
   - cmd: 7z e tetgen.zip -o"tetgen"
-  - cmd: cd C:\projects\kratos\cmake_build
+  - cmd: cd C:\projects\kratos
   - cmd: .\configure.bat
 
 # Custom build script
