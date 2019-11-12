@@ -8,9 +8,7 @@ include(pybind11Tools)
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../DelaunayMeshingApplication )
 
-if(NOT (${DELAUNAY_MESHING_APPLICATION} MATCHES "ON"))
-    message(SEND_ERROR "The Delaunay Meshing Application must be compiled before this one. Set DELAUNAY_MESHING_APPLICATION=ON in the configure file.")
-endif(NOT (${DELAUNAY_MESHING_APPLICATION} MATCHES "ON"))
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplication)
 
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
