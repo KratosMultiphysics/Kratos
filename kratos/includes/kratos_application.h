@@ -210,14 +210,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         for (auto it = mpVariableData->begin(); it != mpVariableData->end(); it++) {
             std::string const& r_variable_name = it->second->Name();
             auto it_variable = VariableDataComponents.find(r_variable_name);
-
             KRATOS_ERROR_IF(it_variable == VariableDataComponents.end()) << "This variable is not registered in Kernel : " << *(it_variable->second) << std::endl;
-
-            const std::size_t variable_key = it_variable->second->Key();
-
-            KRATOS_ERROR_IF(variable_key == 0) << "This variable is not initialized in Kernel : " << *(it_variable->second) << std::endl;
-
-            it->second->SetKey(variable_key);
         }
     }
 
