@@ -1,5 +1,3 @@
-rem You can use your interpreter of choice (bash, sh, zsh, ...)
-
 rem For any question please contact with us in:
 rem  - https://github.com/KratosMultiphysics/Kratos
 
@@ -47,7 +45,8 @@ rem Configure
  -DINCLUDE_FEAST=OFF
 
 rem Build
-rem cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install
+cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install
+goto:eof
 
 :add_app
 set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%1;
