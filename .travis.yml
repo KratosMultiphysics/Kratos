@@ -15,7 +15,7 @@ env:
     - CCACHE_COMPRESS=true
     - CCACHE_NODISABLE=true
     - CCACHE_MAXSIZE=500M
-    - FC=gfortran
+    - FC=gfortran-7
 
 addons:
   apt:
