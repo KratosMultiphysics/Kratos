@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PfemFluidDynamicsApplication as PfemFluid
 
 
@@ -157,9 +156,9 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
 
     def ExecuteInitializeSolutionStep(self):
 
-        if self.IsRecoverStep():
-            self.SetPreviousTime()
-            self.ExecuteUnAssignment()
+        # if self.IsRecoverStep():
+        #     self.SetPreviousTime()
+        #     self.ExecuteUnAssignment()
 
         self.SetCurrentTime()
         self.ExecuteAssignment()
@@ -226,29 +225,11 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         free_dof_process = PfemFluid.FreeScalarPfemDofProcess(self.model_part, params)
         self.FreeDofsProcesses.append(free_dof_process)
 
-    #
+    # #
     def SetTimeIntegration(self):
         self.fix_time_integration  = False
 
         self.TimeIntegrationMethod = None
-        time_integration_container = KratosSolid.ComponentTimeIntegrationMethods()
-        if( time_integration_container.HasProcessInfo(KratosSolid.COMPONENT_TIME_INTEGRATION_METHODS, self.model_part.ProcessInfo) ):
-            time_integration_methods = time_integration_container.GetFromProcessInfo(KratosSolid.COMPONENT_TIME_INTEGRATION_METHODS, self.model_part.ProcessInfo)
-
-            if( time_integration_methods.Has(self.variable_name) ):
-                self.TimeIntegrationMethod = time_integration_methods.Get(self.variable_name).Clone()
-            else:
-                method_variable_name = time_integration_methods.GetMethodVariableName(self.variable_name)
-                if( method_variable_name != self.variable_name ):
-                    self.TimeIntegrationMethod = time_integration_methods.Get(method_variable_name).Clone()
-
-        if( self.TimeIntegrationMethod != None ):
-            self.fix_time_integration = True
-            #set input variable
-            input_variable = KratosMultiphysics.KratosGlobals.GetVariable(self.variable_name)
-            self.TimeIntegrationMethod.SetInputVariable(input_variable)
-        #else:
-        #    print(self.variable_name+": No time integration ")
 
     #
     def CreateAssignmentProcess(self, params):
@@ -257,13 +238,13 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         if( self.value_is_numeric ):
             params.AddEmptyValue("value").SetDouble(self.value)
             params.AddEmptyValue("entity_type").SetString("NODES")
-            self.AssignValueProcess = KratosSolid.AssignScalarToEntitiesProcess(self.model_part, params)
+            self.AssignValueProcess = PfemFluid.AssignScalarToEntitiesProcess(self.model_part, params)
         else:
             if( self.value_is_current_value ):
                 self.AssignValueProcess = KratosMultiphysics.Process() #void process
             else:
                 params.AddEmptyValue("entity_type").SetString("NODES")
-                self.AssignValueProcess = KratosSolid.AssignScalarFieldToEntitiesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
+                self.AssignValueProcess = PfemFluid.AssignScalarFieldToEntitiesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
 
 
         # in case of going to previous time step for time step reduction
@@ -273,12 +254,12 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
     def CreateUnAssignmentProcess(self, params):
         params["compound_assignment"].SetString(self.GetInverseAssigment(self.settings["compound_assignment"].GetString()))
         if( self.value_is_numeric ):
-            self.UnAssignValueProcess = KratosSolid.AssignScalarToEntitiesProcess(self.model_part, params)
+            self.UnAssignValueProcess = PfemFluid.AssignScalarToEntitiesProcess(self.model_part, params)
         else:
             if( self.value_is_current_value ):
                 self.UnAssignValueProcess = KratosMultiphysics.Process() #void process
             else:
-                self.UnAssignValueProcess = KratosSolid.AssignScalarFieldToEntitiesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
+                self.UnAssignValueProcess = PfemFluid.AssignScalarFieldToEntitiesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
 
     #
     def SetCurrentTime(self):
@@ -291,16 +272,6 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         self.delta_time = self.model_part.ProcessInfo.GetPreviousSolutionStepInfo()[KratosMultiphysics.DELTA_TIME]
         self.current_time = self.model_part.ProcessInfo.GetPreviousSolutionStepInfo()[KratosMultiphysics.TIME]
         self.previous_time = self.current_time-self.delta_time
-
-    #
-    def IsRecoverStep(self):
-        if self.model_part.ProcessInfo.Has(KratosSolid.DELTA_TIME_CHANGED):
-            if self.model_part.ProcessInfo[KratosSolid.DELTA_TIME_CHANGED] is True:
-                return True
-            else:
-                return False
-        else:
-            return False
 
     #
     def IsInsideInterval(self):
