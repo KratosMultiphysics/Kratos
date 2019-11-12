@@ -12,10 +12,9 @@ set KRATOS_SOURCE=.
 set KRATOS_BUILD=.\build
 set KRATOS_APP_DIR=applications
 
-set KRATOS_APPLICATIONS=
+CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\ContactStructuralMechanicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\MeshingApplication;
 CALL :add_app %KRATOS_APP_DIR%\MeshMovingApplication;
 CALL :add_app %KRATOS_APP_DIR%\DEMApplication;
@@ -28,8 +27,6 @@ CALL :add_app %KRATOS_APP_DIR%\ContactMechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\PfemApplication;
 CALL :add_app %KRATOS_APP_DIR%\PfemFluidDynamicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\PfemSolidMechanicsApplication;
-
-echo 
 
 rem Clean
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
