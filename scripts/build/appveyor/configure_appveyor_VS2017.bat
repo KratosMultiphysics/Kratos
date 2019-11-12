@@ -2,7 +2,6 @@ rem For any question please contact with us in:
 rem  - https://github.com/KratosMultiphysics/Kratos
 
 rem Set compiler
-@echo off
 set CC=cl.exe
 set CXX=cl.exe
 
