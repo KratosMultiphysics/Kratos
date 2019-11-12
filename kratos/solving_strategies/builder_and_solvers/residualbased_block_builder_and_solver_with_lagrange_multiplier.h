@@ -255,6 +255,12 @@ public:
         // Base build and solve
         BaseType::BuildAndSolve(pScheme, rModelPart, rA, rDx, rb);
 
+        // Update the Lagrange multiplier solution
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(BaseType::mSlaveIds.size()); ++i) {
+            mLagrangeMultiplierVector[i] += rDx[BaseType::mEquationSystemSize + i];
+        }
+        
         KRATOS_CATCH("")
     }
 
@@ -279,6 +285,12 @@ public:
         // Base build and solve
         BaseType::BuildRHSAndSolve(pScheme, rModelPart, rA, rDx, rb);
 
+        // Update the Lagrange multiplier solution
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(BaseType::mSlaveIds.size()); ++i) {
+            mLagrangeMultiplierVector[i] += rDx[BaseType::mEquationSystemSize + i];
+        }
+        
         KRATOS_CATCH("")
     }
 
@@ -474,8 +486,8 @@ public:
         #pragma omp parallel for
         for (int k = 0; k<number_slave_dofs; k++) {
             const IndexType equation_id = BaseType::mSlaveIds[k];
-            auto it_dof =  BaseType::mDofSet.begin() + equation_id;
-            it_dof->GetSolutionStepReactionValue() += rDx[equation_id];
+            auto it_dof = it_dof_begin + equation_id;
+            it_dof->GetSolutionStepReactionValue() = mLagrangeMultiplierVector[mCorrespondanceDofsSlave[equation_id]];
         }
 
     }
@@ -662,6 +674,7 @@ public:
 
         // Clear member variables
         mCorrespondanceDofsSlave.clear();
+        mLagrangeMultiplierVector.resize(0,false);
     }
 
     /**
@@ -725,6 +738,8 @@ protected:
     ///@{
 
     std::unordered_map<IndexType, IndexType> mCorrespondanceDofsSlave;
+    
+    TSystemVectorType mLagrangeMultiplierVector; /// This is vector containing the Lagrange multiplier solution
 
     ///@}
     ///@name Protected Operators
@@ -818,6 +833,8 @@ protected:
 
             BaseType::mT = TSystemMatrixType(slave_size, size_indices, nnz);
             BaseType::mConstantVector.resize(slave_size, false);
+            mLagrangeMultiplierVector.resize(slave_size, false);
+            TSparseSpace::SetToZero(mLagrangeMultiplierVector);
 
             double *Tvalues = BaseType::mT.value_data().begin();
             IndexType *Trow_indices = BaseType::mT.index1_data().begin();
