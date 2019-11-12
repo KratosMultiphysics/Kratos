@@ -1,0 +1,15 @@
+{
+    "properties" : [{
+        "model_part_name" : "Parts_fluid",
+        "properties_id"   : 1,
+        "Material"        : {
+            "Variables" : {
+                "DENSITY"           : 1.225,
+                "DYNAMIC_VISCOSITY" : 1.846e-5,
+                "CONDUCTIVITY"      : 0.024,
+                "SPECIFIC_HEAT"     : 1012.0
+            },
+            "Tables"    : {}
+        }
+    }]
+}

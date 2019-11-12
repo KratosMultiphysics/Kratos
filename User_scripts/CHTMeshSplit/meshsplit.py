@@ -341,7 +341,7 @@ class CHTWorkflow():
     
     def CreateGIDOutput(self, model_name):
 
-        KratosMultiphysics.ModelPartIO("Modified_Fluid", KratosMultiphysics.IO.WRITE).WriteModelPart(self.model_fluid)
+        KratosMultiphysics.ModelPartIO("Modified_Fluid3", KratosMultiphysics.IO.WRITE).WriteModelPart(self.model_fluid)
         self.gid_output = GiDOutputProcess(self.model_fluid, model_name, self.settings["output_configuration"])
         self.gid_output.ExecuteInitialize()
         self.gid_output.ExecuteBeforeSolutionLoop()
@@ -381,9 +381,9 @@ class CHTWorkflow():
 	
 if __name__ == "__main__":
     
-    CHT_tool = CHTWorkflow("/mdpa_files/cavity_fluid3", "/mdpa_files/solid3D_coarse")
+    CHT_tool = CHTWorkflow("/mdpa_files/cavity_fluid3", "/mdpa_files/solid3D")
     CHT_tool.EmbeddedSkinVisualization()
-    CHT_tool.RefineMeshnearSolid(2.5, 10, 15, 1.5)
+    CHT_tool.RefineMeshnearSolid(1.5, 2, 5, 1.0)
     CHT_tool.CleanFluidModel()
     CHT_tool.VTKFileOutput()
-    CHT_tool.CreateGIDOutput("modified_fluid")
+    CHT_tool.CreateGIDOutput("modified_fluid3")
