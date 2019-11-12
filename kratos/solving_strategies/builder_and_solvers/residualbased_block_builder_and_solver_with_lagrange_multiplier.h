@@ -317,79 +317,6 @@ public:
         // Build the base RHS
         BaseType::BuildRHS(pScheme, rModelPart, rb);
 
-        // First we check if CONSTRAINT_SCALE_FACTOR is defined
-        auto& r_process_info = rModelPart.GetProcessInfo();
-        if (!r_process_info.Has(CONSTRAINT_SCALE_FACTOR)) {
-            TSystemMatrixType A(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize);
-            BaseType::ConstructMatrixStructure(pScheme, A, rModelPart);
-            this->BuildLHS(pScheme, rModelPart, A);
-            r_process_info.SetValue(CONSTRAINT_SCALE_FACTOR, TSparseSpace::TwoNorm(A));
-        }
-
-        // Check T has been computed
-        if (BaseType::mT.size1() != BaseType::mSlaveIds.size() || BaseType::mT.size2() != BaseType::mEquationSystemSize) {
-            BaseType::mT.resize(BaseType::mSlaveIds.size(), BaseType::mEquationSystemSize, false);
-            ConstructMasterSlaveConstraintsStructure(rModelPart);
-        }
-
-        // If not previously computed we compute
-        if (TSparseSpace::TwoNorm(BaseType::mT) < std::numeric_limits<double>::epsilon()) {
-            BuildMasterSlaveConstraints(rModelPart);
-        }
-
-        // Extend with the LM constribution
-        const SizeType number_of_lm = BaseType::mT.size1();
-
-        // Auxiliar values
-        const double constraint_scale_factor = r_process_info[CONSTRAINT_SCALE_FACTOR];
-
-        if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
-            // Compute the RHS
-            Vector b_modified(BaseType::mEquationSystemSize + 2 * number_of_lm);
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                b_modified[i] = rb[i];
-            }
-
-            // Compute LM contributions
-            TSystemVectorType b_lm(number_of_lm);
-            ComputeRHSLMContributions(b_lm, constraint_scale_factor);
-
-            // Fill auxiliar vector
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
-                b_modified[BaseType::mEquationSystemSize + i] = b_lm[i];
-                b_modified[BaseType::mEquationSystemSize + number_of_lm + i] = b_lm[i];
-            }
-
-            // Finally reassign
-            rb.resize(b_modified.size(), false);
-            TSparseSpace::Copy(b_modified, rb);
-            b_modified.resize(0, false); // Free memory
-        } else {
-            // Compute the RHS
-            Vector b_modified(BaseType::mEquationSystemSize + number_of_lm);
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                b_modified[i] = rb[i];
-            }
-
-            // Compute LM contributions
-            TSystemVectorType b_lm(number_of_lm);
-            ComputeRHSLMContributions(b_lm, constraint_scale_factor);
-
-            // Fill auxiliar vector
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
-                b_modified[BaseType::mEquationSystemSize + i] = b_lm[i];
-            }
-
-            // Finally reassign
-            rb.resize(b_modified.size(), false);
-            TSparseSpace::Copy(b_modified, rb);
-            b_modified.resize(0, false); // Free memory
-        }
-
         KRATOS_CATCH("")
     }
 
@@ -492,6 +419,98 @@ public:
 
     }
 
+    /**
+     * @brief Applies the constraints with master-slave relation matrix (RHS only)
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rb The RHS vector
+     */
+    void ApplyRHSConstraints(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY
+
+        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+            // First we check if CONSTRAINT_SCALE_FACTOR is defined
+            auto& r_process_info = rModelPart.GetProcessInfo();
+            if (!r_process_info.Has(CONSTRAINT_SCALE_FACTOR)) {
+                TSystemMatrixType A(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize);
+                BaseType::ConstructMatrixStructure(pScheme, A, rModelPart);
+                this->BuildLHS(pScheme, rModelPart, A);
+                r_process_info.SetValue(CONSTRAINT_SCALE_FACTOR, TSparseSpace::TwoNorm(A));
+            }
+
+            // Check T has been computed
+            if (BaseType::mT.size1() != BaseType::mSlaveIds.size() || BaseType::mT.size2() != BaseType::mEquationSystemSize) {
+                BaseType::mT.resize(BaseType::mSlaveIds.size(), BaseType::mEquationSystemSize, false);
+                ConstructMasterSlaveConstraintsStructure(rModelPart);
+            }
+
+            // If not previously computed we compute
+            if (TSparseSpace::TwoNorm(BaseType::mT) < std::numeric_limits<double>::epsilon()) {
+                BuildMasterSlaveConstraints(rModelPart);
+            }
+
+            // Extend with the LM constribution
+            const SizeType number_of_lm = BaseType::mT.size1();
+
+            // Auxiliar values
+            const double constraint_scale_factor = r_process_info[CONSTRAINT_SCALE_FACTOR];
+
+            if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
+                // Compute the RHS
+                Vector b_modified(BaseType::mEquationSystemSize + 2 * number_of_lm);
+                #pragma omp parallel for
+                for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
+                    b_modified[i] = rb[i];
+                }
+
+                // Compute LM contributions
+                TSystemVectorType b_lm(number_of_lm);
+                ComputeRHSLMContributions(b_lm, constraint_scale_factor);
+
+                // Fill auxiliar vector
+                #pragma omp parallel for
+                for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
+                    b_modified[BaseType::mEquationSystemSize + i] = b_lm[i];
+                    b_modified[BaseType::mEquationSystemSize + number_of_lm + i] = b_lm[i];
+                }
+
+                // Finally reassign
+                rb.resize(b_modified.size(), false);
+                TSparseSpace::Copy(b_modified, rb);
+                b_modified.resize(0, false); // Free memory
+            } else {
+                // Compute the RHS
+                Vector b_modified(BaseType::mEquationSystemSize + number_of_lm);
+                #pragma omp parallel for
+                for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
+                    b_modified[i] = rb[i];
+                }
+
+                // Compute LM contributions
+                TSystemVectorType b_lm(number_of_lm);
+                ComputeRHSLMContributions(b_lm, constraint_scale_factor);
+
+                // Fill auxiliar vector
+                #pragma omp parallel for
+                for (int i = 0; i < static_cast<int>(number_of_lm); ++i) {
+                    b_modified[BaseType::mEquationSystemSize + i] = b_lm[i];
+                }
+
+                // Finally reassign
+                rb.resize(b_modified.size(), false);
+                TSparseSpace::Copy(b_modified, rb);
+                b_modified.resize(0, false); // Free memory
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+    
     /**
      * @brief Applies the constraints with master-slave relation matrix
      * @param pScheme The integration scheme considered
