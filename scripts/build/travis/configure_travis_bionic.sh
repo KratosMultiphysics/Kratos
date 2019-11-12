@@ -5,8 +5,8 @@
 #   - https://github.com/KratosMultiphysics/Kratos
 
 # Set compiler
-export CC=gcc-6
-export CXX=g++-6
+export CC=gcc
+export CXX=g++
 
 # Set variables
 export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
