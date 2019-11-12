@@ -12,7 +12,6 @@ macro(kratos_python_install_directory INSTALL_PYTHON_USING_LINKS origin_dir dest
         foreach(f ${SRC_FILES})
             get_filename_component(barename ${f} NAME)
             get_filename_component(relpath ${f} DIRECTORY)
-            message("installing symbolic ${origin_dir} --> ${f} --> ${CMAKE_INSTALL_PREFIX}/${destination_dir}/${relpath}/${barename}" )
             install_symlink(${origin_dir}/${f} ${CMAKE_INSTALL_PREFIX}/${destination_dir}/${relpath} ${barename} )
         endforeach(f ${SRC_FILES})
     else(${INSTALL_PYTHON_USING_LINKS} MATCHES ON )
