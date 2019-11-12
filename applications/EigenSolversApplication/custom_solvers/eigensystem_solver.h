@@ -93,7 +93,6 @@ class EigensystemSolver
         using scalar_t = double;
         using vector_t = Eigen::VectorXd;
         using matrix_t = Eigen::MatrixXd;
-        using sparse_t = Eigen::SparseMatrix<scalar_t, Eigen::RowMajor, int>;
 
         // --- get settings
 

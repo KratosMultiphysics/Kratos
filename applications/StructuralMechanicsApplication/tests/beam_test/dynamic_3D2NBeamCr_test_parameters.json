@@ -29,13 +29,6 @@
         "residual_relative_tolerance"        : 1e-5,
         "residual_absolute_tolerance"        : 1e-7,
         "max_iteration"                      : 100,
-        "linear_solver_settings"             : {
-            "solver_type" : "ExternalSolversApplication.super_lu",
-            "scaling"     : false,
-            "verbosity"   : 0
-        },
-        "problem_domain_sub_model_part_list" : ["Parts_structure"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichletXYZ","DISPLACEMENT_dirichletYZ","ROTATION_dirrot","ROTATION_dirrotX","PointLoad3D_neumann"],
         "rotation_dofs"                      : true
     },
     "processes" : {
@@ -46,7 +39,7 @@
         "process_name"          : "AssignVectorVariableProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_dirichletXYZ",
+            "model_part_name" : "Structure.DISPLACEMENT_dirichletXYZ",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0]
@@ -58,7 +51,7 @@
         "process_name"          : "AssignVectorVariableProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_dirichletYZ",
+            "model_part_name" : "Structure.DISPLACEMENT_dirichletYZ",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,false,false],
             "value"           : [0.0,0.0,0.0]
@@ -70,7 +63,7 @@
         "process_name"          : "AssignVectorVariableProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_dirrot",
+            "model_part_name" : "Structure.ROTATION_dirrot",
             "variable_name"   : "ROTATION",
 			"constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0]
@@ -82,7 +75,7 @@
         "process_name"          : "AssignVectorVariableProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_dirrotX",
+            "model_part_name" : "Structure.ROTATION_dirrotX",
             "variable_name"   : "ROTATION",
             "constrained"     : [false,false,false],
             "value"           : [0.0,0.0,0.0]
@@ -94,7 +87,7 @@
         "process_name"          : "AssignVectorByDirectionToConditionProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
-            "model_part_name" : "PointLoad3D_neumann",
+            "model_part_name" : "Structure.PointLoad3D_neumann",
             "variable_name"   : "POINT_LOAD",
             "modulus"          : 100000,
             "direction"       : [0.0,-1.0,0.0]
@@ -109,7 +102,7 @@
         "Parameters"            : {
             "check_variables"  : ["DISPLACEMENT_Y"],
             "input_file_name"  : "beam_test/dynamic_3D2NBeamCr_test_results.json",
-            "model_part_name"  : "PointLoad3D_neumann",
+            "model_part_name"  : "Structure.PointLoad3D_neumann",
             "time_frequency"   : 0.0002
         }
     }
@@ -123,7 +116,7 @@
         "Parameters"            : {
             "output_variables" : ["DISPLACEMENT_Y"],
             "output_file_name" : "beam_test/dynamic_3D2NBeamCr_test_results.json",
-            "model_part_name"  : "PointLoad3D_neumann",
+            "model_part_name"  : "Structure.PointLoad3D_neumann",
             "time_frequency"   : 0.0002
         }
     }

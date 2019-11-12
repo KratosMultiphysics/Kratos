@@ -15,6 +15,7 @@ prop_str = '''Properties
 This properties contains 0 tables'''
 
 model_part_str = '''-Main- model part
+    AMBIENT_TEMPERATURE : 250
     Buffer Size : 1
     Number of tables : 1
     Number of sub model parts : 2
