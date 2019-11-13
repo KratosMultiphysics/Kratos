@@ -108,6 +108,8 @@ void GetCellInformation(const TContainerType& rContainer, const std::unordered_m
             rConnectivities.push_back(rKratosIdToVtuId.at(r_node.Id()));
         }
     }
+
+    std::partial_sum(rOffsets.begin(), rOffsets.end(), rOffsets.begin());
 }
 
 void CreateMapFromKratosIdToVtuId(const ModelPart& rModelPart, std::unordered_map<int, int>& rKratosIdToVtuId)
@@ -163,12 +165,10 @@ void VtuOutput::PrintOutput()
 {
     KRATOS_TRY;
     std::vector<double> coordinates;
-    KRATOS_WATCH("1")
+
     GetNodalCoordinates(mrModelPart, coordinates, mOutputSettings["write_deformed_configuration"].GetBool());
-    KRATOS_WATCH("2")
 
     CreateMapFromKratosIdToVtuId(mrModelPart, mKratosIdToVtkId);
-    KRATOS_WATCH("3")
 
     std::vector<std::size_t> connectivities;
     std::vector<std::size_t> offsets;
