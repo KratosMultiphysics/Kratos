@@ -87,6 +87,13 @@ public:
     std::string Info() const override;
 
     ///@}
+private:
+    ///@name Private Operations
+    ///@{
+
+    void CheckRemoteFailure();
+
+    ///@}
 };
 
 ///@}
