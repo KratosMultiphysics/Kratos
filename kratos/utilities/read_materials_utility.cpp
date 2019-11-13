@@ -317,6 +317,7 @@ void ReadMaterialsUtility::CreateSubProperties(
                         already_defined = true;
                     }
                 }
+            }
 
             // Check if properly read use_existing_property
             KRATOS_ERROR_IF_NOT(already_defined) << "Subproperties " << r_use_existing_property << " is not already defined. You need to check the structure of your materials file" << std::endl;
