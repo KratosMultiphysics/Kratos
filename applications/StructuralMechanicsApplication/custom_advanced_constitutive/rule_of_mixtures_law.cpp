@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_constitutive/rule_of_mixtures_law.h"
+#include "custom_advanced_constitutive/rule_of_mixtures_law.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
