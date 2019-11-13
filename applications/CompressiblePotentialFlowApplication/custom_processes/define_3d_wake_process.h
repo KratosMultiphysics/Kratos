@@ -138,6 +138,10 @@ private:
 
     void AddWakeNodes() const;
 
+    void SelectDoubleTrailingEdgeElements() const;
+
+    void ApplyMPConstraints() const;
+
     void Print() const;
     ///@}
 

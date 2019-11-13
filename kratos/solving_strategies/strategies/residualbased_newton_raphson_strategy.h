@@ -799,6 +799,9 @@ class ResidualBasedNewtonRaphsonStrategy
         while (is_converged == false &&
                iteration_number++ < mMaxIterationNumber)
         {
+            KRATOS_INFO_IF("NR-Strategy", this->GetEchoLevel() > 0)
+                << " ITERATION = " << iteration_number << " / "
+                << mMaxIterationNumber << std::endl;
             //setting the number of iteration
             r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
@@ -1145,6 +1148,10 @@ class ResidualBasedNewtonRaphsonStrategy
             std::stringstream matrix_market_vectname;
             matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
             TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), rb);
+
+            std::stringstream matrix_market_solvectname;
+            matrix_market_solvectname << "dx_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
+            TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_solvectname.str()).c_str(), rDx);
         }
     }
 

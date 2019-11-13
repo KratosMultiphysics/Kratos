@@ -54,6 +54,10 @@ void Define3DWakeProcess::ExecuteInitialize()
 
     AddWakeNodes();
 
+    SelectDoubleTrailingEdgeElements();
+
+    //ApplyMPConstraints();
+
     Print();
 }
 // This function initializes the variables and removes all of the elements of
@@ -148,7 +152,7 @@ void Define3DWakeProcess::MarkTrailingEdgeNodes()
             p_right_wing_tip_node = &r_node;
             max_span_position = distance_projection;
         }
-        else if(distance_projection < min_span_position){
+        if(distance_projection < min_span_position){
             p_left_wing_tip_node = &r_node;
             min_span_position = distance_projection;
         }
@@ -156,6 +160,8 @@ void Define3DWakeProcess::MarkTrailingEdgeNodes()
 
     mpRightWingTipNode = p_right_wing_tip_node;
     mpLeftWingTipNode = p_left_wing_tip_node;
+    mpRightWingTipNode->SetValue(WING_TIP, true);
+    mpLeftWingTipNode->SetValue(WING_TIP, true);
 }
 
 void Define3DWakeProcess::ComputeLowerSurfaceNormals() const
@@ -448,6 +454,140 @@ void Define3DWakeProcess::AddWakeNodes() const
               wake_nodes_ordered_ids.end());
     wake_sub_model_part.AddNodes(wake_nodes_ordered_ids);
 
+}
+
+void Define3DWakeProcess::ApplyMPConstraints() const
+{
+    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
+    ModelPart& fluid_computational_model_part =
+            root_model_part.GetSubModelPart("fluid_computational_model_part");
+    const std::string& pot_var_name = "VELOCITY_POTENTIAL";
+    const std::string& aux_pot_var_name = "AUXILIARY_VELOCITY_POTENTIAL";
+    const Variable<double>& r_pot_variable = KratosComponents<Variable<double>>::Get(pot_var_name);
+    const Variable<double>& r_aux_pot_variable = KratosComponents<Variable<double>>::Get(aux_pot_var_name);
+    const std::string& constraint_name = "LinearMasterSlaveConstraint";
+    // fluid_computational_model_part.CreateNewMasterSlaveConstraint(constraint_name, 0, *mpRightWingTipNode, r_master_variable, *mpRightWingTipNode, r_slave_variable, 1.0, 0);
+    // fluid_computational_model_part.CreateNewMasterSlaveConstraint(constraint_name, 1, *mpLeftWingTipNode, r_master_variable, *mpLeftWingTipNode, r_slave_variable, 1.0, 0);
+
+    ModelPart& wake_sub_model_part =
+            root_model_part.GetSubModelPart("wake_elements_model_part");
+
+    int num_constraint = 0;
+    for (auto& r_element : wake_sub_model_part.Elements()){
+        // if(r_element.Id()==87225 || r_element.Id()==79624 || r_element.Id()==94253){
+        if(r_element.Is(STRUCTURE)){
+            auto& r_geometry = r_element.GetGeometry();
+            // Calculate shape functions
+            BoundedMatrix<double,4, 3> DN_DX;
+            array_1d<double, 4> N;
+            double vol;
+            GeometryUtils::CalculateGeometryData(r_geometry, DN_DX, N, vol);
+
+            array_1d<double, 4> distances = PotentialFlowUtilities::GetWakeDistances<3, 4>(r_element);
+            for (unsigned int i = 0; i < r_geometry.size(); i++){
+                if(std::abs(DN_DX(i,0) > 0.0)){
+                    // KRATOS_WATCH(DN_DX(i,0))
+                    // KRATOS_WATCH(r_geometry[i].Id())
+                    // KRATOS_WATCH(i)
+                    auto& slave_node = r_geometry[i];
+                    const double scaling = DN_DX(i,0);
+
+                    // Apply constraints
+                    for (unsigned int j = 0; j < r_geometry.size(); j++){
+                        if(j!=i){
+                            const double master_weight = DN_DX(j,0)/scaling;
+                            if(distances(j) > 0.0){
+                                fluid_computational_model_part.CreateNewMasterSlaveConstraint(
+                                    constraint_name, ++num_constraint, r_geometry[j], r_aux_pot_variable,
+                                    slave_node, r_aux_pot_variable, master_weight, 0.0);
+
+                                fluid_computational_model_part.CreateNewMasterSlaveConstraint(
+                                    constraint_name, ++num_constraint, r_geometry[j], r_pot_variable,
+                                    slave_node, r_aux_pot_variable, -master_weight, 0.0);
+                            }
+                            else{
+                                fluid_computational_model_part.CreateNewMasterSlaveConstraint(
+                                    constraint_name, ++num_constraint, r_geometry[j], r_pot_variable,
+                                    slave_node, r_aux_pot_variable, master_weight, 0.0);
+
+                                fluid_computational_model_part.CreateNewMasterSlaveConstraint(
+                                    constraint_name, ++num_constraint, r_geometry[j], r_aux_pot_variable,
+                                    slave_node, r_aux_pot_variable, -master_weight, 0.0);
+                            }
+                        }
+                        else{
+                            if(distances(j) > 0.0){
+                                fluid_computational_model_part.CreateNewMasterSlaveConstraint(
+                                    constraint_name, ++num_constraint, r_geometry[j], r_pot_variable,
+                                    slave_node, r_aux_pot_variable, -1.0, 0.0);
+                            }
+                            else{
+                                fluid_computational_model_part.CreateNewMasterSlaveConstraint(
+                                    constraint_name, ++num_constraint, r_geometry[j], r_pot_variable,
+                                    slave_node, r_aux_pot_variable, 1.0, 0.0);
+                            }
+                        }
+
+                    }
+                    break;
+                }
+            }
+
+            // KRATOS_WATCH(trans(DN_DX))
+            // KRATOS_WATCH(distances)
+        }
+    }
+
+}
+
+void Define3DWakeProcess::SelectDoubleTrailingEdgeElements() const
+{
+    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
+    ModelPart& trailing_edge_sub_model_part =
+        root_model_part.GetSubModelPart("trailing_edge_elements_model_part");
+
+    std::ofstream outfile_wing_tip;
+    outfile_wing_tip.open("wing_tip_elements_id.txt");
+    std::ofstream outfile_zero_vel;
+    outfile_zero_vel.open("zero_vel_elements_id.txt");
+    unsigned int wing_tip_elements_counter = 0;
+    unsigned int zero_velocity_condition_elements_counter = 0;
+    for (auto& r_element : trailing_edge_sub_model_part.Elements()){
+        if(r_element.GetValue(WAKE)){
+            auto& r_geometry = r_element.GetGeometry();
+            unsigned int te_node_counter = 0;
+            for (unsigned int i = 0; i < r_geometry.size(); i++){
+                const auto& r_node = r_geometry[i];
+                if (r_node.GetValue(TRAILING_EDGE)){
+                    te_node_counter += 1;
+                }
+            }
+            if(te_node_counter > 1){
+                r_element.SetValue(WING_TIP, true);
+                wing_tip_elements_counter += 1;
+                std::ofstream outfile_wing_tip;
+                outfile_wing_tip.open("wing_tip_elements_id.txt", std::ios_base::app);
+                outfile_wing_tip << r_element.Id();
+                outfile_wing_tip << "\n";
+                for (unsigned int i = 0; i < r_geometry.size(); i++){
+                    const auto& r_node = r_geometry[i];
+                    if (r_node.GetValue(WING_TIP)){
+                        r_element.SetValue(WING_TIP_ELEMENT, true);
+                    }
+                }
+            }
+            else if(te_node_counter > 0){
+                zero_velocity_condition_elements_counter += 1;
+                r_element.SetValue(ZERO_VELOCITY_CONDITION, true);
+                std::ofstream outfile_zero_vel;
+                outfile_zero_vel.open("zero_vel_elements_id.txt", std::ios_base::app);
+                outfile_zero_vel << r_element.Id();
+                outfile_zero_vel << "\n";
+            }
+        }
+    }
+    KRATOS_WATCH(wing_tip_elements_counter)
+    KRATOS_WATCH(zero_velocity_condition_elements_counter)
 }
 
 void Define3DWakeProcess::Print() const

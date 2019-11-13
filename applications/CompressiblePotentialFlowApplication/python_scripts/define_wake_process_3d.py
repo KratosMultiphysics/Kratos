@@ -113,6 +113,11 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         #     #     #wake_elements_file.write('{0:15d}\n'.format(elem.Id))
         # self.wake_sub_model_part.AddNodes(self.wake_node_id_list)
 
+        # self.fluid_model_part.GetSubModelPart("fluid_computational_model_part").CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 0, self.right_wing_tip, CPFApp.VELOCITY_POTENTIAL, self.right_wing_tip,CPFApp.AUXILIARY_VELOCITY_POTENTIAL, 1.0, 0)
+        # self.fluid_model_part.GetSubModelPart("fluid_computational_model_part").CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, self.left_wing_tip, CPFApp.VELOCITY_POTENTIAL, self.left_wing_tip,CPFApp.AUXILIARY_VELOCITY_POTENTIAL, 1.0, 0)
+        # print(self.right_wing_tip.Id)
+        # print(self.left_wing_tip.Id)
+
         # for elem in self.wake_sub_model_part.Elements:
         #     for elnode in elem.GetNodes():
         #         if elnode.GetValue(CPFApp.TRAILING_EDGE):
@@ -645,6 +650,8 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         counter_structure = 0
         counter_normal = 0
         counter_double = 0
+        counter_wing_tip = 0
+        counter_zero_vel = 0
         self.double_trailing_edge_element_id_list = []
         for elem in self.trailing_edge_elements_model_part.Elements:
             if(elem.GetValue(CPFApp.WAKE)):
@@ -658,6 +665,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                     #print(elem.Id)
                     counter_double += 1
                     elem.SetValue(CPFApp.WING_TIP, True)
+                    counter_wing_tip += 1
                     self.double_trailing_edge_element_id_list.append(elem.Id)
                     # for elnode in elem.GetNodes():
                     #     number_of_neighbour_elements = elnode.GetValue(KratosMultiphysics.NUMBER_OF_NEIGHBOUR_ELEMENTS)
@@ -668,6 +676,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                             elem.SetValue(CPFApp.WING_TIP_ELEMENT, True)
                 elif count > 0:
                     elem.SetValue(CPFApp.ZERO_VELOCITY_CONDITION, True)
+                    counter_zero_vel += 1
                     # for elnode in elem.GetNodes():
                     #     if(elnode.Id == 465):
                     #         print(elem.Id)
@@ -781,6 +790,9 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         print('counter_normal = ', counter_normal)
         print(' sum = ', counter_kutta + counter_structure + counter_normal)
         print('counter_te_total = ', self.trailing_edge_elements_model_part.NumberOfElements())
+
+        print('\ncounter_wing_tip = ', counter_wing_tip)
+        print('counter_zero_vel = ', counter_zero_vel)
 
         print('\n maximum number of neighbour elements = ', self.max_number_of_elements)
         print('node id = ', self.node_id)

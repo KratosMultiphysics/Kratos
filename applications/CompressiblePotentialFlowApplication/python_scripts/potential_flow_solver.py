@@ -188,6 +188,8 @@ class PotentialFlowSolver(FluidSolver):
     def Initialize(self):
         self._ComputeNodalNeighbours()
 
+        #self.GetComputingModelPart().CreateNewMasterSlaveConstraint
+
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         if "incompressible" in self.settings["formulation"]["element_type"].GetString():
             # # TODO: Rename to self.strategy once we upgrade the base FluidDynamicsApplication solvers
@@ -204,6 +206,11 @@ class PotentialFlowSolver(FluidSolver):
                 self.settings["relative_tolerance"].GetDouble(),
                 self.settings["absolute_tolerance"].GetDouble())
             max_iterations = self.settings["maximum_iterations"].GetInt()
+
+            # conv_criteria = KratosMultiphysics.DisplacementCriteria(
+            #     self.settings["relative_tolerance"].GetDouble(),
+            #     self.settings["absolute_tolerance"].GetDouble())
+            # max_iterations = self.settings["maximum_iterations"].GetInt()
 
             conv_criteria.SetEchoLevel(2)
 
@@ -261,7 +268,7 @@ class PotentialFlowSolver(FluidSolver):
     def _ComputeConditionNumber(self):
         KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowSolver]:: ", "Computing Condition Number")
 
-        import eigen_solver_factory
+        from KratosMultiphysics import eigen_solver_factory
         settings_max = KratosMultiphysics.Parameters("""
         {
             "solver_type"             : "power_iteration_highest_eigenvalue_solver",
@@ -270,7 +277,7 @@ class PotentialFlowSolver(FluidSolver):
             "required_eigen_number"   : 1,
             "verbosity"               : 0,
             "linear_solver_settings"  : {
-                "solver_type"             : "ExternalSolversApplication.super_lu",
+                "solver_type"             : "EigenSolversApplication.pardiso_lu",
                 "max_iteration"           : 500,
                 "tolerance"               : 1e-9,
                 "scaling"                 : false,
@@ -287,7 +294,7 @@ class PotentialFlowSolver(FluidSolver):
             "required_eigen_number"   : 1,
             "verbosity"               : 0,
             "linear_solver_settings"  : {
-                "solver_type"             : "ExternalSolversApplication.super_lu",
+                "solver_type"             : "EigenSolversApplication.pardiso_lu",
                 "max_iteration"           : 500,
                 "tolerance"               : 1e-9,
                 "scaling"                 : false,

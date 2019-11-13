@@ -352,6 +352,8 @@ const bool CheckWakeCondition(const Element& rElement, const double& rTolerance,
 template <int Dim>
 void CheckIfPressureEqualityWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel)
 {
+    std::ofstream outfile;
+    outfile.open("unfulfilled_pressure_wake_elements_id.txt");
     unsigned int number_of_unfulfilled_wake_conditions = 0;
     for (auto& r_element : rWakeModelPart.Elements()){
         const bool wake_condition_is_fulfilled =
@@ -394,6 +396,13 @@ const bool CheckPressureEqualityWakeCondition(const Element& rElement, const dou
         << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id()
         << " upper_velocity  = " << upper_velocity
         << " lower_velocity  = " << lower_velocity << std::endl;
+
+    if(!wake_condition_is_fulfilled && rEchoLevel > 1){
+        std::ofstream outfile;
+        outfile.open("unfulfilled_pressure_wake_elements_id.txt", std::ios_base::app);
+        outfile << rElement.Id();
+        outfile << "\n";
+    }
 
     return wake_condition_is_fulfilled;
 }

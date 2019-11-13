@@ -436,6 +436,34 @@ public:
 
         SystemSolveWithPhysics(A, Dx, b, rModelPart);
 
+        // Vector res = ZeroVector(1);
+        // if(res.size() != Dx.size()){
+        //     res.resize(Dx.size());
+        // }
+        // res.clear();
+        // for(unsigned int i = 0; i < A.size1(); i++){
+        //     for(unsigned int j = 0; j < A.size2(); j++){
+        //         res(i) += A(i,j) * Dx(j);
+        //     }
+        //     res(i) -= b(i);
+        // }
+
+        // double res_sq = 0.0;
+        // double b_sq = 0.0;
+        // for(unsigned int i = 0; i < res.size(); i++){
+        //     res_sq += std::pow(res(i),2);
+        //     b_sq += std::pow(b(i),2);
+        // }
+        // const double res_norm = std::sqrt(res_sq);
+        // const unsigned int size_res = b.size();
+        // const double res_abs_norm = res_norm / size_res;
+        // const double b_norm = std::sqrt(b_sq);
+
+        // KRATOS_WATCH(res_norm)
+        // KRATOS_WATCH(res_abs_norm)
+        // KRATOS_WATCH(size_res)
+        // KRATOS_WATCH(b_norm)
+
         Timer::Stop("Solve");
         const double stop_solve = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
