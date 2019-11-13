@@ -20,6 +20,7 @@
 #include "processes/apply_ray_casting_process.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/intersection_utilities.h"
+#include <fstream>
 
 namespace Kratos
 {
@@ -105,6 +106,10 @@ namespace Kratos
 			if (r_element_intersections.empty()) {
 				r_element.Set(TO_SPLIT, false);
 			} else {
+				// std::ofstream outfile;
+        		// outfile.open("intersected_wake_elements_id.txt", std::ios_base::app);
+        		// outfile << r_element.Id();
+        		// outfile << "\n";
 				// This function assumes tetrahedra element and triangle intersected object as input at this moment
 				constexpr int number_of_tetrahedra_points = TDim + 1;
 				constexpr double epsilon = std::numeric_limits<double>::epsilon();
@@ -121,7 +126,7 @@ namespace Kratos
 				bool has_positive_distance = false;
 				bool has_negative_distance = false;
 				for (int i = 0; i < number_of_tetrahedra_points; i++){
-					if (elemental_distances[i] > epsilon) {
+					if (elemental_distances[i] > epsilon) {//0.0
 						has_positive_distance = true;
 					} else {
 						has_negative_distance = true;
@@ -151,7 +156,7 @@ namespace Kratos
 			// Check that the computed distance is the minimum obtained one
 			if (std::abs(result_distance) > distance) {
 				if (distance < Epsilon) {
-					result_distance = -Epsilon; // Avoid values near to 0.0
+					result_distance = -Epsilon;// Commented by Inigo -Epsilon; // Avoid values near to 0.0
 				} else {
 					result_distance = distance;
 					std::vector<array_1d<double,3>> plane_pts;
