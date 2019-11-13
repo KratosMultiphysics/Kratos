@@ -74,7 +74,7 @@ class SPAlgorithm(Algorithm):
         self.stress_failure_check_utility = stress_failure_check_utility.StressFailureCheckUtility(self.dem_solution.spheres_model_part, self.test_number)
 
     def InitializeAdditionalProcessInfoVars(self):
-        self.dem_solution.spheres_model_part.ProcessInfo.SetValue(SIGMA_3_AVERAGE, 0.0)
+        self.dem_solution.spheres_model_part.ProcessInfo.SetValue(Dem.SIGMA_3_AVERAGE, 0.0)
 
     def RunSolutionLoop(self):
 
@@ -110,7 +110,8 @@ class SPAlgorithm(Algorithm):
 
             if self.test_number == 1 or self.test_number == 2:
                 self.outer_walls_model_part = self.model["Structure.SurfacePressure3D_lateral_pressure"]
-                DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearch(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
+                #DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearch(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
+                DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
                 DemFem.DemStructuresCouplingUtilities().ComputeSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
             elif self.test_number == 3:
                 self.outer_walls_model_part_1 = self.model["Structure.SurfacePressure3D_sigmaXpos"]
