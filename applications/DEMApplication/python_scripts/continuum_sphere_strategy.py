@@ -70,8 +70,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION, self.amplified_continuum_search_radius_extension)
         self.spheres_model_part.ProcessInfo.SetValue(MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS, self.max_amplification_ratio_of_search_radius)
 
-        self.spheres_model_part.ProcessInfo.SetValue(SIGMA_3_AVERAGE, 0.0)
-
         if ((self.test_type == "Triaxial") or (self.test_type == "Hydrostatic")):
             self.spheres_model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
         else:
