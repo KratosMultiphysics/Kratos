@@ -158,6 +158,16 @@ void  AddLoggerToPython(pybind11::module& m) {
     .def("GetSeverity", &LoggerOutput::GetSeverity)
     .def("SetCategory", &LoggerOutput::SetCategory)
     .def("GetCategory", &LoggerOutput::GetCategory)
+    .def("SetWarningPrefix", &LoggerOutput::SetWarningPrefix)
+    .def("GetWarningPrefix", &LoggerOutput::GetWarningPrefix)
+    .def("SetInfoPrefix", &LoggerOutput::SetInfoPrefix)
+    .def("GetInfoPrefix", &LoggerOutput::GetInfoPrefix)
+    .def("SetDetailPrefix", &LoggerOutput::SetDetailPrefix)
+    .def("GetDetailPrefix", &LoggerOutput::GetDetailPrefix)
+    .def("SetDebugPrefix", &LoggerOutput::SetDebugPrefix)
+    .def("GetDebugPrefix", &LoggerOutput::GetDebugPrefix)
+    .def("SetTracePrefix", &LoggerOutput::SetTracePrefix)
+    .def("GetTracePrefix", &LoggerOutput::GetTracePrefix)
     ;
 
     py::class_<Logger, Kratos::shared_ptr<Logger>> logger_scope(m,"Logger");

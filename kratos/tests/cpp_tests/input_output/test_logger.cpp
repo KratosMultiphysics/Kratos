@@ -446,6 +446,47 @@ namespace Kratos {
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), out.str().c_str());
         }
 
+        KRATOS_TEST_CASE_IN_SUITE(LoggerNoPrefix, KratosCoreFastSuite)
+        {
+            static std::stringstream buffer;
+            LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+            p_output->SetSeverity(LoggerMessage::Severity::DETAIL);
+            p_output->SetWarningPrefix(false);
+            p_output->SetInfoPrefix(false);
+            p_output->SetDetailPrefix(false);
+            p_output->SetDebugPrefix(false);
+            p_output->SetTracePrefix(false);
+            Logger::AddOutput(p_output);
+
+            KRATOS_WARNING("TestWarning") << "Test message\n";
+            KRATOS_INFO("TestInfo") << "Test message\n";
+            KRATOS_DETAIL("TestDetail") << "Test message\n";
+
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestWarning: Test message\nTestInfo: Test message\nTestDetail: Test message\n" : "";
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
+        }
+
+
+        KRATOS_TEST_CASE_IN_SUITE(LoggerPrefix, KratosCoreFastSuite)
+        {
+            static std::stringstream buffer;
+            LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+            p_output->SetSeverity(LoggerMessage::Severity::DETAIL);
+            p_output->SetWarningPrefix(true);
+            p_output->SetInfoPrefix(true);
+            p_output->SetDetailPrefix(true);
+            p_output->SetDebugPrefix(true);
+            p_output->SetTracePrefix(true);
+            Logger::AddOutput(p_output);
+
+            KRATOS_WARNING("TestWarning") << "Test message\n";
+            KRATOS_INFO("TestInfo") << "Test message\n";
+            KRATOS_DETAIL("TestDetail") << "Test message\n";
+
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "[WARNING] TestWarning: Test message\n[INFO] TestInfo: Test message\n[DETAIL] TestDetail: Test message\n" : "";
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
+        }
+
     }   // namespace Testing
 }  // namespace Kratos.
 

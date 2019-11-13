@@ -43,8 +43,26 @@ namespace Kratos
         auto message_severity = TheMessage.GetSeverity();
         if (TheMessage.WriteInThisRank() && message_severity <= mSeverity)
         {
-            if (message_severity == LoggerMessage::Severity::WARNING)
-                mrStream << "[WARNING] ";
+            switch (message_severity)
+            {
+            case LoggerMessage::Severity::INFO:
+                if (mInfoPrefix) mrStream << "[INFO] ";
+                break;
+            case LoggerMessage::Severity::WARNING:
+                if (mWarningPrefix) mrStream << "[WARNING] ";
+                break;
+            case LoggerMessage::Severity::DETAIL:
+                if (mDetailPrefix) mrStream << "[DETAIL] ";
+                break;
+            case LoggerMessage::Severity::DEBUG:
+                if (mDebugPrefix) mrStream << "[DEBUG] ";
+                break;
+            case LoggerMessage::Severity::TRACE:
+                if (mTracePrefix) mrStream << "[TRACE] ";
+                break;
+            default:
+                break;
+            }
 
             if(TheMessage.IsDistributed())
                 mrStream << "Rank " << TheMessage.GetSourceRank() << ": ";

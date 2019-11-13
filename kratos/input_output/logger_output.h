@@ -116,6 +116,46 @@ public:
     return mCategory;
   }
 
+  void SetWarningPrefix(bool Flag) {
+    mWarningPrefix = Flag;
+  }
+
+  bool GetWarningPrefix() const {
+    return mWarningPrefix;
+  }
+
+  void SetInfoPrefix(bool Flag) {
+    mInfoPrefix = Flag;
+  }
+
+  bool GetInfoPrefix() const {
+    return mInfoPrefix;
+  }
+
+  void SetDetailPrefix(bool Flag) {
+    mDetailPrefix = Flag;
+  }
+
+  bool GetDetailPrefix() const {
+    return mDetailPrefix;
+  }
+
+  void SetDebugPrefix(bool Flag) {
+    mDebugPrefix = Flag;
+  }
+
+  bool GetDebugPrefix() const {
+    return mDebugPrefix;
+  }
+
+  void SetTracePrefix(bool Flag) {
+    mTracePrefix = Flag;
+  }
+
+  bool GetTracePrefix() const {
+    return mTracePrefix;
+  }
+
   ///@}
   ///@name Inquiry
   ///@{
@@ -171,6 +211,11 @@ private:
   std::size_t mMaxLevel;
   LoggerMessage::Severity mSeverity;
   LoggerMessage::Category mCategory;
+  bool mWarningPrefix = true;
+  bool mInfoPrefix = false;
+  bool mDetailPrefix = false;
+  bool mDebugPrefix = false;
+  bool mTracePrefix = false;
 
   ///@}
 }; // Class LoggerOutput
