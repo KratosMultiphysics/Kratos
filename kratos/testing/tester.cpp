@@ -24,6 +24,7 @@
 #include "testing/test_suite.h" // it includes the test_case.h
 #include "includes/exception.h"
 #include "includes/parallel_environment.h"
+#include "includes/data_communicator.h"
 
 
 namespace Kratos
@@ -428,14 +429,44 @@ namespace Kratos
 				if (test_case_result.IsFailed())
 				{
 					rOStream << "    " << i_test->first << " Failed";
-					if (test_case_result.GetErrorMessage().size() == 0)
-						rOStream << std::endl;
+					if (ParallelEnvironment::GetDefaultSize() == 1)
+					{
+						if (test_case_result.GetErrorMessage().size() == 0)
+							rOStream << std::endl;
+						else
+						{
+							rOStream << " with message: " << std::endl;
+							rOStream << "        " << test_case_result.GetErrorMessage() << std::endl;
+						}
+					}
 					else
 					{
-						rOStream << " with message: " << std::endl;
-						rOStream << "        " << test_case_result.GetErrorMessage() << std::endl;
+						Tester::ReportDistributedFailureDetails(rOStream, i_test->second);
 					}
 				}
+			}
+		}
+
+		void Tester::ReportDistributedFailureDetails(std::ostream& rOStream, const TestCase* const pTheTestCase)
+		{
+			TestCaseResult const& r_test_case_result = pTheTestCase->GetResult();
+			rOStream << " with messages: " << std::endl;
+			rOStream << "From rank 0:" << std::endl << r_test_case_result.GetErrorMessage() << std::endl;
+			const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+			const int parallel_rank = r_comm.Rank();
+			const int parallel_size = r_comm.Size();
+			if (parallel_rank == 0)
+			{
+				for (int i = 1; i < parallel_size; i++)
+				{
+					std::string remote_message;
+					r_comm.Recv(remote_message, i,i);
+					rOStream << "From rank " << i << ":" << std::endl << remote_message << std::endl;
+				}
+			}
+			else
+			{
+				r_comm.Send(r_test_case_result.GetErrorMessage(), 0, parallel_rank);
 			}
 		}
 
