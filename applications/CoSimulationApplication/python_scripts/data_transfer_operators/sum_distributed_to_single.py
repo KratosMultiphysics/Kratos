@@ -14,7 +14,10 @@ class SumDistributedToSingle(CoSimulationDataTransferOperator):
     Used e.g. for FSI with SDof, where the loads on the fluid interface are summed up and set to the SDof interface
     """
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
-        data_array = np.array([])
+        to_solver_data_size = to_solver_data.Size()
+        if not to_solver_data_size == 1:
+            raise Exception('Interface data "{}" of solver "{}" requires to be of size 1, got: {}'.format(to_solver_data.name, to_solver_data.solver_name, to_solver_data_size))
+
         data_array = from_solver_data.GetData()
 
         value = sum(data_array)

@@ -127,7 +127,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         self.__TestTransferMatchingAddValuesAndSwapSign(data_transfer_op)
 
         transfer_options_empty = KM.Parameters(""" [] """)
-        exp_error = 'The sizes of the data are not matching: {} != {}!'.format(self.origin_data_scalar.Size(), self.destination_non_matching_data_scalar.Size())
+        exp_error = 'The sizes of the data are not matching: {} != {} for interface data "{}" of solver "{}" and interface data "{}" of solver "{}"!'.format(self.origin_data_scalar.Size(), self.destination_non_matching_data_scalar.Size(), self.origin_data_scalar.name, self.origin_data_scalar.solver_name, self.destination_non_matching_data_scalar.name, self.destination_non_matching_data_scalar.solver_name)
         with self.assertRaisesRegex(Exception, exp_error):
             data_transfer_op.TransferData(self.origin_data_scalar, self.destination_non_matching_data_scalar, transfer_options_empty)
 
@@ -202,6 +202,11 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes,
                                         self.origin_data_single_node.GetModelPart().Nodes,
                                         KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT,1)
+
+        with self.assertRaisesRegex(Exception, 'Interface data "default" of solver "default_solver" requires to be of size 1, got: 5'):
+            data_transfer_op.TransferData(self.origin_data_scalar,
+                                          self.destination_matching_data_scalar,
+                                          transfer_options)
 
 
     def test_copy_single_to_dist_transfer_operator_swap_sign(self):
@@ -335,6 +340,11 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes,
                                         self.origin_data_scalar.GetModelPart().Nodes,
                                         KMC.SCALAR_FORCE, KM.PRESSURE, 5)
+
+        with self.assertRaisesRegex(Exception, 'Interface data "default" of solver "default_solver" requires to be of size 1, got: 5'):
+            data_transfer_op.TransferData(self.origin_data_scalar,
+                                        self.destination_matching_data_scalar,
+                                        transfer_options)
 
 
     def test_sum_dist_to_single_swap_sign(self):

@@ -15,7 +15,7 @@ class CopySingleToDistributed(CoSimulationDataTransferOperator):
         data_value = from_solver_data.GetData()
 
         if not data_value.size == 1:
-            raise Exception('Expected one value, got: {}'.format(data_value.size))
+            raise Exception('Interface data "{}" of solver "{}" requires to be of size 1, got: {}'.format(from_solver_data.name, from_solver_data.solver_name, data_value.size))
 
         to_solver_values.fill(data_value[0])
 
