@@ -28,8 +28,6 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_structure"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_support","PointLoad3D_load_point", "structure"],
         "rotation_dofs"                      : false
     },
     "processes": {
