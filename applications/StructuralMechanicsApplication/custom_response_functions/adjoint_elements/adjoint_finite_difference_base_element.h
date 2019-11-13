@@ -72,7 +72,7 @@ public:
                         bool HasRotationDofs = false)
     : Element(NewId),
       mpPrimalElement(std::make_shared<TPrimalElement>(NewId, pGetGeometry())),
-      mHasRotationDofs(HasRotationDofs), mPrimalElement(NewId, this->pGetGeometry())
+      mHasRotationDofs(HasRotationDofs)
     {
     }
 
@@ -81,7 +81,7 @@ public:
                         bool HasRotationDofs = false)
     : Element(NewId, pGeometry),
       mpPrimalElement(std::make_shared<TPrimalElement>(NewId, pGeometry)),
-      mHasRotationDofs(HasRotationDofs), mPrimalElement(NewId, pGeometry)
+      mHasRotationDofs(HasRotationDofs)
     {
     }
 
@@ -91,7 +91,7 @@ public:
                         bool HasRotationDofs = false)
     : Element(NewId, pGeometry, pProperties),
       mpPrimalElement(std::make_shared<TPrimalElement>(NewId, pGeometry, pProperties)),
-      mHasRotationDofs(HasRotationDofs), mPrimalElement(NewId, pGeometry, pProperties)
+      mHasRotationDofs(HasRotationDofs)
     {
     }
 
@@ -435,11 +435,6 @@ public:
     {
         return mpPrimalElement;
     }
-
-    TPrimalElement& GetPrimalElement()
-    {
-        return mPrimalElement;
-    }
     ///@}
 
     ///@name Public specialized Access - Temporary
@@ -536,7 +531,6 @@ protected:
      */
     Element::Pointer mpPrimalElement;
     bool mHasRotationDofs = false;
-    TPrimalElement mPrimalElement;
 
     ///@}
 
