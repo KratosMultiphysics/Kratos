@@ -13,8 +13,9 @@
 /* Project includes */
 #include "utilities/math_utils.h"
 #include "geometries/triangle_3d_3.h"
-#include "custom_utilities/parallel_fill_communicator.h"
 #include "mpi/utilities/model_part_communicator_utilities.h"
+#include "mpi/utilities/parallel_fill_communicator.h"
+#include "includes/global_pointer_variables.h"
 
 #include "Epetra_Vector.h"
 #include "Epetra_Map.h"

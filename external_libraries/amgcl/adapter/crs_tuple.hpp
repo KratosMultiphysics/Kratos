@@ -46,9 +46,9 @@ int    *col;
 double *val;
 
 AMG amg(std::make_tuple(n,
-                          boost::make_iterator_range(ptr, ptr + n + 1),
-                          boost::make_iterator_range(col, col + ptr[n]),
-                          boost::make_iterator_range(val, val + ptr[n])
+                          amgcl::make_iterator_range(ptr, ptr + n + 1),
+                          amgcl::make_iterator_range(col, col + ptr[n]),
+                          amgcl::make_iterator_range(val, val + ptr[n])
                           ) );
 \endcode
 */

@@ -32,7 +32,7 @@
 #include "includes/node.h"
 #include "utilities/geometry_utilities.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 #include "boost/smart_ptr.hpp"
 #include "includes/cfd_variables.h"
 #include "includes/c2c_variables.h"
@@ -159,7 +159,7 @@ public:
 
     //**********************************************************************************************
     //**********************************************************************************************
-    void ApplyMinimalPressureConditions(std::vector< WeakPointerVector< Node<3> > >& connected_components)
+    void ApplyMinimalPressureConditions(std::vector< GlobalPointersVector< Node<3> > >& connected_components)
     {
         KRATOS_TRY;
 
@@ -170,8 +170,8 @@ public:
         {
             int boundary_nodes = 0;
             int prescribed_vel_nodes = 0;
-            WeakPointerVector< Node<3> >& node_list = connected_components[i];
-            for( WeakPointerVector< Node<3> >::iterator in = node_list.begin();
+            GlobalPointersVector< Node<3> >& node_list = connected_components[i];
+            for( GlobalPointersVector< Node<3> >::iterator in = node_list.begin();
                     in != node_list.end(); in++)
             {
                 //free the pressure
@@ -195,7 +195,7 @@ public:
             if(boundary_nodes == prescribed_vel_nodes)
             {
                 bool one_is_prescribed = false;
-                for( WeakPointerVector< Node<3> >::iterator in = node_list.begin();
+                for( GlobalPointersVector< Node<3> >::iterator in = node_list.begin();
                         in != node_list.end(); in++)
                 {
                     if( one_is_prescribed == false &&
@@ -350,7 +350,7 @@ public:
                 hnode2 *= hnode2; //take the square
 
                 //loop on neighbours and erase if they are too close
-                for( WeakPointerVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
+                for( GlobalPointersVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
                         i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
                 {
                     if( bool(i->Is(TO_ERASE)) == false) //we can erase the current node only if the neighb is not to be erased

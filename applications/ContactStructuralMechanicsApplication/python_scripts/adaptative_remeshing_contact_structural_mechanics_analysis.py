@@ -9,7 +9,7 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 import sys
 
 # Import the base structural analysis
-from contact_structural_mechanics_analysis import ContactStructuralMechanicsAnalysis as BaseClass
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
 
 class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
     """
@@ -145,7 +145,6 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
                         self.InitializeSolutionStep()
                         self._GetSolver().Predict()
                         computing_model_part.Set(KM.MODIFIED, False)
-                        self.is_printing_rank = False
                     computing_model_part.ProcessInfo.SetValue(KM.NL_ITERATION_NUMBER, non_linear_iteration)
                     is_converged = convergence_criteria.PreCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
                     self._GetSolver().SolveSolutionStep()
@@ -153,11 +152,9 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
                     self._transfer_slave_to_master()
                     self.FinalizeSolutionStep()
                     if is_converged:
-                        self.is_printing_rank = True
                         KM.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
                         break
                     elif non_linear_iteration == self.non_linear_iterations:
-                        self.is_printing_rank = True
                         KM.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy not converged after ", non_linear_iteration, "iterations" )
                         break
                     else:
@@ -183,7 +180,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
 
         # To avoid many prints
-        if (self.echo_level == 0):
+        if self.echo_level == 0:
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
         ## Solver construction

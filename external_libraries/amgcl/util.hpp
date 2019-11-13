@@ -33,6 +33,7 @@ THE SOFTWARE.
 
 #include <iostream>
 #include <iomanip>
+#include <iterator>
 #include <vector>
 #include <array>
 #include <string>
@@ -194,6 +195,44 @@ struct empty_params {
 
 } // namespace detail
 
+// Iterator range
+template <class Iterator>
+class iterator_range {
+    public:
+        typedef Iterator iterator;
+        typedef Iterator const_iterator;
+        typedef typename std::iterator_traits<Iterator>::value_type value_type;
+
+        iterator_range(Iterator b, Iterator e)
+            : b(b), e(e) {}
+
+        ptrdiff_t size() const {
+            return std::distance(b, e);
+        }
+
+        Iterator begin() const {
+            return b;
+        }
+
+        Iterator end() const {
+            return e;
+        }
+
+        const value_type& operator[](size_t i) const {
+            return b[i];
+        }
+
+        value_type& operator[](size_t i) {
+            return b[i];
+        }
+    private:
+        Iterator b, e;
+};
+
+template <class Iterator>
+iterator_range<Iterator> make_iterator_range(Iterator b, Iterator e) {
+    return iterator_range<Iterator>(b, e);
+}
 
 // N-dimensional dense matrix
 template <class T, int N>

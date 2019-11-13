@@ -92,7 +92,21 @@ class DamConstructionUtility:
                     print("New phase has been activated...")
                     self.name_sub_thermal_part = "sub_Thermal_" + file_3[1]
                     self.name_sub_mechanical_part = "sub_Parts_" + file_3[1]
-                    self.Construction.InitializeSolutionStep(self.name_sub_thermal_part,self.name_sub_mechanical_part,int(file_3[2]))
+                    self.name_sub_heat_flux = "sub_TAmbientFlux3D_T_Ambient_Heat_Flux_" + file_3[1]
+                    self.name_sub_hydro_press = "sub_HydroSurfacePressure3D_Hydrostatic_Pressure_" + file_3[1]
+
+                    thermal_conditions = True
+                    mechanical_conditions = True
+                    try:
+                        self.thermal_model_part.GetSubModelPart(self.name_sub_heat_flux)
+                    except:
+                        thermal_conditions = False
+                    try:
+                        self.mechanical_model_part.GetSubModelPart(self.name_sub_hydro_press)
+                    except:
+                        mechanical_conditions = False
+
+                    self.Construction.InitializeSolutionStep(self.name_sub_thermal_part,self.name_sub_mechanical_part,self.name_sub_heat_flux,self.name_sub_hydro_press,thermal_conditions,mechanical_conditions,int(file_3[2]))
 
     def InitializeSolutionStep(self):
 
@@ -108,7 +122,21 @@ class DamConstructionUtility:
                     print("New phase has been activated...")
                     self.name_sub_thermal_part = "sub_Thermal_" + file_3[1]
                     self.name_sub_mechanical_part = "sub_Parts_" + file_3[1]
-                    self.Construction.InitializeSolutionStep(self.name_sub_thermal_part,self.name_sub_mechanical_part,int(file_3[2]))
+                    self.name_sub_heat_flux = "sub_TAmbientFlux3D_T_Ambient_Heat_Flux_" + file_3[1]
+                    self.name_sub_hydro_press = "sub_HydroSurfacePressure3D_Hydrostatic_Pressure_" + file_3[1]
+
+                    thermal_conditions = True
+                    mechanical_conditions = True
+                    try:
+                        self.thermal_model_part.GetSubModelPart(self.name_sub_heat_flux)
+                    except:
+                        thermal_conditions = False
+                    try:
+                        self.mechanical_model_part.GetSubModelPart(self.name_sub_hydro_press)
+                    except:
+                        mechanical_conditions = False
+
+                    self.Construction.InitializeSolutionStep(self.name_sub_thermal_part,self.name_sub_mechanical_part,self.name_sub_heat_flux,self.name_sub_hydro_press,thermal_conditions,mechanical_conditions,int(file_3[2]))
 
         # Check if the temperature of every nodes is in the range (it must be done each step)
         if (self.activate_check_temperature):

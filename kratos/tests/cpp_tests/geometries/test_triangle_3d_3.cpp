@@ -25,9 +25,9 @@
 // Utility includes
 #include "utilities/geometry_utilities.h"
 
-namespace Kratos 
+namespace Kratos
 {
-namespace Testing 
+namespace Testing
 {
     /// Factory functions
 
@@ -86,6 +86,38 @@ namespace Testing
         KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 3);
     }
 
+    /** Checks if the edges are correct.
+    * Checks if the edges are correct.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Edges, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GenerateRightTriangle3D3<NodeType>();
+
+        const auto& r_edges = p_geom->GenerateEdges();
+        KRATOS_CHECK_NEAR((r_edges[0])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[0].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[0].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[0])[1].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[1].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[1].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[1])[0].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[1])[0].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[1])[0].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[1])[1].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[1])[1].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[1])[1].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[2])[0].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[2])[0].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[2])[0].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[2])[1].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[2])[1].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[2])[1].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
+    }
+
     /** Checks if the number of faces is correct.
     * Checks if the number of faces is correct.
     */
@@ -94,7 +126,27 @@ namespace Testing
 
         // Charlie: I will let this to 3 but probably 'FacesNumber' needs to be documented to state
         // that for planar geometries it also return the number of edges.
-        KRATOS_CHECK_EQUAL(geom->FacesNumber(), 3);
+        KRATOS_CHECK_EQUAL(geom->FacesNumber(), 1);
+    }
+
+    /** Checks if the faces are correct.
+    * Checks if the faces are correct.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Faces, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GenerateRightTriangle3D3<NodeType>();
+
+        const auto& r_faces = p_geom->GenerateFaces();
+        KRATOS_CHECK_NEAR((r_faces[0])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[0].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[0].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_faces[0])[1].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[1].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[1].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_faces[0])[2].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[2].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[2].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
     }
 
     /** Checks if the area of the triangle is calculated correctly.
@@ -172,10 +224,10 @@ namespace Testing
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IsInside, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRightTriangle3D3<NodeType>();
 
-        Point PointInside(0.33, 0.33, 0.0);
+        Point PointInside(0.5 * std::cos(Globals::Pi/4), 0.5, 0.5 * std::sin(Globals::Pi/4));
         Point PointOutside(0.66, 0.66, 0.0);
         Point PointInVertex(0.0, 0.0, 0.0);
-        Point PointInEdge(0.5, 0.5, 0.0);
+        Point PointInEdge(0.0, 0.5, 0.0);
 
         Point LocalCoords;
 
@@ -381,14 +433,14 @@ namespace Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelNoIntersection, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.0),
-            GeneratePoint<NodeType >(10., 0.0, 2.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 0.0)
+            std::make_shared<Point>(0.0, 0.0, 0.0),
+            std::make_shared<Point>(10., 0.0, 2.0),
+            std::make_shared<Point>(0.0, 1.0, 0.0)
             );
         Triangle3D3<Point > triangle_2(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.01),
-            GeneratePoint<NodeType >(10., 0.0, 2.01),
-            GeneratePoint<NodeType >(0.0, 1.0, 0.01)
+            std::make_shared<Point>(0.0, 0.0, 0.01),
+            std::make_shared<Point>(10., 0.0, 2.01),
+            std::make_shared<Point>(0.0, 1.0, 0.01)
             );
 
         KRATOS_CHECK_IS_FALSE(triangle_1.HasIntersection(triangle_2));
@@ -396,14 +448,14 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelNearIntersection, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.0),
-            GeneratePoint<NodeType >(10., 0.0, 2.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 0.0)
+            std::make_shared<Point>(0.0, 0.0, 0.0),
+            std::make_shared<Point>(10., 0.0, 2.0),
+            std::make_shared<Point>(0.0, 1.0, 0.0)
             );
         Triangle3D3<Point > triangle_2(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.00000001),
-            GeneratePoint<NodeType >(10., 0.0, 2.00000001),
-            GeneratePoint<NodeType >(0.0, 1.0, 0.00000001)
+            std::make_shared<Point>(0.0, 0.0, 0.00000001),
+            std::make_shared<Point>(10., 0.0, 2.00000001),
+            std::make_shared<Point>(0.0, 1.0, 0.00000001)
             );
 
         KRATOS_CHECK_IS_FALSE(triangle_1.HasIntersection(triangle_2));
@@ -411,14 +463,14 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CoplanarNoIntersection, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.0),
-            GeneratePoint<NodeType >(10., 0.0, 2.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 0.0)
+            std::make_shared<Point>(0.0, 0.0, 0.0),
+            std::make_shared<Point>(10., 0.0, 2.0),
+            std::make_shared<Point>(0.0, 1.0, 0.0)
             );
         Triangle3D3<Point > triangle_2(
-            GeneratePoint<NodeType >(0.00000001, 0.00000001, 0.00000001),
-            GeneratePoint<NodeType >(-10., 0.0, -2.0),
-            GeneratePoint<NodeType >(0.0, -1.0, 0.00)
+            std::make_shared<Point>(0.00000001, 0.00000001, 0.00000001),
+            std::make_shared<Point>(-10., 0.0, -2.0),
+            std::make_shared<Point>(0.0, -1.0, 0.00)
             );
 
         KRATOS_CHECK_IS_FALSE(triangle_1.HasIntersection(triangle_2));
@@ -426,14 +478,14 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CoplanarPointIntersection, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.0),
-            GeneratePoint<NodeType >(10., 0.0, 2.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 0.0)
+            std::make_shared<Point>(0.0, 0.0, 0.0),
+            std::make_shared<Point>(10., 0.0, 2.0),
+            std::make_shared<Point>(0.0, 1.0, 0.0)
             );
         Triangle3D3<Point > triangle_2(
-            GeneratePoint<NodeType >(0.00, 0.00, 0.0),
-            GeneratePoint<NodeType >(-10., 0.0, -2.0),
-            GeneratePoint<NodeType >(0.0, -1.0, 0.00)
+            std::make_shared<Point>(0.00, 0.00, 0.0),
+            std::make_shared<Point>(-10., 0.0, -2.0),
+            std::make_shared<Point>(0.0, -1.0, 0.00)
             );
 
         KRATOS_CHECK(triangle_1.HasIntersection(triangle_2));
@@ -441,14 +493,14 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3EdgeIntersection, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.0),
-            GeneratePoint<NodeType >(10., 0.0, 2.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 0.0)
+            std::make_shared<Point>(0.0, 0.0, 0.0),
+            std::make_shared<Point>(10., 0.0, 2.0),
+            std::make_shared<Point>(0.0, 1.0, 0.0)
             );
         Triangle3D3<Point > triangle_2(
-            GeneratePoint<NodeType >(0.00, 0.00, 0.0),
-            GeneratePoint<NodeType >(10., 0.0, 2.0),
-            GeneratePoint<NodeType >(0.0, -1.0, 0.00)
+            std::make_shared<Point>(0.00, 0.00, 0.0),
+            std::make_shared<Point>(10., 0.0, 2.0),
+            std::make_shared<Point>(0.0, -1.0, 0.00)
             );
 
         KRATOS_CHECK(triangle_1.HasIntersection(triangle_2));
@@ -456,14 +508,14 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3InsideIntersection, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.0),
-            GeneratePoint<NodeType >(0.0, 0.0, 4.0),
-            GeneratePoint<NodeType >(0.0, 4.0, 0.0)
+            std::make_shared<Point>(0.0, 0.0, 0.0),
+            std::make_shared<Point>(0.0, 0.0, 4.0),
+            std::make_shared<Point>(0.0, 4.0, 0.0)
             );
         Triangle3D3<Point > triangle_2(
-            GeneratePoint<NodeType >(0.0, 1.0, 1.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 3.0),
-            GeneratePoint<NodeType >(0.0, 3.0, 1.0)
+            std::make_shared<Point>(0.0, 1.0, 1.0),
+            std::make_shared<Point>(0.0, 1.0, 3.0),
+            std::make_shared<Point>(0.0, 3.0, 1.0)
             );
 
         KRATOS_CHECK(triangle_1.HasIntersection(triangle_2));
@@ -530,9 +582,9 @@ namespace Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongXPlaneX, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(0.55, -0.25, 0.25),
-            GeneratePoint<NodeType >(0.50, -0.25, 0.75),
-            GeneratePoint<NodeType >(0.50,  0.25, 0.25)
+            std::make_shared<Point>(0.55, -0.25, 0.25),
+            std::make_shared<Point>(0.50, -0.25, 0.75),
+            std::make_shared<Point>(0.50,  0.25, 0.25)
         );
 
         auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
@@ -543,9 +595,9 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongXPlaneY, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(-0.25, 0.50, 0.25),
-            GeneratePoint<NodeType >(-0.25, 0.55, 0.75),
-            GeneratePoint<NodeType >( 0.25, 0.50, 0.25)
+            std::make_shared<Point>(-0.25, 0.50, 0.25),
+            std::make_shared<Point>(-0.25, 0.55, 0.75),
+            std::make_shared<Point>( 0.25, 0.50, 0.25)
         );
 
         auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
@@ -556,9 +608,9 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongXPlaneZ, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(-0.25, 0.25, 0.50),
-            GeneratePoint<NodeType >(-0.25, 0.75, 0.50),
-            GeneratePoint<NodeType >( 0.25, 0.25, 0.55)
+            std::make_shared<Point>(-0.25, 0.25, 0.50),
+            std::make_shared<Point>(-0.25, 0.75, 0.50),
+            std::make_shared<Point>( 0.25, 0.25, 0.55)
         );
 
         auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
@@ -569,9 +621,9 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongYPlaneX, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(0.55, -0.25, 0.25),
-            GeneratePoint<NodeType >(0.50, -0.25, 0.75),
-            GeneratePoint<NodeType >(0.50,  0.25, 0.25)
+            std::make_shared<Point>(0.55, -0.25, 0.25),
+            std::make_shared<Point>(0.50, -0.25, 0.75),
+            std::make_shared<Point>(0.50,  0.25, 0.25)
         );
 
         auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
@@ -582,9 +634,9 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongYPlaneY, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(-0.25, 0.50, 0.25),
-            GeneratePoint<NodeType >(-0.25, 0.55, 0.75),
-            GeneratePoint<NodeType >( 0.25, 0.50, 0.25)
+            std::make_shared<Point>(-0.25, 0.50, 0.25),
+            std::make_shared<Point>(-0.25, 0.55, 0.75),
+            std::make_shared<Point>( 0.25, 0.50, 0.25)
         );
 
         auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
@@ -595,9 +647,9 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongYPlaneZ, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(-0.25, 0.25, 0.50),
-            GeneratePoint<NodeType >(-0.25, 0.75, 0.50),
-            GeneratePoint<NodeType >( 0.25, 0.25, 0.55)
+            std::make_shared<Point>(-0.25, 0.25, 0.50),
+            std::make_shared<Point>(-0.25, 0.75, 0.50),
+            std::make_shared<Point>( 0.25, 0.25, 0.55)
         );
 
         auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
@@ -608,9 +660,9 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongZPlaneX, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(0.55, -0.25, 0.25),
-            GeneratePoint<NodeType >(0.50, -0.25, 0.75),
-            GeneratePoint<NodeType >(0.50,  0.25, 0.25)
+            std::make_shared<Point>(0.55, -0.25, 0.25),
+            std::make_shared<Point>(0.50, -0.25, 0.75),
+            std::make_shared<Point>(0.50,  0.25, 0.25)
         );
 
         auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
@@ -621,9 +673,9 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongZPlaneY, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(-0.25, 0.50, 0.25),
-            GeneratePoint<NodeType >(-0.25, 0.55, 0.75),
-            GeneratePoint<NodeType >( 0.25, 0.50, 0.25)
+            std::make_shared<Point>(-0.25, 0.50, 0.25),
+            std::make_shared<Point>(-0.25, 0.55, 0.75),
+            std::make_shared<Point>( 0.25, 0.50, 0.25)
         );
 
         auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
@@ -634,9 +686,9 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongZPlaneZ, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(-0.25, 0.25, 0.50),
-            GeneratePoint<NodeType >(-0.25, 0.75, 0.50),
-            GeneratePoint<NodeType >( 0.25, 0.25, 0.55)
+            std::make_shared<Point>(-0.25, 0.25, 0.50),
+            std::make_shared<Point>(-0.25, 0.75, 0.50),
+            std::make_shared<Point>( 0.25, 0.25, 0.55)
         );
 
         auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
@@ -660,6 +712,40 @@ namespace Testing
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateEquilateralTriangle3D3<NodeType>();
         TestAllShapeFunctionsLocalGradients(*geom);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Normal, KratosCoreGeometriesFastSuite) {
+        Geometry<Point> geom(Triangle3D3<Point>(
+            std::make_shared<Point>(0.55, -0.25, 0.0),
+            std::make_shared<Point>(0.50, -0.25, 0.0),
+            std::make_shared<Point>(0.50, 0.25, 0.0))
+        );
+        auto normal = geom.Normal(0);
+
+        array_1d<double, 3> cross_norm(3, 0.0);
+        cross_norm[2] = 1.0;
+        array_1d<double, 3> cross(3, 0.0);
+        MathUtils<double>::CrossProduct(cross, cross_norm, normal);
+
+        KRATOS_WATCH(normal)
+        KRATOS_CHECK_NEAR(cross[0], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(cross[1], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(cross[2], 0.0, TOLERANCE);
+
+        KRATOS_WATCH(cross)
+
+        normal /= norm_2(normal);
+
+        auto unit_normal = geom.UnitNormal(0);
+
+        KRATOS_CHECK_NEAR(unit_normal[0], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(unit_normal[1], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(unit_normal[2], -1.0, TOLERANCE);
+
+        KRATOS_WATCH(unit_normal)
+        KRATOS_CHECK_NEAR(unit_normal[0], normal[0], TOLERANCE);
+        KRATOS_CHECK_NEAR(unit_normal[1], normal[1], TOLERANCE);
+        KRATOS_CHECK_NEAR(unit_normal[2], normal[2], TOLERANCE);
     }
 
 } // namespace Testing.

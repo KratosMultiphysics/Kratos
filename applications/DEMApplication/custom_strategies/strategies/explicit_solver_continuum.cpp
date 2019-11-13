@@ -138,7 +138,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }// Initialize()
 
-    double ContinuumExplicitSolverStrategy::Solve() {
+    double ContinuumExplicitSolverStrategy::SolveSolutionStep() {
 
         KRATOS_TRY
 
@@ -149,18 +149,16 @@ namespace Kratos {
         VariablesList r_modelpart_nodal_variables_list = r_model_part.GetNodalSolutionStepVariablesList();
         if (r_modelpart_nodal_variables_list.Has(PARTITION_INDEX)) has_mpi = true;
 
-        InitializeSolutionStep();
         SearchDEMOperations(r_model_part, has_mpi);
         SearchFEMOperations(r_model_part, has_mpi);
         ForceOperations(r_model_part);
         PerformTimeIntegrationOfMotion();
-        FinalizeSolutionStep();
 
         KRATOS_CATCH("")
 
         return 0.0;
 
-    }//Solve()
+    }//SolveSolutionStep()
 
     void ContinuumExplicitSolverStrategy::SearchFEMOperations(ModelPart& r_model_part, bool has_mpi) {
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
@@ -195,7 +193,6 @@ namespace Kratos {
         const int time_step = r_process_info[TIME_STEPS];
         const double time = r_process_info[TIME];
         const bool is_time_to_search_neighbours = (time_step + 1) % GetNStepSearch() == 0 && (time_step > 0); //Neighboring search. Every N times.
-        const bool is_time_to_print_results = r_process_info[IS_TIME_TO_PRINT];
 
         if (r_process_info[SEARCH_CONTROL] > 0) {
 
@@ -241,7 +238,8 @@ namespace Kratos {
             }
 
             //if (r_process_info[BOUNDING_BOX_OPTION] == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
-            if (is_time_to_print_results && r_process_info[CONTACT_MESH_OPTION] == 1) {
+
+            if (r_process_info[CONTACT_MESH_OPTION]) {
                 CreateContactElements();
                 InitializeContactElements();
             }
@@ -249,7 +247,7 @@ namespace Kratos {
 
         }
         //Synch this var.
-        r_model_part.GetCommunicator().MaxAll(r_process_info[SEARCH_CONTROL]);
+        r_process_info[SEARCH_CONTROL] = r_model_part.GetCommunicator().GetDataCommunicator().MaxAll(r_process_info[SEARCH_CONTROL]);
     }
 
     void ContinuumExplicitSolverStrategy::MarkNewSkinParticles() {
@@ -466,7 +464,7 @@ namespace Kratos {
         ModelPart& r_model_part = GetModelPart();
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        unsigned int total_contacts = 0;
+        int total_contacts = 0;
         const int number_of_particles = (int) mListOfSphericParticles.size();
         std::vector<int> neighbour_counter;
         std::vector<int> sum;
@@ -491,10 +489,8 @@ namespace Kratos {
             total_sum += sum[i];
         }
 
-        int global_total_contacts = total_contacts;
-        r_model_part.GetCommunicator().SumAll(global_total_contacts);
-        int global_number_of_elements = (int) pElements.size();
-        r_model_part.GetCommunicator().SumAll(global_number_of_elements);
+        int global_total_contacts = r_model_part.GetCommunicator().GetDataCommunicator().SumAll(total_contacts);
+        int global_number_of_elements = r_model_part.GetCommunicator().GetDataCommunicator().SumAll((int) pElements.size());
 
         double coord_number = double(global_total_contacts) / double(global_number_of_elements);
 
@@ -597,8 +593,7 @@ namespace Kratos {
         DestroyMarkedParticlesRebuildLists();
 
         //KRATOS_WARNING("DEM") << "Mesh repair complete. In MPI node " <<GetModelPart().GetCommunicator().MyPID()<<". "<< particle_counter << " particles were removed. " << "\n" << std::endl;
-        double total_spheres_removed = particle_counter;
-        GetModelPart().GetCommunicator().SumAll(total_spheres_removed);
+        int total_spheres_removed = GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(particle_counter);
 
         if(GetModelPart().GetCommunicator().MyPID() == 0) {
             KRATOS_WARNING("DEM") << "A total of "<<total_spheres_removed<<" spheres were removed due to excessive overlapping." << std::endl;
@@ -639,6 +634,35 @@ namespace Kratos {
         #pragma omp parallel for
         for (int i = 0; i < number_of_particles; i++) { //Do not do this for the ghost particles!
             mListOfSphericContinuumParticles[i]->CalculateMeanContactArea(has_mpi, r_process_info);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void ContinuumExplicitSolverStrategy::BreakAlmostBrokenSpheres() {
+
+        KRATOS_TRY
+
+        const int maximum_allowed_number_of_intact_bonds = (int) GetModelPart().GetProcessInfo()[MAX_NUMBER_OF_INTACT_BONDS_TO_CONSIDER_A_SPHERE_BROKEN];
+
+        #pragma omp parallel for
+        for (int i = 0; i < (int) mListOfSphericContinuumParticles.size(); i++) {
+
+            int number_of_intact_bonds = 0;
+
+            for (int j = 0; j < (int) mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize; j++) {
+
+                if (!mListOfSphericContinuumParticles[i]->mIniNeighbourFailureId[j]) number_of_intact_bonds++;
+                if (number_of_intact_bonds > maximum_allowed_number_of_intact_bonds) break;
+            }
+
+            if (number_of_intact_bonds <= maximum_allowed_number_of_intact_bonds) {
+
+                for (int j = 0; j < (int) mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize; j++) {
+
+                    if (!mListOfSphericContinuumParticles[i]->mIniNeighbourFailureId[j]) mListOfSphericContinuumParticles[i]->mIniNeighbourFailureId[j] = 8;
+                }
+            }
         }
 
         KRATOS_CATCH("")
@@ -703,6 +727,8 @@ namespace Kratos {
                 }
             }
         }
+
+        BreakAlmostBrokenSpheres();
     }
 
     void ContinuumExplicitSolverStrategy::FinalizeSolutionStepFEM() {

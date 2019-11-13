@@ -214,7 +214,7 @@ namespace Kratos {
         virtual void InitializeClusters();
         virtual void GetClustersForce();
         virtual void GetRigidBodyElementsForce();
-        virtual double Solve();
+        virtual double SolveSolutionStep();
         void SearchDEMOperations(ModelPart& r_model_part, bool has_mpi = true);
         void SearchFEMOperations(ModelPart& r_model_part, bool has_mpi = true) ;
         virtual void ForceOperations(ModelPart& r_model_part);

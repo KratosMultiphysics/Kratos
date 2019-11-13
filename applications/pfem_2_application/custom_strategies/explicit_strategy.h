@@ -79,7 +79,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "includes/cfd_variables.h"
 #include "containers/array_1d.h"
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 //#include "custom_utilities/neighbours_calculator.h"
 //#include "custom_elements/2fluid_2d.h"
 //#include "custom_elements/2fluid_3d.h"
@@ -141,8 +141,8 @@ namespace Kratos
           //typedef typename std::vector<ParticlePointer> ParticlePointerVector;
           //typedef typename std::vector<ParticlePointer>::iterator ParticlePointerIterator;
 
-          //typedef WeakPointerVector<Element > ParticleWeakVector;
-          //typedef WeakPointerVector<Element >::iterator ParticleWeakIterator;
+          //typedef GlobalPointersVector<Element > ParticleWeakVector;
+          //typedef GlobalPointersVector<Element >::iterator ParticleWeakIterator;
 
 
 
@@ -868,8 +868,8 @@ void UpdateLoopForMassAndArea(ProcessInfo& CurrentProcessInfo)
           //typedef typename std::vector<ParticlePointer> ParticlePointerVector;
           //typedef typename std::vector<ParticlePointer>::iterator ParticlePointerIterator;
 
-          //typedef WeakPointerVector<Element > ParticleWeakVector;
-          //typedef WeakPointerVector<Element >::iterator ParticleWeakIterator;
+          //typedef GlobalPointersVector<Element > ParticleWeakVector;
+          //typedef GlobalPointersVector<Element >::iterator ParticleWeakIterator;
 
 
 

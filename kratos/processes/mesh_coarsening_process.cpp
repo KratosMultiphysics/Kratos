@@ -14,6 +14,7 @@
 // Project includes
 #include "processes/mesh_coarsening_process.h"
 #include "modeler/tetrahedra_ball.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {

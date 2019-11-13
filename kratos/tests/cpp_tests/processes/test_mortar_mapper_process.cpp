@@ -19,7 +19,7 @@
 #include "containers/model.h"
 #include "includes/kratos_flags.h"
 #include "includes/mapping_variables.h"
-#include "includes/gid_io.h"
+// #include "includes/gid_io.h"
 
 /* Processes */
 #include "processes/simple_mortar_mapper_process.h"
@@ -28,27 +28,26 @@ namespace Kratos
 {
     namespace Testing
     {
-        typedef Node<3>                                                    NodeType;
+        typedef Node<3> NodeType;
 
-        void GiDIODebugMapper(ModelPart& ThisModelPart)
-        {
-            GidIO<> gid_io("TEST_MAPPER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditionsOnly);
-            const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
-            const double label = static_cast<double>(nl_iter);
-
-            gid_io.InitializeMesh(label);
-            gid_io.WriteMesh(ThisModelPart.GetMesh());
-            gid_io.FinalizeMesh();
-            gid_io.InitializeResults(label, ThisModelPart.GetMesh());
-            gid_io.WriteNodalResults(TEMPERATURE, ThisModelPart.Nodes(), label, 0);
-            gid_io.WriteNodalResults(NORMAL, ThisModelPart.Nodes(), label, 0);
-        }
+//         void GiDIODebugMapper(ModelPart& ThisModelPart)
+//         {
+//             GidIO<> gid_io("TEST_MAPPER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditionsOnly);
+//             const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
+//             const double label = static_cast<double>(nl_iter);
+//
+//             gid_io.InitializeMesh(label);
+//             gid_io.WriteMesh(ThisModelPart.GetMesh());
+//             gid_io.FinalizeMesh();
+//             gid_io.InitializeResults(label, ThisModelPart.GetMesh());
+//             gid_io.WriteNodalResults(TEMPERATURE, ThisModelPart.Nodes(), label, 0);
+//             gid_io.WriteNodalResults(NORMAL, ThisModelPart.Nodes(), label, 0);
+//         }
 
         /**
         * Checks the correct work of the simple mortar mapper
         * Test 1
         */
-
         KRATOS_TEST_CASE_IN_SUITE(SimpleMortarMapper1, KratosCoreFastSuite)
         {
             Model current_model;
@@ -139,7 +138,6 @@ namespace Kratos
         * Checks the correct work of the simple mortar mapper
         * Test 2
         */
-
         KRATOS_TEST_CASE_IN_SUITE(SimpleMortarMapper2, KratosCoreFastSuite)
         {
             Model current_model;
@@ -233,11 +231,10 @@ namespace Kratos
         * Checks the correct work of the simple mortar mapper
         * Test 3
         */
-
         KRATOS_TEST_CASE_IN_SUITE(SimpleMortarMapper3, KratosCoreFastSuite)
         {
             Model current_model;
-            
+
             ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
             this_model_part.CreateSubModelPart("SlaveModelPart");

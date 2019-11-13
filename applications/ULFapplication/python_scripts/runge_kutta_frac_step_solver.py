@@ -4,8 +4,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.ULFApplication import *
 
-CheckForPreviousImport()
-
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(ACCELERATION)
@@ -85,8 +83,8 @@ class RungeKuttaFracStepSolver:
             self.Mesher = TriGenPFEMModeler()
             self.fluid_neigh_finder = FindNodalNeighboursProcess(self.model_part,9,18)
             self.condition_neigh_finder = FindConditionsNeighboursProcess(self.model_part,2, 10)
-            self.elem_neighbor_finder = FindElementalNeighboursProcess(self.model_part, 2, 10)            
-     
+            self.elem_neighbor_finder = FindElementalNeighboursProcess(self.model_part, 2, 10)
+
         self.mark_fluid_process = MarkFluidProcess(self.model_part);
         self.UlfUtils = UlfUtils()
 
@@ -111,16 +109,16 @@ class RungeKuttaFracStepSolver:
             raise Exception(msg)
 
         (self.solver).SetEchoLevel(self.echo_level)
-        
+
         (self.neigh_finder).Execute()
         (self.fluid_neigh_finder).Execute();
         (self.mark_free_surface_process).Execute();
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(IS_FREE_SURFACE,0,0.0)
-        
+
         Hfinder  = FindNodalHProcess(self.model_part);
         Hfinder.Execute();
-        self.Remesh(); 
+        self.Remesh();
 
     def Solve(self):
 
@@ -129,7 +127,7 @@ class RungeKuttaFracStepSolver:
         self.Remesh();
 
         (self.neigh_finder).Execute()
-        #setting pressure to zero at free-surface to solve the Poisson's equation        
+        #setting pressure to zero at free-surface to solve the Poisson's equation
         for node in (self.model_part).Nodes:
             node.Free(PRESSURE)
             if(node.GetSolutionStepValue(IS_FREE_SURFACE)== 1.0):
@@ -145,14 +143,14 @@ class RungeKuttaFracStepSolver:
     def SetEchoLevel(self, level):
         (self.solver).SetEchoLevel(level)
 
-    def Remesh(self):	
+    def Remesh(self):
 
         alpha_shape=1.4;
         h_factor=0.2
 
         if(self.domain_size == 2):
-            for node in (self.model_part).Nodes: 
-                node.SetSolutionStepValue(NODAL_H,0,0.002) 
+            for node in (self.model_part).Nodes:
+                node.SetSolutionStepValue(NODAL_H,0,0.002)
 
 
         self.node_erase_process = NodeEraseProcess(self.model_part);
@@ -168,7 +166,7 @@ class RungeKuttaFracStepSolver:
 
         if (self.domain_size == 2):
             (self.Mesher).ReGenerateMesh("Fluid2DGLS_expl","Condition2D", self.model_part, self.node_erase_process, True, True, alpha_shape, h_factor)
-             
+
         for node in (self.model_part).Nodes:
             node.Set(TO_ERASE, False)
 
@@ -176,7 +174,7 @@ class RungeKuttaFracStepSolver:
         (self.elem_neighbor_finder).Execute()
         (self.condition_neigh_finder).Execute();
 
-        (self.mark_free_surface_process).Execute(); 
+        (self.mark_free_surface_process).Execute();
 
- 
+
 

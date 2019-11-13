@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from fluid_transport_analysis import FluidTransportAnalysis
+from KratosMultiphysics.FluidTransportApplication.fluid_transport_analysis import FluidTransportAnalysis
 
 # This utility will control the execution scope
 class controlledExecutionScope:

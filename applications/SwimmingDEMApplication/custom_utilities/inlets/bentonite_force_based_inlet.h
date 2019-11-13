@@ -16,8 +16,8 @@ namespace Kratos {
 
         typedef NanoParticle* NanoParticlePointerType;
         typedef DEM_Force_Based_Inlet BaseClass;
-        typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
-        typedef WeakPointerVector<Element> ParticleWeakVectorType;
+        typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
+        typedef GlobalPointersVector<Element> ParticleWeakVectorType;
         typedef ModelPart::ElementsContainerType ElementsArrayType;
         typedef ModelPart::ElementsContainerType::iterator ElementIteratorType;
 

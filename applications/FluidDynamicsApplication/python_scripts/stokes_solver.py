@@ -1,8 +1,8 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics as kratoscore
-import KratosMultiphysics.IncompressibleFluidApplication as incompressibleapp
 import KratosMultiphysics.FluidDynamicsApplication as cfd
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 
 def AddVariables(model_part, settings=None):
@@ -54,13 +54,13 @@ class StokesSolver:
         self.compute_reactions = settings.compute_reactions
         self.reform_dofs_at_each_step = settings.reform_dofs_at_each_step
 
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(settings.linear_solver_settings)
 
-        self.bdf_process = kratoscore.ComputeBDFCoefficientsProcess(model_part,2)
+        time_order = 2
+        self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
 
-        self.conv_criteria = incompressibleapp.VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol,
-                                           self.rel_pres_tol, self.abs_pres_tol)
+        self.conv_criteria = cfd.VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol,
+                                               self.rel_pres_tol, self.abs_pres_tol)
 
         (self.conv_criteria).SetEchoLevel(self.echo_level)
 
@@ -84,7 +84,7 @@ class StokesSolver:
         print ("Initialization stokes solver finished")
 
     def Solve(self):
-        self.bdf_process.Execute()
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.model_part.ProcessInfo)
         self.fluid_solver.Solve()
 
     def SetEchoLevel(self, level):
@@ -95,5 +95,3 @@ class StokesSolver:
 
     def Check(self):
         self.fluid_solver.Check()
-
-

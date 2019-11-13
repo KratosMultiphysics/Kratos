@@ -17,7 +17,7 @@
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 
 namespace Kratos
 {

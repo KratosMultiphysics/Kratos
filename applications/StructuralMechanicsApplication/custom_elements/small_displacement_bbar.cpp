@@ -45,7 +45,7 @@ Element::Pointer SmallDisplacementBbar::Create(IndexType NewId,
                                                NodesArrayType const& ThisNodes,
                                                PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<SmallDisplacementBbar>(
+    return Kratos::make_intrusive<SmallDisplacementBbar>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
@@ -57,7 +57,7 @@ Element::Pointer SmallDisplacementBbar::Create(IndexType NewId,
                                                PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<SmallDisplacementBbar>(
+    return Kratos::make_intrusive<SmallDisplacementBbar>(
             NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }

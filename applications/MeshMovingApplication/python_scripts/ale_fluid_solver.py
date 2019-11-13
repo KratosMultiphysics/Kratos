@@ -10,21 +10,8 @@ import KratosMultiphysics.MeshMovingApplication.python_solvers_wrapper_mesh_moti
 
 class AleFluidSolver(PythonSolver):
     def __init__(self, model, solver_settings, parallelism):
-        default_settings = KM.Parameters("""{
-            "solver_type"                 : "ale_fluid",
-            "echo_level"                  : 0,
-            "start_fluid_solution_time"   : 0.0,
-            "ale_boundary_parts"          : [ ],
-            "mesh_motion_parts"           : [ ],
-            "fluid_solver_settings"       : { },
-            "mesh_motion_solver_settings" : { },
-            "mesh_velocity_calculation"   : { }
-        }""")
 
-        # cannot recursively validate because validation of fluid- and
-        # mesh-motion-settings is done in corresponding solvers
-        solver_settings.ValidateAndAssignDefaults(default_settings)
-
+        self._validate_settings_in_baseclass=True # To be removed eventually
         super(AleFluidSolver, self).__init__(model, solver_settings)
 
         self.start_fluid_solution_time = self.settings["start_fluid_solution_time"].GetDouble()
@@ -79,13 +66,6 @@ class AleFluidSolver(PythonSolver):
         else:
             mesh_motion_solver_settings.AddValue("domain_size", fluid_solver_settings["domain_size"])
 
-        # TODO remove this once the mesh-vel-computation is removed from the mesh-solver!
-        # We use the new utility, therefore explicitly setting it to false!
-        if mesh_motion_solver_settings.Has("calculate_mesh_velocities"):
-            mesh_motion_solver_settings["calculate_mesh_velocities"].SetBool(False)
-        else:
-            mesh_motion_solver_settings.AddEmptyValue("calculate_mesh_velocities").SetBool(False)
-
         # Constructing the mesh-solver with the entire mesh
         # if no submodelparts are specified then this is used for the computation of the mesh-motion
         # otherwise it only adds the dofs and the variables (to the entire ModelPart!)
@@ -97,9 +77,24 @@ class AleFluidSolver(PythonSolver):
         self.fluid_solver.min_buffer_size = max(
             [ self.fluid_solver.GetMinimumBufferSize(),
               self.mesh_motion_solver_full_mesh.GetMinimumBufferSize(),
-              KM.GetMinimumBufferSize(self.time_int_helper) ] )
+              KM.TimeDiscretization.GetMinimumBufferSize(self.time_int_helper) ] )
 
         KM.Logger.PrintInfo("::[AleFluidSolver]::", "Construction finished")
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KM.Parameters("""{
+            "solver_type"                 : "ale_fluid",
+            "start_fluid_solution_time"   : 0.0,
+            "ale_boundary_parts"          : [ ],
+            "mesh_motion_parts"           : [ ],
+            "fluid_solver_settings"       : { },
+            "mesh_motion_solver_settings" : { },
+            "mesh_velocity_calculation"   : { },
+            "superimpose_mesh_velocity_with" : [ ]
+        }""")
+        this_defaults.AddMissingParameters(super(AleFluidSolver, cls).GetDefaultSettings())
+        return this_defaults
 
     def AddVariables(self):
         self.mesh_motion_solver_full_mesh.AddVariables()
@@ -192,17 +187,23 @@ class AleFluidSolver(PythonSolver):
         self.fluid_solver.FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
+        is_converged = True
         for mesh_solver in self.mesh_motion_solvers:
-            mesh_solver.SolveSolutionStep()
+            is_converged &= mesh_solver.SolveSolutionStep()
 
         for mesh_solver in self.mesh_motion_solvers:
             KMM.CalculateMeshVelocities(
                 mesh_solver.GetComputingModelPart(),
                 self.time_int_helper)
 
+        for variable in KM.kratos_utilities.GenerateVariableListFromInput(self.settings["superimpose_mesh_velocity_with"]):
+            KMM.SuperImposeMeshVelocity(variable)
+
         if self.fluid_solver.GetComputingModelPart().ProcessInfo[KM.TIME] >= self.start_fluid_solution_time:
             self.__ApplyALEBoundaryCondition()
-            self.fluid_solver.SolveSolutionStep()
+            is_converged &= self.fluid_solver.SolveSolutionStep()
+
+        return is_converged
 
     def Check(self):
         for mesh_solver in self.mesh_motion_solvers:
@@ -270,21 +271,21 @@ class AleFluidSolver(PythonSolver):
         time_scheme = time_int_settings["time_scheme"].GetString()
 
         if time_scheme == "bdf1":
-            self.time_int_helper = KM.BDF1()
+            self.time_int_helper = KM.TimeDiscretization.BDF1()
         elif time_scheme == "bdf2":
-            self.time_int_helper = KM.BDF2()
+            self.time_int_helper = KM.TimeDiscretization.BDF2()
         elif time_scheme == "newmark":
-            self.time_int_helper = KM.Newmark()
+            self.time_int_helper = KM.TimeDiscretization.Newmark()
         elif time_scheme == "bossak":
             if time_int_settings.Has("alpha_m"):
                 alpha_m = time_int_settings["alpha_m"].GetDouble()
-                self.time_int_helper = KM.Bossak(alpha_m)
+                self.time_int_helper = KM.TimeDiscretization.Bossak(alpha_m)
             else:
-                self.time_int_helper = KM.Bossak()
+                self.time_int_helper = KM.TimeDiscretization.Bossak()
         elif time_scheme == "generalized_alpha":
             alpha_m = time_int_settings["alpha_m"].GetDouble()
             alpha_f = time_int_settings["alpha_f"].GetDouble()
-            self.time_int_helper = KM.GeneralizedAlpha(alpha_m, alpha_f)
+            self.time_int_helper = KM.TimeDiscretization.GeneralizedAlpha(alpha_m, alpha_f)
         else:
             err_msg =  'The requested time scheme "' + time_scheme + '" is not available!\n'
             err_msg += 'Available options are: "bdf1", "bdf2", '

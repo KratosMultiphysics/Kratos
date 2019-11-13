@@ -5,12 +5,12 @@ from KratosMultiphysics.DEMApplication import *
 if not "DO_NOT_PARTITION_DOMAIN" in os.environ:
     from KratosMultiphysics.MetisApplication import *
     from KratosMultiphysics.MPISearchApplication import *
-    import DEM_material_test_script_mpi as DEM_material_test_script
+    import KratosMultiphysics.DEMApplication.DEM_material_test_script_mpi as DEM_material_test_script
 else:
-    import DEM_material_test_script
+    import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
 
 from KratosMultiphysics.mpi import *
-import DEM_procedures
+import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
 
 from glob import glob
 
@@ -182,8 +182,7 @@ class ParallelUtils(DEM_procedures.ParallelUtils):
 
     def SetCommunicator(self, spheres_model_part, model_part_io_spheres, spheres_mp_filename):
 
-        MPICommSetup = SetMPICommunicatorProcess(spheres_model_part)
-        MPICommSetup.Execute()
+        ModelPartCommunicatorUtilities.SetMPICommunicator(spheres_model_part)
 
         print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Communicator Set")
         print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Reading: "+spheres_mp_filename+"_"+str(mpi.rank))
@@ -191,7 +190,7 @@ class ParallelUtils(DEM_procedures.ParallelUtils):
         my_input_filename = spheres_mp_filename + "_" + str(mpi.rank)
         model_part_io_spheres = ModelPartIO(my_input_filename)
 
-        return [model_part_io_spheres, spheres_model_part, MPICommSetup]
+        return [model_part_io_spheres, spheres_model_part]
 
     def GetSearchStrategy(self, solver, model_part):
         return MPI_DEMSearch(model_part.GetCommunicator())

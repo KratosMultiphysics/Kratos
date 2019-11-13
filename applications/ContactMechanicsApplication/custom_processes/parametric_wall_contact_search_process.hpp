@@ -137,7 +137,7 @@ namespace Kratos
 
       //std::cout<<" ConditionPointer "<<*mpConditionType<<std::endl;
 
-      if(mpConditionType == NULL)
+      if(mpConditionType.get() == nullptr)
 	std::cout<<" ERROR:: PROTOTYPE CONTACT WALL CONDITION NOT DEFINED PROPERLY "<<std::endl;
 
       //contact model part
@@ -380,7 +380,7 @@ namespace Kratos
 	      else if( Dimension == 3 )
 		pGeometry = Kratos::make_shared<Point3DType>(*nd);
 
-	      //pCondition= Kratos::make_shared<RigidBodyPointRigidContactCondition>(id, pGeometry, mpProperties, mpParametricWall);
+	      //pCondition= Kratos::make_intrusive<RigidBodyPointRigidContactCondition>(id, pGeometry, mpProperties, mpParametricWall);
 
 	      ContactConditions.push_back(pCondition);
 
@@ -551,34 +551,34 @@ namespace Kratos
 
 
       if(  ConditionName == "PointContactPenaltyCondition2D1N" ){
-      	return Kratos::make_shared<PointRigidContactPenalty2DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
+      	return Kratos::make_intrusive<PointRigidContactPenalty2DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
       }
       else if(  ConditionName == "PointContactPenaltyCondition3D1N" ){
-      	return Kratos::make_shared<PointRigidContactPenalty3DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
+      	return Kratos::make_intrusive<PointRigidContactPenalty3DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
       }
       else if(  ConditionName == "AxisymPointContactPenaltyCondition2D1N" ){
-      	return Kratos::make_shared<AxisymPointRigidContactPenalty2DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
+      	return Kratos::make_intrusive<AxisymPointRigidContactPenalty2DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
       }
        else if(  ConditionName == "EPPointContactPenaltyCondition3D1N" ) {
-         return Kratos::make_shared<EPPointRigidContactPenalty3DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
+         return Kratos::make_intrusive<EPPointRigidContactPenalty3DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
      }
      else if(  ConditionName == "EPPointContactPenaltyCondition2D1N" ) {
-       return Kratos::make_shared<EPPointRigidContactPenalty2DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
+       return Kratos::make_intrusive<EPPointRigidContactPenalty2DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
      }
      else if(  ConditionName == "EPPointContactPenaltywPCondition3D1N" ) {
-       return Kratos::make_shared<EPPointRigidContactPenaltywP3DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
+       return Kratos::make_intrusive<EPPointRigidContactPenaltywP3DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
      }
      else if(  ConditionName == "EPAxisymPointContactPenaltyCondition2D1N" ) {
-       return Kratos::make_shared<EPAxisymPointRigidContactPenalty2DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
+       return Kratos::make_intrusive<EPAxisymPointRigidContactPenalty2DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
       } else {
         std::cout << ConditionName << std::endl;
         KRATOS_ERROR << "the specified contact condition does not exist " << std::endl;
       }
       // else if(  ConditionName == "AxisymPointWaterContactPenaltyCondition2D1N" ){
-      // 	return Kratos::make_shared<AxisymPointRigidContactPenaltyWater2DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
+      // 	return Kratos::make_intrusive<AxisymPointRigidContactPenaltyWater2DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
       // }
       // else if(  ConditionName == "BeamPointRigidContactPenalty3DCondition" ){
-      // 	return Kratos::make_shared<BeamPointRigidContactPenalty3DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
+      // 	return Kratos::make_intrusive<BeamPointRigidContactPenalty3DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
       // }
 
 

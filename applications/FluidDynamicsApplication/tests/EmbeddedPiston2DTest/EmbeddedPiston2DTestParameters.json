@@ -31,7 +31,7 @@
                         "skin_output"         : false,
                         "plane_output"        : [],
                         "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE","MESH_VELOCITY"],
-                        "gauss_point_results" : ["EMBEDDED_VELOCITY"]
+                        "nodal_nonhistorical_results": ["EMBEDDED_VELOCITY"]
                     },
                     "point_data_configuration"  : []
                 }
@@ -45,6 +45,9 @@
         "model_import_settings"       : {
             "input_type"     : "mdpa",
             "input_filename" : "embedded_piston_2d_test"
+        },
+        "material_import_settings": {
+            "materials_filename": "EmbeddedPiston2DTestMaterials.json"
         },
         "echo_level"                  : 0,
         "compute_reactions"           : false,
@@ -69,8 +72,36 @@
         },
         "fm_ale_settings": {
             "fm_ale_step_frequency": 1,
-            "structure_model_part_name": "Structure.Parts_Structure",
-            "search_radius" : 1.0
+            "mesh_movement": "implicit",
+            "fm_ale_solver_settings": {
+                "structure_model_part_name": "Structure.Parts_Structure",
+                "linear_solver_settings": {
+                    "preconditioner_type": "amg",
+                    "solver_type": "amgcl",
+                    "smoother_type": "ilu0",
+                    "krylov_type": "cg",
+                    "max_iteration": 2000,
+                    "verbosity": 0,
+                    "tolerance": 1e-8,
+                    "scaling": false,
+                    "use_block_matrices_if_possible": true
+                },
+                "embedded_nodal_variable_settings": {
+                    "gradient_penalty_coefficient": 5.0e-2,
+                    "linear_solver_settings": {
+                        "preconditioner_type": "amg",
+                        "solver_type": "amgcl",
+                        "smoother_type": "ilu0",
+                        "krylov_type": "cg",
+                        "max_iteration": 2000,
+                        "verbosity": 0,
+                        "tolerance": 1e-8,
+                        "scaling": false,
+                        "block_size": 1,
+                        "use_block_matrices_if_possible": true
+                    }
+                }
+            }
         },
         "linear_solver_settings": {
             "solver_type": "amgcl"
@@ -122,26 +153,6 @@
             "python_module": "assign_vector_variable_process",
             "kratos_module": "KratosMultiphysics",
             "Parameters": {
-                "model_part_name": "FluidModelPart.Outlet2D_Left",
-                "variable_name": "MESH_DISPLACEMENT",
-                "constrained": [true,false,false],
-                "value": [0.0,0.0,0.0],
-                "interval": [0.0,"End"]
-            }
-        },{
-            "python_module": "assign_vector_variable_process",
-            "kratos_module": "KratosMultiphysics",
-            "Parameters": {
-                "model_part_name": "FluidModelPart.Outlet2D_Right",
-                "variable_name": "MESH_DISPLACEMENT",
-                "constrained": [true,false,false],
-                "value": [0.0,0.0,0.0],
-                "interval": [0.0,"End"]
-            }
-        },{
-            "python_module": "assign_vector_variable_process",
-            "kratos_module": "KratosMultiphysics",
-            "Parameters": {
                 "model_part_name": "FluidModelPart.VelocityConstraints2D_Bottom",
                 "variable_name": "MESH_DISPLACEMENT",
                 "constrained": [false,true,true],
@@ -155,6 +166,26 @@
                 "model_part_name": "FluidModelPart.VelocityConstraints2D_Top",
                 "variable_name": "MESH_DISPLACEMENT",
                 "constrained": [false,true,true],
+                "value": [0.0,0.0,0.0],
+                "interval": [0.0,"End"]
+            }
+        },{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "model_part_name": "FluidModelPart.Outlet2D_Left",
+                "variable_name": "MESH_DISPLACEMENT",
+                "constrained": [true,true,false],
+                "value": [0.0,0.0,0.0],
+                "interval": [0.0,"End"]
+            }
+        },{
+            "python_module": "assign_vector_variable_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "model_part_name": "FluidModelPart.Outlet2D_Right",
+                "variable_name": "MESH_DISPLACEMENT",
+                "constrained": [true,true,false],
                 "value": [0.0,0.0,0.0],
                 "interval": [0.0,"End"]
             }

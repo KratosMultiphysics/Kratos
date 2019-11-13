@@ -23,13 +23,39 @@ class MeshSolverBase(PythonSolver):
     mesh_model_part -- the mesh motion model part.
     """
     def __init__(self, model, custom_settings):
+        if custom_settings.Has("calculate_mesh_velocities"):
+            from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+            warn_msg  = 'Yor input-settings contain "calculate_mesh_velocities". This was removed from the solver and moved to MeshMovingApplication.MeshVelocityCalculationPlease update your code'
+            IssueDeprecationWarning("MeshSolverBase", warn_msg)
+            custom_settings.RemoveValue("calculate_mesh_velocities")
+
+        self._validate_settings_in_baseclass=True # To be removed eventually
         super(MeshSolverBase,self).__init__(model, custom_settings)
 
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "solver_type"           : "mesh_solver_structural_similarity",
+        # Either retrieve the model part from the model or create a new one
+        model_part_name = self.settings["model_part_name"].GetString()
+
+        if model_part_name == "":
+            raise Exception('Please provide the model part name as the "model_part_name" (string) parameter!')
+
+        if self.model.HasModelPart(model_part_name):
+            self.mesh_model_part = self.model.GetModelPart(model_part_name)
+        else:
+            self.mesh_model_part = model.CreateModelPart(model_part_name)
+
+        domain_size = self.settings["domain_size"].GetInt()
+        if domain_size == -1:
+            raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
+
+        self.mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+
+        KratosMultiphysics.Logger.PrintInfo("::[MeshSolverBase]:: Construction finished")
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "solver_type"           : "mesh_solver_base",
             "buffer_size"           : 1,
-            "echo_level"            : 0,
             "domain_size"           : -1,
             "model_part_name"       : "",
             "time_stepping"         : { },
@@ -52,47 +78,19 @@ class MeshSolverBase(PythonSolver):
                 "use_block_matrices_if_possible" : true,
                 "coarse_enough" : 5000
             },
-            "time_order" : 2,
             "reform_dofs_each_step"     : false,
             "compute_reactions"         : false,
-            "calculate_mesh_velocities" : true
+            "superimpose_mesh_disp_with": [],
+            "poisson_ratio"             : 0.3
         }""")
-
-        self.settings.ValidateAndAssignDefaults(default_settings)
-
-        if custom_settings["calculate_mesh_velocities"].GetBool():
-            from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
-            warn_msg  = '"calculate_mesh_velocities" is set to true for the Solver\n'
-            warn_msg += 'This feature was moved to MeshMovingApplication.MeshVelocityCalculation and will soon be removed\n'
-            warn_msg += 'from the solver. Please update your code'
-            IssueDeprecationWarning("MeshSolverBase", warn_msg)
-
-        # Either retrieve the model part from the model or create a new one
-        model_part_name = self.settings["model_part_name"].GetString()
-
-        if model_part_name == "":
-            raise Exception('Please provide the model part name as the "model_part_name" (string) parameter!')
-
-        if self.model.HasModelPart(model_part_name):
-            self.mesh_model_part = self.model.GetModelPart(model_part_name)
-        else:
-            self.mesh_model_part = model.CreateModelPart(model_part_name)
-
-        domain_size = self.settings["domain_size"].GetInt()
-        if domain_size == -1:
-            raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
-
-        self.mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-
-        KratosMultiphysics.Logger.PrintInfo("::[MeshSolverBase]:: Construction finished")
+        this_defaults.AddMissingParameters(super(MeshSolverBase, cls).GetDefaultSettings())
+        return this_defaults
 
     #### Public user interface functions ####
 
     def AddVariables(self):
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_REACTION)
-        if (self.settings["calculate_mesh_velocities"].GetBool() == True):
-            self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         KratosMultiphysics.Logger.PrintInfo("::[MeshSolverBase]:: Variables ADDED.")
 
     def AddDofs(self):
@@ -124,7 +122,13 @@ class MeshSolverBase(PythonSolver):
         self.get_mesh_motion_solving_strategy().Predict()
 
     def SolveSolutionStep(self):
-        self.get_mesh_motion_solving_strategy().Solve() # Calling Solve bcs this is what is currently implemented in the MeshSolverStrategies
+        # Calling Solve bcs this is what is currently implemented in the MeshSolverStrategies
+        # explicit bool conversion is only needed bcs "Solve" returns a double
+        is_converged = bool(self.get_mesh_motion_solving_strategy().Solve())
+        self.MoveMesh()
+        for variable in KratosMultiphysics.kratos_utilities.GenerateVariableListFromInput(self.settings["superimpose_mesh_disp_with"]):
+            KMM.SuperImposeMeshDisplacement(variable)
+        return is_converged
 
     def SetEchoLevel(self, level):
         self.get_mesh_motion_solving_strategy().SetEchoLevel(level)
@@ -136,19 +140,11 @@ class MeshSolverBase(PythonSolver):
         self.get_mesh_motion_solving_strategy().Clear()
 
     def GetMinimumBufferSize(self):
-        buffer_size = 0
-        if (self.settings["calculate_mesh_velocities"].GetBool() == True):
-            time_order = self.settings["time_order"].GetInt()
-            if time_order == 1:
-                buffer_size = 2
-            elif time_order == 2:
-                buffer_size = 3
-            else:
-                raise Exception('"time_order" can only be 1 or 2!')
-        return max(buffer_size, self.settings["buffer_size"].GetInt(), self.mesh_model_part.GetBufferSize())
+        return max(self.settings["buffer_size"].GetInt(), self.mesh_model_part.GetBufferSize())
 
     def MoveMesh(self):
         # move local and ghost nodes
+        self.mesh_model_part.GetCommunicator().SynchronizeVariable(KratosMultiphysics.MESH_DISPLACEMENT)
         KMM.MoveMesh(self.mesh_model_part.Nodes)
 
     def ImportModelPart(self):

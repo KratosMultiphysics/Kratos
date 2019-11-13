@@ -38,6 +38,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "AdjointVMSSensitivity2DTest/cylinder_test"
         },
+        "material_import_settings": {
+            "materials_filename": "AdjointVMSSensitivity2DTest/cylinder_test_materials.json"
+        },
         "model_part_name"              : "MainModelPart",
         "domain_size"                  : 2,
         "maximum_iterations"           : 10,
@@ -117,25 +120,18 @@
         }],
         "auxiliar_process_list" :[{
             "kratos_module" : "KratosMultiphysics.HDF5Application",
-            "python_module" : "partitioned_single_mesh_primal_output_process",
+            "python_module" : "single_mesh_primal_output_process",
             "help"          : "",
             "process_name"  : "",
             "Parameters" : {
                 "model_part_name" : "MainModelPart",
                 "file_settings" : {
+                    "file_name": "primal-<time>",
                     "file_access_mode" : "truncate",
                     "file_driver" : "mpio"
                 },
-                "model_part_output_settings" : {},
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
-                },
-                "element_data_value_settings" : {
-                    "list_of_variables": []
-                },
-                "output_time_settings" : {
-                    "output_step_frequency": 1,
-                    "file_name":     "primal"
                 }
             }
         },{

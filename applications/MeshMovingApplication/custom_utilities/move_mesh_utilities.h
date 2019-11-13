@@ -31,24 +31,17 @@ typedef Element::VectorType VectorType;
 void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
                             VectorType &rDetJ0, const GeometryType &rGeometry);
 
-KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the functions from \"mesh_velocity_calculation.h\"")
-void CalculateMeshVelocities(ModelPart &rMeshModelPart,
-                             const int TimeOrder, const double DeltaTime);
-
-KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the functions from \"mesh_velocity_calculation.h\"")
-void CalculateMeshVelocities(ModelPart* pMeshModelPart,
-                             const int TimeOrder, const double DeltaTime);
-
 void MoveMesh(const ModelPart::NodesContainerType &rNodes);
-
-KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"Kratos.VariableUtils.UpdateCurrentToInitialConfiguration\"")
-void SetMeshToInitialConfiguration(const ModelPart::NodesContainerType &rNodes);
 
 ModelPart* GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName);
 
-KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"Kratos.VariableUtils.UpdateInitialToCurrentConfiguration\"")
-void UpdateReferenceMesh(ModelPart &rModelPart);
+void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariable,
+                                                 const Variable< array_1d<double, 3> >& rVariableToSuperImpose);
+
+void SuperImposeMeshDisplacement(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose);
+
+void SuperImposeMeshVelocity(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariableToSuperImpose);
 
 } // namespace Move Mesh Utilities.
 

@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import structural_mechanics_analysis
+from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_analysis
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 if kratos_utilities.CheckIfApplicationsAvailable("HDF5Application"):
@@ -145,9 +145,13 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
             adjoint_analysis.Run()
 
         # Check sensitivity for the parameter POINT_LOAD
-        reference_values = -0.31249774999397384
-        sensitivity_to_check = model_adjoint.GetModelPart(model_part_name).Conditions[1].GetValue(POINT_LOAD_SENSITIVITY)[2]
-        self.assertAlmostEqual(reference_values, sensitivity_to_check, 4)
+        reference_values = [-0.31249774999397384, -1.249]
+        sensitivities_to_check = []
+        sensitivities_to_check.append(model_adjoint.GetModelPart(model_part_name).Conditions[1].GetValue(POINT_LOAD_SENSITIVITY)[2])
+        sensitivities_to_check.append(model_adjoint.GetModelPart(model_part_name).Elements[10].GetValue(I22_SENSITIVITY))
+
+        self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 4)
+        self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 2)
 
     # called only once for this class, opposed of tearDown()
     @classmethod

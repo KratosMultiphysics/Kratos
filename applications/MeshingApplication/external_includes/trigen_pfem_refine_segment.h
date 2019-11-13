@@ -1,39 +1,36 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2009-01-22 17:13:57 $
-//   Revision:            $Revision: 1.5 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
 
 
 #if !defined(KRATOS_TRIGEN_PFEM_REFINE_SEGMENT_H_INCLUDED )
 #define  KRATOS_TRIGEN_PFEM_REFINE_SEGMENT_H_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-#include <stdlib.h>
 
+// External includes
 #if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
 #define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED
 #include "triangle.h"
 #endif
 
-#include <boost/timer.hpp>
-
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
+#include "utilities/timer.h"
 #include "processes/node_erase_process.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "spatial_containers/spatial_containers.h"
-
-
 
 namespace Kratos
 {
@@ -126,7 +123,7 @@ public:
             KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_INTERFACE---- variable!!!!!! ERROR","");
 
         KRATOS_WATCH("Trigen PFEM Refining Segment Mesher")
-        boost::timer auxiliary;
+        const auto inital_time = std::chrono::steady_clock::now();
 
 
 //clearing elements
@@ -195,17 +192,17 @@ public:
         	if(in->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
         		  {
 
-        		 WeakPointerVector< Node<3> >& neighb = in->GetValue(NEIGHBOUR_NODES);
+        		 GlobalPointersVector< Node<3> >& neighb = in->GetValue(NEIGHBOUR_NODES);
         		 int num_of_intr_neigh = 0;
         			//KRATOS_WATCH(neighb.size());
-        	         for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
+        	         for( GlobalPointersVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
         		    {
         			if(ngh_ind->FastGetSolutionStepValue(IS_INTERFACE) == 1.0) num_of_intr_neigh++;
         		    }
 
         	  if(num_of_intr_neigh <= 2)
         		{
-        	         for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
+        	         for( GlobalPointersVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
         		    {
 
         		if(ngh_ind->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
@@ -240,8 +237,8 @@ public:
         		   {
         		     if(in->FastGetSolutionStepValue(AUX_INDEX) < 2.0)
         		       {
-        		        WeakPointerVector< Node<3> >& neighb = in->GetValue(NEIGHBOUR_NODES);
-        	                  for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
+        		        GlobalPointersVector< Node<3> >& neighb = in->GetValue(NEIGHBOUR_NODES);
+        	                  for( GlobalPointersVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
         		             {
         			       if(ngh_ind->FastGetSolutionStepValue(IS_INTERFACE) == 1.0 && ngh_ind->FastGetSolutionStepValue(IS_VISITED) != 10.0 && ngh_ind->FastGetSolutionStepValue(AUX_INDEX) < 2.0)
         			         {
@@ -383,12 +380,10 @@ public:
             in_mid.pointlist[base] = (nodes_begin + i)->X();
             in_mid.pointlist[base+1] = (nodes_begin + i)->Y();
 
-            Node<3>::DofsContainerType& node_dofs = (nodes_begin + i)->GetDofs();
-
-            for(Node<3>::DofsContainerType::iterator iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
+            auto& node_dofs = (nodes_begin + i)->GetDofs();
+            for(auto iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
             {
-                iii->SetId(i+1);
-//                                    iii->Id() = i+1;
+                (**iii).SetEquationId(i+1);
             }
             //reordering segment list
             if(seg_num != 0)
@@ -478,7 +473,7 @@ public:
 
         triangulate(options1, &in_mid, &out_mid, &vorout_mid);
         //print out the mesh generation time
-        std::cout<<"mesh generation time = "<<auxiliary.elapsed();
+        std::cout << "mesh generation time = " << Timer::ElapsedSeconds(inital_time) << std::endl;
         //number of newly generated triangles
         unsigned int el_number=out_mid.numberoftriangles;
         KRATOS_WATCH("*********NUMBER OF ELEMENTS***********");
@@ -668,9 +663,9 @@ public:
         	  {
         		//KRATOS_WATCH("@@@@@@@@@@@@@@@@2 an interface is detected@@@@@@@@@@@@@@@");
 
-        	 WeakPointerVector< Node<3> >& neighb = in->GetValue(NEIGHBOUR_NODES);
+        	 GlobalPointersVector< Node<3> >& neighb = in->GetValue(NEIGHBOUR_NODES);
 
-                 for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
+                 for( GlobalPointersVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
         	    {
 
         	    if(ngh_ind->FastGetSolutionStepValue(IS_INTERFACE) == 1.0 && ngh_ind->FastGetSolutionStepValue(IS_VISITED) != 10.0)
@@ -813,7 +808,7 @@ public:
                 //generating the dofs
                 for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
                 {
-                    Node<3>::DofType& rDof = *iii;
+                    Node<3>::DofType& rDof = **iii;
                     Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
                     (p_new_dof)->FreeDof();
@@ -964,12 +959,12 @@ public:
             int base = ( iii->Id() - 1 )*3;
 
             (iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
-            WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
+            GlobalPointersVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
             for(int i = 0; i<3; i++)
             {
                 int index = out2.neighborlist[base+i];
                 if(index > 0)
-                    neighb(i) = *((el_begin + index-1).base());
+                    neighb(i) = GlobalPointer<Element>(&*(el_begin + index-1));
                 else
                     neighb(i) = Element::WeakPointer();
             }
@@ -1467,7 +1462,7 @@ private:
             if(elem->GetValue(IS_WATER_ELEMENT) == 0)
             {
 
-                WeakPointerVector< Element >& neighbor_els = elem->GetValue(NEIGHBOUR_ELEMENTS);
+                GlobalPointersVector< Element >& neighbor_els = elem->GetValue(NEIGHBOUR_ELEMENTS);
                 Geometry< Node<3> >& geom = elem->GetGeometry();
 
                 for(int ii=0; ii<(Tdim+1); ++ii)
@@ -1763,7 +1758,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIGEN_PFEM_MODELER_H_INCLUDED  defined 
-
-
-
+#endif // KRATOS_TRIGEN_PFEM_MODELER_H_INCLUDED  defined

@@ -2,14 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED )
@@ -52,11 +51,11 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
-/** 
+
+/**
 * @class VariablesListDataValueContainer
-* @ingroup KratosCore 
-* @brief A  shared  variable  list gives the position of each variable in the containers sharing it. 
+* @ingroup KratosCore
+* @brief A  shared  variable  list gives the position of each variable in the containers sharing it.
 * @details The mechanism is very simple. There is an array which stores the local offset for each variable in the container and assigns  the  value−1  for  the  rest  of  the variables
 * For more details see P. Dadvand, R. Rossi, E. Oñate: An Object-oriented Environment for Developing Finite Element Codes for Multi-disciplinary Applications. Computational Methods in Engineering. 2010
 * @author Pooyan Dadvand
@@ -87,8 +86,11 @@ public:
     /// Default constructor.
     explicit VariablesListDataValueContainer(SizeType NewQueueSize = 1)
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
-          mpData(0), mpVariablesList(&GetDefaultVariablesList())
+          mpData(0), mpVariablesList(nullptr)
     {
+        if(!mpVariablesList) 
+            return;
+
         // Allcating memory
         Allocate();
 
@@ -110,6 +112,9 @@ public:
         : mQueueSize(rOther.mQueueSize), mpCurrentPosition(0),
           mpData(0), mpVariablesList(rOther.mpVariablesList)
     {
+        if(!mpVariablesList) 
+            return;
+
         // Allcating memory
         Allocate();
 
@@ -130,10 +135,13 @@ public:
     }
 
     /// Variables list constructor.
-    VariablesListDataValueContainer(VariablesList*  pVariablesList, SizeType NewQueueSize = 1)
+    VariablesListDataValueContainer(VariablesList::Pointer  pVariablesList, SizeType NewQueueSize = 1)
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
           mpData(0), mpVariablesList(pVariablesList)
     {
+        if(!mpVariablesList) 
+            return;
+
         // Allcating memory
         Allocate();
 
@@ -151,10 +159,13 @@ public:
     }
 
     /// Variables list and data constructor
-    VariablesListDataValueContainer(VariablesList*  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
+    VariablesListDataValueContainer(VariablesList::Pointer  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
           mpData(0), mpVariablesList(pVariablesList)
     {
+        if(!mpVariablesList) 
+            return;
+
         // Allcating memory
         Allocate();
 
@@ -324,6 +335,7 @@ public:
     template<class TDataType>
     TDataType& GetValue(const Variable<TDataType>& rThisVariable)
     {
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         return *(TDataType*)Position(rThisVariable);
     }
@@ -331,6 +343,7 @@ public:
     template<class TDataType>
     TDataType& GetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex)
     {
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         return *(TDataType*)Position(rThisVariable, QueueIndex);
     }
@@ -338,6 +351,7 @@ public:
     template<class TDataType>
     const TDataType& GetValue(const Variable<TDataType>& rThisVariable) const
     {
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         return *(const TDataType*)Position(rThisVariable);
     }
@@ -345,7 +359,8 @@ public:
     template<class TDataType>
     const TDataType& GetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex) const
     {
-        KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;    
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
+        KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         return *(const TDataType*)Position(rThisVariable, QueueIndex);
     }
 
@@ -394,8 +409,9 @@ public:
 
     template<class TDataType>
     TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex, SizeType ThisPosition)
-    {   
-        KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;	
+    {
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "Trying to access data from step " << QueueIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
         return *(TDataType*)(Position(QueueIndex) + ThisPosition);
     }
@@ -403,6 +419,7 @@ public:
     template<class TDataType>
     TDataType& FastGetCurrentValue(const Variable<TDataType>& rThisVariable, SizeType ThisPosition)
     {
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         return *(TDataType*)(mpCurrentPosition + ThisPosition);
     }
@@ -466,6 +483,9 @@ public:
 
     SizeType Size() const
     {
+        if(!mpVariablesList)
+            return 0;
+
         return mpVariablesList->DataSize();
     }
 
@@ -476,6 +496,9 @@ public:
 
     SizeType TotalSize() const
     {
+        if(!mpVariablesList)
+            return 0;
+
         return mQueueSize * mpVariablesList->DataSize();
     }
 
@@ -524,23 +547,26 @@ public:
     ///@name Access
     ///@{
 
-    VariablesList* pGetVariablesList()
+    VariablesList::Pointer pGetVariablesList()
     {
         return mpVariablesList;
     }
 
-    const VariablesList * pGetVariablesList() const
+    const VariablesList::Pointer pGetVariablesList() const
     {
         return mpVariablesList;
     }
 
 
 
-    void SetVariablesList(VariablesList* pVariablesList)
+    void SetVariablesList(VariablesList::Pointer pVariablesList)
     {
         DestructAllElements();
 
         mpVariablesList = pVariablesList;
+
+        if(!mpVariablesList)
+            return;
 
         Reallocate();
 
@@ -556,7 +582,7 @@ public:
         }
     }
 
-    void SetVariablesList(VariablesList* pVariablesList, SizeType ThisQueueSize)
+    void SetVariablesList(VariablesList::Pointer pVariablesList, SizeType ThisQueueSize)
     {
         DestructAllElements();
 
@@ -564,6 +590,9 @@ public:
 
         mQueueSize = ThisQueueSize;
 
+        if(!mpVariablesList)
+            return;
+
         Reallocate();
 
         mpCurrentPosition = mpData;
@@ -578,18 +607,15 @@ public:
         }
     }
 
-    VariablesList& GetDefaultVariablesList()
-    {
-        static VariablesList DefaultVariablesList;
-        return DefaultVariablesList;
-    }
-
     void Resize(SizeType NewSize)
     {
         if(mQueueSize == NewSize) // if new size is equal to the provious one
             return; // Do nothing!!
 
-        if(mQueueSize > NewSize) // if new size is smaller
+        if(!mpVariablesList)
+            return;
+
+         if(mQueueSize > NewSize) // if new size is smaller
         {
             // Destructing elements out of the new size
             for(SizeType i = NewSize ; i < mQueueSize ; i++)
@@ -694,6 +720,11 @@ public:
         return mpData;
     }
 
+    const BlockType* Data() const
+    {
+        return mpData;
+    }
+
     BlockType* Data(SizeType QueueIndex)
     {
         return Position(QueueIndex);
@@ -702,20 +733,26 @@ public:
     BlockType* Data(VariableData const & rThisVariable)
     {
         #ifdef KRATOS_DEBUG
-        if ( !mpVariablesList->Has(rThisVariable) ) {            
+        if ( !mpVariablesList->Has(rThisVariable) ) {
             KRATOS_ERROR << "Variable " << rThisVariable.Name() << " is not added to this variables list. Stopping" << std::endl;
         }
-        #endif      
+        #endif
         return Position(rThisVariable);
     }
 
     SizeType DataSize()
     {
+        if(!mpVariablesList)
+            return 0;
+
         return mpVariablesList->DataSize() * sizeof(BlockType);
     }
 
     SizeType TotalDataSize()
     {
+        if(!mpVariablesList)
+            return 0;
+
         return mpVariablesList->DataSize() * sizeof(BlockType) * mQueueSize;
     }
 
@@ -742,6 +779,8 @@ public:
         if(mQueueSize == 1)
             return;
 
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
+
         SizeType size = mpVariablesList->DataSize();
         BlockType* position = (mpCurrentPosition == mpData) ? mpData + TotalSize() - size :  mpCurrentPosition - size;
         AssignData(mpCurrentPosition, position);
@@ -760,6 +799,8 @@ public:
         if(mQueueSize == 1)
             return;
 
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
+
         SizeType size = mpVariablesList->DataSize();
         mpCurrentPosition = (mpCurrentPosition == mpData) ? mpData + TotalSize() - size :  mpCurrentPosition - size;
         AssignZero();
@@ -769,6 +810,7 @@ public:
 
     void AssignZero()
     {
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
                 i_variable != mpVariablesList->end() ; i_variable++)
             i_variable->AssignZero(mpCurrentPosition + LocalOffset(*i_variable));
@@ -776,6 +818,7 @@ public:
 
     void AssignZero(SizeType QueueIndex)
     {
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         BlockType* position = Position(QueueIndex);
         for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
                 i_variable != mpVariablesList->end() ; i_variable++)
@@ -788,16 +831,25 @@ public:
 
     template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
     {
+        if(!mpVariablesList)
+            return false;
+
         return mpVariablesList->Has(rThisVariable);
     }
 
     template<class TAdaptorType> bool Has(const VariableComponent<TAdaptorType>& rThisVariable) const
     {
+        if(!mpVariablesList)
+            return false;
+            
         return mpVariablesList->Has(rThisVariable.GetSourceVariable());
     }
 
     bool IsEmpty()
     {
+        if(!mpVariablesList)
+            return true;
+            
         return mpVariablesList->IsEmpty();
     }
 
@@ -820,6 +872,9 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
+        if(!mpVariablesList)
+            rOStream << "No varaibles list is assigned yet." << std::endl;
+            
         for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
                 i_variable != mpVariablesList->end() ; i_variable++)
         {
@@ -896,7 +951,7 @@ private:
 
     ContainerType mpData;
 
-    VariablesList* mpVariablesList;
+    VariablesList::Pointer mpVariablesList;
 
     ///@}
     ///@name Private Operators
@@ -909,16 +964,21 @@ private:
 
     inline void Allocate()
     {
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         mpData = (BlockType*)malloc(mpVariablesList->DataSize() * sizeof(BlockType) * mQueueSize);
     }
 
     inline void Reallocate()
     {
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         mpData = (BlockType*)realloc(mpData, mpVariablesList->DataSize() * sizeof(BlockType) * mQueueSize);
     }
 
     void DestructElements(SizeType ThisIndex)
     {
+        if(!mpVariablesList)
+            return;
+
         if(mpData == 0)
             return;
         BlockType* position = Position(ThisIndex);
@@ -930,6 +990,9 @@ private:
 
     void DestructAllElements()
     {
+        if(!mpVariablesList)
+            return;
+
         if(mpData == 0)
             return;
 
@@ -946,6 +1009,7 @@ private:
 
     void AssignData(BlockType* Source, BlockType* Destination)
     {
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
                 i_variable != mpVariablesList->end() ; i_variable++)
         {
@@ -956,17 +1020,20 @@ private:
 
     inline SizeType LocalOffset(VariableData const & rThisVariable) const
     {
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         return mpVariablesList->Index(rThisVariable);
     }
 
     inline BlockType* Position(VariableData const & rThisVariable) const
     {
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         return mpCurrentPosition + mpVariablesList->Index(rThisVariable);
     }
 
     inline BlockType* Position(VariableData const & rThisVariable, SizeType ThisIndex) const
     {
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         KRATOS_DEBUG_ERROR_IF((ThisIndex + 1) > mQueueSize) << "Trying to access data from step " << ThisIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
         return Position(ThisIndex) + mpVariablesList->Index(rThisVariable);
@@ -979,6 +1046,7 @@ private:
 
     inline BlockType* Position(SizeType ThisIndex) const
     {
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         SizeType total_size = TotalSize();
         BlockType* position = mpCurrentPosition + ThisIndex * mpVariablesList->DataSize();
         return (position < mpData + total_size) ? position : position - total_size;
@@ -992,6 +1060,9 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
+        KRATOS_ERROR_IF(!mpVariablesList) << "Cannot save a container with no variables list assigned" << std::endl;
+        KRATOS_ERROR_IF(mpData == 0) << "Cannot save an empty variables list container" << std::endl;
+
         rSerializer.save("Variables List", mpVariablesList);
         rSerializer.save("QueueSize", mQueueSize);
         if(mpVariablesList->DataSize() != 0 )
@@ -999,9 +1070,6 @@ private:
         else
             rSerializer.save("QueueIndex", SizeType(0));
 
-
-        if(mpData == 0)
-            KRATOS_THROW_ERROR(std::logic_error, "Cannot save an empty variables list container", "");
 
         SizeType size = mpVariablesList->DataSize();
         for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;

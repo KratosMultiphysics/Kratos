@@ -377,7 +377,7 @@ public:
 
     /** Inserts a node in the current mesh.
      */
-    NodeType::Pointer CreateNewNode(int Id, double x, double y, double z, VariablesList* pNewVariablesList, IndexType ThisIndex = 0);
+    NodeType::Pointer CreateNewNode(int Id, double x, double y, double z, VariablesList::Pointer pNewVariablesList, IndexType ThisIndex = 0);
 
     NodeType::Pointer CreateNewNode(IndexType Id, double x, double y, double z, IndexType ThisIndex = 0);
 
@@ -520,7 +520,17 @@ public:
         return *mpVariablesList;
     }
 
+    VariablesList::Pointer pGetNodalSolutionStepVariablesList()
+    {
+        return mpVariablesList;
+    }
+
     void SetNodalSolutionStepVariablesList();
+
+    void SetNodalSolutionStepVariablesList(VariablesList::Pointer pNewVariablesList)
+    {
+        mpVariablesList = pNewVariablesList;
+    }
 
     SizeType GetNodalSolutionStepDataSize()
     {
@@ -842,6 +852,65 @@ public:
      * @return The desired properties (reference)
      */
     PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
+
+    /**
+     * @brief Returns if the sub Properties corresponding to it's address exists
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param ThisIndex The index identifying the mesh
+     * @return True if the properties exist, false otherwise
+     */
+    bool HasProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        ) const;
+
+    /**
+     * @brief Returns the sub Properties::Pointer  corresponding to it's address
+     * @details If the property is not existing it will return a warning
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (pointer)
+     */
+    PropertiesType::Pointer pGetProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        );
+
+    /**
+     * @brief Returns the sub Properties::Pointer  corresponding to it's address (const version)
+     * @details If the property is not existing it will return a warning
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (pointer)
+     */
+    const PropertiesType::Pointer pGetProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        ) const;
+
+    /**
+     * @brief Returns the sub Properties::Pointer  corresponding to it's address
+     * @details If the property is not existing it will return a warning
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (reference)
+     */
+    PropertiesType& GetProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        );
+
+    /**
+     * @brief Returns the sub Properties::Pointer corresponding to it's address (const version)
+     * @details If the property is not existing it will return a warning
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (reference)
+     */
+    const PropertiesType& GetProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        ) const;
 
     /** Remove the Properties with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
@@ -1449,10 +1518,23 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This method returns the name list of submodelparts
+     * @return A vector conrtaining the list of submodelparts contained
+     */
     std::vector<std::string> GetSubModelPartNames();
 
+    /**
+     * @brief This method sets the suffer size of the model part database
+     * @details Must be called on root model part, otherwise error is thrown
+     * @param NewBufferSize The new buffer size to be set
+     */
     void SetBufferSize(IndexType NewBufferSize);
 
+    /**
+     * @brief This method gets the suffer size of the model part database
+     * @return mBufferSize The buffer size
+     */
     IndexType GetBufferSize() const
     {
         return mBufferSize;
@@ -1473,6 +1555,11 @@ public:
     bool IsSubModelPart() const
     {
         return (mpParentModelPart != NULL);
+    }
+
+    bool IsDistributed() const
+    {
+        return mpCommunicator->IsDistributed();
     }
 
     ///@}
@@ -1507,13 +1594,13 @@ private:
     friend class Model;
 
     /// Default constructor.
-    ModelPart(VariablesList* pVariableList, Model& rOwnerModel);
+    ModelPart(VariablesList::Pointer pVariableList, Model& rOwnerModel);
 
     /// Constructor with name
-    ModelPart(std::string const& NewName,VariablesList* pVariableList, Model& rOwnerModel);
+    ModelPart(std::string const& NewName,VariablesList::Pointer pVariableList, Model& rOwnerModel);
 
     /// Constructor with name and bufferSize
-    ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariableList, Model& rOwnerModel);
+    ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList::Pointer pVariableList, Model& rOwnerModel);
 
     /// Copy constructor.
     ModelPart(ModelPart const& rOther) = delete;
@@ -1527,27 +1614,25 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::string mName;
+    std::string mName; /// The name of the model part
 
-    IndexType mBufferSize;
+    IndexType mBufferSize; /// The buffers size of the database
 
-    ProcessInfo::Pointer mpProcessInfo;
+    ProcessInfo::Pointer mpProcessInfo; /// The process info instance
 
-    TablesContainerType mTables;
+    TablesContainerType mTables; /// The tables contained on the model part
 
-    std::vector<IndexType> mIndices;
+    MeshesContainerType mMeshes; /// The container of all meshes
 
-    MeshesContainerType mMeshes;
+    VariablesList::Pointer mpVariablesList; /// The variable list
 
-    VariablesList* mpVariablesList;
+    Communicator::Pointer mpCommunicator; /// The communicator
 
-    Communicator::Pointer mpCommunicator;
+    ModelPart* mpParentModelPart = NULL; /// The parent model part of the current model part
 
-    ModelPart* mpParentModelPart;
+    SubModelPartsContainerType mSubModelParts; /// The container of the submodelparts
 
-    SubModelPartsContainerType mSubModelParts;
-
-    Model& mrModel;
+    Model& mrModel; /// The model which contains this model part
 
     ///@}
     ///@name Private Operators
@@ -1557,6 +1642,32 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method trims a string in the different components to access recursively to any subproperty
+     * @param rStringName The given name to be trimmed
+     * @return The list of indexes
+     */
+    std::vector<IndexType> TrimComponentName(const std::string& rStringName) const
+    {
+        std::vector<IndexType> list_indexes;
+
+        std::stringstream ss(rStringName);
+        for (std::string index_string; std::getline(ss, index_string, '.'); ) {
+            list_indexes.push_back(std::stoi(index_string));
+        }
+
+        KRATOS_ERROR_IF(list_indexes.size() == 0) << "Properties:: Empty list of indexes when reading suproperties" << std::endl;
+
+        return list_indexes;
+    }
+
+    /**
+     * @brief This method sets the suffer size of the submodelparts belonging to the current model part (recursively)
+     * @param NewBufferSize The new buffer size to be set
+     */
+    void SetBufferSizeSubModelParts(IndexType NewBufferSize);
+
 
     void SetParentModelPart(ModelPart* pParentModelPart)
     {

@@ -4,17 +4,16 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
+from  KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 missing_applications_message = ["Missing required application(s):",]
-have_required_applications = True
-
-try:
+have_required_applications = CheckIfApplicationsAvailable("HDF5Application")
+if have_required_applications:
     import KratosMultiphysics.HDF5Application as kh5
-except ImportError:
-    have_required_applications = False
+else:
     missing_applications_message.append("HDF5Application")
 
-from fluid_dynamics_analysis import FluidDynamicsAnalysis
-from adjoint_fluid_analysis import AdjointFluidAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_analysis import AdjointFluidAnalysis
 
 class ControlledExecutionScope:
     def __init__(self, scope):

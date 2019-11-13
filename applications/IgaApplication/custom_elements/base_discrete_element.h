@@ -60,7 +60,7 @@ public:
     ///@{
 
     /// Counted pointer of BaseDiscreteElement
-    KRATOS_CLASS_POINTER_DEFINITION( BaseDiscreteElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BaseDiscreteElement );
 
     ///@}
     ///@name Life Cycle

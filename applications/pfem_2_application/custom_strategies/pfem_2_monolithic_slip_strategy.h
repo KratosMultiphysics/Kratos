@@ -188,6 +188,7 @@ MoveMeshFlag)
                 for (ModelPart::ConditionIterator itCond = CondBegin; itCond != CondEnd; ++itCond)
                 {
                     const double FlagValue = itCond->GetValue(IS_STRUCTURE);
+                    itCond->Set(SLIP);
                     if (FlagValue != 0.0)
                     {
 
@@ -196,12 +197,14 @@ MoveMeshFlag)
                         {
                             rGeom[i].SetLock();
                             rGeom[i].SetValue(IS_STRUCTURE,FlagValue);
+                            rGeom[i].Set(SLIP);
                             rGeom[i].UnSetLock();
                         }
                     }
                 }
             }
             rModelPart.GetCommunicator().AssembleNonHistoricalData(IS_STRUCTURE);
+            rModelPart.GetCommunicator().SynchronizeOrNodalFlags(SLIP);
         }
 
 
@@ -557,7 +560,7 @@ protected:
         if (BaseType::GetEchoLevel() > 0 && Rank == 0)
             std::cout << "Calculating Pressure." << std::endl;
         double NormDp = mpPressureStrategy->Solve();
-        
+
 #pragma omp parallel
         {
             ModelPart::NodeIterator NodesBegin;
@@ -756,7 +759,7 @@ protected:
 
         // Force the end of step velocity to verify slip conditions in the model
         if (mUseSlipConditions)
-            this->EnforceSlipCondition(IS_STRUCTURE);
+            this->EnforceSlipCondition(SLIP);
 
         if (mDomainSize > 2)
         {
@@ -800,9 +803,9 @@ protected:
 
     /**
      * @brief Substract wall-normal component of velocity update to ensure that the final velocity satisfies slip conditions.
-     * @param rSlipWallFlag If Node.GetValue(rSlipWallFlag) != 0, the node is in the wall.
+     * @param rSlipWallFlag If Node.Is(rSlipWallFlag) the node is in the wall.
      */
-    void EnforceSlipCondition(Variable<double>& rSlipWallFlag)
+    void EnforceSlipCondition(const Kratos::Flags& rSlipWallFlag)
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
 
@@ -814,7 +817,7 @@ protected:
 
             for ( ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode )
             {
-                if ( itNode->GetValue(rSlipWallFlag) != 0.0 )
+                if ( itNode->Is(rSlipWallFlag) )
                 {
                     const array_1d<double,3>& rNormal = itNode->FastGetSolutionStepValue(NORMAL);
                     array_1d<double,3>& rDeltaVelocity = itNode->FastGetSolutionStepValue(FRACT_VEL);
@@ -1060,9 +1063,9 @@ private:
             bool PredictorCorrector)
     {
         KRATOS_TRY;
-        
+
         mTimeOrder = rSolverConfig.GetTimeOrder();
-        
+
         // Check that input parameters are reasonable and sufficient.
         this->Check();
 
@@ -1120,21 +1123,21 @@ private:
 
                 for (ModelPart::ConditionIterator itCond = CondBegin; itCond != CondEnd; ++itCond)
                 {
-                    const double FlagValue = itCond->GetValue(IS_STRUCTURE);
-                    if (FlagValue != 0.0)
+                    const bool is_slip = itCond->Is(SLIP);
+                    if (is_slip)
                     {
 
                         Condition::GeometryType& rGeom = itCond->GetGeometry();
                         for (unsigned int i = 0; i < rGeom.PointsNumber(); ++i)
                         {
                             rGeom[i].SetLock();
-                            rGeom[i].SetValue(IS_STRUCTURE,FlagValue);
+                            rGeom[i].Set(SLIP);
                             rGeom[i].UnSetLock();
                         }
                     }
                 }
             }
-            rModelPart.GetCommunicator().AssembleNonHistoricalData(IS_STRUCTURE);
+            rModelPart.GetCommunicator().SynchronizeOrNodalFlags(SLIP);
         }
 
         // Check input parameters

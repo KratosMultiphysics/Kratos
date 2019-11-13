@@ -57,8 +57,8 @@ namespace Kratos {
         typedef BaseType::ElementsArrayType ElementsArrayType;
         typedef BaseType::ElementsIterator ElementsIterator;
         typedef BaseType::ConditionsArrayType ConditionsArrayType;
-        typedef WeakPointerVector<Element> ParticleWeakVectorType;
-        typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+        typedef GlobalPointersVector<Element> ParticleWeakVectorType;
+        typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
         typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 
         using BaseType::mpInlet_model_part;
@@ -101,7 +101,7 @@ namespace Kratos {
         /// Destructor.
         virtual ~AdamsBashforthStrategy() {}
 
-        double Solve() override;
+        double SolveSolutionStep() override;
 
     protected:
 

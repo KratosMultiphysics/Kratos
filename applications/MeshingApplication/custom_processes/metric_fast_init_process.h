@@ -19,7 +19,7 @@
 
 // Project includes
 #include "processes/process.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 #include "includes/model_part.h"
 
 namespace Kratos

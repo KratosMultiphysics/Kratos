@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.248">
+<Kratos_Data version="1.2.249">
     <Groups modeltype="GiD"/>
     <!-- Kratos general application data -->
     <!-- id= Internal identifier -->
@@ -631,7 +631,6 @@
                 <Item id="PrintBoundingBox" pid="Print Bounding Box" DEM-BBox="Yes" dv="Yes" ivalues="Yes,No" values="Active,Not Active" help="If activated, the bounding box will be printed in the postprocess."/>
             </Container>
             <Container id="DEM-Physical-opts" pid="Physical options" class="Tab" help="DEM general physical options" open="0">
-                <Item id="SearchNeighboursOption" pid="Search Neighbours" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Activates or deactivates the search of DEM neighbours"/>
                 <Item id="GravityValue" state="hidden" pid="Gravity value" dv="9.81" help="Gravity value"/>
                 <Item id="Cx" pid="Gx" state="hidden" dv="0.0" help="X Vector"/>
                 <Item id="Cy" pid="Gy" state="hidden" dv="0.0" help="Y Vector"/>
@@ -639,6 +638,7 @@
                 <Item id="PeriodicDomainOption" pid="Periodic Domain" dv="No" class="PeriodicDomain" ivalues="Yes,No" values="Yes,No" help="Consider a parallepipedic periodic domain defined by the bounding box for the DEM problem"/>
             </Container>
             <Container id="DEM-AdvancedOptions" pid="Advanced options" class="Tab" help="More advanced options that modify the computation" open='0'>
+                <Item id="DEM-SearchNeighboursOption" pid="Do search neigbour particles" dv="Yes" ivalues="Yes,No" values="Yes,No" help="If deactivated, particles will not find other particles, and no contact force will be computed with other particles. They will still find walls, though."/>
                 <Item id="DEM-CleanInitialIndentations" pid="Clean initial indentations" dv="Yes" ivalues="Yes,No" values="Yes,No" help="If activated, initial indentations between spheres and between spheres and walls are eliminated to avoid explosions (reducing the radius of the spheres accordigly)"/>
                 <Item id="DEM-RemoveBallsInitiallyTouchingWalls" pid="Remove spheres initially touching walls" dv="No" ivalues="Yes,No" values="Yes,No" help="If activated, all spheres touching any wall at the beginning of the computations will be eliminated"/>
                 <Item id="DEM-TangencyTolerance" pid="Tangency tolerance" dv="Absolute" class="DEM-TangTolerance" ivalues="Absolute,Coordination_Number,None" values="Absolute,Coordination Number,None" help="Choose a margin by which the radius of the particle is incremented to obtain the seach radius. A larger than 0 value will allow for less frequent search"/>

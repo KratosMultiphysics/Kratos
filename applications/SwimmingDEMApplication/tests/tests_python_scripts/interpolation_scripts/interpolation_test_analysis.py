@@ -1,13 +1,9 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
-import swimming_DEM_procedures as SDP
-import math
+from KratosMultiphysics import Model, Parameters, Logger
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
+import os
 file_path = os.path.abspath(__file__)
 dir_path = os.path.dirname(file_path)
-sys.path.insert(0, dir_path)
-from swimming_DEM_analysis import SwimmingDEMAnalysis
-from swimming_DEM_analysis import Say
+from KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_analysis import SwimmingDEMAnalysis
 
 class InterpolationTestAnalysis(SwimmingDEMAnalysis):
     def __init__(self, model, varying_parameters = Parameters("{}")):
@@ -18,7 +14,7 @@ class InterpolationTestAnalysis(SwimmingDEMAnalysis):
         return SDP.Counter(is_dead = 1)
 
     def _CreateSolver(self):
-        import interpolation_test_solver as sdem_solver
+        import tests_python_scripts.interpolation_scripts.interpolation_test_solver as sdem_solver
         return sdem_solver.InterpolationTestSolver(self.model,
                                                    self.project_parameters,
                                                    self.GetFieldUtility(),
@@ -28,7 +24,6 @@ class InterpolationTestAnalysis(SwimmingDEMAnalysis):
 
     def FinalizeSolutionStep(self):
         super(InterpolationTestAnalysis, self).FinalizeSolutionStep()
-        node = [node for node in self.spheres_model_part.Nodes][0]
 
 if __name__ == "__main__":
     # Setting parameters
@@ -40,7 +35,7 @@ if __name__ == "__main__":
     model = Model()
 
     # To avoid too many prints
-    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.DETAIL)
+    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 
     test = InterpolationTestAnalysis(model, parameters)
     test.Run()
