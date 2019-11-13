@@ -83,7 +83,7 @@
 #include "custom_advanced_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
 
 // Rules of mixtures
-#include "custom_constitutive/rule_of_mixtures_law.h"
+#include "custom_advanced_constitutive/rule_of_mixtures_law.h"
 
 namespace Kratos {
 namespace Python {
