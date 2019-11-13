@@ -24,6 +24,7 @@
 #include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/formfinding_updated_reference_strategy.hpp"
 #include "custom_strategies/custom_strategies/mechanical_explicit_strategy.hpp"
+#include "custom_strategies/custom_strategies/prebuckling_strategy.hpp"
 
 // Schemes
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
@@ -66,6 +67,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Custom strategy types
     typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
+    typedef PrebucklingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > PrebucklingStrategyType;
     typedef HarmonicAnalysisStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HarmonicAnalysisStrategyType;
     typedef FormfindingUpdatedReferenceStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FormfindingUpdatedReferenceStrategyType;
     typedef MechanicalExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MechanicalExplicitStrategyType;
@@ -92,6 +94,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Eigensolver Strategy
     py::class_< EigensolverStrategyType, typename EigensolverStrategyType::Pointer,BaseSolvingStrategyType >(m,"EigensolverStrategy")
         .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>(), py::arg("model_part"), py::arg("scheme"), py::arg("builder_and_solver"), py::arg("compute_model_decomposition")=false)
+            ;
+
+    // Prebuckling Strategy
+    py::class_< PrebucklingStrategyType, typename PrebucklingStrategyType::Pointer,BaseSolvingStrategyType >(m,"PrebucklingStrategy")
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, BuilderAndSolverPointer, ConvergenceCriteriaPointer, int, double, double, double, double >(), 
+            py::arg("model_part"), py::arg("scheme"), py::arg("builder_and_solver"), py::arg("static_solver"), py::arg("convergence_criteria"), py::arg("max_iteration"), py::arg("initial_step"), py::arg("small_step"), py::arg("big_step"), py::arg("convergence_ratio") )
+            .def("GetSolutionFoundFlag", &PrebucklingStrategyType::GetSolutionFoundFlag)
             ;
 
     py::class_< FormfindingUpdatedReferenceStrategyType,typename FormfindingUpdatedReferenceStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"FormfindingUpdatedReferenceStrategy")

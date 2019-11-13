@@ -33,6 +33,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif solver_type == "eigen_value":
             solver_module_name = "structural_mechanics_eigensolver"
 
+        elif solver_type == "prebuckling_analysis":
+            solver_module_name = "structural_mechanics_prebuckling_solver"
+
         elif solver_type == "harmonic_analysis":
             solver_module_name = "structural_mechanics_harmonic_analysis_solver"
 
@@ -44,7 +47,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"static\", \"dynamic\", \"eigen_value\", \"harmonic_analysis\", \"formfinding\", \"adjoint_static\""
+            err_msg += "Available options are: \"static\", \"dynamic\", \"eigen_value\", \"prebuckling_analysis\", \"harmonic_analysis\", \"formfinding\", \"adjoint_static\""
             raise Exception(err_msg)
 
     # Solvers for MPI parallelism
