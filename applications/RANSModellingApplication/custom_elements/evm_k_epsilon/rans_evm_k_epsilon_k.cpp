@@ -420,7 +420,8 @@ double RansEvmKEpsilonKElement<TDim, TNumNodes>::CalculateReactionTerm(
     const ProcessInfo& rCurrentProcessInfo,
     const int Step) const
 {
-    return std::max(rData.Gamma + (2.0 / 3.0) * rData.VelocityDivergence, 0.0);
+    return RansCalculationUtilities::SoftPositive(
+        rData.Gamma + (2.0 / 3.0) * rData.VelocityDivergence);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

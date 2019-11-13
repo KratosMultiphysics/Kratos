@@ -31,6 +31,22 @@ using NodeType = ModelPart::NodeType;
 /// Geometry type (using with given NodeType)
 using GeometryType = Geometry<NodeType>;
 
+inline double SoftMax(const double value_1, const double value_2)
+{
+    // higher the base_2_power, closer to the hard max
+    const double base_2_power = 5.0;
+    const double max_value = std::max(value_1, value_2);
+    return std::log2(std::exp2((value_1 - max_value) * base_2_power) +
+                     std::exp2((value_2 - max_value) * base_2_power)) /
+               base_2_power +
+           max_value;
+}
+
+inline double SoftPositive(const double value)
+{
+    return SoftMax(value, 0.0);
+}
+
 void CalculateGeometryData(const GeometryType& rGeometry,
                            const GeometryData::IntegrationMethod& rIntegrationMethod,
                            Vector& rGaussWeights,
@@ -77,10 +93,11 @@ Vector GetVector(const array_1d<double, 3>& rVector);
 
 Vector GetVector(const array_1d<double, 3>& rVector, const unsigned int Dim);
 
-double KRATOS_API(RANS_MODELLING_APPLICATION) CalculateLogarithmicYPlusLimit(const double Kappa,
-                                      const double Beta,
-                                      const int MaxIterations = 20,
-                                      const double Tolerance = 1e-6);
+double KRATOS_API(RANS_MODELLING_APPLICATION)
+    CalculateLogarithmicYPlusLimit(const double Kappa,
+                                   const double Beta,
+                                   const int MaxIterations = 20,
+                                   const double Tolerance = 1e-6);
 
 } // namespace RansCalculationUtilities
 
