@@ -89,6 +89,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
 
         #define a minimal newton raphson solver
         self.linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+        #self.linear_solver = KratosMultiphysics.AMGCLSolver()
         if solving_with == "Block":
             self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         elif solving_with == "LM":
