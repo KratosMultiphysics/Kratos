@@ -485,7 +485,7 @@ public:
                 ComputeRHSLMContributions(b_lm, constraint_scale_factor);
 
                 // Fill auxiliar vector
-                TSparseSpace::UnaliasedAdd(b_modified, -1.0, b_lm);
+                TSparseSpace::UnaliasedAdd(b_modified, 1.0, b_lm);
 
                 // Finally reassign
                 rb.resize(b_modified.size(), false);
@@ -504,7 +504,7 @@ public:
                 ComputeRHSLMContributions(b_lm, constraint_scale_factor);
 
                 // Fill auxiliar vector
-                TSparseSpace::UnaliasedAdd(b_modified, -1.0, b_lm);
+                TSparseSpace::UnaliasedAdd(b_modified, 1.0, b_lm);
 
                 // Finally reassign
                 rb.resize(b_modified.size(), false);
@@ -615,7 +615,7 @@ public:
                 ComputeRHSLMContributions(b_lm, constraint_scale_factor);
 
                 // Fill auxiliar vector
-                TSparseSpace::UnaliasedAdd(b_modified, -1.0, b_lm);
+                TSparseSpace::UnaliasedAdd(b_modified, 1.0, b_lm);
 
                 // Finally reassign
                 rb.resize(b_modified.size(), false);
@@ -670,7 +670,7 @@ public:
                 ComputeRHSLMContributions(b_lm, constraint_scale_factor);
 
                 // Fill auxiliar vector
-                TSparseSpace::UnaliasedAdd(b_modified, -1.0, b_lm);
+                TSparseSpace::UnaliasedAdd(b_modified, 1.0, b_lm);
 
                 // Finally reassign
                 rb.resize(b_modified.size(), false);
