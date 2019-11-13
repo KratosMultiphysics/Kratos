@@ -67,8 +67,8 @@ class TestCase(TestCase):
         raise self.failureException(msg)
 
     def assertVectorAlmostEqual(self, vector1, vector2, prec=7):
-        self.assertEqual(matrix1.Size1(), matrix2.Size1())
-        for i in range(matrix1.Size1()):
+        self.assertEqual(vector1.Size(), vector2.Size())
+        for i in range(vector1.Size()):
             self.assertAlmostEqual(vector1[i], vector2[i], prec)
 
     def assertMatrixAlmostEqual(self, matrix1, matrix2, prec=7):
