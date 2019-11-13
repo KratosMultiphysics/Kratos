@@ -52,79 +52,31 @@ namespace Testing
 // We test the associated damage Constitutive laws...
 typedef Node<3> NodeType;
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageInternalVariables, KratosStructuralMechanicsFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageInternalVariables,
+                          KratosStructuralMechanicsFastSuite)
+{
+    //
+    // Test: check correct behavior of internal and calculated variables
+    //
+
     typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
-    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> VM;
-    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> DP;
-    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> T;
-    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> SJ;
-    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> R;
-
-    ConstitutiveLaw::Parameters cl_parameters;
-    Properties material_properties;
-    Vector stress_vector, strain_vector;
-
-    // Create gauss point
     Model current_model;
     ModelPart &test_model_part = current_model.CreateModelPart("Main");
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
-    Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
-    stress_vector = ZeroVector(6);
-    stress_vector[0] = 5.40984e+06;
-    stress_vector[1] = 5.40984e+06;
-    stress_vector[2] = 1.91803e+07;
-    stress_vector[3] = 0.0;
-    stress_vector[4] = 0.0;
-    stress_vector[5] = 1.45804e-10;
-    strain_vector = ZeroVector(6);
-    strain_vector[0] = 0.0;
-    strain_vector[1] = 0.0;
-    strain_vector[2] = 8.0e-5;
-    strain_vector[3] = 0.0;
-    strain_vector[4] = 0.0;
-    strain_vector[5] = 1.6941e-21;
-    // Set material properties
-    material_properties.SetValue(YOUNG_MODULUS, 210e9);
-    material_properties.SetValue(POISSON_RATIO, 0.22);
-    material_properties.SetValue(YIELD_STRESS_COMPRESSION, 3.0e6);
-    material_properties.SetValue(YIELD_STRESS_TENSION, 3.0e6);
-    material_properties.SetValue(FRICTION_ANGLE, 32.0);
-    material_properties.SetValue(DILATANCY_ANGLE, 16.0);
-    material_properties.SetValue(FRACTURE_ENERGY, 1000.0);
-    material_properties.SetValue(SOFTENING_TYPE, 0);
-    // Set constitutive law flags:
-    Flags &ConstitutiveLawOptions = cl_parameters.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-    // Set required constitutive law parameters:
-    cl_parameters.SetElementGeometry(Geom);
-    cl_parameters.SetProcessInfo(test_model_part.GetProcessInfo());
-    cl_parameters.SetMaterialProperties(material_properties);
-    cl_parameters.SetStrainVector(strain_vector);
-    cl_parameters.SetStressVector(stress_vector);
-    Matrix const_matrix;
-    cl_parameters.SetConstitutiveMatrix(const_matrix);
+    MC cl = MC();
 
+    KRATOS_CHECK(cl.Has(DAMAGE));  // = True
+    KRATOS_CHECK(cl.Has(THRESHOLD));  // = True
+    KRATOS_CHECK(cl.Has(UNIAXIAL_STRESS));  // = True
+    KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // = True
 
-    //
-    // MC Test: check correct behavior of internal and calculated variables
-    //
-    MC mc_cl = MC();
-    KRATOS_CHECK(mc_cl.Has(DAMAGE));  // = True
-    KRATOS_CHECK(mc_cl.Has(THRESHOLD));  // = True
-    KRATOS_CHECK(mc_cl.Has(UNIAXIAL_STRESS));  // = True
-    KRATOS_CHECK(mc_cl.Has(INTERNAL_VARIABLES));  // = True
     Vector internal_variables_w(3);
     internal_variables_w[0] = 0.0;
     internal_variables_w[1] = 0.1;
     internal_variables_w[2] = 0.2;
-    mc_cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
+    cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
     Vector internal_variables_r;
-    mc_cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
+    cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
+
     KRATOS_CHECK_NEAR(internal_variables_r.size(), 3., 1.e-5);  // = True
     KRATOS_CHECK_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
     KRATOS_CHECK_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
