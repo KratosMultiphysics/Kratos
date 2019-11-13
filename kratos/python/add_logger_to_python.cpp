@@ -17,6 +17,7 @@
 #include "includes/define_python.h"
 #include "includes/data_communicator.h"
 #include "input_output/logger.h"
+#include "input_output/file_logger_output.h"
 
 
 namespace Kratos {
@@ -158,6 +159,10 @@ void  AddLoggerToPython(pybind11::module& m) {
     .def("GetSeverity", &LoggerOutput::GetSeverity)
     .def("SetCategory", &LoggerOutput::SetCategory)
     .def("GetCategory", &LoggerOutput::GetCategory)
+    ;
+
+    py::class_<FileLoggerOutput, Kratos::shared_ptr<FileLoggerOutput>, LoggerOutput>(m,"FileLoggerOutput")
+    .def(py::init<std::string>())
     ;
 
     py::class_<Logger, Kratos::shared_ptr<Logger>> logger_scope(m,"Logger");
