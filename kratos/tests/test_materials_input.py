@@ -1,4 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
+from __future__ import print_function, absolute_import, division
 
 import os
 import sys
@@ -19,11 +19,12 @@ def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestMaterialsInput(KratosUnittest.TestCase):
-    def _prepare_test(self):
+    def _prepare_test(self, input_file = "materials.json"):
         # Define a Model
         self.current_model = KratosMultiphysics.Model()
 
         self.model_part = self.current_model.CreateModelPart("Main")
+
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         self.model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_read")) #reusing the file that is already in the directory
@@ -37,8 +38,8 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         }
         """)
 
-        #assign the real path
-        self.test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("auxiliar_files_for_python_unnitest/materials_files/materials.json"))
+        # Assign the real path
+        self.test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("auxiliar_files_for_python_unnitest/materials_files/" + input_file))
 
     def _check_results(self):
         #test if the element properties are assigned correctly to the elements and conditions
@@ -82,6 +83,20 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         self.assertAlmostEqual(table.GetNearestValue(1.1),10.0)
         self.assertAlmostEqual(table.GetDerivative(1.2),2.0)
 
+    def _check_results_with_subproperties(self):
+        prop1 = self.model_part.GetProperties()[1]
+        self.assertEqual(prop1.NumberOfSubproperties(), 3)
+
+        self.assertEqual(prop1.HasSubProperties(11), True)
+        self.assertEqual(prop1.HasSubProperties(120), False)
+
+        sub_prop11 = prop1.GetSubProperties(11)
+        self.assertEqual(sub_prop11.GetValue(KratosMultiphysics.YOUNG_MODULUS), 206900000000.0)
+        self.assertEqual(sub_prop11.GetValue(KratosMultiphysics.POISSON_RATIO), 0.29)
+        self.assertEqual(sub_prop11.GetValue(KratosMultiphysics.THICKNESS), 0.000889)
+
+        self.assertEqual(sub_prop11.NumberOfSubproperties(), 3)
+
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication or FluidDynamicsApplication are not available")
     def test_input_python(self):
         self._prepare_test()
@@ -94,6 +109,22 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
         KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
         self._check_results()
+
+    def test_input_with_subproperties_cpp(self):
+
+        if not dependencies_are_available:
+            self.skipTest("Dependencies are not available")
+        self._prepare_test("materials_with_subproperties.json")
+        KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
+        self._check_results_with_subproperties()
+
+    @KratosUnittest.expectedFailure
+    def test_input_with_subproperties_cpp_expected_failure(self):
+
+        if not dependencies_are_available:
+            self.skipTest("Dependencies are not available")
+        self._prepare_test("materials_with_subproperties_expected_failure.json")
+        KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
 
     def test_overdefined_materials(self):
         current_model = KratosMultiphysics.Model()
@@ -145,6 +176,6 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         for cond in self.current_model["Main.Outlet"].Conditions:
             self.assertEqual(cond.Properties.Id, 2)
 
-
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
