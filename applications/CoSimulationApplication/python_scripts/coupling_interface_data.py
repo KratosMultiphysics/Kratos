@@ -13,7 +13,7 @@ class CouplingInterfaceData(object):
     """This class serves as interface to the data structure (Model and ModelPart)
     that holds the data used during CoSimulation
     """
-    def __init__(self, custom_settings, model, name="default"):
+    def __init__(self, custom_settings, model, name="default", solver_name="default_solver"):
 
         default_config = KM.Parameters("""{
             "model_part_name" : "",
@@ -26,6 +26,7 @@ class CouplingInterfaceData(object):
         self.settings = custom_settings
         self.model = model
         self.name = name
+        self.solver_name = solver_name
         self.is_outdated = True
         self.model_part_name = self.settings["model_part_name"].GetString()
         if self.model_part_name == "":
@@ -35,6 +36,10 @@ class CouplingInterfaceData(object):
         variable_name = self.settings["variable_name"].GetString()
         if variable_name == "":
             raise Exception('No "variable_name" was specified!')
+        if not KM.KratosGlobals.HasVariable(variable_name):
+            # TODO here maybe we could construct a new var if necessary (maybe clashes with delayed app-import ...?)
+            raise Exception('Variable "{}" does not exist!'.format(variable_name))
+
         self.variable_type = KM.KratosGlobals.GetVariableType(variable_name)
 
         admissible_scalar_variable_types = ["Bool", "Integer", "Unsigned Integer", "Double", "Component"]
@@ -43,7 +48,7 @@ class CouplingInterfaceData(object):
         if not self.variable_type in admissible_scalar_variable_types and not self.variable_type in admissible_vector_variable_types:
             raise Exception('The input for "variable" "{}" is of variable type "{}" which is not allowed, only the following variable types are allowed:\n{}, {}'.format(variable_name, self.variable_type, ", ".join(admissible_scalar_variable_types), ", ".join(admissible_vector_variable_types)))
 
-        self.variable = KM.KratosGlobals.GetVariable(variable_name) # TODO here maybe we could construct a new var if necessary (maybe clashes with delayed app-import ...?)
+        self.variable = KM.KratosGlobals.GetVariable(variable_name)
 
         self.dtype = GetNumpyDataType(self.variable_type) # required for numpy array creation
 
@@ -79,11 +84,17 @@ class CouplingInterfaceData(object):
                         cs_tools.cs_print_warning('CouplingInterfaceData', '"DOMAIN_SIZE" ({}) of ModelPart "{}" does not match dimension ({})'.format(domain_size, self.model_part_name, self.dimension))
 
         if self.location == "node_historical":
-            if not self.GetModelPart().HasNodalSolutionStepVariable(self.variable):
-                raise Exception('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(self.variable.Name(), self.model_part_name))
+            if self.variable_type == "Component":
+                var_to_check = self.variable.GetSourceVariable()
+            else:
+                var_to_check = self.variable
+            if not self.GetModelPart().HasNodalSolutionStepVariable(var_to_check):
+                raise Exception('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(var_to_check.Name(), self.model_part_name))
 
     def __str__(self):
         self_str =  'CouplingInterfaceData:\n'
+        self_str += '\tName: "{}"\n'.format(self.name)
+        self_str += '\tSolver: "{}"\n'.format(self.solver_name)
         self_str += '\tModelPart: "{}"\n'.format(self.model_part_name)
         self_str += '\tIsDistributed: {}\n'.format(self.IsDistributed())
         self_str += '\tVariable: "{}"'.format(self.variable.Name())

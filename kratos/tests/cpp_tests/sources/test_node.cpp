@@ -83,11 +83,14 @@ namespace Kratos {
 			ModelPart& model_part = current_model.CreateModelPart("test");
 			model_part.AddNodalSolutionStepVariable(DISTANCE);
 			model_part.AddNodalSolutionStepVariable(VELOCITY);
+			model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+			model_part.AddNodalSolutionStepVariable(REACTION);
 
             auto p_node_to_be_saved = model_part.CreateNewNode(1, 1., 0, 0);
             auto p_node_to_be_loaded = Node<3>::Pointer(nullptr);
 
             p_node_to_be_saved->Fix(DISTANCE);
+            p_node_to_be_saved->AddDof(DISPLACEMENT_X, REACTION_X);
 
             StreamSerializer serializer;
 
@@ -99,6 +102,12 @@ namespace Kratos {
             Dof<double>& dof = p_node_to_be_loaded->AddDof(DISTANCE);
             dof.GetSolutionStepValue() = 2.345;
             KRATOS_CHECK_EQUAL(p_node_to_be_loaded->GetSolutionStepValue(DISTANCE), 2.345);
+            KRATOS_CHECK(p_node_to_be_loaded->GetDof(DISPLACEMENT_X).IsFree());
+            KRATOS_CHECK(p_node_to_be_loaded->GetDof(DISPLACEMENT_X).HasReaction());
+            KRATOS_CHECK_EQUAL(p_node_to_be_loaded->GetDof(DISPLACEMENT_X).GetReaction(), REACTION_X);
+
+            
+
 
         }
 }  // namespace Testing.

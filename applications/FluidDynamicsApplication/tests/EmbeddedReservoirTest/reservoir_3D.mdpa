@@ -5,10 +5,7 @@ End ModelPartData
 Begin Properties 0
 End Properties
 
-Begin Properties 1
-    DENSITY   1.00000E+03 
-    VISCOSITY   1.00000E-06
-    DYNAMIC_VISCOSITY   1.00000E-03  
+Begin Properties 1 
 End Properties
 
 Begin Nodes

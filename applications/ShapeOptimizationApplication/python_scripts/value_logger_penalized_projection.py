@@ -9,6 +9,9 @@
 #
 # ==============================================================================
 
+# importing the Kratos Library
+import KratosMultiphysics as KM
+
 # Import logger base classes
 from .value_logger_base import ValueLogger
 
@@ -41,14 +44,15 @@ class ValueLoggerPenalizedProjection( ValueLogger ):
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToConsole( self ):
         objective_id = self.objectives[0]["identifier"].GetString()
-        print("\n> Current value of objective = ", "{:> .5E}".format(self.history["response_value"][objective_id][self.current_index]))
+        KM.Logger.Print("")
+        KM.Logger.PrintInfo("ShapeOpt", "Current value of objective = ", "{:> .5E}".format(self.history["response_value"][objective_id][self.current_index]))
 
-        print("> Absolut change of objective = ","{:> .5E}".format(self.history["abs_change_objective"][self.current_index])," [%]")
-        print("> Relative change of objective = ","{:> .5E}".format(self.history["rel_change_objective"][self.current_index])," [%]\n")
+        KM.Logger.PrintInfo("ShapeOpt", "Absolut change of objective = ","{:> .5E}".format(self.history["abs_change_objective"][self.current_index])," [%]")
+        KM.Logger.PrintInfo("ShapeOpt", "Relative change of objective = ","{:> .5E}".format(self.history["rel_change_objective"][self.current_index])," [%]\n")
 
         for itr in range(self.constraints.size()):
             constraint_id = self.constraints[itr]["identifier"].GetString()
-            print("> Value of C"+str(itr+1)+" = ", "{:> .5E}".format(self.history["response_value"][constraint_id][self.current_index]))
+            KM.Logger.PrintInfo("ShapeOpt", "Value of C"+str(itr+1)+" = ", "{:> .5E}".format(self.history["response_value"][constraint_id][self.current_index]))
 
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToFile( self ):

@@ -26,7 +26,7 @@ namespace Kratos
 {
 	namespace Testing
 	{
-		TestCaseResult::TestCaseResult() : mStatus(Result::NotRun), mOutput(""), mErrorMessage("")
+		TestCaseResult::TestCaseResult() : mStatus(Result::DidNotRun), mOutput(""), mErrorMessage("")
 			, mSetupElapsedTime(0.00), mRunElapsedTime(0.00), mTearDownElapsedTime(0.00), mElapsedTime(0.00) {}
 
 		TestCaseResult::TestCaseResult(TestCaseResult const& rOther)
@@ -51,7 +51,7 @@ namespace Kratos
 
 		void TestCaseResult::Reset()
 		{
-			mStatus = Result::NotRun;
+			mStatus = Result::DidNotRun;
 			mOutput = "";
 			mErrorMessage = "";
 			mSetupElapsedTime = 0.00;
@@ -146,12 +146,12 @@ namespace Kratos
 
 		bool TestCaseResult::IsRun() const
 		{
-			return mStatus != Result::NotRun;
+			return mStatus != Result::DidNotRun;
 		}
 
 		std::string TestCaseResult::Info() const
 		{
-			if (mStatus == Result::NotRun)
+			if (mStatus == Result::DidNotRun)
 			{
 				return "Test case not run";
 			}

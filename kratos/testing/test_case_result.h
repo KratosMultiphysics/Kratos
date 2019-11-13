@@ -144,7 +144,7 @@ namespace Kratos
 			///@{
 
 			enum class Result {
-				NotRun,
+				DidNotRun,
 				Passed,
 				Failed,
 				Skipped
