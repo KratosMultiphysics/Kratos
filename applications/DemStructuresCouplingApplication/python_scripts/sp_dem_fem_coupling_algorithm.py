@@ -57,7 +57,7 @@ class SPAlgorithm(Algorithm):
     def Initialize(self):
         super(SPAlgorithm,self).Initialize()
 
-        self.InitializeAdditionalProcessInfoVars()
+        #self.InitializeAdditionalProcessInfoVars()
 
         if self.test_number:
             from KratosMultiphysics.DemStructuresCouplingApplication.control_module_fem_dem_utility import ControlModuleFemDemUtility
@@ -110,8 +110,8 @@ class SPAlgorithm(Algorithm):
 
             if self.test_number == 1 or self.test_number == 2:
                 self.outer_walls_model_part = self.model["Structure.SurfacePressure3D_lateral_pressure"]
-                DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearch(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
-                #DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
+                #DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearch(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
+                DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
                 DemFem.DemStructuresCouplingUtilities().ComputeSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
             elif self.test_number == 3:
                 self.outer_walls_model_part_1 = self.model["Structure.SurfacePressure3D_sigmaXpos"]
