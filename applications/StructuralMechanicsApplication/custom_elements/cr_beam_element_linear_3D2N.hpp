@@ -95,10 +95,7 @@ public:
      */
     BoundedMatrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness() const override;
 
-    void Calculate(
-            const Variable<Matrix>& rVariable,
-            Matrix& rOutput,
-            const ProcessInfo& rCurrentProcessInfo) override;
+    void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
