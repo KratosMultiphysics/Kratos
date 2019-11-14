@@ -1013,9 +1013,9 @@ private:
 
         // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
         #pragma omp parallel for
-        for (int k = 0; k<ndofs; ++k) {
-            auto it_dof = it_dof_begin + k;
-            aux_whole_dof_vector[k] = it_dof->GetSolutionStepValue();
+        for (int i = 0; i < ndofs; ++i) {
+            auto it_dof = it_dof_begin + i;
+            aux_whole_dof_vector[i] = it_dof->GetSolutionStepValue();
         }
 
         // Compute auxiliar contribution
@@ -1042,13 +1042,15 @@ private:
 
         // We compute the transposed matrix of the global relation matrix
         TSystemMatrixType T_transpose_matrix(ndofs, number_of_slave_dofs);
-        SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, BaseType::mT, ScaleFactor);
+        SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, BaseType::mT, -ScaleFactor);
 
         TSparseSpace::Mult(T_transpose_matrix, mLagrangeMultiplierVector, aux_whole_dof_vector);
-
         #pragma omp parallel for
         for (int i = 0; i < ndofs; ++i) {
-            rbLM[i] = aux_whole_dof_vector[i];
+            auto it_dof = it_dof_begin + i;
+            if (it_dof->IsFree()) {
+                rbLM[i] = aux_whole_dof_vector[i];
+            }
         }
         aux_whole_dof_vector.resize(0, false); // Free memory
 
