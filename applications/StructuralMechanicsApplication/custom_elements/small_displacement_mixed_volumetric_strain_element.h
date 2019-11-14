@@ -604,8 +604,9 @@ private:
     double CalculateElementSize(const KinematicVariables &rThisKinematicVariables) const;
 
     /**
-     * @brief Calculates the linearised bulk modulus
-     * This method approximates the bulk modulus for the current volumetric strain
+     * @brief Calculates an approximation of the bulk modulus
+     * This method approximates the bulk modulus for a fake volumetric strain field
+     * It is intended to be only used when the volumetric strain has null value
      * @param rCurrentProcessInfo Process info
      * @param i_gauss Integration point index
      * @param rN Shape function values
@@ -615,6 +616,28 @@ private:
         const ProcessInfo& rCurrentProcessInfo,
         const SizeType i_gauss,
         const Vector &rN) const;
+
+    /**
+     * @brief Calculates the linearised bulk modulus
+     * This method approximates the bulk modulus for the current volumetric strain
+     * @param rKinematicVariables The kinematic variables containing the deviatoric operator
+     * @param rConstitutiveVariables The constitutive variables containing the constitutive tensor
+     * @return double Approximated bulk modulus
+     */
+    double CalculateLinearisedBulkModulus(
+        const KinematicVariables &rThisKinematicVariables,
+        const ConstitutiveVariables &rThisConstitutiveVariables) const;
+
+    /**
+     * @brief Calculates the linearised shear modulus
+     * This method approximates the shear modulus for the current deviatoric strain
+     * @param rKinematicVariables The kinematic variables containing the deviatoric operator
+     * @param rConstitutiveVariables The constitutive variables containing the constitutive tensor
+     * @return double Approximated shear modulus
+     */
+    double CalculateLinearisedShearModulus(
+        const KinematicVariables &rThisKinematicVariables,
+        const ConstitutiveVariables &rThisConstitutiveVariables) const;
 
     ///@}
     ///@name Private  Access
