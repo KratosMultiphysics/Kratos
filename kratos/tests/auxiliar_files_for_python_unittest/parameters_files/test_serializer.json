@@ -10,7 +10,7 @@
         "solver_type"                     : "Monolithic",
         "model_import_settings"           : {
             "input_type"     : "mdpa",
-            "input_filename" : "auxiliar_files_for_python_unnitest/mdpa_files/test_serializer"
+            "input_filename" : "auxiliar_files_for_python_unittest/mdpa_files/test_serializer"
         },
         "domain_size"                     : 2,
         "model_part_name"                 : "MainModelPart",
