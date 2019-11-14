@@ -1192,7 +1192,8 @@ void CrBeamElement3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOu
 {
     if (rVariable == LOCAL_ELEMENT_ORIENTATION)
     {
-        rOutput.resize(msElementSize, msElementSize, false);
+        if(rOutput.size1() != msElementSize || rOutput.size2() != msElementSize)
+            rOutput.resize(msElementSize, msElementSize, false);
         noalias(rOutput) = GetTransformationMatrixGlobal();
     }
 }

@@ -195,7 +195,8 @@ void CrBeamElementLinear3D2N::Calculate(const Variable<Matrix>& rVariable, Matri
 {
     if (rVariable == LOCAL_ELEMENT_ORIENTATION)
     {
-        rOutput.resize(msElementSize, msElementSize, false);
+        if(rOutput.size1() != msElementSize || rOutput.size2() != msElementSize)
+            rOutput.resize(msElementSize, msElementSize, false);
         noalias(rOutput) = CalculateInitialLocalCS();
     }
 }

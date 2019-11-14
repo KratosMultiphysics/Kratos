@@ -299,7 +299,8 @@ void TrussElement3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOut
     {
         BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix = ZeroMatrix(msLocalSize, msLocalSize);
         CreateTransformationMatrix(transformation_matrix);
-        rOutput.resize(transformation_matrix.size1(), transformation_matrix.size2(), false);
+        if(rOutput.size1() != msLocalSize || rOutput.size2() != msLocalSize)
+            rOutput.resize(msLocalSize, msLocalSize, false);
         noalias(rOutput) = transformation_matrix;
     }
 }
