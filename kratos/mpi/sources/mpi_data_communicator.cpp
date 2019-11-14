@@ -889,8 +889,9 @@ bool MPIDataCommunicator::BroadcastErrorIfFalse(bool Condition, const int Source
 
 bool MPIDataCommunicator::ErrorIfTrueOnAnyRank(bool Condition) const
 {
-    // Note: this function cannot use the helper functions AllReduceDetail
-    // Those call ErrorIfTrueOnAnyRank in debug mode for consistency checking
+    // Note: this function cannot use the helper function AllReduceDetail
+    // even if it implements the same funtionality. AllReduceDetail calls
+    // ErrorIfTrueOnAnyRank in debug mode for consistency checking
     // and that would result on a circular call.
     bool or_condition;
     int ierr = MPI_Allreduce(&Condition, &or_condition, 1, MPI_C_BOOL, MPI_LOR, mComm);
