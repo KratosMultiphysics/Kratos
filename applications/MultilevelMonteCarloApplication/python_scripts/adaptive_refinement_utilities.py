@@ -54,6 +54,8 @@ class AdaptiveRefinement(object):
 
         if (self.metric is "hessian"):
             original_interp_error = metric_param["hessian_strategy_parameters"]["interpolation_error"].GetDouble()
+            if (metric_param.Has("minimal_size") is True):
+                original_minimal_size = metric_param["minimal_size"].GetDouble()
 
             # problem dependent section
             if (problem_type == "potential_flow"):
@@ -109,11 +111,19 @@ class AdaptiveRefinement(object):
                 if metric_param.Has("local_gradient_variable"):
                     metric_param.RemoveValue("local_gradient_variable")
                 if current_level > 0:
-                    coefficient_interp_error =  metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
+                    # interpolation error
+                    coefficient_interp_error = metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
                     metric_param["hessian_strategy_parameters"].RemoveValue("coefficient_interpolation_error")
-                    # interp_error = original_interp_error*(coefficient_interp_error)**(-current_level)
-                    interp_error = original_interp_error/(coefficient_interp_error*current_level)
+                    interp_error = original_interp_error/(coefficient_interp_error**current_level)
                     metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
+                    # minimal size
+                    coefficient_minimal_size = metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
+                    metric_param["hessian_strategy_parameters"].RemoveValue("coefficient_minimal_size_error")
+                    minimal_size = original_minimal_size / (coefficient_minimal_size*current_level)
+                    metric_param["minimal_size"].SetDouble(minimal_size)
+                    print("[SCREENING] LEVEL:",current_level)
+                    print("metric parameters")
+                    print(metric_param)
                 model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
 
                 # Setting Metric Tensor to 0
