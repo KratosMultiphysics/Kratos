@@ -2438,10 +2438,5 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorErrorBroadcasting, Krat
     );
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPITestPartialFailure, KratosMPICoreFastSuite)
-{
-    KRATOS_CHECK_EQUAL(DataCommunicator::GetDefault().Rank(), 1);
-}
-
 }
 }
