@@ -19,7 +19,6 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "processes/voxel_mesh_generator_process.h"
-#include "processes/voxel_mesh_coloring_process.h"
 
 namespace Kratos {
   namespace Testing {

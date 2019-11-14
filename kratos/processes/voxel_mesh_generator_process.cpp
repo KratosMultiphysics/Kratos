@@ -22,7 +22,6 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "includes/checks.h"
-#include "processes/voxel_mesh_coloring_process.h"
 #include "utilities/timer.h"
 
 
