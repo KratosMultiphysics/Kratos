@@ -356,7 +356,12 @@ namespace Kratos
             // delivers particular solution of influence function in local coordinates
             this->CalculateParticularSolutionLinearElement2N(particular_solution);
             // transform particular solution into global coordinates
-            mpTracedElement->Calculate(ADJOINT_PARTICULAR_DISPLACEMENT, particular_solution, mrModelPart.GetProcessInfo());
+            Matrix transformation_matrix;
+            mpTracedElement->Calculate(LOCAL_ELEMENT_ORIENTATION, transformation_matrix, mrModelPart.GetProcessInfo());
+            KRATOS_ERROR_IF_NOT(transformation_matrix.size1() == particular_solution.size())
+                << "Size of transformation matrix does not fit!" << std::endl;
+            particular_solution = prod(transformation_matrix, particular_solution);
+            // set particular solution as non-historical result
             mpTracedElement->SetValue(ADJOINT_PARTICULAR_DISPLACEMENT, particular_solution);
         }
         else

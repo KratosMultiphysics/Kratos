@@ -20,29 +20,6 @@ namespace Kratos
 {
 
 template <class TPrimalElement>
-void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::Calculate(const Variable<Vector >& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    // The particular soltuion of the influence function is rotated in global direction
-    if (rVariable == ADJOINT_PARTICULAR_DISPLACEMENT)
-    {
-        static constexpr int number_of_nodes = 2;
-        static constexpr int dimension = 3;
-        static constexpr unsigned int element_size = number_of_nodes * dimension;
-
-        KRATOS_ERROR_IF(rOutput.size() != element_size) << "Size of particular solution does not fit!" << std::endl;
-
-        TrussElement3D2N::Pointer p_primal_beam_element = dynamic_pointer_cast<TrussElement3D2N>(this->pGetPrimalElement());
-        BoundedMatrix<double, element_size, element_size> transformation_matrix = ZeroMatrix(element_size, element_size);
-        p_primal_beam_element->CreateTransformationMatrix(transformation_matrix);
-        rOutput = prod(transformation_matrix, rOutput);
-    }
-
-    KRATOS_CATCH("")
-}
-
-template <class TPrimalElement>
 void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					      std::vector< array_1d<double, 3 > >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)

@@ -176,6 +176,8 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::Calculate(const Varia
             this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_NODE, rOutput, rCurrentProcessInfo);
         }
     }
+    else if(rVariable == LOCAL_ELEMENT_ORIENTATION)
+        this->pGetPrimalElement()->Calculate(rVariable, rOutput, rCurrentProcessInfo);
     else
     {
         KRATOS_WARNING("AdjointFiniteDifferencingBaseElement") << "Calculate function called for unknown variable: " << rVariable << std::endl;
