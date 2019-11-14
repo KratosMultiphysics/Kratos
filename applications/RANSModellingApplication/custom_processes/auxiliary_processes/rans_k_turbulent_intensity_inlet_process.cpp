@@ -114,14 +114,13 @@ int RansKTurbulentIntensityInletProcess::Check()
 {
     KRATOS_TRY
 
-    RansCheckUtilities rans_check_utilities;
 
-    rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
+    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
     ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_KINETIC_ENERGY);
-    rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, VELOCITY);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_KINETIC_ENERGY);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, VELOCITY);
 
     return 0;
 

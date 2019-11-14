@@ -71,13 +71,12 @@ int RansWallDistanceCalculationProcess<TSparseSpace, TDenseSpace, TLinearSolver>
 {
     KRATOS_TRY
 
-    RansCheckUtilities rans_check_utilities;
 
-    rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
+    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
     const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, DISTANCE);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, DISTANCE);
 
     return 0.0;
 

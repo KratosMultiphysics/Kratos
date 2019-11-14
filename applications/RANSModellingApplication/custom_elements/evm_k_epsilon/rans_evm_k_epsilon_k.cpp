@@ -420,8 +420,17 @@ double RansEvmKEpsilonKElement<TDim, TNumNodes>::CalculateReactionTerm(
     const ProcessInfo& rCurrentProcessInfo,
     const int Step) const
 {
-    return RansCalculationUtilities::SoftPositive(
+    const double t = RansCalculationUtilities::SoftPositive(
         rData.Gamma + (2.0 / 3.0) * rData.VelocityDivergence);
+
+    if (std::isnan(t))
+    {
+        KRATOS_WATCH(rData.Gamma);
+        KRATOS_WATCH(rData.TurbulentKineticEnergy);
+        KRATOS_WATCH(rData.TurbulentKinematicViscosity);
+        KRATOS_WATCH(rData.VelocityDivergence);
+    }
+    return t;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

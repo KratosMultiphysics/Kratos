@@ -60,9 +60,8 @@ int RansScalarCellCenterAveragingProcess::Check()
 {
     KRATOS_TRY
 
-    RansCheckUtilities rans_check_utilities;
 
-    rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
+    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
     const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
@@ -71,8 +70,8 @@ int RansScalarCellCenterAveragingProcess::Check()
     const Variable<double>& output_variable =
         KratosComponents<Variable<double>>::Get(mAveragingOutputVariableName);
 
-    rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, input_variable);
-    rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, output_variable);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, input_variable);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, output_variable);
 
     return 0.0;
 

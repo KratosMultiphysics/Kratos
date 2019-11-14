@@ -58,9 +58,8 @@ RansVectorAlignProcess::~RansVectorAlignProcess()
 
 int RansVectorAlignProcess::Check()
 {
-    RansCheckUtilities rans_check_utilities;
 
-    rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
+    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
     const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
@@ -71,9 +70,9 @@ int RansVectorAlignProcess::Check()
     const Variable<array_1d<double, 3>>& alignment_variable =
         KratosComponents<Variable<array_1d<double, 3>>>::Get(mAlignmentVariableName);
 
-    rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, input_variable);
-    rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, output_variable);
-    rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, alignment_variable);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, input_variable);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, output_variable);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, alignment_variable);
 
     return 0.0;
 }

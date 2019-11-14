@@ -69,9 +69,8 @@ int RansCheckVectorBoundsProcess::Check()
     const Variable<array_1d<double, 3>> vector_variable =
         KratosComponents<Variable<array_1d<double, 3>>>::Get(mVariableName);
 
-    RansCheckUtilities rans_check_utilities;
-    rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
-    rans_check_utilities.CheckIfVariableExistsInModelPart(
+        RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(
         mrModel.GetModelPart(mModelPartName), vector_variable);
 
     return 0;

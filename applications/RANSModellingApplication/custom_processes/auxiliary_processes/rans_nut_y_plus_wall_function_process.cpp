@@ -64,15 +64,14 @@ int RansNutYPlusWallFunctionProcess::Check()
 {
     KRATOS_TRY
 
-    RansCheckUtilities rans_check_utilities;
 
-    rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
+    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
     const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, KINEMATIC_VISCOSITY);
-    rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_VISCOSITY);
-    rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, RANS_Y_PLUS);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, KINEMATIC_VISCOSITY);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_VISCOSITY);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, RANS_Y_PLUS);
 
     return 0;
 

@@ -114,14 +114,11 @@ int RansApplyExactNodalPeriodicConditionProcess::Check()
 {
     KRATOS_TRY
 
-    RansCheckUtilities rans_check_utilities;
+    RansCheckUtilities::CheckIfModelPartExists(mrModel, mBaseModelPartName);
+    RansCheckUtilities::CheckIfModelPartExists(mrModel, mMasterModelPartName);
+    RansCheckUtilities::CheckIfModelPartExists(mrModel, mSlaveModelPartName);
 
-    rans_check_utilities.CheckIfModelPartExists(mrModel, mBaseModelPartName);
-    rans_check_utilities.CheckIfModelPartExists(mrModel, mMasterModelPartName);
-    rans_check_utilities.CheckIfModelPartExists(mrModel, mSlaveModelPartName);
-
-    ModelPart::NodesContainerType& r_base_model_part_nodes =
-        mrModel.GetModelPart(mBaseModelPartName).Nodes();
+    const ModelPart& r_base_model_part_nodes = mrModel.GetModelPart(mBaseModelPartName);
 
     for (std::string variable_name : mVariablesList)
     {
@@ -129,7 +126,7 @@ int RansApplyExactNodalPeriodicConditionProcess::Check()
         {
             const Variable<double>& variable =
                 KratosComponents<Variable<double>>::Get(variable_name);
-            rans_check_utilities.CheckIfVariableExistsInNodesContainer(
+            RansCheckUtilities::CheckIfVariableExistsInModelPart(
                 r_base_model_part_nodes, variable);
         }
         else if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(
@@ -138,8 +135,8 @@ int RansApplyExactNodalPeriodicConditionProcess::Check()
             const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>& variable =
                 KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(
                     variable_name);
-            rans_check_utilities.CheckIfVariableExistsInNodesContainer(
-                r_base_model_part_nodes, variable);
+            RansCheckUtilities::CheckIfVariableExistsInModelPart(
+                r_base_model_part_nodes, variable.GetSourceVariable());
         }
         else
         {

@@ -13,201 +13,25 @@
 #if !defined(KRATOS_RANS_APPLICATION_CHECK_UTILITIES_H_INCLUDED)
 #define KRATOS_RANS_APPLICATION_CHECK_UTILITIES_H_INCLUDED
 
+// System includes
 #include <string>
 
+// Project includes
 #include "containers/model.h"
-#include "includes/checks.h"
-#include "includes/define.h"
 #include "includes/model_part.h"
+
+// Application includes
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-class RansCheckUtilities
+namespace RansCheckUtilities
 {
-public:
-    ///@name Type Definitions
-    ///@{
+bool CheckIfModelPartExists(const Model& rModel, const std::string& rModelPartName);
 
-    /// We create the Pointer related to VariableUtils
-    KRATOS_CLASS_POINTER_DEFINITION(RansCheckUtilities);
-
-    /// Node type
-    using NodeType = ModelPart::NodeType;
-
-    /// Geometry type (using with given NodeType)
-    using GeometryType = Geometry<NodeType>;
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /**
-     * Constructor.
-     */
-    RansCheckUtilities()
-    {
-    }
-
-    /**
-     * Destructor
-     */
-    ~RansCheckUtilities()
-    {
-    }
-
-    ///@}
-
-    ///@name Operations
-    ///@{
-
-    bool CheckIfModelPartExists(const Model& rModel, const std::string& rModelPartName) const
-    {
-        KRATOS_TRY
-
-        if (!rModel.HasModelPart(rModelPartName))
-        {
-            const std::vector<std::string>& r_model_part_names =
-                rModel.GetModelPartNames();
-
-            std::string msg;
-            msg = rModel.Info() + " doesn't have " + rModelPartName +
-                  ". Available model parts are: \n";
-            for (std::string model_part_name : r_model_part_names)
-                msg += "     " + model_part_name + "\n";
-
-            KRATOS_ERROR << msg;
-        }
-
-        return true;
-
-        KRATOS_CATCH("");
-    }
-
-    bool CheckIfVariableExistsInNodesContainer(const ModelPart::NodesContainerType& rNodes,
-                                               const Variable<double>& rVariable) const
-    {
-        KRATOS_TRY
-
-        const int number_of_nodes = rNodes.size();
-
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            const ModelPart::NodeType& r_node = *(rNodes.begin() + i_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(rVariable, r_node);
-        }
-
-        return true;
-
-        KRATOS_CATCH("");
-    }
-
-    bool CheckIfVariableExistsInNodesContainer(
-        const ModelPart::NodesContainerType& rNodes,
-        const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>& rVariable) const
-    {
-        KRATOS_TRY
-
-        const int number_of_nodes = rNodes.size();
-
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            const ModelPart::NodeType& r_node = *(rNodes.begin() + i_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(rVariable, r_node);
-        }
-
-        return true;
-
-        KRATOS_CATCH("");
-    }
-
-    bool CheckIfVariableExistsInNodesContainer(const ModelPart::NodesContainerType& rNodes,
-                                               const Variable<array_1d<double, 3>>& rVariable) const
-    {
-        KRATOS_TRY
-
-        const int number_of_nodes = rNodes.size();
-
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            const ModelPart::NodeType& r_node = *(rNodes.begin() + i_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(rVariable, r_node);
-        }
-
-        return true;
-
-        KRATOS_CATCH("");
-    }
-
-    bool CheckIfVariableExistsInModelPart(const ModelPart& rModelPart,
-                                          const Variable<double>& rVariable) const
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(rVariable))
-            << rModelPart.Name() << " doesn't have "
-            << rVariable.Name() << " in NodalSolutionStepDataContainer. Please add it as a SolutionStepVariable.";
-
-        return true;
-
-        KRATOS_CATCH("");
-    }
-
-    bool CheckIfVariableExistsInModelPart(const ModelPart& rModelPart,
-                                          const Variable<array_1d<double, 3>>& rVariable) const
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(rVariable))
-            << rModelPart.Name() << " doesn't have "
-            << rVariable.Name() << " in NodalSolutionStepDataContainer. Please add it as a SolutionStepVariable.";
-
-        return true;
-
-        KRATOS_CATCH("");
-    }
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-
-}; // Class CalculationUtilities
-
-///@}
+template <typename TVariableType>
+bool CheckIfVariableExistsInModelPart(const ModelPart& rModelPart,
+                                      const TVariableType& rVariable);
+} // namespace RansCheckUtilities
 
 } // namespace Kratos
 
