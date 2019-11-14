@@ -1,6 +1,6 @@
 {
     "problem_data"     : {
-        "problem_name"  : "Modified_Fluid3",
+        "problem_name"  : "Modified_Fluid4",
         "domain_size"   : 3,
         "parallel_type" : "OpenMP",
         "echo_level"    : 0,
@@ -15,7 +15,7 @@
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
                 "model_part_name"        : "FluidModelPart.fluid_computational_model_part",
-                "output_name"            : "Modified_Fluid3",
+                "output_name"            : "Modified_Fluid4",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"       : {
@@ -75,7 +75,7 @@
             "solver_type"                 : "Monolithic",
             "model_import_settings"       : {
                 "input_type"     : "mdpa",
-                "input_filename" : "Modified_Fluid3"
+                "input_filename" : "Modified_Fluid4"
             },
             "echo_level"                  : 0,
             "compute_reactions"           : true,
@@ -104,7 +104,7 @@
             "domain_size"                        : 3,
             "model_import_settings"              : {
                 "input_type"     : "mdpa",
-                "input_filename" : "Modified_Fluid3"
+                "input_filename" : "Modified_Fluid4"
             },
             "material_import_settings"           : {
                 "materials_filename" : "BuoyancyMaterials.json"
