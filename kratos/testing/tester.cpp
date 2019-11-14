@@ -367,19 +367,19 @@ namespace Kratos
 
 				if (pTheTestCase->GetResult().IsSucceed())
 				{
-					std::cout << " OK." << std::endl;
+					std::cout << "OK." << std::endl;
 					if (GetInstance().mVerbosity == Verbosity::TESTS_OUTPUTS)
 						std::cout << pTheTestCase->GetResult().GetOutput() << std::endl;
 				}
 				else if (pTheTestCase->GetResult().IsFailed())
 				{
-					std::cout << " FAILED!" << std::endl;
+					std::cout << "FAILED!" << std::endl;
 					if (GetInstance().mVerbosity >= Verbosity::FAILED_TESTS_OUTPUTS)
 						std::cout << pTheTestCase->GetResult().GetOutput() << std::endl;
 				}
 				else if (pTheTestCase->GetResult().IsSkipped())
 				{
-					std::cout << " SKIPPED." << std::endl;
+					std::cout << "SKIPPED." << std::endl;
 					if (GetInstance().mVerbosity == Verbosity::TESTS_OUTPUTS)
 						std::cout << pTheTestCase->GetResult().GetErrorMessage() << std::endl;
 				}
