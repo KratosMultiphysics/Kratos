@@ -12,7 +12,9 @@
 
 // System includes
 #include <iostream>
+#include <limits>
 #include <string>
+#include <cmath>
 
 // External includes
 

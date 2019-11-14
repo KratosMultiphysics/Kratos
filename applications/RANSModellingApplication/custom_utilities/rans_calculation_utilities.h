@@ -13,6 +13,10 @@
 #if !defined(KRATOS_RANS_APPLICATION_CALCULATION_UTILITIES_H_INCLUDED)
 #define KRATOS_RANS_APPLICATION_CALCULATION_UTILITIES_H_INCLUDED
 
+// System includes
+#include <cmath>
+
+// Project includes
 #include "geometries/geometry.h"
 #include "geometries/geometry_data.h"
 #include "includes/model_part.h"
@@ -31,18 +35,25 @@ using NodeType = ModelPart::NodeType;
 /// Geometry type (using with given NodeType)
 using GeometryType = Geometry<NodeType>;
 
-inline double SoftMax(const double value_1, const double value_2)
+inline long double SoftMax(const long double value_1, const long double value_2)
 {
     // higher the base_2_power, closer to the hard max
-    const double base_2_power = 5.0;
-    const double max_value = std::max(value_1, value_2);
-    return std::log2(std::exp2((value_1 - max_value) * base_2_power) +
-                     std::exp2((value_2 - max_value) * base_2_power)) /
-               base_2_power +
-           max_value;
+    const long double base_2_power = 5.0;
+    const long double max_value = std::max(value_1, value_2);
+
+    const long double soft_max =
+        std::log2(std::exp2((value_1 - max_value) * base_2_power) +
+                  std::exp2((value_2 - max_value) * base_2_power)) /
+            base_2_power +
+        max_value;
+
+    // if the max value is closer to zero, then soft_max can collapse to exact zero due to numerical limitations.
+    // therefore in order to avoid that, hard max is used. This is only activated in unexpected collapsing, since
+    // soft max always will be greater than the hard max
+    return std::max(soft_max, max_value);
 }
 
-inline double SoftPositive(const double value)
+inline long double SoftPositive(const long double value)
 {
     return SoftMax(value, 0.0);
 }

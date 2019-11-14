@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <limits>
 #include <string>
 
 // External includes

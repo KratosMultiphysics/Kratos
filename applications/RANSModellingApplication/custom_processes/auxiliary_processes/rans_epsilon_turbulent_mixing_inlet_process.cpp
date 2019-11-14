@@ -12,6 +12,7 @@
 
 // System includes
 #include <cmath>
+#include <limits>
 
 // External includes
 
@@ -108,7 +109,6 @@ void RansEpsilonTurbulentMixingLengthInletProcess::Execute()
 
 int RansEpsilonTurbulentMixingLengthInletProcess::Check()
 {
-
     RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
     ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);

@@ -14,6 +14,7 @@
 #define KRATOS_STABILIZED_CONVECTION_DIFFUSION_REACTION_H_INCLUDED
 
 // System includes
+#include <cmath>
 
 // External includes
 

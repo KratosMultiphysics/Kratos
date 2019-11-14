@@ -12,6 +12,7 @@
 
 // System includes
 #include <cmath>
+#include <limits>
 
 // External includes
 

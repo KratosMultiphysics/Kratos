@@ -16,6 +16,7 @@
 // System includes
 #include <string>
 #include <unordered_map>
+#include <cmath>
 
 /* Project includes */
 #include "includes/model_part.h"

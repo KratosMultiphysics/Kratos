@@ -15,6 +15,7 @@
 #define KRATOS_RESIDUAL_BASED_BOSSAK_VELOCITY_SCHEME_H_INCLUDED
 
 // System includes
+#include <limits>
 #include <vector>
 
 // External includes

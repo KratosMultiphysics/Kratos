@@ -166,6 +166,7 @@ private:
     int mEchoLevel;
 
     double mCmu;
+    double mMinNutFactor;
 
     ///@}
     ///@name Private Operators

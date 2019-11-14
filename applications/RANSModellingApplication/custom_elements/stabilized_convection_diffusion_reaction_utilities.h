@@ -80,9 +80,8 @@ inline void CalculateStabilizationTau(double& rTau,
     {
         rElementLength = 0.0;
         for (unsigned int i = 0; i < dim; ++i)
-            for (unsigned int j = 0; j < dim; ++j)
-                rElementLength += rContravariantMetricTensor(i, j);
-        rElementLength = std::sqrt(1.0 / rElementLength) * 2.0;
+            rElementLength += 1.0 / std::sqrt(rContravariantMetricTensor(i, i));
+        rElementLength *= 2.0 / static_cast<double>(dim);
     }
 
     const double stab_convection = std::pow(2.0 * norm_2(rVelocity) / rElementLength, 2);
@@ -121,15 +120,13 @@ inline void CalculateCrossWindDiffusionParameters(double& rChi,
     value -= (EffectiveKinematicViscosity + Tau * std::pow(VelocityMagnitude, 2));
     value += psi_two;
 
-    rStreamLineDiffusionCoeff =
-        RansCalculationUtilities::SoftPositive(value);
+    rStreamLineDiffusionCoeff = RansCalculationUtilities::SoftPositive(value);
 
     value = 0.5 * std::abs(psi_one) * ElementLength;
     value -= EffectiveKinematicViscosity;
     value += psi_two;
 
-    rCrossWindDiffusionCoeff =
-        RansCalculationUtilities::SoftPositive(value);
+    rCrossWindDiffusionCoeff = RansCalculationUtilities::SoftPositive(value);
 }
 } // namespace StabilizedConvectionDiffusionReactionUtilities
 

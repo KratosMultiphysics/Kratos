@@ -10,6 +10,10 @@
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
+// System includes
+#include <cmath>
+
+// Include base h
 #include "rans_calculation_utilities.h"
 
 namespace Kratos

@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <limits>
 
 // External includes
 
@@ -58,7 +59,6 @@ RansVectorAlignProcess::~RansVectorAlignProcess()
 
 int RansVectorAlignProcess::Check()
 {
-
     RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
     const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
