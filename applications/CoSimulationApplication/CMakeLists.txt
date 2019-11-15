@@ -74,7 +74,7 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
             DESTINATION libs
             PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ) # required to preseve execute-permissions
 
-        # Fortran
+        # Fortran # TODO we probably need to disable this in Win
         include(CMakeAddFortranSubdirectory)
         cmake_add_fortran_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/dummy_solver/fortran NO_EXTERNAL_INSTALL)
 
