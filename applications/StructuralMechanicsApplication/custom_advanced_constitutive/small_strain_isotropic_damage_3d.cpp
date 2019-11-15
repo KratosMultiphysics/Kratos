@@ -154,7 +154,7 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
         Parameters &rValues,
         Vector& rInternalVariables)
 {
-    double strain_variable;
+    double strain_variable = mStrainVariable;
     const Properties& rMaterialProperties = rValues.GetMaterialProperties();
     Flags & r_constitutive_law_options = rValues.GetOptions();
     Vector& r_strain_vector = rValues.GetStrainVector();
