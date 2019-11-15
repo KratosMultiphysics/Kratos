@@ -28,7 +28,6 @@
 #include "custom_strategies/custom_builder_and_solvers/system_matrix_builder_and_solver.hpp"
 
 // includes for linear solver factory
-//#include "includes/kratos_parameters.h"
 #include "factories/linear_solver_factory.h"
 
 #include "omp.h"
@@ -320,50 +319,14 @@ class MorSecondOrderIRKAStrategy
         ComplexDenseSpaceType::Set(r_tmp_Vr_col, 0.0); // set vector to zero
 
         // initialize the complex solver
-        mpComplexLinearSolver->Initialize( r_tmp_Vn, r_tmp_Vr_col, r_b);
+        mpComplexLinearSolver->Initialize( r_tmp_Vn, r_tmp_Vr_col, r_b);    //check if init also increases speed in loop
 
 
-std::cout<<" -- test factory --"<<std::endl;
-
-Parameters comp_solv_params(R"(
-{
-    "solver_type": "skyline_lu_complex"
-}
-)");
-
-//LinearSolverFactoryType::Pointer ls_fact;
-//typename ComplexLinearSolverType::Pointer test_solver = ls_fact->Create(comp_solv_params); 
-typename ComplexLinearSolverType::Pointer test_solver = LinearSolverFactoryType().Create(comp_solv_params); 
-std::cout<<"factory ready"<<std::endl;
-
-//typename ComplexLinearSolverType::Pointer test_solver = LinearSolverFactory<ComplexSparseSpaceType,ComplexDenseSpaceType>::Create(comp_solv_params); 
-test_solver->Initialize( r_tmp_Vn, r_tmp_Vr_col, r_b);
-std::cout<<"init passed"<<std::endl;
-r_tmp_Vn = std::pow( mSamplingPoints(2*0), 2.0 ) * r_M + mSamplingPoints(2*0) * r_D + r_K;
-test_solver->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b);
-std::cout<<"test solve passed"<<std::endl;
-
-        //typename ComplexLinearSolverType::Pointer solver_arr[4];
-        ComplexLinearSolverType solver_arr_direct[4];
-        typename ComplexLinearSolverType::Pointer solver_arr[4];
-        //typename TComplexBuilderAndSolverType::Pointer solver_arr[4];
-        for(int i=0; i<4; i++){
-            solver_arr[i] = LinearSolverFactoryType().Create(comp_solv_params); 
-            //solver_arr[i] = TComplexBuilderAndSolverType::Pointer(new TComplexBuilderAndSolverType(mpComplexLinearSolver));
-            //solver_arr_direct[i] = *mpComplexLinearSolver; // check if really different addresses due to copy constructor
-            //solver_arr[i] = &solver_arr_direct[i];
-            //solver_arr[i] = ComplexLinearSolverType::Pointer( new ComplexLinearSolverType(mpComplexLinearSolver)); // check if really different addresses due to copy constructor
-            std::cout<<"addr solver "<<i<<": "<<solver_arr[i]<<std::endl;   // no... 
-            std::cout<<"addrp solver "<<i<<": "<<&solver_arr[i]<<std::endl;
-            // // // std::cout<<"addr solver "<<i<<": "<<solver_arr_direct[i]<<std::endl;   // no... 
-            // // // std::cout<<"addrp solver "<<i<<": "<<&solver_arr_direct[i]<<std::endl;
+        Parameters comp_solv_params(R"(
+        {
+            "solver_type": "skyline_lu_complex"
         }
-
-
-        // ComplexLinearSolverType::Pointer test_solver_p = &solver_arr_direct[0]; // geht nicht
-        //solver_arr_direct[0].Solve( r_tmp_Vn, r_tmp_Vr_col, r_b);  // calling linear solver base class
-        //test_solver_p->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b);
-        std::cout<<"passed single call"<<std::endl;
+        )");
 
         std::cout<<"max threads: "<<omp_get_max_threads()<<std::endl;
         //omp_set_num_threads(4);
@@ -387,30 +350,11 @@ std::cout<<"test solve passed"<<std::endl;
             auto  b_par = ComplexSparseSpaceType::CreateEmptyVectorPointer();
             auto& r_b_par   = *b_par;
             ComplexSparseSpaceType::Resize(r_b_par, system_size); // n x 1
-            //r_b_par = r_b; // or actually copy, look up
-            noalias(r_b_par) = r_b;  // leider auch mit copy derselbe Fehler...
+            noalias(r_b_par) = r_b;  
 
-            //typename ComplexLinearSolverType::Pointer tmp_CLsolver;
 
             r_tmp_Vn_par = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
 
-            //#pragma omp critical (somename)
-            //typename ComplexLinearSolverType::Pointer tmp_CLsolver = ComplexLinearSolverType::Pointer(new ComplexLinearSolverType(mpComplexLinearSolver));
-            //typename ComplexLinearSolverType::Pointer tmp_CLsolver = mpComplexLinearSolver;
-            //#pragma omp critical (buildnew)
-            //tmp_CLsolver = mpComplexLinearSolver;
-            //tmp_CLsolver->Initialize( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b);
-            //tmp_CLsolver = new ComplexLinearSolverType(mpComplexLinearSolver);
-            //tmp_CLsolver->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b); // Ax = b, solve for x
-            
-            //#pragma omp critical (somename)
-            //mpComplexLinearSolver->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b); // Ax = b, solve for x
-
-            //int tid = omp_get_thread_num();
-            //solver_arr[tid]->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b_par); // Ax = b, solve for x
-
-            //solver_arr_direct[tid].Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b_par); // Ax = b, solve for x
-            //solver_arr[tid]->GetLinearSystemSolver()->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b_par); // Ax = b, solve for x
 
             typename ComplexLinearSolverType::Pointer test_solver_par = LinearSolverFactoryType().Create(comp_solv_params); 
             test_solver_par->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b_par); // Ax = b, solve for x
@@ -428,8 +372,6 @@ std::cout<<"test solve passed"<<std::endl;
         mQR_decomposition.compute( system_size, reduced_system_size, &(r_Vr_dense)(0,0) );
         mQR_decomposition.compute_q();
 
-        //auto& r_tmp_Q = mQR_decomposition.Q;
-
         //#pragma omp parallel for schedule(dynamic)
         for(size_t i=0; i < system_size; ++i)
         {
@@ -437,8 +379,6 @@ std::cout<<"test solve passed"<<std::endl;
             for(size_t j=0; j < reduced_system_size; ++j)
             {
                 r_Vr_sparse(i,j) = mQR_decomposition.Q(i,j);
-                //r_Vr_sparse(i,j) = r_tmp_Q(i,j);
-
             }
         }
 
@@ -484,13 +424,11 @@ std::cout<<"test solve passed"<<std::endl;
             double start_projections = OpenMPUtils::GetCurrentTime();
 
             // projections onto the reduced space
-  //          #pragma omp parallel sections
-    //        {
-      //          #pragma omp section
-        //        {
-                    // for(size_t i=0; i<system_size; i++){
-                    //     axpy_prod(column(r_M_tmp,i), r_Vr_sparse, subrange(T,0,reduced_system_size,i,i), true);
-                    // }
+            #pragma omp parallel sections
+            {
+                #pragma omp section
+                {
+
 
                     double start_axpy = OpenMPUtils::GetCurrentTime();
 
@@ -502,40 +440,6 @@ std::cout<<"test solve passed"<<std::endl;
                         TSparseSpace::SetToZero(r_tmp_T_par);
 
 
-                    #pragma omp parallel
-                    {
-
-
-        // //               auto Vr_sparse_par = SparseSpaceType::CreateEmptyMatrixPointer();
-        // //               auto& r_Vr_sparse_par = *Vr_sparse_par;
-        // // SparseSpaceType::Resize(r_Vr_sparse_par, system_size, reduced_system_size); // n x r
-        // // TSparseSpace::SetToZero(r_Vr_sparse_par);
-
-        // //                 noalias(r_Vr_sparse_par) = r_Vr_sparse;
-                        //r_Vr_sparse_par = r_Vr_sparse;
-
-                        //const double& test_V = r_Vr_sparse_par(0,0);
-
-                        //#pragma omp critical
-                        //std::cout<<"     [V spars par id] = "<<test_V<<std::endl;
-                        //std::cout<<"    [V sparse id] = "<<&r_Vr_sparse<<" --- [V sparse par id] = "<<&r_Vr_sparse_par<<std::endl;
-
-
-                      auto Vr_sparse_par = SparseSpaceType::CreateEmptyMatrixPointer();
-                      auto& r_Vr_sparse_par = *Vr_sparse_par;
-                        //auto& r_Vr_sparse_par = this->GetBasis();
-        SparseSpaceType::Resize(r_Vr_sparse_par, system_size, reduced_system_size); // n x r
-        TSparseSpace::SetToZero(r_Vr_sparse_par);
-
-                    #pragma omp critical
-                     subrange(r_Vr_sparse_par,0,system_size,0,reduced_system_size) = r_Vr_sparse; 
-
-
-
-                        // auto  tmp_T_par = SparseSpaceType::CreateEmptyMatrixPointer();
-                        // auto& r_tmp_T_par   = *tmp_T_par;
-                        // SparseSpaceType::Resize(r_tmp_T_par, reduced_system_size, system_size); // r x n
-                        // TSparseSpace::SetToZero(r_tmp_T_par);    
 
                         auto  m_col = SparseSpaceType::CreateEmptyVectorPointer();
                         auto& r_m_col   = *m_col;
@@ -545,170 +449,111 @@ std::cout<<"test solve passed"<<std::endl;
                         auto& r_t_par   = *t_par;
                         SparseSpaceType::Resize(r_t_par, reduced_system_size); // r x 1
 
-
-                    //#pragma omp parallel for shared(r_tmp_T_par)  // shared default anyway, but to be safe...
-                    //#pragma omp parallel for schedule(dynamic)
-                    #pragma omp for
-                    for(size_t i=0; i<system_size; i++){
-
-                        // auto  tmp_T_par = SparseSpaceType::CreateEmptyMatrixPointer();
-                        // auto& r_tmp_T_par   = *tmp_T_par;
-                        // SparseSpaceType::Resize(r_tmp_T_par, reduced_system_size, system_size); // r x n
-                        // TSparseSpace::SetToZero(r_tmp_T_par);
-
-                        // // auto  m_col = SparseSpaceType::CreateEmptyVectorPointer();
-                        // // auto& r_m_col   = *m_col;
-                        // // SparseSpaceType::Resize(r_m_col, system_size); // n x 1
-
-                        // // auto  t_par = SparseSpaceType::CreateEmptyVectorPointer();
-                        // // auto& r_t_par   = *t_par;
-                        // // SparseSpaceType::Resize(r_t_par, reduced_system_size); // r x 1
-
-
-// INEFFICIENT!!!!! -JUST FOR TESTING
-        // //               auto Vr_sparse_par = SparseSpaceType::CreateEmptyMatrixPointer();
-        // //               auto& r_Vr_sparse_par = *Vr_sparse_par;
-        // //                 //auto& r_Vr_sparse_par = this->GetBasis();
+        // //                 auto  Vr_sparse_par = SparseSpaceType::CreateEmptyMatrixPointer();
+        // //                 auto& r_Vr_sparse_par   = *Vr_sparse_par;
         // // SparseSpaceType::Resize(r_Vr_sparse_par, system_size, reduced_system_size); // n x r
         // // TSparseSpace::SetToZero(r_Vr_sparse_par);
 
         // //             #pragma omp critical
-        // //              subrange(r_Vr_sparse_par,0,system_size,0,reduced_system_size) = r_Vr_sparse; 
-                    //#pragma omp critical
-                    //std::cout<<"     --- copy passed"<<std::endl;
+        // //             noalias(r_Vr_sparse_par) = r_Vr_sparse;
+                    //subrange(r_Vr_sparse_par, 0, system_size, 0, reduced_system_size) = r_Vr_sparse;
 
 
-
-
-                    // test w = trans(A) * u  im ersten Schritt  - funktioniert
-                    //#pragma omp parallel for schedule(dynamic)
-                    //for(size_t i=0; i<system_size; i++){
-                        //std::cout<<"     test_axpy_00"<<std::endl;
+                    for(size_t i=0; i<system_size; i++){
                         r_m_col = column(r_M_tmp,i);
-                        //std::cout<<"     test_axpy_01"<<std::endl;
-                        //#pragma omp critical (axpy)  //damit passt es, aber gleiches Problem wie beim Solver
-                       // axpy_prod(r_m_col,r_Vr_sparse,r_t_par,true);
-                        axpy_prod(r_m_col,r_Vr_sparse_par,r_t_par,true);
-                       // std::cout<<"     test_axpy_02"<<std::endl;
+                        axpy_prod(r_m_col,r_Vr_sparse,r_t_par,true);
+                        //axpy_prod(r_m_col,r_Vr_sparse_par,r_t_par,true);
                         column(r_tmp_T_par,i) = r_t_par;
-                       // std::cout<<"     test_axpy_03"<<std::endl;
-
-                    //    if(i==system_size-1){
-                    //         #pragma omp barrier
-                    //         r_M_reduced = prod( r_tmp_T_par, r_Vr_sparse );
-                    //    }
                     }
 
-
-                    }  // omp parallel
                     r_M_reduced = prod( r_tmp_T_par, r_Vr_sparse );
-                    //r_M_reduced = prod( r_tmp_T_par, r_Vr_sparse_par );
-
 
                    
-                        // // auto  t_par_dense = DenseSpaceType::CreateEmptyVectorPointer();
-                        // // auto& r_t_par_dense   = *t_par_dense;
-                        // // DenseSpaceType::Resize(r_t_par_dense, reduced_system_size); // r x 1
+                        // auto  t_par_dense = DenseSpaceType::CreateEmptyVectorPointer();
+                        // auto& r_t_par_dense   = *t_par_dense;
+                        // DenseSpaceType::Resize(r_t_par_dense, reduced_system_size); // r x 1
 
-                        // vector<double> t_par_dense; 
-                        // t_par_dense.resize(reduced_system_size);
-
-
-// //                     for(size_t i=0; i<reduced_system_size; i++){
-// //                         r_m_col = column(r_Vr_sparse,i);
-// //                         axpy_prod(r_tmp_T_par, r_m_col, r_t_par_dense, true);
-// //                         column(r_M_reduced,i) = r_t_par_dense;
-// // //                        axpy_prod(r_tmp_T_par, r_m_col, t_par_dense, true);
-// //                     }
-
-                    //axpy_prod(r_tmp_T_par, r_M_tmp, r_M_reduced);  // - Speicherfehler
+                        // // vector<double> t_par_dense; 
+                        // // t_par_dense.resize(reduced_system_size);
 
 
+                    // for(size_t i=0; i<reduced_system_size; i++){
+                    //     r_m_col = column(r_Vr_sparse,i);
+                    //     //r_m_col = column(r_Vr_sparse_par,i);
+                    //     axpy_prod(r_tmp_T_par, r_m_col, r_t_par_dense, true);
+                    //     column(r_M_reduced,i) = r_t_par_dense;
+                    //   }
 
-                    //std::cout<<"     test_axpy_04"<<std::endl;
-
-                    // test C = A*B im zweiten Schritt  - Speicherfehler
-
-                    // std::cout<<"     test_axpy_00"<<std::endl;
-                    // r_tmp_T_par = prod( trans(r_Vr_sparse), r_M_tmp );
-                    // std::cout<<"     test_axpy_01"<<std::endl;
-                    // axpy_prod(r_tmp_T_par, r_Vr_sparse, r_M_reduced, true);
-                    // std::cout<<"     test_axpy_02"<<std::endl;
 
                     double end_axpy = OpenMPUtils::GetCurrentTime();
             std::cout<<"       -- axpy: "<<end_axpy-start_axpy<<std::endl;
 
-                    KRATOS_WATCH(r_M_reduced);
+                    //KRATOS_WATCH(r_M_reduced);
 
-                    // different temp vars for the different sizes may be better, improve performance
-                    // use OMP utils to thest which function is better, which takes the most time (trans, prod...)
+                } //omp section
 
-// double start_old_T = OpenMPUtils::GetCurrentTime();
+                #pragma omp section
+                {
 
-                    // // //  T = prod( trans(r_Vr_sparse), r_M_tmp );
-                    // // //  r_M_reduced = prod( T, r_Vr_sparse );
+                        auto  tmp_T_par = SparseSpaceType::CreateEmptyMatrixPointer();
+                        auto& r_tmp_T_par   = *tmp_T_par;
+                        SparseSpaceType::Resize(r_tmp_T_par, reduced_system_size, system_size); // r x n
+                        TSparseSpace::SetToZero(r_tmp_T_par);
 
-// double end_old_T = OpenMPUtils::GetCurrentTime();
-//             std::cout<<"     -- old T: "<<end_old_T-start_old_T<<std::endl;
+                        auto  d_col = SparseSpaceType::CreateEmptyVectorPointer();
+                        auto& r_d_col   = *d_col;
+                        SparseSpaceType::Resize(r_d_col, system_size); // n x 1
 
-//                     KRATOS_WATCH(r_M_reduced);
-
-      //          }
-
-     //           #pragma omp section
-      //          {
-                     T = prod( trans(r_Vr_sparse), r_D_tmp );
-                     r_D_reduced = prod( T, r_Vr_sparse );
-       //          }
-
-      //           #pragma omp section
-       //          {
-                     T = prod( trans(r_Vr_sparse), r_K_tmp );
-                     r_K_reduced = prod( T, r_Vr_sparse );
-      //           }
-
-      //       }
+                        auto  t_par = SparseSpaceType::CreateEmptyVectorPointer();
+                        auto& r_t_par   = *t_par;
+                        SparseSpaceType::Resize(r_t_par, reduced_system_size); // r x 1
 
 
-                // // // //    #pragma omp parallel for shared(r_tmp_T_par)  // shared default anyway, but to be safe...
-                // // // //     for(size_t i=0; i<system_size; i++){
+                    for(size_t i=0; i<system_size; i++){
+                        r_d_col = column(r_D_tmp,i);
+                        axpy_prod(r_d_col,r_Vr_sparse,r_t_par,true);
+                        column(r_tmp_T_par,i) = r_t_par;
+                    }
 
-                // // // //         auto  m_col = SparseSpaceType::CreateEmptyVectorPointer();
-                // // // //         auto& r_m_col   = *m_col;
-                // // // //         SparseSpaceType::Resize(r_m_col, system_size); // n x 1
+                    r_D_reduced = prod( r_tmp_T_par, r_Vr_sparse );
 
-                // // // //         auto  t_par = SparseSpaceType::CreateEmptyVectorPointer();
-                // // // //         auto& r_t_par   = *t_par;
-                // // // //         SparseSpaceType::Resize(r_t_par, reduced_system_size); // r x 1
+                     //T = prod( trans(r_Vr_sparse), r_D_tmp );
+                     //r_D_reduced = prod( T, r_Vr_sparse );
+                 } // omp section
 
-                // // // //         r_m_col = column(r_D_tmp,i);
-                // // // //         axpy_prod(r_m_col,r_Vr_sparse,r_t_par,true);
-                // // // //         column(r_tmp_T_par,i) = r_t_par;
-                // // // //     }
-                // // // //     r_D_reduced = prod( r_tmp_T_par, r_Vr_sparse );
+                 #pragma omp section
+                 {
 
 
+                        auto  tmp_T_par = SparseSpaceType::CreateEmptyMatrixPointer();
+                        auto& r_tmp_T_par   = *tmp_T_par;
+                        SparseSpaceType::Resize(r_tmp_T_par, reduced_system_size, system_size); // r x n
+                        TSparseSpace::SetToZero(r_tmp_T_par);
 
-                // // // //    #pragma omp parallel for shared(r_tmp_T_par)  // shared default anyway, but to be safe...
-                // // // //     for(size_t i=0; i<system_size; i++){
+                        auto  k_col = SparseSpaceType::CreateEmptyVectorPointer();
+                        auto& r_k_col   = *k_col;
+                        SparseSpaceType::Resize(r_k_col, system_size); // n x 1
 
-                // // // //         auto  m_col = SparseSpaceType::CreateEmptyVectorPointer();
-                // // // //         auto& r_m_col   = *m_col;
-                // // // //         SparseSpaceType::Resize(r_m_col, system_size); // n x 1
+                        auto  t_par = SparseSpaceType::CreateEmptyVectorPointer();
+                        auto& r_t_par   = *t_par;
+                        SparseSpaceType::Resize(r_t_par, reduced_system_size); // r x 1
 
-                // // // //         auto  t_par = SparseSpaceType::CreateEmptyVectorPointer();
-                // // // //         auto& r_t_par   = *t_par;
-                // // // //         SparseSpaceType::Resize(r_t_par, reduced_system_size); // r x 1
 
-                // // // //         r_m_col = column(r_K_tmp,i);
-                // // // //         axpy_prod(r_m_col,r_Vr_sparse,r_t_par,true);
-                // // // //         column(r_tmp_T_par,i) = r_t_par;
-                // // // //     }
-                // // // //     r_K_reduced = prod( r_tmp_T_par, r_Vr_sparse );
+                    for(size_t i=0; i<system_size; i++){
+                        r_k_col = column(r_K_tmp,i);
+                        axpy_prod(r_k_col,r_Vr_sparse,r_t_par,true);
+                        column(r_tmp_T_par,i) = r_t_par;
+                    }
+
+                    r_K_reduced = prod( r_tmp_T_par, r_Vr_sparse );
 
 
 
+                     //T = prod( trans(r_Vr_sparse), r_K_tmp );
+                     //r_K_reduced = prod( T, r_Vr_sparse );
+                 } //omp section
 
+             }//omp parallel sections
 
             double end_projections = OpenMPUtils::GetCurrentTime();
             std::cout<<"-- projections: "<<end_projections-start_projections<<std::endl;
@@ -813,13 +658,7 @@ std::cout<<"test solve passed"<<std::endl;
             #pragma omp parallel for default(shared) schedule(static,1)
             for(size_t i=0; i < n_sampling_points/2; ++i)
             {
-                int tid = omp_get_thread_num();
-                
-                #pragma omp critical (pr)
-                std::cout<<"    thread "<<tid<<" starts"<<std::endl;
-                
-
-
+     
                 auto  tmp_Vr_col_ptr_par = ComplexDenseSpaceType::CreateEmptyVectorPointer();
                 auto& r_tmp_Vr_col_par   = *tmp_Vr_col_ptr_par;
                 ComplexDenseSpaceType::Resize(r_tmp_Vr_col_par, system_size); // n x 1
@@ -833,22 +672,12 @@ std::cout<<"test solve passed"<<std::endl;
 
                 r_tmp_Vn_par = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
 
-                //#pragma omp critical (somename)
-                //typename ComplexLinearSolverType::Pointer tmp_CLsolver = mpComplexLinearSolver;
-                //tmp_CLsolver->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b); // Ax = b, solve for x
-                //mpComplexLinearSolver->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b); // Ax = b, solve for x
-
-                // // int tid = omp_get_thread_num();
-                // // solver_arr[tid]->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b); // Ax = b, solve for x
-
                 typename ComplexLinearSolverType::Pointer test_solver_par = LinearSolverFactoryType().Create(comp_solv_params); 
                 test_solver_par->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b); // Ax = b, solve for x
 
                 column(r_Vr_dense, 2*i) = real(r_tmp_Vr_col_par);
                 column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col_par);
 
-                #pragma omp critical (pr)
-                std::cout<<"    thread "<<tid<<" finished"<<std::endl;
             }
 
                     std::cout<<"parallel part passed - iter "<<iter<<std::endl;
