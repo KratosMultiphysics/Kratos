@@ -63,7 +63,6 @@ public:
         return mpComm->Connect();
     }
 
-
     void SendControlSignal(const Internals::ControlSignal Signal, const std::string& rIdentifier)
     {
         KRATOS_CO_SIM_ERROR_IF_NOT(mIsConnectionMaster) << "This function can only be called as the Connection-Master!" << std::endl;
@@ -174,6 +173,19 @@ public:
         return mpComm->Export(rContainer, rIdentifier);
     }
 
+
+private:
+    std::unique_ptr<CoSimComm> mpComm; // handles communication (File, Sockets, MPI, ...)
+
+    bool mIsConnectionMaster = false;
+
+    double (*mpAdvInTime)(double) = nullptr;
+    void (*mpInitSolStep)() = nullptr;
+    void (*mpSolSolStep)() = nullptr;
+    void (*mpFinSolStep)() = nullptr;
+
+    std::map<const std::string, DataExchangeFunctionType> mDataExchangeFunctions;
+
     void Initialize(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster)
     {
         std::string comm_format("file"); // default is file-communication
@@ -201,18 +213,6 @@ public:
             KRATOS_CO_SIM_ERROR << "Unsupported communication format: " << comm_format << std::endl;
         }
     }
-
-private:
-    std::unique_ptr<CoSimComm> mpComm; // handles communication (File, Sockets, MPI, ...)
-
-    bool mIsConnectionMaster = false;
-
-    double (*mpAdvInTime)(double) = nullptr;
-    void (*mpInitSolStep)() = nullptr;
-    void (*mpSolSolStep)() = nullptr;
-    void (*mpFinSolStep)() = nullptr;
-
-    std::map<const std::string, DataExchangeFunctionType> mDataExchangeFunctions;
 
 }; // class CoSimIO
 
