@@ -61,6 +61,15 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
         install(TARGETS pong DESTINATION libs )
 
 
+        ### CoSimIO - C-interface (also used for fortran)
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/co_simulation_io/c)
+
+        install(
+            FILES ${CMAKE_CURRENT_BINARY_DIR}/co_simulation_io/c/libco_sim_c_io.so # find a way to do this without specifying the ending
+            DESTINATION libs
+            PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ) # required to preseve execute-permissions
+
+
         ### Dummy solvers
         # Cpp
         add_executable (dummy_solver_cpp ${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/dummy_solver/cpp/dummy_solver.cpp)
@@ -80,15 +89,6 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
 
         install(
             FILES ${CMAKE_CURRENT_BINARY_DIR}/custom_helpers/dummy_solver/fortran/dummy_solver_fortran
-            DESTINATION libs
-            PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ) # required to preseve execute-permissions
-
-
-        ### CoSimIO - C-interface (also used for fortran)
-        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/co_simulation_io/c)
-
-        install(
-            FILES ${CMAKE_CURRENT_BINARY_DIR}/co_simulation_io/c/libco_sim_c_io.so # find a way to do this without specifying the ending
             DESTINATION libs
             PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ) # required to preseve execute-permissions
 
