@@ -393,7 +393,7 @@ namespace Kratos
     }
 
     void AdjointLocalStressResponseFunction::CalculateMeanParticularSolutionLinearElement2N(Vector& rResult,
-                        DofsVectorType &rElementalDofList, const Array1DComponentsPointerType& rTracedDof) const
+                        DofsVectorType &rElementalDofList, const Array1DComponentsPointerType TracedDof) const
     {
         KRATOS_TRY;
 
@@ -409,7 +409,7 @@ namespace Kratos
 
         for(IndexType gp_it = 0; gp_it < num_GP; ++gp_it) {
             for(IndexType i = 0; i < rElementalDofList.size(); ++i) {
-                if (rElementalDofList[i]->GetVariable() == *rTracedDof) {
+                if (rElementalDofList[i]->GetVariable() == *TracedDof) {
                     if (rElementalDofList[i]->Id() == id_node_1) {
                         rResult[i] += prefactor * (num_GP - gp_it);
                     } else if (rElementalDofList[i]->Id() == id_node_2) {
@@ -424,7 +424,7 @@ namespace Kratos
     }
 
     void AdjointLocalStressResponseFunction::CalculateGPParticularSolutionLinearElement2N(Vector& rResult,
-                            DofsVectorType &rElementalDofList, const Array1DComponentsPointerType& rTracedDof) const
+                            DofsVectorType &rElementalDofList, const Array1DComponentsPointerType TracedDof) const
     {
         KRATOS_TRY;
 
@@ -439,7 +439,7 @@ namespace Kratos
         const IndexType id_node_2 = mpTracedElement->GetGeometry()[1].Id();
 
         for(IndexType i = 0; i < rElementalDofList.size(); ++i) {
-            if (rElementalDofList[i]->GetVariable() == *rTracedDof) {
+            if (rElementalDofList[i]->GetVariable() == *TracedDof) {
                 if (rElementalDofList[i]->Id() == id_node_1) {
                     rResult[i] = prefactor * (num_GP + 1 - mIdOfLocation);
                 } else if (rElementalDofList[i]->Id() == id_node_2) {
@@ -452,7 +452,7 @@ namespace Kratos
     }
 
     void AdjointLocalStressResponseFunction::CalculateNodeParticularSolutionLinearElement2N(Vector& rResult,
-                     DofsVectorType &rElementalDofList, const Array1DComponentsPointerType& rTracedDof) const
+                     DofsVectorType &rElementalDofList, const Array1DComponentsPointerType TracedDof) const
     {
         KRATOS_TRY;
 
@@ -462,7 +462,7 @@ namespace Kratos
 
         for(IndexType i = 0; i < rElementalDofList.size(); ++i) {
             if (rElementalDofList[i]->Id() == mpTracedElement->GetGeometry()[mIdOfLocation-1].Id() &&
-                rElementalDofList[i]->GetVariable() == *rTracedDof) {
+                rElementalDofList[i]->GetVariable() == *TracedDof) {
                 if (mIdOfLocation == 1) {
                     rResult[i] = 1.0;
                 } else if (mIdOfLocation == 2) {

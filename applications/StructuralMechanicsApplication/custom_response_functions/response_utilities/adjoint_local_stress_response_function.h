@@ -210,11 +210,11 @@ private:
 
     void CalculateParticularSolutionLinearElement2N(Vector& rResult) const;
 
-    void CalculateMeanParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const Array1DComponentsPointerType& rTracedDof) const;
+    void CalculateMeanParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const Array1DComponentsPointerType TracedDof) const;
 
-    void CalculateGPParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const Array1DComponentsPointerType& rTracedDof) const;
+    void CalculateGPParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const Array1DComponentsPointerType TracedDof) const;
 
-    void CalculateNodeParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const Array1DComponentsPointerType& rTracedDof) const;
+    void CalculateNodeParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const Array1DComponentsPointerType TracedDof) const;
 
     void FindVariableComponent(Array1DComponentsPointerType& rTracedDof) const;
 
