@@ -43,7 +43,7 @@ class ImplicitMechanicalSolver(MechanicalSolver):
 
         scheme_type = self.settings["scheme_type"].GetString()
         if "bdf" in scheme_type or scheme_type == "backward_euler":
-            return max(base_min_buffer_size, self._bdf_integration_order())
+            return max(base_min_buffer_size, self._bdf_integration_order()+1)
         else:
             return base_min_buffer_size
 
