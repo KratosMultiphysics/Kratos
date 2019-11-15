@@ -378,27 +378,27 @@ namespace Kratos
         mpTracedElement->GetDofList(dofs_of_element, mrModelPart.GetProcessInfo());
         rResult = ZeroVector(dofs_of_element.size());
 
-        std::string dof_label;
-        this->FindCorrespondingDofLabel(dof_label);
+        Array1DComponentsPointerType p_traced_dof;
+        this->FindVariableComponent(p_traced_dof);
 
         if(mStressTreatment == StressTreatment::Mean)
         {
-            this->CalculateMeanParticularSolutionLinearElement2N(rResult, dofs_of_element, dof_label);
+            this->CalculateMeanParticularSolutionLinearElement2N(rResult, dofs_of_element, p_traced_dof);
         }
         else if(mStressTreatment == StressTreatment::GaussPoint)
         {
-            this->CalculateGPParticularSolutionLinearElement2N(rResult, dofs_of_element, dof_label);
+            this->CalculateGPParticularSolutionLinearElement2N(rResult, dofs_of_element, p_traced_dof);
         }
         else if(mStressTreatment == StressTreatment::Node)
         {
-            this->CalculateNodeParticularSolutionLinearElement2N(rResult, dofs_of_element, dof_label);
+            this->CalculateNodeParticularSolutionLinearElement2N(rResult, dofs_of_element, p_traced_dof);
         }
 
         KRATOS_CATCH("");
     }
 
     void AdjointLocalStressResponseFunction::CalculateMeanParticularSolutionLinearElement2N(Vector& rResult,
-                        DofsVectorType &rElementalDofList, const std::string& rDofLabel) const
+                        DofsVectorType &rElementalDofList, const Array1DComponentsPointerType& rTracedDof) const
     {
         KRATOS_TRY;
 
@@ -415,7 +415,7 @@ namespace Kratos
         {
             for(IndexType i = 0; i < rElementalDofList.size(); ++i)
             {
-                if (rElementalDofList[i]->GetVariable().Name() == rDofLabel)
+                if (rElementalDofList[i]->GetVariable() == *rTracedDof)
                 {
                     if (rElementalDofList[i]->Id() == id_node_1)
                         rResult[i] += prefactor * (num_GP - gp_it);
@@ -430,7 +430,7 @@ namespace Kratos
     }
 
     void AdjointLocalStressResponseFunction::CalculateGPParticularSolutionLinearElement2N(Vector& rResult,
-                            DofsVectorType &rElementalDofList, const std::string& rDofLabel) const
+                            DofsVectorType &rElementalDofList, const Array1DComponentsPointerType& rTracedDof) const
     {
         KRATOS_TRY;
 
@@ -445,7 +445,7 @@ namespace Kratos
 
         for(IndexType i = 0; i < rElementalDofList.size(); ++i)
         {
-            if (rElementalDofList[i]->GetVariable().Name() == rDofLabel)
+            if (rElementalDofList[i]->GetVariable() == *rTracedDof)
             {
                 if (rElementalDofList[i]->Id() == id_node_1)
                     rResult[i] = prefactor * (num_GP + 1 - mIdOfLocation);
@@ -458,7 +458,7 @@ namespace Kratos
     }
 
     void AdjointLocalStressResponseFunction::CalculateNodeParticularSolutionLinearElement2N(Vector& rResult,
-                     DofsVectorType &rElementalDofList, const std::string& rDofLabel) const
+                     DofsVectorType &rElementalDofList, const Array1DComponentsPointerType& rTracedDof) const
     {
         KRATOS_TRY;
 
@@ -468,7 +468,7 @@ namespace Kratos
         for(IndexType i = 0; i < rElementalDofList.size(); ++i)
         {
             if (rElementalDofList[i]->Id() == mpTracedElement->GetGeometry()[mIdOfLocation-1].Id() &&
-                rElementalDofList[i]->GetVariable().Name() == rDofLabel)
+                rElementalDofList[i]->GetVariable() == *rTracedDof)
             {
                 if (mIdOfLocation == 1)
                     rResult[i] = 1.0;
@@ -480,7 +480,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointLocalStressResponseFunction::FindCorrespondingDofLabel(std::string& rDofLabel) const
+    void AdjointLocalStressResponseFunction::FindVariableComponent(Array1DComponentsPointerType& rTracedDof) const
     {
         KRATOS_TRY;
 
@@ -488,32 +488,32 @@ namespace Kratos
         {
             case TracedStressType::MX:
             {
-                rDofLabel = "ADJOINT_ROTATION_X";
+                rTracedDof = &ADJOINT_ROTATION_X;
                 break;
             }
             case TracedStressType::MY:
             {
-                rDofLabel = "ADJOINT_ROTATION_Y";
+                rTracedDof = &ADJOINT_ROTATION_Y;
                 break;
             }
             case TracedStressType::MZ:
             {
-                rDofLabel = "ADJOINT_ROTATION_Z";
+                rTracedDof = &ADJOINT_ROTATION_Z;
                 break;
             }
             case TracedStressType::FX:
             {
-                rDofLabel = "ADJOINT_DISPLACEMENT_X";
+                rTracedDof = &ADJOINT_DISPLACEMENT_X;
                 break;
             }
             case TracedStressType::FY:
             {
-                rDofLabel = "ADJOINT_DISPLACEMENT_Y";
+                rTracedDof = &ADJOINT_DISPLACEMENT_Y;
                 break;
             }
             case TracedStressType::FZ:
             {
-                rDofLabel = "ADJOINT_DISPLACEMENT_Z";
+                rTracedDof = &ADJOINT_DISPLACEMENT_Z;
                 break;
             }
             default:
