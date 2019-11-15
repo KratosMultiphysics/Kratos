@@ -10,4 +10,23 @@
 //
 
 // Project includes
+extern "C" {
+#include "co_sim_c_io.h"
+}
 #include "co_sim_io.h"
+
+
+static void Connect(const char* pName)
+{
+    CoSim::Connect(pName);
+}
+
+static void Disconnect(const char* pName)
+{
+    CoSim::Disconnect(pName);
+}
+
+static void ImportData(const char* pName)
+{
+    CoSim::ImportData(pName);
+}
