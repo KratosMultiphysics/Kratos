@@ -37,7 +37,8 @@ void AddCustomSolvingProcessesToPython(pybind11::module& m)
         m, "ScalarCoSolvingProcess")
         .def(py::init<ModelPart&, Parameters&, Variable<double>&>())
         .def("AddStrategy", &ScalarCoSolvingProcessType::AddStrategy)
-        .def("AddAuxiliaryProcess", &ScalarCoSolvingProcessType::AddAuxiliaryProcess);
+        .def("AddAuxiliaryProcess", &ScalarCoSolvingProcessType::AddAuxiliaryProcess)
+        .def("SetParentSolvingStrategy", &ScalarCoSolvingProcessType::SetParentSolvingStrategy);
 
     using KEpsilonCoSolvingProcessType =
         KEpsilonCoSolvingProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>;

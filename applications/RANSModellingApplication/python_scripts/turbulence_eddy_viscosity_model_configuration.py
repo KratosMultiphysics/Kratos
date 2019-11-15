@@ -108,6 +108,9 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
                 element_name, condition_name, original_condition_name)
             self.model_parts_list.append(model_part)
 
+    def SetParentSolvingStrategy(self, parent_solving_strategy):
+        self.GetTurbulenceSolvingProcess().SetParentSolvingStrategy(parent_solving_strategy)
+
     def __CreateBuilderAndSolver(self, linear_solver, is_periodic):
         if (is_periodic):
             return periodic_block_builder_and_solver(linear_solver, self.EpetraCommunicator)
