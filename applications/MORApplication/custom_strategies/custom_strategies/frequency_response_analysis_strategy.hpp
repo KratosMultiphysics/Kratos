@@ -134,6 +134,7 @@ class FrequencyResponseAnalysisStrategy
      * @param rModelPart The model part of the problem
      * @param pScheme The integration schemed
      * @param MoveMeshFlag The flag that allows to move the mesh
+     * @param UseModalDamping If set to true, RAYLEIGH_BETA is used as modal damping ratio. RAYLEIGH_ALPHA should be 0
      */
     FrequencyResponseAnalysisStrategy(
         ModelPart& rModelPart,
@@ -518,19 +519,24 @@ class FrequencyResponseAnalysisStrategy
         TSolutionMatrixType& rC  = *mpC;
         TSolutionVectorType& rRHS = *mpRHS;
         TSolutionVectorType& rDx = *mpDx;
-        
+
         auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
         double excitation_frequency = r_process_info[FREQUENCY];
 
-        //Building the dynamic stiffnes matrix
-        rA = - (std::pow(excitation_frequency, 2.0) * rM);
-        mUseModalDamping ? rA += rC : rA += excitation_frequency*rC;
-        rA += rK;
+        //Build the dynamic stiffnes matrix
+        if( mUseModalDamping )
+        {
+            rA = - (std::pow(excitation_frequency, 2.0) * rM) + rC + rK;
+        }
+        else
+        {
+            rA = - (std::pow(excitation_frequency, 2.0) * rM) + excitation_frequency * rC + rK;
+        }
         
         //Solve the system
         mpComplexLinearSolver->Solve( rA, rDx, rRHS);
 
-        //assigning the computed displacement
+        //Assign the computed values
         AssignVariables(rDx);
 
 		return true;
