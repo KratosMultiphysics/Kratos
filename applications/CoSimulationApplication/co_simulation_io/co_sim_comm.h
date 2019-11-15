@@ -18,7 +18,7 @@
 #include <stdexcept>
 
 // Project includes
-#include "co_sim_api_internals.h"
+#include "co_sim_io_internals.h"
 #include "co_sim_data_containers.h"
 
 namespace CoSim {

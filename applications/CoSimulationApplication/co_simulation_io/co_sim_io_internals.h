@@ -9,8 +9,8 @@
 //  Main authors:    Philipp Bucher
 //
 
-#ifndef KRATOS_CO_SIM_API_INTERNALS_H_INCLUDED
-#define KRATOS_CO_SIM_API_INTERNALS_H_INCLUDED
+#ifndef KRATOS_CO_SIM_IO_INTERNALS_H_INCLUDED
+#define KRATOS_CO_SIM_IO_INTERNALS_H_INCLUDED
 
 // System includes
 #include <iostream>
@@ -79,4 +79,4 @@ inline SettingsType ReadSettingsFile(const std::string& rSettingsFileName)
 } // namespace Internals
 } // namespace CoSim
 
-#endif /* KRATOS_CO_SIM_API_INTERNALS_H_INCLUDED */
+#endif /* KRATOS_CO_SIM_IO_INTERNALS_H_INCLUDED */
