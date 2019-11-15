@@ -24,68 +24,42 @@ support for sockets and MPI can optionally be enabled
 
 // System includes
 #include <string>
-#include <map>
 #include <memory>
 
 // Project includes
-#include "co_sim_io_define.h"
-#include "co_sim_comm.h"
+#include "impl/co_sim_io_impl.h"
 
 namespace CoSim {
 
-class CoSimIO
+using Internals::CoSimIO; // TODO remove this
+
+static void Connect(const char* pName)
 {
+    using namespace Internals;
+    KRATOS_CO_SIM_ERROR_IF(HasIO(pName)) << "A CoSimIO for " << pName << " already exists!" << std::endl;
 
-public:
-    typedef CoSimComm::SettingsType SettingsType;
+    s_co_sim_ios[std::string(pName)] = std::unique_ptr<CoSimIO>(new CoSimIO("rName", "rSettings")); // make_unique is C++14
+    GetIO(pName).Connect();
+}
 
-    typedef void (*DataExchangeFunctionType)(const std::string&);
+static void Disconnect(const char* pName)
+{
+    using namespace Internals;
+    KRATOS_CO_SIM_ERROR_IF_NOT(HasIO(pName)) << "Trying to disconnect CoSimIO " << pName << " which does not exist!" << std::endl;
 
-    explicit CoSimIO(const std::string& rName, const std::string& rSettingsFileName, const bool IsConnectionMaster=false);
-    explicit CoSimIO(const std::string& rName, SettingsType rSettings, const bool IsConnectionMaster=false);
+    GetIO(pName).Disconnect();
+    s_co_sim_ios.erase(std::string(pName));
+}
 
-    bool Connect();
-    bool Disconnect();
+static void ImportData(const char* pName)
+{
+    using namespace Internals;
+}
 
-    // Required for "old style" strong coupling
-    bool IsConverged();
 
-    // Functions related to fully controlled CoSimulation
-    void Run();
-    void SendControlSignal(const Internals::ControlSignal Signal, const std::string& rIdentifier);
-    void RegisterAdvanceInTime(double (*pFuncPtr)(double));
-    void RegisterInitializeSolutionStep(void (*pFuncPtr)());
-    void RegisterSolveSolutionStep(void (*pFuncPtr)());
-    void RegisterFinalizeSolutionStep(void (*pFuncPtr)());
 
-    void RegisterDataExchange(DataExchangeFunctionType pFuncPtr, const std::string& rName);
-
-    // Generic functions for data exchange
-    template<class DataContainer>
-    bool Import(DataContainer& rDataContainer, const std::string& rIdentifier);
-
-    template<class DataContainer>
-    bool Export(const DataContainer& rDataContainer, const std::string& rIdentifier);
-
-private:
-    std::unique_ptr<CoSimComm> mpComm; // handles communication (File, Sockets, MPI, ...)
-
-    bool mIsConnectionMaster = false;
-
-    double (*mpAdvInTime)(double) = nullptr;
-    void (*mpInitSolStep)() = nullptr;
-    void (*mpSolSolStep)() = nullptr;
-    void (*mpFinSolStep)() = nullptr;
-
-    std::map<const std::string, DataExchangeFunctionType> mDataExchangeFunctions;
-
-    void Initialize(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster);
-    Internals::ControlSignal RecvControlSignal(std::string& rIdentifier);
-
-}; // class CoSimIO
 
 } // namespace CoSim
 
-#include "co_sim_io_impl.h"
 
 #endif /* KRATOS_CO_SIM_IO_H_INCLUDED */
