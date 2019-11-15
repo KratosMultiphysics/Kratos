@@ -18,7 +18,7 @@ class CHTWorkflow():
         self.model_fluid.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.model_fluid.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
         KratosMultiphysics.ModelPartIO(file_path + model1).ReadModelPart(self.model_fluid)
-        #print(self.model_fluid)
+        print(self.model_fluid)
 
         modelB = KratosMultiphysics.Model()
         self.model_solid = modelB.CreateModelPart("SolidPart")
@@ -264,6 +264,15 @@ class CHTWorkflow():
 
         self.model_fluid.CreateSubModelPart("Boussinesq__Boussinesq_hidden_")
         self.model_fluid.CreateSubModelPart("TEMPERATURE_fluid")
+
+        # slip_model_part = self.model_fluid.GetSubModelPart("Slip_3D")
+        # skin_isosurface_part = self.model_fluid.GetSubModelPart("SKIN_ISOSURFACE")
+
+        # for node in skin_isosurface_part.Nodes:
+        #     slip_model_part.AddNode(node, 0)
+        
+        # for cond in skin_isosurface_part.Conditions:
+        #     slip_model_part.AddCondition(cond, 0)
 
         for node in self.model_fluid.Nodes:
             self.model_fluid.GetSubModelPart("Boussinesq__Boussinesq_hidden_").AddNode(node, 0)

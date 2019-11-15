@@ -5,7 +5,7 @@
         "parallel_type" : "OpenMP",
         "echo_level"    : 0,
         "start_time"    : 0.0,
-        "end_time"      : 10.0
+        "end_time"      : 5.0
     },
     "output_processes" : {
         "gid_output" : [{
@@ -127,10 +127,16 @@
     },
     "processes"        : {
         "constraints_process_list" : [{
-            "python_module" : "apply_noslip_process",
-            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "model_part_name" : "FluidModelPart.SKIN_ISOSURFACE"
+                "model_part_name" : "FluidModelPart.SKIN_ISOSURFACE",
+                "variable_name"   : "VELOCITY",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
             }
         },{
             "python_module" : "apply_slip_process",
@@ -153,6 +159,16 @@
             "python_module" : "assign_scalar_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
+                "model_part_name" : "ThermalModelPart.ImposedTemperature3D_wall_temp",
+                "variable_name"   : "TEMPERATURE",
+                "constrained"     : true,
+                "value"           : 293.15,
+                "interval"        : [0.0,0.0]
+            }
+        },{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
                 "model_part_name" : "ThermalModelPart.SKIN_ISOSURFACE",
                 "variable_name"   : "TEMPERATURE",
                 "constrained"     : true,
@@ -164,7 +180,7 @@
             "kratos_module" : "KratosMultiphysics.ConvectionDiffusionApplication",
             "Parameters"    : {
                 "model_part_name"        : "ThermalModelPart.ThermalFace3D_fluid_walls",
-                "ambient_temperature"    : 293.15,
+                "ambient_temperature"    : 273.15,
                 "add_ambient_radiation"  : false,
                 "emissivity"             : 0.0,
                 "add_ambient_convection" : false,
@@ -178,7 +194,7 @@
             "Parameters"    : {
                 "model_part_name"     : "ThermalModelPart.Boussinesq__Boussinesq_hidden_",
                 "gravity"             : [0.0,-9.81,0.0],
-                "ambient_temperature" : 293.15
+                "ambient_temperature" : 273.15
             }
         }]
     }
