@@ -227,9 +227,16 @@ private:
     bool mIsConnectionMaster = false;
 
     double (*mpAdvInTime)(double) = nullptr;
-    void (*mpInitSolStep)() = nullptr;
-    void (*mpSolSolStep)() = nullptr;
-    void (*mpFinSolStep)() = nullptr;
+    void (*mpInitSolStep)()     = nullptr;
+    void (*mpSolSolStep)()      = nullptr;
+    void (*mpFinSolStep)()      = nullptr;
+
+    void (*mpImportData)()      = nullptr;
+    void (*mpExportData)()      = nullptr;
+    void (*mpImportMesh)()      = nullptr;
+    void (*mpExportMesh)()      = nullptr;
+    void (*mpImportGeometry)()  = nullptr;
+    void (*mpExportGeometry)()  = nullptr;
 
     std::map<const std::string, DataExchangeFunctionType> mDataExchangeFunctions;
 
