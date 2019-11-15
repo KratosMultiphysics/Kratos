@@ -24,6 +24,13 @@
 
 namespace Kratos
 {
+
+    KRATOS_CREATE_LOCAL_FLAG( LoggerOutput, WARNING_PREFIX,  0 );
+    KRATOS_CREATE_LOCAL_FLAG( LoggerOutput, INFO_PREFIX,     1 );
+    KRATOS_CREATE_LOCAL_FLAG( LoggerOutput, DETAIL_PREFIX,   2 );
+    KRATOS_CREATE_LOCAL_FLAG( LoggerOutput, DEBUG_PREFIX,    3 );
+    KRATOS_CREATE_LOCAL_FLAG( LoggerOutput, TRACE_PREFIX,    4 );
+
     std::string LoggerOutput::Info() const
     {
         return "LoggerOutput";
@@ -45,20 +52,20 @@ namespace Kratos
         {
             switch (message_severity)
             {
-            case LoggerMessage::Severity::INFO:
-                if (mInfoPrefix) mrStream << "[INFO] ";
-                break;
             case LoggerMessage::Severity::WARNING:
-                if (mWarningPrefix) mrStream << "[WARNING] ";
+                if (mOptions.Is(WARNING_PREFIX)) mrStream << "[WARNING] ";
+                break;
+            case LoggerMessage::Severity::INFO:
+                if (mOptions.Is(INFO_PREFIX)) mrStream << "[INFO] ";
                 break;
             case LoggerMessage::Severity::DETAIL:
-                if (mDetailPrefix) mrStream << "[DETAIL] ";
+                if (mOptions.Is(DETAIL_PREFIX)) mrStream << "[DETAIL] ";
                 break;
             case LoggerMessage::Severity::DEBUG:
-                if (mDebugPrefix) mrStream << "[DEBUG] ";
+                if (mOptions.Is(DEBUG_PREFIX)) mrStream << "[DEBUG] ";
                 break;
             case LoggerMessage::Severity::TRACE:
-                if (mTracePrefix) mrStream << "[TRACE] ";
+                if (mOptions.Is(TRACE_PREFIX)) mrStream << "[TRACE] ";
                 break;
             default:
                 break;

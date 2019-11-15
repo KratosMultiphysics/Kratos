@@ -451,11 +451,11 @@ namespace Kratos {
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             p_output->SetSeverity(LoggerMessage::Severity::DETAIL);
-            p_output->SetWarningPrefix(false);
-            p_output->SetInfoPrefix(false);
-            p_output->SetDetailPrefix(false);
-            p_output->SetDebugPrefix(false);
-            p_output->SetTracePrefix(false);
+            p_output->SetOption(LoggerOutput::WARNING_PREFIX, false);
+            p_output->SetOption(LoggerOutput::INFO_PREFIX, false);
+            p_output->SetOption(LoggerOutput::DETAIL_PREFIX, false);
+            p_output->SetOption(LoggerOutput::DEBUG_PREFIX, false);
+            p_output->SetOption(LoggerOutput::TRACE_PREFIX, false);
             Logger::AddOutput(p_output);
 
             KRATOS_WARNING("TestWarning") << "Test message\n";
@@ -472,11 +472,11 @@ namespace Kratos {
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             p_output->SetSeverity(LoggerMessage::Severity::DETAIL);
-            p_output->SetWarningPrefix(true);
-            p_output->SetInfoPrefix(true);
-            p_output->SetDetailPrefix(true);
-            p_output->SetDebugPrefix(true);
-            p_output->SetTracePrefix(true);
+            p_output->SetOption(LoggerOutput::WARNING_PREFIX, true);
+            p_output->SetOption(LoggerOutput::INFO_PREFIX, true);
+            p_output->SetOption(LoggerOutput::DETAIL_PREFIX, true);
+            p_output->SetOption(LoggerOutput::DEBUG_PREFIX, true);
+            p_output->SetOption(LoggerOutput::TRACE_PREFIX, true);
             Logger::AddOutput(p_output);
 
             KRATOS_WARNING("TestWarning") << "Test message\n";
