@@ -262,7 +262,7 @@ class ProcessHandler(KratosMultiphysics.Process):
         factory_settings = KratosMultiphysics.Parameters("""
         {
            "python_module" : "assign_vector_components_to_nodes_process",
-           "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+           "kratos_module" : "KratosMultiphysics.PfemFluidDynamicsApplication",
            "process_name"  : "AssignVectorComponentsToNodesProcess",
            "Parameters"    : {
            }
@@ -308,7 +308,7 @@ class ProcessHandler(KratosMultiphysics.Process):
         ##settings string in json format
         factory_settings = KratosMultiphysics.Parameters("""
         {
-           "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+           "kratos_module" : "KratosMultiphysics.PfemFluidDynamicsApplication",
            "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
            "Parameters"    : {
            }

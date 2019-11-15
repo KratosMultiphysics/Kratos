@@ -18,7 +18,7 @@ class TestMortarUtilities(KratosUnittest.TestCase):
 
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/coarse_sphere"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere"))
         model_part_io.ReadModelPart(model_part)
 
         detect_skin = KratosMultiphysics.SkinDetectionProcess3D(model_part)
@@ -46,7 +46,7 @@ class TestMortarUtilities(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/coarse_sphere"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere"))
         model_part_io.ReadModelPart(model_part)
 
         detect_skin = KratosMultiphysics.SkinDetectionProcess3D(model_part)

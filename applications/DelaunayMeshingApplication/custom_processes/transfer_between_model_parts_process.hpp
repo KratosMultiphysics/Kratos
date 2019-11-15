@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosPfemFluidDynamicsApplication $
-//   Created by:          $Author:               JMCarbonell $
-//   Last modified by:    $Co-Author:                        $
-//   Date:                $Date:                 August 2016 $
-//   Revision:            $Revision:                     0.0 $
+//   Project Name:        KratosDelaunayMeshingApplication $
+//   Created by:          $Author:            JMCarbonell $
+//   Last modified by:    $Co-Author:                     $
+//   Date:                $Date:              August 2016 $
+//   Revision:            $Revision:                  0.0 $
 //
 //
 
