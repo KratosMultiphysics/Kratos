@@ -51,13 +51,54 @@ static void Disconnect(const char* pName)
     s_co_sim_ios.erase(std::string(pName));
 }
 
+static bool IsConverged(const char* pName)
+{
+    using namespace Internals;
+    return GetIO(pName).IsConverged();
+}
+
 static void ImportData(const char* pName)
 {
     using namespace Internals;
 }
 
+static void ExportData(const char* pName)
+{
+    using namespace Internals;
+}
 
+static void ImportMesh(const char* pName)
+{
+    using namespace Internals;
+}
 
+static void ExportMesh(const char* pName)
+{
+    using namespace Internals;
+}
+
+static void ImportGeometry(const char* pName)
+{
+    using namespace Internals;
+}
+
+static void ExportGeometry(const char* pName)
+{
+    using namespace Internals;
+}
+
+namespace {
+    // defining aliases to the functions to avoid the "unused-functions" compiler-warning if not all functions are used
+    const auto _alias_Connect = Connect;
+    const auto _alias_Disconnect = Disconnect;
+    const auto _alias_IsConverged = IsConverged;
+    const auto _alias_ImportData = ImportData;
+    const auto _alias_ExportData = ExportData;
+    const auto _alias_ImportMesh = ImportMesh;
+    const auto _alias_ExportMesh = ExportMesh;
+    const auto _alias_ImportGeometry = ImportGeometry;
+    const auto _alias_ExportGeometry = ExportGeometry;
+}
 
 } // namespace CoSim
 
