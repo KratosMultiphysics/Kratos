@@ -295,12 +295,12 @@ void TrussElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 
 void TrussElement3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rVariable == LOCAL_ELEMENT_ORIENTATION)
-    {
+    if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
         BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix = ZeroMatrix(msLocalSize, msLocalSize);
         CreateTransformationMatrix(transformation_matrix);
-        if(rOutput.size1() != msLocalSize || rOutput.size2() != msLocalSize)
+        if(rOutput.size1() != msLocalSize || rOutput.size2() != msLocalSize) {
             rOutput.resize(msLocalSize, msLocalSize, false);
+        }
         noalias(rOutput) = transformation_matrix;
     }
 }

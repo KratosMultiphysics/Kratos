@@ -34,14 +34,14 @@ namespace Kratos
         // Get info how and where to treat the stress
         mStressTreatment = StressResponseDefinitions::ConvertStringToStressTreatment( ResponseSettings["stress_treatment"].GetString() );
 
-        if(mStressTreatment == StressTreatment::GaussPoint || mStressTreatment == StressTreatment::Node)
-        {
+        if(mStressTreatment == StressTreatment::GaussPoint || mStressTreatment == StressTreatment::Node) {
             mIdOfLocation = ResponseSettings["stress_location"].GetInt();
             KRATOS_ERROR_IF(mIdOfLocation < 1) << "Chose a 'stress_location' > 0. Specified 'stress_location': " << mIdOfLocation << std::endl;
         }
 
-        if(ResponseSettings.Has("add_particular_solution"))
+        if(ResponseSettings.Has("add_particular_solution")) {
             mAddParticularSolution = ResponseSettings["add_particular_solution"].GetBool();
+        }
     }
 
     AdjointLocalStressResponseFunction::~AdjointLocalStressResponseFunction(){}
@@ -50,8 +50,9 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if(mAddParticularSolution)
+        if(mAddParticularSolution) {
             this->CalculateParticularSolution();
+        }
 
         KRATOS_CATCH("");
     }
@@ -350,8 +351,7 @@ namespace Kratos
         std::string element_name;
         CompareElementsAndConditionsUtility::GetRegisteredName(*mpTracedElement, element_name);
 
-        if(element_name == "AdjointFiniteDifferenceCrBeamElementLinear3D2N" || element_name == "AdjointFiniteDifferenceTrussLinearElement3D2N")
-        {
+        if(element_name == "AdjointFiniteDifferenceCrBeamElementLinear3D2N" || element_name == "AdjointFiniteDifferenceTrussLinearElement3D2N") {
             Vector particular_solution;
             // delivers particular solution of influence function in local coordinates
             this->CalculateParticularSolutionLinearElement2N(particular_solution);
@@ -363,9 +363,9 @@ namespace Kratos
             particular_solution = prod(transformation_matrix, particular_solution);
             // set particular solution as non-historical result
             mpTracedElement->SetValue(ADJOINT_PARTICULAR_DISPLACEMENT, particular_solution);
-        }
-        else
+        } else {
             KRATOS_ERROR << "CalculateParticularSolution not available for " << element_name << "!" << std::endl;
+        }
 
         KRATOS_CATCH("");
     }
@@ -381,16 +381,11 @@ namespace Kratos
         Array1DComponentsPointerType p_traced_dof;
         this->FindVariableComponent(p_traced_dof);
 
-        if(mStressTreatment == StressTreatment::Mean)
-        {
+        if(mStressTreatment == StressTreatment::Mean) {
             this->CalculateMeanParticularSolutionLinearElement2N(rResult, dofs_of_element, p_traced_dof);
-        }
-        else if(mStressTreatment == StressTreatment::GaussPoint)
-        {
+        } else if(mStressTreatment == StressTreatment::GaussPoint) {
             this->CalculateGPParticularSolutionLinearElement2N(rResult, dofs_of_element, p_traced_dof);
-        }
-        else if(mStressTreatment == StressTreatment::Node)
-        {
+        } else if(mStressTreatment == StressTreatment::Node) {
             this->CalculateNodeParticularSolutionLinearElement2N(rResult, dofs_of_element, p_traced_dof);
         }
 
@@ -402,8 +397,9 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if(rResult.size() != rElementalDofList.size())
+        if(rResult.size() != rElementalDofList.size()) {
             rResult.resize(rElementalDofList.size());
+        }
 
         const unsigned int num_GP = mpTracedElement->GetGeometry().IntegrationPointsNumber(mpTracedElement->GetIntegrationMethod());
         const double prefactor = 1.0 / (1.0 + num_GP);
@@ -411,16 +407,14 @@ namespace Kratos
         const IndexType id_node_1 = mpTracedElement->GetGeometry()[0].Id();
         const IndexType id_node_2 = mpTracedElement->GetGeometry()[1].Id();
 
-        for(IndexType gp_it = 0; gp_it < num_GP; ++gp_it)
-        {
-            for(IndexType i = 0; i < rElementalDofList.size(); ++i)
-            {
-                if (rElementalDofList[i]->GetVariable() == *rTracedDof)
-                {
-                    if (rElementalDofList[i]->Id() == id_node_1)
+        for(IndexType gp_it = 0; gp_it < num_GP; ++gp_it) {
+            for(IndexType i = 0; i < rElementalDofList.size(); ++i) {
+                if (rElementalDofList[i]->GetVariable() == *rTracedDof) {
+                    if (rElementalDofList[i]->Id() == id_node_1) {
                         rResult[i] += prefactor * (num_GP - gp_it);
-                    else if (rElementalDofList[i]->Id() == id_node_2)
+                    } else if (rElementalDofList[i]->Id() == id_node_2) {
                         rResult[i] += -prefactor * (gp_it + 1);
+                    }
                 }
             }
         }
@@ -434,8 +428,9 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if(rResult.size() != rElementalDofList.size())
+        if(rResult.size() != rElementalDofList.size()) {
             rResult.resize(rElementalDofList.size());
+        }
 
         const unsigned int num_GP = mpTracedElement->GetGeometry().IntegrationPointsNumber(mpTracedElement->GetIntegrationMethod());
         const double prefactor = 1.0 / (1.0 + num_GP);
@@ -443,14 +438,13 @@ namespace Kratos
         const IndexType id_node_1 = mpTracedElement->GetGeometry()[0].Id();
         const IndexType id_node_2 = mpTracedElement->GetGeometry()[1].Id();
 
-        for(IndexType i = 0; i < rElementalDofList.size(); ++i)
-        {
-            if (rElementalDofList[i]->GetVariable() == *rTracedDof)
-            {
-                if (rElementalDofList[i]->Id() == id_node_1)
+        for(IndexType i = 0; i < rElementalDofList.size(); ++i) {
+            if (rElementalDofList[i]->GetVariable() == *rTracedDof) {
+                if (rElementalDofList[i]->Id() == id_node_1) {
                     rResult[i] = prefactor * (num_GP + 1 - mIdOfLocation);
-                else if (rElementalDofList[i]->Id() == id_node_2)
+                } else if (rElementalDofList[i]->Id() == id_node_2) {
                     rResult[i] = -prefactor * mIdOfLocation;
+                }
             }
         }
 
@@ -462,18 +456,18 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if(rResult.size() != rElementalDofList.size())
+        if(rResult.size() != rElementalDofList.size()) {
             rResult.resize(rElementalDofList.size());
+        }
 
-        for(IndexType i = 0; i < rElementalDofList.size(); ++i)
-        {
+        for(IndexType i = 0; i < rElementalDofList.size(); ++i) {
             if (rElementalDofList[i]->Id() == mpTracedElement->GetGeometry()[mIdOfLocation-1].Id() &&
-                rElementalDofList[i]->GetVariable() == *rTracedDof)
-            {
-                if (mIdOfLocation == 1)
+                rElementalDofList[i]->GetVariable() == *rTracedDof) {
+                if (mIdOfLocation == 1) {
                     rResult[i] = 1.0;
-                else if (mIdOfLocation == 2)
+                } else if (mIdOfLocation == 2) {
                     rResult[i] = -1.0;
+                }
             }
         }
 

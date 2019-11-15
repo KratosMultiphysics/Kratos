@@ -467,8 +467,9 @@ protected:
         initial_state_variables.resize(num_dofs);
 
         Vector particular_solution = ZeroVector(num_dofs);
-        if(this->Has(ADJOINT_PARTICULAR_DISPLACEMENT))
+        if(this->Has(ADJOINT_PARTICULAR_DISPLACEMENT)) {
             particular_solution = this->GetValue(ADJOINT_PARTICULAR_DISPLACEMENT);
+        }
 
         // Build vector of variables containing the DOF-variables of the primal problem
         std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>*> primal_solution_variable_list;
@@ -480,11 +481,9 @@ protected:
         (mHasRotationDofs) ? adjoint_solution_variable_list = {&ADJOINT_DISPLACEMENT_X, &ADJOINT_DISPLACEMENT_Y, &ADJOINT_DISPLACEMENT_Z, &ADJOINT_ROTATION_X, &ADJOINT_ROTATION_Y, &ADJOINT_ROTATION_Z} :
                              adjoint_solution_variable_list = {&ADJOINT_DISPLACEMENT_X, &ADJOINT_DISPLACEMENT_Y, &ADJOINT_DISPLACEMENT_Z};
 
-       for (IndexType i = 0; i < num_nodes; ++i)
-        {
+        for (IndexType i = 0; i < num_nodes; ++i) {
             const IndexType index = i * num_dofs_per_node;
-            for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
-            {
+            for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j) {
                 initial_state_variables[index + j] = mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]);
                 mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) =
                                             this->GetGeometry()[i].FastGetSolutionStepValue(*adjoint_solution_variable_list[j]) +
@@ -494,11 +493,11 @@ protected:
 
         mpPrimalElement->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
 
-        for (IndexType i = 0; i < num_nodes; ++i)
-        {
+        for (IndexType i = 0; i < num_nodes; ++i) {
             const IndexType index = i * num_dofs_per_node;
-            for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
+            for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j) {
                 mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = initial_state_variables[index + j];
+            }
         }
 
         KRATOS_CATCH("")

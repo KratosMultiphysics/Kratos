@@ -26,21 +26,23 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateOnInteg
 {
     KRATOS_TRY
 
-    if (rVariable == ADJOINT_STRAIN)
-    {
+    if (rVariable == ADJOINT_STRAIN) {
         std::vector<Vector> strain_vector;
         this->CalculateAdjointFieldOnIntegrationPoints(STRAIN, strain_vector, rCurrentProcessInfo);
-        if (rOutput.size() != strain_vector.size())
+        if (rOutput.size() != strain_vector.size()) {
             rOutput.resize(strain_vector.size());
+        }
 
         KRATOS_ERROR_IF(strain_vector[0].size() != 3) << "Dimension of strain vector not as expected!" << std::endl;
 
-        for(IndexType i = 0; i < strain_vector.size(); ++i)
-            for (IndexType j = 0; j < 3 ; ++j)
+        for(IndexType i = 0; i < strain_vector.size(); ++i) {
+            for (IndexType j = 0; j < 3 ; ++j) {
                 rOutput[i][j] = strain_vector[i][j];
-    }
-    else
+            }
+        }
+    } else {
         this->CalculateAdjointFieldOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }
 
     KRATOS_CATCH("")
 }
