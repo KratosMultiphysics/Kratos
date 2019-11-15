@@ -281,13 +281,13 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputePositiveSideInterfaceAreaN
     }
 };
 
-// Compute the positive side interface outwards area normal vector values.
+// Compute the negative side interface outwards area normal vector values.
 void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeNegativeSideInterfaceAreaNormals(
     std::vector<Vector> &rNegativeSideInterfaceAreaNormals,
     const IntegrationMethodType IntegrationMethod) {
 
     if (this->IsSplit()) {
-        // Compute the positive side interface outwars unit normal values
+        // Compute the negative side interface outwars unit normal values
         this->ComputeFaceNormalOnOneSide(rNegativeSideInterfaceAreaNormals,
                                               mpTetrahedraSplitter->mNegativeInterfaces,
                                               IntegrationMethod);

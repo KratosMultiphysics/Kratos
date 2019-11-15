@@ -160,6 +160,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self.variational_distance_process = self._set_variational_distance_process()
 
+        self.distance_gradient_process = self._set_distance_gradient_process()
+        #(self.distance_gradient_process).Execute()
+
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],   # Domain size (2,3)
                                                                                         self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1) # DOFs (3,4)
 
@@ -201,6 +204,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Recompute the distance field according to the new level-set position
             (self.variational_distance_process).Execute()
+
+            # Compute the DISTANCE_GRADIENT on nodes
+            (self.distance_gradient_process).Execute()
 
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
             self._SetNodalProperties()
@@ -334,3 +340,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
         return variational_distance_process
+
+    def _set_distance_gradient_process(self):
+        #Calculate DISTANCE_GRADIENT at nodes using ComputeNodalGradientProcess
+        distance_gradient_process = KratosMultiphysics.ComputeNodalGradientProcess(
+                self.main_model_part, 
+                KratosMultiphysics.DISTANCE, 
+                KratosMultiphysics.DISTANCE_GRADIENT, 
+                KratosMultiphysics.NODAL_AREA)
+
+        return distance_gradient_process
