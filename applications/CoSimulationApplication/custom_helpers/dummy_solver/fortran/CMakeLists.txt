@@ -1,5 +1,5 @@
 project( DummySolverFortran Fortran )
 
-set(KRATOS_CO_SIMULATION_DUMMY_SOLVER_FORTRAN_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/dummy_solver.f90)
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../../co_simulation_io/fortran )
 
-add_executable (dummy_solver_fortran ${KRATOS_CO_SIMULATION_DUMMY_SOLVER_FORTRAN_SOURCES})
+add_executable (dummy_solver_fortran ${CMAKE_CURRENT_SOURCE_DIR}/dummy_solver.f90)
