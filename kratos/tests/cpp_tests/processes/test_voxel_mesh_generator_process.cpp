@@ -18,7 +18,7 @@
 // #include "includes/gid_io.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "processes/voxel_mesh_generator_process.h"
+#include "processes/coarse_voxel_mesh_generator_process.h"
 
 namespace Kratos {
   namespace Testing {
@@ -789,7 +789,7 @@ namespace Kratos {
 		skin_part.CreateNewElement("Element3D3N", 912, { 905,908,907 }, p_properties);
 
 		// Generating the mesh
-		VoxelMeshGeneratorProcess(Point{0.00, 0.00, 0.00}, Point{10.00, 10.00, 10.00}, volume_part, skin_model_part, mesher_parameters).Execute();
+		CoarseVoxelMeshGeneratorProcess(Point{0.00, 0.00, 0.00}, Point{10.00, 10.00, 10.00}, volume_part, skin_model_part, mesher_parameters).Execute();
 
 		KRATOS_CHECK_EQUAL(volume_part.NumberOfNodes(), 4*4*4);
 
@@ -868,7 +868,7 @@ namespace Kratos {
 		skin_part.CreateNewElement("Element3D3N", 912, { 905,908,907 }, p_properties);
 
 		// Generating the mesh
-		VoxelMeshGeneratorProcess(Point{0.00, 0.00, 0.00}, Point{10.00, 10.00, 10.00}, volume_part, skin_model_part, mesher_parameters).Execute();
+		CoarseVoxelMeshGeneratorProcess(Point{0.00, 0.00, 0.00}, Point{10.00, 10.00, 10.00}, volume_part, skin_model_part, mesher_parameters).Execute();
 
 		std::array<double,4> xy{0.00, 2.00, 6.00, 10.00};
 		std::array<double,4> z{0.00, 2.00, 7.00, 10.00};

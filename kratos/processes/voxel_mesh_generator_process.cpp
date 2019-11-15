@@ -34,7 +34,7 @@ namespace Kratos
 		: Process()
         , mMinPoint(MinPoint)
         , mMaxPoint(MaxPoint)
-        , mrVolumePart(rVolumePart), mrSkinPart(rSkinPart), mCoarseMeshType(false) {
+        , mrVolumePart(rVolumePart), mrSkinPart(rSkinPart) {
 
 		Parameters default_parameters(R"(
             {
@@ -76,8 +76,6 @@ namespace Kratos
         for(int i = 0 ; i < 3 ; i++)
             mCellSizes[i] /= mNumberOfDivisions[i];
 		mEntitiesToGenerate=TheParameters["entities_to_generate"].GetString();
-		if(TheParameters["mesh_type"].GetString() == "coarse")
-			mCoarseMeshType=true;
 
 		mOutput = TheParameters["output"].GetString();
 
@@ -109,7 +107,7 @@ namespace Kratos
 		: Process()
         , mMinPoint(XCoordinates.front(), YCoordinates.front(), ZCoordinates.front())
         , mMaxPoint(XCoordinates.back(), YCoordinates.back(), ZCoordinates.back())
-        , mrVolumePart(rVolumePart), mrSkinPart(rSkinPart), mCoarseMeshType(false) {
+        , mrVolumePart(rVolumePart), mrSkinPart(rSkinPart) {
 		
 		mColors.SetCoordinates(XCoordinates, YCoordinates, ZCoordinates);
 
@@ -158,8 +156,6 @@ namespace Kratos
         for(int i = 0 ; i < 3 ; i++)
             mCellSizes[i] /= mNumberOfDivisions[i];
 		mEntitiesToGenerate=TheParameters["entities_to_generate"].GetString();
-		if(TheParameters["mesh_type"].GetString() == "coarse")
-			mCoarseMeshType=true;
 
 		mHasColor = false;
 		mOutput = TheParameters["output"].GetString();
@@ -201,15 +197,10 @@ namespace Kratos
 		if(mOutputFilename != "")			
 			mColors.WriteParaViewVTR(mOutputFilename);
 
-		if(mCoarseMeshType){
-			Generate3DCoarseMesh();
-		}
-		else{
-			if(mEntitiesToGenerate == "center_of_elements")
-				GenerateCenterOfElements();
-			else if(mEntitiesToGenerate == "nodes" || mEntitiesToGenerate == "elements"){
-				Generate3DMesh();
-			}
+		if(mEntitiesToGenerate == "center_of_elements")
+			GenerateCenterOfElements();
+		else if(mEntitiesToGenerate == "nodes" || mEntitiesToGenerate == "elements"){
+			Generate3DMesh();
 		}
 	}
 
@@ -321,118 +312,6 @@ namespace Kratos
 				}
 			}
 		}
-	}
-
-	void VoxelMeshGeneratorProcess::Generate3DCoarseMesh(){
-		Timer::Start("Creating Coarse Mesh");
-
-		KRATOS_ERROR_IF(mEntitiesToGenerate != "center_of_elements") << "The coarse mesh can be generated only when entities to generate is center_of_elements" << std::endl;
-
-		std::vector<bool> x_cell_coarse(mNumberOfDivisions[0]+1,false);
-		std::vector<bool> y_cell_coarse(mNumberOfDivisions[1]+1,false);
-		std::vector<bool> z_cell_coarse(mNumberOfDivisions[2]+1,false);
-
-		x_cell_coarse[0]=true;
-		y_cell_coarse[0]=true;
-		z_cell_coarse[0]=true;
-
-		x_cell_coarse[mNumberOfDivisions[0]]=true;
-		y_cell_coarse[mNumberOfDivisions[1]]=true;
-		z_cell_coarse[mNumberOfDivisions[2]]=true;
-
-		for (std::size_t k = 1; k < mNumberOfDivisions[2]; k++) {
-			for (std::size_t j = 1; j < mNumberOfDivisions[1]; j++) {
-				for (std::size_t i = 1; i < mNumberOfDivisions[0]; i++) {
-					double color = mColors.GetElementalColor(i,j,k);
-					if(color != mColors.GetElementalColor(i-1,j,k))
-						x_cell_coarse[i]=true;
-					if(color != mColors.GetElementalColor(i,j-1,k))
-						y_cell_coarse[j]=true;
-					if(color != mColors.GetElementalColor(i,j,k-1))
-						z_cell_coarse[k]=true;
-				}
-			}
-		}
-
-		if(mOutput == "rectilinear_coordinates") { 
-			std::vector<double> x_key_planes;
-			std::vector<double> y_key_planes;
-			std::vector<double> z_key_planes;
-
-			for(std::size_t i = 0 ; i < mNumberOfDivisions[0]; i++){
-				if(x_cell_coarse[i])
-					x_key_planes.push_back(i*mCellSizes[0]+mMinPoint[0]);
-			}
-
-			for(std::size_t i = 0 ; i < mNumberOfDivisions[1]; i++){
-				if(y_cell_coarse[i])
-					y_key_planes.push_back(i*mCellSizes[1]+mMinPoint[1]);
-			}
-
-			for(std::size_t i = 0 ; i < mNumberOfDivisions[2]; i++){
-				if(z_cell_coarse[i])
-					z_key_planes.push_back(i*mCellSizes[2]+mMinPoint[2]);
-			}
-
-			x_key_planes.push_back(mMaxPoint[0]);
-			y_key_planes.push_back(mMaxPoint[1]);
-			z_key_planes.push_back(mMaxPoint[2]);
-
-			auto& x_coordinates = mrVolumePart.GetValue(RECTILINEAR_X_COORDINATES);
- 			auto& y_coordinates = mrVolumePart.GetValue(RECTILINEAR_Y_COORDINATES);
- 			auto& z_coordinates = mrVolumePart.GetValue(RECTILINEAR_Z_COORDINATES);
-
-			x_coordinates.resize(x_key_planes.size(), false);
-			y_coordinates.resize(y_key_planes.size(), false);
-			z_coordinates.resize(z_key_planes.size(), false);
-
-			std::copy(x_key_planes.begin(), x_key_planes.end(), x_coordinates.begin());
-			std::copy(y_key_planes.begin(), y_key_planes.end(), y_coordinates.begin());
-			std::copy(z_key_planes.begin(), z_key_planes.end(), z_coordinates.begin());
-
-			auto& colors = mrVolumePart.GetValue(COLORS);
-			colors.resize((x_key_planes.size() - 1)*(y_key_planes.size() - 1) * (z_key_planes.size() - 1), false);
-			std::size_t index = 0;
-			for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
-				for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
-					for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
-						if(x_cell_coarse[i]&y_cell_coarse[j]&z_cell_coarse[k]){
-							colors[index++] = mColors.GetElementalColor(i,j,k);
-						}
-					}
-				}
-			}
-
-			return;
-		}
-		
-		std::size_t node_id = mStartNodeId;
-		for (std::size_t k = 0; k < mNumberOfDivisions[2] + 1; k++) {
-			for (std::size_t j = 0; j < mNumberOfDivisions[1] + 1; j++) {
-				for (std::size_t i = 0; i < mNumberOfDivisions[0] + 1; i++) {
-					if(x_cell_coarse[i]&y_cell_coarse[j]&z_cell_coarse[k]){
-						Point global_coordinates = mColors.GetPoint(i,j,k);
-						auto p_node = mrVolumePart.CreateNewNode(node_id++, global_coordinates[0],
-                                                                   global_coordinates[1],
-                                                                   global_coordinates[2]);
-						if(mHasColor ){
-							if((i == mNumberOfDivisions[0]) || (j == mNumberOfDivisions[1]) || (k == mNumberOfDivisions[2])){
-								auto ii = (i== mNumberOfDivisions[0]) ? i - 1 : i;
-								auto jj = (j== mNumberOfDivisions[1]) ? j - 1 : j;
-								auto kk = (k== mNumberOfDivisions[2]) ? k - 1 : k;
-								p_node->GetSolutionStepValue(DISTANCE) = mColors.GetElementalColor(ii,jj,kk);
-							}
-							else {
-								p_node->GetSolutionStepValue(DISTANCE) = mColors.GetElementalColor(i,j,k);
-							}
-						}
-					}
-				}
-			}
-		}
-
-		Timer::Stop("Creating Coarse Mesh");
-			
 	}
 
 	void VoxelMeshGeneratorProcess::GenerateNodes3D() {

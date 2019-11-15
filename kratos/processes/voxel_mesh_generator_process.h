@@ -132,7 +132,7 @@ namespace Kratos
 
       ///@}
 
-      private:
+      protected:
       ///@name Static Member Variables
       ///@{
 
@@ -162,7 +162,6 @@ namespace Kratos
           Parameters mColoringParameters;
           std::string mEntitiesToGenerate;
           std::string mOutput;
-          bool mCoarseMeshType;
           bool mHasColor;
 
 
@@ -173,8 +172,6 @@ namespace Kratos
           void ApplyColoring(ModelPart const& TheSkinModelPart, Parameters parameters);
 
           void Generate3DMesh();
-
-          void Generate3DCoarseMesh();
 
           void GenerateNodes3D();
 
