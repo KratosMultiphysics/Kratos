@@ -130,7 +130,8 @@
                     "relative_tolerance": 1e-3,
                     "absolute_tolerance": 1e-5,
                     "max_iterations": 100,
-                    "echo_level": 2
+                    "echo_level": 2,
+                    "number_of_parent_solve_iterations" : 0
                 }
             }
         }
