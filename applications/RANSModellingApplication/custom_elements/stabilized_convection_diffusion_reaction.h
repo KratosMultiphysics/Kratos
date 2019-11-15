@@ -303,7 +303,7 @@ public:
 
         BoundedMatrix<double, TDim, TDim> contravariant_metric_tensor;
 
-        for (IndexType g = 0; g < num_gauss_points; g++)
+        for (IndexType g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
             const Vector gauss_shape_functions = row(shape_functions, g);
@@ -738,7 +738,7 @@ public:
 
         BoundedMatrix<double, TDim, TDim> contravariant_metric_tensor;
 
-        for (IndexType g = 0; g < num_gauss_points; g++)
+        for (IndexType g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
             const Vector gauss_shape_functions = row(shape_functions, g);
@@ -805,12 +805,12 @@ public:
 
             const double s = std::abs(reaction);
 
-            for (IndexType a = 0; a < TNumNodes; a++)
+            for (IndexType a = 0; a < TNumNodes; ++a)
             {
-                for (IndexType b = 0; b < TNumNodes; b++)
+                for (IndexType b = 0; b < TNumNodes; ++b)
                 {
                     double dNa_dNb = 0.0;
-                    for (IndexType i = 0; i < TDim; i++)
+                    for (IndexType i = 0; i < TDim; ++i)
                         dNa_dNb += r_shape_derivatives(a, i) * r_shape_derivatives(b, i);
 
                     double value = 0.0;
@@ -872,7 +872,7 @@ public:
 
         BoundedMatrix<double, TDim, TDim> contravariant_metric_tensor;
 
-        for (IndexType g = 0; g < num_gauss_points; g++)
+        for (IndexType g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
             const Vector gauss_shape_functions = row(shape_functions, g);
@@ -940,7 +940,7 @@ public:
     {
         rOutput.clear();
         for (IndexType i = 0; i < TNumNodes; ++i)
-            for (IndexType j = 0; j < TDim; j++)
+            for (IndexType j = 0; j < TDim; ++j)
             {
                 rOutput[i] += rVector[j] * rShapeDerivatives(i, j);
             }

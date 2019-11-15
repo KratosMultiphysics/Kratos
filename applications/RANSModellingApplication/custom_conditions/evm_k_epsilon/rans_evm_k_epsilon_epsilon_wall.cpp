@@ -204,7 +204,7 @@ void RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>::EquationIdVector(EquationIdVec
     if (rResult.size() != TNumNodes)
         rResult.resize(TNumNodes, false);
 
-    for (IndexType i = 0; i < TNumNodes; i++)
+    for (IndexType i = 0; i < TNumNodes; ++i)
         rResult[i] = Condition::GetGeometry()[i]
                          .GetDof(TURBULENT_ENERGY_DISSIPATION_RATE)
                          .EquationId();
@@ -217,7 +217,7 @@ void RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>::GetDofList(DofsVectorType& Con
     if (ConditionDofList.size() != TNumNodes)
         ConditionDofList.resize(TNumNodes);
 
-    for (IndexType i = 0; i < TNumNodes; i++)
+    for (IndexType i = 0; i < TNumNodes; ++i)
         ConditionDofList[i] =
             Condition::GetGeometry()[i].pGetDof(TURBULENT_ENERGY_DISSIPATION_RATE);
 }
@@ -300,7 +300,7 @@ void RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>::AddLocalVelocityContribution(
         rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
     const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
     const double eps = std::numeric_limits<double>::epsilon();
-    for (IndexType g = 0; g < num_gauss_points; g++)
+    for (IndexType g = 0; g < num_gauss_points; ++g)
     {
         const Vector& gauss_shape_functions = row(shape_functions, g);
         const double weight = J * integration_points[g].Weight();

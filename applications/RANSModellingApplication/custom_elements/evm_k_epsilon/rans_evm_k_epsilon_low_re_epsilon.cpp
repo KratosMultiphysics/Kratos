@@ -176,7 +176,7 @@ void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::EquationIdVector(
     if (rResult.size() != TNumNodes)
         rResult.resize(TNumNodes, false);
 
-    for (unsigned int i = 0; i < TNumNodes; i++)
+    for (unsigned int i = 0; i < TNumNodes; ++i)
         rResult[i] =
             Element::GetGeometry()[i].GetDof(TURBULENT_ENERGY_DISSIPATION_RATE).EquationId();
 }
@@ -193,7 +193,7 @@ void RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::GetDofList(DofsVectorT
     if (rElementalDofList.size() != TNumNodes)
         rElementalDofList.resize(TNumNodes);
 
-    for (unsigned int i = 0; i < TNumNodes; i++)
+    for (unsigned int i = 0; i < TNumNodes; ++i)
         rElementalDofList[i] =
             Element::GetGeometry()[i].pGetDof(TURBULENT_ENERGY_DISSIPATION_RATE);
 }
