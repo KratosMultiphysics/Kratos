@@ -46,32 +46,53 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
     set_target_properties(KratosCoSimulationApplication PROPERTIES PREFIX "")
     install(TARGETS KratosCoSimulationApplication DESTINATION libs )
 
-    # creating the auxiliary executables
-    set(KRATOS_CO_SIMULATION_TESTING_CPP_PING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_ping_pong_solvers/cpp_test_solver_ping/cpp_test_solver_ping.cpp)
-    set(KRATOS_CO_SIMULATION_TESTING_CPP_PONG_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_ping_pong_solvers/cpp_test_solver_pong/cpp_test_solver_pong.cpp)
-    set(KRATOS_CO_SIMULATION_TESTING_CPP_DUMMY_SOLVER_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/dummy_solver/cpp/dummy_solver.cpp)
-    add_executable (ping ${KRATOS_CO_SIMULATION_TESTING_CPP_PING_SOURCES})
-    add_executable (pong ${KRATOS_CO_SIMULATION_TESTING_CPP_PONG_SOURCES})
-    add_executable (dummy_solver_cpp ${KRATOS_CO_SIMULATION_TESTING_CPP_DUMMY_SOLVER_SOURCES})
-    install(TARGETS ping DESTINATION libs )
-    install(TARGETS pong DESTINATION libs )
-    install(TARGETS dummy_solver_cpp DESTINATION libs )
+    # creating the auxiliary executables (enabled by default)
+    if(NOT DEFINED CO_SIM_HELPERS)
+        message("CO_SIM_HELPERS not defined. Setting to ON")
+        SET (CO_SIM_HELPERS ON)
+    endif(NOT DEFINED CO_SIM_HELPERS)
+
+    if(${CO_SIM_HELPERS} MATCHES ON)
+        message("Compiling the helpers for CoSimulation")
+        ### Ping-Pong
+        add_executable (ping ${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/cpp_ping_pong_solvers/cpp_test_solver_ping.cpp)
+        add_executable (pong ${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/cpp_ping_pong_solvers/cpp_test_solver_pong.cpp)
+        install(TARGETS ping DESTINATION libs )
+        install(TARGETS pong DESTINATION libs )
 
 
-    include(CMakeAddFortranSubdirectory)
-    cmake_add_fortran_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests/dummy_solver/fortran NO_EXTERNAL_INSTALL)
+        ### Dummy solvers
+        # Cpp
+        add_executable (dummy_solver_cpp ${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/dummy_solver/cpp/dummy_solver.cpp)
+        install(TARGETS dummy_solver_cpp DESTINATION libs )
 
-    install(
-        FILES ${CMAKE_CURRENT_BINARY_DIR}/tests/dummy_solver/fortran/dummy_solver_fortran
-        DESTINATION libs
-        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ) # required to preseve execute-permissions
+        # C
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/dummy_solver/c)
 
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests/dummy_solver/c)
+        install(
+            FILES ${CMAKE_CURRENT_BINARY_DIR}/custom_helpers/dummy_solver/c/dummy_solver_c
+            DESTINATION libs
+            PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ) # required to preseve execute-permissions
 
-    install(
-        FILES ${CMAKE_CURRENT_BINARY_DIR}/tests/dummy_solver/c/dummy_solver_c
-        DESTINATION libs
-        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ) # required to preseve execute-permissions
+        # Fortran
+        include(CMakeAddFortranSubdirectory)
+        cmake_add_fortran_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_helpers/dummy_solver/fortran NO_EXTERNAL_INSTALL)
+
+        install(
+            FILES ${CMAKE_CURRENT_BINARY_DIR}/custom_helpers/dummy_solver/fortran/dummy_solver_fortran
+            DESTINATION libs
+            PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ) # required to preseve execute-permissions
+
+
+        ### CoSimIO - C-interface (also used for fortran)
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/co_simulation_io/c)
+
+        install(
+            FILES ${CMAKE_CURRENT_BINARY_DIR}/co_simulation_io/c/libco_sim_c_io.so # find a way to do this without specifying the ending
+            DESTINATION libs
+            PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ) # required to preseve execute-permissions
+
+    endif(${CO_SIM_HELPERS} MATCHES ON)
 
     # changing the .dll suffix to .pyd (Windows)
     if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

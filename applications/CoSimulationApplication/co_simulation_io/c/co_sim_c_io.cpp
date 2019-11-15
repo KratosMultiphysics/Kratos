@@ -13,7 +13,7 @@
 extern "C" {
 #include "co_sim_c_io.h"
 }
-#include "co_sim_io.h"
+#include "../co_sim_io.h"
 
 
 static void Connect(const char* pName)
@@ -28,5 +28,5 @@ static void Disconnect(const char* pName)
 
 static void ImportData(const char* pName)
 {
-    CoSim::ImportData(pName);
+    // CoSim::ImportData(pName);
 }
