@@ -362,13 +362,13 @@ bool GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Has(const V
 template <class TConstLawIntegratorType>
 bool GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Has(const Variable<Vector>& rThisVariable)
 {
+    if (rThisVariable == INTERNAL_VARIABLES) {
+        return true;
+    }
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         return true;
-    } else {
-        return BaseType::Has(rThisVariable);
     }
-
-    return false;
+    return BaseType::Has(rThisVariable);
 }
 
 /***********************************************************************************/
@@ -406,6 +406,12 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    if (rThisVariable == INTERNAL_VARIABLES) {
+        mPlasticDissipation = rValue[0];
+        for (std::size_t i=0; i < VoigtSize; ++i)
+            mPlasticStrain[i] = rValue[i + 1];
+        return;
+    }
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         mPlasticStrain = rValue;
     } else {
@@ -440,6 +446,13 @@ Vector& GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::GetValue
     Vector& rValue
     )
 {
+    if (rThisVariable == INTERNAL_VARIABLES) {
+        rValue.resize(1 + VoigtSize);
+        rValue[0] = mPlasticDissipation;
+        for (std::size_t i=0; i < VoigtSize; ++i)
+            rValue[i + 1] = mPlasticStrain[i];
+        return rValue;
+    }
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         rValue = mPlasticStrain;
     } else {
