@@ -97,11 +97,13 @@ def Factory(settings, Model):
         msg += "\n    ".join(sorted(process_names_list))
         raise Exception(msg + "\n")
 
-    Kratos.Logger.PrintInfo("RANSApplyCustomProcess",
-                            "Creating " + process_name)
-
-    return process_list[process_names_list.index(process_name)](
+    current_process = process_list[process_names_list.index(process_name)](
         Model, settings["Parameters"])
+
+    Kratos.Logger.PrintInfo("RANSApplyCustomProcess",
+                            "Created " + process_name + " with following properties...\n" + str(settings["Parameters"]))
+
+    return current_process
 
 
 class FindNodalNeighboursProcess(Kratos.Process):
