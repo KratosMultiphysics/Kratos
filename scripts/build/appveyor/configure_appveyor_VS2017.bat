@@ -12,28 +12,29 @@ set KRATOS_SOURCE=.
 set KRATOS_BUILD=.\build
 set KRATOS_APP_DIR=applications
 
-CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\ContactStructuralMechanicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\MeshingApplication;
-CALL :add_app %KRATOS_APP_DIR%\MeshMovingApplication;
-CALL :add_app %KRATOS_APP_DIR%\DEMApplication;
-CALL :add_app %KRATOS_APP_DIR%\SwimmingDEMApplication;
-CALL :add_app %KRATOS_APP_DIR%\CSharpWrapperApplication;
-CALL :add_app %KRATOS_APP_DIR%\SolidMechanicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\ConstitutiveModelsApplication;
-CALL :add_app %KRATOS_APP_DIR%\DelaunayMeshingApplication;
-CALL :add_app %KRATOS_APP_DIR%\ContactMechanicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\PfemApplication;
-CALL :add_app %KRATOS_APP_DIR%\PfemFluidDynamicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\PfemSolidMechanicsApplication;
+set KRATOS_APPLICATIONS=
+set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\FluidDynamicsApplication;
+set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\StructuralMechanicsApplication;
+set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ContactStructuralMechanicsApplication;
+set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MeshingApplication;
+set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MeshMovingApplication;
+set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\DEMApplication;
+set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\SwimmingDEMApplication;
+set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\CSharpWrapperApplication;
+set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\SolidMechanicsApplication;
+set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ConstitutiveModelsApplication;
+set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\DelaunayMeshingApplication;
+set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ContactMechanicsApplication;
+set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\PfemApplication;
+set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\PfemFluidDynamicsApplication;
+set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\PfemSolidMechanicsApplication;
 
 rem Clean
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
-rem Configure
+rem Configur
 @echo on
  cmake                                              ^
  -G"Visual Studio 15 2017 Win64"                    ^
@@ -46,8 +47,3 @@ rem Configure
 
 rem Build
 cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target all_unity
-goto:eof
-
-:add_app
-set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%1;
-goto:eof
