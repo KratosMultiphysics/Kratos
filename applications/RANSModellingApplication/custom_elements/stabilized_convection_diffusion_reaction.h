@@ -738,6 +738,8 @@ public:
 
         BoundedMatrix<double, TDim, TDim> contravariant_metric_tensor;
 
+        const double eps = std::numeric_limits<double>::epsilon();
+
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
@@ -781,9 +783,7 @@ public:
             const double variable_value =
                 this->EvaluateInPoint(primal_variable, gauss_shape_functions);
 
-            const double division_coeff = variable_gradient_norm * velocity_magnitude_square;
-
-            if (division_coeff > 0.0)
+            if (variable_gradient_norm > eps && velocity_magnitude_square > eps)
             {
                 const double source = this->CalculateSourceTerm(
                     r_current_data, gauss_shape_functions, r_shape_derivatives,
@@ -800,7 +800,7 @@ public:
                     effective_kinematic_viscosity, reaction, bossak_alpha,
                     bossak_gamma, delta_time, element_length, dynamic_tau);
 
-                positivity_preserving_coefficient = residual * chi / (division_coeff);
+                positivity_preserving_coefficient = residual * chi / (variable_gradient_norm * velocity_magnitude_square);
             }
 
             const double s = std::abs(reaction);
