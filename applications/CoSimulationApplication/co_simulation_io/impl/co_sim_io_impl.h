@@ -82,7 +82,6 @@ public:
         mDataExchangeFunctions[rName] = pFuncPtr;
     }
 
-
     void RegisterAdvanceInTime(double (*pFuncPtr)(double))
     {
         KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
@@ -161,12 +160,60 @@ public:
         return RecvControlSignal(dummy) == CoSim::Internals::ControlSignal::ConvergenceAchieved;
     }
 
+    void ImportData(
+        const char* pIdentifier,
+        int* pSize,
+        double** ppData)
+    {
+        mpComm->ImportData(pIdentifier, pSize, ppData);
+    }
+
+    void ExportData(
+        const char* pIdentifier,
+        const int Size,
+        const double* pData)
+    {
+        mpComm->ExportData(pIdentifier, Size, pData);
+    }
+
+    void ImportMesh(
+        const char* pIdentifier,
+        int* pNumberOfNodes,
+        int* pNumberOfElements,
+        double** ppNodalCoordinates,
+        int** ppElementConnectivities,
+        int** ppElementTypes)
+    {
+        mpComm->ImportMesh(pIdentifier, pNumberOfNodes, pNumberOfElements, ppNodalCoordinates, ppElementConnectivities, ppElementTypes);
+    }
+
+    void ExportMesh(
+        const char* pIdentifier,
+        const int NumberOfNodes,
+        const int NumberOfElements,
+        const double* pNodalCoordinates,
+        const int* pElementConnectivities,
+        const int* pElementTypes)
+    {
+        mpComm->ExportMesh(pIdentifier, NumberOfNodes, NumberOfElements, pNodalCoordinates, pElementConnectivities, pElementTypes);
+    }
+
+    void ImportGeometry()
+    {
+        KRATOS_CO_SIM_ERROR << "Importing of Geometry is not yet implemented!" << std::endl;
+    }
+
+    void ExportGeometry()
+    {
+        KRATOS_CO_SIM_ERROR << "Exporting of Geometry is not yet implemented!" << std::endl;
+    }
+
+    // TODO remove the templated fcts
     template<class DataContainer>
     bool Import(DataContainer& rContainer, const std::string& rIdentifier)
     {
         return mpComm->Import(rContainer, rIdentifier);
     }
-
     template<class DataContainer>
     bool Export(const DataContainer& rContainer, const std::string& rIdentifier)
     {
@@ -217,7 +264,9 @@ private:
 }; // class CoSimIO
 
 
+// TODO make sure this is unique even across compilation units (test somehow)
 static std::unordered_map<std::string, std::unique_ptr<CoSimIO>> s_co_sim_ios;
+
 static bool HasIO(const char* pName)
 {
     return s_co_sim_ios.find(std::string(pName)) != s_co_sim_ios.end();

@@ -53,38 +53,59 @@ static void Disconnect(const char* pName)
 
 static bool IsConverged(const char* pName)
 {
-    using namespace Internals;
-    return GetIO(pName).IsConverged();
+    return Internals::GetIO(pName).IsConverged();
 }
 
-static void ImportData(const char* pName)
+static void ImportData(
+    const char* pName,
+    const char* pIdentifier,
+    int* pSize,
+    double** ppData)
 {
-    using namespace Internals;
+    Internals::GetIO(pName).ImportData(pIdentifier, pSize, ppData);
 }
 
-static void ExportData(const char* pName)
+static void ExportData(
+    const char* pName,
+    const char* pIdentifier,
+    const int Size,
+    const double* pData)
 {
-    using namespace Internals;
+    Internals::GetIO(pName).ExportData(pIdentifier, Size, pData);
 }
 
-static void ImportMesh(const char* pName)
+static void ImportMesh(
+    const char* pName,
+    const char* pIdentifier,
+    int* pNumberOfNodes,
+    int* pNumberOfElements,
+    double** ppNodalCoordinates,
+    int** ppElementConnectivities,
+    int** ppElementTypes)
 {
-    using namespace Internals;
+    Internals::GetIO(pName).ImportMesh(pIdentifier, pNumberOfNodes, pNumberOfElements, ppNodalCoordinates, ppElementConnectivities, ppElementTypes);
 }
 
-static void ExportMesh(const char* pName)
+static void ExportMesh(
+    const char* pName,
+    const char* pIdentifier,
+    const int NumberOfNodes,
+    const int NumberOfElements,
+    const double* pNodalCoordinates,
+    const int* pElementConnectivities,
+    const int* pElementTypes)
 {
-    using namespace Internals;
+    Internals::GetIO(pName).ExportMesh(pIdentifier, NumberOfNodes, NumberOfElements, pNodalCoordinates, pElementConnectivities, pElementTypes);
 }
 
 static void ImportGeometry(const char* pName)
 {
-    using namespace Internals;
+    Internals::GetIO(pName).ImportGeometry();
 }
 
 static void ExportGeometry(const char* pName)
 {
-    using namespace Internals;
+    Internals::GetIO(pName).ExportGeometry();
 }
 
 namespace {

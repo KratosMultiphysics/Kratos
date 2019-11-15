@@ -92,6 +92,48 @@ public:
         CheckConnection(); return RecvControlSignalDetail(rIdentifier);
     }
 
+    void ImportData(
+        const char* pIdentifier,
+        int* pSize,
+        double** ppData)
+    {
+        CheckConnection();
+        ImportDataImpl(pIdentifier, pSize, ppData);
+    }
+
+    void ExportData(
+        const char* pIdentifier,
+        const int Size,
+        const double* pData)
+    {
+        CheckConnection();
+        ExportDataImpl(pIdentifier, Size, pData);
+    }
+
+    void ImportMesh(
+        const char* pIdentifier,
+        int* pNumberOfNodes,
+        int* pNumberOfElements,
+        double** ppNodalCoordinates,
+        int** ppElementConnectivities,
+        int** ppElementTypes)
+    {
+        CheckConnection();
+        ImportMeshImpl(pIdentifier, pNumberOfNodes, pNumberOfElements, ppNodalCoordinates, ppElementConnectivities, ppElementTypes);
+    }
+
+    void ExportMesh(
+        const char* pIdentifier,
+        const int NumberOfNodes,
+        const int NumberOfElements,
+        const double* pNodalCoordinates,
+        const int* pElementConnectivities,
+        const int* pElementTypes)
+    {
+        CheckConnection();
+        ExportMeshImpl(pIdentifier, NumberOfNodes, NumberOfElements, pNodalCoordinates, pElementConnectivities, pElementTypes);
+    }
+
     template<class DataContainer>
     bool Import(DataContainer& rDataContainer, const std::string& rIdentifier)
         { CheckConnection(); return ImportDetail(rDataContainer, rIdentifier); }
@@ -127,6 +169,44 @@ private:
     {
         KRATOS_CO_SIM_ERROR << "RecvControlSignalDetail not implemented for this comm-type" << std::endl;
         return Internals::ControlSignal::Dummy;
+    }
+
+    virtual void ImportDataImpl(
+        const char* pIdentifier,
+        int* pSize,
+        double** ppData)
+    {
+        KRATOS_CO_SIM_ERROR << "ImportDataImpl not implemented for this comm-type!" << std::endl;
+    }
+
+    virtual void ExportDataImpl(
+        const char* pIdentifier,
+        const int Size,
+        const double* pData)
+    {
+        KRATOS_CO_SIM_ERROR << "ImportDataImpl not implemented for this comm-type!" << std::endl;
+    }
+
+    virtual void ImportMeshImpl(
+        const char* pIdentifier,
+        int* pNumberOfNodes,
+        int* pNumberOfElements,
+        double** ppNodalCoordinates,
+        int** ppElementConnectivities,
+        int** ppElementTypes)
+    {
+        KRATOS_CO_SIM_ERROR << "ImportDataImpl not implemented for this comm-type!" << std::endl;
+    }
+
+    virtual void ExportMeshImpl(
+        const char* pIdentifier,
+        const int NumberOfNodes,
+        const int NumberOfElements,
+        const double* pNodalCoordinates,
+        const int* pElementConnectivities,
+        const int* pElementTypes)
+    {
+        KRATOS_CO_SIM_ERROR << "ImportDataImpl not implemented for this comm-type!" << std::endl;
     }
 
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Geometry);
