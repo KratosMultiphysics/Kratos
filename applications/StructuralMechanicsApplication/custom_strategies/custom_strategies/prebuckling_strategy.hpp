@@ -634,7 +634,6 @@ public:
             // by means of finite difference approximations
             //#####################################################################################
             // Solve Eigenvalue Problem
-            BuiltinTimer eigen_solve_time;
 
             // This implementation of the eigenvalue problem relies on the difference of the stiffness matrix 
             // between the current and previous step
@@ -661,9 +660,6 @@ public:
                 pScheme, pGetStiffnessMatrix(), pGetDx(), pGetRHS(), rModelPart);
 
             //End Method 2#########################################################################
-
-            KRATOS_INFO_IF("Eigenvalue Problem Solved Time: ", BaseType::GetEchoLevel() > 0)
-                << eigen_solve_time.ElapsedSeconds() << std::endl;
 
             // Convergence criteria for buckling analysis
             if( abs(lambda/lambdaPrev) < mConvergenceRatio )
