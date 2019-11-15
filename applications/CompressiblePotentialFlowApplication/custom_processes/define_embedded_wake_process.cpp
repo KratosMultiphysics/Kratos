@@ -125,7 +125,7 @@ void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
 
 void DefineEmbeddedWakeProcess::MarkKuttaWakeElements(){
 
-    // Find elements that touch the furthes deactivated element and that are part of the wake.
+    // Find elements that touch the furthest deactivated element and that are part of the wake.
     for (std::size_t i = 0; i < mKuttaWakeElementCandidates.size(); i++)
     {
         auto& r_geometry = mKuttaWakeElementCandidates[i].GetGeometry();
