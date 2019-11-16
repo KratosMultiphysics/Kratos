@@ -587,6 +587,8 @@ public:
                     identity_matrix.push_back(i, i, 1.0);
                 }
 
+                KRATOS_ERROR_IF_NOT(identity_matrix.nnz() == number_of_slave_dofs) << "Inconsistent number of non-zero values in the identity matrix: " << number_of_slave_dofs << " vs " << identity_matrix.nnz() << std::endl;
+
                 // Fill blocks
                 matrices_p_blocks(0,2) = &transpose_of_T;
                 matrices_p_blocks(2,0) = &copy_of_T;
