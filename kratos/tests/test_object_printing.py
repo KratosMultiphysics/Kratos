@@ -15,6 +15,7 @@ prop_str = '''Properties
 This properties contains 0 tables'''
 
 model_part_str = '''-Main- model part
+    AMBIENT_TEMPERATURE : 250
     Buffer Size : 1
     Number of tables : 1
     Number of sub model parts : 2
@@ -85,7 +86,7 @@ class TestObjectPrinting(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_read"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         self.assertMultiLineEqual(str(model_part), model_part_str)
