@@ -104,14 +104,14 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
 
     def _basic_check_results(self):
         reactionx1 = self.mp.Nodes[1].GetSolutionStepValue(KM.REACTION_X, 0)
-        self.assertAlmostEqual(reactionx1, -1413464323.8223937, 4)
+        self.assertLessEqual(abs((reactionx1 - -1413464323.8223937)/(-1413464323.8223937)), 1.0e-2)
         reactiony1 = self.mp.Nodes[1].GetSolutionStepValue(KM.REACTION_Y, 0)
-        self.assertAlmostEqual(reactiony1, -605769230.7692306, 4)
+        self.assertLessEqual(abs((reactiony1 - -605769230.7692306)/(-605769230.7692306)), 1.0e-2)
 
         reactionx4 = self.mp.Nodes[4].GetSolutionStepValue(KM.REACTION_X, 0)
-        self.assertAlmostEqual(reactionx4, -1413467109.1832492, 4)
+        self.assertLessEqual(abs((reactionx4 - -1413467109.1832492)/(-1413467109.1832492)), 1.0e-2)
         reactiony4 = self.mp.Nodes[4].GetSolutionStepValue(KM.REACTION_Y, 0)
-        self.assertAlmostEqual(reactiony4, 605769230.7692306, 4)
+        self.assertLessEqual(abs((reactiony4 - 605769230.7692306)/(605769230.7692306)), 1.0e-2)
 
         dispx3 = self.mp.Nodes[3].GetSolutionStepValue(KM.DISPLACEMENT_X, 0)
         self.assertAlmostEqual(dispx3, 0.01, 4)
