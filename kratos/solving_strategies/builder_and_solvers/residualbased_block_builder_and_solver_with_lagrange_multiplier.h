@@ -474,7 +474,7 @@ public:
 
             // Definition of the total size of the system
             const SizeType total_size_of_system = BaseType::mEquationSystemSize + (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER) ? 2 * number_of_slave_dofs : number_of_slave_dofs);
-            Vector b_modified(total_size_of_system);
+            TSystemVectorType b_modified(total_size_of_system);
 
             // Copy the RHS
             #pragma omp parallel for
@@ -529,7 +529,7 @@ public:
 
             // Definition of the total size of the system
             const SizeType total_size_of_system = BaseType::mEquationSystemSize + (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER) ? 2 * number_of_slave_dofs : number_of_slave_dofs);
-            Vector b_modified(total_size_of_system);
+            TSystemVectorType b_modified(total_size_of_system);
 
             // Copy the RHS
             #pragma omp parallel for
