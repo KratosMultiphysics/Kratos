@@ -784,7 +784,9 @@ public:
                             }
                         }
                     }
-                    matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k + 1] += matrix_cols_aux;
+                    IndexType& r_matrix_ptr_value = matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k + 1];
+                    #pragma omp atomic
+                    r_matrix_ptr_value += matrix_cols_aux;
                 }
             }
         }
