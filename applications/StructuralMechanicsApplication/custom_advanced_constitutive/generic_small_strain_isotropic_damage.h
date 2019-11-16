@@ -233,6 +233,18 @@ public:
         ) override;
 
     /**
+     * @brief Sets the value of a specified variable (Vector)
+     * @param rVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    void SetValue(
+        const Variable<Vector> &rThisVariable,
+        const Vector& rValue,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
      * @brief Returns the value of a specified variable (double)
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
