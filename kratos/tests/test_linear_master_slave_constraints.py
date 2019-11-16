@@ -82,7 +82,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         self.convergence_criterion = KM.ResidualCriteria(1e-10, 1e-12)
         self.convergence_criterion.SetEchoLevel(0)
 
-        max_iters = 100
+        max_iters = 10
         compute_reactions = True
         reform_step_dofs = True
         move_mesh_flag = False
