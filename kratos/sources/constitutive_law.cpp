@@ -626,6 +626,16 @@ void ConstitutiveLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     KRATOS_ERROR <<  "Calling virtual function for CalculateMaterialResponseCauchy"<< std::endl;;
 }
 
+/**
+ * Computes the material response in terms of Cauchy stresses and constitutive tensor
+ * @see Parameters
+ */
+
+void ConstitutiveLaw::CalculateStressResponse (Parameters& rValues, Vector& rInternalVariables)
+{
+    KRATOS_ERROR <<  "Calling virtual function for CalculateStressResponse"<< std::endl;;
+}
+
 
 /**
  * @brief Initialize the material response,  called by the element in InitializeSolutionStep.
