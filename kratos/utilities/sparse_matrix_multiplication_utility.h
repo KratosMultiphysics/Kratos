@@ -879,6 +879,9 @@ public:
 
         // Close the matrix
         rMatrix.set_filled(nrows+1, nonzero_values);
+
+        // Release memory
+        delete[] matrix_ptr;
     }
 
     /**
