@@ -604,6 +604,9 @@ public:
                 contribution_coefficients(1, 2) = build_scale_factor;
                 contribution_coefficients(2, 1) = build_scale_factor;
                 contribution_coefficients(2, 2) = -build_scale_factor;
+
+                // Assemble the matrix (NOTE: Like the identity matrix is created inside the condition must be used meanwhile is alive, so inside the condition)
+                SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
             } else {
                 // Create auxiliar zero matrix
                 TSystemMatrixType zero_matrix(number_of_slave_dofs, number_of_slave_dofs);
@@ -613,9 +616,10 @@ public:
 
                 // Fill coefficients
                 contribution_coefficients(1, 1) = 0.0;
-            }
 
-            SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
+                // Assemble the matrix (NOTE: Like the zero matrix is created inside the condition must be used meanwhile is alive, so inside the condition)
+                SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
+            }
 
             // Compute LM contributions
             TSystemVectorType b_lm(total_size_of_system);
