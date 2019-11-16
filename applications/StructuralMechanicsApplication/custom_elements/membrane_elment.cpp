@@ -145,7 +145,7 @@ void MembraneElement::CalculateLeftHandSide(
     ProcessInfo& rCurrentProcessInfo)
 
 {
-    const IntegrationMethod integration_method = GeometryData::GI_GAUSS_4;
+    const IntegrationMethod integration_method = GeometryData::GI_GAUSS_2;
     TotalStiffnessMatrix(rLeftHandSideMatrix,integration_method);
 }
 
@@ -162,8 +162,9 @@ void MembraneElement::CalculateRightHandSide(
     const unsigned int system_size = number_of_nodes * dimension;
 
     Vector internal_forces = ZeroVector(system_size);
-    const IntegrationMethod integration_method = GeometryData::GI_GAUSS_4;
+    const IntegrationMethod integration_method = GeometryData::GI_GAUSS_2;
     InternalForces(internal_forces,integration_method);
+    rRightHandSideVector = ZeroVector(system_size);
     rRightHandSideVector -= internal_forces;
 }
 
@@ -265,6 +266,13 @@ void MembraneElement::VoigtNotation(const Matrix& rMetric, Vector& rOutputVector
     if (StrainStressCheck=="strain") rOutputVector[2]*=2.0;
 }
 
+
+void MembraneElement::AddPreStressPk2(Vector& rStress){
+    //TODO
+    Vector pre_stress = ZeroVector(3);
+    rStress += pre_stress;
+}
+
 void MembraneElement::StressPk2(Vector& rStress,const Matrix& rShapeFunctionGradientValues)
 {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -275,6 +283,7 @@ void MembraneElement::StressPk2(Vector& rStress,const Matrix& rShapeFunctionGrad
     StrainGreenLagrange(strain_vector,rShapeFunctionGradientValues);
 
     rStress = prod(material_tangent_modulus,strain_vector);
+    AddPreStressPk2(rStress);
 }
 
 void MembraneElement::MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rShapeFunctionGradientValues)
@@ -325,6 +334,7 @@ void MembraneElement::Derivative2StrainGreenLagrange(Vector& rStrain,
 {
     Matrix current_covariant_metric_derivative = ZeroMatrix(2);
     Derivative2CurrentCovariantMetric(current_covariant_metric_derivative,rShapeFunctionGradientValues,DofR,DofS);
+
     Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
     VoigtNotation(strain_matrix_derivative,rStrain,"strain");
 }
@@ -347,6 +357,7 @@ void MembraneElement::DerivativeCurrentCovariantMetric(Matrix& rMetric,
     array_1d<Vector,2> derivative_covariant_base_vectors;
     DeriveCurrentCovariantBaseVectors(derivative_covariant_base_vectors,rShapeFunctionGradientValues,DofR);
 
+
     for (SizeType i=0;i<2;++i){
         for (SizeType j=0;j<2;++j){
             rMetric(i,j) = inner_prod(derivative_covariant_base_vectors[i],covariant_base_vectors[j]);
@@ -367,7 +378,7 @@ void MembraneElement::Derivative2CurrentCovariantMetric(Matrix& rMetric,
     for (SizeType i=0;i<2;++i){
         for (SizeType j=0;j<2;++j){
             rMetric(i,j) = inner_prod(derivative_covariant_base_vectors_dur[i],derivative_covariant_base_vectors_dus[j]);
-            rMetric(i,j) += inner_prod(derivative_covariant_base_vectors_dus[j],derivative_covariant_base_vectors_dur[i]);
+            rMetric(i,j) += inner_prod(derivative_covariant_base_vectors_dus[i],derivative_covariant_base_vectors_dur[j]);
         }
     }
 }
@@ -403,9 +414,10 @@ void MembraneElement::CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
     const unsigned int number_of_nodes = GetGeometry().size();
     Vector g1 = ZeroVector(dimension);
     Vector g2 = ZeroVector(dimension);
+
     Vector current_displacement = ZeroVector(dimension*number_of_nodes);
-    if (Configuration=="reference") GetValuesVector(current_displacement);
-    else if (Configuration=="current");
+    if (Configuration=="current") GetValuesVector(current_displacement);
+    else if (Configuration=="reference");
     else KRATOS_ERROR << "configuration " << Configuration << " not known" << std::endl;
 
     for (SizeType i=0;i<GetGeometry().PointsNumber();++i){
@@ -522,6 +534,9 @@ void MembraneElement::InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
     rEntryIJ += inner_prod(rStressVector,strain_derivative_2)*rDetJ*rWeight*thickness;
  }
 
+
+
+
 void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod ThisMethod)
 {
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -536,6 +551,7 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
         // getting information for integration
         const double integration_weight_i = r_integration_points[point_number].Weight();
         const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+
 
         Vector stress = ZeroVector(3);
         StressPk2(stress,shape_functions_gradients_i);

@@ -123,6 +123,8 @@ namespace Kratos
 
     void StressPk2(Vector& rStress,const Matrix& rShapeFunctionGradientValues);
 
+    void AddPreStressPk2(Vector& rStress);
+
     void VoigtNotation(const Matrix& rMetric, Vector& rOutputVector, const std::string StrainStressCheck);
 
     void DerivativeCurrentCovariantMetric(Matrix& rMetric,
