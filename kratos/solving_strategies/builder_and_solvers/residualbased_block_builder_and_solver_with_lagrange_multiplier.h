@@ -456,7 +456,7 @@ public:
             }
 
             // Check T has been computed
-            if (BaseType::mT.size1() != BaseType::mSlaveIds.size() || BaseType::mT.size2() != BaseType::mEquationSystemSize) {
+            if (TSparseSpace::Size1(BaseType::mT) != BaseType::mSlaveIds.size() || TSparseSpace::Size2(BaseType::mT) != BaseType::mEquationSystemSize) {
                 BaseType::mT.resize(BaseType::mSlaveIds.size(), BaseType::mEquationSystemSize, false);
                 ConstructMasterSlaveConstraintsStructure(rModelPart);
             }
@@ -467,50 +467,32 @@ public:
             }
 
             // Extend with the LM constribution
-            const SizeType number_of_slave_dofs = BaseType::mT.size1();
+            const SizeType number_of_slave_dofs = TSparseSpace::Size1(BaseType::mT);
 
             // Auxiliar values
             const double constraint_scale_factor = r_process_info[CONSTRAINT_SCALE_FACTOR];
 
-            if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
-                // Compute the RHS
-                Vector b_modified(BaseType::mEquationSystemSize + 2 * number_of_slave_dofs);
-                #pragma omp parallel for
-                for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                    b_modified[i] = rb[i];
-                }
+            // Definition of the total size of the system
+            const SizeType total_size_of_system = BaseType::mEquationSystemSize + (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER) ? 2 * number_of_slave_dofs : number_of_slave_dofs);
+            Vector b_modified(total_size_of_system);
 
-                // Compute LM contributions
-                TSystemVectorType b_lm(number_of_slave_dofs);
-                ComputeRHSLMContributions(b_lm, constraint_scale_factor);
-
-                // Fill auxiliar vector
-                TSparseSpace::UnaliasedAdd(b_modified, 1.0, b_lm);
-
-                // Finally reassign
-                rb.resize(b_modified.size(), false);
-                TSparseSpace::Copy(b_modified, rb);
-                b_modified.resize(0, false); // Free memory
-            } else {
-                // Compute the RHS
-                Vector b_modified(BaseType::mEquationSystemSize + number_of_slave_dofs);
-                #pragma omp parallel for
-                for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                    b_modified[i] = rb[i];
-                }
-
-                // Compute LM contributions
-                TSystemVectorType b_lm(number_of_slave_dofs);
-                ComputeRHSLMContributions(b_lm, constraint_scale_factor);
-
-                // Fill auxiliar vector
-                TSparseSpace::UnaliasedAdd(b_modified, 1.0, b_lm);
-
-                // Finally reassign
-                rb.resize(b_modified.size(), false);
-                TSparseSpace::Copy(b_modified, rb);
-                b_modified.resize(0, false); // Free memory
+            // Copy the RHS
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
+                b_modified[i] = rb[i];
             }
+            rb.resize(total_size_of_system, false);
+
+            // Compute LM contributions
+            TSystemVectorType b_lm(total_size_of_system);
+            ComputeRHSLMContributions(b_lm, constraint_scale_factor);
+
+            // Fill auxiliar vector
+            TSparseSpace::UnaliasedAdd(b_modified, 1.0, b_lm);
+
+            // Finally reassign
+            TSparseSpace::Copy(b_modified, rb);
+            b_modified.resize(0, false); // Free memory
         }
 
         KRATOS_CATCH("")
