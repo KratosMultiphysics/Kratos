@@ -77,6 +77,8 @@
 #include "custom_constitutive/custom_hardening_laws/modified_exponential_damage_hardening_law.hpp"
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 
 namespace Kratos
 {
@@ -215,6 +217,8 @@ const HistoryLinearElasticPlaneStress2DLaw mHistoryLinearElasticPlaneStress2DLaw
 
 const HyperElastic3DLaw                       mHyperElastic3DLaw;
 const LinearElastic3DLaw                      mLinearElastic3DLaw;
+const LinearElasticPlaneStrain2DLaw           mLinearElasticPlaneStrain2DLaw;
+const LinearElasticPlaneStress2DLaw           mLinearElasticPlaneStress2DLaw;
 const IsotropicDamageFlowRule                 mIsotropicDamageFlowRule;
 const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
 const ModifiedMisesYieldCriterion             mModifiedMisesYieldCriterion;

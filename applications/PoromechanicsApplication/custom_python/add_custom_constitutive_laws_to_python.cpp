@@ -36,6 +36,8 @@
 
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 
 namespace Kratos
 {
@@ -61,10 +63,16 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     .def( py::init<>() );
 
     py::class_< LinearElastic3DLaw, LinearElastic3DLaw::Pointer, ConstitutiveLaw >
-    (m, "LinearElastic3DLaw")
+    (m, "LinearElasticSolid3DLaw")
     .def( py::init<>() );
+    py::class_< LinearElasticPlaneStrain2DLaw, LinearElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+    (m, "LinearElasticPlaneStrainSolid2DLaw")
+    .def(py::init<>() );
+    py::class_< LinearElasticPlaneStress2DLaw, LinearElasticPlaneStress2DLaw::Pointer, ConstitutiveLaw >
+    (m, "LinearElasticPlaneStressSolid2DLaw")
+    .def(py::init<>() );
     py::class_< HyperElastic3DLaw, HyperElastic3DLaw::Pointer, ConstitutiveLaw >
-    (m, "HyperElastic3DLaw")
+    (m, "HyperElasticSolid3DLaw")
     .def( py::init<>() );
 
     py::class_< SimoJuLocalDamage3DLaw, SimoJuLocalDamage3DLaw::Pointer, ConstitutiveLaw >
