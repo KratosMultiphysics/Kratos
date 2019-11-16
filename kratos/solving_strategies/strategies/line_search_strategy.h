@@ -150,7 +150,11 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
         ) : BaseType(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
-    {}
+    {
+        Parameters default_settings = this->GetDefaultSettings();
+        OverrideDefaultSettingsWithParameters(default_settings, MaxIterations, ReformDofSetAtEachStep, CalculateReactions);
+        this->AssignSettings(default_settings);
+    }
     
     /**
      * @brief Constructor specifying the builder and solver
@@ -177,6 +181,7 @@ public:
         ) : BaseType(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
     {
         Parameters default_settings = this->GetDefaultSettings();
+        OverrideDefaultSettingsWithParameters(default_settings, MaxIterations, ReformDofSetAtEachStep, CalculateReactions);
         this->AssignSettings(default_settings);
     }
 
@@ -479,6 +484,25 @@ protected:
         mMinAlpha = Settings["min_alpha"].GetDouble();
         mMaxAlpha = Settings["max_alpha"].GetDouble();
         mLineSearchTolerance = Settings["line_search_tolerance"].GetDouble();
+    }
+
+    /**
+     * @brief This method overrides the default settings wiht user provided parameters
+     * @param DefaultSettings Parameters with default settings
+     * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
+     * @param CalculateReactions The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     */
+    void OverrideDefaultSettingsWithParameters(
+        Parameters DefaultSettings,
+        const double MaxIterations,
+        const bool ReformDofSetAtEachStep,
+        const bool CalculateReactions
+    )
+    {
+        DefaultSettings["max_iterations"].SetInt(MaxIterations);
+        DefaultSettings["reform_dofs_at_each_step"].SetBool(ReformDofSetAtEachStep);
+        DefaultSettings["calculate_reactions"].SetBool(CalculateReactions);
     }
 
 
