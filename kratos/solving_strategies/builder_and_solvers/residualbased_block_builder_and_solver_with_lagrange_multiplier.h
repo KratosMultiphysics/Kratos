@@ -533,6 +533,7 @@ public:
         KRATOS_TRY
 
         if (rModelPart.MasterSlaveConstraints().size() != 0) {
+            // First build the relation matrix
             BuildMasterSlaveConstraints(rModelPart);
 
             // Copy the LHS to avoid memory errors
@@ -542,12 +543,41 @@ public:
             // Some common values
             const SizeType number_of_lm = BaseType::mT.size1();
 
+            // Definition of the total size of the system
+            const SizeType total_size_of_system = BaseType::mEquationSystemSize + (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER) ? 2 * number_of_lm : number_of_lm);
+            Vector b_modified(total_size_of_system);
+
+            // Copy the RHS
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
+                b_modified[i] = rb[i];
+            }
+            rb.resize(total_size_of_system, false);
+
+            // Definition of the number of blocks
+            const SizeType number_of_blocks = BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER) ? 3 : 2;
+
+            // Create blocks
+            DenseMatrix<TSystemMatrixType*> matrices_p_blocks(number_of_blocks, number_of_blocks);
+            DenseMatrix<double> contribution_coefficients(number_of_blocks, number_of_blocks);
+            DenseMatrix<bool> transpose_blocks(number_of_blocks, number_of_blocks);
+
+            // Definition of the auxiliar values
+            auto& r_process_info = rModelPart.GetProcessInfo();
+            const bool has_constraint_scale_factor = r_process_info.Has(CONSTRAINT_SCALE_FACTOR);
+            const double constraint_scale_factor = has_constraint_scale_factor ? r_process_info[CONSTRAINT_SCALE_FACTOR] : TSparseSpace::TwoNorm(rA);
+            if (!has_constraint_scale_factor) {
+                r_process_info.SetValue(CONSTRAINT_SCALE_FACTOR, constraint_scale_factor);
+            }
+
             // Assemble the blocks
             if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
-                // Create LHS
-                DenseMatrix<TSystemMatrixType*> matrices_p_blocks(3,3);
-                DenseMatrix<double> contribution_coefficients(3,3);
-                DenseMatrix<bool> transpose_blocks(3,3);
+                // Definition of the build scale factor auxiliar value
+                const bool has_build_scale_factor = r_process_info.Has(BUILD_SCALE_FACTOR);
+                const double build_scale_factor = has_build_scale_factor ? r_process_info[BUILD_SCALE_FACTOR] : constraint_scale_factor;
+                if (!has_build_scale_factor) {
+                    r_process_info.SetValue(BUILD_SCALE_FACTOR, build_scale_factor);
+                }
 
                 // Create auxiliar identity matrix
                 TSystemMatrixType identity_matrix(number_of_lm, number_of_lm);
@@ -565,19 +595,6 @@ public:
                 matrices_p_blocks(1,2) = &identity_matrix;
                 matrices_p_blocks(2,1) = &identity_matrix;
                 matrices_p_blocks(2,2) = &identity_matrix;
-
-                // Auxiliar values
-                auto& r_process_info = rModelPart.GetProcessInfo();
-                const bool has_build_scale_factor = r_process_info.Has(BUILD_SCALE_FACTOR);
-                const double build_scale_factor = has_build_scale_factor ? r_process_info[BUILD_SCALE_FACTOR] : TSparseSpace::TwoNorm(rA);
-                if (!has_build_scale_factor) {
-                    r_process_info.SetValue(BUILD_SCALE_FACTOR, build_scale_factor);
-                }
-                const bool has_constraint_scale_factor = r_process_info.Has(CONSTRAINT_SCALE_FACTOR);
-                const double constraint_scale_factor = has_constraint_scale_factor ? r_process_info[CONSTRAINT_SCALE_FACTOR] : build_scale_factor;
-                if (!has_constraint_scale_factor) {
-                    r_process_info.SetValue(CONSTRAINT_SCALE_FACTOR, constraint_scale_factor);
-                }
 
                 // Fill coefficients
                 contribution_coefficients(0, 0) = 1.0;
@@ -600,33 +617,7 @@ public:
                 transpose_blocks(2, 1) = false;
                 transpose_blocks(2, 1) = false;
                 transpose_blocks(2, 2) = false;
-
-                SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
-
-                // Compute the RHS
-                Vector b_modified(BaseType::mEquationSystemSize + 2 * number_of_lm);
-                #pragma omp parallel for
-                for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                    b_modified[i] = rb[i];
-                }
-
-                // Compute LM contributions
-                TSystemVectorType b_lm(number_of_lm);
-                ComputeRHSLMContributions(b_lm, constraint_scale_factor);
-
-                // Fill auxiliar vector
-                TSparseSpace::UnaliasedAdd(b_modified, 1.0, b_lm);
-
-                // Finally reassign
-                rb.resize(b_modified.size(), false);
-                TSparseSpace::Copy(b_modified, rb);
-                b_modified.resize(0, false); // Free memory
             } else {
-                // Create LHS
-                DenseMatrix<TSystemMatrixType*> matrices_p_blocks(2,2);
-                DenseMatrix<double> contribution_coefficients(2,2);
-                DenseMatrix<bool> transpose_blocks(2,2);
-
                 // Create auxiliar zero matrix
                 TSystemMatrixType zero_matrix(number_of_lm, number_of_lm);
 
@@ -635,14 +626,6 @@ public:
                 matrices_p_blocks(0,1) = &copy_of_T;
                 matrices_p_blocks(1,0) = &copy_of_T;
                 matrices_p_blocks(1,1) = &zero_matrix;
-
-                // Auxiliar values
-                auto& r_process_info = rModelPart.GetProcessInfo();
-                const bool has_constraint_scale_factor = r_process_info.Has(CONSTRAINT_SCALE_FACTOR);
-                const double constraint_scale_factor = has_constraint_scale_factor ? r_process_info[CONSTRAINT_SCALE_FACTOR] : TSparseSpace::TwoNorm(rA);
-                if (!has_constraint_scale_factor) {
-                    r_process_info.SetValue(CONSTRAINT_SCALE_FACTOR, constraint_scale_factor);
-                }
 
                 // Fill coefficients
                 contribution_coefficients(0, 0) = 1.0;
@@ -655,28 +638,20 @@ public:
                 transpose_blocks(0, 1) = true;
                 transpose_blocks(1, 0) = false;
                 transpose_blocks(1, 1) = false;
-
-                SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
-
-                // Compute the RHS
-                Vector b_modified(BaseType::mEquationSystemSize + number_of_lm);
-                #pragma omp parallel for
-                for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                    b_modified[i] = rb[i];
-                }
-
-                // Compute LM contributions
-                TSystemVectorType b_lm(number_of_lm);
-                ComputeRHSLMContributions(b_lm, constraint_scale_factor);
-
-                // Fill auxiliar vector
-                TSparseSpace::UnaliasedAdd(b_modified, 1.0, b_lm);
-
-                // Finally reassign
-                rb.resize(b_modified.size(), false);
-                TSparseSpace::Copy(b_modified, rb);
-                b_modified.resize(0, false); // Free memory
             }
+
+            SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
+
+            // Compute LM contributions
+            TSystemVectorType b_lm(total_size_of_system);
+            ComputeRHSLMContributions(b_lm, constraint_scale_factor);
+
+            // Fill auxiliar vector
+            TSparseSpace::UnaliasedAdd(b_modified, 1.0, b_lm);
+
+            // Finally reassign
+            TSparseSpace::Copy(b_modified, rb);
+            b_modified.resize(0, false); // Free memory
         }
 
         KRATOS_CATCH("")
