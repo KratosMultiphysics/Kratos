@@ -291,14 +291,17 @@ public:
         )
     {
         const SizeType size = TSparseSpaceType::Size1(rA);
+        const SizeType size_a = TSparseSpaceType::Size2(rA);
+        const SizeType size_x = TSparseSpaceType::Size(rX);
+        const SizeType size_b = TSparseSpaceType::Size(rB);
 
-        KRATOS_WARNING_IF("LinearSolver", size !=  TSparseSpaceType::Size2(rA)) << "WARNING: Your LHS matrix is not square. Sizes: " << size << " vs " << TSparseSpaceType::Size2(rA) << std::endl ;
-        KRATOS_WARNING_IF("LinearSolver", size !=  TSparseSpaceType::Size(rX)) << "WARNING: Your unkowns vector is not properly sized. Sizes: " << size << " vs " << TSparseSpaceType::Size(rX) << std::endl ;
-        KRATOS_WARNING_IF("LinearSolver", size !=  TSparseSpaceType::Size(rB)) << "WARNING: Your RHS vector is not properly sized. Sizes: " << size << " vs " << TSparseSpaceType::Size(rB) << std::endl ;
+        KRATOS_WARNING_IF("LinearSolver", size !=  size_a) << "WARNING: Your LHS matrix is not square. Sizes: " << size << " vs " << size_a << std::endl ;
+        KRATOS_WARNING_IF("LinearSolver", size !=  size_x) << "WARNING: Your unkowns vector is not properly sized. Sizes: " << size << " vs " << size_x << std::endl ;
+        KRATOS_WARNING_IF("LinearSolver", size !=  size_b) << "WARNING: Your RHS vector is not properly sized. Sizes: " << size << " vs " << size_b << std::endl ;
         
-        return ((size ==  TSparseSpaceType::Size2(rA)) &&
-                (size ==  TSparseSpaceType::Size(rX)) &&
-                (size ==  TSparseSpaceType::Size(rB)));
+        return ((size ==  size_a) &&
+                (size ==  size_x) &&
+                (size ==  size_b));
     }
 
     /**
@@ -310,21 +313,26 @@ public:
      */
     virtual bool IsConsistent(
         SparseMatrixType& rA, 
-        DenseMatrixType& rX, 
+        DenseMatrixType& rX,
         DenseMatrixType& rB
         ) 
     {
         const SizeType size = TSparseSpaceType::Size1(rA);
+        const SizeType size_a = TSparseSpaceType::Size2(rA);
+        const SizeType size_1_x = TDenseSpaceType::Size1(rX);
+        const SizeType size_1_b = TDenseSpaceType::Size1(rB);
+        const SizeType size_2_x = TDenseSpaceType::Size2(rX);
+        const SizeType size_2_b = TDenseSpaceType::Size2(rB);
 
-        KRATOS_WARNING_IF("LinearSolver", size !=  TSparseSpaceType::Size2(rA)) << "WARNING: Your LHS matrix is not square. Sizes: " << size << " vs " << TSparseSpaceType::Size2(rA) << std::endl ;
-        KRATOS_WARNING_IF("LinearSolver", size !=  TSparseSpaceType::Size1(rX)) << "WARNING: Your unkowns matrix is not properly sized. Sizes: " << size << " vs " << TSparseSpaceType::Size1(rX) << std::endl ;
-        KRATOS_WARNING_IF("LinearSolver", size !=  TSparseSpaceType::Size1(rB)) << "WARNING: Your RHS matrix is not properly sized. Sizes: " << size << " vs " << TSparseSpaceType::Size1(rB) << std::endl ;
-        KRATOS_WARNING_IF("LinearSolver", (TDenseSpaceType::Size2(rX) != TDenseSpaceType::Size2(rB))) << "WARNING: Your RHS matrix and unkowns matrix are not consistently sized. The number of systems to solve is not consistent. Sizes: " << TDenseSpaceType::Size2(rX) << " vs " << TSparseSpaceType::Size2(rB) << std::endl ;
+        KRATOS_WARNING_IF("LinearSolver", size !=  size_a) << "WARNING: Your LHS matrix is not square. Sizes: " << size << " vs " << size_a << std::endl ;
+        KRATOS_WARNING_IF("LinearSolver", size !=  size_1_x) << "WARNING: Your unkowns matrix is not properly sized. Sizes: " << size << " vs " << size_1_x << std::endl ;
+        KRATOS_WARNING_IF("LinearSolver", size !=  size_1_b) << "WARNING: Your RHS matrix is not properly sized. Sizes: " << size << " vs " << size_1_b << std::endl ;
+        KRATOS_WARNING_IF("LinearSolver", (size_2_x != size_2_b)) << "WARNING: Your RHS matrix and unkowns matrix are not consistently sized. The number of systems to solve is not consistent. Sizes: " << size_2_x << " vs " << size_2_b << std::endl ;
         
-        return ((size ==  TSparseSpaceType::Size2(rA)) &&
-                (size ==  TDenseSpaceType::Size1(rX)) &&
-                (size ==  TDenseSpaceType::Size1(rB)) &&
-                (TDenseSpaceType::Size2(rX) == TDenseSpaceType::Size2(rB)));
+        return ((size ==  size_a) &&
+                (size ==  size_1_x) &&
+                (size ==  size_1_b) &&
+                (size_2_x == size_2_b));
     }
 
     /**
