@@ -1,7 +1,10 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
+import KratosMultiphysics as KM
+from KratosMultiphysics import kratos_utilities
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.CoSimulationApplication.solver_wrappers.sdof.sdof_solver import SDoFSolver
+from KratosMultiphysics.CoSimulationApplication.solver_wrappers.sdof.sdof_solver_wrapper import Create as CreateSDofSolverWrapper
 
 import os
 import numpy as np
@@ -22,7 +25,7 @@ class TestSdofSolver(KratosUnittest.TestCase):
                 },
         "output_parameters":{
             "write_output_file": True,
-            "file_name" : "./result.dat"
+            "file_name" : "result.dat"
             }
         }
         #result.dat
@@ -30,7 +33,7 @@ class TestSdofSolver(KratosUnittest.TestCase):
         self.time = 0.0
 
     def tearDown(self):
-        os.remove("result.dat")
+        kratos_utilities.DeleteFileIfExisting("result.dat")
 
     def __CompareResults(self, reference, result):
         ref = np.loadtxt(reference, skiprows=1)
@@ -139,11 +142,33 @@ class TestSdofSolver(KratosUnittest.TestCase):
         self.__ExecuteTest(settings, "ref_sdof_root_point_displacement_impulse.dat")
 
     def test_self_weight_calculation(self):
-
         system = SDoFSolver(self.system_settings)
         system.Initialize()
         self_weight = system.GetSolutionStepValue("VOLUME_ACCELERATION")
         self.assertAlmostEqual(98.10000000000001, self_weight)
+
+    def test_wrapper_variables_check(self):
+        # resusing the sdof fsi parameters
+        wrapper_settings = KM.Parameters("""{
+            "type" : "solver_wrappers.sdof.sdof_solver_wrapper",
+            "solver_wrapper_settings" : {
+                "input_file"  : "fsi_sdof/ProjectParametersSdof"
+            },
+            "data" : {
+                "disp" : {
+                    "model_part_name" : "Sdof",
+                    "variable_name" : "DISPLACEMENT",
+                    "location"      : "model_part",
+                    "dimension"     : 1
+                }
+            }
+        }""")
+        sdof_solver_wrapper = CreateSDofSolverWrapper(wrapper_settings, "custom_sdof_solver_wrapper")
+
+        sdof_solver_wrapper.Initialize()
+        sdof_solver_wrapper.InitializeCouplingInterfaceData()
+        with self.assertRaisesRegex(Exception, 'Variable "DISPLACEMENT" of interface data "disp" of solver "custom_sdof_solver_wrapper" cannot be used for the SDof Solver!'):
+            sdof_solver_wrapper.Check()
 
 if __name__ == '__main__':
     KratosUnittest.main()
