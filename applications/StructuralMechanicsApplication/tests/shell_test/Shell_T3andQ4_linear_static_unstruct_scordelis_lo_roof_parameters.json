@@ -40,7 +40,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Dirichlet",
-            "variable_name"   : "Structure.DISPLACEMENT",
+            "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,false,true],
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
@@ -53,7 +53,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_XZ_sym",
-            "variable_name"   : "Structure.DISPLACEMENT",
+            "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,true,false],
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]

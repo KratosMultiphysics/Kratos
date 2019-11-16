@@ -416,7 +416,7 @@ public:
       array_1d<double, 3> &PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
       /* if((i)->IsNot(ISOLATED) || (i)->Is(SOLID)){ */
-      if ((i)->IsNot(ISOLATED) && (i)->IsNot(RIGID))
+      if ((i)->IsNot(ISOLATED) && ((i)->IsNot(RIGID) || (i)->Is(SOLID)))
       {
         UpdateAccelerations(CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity, BDFcoeffs);
       }
@@ -484,7 +484,7 @@ public:
       array_1d<double, 3> &PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
       /* if((i)->IsNot(ISOLATED) || (i)->Is(SOLID)){ */
-      if ((i)->IsNot(ISOLATED) && (i)->IsNot(RIGID))
+      if ((i)->IsNot(ISOLATED) && ((i)->IsNot(RIGID) || (i)->Is(SOLID)))
       {
         UpdateAccelerations(CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity, BDFcoeffs);
       }

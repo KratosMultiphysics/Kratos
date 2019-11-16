@@ -51,35 +51,60 @@ SmallStrainIsotropicDamage3D::~SmallStrainIsotropicDamage3D()
 //************************************************************************************
 //************************************************************************************
 
-bool SmallStrainIsotropicDamage3D::Has(const Variable<bool>& rThisVariable)
-{
-    if(rThisVariable == INELASTIC_FLAG){
-        return true;
-    }
-    return false;
-}
-
-//************************************************************************************
-//************************************************************************************
-
 bool SmallStrainIsotropicDamage3D::Has(const Variable<double>& rThisVariable)
 {
+    if(rThisVariable == STRAIN_ENERGY){
+        // explicitly returning "false", so we know we must call CalculateValue(...)
+        return false;
+    }
+    if(rThisVariable == DAMAGE_VARIABLE){
+        // explicitly returning "false", so we know we must call CalculateValue(...)
+        return false;
+    }
+
     return false;
 }
 
 //************************************************************************************
 //************************************************************************************
 
-bool& SmallStrainIsotropicDamage3D::GetValue(
-    const Variable<bool>& rThisVariable,
-    bool& rValue
+bool SmallStrainIsotropicDamage3D::Has(const Variable<Vector>& rThisVariable)
+{
+    if(rThisVariable == INTERNAL_VARIABLES){
+        return true;
+    }
+
+    return false;
+}
+
+//************************************************************************************
+//************************************************************************************
+
+Vector& SmallStrainIsotropicDamage3D::GetValue(
+    const Variable<Vector>& rThisVariable,
+    Vector& rValue
     )
 {
-    if(rThisVariable == INELASTIC_FLAG){
-        rValue = mInelasticFlag;
+    if(rThisVariable == INTERNAL_VARIABLES){
+        rValue.resize(1);
+        rValue[0] = mStrainVariable;
     }
 
     return rValue;
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void SmallStrainIsotropicDamage3D::SetValue(
+    const Variable<Vector>& rThisVariable,
+    const Vector& rValue,
+    const ProcessInfo& rProcessInfo
+    )
+{
+    if(rThisVariable == INTERNAL_VARIABLES){
+        mStrainVariable = rValue[0];
+    }
 }
 
 //************************************************************************************
@@ -108,9 +133,9 @@ void SmallStrainIsotropicDamage3D::InitializeMaterialResponseCauchy(Constitutive
 
 void SmallStrainIsotropicDamage3D::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
-    double strain_variable;
-    this->CalculateStressResponse(rValues, strain_variable);
-    mStrainVariable = strain_variable;
+    Vector internal_variables(1);
+    this->CalculateStressResponse(rValues, internal_variables);
+    mStrainVariable = internal_variables[0];
 }
 
 //************************************************************************************
@@ -118,8 +143,8 @@ void SmallStrainIsotropicDamage3D::FinalizeMaterialResponseCauchy(Parameters& rV
 
 void SmallStrainIsotropicDamage3D::CalculateMaterialResponsePK2(Parameters& rValues)
 {
-    double strain_variable;
-    this->CalculateStressResponse(rValues, strain_variable);
+    Vector internal_variables(1);
+    this->CalculateStressResponse(rValues, internal_variables);
 }
 
 //************************************************************************************
@@ -127,8 +152,9 @@ void SmallStrainIsotropicDamage3D::CalculateMaterialResponsePK2(Parameters& rVal
 
 void SmallStrainIsotropicDamage3D::CalculateStressResponse(
         Parameters &rValues,
-        double &rStrainVariable)
+        Vector& rInternalVariables)
 {
+    double strain_variable = mStrainVariable;
     const Properties& rMaterialProperties = rValues.GetMaterialProperties();
     Flags & r_constitutive_law_options = rValues.GetOptions();
     Vector& r_strain_vector = rValues.GetStrainVector();
@@ -160,29 +186,28 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
         if (strain_norm <= mStrainVariable)
         {
             // ELASTIC
-            mInelasticFlag = false;
-            rStrainVariable = mStrainVariable;
-            const double stress_variable = EvaluateHardeningLaw(rStrainVariable, rMaterialProperties);
-            const double damage_variable = 1. - stress_variable / rStrainVariable;
+            strain_variable = mStrainVariable;
+            const double stress_variable = EvaluateHardeningLaw(strain_variable, rMaterialProperties);
+            const double damage_variable = 1. - stress_variable / strain_variable;
             r_constitutive_matrix *= (1 - damage_variable);
             r_stress_vector *= (1 - damage_variable);
         }
         else
         {
             // INELASTIC
-            mInelasticFlag = true;
-            rStrainVariable = strain_norm;
-            const double stress_variable = EvaluateHardeningLaw(rStrainVariable, rMaterialProperties);
-            const double damage_variable = 1. - stress_variable / rStrainVariable;
-            const double hardening_modulus = EvaluateHardeningModulus(rStrainVariable, rMaterialProperties);
-            const double damage_rate = (stress_variable - hardening_modulus * rStrainVariable)
-                                       / (rStrainVariable * rStrainVariable * rStrainVariable);
+            strain_variable = strain_norm;
+            const double stress_variable = EvaluateHardeningLaw(strain_variable, rMaterialProperties);
+            const double damage_variable = 1. - stress_variable / strain_variable;
+            const double hardening_modulus = EvaluateHardeningModulus(strain_variable, rMaterialProperties);
+            const double damage_rate = (stress_variable - hardening_modulus * strain_variable)
+                                       / (strain_variable * strain_variable * strain_variable);
             r_constitutive_matrix *= (1. - damage_variable);
             r_constitutive_matrix -= damage_rate * outer_prod(r_stress_vector, r_stress_vector_pos);
             // Computing: real stress = (1-d) * effective stress
             r_stress_vector *= (1. - damage_variable);
         }
     }
+    rInternalVariables[0] = strain_variable;
 }
 
 //************************************************************************************
@@ -325,7 +350,6 @@ int SmallStrainIsotropicDamage3D::Check(
 void SmallStrainIsotropicDamage3D::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    rSerializer.save("mInelasticFlag", mInelasticFlag);
     rSerializer.save("mStrainVariable", mStrainVariable);
 }
 
@@ -335,7 +359,6 @@ void SmallStrainIsotropicDamage3D::save(Serializer& rSerializer) const
 void SmallStrainIsotropicDamage3D::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    rSerializer.load("mInelasticFlag", mInelasticFlag);
     rSerializer.save("mStrainVariable", mStrainVariable);
 }
 
