@@ -376,7 +376,31 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
                                         self.origin_data_scalar.GetModelPart().Nodes,
                                         KMC.SCALAR_FORCE, KM.PRESSURE, 0.0)
 
+    def test_sum_dist_to_single_check_var(self):
+        data_transfer_op_settings = KM.Parameters("""{
+            "type" : "sum_distributed_to_single"
+        }""")
 
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        transfer_options = KM.Parameters(""" [] """)
+
+        with self.assertRaisesRegex(Exception, 'Variable of interface data "default" of solver "default_solver" has to be a scalar!'):
+            data_transfer_op.TransferData(self.destination_matching_data_vector,
+                                        self.destination_data_single_node,
+                                        transfer_options)
+
+    def test_copy_single_to_dist_check_var(self):
+        data_transfer_op_settings = KM.Parameters("""{
+            "type" : "copy_single_to_distributed"
+        }""")
+
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        transfer_options = KM.Parameters(""" [] """)
+
+        with self.assertRaisesRegex(Exception, 'Variable of interface data "default" of solver "default_solver" has to be a scalar!'):
+            data_transfer_op.TransferData(self.destination_data_single_node,
+                                        self.destination_matching_data_vector,
+                                        transfer_options)
 
     def __TestTransferMatching(self, data_transfer_op):
         transfer_options_empty = KM.Parameters(""" [] """)

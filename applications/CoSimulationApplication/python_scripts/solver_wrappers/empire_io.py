@@ -33,6 +33,13 @@ class EmpireIO(CoSimulationIO):
     def Finalize(self):
         kratos_utilities.DeleteDirectoryIfExisting(communication_folder)
 
+    def __del__(self):
+        # make sure no communication files are left even if simulation is terminated prematurely
+        if os.path.isdir(communication_folder):
+            kratos_utilities.DeleteDirectoryIfExisting(communication_folder)
+            if self.echo_level > 0:
+                cs_tools.cs_print_info(self._ClassName(), "Deleting Communication folder in destructor")
+
     def ImportCouplingInterface(self, interface_config):
         model_part_name = interface_config["model_part_name"]
         comm_name = interface_config["comm_name"]
