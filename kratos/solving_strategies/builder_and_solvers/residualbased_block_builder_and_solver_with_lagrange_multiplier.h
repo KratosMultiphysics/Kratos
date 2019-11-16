@@ -958,8 +958,8 @@ private:
         const SizeType total_size_of_system = BaseType::mEquationSystemSize + (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER) ? 2 * number_of_slave_dofs : number_of_slave_dofs);
         if (TSparseSpace::Size(rbLM) != total_size_of_system)
             rbLM.resize(total_size_of_system, false);
-        Vector aux_lm_rhs_contribution(number_of_slave_dofs);
-        Vector aux_whole_dof_vector(ndofs);
+        TSystemVectorType aux_lm_rhs_contribution(number_of_slave_dofs);
+        TSystemVectorType aux_whole_dof_vector(ndofs);
 
         // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
         #pragma omp parallel for
