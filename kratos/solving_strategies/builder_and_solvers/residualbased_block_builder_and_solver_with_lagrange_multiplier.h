@@ -1047,10 +1047,7 @@ private:
         TSparseSpace::Mult(T_transpose_matrix, mLagrangeMultiplierVector, aux_whole_dof_vector);
         #pragma omp parallel for
         for (int i = 0; i < ndofs; ++i) {
-            auto it_dof = it_dof_begin + i;
-            if (it_dof->IsFree()) {
-                rbLM[i] = aux_whole_dof_vector[i];
-            }
+            rbLM[i] = aux_whole_dof_vector[i];
         }
         aux_whole_dof_vector.resize(0, false); // Free memory
 
