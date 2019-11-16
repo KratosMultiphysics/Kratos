@@ -23,7 +23,7 @@ the code where the CoSimIO is included
     #include <stdexcept>
     struct err { // helper struct to mimic behavior of KRATOS_ERROR
     err() {std::cout << "Error: ";}
-    ~err() { throw std::exception(); }
+    ~err() noexcept(false) { throw std::exception(); } // destructors are noexcept by default
     };
     #define KRATOS_CO_SIM_ERROR (err(), std::cout)
 #endif
