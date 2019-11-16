@@ -570,6 +570,23 @@ public:
                 r_process_info.SetValue(CONSTRAINT_SCALE_FACTOR, constraint_scale_factor);
             }
 
+            /* Fill common blocks */
+            // Fill blocks
+            matrices_p_blocks(0,0) = &copy_of_A;
+            matrices_p_blocks(0,1) = &copy_of_T;
+            matrices_p_blocks(1,0) = &copy_of_T;
+
+            // Fill coefficients
+            contribution_coefficients(0, 0) = 1.0;
+            contribution_coefficients(0, 1) = constraint_scale_factor;
+            contribution_coefficients(1, 0) = constraint_scale_factor;
+
+            // Fill transpose positions
+            transpose_blocks(0, 0) = false;
+            transpose_blocks(0, 1) = true;
+            transpose_blocks(1, 0) = false;
+            transpose_blocks(1, 1) = false;
+
             // Assemble the blocks
             if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
                 // Definition of the build scale factor auxiliar value
@@ -586,10 +603,7 @@ public:
                 }
 
                 // Fill blocks
-                matrices_p_blocks(0,0) = &copy_of_A;
-                matrices_p_blocks(0,1) = &copy_of_T;
                 matrices_p_blocks(0,2) = &copy_of_T;
-                matrices_p_blocks(1,0) = &copy_of_T;
                 matrices_p_blocks(2,0) = &copy_of_T;
                 matrices_p_blocks(1,1) = &identity_matrix;
                 matrices_p_blocks(1,2) = &identity_matrix;
@@ -597,24 +611,17 @@ public:
                 matrices_p_blocks(2,2) = &identity_matrix;
 
                 // Fill coefficients
-                contribution_coefficients(0, 0) = 1.0;
-                contribution_coefficients(0, 1) = constraint_scale_factor;
-                contribution_coefficients(1, 0) = constraint_scale_factor;
                 contribution_coefficients(0, 2) = constraint_scale_factor;
                 contribution_coefficients(2, 0) = constraint_scale_factor;
                 contribution_coefficients(1, 1) = -build_scale_factor;
-                contribution_coefficients(2, 1) = build_scale_factor;
+                contribution_coefficients(1, 2) = build_scale_factor;
                 contribution_coefficients(2, 1) = build_scale_factor;
                 contribution_coefficients(2, 2) = -build_scale_factor;
 
                 // Fill transpose positions
-                transpose_blocks(0, 0) = false;
-                transpose_blocks(0, 1) = true;
-                transpose_blocks(1, 0) = false;
                 transpose_blocks(0, 2) = true;
                 transpose_blocks(2, 0) = false;
-                transpose_blocks(1, 1) = false;
-                transpose_blocks(2, 1) = false;
+                transpose_blocks(1, 2) = false;
                 transpose_blocks(2, 1) = false;
                 transpose_blocks(2, 2) = false;
             } else {
@@ -622,22 +629,10 @@ public:
                 TSystemMatrixType zero_matrix(number_of_lm, number_of_lm);
 
                 // Fill blocks
-                matrices_p_blocks(0,0) = &copy_of_A;
-                matrices_p_blocks(0,1) = &copy_of_T;
-                matrices_p_blocks(1,0) = &copy_of_T;
                 matrices_p_blocks(1,1) = &zero_matrix;
 
                 // Fill coefficients
-                contribution_coefficients(0, 0) = 1.0;
-                contribution_coefficients(0, 1) = constraint_scale_factor;
-                contribution_coefficients(1, 0) = constraint_scale_factor;
                 contribution_coefficients(1, 1) = 0.0;
-
-                // Fill transpose positions
-                transpose_blocks(0, 0) = false;
-                transpose_blocks(0, 1) = true;
-                transpose_blocks(1, 0) = false;
-                transpose_blocks(1, 1) = false;
             }
 
             SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
