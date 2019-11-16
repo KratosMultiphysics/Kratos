@@ -23,7 +23,7 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
 
         this_file_dir = os.path.dirname(os.path.realpath(__file__))
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(this_file_dir)))
-        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "auxiliar_files_for_python_unnitest", "sparse_matrix_files", "A.mm")
+        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "auxiliar_files_for_python_unittest", "sparse_matrix_files", "A.mm")
 
         file_read = KratosMultiphysics.ReadMatrixMarketMatrix(matrix_file_path, a) # symmetric test matrix
         self.assertTrue(file_read, msg="The MatrixFile could not be read")
@@ -49,6 +49,12 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
 
     def test_eigen_sparse_lu(self):
         self._execute_eigen_direct_solver_test('SparseLUSolver', 'sparse_lu')
+
+    def test_eigen_sparse_cg(self):
+        self._execute_eigen_direct_solver_test('SparseCGSolver', 'sparse_cg')
+
+    def test_eigen_sparse_qr(self):
+        self._execute_eigen_direct_solver_test('SparseQRSolver', 'sparse_qr')
 
     def test_eigen_pardiso_lu(self):
         self._execute_eigen_direct_solver_test('PardisoLUSolver', 'pardiso_lu')

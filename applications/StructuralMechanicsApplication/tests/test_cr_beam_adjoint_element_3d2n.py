@@ -142,13 +142,6 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         l = math.sqrt(dx*dx + dy*dy + dz*dz)
         return l
 
-    def _assert_matrix_almost_equal(self, matrix1, matrix2, prec=4):
-        self.assertEqual(matrix1.Size1(), matrix2.Size1())
-        self.assertEqual(matrix1.Size2(), matrix2.Size2())
-        for i in range(matrix1.Size1()):
-            for j in range(matrix1.Size2()):
-                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec)
-
     def test_CalculateSensitivityMatrix_Shape(self):
         # unperturbed residual
         LHSUnperturbed = KratosMultiphysics.Matrix(12,12)
@@ -183,7 +176,7 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         PseudoLoadMatrix = KratosMultiphysics.Matrix(6,12)
         self.model_part.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = h
         self.adjoint_beam_element.CalculateSensitivityMatrix(KratosMultiphysics.SHAPE_SENSITIVITY,PseudoLoadMatrix,self.model_part.ProcessInfo)
-        self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
+        self.assertMatrixAlmostEqual(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
 
     def test_CalculateSensitivityMatrix_Property(self):
         # unperturbed residual
@@ -217,7 +210,7 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         PseudoLoadMatrix = KratosMultiphysics.Matrix(1,12)
         self.model_part.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = h
         self.adjoint_beam_element.CalculateSensitivityMatrix(StructuralMechanicsApplication.I22, PseudoLoadMatrix, self.model_part.ProcessInfo)
-        self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
+        self.assertMatrixAlmostEqual(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
 
 if __name__ == '__main__':
     KratosUnittest.main()
