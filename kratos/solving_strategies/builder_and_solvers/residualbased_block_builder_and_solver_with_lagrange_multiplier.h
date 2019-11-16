@@ -467,21 +467,21 @@ public:
             }
 
             // Extend with the LM constribution
-            const SizeType number_of_lm = BaseType::mT.size1();
+            const SizeType number_of_slave_dofs = BaseType::mT.size1();
 
             // Auxiliar values
             const double constraint_scale_factor = r_process_info[CONSTRAINT_SCALE_FACTOR];
 
             if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
                 // Compute the RHS
-                Vector b_modified(BaseType::mEquationSystemSize + 2 * number_of_lm);
+                Vector b_modified(BaseType::mEquationSystemSize + 2 * number_of_slave_dofs);
                 #pragma omp parallel for
                 for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
                     b_modified[i] = rb[i];
                 }
 
                 // Compute LM contributions
-                TSystemVectorType b_lm(number_of_lm);
+                TSystemVectorType b_lm(number_of_slave_dofs);
                 ComputeRHSLMContributions(b_lm, constraint_scale_factor);
 
                 // Fill auxiliar vector
@@ -493,14 +493,14 @@ public:
                 b_modified.resize(0, false); // Free memory
             } else {
                 // Compute the RHS
-                Vector b_modified(BaseType::mEquationSystemSize + number_of_lm);
+                Vector b_modified(BaseType::mEquationSystemSize + number_of_slave_dofs);
                 #pragma omp parallel for
                 for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
                     b_modified[i] = rb[i];
                 }
 
                 // Compute LM contributions
-                TSystemVectorType b_lm(number_of_lm);
+                TSystemVectorType b_lm(number_of_slave_dofs);
                 ComputeRHSLMContributions(b_lm, constraint_scale_factor);
 
                 // Fill auxiliar vector
@@ -539,12 +539,14 @@ public:
             // Copy the LHS to avoid memory errors
             TSystemMatrixType copy_of_A(rA);
             TSystemMatrixType copy_of_T(BaseType::mT);
+            TSystemMatrixType transpose_of_T(TSparseSpace::Size2(BaseType::mT), TSparseSpace::Size1(BaseType::mT));
+            SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(transpose_of_T, BaseType::mT);
 
             // Some common values
-            const SizeType number_of_lm = BaseType::mT.size1();
+            const SizeType number_of_slave_dofs = TSparseSpace::Size1(BaseType::mT);
 
             // Definition of the total size of the system
-            const SizeType total_size_of_system = BaseType::mEquationSystemSize + (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER) ? 2 * number_of_lm : number_of_lm);
+            const SizeType total_size_of_system = BaseType::mEquationSystemSize + (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER) ? 2 * number_of_slave_dofs : number_of_slave_dofs);
             Vector b_modified(total_size_of_system);
 
             // Copy the RHS
@@ -573,7 +575,7 @@ public:
             /* Fill common blocks */
             // Fill blocks
             matrices_p_blocks(0,0) = &copy_of_A;
-            matrices_p_blocks(0,1) = &copy_of_T;
+            matrices_p_blocks(0,1) = &transpose_of_T;
             matrices_p_blocks(1,0) = &copy_of_T;
 
             // Fill coefficients
@@ -582,10 +584,11 @@ public:
             contribution_coefficients(1, 0) = constraint_scale_factor;
 
             // Fill transpose positions
-            transpose_blocks(0, 0) = false;
-            transpose_blocks(0, 1) = true;
-            transpose_blocks(1, 0) = false;
-            transpose_blocks(1, 1) = false;
+            for (IndexType i = 0; i < number_of_blocks; ++i) {
+                for (IndexType j = 0; j < number_of_blocks; ++j) {
+                    transpose_blocks(i, j) = false;
+                }
+            }
 
             // Assemble the blocks
             if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
@@ -597,13 +600,13 @@ public:
                 }
 
                 // Create auxiliar identity matrix
-                TSystemMatrixType identity_matrix(number_of_lm, number_of_lm);
-                for (IndexType i = 0; i < number_of_lm; ++i) {
+                TSystemMatrixType identity_matrix(number_of_slave_dofs, number_of_slave_dofs);
+                for (IndexType i = 0; i < number_of_slave_dofs; ++i) {
                     identity_matrix.push_back(i, i, 1.0);
                 }
 
                 // Fill blocks
-                matrices_p_blocks(0,2) = &copy_of_T;
+                matrices_p_blocks(0,2) = &transpose_of_T;
                 matrices_p_blocks(2,0) = &copy_of_T;
                 matrices_p_blocks(1,1) = &identity_matrix;
                 matrices_p_blocks(1,2) = &identity_matrix;
@@ -617,16 +620,9 @@ public:
                 contribution_coefficients(1, 2) = build_scale_factor;
                 contribution_coefficients(2, 1) = build_scale_factor;
                 contribution_coefficients(2, 2) = -build_scale_factor;
-
-                // Fill transpose positions
-                transpose_blocks(0, 2) = true;
-                transpose_blocks(2, 0) = false;
-                transpose_blocks(1, 2) = false;
-                transpose_blocks(2, 1) = false;
-                transpose_blocks(2, 2) = false;
             } else {
                 // Create auxiliar zero matrix
-                TSystemMatrixType zero_matrix(number_of_lm, number_of_lm);
+                TSystemMatrixType zero_matrix(number_of_slave_dofs, number_of_slave_dofs);
 
                 // Fill blocks
                 matrices_p_blocks(1,1) = &zero_matrix;
@@ -970,14 +966,10 @@ private:
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         // Our auxiliar vector
-        const SizeType number_of_slave_dofs = BaseType::mT.size1();
-        if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
-            if (rbLM.size() != number_of_slave_dofs + 2 * ndofs)
-                rbLM.resize(number_of_slave_dofs + 2 * ndofs, false);
-        } else {
-            if (rbLM.size() != number_of_slave_dofs + ndofs)
-                rbLM.resize(number_of_slave_dofs + ndofs, false);
-        }
+        const SizeType number_of_slave_dofs = TSparseSpace::Size1(BaseType::mT);
+        const SizeType total_size_of_system = BaseType::mEquationSystemSize + (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER) ? 2 * number_of_slave_dofs : number_of_slave_dofs);
+        if (TSparseSpace::Size(rbLM) != total_size_of_system)
+            rbLM.resize(total_size_of_system, false);
         Vector aux_lm_rhs_contribution(number_of_slave_dofs);
         Vector aux_whole_dof_vector(ndofs);
 
