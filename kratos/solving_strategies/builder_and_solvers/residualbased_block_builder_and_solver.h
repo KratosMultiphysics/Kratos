@@ -927,7 +927,7 @@ public:
             SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
             auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
 
-            const double max_diag = GetDiagonalNorm(rA);
+            const double max_diag = GetMaxDiagonal(rA);
 
             // Apply diagonal values on slaves
             #pragma omp parallel for
@@ -1390,11 +1390,49 @@ protected:
      */
     double GetDiagonalNorm(TSystemMatrixType& rA)
     {
+        double diagonal_norm = 0.0;
+        for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
+            diagonal_norm += std::pow(rA(i,i), 2);
+        }
+        return std::sqrt(diagonal_norm);
+    }
+
+    /**
+     * @brief This method returns the diagonal max value
+     * @param rA The LHS matrix
+     * @return The diagonal  max value
+     */
+    double GetAveragevalueDiagonal(TSystemMatrixType& rA)
+    {
+        return 0.5 * (GetMaxDiagonal(rA) + GetMinDiagonal(rA));
+    }
+
+    /**
+     * @brief This method returns the diagonal max value
+     * @param rA The LHS matrix
+     * @return The diagonal  max value
+     */
+    double GetMaxDiagonal(TSystemMatrixType& rA)
+    {
         double max_diag = 0.0;
         for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
             max_diag = std::max(std::abs(rA(i,i)), max_diag);
         }
         return max_diag;
+    }
+
+    /**
+     * @brief This method returns the diagonal min value
+     * @param rA The LHS matrix
+     * @return The diagonal min value
+     */
+    double GetMinDiagonal(TSystemMatrixType& rA)
+    {
+        double min_diag = 0.0;
+        for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
+            min_diag = std::min(std::abs(rA(i,i)), min_diag);
+        }
+        return min_diag;
     }
 
     ///@}
