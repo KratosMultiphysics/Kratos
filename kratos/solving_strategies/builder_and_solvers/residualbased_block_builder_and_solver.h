@@ -998,10 +998,7 @@ public:
             SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
             auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
 
-            double max_diag = 0.0;
-            for(IndexType i = 0; i < rA.size1(); ++i) {
-                max_diag = std::max(std::abs(rA(i,i)), max_diag);
-            }
+            const double max_diag = GetDiagonalNorm(rA);
 
             // Apply diagonal values on slaves
             #pragma omp parallel for
@@ -1550,6 +1547,7 @@ protected:
      * @brief This method returns the scale norm considering for scaling the diagonal
      * @param rA The LHS matrix
      * @param rCurrentProcessInfo The current process info instance
+     * @param rScaleVariable The scale variable considered
      * @return The scale norm
      */
     double GetScaleNorm(
@@ -1563,11 +1561,7 @@ protected:
                 return rCurrentProcessInfo[rScaleVariable];
             } else {
                 if (mOptions.Is(CONSIDER_NORM_DIAGONAL) ) {
-                    double max_diag = 0.0;
-                    for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
-                        max_diag = std::max(std::abs(rA(i,i)), max_diag);
-                    }
-                    return max_diag;
+                    return GetDiagonalNorm(rA);
                 } else {
                     return TSparseSpace::TwoNorm(rA);
                 }
@@ -1575,6 +1569,20 @@ protected:
         } else {
             return 1.0;
         }
+    }
+
+    /**
+     * @brief This method returns the diagonal norm considering for scaling the diagonal
+     * @param rA The LHS matrix
+     * @return The diagonal norm
+     */
+    double GetDiagonalNorm(TSystemMatrixType& rA)
+    {
+        double max_diag = 0.0;
+        for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
+            max_diag = std::max(std::abs(rA(i,i)), max_diag);
+        }
+        return max_diag;
     }
 
     ///@}
