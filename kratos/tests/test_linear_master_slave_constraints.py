@@ -65,11 +65,13 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         KM.VariableUtils().ApplyFixity(KM.DISPLACEMENT_X, True, bcmn.Nodes)
         KM.VariableUtils().ApplyFixity(KM.DISPLACEMENT_Y, True, bcmn.Nodes)
 
-    def _setup_solver(self, solving_with = "Block"):
+    def _setup_solver(self, solving_with = "Block", linear_solver = "AMGCL"):
 
         #define a minimal newton raphson solver
-        self.linear_solver = KM.SkylineLUFactorizationSolver()
-        #self.linear_solver = KM.AMGCLSolver()
+        if linear_solver == "AMGCL":
+            self.linear_solver = KM.AMGCLSolver()
+        else:
+            self.linear_solver = KM.SkylineLUFactorizationSolver()
         if solving_with == "Block":
             self.builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         elif solving_with == "LM":
@@ -282,7 +284,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
 
         self.mp.ProcessInfo[KM.IS_RESTARTED] = False
 
-    def _basic_setup_test(self, solving_with = "Block"):
+    def _basic_setup_test(self, solving_with = "Block", linear_solver = "AMGCL"):
         dim = 2
         current_model = KM.Model()
         self.mp= current_model.CreateModelPart("MainModelPart")
@@ -303,7 +305,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         # Applying constraints
         self._basic_apply_mpc_constraints()
         # Solving the system of equations
-        self._setup_solver(solving_with)
+        self._setup_solver(solving_with, linear_solver)
 
         while (time <= end_time):
             time = time + dt
@@ -314,7 +316,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         self._basic_check_results()
         self._reset()
 
-    def _advanced_setup_test(self, solving_with = "Block"):
+    def _advanced_setup_test(self, solving_with = "Block", linear_solver = "AMGCL"):
         dim = 2
         current_model = KM.Model()
         self.mp= current_model.CreateModelPart("MainModelPart")
@@ -335,7 +337,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         # Applying constraints
         self._advanced_apply_mpc_constraints()
         # Solving the system of equations
-        self._setup_solver(solving_with)
+        self._setup_solver(solving_with, linear_solver)
 
         while (time <= end_time):
             time = time + dt
@@ -356,19 +358,19 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
 
     @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
     def test_basic_LM_MPC_Constraints(self):
-        self._basic_setup_test("LM")
+        self._basic_setup_test("LM", "LU")
 
     @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
     def test_advanced_LM_MPC_Constraints(self):
-        self._advanced_setup_test("LM")
+        self._advanced_setup_test("LM", "LU")
 
     @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
     def test_basic_Double_LM_MPC_Constraints(self):
-        self._basic_setup_test("DoubleLM")
+        self._basic_setup_test("DoubleLM", "LU")
 
     @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
     def test_advanced_Double_LM_MPC_Constraints(self):
-        self._advanced_setup_test("DoubleLM")
+        self._advanced_setup_test("DoubleLM", "LU")
 
 if __name__ == '__main__':
     KratosUnittest.main()
