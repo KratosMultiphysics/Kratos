@@ -426,6 +426,40 @@ class MorSecondOrderIRKAStrategy
         vector<double> abs_val_new (reduced_system_size);
 
 
+
+
+
+
+
+        // initialize helpers for the projections
+
+        auto  V_col_par = SparseSpaceType::CreateEmptyVectorPointer();
+        auto& r_V_col_par   = *V_col_par;
+        SparseSpaceType::Resize(r_V_col_par, system_size); // n x 1
+
+        auto  TM_col_par = SparseSpaceType::CreateEmptyVectorPointer();
+        auto& r_TM_col_par   = *TM_col_par;
+        SparseSpaceType::Resize(r_TM_col_par, system_size); // n x 1
+
+        auto  TK_col_par = SparseSpaceType::CreateEmptyVectorPointer();
+        auto& r_TK_col_par   = *TK_col_par;
+        SparseSpaceType::Resize(r_TK_col_par, system_size); // n x 1
+
+        auto  TD_col_par = SparseSpaceType::CreateEmptyVectorPointer();
+        auto& r_TD_col_par   = *TD_col_par;
+        SparseSpaceType::Resize(r_TD_col_par, system_size); // n x 1
+
+
+        TSystemVectorType tmp_M_col(reduced_system_size, 0.0);
+        TSystemVectorType tmp_K_col(reduced_system_size, 0.0);
+        TSystemVectorType tmp_D_col(reduced_system_size, 0.0);
+
+
+
+
+
+
+
         int iter = 1;
         int max_iter = 100;
         double err = 100.0;
@@ -435,182 +469,24 @@ class MorSecondOrderIRKAStrategy
 
             double start_projections = OpenMPUtils::GetCurrentTime();
 
+
             // projections onto the reduced space
-            #pragma omp parallel sections
-            {
-                #pragma omp section
-                {
 
-
-                    double start_axpy = OpenMPUtils::GetCurrentTime();
-
-
-
-                        auto  tmp_T_par = SparseSpaceType::CreateEmptyMatrixPointer();
-                        auto& r_tmp_T_par   = *tmp_T_par;
-                        SparseSpaceType::Resize(r_tmp_T_par, reduced_system_size, system_size); // r x n
-                        TSparseSpace::SetToZero(r_tmp_T_par);
-
-
-
-                        auto  V_col_par = SparseSpaceType::CreateEmptyVectorPointer();
-                        auto& r_V_col_par   = *V_col_par;
-                        SparseSpaceType::Resize(r_V_col_par, system_size); // n x 1
-
-                        auto  T_col_par = SparseSpaceType::CreateEmptyVectorPointer();
-                        auto& r_T_col_par   = *T_col_par;
-                        SparseSpaceType::Resize(r_T_col_par, system_size); // n x 1
-
-                        auto  t_par = SparseSpaceType::CreateEmptyVectorPointer();
-                        auto& r_t_par   = *t_par;
-                        SparseSpaceType::Resize(r_t_par, reduced_system_size); // r x 1
-
-
-                //TSystemVectorType tmp(r_K_tmp.size1(), 0.0);
-                        // // auto  t_par_dense = TSystemVectorType::CreateEmptyVectorPointer();
-                        // // auto& r_t_par_dense   = *t_par_dense;
-                        // // TSystemVectorType::Resize(r_t_par_dense, reduced_system_size); // r x 1
-                        TSystemVectorType tmp_M_col(reduced_system_size, 0.0);
-
-
-        // // //                 auto  Vr_sparse_par = SparseSpaceType::CreateEmptyMatrixPointer();
-        // // //                 auto& r_Vr_sparse_par   = *Vr_sparse_par;
-        // // // SparseSpaceType::Resize(r_Vr_sparse_par, system_size, reduced_system_size); // n x r
-        // // // TSparseSpace::SetToZero(r_Vr_sparse_par);
-
-        // // //             #pragma omp critical
-        // // //             //noalias(r_Vr_sparse_par) = r_Vr_sparse;
-        // // //             subrange(r_Vr_sparse_par, 0, system_size, 0, reduced_system_size) = r_Vr_sparse;
-
-
-                    // // // // // // // for(size_t i=0; i<system_size; i++){
-                    // // // // // // //     r_m_col = column(r_M_tmp,i);
-                    // // // // // // //     axpy_prod(r_m_col,r_Vr_sparse,r_t_par,true);
-                    // // // // // // //     //axpy_prod(r_m_col,r_Vr_sparse_par,r_t_par,true);
-                    // // // // // // //     column(r_tmp_T_par,i) = r_t_par;
-                    // // // // // // // }
-
-                    // // // // // // // r_M_reduced = prod( r_tmp_T_par, r_Vr_sparse );
+            for(size_t i=0; i<reduced_system_size; i++){
+                r_V_col_par = column(r_Vr_sparse,i);
+                axpy_prod(r_M_tmp, r_V_col_par, r_TM_col_par);     // M*V  (=T_M)
+                axpy_prod(r_K_tmp, r_V_col_par, r_TK_col_par);     // K*V  (=T_K)
+                axpy_prod(r_D_tmp, r_V_col_par, r_TD_col_par);     // D*V  (=T_D)
+                axpy_prod(r_TM_col_par, r_Vr_sparse, tmp_M_col);   // V' * T_M
+                axpy_prod(r_TK_col_par, r_Vr_sparse, tmp_K_col);   // V' * T_K
+                axpy_prod(r_TD_col_par, r_Vr_sparse, tmp_D_col);   // V' * T_D
+                column(r_M_reduced, i) = tmp_M_col;                // Mr = V' M V
+                column(r_K_reduced, i) = tmp_K_col;                // Kr = V' K V
+                column(r_D_reduced, i) = tmp_D_col;                // Dr = V' D V
+            }
 
 
 
-                    // // for(size_t i=0; i<reduced_system_size; i++){
-                    // //     //std::cout<<" -|- test 01"<<std::endl;
-                    // //     r_m_col = column(r_Vr_sparse_par,i);
-                    // //     //std::cout<<" -|- test 02"<<std::endl;
-                    // //     axpy_prod(r_M_tmp, r_m_col, r_m2_col);
-                    // //     //std::cout<<" -|- test 03"<<std::endl;
-                    // //     //axpy_prod(r_m2_col, r_Vr_sparse_par, r_t_par_dense);
-                    // //     axpy_prod(r_m2_col, r_Vr_sparse_par, tmp_t_col);
-                    // //     //std::cout<<" -|- test 04"<<std::endl;
-                    // //     //column(r_M_reduced, i) = r_t_par_dense;
-                    // //     //KRATOS_WATCH(tmp_t_col)
-                    // //     //KRATOS_WATCH(r_M_reduced)
-                    // //     column(r_M_reduced, i) = tmp_t_col;  // wieso kommt hier ein Speicherfehler?????
-                    // //     //subrange(r_M_reduced, 0, reduced_system_size, i, i) = tmp_t_col;
-                    // //     //std::cout<<" -|- test 05"<<std::endl;
-                    // // }
-
-
-
-
-                    for(size_t i=0; i<reduced_system_size; i++){
-                        r_V_col_par = column(r_Vr_sparse,i);
-                        axpy_prod(r_M_tmp, r_V_col_par, r_T_col_par);
-                        axpy_prod(r_T_col_par, r_Vr_sparse, tmp_M_col);
-                        column(r_M_reduced, i) = tmp_M_col;
-                    }
-
-
-                    KRATOS_WATCH(r_M_reduced)
-
-
-                   
-                        // auto  t_par_dense = DenseSpaceType::CreateEmptyVectorPointer();
-                        // auto& r_t_par_dense   = *t_par_dense;
-                        // DenseSpaceType::Resize(r_t_par_dense, reduced_system_size); // r x 1
-
-                        // // vector<double> t_par_dense; 
-                        // // t_par_dense.resize(reduced_system_size);
-
-
-                    // for(size_t i=0; i<reduced_system_size; i++){
-                    //     r_m_col = column(r_Vr_sparse,i);
-                    //     //r_m_col = column(r_Vr_sparse_par,i);
-                    //     axpy_prod(r_tmp_T_par, r_m_col, r_t_par_dense, true);
-                    //     column(r_M_reduced,i) = r_t_par_dense;
-                    //   }
-
-
-                    double end_axpy = OpenMPUtils::GetCurrentTime();
-            std::cout<<"       -- axpy: "<<end_axpy-start_axpy<<std::endl;
-
-                    //KRATOS_WATCH(r_M_reduced);
-
-                } //omp section
-
-                #pragma omp section
-                {
-
-                        auto  tmp_T_par = SparseSpaceType::CreateEmptyMatrixPointer();
-                        auto& r_tmp_T_par   = *tmp_T_par;
-                        SparseSpaceType::Resize(r_tmp_T_par, reduced_system_size, system_size); // r x n
-                        TSparseSpace::SetToZero(r_tmp_T_par);
-
-                        auto  d_col = SparseSpaceType::CreateEmptyVectorPointer();
-                        auto& r_d_col   = *d_col;
-                        SparseSpaceType::Resize(r_d_col, system_size); // n x 1
-
-                        auto  t_par = SparseSpaceType::CreateEmptyVectorPointer();
-                        auto& r_t_par   = *t_par;
-                        SparseSpaceType::Resize(r_t_par, reduced_system_size); // r x 1
-
-
-                    for(size_t i=0; i<system_size; i++){
-                        r_d_col = column(r_D_tmp,i);
-                        axpy_prod(r_d_col,r_Vr_sparse,r_t_par,true);
-                        column(r_tmp_T_par,i) = r_t_par;
-                    }
-
-                    r_D_reduced = prod( r_tmp_T_par, r_Vr_sparse );
-
-                     //T = prod( trans(r_Vr_sparse), r_D_tmp );
-                     //r_D_reduced = prod( T, r_Vr_sparse );
-                 } // omp section
-
-                 #pragma omp section
-                 {
-
-
-                        auto  tmp_T_par = SparseSpaceType::CreateEmptyMatrixPointer();
-                        auto& r_tmp_T_par   = *tmp_T_par;
-                        SparseSpaceType::Resize(r_tmp_T_par, reduced_system_size, system_size); // r x n
-                        TSparseSpace::SetToZero(r_tmp_T_par);
-
-                        auto  k_col = SparseSpaceType::CreateEmptyVectorPointer();
-                        auto& r_k_col   = *k_col;
-                        SparseSpaceType::Resize(r_k_col, system_size); // n x 1
-
-                        auto  t_par = SparseSpaceType::CreateEmptyVectorPointer();
-                        auto& r_t_par   = *t_par;
-                        SparseSpaceType::Resize(r_t_par, reduced_system_size); // r x 1
-
-
-                    for(size_t i=0; i<system_size; i++){
-                        r_k_col = column(r_K_tmp,i);
-                        axpy_prod(r_k_col,r_Vr_sparse,r_t_par,true);
-                        column(r_tmp_T_par,i) = r_t_par;
-                    }
-
-                    r_K_reduced = prod( r_tmp_T_par, r_Vr_sparse );
-
-
-
-                     //T = prod( trans(r_Vr_sparse), r_K_tmp );
-                     //r_K_reduced = prod( T, r_Vr_sparse );
-                 } //omp section
-
-             }//omp parallel sections
 
             double end_projections = OpenMPUtils::GetCurrentTime();
             std::cout<<"-- projections: "<<end_projections-start_projections<<std::endl;
