@@ -566,7 +566,7 @@ public:
             // Definition of the auxiliar values
             auto& r_process_info = rModelPart.GetProcessInfo();
             const bool has_constraint_scale_factor = r_process_info.Has(CONSTRAINT_SCALE_FACTOR);
-            const double constraint_scale_factor = has_constraint_scale_factor ? r_process_info[CONSTRAINT_SCALE_FACTOR] : BaseType::mOptions.Is(BaseType::CONSIDER_NORM_DIAGONAL) ? this->GetDiagonalNorm(rA) : TSparseSpace::TwoNorm(rA);
+            const double constraint_scale_factor = has_constraint_scale_factor ? r_process_info[CONSTRAINT_SCALE_FACTOR] : this->GetAveragevalueDiagonal(rA);
             if (!has_constraint_scale_factor) {
                 r_process_info.SetValue(CONSTRAINT_SCALE_FACTOR, constraint_scale_factor);
             }
@@ -592,10 +592,10 @@ public:
             // Assemble the blocks
             if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
                 // Definition of the build scale factor auxiliar value
-                const bool has_build_scale_factor = r_process_info.Has(BUILD_SCALE_FACTOR);
-                const double build_scale_factor = has_build_scale_factor ? r_process_info[BUILD_SCALE_FACTOR] : constraint_scale_factor;
-                if (!has_build_scale_factor) {
-                    r_process_info.SetValue(BUILD_SCALE_FACTOR, build_scale_factor);
+                const bool has_auxiliar_constraint_scale_factor = r_process_info.Has(AUXILIAR_CONSTRAINT_SCALE_FACTOR);
+                const double auxiliar_constraint_scale_factor = has_auxiliar_constraint_scale_factor ? r_process_info[AUXILIAR_CONSTRAINT_SCALE_FACTOR] : constraint_scale_factor;
+                if (!has_auxiliar_constraint_scale_factor) {
+                    r_process_info.SetValue(AUXILIAR_CONSTRAINT_SCALE_FACTOR, auxiliar_constraint_scale_factor);
                 }
 
                 // Create auxiliar identity matrix
@@ -617,10 +617,10 @@ public:
                 // Fill coefficients
                 contribution_coefficients(0, 2) = constraint_scale_factor;
                 contribution_coefficients(2, 0) = constraint_scale_factor;
-                contribution_coefficients(1, 1) = -build_scale_factor;
-                contribution_coefficients(1, 2) = build_scale_factor;
-                contribution_coefficients(2, 1) = build_scale_factor;
-                contribution_coefficients(2, 2) = -build_scale_factor;
+                contribution_coefficients(1, 1) = -auxiliar_constraint_scale_factor;
+                contribution_coefficients(1, 2) = auxiliar_constraint_scale_factor;
+                contribution_coefficients(2, 1) = auxiliar_constraint_scale_factor;
+                contribution_coefficients(2, 2) = -auxiliar_constraint_scale_factor;
 
                 // Assemble the matrix (NOTE: Like the identity matrix is created inside the condition must be used meanwhile is alive, so inside the condition)
                 SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
