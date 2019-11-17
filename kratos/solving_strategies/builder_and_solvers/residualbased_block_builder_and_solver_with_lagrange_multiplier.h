@@ -481,6 +481,11 @@ public:
             for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
                 b_modified[i] = rb[i];
             }
+            // Fill with zeros
+            #pragma omp parallel for
+            for (int i = static_cast<int>(BaseType::mEquationSystemSize); i < static_cast<int>(total_size_of_system); ++i) {
+                b_modified[i] = 0.0;
+            }
             rb.resize(total_size_of_system, false);
 
             // Compute LM contributions
@@ -538,6 +543,11 @@ public:
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
                 b_modified[i] = rb[i];
+            }
+            // Fill with zeros
+            #pragma omp parallel for
+            for (int i = static_cast<int>(BaseType::mEquationSystemSize); i < static_cast<int>(total_size_of_system); ++i) {
+                b_modified[i] = 0.0;
             }
             rb.resize(total_size_of_system, false);
 
