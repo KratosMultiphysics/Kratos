@@ -125,6 +125,7 @@ public:
         {
             "name"                                : "ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier",
             "scale_diagonal"                      : true,
+            "consider_norm_diagonal"              : true,
             "silent_warnings"                     : false,
             "consider_double_lagrange_multiplier" : true
         })" );
@@ -133,6 +134,7 @@ public:
 
         // Setting flags
         BaseType::mOptions.Set(BaseType::SCALE_DIAGONAL, ThisParameters["scale_diagonal"].GetBool());
+        BaseType::mOptions.Set(BaseType::CONSIDER_NORM_DIAGONAL, ThisParameters["consider_norm_diagonal"].GetBool());
         BaseType::mOptions.Set(BaseType::SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
         BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, ThisParameters["consider_double_lagrange_multiplier"].GetBool());
     }
@@ -143,9 +145,10 @@ public:
     explicit ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
         const bool ScaleDiagonal = true,
+        const bool ConsiderNormDiagonal = true,
         const bool SilentWarnings = false,
         const bool ConsiderDoubleLagrangeMultiplier = true
-        ) : BaseType(pNewLinearSystemSolver, ScaleDiagonal, SilentWarnings)
+        ) : BaseType(pNewLinearSystemSolver, ScaleDiagonal, ConsiderNormDiagonal, SilentWarnings)
     {
         // Setting flags
         BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, ConsiderDoubleLagrangeMultiplier);
@@ -452,7 +455,8 @@ public:
                 TSystemMatrixType A(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize);
                 BaseType::ConstructMatrixStructure(pScheme, A, rModelPart);
                 this->BuildLHS(pScheme, rModelPart, A);
-                r_process_info.SetValue(CONSTRAINT_SCALE_FACTOR, TSparseSpace::TwoNorm(A));
+                const double constraint_scale_factor = BaseType::mOptions.Is(BaseType::CONSIDER_NORM_DIAGONAL) ? this->GetDiagonalNorm(A) : TSparseSpace::TwoNorm(A);
+                r_process_info.SetValue(CONSTRAINT_SCALE_FACTOR, constraint_scale_factor);
             }
 
             // Check T has been computed
@@ -562,7 +566,7 @@ public:
             // Definition of the auxiliar values
             auto& r_process_info = rModelPart.GetProcessInfo();
             const bool has_constraint_scale_factor = r_process_info.Has(CONSTRAINT_SCALE_FACTOR);
-            const double constraint_scale_factor = has_constraint_scale_factor ? r_process_info[CONSTRAINT_SCALE_FACTOR] : TSparseSpace::TwoNorm(rA);
+            const double constraint_scale_factor = has_constraint_scale_factor ? r_process_info[CONSTRAINT_SCALE_FACTOR] : BaseType::mOptions.Is(BaseType::CONSIDER_NORM_DIAGONAL) ? this->GetDiagonalNorm(rA) : TSparseSpace::TwoNorm(rA);
             if (!has_constraint_scale_factor) {
                 r_process_info.SetValue(CONSTRAINT_SCALE_FACTOR, constraint_scale_factor);
             }
@@ -1052,7 +1056,7 @@ private:
 
 // Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::DOUBLE_LAGRANGE_MULTIPLIER(Kratos::Flags::Create(3));
+const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::DOUBLE_LAGRANGE_MULTIPLIER(Kratos::Flags::Create(4));
 
 ///@}
 

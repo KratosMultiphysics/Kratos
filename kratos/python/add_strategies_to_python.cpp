@@ -431,6 +431,7 @@ namespace Kratos
             .def(py::init< LinearSolverType::Pointer, const bool > ())
             .def(py::init< LinearSolverType::Pointer, const bool, const bool > ())
             .def(py::init< LinearSolverType::Pointer, const bool, const bool, const bool > ())
+            .def(py::init< LinearSolverType::Pointer, const bool, const bool, const bool, const bool > ())
             ;
 
             //********************************************************************
