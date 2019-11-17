@@ -847,7 +847,7 @@ public:
 
         // The diagonal considered
         const auto& r_process_info = rModelPart.GetProcessInfo();
-        const double diagonal_value = GetScaleNorm(rA, r_process_info);
+        const double diagonal_value = GetScaleNorm(rA, r_process_info, BUILD_SCALE_FACTOR);
         
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         std::size_t col_begin = 0, col_end  = 0;
