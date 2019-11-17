@@ -384,10 +384,22 @@ class MorSecondOrderIRKAStrategy
 
 
         // initialize the reduced matrices
-        auto& r_b_reduced = this->GetRHSr();
-        auto& r_K_reduced = this->GetKr();
-        auto& r_M_reduced = this->GetMr();
-        auto& r_D_reduced = this->GetDr();
+        // // // auto& r_b_reduced = this->GetRHSr();
+        // // // auto& r_K_reduced = this->GetKr();
+        // // // //auto& r_M_reduced = this->GetMr();
+        // // // auto& r_D_reduced = this->GetDr();
+
+
+        // needs to be resized, otherwise segfault
+        // TSystemMatrixType::Resize(r_M_reduced, reduced_system_size, reduced_system_size); // no
+
+        TSystemMatrixType r_M_reduced(reduced_system_size, reduced_system_size, 0.0);
+        TSystemMatrixType r_K_reduced(reduced_system_size, reduced_system_size, 0.0);
+        TSystemMatrixType r_D_reduced(reduced_system_size, reduced_system_size, 0.0);
+        TSystemVectorType r_b_reduced(reduced_system_size, 0.0);
+
+
+
 
         // helper for auxiliary products
         TSystemMatrixType T; //TODO: define actual size for first temp prod (rxn)
@@ -441,32 +453,77 @@ class MorSecondOrderIRKAStrategy
 
 
 
-                        auto  m_col = SparseSpaceType::CreateEmptyVectorPointer();
-                        auto& r_m_col   = *m_col;
-                        SparseSpaceType::Resize(r_m_col, system_size); // n x 1
+                        auto  V_col_par = SparseSpaceType::CreateEmptyVectorPointer();
+                        auto& r_V_col_par   = *V_col_par;
+                        SparseSpaceType::Resize(r_V_col_par, system_size); // n x 1
+
+                        auto  T_col_par = SparseSpaceType::CreateEmptyVectorPointer();
+                        auto& r_T_col_par   = *T_col_par;
+                        SparseSpaceType::Resize(r_T_col_par, system_size); // n x 1
 
                         auto  t_par = SparseSpaceType::CreateEmptyVectorPointer();
                         auto& r_t_par   = *t_par;
                         SparseSpaceType::Resize(r_t_par, reduced_system_size); // r x 1
 
-        // //                 auto  Vr_sparse_par = SparseSpaceType::CreateEmptyMatrixPointer();
-        // //                 auto& r_Vr_sparse_par   = *Vr_sparse_par;
-        // // SparseSpaceType::Resize(r_Vr_sparse_par, system_size, reduced_system_size); // n x r
-        // // TSparseSpace::SetToZero(r_Vr_sparse_par);
 
-        // //             #pragma omp critical
-        // //             noalias(r_Vr_sparse_par) = r_Vr_sparse;
-                    //subrange(r_Vr_sparse_par, 0, system_size, 0, reduced_system_size) = r_Vr_sparse;
+                //TSystemVectorType tmp(r_K_tmp.size1(), 0.0);
+                        // // auto  t_par_dense = TSystemVectorType::CreateEmptyVectorPointer();
+                        // // auto& r_t_par_dense   = *t_par_dense;
+                        // // TSystemVectorType::Resize(r_t_par_dense, reduced_system_size); // r x 1
+                        TSystemVectorType tmp_M_col(reduced_system_size, 0.0);
 
 
-                    for(size_t i=0; i<system_size; i++){
-                        r_m_col = column(r_M_tmp,i);
-                        axpy_prod(r_m_col,r_Vr_sparse,r_t_par,true);
-                        //axpy_prod(r_m_col,r_Vr_sparse_par,r_t_par,true);
-                        column(r_tmp_T_par,i) = r_t_par;
+        // // //                 auto  Vr_sparse_par = SparseSpaceType::CreateEmptyMatrixPointer();
+        // // //                 auto& r_Vr_sparse_par   = *Vr_sparse_par;
+        // // // SparseSpaceType::Resize(r_Vr_sparse_par, system_size, reduced_system_size); // n x r
+        // // // TSparseSpace::SetToZero(r_Vr_sparse_par);
+
+        // // //             #pragma omp critical
+        // // //             //noalias(r_Vr_sparse_par) = r_Vr_sparse;
+        // // //             subrange(r_Vr_sparse_par, 0, system_size, 0, reduced_system_size) = r_Vr_sparse;
+
+
+                    // // // // // // // for(size_t i=0; i<system_size; i++){
+                    // // // // // // //     r_m_col = column(r_M_tmp,i);
+                    // // // // // // //     axpy_prod(r_m_col,r_Vr_sparse,r_t_par,true);
+                    // // // // // // //     //axpy_prod(r_m_col,r_Vr_sparse_par,r_t_par,true);
+                    // // // // // // //     column(r_tmp_T_par,i) = r_t_par;
+                    // // // // // // // }
+
+                    // // // // // // // r_M_reduced = prod( r_tmp_T_par, r_Vr_sparse );
+
+
+
+                    // // for(size_t i=0; i<reduced_system_size; i++){
+                    // //     //std::cout<<" -|- test 01"<<std::endl;
+                    // //     r_m_col = column(r_Vr_sparse_par,i);
+                    // //     //std::cout<<" -|- test 02"<<std::endl;
+                    // //     axpy_prod(r_M_tmp, r_m_col, r_m2_col);
+                    // //     //std::cout<<" -|- test 03"<<std::endl;
+                    // //     //axpy_prod(r_m2_col, r_Vr_sparse_par, r_t_par_dense);
+                    // //     axpy_prod(r_m2_col, r_Vr_sparse_par, tmp_t_col);
+                    // //     //std::cout<<" -|- test 04"<<std::endl;
+                    // //     //column(r_M_reduced, i) = r_t_par_dense;
+                    // //     //KRATOS_WATCH(tmp_t_col)
+                    // //     //KRATOS_WATCH(r_M_reduced)
+                    // //     column(r_M_reduced, i) = tmp_t_col;  // wieso kommt hier ein Speicherfehler?????
+                    // //     //subrange(r_M_reduced, 0, reduced_system_size, i, i) = tmp_t_col;
+                    // //     //std::cout<<" -|- test 05"<<std::endl;
+                    // // }
+
+
+
+
+                    for(size_t i=0; i<reduced_system_size; i++){
+                        r_V_col_par = column(r_Vr_sparse,i);
+                        axpy_prod(r_M_tmp, r_V_col_par, r_T_col_par);
+                        axpy_prod(r_T_col_par, r_Vr_sparse, tmp_M_col);
+                        column(r_M_reduced, i) = tmp_M_col;
                     }
 
-                    r_M_reduced = prod( r_tmp_T_par, r_Vr_sparse );
+
+                    KRATOS_WATCH(r_M_reduced)
+
 
                    
                         // auto  t_par_dense = DenseSpaceType::CreateEmptyVectorPointer();
