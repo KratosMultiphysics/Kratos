@@ -492,7 +492,10 @@ public:
 
             // Finally reassign
             TSparseSpace::Copy(b_modified, rb);
-            b_modified.resize(0, false); // Free memory
+
+            // Free memory
+            b_lm.resize(0, false);
+            b_modified.resize(0, false);
         }
 
         KRATOS_CATCH("")
@@ -621,6 +624,11 @@ public:
                 SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<TSystemMatrixType>(rA, matrices_p_blocks, contribution_coefficients, transpose_blocks);
             }
 
+            // Free memory
+            copy_of_A.resize(0, 0, false);
+            copy_of_T.resize(0, 0, false);
+            transpose_of_T.resize(0, 0, false);
+
             // Compute LM contributions
             TSystemVectorType b_lm(total_size_of_system);
             ComputeRHSLMContributions(b_lm, constraint_scale_factor);
@@ -630,7 +638,10 @@ public:
 
             // Finally reassign
             TSparseSpace::Copy(b_modified, rb);
-            b_modified.resize(0, false); // Free memory
+
+            // Free memory
+            b_lm.resize(0, false);
+            b_modified.resize(0, false);
         }
 
         KRATOS_CATCH("")
