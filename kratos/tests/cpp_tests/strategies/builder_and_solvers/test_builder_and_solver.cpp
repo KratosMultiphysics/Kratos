@@ -462,6 +462,25 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,4) - 4138000000.0000000000000000)/rA(7,4)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,6) - 4138000000.0000000000000000)/rA(7,6)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,7) - -4138000000.0000000000000000)/rA(7,7)), tolerance);
+
+//             parameters = Parameters(R"(
+//             {
+//                 "scale_diagonal"                      : true,
+//                 "silent_warnings"                     : false,
+//                 "consider_double_lagrange_multiplier" : false
+//             })" );
+//             BuilderAndSolverType::Pointer p_builder_and_solver_single_lm = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType(p_solver, parameters) );
+//
+//             const SparseSpaceType::MatrixType& rA_simple_lm = BuildSystem(r_model_part, p_scheme, p_builder_and_solver_single_lm);
+//
+//             SparseSpaceType::MatrixType copy_A(rA);
+//             const double condition_number_double_lm= ConditionNumberUtility().GetConditionNumber(copy_A);
+//             SparseSpaceType::MatrixType copy_A_scale(rA_simple_lm);
+//             const double condition_number_lm = ConditionNumberUtility().GetConditionNumber(copy_A_scale);
+//
+//             KRATOS_CHECK_RELATIVE_NEAR(condition_number_double_lm, 5.41671e+09, 1.0e-5);
+//             KRATOS_CHECK_RELATIVE_NEAR(condition_number_lm, 28.6791, 1.0e-5);
+//             KRATOS_CHECK_LESS_EQUAL(condition_number_double_lm, condition_number_lm);
         }
 
 //         TODO this test should be updated to use the BlockBuilder (which can handle constraints)
