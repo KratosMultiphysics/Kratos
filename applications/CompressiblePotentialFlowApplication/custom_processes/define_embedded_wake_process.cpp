@@ -141,6 +141,9 @@ void DefineEmbeddedWakeProcess::MarkKuttaWakeElements(){
 
     }
 
+    if (mrModelPart.HasSubModelPart("trailing_edge_sub_model_part")){
+        mrModelPart.RemoveSubModelPart("trailing_edge_sub_model_part");
+    }
     mrModelPart.CreateSubModelPart("trailing_edge_sub_model_part");
 
     std::sort(trailing_edge_node_list.begin(),
