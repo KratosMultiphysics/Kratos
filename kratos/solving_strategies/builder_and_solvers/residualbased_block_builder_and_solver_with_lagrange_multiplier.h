@@ -259,6 +259,7 @@ public:
         const SizeType total_system_size = (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) ? BaseType::mEquationSystemSize + 2 * BaseType::mSlaveIds.size() : BaseType::mEquationSystemSize + BaseType::mSlaveIds.size();
         if (rDx.size() != total_system_size) {
             rDx.resize(total_system_size,  false);
+            TSparseSpace::SetToZero(rDx);
         }
 
         // Base build and solve
@@ -295,6 +296,7 @@ public:
         const SizeType total_system_size = (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) ? BaseType::mEquationSystemSize + 2 * BaseType::mSlaveIds.size() : BaseType::mEquationSystemSize + BaseType::mSlaveIds.size();
         if (rDx.size() != total_system_size) {
             rDx.resize(total_system_size,  false);
+            TSparseSpace::SetToZero(rDx);
         }
 
         // Base build and solve
