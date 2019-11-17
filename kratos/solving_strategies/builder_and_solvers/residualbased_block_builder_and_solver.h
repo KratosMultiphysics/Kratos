@@ -80,6 +80,7 @@ public:
 
     /// Definition of the flags
     KRATOS_DEFINE_LOCAL_FLAG( SCALE_DIAGONAL );
+    KRATOS_DEFINE_LOCAL_FLAG( CONSIDER_NORM_DIAGONAL );
     KRATOS_DEFINE_LOCAL_FLAG( SILENT_WARNINGS );
 
     /// Definition of the pointer
@@ -132,15 +133,17 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "name"            : "ResidualBasedBlockBuilderAndSolver",
-            "scale_diagonal"  : false,
-            "silent_warnings" : false
+            "name"                   : "ResidualBasedBlockBuilderAndSolver",
+            "scale_diagonal"         : false,
+            "consider_norm_diagonal" : true,
+            "silent_warnings"        : false
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         // Setting flags
         mOptions.Set(SCALE_DIAGONAL, ThisParameters["scale_diagonal"].GetBool());
+        mOptions.Set(CONSIDER_NORM_DIAGONAL, ThisParameters["consider_norm_diagonal"].GetBool());
         mOptions.Set(SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
     }
 
@@ -150,10 +153,12 @@ public:
     explicit ResidualBasedBlockBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
         const bool ScaleDiagonal = false,
+        const bool ConsiderNormDiagonal = true,
         const bool SilentWarnings = false
         ) : BaseType(pNewLinearSystemSolver)
     {
         mOptions.Set(SCALE_DIAGONAL, ScaleDiagonal);
+        mOptions.Set(CONSIDER_NORM_DIAGONAL, ConsiderNormDiagonal);
         mOptions.Set(SILENT_WARNINGS, SilentWarnings);
     }
 
@@ -466,7 +471,7 @@ public:
      * @brief Corresponds to the previews, but the System's matrix is considered already built and only the RHS is built again
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
-     * @param A The LHS matrix
+     * @param A The LHS matrixLHS
      * @param Dx The Unknowns vector
      * @param b The RHS vector
      */
@@ -842,7 +847,7 @@ public:
 
         // The diagonal considered
         const auto& r_process_info = rModelPart.GetProcessInfo();
-        const double diagonal_value = mOptions.Is(SCALE_DIAGONAL) ? r_process_info.Has(BUILD_SCALE_FACTOR) ? r_process_info[BUILD_SCALE_FACTOR] : TSparseSpace::TwoNorm(rA) : 1.0;
+        const double diagonal_value = GetScaleNorm(rA, r_process_info);
         
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         std::size_t col_begin = 0, col_end  = 0;
@@ -1353,6 +1358,36 @@ protected:
         }
     }
 
+    /**
+     * @brief This method returns the scale norm considering for scaling the diagonal
+     * @param rA The LHS matrix
+     * @param rCurrentProcessInfo The current process info instance
+     * @return The scale norm
+     */
+    double GetScaleNorm(
+        TSystemMatrixType& rA,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        if (mOptions.Is(SCALE_DIAGONAL) ) {
+            if (rCurrentProcessInfo.Has(BUILD_SCALE_FACTOR)) {
+                return rCurrentProcessInfo[BUILD_SCALE_FACTOR];
+            } else {
+                if (mOptions.Is(CONSIDER_NORM_DIAGONAL) ) {
+                    double max_diag = 0.0;
+                    for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
+                        max_diag = std::max(std::abs(rA(i,i)), max_diag);
+                    }
+                    return max_diag;
+                } else {
+                    return TSparseSpace::TwoNorm(rA);
+                }
+            }
+        } else {
+            return 1.0;
+        }
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -1574,7 +1609,9 @@ private:
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::SCALE_DIAGONAL(Kratos::Flags::Create(0));
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::SILENT_WARNINGS(Kratos::Flags::Create(1));
+const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::CONSIDER_NORM_DIAGONAL(Kratos::Flags::Create(1));
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
+const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::SILENT_WARNINGS(Kratos::Flags::Create(2));
 
 ///@}
 
