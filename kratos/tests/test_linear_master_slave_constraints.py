@@ -79,7 +79,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         else: # Block default
             self.builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         self.scheme = KM.ResidualBasedBossakDisplacementScheme(-0.01)
-        self.convergence_criterion = KM.ResidualCriteria(1e-10, 1e-12)
+        self.convergence_criterion = KM.ResidualCriteria(1e-6, 1e-9)
         self.convergence_criterion.SetEchoLevel(0)
 
         max_iters = 10
