@@ -1366,12 +1366,13 @@ protected:
      */
     double GetScaleNorm(
         TSystemMatrixType& rA,
-        const ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo,
+        const Variable<double>& rScaleVariable
         )
     {
         if (mOptions.Is(SCALE_DIAGONAL) ) {
-            if (rCurrentProcessInfo.Has(BUILD_SCALE_FACTOR)) {
-                return rCurrentProcessInfo[BUILD_SCALE_FACTOR];
+            if (rCurrentProcessInfo.Has(rScaleVariable)) {
+                return rCurrentProcessInfo[rScaleVariable];
             } else {
                 if (mOptions.Is(CONSIDER_NORM_DIAGONAL) ) {
                     double max_diag = 0.0;
