@@ -93,10 +93,6 @@ class TurbulenceKEpsilonConfiguration(
         self.fluid_model_part.ProcessInfo[
             KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA] = constants[
                 "sigma_epsilon"].GetDouble()
-        self.fluid_model_part.ProcessInfo[
-            KratosRANS.TURBULENT_VISCOSITY_MIN] = self.nu_t_min
-        self.fluid_model_part.ProcessInfo[
-            KratosRANS.TURBULENT_VISCOSITY_MAX] = self.nu_t_max
 
     def PrepareSolvingStrategy(self):
         scheme_settings = self.model_settings["scheme_settings"]

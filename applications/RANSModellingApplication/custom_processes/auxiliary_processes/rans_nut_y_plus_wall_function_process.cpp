@@ -87,8 +87,6 @@ void RansNutYPlusWallFunctionProcess::Execute()
 
     const int number_of_nodes = r_model_part.NumberOfNodes();
 
-    const double nu_t_min = r_model_part.GetProcessInfo()[TURBULENT_VISCOSITY_MIN];
-
     unsigned int number_of_modified_nu_t_nodes = 0;
 
 #pragma omp parallel for reduction(+ : number_of_modified_nu_t_nodes)

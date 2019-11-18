@@ -93,8 +93,6 @@
             ],
             "mesh_moving": false,
             "echo_level": 0,
-            "turbulent_viscosity_min": 1e-18,
-            "turbulent_viscosity_max": 1e+2,
             "model_settings": {
                 "scheme_settings": {
                     "scheme_type": "steady",
