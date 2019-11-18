@@ -320,7 +320,8 @@ protected:
                 {
                     std::stringstream conv_check_msg;
                     conv_check_msg
-                        << "[Itr.#" << std::setw(iteration_format_length) << iteration
+                        << "[Itr.#" << std::setw(iteration_format_length)
+                        << iteration << "/" << this->mMaxIterations
                         << "] CONVERGENCE CHECK: " << mrConvergenceVariable.Name()
                         << " ratio = " << std::setprecision(3)
                         << std::scientific << convergence_relative
@@ -333,7 +334,8 @@ protected:
                     {
                         std::stringstream conv_msg;
                         conv_msg
-                            << "[Itr.#" << std::setw(iteration_format_length) << iteration
+                            << "[Itr.#" << std::setw(iteration_format_length)
+                            << iteration << "/" << this->mMaxIterations
                             << "] CONVERGENCE CHECK: " << mrConvergenceVariable.Name()
                             << " *** CONVERGENCE IS ACHIEVED ***\n";
                         KRATOS_INFO(this->Info()) << conv_msg.str();
@@ -345,12 +347,12 @@ protected:
 
             this->UpdateAfterSolveEquations();
 
-            KRATOS_WARNING_IF(this->Info(), !is_converged)
+            KRATOS_INFO_IF(this->Info(), !is_converged && this->mEchoLevel > 2)
                 << "\n-------------------------------------------------------"
-                << "\n    WARNING: Max coupling iterations reached.          "
-                << "\n             Please increase coupling max_iterations   "
-                << "\n             or decrease coupling                      "
-                << "\n             relative_tolerance/absolute tolerance     "
+                << "\n    INFO: Max coupling iterations reached.             "
+                << "\n          Please increase coupling max_iterations      "
+                << "\n          or decrease coupling                         "
+                << "\n          relative_tolerance/absolute tolerance        "
                 << "\n-------------------------------------------------------"
                 << "\n";
 
