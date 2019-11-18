@@ -199,25 +199,25 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@{
 
     /**
-     * @brief This method creates a property from configuration parameters
-     * @param Data The parameters containing all the configurations of the materials
-     * @param pNewProperty The pointer to the new property created
+     * @brief This method assigns the material parameters to a property from configuration parameters
+     * @param MaterialData The parameters containing all the configurations of the materials
+     * @param rProperty The reference to the property for which the materials are to be assigned
      */
-    void CreateProperty(
-        Parameters Data,
-        Properties::Pointer& pNewProperty
+    void AssingMaterialToProperty(
+        const Parameters MaterialData,
+        Properties& rProperty
         );
 
     /**
      * @brief This method creates a list of subproperties and it assigns to the father property from configuration parameters
      * @param rModelPart The currently computed model part
-     * @param Data The parameters containing all the configurations of the materials
-     * @param pNewProperty The pointer to the new property created
+     * @param SubPropertiesData The parameters containing all the configurations of the materials
+     * @param rProperty The reference to the property for which the subproperties are to be created
      */
     void CreateSubProperties(
         ModelPart& rModelPart,
-        Parameters Data,
-        Properties::Pointer& pNewProperty
+        const Parameters SubPropertiesData,
+        Properties& rProperty
         );
 
     /**
@@ -248,6 +248,12 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * @param Materials The parameters containing the properties of the materials
      */
     void CheckUniqueMaterialAssignment(Parameters Materials);
+
+    /**
+     * @brief Check if a model part is repeated inside materials
+     * @param ModelPartNames vector with the model part names
+     */
+    void CheckModelPartIsNotRepeated(std::vector<std::string>);
 
 
     ///@}

@@ -44,6 +44,50 @@ void ConnectivityPreserveModeler::GenerateModelPart(
     KRATOS_CATCH("");
 }
 
+void ConnectivityPreserveModeler::GenerateModelPart(
+    ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart,
+    Element const& rReferenceElement)
+{
+    KRATOS_TRY;
+
+    this->CheckVariableLists(rOriginModelPart, rDestinationModelPart);
+
+    this->ResetModelPart(rDestinationModelPart);
+
+    this->CopyCommonData(rOriginModelPart, rDestinationModelPart);
+
+    this->DuplicateElements(rOriginModelPart, rDestinationModelPart, rReferenceElement);
+
+    this->DuplicateCommunicatorData(rOriginModelPart,rDestinationModelPart);
+
+    this->DuplicateSubModelParts(rOriginModelPart, rDestinationModelPart);
+
+    KRATOS_CATCH("");
+}
+
+void ConnectivityPreserveModeler::GenerateModelPart(
+    ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart,
+    Condition const& rReferenceCondition)
+{
+    KRATOS_TRY;
+
+    this->CheckVariableLists(rOriginModelPart, rDestinationModelPart);
+
+    this->ResetModelPart(rDestinationModelPart);
+
+    this->CopyCommonData(rOriginModelPart, rDestinationModelPart);
+
+    this->DuplicateConditions(rOriginModelPart, rDestinationModelPart, rReferenceCondition);
+
+    this->DuplicateCommunicatorData(rOriginModelPart,rDestinationModelPart);
+
+    this->DuplicateSubModelParts(rOriginModelPart, rDestinationModelPart);
+
+    KRATOS_CATCH("");
+}
+
 // Private methods /////////////////////////////////////////////////////////////
 void ConnectivityPreserveModeler::CheckVariableLists(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart) const
 {
@@ -89,7 +133,7 @@ void ConnectivityPreserveModeler::CopyCommonData(
             << "Attempting to change the BufferSize of the Destination Model Part, which is a SubModelPart." << std::endl
             << "Aborting, since this would break its parent ModelPart." << std::endl;
     } else {
-        rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
+        rDestinationModelPart.SetNodalSolutionStepVariablesList(rOriginModelPart.pGetNodalSolutionStepVariablesList());
         rDestinationModelPart.SetBufferSize( rOriginModelPart.GetBufferSize() );
     }
 
@@ -154,19 +198,17 @@ void ConnectivityPreserveModeler::DuplicateCommunicatorData(
     Communicator::Pointer pDestinationComm = rReferenceComm.Create();
     pDestinationComm->SetNumberOfColors( rReferenceComm.GetNumberOfColors() );
     pDestinationComm->NeighbourIndices() = rReferenceComm.NeighbourIndices();
-    pDestinationComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
-    pDestinationComm->InterfaceMesh().SetNodes( rReferenceComm.InterfaceMesh().pNodes() );
-    pDestinationComm->GhostMesh().SetNodes( rReferenceComm.GhostMesh().pNodes() );
-    for (unsigned int i = 0; i < rReferenceComm.GetNumberOfColors(); i++) {
-        pDestinationComm->pLocalMesh(i)->SetNodes( rReferenceComm.pLocalMesh(i)->pNodes() );
-        pDestinationComm->pInterfaceMesh(i)->SetNodes( rReferenceComm.pInterfaceMesh(i)->pNodes() );
-        pDestinationComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
-    }
 
-    // This is a dirty hack to detect if the communicator is a Communicator or an MPICommunicator
-    // Note that downcasting would not work here because MPICommunicator is not compiled in non-MPI builds
-    const bool is_mpi = ( rOriginModelPart.pElements() == rReferenceComm.LocalMesh().pElements() );
-    if (is_mpi) {
+    if (rReferenceComm.IsDistributed()) {
+        pDestinationComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
+        pDestinationComm->InterfaceMesh().SetNodes( rReferenceComm.InterfaceMesh().pNodes() );
+        pDestinationComm->GhostMesh().SetNodes( rReferenceComm.GhostMesh().pNodes() );
+        for (unsigned int i = 0; i < rReferenceComm.GetNumberOfColors(); i++) {
+            pDestinationComm->pLocalMesh(i)->SetNodes( rReferenceComm.pLocalMesh(i)->pNodes() );
+            pDestinationComm->pInterfaceMesh(i)->SetNodes( rReferenceComm.pInterfaceMesh(i)->pNodes() );
+            pDestinationComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
+        }
+
         // All elements are passed as local elements to the new communicator
         ModelPart::ElementsContainerType& rDestinationLocalElements = pDestinationComm->LocalMesh().Elements();
         rDestinationLocalElements.clear();
@@ -183,8 +225,7 @@ void ConnectivityPreserveModeler::DuplicateCommunicatorData(
             rDestinationLocalConditions.push_back(*i_cond);
         }
     } else {
-        pDestinationComm->LocalMesh().pElements() = rDestinationModelPart.pElements();
-        pDestinationComm->LocalMesh().pConditions() = rDestinationModelPart.pConditions();
+        pDestinationComm->SetLocalMesh(rDestinationModelPart.pGetMesh());
     }
 
     rDestinationModelPart.SetCommunicator( pDestinationComm );
@@ -206,15 +247,23 @@ ModelPart& rDestinationModelPart) const
         std::vector<ModelPart::IndexType> ids;
         ids.reserve(i_part->Elements().size());
 
-        //adding by index
-        for(auto it=i_part->ElementsBegin(); it!=i_part->ElementsEnd(); ++it)
-            ids.push_back(it->Id());
-        destination_part.AddElements(ids, 0); //adding by index
+        // Execute only if we created elements in the destination
+        if (rDestinationModelPart.NumberOfElements() > 0)
+        {
+            //adding by index
+            for(auto it=i_part->ElementsBegin(); it!=i_part->ElementsEnd(); ++it)
+                ids.push_back(it->Id());
+            destination_part.AddElements(ids, 0); //adding by index
+        }
 
-        ids.clear();
-        for(auto it=i_part->ConditionsBegin(); it!=i_part->ConditionsEnd(); ++it)
-            ids.push_back(it->Id());
-        destination_part.AddConditions(ids, 0);
+        // Execute only if we created conditions in the destination
+        if (rDestinationModelPart.NumberOfConditions() > 0)
+        {
+            ids.clear();
+            for(auto it=i_part->ConditionsBegin(); it!=i_part->ConditionsEnd(); ++it)
+                ids.push_back(it->Id());
+            destination_part.AddConditions(ids, 0);
+        }
 
         // Duplicate the Communicator for this SubModelPart
         this->DuplicateCommunicatorData(*i_part, destination_part);

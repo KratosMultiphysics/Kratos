@@ -47,7 +47,7 @@ void ComputeMassMomentOfInertiaProcess::Execute()
     }
 
     // sum up across partitions
-    mrThisModelPart.GetCommunicator().SumAll(moment_of_inertia);
+    moment_of_inertia = mrThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(moment_of_inertia);
 
     std::stringstream info_stream;
     info_stream << "Moment of Inertia of ModelPart \"" << mrThisModelPart.Name() << "\"";

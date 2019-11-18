@@ -31,7 +31,7 @@
 #include "includes/kratos_flags.h"
 #include "utilities/geometry_utilities.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/timer.h"
 #include "processes/node_erase_process.h"
@@ -751,7 +751,7 @@ namespace Kratos
 
 	    iparticle->FastGetSolutionStepValue(EMBEDDED_VELOCITY) = iparticle->FastGetSolutionStepValue(VELOCITY,1);  //AUX_VEL
 
-	    if(iparticle->FastGetSolutionStepValue(IS_STRUCTURE) == 1.0) do_move = false;
+	    if(iparticle->Is(SLIP)) do_move = false;
 
 	    //iparticle->FastGetSolutionStepValue(TEMPERATURE) = 298.0;
 	    if( do_move == true  ) //note that we suppose the velocity components to be all fixed
@@ -800,7 +800,7 @@ namespace Kratos
 			acc[0] =  0.0;
 			acc[1] = -10.0;
 			acc[2] =  0.0;
-			if( first_time == false /*&& iparticle->FastGetSolutionStepValue(IS_STRUCTURE) == 0.0*/ )
+			if( first_time == false /*&& iparticle->Is(SLIP) == false*/ )
 			  {
 			    noalias(current_position) += small_dt *iparticle->FastGetSolutionStepValue(EMBEDDED_VELOCITY);
 			    //noalias(current_position) += small_dt * small_dt * acc;
@@ -843,7 +843,7 @@ namespace Kratos
 	    i != ThisModelPart.NodesEnd() ; ++i)
 	  {
 	    if(
-	       (i)->FastGetSolutionStepValue(IS_STRUCTURE) == 0 &&
+	       (i)->Is(SLIP) == false &&
 	       (i)->GetValue(NEIGHBOUR_ELEMENTS).size() == 0 &&
 	       ((i)->GetDof(VELOCITY_X).IsFixed() == false || (i)->GetDof(VELOCITY_Y).IsFixed() == false || (i)->GetDof(VELOCITY_Z).IsFixed() == false)
 	       )
@@ -890,7 +890,7 @@ namespace Kratos
 
 		  int nf=0;
 		  //loop on neighbours and erase if they are too close
-		  for( WeakPointerVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin(); i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
+		  for( GlobalPointersVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin(); i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
 		    {
 
 			//KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
@@ -1183,8 +1183,8 @@ namespace Kratos
 	  iNode->GetSolutionStepValue(DIAMETER)=color;
 
 	ModelPart::NodesContainerType front_nodes;
-	WeakPointerVector<Element >& r_neighbour_elements = iNode->GetValue(NEIGHBOUR_ELEMENTS);
-	for(WeakPointerVector<Element >::iterator i_neighbour_element = r_neighbour_elements.begin() ; i_neighbour_element != r_neighbour_elements.end() ; i_neighbour_element++)
+	GlobalPointersVector<Element >& r_neighbour_elements = iNode->GetValue(NEIGHBOUR_ELEMENTS);
+	for(GlobalPointersVector<Element >::iterator i_neighbour_element = r_neighbour_elements.begin() ; i_neighbour_element != r_neighbour_elements.end() ; i_neighbour_element++)
 	  {
 	    if(i_neighbour_element->GetValue(DIAMETER) < 0 )
 	      {
@@ -1207,8 +1207,8 @@ namespace Kratos
 	    ModelPart::NodesContainerType new_front_nodes;
 	    for(ModelPart::NodesContainerType::iterator i_node = front_nodes.begin() ; i_node != front_nodes.end() ; i_node++)
 	      {
-		WeakPointerVector<Element >& r_neighbour_elements = i_node->GetValue(NEIGHBOUR_ELEMENTS);
-		for(WeakPointerVector<Element >::iterator i_neighbour_element = r_neighbour_elements.begin() ; i_neighbour_element != r_neighbour_elements.end() ; i_neighbour_element++)
+		GlobalPointersVector<Element >& r_neighbour_elements = i_node->GetValue(NEIGHBOUR_ELEMENTS);
+		for(GlobalPointersVector<Element >::iterator i_neighbour_element = r_neighbour_elements.begin() ; i_neighbour_element != r_neighbour_elements.end() ; i_neighbour_element++)
 		  {
 		    if(i_neighbour_element->GetValue(DIAMETER) < 0  )
 		      {

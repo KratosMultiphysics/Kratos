@@ -40,22 +40,28 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         # Settings string in json format
         default_parameters = KM.Parameters("""
         {
-            "help"                        : "This class is used in order to compute the contact using a mortar ALM formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
-            "mesh_id"                     : 0,
-            "model_part_name"             : "Structure",
-            "computing_model_part_name"   : "computing_domain",
-            "contact_model_part"          : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
-            "assume_master_slave"         : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
-            "contact_property_ids"        : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
-            "contact_type"                : "Frictionless",
-            "interval"                    : [0.0,"End"],
-            "normal_variation"            : "no_derivatives_computation",
-            "frictional_law"              : "Coulomb",
-            "tangent_factor"              : 1.0e-1,
-            "integration_order"           : 2,
-            "clear_inactive_for_post"     : true,
-            "search_parameters" : {
-                "type_search"                         : "in_radius",
+            "help"                          : "This class is used in order to compute the contact using a mortar ALM formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
+            "mesh_id"                       : 0,
+            "model_part_name"               : "Structure",
+            "computing_model_part_name"     : "computing_domain",
+            "contact_model_part"            : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
+            "assume_master_slave"           : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
+            "contact_property_ids"          : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
+            "contact_type"                  : "Frictionless",
+            "not_normal_update_frictional"  : false,
+            "interval"                      : [0.0,"End"],
+            "normal_variation"              : "no_derivatives_computation",
+            "frictional_law"                : "Coulomb",
+            "tangent_factor"                : 1.0e-4,
+            "operator_threshold"            : 1.0e-3,
+            "slip_augmentation_coefficient" : 0.0,
+            "slip_threshold"                : 2.0e-2,
+            "zero_tolerance_factor"         : 1.0,
+            "integration_order"             : 2,
+            "clear_inactive_for_post"       : true,
+            "slip_step_reset_frequency"     : 1,
+            "search_parameters"             : {
+                "type_search"                         : "octree_with_obb",
                 "simple_search"                       : false,
                 "adapt_search"                        : false,
                 "search_factor"                       : 3.5,
@@ -65,15 +71,26 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
                 "dynamic_search"                      : false,
                 "static_check_movement"               : false,
                 "database_step_update"                : 1,
+                "normal_orientation_threshold"        : 1.0e-1,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
-                "check_gap"                           : "check_mapping"
+                "check_gap"                           : "check_mapping",
+                "octree_search_parameters" : {
+                    "bounding_box_factor"             : 0.1,
+                    "debug_obb"                       : false,
+                    "OBB_intersection_type"           : "SeparatingAxisTheorem",
+                    "build_from_bounding_box"         : true,
+                    "lower_bounding_box_coefficient"  : 0.0,
+                    "higher_bounding_box_coefficient" : 1.0
+                }
             },
-            "advance_explicit_parameters" : {
-                "manual_max_gap_theshold" : true,
-                "max_gap_threshold"       : 1.0e-1,
-                "max_gap_factor"          : 1.0e4
+            "advance_explicit_parameters"  : {
+                "manual_max_gap_theshold"  : false,
+                "automatic_gap_factor"     : 1.0e-1,
+                "max_gap_threshold"        : 5.0e-2,
+                "max_gap_factor"           : 1.0e2,
+                "logistic_exponent_factor" : 6.0
             },
             "advance_ALM_parameters" : {
                 "manual_ALM"                  : false,
@@ -91,12 +108,12 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         }
         """)
 
-        # Construct the base process.
-        super(ExplicitPenaltyContactProcess, self).__init__(Model, settings)
-
         # Overwrite the default settings with user-provided parameters
         self.contact_settings = settings
         self.contact_settings.RecursivelyValidateAndAssignDefaults(default_parameters)
+
+        # Construct the base process.
+        super(ExplicitPenaltyContactProcess, self).__init__(Model, self.contact_settings)
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process

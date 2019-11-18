@@ -59,12 +59,22 @@ enum WriteConditionsFlag {WriteConditions, WriteElementsOnly, WriteConditionsOnl
 enum MultiFileFlag {SingleFile, MultipleFiles};
 
 
+class KRATOS_API(KRATOS_CORE) GidIOBase : public IO {
+
+    protected:
+    /**
+     * Counter of live GidIO instances
+     * (to ensure GiD_PostInit and GiD_PostDone are properly called)
+     */
+    static int msLiveInstances;
+};
+
 /**
  * This class defines an interface to the GiDPost library
  * in order to provide GiD compliant I/O functionality
  */
 template<class TGaussPointContainer = GidGaussPointsContainer, class TMeshContainer = GidMeshContainer>
-class GidIO : public IO
+class KRATOS_API(KRATOS_CORE) GidIO : public GidIOBase
 {
 public:
     ///pointer definition of GidIO
@@ -100,11 +110,11 @@ public:
         SetUpMeshContainers();
         SetUpGaussPointContainers();
 
-        if (msLiveInstances == 0)
+        if (GidIOBase::msLiveInstances == 0)
         {
           GiD_PostInit();
         }
-        msLiveInstances += 1;
+        GidIOBase::msLiveInstances += 1;
     }
 
     ///Destructor.
@@ -118,8 +128,8 @@ public:
             mResultFileOpen = false;
         }
 
-        msLiveInstances -= 1;
-        if (msLiveInstances == 0)
+        GidIOBase::msLiveInstances -= 1;
+        if (GidIOBase::msLiveInstances == 0)
         {
           GiD_PostDone();
         }
@@ -594,7 +604,7 @@ public:
     /**
      * Turn back information as a string.
      */
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "gid io";
     }
@@ -602,7 +612,7 @@ public:
     /**
      * Print information about this object.
      */
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
@@ -610,7 +620,7 @@ public:
     /**
      * Print object's data.
      */
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -746,7 +756,7 @@ public:
 
     }
     /**
-     * writes nodal results for variables of type double
+     * writes nodal results for variables of type int
      */
     void WriteNodalResults( Variable<int> const& rVariable,
                             NodesContainerType& rNodes, double SolutionTag,
@@ -1361,7 +1371,7 @@ public:
      * @param deformed_flag states whether the mesh should be written in deformed configuration
      * @param conditions_flag states whether conditions should also be written
      */
-    void WriteMesh( MeshType& rThisMesh )
+    void WriteMesh( MeshType& rThisMesh ) override
     {
         KRATOS_TRY
 
@@ -1578,13 +1588,6 @@ protected:
     bool mResultFileOpen;
 
 private:
-
-    /**
-     * Counter of live GidIO instances
-     * (to ensure GiD_PostInit and GiD_PostDone are properly called)
-     */
-    static int msLiveInstances;
-
     /**
      * assignment operator
      */
@@ -1646,9 +1649,6 @@ inline std::ostream& operator << (std::ostream& rOStream, const GidIO<>& rThis)
     rThis.PrintData(rOStream);
     return rOStream;
 }
-
-template< class TGaussPointContainer, class TMeshContainer >
-int GidIO<TGaussPointContainer,TMeshContainer>::msLiveInstances = 0;
 
 }// namespace Kratos.
 

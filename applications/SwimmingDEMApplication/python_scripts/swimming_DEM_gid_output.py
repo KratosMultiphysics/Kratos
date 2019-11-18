@@ -1,8 +1,9 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
+import KratosMultiphysics as Kratos
 from KratosMultiphysics import MultiFileFlag
 from KratosMultiphysics import GiDPostMode
-import gid_output
+import KratosMultiphysics.gid_output as gid_output # this is deprecated
 
 
 class SwimmingDEMGiDOutput(gid_output.GiDOutput):
@@ -117,27 +118,27 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
             self.io.InitializeResults(label, mixed_model_part.GetMesh())
 
         for var in fluid_nodal_variables:
-            kratos_variable = globals()[var]
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
             self._write_nodal_results(label, fluid_model_part, kratos_variable)
 
         for var in DEM_nodal_variables:
-            kratos_variable = globals()[var]
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
             self._write_nodal_results(label, DEM_model_part, kratos_variable)
 
         for var in cluster_variables:
-            kratos_variable = globals()[var]
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
             self._write_nodal_results(label, clusters_model_part, kratos_variable)
 
         for var in rigid_faces_variables:
-            kratos_variable = globals()[var]
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
             self._write_nodal_results(label, rigid_faces_model_part, kratos_variable)
 
         for var in mixed_nodal_variables:
-            kratos_variable = globals()[var]
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
             self._write_nodal_results(label, mixed_model_part, kratos_variable)
 
         for var in fluid_gp_variables:
-            kratos_variable = globals()[var]
+            kratos_variable = Kratos.KratosGlobals.GetVariable(var)
             self._write_gp_results(label, fluid_model_part, kratos_variable)
 
         if self.multi_file == MultiFileFlag.MultipleFiles:

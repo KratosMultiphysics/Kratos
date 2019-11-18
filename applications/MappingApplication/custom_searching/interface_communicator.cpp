@@ -63,7 +63,7 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
 
     FinalizeSearch();
 
-    rComm.Barrier();
+    rComm.GetDataCommunicator().Barrier();
 }
 
 /***********************************************************************************/
@@ -169,17 +169,15 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(const MapperInterfaceIn
     }
 
     else if (interface_obj_type == InterfaceObject::ConstructionType::Geometry_Center) {
-        const SizeType num_elements = mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfElements();
-        const SizeType num_conditions = mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfConditions();
+        Communicator& r_comm = mrModelPartOrigin.GetCommunicator();
+        const SizeType num_elements = r_comm.LocalMesh().NumberOfElements();
+        const SizeType num_conditions = r_comm.LocalMesh().NumberOfConditions();
 
-        const auto elements_begin = mrModelPartOrigin.GetCommunicator().LocalMesh().Elements().ptr_begin();
-        const auto conditions_begin = mrModelPartOrigin.GetCommunicator().LocalMesh().Conditions().ptr_begin();
+        const auto elements_begin = r_comm.LocalMesh().Elements().ptr_begin();
+        const auto conditions_begin = r_comm.LocalMesh().Conditions().ptr_begin();
 
-        int num_elements_global = static_cast<int>(num_elements);
-        int num_conditions_global = static_cast<int>(num_conditions);
-
-        mrModelPartOrigin.GetCommunicator().SumAll(num_elements_global);
-        mrModelPartOrigin.GetCommunicator().SumAll(num_conditions_global);
+        int num_elements_global = r_comm.GetDataCommunicator().SumAll(static_cast<int>(num_elements));
+        int num_conditions_global = r_comm.GetDataCommunicator().SumAll(static_cast<int>(num_conditions));
 
         KRATOS_ERROR_IF(num_elements_global > 0 && num_conditions_global > 0)
             << "Both Elements and Conditions are present which is not allowed!\n"
@@ -210,7 +208,7 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(const MapperInterfaceIn
 
     // Making sure that the data-structure was correctly initialized
     int num_interface_objects = mpInterfaceObjectsOrigin->size(); // int bcs of MPI
-    mrModelPartOrigin.GetCommunicator().SumAll(num_interface_objects);
+    num_interface_objects = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().SumAll(num_interface_objects);
 
     KRATOS_ERROR_IF_NOT(num_interface_objects > 0)
         << "No interface objects were created in Origin-ModelPart \""
@@ -304,7 +302,7 @@ bool InterfaceCommunicator::AllNeighborsFound(const Communicator& rComm) const
     }
 
     // This is necessary bcs not all partitions would start a new search iteration!
-    rComm.MinAll(all_neighbors_found);
+    all_neighbors_found = rComm.GetDataCommunicator().MinAll(all_neighbors_found);
 
     return all_neighbors_found > 0;
 }

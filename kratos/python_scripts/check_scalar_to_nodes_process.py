@@ -1,4 +1,5 @@
 import KratosMultiphysics
+from KratosMultiphysics.check_scalar_base_process import CheckScalarBaseProcess
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -9,7 +10,6 @@ def Factory(settings, Model):
     return CheckScalarToNodesProcess(Model, settings["Parameters"])
 
 
-from check_scalar_base_process import CheckScalarBaseProcess
 class CheckScalarToNodesProcess(CheckScalarBaseProcess, KratosUnittest.TestCase):
     """This process checks analytically from a function the solution (scalar) in a set of nodes belonging a certain submodelpart
 

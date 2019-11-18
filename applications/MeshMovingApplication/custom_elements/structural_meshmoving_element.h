@@ -50,7 +50,7 @@ public:
   ///@name Type Definitions
   ///@{
   /// Pointer definition of StructuralMeshMovingElement
-  KRATOS_CLASS_POINTER_DEFINITION(StructuralMeshMovingElement);
+  KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StructuralMeshMovingElement);
 
   typedef Element BaseType;
   typedef BaseType::GeometryType GeometryType;

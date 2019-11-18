@@ -29,17 +29,7 @@ class PFEM2NavierStokesMonolithicSolver(NavierStokesSolverMonolithic):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPFEM2.DELTA_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPFEM2.MEAN_SIZE) # This variable could be used as non-historical
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("PFEM2NavierStokesMonolithicSolver", "Fluid solver variables added correctly.")
-
-    def AddDofs(self):
-        super(PFEM2NavierStokesMonolithicSolver,self).AddDofs()
-
-        # PFEM2 Dofs # mms: we don't need DISTANCE dof (it is the particles pseudo-levelset)
-        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISTANCE, self.main_model_part)
-
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("PFEM2NavierStokesMonolithicSolver", "Fluid solver DOFs added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("PFEM2NavierStokesMonolithicSolver", "Fluid solver variables added correctly.")
 
     def Initialize(self):
 

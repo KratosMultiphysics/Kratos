@@ -107,7 +107,7 @@ TotalLagrangian::TotalLagrangian( IndexType NewId, GeometryType::Pointer pGeomet
 
 Element::Pointer TotalLagrangian::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared<TotalLagrangian>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<TotalLagrangian>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 //************************************************************************************
@@ -115,7 +115,7 @@ Element::Pointer TotalLagrangian::Create( IndexType NewId, NodesArrayType const&
 
 Element::Pointer TotalLagrangian::Create( IndexType NewId,  GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared<TotalLagrangian>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<TotalLagrangian>( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
@@ -135,7 +135,7 @@ Element::Pointer TotalLagrangian::Clone (
 {
     KRATOS_TRY
 
-    TotalLagrangian::Pointer p_new_elem = Kratos::make_shared<TotalLagrangian>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    TotalLagrangian::Pointer p_new_elem = Kratos::make_intrusive<TotalLagrangian>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
 

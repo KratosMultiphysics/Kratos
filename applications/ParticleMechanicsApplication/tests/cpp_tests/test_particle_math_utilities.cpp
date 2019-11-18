@@ -17,7 +17,6 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "utilities/math_utils.h"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
 
 namespace Kratos

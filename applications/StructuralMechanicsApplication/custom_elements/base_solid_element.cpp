@@ -257,7 +257,7 @@ Element::Pointer BaseSolidElement::Clone (
 
     KRATOS_WARNING("BaseSolidElement") << " Call BaseSolidElement (base class) Clone " << std::endl;
 
-    BaseSolidElement::Pointer p_new_elem = Kratos::make_shared<BaseSolidElement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    BaseSolidElement::Pointer p_new_elem = Kratos::make_intrusive<BaseSolidElement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
 
@@ -683,20 +683,23 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 {
     const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
-    if ( rOutput.size() != integration_points.size() )
-        rOutput.resize( integration_points.size() );
+    const std::size_t number_of_integration_points = integration_points.size();
+    const auto& r_geometry = GetGeometry();
+
+    if ( rOutput.size() != number_of_integration_points )
+        rOutput.resize( number_of_integration_points );
 
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);
     } else {
         if (rVariable == INTEGRATION_WEIGHT) {
-            const SizeType number_of_nodes = GetGeometry().size();
-            const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+            const SizeType number_of_nodes = r_geometry.size();
+            const SizeType dimension = r_geometry.WorkingSpaceDimension();
             const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
 
-            for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+            for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
                 this_kinematic_variables.detJ0 = CalculateDerivativesOnReferenceConfiguration(this_kinematic_variables.J0,
                                                                                     this_kinematic_variables.InvJ0,
                                                                                     this_kinematic_variables.DN_DX,
@@ -713,15 +716,15 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 rOutput[point_number] = integration_weight;
             }
         } else if ( rVariable == STRAIN_ENERGY ) {
-            const SizeType number_of_nodes = GetGeometry().size();
-            const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+            const SizeType number_of_nodes = r_geometry.size();
+            const SizeType dimension = r_geometry.WorkingSpaceDimension();
             const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             ConstitutiveVariables this_constitutive_variables(strain_size);
 
             // Create constitutive law parameters:
-            ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+            ConstitutiveLaw::Parameters Values(r_geometry,GetProperties(),rCurrentProcessInfo);
 
             // Set constitutive law flags:
             Flags& ConstitutiveLawOptions=Values.GetOptions();
@@ -730,12 +733,12 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
             // Reading integration points
-            const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+            const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
 
             // If strain has to be computed inside of the constitutive law with PK2
             Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
 
-            for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+            for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
@@ -749,15 +752,15 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 rOutput[point_number] = StrainEnergy;
             }
         } else if ( rVariable == ERROR_INTEGRATION_POINT ) {
-            const SizeType number_of_nodes = GetGeometry().size();
-            const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+            const SizeType number_of_nodes = r_geometry.size();
+            const SizeType dimension = r_geometry.WorkingSpaceDimension();
             const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             ConstitutiveVariables this_constitutive_variables(strain_size);
 
             // Create constitutive law parameters:
-            ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+            ConstitutiveLaw::Parameters Values(r_geometry,GetProperties(),rCurrentProcessInfo);
 
             // Set constitutive law flags:
             Flags& ConstitutiveLawOptions=Values.GetOptions();
@@ -766,70 +769,76 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
             // Reading integration points
-            const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
+            const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(  );
 
             //Calculate Cauchy Stresses from the FE solution
             std::vector<Vector> sigma_FE_solution(number_of_nodes);
-            Variable<Vector> variable_stress = CAUCHY_STRESS_VECTOR;
-            CalculateOnIntegrationPoints(variable_stress, sigma_FE_solution, rCurrentProcessInfo);
+            const Variable<Vector>& r_variable_stress = CAUCHY_STRESS_VECTOR;
+            CalculateOnIntegrationPoints(r_variable_stress, sigma_FE_solution, rCurrentProcessInfo);
 
             // calculate the determinatn of the Jacobian in the current configuration
-            Vector detJ(integration_points.size());
-            detJ = GetGeometry().DeterminantOfJacobian(detJ);
+            Vector detJ(number_of_integration_points);
+            detJ = r_geometry.DeterminantOfJacobian(detJ);
 
             // If strain has to be computed inside of the constitutive law with PK2
             Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
 
-            for (IndexType point_number = 0; point_number < integration_points.size(); point_number++) {
-                // Compute element kinematics B, F, DN_DX ...
-                CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+            if (r_geometry[0].Has(RECOVERED_STRESS)) {
+                for (IndexType point_number = 0; point_number < number_of_integration_points; point_number++) {
+                    // Compute element kinematics B, F, DN_DX ...
+                    CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-                // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+                    // Compute material reponse
+                    CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
-                double integration_weight = GetIntegrationWeight(integration_points, point_number, detJ[point_number]);
+                    double integration_weight = GetIntegrationWeight(integration_points, point_number, detJ[point_number]);
 
-                if (dimension == 2 && this->GetProperties().Has(THICKNESS))
-                    integration_weight *= this->GetProperties()[THICKNESS];
+                    if (dimension == 2 && this->GetProperties().Has(THICKNESS))
+                        integration_weight *= this->GetProperties()[THICKNESS];
 
-                // Calculate recovered stresses at integration points
-                Vector sigma_recovered(strain_size, 0.0);
+                    // Calculate recovered stresses at integration points
+                    Vector sigma_recovered = ZeroVector(strain_size);
 
-                // sigma_recovered = sum(N_i * sigma_recovered_i)
-                for (IndexType node_number=0; node_number<number_of_nodes; node_number++) {
-                    const auto& sigma_recovered_node = GetGeometry()[node_number].GetValue(RECOVERED_STRESS);
-                    for (IndexType stress_component = 0; stress_component<strain_size; stress_component++) {
-                        sigma_recovered[stress_component] += this_kinematic_variables.N[node_number] * sigma_recovered_node[stress_component];
+                    // sigma_recovered = sum(N_i * sigma_recovered_i)
+                    for (IndexType node_number=0; node_number<number_of_nodes; node_number++) {
+                        const auto& r_sigma_recovered_node = r_geometry[node_number].GetValue(RECOVERED_STRESS);
+                        for (IndexType stress_component = 0; stress_component<strain_size; stress_component++) {
+                            sigma_recovered[stress_component] += this_kinematic_variables.N[node_number] * r_sigma_recovered_node[stress_component];
+                        }
                     }
+
+                    // Calculate error_sigma
+                    Vector error_sigma(strain_size);
+                    error_sigma = sigma_recovered - sigma_FE_solution[point_number];
+
+                    // For debug
+                    KRATOS_TRACE("ERROR_INTEGRATION_POINT")
+                    <<"sigma recovered: " << sigma_recovered << std::endl
+                    <<"sigma FE: " << sigma_FE_solution[point_number] << std::endl;
+
+                    // Calculate inverse of material matrix
+                    Matrix invD(strain_size,strain_size);
+                    double detD;
+                    MathUtils<double>::InvertMatrix(this_constitutive_variables.D, invD,detD);
+
+                    // Calculate error_energy
+                    rOutput[point_number] = integration_weight * inner_prod(error_sigma, prod(invD, error_sigma));
                 }
-
-                // Calculate error_sigma
-                Vector error_sigma(strain_size);
-                error_sigma = sigma_recovered - sigma_FE_solution[point_number];
-
-                // For debug
-                KRATOS_TRACE("ERROR_INTEGRATION_POINT")
-                <<"sigma recovered: " << sigma_recovered << std::endl
-                <<"sigma FE: " << sigma_FE_solution[point_number] << std::endl;
-
-                // Calculate inverse of material matrix
-                Matrix invD(strain_size,strain_size);
-                double detD;
-                MathUtils<double>::InvertMatrix(this_constitutive_variables.D, invD,detD);
-
-                // Calculate error_energy
-                rOutput[point_number]= integration_weight * inner_prod(error_sigma, prod(invD, error_sigma));
+            } else {
+                for (IndexType point_number = 0; point_number < number_of_integration_points; point_number++) {
+                    rOutput[point_number] = 0.0;
+                }
             }
         } else if (rVariable == VON_MISES_STRESS) {
-            const SizeType number_of_nodes = GetGeometry().size();
-            const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+            const SizeType number_of_nodes = r_geometry.size();
+            const SizeType dimension = r_geometry.WorkingSpaceDimension();
             const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
             KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
             ConstitutiveVariables this_constitutive_variables(strain_size);
 
             // Create constitutive law parameters:
-            ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+            ConstitutiveLaw::Parameters Values(r_geometry,GetProperties(),rCurrentProcessInfo);
 
             // Set constitutive law flags:
             Flags& ConstitutiveLawOptions=Values.GetOptions();
@@ -839,7 +848,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
             Values.SetStrainVector(this_constitutive_variables.StrainVector);
 
-            for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+            for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 

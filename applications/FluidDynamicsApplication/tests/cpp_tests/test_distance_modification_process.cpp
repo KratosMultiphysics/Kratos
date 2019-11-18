@@ -33,7 +33,6 @@ void TriangleModelPartForDistanceModification(
     ModelPart& rModelPart) {
 
     rModelPart.SetBufferSize(3);
-    rModelPart.AddNodalSolutionStepVariable(NODAL_H);
     rModelPart.AddNodalSolutionStepVariable(DISTANCE);
     Properties::Pointer p_properties = rModelPart.CreateNewProperties(0);
 
@@ -64,12 +63,13 @@ KRATOS_TEST_CASE_IN_SUITE(DistanceModificationTriangle, FluidDynamicsApplication
 
     Parameters distance_mod_params( R"(
     {
-        "model_part_name"                        : "TestPart",
-        "distance_threshold"                     : 0.001,
-        "continuous_distance"                    : true,
-        "avoid_almost_empty_elements"            : true,
-        "deactivate_full_negative_elements"      : true,
-        "recover_original_distance_at_each_step" : true
+        "model_part_name"                             : "TestPart",
+        "distance_threshold"                          : 0.001,
+        "continuous_distance"                         : true,
+        "avoid_almost_empty_elements"                 : true,
+        "deactivate_full_negative_elements"           : true,
+        "recover_original_distance_at_each_step"      : true,
+        "full_negative_elements_fixed_variables_list" : []
     }  )" );
 
     DistanceModificationProcess dist_mod_process(model_part,distance_mod_params);
@@ -77,15 +77,21 @@ KRATOS_TEST_CASE_IN_SUITE(DistanceModificationTriangle, FluidDynamicsApplication
     dist_mod_process.ExecuteInitialize();
     dist_mod_process.ExecuteBeforeSolutionLoop();
     dist_mod_process.ExecuteInitializeSolutionStep();
-    KRATOS_CHECK_NEAR((model_part.GetNode(1)).FastGetSolutionStepValue(DISTANCE), -1.0e-3, 1e-9);
-    KRATOS_CHECK_NEAR((model_part.GetNode(2)).FastGetSolutionStepValue(DISTANCE), 1.0, 1e-9);
-    KRATOS_CHECK_NEAR((model_part.GetNode(3)).FastGetSolutionStepValue(DISTANCE), 1.0, 1e-9);
+    const double tolerance = 1e-9;
+    std::array<double, 3> expected_values = {-1.0e-3, 1.0, 1.0};
+    for (unsigned int i_node = 1; i_node < 4; ++i_node) {
+        KRATOS_CHECK_NEAR((model_part.GetNode(i_node)).FastGetSolutionStepValue(DISTANCE), expected_values[i_node - 1], tolerance);
+    }
+
+    // Check that the flag TO_SPLIT is correctly set
+    KRATOS_CHECK((model_part.ElementsBegin())->Is(TO_SPLIT));
 
     // Check the original distance recovering
     dist_mod_process.ExecuteFinalizeSolutionStep();
-    KRATOS_CHECK_NEAR((model_part.GetNode(1)).FastGetSolutionStepValue(DISTANCE), -1.0e-5, 1e-9);
-    KRATOS_CHECK_NEAR((model_part.GetNode(2)).FastGetSolutionStepValue(DISTANCE), 1.0, 1e-9);
-    KRATOS_CHECK_NEAR((model_part.GetNode(3)).FastGetSolutionStepValue(DISTANCE), 1.0, 1e-9);
+    std::array<double, 3> expected_orig_values = {-1.0e-5, 1.0, 1.0};
+    for (unsigned int i_node = 1; i_node < 4; ++i_node) {
+        KRATOS_CHECK_NEAR((model_part.GetNode(i_node)).FastGetSolutionStepValue(DISTANCE), expected_orig_values[i_node - 1], tolerance);
+    }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceModificationTriangle, FluidDynamicsApplicationFastSuite) {
@@ -109,16 +115,22 @@ KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceModificationTriangle, FluidDynami
     dist_mod_process.ExecuteBeforeSolutionLoop();
     dist_mod_process.ExecuteInitializeSolutionStep();
     auto elem_dist = (model_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-    KRATOS_CHECK_NEAR(elem_dist[0], -0.000797885, 1e-9);
-    KRATOS_CHECK_NEAR(elem_dist[1], 1.0, 1e-9);
-    KRATOS_CHECK_NEAR(elem_dist[2], 1.0, 1e-9);
+    const double tolerance = 1e-9;
+    std::array<double, 3> expected_values = {-0.000797885, 1.0, 1.0};
+    for (unsigned int i = 0; i < elem_dist.size(); ++i) {
+        KRATOS_CHECK_NEAR(elem_dist[i], expected_values[i], tolerance);
+    }
+
+    // Check that the flag TO_SPLIT is correctly set
+    KRATOS_CHECK((model_part.ElementsBegin())->Is(TO_SPLIT));
 
     // Check the original distance recovering
     dist_mod_process.ExecuteFinalizeSolutionStep();
     elem_dist = (model_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-    KRATOS_CHECK_NEAR(elem_dist[0], -1.0e-5, 1e-9);
-    KRATOS_CHECK_NEAR(elem_dist[1], 1.0, 1e-9);
-    KRATOS_CHECK_NEAR(elem_dist[2], 1.0, 1e-9);
+    std::array<double, 3> expected_orig_values = {-1.0e-5, 1.0, 1.0};
+    for (unsigned int i = 0; i < elem_dist.size(); ++i) {
+        KRATOS_CHECK_NEAR(elem_dist[i], expected_orig_values[i], tolerance);
+    }
 }
 
 }

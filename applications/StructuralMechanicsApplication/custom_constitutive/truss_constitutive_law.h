@@ -119,20 +119,17 @@ public:
         const Variable<array_1d<double, 3 > >& rVariable,
         array_1d<double, 3 > & rValue) override;
 
-    void CalculateMaterialResponse(
-        const Vector& rStrainVector,const Matrix& rDeformationGradient,
-        Vector& rStressVector,Matrix& rAlgorithmicTangent,
-        const ProcessInfo& rCurrentProcessInfo,const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues,
-        bool CalculateStresses,int CalculateTangent,bool SaveInternalVariables) override;
+    void CalculateMaterialResponsePK2(Parameters& rValues) override;
 
+
+    void FinalizeMaterialResponsePK2(Parameters& rValues) override
+    {
+        // plasticity law needs this function, so it is called in the truss element
+    };
 
     //empty because called in the element and this base class throws an error
     //if this is not overriden
-    void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
-                    const GeometryType& rElementGeometry,
-                    const Vector& rShapeFunctionsValues,
-                    const ProcessInfo& rCurrentProcessInfo) override {} ;
+
 
     //this functions calculates the current stress based on an element given (set)
     //strain
@@ -197,4 +194,4 @@ private:
 
 }; // Class TrussConstitutiveLaw
 }  // namespace Kratos.
-#endif // KRATOS_DUMMY_TRUSS_LAW_H_INCLUDED  defined
+#endif // KRATOS_TRUSS_CONSTITUTIVE_LAW_H_INCLUDED  defined

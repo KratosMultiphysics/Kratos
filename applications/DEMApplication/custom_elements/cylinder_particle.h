@@ -26,11 +26,11 @@ namespace Kratos
     {
     public:
 
-      KRATOS_CLASS_POINTER_DEFINITION(CylinderParticle);
+      KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CylinderParticle);
 
-      typedef WeakPointerVector<Element> ParticleWeakVectorType;  //M: l'he afegit jo.. esta be aquesta?
+      typedef GlobalPointersVector<Element> ParticleWeakVectorType;  //M: l'he afegit jo.. esta be aquesta?
       typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-      typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+      typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
 
 
       CylinderParticle( IndexType NewId, GeometryType::Pointer pGeometry );
@@ -49,6 +49,8 @@ namespace Kratos
       void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info) override;
       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
       void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info) override;
+
+
 
       /// Turn back information as a string.
       virtual std::string Info() const override

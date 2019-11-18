@@ -1,21 +1,25 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing Kratos
-import KratosMultiphysics as Kratos
-import KratosMultiphysics.ShallowWaterApplication as Shallow
+import KratosMultiphysics as KM
+import KratosMultiphysics.ShallowWaterApplication as SW
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
+
+from importlib import import_module
 
 class ShallowWaterAnalysis(AnalysisStage):
     ''' Main script for shallow water simulations '''
 
     def _CreateSolver(self):
-        solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())
+        python_module_name = "KratosMultiphysics.ShallowWaterApplication"
+        full_module_name = python_module_name + "." + self.project_parameters["solver_settings"]["solver_type"].GetString()
+        solver_module = import_module(full_module_name)
         solver = solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
         return solver
 
     def _GetOrderOfProcessesInitialization(self):
-        return ["bathymetry_process_list",
+        return ["topography_process_list",
                 "initial_conditions_process_list",
                 "boundary_conditions_process_list"]
 
@@ -40,7 +44,7 @@ if __name__ == "__main__":
         project_parameters_file_name = "ProjectParameters.json"
 
     with open(project_parameter_file_name,'r') as parameter_file:
-        parameters = Kratos.Parameters(parameter_file.read())
+        parameters = KM.Parameters(parameter_file.read())
 
-    model = Kratos.Model()
+    model = KM.Model()
     ShallowWaterAnalysis(model, parameters).Run()

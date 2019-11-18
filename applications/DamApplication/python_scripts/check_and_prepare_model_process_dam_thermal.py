@@ -17,6 +17,7 @@ class CheckAndPrepareModelProcessDamThermal(KratosMultiphysics.Process):
         self.thermal_domain_sub_model_part_list = Parameters["thermal_domain_sub_model_part_list"]
         self.thermal_loads_sub_model_part_list = Parameters["thermal_loads_sub_model_part_list"]
         self.thermal_domain_sub_sub_model_part_list = Parameters["thermal_domain_sub_sub_model_part_list"]
+        self.thermal_loads_sub_sub_model_part_list = Parameters["thermal_loads_sub_sub_model_part_list"]
 
         self.mechanical_model_part_name  = Parameters["mechanical_model_part_name"].GetString()
         self.mechanical_domain_sub_model_part_list = Parameters["mechanical_domain_sub_model_part_list"]
@@ -74,6 +75,18 @@ class CheckAndPrepareModelProcessDamThermal(KratosMultiphysics.Process):
             for node in thermal_sub_model_part.Nodes:
                 list_of_ids.add(node.Id)
             thermal_sub_sub_model_part.AddNodes(list(list_of_ids))
+        for i in range(self.thermal_loads_sub_model_part_list.size()):
+            thermal_load_sub_model_part = self.main_model_part.GetSubModelPart(self.thermal_loads_sub_model_part_list[i].GetString())
+            thermal_model_part.CreateSubModelPart(self.thermal_loads_sub_sub_model_part_list[i].GetString())
+            thermal_load_sub_sub_model_part = thermal_model_part.GetSubModelPart(self.thermal_loads_sub_sub_model_part_list[i].GetString())
+            list_of_ids = set()
+            for node in thermal_load_sub_model_part.Nodes:
+                list_of_ids.add(node.Id)
+            thermal_load_sub_sub_model_part.AddNodes(list(list_of_ids))
+            list_of_ids = set()
+            for cond in thermal_load_sub_model_part.Conditions:
+                list_of_ids.add(cond.Id)
+            thermal_load_sub_sub_model_part.AddConditions(list(list_of_ids))
         print(thermal_model_part)
 
         ## Construct the mechanical model part:
@@ -131,4 +144,7 @@ class CheckAndPrepareModelProcessDamThermal(KratosMultiphysics.Process):
             for node in load_sub_model_part.Nodes:
                 list_of_ids.add(node.Id)
             load_sub_sub_model_part.AddNodes(list(list_of_ids))
+            for cond in load_sub_model_part.Conditions:
+                list_of_ids.add(cond.Id)
+            load_sub_sub_model_part.AddConditions(list(list_of_ids))
         print(mechanical_model_part)

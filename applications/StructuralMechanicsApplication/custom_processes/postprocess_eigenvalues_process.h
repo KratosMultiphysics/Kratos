@@ -13,7 +13,6 @@
 #if !defined(KRATOS_POSTPROCESS_EIGENVALUES_H_INCLUDED )
 #define  KRATOS_POSTPROCESS_EIGENVALUES_H_INCLUDED
 
-
 // System includes
 
 // External includes
@@ -23,27 +22,11 @@
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
 
-#include "custom_io/gid_eigen_io.h"
-
-
 namespace Kratos {
 
 ///@name Kratos Globals
 ///@{
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -56,8 +39,7 @@ namespace Kratos {
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PostprocessEigenvaluesProcess : public Process
 {
-  public:
-
+public:
     ///@name Type Definitions
     ///@{
 
@@ -78,23 +60,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PostprocessEigenvaluesProcess
                                   Parameters OutputParameters);
 
     ///@}
-    ///@name Operators
-    ///@{
-
-
-    ///@}
     ///@name Operations
     ///@{
 
     void ExecuteFinalizeSolutionStep() override;
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
 
     ///@}
     ///@name Input and output
@@ -115,92 +84,27 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PostprocessEigenvaluesProcess
     }
 
     ///@}
-    ///@name Friends
-    ///@{
 
-    ///@}
-
-  protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
-  private:
-
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
+private:
     ///@name Member Variables
     ///@{
+
     ModelPart& mrModelPart;
     Parameters mOutputParameters;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
 
     ///@}
     ///@name Private Operations
     ///@{
 
     std::string GetLabel(const int NumberOfEigenValue,
-                         const double EigenValueSolution);
+                         const double EigenValueSolution) const;
 
     void GetVariables(std::vector<Variable<double>>& rRequestedDoubleResults,
-                      std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults);
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
+                      std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) const;
 
     ///@}
 
 }; // Class PostprocessEigenvaluesProcess
-
-///@}
-
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
 
 ///@}
 

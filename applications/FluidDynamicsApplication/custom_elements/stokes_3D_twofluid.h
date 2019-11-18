@@ -72,7 +72,7 @@ public:
     ///@{
 
     /// Counted pointer of
-    KRATOS_CLASS_POINTER_DEFINITION(Stokes3DTwoFluid);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Stokes3DTwoFluid);
 
     ///@}
     ///@name Life Cycle
@@ -104,7 +104,7 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_shared< Stokes3DTwoFluid >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive< Stokes3DTwoFluid >(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -112,7 +112,7 @@ public:
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< Stokes3DTwoFluid >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< Stokes3DTwoFluid >(NewId, pGeom, pProperties);
     }
 
 

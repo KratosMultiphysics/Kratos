@@ -35,7 +35,7 @@ namespace Kratos {
 class TrussElementLinear3D2N : public TrussElement3D2N
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(TrussElementLinear3D2N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TrussElementLinear3D2N);
 
     TrussElementLinear3D2N() {};
     TrussElementLinear3D2N(IndexType NewId,
@@ -129,8 +129,7 @@ public:
      * @param rSaveInternalVariables Boolean to save internal constit. law variables
      */
     BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
-        const ProcessInfo& rCurrentProcessInfo,
-        const bool rSaveInternalVariables) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
 
 private:

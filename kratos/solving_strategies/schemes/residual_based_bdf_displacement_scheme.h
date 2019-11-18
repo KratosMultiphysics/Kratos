@@ -88,6 +88,8 @@ public:
     /// Conditions containers definition
     typedef ModelPart::ConditionsContainerType                     ConditionsArrayType;
 
+    typedef VectorComponentAdaptor< array_1d< double, 3 > >              ComponentType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -146,6 +148,71 @@ public:
     ///@{
 
     /**
+     * @brief It initializes time step solution. Only for reasons if the time step solution is restarted
+     * @param rModelPart The model part of the problem to solve
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
+     */
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY;
+
+        // The current process info
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        BDFBaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
+
+        // Updating time derivatives (nodally for efficiency)
+        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
+        const auto it_node_begin = rModelPart.Nodes().begin();
+
+        // Getting dimension
+        KRATOS_WARNING_IF("ResidualBasedBDFDisplacementScheme", !r_current_process_info.Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined. Please define DOMAIN_SIZE. 3D case will be assumed" << std::endl;
+        const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
+
+        // Getting position
+        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
+        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
+
+        std::array<bool, 3> fixed = {false, false, false};
+        const std::array<VariableComponent<ComponentType>, 3> disp_components = {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
+        const std::array<VariableComponent<ComponentType>, 3> vel_components = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
+        const std::array<VariableComponent<ComponentType>, 3> accel_components = {ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z};
+
+        #pragma omp parallel for private(fixed)
+        for(int i = 0;  i < num_nodes; ++i) {
+            auto it_node = it_node_begin + i;
+
+            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim)
+                fixed[i_dim] = false;
+
+            if (accelpos > -1) {
+                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                    if (it_node->GetDof(accel_components[i_dim], accelpos + i_dim).IsFixed()) {
+                        it_node->Fix(disp_components[i_dim]);
+                        fixed[i_dim] = true;
+                    }
+                }
+            }
+            if (velpos > -1) {
+                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                    if (it_node->GetDof(vel_components[i_dim], velpos + i_dim).IsFixed() && !fixed[i_dim]) {
+                        it_node->Fix(disp_components[i_dim]);
+                    }
+                }
+            }
+        }
+
+        KRATOS_CATCH("ResidualBasedBDFDisplacementScheme.InitializeSolutionStep");
+    }
+
+    /**
      * @brief Performing the prediction of the solution
      * @details It predicts the solution for the current step x = xold + vold * Dt
      * @param rModelPart The model of the problem to solve
@@ -164,17 +231,36 @@ public:
     {
         KRATOS_TRY;
 
-        ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
-        const double delta_time = current_process_info[DELTA_TIME];
+        // The current process info
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const double delta_time = r_current_process_info[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
         const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
+        const auto it_node_begin = rModelPart.Nodes().begin();
 
-        #pragma omp parallel for
+        // Getting position
+        KRATOS_ERROR_IF_NOT(it_node_begin->HasDofFor(DISPLACEMENT_X)) << "ResidualBasedBDFDisplacementScheme:: DISPLACEMENT is not added" << std::endl;
+        const int disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
+        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
+        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
+
+        // Getting dimension
+        KRATOS_WARNING_IF("ResidualBasedBDFDisplacementScheme", !r_current_process_info.Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined. Please define DOMAIN_SIZE. 3D case will be assumed" << std::endl;
+        const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
+
+        // Auxiliar variables
+        std::array<bool, 3> predicted = {false, false, false};
+        const std::array<VariableComponent<ComponentType>, 3> disp_components = {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
+        const std::array<VariableComponent<ComponentType>, 3> vel_components = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
+        const std::array<VariableComponent<ComponentType>, 3> accel_components = {ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z};
+
+        #pragma omp parallel for private(predicted)
         for(int i = 0;  i< num_nodes; ++i) {
-            auto it_node = rModelPart.Nodes().begin() + i;
+            auto it_node = it_node_begin + i;
 
-            //ATTENTION::: the prediction is performed only on free nodes
+            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim)
+                predicted[i_dim] = false;
 
             const array_1d<double, 3>& dot2un1 = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
             const array_1d<double, 3>& dotun1 = it_node->FastGetSolutionStepValue(VELOCITY,     1);
@@ -183,74 +269,36 @@ public:
             array_1d<double, 3>& dotun0 = it_node->FastGetSolutionStepValue(VELOCITY);
             array_1d<double, 3>& un0 = it_node->FastGetSolutionStepValue(DISPLACEMENT);
 
-            if (it_node->HasDofFor(ACCELERATION_X)) {
-                if (it_node -> IsFixed(ACCELERATION_X)) {
-                    dotun0[0] = (dot2un0[0] - BDFBaseType::mBDF[1] * dotun1[0])/BDFBaseType::mBDF[0];
-                    un0[0] = (dotun0[0] - BDFBaseType::mBDF[1] * un1[0])/BDFBaseType::mBDF[0];
-            } } else if (it_node->HasDofFor(VELOCITY_X)) {
-                if (it_node -> IsFixed(VELOCITY_X)) {
-                    un0[0] = (dotun1[0] - BDFBaseType::mBDF[1] * un1[0])/BDFBaseType::mBDF[0];
-            } } else if (it_node -> IsFixed(DISPLACEMENT_X) == false) {
-                un0[0] = un1[0] + delta_time * dotun1[0] + 0.5 * std::pow(delta_time, 2) * dot2un1[0];
-            }
+            if (accelpos > -1) {
+                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                    if (it_node->GetDof(accel_components[i_dim], accelpos + i_dim).IsFixed()) {
+                        dotun0[i_dim] = dot2un0[i_dim];
+                        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                            dotun0[i_dim] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(vel_components[i_dim], i_order);
+                        dotun0[i_dim] /= BDFBaseType::mBDF[i_dim];
 
-            if (it_node->HasDofFor(ACCELERATION_Y)) {
-                if (it_node -> IsFixed(ACCELERATION_Y)) {
-                    dotun0[1] = (dot2un0[1] - BDFBaseType::mBDF[1] * dotun1[1])/BDFBaseType::mBDF[0];
-                    un0[1] = (dotun0[1] - BDFBaseType::mBDF[1] * un1[1])/BDFBaseType::mBDF[0];
-            } } else if (it_node->HasDofFor(VELOCITY_Y)) {
-                if (it_node -> IsFixed(VELOCITY_Y)) {
-                    un0[1] = (dotun1[1] - BDFBaseType::mBDF[1] * un1[1])/BDFBaseType::mBDF[0];
-            } } else if (it_node -> IsFixed(DISPLACEMENT_Y) == false) {
-                un0[1] = un1[1] + delta_time * dotun1[1] + 0.5 * std::pow(delta_time, 2) * dot2un1[1];
-            }
-
-            // For 3D cases
-            if (it_node -> HasDofFor(DISPLACEMENT_Z)) {
-                if (it_node->HasDofFor(ACCELERATION_Z)) {
-                    if (it_node -> IsFixed(ACCELERATION_Z)) {
-                        dotun0[2] = (dot2un0[2] - BDFBaseType::mBDF[1] * dotun1[2])/BDFBaseType::mBDF[0];
-                        un0[2] = (dotun0[2] - BDFBaseType::mBDF[1] * un1[2])/BDFBaseType::mBDF[0];
-                } } else if (it_node->HasDofFor(VELOCITY_Y)) {
-                    if (it_node -> IsFixed(VELOCITY_Y)) {
-                        un0[2] = (dotun1[2] - BDFBaseType::mBDF[1] * un1[2])/BDFBaseType::mBDF[0];
-                } } else if (it_node -> IsFixed(DISPLACEMENT_Z) == false) {
-                    un0[2] = un1[2] + delta_time * dotun1[2] + 0.5 * std::pow(delta_time, 2) * dot2un1[2];
+                        un0[i_dim] = dotun0[i_dim];
+                        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                            un0[i_dim] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(disp_components[i_dim], i_order);
+                        un0[i_dim] /= BDFBaseType::mBDF[i_dim];
+                        predicted[i_dim] = true;
+                    }
                 }
             }
-
-            for (std::size_t i_order = 2; i_order < BDFBaseType::mOrder + 1; ++i_order) {
-                const array_1d<double, 3>& dotun = it_node->FastGetSolutionStepValue(VELOCITY,     i_order);
-                const array_1d<double, 3>& un = it_node->FastGetSolutionStepValue(DISPLACEMENT, i_order);
-
-                if (it_node->HasDofFor(ACCELERATION_X)) {
-                    if (it_node -> IsFixed(ACCELERATION_X)) {
-                        dotun0[0] -= (BDFBaseType::mBDF[i_order] * dotun[0])/BDFBaseType::mBDF[0];
-                        un0[0] -= (BDFBaseType::mBDF[i_order] * un[0])/BDFBaseType::mBDF[0];
-                } } else if (it_node->HasDofFor(VELOCITY_X)) {
-                    if (it_node -> IsFixed(VELOCITY_X)) {
-                        un0[0] -= (BDFBaseType::mBDF[i_order] * un[0])/BDFBaseType::mBDF[0];
-                } }
-
-                if (it_node->HasDofFor(ACCELERATION_Y)) {
-                    if (it_node -> IsFixed(ACCELERATION_Y)) {
-                        dotun0[1] -= (BDFBaseType::mBDF[i_order] * dotun[1])/BDFBaseType::mBDF[0];
-                        un0[1] -= (BDFBaseType::mBDF[i_order] * un[1])/BDFBaseType::mBDF[0];
-                } } else if (it_node->HasDofFor(VELOCITY_Y)) {
-                    if (it_node -> IsFixed(VELOCITY_X)) {
-                        un0[1] -= (BDFBaseType::mBDF[i_order] * un[1])/BDFBaseType::mBDF[0];
-                } }
-
-                // For 3D cases
-                if (it_node -> HasDofFor(DISPLACEMENT_Z)) {
-                    if (it_node->HasDofFor(ACCELERATION_Z)) {
-                        if (it_node -> IsFixed(ACCELERATION_Z)) {
-                            dotun0[1] -= (BDFBaseType::mBDF[i_order] * dotun[2])/BDFBaseType::mBDF[0];
-                            un0[1] -= (BDFBaseType::mBDF[i_order] * un[2])/BDFBaseType::mBDF[0];
-                    } } else if (it_node->HasDofFor(VELOCITY_Y)) {
-                        if (it_node -> IsFixed(VELOCITY_X)) {
-                            un0[1] -= (BDFBaseType::mBDF[i_order] * un[2])/BDFBaseType::mBDF[0];
-                    } }
+            if (velpos > -1) {
+                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                    if (it_node->GetDof(vel_components[i_dim], velpos + i_dim).IsFixed() && !predicted[i_dim]) {
+                        un0[i_dim] = dotun0[i_dim];
+                        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                            un0[i_dim] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(disp_components[i_dim], i_order);
+                        un0[i_dim] /= BDFBaseType::mBDF[i_dim];
+                        predicted[i_dim] = true;
+                    }
+                }
+            }
+            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                if (!it_node->GetDof(disp_components[i_dim], disppos + i_dim).IsFixed() && !predicted[i_dim]) {
+                    un0[i_dim] = un1[i_dim] + delta_time * dotun1[i_dim] + 0.5 * std::pow(delta_time, 2) * dot2un1[i_dim];
                 }
             }
 

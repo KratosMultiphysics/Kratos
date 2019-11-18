@@ -60,7 +60,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of BaseShellElement
-    KRATOS_CLASS_POINTER_DEFINITION(BaseShellElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(BaseShellElement);
 
     typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
 

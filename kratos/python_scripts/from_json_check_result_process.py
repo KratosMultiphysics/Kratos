@@ -6,6 +6,7 @@ from KratosMultiphysics.json_utilities import read_external_json
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.KratosUnittest import isclose as t_isclose
+from math import log10, ceil
 
 def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -45,7 +46,9 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
             "historical_value"     : true,
             "tolerance"            : 1e-3,
             "relative_tolerance"   : 1e-6,
-            "time_frequency"       : 1.00
+            "time_frequency"       : 1.00,
+            "use_node_coordinates" : false,
+            "check_only_local_entities" : false
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -79,6 +82,12 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         self.frequency = self.params["time_frequency"].GetDouble()
         self.historical_value = self.params["historical_value"].GetBool()
         self.data = read_external_json(self.params["input_file_name"].GetString())
+        self.abs_tol = self.params["tolerance"].GetDouble()
+        self.rel_tol = self.params["relative_tolerance"].GetDouble()
+        self.use_node_coordinates = self.params["use_node_coordinates"].GetBool()
+        self.check_only_local_entities = self.params["check_only_local_entities"].GetBool()
+        self.rel_tol_digits = ComputeRelevantDigits(self.rel_tol)
+        self.abs_tol_digits = ComputeRelevantDigits(self.abs_tol)
 
         # Initialize counter
         self.step_counter = 0
@@ -92,8 +101,6 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        tol = self.params["tolerance"].GetDouble()
-        reltol = self.params["relative_tolerance"].GetDouble()
         time = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
         dt = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
         step = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.STEP)
@@ -103,61 +110,48 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
             input_time_list = self.data["TIME"]
 
             # Nodal values
-            for node in self.model_part.Nodes:
+            for node in self.__get_nodes():
                 compute = self.__check_flag(node)
 
-                if compute is True:
+                if compute:
+                    node_identifier = "NODE_" + self.__get_node_identifier(node)
+
                     for i in range(self.params["check_variables"].size()):
                         out = self.params["check_variables"][i]
                         variable_name = out.GetString()
                         variable = KratosMultiphysics.KratosGlobals.GetVariable( variable_name )
                         variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
 
-                        if self.historical_value is True:
+                        if self.historical_value:
                             value = node.GetSolutionStepValue(variable, 0)
                         else:
                             value = node.GetValue(variable)
 
                         # Scalar variable
                         if (variable_type == "Double" or variable_type == "Component"):
-                            values_json = self.data["NODE_" + str(node.Id)][variable_name]
+                            values_json = self.data[node_identifier][variable_name]
                             value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                            isclosethis = t_isclose(value, value_json, rel_tol=reltol, abs_tol=tol)
-                            self.assertTrue(isclosethis, msg=(str(value) + " != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking node " + str(node.Id) + " " + variable_name + " results."))
+                            self.__check_values(node.Id, "Node", value, value_json, variable_name)
                         # Array variable
                         elif variable_type == "Array":
                             if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
-                                # X-component
-                                values_json = self.data["NODE_" + str(node.Id)][variable_name + "_X"]
-                                value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                isclosethis = t_isclose(value[0], value_json, rel_tol=reltol, abs_tol=tol)
-                                self.assertTrue(isclosethis, msg=(str(value[0]) + " != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking node " + str(node.Id) + " " + variable_name + " results."))
-                                # Y-component
-                                values_json = self.data["NODE_" + str(node.Id)][variable_name + "_Y"]
-                                value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                isclosethis = t_isclose(value[1], value_json, rel_tol=reltol, abs_tol=tol)
-                                self.assertTrue(isclosethis, msg=(str(value[1]) + " != "+str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking node " + str(node.Id) + " " + variable_name + " results."))
-                                # Z-component
-                                values_json = self.data["NODE_" + str(node.Id)][variable_name + "_Z"]
-                                value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                isclosethis = t_isclose(value[2], value_json, rel_tol=reltol, abs_tol=tol)
-                                self.assertTrue(isclosethis, msg=(str(value[2])+" != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking node " + str(node.Id) + " " + variable_name + " results."))
-
+                                for component_index, component in enumerate(["_X", "_Y", "_Z"]):
+                                    values_json = self.data[node_identifier][variable_name+component]
+                                    value_json = self.__linear_interpolation(time, input_time_list, values_json)
+                                    self.__check_values(node.Id, "Node", value[component_index], value_json, variable_name+component)
                             else:
-                                values_json = self.data["NODE_"+str(node.Id)][variable_name][self.step_counter]
+                                values_json = self.data[node_identifier][variable_name][self.step_counter]
                                 for index in range(len(value)):
                                     value_json = values_json[index] # self.__linear_interpolation(time, input_time_list, values_json[index])
-                                    isclosethis = t_isclose(value[index], value_json, rel_tol=reltol, abs_tol=tol)
-                                    self.assertTrue(isclosethis, msg=(str(value[index]) + " != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking node " + str(node.Id) + " " + variable_name + " results."))
+                                    self.__check_values(node.Id, "Node", value[index], value_json, variable_name)
                         # Vector variable
                         elif variable_type == "Vector":
-                            values_json = self.data["NODE_"+str(node.Id)][variable_name][self.step_counter]
+                            values_json = self.data[node_identifier][variable_name][self.step_counter]
                             for index in range(len(value)):
                                 value_json = values_json[index] # self.__linear_interpolation(time, input_time_list, values_json[index])
-                                isclosethis = t_isclose(value[index], value_json, rel_tol=reltol, abs_tol=tol)
-                                self.assertTrue(isclosethis, msg=(str(value[index]) + " != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking node " + str(node.Id) + " " + variable_name + " results."))
+                                self.__check_values(node.Id, "Node", value[index], value_json, variable_name)
             # Nodal values
-            for elem in self.model_part.Elements:
+            for elem in self.__get_elements():
                 compute = self.__check_flag(elem)
 
                 if compute is True:
@@ -176,42 +170,28 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                             for gp in range(gauss_point_number):
                                 values_json = self.data["ELEMENT_"+str(elem.Id)][variable_name][str(gp)]
                                 value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                isclosethis = t_isclose(value[gp], value_json, rel_tol=reltol, abs_tol=tol)
-                                self.assertTrue(isclosethis, msg=(str(value[gp]) + " != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking elem " + str(elem.Id) + " " + variable_name + " results."))
+                                self.__check_values(elem.Id, "Element", value[gp], value_json, variable_name)
                         # Array variable
                         elif variable_type == "Array":
                             if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
                                 for gp in range(gauss_point_number):
-                                    # X-component
-                                    values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name + "_X"][str(gp)]
-                                    value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                    isclosethis = t_isclose(value[gp][0], value_json, rel_tol=reltol, abs_tol=tol)
-                                    self.assertTrue(isclosethis, msg=(str(value[gp][0]) + " != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking elem " + str(elem.Id) + " " + variable_name + " results."))
-                                    # Y-component
-                                    values_json = self.data["ELEMENT_"+str(elem.Id)][variable_name + "_Y"][str(gp)]
-                                    value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                    isclosethis = t_isclose(value[gp][1], value_json, rel_tol=reltol, abs_tol=tol)
-                                    self.assertTrue(isclosethis, msg=(str(value[gp][1]) + " != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking elem " + str(elem.Id) + " " + variable_name + " results."))
-                                    # Z-component
-                                    values_json = self.data["ELEMENT_"+str(elem.Id)][variable_name + "_Z"][str(gp)]
-                                    value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                    isclosethis = t_isclose(value[gp][2], value_json, rel_tol=reltol, abs_tol=tol)
-                                    self.assertTrue(isclosethis, msg=(str(value[gp][2]) + " != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking elem "+str(elem.Id) + " " + variable_name + " results."))
+                                    for component_index, component in enumerate(["_X", "_Y", "_Z"]):
+                                        values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name+component][str(gp)]
+                                        value_json = self.__linear_interpolation(time, input_time_list, values_json)
+                                        self.__check_values(elem.Id, "Element", value[gp][component_index], value_json, variable_name+component)
                             else:
                                 for gp in range(gauss_point_number):
                                     values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)][self.step_counter]
                                     for index in range(len(value[gp])):
                                         value_json = values_json[index] # self.__linear_interpolation(time, input_time_list, values_json[index])
-                                        isclosethis = t_isclose(value[gp][index], value_json, rel_tol=reltol, abs_tol=tol)
-                                        self.assertTrue(isclosethis, msg=(str(value[gp][index]) + " != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking elem " + str(elem.Id) + " " + variable_name + " results."))
+                                        self.__check_values(elem.Id, "Element", value[gp][index], value_json, variable_name)
                         # Vector variable
                         elif variable_type == "Vector":
                             for gp in range(gauss_point_number):
                                 values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)][self.step_counter]
                                 for index in range(len(value[gp])):
                                     value_json = values_json[index] # self.__linear_interpolation(time, input_time_list, values_json[index])
-                                    isclosethis = t_isclose(value[gp][index], value_json, rel_tol=reltol, abs_tol=tol)
-                                    self.assertTrue(isclosethis, msg=(str(value[gp][index]) + " != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking elem " + str(elem.Id) + " " + variable_name + " results."))
+                                    self.__check_values(elem.Id, "Element", value[gp][index], value_json, variable_name)
 
                         # TODO: Add pending classes
 
@@ -257,8 +237,77 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         component -- The Kratos node or element to check
         """
 
-        if self.flag != None:
+        if self.flag is not None:
             if component.Is(self.flag) == False:
                 return False
 
         return True
+
+    def __check_values(self, entity_id, entity_type, value_entity, value_json, variable_name):
+        """ Checks if two values are the same and issues a detailed error message
+        in case they do not match up to the specified tolerance
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        entity_id -- The Kratos node or element to check
+        entity_type -- The type of the entity
+        value_entity -- The value on the entity
+        value_json -- The reference value from the json
+        variable_name -- The name of the variable
+        """
+        relevant_digits = int(max(self.rel_tol_digits, self.abs_tol_digits))+1 # +1 for one more digit of output
+        isclosethis = t_isclose(value_entity, value_json, rel_tol=self.rel_tol, abs_tol=self.abs_tol)
+        msg  = 'Error checking {} #{} for variable {} results:\n'.format(entity_type, entity_id, variable_name)
+        msg += '%.*f != %.*f; rel_tol=%.*f, abs_tol=%.*f' % (relevant_digits, value_entity, relevant_digits, value_json, self.rel_tol_digits, self.rel_tol, self.abs_tol_digits, self.abs_tol)
+        self.assertTrue(isclosethis, msg=msg)
+
+    def __get_node_identifier(self, node):
+        """ returns the identifier/key for saving nodal results in the json
+        this can be either the node Id or its coordinates
+        The coordinates can be used to check the nodal results in MPI
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        node -- The Kratos node to get the identifier for
+        """
+        if self.use_node_coordinates:
+            digits = 6
+            return 'X_%.*f_Y_%.*f_Z_%.*f' % (digits, node.X0, digits, node.Y0, digits, node.Z0)
+        else:
+            return str(node.Id)
+
+    def __get_nodes(self):
+        """ returns the nodes to be checked
+        Either only local or all (local and ghost)
+        This is ONLY relevant in MPI
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        node -- The Kratos node to get the identifier for
+        """
+        if self.check_only_local_entities:
+            return self.model_part.GetCommunicator().LocalMesh().Nodes
+        else:
+            return self.model_part.Nodes
+
+    def __get_elements(self):
+        """ returns the elements to be checked
+        Either only local or all (local and ghost)
+        This is ONLY relevant in MPI
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        node -- The Kratos node to get the identifier for
+        """
+        if self.check_only_local_entities:
+            return self.model_part.GetCommunicator().LocalMesh().Elements
+        else:
+            return self.model_part.Elements
+
+def ComputeRelevantDigits(number):
+    """ Computes the relevant digits
+
+    Keyword arguments:
+    self -- It signifies an instance of a class.
+    """
+    return int(ceil(abs(log10(number))))

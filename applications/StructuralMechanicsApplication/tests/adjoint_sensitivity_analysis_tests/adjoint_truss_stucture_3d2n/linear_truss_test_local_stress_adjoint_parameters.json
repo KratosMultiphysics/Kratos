@@ -18,9 +18,10 @@
         "move_mesh_flag"                    : false,
         "response_function_settings" : {
                 "response_type"     : "adjoint_local_stress",
-                "use_kratos"        : true,
+                "analyzer"          : "kratos",
                 "gradient_mode"     : "semi_analytic",
                 "step_size"         : 1e-6,
+                "adapt_step_size"   : true,
                 "traced_element_id"    : 1,
                 "stress_type"       : "FX",
                 "stress_treatment"  : "GP",
@@ -34,10 +35,7 @@
                 "build_mode": "static"
             },
         "echo_level"                   : 0,
-        "problem_domain_sub_model_part_list" : ["Parts_TRUSS"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_BC_DIRICHLET_X_Y_Z","DISPLACEMENT_BC_DIRICHLET_Z","PointLoad3D_BC_NEUMANN","Structure"],
-        "computing_model_part_name" : "computing_domain",
-        "rotation_dofs"                      : false,
+        "rotation_dofs"                : false,
         "linear_solver_settings"       : {
             "solver_type"         : "ExternalSolversApplication.super_lu"
         },

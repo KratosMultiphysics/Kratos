@@ -70,7 +70,7 @@ public:
 
 
     /// Counted pointer of ContactDomainLM2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION( ContactDomainLM2DCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( ContactDomainLM2DCondition );
 
     ///@}
     ///@name Life Cycle

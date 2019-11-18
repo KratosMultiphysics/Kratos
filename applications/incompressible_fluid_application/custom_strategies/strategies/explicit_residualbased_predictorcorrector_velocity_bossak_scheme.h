@@ -443,7 +443,7 @@ public:
 //
 // 			    if(nodes_num == dim)
 // 			      {
-// 				WeakPointerVector< Node < 3 > >& neighb = elem->GetValue(NEIGHBOUR_NODES);
+// 				GlobalPointersVector< Node < 3 > >& neighb = elem->GetValue(NEIGHBOUR_NODES);
 //
 // 				for (unsigned int ind = 0; ind < 3; ind++)
 // 				    if (neighb[ind].Id() != geom[ind].Id())

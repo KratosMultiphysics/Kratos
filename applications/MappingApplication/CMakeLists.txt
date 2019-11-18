@@ -23,6 +23,7 @@ set( KRATOS_MAPPING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_factory.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_flags.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_utilities.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/projection_utilities.cpp
 )
 
 set(KRATOS_MAPPING_APPLICATION_SOURCES_MPI "")

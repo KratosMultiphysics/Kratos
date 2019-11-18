@@ -43,6 +43,7 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_explicit_solid_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_V_explicit_solid_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_explicit_fluid_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_scalar_variable_to_pfem_entities_process.cpp
 )
 
 set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_PYTHON_INTERFACE
@@ -55,6 +56,7 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_PYTHON_INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_modelers_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_bounding_to_python.cpp
 )
+
 
 add_library(KratosPfemFluidDynamicsCore SHARED ${KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_CORE})
 target_link_libraries(KratosPfemFluidDynamicsCore PUBLIC KratosCore KratosDelaunayMeshingCore)

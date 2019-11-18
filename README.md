@@ -6,7 +6,7 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 
 **Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/wiki/Licence) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
 
-[release-image]: https://img.shields.io/badge/release-6.0-green.svg?style=flat
+[release-image]: https://img.shields.io/badge/release-7.0-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
 
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
@@ -29,7 +29,7 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 Its main applications are:
 - [DEM](applications/DEMApplication) for cohesive and non cohesive spheric and non spheric particles simultion
 - [Fluid Dynamics](applications/FluidDynamicsApplication/README.md) Provides 2D and 3D incompressible fluids formulation
-- [Fluid Structure Interaction](applications/FSIapplication/README.md) for solution of different FSI problems
+- [Fluid Structure Interaction](applications/FSIApplication/README.md) for solution of different FSI problems
 - [Structural Mechanics](applications/StructuralMechanicsApplication/README.md) Providing solution for solid, shell and beam structures with linear and nonlinear, static and dynamic behavior
 - [Contact Structural Mechanics](applications/ContactStructuralMechanicsApplication/README.md) For contact problems used along the [Structural Mechanics application](applications/StructuralMechanicsApplication/README.md)
 
@@ -94,4 +94,3 @@ In Kratos Core:
 In applications
 - [Trilinos](https://trilinos.org/) for MPI linear algebra and solvers used in trilinos application
 - [METIS](http://glaros.dtc.umn.edu/gkhome/views/metis) for partitioning in metis application
-

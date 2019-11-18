@@ -15,7 +15,6 @@
 #include <map>
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -27,6 +26,7 @@
 
 #include "includes/cfd_variables.h"
 #include "fluid_dynamics_application_variables.h"
+#include "includes/global_pointer_variables.h"
 
 #ifndef KRATOS_DYNAMIC_SMAGORINSKY_UTILITIES_H_INCLUDED
 #define	KRATOS_DYNAMIC_SMAGORINSKY_UTILITIES_H_INCLUDED

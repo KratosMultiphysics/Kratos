@@ -9,15 +9,16 @@
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0
     },
-    "kratos_response_settings":{
-        "response_type"    : "adjoint_local_stress",
+    "response_settings" :{
+        "response_type"     : "adjoint_local_stress",
         "gradient_mode"     : "semi_analytic",
         "step_size"         : 1.0e-5,
-        "traced_element_id"    : 2,
+        "adapt_step_size"   : true,
+        "traced_element_id" : 2,
         "stress_type"       : "MXX",
         "stress_treatment"  : "mean",
         "stress_location"   : 1,
-        "primal_settings"  : "rectangular_plate_parameters.json",
+        "primal_settings"   : "rectangular_plate_parameters.json",
         "adjoint_settings"  : "auto",
         "sensitivity_settings" : {
             "sensitivity_model_part_name" :"Parts_AREAS",

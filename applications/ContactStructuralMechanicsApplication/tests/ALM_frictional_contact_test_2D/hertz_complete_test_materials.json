@@ -1,0 +1,39 @@
+{
+    "properties": [
+    {
+            "model_part_name": "Structure.Parts_body_lower",
+            "properties_id": 1,
+            "Material": {
+                    "name": "Material",
+                    "constitutive_law": {
+                            "name": "KirchhoffSaintVenantPlaneStrain2DLaw"
+                    },
+                    "Variables": {
+                            "YOUNG_MODULUS"        : 200.0,
+                            "DENSITY"              : 1.00000E+0,
+                            "POISSON_RATIO"        : 3.00000E-01,
+                            "THICKNESS"            : 1.00000E+0,
+                            "FRICTION_COEFFICIENT" : 0.2
+                    },
+                    "Tables": {}
+            }
+    },
+    {
+            "model_part_name": "Structure.Parts_body_upper",
+            "properties_id": 2,
+            "Material": {
+                    "name": "Material",
+                    "constitutive_law": {
+                            "name": "KirchhoffSaintVenantPlaneStrain2DLaw"
+                    },
+                    "Variables": {
+                            "YOUNG_MODULUS"       : 200.0,
+                            "DENSITY"             : 1.00000E+0,
+                            "POISSON_RATIO"       : 3.00000E-01,
+                            "THICKNESS"           : 1.00000E+0,
+                            "FRICTION_COEFFICIENT": 0.2
+                    },
+                    "Tables": {}
+            }
+    }]
+}

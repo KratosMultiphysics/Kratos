@@ -210,9 +210,9 @@ void FSGeneralizedWallCondition<2, 2>::CalculateWallParameters(
 	ElementPointerType pElem = pGetElement();
 	const array_1d<double, 3>& Normal = this->GetValue(NORMAL);
 	GeometryType& rElemGeom = pElem->GetGeometry();
-	const GeometriesArrayType& edges = rElemGeom.Edges();
+	const GeometriesArrayType& edges = rElemGeom.GenerateEdges();
 	const array_1d<double, 3>& center = this->GetGeometry().Center();
-	
+
 	rWallHeight = 0.0;
 	rArea = norm_2(Normal);
 	for (SizeType i = 0; i < edges.size(); i++)
@@ -283,7 +283,7 @@ void FSGeneralizedWallCondition<3, 3>::CalculateWallParameters(
 		double& rArea)
 {
 	KRATOS_TRY;
-	
+
 	const double Small = 1.0e-12;
 	double DetM, s, w1, w2, Proj;
 	array_1d<double, 3> Rhs;
@@ -291,9 +291,9 @@ void FSGeneralizedWallCondition<3, 3>::CalculateWallParameters(
 	ElementPointerType pElem = pGetElement();
 	const array_1d<double, 3>& Normal = this->GetValue(NORMAL);
 	GeometryType& rElemGeom = pElem->GetGeometry();
-	const GeometriesArrayType& faces = rElemGeom.Faces();
+	const GeometriesArrayType& faces = rElemGeom.GenerateFaces();
 	const array_1d<double, 3>& center = this->GetGeometry().Center();
-	
+
 	rWallHeight = 0.0;
 	rArea = norm_2(Normal);
 	for (SizeType i = 0; i < faces.size(); i++)

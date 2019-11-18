@@ -7,33 +7,28 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    
+//  Main authors:
 //
 
 #if !defined(KRATOS_TRIGEN_DROPLET_MODELER_H_INCLUDED )
 #define  KRATOS_TRIGEN_DROPLET_MODELER_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <stdlib.h>
 
+// External includes
 #if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
 #define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED
 #include "triangle.h"
 #endif
 
-#include <boost/timer.hpp>
-
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 #include "processes/node_erase_process.h"
 #include "spatial_containers/spatial_containers.h"
-
-
+#include "utilities/timer.h"
 
 namespace Kratos
 {
@@ -129,16 +124,16 @@ public:
             KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_FLUID---- variable!!!!!! ERROR","");
 
         KRATOS_WATCH("Trigen Droplet Refining Mesher")
-        boost::timer auxiliary;
+        const auto inital_time = std::chrono::steady_clock::now();
 
 
 //clearing elements
-	
+
 	int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
-	
-	
+
+
         ThisModelPart.Elements().clear();
-	
+
 	//20150909 ajarauta
 	int id = (ThisModelPart.Nodes().end() - 1)->Id() + 1;
 	for(ModelPart::ConditionsContainerType::iterator ic = ThisModelPart.ConditionsBegin() ;
@@ -148,18 +143,18 @@ public:
 		{
 // 		    KRATOS_WATCH("LALALALLA")
 		    //Original:
-		    unsigned int n_flag=ic->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE);			
+		    unsigned int n_flag=ic->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE);
 		    n_flag+=ic->GetGeometry()[1].FastGetSolutionStepValue(IS_FREE_SURFACE);
 		    //Enhanced for any segment at the boundary
-// 		    int n_flag=ic->GetGeometry()[0].FastGetSolutionStepValue(IS_BOUNDARY);			
+// 		    int n_flag=ic->GetGeometry()[0].FastGetSolutionStepValue(IS_BOUNDARY);
 // 		    n_flag+=ic->GetGeometry()[1].FastGetSolutionStepValue(IS_BOUNDARY);
-		    unsigned int n_trip=ic->GetGeometry()[0].FastGetSolutionStepValue(TRIPLE_POINT);			
+		    unsigned int n_trip=ic->GetGeometry()[0].FastGetSolutionStepValue(TRIPLE_POINT);
 		    n_trip+=ic->GetGeometry()[1].FastGetSolutionStepValue(TRIPLE_POINT);
 		    //Only for IS_STRUCTURE segments
-		    unsigned int n_struct=ic->GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE);			
+		    unsigned int n_struct=ic->GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE);
 		    n_struct+=ic->GetGeometry()[1].FastGetSolutionStepValue(IS_STRUCTURE);
 		    unsigned int n_sum = n_flag + n_trip;
-								
+
 		    //THIS REFINES THE NODES OF INTERNAL ELEMENTS OF THE SURFACE WHERE THE INBLOW IS: FLAG_VAR=1
 		    if (n_flag==ic->GetGeometry().size() || n_struct==ic->GetGeometry().size() || n_sum==ic->GetGeometry().size())
 // 		    if (n_struct==ic->GetGeometry().size())
@@ -169,7 +164,7 @@ public:
 			double x1=ic->GetGeometry()[1].X();
 			double y1=ic->GetGeometry()[1].Y();
 			double edge01=sqrt((x0-x1)*(x0-x1)+(y0-y1)*(y0-y1));
-			
+
 			//ajarauta: position correction of the middle node -> CHECK WHAT HAPPENS FOR TRIPLE POINT!!
 			// NORMAL is set to 0 in triple_point in the monolithic_embedded_solver right now...
 			/*
@@ -182,7 +177,7 @@ public:
 			double xp = 0.0;
 			double yp = 0.0;
 			double n_struct = 0.0;
-			n_struct += ic->GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE);			
+			n_struct += ic->GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE);
 			n_struct += ic->GetGeometry()[1].FastGetSolutionStepValue(IS_STRUCTURE);
 			if (mean_curv == 0.0 || n_struct > 1.0)
 			    is_flat = 1.0;
@@ -218,22 +213,22 @@ public:
 			    yp = yM + ndy_d;
 			}
 			*/
-			
+
 			//////////////////////////////////////////////////////////////////////////////////////////////////////////
 			// IMPORTANT!!
 			// The following step only makes sense if NODAL_LENGTH is the initial value and is taken as a reference
-			// for remeshing. If it is calculated every time step, it will never fulfill the condition 
+			// for remeshing. If it is calculated every time step, it will never fulfill the condition
 			// edge01 > factor*nodal_h!!!
 			//////////////////////////////////////////////////////////////////////////////////////////////////////////
 			double nodal_h=ic->GetGeometry()[0].FastGetSolutionStepValue(NODAL_H);
 			nodal_h+=ic->GetGeometry()[1].FastGetSolutionStepValue(NODAL_H);
 			nodal_h*=0.5;
 			//if the edge of the segment (condition) is too long, we split it into two by adding a node in the middle
-				
+
 			Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
-			
-			
-			double factor=2.0;			
+
+
+			double factor=2.0;
 			if (edge01>factor*nodal_h)
 			{
 			    id++;
@@ -243,13 +238,13 @@ public:
 			    Node<3>::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
 
 			    //putting the new node also in an auxiliary list
-			    //KRATOS_WATCH("adding nodes to list")										
+			    //KRATOS_WATCH("adding nodes to list")
 
 			    //std::cout << "new node id = " << pnode->Id() << std::endl;
 			    //generating the dofs
 			    for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
 			    {
-				Node<3>::DofType& rDof = *iii;
+				Node<3>::DofType& rDof = **iii;
 				Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 				(p_new_dof)->FreeDof();
 			    }
@@ -261,18 +256,18 @@ public:
 			    pnode->Y0() = pnode->Y() - disp[1];
 			    KRATOS_WATCH("Added node at the EDGE")
 			}
-		      
+
 		    }
 		}
 	    }
-	
-	
+
+
         ThisModelPart.Conditions().clear();
 
         ////////////////////////////////////////////////////////////
 
 
-        
+
         // bucket types
         //typedef Bucket<3, PointType, ModelPart::NodesContainerType, PointPointerType, PointIterator, DistanceIterator > BucketType;
         //typedef Bins< 3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > StaticBins;
@@ -336,11 +331,10 @@ public:
             in_mid.pointlist[base] = (nodes_begin + i)->X();
             in_mid.pointlist[base+1] = (nodes_begin + i)->Y();
 
-            Node<3>::DofsContainerType& node_dofs = (nodes_begin + i)->GetDofs();
-            for(Node<3>::DofsContainerType::iterator iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
+            auto& node_dofs = (nodes_begin + i)->GetDofs();
+            for(auto iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
             {
-                iii->SetId(i+1);
-//                                    iii->Id() = i+1;
+                (**iii).SetEquationId(i+1);
             }
         }
         //in_mid.numberoftriangles = ThisModelPart.Elements().size();
@@ -354,7 +348,7 @@ public:
         char options1[] = "Pne";
         triangulate(options1, &in_mid, &out_mid, &vorout_mid);
         //print out the mesh generation time
-        std::cout<<"mesh generation time = "<<auxiliary.elapsed();
+        std::cout << "mesh generation time = " << Timer::ElapsedSeconds(inital_time) << std::endl;
         //number of newly generated triangles
         unsigned int el_number=out_mid.numberoftriangles;
 
@@ -512,7 +506,7 @@ public:
                 //generating the dofs
                 for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
                 {
-                    Node<3>::DofType& rDof = *iii;
+                    Node<3>::DofType& rDof = **iii;
                     Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
                     (p_new_dof)->FreeDof();
@@ -665,12 +659,12 @@ public:
             int base = ( iii->Id() - 1 )*3;
 
             (iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
-            WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
+            GlobalPointersVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
             for(int i = 0; i<3; i++)
             {
                 int index = out2.neighborlist[base+i];
                 if(index > 0)
-                    neighb(i) = *((el_begin + index-1).base());
+                    neighb(i) = GlobalPointer<Element>(&*(el_begin + index-1));
                 else
                     neighb(i) = Element::WeakPointer();
             }
@@ -1246,7 +1240,7 @@ private:
 	    pnode->FastGetSolutionStepValue(FORCE_Y) = 0.0;
 	}
 	*/
-        
+
         if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0)
             KRATOS_THROW_ERROR(std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR","");
 
@@ -1311,37 +1305,37 @@ private:
         if(tr.edgemarkerlist != NULL) free(tr.edgemarkerlist   );
         if(tr.normlist != NULL) free(tr.normlist  );
     };
-    
+
     void InterpolateOnEdge( Geometry<Node<3> >& geom, int point1, int point2, unsigned int step_data_size, Node<3>::Pointer pnode)
     {
 		unsigned int buffer_size = pnode->GetBufferSize();
 		KRATOS_INFO("TriGenDropletModeler") << "buffer_size: " << buffer_size << std::endl;
 
-		for(unsigned int step = 0; step<buffer_size; step++) {	
+		for(unsigned int step = 0; step<buffer_size; step++) {
 			//getting the data of the solution step
 			double* step_data = (pnode)->SolutionStepData().Data(step);
-				
+
 			if (point1>2 || point1<0 || point2>2 || point2<0 || (point1==point2)) {
 				KRATOS_INFO("TriGenDropletModeler") << "point1: " << point1 << std::endl;
 				KRATOS_INFO("TriGenDropletModeler") << "point2: " << point2 << std::endl;
 				KRATOS_ERROR << "THE EDGE POINTS ARE INVALID " << std::endl;
 			}
-											
+
 			double* node0_data = geom[point1].SolutionStepData().Data(step);
-			double* node1_data = geom[point2].SolutionStepData().Data(step);						
-				
+			double* node1_data = geom[point2].SolutionStepData().Data(step);
+
 			//copying this data in the position of the vector we are interested in
-			for(unsigned int j= 0; j<step_data_size; j++) { 
+			for(unsigned int j= 0; j<step_data_size; j++) {
 				step_data[j] = 0.5*(node0_data[j] + node1_data[j]);
-			}						
+			}
 		}
 		//now we assure that the flag variables are set coorect!! since we add nodes inside of the fluid volume only
 		//we manually reset the IS_BOUNDARY, IS_FLUID, IS_STRUCTURE, IS_FREE_SURFACE values in a right way
-		//not to have values, like 0.33 0.66 resulting if we would have been interpolating them in the same way 		
-		//as the normal variables, like Velocity etc		
-		      
+		//not to have values, like 0.33 0.66 resulting if we would have been interpolating them in the same way
+		//as the normal variables, like Velocity etc
+
 		//pnode->FastGetSolutionStepValue(IS_BOUNDARY)=1.0;
-		//pnode->FastGetSolutionStepValue(FLAG_VARIABLE)=1.0;			
+		//pnode->FastGetSolutionStepValue(FLAG_VARIABLE)=1.0;
 
 		pnode->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)=0.0;
 		pnode->FastGetSolutionStepValue(IS_BOUNDARY)=1.0;
@@ -1349,33 +1343,33 @@ private:
 		pnode->FastGetSolutionStepValue(TRIPLE_POINT)=0.0;
 		pnode->FastGetSolutionStepValue(CONTACT_ANGLE)=0.0;
 		//pnode->FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT_X)=0.0;
-			
+
 		pnode->Set(TO_ERASE,false);
 
 		if (pnode->FastGetSolutionStepValue(IS_INTERFACE)>0.9)
 			pnode->FastGetSolutionStepValue(IS_INTERFACE)=1.0;
-		else 
+		else
 			pnode->FastGetSolutionStepValue(IS_INTERFACE)=0.0;
 		if (pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)>0.9)
 			pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=1.0;
-		else 
+		else
 			pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=0.0;
 		if (pnode->FastGetSolutionStepValue(FLAG_VARIABLE)>0.9)
 			pnode->FastGetSolutionStepValue(FLAG_VARIABLE)=1.0;
-		else 
-			pnode->FastGetSolutionStepValue(FLAG_VARIABLE)=0.0;	
+		else
+			pnode->FastGetSolutionStepValue(FLAG_VARIABLE)=0.0;
 		if (pnode->FastGetSolutionStepValue(IS_STRUCTURE)>0.9)
 		{
 			pnode->FastGetSolutionStepValue(IS_STRUCTURE)=1.0;
 			pnode->FastGetSolutionStepValue(IS_INTERFACE)=0.0;
 			pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=0.0;
 		}
-		else 
-			pnode->FastGetSolutionStepValue(IS_STRUCTURE)=0.0;	
-	
+		else
+			pnode->FastGetSolutionStepValue(IS_STRUCTURE)=0.0;
+
 	 };
-    
-    
+
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -1437,7 +1431,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIGEN_PFEM_MODELER_H_INCLUDED  defined 
-
-
-
+#endif // KRATOS_TRIGEN_PFEM_MODELER_H_INCLUDED  defined
