@@ -84,7 +84,7 @@
                     "Parameters": {
                         "model_part_name": "FluidModelPart",
                         "variable_name": "TURBULENT_VISCOSITY",
-                        "echo_level": 1,
+                        "echo_level": 0,
                         "min_value": 1e-18,
                         "max_value": 1e+30
                     }
@@ -105,7 +105,7 @@
                     "relative_tolerance": 1e-3,
                     "absolute_tolerance": 1e-5,
                     "max_iterations": 10000,
-                    "echo_level": 1,
+                    "echo_level": 0,
                     "relaxation_factor": 0.5,
                     "linear_solver_settings": {
                         "solver_type": "multi_level"
@@ -116,7 +116,7 @@
                     "relative_tolerance": 1e-3,
                     "absolute_tolerance": 1e-5,
                     "max_iterations": 10000,
-                    "echo_level": 1,
+                    "echo_level": 0,
                     "relaxation_factor": 0.5,
                     "linear_solver_settings": {
                         "solver_type": "multi_level"
@@ -129,7 +129,7 @@
                     "relative_tolerance": 1e-3,
                     "absolute_tolerance": 1e-5,
                     "max_iterations": 100,
-                    "echo_level": 2,
+                    "echo_level": 0,
                     "number_of_parent_solve_iterations" : 0
                 }
             }
