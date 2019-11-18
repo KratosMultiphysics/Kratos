@@ -578,6 +578,139 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
     }
 }
 
+void MembraneElement::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+
+    KRATOS_TRY
+    // element with two nodes can only represent results at one node
+    const IntegrationMethod integration_method = GeometryData::GI_GAUSS_2;
+    const unsigned int& write_points_number =
+        GetGeometry().IntegrationPointsNumber(integration_method);
+    if (rOutput.size() != write_points_number) {
+        rOutput.resize(write_points_number);
+    }
+
+    else if (rVariable == LOCAL_AXIS_1) {
+        array_1d<Vector,2> base_vectors_current_cov;
+        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
+        const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(integration_method);
+
+        Vector base_1 = ZeroVector(3);
+        Vector base_2 = ZeroVector(3);
+        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
+            const double integration_weight_i = r_integration_points[point_number].Weight();
+            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+            CovariantBaseVectors(base_vectors_current_cov,shape_functions_gradients_i,"reference");
+            base_1 += base_vectors_current_cov[0]*integration_weight_i;
+            base_2 += base_vectors_current_cov[1]*integration_weight_i;
+        }
+
+
+        array_1d<Vector,2> base_vectors_integrated;
+        base_vectors_integrated[0] = base_1;
+        base_vectors_integrated[1] = base_2;
+
+        array_1d<Vector,2> base_vectors_integrated_transformed;
+        TransformBaseVectors(base_vectors_integrated_transformed,base_vectors_integrated,"reference");
+
+        for (SizeType i =0; i<3; ++i) {
+            rOutput[0][i] = base_vectors_integrated_transformed[0][i]; // write integrated basevector to 1st GP
+        }
+
+    } else if (rVariable == LOCAL_AXIS_2) {
+        array_1d<Vector,2> base_vectors_current_cov;
+        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
+        const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(integration_method);
+
+        Vector base_1 = ZeroVector(3);
+        Vector base_2 = ZeroVector(3);
+        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
+            const double integration_weight_i = r_integration_points[point_number].Weight();
+            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+            CovariantBaseVectors(base_vectors_current_cov,shape_functions_gradients_i,"reference");
+            base_1 += base_vectors_current_cov[0]*integration_weight_i;
+            base_2 += base_vectors_current_cov[1]*integration_weight_i;
+        }
+
+        array_1d<Vector,2> base_vectors_integrated;
+        base_vectors_integrated[0] = base_1;
+        base_vectors_integrated[1] = base_2;
+
+        array_1d<Vector,2> base_vectors_integrated_transformed;
+        TransformBaseVectors(base_vectors_integrated_transformed,base_vectors_integrated,"reference");
+
+        for (SizeType i =0; i<3; ++i) {
+            rOutput[0][i] = base_vectors_integrated_transformed[1][i]; // write integrated basevector to 1st GP
+        }
+
+
+    } else if (rVariable == LOCAL_AXIS_3) {
+        array_1d<Vector,2> base_vectors_current_cov;
+        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
+        const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(integration_method);
+
+        Vector base_1 = ZeroVector(3);
+        Vector base_2 = ZeroVector(3);
+        Vector base_3 = ZeroVector(3);
+        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
+            const double integration_weight_i = r_integration_points[point_number].Weight();
+            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+            CovariantBaseVectors(base_vectors_current_cov,shape_functions_gradients_i,"reference");
+            base_1 += base_vectors_current_cov[0]*integration_weight_i;
+            base_2 += base_vectors_current_cov[1]*integration_weight_i;
+        }
+
+        MathUtils<double>::CrossProduct(base_3, base_1, base_2);
+        base_3 /= MathUtils<double>::Norm(base_3);
+
+        for (SizeType i =0; i<3; ++i) {
+            rOutput[0][i] = base_3[i]; // write integrated basevector to 1st GP
+        }
+    }
+
+
+    KRATOS_CATCH("")
+}
+
+void MembraneElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
+     const array_1d<Vector,2>& rLocalBaseVectors, const std::string Configuration){
+
+    if (GetProperties().Has(PRESTRESS_AXIS_1_GLOBAL) && GetProperties().Has(PRESTRESS_AXIS_2_GLOBAL)){
+    array_1d<double,3> global_prestress_axis1, global_prestress_axis2;
+            for(unsigned int i=0; i<3;i++){
+                global_prestress_axis1[i] = GetProperties()(PRESTRESS_AXIS_1_GLOBAL)[i];
+                global_prestress_axis2[i] = GetProperties()(PRESTRESS_AXIS_2_GLOBAL)[i];
+            }
+
+    Vector base_3 = ZeroVector(3);
+    MathUtils<double>::CrossProduct(base_3, rLocalBaseVectors[0], rLocalBaseVectors[1]);
+    base_3 /= MathUtils<double>::Norm(base_3);
+
+    rBaseVectors[0] = ZeroVector(3);
+    rBaseVectors[1] = ZeroVector(3);
+
+    MathUtils<double>::CrossProduct(rBaseVectors[1], base_3, global_prestress_axis1);
+    rBaseVectors[1] /= MathUtils<double>::Norm(rBaseVectors[1]);
+
+    MathUtils<double>::CrossProduct(rBaseVectors[0],rBaseVectors[1], base_3);
+    rBaseVectors[0] /= MathUtils<double>::Norm(rBaseVectors[0]);
+    }
+    else rBaseVectors=rLocalBaseVectors;
+}
+
+void MembraneElement::GetValueOnIntegrationPoints(
+    const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    KRATOS_CATCH("")
+}
+
 
 
 //***********************************************************************************
