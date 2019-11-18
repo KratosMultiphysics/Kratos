@@ -30,6 +30,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/oriented_bounding_box.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/simple_mortar_mapper_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/gid_io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/nodal_data.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp;
@@ -57,6 +58,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_h_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_nodal_area_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/skin_detection_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/sub_model_part_skin_detection_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/replace_elements_and_condition_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/entity_erase_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_variable_to_entities_process.cpp
@@ -74,6 +76,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_geometry.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_triangle_2d_3.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_tetrahedra_3d_4.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/element_size_calculator.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/embedded_skin_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_sensitivity_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/line_sensitivity_utility.cpp;
@@ -279,4 +282,3 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 if(${MPI_NEEDED} MATCHES ON )
   add_subdirectory(mpi)
 endif(${MPI_NEEDED} MATCHES ON )
-

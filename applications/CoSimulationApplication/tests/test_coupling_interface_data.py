@@ -11,6 +11,8 @@ using_pykratos = UsingPyKratos()
 # The expected definitions are here to make the handling of the
 # multiline-stings easier (no need to deal with indentation)
 coupling_interface_data_str = '''CouplingInterfaceData:
+	Name: "default"
+	Solver: "default_solver"
 	ModelPart: "mp_4_test"
 	IsDistributed: False
 	Variable: "DISPLACEMENT" (Vector with dimension: 2)
@@ -110,6 +112,15 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         coupling_data = CouplingInterfaceData(settings, self.model)
         coupling_data.Initialize()
         self.assertMultiLineEqual(str(coupling_data), coupling_interface_data_str)
+
+    def test_var_does_not_exist(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "var_that_hopefully_none_will_ever_create_otherwise_this_test_will_be_wrong"
+        }""")
+
+        with self.assertRaisesRegex(Exception, 'does not exist!'):
+            CouplingInterfaceData(settings, self.model)
 
     def test_wrong_input_dim_scalar(self):
         settings = KM.Parameters("""{
