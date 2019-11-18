@@ -13,6 +13,14 @@ class EvmKEpsilonTest(UnitTest.TestCase):
         # Set to true to get post-process files for the test
         self.print_output = False
 
+    def testOneElementKEpsilonSteady(self):
+        work_folder = "OneElement"
+        settings_file_name = "one_element_steady_parameters.json"
+
+        with UnitTest.WorkFolderScope(work_folder, __file__):
+            self._runTest(settings_file_name)
+            kratos_utilities.DeleteTimeFiles(".")
+
     def testBackwardFacingStepKEpsilonTransient(self):
         work_folder = "BackwardFacingStepTest"
         settings_file_name = "backward_facing_step_k_epsilon_transient_parameters.json"
