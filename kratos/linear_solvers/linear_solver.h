@@ -305,7 +305,7 @@ public:
     }
 
     /**
-     * @brief This method checks if the dimensions of the system of equations are consistent (dense matrix version)
+     * @brief This method checks if the dimensions of the system of equations are consistent (dense matrix for RHS and unknowns version)
      * @param rA The LHS of the system of equations
      * @param rX The matrix containing the unkowns
      * @param rB The matrix containing the RHSs of the system of equations
@@ -352,7 +352,7 @@ public:
     }
     
     /**
-     * @brief This method checks if the dimensions of the system of equations are not consistent (constant version)
+     * @brief This method checks if the dimensions of the system of equations are not consistent (dense matrix for RHS and unknowns version)
      * @param rA The LHS of the system of equations
      * @param rX The matrix containing the unkowns
      * @param rB The matrix containing the RHSs of the system of equations
