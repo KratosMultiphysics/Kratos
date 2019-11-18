@@ -17,18 +17,18 @@
 extern "C" { // Define extern C if C++ compiler is used
 #endif
 
-void CoSimIO_Connect(const char* pName);
+void CoSimIO_Connect(const char* pConnectionName, const char* pSettingsFileName);
 
-void CoSimIO_Disconnect(const char* pName);
+void CoSimIO_Disconnect(const char* pConnectionName);
 
-void CoSimIO_ImportData(const char* pName);
-// static void CoSimIO_ExportData(const char* pName);
+void CoSimIO_ImportData(const char* pConnectionName);
+// static void CoSimIO_ExportData(const char* pConnectionName);
 
-// static void CoSimIO_ImportMesh(const char* pName);
-// static void CoSimIO_ExportMesh(const char* pName);
+// static void CoSimIO_ImportMesh(const char* pConnectionName);
+// static void CoSimIO_ExportMesh(const char* pConnectionName);
 
-// static void CoSimIO_ImportGeometry(const char* pName);
-// static void CoSimIO_ExportGeometry(const char* pName);
+// static void CoSimIO_ImportGeometry(const char* pConnectionName);
+// static void CoSimIO_ExportGeometry(const char* pConnectionName);
 
 #ifdef __cplusplus
 }

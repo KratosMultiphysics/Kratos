@@ -14,7 +14,7 @@ void abc() {
 
 int main()
 {
-    CoSimIO_Connect("aaa");
+    CoSimIO_Connect("aaa", "ccc");
 
     // printf() displays the string inside quotation
     printf("Hello, World!");

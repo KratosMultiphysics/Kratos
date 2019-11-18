@@ -31,12 +31,12 @@ support for sockets and MPI can optionally be enabled
 
 namespace CoSimIO {
 
-static void Connect(const char* pConnectionName)
+static void Connect(const char* pConnectionName, const char* pSettingsFileName)
 {
     using namespace Internals;
     KRATOS_CO_SIM_ERROR_IF(HasIO(pConnectionName)) << "A connection for " << pConnectionName << " already exists!" << std::endl;
 
-    s_co_sim_ios[std::string(pConnectionName)] = std::unique_ptr<CoSimIOImpl>(new CoSimIOImpl("rName", "rSettings")); // make_unique is C++14
+    s_co_sim_ios[std::string(pConnectionName)] = std::unique_ptr<CoSimIOImpl>(new CoSimIOImpl(pConnectionName, pSettingsFileName)); // make_unique is C++14
     GetIO(pConnectionName).Connect();
 }
 

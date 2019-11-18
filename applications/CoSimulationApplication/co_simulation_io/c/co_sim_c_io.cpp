@@ -16,17 +16,17 @@ extern "C" {
 #include "../co_sim_io.h"
 
 
-void CoSimIO_Connect(const char* pName)
+void CoSimIO_Connect(const char* pConnectionName, const char* pSettingsFileName)
 {
-    CoSimIO::Connect(pName);
+    CoSimIO::Connect(pConnectionName, pSettingsFileName);
 }
 
-void CoSimIO_Disconnect(const char* pName)
+void CoSimIO_Disconnect(const char* pConnectionName)
 {
-    CoSimIO::Disconnect(pName);
+    CoSimIO::Disconnect(pConnectionName);
 }
 
-void CoSimIO_ImportData(const char* pName)
+void CoSimIO_ImportData(const char* pConnectionName)
 {
-    // CoSimIO::ImportData(pName);
+    // CoSimIO::ImportData(pConnectionName);
 }
