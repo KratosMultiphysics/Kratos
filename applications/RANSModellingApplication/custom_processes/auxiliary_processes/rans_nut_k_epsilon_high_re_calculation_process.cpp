@@ -22,7 +22,6 @@
 
 // Application includes
 #include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
-#include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/rans_check_utilities.h"
 #include "rans_modelling_application_variables.h"
 
@@ -40,8 +39,7 @@ RansNutKEpsilonHighReCalculationProcess::RansNutKEpsilonHighReCalculationProcess
         {
             "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "echo_level"      : 0,
-            "c_mu"            : 0.09,
-            "min_value"       : 1e-18
+            "c_mu"            : 0.09
         })");
 
     mrParameters.ValidateAndAssignDefaults(default_parameters);
@@ -49,11 +47,6 @@ RansNutKEpsilonHighReCalculationProcess::RansNutKEpsilonHighReCalculationProcess
     mEchoLevel = mrParameters["echo_level"].GetInt();
     mModelPartName = mrParameters["model_part_name"].GetString();
     mCmu = mrParameters["c_mu"].GetDouble();
-    mMinValue = mrParameters["min_value"].GetDouble();
-
-    KRATOS_ERROR_IF(mMinValue < 0.0)
-        << "\"min_value\"=" << mMinValue
-        << " is negative. Please provide a positive value.\n";
 
     KRATOS_CATCH("");
 }
@@ -98,9 +91,8 @@ void RansNutKEpsilonHighReCalculationProcess::Execute()
             r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
         const double nu_t = EvmKepsilonModelUtilities::CalculateTurbulentViscosity(
             mCmu, tke, epsilon, 1.0);
-        const double soft_nu_t = RansCalculationUtilities::SoftMax(nu_t, mMinValue);
 
-        r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = soft_nu_t;
+        r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = nu_t;
     }
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)

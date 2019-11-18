@@ -152,6 +152,7 @@ private:
     int mEchoLevel;
 
     double mLimitYPlus;
+    double mMinValue;
 
     double mCmu;
     double mVonKarman;
