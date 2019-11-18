@@ -129,10 +129,10 @@ public:
                 KRATOS_CO_SIM_ERROR_IF_NOT(mpAdvInTime) << "No function was registered for \"AdvanceInTime\"!" << std::endl;
 
                 std::vector<double> time_vec(1);
-                DataContainers::Data time_data = {time_vec};
-                Import(time_data, "time_from_co_sim");
+                // DataContainers::Data time_data = {time_vec};
+                // Import(time_data, "time_from_co_sim");
                 time_vec[0] = mpAdvInTime(time_vec[0]);
-                Export(time_data, "time_to_co_sim");
+                // Export(time_data, "time_to_co_sim");
             } else if (control_signal == CoSim::Internals::ControlSignal::InitializeSolutionStep) {
                 KRATOS_CO_SIM_ERROR_IF_NOT(mpInitSolStep) << "No function was registered for \"InitializeSolutionStep\"!" << std::endl;
                 mpInitSolStep();

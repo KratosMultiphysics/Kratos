@@ -120,17 +120,17 @@ void ExportMesh(const std::string& rIdentifier)
     // mesh has no cells, hence arguments are only dummy
     std::vector<int> connectivities;
     std::vector<int> cell_types;
-    CoSim::DataContainers::Mesh data_mesh = {node_coords, connectivities, cell_types};
-    p_co_sim_io->Export(data_mesh, rIdentifier);
+    // CoSim::DataContainers::Mesh data_mesh = {node_coords, connectivities, cell_types};
+    // p_co_sim_io->Export(data_mesh, rIdentifier);
 }
 
 void ImportData(const std::string& rIdentifier)
 {
     DataFieldType data_field;
 
-    CoSim::DataContainers::Data data = {data_field};
+    // CoSim::DataContainers::Data data = {data_field};
 
-    p_co_sim_io->Import(data, rIdentifier);
+    // p_co_sim_io->Import(data, rIdentifier);
 }
 
 void ExportData(const std::string& rIdentifier)
@@ -140,9 +140,9 @@ void ExportData(const std::string& rIdentifier)
 
     Initialize(mesh, data_field, 15);
 
-    CoSim::DataContainers::Data data = {data_field};
+    // CoSim::DataContainers::Data data = {data_field};
 
-    p_co_sim_io->Export(data, rIdentifier);
+    // p_co_sim_io->Export(data, rIdentifier);
 }
 
 void ExportMesh2(CoSim::CoSimIO& rCoSimIO, const MeshType& rMesh, const std::string& rIdentifier)
@@ -160,20 +160,20 @@ void ExportMesh2(CoSim::CoSimIO& rCoSimIO, const MeshType& rMesh, const std::str
     // mesh has no cells, hence arguments are only dummy
     std::vector<int> connectivities;
     std::vector<int> cell_types;
-    CoSim::DataContainers::Mesh mesh = {node_coords, connectivities, cell_types};
-    rCoSimIO.Export(mesh, rIdentifier);
+    // CoSim::DataContainers::Mesh mesh = {node_coords, connectivities, cell_types};
+    // rCoSimIO.Export(mesh, rIdentifier);
 }
 
 void ImportData2(CoSim::CoSimIO& rCoSimIO, DataFieldType& rDataField, const std::string& rIdentifier)
 {
-    CoSim::DataContainers::Data data = {rDataField};
-    rCoSimIO.Import(data, rIdentifier);
+    // CoSim::DataContainers::Data data = {rDataField};
+    // rCoSimIO.Import(data, rIdentifier);
 }
 
 void ExportData2(CoSim::CoSimIO& rCoSimIO, DataFieldType& rDataField, const std::string& rIdentifier)
 {
-    CoSim::DataContainers::Data data = {rDataField};
-    rCoSimIO.Export(data, rIdentifier);
+    // CoSim::DataContainers::Data data = {rDataField};
+    // rCoSimIO.Export(data, rIdentifier);
 }
 
 void RunSolutionLoop(MeshType& rMesh, DataFieldType& rDataField)

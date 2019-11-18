@@ -118,149 +118,149 @@ private:
         return true; // nothing needed here for file-based communication (maybe do sth here?)
     }
 
-    bool ImportDetail(DataContainers::Mesh& rDataContainer, const std::string& rIdentifier) override
-    {
-        const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetName() + "_" + rIdentifier + ".vtk"));
+    // bool ImportDetail(DataContainers::Mesh& rDataContainer, const std::string& rIdentifier) override
+    // {
+    //     const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetName() + "_" + rIdentifier + ".vtk"));
 
-        CS_LOG_IF(GetEchoLevel()>1) << "Attempting to receive mesh \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
+    //     CS_LOG_IF(GetEchoLevel()>1) << "Attempting to receive mesh \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
 
-        WaitForFile(file_name);
+    //     WaitForFile(file_name);
 
-        const auto start_time(std::chrono::steady_clock::now());
+    //     const auto start_time(std::chrono::steady_clock::now());
 
-        std::ifstream input_file(file_name);
-        CheckStream(input_file, file_name);
+    //     std::ifstream input_file(file_name);
+    //     CheckStream(input_file, file_name);
 
-        // reading file
-        std::string current_line;
-        bool nodes_read = false;
+    //     // reading file
+    //     std::string current_line;
+    //     bool nodes_read = false;
 
-        while (std::getline(input_file, current_line)) {
-            // reading nodes
-            if (current_line.find("POINTS") != std::string::npos) {
-                KRATOS_CO_SIM_ERROR_IF(nodes_read) << "The nodes were read already!" << std::endl;
-                nodes_read = true;
+    //     while (std::getline(input_file, current_line)) {
+    //         // reading nodes
+    //         if (current_line.find("POINTS") != std::string::npos) {
+    //             KRATOS_CO_SIM_ERROR_IF(nodes_read) << "The nodes were read already!" << std::endl;
+    //             nodes_read = true;
 
-                int num_nodes;
-                current_line = current_line.substr(current_line.find("POINTS") + 7); // removing "POINTS"
-                std::istringstream line_stream(current_line);
-                line_stream >> num_nodes;
+    //             int num_nodes;
+    //             current_line = current_line.substr(current_line.find("POINTS") + 7); // removing "POINTS"
+    //             std::istringstream line_stream(current_line);
+    //             line_stream >> num_nodes;
 
-                CS_LOG_IF(GetEchoLevel()>1) << "Mesh contains " << num_nodes << " Nodes" << std::endl;
+    //             CS_LOG_IF(GetEchoLevel()>1) << "Mesh contains " << num_nodes << " Nodes" << std::endl;
 
-                rDataContainer.node_coords.resize(3*num_nodes);
+    //             rDataContainer.node_coords.resize(3*num_nodes);
 
-                for (int i=0; i<num_nodes*3; ++i) {
-                    input_file >> rDataContainer.node_coords[i];
-                }
-            }
+    //             for (int i=0; i<num_nodes*3; ++i) {
+    //                 input_file >> rDataContainer.node_coords[i];
+    //             }
+    //         }
 
-            // reading cells
-            if (current_line.find("CELLS") != std::string::npos) {
-                KRATOS_CO_SIM_ERROR_IF_NOT(nodes_read) << "The nodes were not yet read!" << std::endl;
+    //         // reading cells
+    //         if (current_line.find("CELLS") != std::string::npos) {
+    //             KRATOS_CO_SIM_ERROR_IF_NOT(nodes_read) << "The nodes were not yet read!" << std::endl;
 
-                int /*num_nodes_per_cell,*/ num_cells, /*node_id,*/ cell_list_size;
-                current_line = current_line.substr(current_line.find("CELLS") + 6); // removing "CELLS"
-                std::istringstream line_stream(current_line);
-                line_stream >> num_cells;
-                line_stream >> cell_list_size;
+    //             int /*num_nodes_per_cell,*/ num_cells, /*node_id,*/ cell_list_size;
+    //             current_line = current_line.substr(current_line.find("CELLS") + 6); // removing "CELLS"
+    //             std::istringstream line_stream(current_line);
+    //             line_stream >> num_cells;
+    //             line_stream >> cell_list_size;
 
-                CS_LOG_IF(GetEchoLevel()>1) << "Mesh contains " << num_cells << " Cells" << std::endl;
+    //             CS_LOG_IF(GetEchoLevel()>1) << "Mesh contains " << num_cells << " Cells" << std::endl;
 
-                // int counter=0;
-                // for (int i=0; i<num_cells; ++i) {
-                //     input_file >> num_nodes_per_cell;
-                //     (*numNodesPerElem)[i] = num_nodes_per_cell;
-                //     for (int j=0; j<num_nodes_per_cell; ++j) {
-                //         input_file >> node_id;
-                //         (*elem)[counter++] = node_id+1; // Node Ids have an offset of 1 from Kratos to VTK
-                //     }
-                // }
-                break; // no further information reading required => CELL_TYPES are not used here
-            }
-        }
+    //             // int counter=0;
+    //             // for (int i=0; i<num_cells; ++i) {
+    //             //     input_file >> num_nodes_per_cell;
+    //             //     (*numNodesPerElem)[i] = num_nodes_per_cell;
+    //             //     for (int j=0; j<num_nodes_per_cell; ++j) {
+    //             //         input_file >> node_id;
+    //             //         (*elem)[counter++] = node_id+1; // Node Ids have an offset of 1 from Kratos to VTK
+    //             //     }
+    //             // }
+    //             break; // no further information reading required => CELL_TYPES are not used here
+    //         }
+    //     }
 
-        RemoveFile(file_name);
+    //     RemoveFile(file_name);
 
-        CS_LOG_IF(GetEchoLevel()>1) << "Finished receiving mesh" << std::endl;
+    //     CS_LOG_IF(GetEchoLevel()>1) << "Finished receiving mesh" << std::endl;
 
-        CS_LOG_IF(GetPrintTiming()) << "Receiving Mesh \"" << file_name << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+    //     CS_LOG_IF(GetPrintTiming()) << "Receiving Mesh \"" << file_name << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
 
-        return true;
-    }
+    //     return true;
+    // }
 
-    bool ExportDetail(const DataContainers::Mesh& rDataContainer, const std::string& rIdentifier) override
-    {
-        const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetName() + "_" + rIdentifier + ".vtk"));
+    // bool ExportDetail(const DataContainers::Mesh& rDataContainer, const std::string& rIdentifier) override
+    // {
+    //     const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetName() + "_" + rIdentifier + ".vtk"));
 
-        const int num_nodes = rDataContainer.node_coords.size()/3;
-        const int num_cells = rDataContainer.cell_types.size();
+    //     const int num_nodes = rDataContainer.node_coords.size()/3;
+    //     const int num_cells = rDataContainer.cell_types.size();
 
-        CS_LOG_IF(GetEchoLevel()>1) << "Attempting to send mesh \"" << rIdentifier << "\" with " << num_nodes << " Nodes | " << num_cells << " Cells in file \"" << file_name << "\" ..." << std::endl;
+    //     CS_LOG_IF(GetEchoLevel()>1) << "Attempting to send mesh \"" << rIdentifier << "\" with " << num_nodes << " Nodes | " << num_cells << " Cells in file \"" << file_name << "\" ..." << std::endl;
 
-        const auto start_time(std::chrono::steady_clock::now());
+    //     const auto start_time(std::chrono::steady_clock::now());
 
-        std::ofstream output_file;
-        output_file.open(GetTempFileName(file_name));
-        CheckStream(output_file, file_name);
+    //     std::ofstream output_file;
+    //     output_file.open(GetTempFileName(file_name));
+    //     CheckStream(output_file, file_name);
 
-        output_file << std::scientific << std::setprecision(7); // TODO maybe this should be configurable
+    //     output_file << std::scientific << std::setprecision(7); // TODO maybe this should be configurable
 
-        // write file header
-        output_file << "# vtk DataFile Version 4.0\n";
-        output_file << "vtk output\n";
-        output_file << "ASCII\n";
-        output_file << "DATASET UNSTRUCTURED_GRID\n\n";
+    //     // write file header
+    //     output_file << "# vtk DataFile Version 4.0\n";
+    //     output_file << "vtk output\n";
+    //     output_file << "ASCII\n";
+    //     output_file << "DATASET UNSTRUCTURED_GRID\n\n";
 
-        // write nodes
-        output_file << "POINTS " << num_nodes << " float\n";
-        for (int i=0; i<num_nodes; ++i) {
-            output_file << rDataContainer.node_coords[i*3] << " " << rDataContainer.node_coords[i*3+1] << " " << rDataContainer.node_coords[i*3+2] << "\n";
-        }
-        output_file << "\n";
+    //     // write nodes
+    //     output_file << "POINTS " << num_nodes << " float\n";
+    //     for (int i=0; i<num_nodes; ++i) {
+    //         output_file << rDataContainer.node_coords[i*3] << " " << rDataContainer.node_coords[i*3+1] << " " << rDataContainer.node_coords[i*3+2] << "\n";
+    //     }
+    //     output_file << "\n";
 
-        // write cells connectivity
-        int counter=0;
-        output_file << "CELLS " << num_cells << " " << rDataContainer.connectivities.size() << "\n";
-        for (int i=0; i<num_cells; ++i) {
-            const int num_nodes_cell = GetNumNodesForVtkCellType(rDataContainer.cell_types[i]);
-            output_file << num_nodes_cell << " ";
-            for (int j=0; j<num_nodes_cell; ++j) {
-                output_file << rDataContainer.connectivities[counter++];
-                if (j<num_nodes_cell-1) output_file << " "; // not adding a whitespace after last number
-            }
-            output_file << "\n";
-        }
+    //     // write cells connectivity
+    //     int counter=0;
+    //     output_file << "CELLS " << num_cells << " " << rDataContainer.connectivities.size() << "\n";
+    //     for (int i=0; i<num_cells; ++i) {
+    //         const int num_nodes_cell = GetNumNodesForVtkCellType(rDataContainer.cell_types[i]);
+    //         output_file << num_nodes_cell << " ";
+    //         for (int j=0; j<num_nodes_cell; ++j) {
+    //             output_file << rDataContainer.connectivities[counter++];
+    //             if (j<num_nodes_cell-1) output_file << " "; // not adding a whitespace after last number
+    //         }
+    //         output_file << "\n";
+    //     }
 
-        output_file << "\n";
+    //     output_file << "\n";
 
-        // write cell types
-        output_file << "CELL_TYPES " << num_cells << "\n";
-        for (int i=0; i<num_cells; ++i) {
-            output_file << rDataContainer.cell_types[i] << "\n";
-        }
+    //     // write cell types
+    //     output_file << "CELL_TYPES " << num_cells << "\n";
+    //     for (int i=0; i<num_cells; ++i) {
+    //         output_file << rDataContainer.cell_types[i] << "\n";
+    //     }
 
-        output_file.close();
-        MakeFileVisible(file_name);
+    //     output_file.close();
+    //     MakeFileVisible(file_name);
 
-        CS_LOG_IF(GetEchoLevel()>1) << "Finished sending mesh" << std::endl;
+    //     CS_LOG_IF(GetEchoLevel()>1) << "Finished sending mesh" << std::endl;
 
-        CS_LOG_IF(GetPrintTiming()) << "Sending Mesh \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+    //     CS_LOG_IF(GetPrintTiming()) << "Sending Mesh \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
 
-        return true;
-    }
+    //     return true;
+    // }
 
-    bool ImportDetail(DataContainers::Data& rDataContainer, const std::string& rIdentifier) override
-    {
-        ReceiveArray(rIdentifier, rDataContainer.data);
-        return true;
-    }
+    // bool ImportDetail(DataContainers::Data& rDataContainer, const std::string& rIdentifier) override
+    // {
+    //     ReceiveArray(rIdentifier, rDataContainer.data);
+    //     return true;
+    // }
 
-    bool ExportDetail(const DataContainers::Data& rDataContainer, const std::string& rIdentifier) override
-    {
-        SendArray(rIdentifier, rDataContainer.data);
-        return true;
-    }
+    // bool ExportDetail(const DataContainers::Data& rDataContainer, const std::string& rIdentifier) override
+    // {
+    //     SendArray(rIdentifier, rDataContainer.data);
+    //     return true;
+    // }
 
     void SendControlSignalDetail(Internals::ControlSignal Signal, const std::string& rIdentifier) override
     {

@@ -55,8 +55,8 @@ void ImportMesh(CoSim::CoSimIO& rCoSimIO, ModelPart& rModelPart)
     std::vector<double> node_coords;
     std::vector<int> connectivities;
     std::vector<int> cell_types;
-    CoSim::DataContainers::Mesh mesh = {node_coords, connectivities, cell_types};
-    rCoSimIO.Import(mesh, rModelPart.Name());
+    // CoSim::DataContainers::Mesh mesh = {node_coords, connectivities, cell_types};
+    // rCoSimIO.Import(mesh, rModelPart.Name());
 
     // fill ModelPart from received Mesh
     KRATOS_ERROR_IF(rModelPart.NumberOfNodes() > 0) << "ModelPart is not empty, it has nodes!" << std::endl;
@@ -137,15 +137,15 @@ void ExportData_Scalar(CoSim::CoSimIO& rCoSimIO, const ModelPart& rModelPart, co
         data_vals[0] = rModelPart[rVariable];
     }
 
-    CoSim::DataContainers::Data data_container = {data_vals};
-    rCoSimIO.Export(data_container, rIdentifier);
+    // CoSim::DataContainers::Data data_container = {data_vals};
+    // rCoSimIO.Export(data_container, rIdentifier);
 }
 
 void ImportData_Scalar(CoSim::CoSimIO& rCoSimIO, ModelPart& rModelPart, const Variable<double>& rVariable, const DataLocation DataLoc, const std::string& rIdentifier)
 {
     std::vector<double> data_vals;
-    CoSim::DataContainers::Data data_container = {data_vals};
-    rCoSimIO.Import(data_container, rIdentifier);
+    // CoSim::DataContainers::Data data_container = {data_vals};
+    // rCoSimIO.Import(data_container, rIdentifier);
 
     // TODO implement size-checks
 
@@ -230,15 +230,15 @@ void ExportData_Vector(CoSim::CoSimIO& rCoSimIO, const ModelPart& rModelPart, co
         data_vals[2] = r_val[2];
     }
 
-    CoSim::DataContainers::Data data_container = {data_vals};
-    rCoSimIO.Export(data_container, rIdentifier);
+    // CoSim::DataContainers::Data data_container = {data_vals};
+    // rCoSimIO.Export(data_container, rIdentifier);
 }
 
 void ImportData_Vector(CoSim::CoSimIO& rCoSimIO, ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable, const DataLocation DataLoc, const std::string& rIdentifier)
 {
     std::vector<double> data_vals;
-    CoSim::DataContainers::Data data_container = {data_vals};
-    rCoSimIO.Import(data_container, rIdentifier);
+    // CoSim::DataContainers::Data data_container = {data_vals};
+    // rCoSimIO.Import(data_container, rIdentifier);
 
     // TODO implement size-checks
 
@@ -290,8 +290,8 @@ void ImportData_Vector(CoSim::CoSimIO& rCoSimIO, ModelPart& rModelPart, const Va
 void ImportData_PyList(CoSim::CoSimIO& rCoSimIO, pybind11::list& PyList, const std::string& rIdentifier)
 {
     std::vector<double> data_vals;
-    CoSim::DataContainers::Data data_container = {data_vals};
-    rCoSimIO.Import(data_container, rIdentifier);
+    // CoSim::DataContainers::Data data_container = {data_vals};
+    // rCoSimIO.Import(data_container, rIdentifier);
 
     KRATOS_ERROR_IF(PyList.size() != data_vals.size()) << "The size of the list has to be specified before, expected size of " << data_vals.size() << ", current size: " << PyList.size() << std::endl;
 
@@ -303,8 +303,8 @@ void ImportData_PyList(CoSim::CoSimIO& rCoSimIO, pybind11::list& PyList, const s
 }
 void ExportData_PyList(CoSim::CoSimIO& rCoSimIO, std::vector<double>& rValues, const std::string& rIdentifier)
 {
-    CoSim::DataContainers::Data data_container = {rValues};
-    rCoSimIO.Export(data_container, rIdentifier);
+    // CoSim::DataContainers::Data data_container = {rValues};
+    // rCoSimIO.Export(data_container, rIdentifier);
 }
 
 } // helpers namespace

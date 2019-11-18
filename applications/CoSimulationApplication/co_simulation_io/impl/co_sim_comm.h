@@ -13,21 +13,11 @@
 #define KRATOS_CO_SIM_COMM_H_INCLUDED
 
 // System includes
-#include <unordered_map>
-#include <string>
-#include <stdexcept>
 
 // Project includes
 #include "co_sim_io_internals.h"
-#include "co_sim_data_containers.h"
 
 namespace CoSim {
-
-#define CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainerType)                                    \
-    virtual bool ImportDetail(DataContainerType& rDataContainer, const std::string& rIdentifier)       \
-        { KRATOS_CO_SIM_ERROR << "Type of data not yet supported" << std::endl; return false;}         \
-    virtual bool ExportDetail(const DataContainerType& rDataContainer, const std::string& rIdentifier) \
-        { KRATOS_CO_SIM_ERROR << "Type of data not yet supported" << std::endl; return false;}         \
 
 class CoSimComm
 {
@@ -208,10 +198,6 @@ private:
     {
         KRATOS_CO_SIM_ERROR << "ImportDataImpl not implemented for this comm-type!" << std::endl;
     }
-
-    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Geometry);
-    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Mesh);
-    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Data);
 
     void CheckConnection()
     {
