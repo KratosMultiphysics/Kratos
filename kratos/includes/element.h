@@ -1417,10 +1417,9 @@ public:
     /**
      * @brief This method provides the specifications/requirements of the element
      * @details This can be used to enhance solvers and analysis
-     * @param rProcessInfo The current ProcessInfo instance
      * @return specifications The required specifications/requirements
      */
-    virtual Parameters GetSpecifications(const ProcessInfo& rProcessInfo) const
+    virtual const Parameters GetSpecifications() const
     {
         const Parameters specifications = Parameters(R"({})");
         return specifications;
