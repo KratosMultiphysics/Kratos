@@ -36,7 +36,7 @@ static void Connect(const char* pName)
     using namespace Internals;
     KRATOS_CO_SIM_ERROR_IF(HasIO(pName)) << "A CoSimIO for " << pName << " already exists!" << std::endl;
 
-    s_co_sim_ios[std::string(pName)] = std::unique_ptr<CoSimIO>(new CoSimIO("rName", "rSettings")); // make_unique is C++14
+    s_co_sim_ios[std::string(pName)] = std::unique_ptr<CoSimIOImpl>(new CoSimIOImpl("rName", "rSettings")); // make_unique is C++14
     GetIO(pName).Connect();
 }
 

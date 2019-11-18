@@ -37,7 +37,7 @@
 namespace CoSim {
 namespace Internals {
 
-class CoSimIO
+class CoSimIOImpl
 {
 
 public:
@@ -45,10 +45,10 @@ public:
 
     typedef void (*DataExchangeFunctionType)(const std::string&);
 
-    explicit CoSimIO(const std::string& rName, const std::string& rSettingsFileName, const bool IsConnectionMaster=false)
-    : CoSimIO(rName, Internals::ReadSettingsFile(rSettingsFileName), IsConnectionMaster) { } // forwarding constructor call
+    explicit CoSimIOImpl(const std::string& rName, const std::string& rSettingsFileName, const bool IsConnectionMaster=false)
+    : CoSimIOImpl(rName, Internals::ReadSettingsFile(rSettingsFileName), IsConnectionMaster) { } // forwarding constructor call
 
-    explicit CoSimIO(const std::string& rName, SettingsType rSettings, const bool IsConnectionMaster=false) : mIsConnectionMaster(IsConnectionMaster)
+    explicit CoSimIOImpl(const std::string& rName, SettingsType rSettings, const bool IsConnectionMaster=false) : mIsConnectionMaster(IsConnectionMaster)
     {
         Initialize(rName, rSettings, IsConnectionMaster);
     }
@@ -268,18 +268,18 @@ private:
         }
     }
 
-}; // class CoSimIO
+}; // class CoSimIOImpl
 
 
 // TODO make sure this is unique even across compilation units (test somehow)
-static std::unordered_map<std::string, std::unique_ptr<CoSimIO>> s_co_sim_ios;
+static std::unordered_map<std::string, std::unique_ptr<CoSimIOImpl>> s_co_sim_ios;
 
 static bool HasIO(const char* pName)
 {
     return s_co_sim_ios.find(std::string(pName)) != s_co_sim_ios.end();
 }
 
-static CoSimIO& GetIO(const char* pName)
+static CoSimIOImpl& GetIO(const char* pName)
 {
     KRATOS_CO_SIM_ERROR_IF_NOT(HasIO(pName)) << "Trying to use CoSimIO " << pName << " which does not exist!" << std::endl;
     return *s_co_sim_ios.at(std::string(pName));
