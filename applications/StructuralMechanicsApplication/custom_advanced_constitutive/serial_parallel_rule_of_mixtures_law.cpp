@@ -956,21 +956,21 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         return rValue;
     } else {
         Matrix aux_value;
-        const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
-		Properties& r_prop = r_material_properties.GetSubProperty(0);
+        Properties material_properties  = rParameterValues.GetMaterialProperties();
+		Properties& r_prop = material_properties.GetSubProperties(0);
 
         rValue.clear();
         rParameterValues.SetMaterialProperties(r_prop);
         mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
         noalias(rValue) += (1.0 - mFiberVolumetricParticipation) * aux_value;
 
-		r_prop = r_material_properties.GetSubProperty(1);
+		r_prop = material_properties.GetSubProperties(1);
         rParameterValues.SetMaterialProperties(r_prop);
         mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
         noalias(rValue) += (1.0 - mFiberVolumetricParticipation) * aux_value;
 
         // Reset properties
-        rParameterValues.SetMaterialProperties(r_material_properties);
+        rParameterValues.SetMaterialProperties(material_properties);
     }
     return(rValue);
 }
