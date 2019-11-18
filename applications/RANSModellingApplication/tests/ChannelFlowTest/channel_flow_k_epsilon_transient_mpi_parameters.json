@@ -60,7 +60,7 @@
                     }
                 },
                 {
-                    "python_module": "apply_custom_process",
+                    "python_module": "cpp_process_factory",
                     "kratos_module": "KratosMultiphysics.RANSModellingApplication",
                     "process_name": "NutKEpsilonHighReCalculationProcess",
                     "Parameters": {
@@ -69,7 +69,7 @@
                     }
                 },
                 {
-                    "python_module": "apply_custom_process",
+                    "python_module": "cpp_process_factory",
                     "kratos_module": "KratosMultiphysics.RANSModellingApplication",
                     "process_name": "NutYPlusWallFunctionProcess",
                     "Parameters": {
@@ -78,7 +78,7 @@
                     }
                 },
                 {
-                    "python_module": "apply_custom_process",
+                    "python_module": "cpp_process_factory",
                     "kratos_module": "KratosMultiphysics.RANSModellingApplication",
                     "process_name": "ClipScalarVariableProcess",
                     "Parameters": {
@@ -136,7 +136,7 @@
     "processes": {
         "initial_conditions_process_list": [
             {
-                "python_module": "apply_custom_process",
+                "python_module": "cpp_process_factory",
                 "kratos_module": "KratosMultiphysics.RANSModellingApplication",
                 "process_name": "ApplyFlagProcess",
                 "Parameters": {
@@ -211,7 +211,7 @@
                 }
             },
             {
-                "python_module": "apply_custom_process",
+                "python_module": "cpp_process_factory",
                 "kratos_module": "KratosMultiphysics.RANSModellingApplication",
                 "process_name" : "KTurbulentIntensityInletProcess",
                 "Parameters": {
@@ -220,7 +220,7 @@
                 }
             },
             {
-                "python_module": "apply_custom_process",
+                "python_module": "cpp_process_factory",
                 "kratos_module": "KratosMultiphysics.RANSModellingApplication",
                 "process_name" : "EpsilonTurbulentMixingLengthInletProcess",
                 "Parameters": {

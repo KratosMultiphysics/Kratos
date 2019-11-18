@@ -13,7 +13,7 @@ class CustomProcessTest(UnitTest.TestCase):
         [
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
+                "python_module" : "cpp_process_factory",
                 "process_name"  : "CheckScalarBoundsProcess",
                 "Parameters" : {
                     "model_part_name"                : "test",
@@ -32,7 +32,7 @@ class CustomProcessTest(UnitTest.TestCase):
         [
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
+                "python_module" : "cpp_process_factory",
                 "process_name"  : "CheckVectorBoundsProcess",
                 "Parameters" : {
                     "model_part_name"                : "test",
@@ -51,7 +51,7 @@ class CustomProcessTest(UnitTest.TestCase):
         [
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
+                "python_module" : "cpp_process_factory",
                 "process_name"  : "ClipScalarVariableProcess",
                 "Parameters" : {
                     "model_part_name"                : "test",
@@ -83,7 +83,7 @@ class CustomProcessTest(UnitTest.TestCase):
         [
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
+                "python_module" : "cpp_process_factory",
                 "process_name"  : "ApplyFlagProcess",
                 "Parameters" : {
                     "model_part_name"                : "test.submodelpart_1",
@@ -95,7 +95,7 @@ class CustomProcessTest(UnitTest.TestCase):
             },
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
+                "python_module" : "cpp_process_factory",
                 "process_name"  : "ApplyFlagProcess",
                 "Parameters" : {
                     "model_part_name"                : "test.submodelpart_2",
@@ -134,7 +134,7 @@ class CustomProcessTest(UnitTest.TestCase):
         [
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
+                "python_module" : "cpp_process_factory",
                 "process_name"  : "FindNodalNeighboursProcess",
                 "Parameters" : {
                     "model_part_name"      : "test"
@@ -142,7 +142,7 @@ class CustomProcessTest(UnitTest.TestCase):
             },
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
+                "python_module" : "cpp_process_factory",
                 "process_name"  : "FindConditionParentProcess",
                 "Parameters" : {
                     "model_part_name"      : "test.submodelpart_1"
@@ -150,7 +150,7 @@ class CustomProcessTest(UnitTest.TestCase):
             },
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
+                "python_module" : "cpp_process_factory",
                 "process_name"  : "ScalarCellCenteredAveragingProcess",
                 "Parameters" : {
                     "echo_level"           : 0,
@@ -184,7 +184,7 @@ class CustomProcessTest(UnitTest.TestCase):
         [
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
+                "python_module" : "cpp_process_factory",
                 "process_name"  : "FindNodalNeighboursProcess",
                 "Parameters" : {
                     "model_part_name"      : "test"
@@ -192,7 +192,7 @@ class CustomProcessTest(UnitTest.TestCase):
             },
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
+                "python_module" : "cpp_process_factory",
                 "process_name"  : "FindConditionParentProcess",
                 "Parameters" : {
                     "model_part_name"      : "test.submodelpart_1"
@@ -200,7 +200,7 @@ class CustomProcessTest(UnitTest.TestCase):
             },
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
+                "python_module" : "cpp_process_factory",
                 "process_name"  : "VectorCellCenteredAveragingProcess",
                 "Parameters" : {
                     "echo_level"           : 0,
@@ -241,7 +241,7 @@ class CustomProcessTest(UnitTest.TestCase):
         [
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
+                "python_module" : "cpp_process_factory",
                 "process_name"  : "VectorAlignProcess",
                 "Parameters" : {
                     "model_part_name"         : "test.submodelpart_1",
@@ -299,7 +299,7 @@ class CustomProcessTest(UnitTest.TestCase):
         [
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
+                "python_module" : "cpp_process_factory",
                 "process_name"  : "VectorAlignProcess",
                 "Parameters" : {
                     "model_part_name"         : "test.submodelpart_1",
@@ -358,7 +358,7 @@ class CustomProcessTest(UnitTest.TestCase):
         [
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
+                "python_module" : "cpp_process_factory",
                 "process_name"  : "ApplyFlagProcess",
                 "Parameters" : {
                     "model_part_name"                : "test.submodelpart_1",
@@ -370,7 +370,7 @@ class CustomProcessTest(UnitTest.TestCase):
             },
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
+                "python_module" : "cpp_process_factory",
                 "process_name"  : "WallDistanceCalculationProcess",
                 "Parameters" :             {
                     "model_part_name"          : "test",
@@ -402,7 +402,7 @@ class CustomProcessTest(UnitTest.TestCase):
         [
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
+                "python_module" : "cpp_process_factory",
                 "process_name"  : "LogarithmicYPlusCalculationProcess",
                 "Parameters" :             {
                     "model_part_name" : "test",
@@ -453,7 +453,7 @@ class CustomProcessTest(UnitTest.TestCase):
         [
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
+                "python_module" : "cpp_process_factory",
                 "process_name"  : "NutKEpsilonHighReCalculationProcess",
                 "Parameters" :             {
                     "model_part_name" : "test",

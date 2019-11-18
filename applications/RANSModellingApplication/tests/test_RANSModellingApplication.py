@@ -53,6 +53,7 @@ def AssembleTestSuites():
     nightSuite.addTest(EvmKEpsilonTest('testBackwardFacingStepKEpsilonTransient'))
     nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteady'))
     nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteadyPeriodic'))
+    nightSuite.addTest(EvmKEpsilonTest('testOneElementKEpsilonSteady'))
 
     # For very long tests that should not be in nighly and you can use to validate
     # validationSuite = suites['validation']
