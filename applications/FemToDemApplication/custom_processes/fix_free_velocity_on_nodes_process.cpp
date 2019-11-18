@@ -46,7 +46,7 @@ void FixFreeVelocityOnNodesProcess::Execute()
                 const auto prev_acceleration    = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
                 auto &r_current_accel_backup = it_node->FastGetSolutionStepValue(ACCELERATION_BACKUP, 0);
                 auto &r_prev_accel_backup    = it_node->FastGetSolutionStepValue(ACCELERATION_BACKUP, 1);
-                r_current_accel_backup = current_acceleration;
+                noalias(r_current_accel_backup) = current_acceleration;
                 r_prev_accel_backup    = prev_acceleration;
 
                 const auto current_displ = it_node->FastGetSolutionStepValue(DISPLACEMENT, 0);
