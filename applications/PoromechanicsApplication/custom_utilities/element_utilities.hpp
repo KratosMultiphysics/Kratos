@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_utilities/solid_mechanics_math_utilities.hpp"
-#include "dam_application_variables.h"
+#include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
