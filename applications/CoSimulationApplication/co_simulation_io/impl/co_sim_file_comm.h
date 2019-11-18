@@ -357,6 +357,8 @@ private:
         int size_read;
         input_file >> size_read; // the first number in the file is the size of the array
 
+        // here if incoming size is larger than allocated size => resize
+
         rArray.resize(size_read);
 
         for (int i=0; i<size_read; ++i) {

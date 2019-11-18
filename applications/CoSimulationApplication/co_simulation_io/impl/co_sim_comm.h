@@ -204,9 +204,17 @@ private:
         KRATOS_CO_SIM_ERROR_IF_NOT(mIsConnected) << "No active connection exists!" << std::endl;;
     }
 
+    template <typename TDataType>
+    void AllocateMemoryIfRequired(const char* pIdentifier, const int RequiredSize, int& rCurrentSize, TDataType** ppContainer)
+    {
+        if (RequiredSize > rCurrentSize) {
+            // Log detail telling abt resize
+            rCurrentSize = RequiredSize;
+            delete *ppContainer; // check if this is correct ... probably not
+            *ppContainer = new TDataType[RequiredSize];
+        }
+    }
 };
-
-#undef CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE // this macro should only be used for this class
 
 } // namespace CoSimIO
 
