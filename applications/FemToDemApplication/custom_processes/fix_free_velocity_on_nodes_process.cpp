@@ -76,7 +76,7 @@ void FixFreeVelocityOnNodesProcess::Execute()
                 const auto current_displ_backup = it_node->FastGetSolutionStepValue(DISPLACEMENT_BACKUP, 0);
                 const auto prev_displ_backup    = it_node->FastGetSolutionStepValue(DISPLACEMENT_BACKUP, 1);
                 noalias(r_current_displ) = current_displ_backup;
-                r_prev_displ = prev_displ_backup;
+                noalias(r_prev_displ) = prev_displ_backup;
             }
         }
     }
