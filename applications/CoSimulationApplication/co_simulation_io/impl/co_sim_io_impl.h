@@ -261,15 +261,15 @@ private:
 // TODO make sure this is unique even across compilation units (test somehow)
 static std::unordered_map<std::string, std::unique_ptr<CoSimIOImpl>> s_co_sim_ios;
 
-static bool HasIO(const char* pName)
+static bool HasIO(const char* pConnectionName)
 {
-    return s_co_sim_ios.find(std::string(pName)) != s_co_sim_ios.end();
+    return s_co_sim_ios.find(std::string(pConnectionName)) != s_co_sim_ios.end();
 }
 
-static CoSimIOImpl& GetIO(const char* pName)
+static CoSimIOImpl& GetIO(const char* pConnectionName)
 {
-    KRATOS_CO_SIM_ERROR_IF_NOT(HasIO(pName)) << "Trying to use CoSimIO " << pName << " which does not exist!" << std::endl;
-    return *s_co_sim_ios.at(std::string(pName));
+    KRATOS_CO_SIM_ERROR_IF_NOT(HasIO(pConnectionName)) << "Trying to use connection " << pConnectionName << " which does not exist!" << std::endl;
+    return *s_co_sim_ios.at(std::string(pConnectionName));
 }
 
 } // namespace Internals

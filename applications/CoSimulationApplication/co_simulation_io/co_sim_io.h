@@ -31,49 +31,49 @@ support for sockets and MPI can optionally be enabled
 
 namespace CoSimIO {
 
-static void Connect(const char* pName)
+static void Connect(const char* pConnectionName)
 {
     using namespace Internals;
-    KRATOS_CO_SIM_ERROR_IF(HasIO(pName)) << "A CoSimIO for " << pName << " already exists!" << std::endl;
+    KRATOS_CO_SIM_ERROR_IF(HasIO(pConnectionName)) << "A connection for " << pConnectionName << " already exists!" << std::endl;
 
-    s_co_sim_ios[std::string(pName)] = std::unique_ptr<CoSimIOImpl>(new CoSimIOImpl("rName", "rSettings")); // make_unique is C++14
-    GetIO(pName).Connect();
+    s_co_sim_ios[std::string(pConnectionName)] = std::unique_ptr<CoSimIOImpl>(new CoSimIOImpl("rName", "rSettings")); // make_unique is C++14
+    GetIO(pConnectionName).Connect();
 }
 
-static void Disconnect(const char* pName)
+static void Disconnect(const char* pConnectionName)
 {
     using namespace Internals;
-    KRATOS_CO_SIM_ERROR_IF_NOT(HasIO(pName)) << "Trying to disconnect CoSimIO " << pName << " which does not exist!" << std::endl;
+    KRATOS_CO_SIM_ERROR_IF_NOT(HasIO(pConnectionName)) << "Trying to disconnect connection " << pConnectionName << " which does not exist!" << std::endl;
 
-    GetIO(pName).Disconnect();
-    s_co_sim_ios.erase(std::string(pName));
+    GetIO(pConnectionName).Disconnect();
+    s_co_sim_ios.erase(std::string(pConnectionName));
 }
 
-static bool IsConverged(const char* pName)
+static bool IsConverged(const char* pConnectionName)
 {
-    return Internals::GetIO(pName).IsConverged();
+    return Internals::GetIO(pConnectionName).IsConverged();
 }
 
 static void ImportData(
-    const char* pName,
+    const char* pConnectionName,
     const char* pIdentifier,
     int* pSize,
     double** ppData)
 {
-    Internals::GetIO(pName).ImportData(pIdentifier, pSize, ppData);
+    Internals::GetIO(pConnectionName).ImportData(pIdentifier, pSize, ppData);
 }
 
 static void ExportData(
-    const char* pName,
+    const char* pConnectionName,
     const char* pIdentifier,
     const int Size,
     const double* pData)
 {
-    Internals::GetIO(pName).ExportData(pIdentifier, Size, pData);
+    Internals::GetIO(pConnectionName).ExportData(pIdentifier, Size, pData);
 }
 
 static void ImportMesh(
-    const char* pName,
+    const char* pConnectionName,
     const char* pIdentifier,
     int* pNumberOfNodes,
     int* pNumberOfElements,
@@ -81,11 +81,11 @@ static void ImportMesh(
     int** ppElementConnectivities,
     int** ppElementTypes)
 {
-    Internals::GetIO(pName).ImportMesh(pIdentifier, pNumberOfNodes, pNumberOfElements, ppNodalCoordinates, ppElementConnectivities, ppElementTypes);
+    Internals::GetIO(pConnectionName).ImportMesh(pIdentifier, pNumberOfNodes, pNumberOfElements, ppNodalCoordinates, ppElementConnectivities, ppElementTypes);
 }
 
 static void ExportMesh(
-    const char* pName,
+    const char* pConnectionName,
     const char* pIdentifier,
     const int NumberOfNodes,
     const int NumberOfElements,
@@ -93,17 +93,17 @@ static void ExportMesh(
     const int* pElementConnectivities,
     const int* pElementTypes)
 {
-    Internals::GetIO(pName).ExportMesh(pIdentifier, NumberOfNodes, NumberOfElements, pNodalCoordinates, pElementConnectivities, pElementTypes);
+    Internals::GetIO(pConnectionName).ExportMesh(pIdentifier, NumberOfNodes, NumberOfElements, pNodalCoordinates, pElementConnectivities, pElementTypes);
 }
 
-static void ImportGeometry(const char* pName)
+static void ImportGeometry(const char* pConnectionName)
 {
-    Internals::GetIO(pName).ImportGeometry();
+    Internals::GetIO(pConnectionName).ImportGeometry();
 }
 
-static void ExportGeometry(const char* pName)
+static void ExportGeometry(const char* pConnectionName)
 {
-    Internals::GetIO(pName).ExportGeometry();
+    Internals::GetIO(pConnectionName).ExportGeometry();
 }
 
 namespace {
