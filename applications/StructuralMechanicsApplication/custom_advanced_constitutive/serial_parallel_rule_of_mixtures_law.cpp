@@ -174,7 +174,7 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
         constitutive_tensor_fiber_ss(num_serial_components, num_serial_components);
 
     // Iterative procedure until the equilibrium is reached in the serial stresses
-    while (is_converged == false && iteration <= max_iterations) {
+    while (!is_converged && iteration <= max_iterations) {
         if (iteration == 0) {
             // Computes an initial approximation of the independent var: rSerialStrainMatrix
             this->CalculateInitialApproximationSerialStrainMatrix(rStrainVector, mPreviousStrainVector,  
@@ -193,7 +193,7 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
         this->CheckStressEquilibrium(rStrainVector, serial_projector, rMatrixStressVector, rFiberStressVector, 
                                      stress_residual, is_converged, constitutive_tensor_matrix_ss, 
                                      constitutive_tensor_fiber_ss);
-        if (is_converged == true) {
+        if (is_converged) {
             break;
         } else {
             // We correct the independent var: serial_strain_matrix
