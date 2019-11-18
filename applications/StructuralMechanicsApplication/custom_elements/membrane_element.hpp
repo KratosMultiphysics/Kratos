@@ -95,14 +95,12 @@ namespace Kratos
     void CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
      const Matrix& rShapeFunctionGradientValues,const std::string Configuration);
 
-    void CovariantMetric(Matrix& rMetric,
-      const Matrix& rShapeFunctionGradientValues,const std::string Configuration);
+    void CovariantMetric(Matrix& rMetric,const array_1d<Vector,2>& rBaseVectorCovariant);
 
-    void ContraVariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
-     const Matrix& rShapeFunctionGradientValues, const std::string Configuration);
+    void ContraVariantBaseVectors(array_1d<Vector,2>& rBaseVectors,const Matrix& rContraVariantMetric,
+      const array_1d<Vector,2> rCovariantBaseVectors);
 
-    void ContravariantMetric(Matrix& rMetric,
-      const Matrix& rShapeFunctionGradientValues, const std::string Configuration);
+    void ContravariantMetric(Matrix& rMetric,const Matrix& rCovariantMetric);
 
     void DeriveCurrentCovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
      const Matrix& rShapeFunctionGradientValues, const SizeType DofR);
@@ -110,25 +108,27 @@ namespace Kratos
     void Derivative2CurrentCovariantMetric(Matrix& rMetric,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS);
 
-    void JacobiDeterminante(double& rDetJacobi, const Matrix& rShapeFunctionGradientValues);
+    void JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors);
 
     void Derivative2StrainGreenLagrange(Vector& rStrain,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS);
 
-    void DerivativeStrainGreenLagrange(Vector& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR);
+    void DerivativeStrainGreenLagrange(Vector& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
+      const array_1d<Vector,2> rCurrentCovariantBaseVectors);
 
-    void StrainGreenLagrange(Vector& rStrain, const Matrix& rShapeFunctionGradientValues);
+    void StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric);
 
-    void MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rShapeFunctionGradientValues);
+    void MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric);
 
-    void StressPk2(Vector& rStress,const Matrix& rShapeFunctionGradientValues);
+    void StressPk2(Vector& rStress,
+      const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric);
 
     void AddPreStressPk2(Vector& rStress);
 
     void VoigtNotation(const Matrix& rMetric, Vector& rOutputVector, const std::string StrainStressCheck);
 
     void DerivativeCurrentCovariantMetric(Matrix& rMetric,
-      const Matrix& rShapeFunctionGradientValues, const SizeType DofR);
+      const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const array_1d<Vector,2> rCurrentCovariantBaseVectors);
 
     void InternalForces(Vector& rInternalForces,const IntegrationMethod ThisMethod);
 
@@ -138,7 +138,8 @@ namespace Kratos
       const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues);
     void MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
       const Matrix& rMaterialTangentModulus,const double& rDetJ, const double& rWeight,
-      const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues);
+      const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
+      const array_1d<Vector,2> rCurrentCovariantBaseVectors);
 
     void GetValuesVector(
       Vector& rValues,
