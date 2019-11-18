@@ -468,8 +468,9 @@ def AssembleTestSuites():
 
 
 if __name__ == '__main__':
+    tests_successful = True
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    run_cpp_unit_tests.run()
+    tests_successful &= run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
     if kratos_utilities.IsMPIAvailable() and kratos_utilities.CheckIfApplicationsAvailable("MetisApplication", "TrilinosApplication"):
@@ -479,10 +480,12 @@ if __name__ == '__main__':
             stdout=subprocess.PIPE,
             cwd=os.path.dirname(os.path.abspath(__file__)))
         p.wait()
+        tests_successful &= p.exit_code
         KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished mpi python tests!")
     else:
         KratosMultiphysics.Logger.PrintInfo("Unittests", "\nSkipping mpi python tests due to missing dependencies")
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
-    KratosUnittest.runTests(AssembleTestSuites())
+    tests_successful &= KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
+    sys.exit(tests_successful)
