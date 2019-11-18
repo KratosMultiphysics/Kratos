@@ -124,15 +124,15 @@ namespace Kratos
         const double Accuracy = 1e-6)
     {
         // Initialize variables
-        bool clampU = false;
-        bool clampV = false;
+        bool conditionFirstRowZero, conditionSecondRowZero, conditionFirstColumnZero, conditionSecondColumnZero, isSystemInvertible;
         double d_u = 0.0;
         double d_v = 0.0;
         double A1_length, A2_length, A1_times_distance_vector, A1_length_times_distance, 
             A2_times_distance_vector, A2_length_times_distance, A1_times_distance_normalized, A2_times_distance_normalized;
-        double residualU, residualV, J_00, J_01, J_11;
+        double residualU, residualV, J_00, J_01, J_11, det_J;
 
         for (int i = 0; i < MaxIterations; i++) {
+
             // Compute the position, the base and the acceleration vectors
             std::vector<array_1d<double, 3>> s;
             rNurbsSurface.GlobalSpaceDerivatives(s,rParameterLocalCoordinates, 2);
@@ -163,8 +163,8 @@ namespace Kratos
                 return true;
 
             // Compute the residuals along both parametric directions
-            residualU = inner_prod(s[1], distance_vector);
-            residualV = inner_prod(s[2], distance_vector);
+            residualU = - inner_prod(s[1], distance_vector);
+            residualV = - inner_prod(s[2], distance_vector);
 
             // Compute the Jacobian of the nonlinear system
             J_00 = inner_prod(s[1], s[1]) + inner_prod(s[3], distance_vector);
@@ -172,20 +172,48 @@ namespace Kratos
             J_11 = inner_prod(s[2], s[2]) + inner_prod(s[5], distance_vector);
             
             // Check for singularities otherwise update the parametric coordinates as usual
-            if (std::abs(J_00) < Accuracy || clampU) {
-                d_u = 0.0;
-                d_v = residualV/J_11;
-                clampU = false;
-                clampV = true;
-            } else if (std::abs(J_11) < Accuracy || clampV) {
-                d_u = residualU/J_00;
-                d_v = 0.0;
-                clampU = true;
-                clampV = false;
+            conditionFirstRowZero = false;
+            if ((std::abs(J_00) < Accuracy && std::abs(J_01) < Accuracy) ){
+                conditionFirstRowZero = true;
+            }
+            conditionSecondRowZero = false;
+            if (std::abs(J_01) < Accuracy && fabs(J_11) < Accuracy){
+                conditionSecondRowZero = true;
+            }
+            conditionFirstColumnZero = false;
+            if ((std::abs(J_00) < Accuracy && std::abs(J_01) < Accuracy) ){
+                conditionFirstColumnZero = true;
+            }
+            conditionSecondColumnZero = false;
+            if ((std::abs(J_01) < Accuracy && std::abs(J_11) < Accuracy) ){
+                conditionSecondColumnZero = true;
+            }
+
+            // Check if the system is solvable by checking the condition of the diagonal entries
+            isSystemInvertible = true;
+            if (conditionFirstRowZero || conditionSecondRowZero || conditionFirstColumnZero || conditionSecondColumnZero){
+                isSystemInvertible = false;
+            }
+
+            // Solve the 2x2 linear equation system and take into account special cases where singularities occur
+            if (isSystemInvertible){
+                det_J = J_00 * J_11 - J_01 * J_01;
+                d_u = - (residualV * J_01 - residualU * J_11) / det_J;
+                d_v = - (residualU * J_01 - residualV * J_00) / det_J;
             } else {
-                double det_J = J_00 * J_11 - J_01 * J_01;
-                d_u = (residualV * J_01 - residualU * J_11) / det_J;
-                d_v = (residualU * J_01 - residualV * J_00) / det_J;
+                if (conditionFirstRowZero){
+                    d_u = residualV / J_11;
+                    d_v = 0.0;
+                } else if(conditionSecondRowZero){
+                    d_u = residualU / J_00;
+                    d_v = 0.0;
+                } else if(conditionFirstColumnZero){
+                    d_v = (residualU + residualV)/(J_01 + J_11);
+                    d_u = 0.0;
+                } else if(conditionSecondColumnZero){
+                    d_u = (residualU + residualV)/(J_00 + J_01);
+                    d_v = 0.0;
+                }
             }
 
             // Check if the step size is too small
