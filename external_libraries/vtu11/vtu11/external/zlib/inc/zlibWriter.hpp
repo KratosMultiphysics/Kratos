@@ -1,3 +1,12 @@
+//          __        ____ ____
+// ___  ___/  |_ __ _/_   /_   |
+// \  \/ /\   __\  |  \   ||   |
+//  \   /  |  | |  |  /   ||   |
+//   \_/   |__| |____/|___||___|
+//
+//  License: BSD License ; see LICENSE
+//
+
 #ifndef VTU11_ZLIBWRITER_HPP
 #define VTU11_ZLIBWRITER_HPP
 
