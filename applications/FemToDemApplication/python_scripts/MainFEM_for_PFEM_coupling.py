@@ -81,9 +81,7 @@ class FEM_for_PFEM_coupling_Solution(MainFEM_for_coupling.FEM_for_coupling_Solut
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.ACCELERATION_BACKUP)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.ACCELERATION_PREVIOUS_BACKUP)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.DISPLACEMENT_BACKUP)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.DISPLACEMENT_PREVIOUS_BACKUP)
         
         # Read model_part (note: the buffer_size is set here) (restart is read here)
         self.solver.ImportModelPart()
