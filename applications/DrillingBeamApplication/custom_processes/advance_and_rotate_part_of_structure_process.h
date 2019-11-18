@@ -104,13 +104,26 @@ public:
         //UPDATE LOCAL AXES (ROTATE THEM AROUND mAngularVelocity THE ROTATED ANGLE )
         const double norm_of_angular_velocity = MathUtils<double>::Norm3(mAngularVelocity);
         const double rotated_angle = norm_of_angular_velocity * rCurrentTime;
-        array_1d<double,3> unitary_angular_velocity = mAngularVelocity * (1.0 / norm_of_angular_velocity);
+        array_1d<double,3> unitary_angular_velocity;
+        unitary_angular_velocity[0] = 0.0;
+        unitary_angular_velocity[1] = 0.0;
+        unitary_angular_velocity[2] = 0.0;
+
+        if(norm_of_angular_velocity) {
+            noalias(unitary_angular_velocity) = mAngularVelocity * (1.0 / norm_of_angular_velocity);
+        }
         array_1d<double,3> initial_local_axis_1; initial_local_axis_1[0] = 1.0; initial_local_axis_1[1] = 0.0; initial_local_axis_1[2] = 0.0;
         array_1d<double,3> initial_local_axis_2; initial_local_axis_2[0] = 0.0; initial_local_axis_2[1] = 1.0; initial_local_axis_2[2] = 0.0;
         array_1d<double,3> initial_local_axis_3; initial_local_axis_3[0] = 0.0; initial_local_axis_3[1] = 0.0; initial_local_axis_3[2] = 1.0;
-        array_1d<double,3> current_local_axis_1;
-        array_1d<double,3> current_local_axis_2;
-        array_1d<double,3> current_local_axis_3;
+        array_1d<double,3> current_local_axis_1 = initial_local_axis_1;
+        array_1d<double,3> current_local_axis_2 = initial_local_axis_2;
+        array_1d<double,3> current_local_axis_3 = initial_local_axis_3;
+
+        if(norm_of_angular_velocity) {
+            RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_1, unitary_angular_velocity, rotated_angle, current_local_axis_1);
+            RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_2, unitary_angular_velocity, rotated_angle, current_local_axis_2);
+            RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_3, unitary_angular_velocity, rotated_angle, current_local_axis_3);
+        }
 
         array_1d<double,3> current_coordinates_of_center;
         current_coordinates_of_center[0] = mCoordinatesOfCenter[0] + mAdvanceVelocity * rCurrentTime;
@@ -120,10 +133,6 @@ public:
         current_velocity_of_center[0] = mAdvanceVelocity;
         current_velocity_of_center[1] = 0.0;
         current_velocity_of_center[2] = 0.0;
-
-        RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_1, unitary_angular_velocity, rotated_angle, current_local_axis_1);
-        RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_2, unitary_angular_velocity, rotated_angle, current_local_axis_2);
-        RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_3, unitary_angular_velocity, rotated_angle, current_local_axis_3);
 
         //UPDATE POSITION AND VELOCITY OF ALL NODES
         for (ModelPart::NodesContainerType::iterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); node_i++) {
