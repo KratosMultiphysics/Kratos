@@ -208,19 +208,6 @@ public:
         KRATOS_CO_SIM_ERROR << "Exporting of Geometry is not yet implemented!" << std::endl;
     }
 
-    // TODO remove the templated fcts
-    template<class DataContainer>
-    bool Import(DataContainer& rContainer, const std::string& rIdentifier)
-    {
-        return mpComm->Import(rContainer, rIdentifier);
-    }
-    template<class DataContainer>
-    bool Export(const DataContainer& rContainer, const std::string& rIdentifier)
-    {
-        return mpComm->Export(rContainer, rIdentifier);
-    }
-
-
 private:
     std::unique_ptr<CoSimComm> mpComm; // handles communication (File, Sockets, MPI, ...)
 
