@@ -32,7 +32,7 @@ namespace Kratos {
 namespace Python {
 
 namespace CoSimIO_Wrappers { // helpers namespace
-
+/*
 enum class DataLocation { NodeHistorical, NodeNonHistorical, Element, Condition, ModelPart };
 
 void ExportGeometry(CoSim::CoSimIO& rCoSimIO, const ModelPart& rModelPart)
@@ -306,65 +306,65 @@ void ExportData_PyList(CoSim::CoSimIO& rCoSimIO, std::vector<double>& rValues, c
     // CoSim::DataContainers::Data data_container = {rValues};
     // rCoSimIO.Export(data_container, rIdentifier);
 }
-
+*/
 } // helpers namespace
 
 void  AddCoSimIOToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef CoSim::CoSimIO::SettingsType SettingsType;
-    typedef CoSim::CoSimIO CoSimIOType;
+    // typedef CoSim::CoSimIO::SettingsType SettingsType;
+    // typedef CoSim::CoSimIO CoSimIOType;
 
-    py::class_<CoSimIOType>(m,"CoSimIO")
-        .def(py::init<const std::string&, const std::string&, const bool>())
-        .def(py::init<const std::string&, SettingsType, const bool>())
+    // py::class_<CoSimIOType>(m,"CoSimIO")
+    //     .def(py::init<const std::string&, const std::string&, const bool>())
+    //     .def(py::init<const std::string&, SettingsType, const bool>())
 
-        .def("Connect",&CoSimIOType::Connect)
-        .def("Disconnect",&CoSimIOType::Disconnect)
+        // .def("Connect",&CoSimIOType::Connect)
+        // .def("Disconnect",&CoSimIOType::Disconnect)
 
-        .def("SendControlSignal",&CoSimIOType::SendControlSignal)
-        // .def("RecvControlSignal",&CoSimIOType::RecvControlSignal) // not needed on CoSim side! (also would not work with direct exposure due to pass-by-ref)
+        // .def("SendControlSignal",&CoSimIOType::SendControlSignal)
+        // // .def("RecvControlSignal",&CoSimIOType::RecvControlSignal) // not needed on CoSim side! (also would not work with direct exposure due to pass-by-ref)
 
-        .def("ImportGeometry", CoSimIO_Wrappers::ImportGeometry)
-        .def("ExportGeometry", CoSimIO_Wrappers::ExportGeometry)
+        // .def("ImportGeometry", CoSimIO_Wrappers::ImportGeometry)
+        // .def("ExportGeometry", CoSimIO_Wrappers::ExportGeometry)
 
-        .def("ImportMesh", CoSimIO_Wrappers::ImportMesh)
-        .def("ExportMesh", CoSimIO_Wrappers::ExportMesh)
+        // .def("ImportMesh", CoSimIO_Wrappers::ImportMesh)
+        // .def("ExportMesh", CoSimIO_Wrappers::ExportMesh)
 
-        .def("ImportData", CoSimIO_Wrappers::ImportData_Scalar)
-        .def("ExportData", CoSimIO_Wrappers::ExportData_Scalar)
-        .def("ImportData", CoSimIO_Wrappers::ImportData_Vector)
-        .def("ExportData", CoSimIO_Wrappers::ExportData_Vector)
-        .def("ImportData", CoSimIO_Wrappers::ImportData_PyList)
-        .def("ExportData", CoSimIO_Wrappers::ExportData_PyList)
-        ;
+        // .def("ImportData", CoSimIO_Wrappers::ImportData_Scalar)
+        // .def("ExportData", CoSimIO_Wrappers::ExportData_Scalar)
+        // .def("ImportData", CoSimIO_Wrappers::ImportData_Vector)
+        // .def("ExportData", CoSimIO_Wrappers::ExportData_Vector)
+        // .def("ImportData", CoSimIO_Wrappers::ImportData_PyList)
+        // .def("ExportData", CoSimIO_Wrappers::ExportData_PyList)
+        // ;
 
-    py::enum_<CoSimIO_Wrappers::DataLocation>(m,"DataLocation")
-        .value("NodeHistorical", CoSimIO_Wrappers::DataLocation::NodeHistorical)
-        .value("NodeNonHistorical", CoSimIO_Wrappers::DataLocation::NodeNonHistorical)
-        .value("Element", CoSimIO_Wrappers::DataLocation::Element)
-        .value("Condition", CoSimIO_Wrappers::DataLocation::Condition)
-        .value("ModelPart", CoSimIO_Wrappers::DataLocation::ModelPart)
-        ;
+    // py::enum_<CoSimIO_Wrappers::DataLocation>(m,"DataLocation")
+    //     .value("NodeHistorical", CoSimIO_Wrappers::DataLocation::NodeHistorical)
+    //     .value("NodeNonHistorical", CoSimIO_Wrappers::DataLocation::NodeNonHistorical)
+    //     .value("Element", CoSimIO_Wrappers::DataLocation::Element)
+    //     .value("Condition", CoSimIO_Wrappers::DataLocation::Condition)
+    //     .value("ModelPart", CoSimIO_Wrappers::DataLocation::ModelPart)
+    //     ;
 
-    py::enum_<CoSim::Internals::ControlSignal>(m,"ControlSignal")
-        .value("Dummy", CoSim::Internals::ControlSignal::Dummy)
-        .value("BreakSolutionLoop", CoSim::Internals::ControlSignal::BreakSolutionLoop)
-        .value("ConvergenceAchieved", CoSim::Internals::ControlSignal::ConvergenceAchieved)
+    // py::enum_<CoSim::Internals::ControlSignal>(m,"ControlSignal")
+    //     .value("Dummy", CoSim::Internals::ControlSignal::Dummy)
+    //     .value("BreakSolutionLoop", CoSim::Internals::ControlSignal::BreakSolutionLoop)
+    //     .value("ConvergenceAchieved", CoSim::Internals::ControlSignal::ConvergenceAchieved)
 
-        .value("AdvanceInTime", CoSim::Internals::ControlSignal::AdvanceInTime)
-        .value("InitializeSolutionStep", CoSim::Internals::ControlSignal::InitializeSolutionStep)
-        .value("SolveSolutionStep", CoSim::Internals::ControlSignal::SolveSolutionStep)
-        .value("FinalizeSolutionStep", CoSim::Internals::ControlSignal::FinalizeSolutionStep)
+    //     .value("AdvanceInTime", CoSim::Internals::ControlSignal::AdvanceInTime)
+    //     .value("InitializeSolutionStep", CoSim::Internals::ControlSignal::InitializeSolutionStep)
+    //     .value("SolveSolutionStep", CoSim::Internals::ControlSignal::SolveSolutionStep)
+    //     .value("FinalizeSolutionStep", CoSim::Internals::ControlSignal::FinalizeSolutionStep)
 
-        .value("ImportGeometry", CoSim::Internals::ControlSignal::ImportGeometry)
-        .value("ExportGeometry", CoSim::Internals::ControlSignal::ExportGeometry)
-        .value("ImportMesh", CoSim::Internals::ControlSignal::ImportMesh)
-        .value("ExportMesh", CoSim::Internals::ControlSignal::ExportMesh)
-        .value("ImportData", CoSim::Internals::ControlSignal::ImportData)
-        .value("ExportData", CoSim::Internals::ControlSignal::ExportData)
-        ;
+    //     .value("ImportGeometry", CoSim::Internals::ControlSignal::ImportGeometry)
+    //     .value("ExportGeometry", CoSim::Internals::ControlSignal::ExportGeometry)
+    //     .value("ImportMesh", CoSim::Internals::ControlSignal::ImportMesh)
+    //     .value("ExportMesh", CoSim::Internals::ControlSignal::ExportMesh)
+    //     .value("ImportData", CoSim::Internals::ControlSignal::ImportData)
+    //     .value("ExportData", CoSim::Internals::ControlSignal::ExportData)
+    //     ;
 }
 
 }  // namespace Python.

@@ -31,8 +31,6 @@ support for sockets and MPI can optionally be enabled
 
 namespace CoSim {
 
-using Internals::CoSimIO; // TODO remove this
-
 static void Connect(const char* pName)
 {
     using namespace Internals;

@@ -26,7 +26,7 @@ into the CoSimulation framework works
 typedef std::vector<std::vector<std::array<double, 2>>> MeshType;
 typedef std::vector<double> DataFieldType;
 
-CoSim::CoSimIO* p_co_sim_io; // "hack", this will be hidden in the future!
+// CoSim::CoSimIO* p_co_sim_io; // "hack", this will be hidden in the future!
 
 namespace { // helpers namespace
 
@@ -145,36 +145,36 @@ void ExportData(const std::string& rIdentifier)
     // p_co_sim_io->Export(data, rIdentifier);
 }
 
-void ExportMesh2(CoSim::CoSimIO& rCoSimIO, const MeshType& rMesh, const std::string& rIdentifier)
-{
-    std::vector<double> node_coords(rMesh.size()*rMesh.size()*3, 0.0);
-    int counter=0;
-    for (int i_x=0; i_x<static_cast<int>(rMesh.size()); ++i_x) {
-        for (int i_y=0; i_y<static_cast<int>(rMesh.size()); ++i_y) {
-            node_coords[counter++] = rMesh[i_x][i_y][0];
-            node_coords[counter++] = rMesh[i_x][i_y][1];
-            node_coords[counter++] = 0.0; // for 3D
-        }
-    }
+// void ExportMesh2(CoSim::CoSimIO& rCoSimIO, const MeshType& rMesh, const std::string& rIdentifier)
+// {
+//     std::vector<double> node_coords(rMesh.size()*rMesh.size()*3, 0.0);
+//     int counter=0;
+//     for (int i_x=0; i_x<static_cast<int>(rMesh.size()); ++i_x) {
+//         for (int i_y=0; i_y<static_cast<int>(rMesh.size()); ++i_y) {
+//             node_coords[counter++] = rMesh[i_x][i_y][0];
+//             node_coords[counter++] = rMesh[i_x][i_y][1];
+//             node_coords[counter++] = 0.0; // for 3D
+//         }
+//     }
 
-    // mesh has no cells, hence arguments are only dummy
-    std::vector<int> connectivities;
-    std::vector<int> cell_types;
-    // CoSim::DataContainers::Mesh mesh = {node_coords, connectivities, cell_types};
-    // rCoSimIO.Export(mesh, rIdentifier);
-}
+//     // mesh has no cells, hence arguments are only dummy
+//     std::vector<int> connectivities;
+//     std::vector<int> cell_types;
+//     // CoSim::DataContainers::Mesh mesh = {node_coords, connectivities, cell_types};
+//     // rCoSimIO.Export(mesh, rIdentifier);
+// }
 
-void ImportData2(CoSim::CoSimIO& rCoSimIO, DataFieldType& rDataField, const std::string& rIdentifier)
-{
-    // CoSim::DataContainers::Data data = {rDataField};
-    // rCoSimIO.Import(data, rIdentifier);
-}
+// void ImportData2(CoSim::CoSimIO& rCoSimIO, DataFieldType& rDataField, const std::string& rIdentifier)
+// {
+//     // CoSim::DataContainers::Data data = {rDataField};
+//     // rCoSimIO.Import(data, rIdentifier);
+// }
 
-void ExportData2(CoSim::CoSimIO& rCoSimIO, DataFieldType& rDataField, const std::string& rIdentifier)
-{
-    // CoSim::DataContainers::Data data = {rDataField};
-    // rCoSimIO.Export(data, rIdentifier);
-}
+// void ExportData2(CoSim::CoSimIO& rCoSimIO, DataFieldType& rDataField, const std::string& rIdentifier)
+// {
+//     // CoSim::DataContainers::Data data = {rDataField};
+//     // rCoSimIO.Export(data, rIdentifier);
+// }
 
 void RunSolutionLoop(MeshType& rMesh, DataFieldType& rDataField)
 {
@@ -193,81 +193,81 @@ void RunSolutionLoopWithWeakCoupling(MeshType& rMesh, DataFieldType& rDataField)
 {
     // Note the following only works with one coupling inteface, requires more effort to make it work with multiple coupling interfaces.
 
-    CoSim::CoSimIO co_sim_io("dummy_solver_cpp", "dummy_solver_io_settings");
+    // CoSim::CoSimIO co_sim_io("dummy_solver_cpp", "dummy_solver_io_settings");
 
-    co_sim_io.Connect();
-    ExportMesh2(co_sim_io, rMesh, "interface");
+    // co_sim_io.Connect();
+    // ExportMesh2(co_sim_io, rMesh, "interface");
 
-    double current_time = 0.0;
-    const double end_time = 0.49;
-    while (current_time<end_time) {
-        current_time = AdvanceInTime(current_time);
-        InitializeSolutionStep();
+    // double current_time = 0.0;
+    // const double end_time = 0.49;
+    // while (current_time<end_time) {
+    //     current_time = AdvanceInTime(current_time);
+    //     InitializeSolutionStep();
 
-        ImportData2(co_sim_io, rDataField, "interface_temp");
-        SolveSolutionStep();
-        ExportData2(co_sim_io, rDataField, "interface_pressure");
+    //     ImportData2(co_sim_io, rDataField, "interface_temp");
+    //     SolveSolutionStep();
+    //     ExportData2(co_sim_io, rDataField, "interface_pressure");
 
-        FinalizeSolutionStep();
-        std::cout << std::endl;
-    }
+    //     FinalizeSolutionStep();
+    //     std::cout << std::endl;
+    // }
 
-    co_sim_io.Disconnect();
+    // co_sim_io.Disconnect();
 }
 
 void RunSolutionLoopWithStrongCoupling(MeshType& rMesh, DataFieldType& rDataField)
 {
     // Note the following only works with one coupling inteface, requires more effort to make it work with multiple coupling interfaces.
 
-    CoSim::CoSimIO co_sim_io("dummy_solver_cpp", "dummy_solver_io_settings");
+    // CoSim::CoSimIO co_sim_io("dummy_solver_cpp", "dummy_solver_io_settings");
 
-    co_sim_io.Connect();
-    ExportMesh2(co_sim_io, rMesh, "interface");
+    // co_sim_io.Connect();
+    // ExportMesh2(co_sim_io, rMesh, "interface");
 
-    double current_time = 0.0;
-    const double end_time = 0.49;
-    while (current_time<end_time) {
-        current_time = AdvanceInTime(current_time);
-        InitializeSolutionStep();
-        while(true) {
-            ImportData2(co_sim_io, rDataField, "interface_temp");
-            SolveSolutionStep();
-            ExportData2(co_sim_io, rDataField, "interface_pressure");
-            if (co_sim_io.IsConverged()) {
-                break;
-            }
-        }
+    // double current_time = 0.0;
+    // const double end_time = 0.49;
+    // while (current_time<end_time) {
+    //     current_time = AdvanceInTime(current_time);
+    //     InitializeSolutionStep();
+    //     while(true) {
+    //         ImportData2(co_sim_io, rDataField, "interface_temp");
+    //         SolveSolutionStep();
+    //         ExportData2(co_sim_io, rDataField, "interface_pressure");
+    //         if (co_sim_io.IsConverged()) {
+    //             break;
+    //         }
+    //     }
 
-        FinalizeSolutionStep();
-        std::cout << std::endl;
-    }
+    //     FinalizeSolutionStep();
+    //     std::cout << std::endl;
+    // }
 
-    co_sim_io.Disconnect();
+    // co_sim_io.Disconnect();
 }
 
 void RunSolutionCoSimulationOrchestrated(MeshType& rMesh, DataFieldType& rDataField)
 {
-    p_co_sim_io = new CoSim::CoSimIO("dummy_solver_cpp", "dummy_solver_io_settings");
+    // p_co_sim_io = new CoSim::CoSimIO("dummy_solver_cpp", "dummy_solver_io_settings");
 
-    p_co_sim_io->Connect();
+    // p_co_sim_io->Connect();
 
-    p_co_sim_io->RegisterAdvanceInTime(&AdvanceInTime);
-    p_co_sim_io->RegisterInitializeSolutionStep(&InitializeSolutionStep);
-    p_co_sim_io->RegisterSolveSolutionStep(&SolveSolutionStep);
-    p_co_sim_io->RegisterFinalizeSolutionStep(&FinalizeSolutionStep);
+    // p_co_sim_io->RegisterAdvanceInTime(&AdvanceInTime);
+    // p_co_sim_io->RegisterInitializeSolutionStep(&InitializeSolutionStep);
+    // p_co_sim_io->RegisterSolveSolutionStep(&SolveSolutionStep);
+    // p_co_sim_io->RegisterFinalizeSolutionStep(&FinalizeSolutionStep);
 
-    p_co_sim_io->RegisterDataExchange(&ImportGeometry, "ImportGeometry");
-    p_co_sim_io->RegisterDataExchange(&ExportGeometry, "ExportGeometry");
-    p_co_sim_io->RegisterDataExchange(&ImportMesh, "ImportMesh");
-    p_co_sim_io->RegisterDataExchange(&ExportMesh, "ExportMesh");
-    p_co_sim_io->RegisterDataExchange(&ImportData, "ImportData");
-    p_co_sim_io->RegisterDataExchange(&ExportData, "ExportData");
+    // p_co_sim_io->RegisterDataExchange(&ImportGeometry, "ImportGeometry");
+    // p_co_sim_io->RegisterDataExchange(&ExportGeometry, "ExportGeometry");
+    // p_co_sim_io->RegisterDataExchange(&ImportMesh, "ImportMesh");
+    // p_co_sim_io->RegisterDataExchange(&ExportMesh, "ExportMesh");
+    // p_co_sim_io->RegisterDataExchange(&ImportData, "ImportData");
+    // p_co_sim_io->RegisterDataExchange(&ExportData, "ExportData");
 
-    p_co_sim_io->Run();
+    // p_co_sim_io->Run();
 
-    p_co_sim_io->Disconnect();
+    // p_co_sim_io->Disconnect();
 
-    delete p_co_sim_io;
+    // delete p_co_sim_io;
 }
 
 void Finalize()
