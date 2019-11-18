@@ -107,11 +107,11 @@ protected:
             InvJ0 = ZeroMatrix(Dimension, Dimension);
             Displacements = ZeroVector(Dimension * NumberOfNodes);
             VolumetricNodalStrains = ZeroVector(NumberOfNodes);
-            DevStrainOp = GetDeviatoricStrainOperator(StrainSize, Dimension);
+            DevStrainOp = SetDeviatoricStrainOperator(StrainSize, Dimension);
             EquivalentStrain = ZeroVector(StrainSize);
         }
 
-        Matrix GetDeviatoricStrainOperator(
+        Matrix SetDeviatoricStrainOperator(
             const SizeType StrainSize,
             const SizeType Dimension)
         {
