@@ -49,6 +49,11 @@ static void Disconnect(const char* pConnectionName)
     s_co_sim_ios.erase(std::string(pConnectionName));
 }
 
+static void Run(const char* pConnectionName)
+{
+    Internals::GetIO(pConnectionName).Run();
+}
+
 static bool IsConverged(const char* pConnectionName)
 {
     return Internals::GetIO(pConnectionName).IsConverged();

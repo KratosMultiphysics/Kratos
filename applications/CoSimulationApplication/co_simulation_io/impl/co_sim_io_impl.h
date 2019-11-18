@@ -74,14 +74,6 @@ public:
         return mpComm->RecvControlSignal(rIdentifier);
     }
 
-
-    void RegisterDataExchange(DataExchangeFunctionType pFuncPtr, const std::string& rName)
-    {
-        KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-        KRATOS_CO_SIM_ERROR_IF(mDataExchangeFunctions.count(rName) > 0) << "Function already registered for \"" << rName << "\"!" << std::endl;
-        mDataExchangeFunctions[rName] = pFuncPtr;
-    }
-
     void RegisterAdvanceInTime(double (*pFuncPtr)(double))
     {
         KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
@@ -239,17 +231,17 @@ private:
         if (comm_format == "file") {
             mpComm = std::unique_ptr<CoSimComm>(new FileComm(rName, rSettings, IsConnectionMaster)); // make_unique is C++14
         } else if (comm_format == "sockets") {
-    #ifdef KRATOS_CO_SIM_IO_ENABLE_SOCKETS
+            #ifdef KRATOS_CO_SIM_IO_ENABLE_SOCKETS
             mpComm = std::unique_ptr<CoSimComm>(new SocketsComm(rName, rSettings, IsConnectionMaster)); // make_unique is C++14
-    #else
+            #else
             KRATOS_CO_SIM_ERROR << "Support for Sockets was not compiled!" << std::endl;
-    #endif /* KRATOS_CO_SIM_IO_ENABLE_SOCKETS */
+            #endif /* KRATOS_CO_SIM_IO_ENABLE_SOCKETS */
         } else if (comm_format == "mpi") {
-    #ifdef KRATOS_CO_SIM_IO_ENABLE_MPI
+            #ifdef KRATOS_CO_SIM_IO_ENABLE_MPI
             mpComm = std::unique_ptr<CoSimComm>(new MPIComm(rName, rSettings, IsConnectionMaster)); // make_unique is C++14
-    #else
+            #else
             KRATOS_CO_SIM_ERROR << "Support for MPI was not compiled!" << std::endl;
-    #endif /* KRATOS_CO_SIM_IO_ENABLE_MPI */
+            #endif /* KRATOS_CO_SIM_IO_ENABLE_MPI */
         } else {
             KRATOS_CO_SIM_ERROR << "Unsupported communication format: " << comm_format << std::endl;
         }

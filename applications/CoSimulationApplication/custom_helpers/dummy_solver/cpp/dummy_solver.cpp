@@ -26,8 +26,6 @@ into the CoSimulation framework works
 typedef std::vector<std::vector<std::array<double, 2>>> MeshType;
 typedef std::vector<double> DataFieldType;
 
-// CoSim::CoSimIO* p_co_sim_io; // "hack", this will be hidden in the future!
-
 namespace { // helpers namespace
 
 void Initialize(MeshType& rMesh, DataFieldType& rDataField, const int NumNodesPerDir)
@@ -247,9 +245,8 @@ void RunSolutionLoopWithStrongCoupling(MeshType& rMesh, DataFieldType& rDataFiel
 
 void RunSolutionCoSimulationOrchestrated(MeshType& rMesh, DataFieldType& rDataField)
 {
-    // p_co_sim_io = new CoSim::CoSimIO("dummy_solver_cpp", "dummy_solver_io_settings");
-
-    // p_co_sim_io->Connect();
+    const std::string comm_name("dummy_solver_1");
+    CoSimIO::Connect(comm_name.c_str(), "dummy_solver_io_settings");
 
     // p_co_sim_io->RegisterAdvanceInTime(&AdvanceInTime);
     // p_co_sim_io->RegisterInitializeSolutionStep(&InitializeSolutionStep);
@@ -263,11 +260,9 @@ void RunSolutionCoSimulationOrchestrated(MeshType& rMesh, DataFieldType& rDataFi
     // p_co_sim_io->RegisterDataExchange(&ImportData, "ImportData");
     // p_co_sim_io->RegisterDataExchange(&ExportData, "ExportData");
 
-    // p_co_sim_io->Run();
+    CoSimIO::Run(comm_name.c_str());
 
-    // p_co_sim_io->Disconnect();
-
-    // delete p_co_sim_io;
+    CoSimIO::Disconnect(comm_name.c_str());
 }
 
 void Finalize()
