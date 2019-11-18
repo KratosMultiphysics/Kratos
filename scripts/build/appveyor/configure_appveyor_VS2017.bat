@@ -43,7 +43,7 @@ rem Configur
  -DBOOST_ROOT="C:\Libraries\boost_1_65_1"           ^
  -DPYTHON_EXECUTABLE="C:\Python36-x64\python.exe"   ^
  -DINCLUDE_FEAST=OFF                                ^
- -INSTALL_RUNKRATOS=OFF                             ^
+ -DINSTALL_RUNKRATOS=OFF                            ^
  -DUSE_COTIRE=ON
 
 rem Build
