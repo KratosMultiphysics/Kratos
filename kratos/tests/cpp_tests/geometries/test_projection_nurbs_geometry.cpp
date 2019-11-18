@@ -199,7 +199,6 @@ typedef Node<3> NodeType;
 
         // Try projection
         bool isConverged2 = ProjectionNurbsGeometryUtilities::NewtonRaphsonSurface(parameter, point, projected_point, surface, 100, 1e-12);
-        exit(-1);
 
         // Check the solution
         KRATOS_CHECK_EQUAL(isConverged2, true);
