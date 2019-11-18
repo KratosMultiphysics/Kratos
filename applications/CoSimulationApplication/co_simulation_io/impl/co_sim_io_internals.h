@@ -45,9 +45,6 @@ enum class ControlSignal
     ExportData,
 };
 
-#define CS_LOG std::cout << "[CoSimIO] "
-#define CS_LOG_IF(condition) if(condition) CS_LOG
-
 typedef std::unordered_map<std::string, std::string> SettingsType;
 
 inline void AddMissingSettings(const SettingsType& rDefaultSettings, SettingsType& rSettings)

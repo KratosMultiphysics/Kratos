@@ -39,7 +39,7 @@ static bool FileExists(const std::string& rFileName)
 static void RemoveFile(const std::string& rFileName)
 {
     if (std::remove(rFileName.c_str()) != 0) {
-        CS_LOG << "Warning: \"" << rFileName << "\" could not be deleted!" << std::endl;
+        KRATOS_CO_SIM_INFO("CoSimIO") << "Warning: \"" << rFileName << "\" could not be deleted!" << std::endl;
     }
 }
 
@@ -98,7 +98,7 @@ public:
     ~FileComm() override
     {
         if (GetIsConnected()) {
-            CS_LOG << "Warning: Disconnect was not performed, attempting automatic disconnection!" << std::endl;
+            KRATOS_CO_SIM_INFO("CoSimIO") << "Warning: Disconnect was not performed, attempting automatic disconnection!" << std::endl;
             Disconnect();
         }
     }
@@ -122,7 +122,7 @@ private:
     // {
     //     const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetName() + "_" + rIdentifier + ".vtk"));
 
-    //     CS_LOG_IF(GetEchoLevel()>1) << "Attempting to receive mesh \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
+    //     KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to receive mesh \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
 
     //     WaitForFile(file_name);
 
@@ -146,7 +146,7 @@ private:
     //             std::istringstream line_stream(current_line);
     //             line_stream >> num_nodes;
 
-    //             CS_LOG_IF(GetEchoLevel()>1) << "Mesh contains " << num_nodes << " Nodes" << std::endl;
+    //             KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Mesh contains " << num_nodes << " Nodes" << std::endl;
 
     //             rDataContainer.node_coords.resize(3*num_nodes);
 
@@ -165,7 +165,7 @@ private:
     //             line_stream >> num_cells;
     //             line_stream >> cell_list_size;
 
-    //             CS_LOG_IF(GetEchoLevel()>1) << "Mesh contains " << num_cells << " Cells" << std::endl;
+    //             KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Mesh contains " << num_cells << " Cells" << std::endl;
 
     //             // int counter=0;
     //             // for (int i=0; i<num_cells; ++i) {
@@ -182,9 +182,9 @@ private:
 
     //     RemoveFile(file_name);
 
-    //     CS_LOG_IF(GetEchoLevel()>1) << "Finished receiving mesh" << std::endl;
+    //     KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished receiving mesh" << std::endl;
 
-    //     CS_LOG_IF(GetPrintTiming()) << "Receiving Mesh \"" << file_name << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+    //     KRATOS_CO_SIM_INFO_IF("CoSimIO", GetPrintTiming()) << "Receiving Mesh \"" << file_name << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
 
     //     return true;
     // }
@@ -196,7 +196,7 @@ private:
     //     const int num_nodes = rDataContainer.node_coords.size()/3;
     //     const int num_cells = rDataContainer.cell_types.size();
 
-    //     CS_LOG_IF(GetEchoLevel()>1) << "Attempting to send mesh \"" << rIdentifier << "\" with " << num_nodes << " Nodes | " << num_cells << " Cells in file \"" << file_name << "\" ..." << std::endl;
+    //     KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send mesh \"" << rIdentifier << "\" with " << num_nodes << " Nodes | " << num_cells << " Cells in file \"" << file_name << "\" ..." << std::endl;
 
     //     const auto start_time(std::chrono::steady_clock::now());
 
@@ -243,9 +243,9 @@ private:
     //     output_file.close();
     //     MakeFileVisible(file_name);
 
-    //     CS_LOG_IF(GetEchoLevel()>1) << "Finished sending mesh" << std::endl;
+    //     KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished sending mesh" << std::endl;
 
-    //     CS_LOG_IF(GetPrintTiming()) << "Sending Mesh \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+    //     KRATOS_CO_SIM_INFO_IF("CoSimIO", GetPrintTiming()) << "Sending Mesh \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
 
     //     return true;
     // }
@@ -268,7 +268,7 @@ private:
 
         WaitUntilFileIsRemoved(file_name); // TODO maybe this can be queued somehow ... => then it would not block the sender
 
-        CS_LOG_IF(GetEchoLevel()>1) << "Attempting to send control signal in file \"" << file_name << "\" ..." << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send control signal in file \"" << file_name << "\" ..." << std::endl;
 
         std::ofstream output_file;
         output_file.open(GetTempFileName(file_name));
@@ -279,14 +279,14 @@ private:
         output_file.close();
         MakeFileVisible(file_name);
 
-        CS_LOG_IF(GetEchoLevel()>1) << "Finished sending control signal" << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished sending control signal" << std::endl;
     }
 
     Internals::ControlSignal RecvControlSignalDetail(std::string& rIdentifier) override
     {
         const std::string file_name(GetFullPath("CoSimIO_control_signal_" + GetName() + ".dat"));
 
-        CS_LOG_IF(GetEchoLevel()>1) << "Attempting to receive control signal in file \"" << file_name << "\" ..." << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to receive control signal in file \"" << file_name << "\" ..." << std::endl;
 
         WaitForFile(file_name);
 
@@ -299,7 +299,7 @@ private:
 
         RemoveFile(file_name);
 
-        CS_LOG_IF(GetEchoLevel()>1) << "Finished receiving control signal" << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished receiving control signal" << std::endl;
 
         return static_cast<Internals::ControlSignal>(control_signal);
     }
@@ -312,7 +312,7 @@ private:
 
         const int size = rArray.size();
 
-        CS_LOG_IF(GetEchoLevel()>1) << "Attempting to send array \"" << rIdentifier << "\" with size: " << size << " in file \"" << file_name << "\" ..." << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send array \"" << rIdentifier << "\" with size: " << size << " in file \"" << file_name << "\" ..." << std::endl;
 
         const auto start_time(std::chrono::steady_clock::now());
 
@@ -333,9 +333,9 @@ private:
         output_file.close();
         MakeFileVisible(file_name);
 
-        CS_LOG_IF(GetEchoLevel()>1) << "Finished sending array" << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished sending array" << std::endl;
 
-        CS_LOG_IF(GetPrintTiming()) << "Sending Array \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetPrintTiming()) << "Sending Array \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
     }
 
     template<typename T>
@@ -343,7 +343,7 @@ private:
     {
         const std::string file_name(GetFullPath("CoSimIO_data_" + GetName() + "_" + rIdentifier + ".dat"));
 
-        CS_LOG_IF(GetEchoLevel()>1) << "Attempting to receive array \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to receive array \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
 
         WaitForFile(file_name);
 
@@ -365,9 +365,9 @@ private:
 
         RemoveFile(file_name);
 
-        CS_LOG_IF(GetEchoLevel()>1) << "Finished receiving array" << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished receiving array" << std::endl;
 
-        CS_LOG_IF(GetPrintTiming()) << "Receiving Array \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetPrintTiming()) << "Receiving Array \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
     }
 
     std::string GetTempFileName(const std::string& rFileName)
@@ -384,28 +384,28 @@ private:
 
     void WaitForFile(const std::string& rFileName)
     {
-        CS_LOG_IF(GetEchoLevel()>0) << "Waiting for file: \"" << rFileName << "\"" << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Waiting for file: \"" << rFileName << "\"" << std::endl;
         while(!FileExists(rFileName)) {
             std::this_thread::sleep_for(std::chrono::milliseconds(500)); // wait 0.5s before next check
-            CS_LOG_IF(GetEchoLevel()>2) << "    Waiting" << std::endl;
+            KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>2) << "    Waiting" << std::endl;
         }
-        CS_LOG_IF(GetEchoLevel()>0) << "Found file: \"" << rFileName << "\"" << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Found file: \"" << rFileName << "\"" << std::endl;
     }
 
     void WaitUntilFileIsRemoved(const std::string& rFileName)
     {
-        CS_LOG_IF(GetEchoLevel()>0) << "Waiting for file: \"" << rFileName << "\" to be removed" << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Waiting for file: \"" << rFileName << "\" to be removed" << std::endl;
         while(FileExists(rFileName)) {
             std::this_thread::sleep_for(std::chrono::milliseconds(500)); // wait 0.5s before next check
-            CS_LOG_IF(GetEchoLevel()>2) << "    Waiting" << std::endl;
+            KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>2) << "    Waiting" << std::endl;
         }
-        CS_LOG_IF(GetEchoLevel()>0) << "File: \"" << rFileName << "\" was removed" << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "File: \"" << rFileName << "\" was removed" << std::endl;
     }
 
     void MakeFileVisible(const std::string& rFinalFileName)
     {
         if (std::rename(GetTempFileName(rFinalFileName).c_str(), rFinalFileName.c_str()) != 0) {
-            CS_LOG << "Warning: \"" << rFinalFileName << "\" could not be made visible!" << std::endl;
+            KRATOS_CO_SIM_INFO("CoSimIO") << "Warning: \"" << rFinalFileName << "\" could not be made visible!" << std::endl;
         }
     }
 

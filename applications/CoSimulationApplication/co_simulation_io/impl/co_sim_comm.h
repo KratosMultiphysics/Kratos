@@ -40,7 +40,7 @@ public:
 
     bool Connect()
     {
-        CS_LOG << "Connecting \"" << mName << "\" as Connection-" << (mIsConnectionMaster ? "MASTER" : "SLAVE") << " ..." << std::endl;
+        KRATOS_CO_SIM_INFO("CoSimIO") << "Connecting \"" << mName << "\" as Connection-" << (mIsConnectionMaster ? "MASTER" : "SLAVE") << " ..." << std::endl;
 
         KRATOS_CO_SIM_ERROR_IF(mIsConnected) << "A connection was already established!" << std::endl;
 
@@ -48,27 +48,27 @@ public:
 
         KRATOS_CO_SIM_ERROR_IF_NOT(mIsConnected) << "Connection was not successful!" << std::endl;
 
-        CS_LOG << "Connection established" << std::endl;
+        KRATOS_CO_SIM_INFO("CoSimIO") << "Connection established" << std::endl;
 
         return mIsConnected;
     }
 
     bool Disconnect()
     {
-        CS_LOG << "Disconnecting \"" << mName << "\" ..." << std::endl;
+        KRATOS_CO_SIM_INFO("CoSimIO") << "Disconnecting \"" << mName << "\" ..." << std::endl;
 
         if (mIsConnected) {
             mIsConnected = !DisconnectDetail();
             if (mIsConnected) {
-                CS_LOG << "Warning: Disconnect was not successful!" << std::endl;
+                KRATOS_CO_SIM_INFO("CoSimIO") << "Warning: Disconnect was not successful!" << std::endl;
                 return false;
             }
         } else {
-            CS_LOG << "Warning: Calling Disconnect but there was no active connection!" << std::endl;
+            KRATOS_CO_SIM_INFO("CoSimIO") << "Warning: Calling Disconnect but there was no active connection!" << std::endl;
             return false;
         }
 
-        CS_LOG << "Disconnecting successful" << std::endl;
+        KRATOS_CO_SIM_INFO("CoSimIO") << "Disconnecting successful" << std::endl;
 
         return true;
     }
