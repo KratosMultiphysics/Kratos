@@ -46,7 +46,7 @@ class TestCase(TestCase):
         absolute and relative difference
 
         If the two objects compare equal then they will automatically
-        compare relative almost equal. ''' 
+        compare relative almost equal. '''
 
         if first == second:
             # shortcut
@@ -188,8 +188,7 @@ def runTests(tests):
             '[Warning]: "{}" test suite is empty'.format(level),
             file=sys.stderr)
     else:
-        result = not TextTestRunner(verbosity=verbosity, buffer=True).run(tests[level]).wasSuccessful()
-        sys.exit(result)
+        return not TextTestRunner(verbosity=verbosity, buffer=True).run(tests[level]).wasSuccessful()
 
 
 KratosSuites = {
