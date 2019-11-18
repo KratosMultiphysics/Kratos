@@ -18,15 +18,15 @@ extern "C" {
 
 void CoSimIO_Connect(const char* pName)
 {
-    CoSim::Connect(pName);
+    CoSimIO::Connect(pName);
 }
 
 void CoSimIO_Disconnect(const char* pName)
 {
-    CoSim::Disconnect(pName);
+    CoSimIO::Disconnect(pName);
 }
 
 void CoSimIO_ImportData(const char* pName)
 {
-    // CoSim::ImportData(pName);
+    // CoSimIO::ImportData(pName);
 }

@@ -23,7 +23,7 @@
 // Project includes
 #include "co_sim_io_define.h"
 
-namespace CoSim {
+namespace CoSimIO {
 namespace Internals {
 
 enum class ControlSignal
@@ -77,6 +77,6 @@ inline SettingsType ReadSettingsFile(const std::string& rSettingsFileName)
 }
 
 } // namespace Internals
-} // namespace CoSim
+} // namespace CoSimIO
 
 #endif /* KRATOS_CO_SIM_IO_INTERNALS_H_INCLUDED */

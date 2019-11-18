@@ -29,7 +29,7 @@ support for sockets and MPI can optionally be enabled
 // Project includes
 #include "impl/co_sim_io_impl.h"
 
-namespace CoSim {
+namespace CoSimIO {
 
 static void Connect(const char* pName)
 {
@@ -119,7 +119,7 @@ namespace {
     const auto _alias_ExportGeometry = ExportGeometry;
 }
 
-} // namespace CoSim
+} // namespace CoSimIO
 
 
 #endif /* KRATOS_CO_SIM_IO_H_INCLUDED */

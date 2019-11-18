@@ -17,7 +17,7 @@
 // Project includes
 #include "co_sim_io_internals.h"
 
-namespace CoSim {
+namespace CoSimIO {
 
 class CoSimComm
 {
@@ -208,6 +208,6 @@ private:
 
 #undef CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE // this macro should only be used for this class
 
-} // namespace CoSim
+} // namespace CoSimIO
 
 #endif /* KRATOS_CO_SIM_COMM_H_INCLUDED */

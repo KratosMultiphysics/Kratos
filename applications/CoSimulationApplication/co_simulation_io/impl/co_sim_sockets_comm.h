@@ -20,7 +20,7 @@
 // Project includes
 #include "co_sim_comm.h"
 
-namespace CoSim {
+namespace CoSimIO {
 
 class SocketsComm : public CoSimComm
 {
@@ -33,6 +33,6 @@ public:
 
 };
 
-} // namespace CoSim
+} // namespace CoSimIO
 
 #endif /* KRATOS_CO_SIM_SOCKETS_COMM_H_INCLUDED */

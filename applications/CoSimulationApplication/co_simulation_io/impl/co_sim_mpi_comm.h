@@ -18,7 +18,7 @@
 // Project includes
 #include "co_sim_comm.h"
 
-namespace CoSim {
+namespace CoSimIO {
 
 class MPIComm : public CoSimComm
 {
@@ -31,6 +31,6 @@ public:
 
 };
 
-} // namespace CoSim
+} // namespace CoSimIO
 
 #endif /* KRATOS_CO_SIM_MPI_COMM_H_INCLUDED */

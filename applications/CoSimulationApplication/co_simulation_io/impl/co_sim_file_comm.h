@@ -20,7 +20,7 @@
 // Project includes
 #include "co_sim_comm.h"
 
-namespace CoSim {
+namespace CoSimIO {
 
 namespace { // helpers namespace
 
@@ -411,6 +411,6 @@ private:
 
 };
 
-} // namespace CoSim
+} // namespace CoSimIO
 
 #endif /* KRATOS_CO_SIM_FILE_COMM_H_INCLUDED */
