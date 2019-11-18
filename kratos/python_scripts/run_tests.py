@@ -160,9 +160,10 @@ class Commander(object):
 
         self.exitCode = 0
 
-        # importing the apps such that they get registered for the cpp-tests
-        for application in applications:
-            import_module("KratosMultiphysics." + application)
+        # # importing the apps such that they get registered for the cpp-tests
+        # this one fails if incompatible apps are being imported!
+        # for application in applications:
+        #     import_module("KratosMultiphysics." + application)
 
         try:
             KtsMp.Tester.SetVerbosity(KtsMp.Tester.Verbosity.PROGRESS)
