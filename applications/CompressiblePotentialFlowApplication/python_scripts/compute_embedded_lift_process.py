@@ -15,7 +15,6 @@ class ComputeEmbeddedLiftProcess(ComputeLiftProcess):
             "model_part_name": "please specify the model part that contains the surface nodes",
             "moment_reference_point" : [0.0,0.0,0.0],
             "far_field_model_part_name": "",
-            "trailing_edge_model_part_name": "",
             "is_infinite_wing": false
         }''')
 
@@ -29,10 +28,7 @@ class ComputeEmbeddedLiftProcess(ComputeLiftProcess):
         self.compute_far_field_forces = far_field_model_part_name != ""
         if self.compute_far_field_forces :
             self.far_field_model_part = Model[far_field_model_part_name]
-        trailing_edge_model_part_name = settings["trailing_edge_model_part_name"].GetString()
-        self.compute_lift_from_jump_3d = trailing_edge_model_part_name != ""
-        if self.compute_lift_from_jump_3d:
-            self.trailing_edge_model_part = Model[trailing_edge_model_part_name]
+
         self.reference_area =  self.fluid_model_part.ProcessInfo.GetValue(CPFApp.REFERENCE_CHORD)
         self.moment_reference_point = settings["moment_reference_point"].GetVector()
         self.is_infinite_wing = settings["is_infinite_wing"].GetBool()
@@ -57,8 +53,6 @@ class ComputeEmbeddedLiftProcess(ComputeLiftProcess):
 
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT, self.lift_coefficient)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DRAG_COEFFICIENT, self.drag_coefficient)
-
-        # TODO Add call to ComputeLiftProcess PotentialJumpLift and FarFieldLift
 
     def _ComputeMomentFromPressure(self):
         # TODO Add implementation for embedded bodies

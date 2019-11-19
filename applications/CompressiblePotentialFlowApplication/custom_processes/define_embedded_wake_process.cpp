@@ -134,13 +134,16 @@ void DefineEmbeddedWakeProcess::MarkKuttaWakeElements(){
             for (std::size_t i_node= 0; i_node < r_geometry.size(); i_node++) {
                 if(r_geometry[i_node].GetValue(TRAILING_EDGE)){
                     trailing_edge_node_list.push_back(r_geometry[i_node].Id());
-                    mKuttaWakeElementCandidates[i].Set(STRUCTURE);                    // break;
+                    mKuttaWakeElementCandidates[i].Set(STRUCTURE);
                 }
             }
         }
 
     }
 
+    if (mrModelPart.HasSubModelPart("trailing_edge_sub_model_part")){
+        mrModelPart.RemoveSubModelPart("trailing_edge_sub_model_part");
+    }
     mrModelPart.CreateSubModelPart("trailing_edge_sub_model_part");
 
     std::sort(trailing_edge_node_list.begin(),
