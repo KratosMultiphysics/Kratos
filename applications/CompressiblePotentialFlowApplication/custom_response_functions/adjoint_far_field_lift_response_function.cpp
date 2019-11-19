@@ -52,29 +52,37 @@ namespace Kratos
         auto& far_field_model_part = root_model_part.GetSubModelPart("PotentialWallCondition2D_Far_field_Auto1");
         auto free_stream_velocity = root_model_part.GetProcessInfo()[FREE_STREAM_VELOCITY];
         auto free_stream_density = root_model_part.GetProcessInfo()[FREE_STREAM_DENSITY];
-        auto wake_normal = root_model_part.GetProcessInfo()[WAKE_NORMAL];
+        double free_stream_velocity_norm = norm_2(free_stream_velocity);
+        KRATOS_ERROR_IF(free_stream_velocity_norm<std::numeric_limits<double>::epsilon()) << "Free stream velocity is zero!" << std::endl;
+
         array_1d<double, 3> force_coefficient_pres;
         force_coefficient_pres.clear();
         array_1d<double, 3> force_coefficient_vel;
         force_coefficient_vel.clear();
+
         for(int i = 0; i <  static_cast<int>(far_field_model_part.NumberOfConditions()); ++i) {
             auto it_cond=far_field_model_part.ConditionsBegin()+i;
             auto& r_geometry = it_cond->GetGeometry();
             // Computing normal
             array_1d<double,3> aux_coordinates;
             r_geometry.PointLocalCoordinates(aux_coordinates, r_geometry.Center());
-            const auto unit_normal = r_geometry.UnitNormal(aux_coordinates);
+            const auto normal = r_geometry.Normal(aux_coordinates);
             double pressure_coefficient = it_cond-> GetValue(PRESSURE_COEFFICIENT);
-            force_coefficient_pres -= unit_normal*pressure_coefficient;
+            force_coefficient_pres -= normal*pressure_coefficient;
 
             auto velocity = it_cond->GetValue(VELOCITY);
             double density = it_cond->GetValue(DENSITY);
-            double velocity_projection = inner_prod(unit_normal,velocity);
+            double velocity_projection = inner_prod(normal,velocity);
             array_1d<double,3> disturbance = velocity - free_stream_velocity;
             force_coefficient_vel -= velocity_projection * disturbance * density;
         }
 
         force_coefficient_pres = force_coefficient_pres / mReferenceChord;
+
+        auto wake_direction = free_stream_velocity/free_stream_velocity_norm;
+        array_1d<double,3> wake_normal;
+        wake_normal[0] = -wake_direction[1];
+        wake_normal[1] = wake_direction[0];
 
         double free_stream_velocity_2 = inner_prod(free_stream_velocity, free_stream_velocity);
         double dynamic_pressure = 0.5 * free_stream_velocity_2 * free_stream_density;
