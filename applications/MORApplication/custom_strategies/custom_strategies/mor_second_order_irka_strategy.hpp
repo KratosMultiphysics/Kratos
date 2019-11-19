@@ -332,9 +332,7 @@ class MorSecondOrderIRKAStrategy
         //omp_set_num_threads(4);
 
         // build V
-        #pragma omp parallel for default(shared) schedule(static,1)
-        //#pragma omp parallel for default(shared) schedule(dynamic)
-        for(size_t i=0; i < n_sampling_points/2; ++i)
+        #pragma omp parallel
         {
 
             auto  tmp_Vr_col_ptr_par = ComplexDenseSpaceType::CreateEmptyVectorPointer();
@@ -347,21 +345,41 @@ class MorSecondOrderIRKAStrategy
             ComplexSparseSpaceType::Resize(r_tmp_Vn_par, system_size, system_size); // n x n
             TUblasSparseSpace<complex>::SetToZero(r_tmp_Vn_par);
 
-            auto  b_par = ComplexSparseSpaceType::CreateEmptyVectorPointer();
-            auto& r_b_par   = *b_par;
-            ComplexSparseSpaceType::Resize(r_b_par, system_size); // n x 1
-            noalias(r_b_par) = r_b;  
+            typename ComplexLinearSolverType::Pointer test_solver_par = LinearSolverFactoryType().Create(comp_solv_params); 
+            test_solver_par->Initialize( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b);
+
+        //#pragma omp parallel for default(shared) schedule(static,1)
+        //#pragma omp parallel for default(shared) schedule(dynamic)
+        #pragma omp for schedule(dynamic)
+        for(size_t i=0; i < n_sampling_points/2; ++i)
+        {
+
+            // auto  tmp_Vr_col_ptr_par = ComplexDenseSpaceType::CreateEmptyVectorPointer();
+            // auto& r_tmp_Vr_col_par   = *tmp_Vr_col_ptr_par;
+            // ComplexDenseSpaceType::Resize(r_tmp_Vr_col_par, system_size); // n x 1
+            // ComplexDenseSpaceType::Set(r_tmp_Vr_col_par, 0.0); // set vector to zero
+
+            // auto  tmp_Vn_ptr_par = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
+            // auto& r_tmp_Vn_par   = *tmp_Vn_ptr_par;
+            // ComplexSparseSpaceType::Resize(r_tmp_Vn_par, system_size, system_size); // n x n
+            // TUblasSparseSpace<complex>::SetToZero(r_tmp_Vn_par);
+
+            // auto  b_par = ComplexSparseSpaceType::CreateEmptyVectorPointer();
+            // auto& r_b_par   = *b_par;
+            // ComplexSparseSpaceType::Resize(r_b_par, system_size); // n x 1
+            // noalias(r_b_par) = r_b;  
 
 
             r_tmp_Vn_par = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
 
 
-            typename ComplexLinearSolverType::Pointer test_solver_par = LinearSolverFactoryType().Create(comp_solv_params); 
-            test_solver_par->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b_par); // Ax = b, solve for x
+            //typename ComplexLinearSolverType::Pointer test_solver_par = LinearSolverFactoryType().Create(comp_solv_params); 
+            test_solver_par->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b); // Ax = b, solve for x
 
 
             column(r_Vr_dense, 2*i) = real(r_tmp_Vr_col_par);
             column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col_par);
+        }
         }
 
         std::cout<<"parallel part passed"<<std::endl;
@@ -435,26 +453,30 @@ class MorSecondOrderIRKAStrategy
 
 //###################   for serial def
 
-        auto  V_col_par = SparseSpaceType::CreateEmptyVectorPointer();
-        auto& r_V_col_par   = *V_col_par;
-        SparseSpaceType::Resize(r_V_col_par, system_size); // n x 1
+        auto  V_col = SparseSpaceType::CreateEmptyVectorPointer();
+        auto& r_V_col   = *V_col;
+        SparseSpaceType::Resize(r_V_col, system_size); // n x 1
 
-        auto  TM_col_par = SparseSpaceType::CreateEmptyVectorPointer();
-        auto& r_TM_col_par   = *TM_col_par;
-        SparseSpaceType::Resize(r_TM_col_par, system_size); // n x 1
+        // auto  TM_col_par = SparseSpaceType::CreateEmptyVectorPointer();
+        // auto& r_TM_col_par   = *TM_col_par;
+        // SparseSpaceType::Resize(r_TM_col_par, system_size); // n x 1
 
-        auto  TK_col_par = SparseSpaceType::CreateEmptyVectorPointer();
-        auto& r_TK_col_par   = *TK_col_par;
-        SparseSpaceType::Resize(r_TK_col_par, system_size); // n x 1
+        // auto  TK_col_par = SparseSpaceType::CreateEmptyVectorPointer();
+        // auto& r_TK_col_par   = *TK_col_par;
+        // SparseSpaceType::Resize(r_TK_col_par, system_size); // n x 1
 
-        auto  TD_col_par = SparseSpaceType::CreateEmptyVectorPointer();
-        auto& r_TD_col_par   = *TD_col_par;
-        SparseSpaceType::Resize(r_TD_col_par, system_size); // n x 1
+        // auto  TD_col_par = SparseSpaceType::CreateEmptyVectorPointer();
+        // auto& r_TD_col_par   = *TD_col_par;
+        // SparseSpaceType::Resize(r_TD_col_par, system_size); // n x 1
 
+        auto  T_col = SparseSpaceType::CreateEmptyVectorPointer();
+        auto& r_T_col   = *T_col;
+        SparseSpaceType::Resize(r_T_col, system_size); // n x 1
 
-        TSystemVectorType tmp_M_col(reduced_system_size, 0.0);
-        TSystemVectorType tmp_K_col(reduced_system_size, 0.0);
-        TSystemVectorType tmp_D_col(reduced_system_size, 0.0);
+        // TSystemVectorType tmp_M_col(reduced_system_size, 0.0);
+        // TSystemVectorType tmp_K_col(reduced_system_size, 0.0);
+        // TSystemVectorType tmp_D_col(reduced_system_size, 0.0);
+        TSystemVectorType tmp_col(reduced_system_size, 0.0); // r x 1
 
 
 //###################   does not work, because of scope
@@ -521,17 +543,43 @@ class MorSecondOrderIRKAStrategy
 
 //###################   for serial def
             for(size_t i=0; i<reduced_system_size; i++){
-                r_V_col_par = column(r_Vr_sparse,i);
-                axpy_prod(r_M_tmp, r_V_col_par, r_TM_col_par);     // M*V  (=T_M)
-                axpy_prod(r_K_tmp, r_V_col_par, r_TK_col_par);     // K*V  (=T_K)
-                axpy_prod(r_D_tmp, r_V_col_par, r_TD_col_par);     // D*V  (=T_D)
-                axpy_prod(r_TM_col_par, r_Vr_sparse, tmp_M_col);   // V' * T_M
-                axpy_prod(r_TK_col_par, r_Vr_sparse, tmp_K_col);   // V' * T_K
-                axpy_prod(r_TD_col_par, r_Vr_sparse, tmp_D_col);   // V' * T_D
-                column(r_M_reduced, i) = tmp_M_col;                // Mr = V' M V
-                column(r_K_reduced, i) = tmp_K_col;                // Kr = V' K V
-                column(r_D_reduced, i) = tmp_D_col;                // Dr = V' D V
+                r_V_col = column(r_Vr_sparse,i);
+
+                axpy_prod(r_M_tmp, r_V_col, r_T_col);     // M*V  (=T)
+                axpy_prod(r_T_col, r_Vr_sparse, tmp_col);     // V' * T
+                column(r_M_reduced, i) = tmp_col;             // Mr = V' M V
+
+                axpy_prod(r_K_tmp, r_V_col, r_T_col);     // K*V  (=T)
+                axpy_prod(r_T_col, r_Vr_sparse, tmp_col);     // V' * T
+                column(r_K_reduced, i) = tmp_col;             // Kr = V' K V
+
+                axpy_prod(r_D_tmp, r_V_col, r_T_col);     // D*V  (=T)
+                axpy_prod(r_T_col, r_Vr_sparse, tmp_col);     // V' * T
+                column(r_D_reduced, i) = tmp_col;             // Dr = V' D V
+
+                // axpy_prod(r_K_tmp, r_V_col_par, r_TK_col_par);     // K*V  (=T_K)
+                // axpy_prod(r_D_tmp, r_V_col_par, r_TD_col_par);     // D*V  (=T_D)
+                // axpy_prod(r_TM_col_par, r_Vr_sparse, tmp_M_col);   // V' * T_M
+                // axpy_prod(r_TK_col_par, r_Vr_sparse, tmp_K_col);   // V' * T_K
+                // axpy_prod(r_TD_col_par, r_Vr_sparse, tmp_D_col);   // V' * T_D
+                // column(r_M_reduced, i) = tmp_M_col;                // Mr = V' M V
+                // column(r_K_reduced, i) = tmp_K_col;                // Kr = V' K V
+                // column(r_D_reduced, i) = tmp_D_col;                // Dr = V' D V
             }
+
+
+            // for(size_t i=0; i<reduced_system_size; i++){
+            //     r_V_col_par = column(r_Vr_sparse,i);
+            //     axpy_prod(r_M_tmp, r_V_col_par, r_TM_col_par);     // M*V  (=T_M)
+            //     axpy_prod(r_K_tmp, r_V_col_par, r_TK_col_par);     // K*V  (=T_K)
+            //     axpy_prod(r_D_tmp, r_V_col_par, r_TD_col_par);     // D*V  (=T_D)
+            //     axpy_prod(r_TM_col_par, r_Vr_sparse, tmp_M_col);   // V' * T_M
+            //     axpy_prod(r_TK_col_par, r_Vr_sparse, tmp_K_col);   // V' * T_K
+            //     axpy_prod(r_TD_col_par, r_Vr_sparse, tmp_D_col);   // V' * T_D
+            //     column(r_M_reduced, i) = tmp_M_col;                // Mr = V' M V
+            //     column(r_K_reduced, i) = tmp_K_col;                // Kr = V' K V
+            //     column(r_D_reduced, i) = tmp_D_col;                // Dr = V' D V
+            // }
 
 
 // // // // // // //###################   for parallel def
@@ -755,13 +803,9 @@ class MorSecondOrderIRKAStrategy
             samplingPoints_old = mSamplingPoints;
 
             // update V
-            //#pragma omp parallel for default(shared) schedule(static,1) num_threads(4)
-            //#pragma omp parallel for default(shared) schedule(static,1)
-            #pragma omp parallel for default(shared) schedule(dynamic)
-            for(size_t i=0; i < n_sampling_points/2; ++i)
+            #pragma omp parallel
             {
-     
-//###################   for parallel def
+
                 auto  tmp_Vr_col_ptr_par = ComplexDenseSpaceType::CreateEmptyVectorPointer();
                 auto& r_tmp_Vr_col_par   = *tmp_Vr_col_ptr_par;
                 ComplexDenseSpaceType::Resize(r_tmp_Vr_col_par, system_size); // n x 1
@@ -772,10 +816,30 @@ class MorSecondOrderIRKAStrategy
                 ComplexSparseSpaceType::Resize(r_tmp_Vn_par, system_size, system_size); // n x n
                 TUblasSparseSpace<complex>::SetToZero(r_tmp_Vn_par);
 
+                typename ComplexLinearSolverType::Pointer test_solver_par = LinearSolverFactoryType().Create(comp_solv_params);
+                test_solver_par->Initialize( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b);
+
+            //#pragma omp parallel for default(shared) schedule(static,1) num_threads(4)
+            //#pragma omp parallel for default(shared) schedule(static,1)
+            //#pragma omp parallel for default(shared) schedule(dynamic)
+            #pragma omp for schedule(dynamic)
+            for(size_t i=0; i < n_sampling_points/2; ++i)
+            {
+     
+//###################   for parallel def
+                // auto  tmp_Vr_col_ptr_par = ComplexDenseSpaceType::CreateEmptyVectorPointer();
+                // auto& r_tmp_Vr_col_par   = *tmp_Vr_col_ptr_par;
+                // ComplexDenseSpaceType::Resize(r_tmp_Vr_col_par, system_size); // n x 1
+                // ComplexDenseSpaceType::Set(r_tmp_Vr_col_par, 0.0); // set vector to zero
+
+                // auto  tmp_Vn_ptr_par = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
+                // auto& r_tmp_Vn_par   = *tmp_Vn_ptr_par;
+                // ComplexSparseSpaceType::Resize(r_tmp_Vn_par, system_size, system_size); // n x n
+                // TUblasSparseSpace<complex>::SetToZero(r_tmp_Vn_par);
+
 
                 r_tmp_Vn_par = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
 
-                typename ComplexLinearSolverType::Pointer test_solver_par = LinearSolverFactoryType().Create(comp_solv_params); 
                 test_solver_par->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b); // Ax = b, solve for x
 
                 column(r_Vr_dense, 2*i) = real(r_tmp_Vr_col_par);
@@ -792,6 +856,7 @@ class MorSecondOrderIRKAStrategy
                 // // column(r_Vr_dense, 2*i) = real(r_tmp_Vr_col);
                 // // column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col);
 
+            }
             }
 
                     std::cout<<"parallel part passed - iter "<<iter<<std::endl;
@@ -861,7 +926,7 @@ class MorSecondOrderIRKAStrategy
 
 
         // write full system size matrices (double)
-        /*
+        
         std::stringstream matrix_market_m_full;
         matrix_market_m_full << "M_full" << ".mm";
         TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_m_full.str()).c_str(), r_M_tmp, false);
@@ -873,7 +938,7 @@ class MorSecondOrderIRKAStrategy
         std::stringstream matrix_market_d_full;
         matrix_market_d_full << "D_full" << ".mm";
         TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_d_full.str()).c_str(), r_D_tmp, false);
-        */
+        
 
         std::stringstream matrix_market_b_full;
         matrix_market_b_full << "b_full" << ".mm";
