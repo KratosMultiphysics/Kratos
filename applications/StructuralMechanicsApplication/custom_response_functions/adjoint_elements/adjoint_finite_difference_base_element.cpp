@@ -218,6 +218,35 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
 }
 
 template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable, std::vector< array_1d<double, 3 > >& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    if(this->Has(rVariable)) {
+        // Get result value for output
+        const auto& output_value = this->GetValue(rVariable);
+
+        // Resize Output
+        const SizeType  write_points_number = this->GetGeometry()
+            .IntegrationPointsNumber(this->GetIntegrationMethod());
+        if (rOutput.size() != write_points_number) {
+            rOutput.resize(write_points_number);
+        }
+
+        // Write scalar result value on all Gauss-Points
+        for(IndexType i = 0; i < write_points_number; ++i) {
+            rOutput[i] = output_value;
+        }
+
+    } else {
+        KRATOS_ERROR << "Unsupported output variable." << std::endl;
+    }
+
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
 int AdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
