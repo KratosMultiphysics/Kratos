@@ -106,7 +106,10 @@ public:
         mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();
         
         //Need to read the type of the variable and optain its size, incorrectly done here
-        mNodalDofs = mNodalVariablesNames.size();
+        if (mNodalVariablesNames[0] == "TEMPERATURE")
+            mNodalDofs = 1;
+        if (mNodalVariablesNames[0] == "DISPLACEMENT")
+            mNodalDofs = std::stoi(mNodalVariablesNames[1]);
         mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();
     }
 
@@ -375,7 +378,7 @@ public:
 
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
-        Matrix MatrixResiduals( (nelements + nconditions), mRomDofs);   // Matrix of reduced residuals.
+        //   ###Matrix MatrixResiduals( (nelements + nconditions), mRomDofs);   // Matrix of reduced residuals.
 //       #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
         {
 //            # pragma omp for  schedule(guided, 512) nowait
@@ -396,6 +399,7 @@ public:
                     pScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);                    
 					Element::DofsVectorType dofs;
 					it_el->GetDofList(dofs, CurrentProcessInfo);
+                    KRATOS_WATCH(dofs)
                     //assemble the elemental contribution - here is where the ROM acts
                     //compute the elemental reduction matrix T
                     const auto& geom = it_el->GetGeometry();
@@ -403,14 +407,29 @@ public:
                     Vector ResidualReduced(mRomDofs); // The size of the residual will vary only when using more ROM modes
 
                     for(unsigned int i=0; i<geom.size(); ++i)
-                    {
+
+                    { 
+                        KRATOS_WATCH(i)
+                        KRATOS_WATCH(geom.size())                       
                         const Matrix& rom_nodal_basis = geom[i].GetValue(ROM_BASIS);
+                        KRATOS_WATCH(rom_nodal_basis)
+                        KRATOS_WATCH(Telemental)
+                        KRATOS_WATCH(rom_nodal_basis.size1())
+                        KRATOS_WATCH(dofs[0]->IsFixed())
+                        KRATOS_WATCH(dofs[1]->IsFixed())
+                        KRATOS_WATCH(dofs[2]->IsFixed())
                         for(unsigned int k=0; k<rom_nodal_basis.size1(); ++k)
                         {
-							if (dofs[i*mNodalDofs + k]->IsFixed())
+                            KRATOS_WATCH(k)
+							if (dofs[i*mNodalDofs + k]->IsFixed()){
+                                KRATOS_WATCH(i*mNodalDofs + k)
+                                KRATOS_WATCH(ZeroVector(Telemental.size2()))
 								row(Telemental, i*mNodalDofs + k) = ZeroVector(Telemental.size2());
+                            }
 							else
 								row(Telemental, i*mNodalDofs+k) = row(rom_nodal_basis,k);
+                            KRATOS_WATCH(row(rom_nodal_basis,k))
+                            KRATOS_WATCH(Telemental)
 						}
                     }
 
@@ -419,7 +438,7 @@ public:
                     noalias(brom) += prod(trans(Telemental), RHS_Contribution);
                     ResidualReduced = prod(trans(Telemental), RHS_Contribution);
 
-                    row(MatrixResiduals, k) = ResidualReduced;
+                    //   ###row(MatrixResiduals, k) = ResidualReduced;
                     
 
                     //PrintData(Telemental);
@@ -476,7 +495,7 @@ public:
                     
                     ResidualReduced = prod(trans(Telemental), RHS_Contribution);
 
-                    row(MatrixResiduals, k+nelements) = ResidualReduced;
+                    // ### row(MatrixResiduals, k+nelements) = ResidualReduced;
 
                     // clean local elemental memory
                     pScheme->CleanMemory(*(it.base()));
