@@ -8,7 +8,6 @@
 //
 //  Main authors:    Ruben Zorrilla
 //                   Riccardo Rossi
-//  Collaborator:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_SMALL_DISPLACEMENT_MIXED_STRAIN_ELEMENT_H_INCLUDED )
