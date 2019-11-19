@@ -111,17 +111,20 @@ namespace Kratos
     void JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors);
 
     void Derivative2StrainGreenLagrange(Vector& rStrain,
-      const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS);
+      const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS,
+      const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference);
 
     void DerivativeStrainGreenLagrange(Vector& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
-      const array_1d<Vector,2> rCurrentCovariantBaseVectors);
+      const array_1d<Vector,2> rCurrentCovariantBaseVectors, const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference);
 
-    void StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric);
+    void StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
+      const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference);
 
     void MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric);
 
     void StressPk2(Vector& rStress,
-      const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric);
+      const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
+      const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference);
 
     void AddPreStressPk2(Vector& rStress);
 
@@ -133,13 +136,19 @@ namespace Kratos
     void InternalForces(Vector& rInternalForces,const IntegrationMethod ThisMethod);
 
     void TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod ThisMethod);
+
     void InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
       const Vector& rStressVector,const double& rDetJ, const double& rWeight,
-      const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues);
+      const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
+      const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference);
+
     void MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
       const Matrix& rMaterialTangentModulus,const double& rDetJ, const double& rWeight,
       const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
-      const array_1d<Vector,2> rCurrentCovariantBaseVectors);
+      const array_1d<Vector,2> rCurrentCovariantBaseVectors, const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference);
+
+    void TransformStrains(Matrix& rStrainsMatrix,const Matrix& rReferenceStrainsMatrix,
+      const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference);
 
     void GetValuesVector(
       Vector& rValues,

@@ -130,10 +130,8 @@ void MembraneElement::GetDofList(
 //***********************************************************************************
 
 void MembraneElement::Initialize()
-
 {
     KRATOS_TRY
-
     KRATOS_CATCH( "" )
 }
 
@@ -144,9 +142,8 @@ void MembraneElement::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     ProcessInfo& rCurrentProcessInfo)
 
-{
-    const IntegrationMethod integration_method = GeometryData::GI_GAUSS_2;
-    TotalStiffnessMatrix(rLeftHandSideMatrix,integration_method);
+{;
+    TotalStiffnessMatrix(rLeftHandSideMatrix,GetGeometry().GetDefaultIntegrationMethod());
 }
 
 //***********************************************************************************
@@ -162,8 +159,7 @@ void MembraneElement::CalculateRightHandSide(
     const unsigned int system_size = number_of_nodes * dimension;
 
     Vector internal_forces = ZeroVector(system_size);
-    const IntegrationMethod integration_method = GeometryData::GI_GAUSS_2;
-    InternalForces(internal_forces,integration_method);
+    InternalForces(internal_forces,GetGeometry().GetDefaultIntegrationMethod());
     rRightHandSideVector = ZeroVector(system_size);
     rRightHandSideVector -= internal_forces;
 }
@@ -263,9 +259,33 @@ void MembraneElement::VoigtNotation(const Matrix& rMetric, Vector& rOutputVector
     rOutputVector[0] = rMetric(0,0);
     rOutputVector[1] = rMetric(1,1);
     rOutputVector[2] = rMetric(0,1);
-    if (StrainStressCheck=="strain") rOutputVector[2]*=2.0;
+    if (StrainStressCheck=="strain"){
+        rOutputVector[2]*=2.0;
+    }
 }
 
+void MembraneElement::TransformStrains(Matrix& rStrainsMatrix,
+ const Matrix& rReferenceStrainsMatrix, const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference)
+{
+    //use contravariant basevectors here
+    // transform base vecs needs only G3 which is equal for co and contra
+    // tranform strains needs contra-variant !
+    rStrainsMatrix = ZeroMatrix(2);
+    array_1d<Vector,2> base_vectors_transformed;
+    TransformBaseVectors(base_vectors_transformed,rLocalContraVariantBaseVectorsReference,"reference");
+    for (SizeType i=0;i<2;++i){
+        for (SizeType j=0;j<2;++j){
+            for (SizeType k=0;k<2;++k){
+                for (SizeType l=0;l<2;++l){
+                    rStrainsMatrix(i,j) +=
+                        rReferenceStrainsMatrix(k,l) *
+                         inner_prod(base_vectors_transformed[i],rLocalContraVariantBaseVectorsReference[k]) *
+                          inner_prod(base_vectors_transformed[j],rLocalContraVariantBaseVectorsReference[l]);
+                }
+            }
+        }
+    }
+}
 
 void MembraneElement::AddPreStressPk2(Vector& rStress){
     //TODO
@@ -274,14 +294,15 @@ void MembraneElement::AddPreStressPk2(Vector& rStress){
 }
 
 void MembraneElement::StressPk2(Vector& rStress,
-    const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric)
+    const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
+    const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference)
 {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     Matrix material_tangent_modulus = ZeroMatrix(dimension);
 
     MaterialTangentModulus(material_tangent_modulus,rReferenceContraVariantMetric);
     Vector strain_vector = ZeroVector(dimension);
-    StrainGreenLagrange(strain_vector,rReferenceCoVariantMetric,rCurrentCoVariantMetric);
+    StrainGreenLagrange(strain_vector,rReferenceCoVariantMetric,rCurrentCoVariantMetric,rLocalContraVariantBaseVectorsReference);
 
     rStress = prod(material_tangent_modulus,strain_vector);
     AddPreStressPk2(rStress);
@@ -294,43 +315,49 @@ void MembraneElement::MaterialTangentModulus(Matrix& rTangentModulus,const Matri
     const double nu = GetProperties()[POISSON_RATIO];
     const double E  = GetProperties()[YOUNG_MODULUS];
 
-    const double lam = (E*nu)/((1.0+nu)*(1-(2.0*nu)));
-    const double m = E/(2.0*(1+nu));
-
-    rTangentModulus(0,0) = (lam * rReferenceContraVariantMetric(0,0) * rReferenceContraVariantMetric(0,0)) + m * ((rReferenceContraVariantMetric(0,0) *  rReferenceContraVariantMetric(0,0)) + (rReferenceContraVariantMetric(0,0) *  rReferenceContraVariantMetric(0,0)));
-    rTangentModulus(0,1) = (lam * rReferenceContraVariantMetric(0,0) * rReferenceContraVariantMetric(1,1)) + m * ((rReferenceContraVariantMetric(0,1) *  rReferenceContraVariantMetric(0,1)) + (rReferenceContraVariantMetric(0,1) *  rReferenceContraVariantMetric(0,1)));
-    rTangentModulus(0,2) = (lam * rReferenceContraVariantMetric(0,0) * rReferenceContraVariantMetric(0,1)) + m * ((rReferenceContraVariantMetric(0,0) *  rReferenceContraVariantMetric(0,1)) + (rReferenceContraVariantMetric(0,1) *  rReferenceContraVariantMetric(0,0)));
-    rTangentModulus(1,0) = (lam * rReferenceContraVariantMetric(1,1) * rReferenceContraVariantMetric(0,0)) + m * ((rReferenceContraVariantMetric(1,0) *  rReferenceContraVariantMetric(1,0)) + (rReferenceContraVariantMetric(1,0) *  rReferenceContraVariantMetric(1,0)));
-    rTangentModulus(1,1) = (lam * rReferenceContraVariantMetric(1,1) * rReferenceContraVariantMetric(1,1)) + m * ((rReferenceContraVariantMetric(1,1) *  rReferenceContraVariantMetric(1,1)) + (rReferenceContraVariantMetric(1,1) *  rReferenceContraVariantMetric(1,1)));
-    rTangentModulus(1,2) = (lam * rReferenceContraVariantMetric(1,1) * rReferenceContraVariantMetric(0,1)) + m * ((rReferenceContraVariantMetric(1,0) *  rReferenceContraVariantMetric(1,1)) + (rReferenceContraVariantMetric(1,1) *  rReferenceContraVariantMetric(1,0)));
-    rTangentModulus(2,0) = (lam * rReferenceContraVariantMetric(0,1) * rReferenceContraVariantMetric(0,0)) + m * ((rReferenceContraVariantMetric(0,0) *  rReferenceContraVariantMetric(1,0)) + (rReferenceContraVariantMetric(0,0) *  rReferenceContraVariantMetric(1,0)));
-    rTangentModulus(2,1) = (lam * rReferenceContraVariantMetric(0,1) * rReferenceContraVariantMetric(1,1)) + m * ((rReferenceContraVariantMetric(0,1) *  rReferenceContraVariantMetric(1,1)) + (rReferenceContraVariantMetric(0,1) *  rReferenceContraVariantMetric(1,1)));
-    rTangentModulus(2,2) = (lam * rReferenceContraVariantMetric(0,1) * rReferenceContraVariantMetric(0,1)) + m * ((rReferenceContraVariantMetric(0,0) *  rReferenceContraVariantMetric(1,1)) + (rReferenceContraVariantMetric(0,1) *  rReferenceContraVariantMetric(1,0)));
+    rTangentModulus(0,0) = 1.0;
+    rTangentModulus(1,1) = 1.0;
+    rTangentModulus(2,2) = (1.0-nu)/2.0;
+    rTangentModulus(0,1) = nu;
+    rTangentModulus(1,0) = nu;
+    rTangentModulus *= E/(1.0-(nu*nu));
 }
 
-void MembraneElement::StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric)
+void MembraneElement::StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
+    const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference)
 {
     Matrix strain_matrix = 0.50 * (rCurrentCoVariantMetric-rReferenceCoVariantMetric);
-    VoigtNotation(strain_matrix,rStrain,"strain");
+    Matrix transformed_strain_matrix = ZeroMatrix(2);
+    TransformStrains(transformed_strain_matrix,strain_matrix,rLocalContraVariantBaseVectorsReference);
+    VoigtNotation(transformed_strain_matrix,rStrain,"strain");
 }
 
 void MembraneElement::DerivativeStrainGreenLagrange(Vector& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
-    const array_1d<Vector,2> rCurrentCovariantBaseVectors)
+    const array_1d<Vector,2> rCurrentCovariantBaseVectors, const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference)
 {
     Matrix current_covariant_metric_derivative = ZeroMatrix(2);
     DerivativeCurrentCovariantMetric(current_covariant_metric_derivative,rShapeFunctionGradientValues,DofR,rCurrentCovariantBaseVectors);
     Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
-    VoigtNotation(strain_matrix_derivative,rStrain,"strain");
+
+    Matrix transformed_strain_matrix = ZeroMatrix(2);
+    TransformStrains(transformed_strain_matrix,strain_matrix_derivative,rLocalContraVariantBaseVectorsReference);
+
+    VoigtNotation(transformed_strain_matrix,rStrain,"strain");
 }
 
 void MembraneElement::Derivative2StrainGreenLagrange(Vector& rStrain,
- const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS)
+ const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS,
+ const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference)
 {
     Matrix current_covariant_metric_derivative = ZeroMatrix(2);
     Derivative2CurrentCovariantMetric(current_covariant_metric_derivative,rShapeFunctionGradientValues,DofR,DofS);
 
     Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
-    VoigtNotation(strain_matrix_derivative,rStrain,"strain");
+
+    Matrix transformed_strain_matrix = ZeroMatrix(2);
+    TransformStrains(transformed_strain_matrix,strain_matrix_derivative,rLocalContraVariantBaseVectorsReference);
+
+    VoigtNotation(transformed_strain_matrix,rStrain,"strain");
 }
 
 void MembraneElement::JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors)
@@ -410,7 +437,7 @@ void MembraneElement::CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
     else if (Configuration=="reference");
     else KRATOS_ERROR << "configuration " << Configuration << " not known" << std::endl;
 
-    for (SizeType i=0;i<GetGeometry().PointsNumber();++i){
+    for (SizeType i=0;i<number_of_nodes;++i){
         g1[0] += (GetGeometry().GetPoint( i ).X0()+current_displacement[i*dimension]) * rShapeFunctionGradientValues(i, 0);
         g1[1] += (GetGeometry().GetPoint( i ).Y0()+current_displacement[(i*dimension)+1]) * rShapeFunctionGradientValues(i, 0);
         g1[2] += (GetGeometry().GetPoint( i ).Z0()+current_displacement[(i*dimension)+2]) * rShapeFunctionGradientValues(i, 0);
@@ -468,6 +495,7 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
 
     array_1d<Vector,2> current_covariant_base_vectors;
     array_1d<Vector,2> reference_covariant_base_vectors;
+    array_1d<Vector,2> reference_contravariant_base_vectors;
     Matrix covariant_metric_current = ZeroMatrix(3);
     Matrix covariant_metric_reference = ZeroMatrix(3);
     Matrix contravariant_metric_reference = ZeroMatrix(3);
@@ -482,17 +510,19 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
 
         CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,"current");
         CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,"reference");
+
         CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
         CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
         ContravariantMetric(contravariant_metric_reference,covariant_metric_reference);
 
+        ContraVariantBaseVectors(reference_contravariant_base_vectors,contravariant_metric_reference,reference_covariant_base_vectors);
 
         JacobiDeterminante(detJ,reference_covariant_base_vectors);
-        StressPk2(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current);
+        StressPk2(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,reference_contravariant_base_vectors);
 
         for (SizeType dof_r=0;dof_r<number_dofs;++dof_r)
         {
-            DerivativeStrainGreenLagrange(derivative_strain,shape_functions_gradients_i,dof_r,current_covariant_base_vectors);
+            DerivativeStrainGreenLagrange(derivative_strain,shape_functions_gradients_i,dof_r,current_covariant_base_vectors,reference_contravariant_base_vectors);
             rInternalForces[dof_r] += inner_prod(stress,derivative_strain)*detJ*integration_weight_i*thickness;
         }
     }
@@ -502,30 +532,31 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
 void MembraneElement::MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
  const Matrix& rMaterialTangentModulus,const double& rDetJ, const double& rWeight,
  const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
- const array_1d<Vector,2> rCurrentCovariantBaseVectors)
+ const array_1d<Vector,2> rCurrentCovariantBaseVectors,const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference)
  {
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const double thickness = GetProperties()[THICKNESS];
 
     Vector strain_derivative = ZeroVector(dimension);
-    DerivativeStrainGreenLagrange(strain_derivative,rShapeFunctionGradientValues,rPositionI,rCurrentCovariantBaseVectors);
+    DerivativeStrainGreenLagrange(strain_derivative,rShapeFunctionGradientValues,rPositionI,rCurrentCovariantBaseVectors,rLocalContraVariantBaseVectorsReference);
 
     Vector stress_derivative = prod(rMaterialTangentModulus,strain_derivative);
 
-    DerivativeStrainGreenLagrange(strain_derivative,rShapeFunctionGradientValues,rPositionJ,rCurrentCovariantBaseVectors);
+    DerivativeStrainGreenLagrange(strain_derivative,rShapeFunctionGradientValues,rPositionJ,rCurrentCovariantBaseVectors,rLocalContraVariantBaseVectorsReference);
 
     rEntryIJ += inner_prod(stress_derivative,strain_derivative)*rDetJ*rWeight*thickness;
  }
 
 void MembraneElement::InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
  const Vector& rStressVector,const double& rDetJ, const double& rWeight,
- const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues)
+ const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
+ const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference)
  {
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const double thickness = GetProperties()[THICKNESS];
 
     Vector strain_derivative_2 = ZeroVector(dimension);
-    Derivative2StrainGreenLagrange(strain_derivative_2,rShapeFunctionGradientValues,rPositionI,rPositionJ);
+    Derivative2StrainGreenLagrange(strain_derivative_2,rShapeFunctionGradientValues,rPositionI,rPositionJ,rLocalContraVariantBaseVectorsReference);
     rEntryIJ += inner_prod(rStressVector,strain_derivative_2)*rDetJ*rWeight*thickness;
  }
 
@@ -544,6 +575,7 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
 
     array_1d<Vector,2> current_covariant_base_vectors;
     array_1d<Vector,2> reference_covariant_base_vectors;
+    array_1d<Vector,2> reference_contravariant_base_vectors;
     Matrix covariant_metric_current = ZeroMatrix(3);
     Matrix covariant_metric_reference = ZeroMatrix(3);
     Matrix contravariant_metric_reference = ZeroMatrix(3);
@@ -558,12 +590,15 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
 
         CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,"current");
         CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,"reference");
+
         CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
         CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
         ContravariantMetric(contravariant_metric_reference,covariant_metric_reference);
 
+        ContraVariantBaseVectors(reference_contravariant_base_vectors,contravariant_metric_reference,reference_covariant_base_vectors);
+
         JacobiDeterminante(detJ,reference_covariant_base_vectors);
-        StressPk2(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current);
+        StressPk2(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,reference_contravariant_base_vectors);
 
         Matrix material_tangent_modulus = ZeroMatrix(dimension);
         MaterialTangentModulus(material_tangent_modulus,contravariant_metric_reference);
@@ -578,9 +613,9 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
                 else{
                     MaterialStiffnessMatrixEntryIJ(rStiffnessMatrix(dof_s,dof_r),
                         material_tangent_modulus,detJ,integration_weight_i,dof_s,dof_r,shape_functions_gradients_i,
-                        current_covariant_base_vectors);
+                        current_covariant_base_vectors,reference_contravariant_base_vectors);
                     InitialStressStiffnessMatrixEntryIJ(rStiffnessMatrix(dof_s,dof_r),
-                        stress,detJ,integration_weight_i,dof_s,dof_r,shape_functions_gradients_i);
+                        stress,detJ,integration_weight_i,dof_s,dof_r,shape_functions_gradients_i,reference_contravariant_base_vectors);
                 }
             }
         }
@@ -595,7 +630,7 @@ void MembraneElement::CalculateOnIntegrationPoints(
 
     KRATOS_TRY
     // element with two nodes can only represent results at one node
-    const IntegrationMethod integration_method = GeometryData::GI_GAUSS_2;
+    const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
     const unsigned int& write_points_number =
         GetGeometry().IntegrationPointsNumber(integration_method);
     if (rOutput.size() != write_points_number) {
@@ -707,7 +742,13 @@ void MembraneElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
     MathUtils<double>::CrossProduct(rBaseVectors[0],rBaseVectors[1], base_3);
     rBaseVectors[0] /= MathUtils<double>::Norm(rBaseVectors[0]);
     }
-    else rBaseVectors=rLocalBaseVectors;
+    else {
+        rBaseVectors[0] = ZeroVector(3);
+        rBaseVectors[1] = ZeroVector(3);
+        rBaseVectors[0] = rLocalBaseVectors[0] / MathUtils<double>::Norm(rLocalBaseVectors[0]);
+        rBaseVectors[1] = rLocalBaseVectors[1] - (inner_prod(rLocalBaseVectors[1],rBaseVectors[0]) * rBaseVectors[0]);
+        rBaseVectors[1] /= MathUtils<double>::Norm(rBaseVectors[1]);
+    }
 }
 
 void MembraneElement::GetValueOnIntegrationPoints(

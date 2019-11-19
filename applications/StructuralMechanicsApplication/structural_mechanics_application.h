@@ -342,6 +342,7 @@ private:
     const PrestressMembraneElement mPreStressMembraneElement3D3N;
     const PrestressMembraneElement mPreStressMembraneElement3D4N;
     const MembraneElement mMembraneElement3D4N;
+    const MembraneElement mMembraneElement3D3N;
 
     // Adding the SPRISM element
     const SolidShellElementSprism3D6N mSolidShellElementSprism3D6N;
