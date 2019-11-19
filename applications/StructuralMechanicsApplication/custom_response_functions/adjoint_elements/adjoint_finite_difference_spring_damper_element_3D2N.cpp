@@ -21,9 +21,13 @@ namespace Kratos
 template <class TPrimalElement>
 void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
+
     this->pGetPrimalElement()->SetValue(NODAL_DISPLACEMENT_STIFFNESS, this->GetValue(NODAL_DISPLACEMENT_STIFFNESS));
     this->pGetPrimalElement()->SetValue(NODAL_ROTATIONAL_STIFFNESS, this->GetValue(NODAL_ROTATIONAL_STIFFNESS));
     BaseType::InitializeSolutionStep(rCurrentProcessInfo);
+
+    KRATOS_CATCH("")
 }
 
 template <class TPrimalElement>
@@ -31,15 +35,18 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensit
                                             const Variable<double>& rDesignVariable, Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
 
-
-    if(rDesignVariable == SHAPE_SENSITIVITY) {
-        BaseType::CalculateSensitivityMatrix(rDesignVariable, rOutput, rCurrentProcessInfo);
+    const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
+    const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+    const SizeType num_dofs_per_node = dimension * 2;
+    const SizeType local_size = number_of_nodes * num_dofs_per_node;
+    if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) {
+            rOutput.resize(0, local_size, false);
     }
-    else {
-        std::cout << "CalculateSensitivityMatrix of AdjointFiniteDifferenceSpringDamperElement is called!" << std::endl;
-    }
+    noalias(rOutput) = ZeroMatrix(0, local_size);
 
+    KRATOS_CATCH("")
 }
 
 template <class TPrimalElement>
@@ -47,7 +54,46 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensit
                                             const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
-    std::cout << "CalculateSensitivityMatrix of AdjointFiniteDifferenceSpringDamperElement is called!" << std::endl;
+    KRATOS_TRY
+
+    const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
+    const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+    const SizeType num_dofs_per_node = dimension * 2;
+    const SizeType local_size = number_of_nodes * num_dofs_per_node;
+
+    if(rDesignVariable == SHAPE_SENSITIVITY) {
+        if ((rOutput.size1() != dimension*number_of_nodes) || (rOutput.size2() != local_size)) {
+                rOutput.resize(dimension*number_of_nodes, local_size, false);
+        }
+        noalias(rOutput) = ZeroMatrix(dimension*number_of_nodes, local_size);
+    }
+    else if (rDesignVariable == NODAL_ROTATIONAL_STIFFNESS || rDesignVariable == NODAL_DISPLACEMENT_STIFFNESS ) {
+        if ((rOutput.size1() != dimension) || (rOutput.size2() != local_size)) {
+                rOutput.resize(dimension, local_size, false);
+        }
+        ProcessInfo process_info = rCurrentProcessInfo;
+        Vector RHS;
+        for(IndexType dir_i = 0; dir_i < dimension; ++dir_i) {
+            // The following approach assumes a linear dependency between RHS and spring stiffness
+            array_1d<double, 3> perturbed_nodal_stiffness = ZeroVector(3);
+            perturbed_nodal_stiffness[dir_i] = 1.0;
+            this->pGetPrimalElement()->SetValue(rDesignVariable, perturbed_nodal_stiffness);
+            this->pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
+
+            KRATOS_ERROR_IF_NOT(RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
+            for(IndexType i = 0; i < RHS.size(); ++i) {
+                rOutput(dir_i, i) = RHS[i];
+            }
+        }
+    }
+    else {
+        if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) {
+            rOutput.resize(0, local_size, false);
+        }
+        rOutput = ZeroMatrix(0, local_size);
+    }
+
+    KRATOS_CATCH("")
 }
 
 template <class TPrimalElement>
