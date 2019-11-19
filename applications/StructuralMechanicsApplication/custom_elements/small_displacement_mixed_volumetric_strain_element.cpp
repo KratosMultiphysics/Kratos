@@ -1037,8 +1037,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateOnIntegrationPoints
             rOutput[i_gauss] = constitutive_variables.StressVector;
         }
     } else {
-        std::string err_msg = "Integration point variable " + rVariable.Name() + " not implemented yet.\n";
-        KRATOS_ERROR << err_msg;
+        KRATOS_ERROR << "Integration point variable " + rVariable.Name() + " not implemented yet." << std::endl;
     }
 }
 
