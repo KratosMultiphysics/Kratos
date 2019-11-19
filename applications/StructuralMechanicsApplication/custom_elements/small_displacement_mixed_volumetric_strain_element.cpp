@@ -173,7 +173,7 @@ void SmallDisplacementMixedVolumetricStrainElement::Initialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+void SmallDisplacementMixedVolumetricStrainElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -203,7 +203,7 @@ void SmallDisplacementMixedVolumetricStrainElement::InitializeSolutionStep(Proce
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+void SmallDisplacementMixedVolumetricStrainElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -771,33 +771,17 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateEquivalentStrain(Ki
 /***********************************************************************************/
 
 void SmallDisplacementMixedVolumetricStrainElement::ComputeEquivalentF(
-    Matrix &rF,
-    const Vector &rStrainTensor) const
+    Matrix& rF,
+    const Vector& rStrainTensor
+    ) const
 {
-    const SizeType dim = GetGeometry().WorkingSpaceDimension();
-
-    if(dim == 2) {
-        rF(0,0) = 1.0+rStrainTensor(0);
-        rF(0,1) = 0.5*rStrainTensor(2);
-        rF(1,0) = 0.5*rStrainTensor(2);
-        rF(1,1) = 1.0+rStrainTensor(1);
-    } else {
-        rF(0,0) = 1.0+rStrainTensor(0);
-        rF(0,1) = 0.5*rStrainTensor(3);
-        rF(0,2) = 0.5*rStrainTensor(5);
-        rF(1,0) = 0.5*rStrainTensor(3);
-        rF(1,1) = 1.0+rStrainTensor(1);
-        rF(1,2) = 0.5*rStrainTensor(4);
-        rF(2,0) = 0.5*rStrainTensor(5);
-        rF(2,1) = 0.5*rStrainTensor(4);
-        rF(2,2) = 1.0+rStrainTensor(2);
-    }
+    ElementUtilities::ComputeEquivalentF(this, rF, rStrainTensor);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-double SmallDisplacementMixedVolumetricStrainElement::CalculateElementSize(const KinematicVariables &rThisKinematicVariables) const
+double SmallDisplacementMixedVolumetricStrainElement::CalculateElementSize(const KinematicVariables& rThisKinematicVariables) const
 {
     const auto& r_geometry = GetGeometry();
     switch (r_geometry.GetGeometryType())
@@ -833,7 +817,7 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateElementSize(const
 double SmallDisplacementMixedVolumetricStrainElement::CalculateApproximatedBulkModulus(
     const ProcessInfo& rCurrentProcessInfo,
     const SizeType i_gauss,
-    const Vector &rN) const
+    const Vector& rN) const
 {
     const auto& r_geom = GetGeometry();
     const SizeType dim = r_geom.WorkingSpaceDimension();
@@ -877,8 +861,8 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateApproximatedBulkM
 /***********************************************************************************/
 
 double SmallDisplacementMixedVolumetricStrainElement::CalculateLinearisedBulkModulus(
-    const KinematicVariables &rThisKinematicVariables,
-    const ConstitutiveVariables &rThisConstitutiveVariables) const
+    const KinematicVariables& rThisKinematicVariables,
+    const ConstitutiveVariables& rThisConstitutiveVariables) const
 {
     const auto& r_geom = GetGeometry();
     const SizeType dim = r_geom.WorkingSpaceDimension();
@@ -897,8 +881,8 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateLinearisedBulkMod
 /***********************************************************************************/
 
 double SmallDisplacementMixedVolumetricStrainElement::CalculateLinearisedShearModulus(
-    const KinematicVariables &rThisKinematicVariables,
-    const ConstitutiveVariables &rThisConstitutiveVariables) const
+    const KinematicVariables& rThisKinematicVariables,
+    const ConstitutiveVariables& rThisConstitutiveVariables) const
 {
     const auto& r_geom = GetGeometry();
     const SizeType dim = r_geom.WorkingSpaceDimension();
@@ -943,8 +927,6 @@ int  SmallDisplacementMixedVolumetricStrainElement::Check(const ProcessInfo& rCu
 
         KRATOS_CHECK_DOF_IN_NODE(VOLUMETRIC_STRAIN, r_node)
     }
-
-
 
     // Check constitutive law
     if ( mConstitutiveLawVector.size() > 0 ) {
