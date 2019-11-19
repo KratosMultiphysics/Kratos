@@ -58,6 +58,7 @@ class TestCookMembrane(KratosUnittest.TestCase):
         {
             "output_variables": ["DISPLACEMENT_X","DISPLACEMENT_Y","VOLUMETRIC_STRAIN"],
             "output_file_name": "",
+            "time_frequency": 0.00,
             "model_part_name": "cook_membrane.Parts_ResultsCheck"
         }""")
         json_output_settings["output_file_name"].SetString(results_filename)

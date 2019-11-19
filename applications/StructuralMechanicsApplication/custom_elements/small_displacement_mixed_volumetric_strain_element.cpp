@@ -439,12 +439,12 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
         const double tau_1 = 2.0 * std::pow(h, 2) / (2.0 * shear_modulus);
         const double tau_2 = std::min(1.0e-2, 4.0*shear_modulus/bulk_modulus);
 
-        // Calculate and add the RHS contributions
+        // Calculate and add the LHS contributions
         const double w_tau_1_k = w_gauss * tau_1 * bulk_modulus;
         const double w_1_tau_2_k =  w_gauss * (1 - tau_2) * bulk_modulus;
 
-        const Matrix transB_D = prod(trans(kinematic_variables.B), cons_law_values.GetConstitutiveMatrix());
-        const Matrix transB_D_B = prod(transB_D, kinematic_variables.B);
+        const Matrix transB_C = prod(trans(kinematic_variables.B), cons_law_values.GetConstitutiveMatrix());
+        const Matrix transB_C_B = prod(transB_C, kinematic_variables.B);
 
         const Vector C_m_voigt = prod(cons_law_values.GetConstitutiveMatrix(), voigt_identity);
         const Matrix C_m = MathUtils<double>::StressVectorToTensor(C_m_voigt);
@@ -465,7 +465,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
                     // Add momentum internal force contribution
                     for (unsigned int d2 = 0; d2 < dim; ++d2) {
                         double &r_LHS_mom_mom = rLeftHandSideMatrix(i * block_size + d, j * block_size + d2);
-                        r_LHS_mom_mom += w_gauss * transB_D_B(i * dim + d, j * dim + d2);
+                        r_LHS_mom_mom += w_gauss * transB_C_B(i * dim + d, j * dim + d2);
                         r_LHS_mom_mom -= w_1_tau_2_k * G_I_transG_J(d, d2);
                     }
                     // Add momentum volumetric strain contribution
@@ -573,15 +573,17 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
             }
         }
 
-        // Add the extra momentum equation term
-        const double w_1_tau_2_alpha = w_gauss * (1 - tau_2) / dim;
-        const Matrix transB_P = prod(trans(kinematic_variables.B), kinematic_variables.DevStrainOp);
+        // Add the extra momentum equation terms
+        const double w_alpha = w_gauss / dim;
         const Vector C_m_voigt = prod(cons_law_values.GetConstitutiveMatrix(), voigt_identity);
-        const Vector transB_P_C_m = prod(transB_P, C_m_voigt);
+        const Vector transB_C_m = prod(trans(kinematic_variables.B), C_m_voigt);
 
         for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+            const Vector G_I = row(kinematic_variables.DN_DX, i_node);
             for (unsigned int d = 0; d < dim; ++d) {
-                rRightHandSideVector[i_node * block_size + d] += w_1_tau_2_alpha * transB_P_C_m(i_node * dim + d) * vol_residual;
+                double &r_rhs_mom_row = rRightHandSideVector[i_node * block_size + d];
+                r_rhs_mom_row += w_alpha * transB_C_m(i_node * dim + d) * vol_residual;
+                r_rhs_mom_row -= w_1_tau_2_k * G_I(d) * vol_residual;
             }
         }
 

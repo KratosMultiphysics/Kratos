@@ -77,7 +77,7 @@ namespace Testing
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-5;
-        const std::vector<double> expected_RHS({51282.1,51282.1,-9388.35,-12820.5,-38461.5,18114.3,-38461.5,-12820.5,3966.35});
+        const std::vector<double> expected_RHS({51153.8,51153.8,-9388.35,-12692.3,-38461.5,18114.3,-38461.5,-12692.3,3966.35});
         const std::vector<double> expected_LHS_row_0({778846, 9615.38, -317308, -394231, -384615, -317308, -384615, 375000, -317308});
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
@@ -131,7 +131,7 @@ namespace Testing
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-5;
-        const std::vector<double> expected_RHS({-24038.5,56089.7,-104295,24038.5,54487.2,-120849,19230.8,-54487.2,-6554.49,-19230.8,-56089.7,74631.4});
+        const std::vector<double> expected_RHS({-23221.2,56875,-104295,23221.2,55288.5,-120849,18461.5,-55288.5,-6554.49,-18461.5,-56875,74631.4});
         const std::vector<double> expected_LHS_row_0({519231,4807.69,-317308,-134615,-379808,-317308,-259615,-4807.69,-158654,-125000,379808,-158654});
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
@@ -189,7 +189,7 @@ namespace Testing
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-5;
-        const std::vector<double> expected_RHS({-4380.34,15776.4,-12784.9,6444.44,4380.34,15313.4,-13016.4,-2736.11,2991.45,-34544.2,7140.31,52041.7,-2991.45,-35007.1,7603.28,88458.3,-2190.17,17503.6,-6445.87,-59972.2,2190.17,17272.1,-6214.39,-60048.6,1495.73,1958.69,12090.5,-50715.3,-1495.73,1727.21,11627.5,-41534.7});
+        const std::vector<double> expected_RHS({-4144.23,16003.2,-12609,6444.44,4144.23,15544.9,-12838.1,-2736.11,2769.23,-34775.6,7309.29,52041.7,-2769.23,-35234,7767.63,88458.3,-2072.12,17617,-6621.79,-59972.2,2072.12,17387.8,-6392.63,-60048.6,1384.62,1842.95,11921.5,-50715.3,-1384.62,1613.78,11463.1,-41534.7});
         const std::vector<double> expected_LHS_row_0({286752,22756.4,22756.4,-91666.7,-30341.9,-105449,-105449,-91666.7,-79273.5,-22756.4,-52724.4,-45833.3,15170.9,105449,11378.2,-45833.3,15170.9,11378.2,105449,-45833.3,-79273.5,-52724.4,-22756.4,-45833.3,-71688,-11378.2,-11378.2,-22916.7,-56517.1,52724.4,52724.4,-22916.7});
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
