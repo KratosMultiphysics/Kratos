@@ -460,26 +460,42 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     ///@name Protected Operators
     ///@{
 
+    /**
+     * @brief This method the constitutive law of the matrix material
+     */
     ConstitutiveLaw::Pointer GetMatrixConstitutiveLaw()
     {
         return mpMatrixConstitutiveLaw;
     }
 
+    /**
+     * @brief This method sets the constitutive law of the matrix material
+     */
     void SetMatrixConstitutiveLaw(ConstitutiveLaw::Pointer pMatrixConstitutiveLaw)
     {
         mpMatrixConstitutiveLaw = pMatrixConstitutiveLaw;
     }
 
+    /**
+     * @brief This method the constitutive law of the fiber material
+     */
     ConstitutiveLaw::Pointer GetFiberConstitutiveLaw()
     {
         return mpFiberConstitutiveLaw;
     }
 
+    /**
+     * @brief This method sets the constitutive law of the fiber material
+     */
     void SetFiberConstitutiveLaw(ConstitutiveLaw::Pointer pFiberConstitutiveLaw)
     {
         mpFiberConstitutiveLaw = pFiberConstitutiveLaw;
     }
 
+    /**
+     * @brief This method returns the number of directions
+     * with serial behaviour (iso-stress behaviour)
+     */
     int GetNumberOfSerialComponents()
     {
         const int parallel_components = inner_prod(mParallelDirections, mParallelDirections);

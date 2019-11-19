@@ -121,7 +121,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
-        // total strain vector
+        // Total strain vector
         Vector& r_strain_vector = rValues.GetStrainVector();
         Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
         Vector fiber_stress_vector, matrix_stress_vector;
@@ -545,7 +545,7 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
-        // total strain vector
+        // Total strain vector
         Vector& r_strain_vector = rValues.GetStrainVector();
         Vector fiber_stress_vector, matrix_stress_vector;
         this->IntegrateStrainSerialParallelBehaviour(r_strain_vector,
@@ -835,7 +835,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
             r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
             r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
-            // total strain vector
+            // Total strain vector
             Vector& r_strain_vector = rParameterValues.GetStrainVector();
             Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
             Vector fiber_stress_vector, matrix_stress_vector;
@@ -909,7 +909,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
             r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
             r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
-            // total strain vector
+            // Total strain vector
             Vector& r_strain_vector = rParameterValues.GetStrainVector();
             Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
             Vector fiber_stress_vector, matrix_stress_vector;
