@@ -487,7 +487,7 @@ class DEMAnalysisStage(AnalysisStage):
             self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
 
         self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION] = True
-        self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, -5e-5 * self.time)
+        self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, -1e-6 * self.time)
 
     def UpdateIsTimeToPrintInModelParts(self, is_time_to_print):
         self.UpdateIsTimeToPrintInOneModelPart(self.spheres_model_part, is_time_to_print)
