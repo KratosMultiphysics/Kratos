@@ -25,6 +25,7 @@
 
 // Application includes
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
+#include "custom_utilities/element_utilities.h"
 
 namespace Kratos
 {
@@ -970,49 +971,31 @@ int  SmallDisplacementMixedVolumetricStrainElement::Check(const ProcessInfo& rCu
 {
     KRATOS_TRY
 
-    const int base_element_check = SmallDisplacementMixedVolumetricStrainElement::BaseType::Check(rCurrentProcessInfo);
+    int check = SmallDisplacementMixedVolumetricStrainElement::BaseType::Check(rCurrentProcessInfo);
 
-    const SizeType number_of_nodes = this->GetGeometry().size();
-    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+    // Base check
+    check = ElementUtilities::BaseElementCheck(this, rCurrentProcessInfo);
 
     // Verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(VOLUMETRIC_STRAIN)
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY)
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
     KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for ( IndexType i = 0; i < number_of_nodes; i++ ) {
-        const NodeType& r_node = this->GetGeometry()[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)
+    const auto& r_geometry = this->GetGeometry();
+    for ( IndexType i = 0; i < r_geometry.size(); i++ ) {
+        const NodeType& r_node = r_geometry[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUMETRIC_STRAIN,r_node)
 
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_node)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, r_node)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, r_node)
         KRATOS_CHECK_DOF_IN_NODE(VOLUMETRIC_STRAIN, r_node)
     }
 
-    // Verify that the constitutive law exists
-    KRATOS_ERROR_IF_NOT(this->GetProperties().Has( CONSTITUTIVE_LAW )) << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
 
-    // Verify that the constitutive law has the correct dimension
-    const SizeType strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
-    if ( dimension == 2 ) {
-        KRATOS_ERROR_IF( strain_size < 3 || strain_size > 4) << "Wrong constitutive law used. This is a 2D element! expected strain size is 3 or 4 (el id = ) " << this->Id() << std::endl;
-    } else {
-        KRATOS_ERROR_IF_NOT(strain_size == 6) << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) "<<  this->Id() << std::endl;
-    }
 
     // Check constitutive law
     if ( mConstitutiveLawVector.size() > 0 ) {
         return mConstitutiveLawVector[0]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
     }
 
-    return base_element_check;
+    return check;
 
     KRATOS_CATCH( "" );
 }
