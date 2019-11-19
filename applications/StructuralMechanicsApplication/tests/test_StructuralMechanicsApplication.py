@@ -249,7 +249,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestConstitutiveLaw]))
     nightSuite.addTest(TSimpleSmallDeformationPlasticityMCTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityVMTest('test_execution'))
-    smallSuite.addTest(TSerialParallelRuleOfMixturesCubeDamageTest('test_execution'))
+    nightSuite.addTest(TSerialParallelRuleOfMixturesCubeDamageTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityDPTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityTTest('test_execution'))
     nightSuite.addTest(TBigCubeSmallDeformationPlasticityMCTest('test_execution'))
@@ -440,7 +440,6 @@ def AssembleTestSuites():
 
     # CL tests
     validationSuite.addTest(TTensileTestStructuralTest('test_execution'))
-    validationSuite.addTest(TSerialParallelRuleOfMixturesCubeDamageTest('test_execution'))
 
     # Explicit solid beam
     validationSuite.addTest(TExplicitSolidBeam('test_execution'))
