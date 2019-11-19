@@ -1920,15 +1920,12 @@ double BaseSolidElement::GetRayleighBeta(
     return 0.0;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void BaseSolidElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element );
     int IntMethod = int(this->GetIntegrationMethod());
     rSerializer.save("IntegrationMethod",IntMethod);
-    rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.save("mConstitutiveLawVector", mConstitutiveLawVector);
 }
 
 /***********************************************************************************/
