@@ -402,6 +402,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
      * @param rConstitutiveTensorFiberSS  the serial-serial components of the constitutive tensor of the fiber
      */
     void CheckStressEquilibrium(
+        ConstitutiveLaw::Parameters& rValues,
         const Vector& rStrainVector,
         const Matrix& rSerialProjector,
         const Vector& rMatrixStressVector,

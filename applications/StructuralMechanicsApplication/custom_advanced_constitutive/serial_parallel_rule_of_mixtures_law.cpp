@@ -190,7 +190,7 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
         this->IntegrateStressesOfFiberAndMatrix(rValues, matrix_strain_vector, fiber_strain_vector, rMatrixStressVector, rFiberStressVector);
 
         // Here we check the convergence of the loop -> serial stresses equilibrium
-        this->CheckStressEquilibrium(rStrainVector, serial_projector, rMatrixStressVector, rFiberStressVector, 
+        this->CheckStressEquilibrium(rValues, rStrainVector, serial_projector, rMatrixStressVector, rFiberStressVector, 
                                      stress_residual, is_converged, constitutive_tensor_matrix_ss, 
                                      constitutive_tensor_fiber_ss);
         if (is_converged) {
@@ -273,6 +273,7 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
+    ConstitutiveLaw::Parameters& rValues,
     const Vector& rStrainVector,
     const Matrix& rSerialProjector,
     const Vector& rMatrixStressVector,
@@ -283,6 +284,11 @@ void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
     const Matrix& rConstitutiveTensorFiberSS
 )
 {
+    auto& r_material_properties = rValues.GetMaterialProperties();
+    const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
+    const auto& r_props_matrix_cl = *(it_cl_begin);
+    const auto& r_props_fiber_cl  = *(it_cl_begin + 1);
+
     const Vector serial_total_strain  = prod(rSerialProjector, rStrainVector);
     const Vector serial_stress_matrix = prod(rSerialProjector, rMatrixStressVector);
     const Vector serial_stress_fiber  = prod(rSerialProjector, rFiberStressVector);
@@ -293,15 +299,22 @@ void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
 
     // Here we compute the tolerance
     double tolerance;
-    if (ref <= machine_tolerance) {
-        const double norm_product_matrix = MathUtils<double>::Norm(prod(rConstitutiveTensorMatrixSS, serial_total_strain));
-        const double norm_product_fiber  = MathUtils<double>::Norm(prod(rConstitutiveTensorFiberSS, serial_total_strain));
-        ref = std::min(norm_product_matrix, norm_product_fiber);
+    if (r_props_matrix_cl.Has(SERIAL_PARALLEL_EQUILIBRIUM_TOLERANCE) || r_props_fiber_cl.Has(SERIAL_PARALLEL_EQUILIBRIUM_TOLERANCE)) {
+        if (r_props_matrix_cl.Has(SERIAL_PARALLEL_EQUILIBRIUM_TOLERANCE))
+            tolerance = r_props_matrix_cl[SERIAL_PARALLEL_EQUILIBRIUM_TOLERANCE];
+        else
+            tolerance = r_props_fiber_cl[SERIAL_PARALLEL_EQUILIBRIUM_TOLERANCE];
+    } else {
+        if (ref <= machine_tolerance) {
+            const double norm_product_matrix = MathUtils<double>::Norm(prod(rConstitutiveTensorMatrixSS, serial_total_strain));
+            const double norm_product_fiber  = MathUtils<double>::Norm(prod(rConstitutiveTensorFiberSS, serial_total_strain));
+            ref = std::min(norm_product_matrix, norm_product_fiber);
+        }
+        if (ref < 1e-9)
+            tolerance = 1e-9;
+        else
+            tolerance = 1e-4 * ref;
     }
-    if (ref < 1e-9)
-        tolerance = 1e-9;
-    else
-        tolerance = 1e-4 * ref;
 
     noalias(rStressSerialResidual) = serial_stress_matrix - serial_stress_fiber;
     const double norm_residual =  MathUtils<double>::Norm(rStressSerialResidual);
