@@ -154,16 +154,11 @@ class Commander(object):
                         file=sys.stderr)
                     sys.stderr.flush()
 
-    def RunCppTests(self, applications):
+    def RunCppTests(self):
         ''' Calls the cpp tests directly
         '''
 
         self.exitCode = 0
-
-        # # importing the apps such that they get registered for the cpp-tests
-        # this one fails if incompatible apps are being imported!
-        # for application in applications:
-        #     import_module("KratosMultiphysics." + application)
 
         try:
             KtsMp.Tester.SetVerbosity(KtsMp.Tester.Verbosity.PROGRESS)
@@ -307,7 +302,7 @@ def main():
     # Run the cpp tests (does the same as run_cpp_tests.py)
     print('Running cpp tests', file=sys.stderr)
     with KtsUt.SupressConsoleOutput():
-        commander.RunCppTests(applications)
+        commander.RunCppTests()
 
     exit_code = max(exit_code, commander.exitCode)
 
