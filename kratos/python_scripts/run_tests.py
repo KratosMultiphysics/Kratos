@@ -266,7 +266,7 @@ def main():
     commander = Commander()
 
     # KratosCore must always be runned
-    print('Running tests for KratosCore', file=sys.stderr)
+    print('\nRunning tests for KratosCore', file=sys.stderr)
 
     with KtsUt.SupressConsoleOutput():
         commander.RunTestSuitInTime(
@@ -283,7 +283,7 @@ def main():
 
     # Run the tests for the rest of the Applications
     for application in applications:
-        print('Running tests for {}'.format(application), file=sys.stderr)
+        print('\nRunning tests for {}'.format(application), file=sys.stderr)
         sys.stderr.flush()
 
         with KtsUt.SupressConsoleOutput():
