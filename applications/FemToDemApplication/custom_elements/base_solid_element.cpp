@@ -1940,6 +1940,6 @@ void BaseSolidElement::load( Serializer& rSerializer )
     int IntMethod;
     rSerializer.load("IntegrationMethod",IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
-    rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.load("mConstitutiveLawVector", mConstitutiveLawVector);
 }
 } // Namespace Kratos
