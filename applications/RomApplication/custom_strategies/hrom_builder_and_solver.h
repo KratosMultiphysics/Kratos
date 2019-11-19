@@ -4,10 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:   Riccardo Rossi
+//                  Raul Bravo                        
 //
 //
 #if !defined(KRATOS_HROM_BUILDER_AND_SOLVER )
@@ -25,6 +26,7 @@
 
 /* Application includes */
 #include "rom_application_variables.h"
+//#include "custom_strategies/rom_builder_and_solver.h"
 
 namespace Kratos
 {
