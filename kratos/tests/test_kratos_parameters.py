@@ -1,5 +1,8 @@
 ﻿from __future__ import print_function, absolute_import, division
 
+from __future__ import print_function, absolute_import, division
+
+import os
 import sys
 
 from KratosMultiphysics import Parameters
@@ -9,6 +12,9 @@ from KratosMultiphysics import FileSerializer, StreamSerializer, SerializerTrace
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
+
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 # Use cPickle on Python 2.7 (Note that only the cPickle module is supported on Python 2.7)
 # Source: https://pybind11.readthedocs.io/en/stable/advanced/classes.html
@@ -815,7 +821,7 @@ class TestParameters(KratosUnittest.TestCase):
         serializer.Load("ParametersSerialization",loaded_parameters)
 
         self.assertEqual(check, loaded_parameters.WriteJsonString())
-        kratos_utils.DeleteFileIfExisting(file_name + ".rest")
+        kratos_utils.DeleteFileIfExisting(GetFilePath(file_name + ".rest"))
 
     def test_get_string_array_valid(self):
         tmp = Parameters("""{
