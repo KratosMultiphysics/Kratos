@@ -660,6 +660,55 @@ class TestParameters(KratosUnittest.TestCase):
             else:
                 with self.assertRaises(RuntimeError):
                     tmp[key].GetMatrix()
+                    
+    def test_add_methods(self):
+        # This method checks all the "GetXXX" Methods if they throw an error
+        tmp = Parameters("""{}""")
+
+        key = "int"
+        tmp.AddInt(key, 10)
+        self.assertEqual(tmp[key].GetInt(),10)
+
+        key = "double"
+        tmp.AddDouble(key, 2.0)
+        self.assertEqual(tmp[key].GetDouble(),2.0)
+
+        key = "bool"
+        tmp.AddBool(key, True)
+        self.assertEqual(tmp[key].GetBool(),True)
+
+        key = "string"
+        tmp.AddString(key, "hello")
+        self.assertEqual(tmp[key].GetString(),"hello")
+
+        key = "vector"
+        vector = Vector(3)
+        vector[0] = 5.2
+        vector[1] = -3.1
+        vector[2] = 4.33
+        tmp.AddVector(key, vector)
+        V = tmp[key].GetVector()
+        self.assertEqual(V[0],5.2)
+        self.assertEqual(V[1],-3.1)
+        self.assertEqual(V[2],4.33)
+
+        key = "matrix"
+        matrix = Matrix(3,2)
+        matrix[0,0] = 1.0
+        matrix[0,1] = 2.0
+        matrix[1,0] = 3.0
+        matrix[1,1] = 4.0
+        matrix[2,0] = 5.0
+        matrix[2,1] = 6.0
+        tmp.AddMatrix(key, matrix)
+        A = tmp[key].GetMatrix()
+        self.assertEqual(A[0,0],1.0)
+        self.assertEqual(A[0,1],2.0)
+        self.assertEqual(A[1,0],3.0)
+        self.assertEqual(A[1,1],4.0)
+        self.assertEqual(A[2,0],5.0)
+        self.assertEqual(A[2,1],6.0)
+
 
     def test_vector_interface(self):
         # Read and check Vectors from a Parameters-Object
