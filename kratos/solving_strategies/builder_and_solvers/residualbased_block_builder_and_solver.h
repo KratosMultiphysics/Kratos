@@ -1616,7 +1616,7 @@ protected:
      */
     double GetMinDiagonal(TSystemMatrixType& rA)
     {
-        double min_diag = 0.0;
+        double min_diag = std::numeric_limits<double>::max();
         for(IndexType i = 0; i < TSparseSpace::Size1(rA); ++i) {
             min_diag = std::min(std::abs(rA(i,i)), min_diag);
         }
