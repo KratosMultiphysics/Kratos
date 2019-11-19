@@ -407,13 +407,15 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
     ConstitutiveVariables constitutive_variables(strain_size);
     ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rCurrentProcessInfo);
     auto &r_cons_law_options = cons_law_values.GetOptions();
-    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
     r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
     // Set auxiliary arrays
-    Matrix voigt_identity_N = ZeroMatrix(strain_size, n_nodes);
-    Matrix voigt_identity_divN = ZeroMatrix(strain_size, n_nodes * dim);
+    Vector voigt_identity =  ZeroVector(strain_size);
+    for (unsigned int d = 0; d < dim; ++d) {
+        voigt_identity[d] = 1.0;
+    }
 
     // Calculate the LHS contributions
     rLeftHandSideMatrix.clear();
@@ -428,16 +430,6 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
 
-        // Update the auxiliary matrices
-        for (unsigned int d = 0; d < dim; ++d) {
-            for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-                voigt_identity_N(d, i_node) = kinematic_variables.N(i_node);
-                for (unsigned int k = 0; k < dim; ++k) {
-                    voigt_identity_divN(d, i_node * dim + k) = kinematic_variables.DN_DX(i_node, k);
-                }
-            }
-        }
-
         // Calculate the linearised bulk modulus
         const double bulk_modulus = CalculateLinearisedBulkModulus(kinematic_variables, constitutive_variables);
 
@@ -447,69 +439,38 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
         const double tau_1 = 2.0 * std::pow(h, 2) / (2.0 * shear_modulus);
         const double tau_2 = std::min(1.0e-2, 4.0*shear_modulus/bulk_modulus);
 
-        // Add the LHS contributions
-        // const double w_tau_1_k = w_gauss * tau_1 * bulk_modulus;
+        // Calculate and add the RHS contributions
+        const double w_tau_1_k = w_gauss * tau_1 * bulk_modulus;
+        const double w_1_tau_2_k =  w_gauss * (1 - tau_2) * bulk_modulus;
 
-        // Formulation
-        const double w_1_tau_2 =  w_gauss * (1 - tau_2);
-        const double w_1_tau_2_dim = w_1_tau_2 / dim;
         const Matrix transB_D = prod(trans(kinematic_variables.B), cons_law_values.GetConstitutiveMatrix());
-        const Matrix dev_B = prod(kinematic_variables.DevStrainOp, kinematic_variables.B);
-        const Matrix transB_D_devB = prod(transB_D, dev_B);
-        const Matrix transB_D_voleps = prod(transB_D, voigt_identity_N);
+        const Matrix transB_D_B = prod(transB_D, kinematic_variables.B);
+
+        const Vector C_m_voigt = prod(cons_law_values.GetConstitutiveMatrix(), voigt_identity);
+        const Matrix C_m = MathUtils<double>::StressVectorToTensor(C_m_voigt);
 
         for (unsigned int i = 0; i < n_nodes; ++i) {
+            const Vector G_I = row(kinematic_variables.DN_DX, i);
+            const Vector G_I_C_m = prod(G_I, C_m);
             for (unsigned int j = 0; j < n_nodes; ++j) {
+                const Vector G_J = row(kinematic_variables.DN_DX, j);
+                const Matrix G_I_transG_J = outer_prod(G_I, G_J);
                 // Add mass conservation volumetric strain contribution
-                // eps_vol x eps_vol
-                rLeftHandSideMatrix(i * block_size + dim, j * block_size + dim) -= w_1_tau_2 * kinematic_variables.N[i] * kinematic_variables.N[j];
+                double &r_LHS_mass_mass = rLeftHandSideMatrix(i * block_size + dim, j * block_size + dim);
+                r_LHS_mass_mass -= w_1_tau_2_k * kinematic_variables.N[i] * kinematic_variables.N[j];
+                r_LHS_mass_mass -= w_tau_1_k * inner_prod(G_I_C_m, G_J);
                 for (unsigned int d = 0; d < dim; ++d) {
-                    // Add mass conservation divergence contribution (eps_vol x div(disp))
-                    rLeftHandSideMatrix(i * block_size + dim, j * block_size + d) += w_1_tau_2 * kinematic_variables.N[i] * kinematic_variables.DN_DX(j,d);
-                    // Add momentum deviatoric stress contribution
+                    // Add mass conservation displacement divergence contribution
+                    rLeftHandSideMatrix(i * block_size + dim, j * block_size + d) += w_1_tau_2_k * kinematic_variables.N[i] * G_J(d);
+                    // Add momentum internal force contribution
                     for (unsigned int d2 = 0; d2 < dim; ++d2) {
-                        rLeftHandSideMatrix(i * block_size + d, j * block_size + d2) += w_gauss * transB_D_devB(i * dim + d, j * dim + d2);
+                        double &r_LHS_mom_mom = rLeftHandSideMatrix(i * block_size + d, j * block_size + d2);
+                        r_LHS_mom_mom += w_gauss * transB_D_B(i * dim + d, j * dim + d2);
+                        r_LHS_mom_mom -= w_1_tau_2_k * G_I_transG_J(d, d2);
                     }
-                    // Add momentum volume stress contribution
-                    // rLeftHandSideMatrix(i * block_size + d, j * block_size + dim) += w_1_tau_2 * bulk_modulus * kinematic_variables.DN_DX(i, d) * kinematic_variables.N[j];
-                    // TODO: THIS HAS TO BE CHANGED!!!
-                    rLeftHandSideMatrix(i * block_size + d, j * block_size + dim) += w_1_tau_2_dim * transB_D_voleps(i * dim + d, j);
+                    // Add momentum volumetric strain contribution
+                    rLeftHandSideMatrix(i * block_size + d, j * block_size + dim) += w_1_tau_2_k * G_I(d) * kinematic_variables.N(j);
 
-                }
-            }
-        }
-
-        // Stabilization
-        // TODO: THIS HAS TO BE CHANGED!!!
-        // for (unsigned int i = 0; i < n_nodes; ++i) {
-        //     const unsigned int i_mass_row = i * block_size + dim;
-        //     for (unsigned int j = 0; j < n_nodes; ++j) {
-        //         const unsigned int j_mass_col = j * block_size + dim;
-        //         for (unsigned int d = 0; d < dim; ++d) {
-        //             // Add the divergence mass stabilization term (grad(eps_vol) x grad(eps_vol))
-        //             rLeftHandSideMatrix(i_mass_row, j_mass_col) -= w_tau_1_k * kinematic_variables.DN_DX(i, d) * kinematic_variables.DN_DX(j, d);
-        //         }
-        //     }
-        // }
-
-
-        // Add the divergence momentum stabilization term (div(disp) x div(disp))
-        // TODO: THIS HAS TO BE CHANGED!!!
-        // Vector div_vector = ZeroVector(block_size*n_nodes);
-        // for (unsigned int i = 0; i < n_nodes; ++i) {
-        //     for (unsigned int d = 0; d < dim; ++d) {
-        //         div_vector[i*block_size + d] = kinematic_variables.DN_DX(i,d);
-        //     }
-        // }
-        // rLeftHandSideMatrix += w_gauss * bulk_modulus * tau_2 * outer_prod(div_vector,div_vector);
-        const double w_tau_2_dim = w_gauss * tau_2 / dim;
-        const Matrix transB_D_voigt_identity_divN = prod(transB_D, voigt_identity_divN);
-        for (unsigned int i = 0; i < n_nodes; ++i) {
-            for (unsigned int j = 0; j < n_nodes; ++j) {
-                for (unsigned int d1 = 0; d1 < dim; ++d1) {
-                    for (unsigned int d2 = 0; d2 < dim; ++d2) {
-                        rLeftHandSideMatrix(i * block_size + d1, j * block_size + d2) += w_tau_2_dim * transB_D_voigt_identity_divN(i * dim + d1, j * dim + d2);
-                    }
                 }
             }
         }
@@ -554,13 +515,12 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
     r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
     // Set auxiliary arrays
-    Vector aux_divN = ZeroVector(n_nodes * dim);
     Vector voigt_identity =  ZeroVector(strain_size);
     for (unsigned int d = 0; d < dim; ++d) {
         voigt_identity[d] = 1.0;
     }
 
-    // Calculate the RHS contributions
+    // Calculate and add the RHS contributions
     rRightHandSideVector.clear();
 
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
@@ -573,13 +533,6 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
         // Calculate the constitutive response
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
 
-        // Update the divergence auxiliary vector
-        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-            for (unsigned int d = 0; d < dim; ++d) {
-                aux_divN(i_node * dim + d) = kinematic_variables.DN_DX(i_node, d);
-            }
-        }
-
         // Calculate the linearised bulk modulus
         const double bulk_modulus = CalculateLinearisedBulkModulus(kinematic_variables, constitutive_variables);
 
@@ -590,9 +543,14 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
         const double tau_2 = std::min(1.0e-2, 4.0*shear_modulus/bulk_modulus);
 
         // Calculate the volumetric residual
-        const double divdisp_gauss = inner_prod(aux_divN, kinematic_variables.Displacements);
+        double div_u_gauss = 0.0;
+        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+            for (unsigned int d = 0; d < dim; ++d) {
+                div_u_gauss += kinematic_variables.DN_DX(i_node, d) * kinematic_variables.Displacements(i_node * dim + d);
+            }
+        }
         const double eps_vol_gauss = inner_prod(kinematic_variables.N, kinematic_variables.VolumetricNodalStrains);
-        const double vol_residual =  eps_vol_gauss - divdisp_gauss;
+        const double vol_residual =  eps_vol_gauss - div_u_gauss;
 
         // Add the RHS contributions
         const auto internal_force = prod(trans(kinematic_variables.B), cons_law_values.GetStressVector());
@@ -602,7 +560,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
         for (unsigned int i = 0; i < n_nodes; ++i) {
             // Mass conservation equation terms (more efficient)
             // (already includes mass conservation volumetric strain contribution (eps_vol x eps_vol))
-            // (already includes mass conservation divergence contribution (eps_vol x div(disp)))
+            // (already includes mass conservation divergence contribution (eps_vol x div(u)))
             rRightHandSideVector[i * block_size + dim] += w_1_tau_2_k * kinematic_variables.N[i] * vol_residual;
 
             // Momentum equation terms
@@ -618,8 +576,9 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
         // Add the extra momentum equation term
         const double w_1_tau_2_alpha = w_gauss * (1 - tau_2) / dim;
         const Matrix transB_P = prod(trans(kinematic_variables.B), kinematic_variables.DevStrainOp);
-        const Matrix transB_P_C = prod(transB_P, cons_law_values.GetConstitutiveMatrix());
-        const Vector transB_P_C_m = prod(transB_P_C, voigt_identity);
+        const Vector C_m_voigt = prod(cons_law_values.GetConstitutiveMatrix(), voigt_identity);
+        const Vector transB_P_C_m = prod(transB_P, C_m_voigt);
+
         for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
             for (unsigned int d = 0; d < dim; ++d) {
                 rRightHandSideVector[i_node * block_size + d] += w_1_tau_2_alpha * transB_P_C_m(i_node * dim + d) * vol_residual;
@@ -628,15 +587,18 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
 
         // Add the displacement subscale stabilization terms in the mass conservation equation
         const double w_tau_1_k = w_gauss * tau_1 * bulk_modulus;
+        const Matrix C_m = MathUtils<double>::StressVectorToTensor(C_m_voigt); // Expansion from Voigt to tensor notation
         const Vector grad_eps = prod(trans(kinematic_variables.DN_DX), kinematic_variables.VolumetricNodalStrains);
-        const Vector grad_gradeps = prod(kinematic_variables.DN_DX, grad_eps);
+        const Vector C_m_grad_eps = prod(C_m, grad_eps);
+
         for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
             double &r_rhs_mass_row = rRightHandSideVector[i_node * block_size + dim];
-            // Add the divergence mass stabilization term (grad(eps_vol) x grad(eps_vol))
-            r_rhs_mass_row += w_tau_1_k * grad_gradeps(i_node);
-            // Add the divergence mass stabilization term (grad(eps_vol) x body_force)
             for (unsigned int d = 0; d < dim; ++d) {
-                r_rhs_mass_row += w_tau_1_k * kinematic_variables.DN_DX(i_node,d) * body_force[d];
+                // Add the divergence mass stabilization term (grad(eps_vol) x grad(eps_vol))
+                r_rhs_mass_row += w_tau_1_k * kinematic_variables.DN_DX(i_node, d) * C_m_grad_eps(d);
+                // r_rhs_mass_row += w_tau_1_k * kinematic_variables.DN_DX(i_node, d) * grad_eps(d);
+                // Add the divergence mass stabilization term (grad(eps_vol) x body_force)
+                r_rhs_mass_row -= w_tau_1_k * kinematic_variables.DN_DX(i_node, d) * body_force[d];
             }
         }
     }
@@ -964,30 +926,6 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateLinearisedBulkMod
 {
     const auto &r_geom = GetGeometry();
     const SizeType dim = r_geom.WorkingSpaceDimension();
-    // const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
-
-    // // Get the volumetric constitutive tensor as the volumetric projection of the complete tensor
-    // // Note that this constitutive tensor has been previously computed using the complete effective strain
-    // const Matrix vol_strain_op = IdentityMatrix(strain_size, strain_size) - rThisKinematicVariables.DevStrainOp;
-    // const Matrix vol_cons_tensor = prod(vol_strain_op, rThisConstitutiveVariables.D);
-
-    // // Apply a volumetric strain perturbation and compute the stress using the volumetric constitutive tensor
-    // const double eps_vol_strain = 1.0e-5;
-    // Vector eps_vol_strain_vect = ZeroVector(strain_size);
-    // for (unsigned int d = 0; d < dim; ++d) {
-    //     eps_vol_strain_vect[d] = eps_vol_strain / dim;
-    // }
-    // const Vector eps_vol_stress_vect = prod(vol_cons_tensor, eps_vol_strain_vect);
-
-    // // Calculate the volumetric pressure associated to the volumetric strain perturbation
-    // double vol_pressure = 0.0;
-    // for (unsigned int d = 0; d < dim; ++d) {
-    //     vol_pressure += eps_vol_stress_vect[d];
-    // }
-    // vol_pressure /= dim;
-
-    // // Calculate and return the linearised bulk modulus
-    // return vol_pressure * eps_vol_strain / std::pow(eps_vol_strain, 2);
 
     double bulk_modulus = 0.0;
     for (unsigned int i = 0; i < dim; ++i) {
@@ -995,6 +933,7 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateLinearisedBulkMod
             bulk_modulus += rThisConstitutiveVariables.D(i,j);
         }
     }
+
     return bulk_modulus / std::pow(dim, 2);
 }
 

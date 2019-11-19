@@ -77,7 +77,7 @@ namespace Testing
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-5;
-        const std::vector<double> expected_RHS({51153.8,51153.8,-0.00140972,-12692.3,-38461.5,0.00594722,-38461.5,-12692.3,0.0020625});
+        const std::vector<double> expected_RHS({51282.1,51282.1,-9388.35,-12820.5,-38461.5,18114.3,-38461.5,-12820.5,3966.35});
         const std::vector<double> expected_LHS_row_0({778846, 9615.38, -317308, -394231, -384615, -317308, -384615, 375000, -317308});
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
@@ -131,7 +131,7 @@ namespace Testing
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-5;
-        const std::vector<double> expected_RHS({-23221.2,56875,-0.0375667,23221.2,55288.5,-0.0420083,18461.5,-55288.5,-0.0117417,-18461.5,-56875,0.00964167});
+        const std::vector<double> expected_RHS({-24038.5,56089.7,-104295,24038.5,54487.2,-120849,19230.8,-54487.2,-6554.49,-19230.8,-56089.7,74631.4});
         const std::vector<double> expected_LHS_row_0({519231,4807.69,-317308,-134615,-379808,-317308,-259615,-4807.69,-158654,-125000,379808,-158654});
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
@@ -189,7 +189,7 @@ namespace Testing
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-5;
-        const std::vector<double> expected_RHS({-4144.23,16003.2,-12609,-0.00335556,4144.23,15544.9,-12838.1,-0.00525278,2769.23,-34775.6,7309.29,0.00594722,-2769.23,-35234,7767.63,0.0133528,-2072.12,17617,-6621.79,-0.0143167,2072.12,17387.8,-6392.63,-0.0143625,1384.62,1842.95,11921.5,-0.0123736,-1384.62,1613.78,11463.1,-0.0104764});
+        const std::vector<double> expected_RHS({-4380.34,15776.4,-12784.9,6444.44,4380.34,15313.4,-13016.4,-2736.11,2991.45,-34544.2,7140.31,52041.7,-2991.45,-35007.1,7603.28,88458.3,-2190.17,17503.6,-6445.87,-59972.2,2190.17,17272.1,-6214.39,-60048.6,1495.73,1958.69,12090.5,-50715.3,-1495.73,1727.21,11627.5,-41534.7});
         const std::vector<double> expected_LHS_row_0({286752,22756.4,22756.4,-91666.7,-30341.9,-105449,-105449,-91666.7,-79273.5,-22756.4,-52724.4,-45833.3,15170.9,105449,11378.2,-45833.3,15170.9,11378.2,105449,-45833.3,-79273.5,-52724.4,-22756.4,-45833.3,-71688,-11378.2,-11378.2,-22916.7,-56517.1,52724.4,52724.4,-22916.7});
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
@@ -207,6 +207,7 @@ namespace Testing
             aux_disp[1] = c_2 * r_node.Y0();
             aux_disp[2] = c_3 * r_node.Z0();
             r_node.FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
+            r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = c_1 + c_2 + c_3;
 
             r_node.X() = (1 + c_1) * r_node.X0();
             r_node.Y() = (1 + c_2) * r_node.Y0();
@@ -244,8 +245,8 @@ namespace Testing
         p_element->Initialize();
 
         // Set a fake displacement and volumetric strain field to compute the residual
-        const double alpha = -2.0;
-        const double beta = 1.0;
+        const double alpha = -2.0e-5;
+        const double beta = 1.0e-5;
         LinearPerturbationField(r_model_part, alpha, beta);
 
         Vector RHS = ZeroVector(9);
@@ -253,10 +254,9 @@ namespace Testing
         p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
         // Perturb the previous displacement and volumetric strain field to compute the residual
-        const double alpha_perturbed = 1.25;
-        const double beta_perturbed = 0.25;
+        const double alpha_perturbed = 1.25e-5;
+        const double beta_perturbed = 0.25e-5;
         LinearPerturbationField(r_model_part, alpha_perturbed, beta_perturbed);
-
 
         Vector RHS_perturbed = ZeroVector(9);
         p_element->CalculateRightHandSide(RHS_perturbed, r_model_part.GetProcessInfo());
@@ -277,12 +277,13 @@ namespace Testing
         for (auto &r_node : r_model_part.Nodes()) {
             perturbation_vector[(r_node.Id() - 1) * 3] = delta_alpha * r_node.X0();
             perturbation_vector[(r_node.Id() - 1) * 3 + 1] = delta_beta * r_node.Y0();
+            perturbation_vector[(r_node.Id() - 1) * 3 + 2] = delta_alpha + delta_beta;
         }
         const Vector RHS_from_LHS = RHS - prod(LHS, perturbation_vector);
         const Vector RHS_from_LHS_error = RHS_perturbed - RHS_from_LHS;
 
         // Check RHS and LHS results
-        const double tolerance = 1.0e-8;
+        const double tolerance = 1.0e-12;
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS_error, ZeroVector(r_model_part.NumberOfNodes() * 3), tolerance);
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS_from_LHS_error, ZeroVector(r_model_part.NumberOfNodes() * 3), tolerance);
     }
@@ -354,19 +355,20 @@ namespace Testing
             perturbation_vector[(r_node.Id() - 1) * 4] = delta_alpha * r_node.X0();
             perturbation_vector[(r_node.Id() - 1) * 4 + 1] = delta_beta * r_node.Y0();
             perturbation_vector[(r_node.Id() - 1) * 4 + 2] = delta_gamma * r_node.Z0();
+            perturbation_vector[(r_node.Id() - 1) * 4 + 3] = delta_alpha + delta_beta + delta_gamma;
         }
         const Vector RHS_from_LHS = RHS - prod(LHS, perturbation_vector);
         const Vector RHS_from_LHS_error = RHS_perturbed - RHS_from_LHS;
 
         // Check RHS and LHS results
-        const double tolerance = 1.0e-8;
+        const double tolerance = 1.0e-9;
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS_error, ZeroVector(r_model_part.NumberOfNodes() * 4), tolerance);
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS_from_LHS_error, ZeroVector(r_model_part.NumberOfNodes() * 4), tolerance);
     }
 
     /**
     * Checks the Small Displacement Mixed Strain Element
-    * Zienkiewicz patch tesc
+    * Zienkiewicz patch test
     */
     KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementMixedVolumetricStrainElementZienkiewiczPatch, KratosStructuralMechanicsFastSuite)
     {
@@ -454,7 +456,7 @@ namespace Testing
         // Check results
         const double tolerance = 1.0e-6;
         const double expected_vol_strain = 1.4965e-05;
-        const std::vector<double> expected_disp = {-0.0024042, 0.0024342, 0.0};
+        const std::vector<double> expected_disp = {-0.00244356,0.00247349,0};
         KRATOS_CHECK_VECTOR_NEAR(p_node_3->FastGetSolutionStepValue(DISPLACEMENT), expected_disp, tolerance);
         KRATOS_CHECK_NEAR(p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN), expected_vol_strain, tolerance);
 
