@@ -1054,6 +1054,9 @@ void SmallDisplacementMixedVolumetricStrainElement::GetValueOnIntegrationPoints(
 void SmallDisplacementMixedVolumetricStrainElement::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallDisplacementMixedVolumetricStrainElement::BaseType);
+    int IntMethod = int(this->GetIntegrationMethod());
+    rSerializer.save("IntegrationMethod",IntMethod);
+    rSerializer.save("mConstitutiveLawVector", mConstitutiveLawVector);
 }
 
 /***********************************************************************************/
@@ -1062,6 +1065,10 @@ void SmallDisplacementMixedVolumetricStrainElement::save(Serializer& rSerializer
 void SmallDisplacementMixedVolumetricStrainElement::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallDisplacementMixedVolumetricStrainElement::BaseType);
+    int IntMethod;
+    rSerializer.load("IntegrationMethod",IntMethod);
+    mThisIntegrationMethod = IntegrationMethod(IntMethod);
+    rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
 }
 
 } // Namespace Kratos
