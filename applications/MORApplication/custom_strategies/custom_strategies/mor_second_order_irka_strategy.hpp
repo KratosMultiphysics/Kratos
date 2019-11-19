@@ -29,6 +29,9 @@
 
 // includes for linear solver factory
 #include "factories/linear_solver_factory.h"
+// #include "includes/kratos_parameters.h"
+// #include "linear_solvers/iterative_solver.h"
+// #include "custom_solvers/gen_eigensystem_solver.h"
 
 #include "omp.h"
 
@@ -70,6 +73,9 @@ template <class TSparseSpace,
 class MorSecondOrderIRKAStrategy
     : public MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver >
 {
+  
+  //Parameters mparam;
+
   public:
     ///@name Type Definitions
     ///@{
@@ -133,6 +139,16 @@ class MorSecondOrderIRKAStrategy
     typedef SystemMatrixBuilderAndSolver< ComplexSparseSpaceType, ComplexDenseSpaceType, ComplexLinearSolverType > TComplexBuilderAndSolverType;
 
 
+    // typedef Preconditioner<SparseSpaceType, DenseSpaceType> PreconditionerType;
+    // typedef Reorderer<SparseSpaceType, DenseSpaceType> ReordererType;
+    // typedef IterativeSolver<SparseSpaceType, DenseSpaceType, PreconditionerType, ReordererType> IterativeSolverType;
+
+    // typedef LinearSolver<SparseSpaceType, DenseSpaceType> LinearSolverType;
+    // typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    // typedef GenEigensystemSolver< SparseSpaceType, LocalSpaceType, PreconditionerType, ReordererType> EigenSystemSolverType;
+
+
+
     ///@}
     ///@name Life Cycle
 
@@ -152,8 +168,9 @@ class MorSecondOrderIRKAStrategy
         typename TLinearSolver::Pointer pNewLinearEigenSolver,
         vector< double > samplingPoints_real,
         vector< double > samplingPoints_imag,
+    //    Parameters param,
         bool MoveMeshFlag = false)
-        : BaseType(rModelPart, pScheme, pNewLinearSolver, MoveMeshFlag)
+        : BaseType(rModelPart, pScheme, pNewLinearSolver, MoveMeshFlag) //, mparam(param)
     {
         KRATOS_TRY;
 
@@ -402,19 +419,22 @@ class MorSecondOrderIRKAStrategy
 
 
         // initialize the reduced matrices
-        // // // auto& r_b_reduced = this->GetRHSr();
-        // // // auto& r_K_reduced = this->GetKr();
-        // // // //auto& r_M_reduced = this->GetMr();
-        // // // auto& r_D_reduced = this->GetDr();
+        TSystemVectorType& r_b_reduced = this->GetRHSr();
+        TSystemMatrixType& r_K_reduced = this->GetKr();
+        TSystemMatrixType& r_M_reduced = this->GetMr();
+        TSystemMatrixType& r_D_reduced = this->GetDr();
 
 
         // needs to be resized, otherwise segfault
-        // TSystemMatrixType::Resize(r_M_reduced, reduced_system_size, reduced_system_size); // no
+        SparseSpaceType::Resize(r_M_reduced, reduced_system_size, reduced_system_size); // no
+        SparseSpaceType::Resize(r_K_reduced, reduced_system_size, reduced_system_size); // no
+        SparseSpaceType::Resize(r_D_reduced, reduced_system_size, reduced_system_size); // no
+        SparseSpaceType::Resize(r_b_reduced, reduced_system_size); // no
 
-        TSystemMatrixType r_M_reduced(reduced_system_size, reduced_system_size, 0.0);
-        TSystemMatrixType r_K_reduced(reduced_system_size, reduced_system_size, 0.0);
-        TSystemMatrixType r_D_reduced(reduced_system_size, reduced_system_size, 0.0);
-        TSystemVectorType r_b_reduced(reduced_system_size, 0.0);
+        // TSystemMatrixType r_M_reduced(reduced_system_size, reduced_system_size, 0.0);
+        // TSystemMatrixType r_K_reduced(reduced_system_size, reduced_system_size, 0.0);
+        // TSystemMatrixType r_D_reduced(reduced_system_size, reduced_system_size, 0.0);
+        // TSystemVectorType r_b_reduced(reduced_system_size, 0.0);
 
 
 
@@ -522,8 +542,26 @@ class MorSecondOrderIRKAStrategy
 
 
 
+//typename EigenSystemSolverType::Pointer test_new_ev_solver = GenEigensystemSolver<SparseSpaceType, DenseSpaceType>(mparam);
+//typename IterativeSolverType::Pointer test_new_ev_solver = EigenSystemSolverType(mparam); 
+//typename LinearSolverType::Pointer test_new_ev_solver = LinearSolverFactoryType().Create(mparam);
+// // KRATOS_WATCH(mparam)
+
+// // // Parameters new_val_param(R"(
+// // //         50
+// // //         )");
+
+// // Parameters new_val_param("50");
+
+// // mparam.SetValue("number_of_eigenvalues",new_val_param);// ["number_of_eigenvalues"] = 50;
+
+// // KRATOS_WATCH(mparam)
+
+//typename ComplexLinearSolverType::Pointer test_new_ev_solver = LinearSolverFactoryType().Create(mparam);
 
 
+
+//BaseType::SetTolerance(mParam["tolerance"].GetDouble());
 
 
         int iter = 1;
