@@ -147,7 +147,7 @@ void MembraneElement::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     ProcessInfo& rCurrentProcessInfo)
 
-{;
+{
     TotalStiffnessMatrix(rLeftHandSideMatrix,GetGeometry().GetDefaultIntegrationMethod());
 }
 
@@ -593,8 +593,6 @@ void MembraneElement::InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
         rLocalContraVariantBaseVectorsReference,rTransformedBaseVectors);
     rEntryIJ += inner_prod(rStressVector,strain_derivative_2)*rDetJ*rWeight*thickness;
  }
-
-
 
 
 void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod ThisMethod)
