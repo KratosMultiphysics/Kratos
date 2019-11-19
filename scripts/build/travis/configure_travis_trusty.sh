@@ -4,6 +4,14 @@
 # For any question please contact with us in:
 #   - https://github.com/KratosMultiphysics/Kratos
 
+# Optional parameters:
+# You can find a list will all the compiation options in 
+#   - https://github.com/KratosMultiphysics/Kratos/wiki/Compilation-options
+
+function add_app {
+    export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
+}
+
 # Set compiler
 export CC=gcc-6
 export CXX=g++-6
@@ -13,15 +21,18 @@ export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 
+# Set build type
 export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:="Custom"}
-export KRATOS_APPLICATIONS="${KRATOS_APP_DIR}/ExternalSolversApplication;"
-export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}${KRATOS_APP_DIR}/StructuralMechanicsApplication;"
-export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}${KRATOS_APP_DIR}/FluidDynamicsApplication;"
-export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}${KRATOS_APP_DIR}/MeshMovingApplication;"
-export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}${KRATOS_APP_DIR}/DEMApplication;"
-export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}${KRATOS_APP_DIR}/CSharpWrapperApplication;"
-export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}${KRATOS_APP_DIR}/MetisApplication;"
-export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}${KRATOS_APP_DIR}/TrilinosApplication;"
+
+# Set applications to compile
+add_app ${KRATOS_APP_DIR}/ExternalSolversApplication;
+add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
+add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
+add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
+add_app ${KRATOS_APP_DIR}/DEMApplication;
+add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
+add_app ${KRATOS_APP_DIR}/MetisApplication;
+add_app ${KRATOS_APP_DIR}/TrilinosApplication;
 
 # Clean
 clear
@@ -41,7 +52,6 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -Werror=sign-compare -Werror=unused-but-set-variable \
 -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized" \
 -DINSTALL_PYTHON_USING_LINKS=ON \
--DTRILINOS_APPLICATION=ON \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
