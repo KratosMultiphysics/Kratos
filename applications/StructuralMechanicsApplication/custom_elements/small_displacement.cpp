@@ -17,15 +17,17 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/small_displacement.h"
 #include "utilities/math_utils.h"
-#include "includes/constitutive_law.h"
+
+// Application includes
+#include "custom_elements/small_displacement.h"
+#include "custom_utilities/element_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
 SmallDisplacement::SmallDisplacement( IndexType NewId, GeometryType::Pointer pGeometry )
-        : BaseSolidElement( NewId, pGeometry )
+    : BaseSolidElement( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -279,31 +281,7 @@ void SmallDisplacement::CalculateB(
 {
     KRATOS_TRY;
 
-    const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-
-    rB.clear();
-
-    if(dimension == 2) {
-        for ( SizeType i = 0; i < number_of_nodes; ++i ) {
-            rB( 0, i*2     ) = rDN_DX( i, 0 );
-            rB( 1, i*2 + 1 ) = rDN_DX( i, 1 );
-            rB( 2, i*2     ) = rDN_DX( i, 1 );
-            rB( 2, i*2 + 1 ) = rDN_DX( i, 0 );
-        }
-    } else if(dimension == 3) {
-        for ( SizeType i = 0; i < number_of_nodes; ++i ) {
-            rB( 0, i*3     ) = rDN_DX( i, 0 );
-            rB( 1, i*3 + 1 ) = rDN_DX( i, 1 );
-            rB( 2, i*3 + 2 ) = rDN_DX( i, 2 );
-            rB( 3, i*3     ) = rDN_DX( i, 1 );
-            rB( 3, i*3 + 1 ) = rDN_DX( i, 0 );
-            rB( 4, i*3 + 1 ) = rDN_DX( i, 2 );
-            rB( 4, i*3 + 2 ) = rDN_DX( i, 1 );
-            rB( 5, i*3     ) = rDN_DX( i, 2 );
-            rB( 5, i*3 + 2 ) = rDN_DX( i, 0 );
-        }
-    }
+    ElementUtilities::CalculateB(this, rB, rDN_DX);
 
     KRATOS_CATCH( "" )
 }
