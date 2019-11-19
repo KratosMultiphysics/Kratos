@@ -222,6 +222,18 @@ void AdjointPotentialWallCondition<TPrimalCondition>::FinalizeSolutionStep(Proce
     mpPrimalCondition -> FinalizeSolutionStep(rCurrentProcessInfo);
 }
 
+template <class TPrimalCondition>
+void AdjointPotentialWallCondition<TPrimalCondition>::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+{
+    mpPrimalCondition -> FinalizeNonLinearIteration(rCurrentProcessInfo);
+    auto velocity = mpPrimalCondition -> GetValue(VELOCITY);
+    auto density = mpPrimalCondition -> GetValue(DENSITY);
+    auto pressure = mpPrimalCondition -> GetValue(PRESSURE_COEFFICIENT);
+    this->SetValue(VELOCITY, velocity);
+    this->SetValue(DENSITY, density);
+    this->SetValue(PRESSURE_COEFFICIENT, pressure);
+}
+
 /// Turn back information as a string.
 template <class TPrimalCondition>
 std::string AdjointPotentialWallCondition<TPrimalCondition>::Info() const
