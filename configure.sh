@@ -4,6 +4,14 @@
 # For any question please contact with us in:
 #   - https://github.com/KratosMultiphysics/Kratos
 
+# Optional parameters:
+# You can find a list will all the compiation options in 
+#   - https://github.com/KratosMultiphysics/Kratos/wiki/Compilation-options
+
+function add_app {
+    export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
+}
+
 # Set compiler
 export CC=gcc
 export CXX=g++
@@ -13,16 +21,13 @@ export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 
-# Set applications to compile
+# Set build type
 export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:="Release"}
-export KRATOS_APPLICATIONS="${KRATOS_APP_DIR}/ExternalSolversApplication;"
-# export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}${KRATOS_APP_DIR}/StructuralMechanicsApplication;"
-# export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}${KRATOS_APP_DIR}/FluidDynamicsApplication;"
-# export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}${KRATOS_APP_DIR}/MeshMovingApplication;"
-# export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}${KRATOS_APP_DIR}/DEMApplication;"
-# export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}${KRATOS_APP_DIR}/CSharpWrapperApplication;"
-export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}${KRATOS_APP_DIR}/MetisApplication;"
-export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}${KRATOS_APP_DIR}/TrilinosApplication;"
+
+# Set applications to compile
+add_app ${KRATOS_APP_DIR}/ExternalSolversApplication
+add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
+add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 
 # Clean
 clear
@@ -30,14 +35,11 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/cmake_install.cmake"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
-echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
-
 # Configure
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
--DMPI_NEEDED=ON \
--DTRILINOS_APPLICATION=ON \
--DUSE_COTIRE=ON
+-DPYTHON_EXECUTABLE=/usr/bin/python3                                \
+-DINSTALL_PYTHON_USING_LINKS=ON
 
 # Buid
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity    -- -j4
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install/fast -- -j4
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity -- -j4
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install/fast -- -j4 
