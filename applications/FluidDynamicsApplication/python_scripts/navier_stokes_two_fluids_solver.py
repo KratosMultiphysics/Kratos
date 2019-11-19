@@ -158,10 +158,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self.level_set_convection_process = self._set_level_set_convection_process()
 
+        #self.distance_modification_process = self._set_distance_modification_process()
+        #(self.distance_modification_process).ExecuteInitialize();
+        #(self.distance_modification_process).ExecuteBeforeSolutionLoop()
+
         self.variational_distance_process = self._set_variational_distance_process()
+        #(self.variational_distance_process).Execute()
 
         self.distance_gradient_process = self._set_distance_gradient_process()
-        #(self.distance_gradient_process).Execute()
+        (self.distance_gradient_process).Execute()
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],   # Domain size (2,3)
                                                                                         self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1) # DOFs (3,4)
@@ -194,6 +199,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Perform the level-set convection according to the previous step velocity
             if self._bfecc_convection:
+                KratosMultiphysics.Logger.PrintInfo("LevelSetSolver", "BFECCconvect will be called")
                 (self.level_set_convection_process).BFECCconvect(
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE,
@@ -202,11 +208,17 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             else:
                 (self.level_set_convection_process).Execute()
 
-            # Recompute the distance field according to the new level-set position
-            (self.variational_distance_process).Execute()
+            # Slightly adjust the distance not to coincide with the mesh faces
+            #(self.distance_modification_process).ExecuteInitializeSolutionStep();
+            #(self.distance_modification_process).ExecuteFinalizeSolutionStep();
 
             # Compute the DISTANCE_GRADIENT on nodes
             (self.distance_gradient_process).Execute()
+
+            # Recompute the distance field according to the new level-set position
+            TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+            if (TimeStep % 20 == 0):
+                (self.variational_distance_process).Execute()
 
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
             self._SetNodalProperties()
@@ -302,11 +314,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         if self._bfecc_convection:
             if have_conv_diff:
                 if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-                    locator = KratosMultiphysics.BinBasedFastPointLocator2D(self.main_model_part).UpdateSearchDatabase()
+                    locator = KratosMultiphysics.BinBasedFastPointLocator2D(self.main_model_part)
+                    locator.UpdateSearchDatabase()
                     level_set_convection_process = KratosConvDiff.BFECCConvection2D(locator)
                 else:
-                    locator = KratosMultiphysics.BinBasedFastPointLocator3D(self.main_model_part).UpdateSearchDatabase()
+                    locator = KratosMultiphysics.BinBasedFastPointLocator3D(self.main_model_part)
+                    locator.UpdateSearchDatabase()
                     level_set_convection_process = KratosConvDiff.BFECCConvection3D(locator)
+
             else:
                 raise Exception("The BFECC level set convection requires the Kratos ConvectionDiffusionApplication compilation.")
         else:
@@ -350,3 +365,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 KratosMultiphysics.NODAL_AREA)
 
         return distance_gradient_process
+
+    #def _set_distance_modification_process(self):
+        #Slightly move the distance according to a threshold in order not to coincide with the mesh faces
+    #    distance_modification_process = KratosCFD.DistanceModificationProcess(
+    #            self.main_model_part, 
+    #            1.0,
+    #            0.001,
+    #            True,
+    #            False,
+    #            False)
+    #
+    #    return distance_modification_process

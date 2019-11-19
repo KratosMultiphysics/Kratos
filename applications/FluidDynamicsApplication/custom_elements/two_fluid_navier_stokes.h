@@ -522,7 +522,24 @@ private:
         const Kratos::Vector& rCurvature,
         const Kratos::Vector& rIntWeights,
         const std::vector<Vector>& rIntNormalsNeg,
-        Vector& rSurfaceTensionForce);   
+        Vector& rSurfaceTensionForce);  
+
+    /**
+     * @brief Computes the surface tension on the interface and implement its effect on the RHS vector
+     * @param coefficient surface tension coefficient
+     * @param rCurvature curvature calculated at the interface gauss points
+     * @param rIntWeights Weights associated with interface gauss points
+     * @param rIntShapeFunctions Shape functions calculated at the interface gauss points
+     * @param rIntNormalsNeg Normal vectors (negative side) associated with interface gauss points
+     * @param rRHS The effect of pressure discontinuity is implemented as an interfacial integral on the RHS
+     */
+	void SurfaceTension(
+        const double coefficient,
+        const Kratos::Vector& rCurvature,
+        const Kratos::Vector& rIntWeights,
+        const Matrix& rIntShapeFunctions,
+        const std::vector<Vector>& rIntNormalsNeg,
+        VectorType& rRHS);  
 
     /**
      * @brief Condense the enrichment
