@@ -112,19 +112,21 @@ namespace Kratos
 
     void Derivative2StrainGreenLagrange(Vector& rStrain,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS,
-      const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference);
+      const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference,
+      const array_1d<Vector,2>& rTransformedBaseVectors);
 
     void DerivativeStrainGreenLagrange(Vector& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
-      const array_1d<Vector,2> rCurrentCovariantBaseVectors, const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference);
+      const array_1d<Vector,2> rCurrentCovariantBaseVectors, const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference,
+      const array_1d<Vector,2>& rTransformedBaseVectors);
 
     void StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
-      const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference);
+      const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference, const array_1d<Vector,2>& rTransformedBaseVectors);
 
     void MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric);
 
     void StressPk2(Vector& rStress,
       const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
-      const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference);
+      const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference, const array_1d<Vector,2>& rTransformedBaseVectors);
 
     void AddPreStressPk2(Vector& rStress);
 
@@ -140,15 +142,18 @@ namespace Kratos
     void InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
       const Vector& rStressVector,const double& rDetJ, const double& rWeight,
       const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
-      const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference);
+      const array_1d<Vector,2>& rLocalContraVariantBaseVectorsReference,
+      const array_1d<Vector,2>& rTransformedBaseVectors);
 
     void MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
       const Matrix& rMaterialTangentModulus,const double& rDetJ, const double& rWeight,
       const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
-      const array_1d<Vector,2> rCurrentCovariantBaseVectors, const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference);
+      const array_1d<Vector,2>& rCurrentCovariantBaseVectors, const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference,
+      const array_1d<Vector,2>& rTransformedBaseVectors);
 
-    void TransformStrains(Matrix& rStrainsMatrix,const Matrix& rReferenceStrainsMatrix,
-      const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference);
+    void TransformStrains(Vector& rStrains,
+       Vector& rReferenceStrains, const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference,
+       const array_1d<Vector,2>& rTransformedBaseVectors);
 
     void GetValuesVector(
       Vector& rValues,
@@ -175,7 +180,7 @@ namespace Kratos
       const ProcessInfo& rCurrentProcessInfo) override;
 
     void TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
-     const array_1d<Vector,2>& rLocalBaseVectors,const std::string Configuration);
+     const array_1d<Vector,2>& rLocalBaseVectors);
 
 protected:
   ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
