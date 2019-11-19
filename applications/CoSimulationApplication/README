@@ -54,6 +54,7 @@ cd Kratos/applications/CoSimulationApplication
 # Run tests
 
 cd tests
+module load ANSYS_CFD/2019R1
 python3 test_CoSimulationApplication.py --level small
 
 # Run test case
