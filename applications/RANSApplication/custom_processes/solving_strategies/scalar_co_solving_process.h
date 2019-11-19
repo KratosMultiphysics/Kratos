@@ -78,7 +78,7 @@ public:
             "max_iterations"                    : 10,
             "echo_level"                        : 0,
             "relaxation_factor"                 : 1.0,
-            "number_of_parent_solve_iterations" : 10
+            "number_of_parent_solve_iterations" : 0
         })");
 
         rParameters.ValidateAndAssignDefaults(default_parameters);
