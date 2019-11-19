@@ -310,33 +310,39 @@ void MembraneElement::StressPk2(Vector& rStress,
     const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
     const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference, const array_1d<Vector,2>& rTransformedBaseVectors)
 {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Matrix material_tangent_modulus = ZeroMatrix(dimension);
-
-    MaterialTangentModulus(material_tangent_modulus,rReferenceContraVariantMetric);
-    Vector strain_vector = ZeroVector(dimension);
-
-
+    Vector strain_vector = ZeroVector(3);
+    rStress = ZeroVector(3);
     StrainGreenLagrange(strain_vector,rReferenceCoVariantMetric,
         rCurrentCoVariantMetric,rLocalContraVariantBaseVectorsReference,rTransformedBaseVectors);
 
-    rStress = prod(material_tangent_modulus,strain_vector);
+    ProcessInfo temp_process_information;
+    ConstitutiveLaw::Parameters element_parameters(GetGeometry(),GetProperties(),temp_process_information);
+    element_parameters.SetStrainVector(strain_vector);
+    element_parameters.SetStressVector(rStress);
+    element_parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    mpConstitutiveLaw->CalculateMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
+
     AddPreStressPk2(rStress);
 }
 
-void MembraneElement::MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric)
+void MembraneElement::MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric,
+    const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric, const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference,
+    const array_1d<Vector,2>& rTransformedBaseVectors)
 {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    rTangentModulus = ZeroMatrix(dimension);
-    const double nu = GetProperties()[POISSON_RATIO];
-    const double E  = GetProperties()[YOUNG_MODULUS];
+    rTangentModulus = ZeroMatrix(3);
+    Vector strain_vector = ZeroVector(3);
+    StrainGreenLagrange(strain_vector,rReferenceCoVariantMetric,
+        rCurrentCoVariantMetric,rLocalContraVariantBaseVectorsReference,rTransformedBaseVectors);
 
-    rTangentModulus(0,0) = 1.0;
-    rTangentModulus(1,1) = 1.0;
-    rTangentModulus(2,2) = (1.0-nu)/2.0;
-    rTangentModulus(0,1) = nu;
-    rTangentModulus(1,0) = nu;
-    rTangentModulus *= E/(1.0-(nu*nu));
+    ProcessInfo temp_process_information;
+    ConstitutiveLaw::Parameters element_parameters(GetGeometry(),GetProperties(),temp_process_information);
+    element_parameters.SetStrainVector(strain_vector);
+    element_parameters.SetConstitutiveMatrix(rTangentModulus);
+    element_parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    mpConstitutiveLaw->CalculateMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
+
 }
 
 void MembraneElement::StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
@@ -634,7 +640,8 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
             reference_contravariant_base_vectors,transformed_base_vectors);
 
         Matrix material_tangent_modulus = ZeroMatrix(dimension);
-        MaterialTangentModulus(material_tangent_modulus,contravariant_metric_reference);
+        MaterialTangentModulus(material_tangent_modulus,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
+            reference_contravariant_base_vectors,transformed_base_vectors);
 
         for (SizeType dof_s=0;dof_s<number_dofs;++dof_s){
             for (SizeType dof_r=0;dof_r<number_dofs;++dof_r){

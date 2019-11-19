@@ -122,7 +122,9 @@ namespace Kratos
     void StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
       const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference, const array_1d<Vector,2>& rTransformedBaseVectors);
 
-    void MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric);
+    void MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric,
+    const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric, const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference,
+    const array_1d<Vector,2>& rTransformedBaseVectors);
 
     void StressPk2(Vector& rStress,
       const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
