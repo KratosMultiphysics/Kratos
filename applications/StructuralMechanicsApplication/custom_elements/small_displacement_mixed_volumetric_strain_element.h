@@ -235,28 +235,11 @@ public:
      */
     void Initialize() override;
 
-    // /**
-    //   * @brief This resets the constitutive law
-    //   */
-    // void ResetConstitutiveLaw() override;
-
     /**
      * @brief Called at the beginning of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    // /**
-    //  * @brief This is called for non-linear analysis at the beginning of the iteration process
-    //  * @param rCurrentProcessInfo the current process info instance
-    //  */
-    // void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    // /**
-    //  * @brief This is called for non-linear analysis at the beginning of the iteration process
-    //  * @param rCurrentProcessInfo the current process info instance
-    //  */
-    // void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Called at the end of eahc solution step
