@@ -45,12 +45,12 @@ public:
 
     typedef void (*DataExchangeFunctionType)(const std::string&);
 
-    explicit CoSimIOImpl(const std::string& rName, const std::string& rSettingsFileName, const bool IsConnectionMaster=false)
-    : CoSimIOImpl(rName, Internals::ReadSettingsFile(rSettingsFileName), IsConnectionMaster) { } // forwarding constructor call
+    explicit CoSimIOImpl(const std::string& rName, const std::string& rSettingsFileName)
+    : CoSimIOImpl(rName, Internals::ReadSettingsFile(rSettingsFileName)) { } // forwarding constructor call
 
-    explicit CoSimIOImpl(const std::string& rName, SettingsType rSettings, const bool IsConnectionMaster=false) : mIsConnectionMaster(IsConnectionMaster)
+    explicit CoSimIOImpl(const std::string& rName, SettingsType rSettings)
     {
-        Initialize(rName, rSettings, IsConnectionMaster);
+        Initialize(rName, rSettings);
     }
 
     bool Connect()
@@ -219,26 +219,30 @@ private:
 
     std::map<const std::string, DataExchangeFunctionType> mDataExchangeFunctions;
 
-    void Initialize(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster)
+    void Initialize(const std::string& rName, SettingsType& rSettings)
     {
         std::string comm_format("file"); // default is file-communication
         if (rSettings.count("communication_format") != 0) { // communication format has been specified
             comm_format = rSettings.at("communication_format");
         }
 
+        if (rSettings.count("is_connection_master") != 0) { // is_connection_master has been specified
+            mIsConnectionMaster = (rSettings.at("is_connection_master") == "1");
+        }
+
         KRATOS_CO_SIM_INFO("CoSimIO") << "CoSimIO for \"" << rName << "\" uses communication format: " << comm_format << std::endl;
 
         if (comm_format == "file") {
-            mpComm = std::unique_ptr<CoSimComm>(new FileComm(rName, rSettings, IsConnectionMaster)); // make_unique is C++14
+            mpComm = std::unique_ptr<CoSimComm>(new FileComm(rName, rSettings, mIsConnectionMaster)); // make_unique is C++14
         } else if (comm_format == "sockets") {
             #ifdef KRATOS_CO_SIM_IO_ENABLE_SOCKETS
-            mpComm = std::unique_ptr<CoSimComm>(new SocketsComm(rName, rSettings, IsConnectionMaster)); // make_unique is C++14
+            mpComm = std::unique_ptr<CoSimComm>(new SocketsComm(rName, rSettings, mIsConnectionMaster)); // make_unique is C++14
             #else
             KRATOS_CO_SIM_ERROR << "Support for Sockets was not compiled!" << std::endl;
             #endif /* KRATOS_CO_SIM_IO_ENABLE_SOCKETS */
         } else if (comm_format == "mpi") {
             #ifdef KRATOS_CO_SIM_IO_ENABLE_MPI
-            mpComm = std::unique_ptr<CoSimComm>(new MPIComm(rName, rSettings, IsConnectionMaster)); // make_unique is C++14
+            mpComm = std::unique_ptr<CoSimComm>(new MPIComm(rName, rSettings, mIsConnectionMaster)); // make_unique is C++14
             #else
             KRATOS_CO_SIM_ERROR << "Support for MPI was not compiled!" << std::endl;
             #endif /* KRATOS_CO_SIM_IO_ENABLE_MPI */
