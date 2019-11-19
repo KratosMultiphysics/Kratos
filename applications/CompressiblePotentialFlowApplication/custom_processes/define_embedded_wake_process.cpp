@@ -125,19 +125,30 @@ void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
 
 void DefineEmbeddedWakeProcess::MarkKuttaWakeElements(){
 
-    // Find elements that touch the furthes deactivated element and that are part of the wake.
+    // Find elements that touch the furthest deactivated element and that are part of the wake.
+    std::vector<std::size_t> trailing_edge_node_list;
     for (std::size_t i = 0; i < mKuttaWakeElementCandidates.size(); i++)
     {
         auto& r_geometry = mKuttaWakeElementCandidates[i].GetGeometry();
         if (mKuttaWakeElementCandidates[i].GetValue(WAKE) && mKuttaWakeElementCandidates[i].Is(ACTIVE)) {
             for (std::size_t i_node= 0; i_node < r_geometry.size(); i_node++) {
                 if(r_geometry[i_node].GetValue(TRAILING_EDGE)){
+                    trailing_edge_node_list.push_back(r_geometry[i_node].Id());
                     mKuttaWakeElementCandidates[i].Set(STRUCTURE);
-                    break;
                 }
             }
         }
 
     }
+
+    if (mrModelPart.HasSubModelPart("trailing_edge_sub_model_part")){
+        mrModelPart.RemoveSubModelPart("trailing_edge_sub_model_part");
+    }
+    mrModelPart.CreateSubModelPart("trailing_edge_sub_model_part");
+
+    std::sort(trailing_edge_node_list.begin(),
+              trailing_edge_node_list.end());
+    mrModelPart.GetSubModelPart("trailing_edge_sub_model_part").AddNodes(trailing_edge_node_list);
+
 }
 }// Namespace Kratos

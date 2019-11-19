@@ -333,7 +333,6 @@ namespace Kratos {
 
         const double tau_zero = 0.5 * (GetTauZero(element1) + GetTauZero(element2));
         const double internal_friction = 0.5 * (GetInternalFricc(element1) + GetInternalFricc(element2));
-
         double k_unload = 0.0;
         double tau_strength = 0.0;
         static bool first_time_entered = true;
@@ -395,8 +394,7 @@ namespace Kratos {
             tau_strength = (1.0 - mDamageTangential) * tau_zero;
 
             if (contact_sigma >= 0) {
-                tau_strength += (1.0 - mDamageTangential) * internal_friction * contact_sigma;
-                updated_max_tau_strength += internal_friction * contact_sigma;
+                AdjustTauStrengthAndUpdatedMaxTauStrength(tau_strength, updated_max_tau_strength, internal_friction, contact_sigma, element1, element2);
             }
 
             if (contact_tau > tau_strength) { // damage
@@ -531,6 +529,14 @@ namespace Kratos {
             }
         }
 
+        KRATOS_CATCH("")
+    }
+
+    void DEM_KDEM_with_damage_parallel_bond::AdjustTauStrengthAndUpdatedMaxTauStrength(double& tau_strength, double& updated_max_tau_strength, const double internal_friction,
+                                                                                       double contact_sigma, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
+        KRATOS_TRY
+        tau_strength += (1.0 - mDamageTangential) * internal_friction * contact_sigma;
+        updated_max_tau_strength += internal_friction * contact_sigma;
         KRATOS_CATCH("")
     }
 

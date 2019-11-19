@@ -20,6 +20,7 @@
 #include "containers/model.h"
 
 // Application includes
+#include "structural_mechanics_application_variables.h"
 
 // Constitutive law
 #include "custom_advanced_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
@@ -34,9 +35,44 @@ namespace Testing
 // We test the d+ d- damage Constitutive Law (for masonry) 2D...
 typedef Node<3> NodeType;
 
-/**
-    * Check the correct calculation of the integrated stress with the CL's
-    */
+KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DInternalVariables, KratosStructuralMechanicsFastSuite)
+{
+    //
+    // Test: check correct behavior of internal and calculated variables
+    //
+
+    Model current_model;
+    ModelPart &test_model_part = current_model.CreateModelPart("Main");
+    DamageDPlusDMinusMasonry2DLaw cl = DamageDPlusDMinusMasonry2DLaw();
+
+    KRATOS_CHECK_IS_FALSE(cl.Has(INTEGRATED_STRESS_TENSOR));  // = False, in order to use CalculateValue())
+    KRATOS_CHECK(cl.Has(DAMAGE_TENSION));  // = True
+    KRATOS_CHECK(cl.Has(THRESHOLD_TENSION));  // = True
+    KRATOS_CHECK(cl.Has(DAMAGE_COMPRESSION));  // = True
+    KRATOS_CHECK(cl.Has(THRESHOLD_COMPRESSION));  // = True
+    KRATOS_CHECK(cl.Has(UNIAXIAL_STRESS_COMPRESSION));  // = True
+    KRATOS_CHECK(cl.Has(UNIAXIAL_STRESS_TENSION));  // = True
+    KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // = True
+
+    Vector internal_variables_w(6);
+    internal_variables_w[0] = 0.0;
+    internal_variables_w[1] = 0.1;
+    internal_variables_w[2] = 0.2;
+    internal_variables_w[3] = 0.3;
+    internal_variables_w[4] = 0.4;
+    internal_variables_w[5] = 0.5;
+    cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
+    Vector internal_variables_r;  // CL should internally resize it to 6
+    cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
+
+    KRATOS_CHECK_NEAR(internal_variables_r.size(), 6., 1.e-5);  // = True
+    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
+    KRATOS_CHECK_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
+    KRATOS_CHECK_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
+    KRATOS_CHECK_NEAR(internal_variables_r[3], 0.3, 1.e-5);  // = True
+    KRATOS_CHECK_NEAR(internal_variables_r[4], 0.4, 1.e-5);  // = True
+    KRATOS_CHECK_NEAR(internal_variables_r[5], 0.5, 1.e-5);  // = True
+}
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureTensionTest, KratosStructuralMechanicsFastSuite)
 {
