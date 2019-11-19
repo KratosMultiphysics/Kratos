@@ -687,6 +687,84 @@ void Parameters::SetMatrix(const Matrix& rValue)
 /***********************************************************************************/
 /***********************************************************************************/
 
+void Parameters::AddDouble(
+    const std::string& rEntry,
+    const double Value
+    )
+{
+    Parameters aux_parameters(R"({"value": 0.0})");
+    aux_parameters.SetDouble(Value);
+    this->AddValue(rEntry, aux_parameters["value"]);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::AddInt(
+    const std::string& rEntry,
+    const int Value
+    )
+{
+    Parameters aux_parameters(R"({"value": 0})");
+    aux_parameters.SetInt(Value);
+    this->AddValue(rEntry, aux_parameters["value"]);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::AddBool(
+    const std::string& rEntry,
+    const bool Value
+    )
+{
+    Parameters aux_parameters(R"({"value": false})");
+    aux_parameters.SetBool(Value);
+    this->AddValue(rEntry, aux_parameters["value"]);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::AddString(
+    const std::string& rEntry,
+    const std::string& rValue
+    )
+{
+    Parameters aux_parameters(R"({"value": ""})");
+    aux_parameters.SetString(rValue);
+    this->AddValue(rEntry, aux_parameters["value"]);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::AddVector(
+    const std::string& rEntry,
+    const Vector& rValue
+    )
+{
+    Parameters aux_parameters(R"({"value": []})");
+    aux_parameters.SetVector(rValue);
+    this->AddValue(rEntry, aux_parameters["value"]);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::AddMatrix(
+    const std::string& rEntry,
+    const Matrix& rValue
+    )
+{
+    Parameters aux_parameters(R"({"value": []})");
+    aux_parameters.SetMatrix(rValue);
+    this->AddValue(rEntry, aux_parameters["value"]);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 Parameters::iterator Parameters::begin()
 {
     return iterator(mpValue->begin(), mpValue, mpRoot);

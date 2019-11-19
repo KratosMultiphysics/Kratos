@@ -591,6 +591,66 @@ public:
      * @param Value The matrix value
      */
     void SetMatrix(const Matrix& rValue);
+    
+    /**
+     * @brief This method adds a new double Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param Value The double value
+     */
+    void AddDouble(
+        const std::string& rEntry,
+        const double Value
+        );
+
+    /**
+     * @brief This method adds a new integer Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param Value The integer value
+     */
+    void AddInt(
+        const std::string& rEntry,
+        const int Value
+        );
+
+    /**
+     * @brief This method adds a new bool Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param Value The bool value
+     */
+    void AddBool(
+        const std::string& rEntry,
+        const bool Value
+        );
+
+    /**
+     * @brief This method adds a new string Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param rValue The string value
+     */
+    void AddString(
+        const std::string& rEntry,
+        const std::string& rValue
+        );
+
+    /**
+     * @brief This method adds a new vector Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param rValue The vector value
+     */
+    void AddVector(
+        const std::string& rEntry,
+        const Vector& rValue
+        );
+
+    /**
+     * @brief This method adds a new matrix Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param Value The matrix value
+     */
+    void AddMatrix(
+        const std::string& rEntry,
+        const Matrix& rValue
+        );
 
     /**
      * @brief This returns the begin iterator
