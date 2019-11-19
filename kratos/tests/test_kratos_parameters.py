@@ -590,7 +590,7 @@ class TestParameters(KratosUnittest.TestCase):
             "bool_value" : false,
             "string_value" : "",
             "vector_value" : [],
-            "matrix_value" : [[1,2],[3,4],[5,6]]
+            "matrix_value" : [[0]]
         }""") # if you add more values to this, make sure to add the corresponding in the loop
 
         for key in tmp.keys():
