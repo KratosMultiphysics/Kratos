@@ -283,25 +283,27 @@ void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
     const Matrix& rConstitutiveTensorFiberSS
 )
 {
-    const Vector& r_serial_total_strain  = prod(rSerialProjector, rStrainVector);
-    const Vector& r_serial_stress_matrix = prod(rSerialProjector, rMatrixStressVector);
-    const Vector& r_serial_stress_fiber  = prod(rSerialProjector, rFiberStressVector);
+    const Vector serial_total_strain  = prod(rSerialProjector, rStrainVector);
+    const Vector serial_stress_matrix = prod(rSerialProjector, rMatrixStressVector);
+    const Vector serial_stress_fiber  = prod(rSerialProjector, rFiberStressVector);
 
-    const double norm_serial_stress_matrix = MathUtils<double>::Norm(r_serial_stress_matrix);
-    const double norm_serial_stress_fiber  = MathUtils<double>::Norm(r_serial_stress_fiber);
+    const double norm_serial_stress_matrix = MathUtils<double>::Norm(serial_stress_matrix);
+    const double norm_serial_stress_fiber  = MathUtils<double>::Norm(serial_stress_fiber);
     double ref = std::min(norm_serial_stress_matrix, norm_serial_stress_fiber);
 
     // Here we compute the tolerance
     double tolerance;
     if (ref <= machine_tolerance) {
-        const double norm_product_matrix = MathUtils<double>::Norm(prod(rConstitutiveTensorMatrixSS, r_serial_total_strain));
-        const double norm_product_fiber  = MathUtils<double>::Norm(prod(rConstitutiveTensorFiberSS, r_serial_total_strain));
+        const double norm_product_matrix = MathUtils<double>::Norm(prod(rConstitutiveTensorMatrixSS, serial_total_strain));
+        const double norm_product_fiber  = MathUtils<double>::Norm(prod(rConstitutiveTensorFiberSS, serial_total_strain));
         ref = std::min(norm_product_matrix, norm_product_fiber);
     }
-    if (ref < 1e-9) tolerance = 1e-9;
-    else tolerance = 1e-4 * ref;
-    
-    noalias(rStressSerialResidual) = r_serial_stress_matrix - r_serial_stress_fiber;
+    if (ref < 1e-9)
+        tolerance = 1e-9;
+    else
+        tolerance = 1e-4 * ref;
+
+    noalias(rStressSerialResidual) = serial_stress_matrix - serial_stress_fiber;
     const double norm_residual =  MathUtils<double>::Norm(rStressSerialResidual);
     if (norm_residual < tolerance) rIsConverged = true;
 }
