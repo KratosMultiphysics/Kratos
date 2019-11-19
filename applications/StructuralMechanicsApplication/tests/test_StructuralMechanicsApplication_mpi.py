@@ -44,5 +44,6 @@ def AssembleTestSuites():
 
 
 if __name__ == '__main__':
+    tests_successful = 0
     tests_successful = max(tests_successful, int(KratosUnittest.runTests(AssembleTestSuites())))
     sys.exit(tests_successful)
