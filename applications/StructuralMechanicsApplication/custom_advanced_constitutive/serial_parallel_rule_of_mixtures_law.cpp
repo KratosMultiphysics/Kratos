@@ -170,7 +170,7 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     bool is_converged = false;
     int iteration = 0, max_iterations = 150;
     Vector parallel_strain_matrix(num_parallel_components), stress_residual(rSerialStrainMatrix.size());
-	Matrix constitutive_tensor_matrix_ss(num_serial_components, num_serial_components), 
+    Matrix constitutive_tensor_matrix_ss(num_serial_components, num_serial_components), 
         constitutive_tensor_fiber_ss(num_serial_components, num_serial_components);
 
     // Iterative procedure until the equilibrium is reached in the serial stresses
@@ -217,10 +217,10 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
     const int num_parallel_components = inner_prod(mParallelDirections, mParallelDirections);
     const int num_serial_components = voigt_size - num_parallel_components;
 
-	auto& r_material_properties = rValues.GetMaterialProperties();
-	const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
-	const auto& r_props_matrix_cl = *(it_cl_begin);
-	const auto& r_props_fiber_cl  = *(it_cl_begin + 1);
+    auto& r_material_properties = rValues.GetMaterialProperties();
+    const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
+    const auto& r_props_matrix_cl = *(it_cl_begin);
+    const auto& r_props_fiber_cl  = *(it_cl_begin + 1);
 
     // Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
@@ -257,7 +257,7 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
     const double constant = (1.0 - mFiberVolumetricParticipation) / mFiberVolumetricParticipation;
     Matrix jacobian_matrix(num_serial_components, num_serial_components);
     noalias(jacobian_matrix) = matrix_tangent_tensor_ss + constant * fiber_tangent_tensor_ss;
-	Matrix inv_jacobian(num_serial_components, num_serial_components);
+    Matrix inv_jacobian(num_serial_components, num_serial_components);
     double det_jacobian;
 
     MathUtils<double>::InvertMatrix(jacobian_matrix, inv_jacobian, det_jacobian);
@@ -331,10 +331,10 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
     Vector& rFiberStressVector
 )
 {
-	auto& r_material_properties = rValues.GetMaterialProperties();
-	const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
-	const auto& r_props_matrix_cl = *(it_cl_begin);
-	const auto& r_props_fiber_cl = *(it_cl_begin + 1);
+    auto& r_material_properties = rValues.GetMaterialProperties();
+    const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
+    const auto& r_props_matrix_cl = *(it_cl_begin);
+    const auto& r_props_fiber_cl = *(it_cl_begin + 1);
     
     ConstitutiveLaw::Parameters values_fiber  = rValues;
     ConstitutiveLaw::Parameters values_matrix = rValues;
@@ -343,12 +343,12 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
     values_matrix.SetStrainVector(rMatrixStrainVector);
 
     // Integrate Stress of the matrix
-	values_matrix.SetMaterialProperties(r_props_matrix_cl);
+    values_matrix.SetMaterialProperties(r_props_matrix_cl);
     mpMatrixConstitutiveLaw->CalculateMaterialResponseCauchy(values_matrix);
     rMatrixStressVector = values_matrix.GetStressVector();
 
     // Integrate Stress of the fiber
-	values_fiber.SetMaterialProperties(r_props_fiber_cl);
+    values_fiber.SetMaterialProperties(r_props_fiber_cl);
     mpFiberConstitutiveLaw->CalculateMaterialResponseCauchy(values_fiber);
     rFiberStressVector = values_fiber.GetStressVector();
 }
@@ -377,8 +377,8 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
     const double k_m = 1.0 - mFiberVolumetricParticipation;
     Matrix constitutive_tensor_matrix(voigt_size, voigt_size), constitutive_tensor_fiber(voigt_size, voigt_size);
 
-	const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
-	const auto& r_props_matrix_cl = *(it_cl_begin);
+    const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
+    const auto& r_props_matrix_cl = *(it_cl_begin);
     const auto& r_props_fiber_cl  = *(it_cl_begin + 1);
 
     this->CalculateElasticMatrix(constitutive_tensor_matrix, r_props_matrix_cl);
@@ -723,8 +723,8 @@ void SerialParallelRuleOfMixturesLaw::InitializeMaterial(
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues)
 {
-	const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
-	const auto r_props_matrix_cl = *(it_cl_begin);
+    const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
+    const auto r_props_matrix_cl = *(it_cl_begin);
     const auto r_props_fiber_cl  = *(it_cl_begin + 1);
 
     KRATOS_ERROR_IF_NOT(r_props_matrix_cl.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
@@ -944,7 +944,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         // Previous flags restored
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
-		return rValue;
+        return rValue;
     } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_TENSOR_MATRIX) {
         const std::size_t voigt_size = this->GetStrainSize();
         Matrix parallel_projector, serial_projector;
@@ -972,14 +972,14 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
     } else {
         Matrix aux_value;
         Properties material_properties  = rParameterValues.GetMaterialProperties();
-		Properties& r_prop = material_properties.GetSubProperties(0);
+        Properties& r_prop = material_properties.GetSubProperties(0);
 
         rValue.clear();
         rParameterValues.SetMaterialProperties(r_prop);
         mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
         noalias(rValue) += (1.0 - mFiberVolumetricParticipation) * aux_value;
 
-		r_prop = material_properties.GetSubProperties(1);
+        r_prop = material_properties.GetSubProperties(1);
         rParameterValues.SetMaterialProperties(r_prop);
         mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, aux_value);
         noalias(rValue) += (1.0 - mFiberVolumetricParticipation) * aux_value;
