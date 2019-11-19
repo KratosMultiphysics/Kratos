@@ -475,7 +475,7 @@ if __name__ == '__main__':
     if kratos_utilities.IsMPIAvailable() and kratos_utilities.CheckIfApplicationsAvailable("MetisApplication", "TrilinosApplication"):
         KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
         p = subprocess.Popen(
-            ["mpiexec", "-np", "2", "python3", "test_StructuralMechanicsApplication_mpi.py"],
+            ["mpiexec", "-np", "2", "python3", "test_StructuralMechanicsApplication_mpi.py", "--using-mpi"],
             stdout=subprocess.PIPE,
             cwd=os.path.dirname(os.path.abspath(__file__)))
         p.wait()

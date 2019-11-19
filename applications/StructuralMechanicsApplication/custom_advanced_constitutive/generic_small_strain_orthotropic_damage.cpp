@@ -332,6 +332,9 @@ bool GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::Has(
     const Variable<Vector>& rThisVariable
     )
 {
+    if (rThisVariable == INTERNAL_VARIABLES) {
+        return true;
+    }
     return BaseType::Has(rThisVariable);
 }
 
@@ -351,11 +354,20 @@ bool GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::Has(
 
 template <class TConstLawIntegratorType>
 void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::SetValue(
-    const Variable<double>& rThisVariable,
-    const double& rValue,
+    const Variable<Vector>& rThisVariable,
+    const Vector& rValue,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    if (rThisVariable == INTERNAL_VARIABLES) {
+         mDamages[0] = rValue[0];
+         mDamages[1] = rValue[1];
+         mDamages[2] = rValue[2];
+         mThresholds[0] = rValue[3];
+         mThresholds[1] = rValue[4];
+         mThresholds[2] = rValue[5];
+         return;
+    }
     return BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
 }
 
@@ -389,6 +401,15 @@ Vector& GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::GetValue(
     Vector& rValue
     )
 {
+    if (rThisVariable == INTERNAL_VARIABLES) {
+        rValue.resize(6);
+        rValue[0] = mDamages[0];
+        rValue[1] = mDamages[1];
+        rValue[2] = mDamages[2];
+        rValue[3] = mThresholds[0];
+        rValue[4] = mThresholds[1];
+        rValue[5] = mThresholds[2];
+    }
     return BaseType::GetValue(rThisVariable, rValue);
 }
 
