@@ -79,7 +79,7 @@ void SmallDisplacementMixedVolumetricStrainElement::EquationIdVector(
 {
     KRATOS_TRY
 
-    const auto &r_geometry = GetGeometry();
+    const auto& r_geometry = GetGeometry();
     const unsigned int n_nodes = r_geometry.PointsNumber();
     const unsigned int dim = r_geometry.WorkingSpaceDimension();
     const unsigned int dof_size = n_nodes*(dim+1);
@@ -119,7 +119,7 @@ void SmallDisplacementMixedVolumetricStrainElement::GetDofList(
 {
     KRATOS_TRY
 
-    const auto &r_geometry = GetGeometry();
+    const auto& r_geometry = GetGeometry();
     const unsigned int n_nodes = r_geometry.PointsNumber();
     const unsigned int dim = r_geometry.WorkingSpaceDimension();
     const unsigned int dof_size  = n_nodes*(dim+1);
@@ -155,7 +155,7 @@ void SmallDisplacementMixedVolumetricStrainElement::Initialize()
 
     // Integration method initialization
     mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
-    const auto &r_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+    const auto& r_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
     // Constitutive Law Vector initialisation
     if (mConstitutiveLawVector.size() != r_integration_points.size()) {
@@ -168,6 +168,9 @@ void SmallDisplacementMixedVolumetricStrainElement::Initialize()
     KRATOS_CATCH( "" )
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SmallDisplacementMixedVolumetricStrainElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -178,7 +181,7 @@ void SmallDisplacementMixedVolumetricStrainElement::InitializeSolutionStep(Proce
     Vector stress(strain_size);
     Matrix cons_matrix(strain_size, strain_size);
     ConstitutiveLaw::Parameters cons_law_values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-    auto &r_cons_law_options = cons_law_values.GetOptions();
+    auto& r_cons_law_options = cons_law_values.GetOptions();
     r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
@@ -195,6 +198,9 @@ void SmallDisplacementMixedVolumetricStrainElement::InitializeSolutionStep(Proce
     KRATOS_CATCH( "" )
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SmallDisplacementMixedVolumetricStrainElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -205,7 +211,7 @@ void SmallDisplacementMixedVolumetricStrainElement::FinalizeSolutionStep(Process
     Vector stress(strain_size);
     Matrix cons_matrix(strain_size, strain_size);
     ConstitutiveLaw::Parameters cons_law_values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-    auto &r_cons_law_options = cons_law_values.GetOptions();
+    auto& r_cons_law_options = cons_law_values.GetOptions();
     r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
@@ -230,7 +236,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 {
-    const auto &r_geometry = GetGeometry();
+    const auto& r_geometry = GetGeometry();
     const SizeType dim = r_geometry.WorkingSpaceDimension();
     const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType block_size = dim + 1;
@@ -250,7 +256,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
     for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-        const auto &r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+        const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
         for (unsigned int d = 0; d < dim; ++d) {
             kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
         }
@@ -260,7 +266,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
     // Create the constitutive variables and values containers
     ConstitutiveVariables constitutive_variables(strain_size);
     ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rCurrentProcessInfo);
-    auto &r_cons_law_options = cons_law_values.GetOptions();
+    auto& r_cons_law_options = cons_law_values.GetOptions();
     r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
@@ -276,7 +282,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
     rRightHandSideVector.clear();
 
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
-    const auto &r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+    const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
         // Calculate kinematics
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
@@ -326,12 +332,12 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
             // Mass conservation volumetric residual RHS term
             // (already includes mass conservation volumetric strain contribution (eps_vol x eps_vol))
             // (already includes mass conservation divergence contribution (eps_vol x div(u)))
-            double &r_rhs_mass_row = rRightHandSideVector[i * block_size + dim];
+            double& r_rhs_mass_row = rRightHandSideVector[i * block_size + dim];
             r_rhs_mass_row += w_1_tau_2_k * kinematic_variables.N[i] * vol_residual;
 
             const Vector G_I = row(kinematic_variables.DN_DX, i);
             for (unsigned int d = 0; d < dim; ++d) {
-                double &r_rhs_mom_row = rRightHandSideVector[i * block_size + d];
+                double& r_rhs_mom_row = rRightHandSideVector[i * block_size + d];
                 // Add momentum body force RHS contribution
                 r_rhs_mom_row += w_gauss * kinematic_variables.N[i] * body_force[d];
                 // Add momentum internal force RHS contribution
@@ -353,7 +359,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
                     rLeftHandSideMatrix(i * block_size + d, j * block_size + dim) += w_1_tau_2_k * G_I(d) * kinematic_variables.N(j);
                     // Add momentum internal force LHS contribution
                     for (unsigned int d2 = 0; d2 < dim; ++d2) {
-                        double &r_LHS_mom_mom = rLeftHandSideMatrix(i * block_size + d, j * block_size + d2);
+                        double& r_LHS_mom_mom = rLeftHandSideMatrix(i * block_size + d, j * block_size + d2);
                         r_LHS_mom_mom += w_gauss * transB_C_B(i * dim + d, j * dim + d2);
                         r_LHS_mom_mom -= w_1_tau_2_k * G_I(d) * G_J(d2);
                     }
@@ -364,7 +370,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
             const Vector G_I_C_m = prod(G_I, C_m);
             for (unsigned int j = 0; j < n_nodes; ++j) {
                 const Vector G_J = row(kinematic_variables.DN_DX, j);
-                double &r_LHS_mass_mass = rLeftHandSideMatrix(i * block_size + dim, j * block_size + dim);
+                double& r_LHS_mass_mass = rLeftHandSideMatrix(i * block_size + dim, j * block_size + dim);
                 r_LHS_mass_mass -= w_1_tau_2_k * kinematic_variables.N[i] * kinematic_variables.N[j];
                 r_LHS_mass_mass -= w_tau_1_k * inner_prod(G_I_C_m, G_J);
             }
@@ -379,7 +385,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     ProcessInfo& rCurrentProcessInfo)
 {
-    const auto &r_geometry = GetGeometry();
+    const auto& r_geometry = GetGeometry();
     const SizeType dim = r_geometry.WorkingSpaceDimension();
     const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType block_size = dim + 1;
@@ -394,7 +400,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
     for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-        const auto &r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+        const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
         for (unsigned int d = 0; d < dim; ++d) {
             kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
         }
@@ -404,7 +410,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
     // Create the constitutive variables and values containers
     ConstitutiveVariables constitutive_variables(strain_size);
     ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rCurrentProcessInfo);
-    auto &r_cons_law_options = cons_law_values.GetOptions();
+    auto& r_cons_law_options = cons_law_values.GetOptions();
     r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
     r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
@@ -419,7 +425,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
     rLeftHandSideMatrix.clear();
 
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
-    const auto &r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+    const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
         // Calculate kinematics
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
@@ -454,7 +460,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
                 const Vector G_J = row(kinematic_variables.DN_DX, j);
                 const Matrix G_I_transG_J = outer_prod(G_I, G_J);
                 // Add mass conservation volumetric strain contribution
-                double &r_LHS_mass_mass = rLeftHandSideMatrix(i * block_size + dim, j * block_size + dim);
+                double& r_LHS_mass_mass = rLeftHandSideMatrix(i * block_size + dim, j * block_size + dim);
                 r_LHS_mass_mass -= w_1_tau_2_k * kinematic_variables.N[i] * kinematic_variables.N[j];
                 r_LHS_mass_mass -= w_tau_1_k * inner_prod(G_I_C_m, G_J);
                 for (unsigned int d = 0; d < dim; ++d) {
@@ -462,7 +468,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
                     rLeftHandSideMatrix(i * block_size + dim, j * block_size + d) += w_1_tau_2_k * kinematic_variables.N[i] * G_J(d);
                     // Add momentum internal force contribution
                     for (unsigned int d2 = 0; d2 < dim; ++d2) {
-                        double &r_LHS_mom_mom = rLeftHandSideMatrix(i * block_size + d, j * block_size + d2);
+                        double& r_LHS_mom_mom = rLeftHandSideMatrix(i * block_size + d, j * block_size + d2);
                         r_LHS_mom_mom += w_gauss * transB_C_B(i * dim + d, j * dim + d2);
                         r_LHS_mom_mom -= w_1_tau_2_k * G_I_transG_J(d, d2);
                     }
@@ -481,7 +487,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 {
-    const auto &r_geometry = GetGeometry();
+    const auto& r_geometry = GetGeometry();
     const SizeType dim = r_geometry.WorkingSpaceDimension();
     const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType block_size = dim + 1;
@@ -496,7 +502,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
     for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-        const auto &r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+        const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
         for (unsigned int d = 0; d < dim; ++d) {
             kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
         }
@@ -506,7 +512,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
     // Create the constitutive variables and values containers
     ConstitutiveVariables constitutive_variables(strain_size);
     ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rCurrentProcessInfo);
-    auto &r_cons_law_options = cons_law_values.GetOptions();
+    auto& r_cons_law_options = cons_law_values.GetOptions();
     r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
@@ -521,7 +527,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
     rRightHandSideVector.clear();
 
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
-    const auto &r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+    const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
         // Calculate kinematics
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
@@ -571,13 +577,13 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
             // Mass conservation equation terms (more efficient)
             // (already includes mass conservation volumetric strain contribution (eps_vol x eps_vol))
             // (already includes mass conservation divergence contribution (eps_vol x div(u)))
-            double &r_rhs_mass_row = rRightHandSideVector[i * block_size + dim];
+            double& r_rhs_mass_row = rRightHandSideVector[i * block_size + dim];
             r_rhs_mass_row += w_1_tau_2_k * kinematic_variables.N[i] * vol_residual;
 
             const Vector G_I = row(kinematic_variables.DN_DX, i);
             // Momentum equation terms
             for (unsigned int d = 0; d < dim; ++d) {
-                double &r_rhs_mom_row = rRightHandSideVector[i * block_size + d];
+                double& r_rhs_mom_row = rRightHandSideVector[i * block_size + d];
                 // Add momentum body force RHS contribution
                 r_rhs_mom_row += w_gauss * kinematic_variables.N[i] * body_force[d];
                 // Add momentum internal force RHS contribution
@@ -602,10 +608,10 @@ void SmallDisplacementMixedVolumetricStrainElement::InitializeMaterial()
 {
     KRATOS_TRY
 
-    const auto &r_properties = GetProperties();
+    const auto& r_properties = GetProperties();
     if (r_properties[CONSTITUTIVE_LAW] != nullptr) {
-        const auto &r_geometry = GetGeometry();
-        const auto &r_N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
+        const auto& r_geometry = GetGeometry();
+        const auto& r_N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
         IndexType aux = 0;
         for (auto &it_gauss_pt : mConstitutiveLawVector) {
             it_gauss_pt = (r_properties[CONSTITUTIVE_LAW])->Clone();
@@ -679,14 +685,14 @@ array_1d<double, 3> SmallDisplacementMixedVolumetricStrainElement::GetBodyForce(
         body_force[i] = 0.0;
     }
 
-    const auto &r_properties = GetProperties();
+    const auto& r_properties = GetProperties();
     const double density = r_properties.Has(DENSITY) ? r_properties[DENSITY] : 0.0;
 
     if (r_properties.Has(VOLUME_ACCELERATION)) {
         noalias(body_force) += density * r_properties[VOLUME_ACCELERATION];
     }
 
-    const auto &r_geometry = GetGeometry();
+    const auto& r_geometry = GetGeometry();
     if(r_geometry[0].SolutionStepsDataHas(VOLUME_ACCELERATION)) {
         Vector N;
         N = r_geometry.ShapeFunctionsValues(N, rIntegrationPoints[PointNumber].Coordinates());
@@ -706,8 +712,8 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateKinematicVariables(
     const IndexType PointNumber,
     const GeometryType::IntegrationMethod& rIntegrationMethod) const
 {
-    const auto &r_geometry = GetGeometry();
-    const auto &r_integration_points = r_geometry.IntegrationPoints(rIntegrationMethod);
+    const auto& r_geometry = GetGeometry();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(rIntegrationMethod);
 
     // Shape functions
     rThisKinematicVariables.N = r_geometry.ShapeFunctionsValues(rThisKinematicVariables.N, r_integration_points[PointNumber].Coordinates());
@@ -784,7 +790,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateB(
 
 void SmallDisplacementMixedVolumetricStrainElement::CalculateEquivalentStrain(KinematicVariables& rThisKinematicVariables) const
 {
-    const auto &r_geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
     const SizeType n_nodes = r_geom.PointsNumber();
     const SizeType dim = r_geom.WorkingSpaceDimension();
 
@@ -834,7 +840,7 @@ void SmallDisplacementMixedVolumetricStrainElement::ComputeEquivalentF(
 
 double SmallDisplacementMixedVolumetricStrainElement::CalculateElementSize(const KinematicVariables &rThisKinematicVariables) const
 {
-    const auto &r_geometry = GetGeometry();
+    const auto& r_geometry = GetGeometry();
     switch (r_geometry.GetGeometryType())
     {
         case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
@@ -870,7 +876,7 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateApproximatedBulkM
     const SizeType i_gauss,
     const Vector &rN) const
 {
-    const auto &r_geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
     const SizeType dim = r_geom.WorkingSpaceDimension();
 
     // Calculate the bulk modulus with a fake volumetric strain field
@@ -884,7 +890,7 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateApproximatedBulkM
     // Call the constitutive law to get the material response of the fake volumetric strain field
     Matrix deformation_gradient(dim, dim);
     ConstitutiveLaw::Parameters aux_cons_law_values(r_geom, GetProperties(), rCurrentProcessInfo);
-    auto &r_aux_cons_law_options = aux_cons_law_values.GetOptions();
+    auto& r_aux_cons_law_options = aux_cons_law_values.GetOptions();
     r_aux_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     r_aux_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     r_aux_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
@@ -915,7 +921,7 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateLinearisedBulkMod
     const KinematicVariables &rThisKinematicVariables,
     const ConstitutiveVariables &rThisConstitutiveVariables) const
 {
-    const auto &r_geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
     const SizeType dim = r_geom.WorkingSpaceDimension();
 
     double bulk_modulus = 0.0;
@@ -935,7 +941,7 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateLinearisedShearMo
     const KinematicVariables &rThisKinematicVariables,
     const ConstitutiveVariables &rThisConstitutiveVariables) const
 {
-    const auto &r_geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
     const SizeType dim = r_geom.WorkingSpaceDimension();
     const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 
@@ -978,8 +984,8 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateOnIntegrationPoints
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    const auto &r_geometry = GetGeometry();
-    const auto &r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+    const auto& r_geometry = GetGeometry();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
     const SizeType n_gauss = r_integration_points.size();
     if (rOutput.size() != n_gauss) {
@@ -995,7 +1001,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateOnIntegrationPoints
         // Create the kinematics container and fill the nodal data
         KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
         for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-            const auto &r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+            const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
             for (unsigned int d = 0; d < dim; ++d) {
                 kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
             }
@@ -1005,7 +1011,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateOnIntegrationPoints
         // Create the constitutive variables and values containers
         ConstitutiveVariables constitutive_variables(strain_size);
         ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rCurrentProcessInfo);
-        auto &r_cons_law_options = cons_law_values.GetOptions();
+        auto& r_cons_law_options = cons_law_values.GetOptions();
         r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
