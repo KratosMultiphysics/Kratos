@@ -399,7 +399,6 @@ public:
                     pScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);                    
 					Element::DofsVectorType dofs;
 					it_el->GetDofList(dofs, CurrentProcessInfo);
-                    KRATOS_WATCH(dofs)
                     //assemble the elemental contribution - here is where the ROM acts
                     //compute the elemental reduction matrix T
                     const auto& geom = it_el->GetGeometry();
@@ -408,28 +407,16 @@ public:
 
                     for(unsigned int i=0; i<geom.size(); ++i)
 
-                    { 
-                        KRATOS_WATCH(i)
-                        KRATOS_WATCH(geom.size())                       
+                    {                    
                         const Matrix& rom_nodal_basis = geom[i].GetValue(ROM_BASIS);
-                        KRATOS_WATCH(rom_nodal_basis)
-                        KRATOS_WATCH(Telemental)
-                        KRATOS_WATCH(rom_nodal_basis.size1())
-                        KRATOS_WATCH(dofs[0]->IsFixed())
-                        KRATOS_WATCH(dofs[1]->IsFixed())
-                        KRATOS_WATCH(dofs[2]->IsFixed())
                         for(unsigned int k=0; k<rom_nodal_basis.size1(); ++k)
                         {
-                            KRATOS_WATCH(k)
 							if (dofs[i*mNodalDofs + k]->IsFixed()){
-                                KRATOS_WATCH(i*mNodalDofs + k)
-                                KRATOS_WATCH(ZeroVector(Telemental.size2()))
 								row(Telemental, i*mNodalDofs + k) = ZeroVector(Telemental.size2());
                             }
 							else
 								row(Telemental, i*mNodalDofs+k) = row(rom_nodal_basis,k);
-                            KRATOS_WATCH(row(rom_nodal_basis,k))
-                            KRATOS_WATCH(Telemental)
+
 						}
                     }
 
