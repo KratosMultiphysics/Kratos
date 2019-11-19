@@ -12,7 +12,7 @@ using_pykratos = UsingPyKratos()
 # multiline-stings easier (no need to deal with indentation)
 coupling_interface_data_str = '''CouplingInterfaceData:
 	Name: "default"
-	Solver: "default_solver"
+	SolverWrapper: "default_solver"
 	ModelPart: "mp_4_test"
 	IsDistributed: False
 	Variable: "DISPLACEMENT" (Vector with dimension: 2)
@@ -112,6 +112,55 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         coupling_data = CouplingInterfaceData(settings, self.model)
         coupling_data.Initialize()
         self.assertMultiLineEqual(str(coupling_data), coupling_interface_data_str)
+
+    def test_without_initialization(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "DISPLACEMENT",
+            "dimension"       : 2
+        }""")
+
+        coupling_data = CouplingInterfaceData(settings, self.model)
+        # coupling_data.Initialize() # intentially commented to raise error
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            self.assertMultiLineEqual(str(coupling_data), coupling_interface_data_str)
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.PrintInfo()
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.GetModelPart()
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.IsDistributed()
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.Size()
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.GetBufferSize()
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.GetData()
+
+        with self.assertRaisesRegex(Exception, ' can onyl be called after initializing the CouplingInterfaceData!'):
+            coupling_data.SetData([])
+
+    def test_unallowed_names(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "PRESSURE"
+        }""")
+
+        with self.assertRaisesRegex(Exception, 'The name cannot be empty, contain whitespaces or "."!'):
+            CouplingInterfaceData(settings, self.model, "")
+
+        with self.assertRaisesRegex(Exception, 'The name cannot be empty, contain whitespaces or "."!'):
+            CouplingInterfaceData(settings, self.model, "aaa.bbbb")
+
+        with self.assertRaisesRegex(Exception, 'The name cannot be empty, contain whitespaces or "."!'):
+            CouplingInterfaceData(settings, self.model, "aaa bbb")
+
 
     def test_var_does_not_exist(self):
         settings = KM.Parameters("""{
