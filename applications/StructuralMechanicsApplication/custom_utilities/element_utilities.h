@@ -93,18 +93,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ElementUtilities
         const ProcessInfo& rCurrentProcessInfo
         );
 
-    /**
-     * @brief This method returns the computed the computed body force
-     * @param pElement Pointer to the element
-     * @param rIntegrationPoints The integrations points
-     * @param PointNumber The integration point number
-     */
-    static array_1d<double, 3> GetBodyForce(
-        const Element* pElement,
-        const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
-        const IndexType PointNumber
-        );
-
   private:
 
 }; // class ElementUtilities

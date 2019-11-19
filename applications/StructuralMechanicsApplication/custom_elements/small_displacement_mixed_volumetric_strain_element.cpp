@@ -679,10 +679,30 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateConstitutiveVariabl
 
 array_1d<double, 3> SmallDisplacementMixedVolumetricStrainElement::GetBodyForce(
     const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
-    const IndexType PointNumber
-    ) const
+    const IndexType PointNumber) const
 {
-    return ElementUtilities::GetBodyForce(this, rIntegrationPoints, PointNumber);
+    array_1d<double, 3> body_force;
+    for (IndexType i = 0; i < 3; ++i) {
+        body_force[i] = 0.0;
+    }
+
+    const auto& r_properties = GetProperties();
+    const double density = r_properties.Has(DENSITY) ? r_properties[DENSITY] : 0.0;
+
+    if (r_properties.Has(VOLUME_ACCELERATION)) {
+        noalias(body_force) += density * r_properties[VOLUME_ACCELERATION];
+    }
+
+    const auto& r_geometry = GetGeometry();
+    if(r_geometry[0].SolutionStepsDataHas(VOLUME_ACCELERATION)) {
+        Vector N;
+        N = r_geometry.ShapeFunctionsValues(N, rIntegrationPoints[PointNumber].Coordinates());
+        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
+            noalias(body_force) += N[i_node] * density * r_geometry[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        }
+    }
+
+    return body_force;
 }
 
 /***********************************************************************************/
