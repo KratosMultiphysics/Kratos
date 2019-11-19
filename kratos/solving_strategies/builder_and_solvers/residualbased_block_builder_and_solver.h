@@ -436,6 +436,11 @@ public:
 
         SystemSolveWithPhysics(A, Dx, b, rModelPart);
 
+        // #pragma omp parallel for
+        // for(unsigned int i = 0; i < b.size(); i++){
+        //     Dx(i) *= 0.5;
+        // }
+
         // Vector res = ZeroVector(1);
         // if(res.size() != Dx.size()){
         //     res.resize(Dx.size());

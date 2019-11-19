@@ -215,6 +215,7 @@ class PotentialFlowSolver(FluidSolver):
             conv_criteria.SetEchoLevel(2)
 
             self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
+            #self.solver = KratosMultiphysics.LineSearchStrategy(
                 self.GetComputingModelPart(),
                 time_scheme,
                 self.linear_solver,

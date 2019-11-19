@@ -176,7 +176,8 @@ public:
     ///@}
 
 private:
-    int mTeElementCounter;
+    int mTeElementCounter0;
+    int mTeElementCounter1;
     ///@name Private Operators
     ///@{
 

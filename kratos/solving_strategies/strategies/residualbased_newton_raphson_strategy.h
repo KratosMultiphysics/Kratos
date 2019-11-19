@@ -779,6 +779,12 @@ class ResidualBasedNewtonRaphsonStrategy
         // Debugging info
         EchoInfo(iteration_number);
 
+        //Outputing iteration_number
+        std::ofstream outfile;
+        outfile.open("/media/inigo/10740FB2740F9A1C/3d_results/plots/newton_convergence/data/convergence/convergence_results.dat");
+        outfile << iteration_number << "\t";
+        outfile.close();
+
         // Updating the results stored in the database
         UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
 
@@ -799,6 +805,10 @@ class ResidualBasedNewtonRaphsonStrategy
         while (is_converged == false &&
                iteration_number++ < mMaxIterationNumber)
         {
+            outfile.open("/media/inigo/10740FB2740F9A1C/3d_results/plots/newton_convergence/data/convergence/convergence_results.dat", std::ios_base::app);
+            outfile << iteration_number << "\t";
+            outfile.close();
+
             KRATOS_INFO_IF("NR-Strategy", this->GetEchoLevel() > 0)
                 << " ITERATION = " << iteration_number << " / "
                 << mMaxIterationNumber << std::endl;

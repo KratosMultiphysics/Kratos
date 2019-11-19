@@ -355,12 +355,23 @@ void CheckIfPressureEqualityWakeConditionsAreFulfilled(const ModelPart& rWakeMod
     std::ofstream outfile;
     outfile.open("unfulfilled_pressure_wake_elements_id.txt");
     unsigned int number_of_unfulfilled_wake_conditions = 0;
+    unsigned int number_of_unfulfilled_wing_tip_wake_conditions = 0;
+    unsigned int number_of_unfulfilled_zero_velocity_wake_conditions = 0;
+    unsigned int number_of_unfulfilled_structure_wake_conditions = 0;
     for (auto& r_element : rWakeModelPart.Elements()){
         const bool wake_condition_is_fulfilled =
             CheckPressureEqualityWakeCondition<Dim, Dim + 1>(r_element, rTolerance, rEchoLevel);
         if (!wake_condition_is_fulfilled)
         {
             number_of_unfulfilled_wake_conditions += 1;
+            if(r_element.GetValue(WING_TIP)){
+                number_of_unfulfilled_wing_tip_wake_conditions += 1;
+                number_of_unfulfilled_structure_wake_conditions += 1;
+            }
+            else if(r_element.GetValue(ZERO_VELOCITY_CONDITION)){
+                number_of_unfulfilled_zero_velocity_wake_conditions += 1;
+                number_of_unfulfilled_structure_wake_conditions += 1;
+            }
         }
     }
     const double percentage_unfulfilled = number_of_unfulfilled_wake_conditions * 100.0 / rWakeModelPart.NumberOfElements();
@@ -374,6 +385,18 @@ void CheckIfPressureEqualityWakeConditionsAreFulfilled(const ModelPart& rWakeMod
         << "THE PRESSURE EQUALITY WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_wake_conditions
         << " OF " << rWakeModelPart.NumberOfElements()
         << " ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
+
+    KRATOS_WARNING_IF("CheckIfPressureEqualityWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
+        << "THE PRESSURE EQUALITY WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_structure_wake_conditions
+        << " STRUCTURE ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
+
+    KRATOS_WARNING_IF("CheckIfPressureEqualityWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
+        << "THE PRESSURE EQUALITY WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_wing_tip_wake_conditions
+        << " WING_TIP ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
+
+    KRATOS_WARNING_IF("CheckIfPressureEqualityWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
+        << "THE PRESSURE EQUALITY WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_zero_velocity_wake_conditions
+        << " ZERO VELOCITY ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
 }
 
 template <int Dim, int NumNodes>

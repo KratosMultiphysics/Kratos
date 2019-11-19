@@ -176,6 +176,11 @@ public:
             const TDataType float_size_residual = static_cast<TDataType>(size_residual);
             const TDataType absolute_norm = (mCurrentResidualNorm/float_size_residual);
 
+            std::ofstream outfile;
+            outfile.open("/media/inigo/10740FB2740F9A1C/3d_results/plots/newton_convergence/data/convergence/convergence_results.dat", std::ios_base::app);
+            outfile << absolute_norm << "\n";
+            outfile.close();
+
             KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Initial residual norm = " << mInitialResidualNorm << "; Current residual norm =  " << mCurrentResidualNorm << "]" << std::endl;
             KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
 
