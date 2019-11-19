@@ -453,11 +453,6 @@ protected:
      */
     virtual void InitializeMaterial();
 
-    // /**
-    //  * @brief Gives the StressMeasure used
-    //  */
-    // virtual ConstitutiveLaw::StressMeasure GetStressMeasure() const;
-
     /**
      * @brief This method returns if the element provides the strain
      */
@@ -505,7 +500,8 @@ protected:
      */
     virtual array_1d<double, 3> GetBodyForce(
         const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
-        const IndexType PointNumber) const;
+        const IndexType PointNumber
+        ) const;
 
     ///@}
     ///@name Protected  Access
@@ -537,8 +533,7 @@ private:
 
     /**
      * @brief Calculate the kinematics
-     * This method calculates the kinematics of the element for
-     * a given integration point
+     * @details This method calculates the kinematics of the element for a given integration point
      * @param rThisKinematicVariables Integration point kinematics container
      * @param PointNumber Integration point index
      * @param rIntegrationMethod Integration rule
@@ -546,7 +541,8 @@ private:
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
         const IndexType PointNumber,
-        const GeometryType::IntegrationMethod& rIntegrationMethod) const;
+        const GeometryType::IntegrationMethod& rIntegrationMethod
+        ) const;
 
     /**
      * @brief Calculation of the Deformation Matrix B
@@ -557,7 +553,8 @@ private:
      */
     void CalculateB(
         Matrix& rB,
-        const Matrix& rDN_DX) const;
+        const Matrix& rDN_DX
+        ) const;
 
     /**
      * @brief Calculate the equivalent strain
@@ -575,8 +572,9 @@ private:
      * @param rStrainTensor The strain tensor in Voigt notation
      */
     void ComputeEquivalentF(
-        Matrix &rF,
-        const Vector &rStrainTensor) const;
+        Matrix& rF,
+        const Vector& rStrainTensor
+        ) const;
 
     /**
      * @brief Calculate the element size
@@ -585,21 +583,22 @@ private:
      * in case h is computed using the gradients (triangles and tetrahedas)
      * @return double The element size
      */
-    double CalculateElementSize(const KinematicVariables &rThisKinematicVariables) const;
+    double CalculateElementSize(const KinematicVariables& rThisKinematicVariables) const;
 
     /**
      * @brief Calculates an approximation of the bulk modulus
      * This method approximates the bulk modulus for a fake volumetric strain field
      * It is intended to be only used when the volumetric strain has null value
      * @param rCurrentProcessInfo Process info
-     * @param i_gauss Integration point index
+     * @param PointNumber Integration point index
      * @param rN Shape function values
      * @return double Approximated bulk modulus
      */
     double CalculateApproximatedBulkModulus(
         const ProcessInfo& rCurrentProcessInfo,
-        const SizeType i_gauss,
-        const Vector &rN) const;
+        const IndexType PointNumber,
+        const Vector& rN
+        ) const;
 
     /**
      * @brief Calculates the linearised bulk modulus
@@ -609,8 +608,9 @@ private:
      * @return double Approximated bulk modulus
      */
     double CalculateLinearisedBulkModulus(
-        const KinematicVariables &rThisKinematicVariables,
-        const ConstitutiveVariables &rThisConstitutiveVariables) const;
+        const KinematicVariables& rThisKinematicVariables,
+        const ConstitutiveVariables& rThisConstitutiveVariables
+        ) const;
 
     /**
      * @brief Calculates the linearised shear modulus
@@ -620,8 +620,9 @@ private:
      * @return double Approximated shear modulus
      */
     double CalculateLinearisedShearModulus(
-        const KinematicVariables &rThisKinematicVariables,
-        const ConstitutiveVariables &rThisConstitutiveVariables) const;
+        const KinematicVariables& rThisKinematicVariables,
+        const ConstitutiveVariables& rThisConstitutiveVariables
+        ) const;
 
     ///@}
     ///@name Private  Access

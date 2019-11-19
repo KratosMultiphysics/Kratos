@@ -82,26 +82,26 @@ void SmallDisplacementMixedVolumetricStrainElement::EquationIdVector(
     KRATOS_TRY
 
     const auto& r_geometry = GetGeometry();
-    const unsigned int n_nodes = r_geometry.PointsNumber();
-    const unsigned int dim = r_geometry.WorkingSpaceDimension();
-    const unsigned int dof_size = n_nodes*(dim+1);
+    const IndexType n_nodes = r_geometry.PointsNumber();
+    const IndexType dim = r_geometry.WorkingSpaceDimension();
+    const IndexType dof_size = n_nodes*(dim+1);
 
     if (rResult.size() != dof_size){
         rResult.resize(dof_size);
     }
 
-    const unsigned int disp_pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
-    const unsigned int eps_vol_pos = r_geometry[0].GetDofPosition(VOLUMETRIC_STRAIN);
+    const IndexType disp_pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType eps_vol_pos = r_geometry[0].GetDofPosition(VOLUMETRIC_STRAIN);
 
-    unsigned int aux_index = 0;
+    IndexType aux_index = 0;
     if (dim == 2) {
-        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_X, disp_pos).EquationId();
             rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y, disp_pos + 1).EquationId();
             rResult[aux_index++] = r_geometry[i_node].GetDof(VOLUMETRIC_STRAIN, eps_vol_pos).EquationId();
         }
     } else {
-        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_X, disp_pos).EquationId();
             rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y, disp_pos + 1).EquationId();
             rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Z, disp_pos + 2).EquationId();
@@ -122,22 +122,22 @@ void SmallDisplacementMixedVolumetricStrainElement::GetDofList(
     KRATOS_TRY
 
     const auto& r_geometry = GetGeometry();
-    const unsigned int n_nodes = r_geometry.PointsNumber();
-    const unsigned int dim = r_geometry.WorkingSpaceDimension();
-    const unsigned int dof_size  = n_nodes*(dim+1);
+    const IndexType n_nodes = r_geometry.PointsNumber();
+    const IndexType dim = r_geometry.WorkingSpaceDimension();
+    const IndexType dof_size  = n_nodes*(dim+1);
 
     if (rElementalDofList.size() != dof_size){
         rElementalDofList.resize(dof_size);
     }
 
     if (dim == 2) {
-        for(unsigned int i = 0; i < n_nodes; ++i) {
+        for(IndexType i = 0; i < n_nodes; ++i) {
             rElementalDofList[i * (dim + 1)] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_X);
             rElementalDofList[i * (dim + 1) + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
             rElementalDofList[i * (dim + 1) + 2] = this->GetGeometry()[i].pGetDof(VOLUMETRIC_STRAIN);
         }
     } else if (dim == 3) {
-        for(unsigned int i = 0; i < n_nodes; ++i){
+        for(IndexType i = 0; i < n_nodes; ++i){
             rElementalDofList[i * (dim + 1)] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_X);
             rElementalDofList[i * (dim + 1) + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
             rElementalDofList[i * (dim + 1) + 2] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
@@ -257,9 +257,9 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
 
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
-    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-        for (unsigned int d = 0; d < dim; ++d) {
+        for (IndexType d = 0; d < dim; ++d) {
             kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
         }
         kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
@@ -275,7 +275,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
 
     // Set auxiliary arrays
     Vector voigt_identity =  ZeroVector(strain_size);
-    for (unsigned int d = 0; d < dim; ++d) {
+    for (IndexType d = 0; d < dim; ++d) {
         voigt_identity[d] = 1.0;
     }
 
@@ -285,7 +285,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
 
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
-    for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+    for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
         // Calculate kinematics
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
         const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
@@ -304,8 +304,8 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
 
         // Calculate the volumetric residual
         double div_u_gauss = 0.0;
-        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-            for (unsigned int d = 0; d < dim; ++d) {
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+            for (IndexType d = 0; d < dim; ++d) {
                 div_u_gauss += kinematic_variables.DN_DX(i_node, d) * kinematic_variables.Displacements(i_node * dim + d);
             }
         }
@@ -330,7 +330,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
         const Vector grad_eps = prod(trans(kinematic_variables.DN_DX), kinematic_variables.VolumetricNodalStrains);
         const Vector C_m_grad_eps = prod(C_m, grad_eps);
 
-        for (unsigned int i = 0; i < n_nodes; ++i) {
+        for (IndexType i = 0; i < n_nodes; ++i) {
             // Mass conservation volumetric residual RHS term
             // (already includes mass conservation volumetric strain contribution (eps_vol x eps_vol))
             // (already includes mass conservation divergence contribution (eps_vol x div(u)))
@@ -338,7 +338,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
             r_rhs_mass_row += w_1_tau_2_k * kinematic_variables.N[i] * vol_residual;
 
             const Vector G_I = row(kinematic_variables.DN_DX, i);
-            for (unsigned int d = 0; d < dim; ++d) {
+            for (IndexType d = 0; d < dim; ++d) {
                 double& r_rhs_mom_row = rRightHandSideVector[i * block_size + d];
                 // Add momentum body force RHS contribution
                 r_rhs_mom_row += w_gauss * kinematic_variables.N[i] * body_force[d];
@@ -353,14 +353,14 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
                 // Add the divergence mass stabilization term (grad(eps_vol) x body_force) to the RHS
                 r_rhs_mass_row -= w_tau_1_k * kinematic_variables.DN_DX(i, d) * body_force[d];
 
-                for (unsigned int j = 0; j < n_nodes; ++j) {
+                for (IndexType j = 0; j < n_nodes; ++j) {
                     const Vector G_J = row(kinematic_variables.DN_DX, j);
                     // Add mass conservation displacement divergence LHS contribution
                     rLeftHandSideMatrix(i * block_size + dim, j * block_size + d) += w_1_tau_2_k * kinematic_variables.N[i] * G_J(d);
                     // Add momentum volumetric strain LHS contribution
                     rLeftHandSideMatrix(i * block_size + d, j * block_size + dim) += w_1_tau_2_k * G_I(d) * kinematic_variables.N(j);
                     // Add momentum internal force LHS contribution
-                    for (unsigned int d2 = 0; d2 < dim; ++d2) {
+                    for (IndexType d2 = 0; d2 < dim; ++d2) {
                         double& r_LHS_mom_mom = rLeftHandSideMatrix(i * block_size + d, j * block_size + d2);
                         r_LHS_mom_mom += w_gauss * transB_C_B(i * dim + d, j * dim + d2);
                         r_LHS_mom_mom -= w_1_tau_2_k * G_I(d) * G_J(d2);
@@ -370,7 +370,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
 
             // Add mass conservation volumetric strain LHS contribution
             const Vector G_I_C_m = prod(G_I, C_m);
-            for (unsigned int j = 0; j < n_nodes; ++j) {
+            for (IndexType j = 0; j < n_nodes; ++j) {
                 const Vector G_J = row(kinematic_variables.DN_DX, j);
                 double& r_LHS_mass_mass = rLeftHandSideMatrix(i * block_size + dim, j * block_size + dim);
                 r_LHS_mass_mass -= w_1_tau_2_k * kinematic_variables.N[i] * kinematic_variables.N[j];
@@ -401,9 +401,9 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
 
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
-    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-        for (unsigned int d = 0; d < dim; ++d) {
+        for (IndexType d = 0; d < dim; ++d) {
             kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
         }
         kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
@@ -419,7 +419,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
 
     // Set auxiliary arrays
     Vector voigt_identity =  ZeroVector(strain_size);
-    for (unsigned int d = 0; d < dim; ++d) {
+    for (IndexType d = 0; d < dim; ++d) {
         voigt_identity[d] = 1.0;
     }
 
@@ -428,7 +428,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
 
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
-    for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+    for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
         // Calculate kinematics
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
         const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
@@ -455,21 +455,21 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
         const Vector C_m_voigt = prod(cons_law_values.GetConstitutiveMatrix(), voigt_identity);
         const Matrix C_m = MathUtils<double>::StressVectorToTensor(C_m_voigt);
 
-        for (unsigned int i = 0; i < n_nodes; ++i) {
+        for (IndexType i = 0; i < n_nodes; ++i) {
             const Vector G_I = row(kinematic_variables.DN_DX, i);
             const Vector G_I_C_m = prod(G_I, C_m);
-            for (unsigned int j = 0; j < n_nodes; ++j) {
+            for (IndexType j = 0; j < n_nodes; ++j) {
                 const Vector G_J = row(kinematic_variables.DN_DX, j);
                 const Matrix G_I_transG_J = outer_prod(G_I, G_J);
                 // Add mass conservation volumetric strain contribution
                 double& r_LHS_mass_mass = rLeftHandSideMatrix(i * block_size + dim, j * block_size + dim);
                 r_LHS_mass_mass -= w_1_tau_2_k * kinematic_variables.N[i] * kinematic_variables.N[j];
                 r_LHS_mass_mass -= w_tau_1_k * inner_prod(G_I_C_m, G_J);
-                for (unsigned int d = 0; d < dim; ++d) {
+                for (IndexType d = 0; d < dim; ++d) {
                     // Add mass conservation displacement divergence contribution
                     rLeftHandSideMatrix(i * block_size + dim, j * block_size + d) += w_1_tau_2_k * kinematic_variables.N[i] * G_J(d);
                     // Add momentum internal force contribution
-                    for (unsigned int d2 = 0; d2 < dim; ++d2) {
+                    for (IndexType d2 = 0; d2 < dim; ++d2) {
                         double& r_LHS_mom_mom = rLeftHandSideMatrix(i * block_size + d, j * block_size + d2);
                         r_LHS_mom_mom += w_gauss * transB_C_B(i * dim + d, j * dim + d2);
                         r_LHS_mom_mom -= w_1_tau_2_k * G_I_transG_J(d, d2);
@@ -503,9 +503,9 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
 
     // Create the kinematics container and fill the nodal data
     KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
-    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
         const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-        for (unsigned int d = 0; d < dim; ++d) {
+        for (IndexType d = 0; d < dim; ++d) {
             kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
         }
         kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
@@ -521,7 +521,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
 
     // Set auxiliary arrays
     Vector voigt_identity =  ZeroVector(strain_size);
-    for (unsigned int d = 0; d < dim; ++d) {
+    for (IndexType d = 0; d < dim; ++d) {
         voigt_identity[d] = 1.0;
     }
 
@@ -530,7 +530,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
 
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
-    for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+    for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
         // Calculate kinematics
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
         const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
@@ -549,8 +549,8 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
 
         // Calculate the volumetric residual
         double div_u_gauss = 0.0;
-        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-            for (unsigned int d = 0; d < dim; ++d) {
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+            for (IndexType d = 0; d < dim; ++d) {
                 div_u_gauss += kinematic_variables.DN_DX(i_node, d) * kinematic_variables.Displacements(i_node * dim + d);
             }
         }
@@ -575,7 +575,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
         const Vector grad_eps = prod(trans(kinematic_variables.DN_DX), kinematic_variables.VolumetricNodalStrains);
         const Vector C_m_grad_eps = prod(C_m, grad_eps);
 
-        for (unsigned int i = 0; i < n_nodes; ++i) {
+        for (IndexType i = 0; i < n_nodes; ++i) {
             // Mass conservation equation terms (more efficient)
             // (already includes mass conservation volumetric strain contribution (eps_vol x eps_vol))
             // (already includes mass conservation divergence contribution (eps_vol x div(u)))
@@ -584,7 +584,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
 
             const Vector G_I = row(kinematic_variables.DN_DX, i);
             // Momentum equation terms
-            for (unsigned int d = 0; d < dim; ++d) {
+            for (IndexType d = 0; d < dim; ++d) {
                 double& r_rhs_mom_row = rRightHandSideVector[i * block_size + d];
                 // Add momentum body force RHS contribution
                 r_rhs_mom_row += w_gauss * kinematic_variables.N[i] * body_force[d];
@@ -759,10 +759,10 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateEquivalentStrain(Ki
 
     // Interpolate and add the nodal volumetric strain contribution
     double gauss_vol_strain = 0.0;
-    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
         gauss_vol_strain += rThisKinematicVariables.N[i_node] * rThisKinematicVariables.VolumetricNodalStrains[i_node];
     }
-    for (unsigned int d = 0; d < dim; ++d) {
+    for (IndexType d = 0; d < dim; ++d) {
         rThisKinematicVariables.EquivalentStrain[d] += (1.0/dim) * gauss_vol_strain;
     }
 }
@@ -816,8 +816,9 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateElementSize(const
 
 double SmallDisplacementMixedVolumetricStrainElement::CalculateApproximatedBulkModulus(
     const ProcessInfo& rCurrentProcessInfo,
-    const SizeType i_gauss,
-    const Vector& rN) const
+    const IndexType PointNumber,
+    const Vector& rN
+    ) const
 {
     const auto& r_geom = GetGeometry();
     const SizeType dim = r_geom.WorkingSpaceDimension();
@@ -826,7 +827,7 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateApproximatedBulkM
     SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
     Vector aux_vol_stress_vect(strain_size);
     Vector aux_vol_strain_vect = ZeroVector(strain_size);
-    for (unsigned int d = 0; d < dim; ++d) {
+    for (IndexType d = 0; d < dim; ++d) {
         aux_vol_strain_vect[d] = 1.0;
     }
 
@@ -843,12 +844,12 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateApproximatedBulkM
     ComputeEquivalentF(deformation_gradient, aux_vol_strain_vect);
     aux_cons_law_values.SetDeformationGradientF(deformation_gradient);
     aux_cons_law_values.SetDeterminantF(MathUtils<double>::Det(deformation_gradient));
-    mConstitutiveLawVector[i_gauss]->CalculateMaterialResponseCauchy(aux_cons_law_values);
+    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(aux_cons_law_values);
 
     double aux_vol_strain = 0.0;
     double aux_vol_stress = 0.0;
     const double alpha = r_geom.WorkingSpaceDimension();
-    for (unsigned int d = 0; d < dim; ++d) {
+    for (IndexType d = 0; d < dim; ++d) {
         aux_vol_strain += aux_vol_strain_vect[d];
         aux_vol_stress += aux_cons_law_values.GetStressVector()[d];
     }
@@ -868,8 +869,8 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateLinearisedBulkMod
     const SizeType dim = r_geom.WorkingSpaceDimension();
 
     double bulk_modulus = 0.0;
-    for (unsigned int i = 0; i < dim; ++i) {
-        for (unsigned int j = 0; j < dim; ++j) {
+    for (IndexType i = 0; i < dim; ++i) {
+        for (IndexType j = 0; j < dim; ++j) {
             bulk_modulus += rThisConstitutiveVariables.D(i,j);
         }
     }
@@ -895,7 +896,7 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateLinearisedShearMo
     // Apply a deviatoric strain perturbation and compute the stress using the deviatoric constitutive tensor
     const double eps_dev_strain = 1.0e-5;
     Vector eps_dev_strain_vect = ZeroVector(strain_size);
-    for (unsigned int i = dim; i < strain_size; ++i) {
+    for (IndexType i = dim; i < strain_size; ++i) {
         eps_dev_strain_vect[i] = eps_dev_strain;
     }
     const Vector eps_dev_stress_vect = prod(dev_cons_tensor, eps_dev_strain_vect);
@@ -963,9 +964,9 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateOnIntegrationPoints
 
         // Create the kinematics container and fill the nodal data
         KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
-        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-            for (unsigned int d = 0; d < dim; ++d) {
+            for (IndexType d = 0; d < dim; ++d) {
                 kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
             }
             kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
@@ -980,7 +981,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateOnIntegrationPoints
         r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
 
-        for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+        for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
             // Calculate kinematics
             CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
 
