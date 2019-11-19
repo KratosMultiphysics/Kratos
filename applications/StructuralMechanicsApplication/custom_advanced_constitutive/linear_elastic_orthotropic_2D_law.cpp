@@ -182,7 +182,7 @@ namespace Kratos
         {
             youngs_modulus_x  = rMaterialProperties[YOUNG_MODULUS_X];
             youngs_modulus_y  = rMaterialProperties[YOUNG_MODULUS_Y];
-            poisson_ration_xy = rMaterialProperties[SHEAR_MODULUS_XY];
+            poisson_ration_xy = rMaterialProperties[POISSON_RATIO];
             shear_modulus_xy  = rMaterialProperties[SHEAR_MODULUS_XY];
         }
 
