@@ -111,7 +111,8 @@ class ComputeDragAndMomentProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalize(self):
         if (self.model_part.GetCommunicator().MyPID() == 0):
-            self.output_file.close()
+            if (self.write_drag_output_file):
+                self.output_file.close()
 
     def _GetFileHeader(self):
         err_msg  = 'ComputeDragAndMomentProcess: _GetFileHeader called in base class\n'
