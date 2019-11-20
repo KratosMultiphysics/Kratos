@@ -596,12 +596,14 @@ class MorSecondOrderIRKAStrategy
     // class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
 
 //mParam["number_of_eigenvalues"].SetString("50");
-mParam["number_of_eigenvalues"].SetInt(reduced_system_size*2);
-mParam["compute_eigenvectors"].SetBool(false);
+// mParam["number_of_eigenvalues"].SetInt(reduced_system_size*2);
+// mParam["compute_eigenvectors"].SetBool(false);
 //GenEigensystemSolver<SparseSpaceType, DenseSpaceType, PreconditionerType, ReordererType>* test_ev_solver_yay = new GenEigensystemSolver<SparseSpaceType, DenseSpaceType, PreconditionerType, ReordererType>(test_params_ev);
 //EigenSystemSolverType* test_ev_solver_yay = new EigenSystemSolverType(test_params_ev);
 //EigenSystemSolverType* test_ev_solver_yay = new EigenSystemSolverType(mParam);
 mpLinearEigenSolver = new EigenSystemSolverType(mParam);
+mParam["number_of_eigenvalues"].SetInt(reduced_system_size*2);
+mParam["compute_eigenvectors"].SetBool(false);
 
 
 
