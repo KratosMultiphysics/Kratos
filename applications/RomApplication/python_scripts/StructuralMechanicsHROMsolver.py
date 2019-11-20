@@ -7,12 +7,11 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import base class file
-from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_base_solver
-from StructuralMechanicsROMsolver import ROMSolver
+from KratosMultiphysics.RomApplication.StructuralMechanicsROMsolver import ROMSolver
 import KratosMultiphysics.RomApplication as romapp
 
 def CreateSolver(main_model_part, custom_settings):
-    return ROMSolver(main_model_part, custom_settings)
+    return HROMSolver(main_model_part, custom_settings)
 
 class HROMSolver(ROMSolver):
     """The stationary class for H-ROM structural mechanics solvers.
