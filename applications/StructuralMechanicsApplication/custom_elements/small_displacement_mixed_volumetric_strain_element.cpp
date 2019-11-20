@@ -23,7 +23,7 @@
 
 // Application includes
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
-#include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "custom_utilities/element_utilities.h"
 
 namespace Kratos
 {
@@ -682,7 +682,7 @@ array_1d<double, 3> SmallDisplacementMixedVolumetricStrainElement::GetBodyForce(
     const IndexType PointNumber
     ) const
 {
-    return StructuralMechanicsElementUtilities::GetBodyForce(this, rIntegrationPoints, PointNumber);
+    return ElementUtilities::GetBodyForce(this, rIntegrationPoints, PointNumber);
 }
 
 /***********************************************************************************/
@@ -738,7 +738,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateB(
 {
     KRATOS_TRY;
 
-    StructuralMechanicsElementUtilities::CalculateB(this, rB, rDN_DX);
+    ElementUtilities::CalculateB(this, rB, rDN_DX);
 
     KRATOS_CATCH( "" )
 }
@@ -774,7 +774,7 @@ void SmallDisplacementMixedVolumetricStrainElement::ComputeEquivalentF(
     const Vector& rStrainTensor
     ) const
 {
-    StructuralMechanicsElementUtilities::ComputeEquivalentF(this, rF, rStrainTensor);
+    ElementUtilities::ComputeEquivalentF(this, rF, rStrainTensor);
 }
 
 /***********************************************************************************/
@@ -914,7 +914,7 @@ int  SmallDisplacementMixedVolumetricStrainElement::Check(const ProcessInfo& rCu
     int check = SmallDisplacementMixedVolumetricStrainElement::BaseType::Check(rCurrentProcessInfo);
 
     // Base check
-    check = StructuralMechanicsElementUtilities::BaseElementCheck(this, rCurrentProcessInfo);
+    check = ElementUtilities::BaseElementCheck(this, rCurrentProcessInfo);
 
     // Verify that the variables are correctly initialized
     KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
