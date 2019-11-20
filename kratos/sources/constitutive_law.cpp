@@ -534,8 +534,6 @@ void ConstitutiveLaw::InitializeNonLinearIteration(const Properties& rMaterialPr
 
 }
 
-
-
 /**
  * to be called at the end of each step iteration
  * (e.g. from Element::FinalizeNonLinearIteration)
@@ -584,7 +582,6 @@ void ConstitutiveLaw::CalculateMaterialResponse(Parameters& rValues,const Stress
 
     }
 }
-
 
 /**
  * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
@@ -644,10 +641,6 @@ void ConstitutiveLaw::CalculateStressResponse (Parameters& rValues, Vector& rInt
  */
 void ConstitutiveLaw::InitializeMaterialResponse(Parameters& rValues,const StressMeasure& rStressMeasure)
 {
-    if (!RequiresInitializeMaterialResponse()) {
-        KRATOS_WARNING_FIRST_N("ConstitutiveLaw", 10) << "calling \"InitializeMaterialResponse\" even though it is not required by the Constitutive Law. Please update your element" << std::endl;
-    }
-
     switch(rStressMeasure)
     {
         case StressMeasure_PK1:         InitializeMaterialResponsePK1(rValues);
@@ -711,10 +704,6 @@ void ConstitutiveLaw::InitializeMaterialResponseCauchy (Parameters& rValues)
  */
 void ConstitutiveLaw::FinalizeMaterialResponse(Parameters& rValues,const StressMeasure& rStressMeasure)
 {
-    if (!RequiresFinalizeMaterialResponse()) {
-        KRATOS_WARNING_FIRST_N("ConstitutiveLaw", 10) << "calling \"FinalizeMaterialResponse\" even though it is not required by the Constitutive Law. Please update your element" << std::endl;
-    }
-
     switch(rStressMeasure)
     {
     case StressMeasure_PK1:
