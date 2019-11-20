@@ -762,7 +762,7 @@ void ConstitutiveLaw::FinalizeMaterialResponsePK2 (Parameters& rValues)
 
 void ConstitutiveLaw::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
 {
-    KRATOS_ERROR_IF(RequiresFinalizeMaterialResponse()) <<  "Calling virtual function for FinalizeMaterialResponseKirchhoff. Please implement FinalizeMaterialResponseKirchhoff or RequiresFinalizeMaterialResponse in case this CL does not require it" << std::endl;
+    KRATOS_ERROR_IF(this->RequiresFinalizeMaterialResponse()) <<  "Calling virtual function for FinalizeMaterialResponseKirchhoff. Please implement FinalizeMaterialResponseKirchhoff or RequiresFinalizeMaterialResponse in case this CL does not require it" << std::endl;
 }
 
 /**
