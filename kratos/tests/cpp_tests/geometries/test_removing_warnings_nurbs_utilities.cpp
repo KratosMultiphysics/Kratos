@@ -43,7 +43,7 @@ namespace Testing {
             knot_vector[1] = 1.0;
 
             // Dummy curve parameter
-            double parameter_t = .5;
+            double parameter_t = 0.5;
 
             // Call the functions from the geometries/nurbs_shape_function_utilities/nurbs_utilities.h to remove the warning
             NurbsUtilities::GetNumberOfSpans(polynomial_degree, number_of_knots);
@@ -52,7 +52,7 @@ namespace Testing {
             NurbsUtilities::GetLowerSpan(polynomial_degree, knot_vector, parameter_t);
             NurbsUtilities::GetUpperSpan(polynomial_degree, knot_vector, parameter_t);
             NurbsUtilities::GetNumberOfKnots(polynomial_degree, number_of_control_points);
-            
+
         }
 
 } // namespace Testing.

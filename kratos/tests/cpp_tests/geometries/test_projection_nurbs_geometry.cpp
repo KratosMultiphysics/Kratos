@@ -168,7 +168,7 @@ typedef Node<3> NodeType;
 
         // Initialize expected projected points
         std::vector<double> projected_point_expected1 = {0.043301282246217, -0.043301264160723, 0.043301264160723};
-        std::vector<double> projected_point_expected2 = {0.075, 0, 0};
+        std::vector<double> projected_point_expected2 = {0.074813167561162, -0.003740986465195, 0.003740986465195};
 
         // Try projection of point (0.06, -0.06, 0.06) far from the singularity
         point[0] = 0.06;
@@ -202,8 +202,8 @@ typedef Node<3> NodeType;
 
         // Check the solution
         KRATOS_CHECK_EQUAL(isConverged2, true);
-        KRATOS_CHECK_NEAR(parameter[0], 1.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(parameter[1], 1.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(parameter[0], 0.950782, TOLERANCE);
+        KRATOS_CHECK_NEAR(parameter[1], 0.500000, TOLERANCE);
         KRATOS_CHECK_VECTOR_NEAR(projected_point, projected_point_expected2, TOLERANCE);
     }
 
