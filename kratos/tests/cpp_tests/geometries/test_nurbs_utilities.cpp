@@ -26,7 +26,7 @@ namespace Kratos {
 namespace Testing {
 
         ///// Tests
-        KRATOS_TEST_CASE_IN_SUITE(removingWarningsNurbsUtilities, KratosCoreNurbsGeometriesFastSuite) {
+        KRATOS_TEST_CASE_IN_SUITE(nurbsUtilities, KratosCoreNurbsGeometriesFastSuite) {
             
             // Dummy polynomial order
             const int polynomial_degree = 1;

@@ -127,7 +127,7 @@ namespace Kratos
         bool is_first_row_zero, is_second_row_zero, is_first_column_zero, is_second_column_zero, is_system_invertible;
         double d_u = 0.0;
         double d_v = 0.0;
-        double xiCos, etaCos, residualU, residualV, J_00, J_01, J_11, det_J;
+        double xi_cos, eta_cos, residual_u, residual_v,j_00, j_01, j_11, det_j;
 
         // Loop over all the Newton-Raphson iterations
         for (int i = 0; i < MaxIterations; i++) {
@@ -146,39 +146,39 @@ namespace Kratos
                 return true;
 
             // Compute the residuals along both parametric directions
-            residualU = - inner_prod(s[1], distance_vector);
-            residualV = - inner_prod(s[2], distance_vector);
+            residual_u = - inner_prod(s[1], distance_vector);
+            residual_v = - inner_prod(s[2], distance_vector);
             
             // Compute the cosine with respect to the u-parametric coordinate
-            xiCos = std::abs(residualU)/norm_2(s[1])/norm_2(distance_vector);
+            xi_cos = std::abs(residual_u)/norm_2(s[1])/norm_2(distance_vector);
 
             // Compute the cosine with respect to the v-parametric coordinate
-            etaCos = std::abs(residualV)/norm_2(s[2])/norm_2(distance_vector);
+            eta_cos = std::abs(residual_v)/norm_2(s[2])/norm_2(distance_vector);
 
             // Check the orthogonality condition
-            if (xiCos < Accuracy && etaCos < Accuracy)
+            if (xi_cos < Accuracy && eta_cos < Accuracy)
                 return true;
 
             // Compute the Jacobian of the nonlinear system
-            J_00 = inner_prod(s[1], s[1]) + inner_prod(s[3], distance_vector);
-            J_01 = inner_prod(s[1], s[2]) + inner_prod(s[4], distance_vector);
-            J_11 = inner_prod(s[2], s[2]) + inner_prod(s[5], distance_vector);
+            j_00 = inner_prod(s[1], s[1]) + inner_prod(s[3], distance_vector);
+            j_01 = inner_prod(s[1], s[2]) + inner_prod(s[4], distance_vector);
+            j_11 = inner_prod(s[2], s[2]) + inner_prod(s[5], distance_vector);
             
             // Check for singularities otherwise update the parametric coordinates as usual
             is_first_row_zero = false;
-            if ((std::abs(J_00) < Accuracy && std::abs(J_01) < Accuracy) ){
+            if ((std::abs(j_00) < Accuracy && std::abs(j_01) < Accuracy) ){
                 is_first_row_zero = true;
             }
             is_second_row_zero = false;
-            if (std::abs(J_01) < Accuracy && fabs(J_11) < Accuracy){
+            if (std::abs(j_01) < Accuracy && fabs(j_11) < Accuracy){
                 is_second_row_zero = true;
             }
             is_first_column_zero = false;
-            if ((std::abs(J_00) < Accuracy && std::abs(J_01) < Accuracy) ){
+            if ((std::abs(j_00) < Accuracy && std::abs(j_01) < Accuracy) ){
                 is_first_column_zero = true;
             }
             is_second_column_zero = false;
-            if ((std::abs(J_01) < Accuracy && std::abs(J_11) < Accuracy) ){
+            if ((std::abs(j_01) < Accuracy && std::abs(j_11) < Accuracy) ){
                 is_second_column_zero = true;
             }
 
@@ -190,21 +190,21 @@ namespace Kratos
 
             // Solve the 2x2 linear equation system and take into account special cases where singularities occur
             if (is_system_invertible){
-                det_J = J_00 * J_11 - J_01 * J_01;
-                d_u = - (residualV * J_01 - residualU * J_11) / det_J;
-                d_v = - (residualU * J_01 - residualV * J_00) / det_J;
+                det_j = j_00 * j_11 - j_01 * j_01;
+                d_u = - (residual_v * j_01 - residual_u * j_11) / det_j;
+                d_v = - (residual_u * j_01 - residual_v * j_00) / det_j;
             } else {
                 if (is_first_row_zero){
-                    d_u = residualV / J_11;
+                    d_u = residual_v / j_11;
                     d_v = 0.0;
                 } else if(is_second_row_zero){
-                    d_u = residualU / J_00;
+                    d_u = residual_u / j_00;
                     d_v = 0.0;
                 } else if(is_first_column_zero){
-                    d_v = (residualU + residualV)/(J_01 + J_11);
+                    d_v = (residual_u + residual_v)/(j_01 + j_11);
                     d_u = 0.0;
                 } else if(is_second_column_zero){
-                    d_u = (residualU + residualV)/(J_00 + J_01);
+                    d_u = (residual_u + residual_v)/(j_00 + j_01);
                     d_v = 0.0;
                 }
             }
