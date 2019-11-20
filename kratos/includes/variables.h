@@ -26,6 +26,7 @@
 #include "containers/vector_component_adaptor.h"
 #include "includes/kratos_components.h"
 #include "includes/ublas_interface.h"
+#include "includes/kratos_parameters.h"
 #include "containers/array_1d.h"
 #include "containers/global_pointers_vector.h"
 #include "containers/periodic_variables_container.h"
@@ -426,7 +427,8 @@ namespace Kratos
     //for Structural application:
     KRATOS_DEFINE_VARIABLE( Matrix, INERTIA )
 
-    //for General kratos application:
+    // For General kratos application:
+    KRATOS_DEFINE_VARIABLE( Kratos::Parameters, CONFIGURATION_PARAMETERS )
 
     //for Structural application:
     //KRATOS_DEFINE_VARIABLE( GlobalPointersVector< GeometricalObject >, NEIGHBOUR_EMBEDDED_FACES )
