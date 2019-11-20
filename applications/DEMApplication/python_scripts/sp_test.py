@@ -30,28 +30,27 @@ class SPTest(DEM_material_test_script.MaterialTest):
   def MeasureForcesAndPressure(self):
     super(SPTest,self).MeasureForcesAndPressure()
 
-    total_force_top = 0.0
-    z_tensor_value = 0.0
+    average_value = 0.0
+    # for node in self.top_mesh_nodes:
 
-    for node in self.top_mesh_nodes:
+    #   force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
 
-      force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+    #   total_force_top += force_node_y
 
-      total_force_top += force_node_y
-
-    self.total_stress_top = total_force_top/(self.MeasuringSurface)
+    # self.total_stress_top = total_force_top/(self.MeasuringSurface)
 
 
-    if ( (self.test_type == "SandP") and (self.ConfinementPressure != 0.0) ):
+    if self.test_type == "SandP":
 
       # self.Pressure = min(self.total_stress, self.ConfinementPressure * 1e6)
       # self.aux = AuxiliaryUtilities() from material test init
-      self.aux.ComputeAverageZStressFor2D(self.spheres_model_part, z_tensor_value)
+      average_value = self.aux.ComputeAverageZStressFor2D(self.spheres_model_part)
+      print (average_value)
 
       # aixo estara immposat desde stage
       # self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, -1e-6 * self.time)
 
-      self.customapply(z_tensor_value, self.XLAT, self.XBOT, self.XTOP, self.XBOTCORNER, self.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
+      # self.customapply(z_tensor_value, self.XLAT, self.XBOT, self.XTOP, self.XBOTCORNER, self.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
 
 
 

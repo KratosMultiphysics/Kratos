@@ -25,9 +25,12 @@ namespace Kratos {
 
 
 
-        void ComputeAverageZStressFor2D(ModelPart& rSpheresModelPart, double& average_value) {
+        double ComputeAverageZStressFor2D(ModelPart& rSpheresModelPart) {
 
             ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
+            double sub_total = 0.0;
+            double average_value = 0.0;
+
             #pragma omp parallel for
             for (int k = 0; k < (int)pElements.size(); k++) {
 
@@ -37,8 +40,10 @@ namespace Kratos {
 
                     if (p_sphere->mNeighbourElements[k] == NULL) continue;
                     double z_tensor_value = (*p_sphere->mSymmStressTensor)(2,2);
-                    average_value = z_tensor_value/(int)pElements.size();
+                    sub_total += z_tensor_value;
             }
+            average_value = sub_total/(int)pElements.size();
+            return average_value;
         }
     };
 }

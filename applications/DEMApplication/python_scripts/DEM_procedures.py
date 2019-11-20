@@ -11,6 +11,7 @@ from glob import glob
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
+import KratosMultiphysics.DEMApplication.sp_test as sp_test
 
 def Flush(a):
     a.flush()
@@ -1282,8 +1283,11 @@ class MaterialTest(object):
             self.TestType = DEM_parameters["material_test_settings"]["TestType"].GetString()
 
         if self.TestType != "None":
-            self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
-            self.script.Initialize()
+            if self.TestType == "SandP":
+                self.script = sp_test.SPTest(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
+            else:
+                self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
+                self.script.Initialize()
 
             #self.PreUtils = DEM_material_test_script.PreUtils(spheres_model_part)
             #self.PreUtils.BreakBondUtility(spheres_model_part)
