@@ -674,7 +674,7 @@ void ConstitutiveLaw::InitializeMaterialResponse(Parameters& rValues,const Stres
  */
 void ConstitutiveLaw::InitializeMaterialResponsePK1 (Parameters& rValues)
 {
-    KRATOS_ERROR_IF(RequiresInitializeMaterialResponse()) <<  "Calling virtual function for InitializeMaterialResponsePK1. Please implement InitializeMaterialResponsePK1 or RequiresInitializeMaterialResponse in case this CL does not require it" << std::endl;
+    KRATOS_ERROR_IF(this->RequiresInitializeMaterialResponse()) <<  "Calling virtual function for InitializeMaterialResponsePK1. Please implement InitializeMaterialResponsePK1 or RequiresInitializeMaterialResponse in case this CL does not require it" << std::endl;
 }
 
 /**
