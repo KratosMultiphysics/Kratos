@@ -43,6 +43,9 @@ namespace Kratos
         auto message_severity = TheMessage.GetSeverity();
         if (TheMessage.WriteInThisRank() && message_severity <= mSeverity)
         {
+            if(mWriteTimeStamp && TheMessage.GetLabel().size() && TheMessage.GetMessage().size())
+                mrStream << TheMessage.GetTimeStamp() << " - ";
+
             if(TheMessage.IsDistributed())
                 mrStream << "Rank " << TheMessage.GetSourceRank() << ": ";
 

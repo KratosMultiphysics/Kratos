@@ -242,6 +242,8 @@ public:
   return mTime;
   }
 
+  std::string GetTimeStamp() const;
+
   ///@}
   ///@name Inquiry
   ///@{
