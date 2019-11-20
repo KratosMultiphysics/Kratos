@@ -6,7 +6,7 @@ import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 ## This proces sets the value of a vector variable component-by-component.
 ## In this case, the fixicity is given set by deffault to true.
 import sys
-from KratosMultiphysics.PfemFluidDynamicsApplication import assign_vector_components_to_nodes_process
+from KratosMultiphysics.PfemFluidDynamicsApplication.assign_vector_components_to_nodes_process import AssignVectorComponentsToNodesProcess
 
 def Factory(custom_settings, Model):
     if(type(custom_settings) != KratosMultiphysics.Parameters):
@@ -15,10 +15,10 @@ def Factory(custom_settings, Model):
 
 ## All the processes python should be derived from "Process"
 
-class AssignInletProcess(assign_vector_components_to_nodes_process.AssignVectorComponentsToNodesProcess):
+class AssignInletProcess(AssignVectorComponentsToNodesProcess):
     def __init__(self, Model, custom_settings ):
 
-        KratosPfemFluid.AssignVectorComponentsToNodesProcess.__init__(self, Model, custom_settings)
+        AssignVectorComponentsToNodesProcess.__init__(self, Model, custom_settings)
 
         self.model_part = Model[custom_settings["model_part_name"].GetString()]
 
