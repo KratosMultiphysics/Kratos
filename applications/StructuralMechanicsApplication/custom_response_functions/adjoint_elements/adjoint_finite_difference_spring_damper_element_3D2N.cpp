@@ -71,6 +71,8 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensit
         if ((rOutput.size1() != dimension) || (rOutput.size2() != local_size)) {
                 rOutput.resize(dimension, local_size, false);
         }
+
+        const auto stiffness = this->pGetPrimalElement()->GetValue(rDesignVariable);
         ProcessInfo process_info = rCurrentProcessInfo;
         Vector RHS;
         for(IndexType dir_i = 0; dir_i < dimension; ++dir_i) {
@@ -85,6 +87,7 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensit
                 rOutput(dir_i, i) = RHS[i];
             }
         }
+        this->pGetPrimalElement()->SetValue(rDesignVariable, stiffness);
     }
     else {
         if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) {
