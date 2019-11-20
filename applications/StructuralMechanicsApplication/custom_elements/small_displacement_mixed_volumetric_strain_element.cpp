@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "utilities/element_size_calculator.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/math_utils.h"

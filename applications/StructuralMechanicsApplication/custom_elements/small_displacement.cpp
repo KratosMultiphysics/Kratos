@@ -16,7 +16,6 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "utilities/math_utils.h"
 
 // Application includes
