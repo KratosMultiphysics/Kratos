@@ -101,7 +101,7 @@ namespace MPMSearchElementUtility
                         element_itr->Set(TO_ERASE);
                 }
             }
-
+            #pragma omp barrier
             // Condition search and assign background grid
             #pragma omp for
             for(int i = 0; i < static_cast<int>(rMPMModelPart.Conditions().size()); ++i){
