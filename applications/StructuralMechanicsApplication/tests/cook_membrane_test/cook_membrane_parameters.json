@@ -23,7 +23,7 @@
             "time_step" : 1.0
         },
         "line_search"                     : false,
-        "strain_dofs"                     : true,
+        "volumetric_strain_dofs"          : true,
         "convergence_criterion"           : "displacement_criterion",
         "displacement_relative_tolerance" : 1e-7,
         "displacement_absolute_tolerance" : 1e-9,
