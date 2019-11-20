@@ -281,6 +281,7 @@ namespace MPMParticleGeneratorUtility
         double mpc_penalty_factor = 0.0;
         double mpc_augmentation_factor = 0.0;
         bool mpc_stabilization = false;
+        bool mpc_fix_dof = false;
 
         // Determine condition index: This convention is done in order for the purpose of visualization in GiD
         const unsigned int number_conditions = rBackgroundGridModelPart.NumberOfConditions();
@@ -524,6 +525,9 @@ namespace MPMParticleGeneratorUtility
                             mpc_augmentation_factor = i->GetValue(AUGMENTATION_FACTOR);
                         if (i->Has(STABILIZATION_LAGRANGE_MULTIPLIER))
                             mpc_stabilization = i->GetValue(STABILIZATION_LAGRANGE_MULTIPLIER);
+                        if (i->Has(FIX_DOF))
+                            mpc_fix_dof = i->GetValue(FIX_DOF);
+
 
                         const bool is_slip = i->Is(SLIP);
                         const bool is_contact = i->Is(CONTACT);
@@ -559,6 +563,20 @@ namespace MPMParticleGeneratorUtility
                                             condition_type_name = "MPMParticleLagrangeDirichletCondition3D4N";
                                         else if (background_geo_type == GeometryData::Kratos_Hexahedra3D8)
                                             condition_type_name = "MPMParticleLagrangeDirichletCondition3D8N";
+                                    }
+                                }
+                                else if (boundary_condition_type==3){
+                                    if (domain_size==2){
+                                        if (background_geo_type == GeometryData::Kratos_Triangle2D3)
+                                            condition_type_name = "MPMParticleFixDofDirichletCondition2D3N";
+                                        else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4)
+                                            condition_type_name = "MPMParticleFixDofDirichletCondition2D4N";
+                                    }
+                                    else if (domain_size==3){
+                                        if (background_geo_type == GeometryData::Kratos_Tetrahedra3D4)
+                                            condition_type_name = "MPMParticleFixDofDirichletCondition3D4N";
+                                        else if (background_geo_type == GeometryData::Kratos_Hexahedra3D8)
+                                            condition_type_name = "MPMParticleFixDofDirichletCondition3D8N";
                                     }
                                 }
                             }
@@ -627,6 +645,8 @@ namespace MPMParticleGeneratorUtility
                                     p_condition->SetValue(STABILIZATION_LAGRANGE_MULTIPLIER, mpc_stabilization);
 
                                 }
+                                else if (boundary_condition_type == 3)
+                                    p_condition->SetValue(FIX_DOF, mpc_fix_dof);
 
                                 if (is_slip)
                                     p_condition->Set(SLIP);
@@ -688,7 +708,8 @@ namespace MPMParticleGeneratorUtility
                                     p_condition->SetValue(AUGMENTATION_FACTOR, mpc_augmentation_factor);
                                     p_condition->SetValue(STABILIZATION_LAGRANGE_MULTIPLIER, mpc_stabilization);
                                 }
-
+                                else if (boundary_condition_type == 3)
+                                    p_condition->SetValue(FIX_DOF, mpc_fix_dof);
 
                                 if (is_slip)
                                     p_condition->Set(SLIP);

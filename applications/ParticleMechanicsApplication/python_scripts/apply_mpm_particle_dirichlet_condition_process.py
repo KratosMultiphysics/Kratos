@@ -39,6 +39,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         Set boundary_condition_type:
         1. penalty
         2. lagrange
+        3. fixdof
         """
 
         if (self.imposition_type == "penalty" or self.imposition_type == "Penalty"):
@@ -48,9 +49,12 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
             self.augmentation_factor = settings["augmentation_factor"].GetDouble()
             self.boundary_condition_type = 2
             self.stabilization = settings["stabilization"].GetBool()
+        elif (self.imposition_type == "fixdof" or self.imposition_type == "FixDof"):
+            self.fix_dof = False
+            self.boundary_condition_type = 3
         else:
             err_msg =  "The requested type of Dirichlet boundary imposition: \"" + self.imposition_type + "\" is not available!\n"
-            err_msg += "Available option is: \"penalty\"or \"lagrange\"."
+            err_msg += "Available option is: \"penalty\"or \"lagrange\"or \"fixdof\"."
             raise Exception(err_msg)
 
         # check constraint
@@ -58,6 +62,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         self.is_slip_boundary = False
         self.is_contact_boundary = False
         if (self.constrained == "fixed"):
+            self.fix_dof = True
             pass
         elif (self.constrained == "contact"):
             self.is_contact_boundary = True
@@ -110,8 +115,11 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 elif self.boundary_condition_type==2:
                     condition.SetValue(KratosParticle.AUGMENTATION_FACTOR, self.augmentation_factor)
                     condition.SetValue(KratosParticle.STABILIZATION_LAGRANGE_MULTIPLIER, self.stabilization)
+                elif self.boundary_condition_type==3:
+                    condition.SetValue(KratosParticle.FIX_DOF, self.fix_dof)
 
                 condition.SetValue(self.variable, self.vector)
+
         else:
             err_msg = '\n::[ApplyMPMParticleDirichletConditionProcess]:: W-A-R-N-I-N-G: You have specified invalid "particles_per_condition", '
             err_msg += 'or assigned negative values. \nPlease assign: "particles_per_condition" > 0 or = 0 (for automatic value)!\n'
