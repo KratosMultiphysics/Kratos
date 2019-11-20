@@ -13,7 +13,7 @@ class Model(dict):
 
     def CreateModelPart(self, mp_name="default", buffer_size=1):
         if mp_name in self.__dict__.keys():
-            NameError("The modelpart with name ", mp_name, " already exist !")
+            NameError("The modelpart with name ", mp_name, " already exists!")
 
         self.__dict__[mp_name] = ModelPart(mp_name, buffer_size, True)
         return self.__dict__[mp_name]
