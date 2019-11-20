@@ -1,5 +1,5 @@
 #!/bin/bash
-PYTHONS=("35" "36" "37")
+PYTHONS=("35" "36" "37" "38")
 export KRATOS_VERSION="7.0.3"
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
@@ -106,7 +106,7 @@ for PYTHON in  "${PYTHONS[@]}"
 do
     export PYTHON=$PYTHON
     echo starting build for python${PYTHON}
-	PYTHON_LOCATION=/opt/python/cp${PYTHON}-cp${PYTHON}m/bin/python
+	PYTHON_LOCATION=/opt/python/$(ls /opt/python | grep $PYTHON)/bin/python
     build $PYTHON_LOCATION $1
 	
 	
