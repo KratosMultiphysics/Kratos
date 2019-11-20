@@ -94,18 +94,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ElementUtilities
         );
 
     /**
-     * @brief This method computes the deformation gradient F (for small deformation solid elements)
-     * @param pElement Pointer to the element
-     * @param rF The deformation gradient F
-     * @param rStrainTensor The strain tensor
-     */
-    static void ComputeEquivalentF(
-        const Element* pElement,
-        Matrix& rF,
-        const Vector& rStrainTensor
-        );
-
-    /**
      * @brief This method computes the deformation tensor B (for small deformation solid elements)
      * @param pElement Pointer to the element
      * @param rB The deformation tensor B

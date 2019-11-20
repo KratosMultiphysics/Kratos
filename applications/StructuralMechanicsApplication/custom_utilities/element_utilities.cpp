@@ -69,36 +69,6 @@ int ElementUtilities::BaseElementCheck(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ElementUtilities::ComputeEquivalentF(
-    const Element* pElement,
-    Matrix& rF,
-    const Vector& rStrainTensor
-    )
-{
-    const auto& r_geometry = pElement->GetGeometry();
-    const SizeType dimension = r_geometry.WorkingSpaceDimension();
-
-    if(dimension == 2) {
-        rF(0,0) = 1.0+rStrainTensor(0);
-        rF(0,1) = 0.5*rStrainTensor(2);
-        rF(1,0) = 0.5*rStrainTensor(2);
-        rF(1,1) = 1.0+rStrainTensor(1);
-    } else {
-        rF(0,0) = 1.0+rStrainTensor(0);
-        rF(0,1) = 0.5*rStrainTensor(3);
-        rF(0,2) = 0.5*rStrainTensor(5);
-        rF(1,0) = 0.5*rStrainTensor(3);
-        rF(1,1) = 1.0+rStrainTensor(1);
-        rF(1,2) = 0.5*rStrainTensor(4);
-        rF(2,0) = 0.5*rStrainTensor(5);
-        rF(2,1) = 0.5*rStrainTensor(4);
-        rF(2,2) = 1.0+rStrainTensor(2);
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ElementUtilities::CalculateB(
     const Element* pElement,
     Matrix& rB,

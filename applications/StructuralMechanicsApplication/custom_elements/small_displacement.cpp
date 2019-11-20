@@ -293,7 +293,24 @@ void SmallDisplacement::ComputeEquivalentF(
     const Vector& rStrainTensor
     ) const
 {
-    ElementUtilities::ComputeEquivalentF(this, rF, rStrainTensor);
+    const SizeType dim = GetGeometry().WorkingSpaceDimension();
+
+    if(dim == 2) {
+        rF(0,0) = 1.0+rStrainTensor(0);
+        rF(0,1) = 0.5*rStrainTensor(2);
+        rF(1,0) = 0.5*rStrainTensor(2);
+        rF(1,1) = 1.0+rStrainTensor(1);
+    } else {
+        rF(0,0) = 1.0+rStrainTensor(0);
+        rF(0,1) = 0.5*rStrainTensor(3);
+        rF(0,2) = 0.5*rStrainTensor(5);
+        rF(1,0) = 0.5*rStrainTensor(3);
+        rF(1,1) = 1.0+rStrainTensor(1);
+        rF(1,2) = 0.5*rStrainTensor(4);
+        rF(2,0) = 0.5*rStrainTensor(5);
+        rF(2,1) = 0.5*rStrainTensor(4);
+        rF(2,2) = 1.0+rStrainTensor(2);
+    }
 }
 
 /***********************************************************************************/
