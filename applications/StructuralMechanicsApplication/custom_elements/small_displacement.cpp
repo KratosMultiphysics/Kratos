@@ -22,7 +22,7 @@
 
 // Application includes
 #include "custom_elements/small_displacement.h"
-#include "custom_utilities/element_utilities.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -282,7 +282,7 @@ void SmallDisplacement::CalculateB(
 {
     KRATOS_TRY;
 
-    ElementUtilities::CalculateB(this, rB, rDN_DX);
+    StructuralMechanicsElementUtilities::CalculateB(this, rB, rDN_DX);
 
     KRATOS_CATCH( "" )
 }
@@ -295,7 +295,7 @@ void SmallDisplacement::ComputeEquivalentF(
     const Vector& rStrainTensor
     ) const
 {
-    ElementUtilities::ComputeEquivalentF(this, rF, rStrainTensor);
+    StructuralMechanicsElementUtilities::ComputeEquivalentF(this, rF, rStrainTensor);
 }
 
 /***********************************************************************************/
