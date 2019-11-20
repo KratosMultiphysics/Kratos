@@ -11,6 +11,7 @@
                 "KratosMultiphysics.YOUNG_MODULUS": 200.0,
                 "POISSON_RATIO": 0.3,
                 "YIELD_STRESS": 400.0,
+                "CONFIGURATION_PARAMETERS" : ""{"minimal_properties" : true}"",
                 "KratosMultiphysics.FluidDynamicsApplication.SUBSCALE_PRESSURE" : 0.1,
                 "FluidDynamicsApplication.VORTICITY_MAGNITUDE" : -5.888
                 },
