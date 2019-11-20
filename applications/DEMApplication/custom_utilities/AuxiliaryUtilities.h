@@ -4,6 +4,7 @@
 #include <pybind11/pybind11.h>
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "pre_utilities.h"
 
 
 namespace Kratos {
@@ -12,10 +13,32 @@ namespace Kratos {
 
     public:
 
+        typedef ModelPart::ElementsContainerType                         ElementsArrayType;
+        typedef ModelPart::NodesContainerType::ContainerType             NodesContainerType;
+        typedef GlobalPointersVector<Element>                            ParticleWeakVectorType;
+        typedef GlobalPointersVector<Element>::iterator                  ParticleWeakIteratorType;
+
         KRATOS_CLASS_POINTER_DEFINITION(AuxiliaryUtilities);
 
         AuxiliaryUtilities() {};
         virtual ~AuxiliaryUtilities() {};
 
+
+
+        void ComputeAverageZStressFor2D(ModelPart& rSpheresModelPart, double& average_value) {
+
+            ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
+            #pragma omp parallel for
+            for (int k = 0; k < (int)pElements.size(); k++) {
+
+                ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+                    Element* p_element = &(*it);
+                    SphericContinuumParticle* p_sphere = dynamic_cast<SphericContinuumParticle*>(p_element);
+
+                    if (p_sphere->mNeighbourElements[k] == NULL) continue;
+                    double z_tensor_value = (*p_sphere->mSymmStressTensor)(2,2);
+                    average_value = z_tensor_value/(int)pElements.size();
+            }
+        }
     };
 }
