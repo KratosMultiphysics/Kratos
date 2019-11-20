@@ -114,7 +114,7 @@ class GenEigensystemSolver
         const int max_iteration = BaseType::GetMaxIterationsNumber();
         const double tolerance = BaseType::GetTolerance();
         const int echo_level = mParam["echo_level"].GetInt();
-        //const int normalization_needed = mParam["normalize_eigenvectors"].GetBool();
+        //const int normalization_needed = mParam["normalize_eigenvectors"].GetBool();   //currently not implemented! TODO:
         const int eigenvectors_needed = mParam["compute_eigenvectors"].GetBool();
 
         // --- wrap ublas matrices
@@ -255,7 +255,30 @@ class GenEigensystemSolver
             KRATOS_INFO("GenEigensystemSolver") << "Completed in " << duration << " seconds" << std::endl
                       << "                      Eigenvalues = " << eig.eigenvalues().transpose().format(fmt) << std::endl;
         }
+    }  // end solve
+
+// ------------------- ADDING ADDITIONAL FUNCTIONS NOT USEFUL, BECAUSE OF BASE POINTER CALL ---------
+    /**
+     * Set/change parameters.
+     * Values for keys given in the new parameter object will be replaced.
+     * Otherwise an error is thrown.
+     */
+    // void SetParams(const Parameters& newParams){
+    //     //KRATOS_ERROR_IF(mpValue->find(rEntry) == mpValue->end()) << "Value must exist to be set." << std::endl;
+
+    // }
+
+    // void SetParams(const std::string& rEntry, const std::string& rValue){
+    //     //KRATOS_ERROR_IF(mParam.find(rEntry) == mParam.end()) << "Value must exist to be set." << std::endl;
+    //     //mParam.SetValue(rEntry, rValue)
+    //     mParam[rEntry].SetString(rValue);
+    // }
+
+    void test_fun(){
+        std::cout<<"yyyyyyyeeeeeeeeeeesssssssssssssssssssssss"<<std::endl;
     }
+
+
 
     /**
      * Print information about this object.

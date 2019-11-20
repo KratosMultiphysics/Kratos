@@ -29,9 +29,9 @@
 
 // includes for linear solver factory
 #include "factories/linear_solver_factory.h"
-// #include "includes/kratos_parameters.h"
+#include "includes/kratos_parameters.h"
 // #include "linear_solvers/iterative_solver.h"
-// #include "custom_solvers/gen_eigensystem_solver.h"
+#include "custom_solvers/gen_eigensystem_solver.h"
 
 #include "omp.h"
 
@@ -74,7 +74,7 @@ class MorSecondOrderIRKAStrategy
     : public MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver >
 {
   
-  //Parameters mparam;
+  Parameters mParam;
 
   public:
     ///@name Type Definitions
@@ -139,13 +139,13 @@ class MorSecondOrderIRKAStrategy
     typedef SystemMatrixBuilderAndSolver< ComplexSparseSpaceType, ComplexDenseSpaceType, ComplexLinearSolverType > TComplexBuilderAndSolverType;
 
 
-    // typedef Preconditioner<SparseSpaceType, DenseSpaceType> PreconditionerType;
-    // typedef Reorderer<SparseSpaceType, DenseSpaceType> ReordererType;
-    // typedef IterativeSolver<SparseSpaceType, DenseSpaceType, PreconditionerType, ReordererType> IterativeSolverType;
+    typedef Preconditioner<SparseSpaceType, DenseSpaceType> PreconditionerType;
+    typedef Reorderer<SparseSpaceType, DenseSpaceType> ReordererType;
+    typedef IterativeSolver<SparseSpaceType, DenseSpaceType, PreconditionerType, ReordererType> IterativeSolverType;
 
-    // typedef LinearSolver<SparseSpaceType, DenseSpaceType> LinearSolverType;
-    // typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    // typedef GenEigensystemSolver< SparseSpaceType, LocalSpaceType, PreconditionerType, ReordererType> EigenSystemSolverType;
+    typedef LinearSolver<SparseSpaceType, DenseSpaceType> LinearSolverType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef GenEigensystemSolver< SparseSpaceType, LocalSpaceType, PreconditionerType, ReordererType> EigenSystemSolverType;
 
 
 
@@ -164,13 +164,14 @@ class MorSecondOrderIRKAStrategy
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
-        typename ComplexLinearSolverType::Pointer pNewComplexLinearSolver,
-        typename TLinearSolver::Pointer pNewLinearEigenSolver,
+        Parameters param,
+        //typename ComplexLinearSolverType::Pointer pNewComplexLinearSolver,
+        //typename TLinearSolver::Pointer pNewLinearEigenSolver,
         vector< double > samplingPoints_real,
         vector< double > samplingPoints_imag,
-    //    Parameters param,
+        //Parameters param,
         bool MoveMeshFlag = false)
-        : BaseType(rModelPart, pScheme, pNewLinearSolver, MoveMeshFlag) //, mparam(param)
+        : BaseType(rModelPart, pScheme, pNewLinearSolver, MoveMeshFlag), mParam(param)
     {
         KRATOS_TRY;
 
@@ -209,8 +210,8 @@ class MorSecondOrderIRKAStrategy
             mSamplingPoints(i) = complex( samplingPoints_real(i), samplingPoints_imag(i) );
         }
 
-        mpComplexLinearSolver = pNewComplexLinearSolver;
-        mpLinearEigenSolver = pNewLinearEigenSolver;
+        //mpComplexLinearSolver = pNewComplexLinearSolver;
+        //mpLinearEigenSolver = pNewLinearEigenSolver;
 
         mpM = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
         mpK = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
@@ -336,7 +337,7 @@ class MorSecondOrderIRKAStrategy
         ComplexDenseSpaceType::Set(r_tmp_Vr_col, 0.0); // set vector to zero
 
         // initialize the complex solver
-        mpComplexLinearSolver->Initialize( r_tmp_Vn, r_tmp_Vr_col, r_b);    //check if init also increases speed in loop
+        //mpComplexLinearSolver->Initialize( r_tmp_Vn, r_tmp_Vr_col, r_b);    //check if init also increases speed in loop
 
 
         Parameters comp_solv_params(R"(
@@ -542,10 +543,10 @@ class MorSecondOrderIRKAStrategy
 
 
 
-//typename EigenSystemSolverType::Pointer test_new_ev_solver = GenEigensystemSolver<SparseSpaceType, DenseSpaceType>(mparam);
-//typename IterativeSolverType::Pointer test_new_ev_solver = EigenSystemSolverType(mparam); 
-//typename LinearSolverType::Pointer test_new_ev_solver = LinearSolverFactoryType().Create(mparam);
-// // KRATOS_WATCH(mparam)
+//typename EigenSystemSolverType::Pointer test_new_ev_solver = GenEigensystemSolver<SparseSpaceType, DenseSpaceType>(mParam);
+//typename IterativeSolverType::Pointer test_new_ev_solver = EigenSystemSolverType(mParam); 
+//typename LinearSolverType::Pointer test_new_ev_solver = LinearSolverFactoryType().Create(mParam);
+// // KRATOS_WATCH(mParam)
 
 // // // Parameters new_val_param(R"(
 // // //         50
@@ -553,11 +554,54 @@ class MorSecondOrderIRKAStrategy
 
 // // Parameters new_val_param("50");
 
-// // mparam.SetValue("number_of_eigenvalues",new_val_param);// ["number_of_eigenvalues"] = 50;
+// // mParam.SetValue("number_of_eigenvalues",new_val_param);// ["number_of_eigenvalues"] = 50;
 
-// // KRATOS_WATCH(mparam)
+// // KRATOS_WATCH(mParam)
 
-//typename ComplexLinearSolverType::Pointer test_new_ev_solver = LinearSolverFactoryType().Create(mparam);
+//typename ComplexLinearSolverType::Pointer test_new_ev_solver = LinearSolverFactoryType().Create(mParam);
+
+// Parameters new_val_param(R"(
+//         {
+//             "number_of_eigenvalues": 50,
+//             "tolerance": 1e-5
+//         }
+//         )");
+
+// //KRATOS_WATCH(new_val_param.begin())
+// //KRATOS_WATCH(new_val_param.items())
+
+// KRATOS_WATCH(new_val_param)
+
+// new_val_param["number_of_eigenvalues"].SetString("5160");
+
+// KRATOS_WATCH(new_val_param)
+
+//mpLinearEigenSolver->SetParams("number_of_eigenvalues", "50");
+//mpLinearEigenSolver->test_fun();
+
+// // // Parameters test_params_ev(R"(
+// // //         {
+// // //             "number_of_eigenvalues": 8,
+// // //             "compute_eigenvectors": false,
+// // //             "normalize_eigenvectors": false,
+// // //             "max_iteration": 400,
+// // //             "tolerance": 1e-10,
+// // //             "echo_level": 1
+// // //         })");
+
+
+    // class TSparseSpaceType, // = typename TSolverType::TGlobalSpace,
+    // class TDenseSpaceType, // = typename TSolverType::TLocalSpace,
+    // class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
+    // class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
+
+//mParam["number_of_eigenvalues"].SetString("50");
+mParam["number_of_eigenvalues"].SetInt(reduced_system_size*2);
+mParam["compute_eigenvectors"].SetBool(false);
+//GenEigensystemSolver<SparseSpaceType, DenseSpaceType, PreconditionerType, ReordererType>* test_ev_solver_yay = new GenEigensystemSolver<SparseSpaceType, DenseSpaceType, PreconditionerType, ReordererType>(test_params_ev);
+//EigenSystemSolverType* test_ev_solver_yay = new EigenSystemSolverType(test_params_ev);
+//EigenSystemSolverType* test_ev_solver_yay = new EigenSystemSolverType(mParam);
+mpLinearEigenSolver = new EigenSystemSolverType(mParam);
 
 
 
@@ -770,6 +814,7 @@ class MorSecondOrderIRKAStrategy
             double start_ev_solver = OpenMPUtils::GetCurrentTime();
 
             // output of this Solver is real (real parts and imaginary parts alternating)
+            //test_ev_solver_yay->Solve(
             mpLinearEigenSolver->Solve(
                 r_L1,
                 r_L2,
@@ -1082,8 +1127,9 @@ class MorSecondOrderIRKAStrategy
 
     vector< complex > mSamplingPoints;
     QR<double, row_major> mQR_decomposition;
-    typename TLinearSolver::Pointer mpLinearEigenSolver;
-    ComplexLinearSolverType::Pointer mpComplexLinearSolver;
+    //typename TLinearSolver::Pointer mpLinearEigenSolver;
+    EigenSystemSolverType* mpLinearEigenSolver;
+    //ComplexLinearSolverType::Pointer mpComplexLinearSolver;
 
     TSolutionMatrixPointerType mpM; // mass matrix
     TSolutionMatrixPointerType mpK; // stiffness matrix
