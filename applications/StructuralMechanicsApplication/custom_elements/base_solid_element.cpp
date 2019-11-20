@@ -21,7 +21,6 @@
 // Application includes
 #include "custom_elements/base_solid_element.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_utilities/element_utilities.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos
@@ -1416,7 +1415,7 @@ int  BaseSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
     int check = Element::Check(rCurrentProcessInfo);
 
     // Basic check
-    check = ElementUtilities::BaseElementCheck(this, rCurrentProcessInfo);
+    check = StructuralMechanicsElementUtilities::BaseElementCheck(this, rCurrentProcessInfo);
 
     // Check constitutive law
     if ( mConstitutiveLawVector.size() > 0 ) {
@@ -1644,7 +1643,7 @@ array_1d<double, 3> BaseSolidElement::GetBodyForce(
     const IndexType PointNumber
     ) const
 {
-    return ElementUtilities::GetBodyForce(this, rIntegrationPoints, PointNumber);
+    return StructuralMechanicsElementUtilities::GetBodyForce(this, rIntegrationPoints, PointNumber);
 }
 
 /***********************************************************************************/

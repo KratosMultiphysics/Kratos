@@ -8,6 +8,9 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher
+//                   Vicente Mataix Ferrandiz
+//                   Riccardo Rossi
+//                   Ruben Zorrilla
 //
 
 #if !defined( KRATOS_STRUCTURAL_MECHANICS_ELEMENT_UTILITIES_H_INCLUDED )
@@ -21,7 +24,77 @@
 #include "includes/element.h"
 
 namespace Kratos {
+/**
+ * @namespace ElementUtilities
+ * @ingroup StructuralMechanicsApplication
+ * @brief This class includes several utilities necessaries for the computation of the different elements
+ * @author Philipp Bucher
+ * @author Vicente Mataix Ferrandiz
+ * @author Riccardo Rossi
+ * @author Ruben Zorrilla
+ */
 namespace StructuralMechanicsElementUtilities {
+
+/// The size type definition
+typedef std::size_t SizeType;
+
+/// The index type definition
+typedef std::size_t IndexType;
+
+/// Node type definition
+typedef Node<3> NodeType;
+
+/// Geometry definitions
+typedef Geometry<NodeType> GeometryType;
+
+/// The zero tolerance
+static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+
+/**
+ * @brief This method performs commons checks on the elements
+ * @param pElement Pointer to the element
+ * @param rCurrentProcessInfo The current process info instance
+ */
+int BaseElementCheck(
+    const Element* pElement,
+    const ProcessInfo& rCurrentProcessInfo
+    );
+
+/**
+ * @brief This method computes the deformation gradient F (for small deformation solid elements)
+ * @param pElement Pointer to the element
+ * @param rF The deformation gradient F
+ * @param rStrainTensor The strain tensor
+ */
+void ComputeEquivalentF(
+    const Element* pElement,
+    Matrix& rF,
+    const Vector& rStrainTensor
+    );
+
+/**
+ * @brief This method computes the deformation tensor B (for small deformation solid elements)
+ * @param pElement Pointer to the element
+ * @param rB The deformation tensor B
+ * @param rDN_DX The shape function derivatives
+ */
+void CalculateB(
+    const Element* pElement,
+    Matrix& rB,
+    const Matrix& rDN_DX
+    );
+
+/**
+ * @brief This method returns the computed the computed body force
+ * @param pElement Pointer to the element
+ * @param rIntegrationPoints The integrations points
+ * @param PointNumber The integration point number
+ */
+array_1d<double, 3> GetBodyForce(
+    const Element* pElement,
+    const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+    const IndexType PointNumber
+    );
 
 /**
  * @brief Method to specify if the lumped or the consistent mass-matrix should be computed
