@@ -176,6 +176,9 @@ from structural_mechanics_test_factory import BigCubeSmallDeformationPlasticityT
 from structural_mechanics_test_factory import SmallDeformationPlasticityTest as TSmallDeformationPlasticityTest
 from structural_mechanics_test_factory import SimpleJ2PlasticityTest as TSimpleJ2PlasticityTest
 from structural_mechanics_test_factory import TensileTestStructuralTest as TTensileTestStructuralTest
+# Serial-Parallel Tests
+from structural_mechanics_test_factory import SerialParallelRuleOfMixturesCubeDamageTest as TSerialParallelRuleOfMixturesCubeDamageTest
+
 # Rigid test
 from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
 from structural_mechanics_test_factory import RigidBlockTest as TRigidBlockTest
@@ -246,6 +249,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestConstitutiveLaw]))
     nightSuite.addTest(TSimpleSmallDeformationPlasticityMCTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityVMTest('test_execution'))
+    nightSuite.addTest(TSerialParallelRuleOfMixturesCubeDamageTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityDPTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityTTest('test_execution'))
     nightSuite.addTest(TBigCubeSmallDeformationPlasticityMCTest('test_execution'))
@@ -433,8 +437,10 @@ def AssembleTestSuites():
     # validationSuite.addTest(TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests('test_execution'))
     # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests('test_execution'))
     # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests('test_execution'))
+
     # CL tests
     validationSuite.addTest(TTensileTestStructuralTest('test_execution'))
+
     # Explicit solid beam
     validationSuite.addTest(TExplicitSolidBeam('test_execution'))
 
@@ -475,7 +481,7 @@ if __name__ == '__main__':
     if kratos_utilities.IsMPIAvailable() and kratos_utilities.CheckIfApplicationsAvailable("MetisApplication", "TrilinosApplication"):
         KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
         p = subprocess.Popen(
-            ["mpiexec", "-np", "2", "python3", "test_StructuralMechanicsApplication_mpi.py"],
+            ["mpiexec", "-np", "2", "python3", "test_StructuralMechanicsApplication_mpi.py", "--using-mpi"],
             stdout=subprocess.PIPE,
             cwd=os.path.dirname(os.path.abspath(__file__)))
         p.wait()

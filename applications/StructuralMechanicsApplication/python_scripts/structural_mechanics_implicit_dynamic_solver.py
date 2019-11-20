@@ -25,12 +25,6 @@ class ImplicitMechanicalSolver(MechanicalSolver):
         super(ImplicitMechanicalSolver, self).__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[ImplicitMechanicalSolver]:: ", "Construction finished")
 
-        # Setting minimum buffer
-        scheme_type = self.settings["scheme_type"].GetString()
-        if("bdf" in scheme_type or scheme_type == "backward_euler"):
-            order = self._bdf_integration_order()
-            self.settings["buffer_size"].SetInt(order + 1)
-
     @classmethod
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
@@ -43,6 +37,15 @@ class ImplicitMechanicalSolver(MechanicalSolver):
         }""")
         this_defaults.AddMissingParameters(super(ImplicitMechanicalSolver, cls).GetDefaultSettings())
         return this_defaults
+
+    def GetMinimumBufferSize(self):
+        base_min_buffer_size = super(ImplicitMechanicalSolver, self).GetMinimumBufferSize()
+
+        scheme_type = self.settings["scheme_type"].GetString()
+        if "bdf" in scheme_type or scheme_type == "backward_euler":
+            return max(base_min_buffer_size, self._bdf_integration_order()+1)
+        else:
+            return base_min_buffer_size
 
     def AddVariables(self):
         super(ImplicitMechanicalSolver, self).AddVariables()
