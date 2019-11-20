@@ -105,7 +105,7 @@ public:
 
         mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();
         
-        //Need to read the type of the variable and optain its size, incorrectly done here
+        //Privisional way of retrieving the number of DOFs. Better alternative to be implemented.
         if (mNodalVariablesNames[0] == "TEMPERATURE")
             mNodalDofs = 1;
         if (mNodalVariablesNames[0] == "DISPLACEMENT")
