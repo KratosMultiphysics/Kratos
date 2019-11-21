@@ -964,7 +964,7 @@ double ConstitutiveLawUtilities<TVoigtSize>::GetNodalVariableOnIntegrationPoint(
         double value = 0.0;
 
         for (unsigned int i = 0; i < number_of_nodes; i++) {
-            value += r_N[i] * r_geometry[i].GetSolutionStepValue(rVariable);
+            value += r_N[i] * r_geometry[i].FastGetSolutionStepValue(rVariable);
         }
         return value;
 

@@ -343,6 +343,7 @@ protected:
         Vector& rStrainVector
         );
 
+
     ///@}
 
 private:
@@ -357,6 +358,28 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+
+    /**
+     * @brief It calculates substracts the thermal strain alpha*dT*Identity
+     * @param rValues The internal values of the law
+     * @param rStrainVector The strain vector in Voigt notation
+     */
+    void AddThermalEffect(
+        ConstitutiveLaw::Parameters &rValues,
+        Vector &rStrainVector);
+
+    /**
+     * @brief It calculates thermal strain alpha*dT*Identity
+     * @param Temperature The Temperature of the gauss point
+     * @param ReferenceTemperature The initial Temperature of the gauss point
+     * @param ThermalExpansionCoeff The thermal expansion coefficient of the material
+     * @param rThermalStrainVector The thermal strain vector in Voigt notation
+     */
+    void ComputeThermalStrainVector(
+        const double Temperature,
+        const double ReferenceTemperature,
+        const double ThermalExpansionCoeff,
+        Vector &rThermalStrainVector);
 
     ///@}
     ///@name Private Operations

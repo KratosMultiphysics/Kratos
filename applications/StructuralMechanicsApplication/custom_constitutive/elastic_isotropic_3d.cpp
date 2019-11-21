@@ -16,6 +16,7 @@
 // Project includes
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "includes/checks.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 #include "structural_mechanics_application_variables.h"
 
@@ -67,6 +68,8 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
     if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         CalculateCauchyGreenStrain( rValues, r_strain_vector);
     }
+
+    this->AddThermalEffect(rValues, r_strain_vector);
 
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS )) {
         Vector& r_stress_vector = rValues.GetStressVector();
@@ -387,6 +390,53 @@ void ElasticIsotropic3D::CalculateCauchyGreenStrain(
     E_tensor *= 0.5;
 
     noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ElasticIsotropic3D::AddThermalEffect(
+    ConstitutiveLaw::Parameters& rValues,
+    Vector& rStrainVector
+    )
+{
+    const auto &r_properties = rValues.GetMaterialProperties();
+    const auto &r_geometry = rValues.GetElementGeometry();
+
+    if (r_properties.Has(THERMAL_EXPANSION_COEFFICIENT)) {
+        const double alpha = r_properties[THERMAL_EXPANSION_COEFFICIENT];
+        if (r_geometry[0].SolutionStepsDataHas(TEMPERATURE)) {
+            const double gauss_point_temperature = ConstitutiveLawUtilities<VoigtSize>::
+                GetNodalVariableOnIntegrationPoint(TEMPERATURE, rValues);
+            const double gauss_point_ref_temperature = ConstitutiveLawUtilities<VoigtSize>::
+                GetNodalVariableOnIntegrationPoint(REFERENCE_TEMPERATURE, rValues);
+            Vector thermal_strain_vector(VoigtSize);
+            this->ComputeThermalStrainVector(gauss_point_temperature, gauss_point_ref_temperature, 
+                alpha, thermal_strain_vector);
+            rStrainVector -= thermal_strain_vector;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ElasticIsotropic3D::ComputeThermalStrainVector(
+    const double Temperature,
+    const double ReferenceTemperature,
+    const double ThermalExpansionCoeff,
+    Vector& rThermalStrainVector
+)
+{
+    if (rThermalStrainVector.size() != VoigtSize)
+        rThermalStrainVector.resize(VoigtSize);
+    rThermalStrainVector[0] = 1.0;
+    rThermalStrainVector[1] = 1.0;
+    rThermalStrainVector[2] = 1.0;
+    rThermalStrainVector[3] = 0.0;
+    rThermalStrainVector[4] = 0.0;
+    rThermalStrainVector[5] = 0.0;
+    rThermalStrainVector *= (Temperature - ReferenceTemperature) * ThermalExpansionCoeff;
 }
 
 } // Namespace Kratos
