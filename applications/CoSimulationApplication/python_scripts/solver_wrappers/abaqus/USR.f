@@ -211,7 +211,7 @@ C==============================================================================
       DO R = 1,S
          WRITE(FILENAME,'(A,A,I0,A,I0,A,I0,A)') 
      &      '|PWD|',
-     &      '/Data/AbaqusSolver|RANK|/|TYPE||TESTID|Refine|REFINE|Time',
+     &      '|CSMdir|/CSM_Time',
      &      KSTEP,'Surface',(R-1),'Cpu',ID,'Input.dat'
 
          OPEN(UNIT=UNIT_LOAD,FILE=FILENAME,STATUS='OLD')
@@ -235,7 +235,7 @@ C==============================================================================
 #if RAMP
          WRITE(FILENAME,'(A,A,I0,A,I0,A,I0,A)') 
      &      '|PWD|',
-     &      '/Data/AbaqusSolver|RANK|/|TYPE||TESTID|Refine|REFINE|Time',
+     &      '|CSMdir|/CSM_Time',
      &      (KSTEP-1),'Surface',(R-1),'Cpu',ID,'Input.dat'
 
          OPEN(UNIT=UNIT_LOAD,FILE=FILENAME,STATUS='OLD')

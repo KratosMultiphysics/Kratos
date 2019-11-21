@@ -47,6 +47,9 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                 line = line.replace("|arraySize|", self.array_size)
                 line = line.replace("|surfaces|", self.surfaces)
                 line = line.replace("|cpus|", self.cores)
+                line = line.replace("|PWD|", os.pardir(self.dir_csm))
+                line = line.replace("|csmdir|", self.settings["working directory"])
+
 
 
         #compile Fortran and C++ codes
