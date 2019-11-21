@@ -54,12 +54,12 @@ namespace Testing {
             number_of_knots = NurbsUtilities::GetNumberOfKnots(polynomial_degree, number_of_control_points);
 
             // Verify the results
-            KRATOS_CHECK_NEAR(number_of_spans, 1, TOLERANCE);
-            KRATOS_CHECK_NEAR(polynomial_degree, 1, TOLERANCE);
-            KRATOS_CHECK_NEAR(number_of_control_points, 2, TOLERANCE);
-            KRATOS_CHECK_NEAR(lower_span, 0, TOLERANCE);
-            KRATOS_CHECK_NEAR(upper_span, 0, TOLERANCE);
-            KRATOS_CHECK_NEAR(number_of_knots, 2, TOLERANCE);
+            KRATOS_CHECK_EQUAL(number_of_spans, 1);
+            KRATOS_CHECK_EQUAL(polynomial_degree, 1);
+            KRATOS_CHECK_EQUAL(number_of_control_points, 2);
+            KRATOS_CHECK_EQUAL(lower_span, 0);
+            KRATOS_CHECK_EQUAL(upper_span, 0);
+            KRATOS_CHECK_EQUAL(number_of_knots, 2);
 
         }
 
