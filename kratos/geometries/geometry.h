@@ -1946,7 +1946,39 @@ public:
     ///@{
 
     /**
-    * @brief Returns the local coordinates of a given arbitrary point
+    * @brief Projects a certain point on the geometry.
+    *        The external point does not necessary lay on the
+    *        geomtry. In this case the closest point is provided.
+    *        This function requires an initial guess, provided by
+    *        rProjectedPointLocalCoordinates.
+    *        This function can be a very costly operation.
+    * @param rPointGlobalCoordinates the point to which the
+    *        projection has to be found.
+    * @param rProjectedPointGlobalCoordinates the location of the
+    *        projection in global coordinates.
+    * @param rProjectedPointLocalCoordinates the location of the
+    *        projection in local coordinates.
+    *        The variable is as initial guess!
+    * @return if projection was successfull (converge)
+    */
+    virtual bool ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        KRATOS_ERROR << "Calling ProjectionPoint within geometry base class."
+            << " Please check the definition within derived class. "
+            << *this << std::endl;
+    }
+
+    /**
+    * @brief Returns the coordinates of the closest piont on
+    *        the geometry given to an arbitrary in global coordinates.
+    *        The basic concept is to first do a projection on
+    *        this geometry and afterwards checking if the projection
+    *        was successfull or if no pointon the geometry can be found.
     * @param rPointGlobalCoordinates the point to which the
     *        closest point has to be found.
     * @param rClosestPointGlobalCoordinates the location of the
