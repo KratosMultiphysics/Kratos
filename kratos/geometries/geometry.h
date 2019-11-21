@@ -330,7 +330,7 @@ public:
         Geometry<TOtherPointType> const & rOther,
         IndexType Id = 0)
         : IndexedObject(Id),
-        : mpGeometryData(rOther.mpGeometryData)
+          mpGeometryData(rOther.mpGeometryData)
     {
         mPoints = new PointsArrayType(rOther.begin(), rOther.end());
     }
