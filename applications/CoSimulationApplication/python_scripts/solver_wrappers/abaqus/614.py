@@ -32,6 +32,19 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         self.dir_csm = join(os.getcwd(), self.settings['working_directory'].GetString())  # *** alternative for getcwd?
         path_src = os.path.realpath(os.path.dirname(__file__))
 
+        self.remove_all_messages()
+
+        self.cores = self.settings['cores'].GetInt() #  number of cpus Abaqus has to use
+
+        # TODO:
+        #   Read settings
+        #   Prepare Abaqus usr (if necessary), probably some keyword substitutions
+        #   Abaqus needs to print a file with the location of its load points (usr_init.f ?)
+        #   Create Model with ModelParts
+        #   Add variables to ModelParts
+        #   Add Nodes to ModelParts, based on file written by Abaqus
+
+
     def Initialize(self):
         # super().Initialize()
         print('\nInitialize')
