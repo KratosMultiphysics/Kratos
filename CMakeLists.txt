@@ -1,7 +1,6 @@
 project (KratosMultiphysics)
 cmake_minimum_required (VERSION 2.8.6)
 
-
 # Setting some policies
 # No recursive dereferencing
 if(POLICY CMP0054)
@@ -12,8 +11,6 @@ endif(POLICY CMP0054)
 if(POLICY CMP0022)
   cmake_policy(SET CMP0022 NEW)
 endif(POLICY CMP0022)
-
-
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 7)
@@ -63,7 +60,7 @@ SET( CMAKE_MODULE_LINKER_FLAGS_FULLDEBUG "${CMAKE_MODULE_LINKER_FLAGS}")
 SET( CMAKE_MODULE_LINKER_FLAGS_CUSTOM "${CMAKE_MODULE_LINKER_FLAGS}")
 
 if(USE_COTIRE MATCHES ON)
-    set(CMAKE_SKIP_RPATH ON)
+  set(CMAKE_SKIP_RPATH ON)
 endif(USE_COTIRE MATCHES ON)
 
 # Get subversion data. This is done automagically by the cmakes
@@ -150,8 +147,6 @@ else(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   endif(${CMAKE_C_COMPILER} MATCHES "icc.*$")
 endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-
-
 # Old non-compatible versions of VS
 if(${MSVC80})
   message( "DEPRECATED: detected compiler as MSVC80")
@@ -211,10 +206,16 @@ include(install_function)
 include(KratosDependencies)
 
 if(USE_COTIRE MATCHES ON)
-    include(cotire)
+  include(cotire)
 endif(USE_COTIRE MATCHES ON)
 
 ################### PYBIND11
+
+# Try to use python executable from env variable
+if(DEFINED ENV{PYTHON_EXECUTABLE})
+  set(PYTHON_EXECUTABLE $ENV{PYTHON_EXECUTABLE})
+endif(DEFINED ENV{PYTHON_EXECUTABLE})
+
 include(pybind11Tools)
 
 # Reset pybind11 config and remove -LTO since it gives multiple problems.
@@ -259,15 +260,16 @@ endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 
 ##*****************************
 # Finding and including BOOST library (version should not matter anymore)
-
-set(BOOST_ROOT ENV{BOOST_ROOT})
+if(DEFINED ENV{BOOST_ROOT})
+  set(BOOST_ROOT $ENV{BOOST_ROOT})
+endif(DEFINED ENV{BOOST_ROOT})
 
 find_package(Boost)
 
 if(NOT Boost_FOUND)
-    # Trying to find in in external libraries
+  # Trying to find in in external libraries
 	set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost")
-    find_package(Boost)
+  find_package(Boost)
 endif(NOT Boost_FOUND)
 
 set(Boost_USE_STATIC_LIBS   OFF)
