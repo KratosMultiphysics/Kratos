@@ -94,6 +94,18 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ElementUtilities
         );
 
     /**
+     * @brief This method computes the deformation tensor B (for small deformation solid elements)
+     * @param pElement Pointer to the element
+     * @param rB The deformation tensor B
+     * @param rDN_DX The shape function derivatives
+     */
+    static void CalculateB(
+        const Element* pElement,
+        Matrix& rB,
+        const Matrix& rDN_DX
+        );
+
+    /**
      * @brief This method returns the computed the computed body force
      * @param pElement Pointer to the element
      * @param rIntegrationPoints The integrations points
