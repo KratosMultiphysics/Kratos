@@ -1999,7 +1999,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const
     {
-        // 1. Make on geometry
+        // 1. Make projection on geometry
         if (ProjectionPoint(rPointGlobalCoordinates,
             rClosestPointGlobalCoordinates,
             rClosestPointLocalCoordinates,
