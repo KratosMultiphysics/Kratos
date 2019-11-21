@@ -280,7 +280,7 @@ void SmallDisplacement::CalculateB(
 {
     KRATOS_TRY;
 
-    StructuralMechanicsElementUtilities::CalculateB(this, rB, rDN_DX);
+    StructuralMechanicsElementUtilities::CalculateB(*this, rB, rDN_DX);
 
     KRATOS_CATCH( "" )
 }
@@ -293,7 +293,7 @@ void SmallDisplacement::ComputeEquivalentF(
     const Vector& rStrainTensor
     ) const
 {
-    StructuralMechanicsElementUtilities::ComputeEquivalentF(this, rF, rStrainTensor);
+    StructuralMechanicsElementUtilities::ComputeEquivalentF(*this, rF, rStrainTensor);
 }
 
 /***********************************************************************************/

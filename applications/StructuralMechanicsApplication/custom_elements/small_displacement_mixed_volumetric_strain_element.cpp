@@ -679,7 +679,7 @@ array_1d<double, 3> SmallDisplacementMixedVolumetricStrainElement::GetBodyForce(
     const IndexType PointNumber
     ) const
 {
-    return StructuralMechanicsElementUtilities::GetBodyForce(this, rIntegrationPoints, PointNumber);
+    return StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
 }
 
 /***********************************************************************************/
@@ -735,7 +735,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateB(
 {
     KRATOS_TRY;
 
-    StructuralMechanicsElementUtilities::CalculateB(this, rB, rDN_DX);
+    StructuralMechanicsElementUtilities::CalculateB(*this, rB, rDN_DX);
 
     KRATOS_CATCH( "" )
 }
@@ -771,7 +771,7 @@ void SmallDisplacementMixedVolumetricStrainElement::ComputeEquivalentF(
     const Vector& rStrainTensor
     ) const
 {
-    StructuralMechanicsElementUtilities::ComputeEquivalentF(this, rF, rStrainTensor);
+    StructuralMechanicsElementUtilities::ComputeEquivalentF(*this, rF, rStrainTensor);
 }
 
 /***********************************************************************************/
@@ -911,10 +911,10 @@ int  SmallDisplacementMixedVolumetricStrainElement::Check(const ProcessInfo& rCu
     int check = SmallDisplacementMixedVolumetricStrainElement::BaseType::Check(rCurrentProcessInfo);
 
     // Base check
-    check = StructuralMechanicsElementUtilities::BaseElementCheck(this, rCurrentProcessInfo);
+    check = StructuralMechanicsElementUtilities::SolidElementCheck(*this, rCurrentProcessInfo, mConstitutiveLawVector);
 
     // Verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
+    KRATOS_CHECK_VARIABLE_KEY(VOLUMETRIC_STRAIN)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     const auto& r_geometry = this->GetGeometry();
@@ -923,11 +923,6 @@ int  SmallDisplacementMixedVolumetricStrainElement::Check(const ProcessInfo& rCu
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUMETRIC_STRAIN,r_node)
 
         KRATOS_CHECK_DOF_IN_NODE(VOLUMETRIC_STRAIN, r_node)
-    }
-
-    // Check constitutive law
-    if ( mConstitutiveLawVector.size() > 0 ) {
-        return mConstitutiveLawVector[0]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
     }
 
     return check;

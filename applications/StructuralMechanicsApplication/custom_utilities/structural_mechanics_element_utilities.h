@@ -47,51 +47,50 @@ typedef Node<3> NodeType;
 /// Geometry definitions
 typedef Geometry<NodeType> GeometryType;
 
-/// The zero tolerance
-static constexpr double tolerance = std::numeric_limits<double>::epsilon();
-
 /**
- * @brief This method performs commons checks on the elements
- * @param pElement Pointer to the element
+ * @brief This method performs commons checks on the solid elements
+ * @param rElement Reference to the element
  * @param rCurrentProcessInfo The current process info instance
+ * @param rConstitutiveLaws The vector containing CL
  */
-int BaseElementCheck(
-    const Element* pElement,
-    const ProcessInfo& rCurrentProcessInfo
+int SolidElementCheck(
+    const Element& rElement,
+    const ProcessInfo& rCurrentProcessInfo,
+    std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws
     );
 
 /**
  * @brief This method computes the deformation gradient F (for small deformation solid elements)
- * @param pElement Pointer to the element
+ * @param rElement Reference to the element
  * @param rF The deformation gradient F
  * @param rStrainTensor The strain tensor
  */
 void ComputeEquivalentF(
-    const Element* pElement,
+    const Element& rElement,
     Matrix& rF,
     const Vector& rStrainTensor
     );
 
 /**
  * @brief This method computes the deformation tensor B (for small deformation solid elements)
- * @param pElement Pointer to the element
+ * @param rElement Reference to the element
  * @param rB The deformation tensor B
  * @param rDN_DX The shape function derivatives
  */
 void CalculateB(
-    const Element* pElement,
+    const Element& rElement,
     Matrix& rB,
     const Matrix& rDN_DX
     );
 
 /**
  * @brief This method returns the computed the computed body force
- * @param pElement Pointer to the element
+ * @param rElement Reference to the element
  * @param rIntegrationPoints The integrations points
  * @param PointNumber The integration point number
  */
 array_1d<double, 3> GetBodyForce(
-    const Element* pElement,
+    const Element& rElement,
     const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
     const IndexType PointNumber
     );

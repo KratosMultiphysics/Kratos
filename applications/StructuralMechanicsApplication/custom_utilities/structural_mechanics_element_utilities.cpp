@@ -26,12 +26,14 @@
 namespace Kratos {
 namespace StructuralMechanicsElementUtilities {
 
-int BaseElementCheck(
-    const Element* pElement,
-    const ProcessInfo& rCurrentProcessInfo
+int SolidElementCheck(
+    const Element& rElement,
+    const ProcessInfo& rCurrentProcessInfo,
+    std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws
     )
 {
-    const auto& r_geometry = pElement->GetGeometry();
+    const auto& r_geometry = rElement.GetGeometry();
+    const auto& r_properties = rElement.GetProperties();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
@@ -47,8 +49,6 @@ int BaseElementCheck(
     for ( IndexType i = 0; i < number_of_nodes; i++ ) {
         const NodeType &rnode = r_geometry[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
-//         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rnode)
-//         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rnode)
 
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
@@ -56,14 +56,19 @@ int BaseElementCheck(
     }
 
     // Verify that the constitutive law exists
-    KRATOS_ERROR_IF_NOT(pElement->GetProperties().Has( CONSTITUTIVE_LAW )) << "Constitutive law not provided for property " << pElement->GetProperties().Id() << std::endl;
+    KRATOS_ERROR_IF_NOT(r_properties.Has( CONSTITUTIVE_LAW )) << "Constitutive law not provided for property " << r_properties.Id() << std::endl;
 
     // Verify that the constitutive law has the correct dimension
-    const SizeType strain_size = pElement->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+    const SizeType strain_size = r_properties.GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
     if ( dimension == 2 ) {
-        KRATOS_ERROR_IF( strain_size < 3 || strain_size > 4) << "Wrong constitutive law used. This is a 2D element! expected strain size is 3 or 4 (el id = ) " << pElement->Id() << std::endl;
+        KRATOS_ERROR_IF( strain_size < 3 || strain_size > 4) << "Wrong constitutive law used. This is a 2D element! expected strain size is 3 or 4 (el id = ) " << rElement.Id() << std::endl;
     } else {
-        KRATOS_ERROR_IF_NOT(strain_size == 6) << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) "<<  pElement->Id() << std::endl;
+        KRATOS_ERROR_IF_NOT(strain_size == 6) << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) "<<  rElement.Id() << std::endl;
+    }
+    
+    // Check constitutive law
+    if ( rConstitutiveLaws.size() > 0 ) {
+        return rConstitutiveLaws[0]->Check( r_properties, r_geometry, rCurrentProcessInfo );
     }
 
     return 0;
@@ -73,12 +78,12 @@ int BaseElementCheck(
 /***********************************************************************************/
 
 void ComputeEquivalentF(
-    const Element* pElement,
+    const Element& rElement,
     Matrix& rF,
     const Vector& rStrainTensor
     )
 {
-    const auto& r_geometry = pElement->GetGeometry();
+    const auto& r_geometry = rElement.GetGeometry();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
     if(dimension == 2) {
@@ -103,35 +108,37 @@ void ComputeEquivalentF(
 /***********************************************************************************/
 
 void CalculateB(
-    const Element* pElement,
+    const Element& rElement,
     Matrix& rB,
     const Matrix& rDN_DX
     )
 {
-    const auto& r_geometry = pElement->GetGeometry();
+    const auto& r_geometry = rElement.GetGeometry();
     const SizeType number_of_nodes = r_geometry.PointsNumber();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
     rB.clear();
 
     if(dimension == 2) {
-        for ( SizeType i = 0; i < number_of_nodes; ++i ) {
-            rB(0, i*2    ) = rDN_DX(i, 0);
-            rB(1, i*2 + 1) = rDN_DX(i, 1);
-            rB(2, i*2    ) = rDN_DX(i, 1);
-            rB(2, i*2 + 1) = rDN_DX(i, 0);
+        for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+            const IndexType initial_index = i*2;
+            rB(0, initial_index    ) = rDN_DX(i, 0);
+            rB(1, initial_index + 1) = rDN_DX(i, 1);
+            rB(2, initial_index    ) = rDN_DX(i, 1);
+            rB(2, initial_index + 1) = rDN_DX(i, 0);
         }
     } else if(dimension == 3) {
-        for ( SizeType i = 0; i < number_of_nodes; ++i ) {
-            rB(0, i*3    ) = rDN_DX(i, 0);
-            rB(1, i*3 + 1) = rDN_DX(i, 1);
-            rB(2, i*3 + 2) = rDN_DX(i, 2);
-            rB(3, i*3    ) = rDN_DX(i, 1);
-            rB(3, i*3 + 1) = rDN_DX(i, 0);
-            rB(4, i*3 + 1) = rDN_DX(i, 2);
-            rB(4, i*3 + 2) = rDN_DX(i, 1);
-            rB(5, i*3    ) = rDN_DX(i, 2);
-            rB(5, i*3 + 2) = rDN_DX(i, 0);
+        for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+            const IndexType initial_index = i*3;
+            rB(0, initial_index    ) = rDN_DX(i, 0);
+            rB(1, initial_index + 1) = rDN_DX(i, 1);
+            rB(2, initial_index + 2) = rDN_DX(i, 2);
+            rB(3, initial_index    ) = rDN_DX(i, 1);
+            rB(3, initial_index + 1) = rDN_DX(i, 0);
+            rB(4, initial_index + 1) = rDN_DX(i, 2);
+            rB(4, initial_index + 2) = rDN_DX(i, 1);
+            rB(5, initial_index    ) = rDN_DX(i, 2);
+            rB(5, initial_index + 2) = rDN_DX(i, 0);
         }
     }
 }
@@ -140,7 +147,7 @@ void CalculateB(
 /***********************************************************************************/
 
 array_1d<double, 3> GetBodyForce(
-    const Element* pElement,
+    const Element& rElement,
     const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
     const IndexType PointNumber
     )
@@ -149,7 +156,7 @@ array_1d<double, 3> GetBodyForce(
     for (IndexType i = 0; i < 3; ++i)
         body_force[i] = 0.0;
 
-    const auto& r_properties = pElement->GetProperties();
+    const auto& r_properties = rElement.GetProperties();
     double density = 0.0;
     if (r_properties.Has( DENSITY ))
         density = r_properties[DENSITY];
@@ -157,9 +164,9 @@ array_1d<double, 3> GetBodyForce(
     if (r_properties.Has( VOLUME_ACCELERATION ))
         noalias(body_force) += density * r_properties[VOLUME_ACCELERATION];
 
-    const auto& r_geometry = pElement->GetGeometry();
+    const auto& r_geometry = rElement.GetGeometry();
     if( r_geometry[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
-        Vector N;
+        Vector N(r_geometry.size());
         N = r_geometry.ShapeFunctionsValues(N, rIntegrationPoints[PointNumber].Coordinates());
         for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node)
             noalias(body_force) += N[i_node] * density * r_geometry[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);

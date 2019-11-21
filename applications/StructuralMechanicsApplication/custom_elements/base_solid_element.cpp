@@ -1415,12 +1415,7 @@ int  BaseSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
     int check = Element::Check(rCurrentProcessInfo);
 
     // Basic check
-    check = StructuralMechanicsElementUtilities::BaseElementCheck(this, rCurrentProcessInfo);
-
-    // Check constitutive law
-    if ( mConstitutiveLawVector.size() > 0 ) {
-        return mConstitutiveLawVector[0]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
-    }
+    check = StructuralMechanicsElementUtilities::SolidElementCheck(*this, rCurrentProcessInfo, mConstitutiveLawVector);
 
     return check;
 
@@ -1643,7 +1638,7 @@ array_1d<double, 3> BaseSolidElement::GetBodyForce(
     const IndexType PointNumber
     ) const
 {
-    return StructuralMechanicsElementUtilities::GetBodyForce(this, rIntegrationPoints, PointNumber);
+    return StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
 }
 
 /***********************************************************************************/
