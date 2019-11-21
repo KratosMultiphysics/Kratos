@@ -40,17 +40,17 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         self.surfaces = self.settings["surfaces"].GetInt()
 
         #prepare Abaqus USR
-        path_usr = join(path_src, "USR.f")
-        with open(path_usr)as infile:
-            for line in infile:
-                line = line.replace("|dimension|", self.dimensions)
-                line = line.replace("|arraySize|", self.array_size)
-                line = line.replace("|surfaces|", self.surfaces)
-                line = line.replace("|cpus|", self.cores)
-                line = line.replace("|PWD|", os.pardir(self.dir_csm))
-                line = line.replace("|csmdir|", self.settings["working directory"])
-
-
+        usr = "USR.f"
+        with open(join(self.path_src, usr))as infile:
+            with open(join(self.dir_csm, usr)) as outfile:
+                for line in infile:
+                    line = line.replace("|dimension|", self.dimensions)
+                    line = line.replace("|arraySize|", self.array_size)
+                    line = line.replace("|surfaces|", self.surfaces)
+                    line = line.replace("|cpus|", self.cores)
+                    line = line.replace("|PWD|", os.pardir(self.dir_csm))
+                    line = line.replace("|csmdir|", self.settings["working directory"])
+                    outfile.write(line)
 
         #compile Fortran and C++ codes
         path_libusr = join(self.dir_csm, "libusr")
