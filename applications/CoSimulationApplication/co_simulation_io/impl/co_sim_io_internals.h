@@ -26,6 +26,87 @@
 namespace CoSimIO {
 namespace Internals {
 
+template<typename TDataType>
+class DataContainer
+{
+public:
+    virtual ~DataContainer() = default;
+
+    virtual std::size_t size() const = 0;
+    virtual void resize(const std::size_t NewSize) = 0;
+
+    virtual const TDataType* data() const  = 0;
+    TDataType* data()
+    {
+        return const_cast<TDataType*>(const_cast<const DataContainer*>(this)->data());
+    }
+
+    const TDataType& operator[](const std::size_t Index) const
+    {
+        return data()[Index];
+    }
+
+    TDataType& operator[](const std::size_t Index)
+    {
+        return const_cast<TDataType&>(const_cast<const DataContainer*>(this)->operator[](Index));
+    }
+};
+
+
+/// output stream function
+template<typename TDataType>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const DataContainer<TDataType>& rThis)
+{
+    // rThis.PrintInfo(rOStream);
+    // rOStream << std::endl;
+    // rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
+template<typename TDataType>
+class DataContainerStdVector : public DataContainer<TDataType>
+{
+public:
+    DataContainerStdVector(std::vector<TDataType>& rVector) : mrVector(rVector) {}
+
+    std::size_t size() const override {return mrVector.size();}
+    void resize(const std::size_t NewSize) override {mrVector.resize(NewSize);}
+    const TDataType* data() const override {return mrVector.data();}
+
+private:
+    std::vector<TDataType>& mrVector;
+};
+
+template<typename TDataType>
+class DataContainerRawMemory : public DataContainer<TDataType>
+{
+public:
+    DataContainerRawMemory(TDataType** ppData, const std::size_t Size) : mppData(ppData), mSize(Size) {}
+
+    std::size_t size() const override {return mSize;};
+    void resize(const std::size_t NewSize) override
+    {
+        // TODO use C-functions (malloc & free, or realloc)
+        std::cout << "Before Resize" << std::endl;
+        mSize = NewSize;
+        delete [] mppData[0]; // delete the old memory and allocate new with different size
+        std::cout << "Before New allocation" << std::endl;
+        *mppData = new TDataType[mSize];
+        std::cout << "After New allocation" << std::endl;
+        KRATOS_CO_SIM_ERROR_IF_NOT(*mppData) << "Memory reallocation failed";
+
+        std::cout << "Exiting ..." << std::endl;
+
+    };
+    const TDataType* data() const override {return *mppData;}
+
+private:
+    TDataType** mppData;
+    std::size_t mSize;
+};
+
 enum class ControlSignal
 {
     Dummy,
