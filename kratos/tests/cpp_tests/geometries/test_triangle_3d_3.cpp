@@ -727,12 +727,9 @@ namespace Testing
         array_1d<double, 3> cross(3, 0.0);
         MathUtils<double>::CrossProduct(cross, cross_norm, normal);
 
-        KRATOS_WATCH(normal)
         KRATOS_CHECK_NEAR(cross[0], 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(cross[1], 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(cross[2], 0.0, TOLERANCE);
-
-        KRATOS_WATCH(cross)
 
         normal /= norm_2(normal);
 
@@ -742,7 +739,6 @@ namespace Testing
         KRATOS_CHECK_NEAR(unit_normal[1], 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(unit_normal[2], -1.0, TOLERANCE);
 
-        KRATOS_WATCH(unit_normal)
         KRATOS_CHECK_NEAR(unit_normal[0], normal[0], TOLERANCE);
         KRATOS_CHECK_NEAR(unit_normal[1], normal[1], TOLERANCE);
         KRATOS_CHECK_NEAR(unit_normal[2], normal[2], TOLERANCE);
