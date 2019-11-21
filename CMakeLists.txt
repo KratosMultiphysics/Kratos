@@ -259,6 +259,9 @@ endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 
 ##*****************************
 # Finding and including BOOST library (version should not matter anymore)
+
+set(BOOST_ROOT ENV{BOOST_ROOT})
+
 find_package(Boost)
 
 if(NOT Boost_FOUND)
