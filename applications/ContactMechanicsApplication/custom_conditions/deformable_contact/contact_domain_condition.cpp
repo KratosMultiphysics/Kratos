@@ -1503,7 +1503,7 @@ namespace Kratos
         noalias(Tforce) = ZeroVector(dimension);
 
 	//TANGENT FORCE STICK
-	if(rVariables.Contact.Options.Is(NOT_SLIP))
+	if(rVariables.Contact.Options.IsNot(SLIP))
 	  {
 	    for (unsigned int i=0; i<dimension; i++)
 	      {

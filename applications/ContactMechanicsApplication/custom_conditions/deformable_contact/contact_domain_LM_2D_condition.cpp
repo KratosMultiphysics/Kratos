@@ -1094,7 +1094,7 @@ void ContactDomainLM2DCondition::CalculateContactStiffness (double &Kcont,Condit
       {
 
 	//Stick contact contribution:
-	if(rVariables.Contact.Options.Is(NOT_SLIP))
+	if(rVariables.Contact.Options.IsNot(SLIP))
 	  {
 	    //std::cout<<" + stick ";
 	    //std::cout<<"(mu_on)";

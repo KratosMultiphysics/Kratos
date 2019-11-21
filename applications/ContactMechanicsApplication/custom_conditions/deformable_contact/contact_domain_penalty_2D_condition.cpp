@@ -447,7 +447,7 @@ namespace Kratos
 
 
     //Stick contact contribution:
-    if(rVariables.Contact.Options.Is(NOT_SLIP))
+    if(rVariables.Contact.Options.IsNot(SLIP))
       {
 	//std::cout<<" + stick ";
 	if(rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS))
