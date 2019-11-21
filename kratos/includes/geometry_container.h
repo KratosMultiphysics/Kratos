@@ -58,16 +58,13 @@ public:
 
     typedef Geometry<NodeType> GeometryType;
 
-    typedef GeometryContainer<TNodeType> GeometryContainerType;
-
-    /// Element container. A vector set of Elements with their Id's as key.
-    typedef PointerVectorSet< GeometryType,
-                            IndexedObject,
-                            std::less<typename IndexedObject::result_type>,
-                            std::equal_to<typename IndexedObject::result_type>,
-                            typename GeometryType::Pointer,
-                            std::vector< typename GeometryType::Pointer >
-                            > GeometriesContainerType;
+    /// Geometry container. A vector set of Elements with their Id's as key.
+    typedef std::unordered_set<
+        typename GeometryType::Pointer,
+        std::less<typename IndexedObject::result_type>,
+        std::equal_to<typename IndexedObject::result_type>,
+        std::allocator<typename GeometryType::Pointer>
+    > GeometriesContainerType;
 
     /// Geometry Iterator
     typedef typename GeometriesContainerType::iterator GeometryIterator;
@@ -79,25 +76,26 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    GeometryContainer() : Flags()
+    /// Default Constructor
+    GeometryContainer()
+        : Flags()
         , mpGeometries(new GeometriesContainerType())
     {}
 
-    /// Copy constructor.
+    /// Copy Constructor
     GeometryContainer(GeometryContainer const& rOther)
         : Flags(rOther)
         , mpGeometries(rOther.mpGeometries)
     {}
 
-    /// Components constructor.
-    GeometryContainer(typename NodesContainerType::Pointer NewNodes,
-         typename GeometriesContainerType::Pointer NewGeometries)
+    /// Components Constructor
+    GeometryContainer(
+        typename GeometriesContainerType::Pointer NewGeometries)
         : Flags()
         , mpGeometries(NewGeometries)
     {}
 
-    /// Destructor.
+    /// Destructor
     ~GeometryContainer() override
     {}
 
@@ -130,20 +128,23 @@ public:
     }
 
     ///@}
-    ///@name Add / Get / Remove Functions
+    ///@name Add Functions
     ///@{
 
     /// Adds a geometry to the geometry container.
-    void AddGeometry(typename GeometryType::Pointer pNewGeometry)
+    GeometryIterator AddGeometry(typename GeometryType::Pointer pNewGeometry)
     {
-        mpGeometries->push_back(pNewGeometry);
+        return mpGeometries->insert(pNewGeometry);
     }
+
+    ///@}
+    ///@name Get Functions
+    ///@{
 
     /// Returns the Geometry::Pointer corresponding to it's identifier
     typename GeometryType::Pointer pGetGeometry(IndexType GeometryId)
     {
-        // HOW?
-        //auto i = mpGeometries->find(GeometryId);
+        auto i = mpGeometries->find(GeometryId);
         KRATOS_ERROR_IF(i == mpGeometries->end()) << " geometry index not found: " << GeometryId << ".";
         return *i.base();
     }
@@ -151,8 +152,7 @@ public:
     /// Returns a reference geometry corresponding to it's identifier
     GeometryType& GetGeometry(IndexType GeometryId)
     {
-        // HOW?
-        //auto i = mpGeometries->find(GeometryId);
+        auto i = mpGeometries->find(GeometryId);
         KRATOS_ERROR_IF(i == mpGeometries->end()) << " geometry index not found: " << GeometryId << ".";
         return *i;
     }
@@ -160,31 +160,40 @@ public:
     /// Returns a const reference geometry corresponding to it's identifier
     const GeometryType& GetGeometry(IndexType GeometryId) const
     {
-        // HOW?
-        //auto i = mpGeometries->find(GeometryId);
+        auto i = mpGeometries->find(GeometryId);
         KRATOS_ERROR_IF(i == mpGeometries->end()) << " geometry index not found: " << GeometryId << ".";
         return *i;
     }
 
+    ///@}
+    ///@name Remove Functions
+    ///@{
+
     /// Remove the geometry with given Id from geometry container
     void RemoveGeometry(IndexType GeometryId)
     {
-        // HOW?
-        //mpGeometries->erase(GeometryId);
+        mpGeometries->erase(GeometryId);
     }
 
     /// Remove given element from geometry container
     void RemoveGeometry(GeometryType& ThisGeometry)
     {
-        // HOW?
-        //mpGeometries->erase(ThisGeometry.Id());
+        mpGeometries->erase(ThisGeometry.Id());
     }
 
     /// Remove given element from geometry container
     void RemoveGeometry(typename GeometryType::Pointer pThisGeometry)
     {
-        // HOW?
-        //mpGeometries->erase(ThisGeometry->Id());
+        mpGeometries->erase(ThisGeometry->Id());
+    }
+
+    ///@}
+    ///@name Search Functions
+    ///@{
+
+    bool HasGeometry(IndexType GeometryId) const
+    {
+        return (mpGeometries->find(GeometryId) != mpGeometries->end());
     }
 
     ///@}
@@ -244,41 +253,31 @@ public:
     ///@name Container Functions
     ///@{
 
-    GeometriesContainerType& Geometries(GeometryData::KratosGeometryType GeometryType)
-    {
-        return *mpGeometries->where(...);
-    }
+    //GeometriesContainerType& Geometries(GeometryData::KratosGeometryType GeometryType)
+    //{
+    //    return *mpGeometries->where(...);
+    //}
 
     ///@}
     ///@name Container Functions
     ///@{
 
-    GeometriesContainerType& Geometries(GeometryData::KratosGeometryType GeometryType)
-    {
-        return *mpGeometries->where(...);
-    }
-
-    ///@}
-    ///@name Search Functions
-    ///@{
-
-    bool HasGeometry(IndexType GeometryId) const
-    {
-        // HOW?
-        //return (mpGeometries->find(GeometryId) != mpGeometries->end());
-    }
+    //GeometriesContainerType& Geometries(GeometryData::KratosGeometryType GeometryType)
+    //{
+    //    return *mpGeometries->where(...);
+    //}
 
     ///@}
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
+    /// Return information
     std::string Info() const override
     {
         return "GeometryContainer";
     }
 
-    /// Print information about this object.
+    /// Print information about this object
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
@@ -290,13 +289,13 @@ public:
         rOStream << "Number of Geometries: " << mpGeometries->size() << std::endl;
     }
 
-    /// Print information about this object.
+    /// Print information about this object
     virtual void PrintInfo(std::ostream& rOStream, std::string const& PrefixString) const
     {
         rOStream << PrefixString << Info();
     }
 
-    /// Print object's data.
+    /// Print object's data
     virtual void PrintData(std::ostream& rOStream, std::string const& PrefixString ) const
     {
         rOStream << PrefixString << "Number of Geometries: " << mpGeometries->size() << std::endl;
