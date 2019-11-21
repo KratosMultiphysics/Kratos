@@ -296,9 +296,7 @@ endif(${INSTALL_RUNKRATOS} MATCHES ON )
 
 ##*****************************
 # Finding blas and lapack if needed
-set(BLAS_INCLUDE_NEEDED OFF)
 if(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON )
-  set(BLAS_INCLUDE_NEEDED ON)
 
   # If prescribed set the fortran mangling
   if(DEFINED ${KRATOS_SUPERLU_FORTRAN_MANGLING})
@@ -312,18 +310,7 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
   find_package(Tetgen REQUIRED)
 endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
 
-##*****************************
-#finding Mpi
-if(${METIS_APPLICATION} MATCHES ON )
-  set(MPI_NEEDED ON)
-endif(${METIS_APPLICATION} MATCHES ON )
-if(${TRILINOS_APPLICATION} MATCHES ON )
-  set(MPI_NEEDED ON)
-endif(${TRILINOS_APPLICATION} MATCHES ON )
-if(${MPI_SEARCH_APPLICATION} MATCHES ON )
-  set(MPI_NEEDED ON)
-endif(${MPI_SEARCH_APPLICATION} MATCHES ON )
-
+# Mpi
 if(${MPI_NEEDED} MATCHES ON )
   find_package(MPI REQUIRED)
   add_definitions( -DKRATOS_USING_MPI )
