@@ -153,41 +153,35 @@ public:
     }
 
     void ImportData(
-        const char* pIdentifier,
-        int* pSize,
-        double** ppData)
+        const std::string& rIdentifier,
+        Internals::DataContainer<double>* pContainer)
     {
-        mpComm->ImportData(pIdentifier, pSize, ppData);
+        // mpComm->ImportData(rIdentifier, rData);
     }
 
     void ExportData(
-        const char* pIdentifier,
-        const int Size,
-        const double* pData)
+        const std::string& rIdentifier,
+        const Internals::DataContainer<double>* pContainer)
     {
-        mpComm->ExportData(pIdentifier, Size, pData);
+        // mpComm->ExportData(rIdentifier, Size, pData);
     }
 
     void ImportMesh(
-        const char* pIdentifier,
-        int* pNumberOfNodes,
-        int* pNumberOfElements,
-        double** ppNodalCoordinates,
-        int** ppElementConnectivities,
-        int** ppElementTypes)
+        const std::string& rIdentifier,
+        Internals::DataContainer<double>* pNodalCoords,
+        Internals::DataContainer<int>* pElementConnectivities,
+        Internals::DataContainer<int>* pElementTypes)
     {
-        mpComm->ImportMesh(pIdentifier, pNumberOfNodes, pNumberOfElements, ppNodalCoordinates, ppElementConnectivities, ppElementTypes);
+        // mpComm->ImportMesh(rIdentifier, pNodalCoords, pElementConnectivities, pElementTypes);
     }
 
     void ExportMesh(
-        const char* pIdentifier,
-        const int NumberOfNodes,
-        const int NumberOfElements,
-        const double* pNodalCoordinates,
-        const int* pElementConnectivities,
-        const int* pElementTypes)
+        const std::string& rIdentifier,
+        const Internals::DataContainer<double>* pNodalCoords,
+        const Internals::DataContainer<int>* pElementConnectivities,
+        const Internals::DataContainer<int>* pElementTypes)
     {
-        mpComm->ExportMesh(pIdentifier, NumberOfNodes, NumberOfElements, pNodalCoordinates, pElementConnectivities, pElementTypes);
+        // mpComm->ExportMesh(rIdentifier, pNodalCoords, pElementConnectivities, pElementTypes);
     }
 
     void ImportGeometry()
@@ -257,15 +251,15 @@ private:
 // TODO make sure this is unique even across compilation units (test somehow)
 static std::unordered_map<std::string, std::unique_ptr<CoSimIOImpl>> s_co_sim_ios;
 
-static bool HasIO(const char* pConnectionName)
+static bool HasIO(const std::string& rConnectionName)
 {
-    return s_co_sim_ios.find(std::string(pConnectionName)) != s_co_sim_ios.end();
+    return s_co_sim_ios.find(rConnectionName) != s_co_sim_ios.end();
 }
 
-static CoSimIOImpl& GetIO(const char* pConnectionName)
+static CoSimIOImpl& GetIO(const std::string& rConnectionName)
 {
-    KRATOS_CO_SIM_ERROR_IF_NOT(HasIO(pConnectionName)) << "Trying to use connection " << pConnectionName << " which does not exist!" << std::endl;
-    return *s_co_sim_ios.at(std::string(pConnectionName));
+    KRATOS_CO_SIM_ERROR_IF_NOT(HasIO(rConnectionName)) << "Trying to use connection " << rConnectionName << " which does not exist!" << std::endl;
+    return *s_co_sim_ios.at(rConnectionName);
 }
 
 } // namespace Internals
