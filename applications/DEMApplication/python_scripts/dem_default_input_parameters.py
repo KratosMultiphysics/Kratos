@@ -80,6 +80,8 @@ def GetDefaultInputParameters():
             "VirtualMassCoefficient"           : 1.0,
             "RollingFrictionOption"            : false,
             "ComputeStressTensorOption"        : false,
+            "ImposeZStrainIn2DOption"          : false,
+            "ZStrainValue"                     : "0.0*t",
             "GlobalDamping"                    : 0.0,
             "PoissonEffectOption"              : true,
             "ShearStrainParallelToBondOption"  : true,

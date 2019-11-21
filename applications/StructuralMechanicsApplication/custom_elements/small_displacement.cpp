@@ -16,7 +16,6 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "custom_elements/small_displacement.h"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
