@@ -73,7 +73,7 @@
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
                 "model_part_name"        : "ThermalModelPart.thermal_computing_domain",
-                "output_name"            : "adjoint_test_convection_condition",
+                "output_name"            : "diffusion_test_primal",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"       : {
@@ -96,27 +96,7 @@
                 }
             }
         }],
-        "vtk_output" : [{
-            "python_module" : "vtk_output_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "VtkOutputProcess",
-            "help"          : "This process writes postprocessing files for Paraview",
-            "Parameters"    : {
-                "model_part_name"                    : "ThermalModelPart.thermal_computing_domain",
-                "output_control_type"                : "step",
-                "output_frequency"                   : 1,
-                "file_format"                        : "ascii",
-                "output_precision"                   : 7,
-                "output_sub_model_parts"             : false,
-                "folder_name"                        : "vtk_output",
-                "save_output_files_in_folder"        : true,
-                "nodal_solution_step_data_variables" : ["TEMPERATURE"],
-                "nodal_data_value_variables"         : [],
-                "element_data_value_variables"       : [],
-                "condition_data_value_variables"     : [],
-                "gauss_point_variables"              : []
-            }
-        }]
+        "vtk_output" : []
     },
     "restart_options"  : {
         "SaveRestart"      : false,

@@ -73,16 +73,6 @@ class Element;
 template<std::size_t TDimension, class TDofType = Dof<double> >
 class Node : public Point, public Flags
 {
-    class GetDofKey : public std::unary_function<TDofType, VariableData::KeyType>
-    {
-    public:
-        VariableData::KeyType operator()(TDofType  const & This)
-        {
-            return This.GetVariable().Key();
-        }
-    };
-
-
 
 public:
     ///@name Type Definitions
@@ -105,7 +95,7 @@ public:
 
     typedef typename std::size_t SizeType;
 
-    typedef PointerVectorSet<TDofType, GetDofKey> DofsContainerType;
+    typedef std::vector<std::unique_ptr<TDofType>> DofsContainerType;
 
     typedef VariablesListDataValueContainer SolutionStepsNodalDataContainerType;
 
@@ -328,14 +318,14 @@ public:
         Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();
         for (typename DofsContainerType::const_iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
         {
-            p_new_node->pAddDof(*it_dof);
+            p_new_node->pAddDof(**it_dof);
         }
 
         p_new_node->mData = this->mData;
         p_new_node->mInitialPosition = this->mInitialPosition;
 
         p_new_node->Set(Flags(*this));
-        //KRATOS_ERROR << "Must implement correctly the copy of the flags" << std::endl;
+
         return p_new_node;
     }
 
@@ -345,6 +335,7 @@ public:
 #ifdef _OPENMP
         omp_destroy_lock(&mNodeLock);
 #endif
+        ClearSolutionStepsData();
     }
 
     //*********************************************
@@ -407,7 +398,7 @@ public:
         // Deep copying the dofs
         for(typename DofsContainerType::const_iterator it_dof = rOther.mDofs.begin() ; it_dof != rOther.mDofs.end() ; it_dof++)
         {
-            pAddDof(*it_dof);
+            pAddDof(**it_dof);
         }
 
         mData = rOther.mData;
@@ -427,7 +418,7 @@ public:
 
         for(typename DofsContainerType::const_iterator it_dof = rOther.mDofs.begin() ; it_dof != rOther.mDofs.end() ; it_dof++)
         {
-            pAddDof(*it_dof);
+            pAddDof(**it_dof);
         }
 
         mData = rOther.mData;
@@ -643,41 +634,39 @@ public:
     template<class TVariableType>
     inline void Fix(const TVariableType& rDofVariable)
     {
-        typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
-        if(it_dof != mDofs.end())
-        {
-            it_dof->FixDof();
-        }
-        else
-        {
-#ifdef KRATOS_DEBUG
-            if(OpenMPUtils::IsInParallel() != 0)
-            {
-                KRATOS_ERROR << "Attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
+        for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
+            if((*it_dof)->GetVariable() == rDofVariable){
+                (*it_dof)->FixDof();
+                return;
             }
-#endif
-            pAddDof(rDofVariable)->FixDof();
         }
+
+#ifdef KRATOS_DEBUG
+        if(OpenMPUtils::IsInParallel() != 0)
+        {
+            KRATOS_ERROR << "Attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
+        }
+#endif
+        pAddDof(rDofVariable)->FixDof();
     }
 
     template<class TVariableType>
     inline void Free(const TVariableType& rDofVariable)
     {
-        typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
-        if(it_dof != mDofs.end())
-        {
-            it_dof->FreeDof();
-        }
-        else
-        {
-#ifdef KRATOS_DEBUG
-            if(OpenMPUtils::IsInParallel() != 0)
-            {
-                KRATOS_ERROR << "Attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
+         for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
+            if((*it_dof)->GetVariable() == rDofVariable){
+                (*it_dof)->FreeDof();
+                return;
             }
-#endif
-            pAddDof(rDofVariable)->FreeDof();
         }
+
+#ifdef KRATOS_DEBUG
+        if(OpenMPUtils::IsInParallel() != 0)
+        {
+            KRATOS_ERROR << "Attempting to Free the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
+        }
+#endif
+        pAddDof(rDofVariable)->FreeDof();
     }
 
     IndexType GetBufferSize() const
@@ -761,8 +750,14 @@ public:
     template<class TVariableType>
     inline unsigned int GetDofPosition(TVariableType const& rDofVariable) const
     {
-        typename DofsContainerType::const_iterator it=mDofs.find(rDofVariable.Key());
-        return it - mDofs.begin();
+        typename DofsContainerType::const_iterator it_dof = mDofs.end();
+        for(it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
+            if((*it_dof)->GetVariable() == rDofVariable){
+                break;
+            }
+        }
+
+        return it_dof - mDofs.begin();
     }
 
     template<class TVariableType>
@@ -775,37 +770,33 @@ public:
         if(pos < it_end-it_begin)
         {
             it = it_begin + pos;
-            if( (it)->GetVariable() == rDofVariable)
+            if( (*it)->GetVariable() == rDofVariable)
             {
-                return *it;
+                return **it;
             }
         }
 
         // Otherwise do a find
-        it = mDofs.find(rDofVariable.Key());
-        if ( it!= mDofs.end() )
-        {
-            return *it;
+        for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
+            if((*it_dof)->GetVariable() == rDofVariable){
+                return **it_dof;
+            }
         }
 
-        std::stringstream buffer;
-        buffer << "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name();
-        KRATOS_ERROR <<  buffer.str() << std::endl;
+        KRATOS_ERROR <<  "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
     }
 
     /** returns the Dof asociated with variable  */
     template<class TVariableType>
     inline const DofType& GetDof(TVariableType const& rDofVariable) const
     {
-        typename DofsContainerType::const_iterator it=mDofs.find(rDofVariable.Key());
-        if ( it!= mDofs.end() )
-        {
-            return *it;
+        for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
+            if((*it_dof)->GetVariable() == rDofVariable){
+                return **it_dof;
+            }
         }
 
-        std::stringstream buffer;
-        buffer << "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name();
-        KRATOS_ERROR <<  buffer.str() << std::endl;
+        KRATOS_ERROR <<  "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
 
     }
 
@@ -819,15 +810,13 @@ public:
     template<class TVariableType>
     inline const typename DofType::Pointer pGetDof(TVariableType const& rDofVariable) const
     {
-        typename DofsContainerType::const_iterator it=mDofs.find(rDofVariable.Key());
-        if ( it!= mDofs.end() )
-        {
-            return *(it.base());
+        for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
+            if((*it_dof)->GetVariable() == rDofVariable){
+                return (*it_dof).get();
+            }
         }
 
-        std::stringstream buffer;
-        buffer << "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name();
-        KRATOS_ERROR <<  buffer.str() << std::endl;
+        KRATOS_ERROR <<  "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
 
     }
 
@@ -837,24 +826,17 @@ public:
     {
         KRATOS_TRY
 
-#ifdef KRATOS_DEBUG
-        if(rDofVariable.Key() == 0)
-        {
-            KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
-        }
-#endif
-
-        typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
-        if(it_dof != mDofs.end())
-        {
-            return *(it_dof.base());
+        for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
+            if((*it_dof)->GetVariable() == rDofVariable){
+                return (*it_dof).get();
+            }
         }
 
-        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(&mNodalData, rDofVariable);
-        mDofs.insert(mDofs.begin(), p_new_dof);
+        mDofs.push_back(Kratos::make_unique<DofType>(&mNodalData, rDofVariable));
 
-//         if(!mDofs.IsSorted())
-        mDofs.Sort();
+        DofType* p_new_dof = mDofs.back().get();
+
+        SortDofs();
 
         return p_new_dof;
 
@@ -866,23 +848,23 @@ public:
     {
         KRATOS_TRY
 
-        typename DofsContainerType::iterator it_dof = mDofs.find(SourceDof.GetVariable());
-        if(it_dof != mDofs.end())
-        {
-            if(it_dof->GetReaction() != SourceDof.GetReaction())
-            {
-                *it_dof = SourceDof;
-                it_dof->SetNodalData(&mNodalData);
+        for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
+            if((*it_dof)->GetVariable() == SourceDof.GetVariable()){
+                if((*it_dof)->GetReaction() != SourceDof.GetReaction())
+                {
+                    **it_dof = SourceDof;
+                    (*it_dof)->SetNodalData(&mNodalData);
+                }
+                return (*it_dof).get();
             }
-            return *(it_dof.base());
         }
 
-        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(SourceDof);
-        mDofs.insert(mDofs.begin(), p_new_dof);
+        mDofs.push_back(Kratos::make_unique<DofType>(SourceDof));
+        mDofs.back()->SetNodalData(&mNodalData);
 
-        p_new_dof->SetNodalData(&mNodalData);
+        DofType* p_new_dof = mDofs.back().get();
 
-        mDofs.Sort();
+        SortDofs();
 
         return p_new_dof;
 
@@ -895,29 +877,18 @@ public:
     {
         KRATOS_TRY
 
-#ifdef KRATOS_DEBUG
-        if(rDofVariable.Key() == 0)
-        {
-            KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
-        }
-        if(rDofReaction.Key() == 0)
-        {
-            KRATOS_ERROR << "Reaction  " << rDofReaction << " has key zero when adding reactions for node " << this->Id() << std::endl;
-        }
-#endif
-
-        typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
-        if(it_dof != mDofs.end())
-        {
-            it_dof->SetReaction(rDofReaction);
-            return *(it_dof.base());
+        for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
+            if((*it_dof)->GetVariable() == rDofVariable){
+                (*it_dof)->SetReaction(rDofReaction);
+                return (*it_dof).get();
+            }
         }
 
-        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(&mNodalData, rDofVariable, rDofReaction);
-        mDofs.insert(mDofs.begin(), p_new_dof);
+        mDofs.push_back(Kratos::make_unique<DofType>(&mNodalData, rDofVariable, rDofReaction));
 
-//         if(!mDofs.IsSorted())
-        mDofs.Sort();
+        DofType* p_new_dof = mDofs.back().get();
+
+        SortDofs();
 
         return p_new_dof;
 
@@ -931,22 +902,17 @@ public:
     {
         KRATOS_TRY
 
-#ifdef KRATOS_DEBUG
-        if(rDofVariable.Key() == 0)
-        {
-            KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
+        for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
+            if((*it_dof)->GetVariable() == rDofVariable){
+                return **it_dof;
+            }
         }
-#endif
 
-        typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
-        if(it_dof != mDofs.end())
-        {
-            return *it_dof;
-        }
-        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(&mNodalData, rDofVariable);
-        mDofs.insert(mDofs.begin(), p_new_dof);
+        mDofs.push_back(Kratos::make_unique<DofType>(&mNodalData, rDofVariable));
 
-        mDofs.Sort();
+        DofType* p_new_dof = mDofs.back().get();
+
+        SortDofs();
 
         return *p_new_dof;
 
@@ -960,29 +926,18 @@ public:
     {
         KRATOS_TRY
 
-#ifdef KRATOS_DEBUG
-        if(rDofVariable.Key() == 0)
-        {
-            KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
-        }
-        if(rDofReaction.Key() == 0)
-        {
-            KRATOS_ERROR << "Reaction  " << rDofReaction << " has key zero when adding reactions for node " << this->Id() << std::endl;
-        }
-#endif
-
-        typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
-        if(it_dof != mDofs.end())
-        {
-            it_dof->SetReaction(rDofReaction);
-            return *it_dof;
+        for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
+            if((*it_dof)->GetVariable() == rDofVariable){
+                (*it_dof)->SetReaction(rDofReaction);
+                return **it_dof;
+            }
         }
 
-        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(&mNodalData, rDofVariable, rDofReaction);
-        mDofs.insert(mDofs.begin(), p_new_dof);
+        mDofs.push_back(Kratos::make_unique<DofType>(&mNodalData, rDofVariable, rDofReaction));
 
-//         if(!mDofs.IsSorted())
-        mDofs.Sort();
+        DofType* p_new_dof = mDofs.back().get();
+
+        SortDofs();
 
         return *p_new_dof;
 
@@ -997,13 +952,22 @@ public:
     /** Return true if the dof of freedom is present on the node */
     inline bool HasDofFor(const VariableData& rDofVariable) const
     {
-        return (mDofs.find(rDofVariable) != mDofs.end());
+        for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
+            if((*it_dof)->GetVariable() == rDofVariable){
+                return true;
+            }
+        }
+        return false;
     }
 
     inline  bool IsFixed(const VariableData& rDofVariable) const
     {
-        typename DofsContainerType::const_iterator i;
-        return (((i= mDofs.find(rDofVariable)) == mDofs.end()) ? false : i->IsFixed());
+        for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
+            if((*it_dof)->GetVariable() == rDofVariable){
+                return (*it_dof)->IsFixed();
+            }
+        }
+        return false;
     }
 
 
@@ -1032,7 +996,7 @@ public:
         if(!mDofs.empty())
             rOStream << std::endl << "    Dofs :" << std::endl;
         for(typename DofsContainerType::const_iterator i = mDofs.begin() ; i != mDofs.end() ; i++)
-            rOStream << "        " << i->Info() << std::endl;
+            rOStream << "        " << (*i)->Info() << std::endl;
     }
 
 
@@ -1127,6 +1091,11 @@ private:
     //*********************************************
 
 
+    void SortDofs(){
+        std::sort(mDofs.begin(), mDofs.end(), [](Kratos::unique_ptr<DofType> const& First, Kratos::unique_ptr<DofType> const& Second)->bool{
+            return First->GetVariable().Key() < Second->GetVariable().Key();
+        });
+    }
     ///@}
     ///@name Private Operations
     ///@{
@@ -1152,7 +1121,7 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Point );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
-        NodalData* p_nodal_data = &mNodalData; 
+        NodalData* p_nodal_data = &mNodalData;
         rSerializer.load("NodalData", p_nodal_data);
         rSerializer.load("Data", mData);
         rSerializer.load("Initial Position", mInitialPosition);

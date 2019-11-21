@@ -79,7 +79,7 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
     def __CreateResponseFunctions( specified_responses, model ):
         response_functions = {}
 
-        available_csm_response_functions = ["strain_energy", "mass", "eigenfrequency"]
+        available_csm_response_functions = ["strain_energy", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress"]
 
         for (response_id, response_settings) in specified_responses:
             if response_id in response_functions.keys():

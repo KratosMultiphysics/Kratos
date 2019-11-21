@@ -244,8 +244,8 @@ private:
     const FluxCondition<3>  mFluxCondition3D3N;
     const FluxCondition<4>  mFluxCondition3D4N;
 
-    const AdjointThermalFace<ThermalFace> mAdjointThermalFace2D2N;
-    const AdjointThermalFace<ThermalFace> mAdjointThermalFace3D3N;
+    const AdjointThermalFace mAdjointThermalFace2D2N;
+    const AdjointThermalFace mAdjointThermalFace3D3N;
 
     ///@}
     ///@name Private Operators

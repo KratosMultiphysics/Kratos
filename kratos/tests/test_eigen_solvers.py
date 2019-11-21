@@ -15,9 +15,9 @@ class TestEigenSolvers(KratosUnittest.TestCase):
 
         for i in range(all_settings["test_list"].size()):
             settings = all_settings["test_list"][i]
-            self._auxiliary_test_function(settings, "auxiliar_files_for_python_unnitest/sparse_matrix_files/A.mm", eigen_value_estimated)
+            self._auxiliary_test_function(settings, "auxiliar_files_for_python_unittest/sparse_matrix_files/A.mm", eigen_value_estimated)
 
-    def _auxiliary_test_function(self, settings, matrix_name="auxiliar_files_for_python_unnitest/sparse_matrix_files/A.mm", eigen_value_estimated = "lowest"):
+    def _auxiliary_test_function(self, settings, matrix_name="auxiliar_files_for_python_unittest/sparse_matrix_files/A.mm", eigen_value_estimated = "lowest"):
         space = KratosMultiphysics.UblasSparseSpace()
 
         # Read the matrices

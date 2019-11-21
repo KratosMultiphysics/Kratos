@@ -63,6 +63,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "AdjointVMSSensitivity2DTest/one_element_test"
         },
+        "material_import_settings": {
+            "materials_filename": "AdjointVMSSensitivity2DTest/one_element_test_materials.json"
+        },
         "time_stepping"                : {
             "automatic_time_step" : false,
             "time_step"           : 1.0

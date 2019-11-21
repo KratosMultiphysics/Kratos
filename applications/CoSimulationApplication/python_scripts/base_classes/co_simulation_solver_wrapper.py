@@ -36,7 +36,7 @@ class CoSimulationSolverWrapper(object):
 
         self.name = name
         self.echo_level = self.settings["echo_level"].GetInt()
-        self.data_dict = {data_name : CouplingInterfaceData(data_config, self.model, data_name) for (data_name, data_config) in self.settings["data"].items()}
+        self.data_dict = {data_name : CouplingInterfaceData(data_config, self.model, data_name, self.name) for (data_name, data_config) in self.settings["data"].items()}
 
         # The IO is only used if the corresponding solver is used in coupling and it initialized from the "higher instance, i.e. the coupling-solver
         self.__io = None

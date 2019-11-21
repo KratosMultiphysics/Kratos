@@ -20,6 +20,7 @@
 
 /* Project includes */
 #include "includes/checks.h"
+#include "utilities/time_discretization.h"
 #include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
 
 namespace Kratos
@@ -121,7 +122,8 @@ public:
      */
     explicit ResidualBasedBDFScheme(const std::size_t Order = 2)
         :ImplicitBaseType(),
-         mOrder(Order)
+         mOrder(Order),
+         mpBDFUtility(Kratos::make_unique<TimeDiscretization::BDF>(Order))
     {
         // Allocate auxiliary memory
         const std::size_t num_threads = OpenMPUtils::GetNumThreads();
@@ -144,7 +146,10 @@ public:
         ,mOrder(rOther.mOrder)
         ,mBDF(rOther.mBDF)
         ,mVector(rOther.mVector)
+        ,mpBDFUtility(nullptr)
     {
+        Kratos::unique_ptr<TimeDiscretization::BDF> auxiliar_pointer = Kratos::make_unique<TimeDiscretization::BDF>(mOrder);
+        mpBDFUtility.swap(auxiliar_pointer);
     }
 
     /**
@@ -238,70 +243,14 @@ public:
         KRATOS_TRY;
 
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        ProcessInfo& r_previous_process_info = r_current_process_info.GetPreviousTimeStepInfo(1);
 
         ImplicitBaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
-        const double delta_time = r_current_process_info[DELTA_TIME];
-        double previous_delta_time = r_previous_process_info[DELTA_TIME];
+        mpBDFUtility->ComputeAndSaveBDFCoefficients(r_current_process_info);
+        mBDF = r_current_process_info[BDF_COEFFICIENTS];
 
-        KRATOS_ERROR_IF(delta_time < ZeroTolerance) << "Detected delta_time equal to zero or negative in the Solution Scheme DELTA_TIME: " << delta_time << ". PLEASE : check if the time step is created correctly for the current time step" << std::endl;
-        KRATOS_WARNING_IF("ResidualBasedBDFScheme", previous_delta_time < ZeroTolerance) << "Detected previous_delta_time equal to zero or negative in the Solution Scheme DELTA_TIME: " << previous_delta_time << ". PLEASE : check if the time step is created correctly for the previous time step" << std::endl;
-        previous_delta_time = std::abs(previous_delta_time) > ZeroTolerance ? previous_delta_time : delta_time;
-        
-        // Calculate the BDF coefficients
-        const double rho = previous_delta_time / delta_time;
-        double time_coeff = 0.0;
-        for (std::size_t i_rho = 0; i_rho < mOrder; ++i_rho)
-            time_coeff += delta_time * std::pow(rho, i_rho);
-        time_coeff = 1.0/time_coeff;
-
-        // We compute the BDF coefficients
-        switch(mOrder) {
-            case 1 : mBDF[0] =  time_coeff * rho; //coefficient for step n+1 (1Dt if Dt is constant)
-                     mBDF[1] = -time_coeff * rho; //coefficient for step n (-1Dt if Dt is constant)
-                     break;
-            case 2 : mBDF[0] =  time_coeff * (std::pow(rho, 2) + 2.0 * rho); //coefficient for step n+1 (3/2Dt if Dt is constant)
-                     mBDF[1] = -time_coeff * (std::pow(rho, 2) + 2.0 * rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
-                     mBDF[2] =  time_coeff; //coefficient for step n-1 (1/2Dt if Dt is constant)
-                     break;
-            case 3 : mBDF[0] =  11.0/(6.0 * delta_time); //coefficient for step n+1 (11/6Dt if Dt is constant)
-                     mBDF[1] = -18.0/(6.0 * delta_time);; //coefficient for step n (-18/6Dt if Dt is constant)
-                     mBDF[2] =  9.0/(6.0 * delta_time);; //coefficient for step n-1 (9/6Dt if Dt is constant)
-                     mBDF[3] = -2.0/(6.0 * delta_time);; //coefficient for step n-2 (2/6Dt if Dt is constant)
-                     break;
-            case 4 : mBDF[0] =  25.0/(12.0 * delta_time); //coefficient for step n+1 (25/12Dt if Dt is constant)
-                     mBDF[1] = -48.0/(12.0 * delta_time); //coefficient for step n (-48/12Dt if Dt is constant)
-                     mBDF[2] =  36.0/(12.0 * delta_time); //coefficient for step n-1 (36/12Dt if Dt is constant)
-                     mBDF[3] = -16.0/(12.0 * delta_time); //coefficient for step n-2 (16/12Dt if Dt is constant)
-                     mBDF[4] =  3.0/(12.0 * delta_time); //coefficient for step n-3 (3/12Dt if Dt is constant)
-                     break;
-            case 5 : mBDF[0] =  137.0/(60.0 * delta_time); //coefficient for step n+1 (137/60Dt if Dt is constant)
-                     mBDF[1] = -300.0/(60.0 * delta_time); //coefficient for step n (-300/60Dt if Dt is constant)
-                     mBDF[2] =  300.0/(60.0 * delta_time); //coefficient for step n-1 (300/60Dt if Dt is constant)
-                     mBDF[3] = -200.0/(60.0 * delta_time); //coefficient for step n-2 (-200/60Dt if Dt is constant)
-                     mBDF[4] =  75.0/(60.0 * delta_time); //coefficient for step n-3 (75/60Dt if Dt is constant)
-                     mBDF[5] =  -12.0/(60.0 * delta_time); //coefficient for step n-4 (-12/60Dt if Dt is constant)
-                     break;
-            case 6 : mBDF[0] =  147.0/(60.0 * delta_time); //coefficient for step n+1 (147/60Dt if Dt is constant)
-                     mBDF[1] = -360.0/(60.0 * delta_time); //coefficient for step n (-360/60Dt if Dt is constant)
-                     mBDF[2] =  450.0/(60.0 * delta_time); //coefficient for step n-1 (450/60Dt if Dt is constant)
-                     mBDF[3] = -400.0/(60.0 * delta_time); //coefficient for step n-2 (-400/60Dt if Dt is constant)
-                     mBDF[4] =  225.0/(60.0 * delta_time); //coefficient for step n-3 (225/60Dt if Dt is constant)
-                     mBDF[5] = -72.0/(60.0 * delta_time); //coefficient for step n-4 (-72/60Dt if Dt is constant)
-                     mBDF[6] =  10.0/(60.0 * delta_time); //coefficient for step n-5 (10/60Dt if Dt is constant)
-                     break;
-            default : KRATOS_ERROR << "Methods with order > 6 are not zero-stable so they cannot be used" << std::endl;
-        }
-
-        const double tolerance = 1.0e-24;
-        KRATOS_WARNING_IF("ResidualBasedBDFScheme", mOrder > 2 && std::abs(delta_time - previous_delta_time) > tolerance) << "For higher orders than 2 the time step is assumed to be constant. Sorry for the inconveniences" << std::endl;
-
-        // Adding to the process info
-        Vector bdf_vector(mOrder + 1);
-        for (std::size_t i_order = 0; i_order < mOrder + 1; ++i_order)
-            bdf_vector[i_order] = mBDF[i_order];
-        r_current_process_info.SetValue(BDF_COEFFICIENTS, bdf_vector);
+        KRATOS_WARNING_IF("ResidualBasedBDFScheme", mOrder > 2)
+        << "For higher orders than 2 the time step is assumed to be constant.\n";
 
         KRATOS_CATCH( "" );
     }
@@ -321,7 +270,7 @@ public:
 
         // Check for minimum value of the buffer index
         // Verify buffer size
-        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < mOrder + 1) << "Insufficient buffer size. Buffer size should be greater than" << mOrder + 1 << ". Current size is" << rModelPart.GetBufferSize() << std::endl;
+        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < mOrder + 1) << "Insufficient buffer size. Buffer size should be greater than " << mOrder + 1 << ". Current size is " << rModelPart.GetBufferSize() << std::endl;
 
         KRATOS_CATCH( "" );
 
@@ -383,9 +332,11 @@ protected:
         std::vector< Vector > dot2un0; /// Second derivative
     };
 
-    const std::size_t mOrder; /// The integration order
-    Vector mBDF;              /// The BDF coefficients
-    GeneralVectors mVector;   /// The structure containing the  derivatives
+    const std::size_t mOrder;                      /// The integration order
+    Vector mBDF;                                   /// The BDF coefficients
+    GeneralVectors mVector;                        /// The structure containing the  derivatives
+    Kratos::unique_ptr<TimeDiscretization::BDF> mpBDFUtility; /// Utility to compute BDF coefficients
+
 
     ///@}
     ///@name Protected Operators

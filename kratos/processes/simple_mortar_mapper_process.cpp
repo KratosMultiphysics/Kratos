@@ -796,6 +796,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
     const double absolute_convergence_tolerance = mThisParameters["absolute_convergence_tolerance"].GetDouble();
     const double distance_threshold = mThisParameters["distance_threshold"].GetDouble();
+    const double zero_tolerance_factor = mThisParameters["zero_tolerance_factor"].GetDouble();
     const bool remove_isolated_conditions = mThisParameters["remove_isolated_conditions"].GetBool();
     const SizeType max_number_iterations = mThisParameters["max_number_iterations"].GetInt();
     IndexType iteration = 0;
@@ -831,7 +832,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     MortarOperatorType this_mortar_operators;
 
     // We call the exact integration utility
-    ExactMortarIntegrationUtilityType integration_utility = ExactMortarIntegrationUtilityType(TDim, distance_threshold);
+    ExactMortarIntegrationUtilityType integration_utility = ExactMortarIntegrationUtilityType(TDim, distance_threshold, 0, zero_tolerance_factor);
 
     // We reset the nodal area
     ResetNodalArea();
@@ -1004,6 +1005,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
     const double absolute_convergence_tolerance = mThisParameters["absolute_convergence_tolerance"].GetDouble();
     const double distance_threshold = mThisParameters["distance_threshold"].GetDouble();
+    const double zero_tolerance_factor = mThisParameters["zero_tolerance_factor"].GetDouble();
     const bool remove_isolated_conditions = mThisParameters["remove_isolated_conditions"].GetBool();
     const SizeType max_number_iterations = mThisParameters["max_number_iterations"].GetInt();
     IndexType iteration = 0;
@@ -1040,7 +1042,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     MortarOperatorType this_mortar_operators;
 
     // We call the exact integration utility
-    ExactMortarIntegrationUtilityType integration_utility = ExactMortarIntegrationUtilityType(TDim, distance_threshold);
+    ExactMortarIntegrationUtilityType integration_utility = ExactMortarIntegrationUtilityType(TDim, distance_threshold, 0, zero_tolerance_factor);
 
     // Check if the pairs has been created
     CheckAndPerformSearch();
@@ -1345,6 +1347,7 @@ Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>
         "max_number_iterations"            : 10,
         "integration_order"                : 2,
         "distance_threshold"               : 1.0e24,
+        "zero_tolerance_factor"            : 1.0e0,
         "remove_isolated_conditions"       : false,
         "mapping_coefficient"              : 1.0e0,
         "origin_variable"                  : "TEMPERATURE",

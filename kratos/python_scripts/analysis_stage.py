@@ -128,6 +128,9 @@ class AnalysisStage(object):
         self.ChangeMaterialProperties() #this is normally empty
         self._GetSolver().InitializeSolutionStep()
 
+        self.PrintAnalysisStageProgressInformation()
+
+    def PrintAnalysisStageProgressInformation(self):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
 

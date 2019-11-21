@@ -399,6 +399,9 @@ public:
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
         TSparseSpace::SetToZero(rMassMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rMassMatrix,b);
+        if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
+            this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rMassMatrix, b);
+        }
         this->ApplyDirichletConditions(rMassMatrix, 1.0);
 
         if (BaseType::GetEchoLevel() == 4) {
@@ -410,6 +413,9 @@ public:
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
         TSparseSpace::SetToZero(rStiffnessMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStiffnessMatrix,b);
+        if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
+            this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rStiffnessMatrix, b);
+        }
         ApplyDirichletConditions(rStiffnessMatrix,-1.0);
 
         if (BaseType::GetEchoLevel() == 4) {
@@ -672,19 +678,20 @@ private:
                 rNodeEigenvectors.resize(NumEigenvalues,NumNodeDofs,false);
             }
 
-            // the jth column index of EIGENVECTOR_MATRIX corresponds to the jth nodal dof. therefore,
-            // the dof ordering must not change.
-            if (NodeDofs.IsSorted() == false)
-            {
-                NodeDofs.Sort();
-            }
+            // TO BE VERIFIED!! In the current implmentation of Dofs there are nor reordered and only pushec back. 
+            // // the jth column index of EIGENVECTOR_MATRIX corresponds to the jth nodal dof. therefore,
+            // // the dof ordering must not change.
+            // if (NodeDofs.IsSorted() == false)
+            // {
+            //     NodeDofs.Sort();
+            // }
 
             // fill the EIGENVECTOR_MATRIX
             for (std::size_t i = 0; i < NumEigenvalues; i++)
                 for (std::size_t j = 0; j < NumNodeDofs; j++)
                 {
                     auto itDof = std::begin(NodeDofs) + j;
-                    rNodeEigenvectors(i,j) = rEigenvectors(i,itDof->EquationId());
+                    rNodeEigenvectors(i,j) = rEigenvectors(i,(*itDof)->EquationId());
                 }
         }
     }

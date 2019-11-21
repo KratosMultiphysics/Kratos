@@ -9,7 +9,6 @@ import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.DelaunayMeshingApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication
-import KratosMultiphysics.SolidMechanicsApplication
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
@@ -81,8 +80,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         return solver
 
     def AddNodalVariablesToModelPart(self):
-        """ Add PfemSolidMechanicsApplication Variables
-        """
         from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_variables
         pfem_variables.AddVariables(self.main_model_part)
 
@@ -114,7 +111,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         #### Processes settings start ####
 
         # obtain the list of the processes to be applied
-        from KratosMultiphysics.SolidMechanicsApplication.process_handler import ProcessHandler
+        from KratosMultiphysics.PfemFluidDynamicsApplication.process_handler import ProcessHandler
 
         process_parameters = KratosMultiphysics.Parameters("{}")
         process_parameters.AddValue("echo_level", self.project_parameters["problem_data"]["echo_level"])
@@ -345,7 +342,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
     def _import_project_parameters(self, input_file):
         """This function reads the ProjectsParameters.json
         """
-        from KratosMultiphysics.SolidMechanicsApplication.input_manager import InputManager
+        from KratosMultiphysics.PfemFluidDynamicsApplication.input_manager import InputManager
         self.input_manager = InputManager(input_file)
         return self.input_manager.Getparameters()
 
