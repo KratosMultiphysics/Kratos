@@ -1378,7 +1378,9 @@ public:
 
     /**
     * @brief Checks if given point in global space coordinates
-    *        is inside the geometry boundaries.
+    *        is inside the geometry boundaries. This function
+    *        computes the local coordinates and checks then if
+    *        this point lays within the boundaries.
     * @param rPointGlobalCoordinates the global coordinates of the
     *        external point.
     * @param rResult the local coordinates of the point.
