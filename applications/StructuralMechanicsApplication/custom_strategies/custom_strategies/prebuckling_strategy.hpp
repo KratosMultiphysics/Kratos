@@ -299,17 +299,17 @@ public:
         KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
             << "Entering Initialize" << std::endl;
 
-        if (mInitializeWasPerformed == false)
+        if (!mInitializeWasPerformed)
         {
             SchemePointerType &pScheme = this->pGetScheme();
 
-            if (pScheme->SchemeIsInitialized() == false)
+            if ( !pScheme->SchemeIsInitialized() )
                 pScheme->Initialize(rModelPart);
 
-            if (pScheme->ElementsAreInitialized() == false)
+            if ( !pScheme->ElementsAreInitialized() )
                 pScheme->InitializeElements(rModelPart);
 
-            if (pScheme->ConditionsAreInitialized() == false)
+            if ( !pScheme->ConditionsAreInitialized() )
                 pScheme->InitializeConditions(rModelPart);
         }
         // Initialization of the convergence criteria
@@ -405,8 +405,8 @@ public:
 
             // Reset solution dofs
             BuiltinTimer system_construction_time;
-            if (pBuilderAndSolver->GetDofSetIsInitializedFlag() == false ||
-                pBuilderAndSolver->GetReshapeMatrixFlag() == true)
+            if ( !pBuilderAndSolver->GetDofSetIsInitializedFlag() ||
+                pBuilderAndSolver->GetReshapeMatrixFlag() )
             {
                 // Set up list of dofs
                 BuiltinTimer setup_dofs_time;
