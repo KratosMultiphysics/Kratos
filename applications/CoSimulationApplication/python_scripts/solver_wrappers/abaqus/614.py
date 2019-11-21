@@ -39,6 +39,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         self.array_size = self.settings["arraysize"].GetInt()
         self.surfaces = self.settings["surfaces"].GetInt()
         self.ramp = self.settings["ramp"].GetInt()
+        self.delta_T = self.settings["delta_T"].GetDouble()  #TODO: move to higher-level parameter file?
 
         #prepare Abaqus USR
         usr = "USR.f"
@@ -50,10 +51,12 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     line = line.replace("|surfaces|", str(self.surfaces))
                     line = line.replace("|cpus|", str(self.cores))
                     line = line.replace("|PWD|", os.path.abspath(os.path.join(self.dir_csm, os.pardir)))
-                    line = line.replace("|CSMdir|", self.settings["working_directory"].GetString())
+                    line = line.replace("|CSM_dir|", self.settings["working_directory"].GetString())
                     line = line.replace("|ramp|", str(self.ramp))
-                    line = line.replace("|deltaT|", )
+                    line = line.replace("|deltaT|", str(self.delta_T))
                     outfile.write(line)
+
+        #TODO: Deal with lines that are too long. Ask Joris.
 
         #compile Fortran and C++ codes
         path_libusr = join(self.dir_csm, "libusr")
