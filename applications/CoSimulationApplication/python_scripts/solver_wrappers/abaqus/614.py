@@ -42,7 +42,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         #   Abaqus needs to print a file with the location of its load points (usr_init.f ?)
         #   Create Model with ModelParts
         #   Add variables to ModelParts
-        #   Add Nodes to ModelParts, based on file written by Abaqus
+        #   Add Nodes to input ModelParts and output ModelParts, based on file written by Abaqus
 
 
     def Initialize(self):
