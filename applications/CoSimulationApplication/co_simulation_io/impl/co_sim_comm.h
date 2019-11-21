@@ -83,25 +83,25 @@ public:
     }
 
     void ImportData(
-        const char* pIdentifier,
+        const std::string& rIdentifier,
         int* pSize,
         double** ppData)
     {
         CheckConnection();
-        ImportDataImpl(pIdentifier, pSize, ppData);
+        ImportDataImpl(rIdentifier, pSize, ppData);
     }
 
     void ExportData(
-        const char* pIdentifier,
+        const std::string& rIdentifier,
         const int Size,
         const double* pData)
     {
         CheckConnection();
-        ExportDataImpl(pIdentifier, Size, pData);
+        ExportDataImpl(rIdentifier, Size, pData);
     }
 
     void ImportMesh(
-        const char* pIdentifier,
+        const std::string& rIdentifier,
         int* pNumberOfNodes,
         int* pNumberOfElements,
         double** ppNodalCoordinates,
@@ -109,11 +109,11 @@ public:
         int** ppElementTypes)
     {
         CheckConnection();
-        ImportMeshImpl(pIdentifier, pNumberOfNodes, pNumberOfElements, ppNodalCoordinates, ppElementConnectivities, ppElementTypes);
+        ImportMeshImpl(rIdentifier, pNumberOfNodes, pNumberOfElements, ppNodalCoordinates, ppElementConnectivities, ppElementTypes);
     }
 
     void ExportMesh(
-        const char* pIdentifier,
+        const std::string& rIdentifier,
         const int NumberOfNodes,
         const int NumberOfElements,
         const double* pNodalCoordinates,
@@ -121,7 +121,7 @@ public:
         const int* pElementTypes)
     {
         CheckConnection();
-        ExportMeshImpl(pIdentifier, NumberOfNodes, NumberOfElements, pNodalCoordinates, pElementConnectivities, pElementTypes);
+        ExportMeshImpl(rIdentifier, NumberOfNodes, NumberOfElements, pNodalCoordinates, pElementConnectivities, pElementTypes);
     }
 
     template<class DataContainer>
@@ -162,7 +162,7 @@ private:
     }
 
     virtual void ImportDataImpl(
-        const char* pIdentifier,
+        const std::string& rIdentifier,
         int* pSize,
         double** ppData)
     {
@@ -170,7 +170,7 @@ private:
     }
 
     virtual void ExportDataImpl(
-        const char* pIdentifier,
+        const std::string& rIdentifier,
         const int Size,
         const double* pData)
     {
@@ -178,7 +178,7 @@ private:
     }
 
     virtual void ImportMeshImpl(
-        const char* pIdentifier,
+        const std::string& rIdentifier,
         int* pNumberOfNodes,
         int* pNumberOfElements,
         double** ppNodalCoordinates,
@@ -189,7 +189,7 @@ private:
     }
 
     virtual void ExportMeshImpl(
-        const char* pIdentifier,
+        const std::string& rIdentifier,
         const int NumberOfNodes,
         const int NumberOfElements,
         const double* pNodalCoordinates,
@@ -205,13 +205,22 @@ private:
     }
 
     template <typename TDataType>
-    void AllocateMemoryIfRequired(const char* pIdentifier, const int RequiredSize, int& rCurrentSize, TDataType** ppContainer)
+    void AllocateMemoryIfRequired(TDataType** ppContainer, const int RequiredSize, int& rCurrentSize)
     {
         if (RequiredSize > rCurrentSize) {
             // Log detail telling abt resize
             rCurrentSize = RequiredSize;
             delete *ppContainer; // check if this is correct ... probably not
             *ppContainer = new TDataType[RequiredSize];
+        }
+    }
+
+    template <typename TDataType>
+    void AllocateMemoryIfRequired(std::vector<TDataType>* pContainer, const int RequiredSize, int& rCurrentSize)
+    {
+        if (RequiredSize > rCurrentSize) {
+            rCurrentSize = RequiredSize;
+            pContainer->resize(RequiredSize);
         }
     }
 };
