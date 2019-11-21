@@ -300,7 +300,7 @@ public:
         }
         //initialisation of the convergence criteria
         pConvergenceCriteria->Initialize(BaseType::GetModelPart());
-
+        
         this->SetIsInitialized( true );
 
         KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
@@ -308,6 +308,7 @@ public:
 
         KRATOS_CATCH("")
     }
+
 
     /**
      * Clears the internal storage
@@ -662,7 +663,7 @@ public:
             //End Method 2#########################################################################
 
             // Convergence criteria for buckling analysis
-            if( abs(lambda/lambdaPrev) < mConvergenceRatio )
+            if( std::abs(lambda/lambdaPrev) < mConvergenceRatio )
             {
                 mSolutionFound = true;
                 KRATOS_INFO_IF("Prebuckling Analysis: ", BaseType::GetEchoLevel() > 0)
