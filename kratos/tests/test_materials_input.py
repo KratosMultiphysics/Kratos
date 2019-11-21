@@ -105,7 +105,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication or FluidDynamicsApplication are not available")
     def test_input_cpp(self):
-        self._prepare_test()
+        self._prepare_test("materials_custom_parameters.json")
 
         KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
         self._check_results()
