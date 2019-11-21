@@ -274,17 +274,17 @@ set(Boost_USE_STATIC_LIBS   OFF)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_REALPATH ON)
 
-# If CUDA
-if(${USE_CUDA} MATCHES ON)
-  find_package(CUDA QUIET REQUIRED)
-endif(${USE_CUDA} MATCHES ON)
-
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 message(STATUS "Boost Include: ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost Linkdir: ${Boost_LIBRARY_DIRS}")
 
 ##*****************************
+# Finding cuda if needed
+if(${USE_CUDA} MATCHES ON)
+  find_package(CUDA QUIET REQUIRED)
+endif(${USE_CUDA} MATCHES ON)
+
 
 # Follow the symbolic links for the python lib only if needed
 if(${INSTALL_RUNKRATOS} MATCHES ON )
