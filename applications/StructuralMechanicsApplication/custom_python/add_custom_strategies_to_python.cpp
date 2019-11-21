@@ -98,10 +98,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Prebuckling Strategy
     py::class_< PrebucklingStrategyType, typename PrebucklingStrategyType::Pointer,BaseSolvingStrategyType >(m,"PrebucklingStrategy")
-        .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, BuilderAndSolverPointer, ConvergenceCriteriaPointer, int, double, double, double, double >(), 
-            py::arg("model_part"), py::arg("scheme"), py::arg("builder_and_solver"), py::arg("static_solver"), py::arg("convergence_criteria"), py::arg("max_iteration"), py::arg("initial_step"), py::arg("small_step"), py::arg("big_step"), py::arg("convergence_ratio") )
-            .def("GetSolutionFoundFlag", &PrebucklingStrategyType::GetSolutionFoundFlag)
-            ;
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, BuilderAndSolverPointer, ConvergenceCriteriaPointer, int, double, double, double, double >())
+        .def("GetSolutionFoundFlag", &PrebucklingStrategyType::GetSolutionFoundFlag)
+        ;
 
     py::class_< FormfindingUpdatedReferenceStrategyType,typename FormfindingUpdatedReferenceStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"FormfindingUpdatedReferenceStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, int, bool, bool, bool, bool, bool >())
