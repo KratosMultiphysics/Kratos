@@ -35,6 +35,27 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         self.remove_all_messages()
 
         self.cores = self.settings['cores'].GetInt() #  number of cpus Abaqus has to use
+        self.dimensions = self.settings['dimensions'].GetInt()
+        self.array_size = self.settings["arraysize"].GetInt()
+        self.surfaces = self.settings["surfaces"].GetInt()
+
+        #prepare Abaqus USR
+        path_usr = join(path_src, "USR.f")
+        with open(path_usr)as infile:
+            for line in infile:
+                line = line.replace("|dimension|", self.dimensions)
+                line = line.replace("|arraySize|", self.array_size)
+                line = line.replace("|surfaces|", self.surfaces)
+                line = line.replace("|cpus|", self.cores)
+
+
+        #compile Fortran and C++ codes
+        path_libusr = join(self.dir_csm, "libusr")
+        os.system("rm -r " + path_libusr)
+        os.system("mdkir " + path_libusr)
+        cmd = "abaqus make library=" + path_usr + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
+        print(cmd)
+        self.abaqus_process = subprocess.Popen(cmd, executable='/bin/bash', shell=True, cwd=self.dir_csm)
 
         # TODO:
         #   Read settings
