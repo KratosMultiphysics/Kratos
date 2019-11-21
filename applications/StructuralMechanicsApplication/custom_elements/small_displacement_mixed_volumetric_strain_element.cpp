@@ -8,7 +8,6 @@
 //
 //  Main authors:    Ruben Zorrilla
 //                   Riccardo Rossi
-//  Collaborator:    Vicente Mataix Ferrandiz
 //
 
 // System includes
