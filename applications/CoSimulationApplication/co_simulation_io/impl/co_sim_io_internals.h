@@ -43,12 +43,19 @@ public:
 
     const TDataType& operator[](const std::size_t Index) const
     {
-        return data()[Index];
+        return this->data()[Index];
     }
 
     TDataType& operator[](const std::size_t Index)
     {
         return const_cast<TDataType&>(const_cast<const DataContainer*>(this)->operator[](Index));
+    }
+
+    void resize_if_smaller(const std::size_t MinRequiredSize)
+    {
+        if (MinRequiredSize > this->size()) {
+            this-resize(MinRequiredSize);
+        }
     }
 };
 
