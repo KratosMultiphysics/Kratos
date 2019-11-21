@@ -3173,27 +3173,24 @@ private:
     static const GeometryDimension msGeometryDimension;
 
     PointsArrayType mPoints;
+
     ///@}
     ///@name Serialization
     ///@{
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    virtual void save( Serializer& rSerializer ) const override
     {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject);
         rSerializer.save( "Points", mPoints);
     }
 
-    virtual void load( Serializer& rSerializer )
+    virtual void load( Serializer& rSerializer ) override
     {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject);
         rSerializer.load( "Points", mPoints );
     }
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
 
     ///@}
     ///@name Private Operations
