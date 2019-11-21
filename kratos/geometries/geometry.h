@@ -1959,6 +1959,7 @@ public:
     * @param rProjectedPointLocalCoordinates the location of the
     *        projection in local coordinates.
     *        The variable is as initial guess!
+    * @param Tolerance accepted of orthogonal error to projection.
     * @return if projection was successfull (converge)
     */
     virtual bool ProjectionPoint(
@@ -1998,9 +1999,20 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const
     {
-        KRATOS_ERROR << "Calling ClosestPoint within geometry base class."
-            << " Please check the definition within derived class. "
-            << *this << std::endl;
+        // 1. Make on geometry
+        if (ProjectionPoint(rPointGlobalCoordinates,
+            rClosestPointGlobalCoordinates,
+            rClosestPointLocalCoordinates,
+            Tolerance))
+        {
+            // 2. If projection converged check if solution lays
+            // within the boundaries of this geometry.
+            return IsInsideLocalSpace(
+                rClosestPointLocalCoordinates,
+                Tolerance);
+        }
+
+        return 0;
     }
 
     /**
