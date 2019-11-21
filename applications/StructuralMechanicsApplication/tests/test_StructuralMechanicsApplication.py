@@ -398,7 +398,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisShell3D3NStructure]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisLinearTrussStructure]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisNonLinearTrussStructure]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisSpringDamperStructure]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisSpringDamperStructure]))
     nightSuite.addTest(TTestMassResponseFunction('test_execution'))
     nightSuite.addTest(TTestStrainEnergyResponseFunction('test_execution'))
     nightSuite.addTest(TTestEigenfrequencyResponseFunction('test_execution'))

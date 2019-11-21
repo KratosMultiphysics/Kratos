@@ -202,13 +202,13 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
         const double& output_value = this->GetValue(rVariable);
 
         // Resize Output
-        const SizeType  write_points_number = this->GetGeometry()
+        const SizeType  gauss_points_number = this->GetGeometry()
             .IntegrationPointsNumber(this->GetIntegrationMethod());
-        if (rValues.size() != write_points_number)
-            rValues.resize(write_points_number);
+        if (rValues.size() != gauss_points_number)
+            rValues.resize(gauss_points_number);
 
         // Write scalar result value on all Gauss-Points
-        for(IndexType i = 0; i < write_points_number; ++i)
+        for(IndexType i = 0; i < gauss_points_number; ++i)
             rValues[i] = output_value;
     }
     else
@@ -228,14 +228,14 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
         const auto& output_value = this->GetValue(rVariable);
 
         // Resize Output
-        const SizeType  write_points_number = this->GetGeometry()
+        const SizeType gauss_points_number = this->GetGeometry()
             .IntegrationPointsNumber(this->GetIntegrationMethod());
-        if (rOutput.size() != write_points_number) {
-            rOutput.resize(write_points_number);
+        if (rOutput.size() != gauss_points_number) {
+            rOutput.resize(gauss_points_number);
         }
 
         // Write scalar result value on all Gauss-Points
-        for(IndexType i = 0; i < write_points_number; ++i) {
+        for(IndexType i = 0; i < gauss_points_number; ++i) {
             rOutput[i] = output_value;
         }
 

@@ -23,6 +23,11 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::InitializeSolut
 {
     KRATOS_TRY
 
+    // As the stiffness parameters are saved in the non-historical database of the element these parameters
+    // have to be explicitly transfered from the adjoint to the primal element. Please note: if the stiffness parameters
+    // would be part of the element properties this transferring would be not necessary. The stiffness parameters
+    // are needed by the primal element in order to compute later on the element stiffness matrix for the
+    // adjoint problem and the sensitivity matrix as the element contribution to the pseudo-load.
     this->pGetPrimalElement()->SetValue(NODAL_DISPLACEMENT_STIFFNESS, this->GetValue(NODAL_DISPLACEMENT_STIFFNESS));
     this->pGetPrimalElement()->SetValue(NODAL_ROTATIONAL_STIFFNESS, this->GetValue(NODAL_ROTATIONAL_STIFFNESS));
     BaseType::InitializeSolutionStep(rCurrentProcessInfo);
@@ -77,7 +82,8 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensit
         Vector RHS;
         for(IndexType dir_i = 0; dir_i < dimension; ++dir_i) {
             // The following approach assumes a linear dependency between RHS and spring stiffness
-            array_1d<double, 3> perturbed_nodal_stiffness = ZeroVector(3);
+            array_1d<double, 3> perturbed_nodal_stiffness;
+            noalias(perturbed_nodal_stiffness) = ZeroVector(3);
             perturbed_nodal_stiffness[dir_i] = 1.0;
             this->pGetPrimalElement()->SetValue(rDesignVariable, perturbed_nodal_stiffness);
             this->pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
@@ -93,7 +99,7 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensit
         if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) {
             rOutput.resize(0, local_size, false);
         }
-        rOutput = ZeroMatrix(0, local_size);
+        noalias(rOutput) = ZeroMatrix(0, local_size);
     }
 
     KRATOS_CATCH("")
@@ -151,7 +157,7 @@ int AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::Check( const Pro
 
     return 0;
 
-    KRATOS_CATCH( "Problem in the Check in the SpringDamperElement3D2N" )
+    KRATOS_CATCH( "Problem in the Check in the AdjointFiniteDifferenceSpringDamperElement!" )
 }
 
 template <class TPrimalElement>
