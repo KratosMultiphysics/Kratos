@@ -26,7 +26,6 @@ class PrebucklingSolver(MechanicalSolver):
     def __init__(self, main_model_part, custom_settings):
         # Construct the base solver.
         super(PrebucklingSolver, self).__init__(main_model_part, custom_settings)
-        self.solverFlag = "eigen"
         KratosMultiphysics.Logger.PrintInfo("::[PrebucklingSolver]:: ", "Construction finished")
 
     @classmethod
@@ -50,53 +49,39 @@ class PrebucklingSolver(MechanicalSolver):
         return this_defaults
 
     #### Private functions ####
-    def SetSolverFlag( self, flag ):
-        self.solverFlag = flag
-
     def _create_solution_scheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
     
-    #To allow two different solvers
-    def get_builder_and_solver(self):
-        self._builder_and_solver = self._create_builder_and_solver()
-        return self._builder_and_solver
+    # Builder and Solver Eigen
+    def get_builder_and_solver_eigen(self):
+        if not hasattr(self, '_builder_and_solver_eigen'):
+            self._builder_and_solver_eigen = self._create_builder_and_solver_eigen()
+        return self._builder_and_solver_eigen
+    
+    def _create_builder_and_solver_eigen(self):    
+        linear_solver = self.get_linear_solver_eigen()
+        builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+        return builder_and_solver
 
-    def get_linear_solver(self): 
-        self._linear_solver = self._create_linear_solver()
-        return self._linear_solver
+    def get_linear_solver_eigen(self):
+        if not hasattr(self, '_linear_solver_eigen'): 
+            self._linear_solver_eigen = self._create_linear_solver_eigen()
+        return self._linear_solver_eigen
+    
+    def _create_linear_solver_eigen(self):
+        """Create the eigensolver"""
+        return eigen_solver_factory.ConstructSolver(self.settings["eigensolver_settings"])
 
-    def _create_linear_solver(self):
-        """Create the eigensolver or linear solver depending on SolverFlag"""
-        if (self.solverFlag == "eigen"):
-            return eigen_solver_factory.ConstructSolver(self.settings["eigensolver_settings"])
-        elif( self.solverFlag == "static"):
-            linear_solver_configuration = self.settings["linear_solver_settings"]
-            # using a default linear solver (selecting the fastest one available)
-            if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
-                from KratosMultiphysics import EigenSolversApplication
-            elif kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
-                from KratosMultiphysics import ExternalSolversApplication
-
-            linear_solvers_by_speed = [
-                "pardiso_lu", # EigenSolversApplication (if compiled with IntAnalysisel-support)
-                "sparse_lu",  # EigenSolversApplication
-                "pastix",     # ExternalSolversApplication (if Pastix is included in compilation)
-                "super_lu",   # ExternalSolversApplication
-                "skyline_lu_factorization" # in Core, always available, but slow
-            ]
-
-            for solver_name in linear_solvers_by_speed:
-                if KratosMultiphysics.LinearSolverFactory().Has(solver_name):
-                    linear_solver_configuration.AddEmptyValue("solver_type").SetString(solver_name)
-                    KratosMultiphysics.Logger.PrintInfo('::[MechanicalSolver]:: ',\
-                        'Using "' + solver_name + '" as default linear solver')
-                    return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
-            
+    # Builder and Solver Static
+    def _create_builder_and_solver(self):
+        """This methos is overridden to make sure it always uses ResidualBasedEliminationBuilderAndSolver"""
+        linear_solver = self.get_linear_solver()
+        builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+        return builder_and_solver
+        
     def _create_mechanical_solution_strategy(self):
         solution_scheme = self.get_solution_scheme() 
-        self.SetSolverFlag( "eigen")
-        eigen_solver = self.get_builder_and_solver() # The eigensolver is created here.
-        self.SetSolverFlag( "static")
+        eigen_solver = self.get_builder_and_solver_eigen() # The eigensolver is created here.
         builder_and_solver = self.get_builder_and_solver() # The linear solver is created here.
         convergence_criteria = self.get_convergence_criterion()
         computing_model_part = self.GetComputingModelPart()
