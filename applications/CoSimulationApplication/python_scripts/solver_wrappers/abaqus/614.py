@@ -32,6 +32,43 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         self.dir_csm = join(os.getcwd(), self.settings['working_directory'].GetString())  # *** alternative for getcwd?
         path_src = os.path.realpath(os.path.dirname(__file__))
 
+        self.remove_all_messages()
+
+        self.cores = self.settings['cores'].GetInt() #  number of cpus Abaqus has to use
+        self.dimensions = self.settings['dimensions'].GetInt()
+        self.array_size = self.settings["arraysize"].GetInt()
+        self.surfaces = self.settings["surfaces"].GetInt()
+
+        #prepare Abaqus USR
+        usr = "USR.f"
+        with open(join(self.path_src, usr))as infile:
+            with open(join(self.dir_csm, usr)) as outfile:
+                for line in infile:
+                    line = line.replace("|dimension|", self.dimensions)
+                    line = line.replace("|arraySize|", self.array_size)
+                    line = line.replace("|surfaces|", self.surfaces)
+                    line = line.replace("|cpus|", self.cores)
+                    line = line.replace("|PWD|", os.pardir(self.dir_csm))
+                    line = line.replace("|csmdir|", self.settings["working directory"])
+                    outfile.write(line)
+
+        #compile Fortran and C++ codes
+        path_libusr = join(self.dir_csm, "libusr")
+        os.system("rm -r " + path_libusr)
+        os.system("mdkir " + path_libusr)
+        cmd = "abaqus make library=" + path_usr + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
+        print(cmd)
+        self.abaqus_process = subprocess.Popen(cmd, executable='/bin/bash', shell=True, cwd=self.dir_csm)
+
+        # TODO:
+        #   Read settings
+        #   Prepare Abaqus usr (if necessary), probably some keyword substitutions
+        #   Abaqus needs to print a file with the location of its load points (usr_init.f ?)
+        #   Create Model with ModelParts
+        #   Add variables to ModelParts
+        #   Add Nodes to input ModelParts and output ModelParts, based on file written by Abaqus
+
+
     def Initialize(self):
         # super().Initialize()
         print('\nInitialize')
