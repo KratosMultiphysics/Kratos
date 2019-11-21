@@ -8,6 +8,7 @@
 # You can find a list will all the compiation options in 
 #   - https://github.com/KratosMultiphysics/Kratos/wiki/Compilation-options
 
+# Function to add apps
 function add_app {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
 }
@@ -20,10 +21,10 @@ export CXX=g++
 export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
-export PYTHON_EXECUTABLE="/usr/bin/python3"
 
-# Set build type
+# Set basic configuration
 export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:="Release"}
+export PYTHON_EXECUTABLE="/usr/bin/python3"
 
 # Set applications to compile
 add_app ${KRATOS_APP_DIR}/ExternalSolversApplication
@@ -37,8 +38,8 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 # Configure
-cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"
+cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"         \
 -DINSTALL_PYTHON_USING_LINKS=ON
 
 # Buid
-# cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j4
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j4

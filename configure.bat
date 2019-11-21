@@ -11,11 +11,16 @@ set CC=cl.exe
 set CXX=cl.exe
 
 rem Set variables
-set KRATOS_BUILD_TYPE=Release
 set KRATOS_SOURCE=.
 set KRATOS_BUILD=.\build
 set KRATOS_APP_DIR=applications
+set BOOST_ROOT=C:\CompiledLibs\boost_1_67_0
+set PYTHON_EXECUTABLE=C:\Users\Kratos64\AppData\Local\Programs\Python\Python35\python.exe
 
+rem Set basic configuration
+set KRATOS_BUILD_TYPE=Release
+
+rem Set applications to compile
 set KRATOS_APPLICATIONS=
 CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\ContactStructuralMechanicsApplication;
@@ -44,14 +49,13 @@ rem Configure
  -G"Visual Studio 16 2019"                                                                          ^
  -H"%KRATOS_SOURCE%"                                                                                ^
  -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"                                                             ^
- -DBOOST_ROOT="C:\CompiledLibs\boost_1_67_0"                                                        ^
- -DPYTHON_EXECUTABLE="C:\Users\Kratos64\AppData\Local\Programs\Python\Python35\python.exe"          ^
  -DINCLUDE_FEAST=OFF
 
 rem Build
 cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install
 goto:eof
 
+rem Function to add apps
 :add_app
 set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%1;
 goto:eof
