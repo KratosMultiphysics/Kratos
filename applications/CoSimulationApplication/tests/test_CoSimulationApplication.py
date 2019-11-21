@@ -1,6 +1,7 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from convergence_accelerators.test_iqni import TestConvergenceAcceleratorIQNI
+from convergence_accelerators.test_aitken import TestConvergenceAcceleratorAITKEN
 from convergence_criteria.test_absolute_norm import TestConvergenceCriterionAbsoluteNorm
 from convergence_criteria.test_and import TestConvergenceCriterionAnd
 from convergence_criteria.test_iteration_limit import TestConvergenceCriterionIterationLimit
@@ -14,6 +15,7 @@ from solver_wrappers.fluent.test_2019R1 import TestSolverWrapperFluent2019R1
 from pykratos.test_parameters import TestPyKratosParameters
 from pykratos.test_variables import TestPyKratosVariables
 from pykratos.test_cosimulation_interface import TestCoSimulationInterface
+
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -32,6 +34,7 @@ def AssembleTestSuites():
 
     smallSuite = suites['small']  # These tests are executed by the continuous integration tool
     smallSuite.addTest(TestConvergenceAcceleratorIQNI("test_convergence_accelerator_iqni"))
+    smallSuite.addTest(TestConvergenceAcceleratorAITKEN("test_convergence_accelerator_aitken"))
     smallSuite.addTest(TestConvergenceCriterionAbsoluteNorm("test_convergence_criterion_absolute_norm"))
     smallSuite.addTest(TestConvergenceCriterionAnd("test_convergence_criterion_and"))
     smallSuite.addTest(TestConvergenceCriterionIterationLimit("test_convergence_criterion_iteration_limit"))
