@@ -104,7 +104,8 @@ build () {
 
 for PYTHON_VERSION in  "${PYTHONS[@]}"
 do
-    export PYTHON=$(ls /opt/python | grep $PYTHON_VERSION | cut -d "-" -f 2)
+    PYTHON_TMP=$(ls /opt/python | grep $PYTHON_VERSION | cut -d "-" -f 2)
+    export PYTHON=${PYTHON_TMP#cp}
     echo starting build for python${PYTHON}
 	PYTHON_LOCATION=/opt/python/$(ls /opt/python | grep $PYTHON_VERSION)/bin/python
     build $PYTHON_LOCATION $1
