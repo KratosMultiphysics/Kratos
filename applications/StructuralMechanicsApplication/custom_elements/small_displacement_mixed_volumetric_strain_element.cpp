@@ -735,7 +735,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateB(
 {
     KRATOS_TRY;
 
-    StructuralMechanicsElementUtilities::CalculateB(*this, rB, rDN_DX);
+    StructuralMechanicsElementUtilities::CalculateB(*this, rDN_DX, rB);
 
     KRATOS_CATCH( "" )
 }
@@ -771,7 +771,7 @@ void SmallDisplacementMixedVolumetricStrainElement::ComputeEquivalentF(
     const Vector& rStrainTensor
     ) const
 {
-    StructuralMechanicsElementUtilities::ComputeEquivalentF(*this, rF, rStrainTensor);
+    StructuralMechanicsElementUtilities::ComputeEquivalentF(*this, rStrainTensor, rF);
 }
 
 /***********************************************************************************/

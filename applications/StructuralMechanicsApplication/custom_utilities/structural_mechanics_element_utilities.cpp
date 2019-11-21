@@ -79,8 +79,8 @@ int SolidElementCheck(
 
 void ComputeEquivalentF(
     const Element& rElement,
-    Matrix& rF,
-    const Vector& rStrainTensor
+    const Vector& rStrainTensor,
+    Matrix& rF
     )
 {
     const auto& r_geometry = rElement.GetGeometry();
@@ -109,8 +109,8 @@ void ComputeEquivalentF(
 
 void CalculateB(
     const Element& rElement,
-    Matrix& rB,
-    const Matrix& rDN_DX
+    const Matrix& rDN_DX,
+    Matrix& rB
     )
 {
     const auto& r_geometry = rElement.GetGeometry();

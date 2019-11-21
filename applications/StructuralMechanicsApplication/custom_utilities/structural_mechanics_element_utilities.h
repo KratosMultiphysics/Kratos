@@ -62,25 +62,25 @@ int SolidElementCheck(
 /**
  * @brief This method computes the deformation gradient F (for small deformation solid elements)
  * @param rElement Reference to the element
- * @param rF The deformation gradient F
  * @param rStrainTensor The strain tensor
+ * @param rF The deformation gradient F
  */
 void ComputeEquivalentF(
     const Element& rElement,
-    Matrix& rF,
-    const Vector& rStrainTensor
+    const Vector& rStrainTensor,
+    Matrix& rF
     );
 
 /**
  * @brief This method computes the deformation tensor B (for small deformation solid elements)
  * @param rElement Reference to the element
- * @param rB The deformation tensor B
  * @param rDN_DX The shape function derivatives
+ * @param rB The deformation tensor B
  */
 void CalculateB(
     const Element& rElement,
-    Matrix& rB,
-    const Matrix& rDN_DX
+    const Matrix& rDN_DX,
+    Matrix& rB
     );
 
 /**
