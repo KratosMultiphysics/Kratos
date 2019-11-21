@@ -45,6 +45,8 @@ class SolverWrapperMapped(CoSimulationComponent):
         super().Finalize()
 
 		self.solver_wrapper.Finalize()
+		self.mapper_interface_input.Finalize()
+		self.mapper_interface_output.Finalize()
 
     def GetInterfaceInput(self):
 		# Does not contain most recent data
