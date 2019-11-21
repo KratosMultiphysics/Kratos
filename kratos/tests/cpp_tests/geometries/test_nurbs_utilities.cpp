@@ -29,13 +29,13 @@ namespace Testing {
         KRATOS_TEST_CASE_IN_SUITE(nurbsUtilities, KratosCoreNurbsGeometriesFastSuite) {
             
             // Dummy polynomial order
-            const int polynomial_degree = 1;
+            int polynomial_degree = 1;
 
             // Dummy number of knots
-            const int number_of_knots = 2;
+            int number_of_knots = 2;
 
             // Dummy number of control points
-            const int number_of_control_points = 2;
+            int number_of_control_points = 2;
             
             // Dummy knot vector
             Vector knot_vector = ZeroVector(number_of_knots);
@@ -45,13 +45,21 @@ namespace Testing {
             // Dummy curve parameter
             double parameter_t = 0.5;
 
-            // Call the functions from the geometries/nurbs_shape_function_utilities/nurbs_utilities.h to remove the warning
-            NurbsUtilities::GetNumberOfSpans(polynomial_degree, number_of_knots);
-            NurbsUtilities::GetNumberOfControlPoints(polynomial_degree, number_of_knots);
-            NurbsUtilities::GetPolynomialDegree(number_of_knots, number_of_control_points);
-            NurbsUtilities::GetLowerSpan(polynomial_degree, knot_vector, parameter_t);
-            NurbsUtilities::GetUpperSpan(polynomial_degree, knot_vector, parameter_t);
-            NurbsUtilities::GetNumberOfKnots(polynomial_degree, number_of_control_points);
+            // Call the NURBS utility functions
+            int number_of_spans = NurbsUtilities::GetNumberOfSpans(polynomial_degree, number_of_knots);
+            polynomial_degree = NurbsUtilities::GetPolynomialDegree(number_of_knots, number_of_control_points);
+            number_of_control_points = NurbsUtilities::GetNumberOfControlPoints(polynomial_degree, number_of_knots);
+            int lower_span = NurbsUtilities::GetLowerSpan(polynomial_degree, knot_vector, parameter_t);
+            int upper_span = NurbsUtilities::GetUpperSpan(polynomial_degree, knot_vector, parameter_t);
+            number_of_knots = NurbsUtilities::GetNumberOfKnots(polynomial_degree, number_of_control_points);
+
+            // Verify the results
+            KRATOS_CHECK_NEAR(number_of_spans, 1, TOLERANCE);
+            KRATOS_CHECK_NEAR(polynomial_degree, 1, TOLERANCE);
+            KRATOS_CHECK_NEAR(number_of_control_points, 2, TOLERANCE);
+            KRATOS_CHECK_NEAR(lower_span, 0, TOLERANCE);
+            KRATOS_CHECK_NEAR(upper_span, 0, TOLERANCE);
+            KRATOS_CHECK_NEAR(number_of_knots, 2, TOLERANCE);
 
         }
 
