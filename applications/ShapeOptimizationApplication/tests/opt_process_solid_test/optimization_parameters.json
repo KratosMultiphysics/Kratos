@@ -24,7 +24,7 @@
                         "time_step"       : 1.0
                     },
                     "mesh_motion_linear_solver_settings"  : {
-                        "solver_type"         : "AMGCL",
+                        "solver_type"         : "amgcl",
                         "max_iteration"       : 500,
                         "tolerance"           : 1e-7,
                         "provide_coordinates" : false,

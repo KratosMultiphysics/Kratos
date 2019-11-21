@@ -17,10 +17,8 @@
 
 // Project includes
 #include "geometries/geometry.h"
-
 #include "geometries/nurbs_shape_function_utilities/nurbs_curve_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
-
 
 namespace Kratos {
 

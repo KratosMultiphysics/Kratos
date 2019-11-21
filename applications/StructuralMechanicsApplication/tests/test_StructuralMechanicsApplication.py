@@ -133,6 +133,7 @@ from structural_mechanics_test_factory import Simple3D2NBeamCrNonLinearTest as T
 from structural_mechanics_test_factory import Simple3D2NBeamCrLinearTest as T3D2NBeamCrLinearTest
 from structural_mechanics_test_factory import Simple3D2NBeamCrDynamicTest as T3D2NBeamCrDynamicTest
 from structural_mechanics_test_factory import Simple2D2NBeamCrTest as T2D2NBeamCrTest
+from structural_mechanics_test_factory import Simple3D2NTrussNonLinearSnapthroughDisplacementControlTest as T3D2NNLDispCtrlTest
 # Shell tests
 ### OLD Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
 from structural_mechanics_test_factory import ShellQ4ThickBendingRollUpTests as TShellQ4ThickBendingRollUpTests
@@ -355,6 +356,7 @@ def AssembleTestSuites():
     nightSuite.addTest(T3D2NBeamCrNonLinearTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrDynamicTest('test_execution'))
+    nightSuite.addTest(T3D2NNLDispCtrlTest('test_execution'))
     # Shell tests
     nightSuite.addTest(TShellT3IsotropicLinearStaticStructScordelisLoRoofTests('test_execution'))
     nightSuite.addTest(TShellT3AndQ4LinearStaticStructScordelisLoRoofTests('test_execution'))
@@ -473,7 +475,7 @@ if __name__ == '__main__':
     if kratos_utilities.IsMPIAvailable() and kratos_utilities.CheckIfApplicationsAvailable("MetisApplication", "TrilinosApplication"):
         KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
         p = subprocess.Popen(
-            ["mpiexec", "-np", "2", "python3", "test_StructuralMechanicsApplication_mpi.py"],
+            ["mpiexec", "-np", "2", "python3", "test_StructuralMechanicsApplication_mpi.py", "--using-mpi"],
             stdout=subprocess.PIPE,
             cwd=os.path.dirname(os.path.abspath(__file__)))
         p.wait()

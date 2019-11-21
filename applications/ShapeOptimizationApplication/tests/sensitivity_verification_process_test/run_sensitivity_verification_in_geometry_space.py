@@ -23,9 +23,9 @@ kratos_response_settings = KM.Parameters("""
     "adjoint_settings"  : "auto",
     "sensitivity_settings" : {
         "sensitivity_model_part_name"     : "Parts_structure",
-        "nodal_sensitivity_variables"     : ["SHAPE_SENSITIVITY"],
-        "element_sensitivity_variables"   : [],
-        "condition_sensitivity_variables" : [],
+        "nodal_solution_step_sensitivity_variables"     : ["SHAPE_SENSITIVITY"],
+        "element_data_value_sensitivity_variables"   : [],
+        "condition_data_value_sensitivity_variables" : [],
         "build_mode": "static"
     }
 }""")
