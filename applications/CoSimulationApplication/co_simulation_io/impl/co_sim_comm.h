@@ -124,14 +124,6 @@ public:
         ExportMeshImpl(rIdentifier, NumberOfNodes, NumberOfElements, pNodalCoordinates, pElementConnectivities, pElementTypes);
     }
 
-    template<class DataContainer>
-    bool Import(DataContainer& rDataContainer, const std::string& rIdentifier)
-        { CheckConnection(); return ImportDetail(rDataContainer, rIdentifier); }
-
-    template<class DataContainer>
-    bool Export(const DataContainer& rDataContainer, const std::string& rIdentifier)
-        { CheckConnection(); return ExportDetail(rDataContainer, rIdentifier); }
-
 protected:
     SettingsType& mrSettings;
 
@@ -202,26 +194,6 @@ private:
     void CheckConnection()
     {
         KRATOS_CO_SIM_ERROR_IF_NOT(mIsConnected) << "No active connection exists!" << std::endl;;
-    }
-
-    template <typename TDataType>
-    void AllocateMemoryIfRequired(TDataType** ppContainer, const int RequiredSize, int& rCurrentSize)
-    {
-        if (RequiredSize > rCurrentSize) {
-            // Log detail telling abt resize
-            rCurrentSize = RequiredSize;
-            delete *ppContainer; // check if this is correct ... probably not
-            *ppContainer = new TDataType[RequiredSize];
-        }
-    }
-
-    template <typename TDataType>
-    void AllocateMemoryIfRequired(std::vector<TDataType>* pContainer, const int RequiredSize, int& rCurrentSize)
-    {
-        if (RequiredSize > rCurrentSize) {
-            rCurrentSize = RequiredSize;
-            pContainer->resize(RequiredSize);
-        }
     }
 };
 
