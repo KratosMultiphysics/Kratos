@@ -32,6 +32,8 @@
 #include "utilities/math_utils.h"
 #include "input_output/logger.h"
 
+#include "utilities/indexed_object.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
