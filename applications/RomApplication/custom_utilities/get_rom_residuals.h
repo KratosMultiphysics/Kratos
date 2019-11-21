@@ -50,7 +50,11 @@ class GetRomResiduals: public BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearS
     {
         mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();        
         //Need to read the type of the variable and optain its size, incorrectly done here
-        mNodalDofs = mNodalVariablesNames.size();
+        //Privisional way of retrieving the number of DOFs. Better alternative to be implemented.
+        if (mNodalVariablesNames[0] == "TEMPERATURE")
+            mNodalDofs = 1;
+        if (mNodalVariablesNames[0] == "DISPLACEMENT")
+            mNodalDofs = std::stoi(mNodalVariablesNames[1]);
         mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();   
         mpScheme = pScheme;
     }

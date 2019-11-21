@@ -59,7 +59,10 @@ namespace Kratos
         
         mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();        
         //Need to read the type of the variable and optain its size, incorrectly done here
-        mNodalDofs = mNodalVariablesNames.size();
+        if (mNodalVariablesNames[0] == "TEMPERATURE")
+            mNodalDofs = 1;
+        if (mNodalVariablesNames[0] == "DISPLACEMENT")
+            mNodalDofs = std::stoi(mNodalVariablesNames[1]);
         mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();
         //this->mpModelPart = rModelPart;
         //this->mpScheme = pScheme;
