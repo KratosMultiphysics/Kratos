@@ -102,11 +102,11 @@ build () {
 }
 
 
-for PYTHON in  "${PYTHONS[@]}"
+for PYTHON_VERSION in  "${PYTHONS[@]}"
 do
-    export PYTHON=$PYTHON
+    export PYTHON=$(ls /opt/python | grep $PYTHON_VERSION | cut -d "-" -f 2)
     echo starting build for python${PYTHON}
-	PYTHON_LOCATION=/opt/python/$(ls /opt/python | grep $PYTHON)/bin/python
+	PYTHON_LOCATION=/opt/python/$(ls /opt/python | grep $PYTHON_VERSION)/bin/python
     build $PYTHON_LOCATION $1
 	
 	
@@ -124,7 +124,7 @@ do
 
     build_kratos_all_wheel
 
-	echo finished build for python${PYTHON}
+	echo finished build for python${PYTHON_VERSION}
 
 	export LD_LIBRARY_PATH=$BASE_LD_LIBRARY_PATH
 
