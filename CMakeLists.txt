@@ -205,10 +205,6 @@ endif(NOT DEFINED INSTALL_PYTHON_USING_LINKS)
 include(install_function)
 include(KratosDependencies)
 
-if(USE_COTIRE MATCHES ON)
-  include(cotire)
-endif(USE_COTIRE MATCHES ON)
-
 ################### PYBIND11
 
 # Try to use python executable from env variable
