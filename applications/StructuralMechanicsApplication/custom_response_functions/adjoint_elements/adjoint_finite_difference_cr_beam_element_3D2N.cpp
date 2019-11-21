@@ -27,8 +27,7 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegratio
 {
     KRATOS_TRY
 
-    if (rVariable == ADJOINT_CURVATURE || rVariable == ADJOINT_STRAIN || rVariable == ADJOINT_PARTICULAR_CURVATURE || rVariable == ADJOINT_PARTICULAR_STRAIN)
-    {
+    if (rVariable == ADJOINT_CURVATURE || rVariable == ADJOINT_STRAIN || rVariable == ADJOINT_PARTICULAR_CURVATURE || rVariable == ADJOINT_PARTICULAR_STRAIN) {
         const double E = this->GetProperties()[YOUNG_MODULUS];
         const double nu = this->GetProperties()[POISSON_RATIO];
         const double G = E / (2.0 * (1.0 + nu));
@@ -37,93 +36,76 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegratio
         const double Iy = this->GetProperties()[I22];
         const double Iz = this->GetProperties()[I33];
         double Ay = 0.00;
-        if (this->GetProperties().Has(AREA_EFFECTIVE_Y))
-        {
+        if (this->GetProperties().Has(AREA_EFFECTIVE_Y)) {
             Ay = this->GetProperties()[AREA_EFFECTIVE_Y];
         }
 
         double Az = 0.00;
-        if (this->GetProperties().Has(AREA_EFFECTIVE_Z))
-        {
+        if (this->GetProperties().Has(AREA_EFFECTIVE_Z)) {
             Az = this->GetProperties()[AREA_EFFECTIVE_Z];
         }
 
-        if (rVariable == ADJOINT_CURVATURE || rVariable == ADJOINT_PARTICULAR_CURVATURE)
-        {
-            if (rVariable == ADJOINT_CURVATURE)
-                AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateAdjointFieldOnIntegrationPoints(MOMENT, rOutput, rCurrentProcessInfo);
-            else
-                AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateAdjointFieldOnIntegrationPoints(MOMENT, rOutput, rCurrentProcessInfo, true);
+        if (rVariable == ADJOINT_CURVATURE || rVariable == ADJOINT_PARTICULAR_CURVATURE) {
+            if (rVariable == ADJOINT_CURVATURE) {
+                this->CalculateAdjointFieldOnIntegrationPoints(MOMENT, rOutput, rCurrentProcessInfo);
+            } else {
+                this->CalculateAdjointFieldOnIntegrationPoints(MOMENT, rOutput, rCurrentProcessInfo, true);
+            }
 
-            for (IndexType i = 0; i < rOutput.size(); ++i)
-            {
+            for (IndexType i = 0; i < rOutput.size(); ++i) {
                 rOutput[i][0] *=  1.0 / (G * J);
                 rOutput[i][1] *= -1.0 / (E * Iy);
                 rOutput[i][2] *= -1.0 / (E * Iz);
             }
-
         }
-        else if (rVariable == ADJOINT_STRAIN || rVariable == ADJOINT_PARTICULAR_STRAIN)
-        {
-            if (rVariable == ADJOINT_STRAIN)
+        else if (rVariable == ADJOINT_STRAIN || rVariable == ADJOINT_PARTICULAR_STRAIN) {
+            if (rVariable == ADJOINT_STRAIN) {
                 AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateAdjointFieldOnIntegrationPoints(FORCE, rOutput, rCurrentProcessInfo);
-            else
+            } else {
                 AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateAdjointFieldOnIntegrationPoints(FORCE, rOutput, rCurrentProcessInfo, true);
+            }
 
             KRATOS_WARNING_IF("ADJOINT_STRAIN", (this->GetProperties().Has(AREA_EFFECTIVE_Y) || this->GetProperties().Has(AREA_EFFECTIVE_Z)))
                         << "Not available for Timoschenko beam!" << std::endl;
 
-            for (IndexType i = 0; i < rOutput.size(); ++i)
-            {
+            for (IndexType i = 0; i < rOutput.size(); ++i) {
                 rOutput[i][0] *= 1.0 / (E * A);
-                if(Ay > 0.0)
+                if(Ay > 0.0) {
                     rOutput[i][1] *= 1.0 / (G * Ay);
-                else
+                } else {
                     rOutput[i][1] = 0.0;
-                if(Az > 0.0)
+                }
+                if(Az > 0.0) {
                     rOutput[i][2] *= 1.0 / (G * Az);
-                else
+                } else {
                     rOutput[i][2] = 0.0;
+                }
             }
         }
-
         // Here the adjoint fields are normalized if the extension is available and the flag for normalization is true.
         // Note: the normalization flag is defined within the settings of the generalized influence functions process.
-        if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS))
-        {
+        if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS)) {
             GeneralizedInfluenceFunctionsExtension my_extension = *(this->GetValue(INFLUENCE_FUNCTIONS_EXTENSIONS));
             my_extension.NormalizeAdjointFieldIfRequested(*this, rOutput, rCurrentProcessInfo);
         }
-    }
-    else if (rVariable == PSEUDO_MOMENT || rVariable == PSEUDO_FORCE)
-    {
-        if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS))
-        {
+    } else if (rVariable == PSEUDO_MOMENT || rVariable == PSEUDO_FORCE) {
+        if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS)) {
             GeneralizedInfluenceFunctionsExtension my_extension = *(this->GetValue(INFLUENCE_FUNCTIONS_EXTENSIONS));
             my_extension.CalculatePseudoQuantityOnIntegrationPoints(*this->mpPrimalElement, rVariable, rOutput, rCurrentProcessInfo);
-        }
-        else
+        } else {
             KRATOS_ERROR << "'GeneralizedInfluenceFunctionsExtension' is necessary to compute "<< rVariable.Name() << "!" << std::endl;
-        /*{
-            const SizeType  write_points_number = GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-            if (rOutput.size() != write_points_number)
-                rOutput.resize(write_points_number);
-            for(IndexType i = 0; i < write_points_number; ++i)
-                rOutput[i].clear();
-        }*/
-    }
-    else if (rVariable == ADJOINT_WORK_FORCE_CONTRIBUTION || rVariable == ADJOINT_WORK_MOMENT_CONTRIBUTION)
-    {
-        if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS))
-        {
+        }
+
+    } else if (rVariable == ADJOINT_WORK_FORCE_CONTRIBUTION || rVariable == ADJOINT_WORK_MOMENT_CONTRIBUTION) {
+        if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS)) {
             GeneralizedInfluenceFunctionsExtension my_extension = *(this->GetValue(INFLUENCE_FUNCTIONS_EXTENSIONS));
             my_extension.CalculateAdjointWorkContributionOnIntegrationPoints(*this->mpPrimalElement, *this, rVariable, rOutput, rCurrentProcessInfo);
-        }
-        else
+        } else {
             KRATOS_ERROR << "'GeneralizedInfluenceFunctionsExtension' is necessary to compute "<< rVariable.Name() << "!" << std::endl;
-    }
-    else
+        }
+    } else {
         this->CalculateAdjointFieldOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }
 
     KRATOS_CATCH("")
 }

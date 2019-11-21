@@ -46,35 +46,21 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateOnInteg
             GeneralizedInfluenceFunctionsExtension my_extension = *(this->GetValue(INFLUENCE_FUNCTIONS_EXTENSIONS));
             my_extension.NormalizeAdjointFieldIfRequested(*this, rOutput, rCurrentProcessInfo);
         }
-    }
-    else if (rVariable == PSEUDO_FORCE)
-    {
-        if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS))
-        {
+    } else if (rVariable == PSEUDO_FORCE) {
+        if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS)) {
             GeneralizedInfluenceFunctionsExtension my_extension = *(this->GetValue(INFLUENCE_FUNCTIONS_EXTENSIONS));
             my_extension.CalculatePseudoQuantityOnIntegrationPoints(*this->mpPrimalElement, rVariable, rOutput, rCurrentProcessInfo);
-        }
-        else
+        } else {
             KRATOS_ERROR << "'GeneralizedInfluenceFunctionsExtension' is necessary to compute "<< rVariable.Name() << "!" << std::endl;
-        /*{
-            const SizeType  write_points_number = GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-            if (rOutput.size() != write_points_number)
-                rOutput.resize(write_points_number);
-            for(IndexType i = 0; i < write_points_number; ++i)
-                rOutput[i].clear();
-        }*/
-    }
-    else if (rVariable == ADJOINT_WORK_FORCE_CONTRIBUTION)
-    {
-        if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS))
-        {
+        }
+    } else if (rVariable == ADJOINT_WORK_FORCE_CONTRIBUTION) {
+        if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS)) {
             GeneralizedInfluenceFunctionsExtension my_extension = *(this->GetValue(INFLUENCE_FUNCTIONS_EXTENSIONS));
             my_extension.CalculateAdjointWorkContributionOnIntegrationPoints(*this->mpPrimalElement, *this, rVariable, rOutput, rCurrentProcessInfo);
-        }
-        else
+        } else {
             KRATOS_ERROR << "'GeneralizedInfluenceFunctionsExtension' is necessary to compute " << rVariable.Name() << "!" << std::endl;
-    }
-    else {
+        }
+    } else {
         this->CalculateAdjointFieldOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
