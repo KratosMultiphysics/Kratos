@@ -341,10 +341,7 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					      std::vector< array_1d<double, 3 > >& rOutput,
-					      const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
-    }
+					      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
 					      std::vector< array_1d<double, 6 > >& rOutput,
@@ -375,15 +372,8 @@ public:
     }
 
     void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-					      std::vector< array_1d<double, 3 > >& rOutput,
-					      const ProcessInfo& rCurrentProcessInfo) override
-    {
-        this->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    }
-
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-					     std::vector<Vector>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo) override
+                         std::vector< array_1d<double, 3 > >& rValues,
+                         const ProcessInfo& rCurrentProcessInfo) override
     {
         this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
@@ -472,56 +462,30 @@ protected:
         initial_state_variables.resize(num_dofs);
 
         Vector particular_solution = ZeroVector(num_dofs);
-        if(this->Has(ADJOINT_PARTICULAR_DISPLACEMENT))
-        {
+        if(this->Has(ADJOINT_PARTICULAR_DISPLACEMENT)) {
             particular_solution = this->GetValue(ADJOINT_PARTICULAR_DISPLACEMENT);
-            //KRATOS_WATCH(particular_solution)
         }
-
 
         // Build vector of variables containing the DOF-variables of the primal problem
-        std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list;
-        primal_solution_variable_list.reserve(num_dofs_per_node);
-        primal_solution_variable_list.push_back(DISPLACEMENT_X);
-        primal_solution_variable_list.push_back(DISPLACEMENT_Y);
-        primal_solution_variable_list.push_back(DISPLACEMENT_Z);
-
-        if(mHasRotationDofs)
-        {
-            primal_solution_variable_list.push_back(ROTATION_X);
-            primal_solution_variable_list.push_back(ROTATION_Y);
-            primal_solution_variable_list.push_back(ROTATION_Z);
-        }
+        std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>*> primal_solution_variable_list;
+        (mHasRotationDofs) ? primal_solution_variable_list = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z, &ROTATION_X, &ROTATION_Y, &ROTATION_Z} :
+                             primal_solution_variable_list = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
 
         // Build vector of variables containing the DOF-variables of the adjoint problem
-        std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> adjoint_solution_variable_list;
-        adjoint_solution_variable_list.reserve(num_dofs_per_node);
-        adjoint_solution_variable_list.push_back(ADJOINT_DISPLACEMENT_X);
-        adjoint_solution_variable_list.push_back(ADJOINT_DISPLACEMENT_Y);
-        adjoint_solution_variable_list.push_back(ADJOINT_DISPLACEMENT_Z);
+        std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>*> adjoint_solution_variable_list;
+        (mHasRotationDofs) ? adjoint_solution_variable_list = {&ADJOINT_DISPLACEMENT_X, &ADJOINT_DISPLACEMENT_Y, &ADJOINT_DISPLACEMENT_Z, &ADJOINT_ROTATION_X, &ADJOINT_ROTATION_Y, &ADJOINT_ROTATION_Z} :
+                             adjoint_solution_variable_list = {&ADJOINT_DISPLACEMENT_X, &ADJOINT_DISPLACEMENT_Y, &ADJOINT_DISPLACEMENT_Z};
 
-        if(mHasRotationDofs)
-        {
-            adjoint_solution_variable_list.push_back(ADJOINT_ROTATION_X);
-            adjoint_solution_variable_list.push_back(ADJOINT_ROTATION_Y);
-            adjoint_solution_variable_list.push_back(ADJOINT_ROTATION_Z);
-        }
-
-        for (IndexType i = 0; i < num_nodes; ++i)
-        {
+        for (IndexType i = 0; i < num_nodes; ++i) {
             const IndexType index = i * num_dofs_per_node;
-            for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
-            {
-                initial_state_variables[index + j] = mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]);
-                if (!ParticularOnly)
-                {
-                    mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) =
-                            this->GetGeometry()[i].FastGetSolutionStepValue(adjoint_solution_variable_list[j]) +
-                            particular_solution[index + j];
-                }
-                else
-                {
-                    mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) =
+            for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j) {
+                initial_state_variables[index + j] = mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]);
+                if (!ParticularOnly) {
+                mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) =
+                                            this->GetGeometry()[i].FastGetSolutionStepValue(*adjoint_solution_variable_list[j]) +
+                                            particular_solution[index + j];
+                } else {
+                    mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) =
                         0.0 + particular_solution[index + j];
                 }
             }
@@ -529,11 +493,11 @@ protected:
 
         mpPrimalElement->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
 
-        for (IndexType i = 0; i < num_nodes; ++i)
-        {
+        for (IndexType i = 0; i < num_nodes; ++i) {
             const IndexType index = i * num_dofs_per_node;
-            for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
-                mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_state_variables[index + j];
+            for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j) {
+                mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = initial_state_variables[index + j];
+            }
         }
 
         KRATOS_CATCH("")

@@ -43,6 +43,7 @@
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.h"
 #include "custom_response_functions/adjoint_elements/adjoint_solid_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_small_displacement_element.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_spring_damper_element_3D2N.h"
 
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
@@ -91,7 +92,7 @@
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
 
-#ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTIITUTIVE_LAWS
+#ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
 // Advanced Constitutive laws
 #include "custom_advanced_constitutive/truss_plasticity_constitutive_law.h"
 #include "custom_advanced_constitutive/hyper_elastic_isotropic_ogden_1d.h"
@@ -127,6 +128,7 @@
 #include "custom_advanced_constitutive/plasticity_isotropic_kinematic_j2.h"
 #include "custom_advanced_constitutive/generic_small_strain_plastic_damage_model.h"
 #include "custom_advanced_constitutive/generic_small_strain_orthotropic_damage.h"
+#include "custom_advanced_constitutive/serial_parallel_rule_of_mixtures_law.h"
 
 // Integrators
 #include "custom_advanced_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
@@ -156,7 +158,10 @@
 #include "custom_advanced_constitutive/plastic_potentials/mohr_coulomb_plastic_potential.h"
 #include "custom_advanced_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
 
-#endif // STRUCTURAL_DISABLE_ADVANCED_CONSTIITUTIVE_LAWS
+// Rules of mixtures
+#include "custom_advanced_constitutive/rule_of_mixtures_law.h"
+
+#endif // STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
 
 namespace Kratos
 {
@@ -429,6 +434,7 @@ private:
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D4N;
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D6N;
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D8N;
+    const AdjointFiniteDifferenceSpringDamperElement<SpringDamperElement3D2N>  mAdjointFiniteDifferenceSpringDamperElement3D2N;
 
     /* CONDITIONS*/
     // Point load
@@ -474,7 +480,7 @@ private:
     const LinearPlaneStrain  mLinearPlaneStrain;
     const LinearPlaneStress  mLinearPlaneStress;
 
-#ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTIITUTIVE_LAWS
+#ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
     // Damage and plasticity laws
     const ElasticIsotropicPlaneStressUncoupledShear  mElasticIsotropicPlaneStressUncoupledShear;
     const HyperElasticIsotropicKirchhoff3D  mHyperElasticIsotropicKirchhoff3D;
@@ -492,6 +498,9 @@ private:
     const TrussPlasticityConstitutiveLaw mTrussPlasticityConstitutiveLaw;
     const HyperElasticIsotropicOgden1D mHyperElasticIsotropicOgden1D;
     const HyperElasticIsotropicHenky1D mHyperElasticIsotropicHenky1D;
+
+    // Damage and plasticity laws
+    const SerialParallelRuleOfMixturesLaw mSerialParallelRuleOfMixturesLaw;
     const SmallStrainIsotropicPlasticityFactory mSmallStrainIsotropicPlasticityFactory;
     const SmallStrainKinematicPlasticityFactory mSmallStrainKinematicPlasticityFactory;
     const FiniteStrainIsotropicPlasticityFactory mFiniteStrainIsotropicPlasticityFactory;
@@ -657,7 +666,7 @@ private:
     const GenericFiniteStrainKinematicPlasticity <HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>> mHyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerMohrCoulomb;
 
     /// Damage
-    /* Small strain */
+    /* Small strain 3D */
     const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DVonMisesVonMises;
     const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DVonMisesModifiedMohrCoulomb;
     const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DVonMisesDruckerPrager;
@@ -692,6 +701,7 @@ private:
     const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<MohrCoulombPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DRankineMohrCoulomb;
     const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<MohrCoulombPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DSimoJuMohrCoulomb;
 
+    /* Small strain 2D */
     const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainIsotropicDamage2DVonMisesVonMises;
     const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>> mSmallStrainIsotropicDamage2DVonMisesModifiedMohrCoulomb;
     const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<DruckerPragerPlasticPotential<3>>>> mSmallStrainIsotropicDamage2DVonMisesDruckerPrager;
@@ -726,8 +736,6 @@ private:
     const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<MohrCoulombPlasticPotential<3>>>> mSmallStrainIsotropicDamage2DRankineMohrCoulomb;
     const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<MohrCoulombPlasticPotential<3>>>> mSmallStrainIsotropicDamage2DSimoJuMohrCoulomb;
 
-
-
     // HCF (High Cycle Fatigue)
     const GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainHighCycleFatigue3DLawVonMisesVonMises;
     const GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mSmallStrainHighCycleFatigue3DLawVonMisesModifiedMohrCoulomb;
@@ -754,7 +762,7 @@ private:
     const GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<DruckerPragerPlasticPotential<6>>>> mSmallStrainHighCycleFatigue3DLawSimoJuDruckerPrager;
     const GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<TrescaPlasticPotential<6>>>> mSmallStrainHighCycleFatigue3DLawSimoJuTresca;
 
-    // d+d- laws
+    // d+d- laws (3D)
     const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainDplusDminusDamageModifiedMohrCoulombModifiedMohrCoulomb3D;
     const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainDplusDminusDamageModifiedMohrCoulombRankine3D;
     const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainDplusDminusDamageModifiedMohrCoulombSimoJu3D;
@@ -803,6 +811,7 @@ private:
     const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<TrescaYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainDplusDminusDamageTrescaMohrCoulomb3D;
     const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainDplusDminusDamageDruckerPragerMohrCoulomb3D;
 
+    // d+d- laws (2D)
     const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainDplusDminusDamageModifiedMohrCoulombModifiedMohrCoulomb2D;
     const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<RankineYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainDplusDminusDamageModifiedMohrCoulombRankine2D;
     const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<SimoJuYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainDplusDminusDamageModifiedMohrCoulombSimoJu2D;
@@ -869,7 +878,9 @@ private:
     const GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainOrthotropicDamageModifiedMohrCoulomb2D;
     const GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainOrthotropicDamageSimoJu2D;
 
-#endif // STRUCTURAL_DISABLE_ADVANCED_CONSTIITUTIVE_LAWS
+    // Rules of mixtures
+    const RuleOfMixturesLaw mRuleOfMixturesLaw;
+#endif // STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
 
     ///@}
     ///@name Private Operators

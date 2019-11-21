@@ -20,53 +20,29 @@ namespace Kratos
 {
 
 template <class TPrimalElement>
-void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::Calculate(const Variable<Vector >& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    // The particular soltuion of the influence function is rotated in global direction
-    if (rVariable == ADJOINT_PARTICULAR_DISPLACEMENT)
-    {
-        static constexpr int number_of_nodes = 2;
-        static constexpr int dimension = 3;
-        static constexpr unsigned int element_size = number_of_nodes * dimension;
-
-        KRATOS_ERROR_IF(rOutput.size() != element_size) << "Size of particular solution does not fit!" << std::endl;
-
-        TrussElement3D2N::Pointer p_primal_beam_element = dynamic_pointer_cast<TrussElement3D2N>(this->pGetPrimalElement());
-        BoundedMatrix<double, element_size, element_size> transformation_matrix = ZeroMatrix(element_size, element_size);
-        p_primal_beam_element->CreateTransformationMatrix(transformation_matrix);
-
-        rOutput = prod(transformation_matrix, rOutput);
-    }
-
-    KRATOS_CATCH("")
-}
-
-template <class TPrimalElement>
 void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					      std::vector< array_1d<double, 3 > >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    if (rVariable == ADJOINT_STRAIN)
-    {
+    if (rVariable == ADJOINT_STRAIN) {
         std::vector<Vector> strain_vector;
-        AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateAdjointFieldOnIntegrationPoints(STRAIN, strain_vector, rCurrentProcessInfo);
-        if (rOutput.size() != strain_vector.size())
+        this->CalculateAdjointFieldOnIntegrationPoints(STRAIN, strain_vector, rCurrentProcessInfo);
+        if (rOutput.size() != strain_vector.size()) {
             rOutput.resize(strain_vector.size());
+        }
 
         KRATOS_ERROR_IF(strain_vector[0].size() != 3) << "Dimension of strain vector not as expected!" << std::endl;
 
-        for(IndexType i = 0; i < strain_vector.size(); ++i)
-            for (IndexType j = 0; j < 3 ; ++j)
+        for(IndexType i = 0; i < strain_vector.size(); ++i) {
+            for (IndexType j = 0; j < 3 ; ++j) {
                 rOutput[i][j] = strain_vector[i][j];
-
+            }
+        }
         // Here the adjoint strain is normalized if the extension is available and the flag for normalization is true.
         // Note: the normalization flag is defined within the settings of the generalized influence functions process.
-        if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS))
-        {
+        if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS)) {
             GeneralizedInfluenceFunctionsExtension my_extension = *(this->GetValue(INFLUENCE_FUNCTIONS_EXTENSIONS));
             my_extension.NormalizeAdjointFieldIfRequested(*this, rOutput, rCurrentProcessInfo);
         }
@@ -98,8 +74,9 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateOnInteg
         else
             KRATOS_ERROR << "'GeneralizedInfluenceFunctionsExtension' is necessary to compute " << rVariable.Name() << "!" << std::endl;
     }
-    else
+    else {
         this->CalculateAdjointFieldOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }
 
     KRATOS_CATCH("")
 }

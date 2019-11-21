@@ -56,6 +56,7 @@ public:
     ///@{
 
     typedef Element::DofsVectorType DofsVectorType;
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >* Array1DComponentsPointerType;
 
     ///@}
     ///@name Pointer Definitions
@@ -209,13 +210,13 @@ private:
 
     void CalculateParticularSolutionLinearElement2N(Vector& rResult) const;
 
-    void CalculateMeanParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel)const;
+    void CalculateMeanParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const Array1DComponentsPointerType TracedDof) const;
 
-    void CalculateGPParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel) const;
+    void CalculateGPParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const Array1DComponentsPointerType TracedDof) const;
 
-    void CalculateNodeParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel) const;
+    void CalculateNodeParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const Array1DComponentsPointerType TracedDof) const;
 
-    void FindCorrespondingDofLabel(std::string& rDofLabel) const;
+    void FindVariableComponent(Array1DComponentsPointerType& rTracedDof) const;
 
     ///@}
     ///@name Private  Access
