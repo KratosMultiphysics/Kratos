@@ -1955,9 +1955,11 @@ public:
     *        closest point in local coordinates.
     *        The variable can also be used as initial guess.
     * @param Tolerance accepted orthogonal error.
-    * @return true if solution converged, false if not.
+    * @return 0 -> outside
+    *         1 -> inside
+    *         2 -> on the boundary
     */
-    virtual bool ClosestPoint(
+    virtual int ClosestPoint(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rClosestPointGlobalCoordinates,
         CoordinatesArrayType& rClosestPointLocalCoordinates,
@@ -1976,9 +1978,11 @@ public:
     * @param rClosestPointGlobalCoordinates the location of the
     *        closest point in global coordinates.
     * @param Tolerance accepted orthogonal error.
-    * @return true if solution converged, false if not.
+    * @return 0 -> outside
+    *         1 -> inside
+    *         2 -> on the boundary
     */
-    virtual bool ClosestPoint(
+    virtual int ClosestPoint(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rClosestPointGlobalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
@@ -2001,9 +2005,11 @@ public:
     *        closest point in local coordinates.
     *        The variable can also be used as initial guess.
     * @param Tolerance accepted orthogonal error.
-    * @return true if solution converged, false if not.
+    * @return 0 -> outside
+    *         1 -> inside
+    *         2 -> on the boundary
     */
-    virtual bool ClosestPointLocalCoordinates(
+    virtual int ClosestPointLocalCoordinates(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rClosestPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
