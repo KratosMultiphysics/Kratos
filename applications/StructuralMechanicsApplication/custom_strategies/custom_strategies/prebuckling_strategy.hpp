@@ -178,16 +178,6 @@ public:
     ///@name Operations
     ///@{
 
-    void SetIsInitialized(bool val)
-    {
-        mInitializeWasPerformed = val;
-    }
-
-    bool GetIsInitialized() const
-    {
-        return mInitializeWasPerformed;
-    }
-
     SchemePointerType &pGetScheme()
     {
         return mpScheme;
@@ -202,46 +192,6 @@ public:
     {
         return mpBuilderAndSolver;
     };
-
-    SparseMatrixPointerType &pGetStiffnessMatrixPrevious()
-    {
-        return mpStiffnessMatrixPrevious;
-    }
-
-    SparseMatrixPointerType &pGetStiffnessMatrix()
-    {
-        return mpStiffnessMatrix;
-    }
-
-    SparseVectorPointerType &pGetRHS()
-    {
-        return mpRHS;
-    }
-
-    SparseVectorPointerType &pGetDx()
-    {
-        return mpDx;
-    }
-
-    SparseMatrixType &GetStiffnessMatrixPrevious()
-    {
-        return *mpStiffnessMatrixPrevious;
-    }
-
-    SparseMatrixType &GetStiffnessMatrix()
-    {
-        return *mpStiffnessMatrix;
-    }
-
-    SparseVectorType &GetRHS()
-    {
-        return *mpRHS;
-    }
-
-    SparseVectorType &GetDx()
-    {
-        return *mpDx;
-    }
 
     ConvergenceCriteriaType &GetConvergenceCriteria()
     {
@@ -315,7 +265,7 @@ public:
         // Initialization of the convergence criteria
         pConvergenceCriteria->Initialize(BaseType::GetModelPart());
         
-        this->SetIsInitialized( true );
+        mInitializeWasPerformed = true;
 
         KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
             << "Exiting Initialize" << std::endl;
@@ -335,17 +285,17 @@ public:
         BuilderAndSolverPointerType &pEigenSolver = this->pGetEigenSolver();
         pEigenSolver->GetLinearSystemSolver()->Clear();
 
-        if (this->pGetStiffnessMatrix() != nullptr)
-            this->pGetStiffnessMatrix() = nullptr;
+        if (mpStiffnessMatrix != nullptr)
+            mpStiffnessMatrix = nullptr;
 
-        if (this->pGetStiffnessMatrixPrevious() != nullptr)
-            this->pGetStiffnessMatrixPrevious() = nullptr;
+        if (mpStiffnessMatrixPrevious != nullptr)
+            mpStiffnessMatrixPrevious = nullptr;
 
-        if (this->pGetRHS() != nullptr)
-            this->pGetRHS() = nullptr;
+        if (mpRHS != nullptr)
+            mpRHS = nullptr;
 
-        if (this->pGetDx() != nullptr)
-            this->pGetDx() = nullptr;
+        if (mpDx != nullptr)
+            mpDx = nullptr;
 
         // Re-setting internal flag to ensure that the dof sets are recalculated
         pBuilderAndSolver->SetDofSetIsInitializedFlag(false);
@@ -384,18 +334,11 @@ public:
             SchemePointerType &pScheme = this->pGetScheme();
             // Convergence Criteria
             typename ConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
-            // Elastic Stiffness
-            SparseMatrixPointerType &pStiffnessMatrix = this->pGetStiffnessMatrix();
-            SparseMatrixType &rStiffnessMatrix = this->GetStiffnessMatrix();
-            // Elastic Stiffness Previous
-            SparseMatrixPointerType &pStiffnessMatrixPrevious = this->pGetStiffnessMatrixPrevious();
-            SparseMatrixType &rStiffnessMatrixPrevious = this->GetStiffnessMatrixPrevious();
-            // Right Hand Side
-            SparseVectorPointerType &pRHS = this->pGetRHS();
-            SparseVectorType &rRHS = this->GetRHS();
-            // Solution Vector
-            SparseVectorPointerType &pDx = this->pGetDx();
-            SparseVectorType &rDx = this->GetDx();
+            // Member Matrices and Vectors
+            SparseMatrixType& rStiffnessMatrix  = *mpStiffnessMatrix;
+            SparseMatrixType& rStiffnessMatrixPrevious = *mpStiffnessMatrixPrevious;
+            SparseVectorType& rRHS  = *mpRHS;
+            SparseVectorType& rDx  = *mpDx;
 
             // Initialize dummy vectors
             SparseVectorPointerType _pDx = SparseSpaceType::CreateEmptyVectorPointer();
@@ -429,10 +372,10 @@ public:
 
                 // Elastic Stiffness matrix; Solution Vector; RHS Vector
                 pBuilderAndSolver->ResizeAndInitializeVectors(
-                    pScheme, pStiffnessMatrix, pDx, pRHS, rModelPart);
+                    pScheme, mpStiffnessMatrix, mpDx, mpRHS, rModelPart);
                 // Previous Stiffness Matrix 
                 pBuilderAndSolver->ResizeAndInitializeVectors(
-                    pScheme, pStiffnessMatrixPrevious, _pDx, _pb, rModelPart);
+                    pScheme, mpStiffnessMatrixPrevious, _pDx, _pb, rModelPart);
 
                 KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
@@ -470,17 +413,17 @@ public:
     {
         KRATOS_TRY
 
-        ModelPart &rModelPart = BaseType::GetModelPart();
+        ModelPart& rModelPart = BaseType::GetModelPart();
         ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
 
         const int rank = rModelPart.GetCommunicator().MyPID();
 
-        SchemePointerType &pScheme = this->pGetScheme();
-        BuilderAndSolverPointerType &pBuilderAndSolver = this->pGetBuilderAndSolver();
-        SparseMatrixType &rStiffnessMatrix = this->GetStiffnessMatrix();
-        SparseMatrixType &rStiffnessMatrixPrevious = this->GetStiffnessMatrixPrevious();
-        SparseVectorType &rDx = this->GetDx();
-        SparseVectorType &rRHS = this->GetRHS();
+        SchemePointerType& pScheme = this->pGetScheme();
+        BuilderAndSolverPointerType& pBuilderAndSolver = this->pGetBuilderAndSolver();
+        SparseMatrixType& rStiffnessMatrix  = *mpStiffnessMatrix;
+        SparseMatrixType& rStiffnessMatrixPrevious = *mpStiffnessMatrixPrevious;
+        SparseVectorType& rRHS  = *mpRHS;
+        SparseVectorType& rDx  = *mpDx;
 
         typename ConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
 
@@ -642,9 +585,9 @@ public:
             this->AssignVariables(Eigenvalues, Eigenvectors);
             
             // Reset elastic stiffness matrix for next loadstep
-            this->pGetStiffnessMatrix() = nullptr;
+            mpStiffnessMatrix = nullptr;
             pBuilderAndSolver->ResizeAndInitializeVectors(
-                pScheme, pGetStiffnessMatrix(), pGetDx(), pGetRHS(), rModelPart);
+                pScheme, mpStiffnessMatrix, mpDx, mpRHS, rModelPart);
             // End Method 2#########################################################################
 
             // Convergence criteria for buckling analysis
@@ -674,9 +617,10 @@ public:
             << "Entering FinalizeSolutionStep" << std::endl;
 
         typename ConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
-        SparseMatrixType &rStiffnessMatrix = this->GetStiffnessMatrix();
-        SparseVectorType &rDx = this->GetDx();
-        SparseVectorType &rRHS = this->GetRHS();
+        // Member Matrices and Vectors
+        SparseMatrixType& rStiffnessMatrix  = *mpStiffnessMatrix;
+        SparseVectorType& rRHS  = *mpRHS;
+        SparseVectorType& rDx  = *mpDx;
 
         pGetBuilderAndSolver()->FinalizeSolutionStep(
             BaseType::GetModelPart(), rStiffnessMatrix, rDx, rRHS);
