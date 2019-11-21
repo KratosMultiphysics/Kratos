@@ -110,6 +110,8 @@ from structural_mechanics_test_factory import ULThreeDTensionTetraPatchTest as T
 # SPRISM tests
 from structural_mechanics_test_factory import SprismMembranePatchTests as TSprismMembranePatchTests
 from structural_mechanics_test_factory import SprismBendingPatchTests as TSprismBendingPatchTests
+# Mixed displacement - volumetric strain tests
+from test_cook_membrane import TestCookMembrane as TTestCookMembrane
 # Explicit tests
 from structural_mechanics_test_factory import ExplicitSolidBeam as TExplicitSolidBeam
 # Eigenvalues tests
@@ -341,6 +343,9 @@ def AssembleTestSuites():
     # SPRISM tests
     nightSuite.addTest(TSprismMembranePatchTests('test_execution'))
     nightSuite.addTest(TSprismBendingPatchTests('test_execution'))
+    # Mixed displacement - volumetric strain tests
+    nightSuite.addTest(TTestCookMembrane('test_cook_membrane_2d'))
+    nightSuite.addTest(TTestCookMembrane('test_cook_membrane_incompressible_2d'))
     # Membrane tests
     nightSuite.addTest(TFofi4PointTentnoCableTests('test_execution'))
     nightSuite.addTest(TFofi4PointTentCableTests('test_execution'))

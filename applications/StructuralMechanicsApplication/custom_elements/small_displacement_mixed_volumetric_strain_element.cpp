@@ -562,11 +562,9 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
         const double w_tau_1_k = w_gauss * tau_1 * bulk_modulus;
         const double w_1_tau_2_k =  w_gauss * (1 - tau_2) * bulk_modulus;
 
-        const Matrix transB_C = prod(trans(kinematic_variables.B), cons_law_values.GetConstitutiveMatrix());
-        const Matrix transB_C_B = prod(transB_C, kinematic_variables.B);
-
         const Vector C_m_voigt = prod(cons_law_values.GetConstitutiveMatrix(), voigt_identity);
         const Matrix C_m = MathUtils<double>::StressVectorToTensor(C_m_voigt); // Expansion from Voigt to tensor notation
+        const Matrix transB_C = prod(trans(kinematic_variables.B), cons_law_values.GetConstitutiveMatrix());
         const Vector transB_C_m = prod(trans(kinematic_variables.B), C_m_voigt);
         const Vector grad_eps = prod(trans(kinematic_variables.DN_DX), kinematic_variables.VolumetricNodalStrains);
         const Vector C_m_grad_eps = prod(C_m, grad_eps);
