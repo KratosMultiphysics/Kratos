@@ -764,7 +764,7 @@ private:
     ///@name Private Operations
     ///@{
 
-   /**
+    /**
      * @brief Stores initial loads to ensure that load multiplier always refers to user input
      * @param mpInitialLoads Vector that stores initial laods
      */
@@ -787,7 +787,7 @@ private:
             }
         } 
     }
-   /**
+    /**
      * @brief Updates load conditions
      * @param mpInitialLoads Vector that stores initial laods
      */
