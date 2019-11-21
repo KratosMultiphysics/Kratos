@@ -31,6 +31,9 @@ class SdofStaticSolverWrapper(CoSimulationSolverWrapper):
     def OutputSolutionStep(self):
         self._sdof_static_solver.OutputSolutionStep()
 
+    def AdvanceInTime(self, current_time):
+        return 0.0
+
     def SolveSolutionStep(self):
         print(self._sdof_static_solver)
         self._sdof_static_solver.SetSolutionStepValue("DISPLACEMENT", self.mp[KMC.SCALAR_DISPLACEMENT], 0)

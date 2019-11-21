@@ -65,6 +65,7 @@ class SDoFStaticSolver(object):
             if os.path.isfile(self.output_file_name):
                 os.remove(self.output_file_name)
             self.InitializeOutput()
+        self.time = 0.0
 
     def InitializeOutput(self):
         with open(self.output_file_name, "w") as results_sdof_static:
@@ -77,8 +78,15 @@ class SDoFStaticSolver(object):
                 #outputs results
                 results_sdof_static.write(str(self.dx) + "\n")
 
+    def AdvanceInTime(self, current_time):
+        self.time = 0.0
+        return self.time
+
     def SolveSolutionStep(self):
         self.dx = self.force/self.stiffness
+        KratosMultiphysics.Logger.PrintInfo('SDoFStaticSolver', 'Force Imported = ', self.force)
+        KratosMultiphysics.Logger.PrintInfo('SDoFStaticSolver', 'Structure Stiffness = ', self.stiffness)
+        KratosMultiphysics.Logger.PrintInfo('SDoFStaticSolver', 'New Displacement = ', self.dx)
 
     def CalculateReaction(self, buffer_idx=0):
         reaction = self.stiffness * (self.dx)
@@ -86,20 +94,16 @@ class SDoFStaticSolver(object):
 
     def GetSolutionStepValue(self, identifier, buffer_idx=0):
         if identifier == "DISPLACEMENT":
-            print(identifier)
             return self.dx
         elif identifier == "REACTION":
-            print(identifier)
             return self.CalculateReaction()
         else:
             raise Exception("Identifier is unknown!")
 
     def SetSolutionStepValue(self, identifier, value, buffer_idx=0):
-        if identifier == "SCALAR_DISPLACEMENT":
-            print(identifier)
+        if identifier == "DISPLACEMENT":
             self.dx= value
-        elif identifier == "SCALAR_FORCE":
-            print(identifier)
+        elif identifier == "LOAD":
             self.force = 0.0
             self.force = value
         else:
@@ -138,31 +142,3 @@ def ValidateAndAssignDefaults(defaults, settings, recursive=False):
 
 def RecursivelyValidateAndAssignDefaults(defaults, settings):
     ValidateAndAssignDefaults(defaults, settings, recursive=True)
-
-    # def GetDataDefinition(self, data_name):
-    #     return self.cosim_solver_settings["data"][data_name]
-
-    # def SetEchoLevel(self, level):
-    #     self.echo_level = level
-
-    # def SetData(self, identifier, data):
-    #     if identifier == "LOAD":
-    #         self.force = data
-    #     elif identifier == "DISPLACEMENT":
-    #         self.SetSolutionStepValue("DISPLACEMENT", data,0)
-    #     else:
-    #         raise Exception("Identifier is unknown!")
-
-    # def GetData(self, identifier):
-    #     if identifier == "LOAD":
-    #         return self.force
-    #     elif identifier == "DISPLACEMENT":
-    #         return self.GetSolutionStepValue("DISPLACEMENT",0)
-    #     else:
-    #         raise Exception("Identifier is unknown!")
-
-    # def _GetIOName(self):
-    #     return "sdof"
-
-    # def _Name(self):
-    #     return self.__class__.__name__
