@@ -10,31 +10,31 @@
 //
 
 
-#if !defined(ADJOINT_FINITE_DIFFERENCE_TRUSS_ELEMENT_LINEAR_H_INCLUDED )
-#define  ADJOINT_FINITE_DIFFERENCE_TRUSS_ELEMENT_LINEAR_H_INCLUDED
+#if !defined(ADJOINT_FINITE_DIFFERENCE_SPRING_DAMPER_ELEMENT_H_INCLUDED )
+#define  ADJOINT_FINITE_DIFFERENCE_SPRING_DAMPER_ELEMENT_H_INCLUDED
 
-#include "adjoint_finite_difference_truss_element_3D2N.h"
+#include "adjoint_finite_difference_base_element.h"
 
 namespace Kratos
 {
 
-/** \brief AdjointFiniteDifferencingBaseElement
+/** \brief AdjointFiniteDifferenceSpringDamperElement
  *
- * This element is a wrapper for a primal linear truss element. It is responsible to deliver local stresses and
- * the stress displacement derivative. It is designed to be used in adjoint
+ * This element is a wrapper for the spring damper element. It is responsible to deliver to
+ * deliver the derivative of RHS as part of the pseudo-load. It is designed to be used in adjoint
  * sensitivity analysis.
  */
 template <typename TPrimalElement>
-class AdjointFiniteDifferenceTrussElementLinear
-    : public AdjointFiniteDifferenceTrussElement<TPrimalElement>
+class AdjointFiniteDifferenceSpringDamperElement: public AdjointFiniteDifferencingBaseElement<TPrimalElement>
 {
 public:
 
     // redefine the typedefs because of templated base class
-    typedef AdjointFiniteDifferenceTrussElement<TPrimalElement> BaseType;
+    typedef AdjointFiniteDifferencingBaseElement<TPrimalElement> BaseType;
     typedef typename BaseType::SizeType SizeType;
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::GeometryType GeometryType;
+    typedef typename BaseType::NodeType NodeType;
     typedef typename BaseType::PropertiesType PropertiesType;
     typedef typename BaseType::NodesArrayType NodesArrayType;
     typedef typename BaseType::VectorType VectorType;
@@ -45,22 +45,22 @@ public:
     typedef typename BaseType::IntegrationMethod IntegrationMethod;
     typedef typename BaseType::GeometryDataType GeometryDataType;
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointFiniteDifferenceTrussElementLinear);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointFiniteDifferenceSpringDamperElement);
 
-    AdjointFiniteDifferenceTrussElementLinear(IndexType NewId = 0)
-    : BaseType(NewId)
+    AdjointFiniteDifferenceSpringDamperElement(IndexType NewId = 0)
+    : BaseType(NewId, true)
     {
     }
 
-    AdjointFiniteDifferenceTrussElementLinear(IndexType NewId, typename GeometryType::Pointer pGeometry)
-    : BaseType(NewId, pGeometry)
+    AdjointFiniteDifferenceSpringDamperElement(IndexType NewId, typename GeometryType::Pointer pGeometry)
+    : BaseType(NewId, pGeometry, true)
     {
     }
 
-    AdjointFiniteDifferenceTrussElementLinear(IndexType NewId,
+    AdjointFiniteDifferenceSpringDamperElement(IndexType NewId,
                         typename GeometryType::Pointer pGeometry,
                         typename PropertiesType::Pointer pProperties)
-    : BaseType(NewId, pGeometry, pProperties)
+    : BaseType(NewId, pGeometry, pProperties, true)
     {
     }
 
@@ -68,7 +68,7 @@ public:
                               NodesArrayType const& ThisNodes,
                               typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>>(
+        return Kratos::make_intrusive<AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>>(
             NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
@@ -76,17 +76,19 @@ public:
                               typename GeometryType::Pointer pGeometry,
                               typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>>(
+        return Kratos::make_intrusive<AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>>(
             NewId, pGeometry, pProperties);
     }
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                 std::vector< array_1d<double, 3 > >& rOutput,
-                const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
-                                    Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo) override;
+
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
     friend class Serializer;
