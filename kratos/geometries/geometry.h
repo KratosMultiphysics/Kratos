@@ -67,6 +67,7 @@ namespace Kratos
  */
 template<class TPointType>
 class Geometry
+    : public IndexedObject
 {
 public:
     ///@}
@@ -220,7 +221,10 @@ public:
     ///@name Life Cycle
     ///@{
 
-    Geometry() : mpGeometryData(&GeometryDataInstance())
+    /// Standard Constructor
+    Geometry(IndexType Id = 0)
+        : IndexedObject(Id),
+          mpGeometryData(&GeometryDataInstance())
     {
 
     }
@@ -283,10 +287,13 @@ public:
     have gaussian orden two ThisShapeFunctionsValues[GI_GAUSS_2]
     must be an empty ShapeFunctionsGradientsType.
     */
-    Geometry(const PointsArrayType &ThisPoints,
-             GeometryData const *pThisGeometryData = &GeometryDataInstance())
-        :  mpGeometryData(pThisGeometryData),
-           mPoints(ThisPoints)
+    Geometry(
+        const PointsArrayType &ThisPoints,
+        GeometryData const *pThisGeometryData = &GeometryDataInstance(),
+        IndexType Id = 0)
+        : IndexedObject(Id),
+          mpGeometryData(pThisGeometryData),
+          mPoints(ThisPoints)
     {
     }
 
@@ -298,8 +305,11 @@ public:
     obvious that any change to this new geometry's point affect
     source geometry's points too.
     */
-    Geometry( const Geometry& rOther )
-        : mpGeometryData( rOther.mpGeometryData ),
+    Geometry( 
+        const Geometry& rOther,
+        IndexType Id = 0)
+        : IndexedObject(Id),
+          mpGeometryData( rOther.mpGeometryData ),
           mPoints( rOther.mPoints)
     {
     }
@@ -316,7 +326,10 @@ public:
     obvious that any change to this new geometry's point affect
     source geometry's points too.
     */
-    template<class TOtherPointType> Geometry( Geometry<TOtherPointType> const & rOther )
+    template<class TOtherPointType> Geometry(
+        Geometry<TOtherPointType> const & rOther,
+        IndexType Id = 0)
+        : IndexedObject(Id),
         : mpGeometryData(rOther.mpGeometryData)
     {
         mPoints = new PointsArrayType(rOther.begin(), rOther.end());
