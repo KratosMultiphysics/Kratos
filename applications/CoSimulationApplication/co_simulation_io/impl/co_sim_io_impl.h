@@ -30,6 +30,7 @@
 #include <string>
 #include <map>
 #include <stdexcept>
+#include <utility>
 
 // Project includes
 #include "co_sim_file_comm.h"
@@ -152,46 +153,43 @@ public:
         return RecvControlSignal(dummy) == CoSimIO::Internals::ControlSignal::ConvergenceAchieved;
     }
 
-    void ImportData(
-        const std::string& rIdentifier,
-        Internals::DataContainer<double>& pContainer)
+
+    template<class... Args>
+    void ImportData(Args&&... args)
     {
-        // mpComm->ImportData(rIdentifier, rData);
+        mpComm->ImportData(std::forward<Args>(args)...);
     }
 
-    void ExportData(
-        const std::string& rIdentifier,
-        const Internals::DataContainer<double>& pContainer)
+    template<class... Args>
+    void ExportData(Args&&... args)
     {
-        // mpComm->ExportData(rIdentifier, Size, pData);
+        mpComm->ExportData(std::forward<Args>(args)...);
     }
 
-    void ImportMesh(
-        const std::string& rIdentifier,
-        Internals::DataContainer<double>& pNodalCoords,
-        Internals::DataContainer<int>& pElementConnectivities,
-        Internals::DataContainer<int>& pElementTypes)
+    template<class... Args>
+    void ImportMesh(Args&&... args)
     {
-        // mpComm->ImportMesh(rIdentifier, pNodalCoords, pElementConnectivities, pElementTypes);
+        mpComm->ImportMesh(std::forward<Args>(args)...);
     }
 
-    void ExportMesh(
-        const std::string& rIdentifier,
-        const Internals::DataContainer<double>& pNodalCoords,
-        const Internals::DataContainer<int>& pElementConnectivities,
-        const Internals::DataContainer<int>& pElementTypes)
+    template<class... Args>
+    void ExportMesh(Args&&... args)
     {
-        // mpComm->ExportMesh(rIdentifier, pNodalCoords, pElementConnectivities, pElementTypes);
+        mpComm->ExportMesh(std::forward<Args>(args)...);
     }
 
-    void ImportGeometry()
+    template<class... Args>
+    void ImportGeometry(Args&&... args)
     {
         KRATOS_CO_SIM_ERROR << "Importing of Geometry is not yet implemented!" << std::endl;
+        mpComm->ImportGeometry(std::forward<Args>(args)...);
     }
 
-    void ExportGeometry()
+    template<class... Args>
+    void ExportGeometry(Args&&... args)
     {
         KRATOS_CO_SIM_ERROR << "Exporting of Geometry is not yet implemented!" << std::endl;
+        mpComm->ExportGeometry(std::forward<Args>(args)...);
     }
 
 private:

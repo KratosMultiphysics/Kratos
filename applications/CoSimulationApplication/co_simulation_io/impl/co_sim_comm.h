@@ -82,46 +82,46 @@ public:
         CheckConnection(); return RecvControlSignalDetail(rIdentifier);
     }
 
-    void ImportData(
-        const std::string& rIdentifier,
-        int* pSize,
-        double** ppData)
+    template<class... Args>
+    void ImportData(Args&&... args)
     {
         CheckConnection();
-        ImportDataImpl(rIdentifier, pSize, ppData);
+        ImportDataImpl(std::forward<Args>(args)...);
     }
 
-    void ExportData(
-        const std::string& rIdentifier,
-        const int Size,
-        const double* pData)
+    template<class... Args>
+    void ExportData(Args&&... args)
     {
         CheckConnection();
-        ExportDataImpl(rIdentifier, Size, pData);
+        ExportDataImpl(std::forward<Args>(args)...);
     }
 
-    void ImportMesh(
-        const std::string& rIdentifier,
-        int* pNumberOfNodes,
-        int* pNumberOfElements,
-        double** ppNodalCoordinates,
-        int** ppElementConnectivities,
-        int** ppElementTypes)
+    template<class... Args>
+    void ImportMesh(Args&&... args)
     {
         CheckConnection();
-        ImportMeshImpl(rIdentifier, pNumberOfNodes, pNumberOfElements, ppNodalCoordinates, ppElementConnectivities, ppElementTypes);
+        ImportMeshImpl(std::forward<Args>(args)...);
     }
 
-    void ExportMesh(
-        const std::string& rIdentifier,
-        const int NumberOfNodes,
-        const int NumberOfElements,
-        const double* pNodalCoordinates,
-        const int* pElementConnectivities,
-        const int* pElementTypes)
+    template<class... Args>
+    void ExportMesh(Args&&... args)
     {
         CheckConnection();
-        ExportMeshImpl(rIdentifier, NumberOfNodes, NumberOfElements, pNodalCoordinates, pElementConnectivities, pElementTypes);
+        ExportMeshImpl(std::forward<Args>(args)...);
+    }
+
+    template<class... Args>
+    void ImportGeometry(Args&&... args)
+    {
+        CheckConnection();
+        // ImportGeometryImpl(std::forward<Args>(args)...);
+    }
+
+    template<class... Args>
+    void ExportGeometry(Args&&... args)
+    {
+        CheckConnection();
+        // ExportGeometryImpl(std::forward<Args>(args)...);
     }
 
 protected:
@@ -155,38 +155,32 @@ private:
 
     virtual void ImportDataImpl(
         const std::string& rIdentifier,
-        int* pSize,
-        double** ppData)
+        CoSimIO::Internals::DataContainer<double>& rData)
     {
         KRATOS_CO_SIM_ERROR << "ImportDataImpl not implemented for this comm-type!" << std::endl;
     }
 
     virtual void ExportDataImpl(
         const std::string& rIdentifier,
-        const int Size,
-        const double* pData)
+        const CoSimIO::Internals::DataContainer<double>& rData)
     {
-        KRATOS_CO_SIM_ERROR << "ImportDataImpl not implemented for this comm-type!" << std::endl;
+        KRATOS_CO_SIM_ERROR << "ExportDataImpl not implemented for this comm-type!" << std::endl;
     }
 
     virtual void ImportMeshImpl(
         const std::string& rIdentifier,
-        int* pNumberOfNodes,
-        int* pNumberOfElements,
-        double** ppNodalCoordinates,
-        int** ppElementConnectivities,
-        int** ppElementTypes)
+        CoSimIO::Internals::DataContainer<double>& rNodalCoordinates,
+        CoSimIO::Internals::DataContainer<int>& rElementConnectivities,
+        CoSimIO::Internals::DataContainer<int>& rElementTypes)
     {
         KRATOS_CO_SIM_ERROR << "ImportDataImpl not implemented for this comm-type!" << std::endl;
     }
 
     virtual void ExportMeshImpl(
         const std::string& rIdentifier,
-        const int NumberOfNodes,
-        const int NumberOfElements,
-        const double* pNodalCoordinates,
-        const int* pElementConnectivities,
-        const int* pElementTypes)
+        CoSimIO::Internals::DataContainer<double>& rNodalCoordinates,
+        CoSimIO::Internals::DataContainer<int>& rElementConnectivities,
+        CoSimIO::Internals::DataContainer<int>& rElementTypes)
     {
         KRATOS_CO_SIM_ERROR << "ImportDataImpl not implemented for this comm-type!" << std::endl;
     }
