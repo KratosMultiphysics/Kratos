@@ -137,3 +137,8 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
 install(TARGETS KratosExternalSolversApplication DESTINATION libs )
+
+# Install blas and lapack
+install(FILES ${BLAS_LIBRARIES} DESTINATION libs)
+install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
+

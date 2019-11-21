@@ -401,11 +401,3 @@ install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DE
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
-
-# Install blas and lapack
-if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
-	message("installed blas = " ${BLAS_LIBRARIES})
-	install(FILES ${BLAS_LIBRARIES} DESTINATION libs)
-	message("installed lapack = " ${LAPACK_LIBRARIES})
-	install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
-endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
