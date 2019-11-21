@@ -405,7 +405,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return TWorkingSpaceDimension + " dimensional nurbs curve.";
+        return std::to_string(TWorkingSpaceDimension) + " dimensional nurbs curve.";
     }
 
     /// Print information about this object.
