@@ -265,13 +265,13 @@ protected:
 
                 for(int j = 0; j < PointsNumber; j++)
                 {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE);
+                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(REFERENCE_TEMPERATURE);
                     if (NodalVariableVector[j] > max_reference_temperature) max_reference_temperature = NodalVariableVector[j];
                     if (NodalVariableVector[j] < min_reference_temperature) min_reference_temperature = NodalVariableVector[j];
                 }
-                itNodeNew->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-                if (itNodeNew->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) > max_reference_temperature) itNodeNew->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = max_reference_temperature;
-                if (itNodeNew->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) < min_reference_temperature) itNodeNew->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = min_reference_temperature;
+                itNodeNew->FastGetSolutionStepValue(REFERENCE_TEMPERATURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                if (itNodeNew->FastGetSolutionStepValue(REFERENCE_TEMPERATURE) > max_reference_temperature) itNodeNew->FastGetSolutionStepValue(REFERENCE_TEMPERATURE) = max_reference_temperature;
+                if (itNodeNew->FastGetSolutionStepValue(REFERENCE_TEMPERATURE) < min_reference_temperature) itNodeNew->FastGetSolutionStepValue(REFERENCE_TEMPERATURE) = min_reference_temperature;
             }
         }
     }

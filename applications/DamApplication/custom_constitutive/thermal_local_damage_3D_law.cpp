@@ -271,7 +271,7 @@ double&  ThermalLocalDamage3DLaw::CalculateNodalReferenceTemperature (const Mate
 
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
-      rNodalReferenceTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE);
+      rNodalReferenceTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(REFERENCE_TEMPERATURE);
     }
 
     return rNodalReferenceTemperature;

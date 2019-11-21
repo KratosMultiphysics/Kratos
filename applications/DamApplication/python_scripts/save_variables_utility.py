@@ -91,10 +91,10 @@ class SaveVariablesUtility:
                 OutputMdpa.write('\n' + str(node.Id) + ' 0 ' + str(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)))
         OutputMdpa.write('\nEnd NodalData\n')
 
-        OutputMdpa.write('\nBegin NodalData NODAL_REFERENCE_TEMPERATURE')
+        OutputMdpa.write('\nBegin NodalData REFERENCE_TEMPERATURE')
         for part in thermal_parts:
             for node in part.Nodes:
-                OutputMdpa.write('\n' + str(node.Id) + ' 0 ' + str(node.GetSolutionStepValue(KratosDam.NODAL_REFERENCE_TEMPERATURE)))
+                OutputMdpa.write('\n' + str(node.Id) + ' 0 ' + str(node.GetSolutionStepValue(KratosDam.REFERENCE_TEMPERATURE)))
         OutputMdpa.write('\nEnd NodalData\n')
 
         OutputMdpa.close()
@@ -122,10 +122,10 @@ class SaveVariablesUtility:
                 OutputMdpa.write('\n' + str(node.Id) + ' 0 ' + str(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)))
         OutputMdpa.write('\nEnd NodalData\n')
 
-        OutputMdpa.write('\nBegin NodalData NODAL_REFERENCE_TEMPERATURE')
+        OutputMdpa.write('\nBegin NodalData REFERENCE_TEMPERATURE')
         for part in thermal_parts:
             for node in part.Nodes:
-                OutputMdpa.write('\n' + str(node.Id) + ' 0 ' + str(node.GetSolutionStepValue(KratosDam.NODAL_REFERENCE_TEMPERATURE)))
+                OutputMdpa.write('\n' + str(node.Id) + ' 0 ' + str(node.GetSolutionStepValue(KratosDam.REFERENCE_TEMPERATURE)))
         OutputMdpa.write('\nEnd NodalData\n')
 
         OutputMdpa.close()
