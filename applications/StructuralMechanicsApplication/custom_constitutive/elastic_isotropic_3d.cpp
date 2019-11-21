@@ -70,6 +70,10 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
     }
 
     this->AddThermalEffect(rValues, r_strain_vector);
+    auto &r_material_props = rValues.GetMaterialProperties();
+    if (r_material_props.Has(INITIAL_STRAIN_VECTOR)) {
+        r_strain_vector += r_material_props[INITIAL_STRAIN_VECTOR];
+    }
 
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS )) {
         Vector& r_stress_vector = rValues.GetStressVector();
