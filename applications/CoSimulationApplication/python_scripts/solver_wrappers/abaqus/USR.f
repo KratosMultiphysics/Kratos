@@ -185,8 +185,8 @@ C==============================================================================
       DO R = 1,S
          WRITE(FILENAME,'(A,A,A,I0,A)') 
      &      '|PWD|',
-     &      '/Data/AbaqusSolver|RANK|/|TYPE||TESTID|Refine|REFINE|Time',
-     &      '0Surface',(R-1),'Elements.dat'
+     &      '|csmdir|/CSM_Time',
+     &      'Surface',(R-1),'Elements.dat'
 
          OPEN(UNIT=UNIT_ELEM,FILE=FILENAME,STATUS='OLD')
       
