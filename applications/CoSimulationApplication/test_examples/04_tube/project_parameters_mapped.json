@@ -73,7 +73,7 @@
             {
                 "type": "solver_wrappers.mapped",
                 "settings": {
-                    "solver" :
+                    "solver_wrapper" :
                     {
                         "type" : "solver_interfaces.pipe.structure_solver",
                         "settings" :
@@ -90,13 +90,21 @@
                             }
                         }
                     },
-                    "mapper_input":
+                    "mapper_interface_input":
                     {
-                        "type" : "mappers.linear"
+						"type" : "mappers.interface",
+						"settings" :
+						{
+	                        "type" : "mappers.linear"
+						}
                     },
-                    "mapper_output":
+                    "mapper_interface_output":
                     {
-                        "type" : "mappers.linear"
+						"type" : "mappers.interface",
+						"settings" :
+						{
+	                        "type" : "mappers.linear"
+						}
                     }
                 }
             }

@@ -12,4 +12,58 @@ class SolverWrapperMapped(CoSimulationComponent):
     def __init__(self, parameters):
         super().__init__()
 
+        # Read parameters
+        self.parameters = parameters
         self.settings = parameters["settings"]
+
+		# Create solver
+		self.solver_wrapper = cs_tools.CreateInstance(self.parameters["solver_wrapper"])
+
+    def Initialize(self):
+        super().Initialize()
+
+		self.solver_wrapper.Initialize()
+
+    def InitializeSolutionStep(self):
+        super().InitializeSolutionStep()
+
+		self.solver_wrapper.InitializeSolutionStep()
+
+    def SolveSolutionStep(self, interface_input_from):
+		self.interface_input_from = interface_input_from
+		self.interface_input_to = self.mapper_interface_input(self.interface_input_from)
+		self.interface_output_from = self.solver_wrapper.SolveSolutionStep(self.interface_input_to)
+		self.interface_output_to = self.mapper_interface_output(self.interface_output_from)
+        return self.interface_output_to
+
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
+
+		self.solver_wrapper.FinalizeSolutionStep()
+
+    def Finalize(self):
+        super().Finalize()
+
+		self.solver_wrapper.Finalize()
+
+    def GetInterfaceInput(self):
+		# Does not contain most recent data
+		return self.interface_input_from
+
+    def SetInterfaceInput(self, interface_input_from):
+		# Create input mapper
+		self.interface_input_from = interface_input_from
+		self.interface_input_to = self.solver_wrapper.GetInterfaceInput()
+		self.mapper_interface_input = cs_tools.CreateInstance(self.parameters["mapper_interface_input"])
+		self.mapper_interface_input.Initialize(self.interface_input_from, self.interface_input_to)
+
+    def GetInterfaceOutput(self):
+        return self.interface_output_to
+
+    def SetInterfaceOutput(self, interface_output_to):
+		# Create output mapper
+		self.interface_output_to = interface_output_to
+		self.interface_output_from = self.solver_wrapper.GetInterfaceOutput()
+		self.mapper_interface_output = cs_tools.CreateInstance(self.parameters["mapper_interface_output"])
+		self.mapper_interface_output.Initialize(self.interface_output_from, self.interface_output_to)
+
