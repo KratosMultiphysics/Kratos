@@ -82,8 +82,7 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensit
         Vector RHS;
         for(IndexType dir_i = 0; dir_i < dimension; ++dir_i) {
             // The following approach assumes a linear dependency between RHS and spring stiffness
-            array_1d<double, 3> perturbed_nodal_stiffness;
-            noalias(perturbed_nodal_stiffness) = ZeroVector(3);
+            array_1d<double, 3> perturbed_nodal_stiffness = ZeroVector(3);
             perturbed_nodal_stiffness[dir_i] = 1.0;
             this->pGetPrimalElement()->SetValue(rDesignVariable, perturbed_nodal_stiffness);
             this->pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
