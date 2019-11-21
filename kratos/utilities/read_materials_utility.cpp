@@ -236,7 +236,7 @@ void ReadMaterialsUtility::AssingMaterialToProperty(
                 CheckIfOverwritingValue(rProperty, r_variable, value.GetString());
                 rProperty.SetValue(r_variable, value.GetString());
             } else if(variable_name == "CONFIGURATION_PARAMETERS") {
-                rProperty.SetValue(CONFIGURATION_PARAMETERS, Kratos::make_shared<Kratos::Parameters>(value.GetString()));
+                rProperty.SetValue(CONFIGURATION_PARAMETERS, Kratos::make_shared<Kratos::Parameters>(value.WriteJsonString()));
             } else {
                 KRATOS_ERROR << "Value type for \"" << variable_name << "\" not defined";
             }
