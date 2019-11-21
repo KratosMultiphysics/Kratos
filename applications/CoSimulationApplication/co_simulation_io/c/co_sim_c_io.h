@@ -12,23 +12,46 @@
 #ifndef KRATOS_CO_SIM_C_IO_H_INCLUDED
 #define KRATOS_CO_SIM_C_IO_H_INCLUDED
 
-
 #ifdef __cplusplus
 extern "C" { // Define extern C if C++ compiler is used
 #endif
 
-void CoSimIO_Connect(const char* pConnectionName, const char* pSettingsFileName);
+void CoSimIO_Connect(
+    const char* pConnectionName,
+    const char* pSettingsFileName);
 
-void CoSimIO_Disconnect(const char* pConnectionName);
+void CoSimIO_Disconnect(
+    const char* pConnectionName);
 
-void CoSimIO_ImportData(const char* pConnectionName);
-// static void CoSimIO_ExportData(const char* pConnectionName);
+void CoSimIO_ImportData(
+    const char* pConnectionName,
+    const char* pIdentifier,
+    int* pSize,
+    double** ppData);
 
-// static void CoSimIO_ImportMesh(const char* pConnectionName);
-// static void CoSimIO_ExportMesh(const char* pConnectionName);
+void CoSimIO_ExportData(
+    const char* pConnectionName,
+    const char* pIdentifier,
+    int Size,
+    double* pData);
 
-// static void CoSimIO_ImportGeometry(const char* pConnectionName);
-// static void CoSimIO_ExportGeometry(const char* pConnectionName);
+void CoSimIO_ImportMesh(
+    const char* pConnectionName,
+    const char* pIdentifier,
+    int* pNumberOfNodes,
+    int* pNumberOfElements,
+    double** ppNodalCoordinates,
+    int** ppElementConnectivities,
+    int** ppElementTypes);
+
+void CoSimIO_ExportMesh(
+    const char* pConnectionName,
+    const char* pIdentifier,
+    int NumberOfNodes,
+    int NumberOfElements,
+    double* pNodalCoordinates,
+    int* pElementConnectivities,
+    int* pElementTypes);
 
 #ifdef __cplusplus
 }
