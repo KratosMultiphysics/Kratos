@@ -462,9 +462,9 @@ public:
 
     /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
-     * @param lambda Smallest eigenvalue of current solution step
-     * @param lambdaPrev Smallest eigenvalue of previous solution step
-     * @param deltaLoadMultiplier Load increment between two load steps
+     * @param mLambda Smallest eigenvalue of current solution step
+     * @param mLambdaPrev Smallest eigenvalue of previous solution step
+     * @param delta_load_multiplier Load increment between two load steps
      */
     bool SolveSolutionStep() override
     {
@@ -503,14 +503,14 @@ public:
         }
 
         // Update loadfactor increment
-        double deltaLoadMultiplier = 0.0;
+        double delta_load_multiplier = 0.0;
         if( mLoadStepIteration == 1) // inital step
         {
-            deltaLoadMultiplier = mInitialStep*(lambda + lambdaPrev);
+            delta_load_multiplier = mInitialStep*(mLambda + mLambdaPrev);
         }
         else if( mLoadStepIteration % 2 == 1 ) //small step
         {
-            deltaLoadMultiplier = mSmallStep*(lambdaPrev );
+            delta_load_multiplier = mSmallStep*(mLambdaPrev );
         }
 
         BuiltinTimer system_solve_time;
@@ -588,9 +588,9 @@ public:
         {
             rStiffnessMatrixPrevious = rStiffnessMatrix;
             
-            if( mLoadStepIteration > 0) // Update lambdaPrev
+            if( mLoadStepIteration > 0) // Update mLambdaPrev
             {
-                lambdaPrev = lambdaPrev + mBigStep*lambda;
+                mLambdaPrev = mLambdaPrev + mBigStep*mLambda;
             }
         }
         else if( mLoadStepIteration % 2 == 1 ) // Evaluate eigenvalue problem after small step
@@ -607,10 +607,10 @@ public:
             //     Eigenvalues,
             //     Eigenvectors);
 
-            // lambda = 1.0 / ( 1.0 - Eigenvalues(0) ) * deltaLoadMultiplier;
+            // mLambda = 1.0 / ( 1.0 - Eigenvalues(0) ) * delta_load_multiplier;
             // for(int i = 0; i < Eigenvalues.size(); i++ )
             // {
-            //     Eigenvalues[i] = lambdaPrev + 1.0 / ( 1.0 - Eigenvalues[i] )*deltaLoadMultiplier;
+            //     Eigenvalues[i] = mLambdaPrev + 1.0 / ( 1.0 - Eigenvalues[i] )*delta_load_multiplier;
             // }
             // this->AssignVariables(Eigenvalues, Eigenvectors);
             //End Method 1#########################################################################
@@ -632,11 +632,11 @@ public:
                 Eigenvalues,
                 Eigenvectors);
 
-            // Update eigenvalues to loadfactors (Instead of dividing matrix by deltaLoadMultiplier, here eigenvalues are multiplied)
-            lambda = Eigenvalues(0)*deltaLoadMultiplier;
+            // Update eigenvalues to loadfactors (Instead of dividing matrix by delta_load_multiplier, here eigenvalues are multiplied)
+            mLambda = Eigenvalues(0)*delta_load_multiplier;
             for(int i = 0; i < Eigenvalues.size(); i++ )
             {
-                Eigenvalues[i] = lambdaPrev + Eigenvalues[i]*deltaLoadMultiplier;
+                Eigenvalues[i] = mLambdaPrev + Eigenvalues[i]*delta_load_multiplier;
             }
             
             this->AssignVariables(Eigenvalues, Eigenvectors);
@@ -648,7 +648,7 @@ public:
             // End Method 2#########################################################################
 
             // Convergence criteria for buckling analysis
-            if( std::abs(lambda/lambdaPrev) < mConvergenceRatio )
+            if( std::abs(mLambda/mLambdaPrev) < mConvergenceRatio )
             {
                 mSolutionFound = true;
                 KRATOS_INFO_IF("Prebuckling Analysis: ", BaseType::GetEchoLevel() > 0)
@@ -816,8 +816,8 @@ private:
     double mBigStep;
     double mConvergenceRatio;
 
-    double lambda = 0.0;
-    double lambdaPrev = 1.0;
+    double mLambda = 0.0;
+    double mLambdaPrev = 1.0;
 
     ///@}
     ///@name Private Operators
@@ -864,40 +864,40 @@ private:
             // Check if condition is point load
             if (it_condition->Has(POINT_LOAD))
             {
-                array_1d<double, 3> point_load;
+                array_1d<double, 3> r_point_load;
                 if( mLoadStepIteration == 1) // Initial step
                 {
-                    point_load = mpInitialLoads[j] + mInitialStep * mpInitialLoads[j]; 
+                    r_point_load = mpInitialLoads[j] + mInitialStep * mpInitialLoads[j]; 
                 }
                 else if( mLoadStepIteration % 2 == 0) // Do big step
                 {
-                    point_load = ( lambdaPrev + mBigStep * lambda ) * mpInitialLoads[j]; 
+                    r_point_load = ( mLambdaPrev + mBigStep * mLambda ) * mpInitialLoads[j]; 
                 }
                 else // Do small step
                 {
-                    point_load = (1 + mSmallStep) * (lambdaPrev) * mpInitialLoads[j];
+                    r_point_load = (1 + mSmallStep) * (mLambdaPrev) * mpInitialLoads[j];
                 }
                 // Update Condition
-                it_condition->SetValue(POINT_LOAD,point_load);
+                it_condition->SetValue(POINT_LOAD,r_point_load);
             }
             // Check if condition is surface load
             if (it_condition->Has(SURFACE_LOAD))
             {
-                array_1d<double, 3>& surface_load = it_condition->GetValue(SURFACE_LOAD);
+                array_1d<double, 3>& r_surface_load = it_condition->GetValue(SURFACE_LOAD);
                 if( mLoadStepIteration == 1) // Initial step
                 {
-                    surface_load = mpInitialLoads[j] + mInitialStep * mpInitialLoads[j]; 
+                    r_surface_load = mpInitialLoads[j] + mInitialStep * mpInitialLoads[j]; 
                 }
                 else if( mLoadStepIteration % 2 == 0) // Do big step
                 {
-                    surface_load = ( lambdaPrev + mBigStep * lambda ) * mpInitialLoads[j]; 
+                    r_surface_load = ( mLambdaPrev + mBigStep * mLambda ) * mpInitialLoads[j]; 
                 }
                 else if( mLoadStepIteration % 2 == 1) // Do small step
                 {
-                    surface_load = (1 + mSmallStep) * (lambdaPrev) * mpInitialLoads[j];
+                    r_surface_load = (1 + mSmallStep) * (mLambdaPrev) * mpInitialLoads[j];
                 }
                 // Update Condition
-                it_condition->SetValue(SURFACE_LOAD,surface_load);
+                it_condition->SetValue(SURFACE_LOAD,r_surface_load);
             }
         }
     }
