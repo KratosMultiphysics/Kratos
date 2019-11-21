@@ -94,75 +94,7 @@ void Model::RenameModelPart( const std::string OldName, const std::string NewNam
 
 ModelPart& Model::GetModelPart(const std::string& rFullModelPartName)
 {
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF( rFullModelPartName.empty() ) << "Attempting to find a "
-        << "ModelPart with empty name (\"\")!" << std::endl;
-
-    std::vector< std::string > subparts_list = SplitSubModelPartHierarchy(rFullModelPartName);
-
-
-    if(subparts_list.size() == 1) //it is a root model part
-    {
-        auto search = mRootModelPartMap.find(subparts_list[0]);
-        if(search != mRootModelPartMap.end())
-        {
-            return *(search->second);
-        }
-        else //let's also search it as a flat name - a feature that SHOULD BE DEPRECATED
-        {
-
-            for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); it++)
-            {
-                ModelPart* pmodel_part = RecursiveSearchByName(subparts_list[0], (it->second.get()));
-                if (pmodel_part != nullptr) { //give back the first one that was found
-                    // Get the names of the parent-modelparts to print them in the warning
-                    std::vector<std::string> model_part_names;
-                    GetNameWithAscendants(*pmodel_part, model_part_names);
-
-                    std::stringstream msg;
-                    msg << model_part_names[0];
-                    for (std::size_t i=1; i<model_part_names.size(); ++i) {
-                        msg << "." << model_part_names[1];
-                    }
-
-                    KRATOS_WARNING("Model") << "DEPRECATION_WARNING: The ModelPart \"" << subparts_list[0] << "\"\nis retrieved from the Model by using the flat-map!\nThis will be removed end of November 2019\nPlease prepend the Parent-ModelPart-Names like this:\n\"" << msg.str() << "\"" << std::endl;
-
-                    return *pmodel_part;
-                }
-            }
-
-            //if we are here we did not find it
-            KRATOS_ERROR << "The ModelPart named : \"" << subparts_list[0]
-                    << "\" was not found either as root-ModelPart or as a flat name. The total input string was \""
-                    << rFullModelPartName << "\"" << std::endl;
-        }
-    }
-    else //it is a submodelpart with the full name provided
-    {
-        auto search = mRootModelPartMap.find(subparts_list[0]);
-        if(search != mRootModelPartMap.end())
-        {
-            ModelPart* p_model_part = (search->second).get();
-            for(unsigned int i=1; i<subparts_list.size(); ++i)
-            {
-                KRATOS_ERROR_IF_NOT(p_model_part->HasSubModelPart(subparts_list[i]))
-                    << "The ModelPart named : \"" << subparts_list[i]
-                    << "\" was not found as SubModelPart of : \""
-                    << subparts_list[i-1] << "\". The total input string was \""
-                    << rFullModelPartName << "\"" << std::endl;
-                p_model_part = &p_model_part->GetSubModelPart(subparts_list[i]);
-            }
-            return *p_model_part;
-        }
-        else
-        {
-            KRATOS_ERROR << "root model part " << rFullModelPartName << " not found" << std::endl;
-        }
-
-    }
-
-    KRATOS_CATCH("")
+    return const_cast<ModelPart&>(const_cast<const Model*>(this)->GetModelPart(rFullModelPartName));
 }
 
 const ModelPart& Model::GetModelPart(const std::string& rFullModelPartName) const
@@ -199,7 +131,7 @@ const ModelPart& Model::GetModelPart(const std::string& rFullModelPartName) cons
                         msg << "." << model_part_names[1];
                     }
 
-                    KRATOS_WARNING("Model") << "DEPREATION_WARNING: The ModelPart \"" << subparts_list[0] << "\"\nis retrieved from the Model by using the flat-map!\nThis will be removed end of November 2019\nPlease prepend the Parent-ModelPart-Names like this:\n\"" << msg.str() << "\"" << std::endl;
+                    KRATOS_WARNING("Model") << "DEPRECATION_WARNING: The ModelPart \"" << subparts_list[0] << "\"\nis retrieved from the Model by using the flat-map!\nThis will be removed end of November 2019\nPlease prepend the Parent-ModelPart-Names like this:\n\"" << msg.str() << "\"" << std::endl;
 
                     return *pmodel_part;
                 }
