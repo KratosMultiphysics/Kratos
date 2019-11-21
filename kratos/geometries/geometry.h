@@ -3182,7 +3182,7 @@ private:
 
     virtual void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject);
         rSerializer.save( "Points", mPoints);
     }
 
