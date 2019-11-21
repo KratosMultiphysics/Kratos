@@ -15,7 +15,6 @@
 
 // Project includes
 #include "adjoint_finite_difference_base_element.h"
-#include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "custom_response_functions/response_utilities/element_finite_difference_utility.h"
 #include "includes/checks.h"
@@ -137,9 +136,10 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::Calculate(const Varia
 {
     KRATOS_TRY;
 
-
     if(rVariable == STRESS_DISP_DERIV_ON_GP)
+    {
         this->CalculateStressDisplacementDerivative(STRESS_ON_GP, rOutput, rCurrentProcessInfo);
+    }
     else if(rVariable == STRESS_DISP_DERIV_ON_NODE)
     {
         this->CalculateStressDisplacementDerivative(STRESS_ON_NODE, rOutput, rCurrentProcessInfo);
@@ -177,6 +177,10 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::Calculate(const Varia
                 KratosComponents<Variable<array_1d<double, 3>>>::Get(design_variable_name);
             this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_NODE, rOutput, rCurrentProcessInfo);
         }
+    }
+    else if(rVariable == LOCAL_ELEMENT_ORIENTATION)
+    {
+        this->pGetPrimalElement()->Calculate(rVariable, rOutput, rCurrentProcessInfo);
     }
     else
     {
