@@ -132,9 +132,7 @@ class MorSecondOrderIRKAStrategy
 
     typedef ComplexSparseSpaceType TSolutionSpace;
 
-
     typedef LinearSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexLinearSolverType;
-
 
     typedef SystemMatrixBuilderAndSolver< ComplexSparseSpaceType, ComplexDenseSpaceType, ComplexLinearSolverType > TComplexBuilderAndSolverType;
 
@@ -169,7 +167,6 @@ class MorSecondOrderIRKAStrategy
         //typename TLinearSolver::Pointer pNewLinearEigenSolver,
         vector< double > samplingPoints_real,
         vector< double > samplingPoints_imag,
-        //Parameters param,
         bool MoveMeshFlag = false)
         : BaseType(rModelPart, pScheme, pNewLinearSolver, MoveMeshFlag), mParam(param)
     {
@@ -324,35 +321,39 @@ class MorSecondOrderIRKAStrategy
         auto& r_Vr_sparse = this->GetBasis();
         SparseSpaceType::Resize(r_Vr_sparse, system_size, reduced_system_size); // n x r
         TSparseSpace::SetToZero(r_Vr_sparse);
+        // sparse version for the orthogonalized form
 
         // initialize helper variables for V
-        auto  tmp_Vn_ptr = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_tmp_Vn   = *tmp_Vn_ptr;
-        ComplexSparseSpaceType::Resize(r_tmp_Vn, system_size, system_size); // n x n
-        TUblasSparseSpace<complex>::SetToZero(r_tmp_Vn);
+        // only in serial version
+        // // auto  tmp_Vn_ptr = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
+        // // auto& r_tmp_Vn   = *tmp_Vn_ptr;
+        // // ComplexSparseSpaceType::Resize(r_tmp_Vn, system_size, system_size); // n x n
+        // // TUblasSparseSpace<complex>::SetToZero(r_tmp_Vn);
         
-        auto  tmp_Vr_col_ptr = ComplexDenseSpaceType::CreateEmptyVectorPointer();
-        auto& r_tmp_Vr_col   = *tmp_Vr_col_ptr;
-        ComplexDenseSpaceType::Resize(r_tmp_Vr_col, system_size); // n x 1
-        ComplexDenseSpaceType::Set(r_tmp_Vr_col, 0.0); // set vector to zero
+        // only in serial version
+        // // auto  tmp_Vr_col_ptr = ComplexDenseSpaceType::CreateEmptyVectorPointer();
+        // // auto& r_tmp_Vr_col   = *tmp_Vr_col_ptr;
+        // // ComplexDenseSpaceType::Resize(r_tmp_Vr_col, system_size); // n x 1
+        // // ComplexDenseSpaceType::Set(r_tmp_Vr_col, 0.0); // set vector to zero
 
         // initialize the complex solver
         //mpComplexLinearSolver->Initialize( r_tmp_Vn, r_tmp_Vr_col, r_b);    //check if init also increases speed in loop
 
 
-        Parameters comp_solv_params(R"(
+        Parameters compl_solve_params(R"(
         {
             "solver_type": "skyline_lu_complex"
         }
         )");
 
-        std::cout<<"max threads: "<<omp_get_max_threads()<<std::endl;
-        //omp_set_num_threads(4);
-
+        //std::cout<<"max threads: "<<omp_get_max_threads()<<std::endl;
+        
         // build V
         #pragma omp parallel
         {
 
+            // initialize helper variables for the complex solve
+            // each thread will create its own version, so no conflict arises
             auto  tmp_Vr_col_ptr_par = ComplexDenseSpaceType::CreateEmptyVectorPointer();
             auto& r_tmp_Vr_col_par   = *tmp_Vr_col_ptr_par;
             ComplexDenseSpaceType::Resize(r_tmp_Vr_col_par, system_size); // n x 1
@@ -363,44 +364,29 @@ class MorSecondOrderIRKAStrategy
             ComplexSparseSpaceType::Resize(r_tmp_Vn_par, system_size, system_size); // n x n
             TUblasSparseSpace<complex>::SetToZero(r_tmp_Vn_par);
 
-            typename ComplexLinearSolverType::Pointer test_solver_par = LinearSolverFactoryType().Create(comp_solv_params); 
-            test_solver_par->Initialize( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b);
-
-        //#pragma omp parallel for default(shared) schedule(static,1)
-        //#pragma omp parallel for default(shared) schedule(dynamic)
-        #pragma omp for schedule(dynamic)
-        for(size_t i=0; i < n_sampling_points/2; ++i)
-        {
-
-            // auto  tmp_Vr_col_ptr_par = ComplexDenseSpaceType::CreateEmptyVectorPointer();
-            // auto& r_tmp_Vr_col_par   = *tmp_Vr_col_ptr_par;
-            // ComplexDenseSpaceType::Resize(r_tmp_Vr_col_par, system_size); // n x 1
-            // ComplexDenseSpaceType::Set(r_tmp_Vr_col_par, 0.0); // set vector to zero
-
-            // auto  tmp_Vn_ptr_par = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
-            // auto& r_tmp_Vn_par   = *tmp_Vn_ptr_par;
-            // ComplexSparseSpaceType::Resize(r_tmp_Vn_par, system_size, system_size); // n x n
-            // TUblasSparseSpace<complex>::SetToZero(r_tmp_Vn_par);
-
-            // auto  b_par = ComplexSparseSpaceType::CreateEmptyVectorPointer();
-            // auto& r_b_par   = *b_par;
-            // ComplexSparseSpaceType::Resize(r_b_par, system_size); // n x 1
-            // noalias(r_b_par) = r_b;  
+            // initialize a separate solver for each thread
+            typename ComplexLinearSolverType::Pointer compl_solver_par = LinearSolverFactoryType().Create(compl_solve_params); 
+            compl_solver_par->Initialize( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b);
 
 
-            r_tmp_Vn_par = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
+            // start parallel solve
+            // dynamic behavior such that threads that finish earlier won't be idle for too long
+            #pragma omp for schedule(dynamic)
+            for(size_t i=0; i < n_sampling_points/2; ++i)
+            {
+                // intermediate result
+                r_tmp_Vn_par = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
 
+                // solve 
+                compl_solver_par->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b); // Ax = b, solve for x
 
-            //typename ComplexLinearSolverType::Pointer test_solver_par = LinearSolverFactoryType().Create(comp_solv_params); 
-            test_solver_par->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b); // Ax = b, solve for x
+                // write the result to the correct positions
+                column(r_Vr_dense, 2*i)   = real(r_tmp_Vr_col_par);
+                column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col_par);
+            }
+        } // end of parallel part
 
-
-            column(r_Vr_dense, 2*i) = real(r_tmp_Vr_col_par);
-            column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col_par);
-        }
-        }
-
-        std::cout<<"parallel part passed"<<std::endl;
+        //std::cout<<"parallel part passed"<<std::endl;
 
 
         //orthogonalize V
@@ -425,23 +411,16 @@ class MorSecondOrderIRKAStrategy
         TSystemMatrixType& r_M_reduced = this->GetMr();
         TSystemMatrixType& r_D_reduced = this->GetDr();
 
-
         // needs to be resized, otherwise segfault
-        SparseSpaceType::Resize(r_M_reduced, reduced_system_size, reduced_system_size); // no
-        SparseSpaceType::Resize(r_K_reduced, reduced_system_size, reduced_system_size); // no
-        SparseSpaceType::Resize(r_D_reduced, reduced_system_size, reduced_system_size); // no
-        SparseSpaceType::Resize(r_b_reduced, reduced_system_size); // no
-
-        // TSystemMatrixType r_M_reduced(reduced_system_size, reduced_system_size, 0.0);
-        // TSystemMatrixType r_K_reduced(reduced_system_size, reduced_system_size, 0.0);
-        // TSystemMatrixType r_D_reduced(reduced_system_size, reduced_system_size, 0.0);
-        // TSystemVectorType r_b_reduced(reduced_system_size, 0.0);
-
+        SparseSpaceType::Resize(r_M_reduced, reduced_system_size, reduced_system_size); // r x r
+        SparseSpaceType::Resize(r_K_reduced, reduced_system_size, reduced_system_size); // r x r
+        SparseSpaceType::Resize(r_D_reduced, reduced_system_size, reduced_system_size); // r x r
+        SparseSpaceType::Resize(r_b_reduced, reduced_system_size);                      // r x 1
 
 
 
         // helper for auxiliary products
-        TSystemMatrixType T; //TODO: define actual size for first temp prod (rxn)
+        //TSystemMatrixType T; //TODO: define actual size for first temp prod (rxn)
 
         // initialize linearization matrices
         auto L1_ptr = SparseSpaceType::CreateEmptyMatrixPointer();
@@ -453,7 +432,14 @@ class MorSecondOrderIRKAStrategy
         SparseSpaceType::Resize(r_L2, 2*reduced_system_size, 2*reduced_system_size); // 2r x 2r
 
         // identity matrix of size r x r
-        identity_matrix<double> id_r (reduced_system_size); 
+        identity_matrix<double> id_r (reduced_system_size); // r x r
+
+        // build the Eigensolver and overwrite important settings
+        // the number of eigenvalues is always double of the size of the reduced system
+        // also we don't need to compute eigenvectors 
+        mpLinearEigenSolver = new EigenSystemSolverType(mParam); // will be cleared automatically at the end
+        mParam["number_of_eigenvalues"].SetInt(reduced_system_size*2); // 2r
+        mParam["compute_eigenvectors"].SetBool(false);
 
         // initialize output for Eigensolver
         TDenseVectorType Eigenvalues;
@@ -465,155 +451,27 @@ class MorSecondOrderIRKAStrategy
         vector<double> abs_val_new (reduced_system_size);
 
 
-
-
-
-
-
         // initialize helpers for the projections
-
-//###################   for serial def
-
         auto  V_col = SparseSpaceType::CreateEmptyVectorPointer();
         auto& r_V_col   = *V_col;
         SparseSpaceType::Resize(r_V_col, system_size); // n x 1
 
-        // auto  TM_col_par = SparseSpaceType::CreateEmptyVectorPointer();
-        // auto& r_TM_col_par   = *TM_col_par;
-        // SparseSpaceType::Resize(r_TM_col_par, system_size); // n x 1
-
-        // auto  TK_col_par = SparseSpaceType::CreateEmptyVectorPointer();
-        // auto& r_TK_col_par   = *TK_col_par;
-        // SparseSpaceType::Resize(r_TK_col_par, system_size); // n x 1
-
-        // auto  TD_col_par = SparseSpaceType::CreateEmptyVectorPointer();
-        // auto& r_TD_col_par   = *TD_col_par;
-        // SparseSpaceType::Resize(r_TD_col_par, system_size); // n x 1
 
         auto  T_col = SparseSpaceType::CreateEmptyVectorPointer();
         auto& r_T_col   = *T_col;
         SparseSpaceType::Resize(r_T_col, system_size); // n x 1
 
-        // TSystemVectorType tmp_M_col(reduced_system_size, 0.0);
-        // TSystemVectorType tmp_K_col(reduced_system_size, 0.0);
-        // TSystemVectorType tmp_D_col(reduced_system_size, 0.0);
+
         TSystemVectorType tmp_col(reduced_system_size, 0.0); // r x 1
 
 
-//###################   does not work, because of scope
-
-        // // // // // // // unsigned int max_threads_num = omp_get_max_threads();
-
-        // // // // // // // #pragma omp parallel for schedule(static,1) // Garantie, dass wirklich jeder Thread benutzt wird?
-        // // // // // // // for(unsigned int i=0; i<max_threads_num; i++){
-        // // // // // // //     auto  V_col_par = SparseSpaceType::CreateEmptyVectorPointer();
-        // // // // // // //     auto& r_V_col_par   = *V_col_par;
-        // // // // // // //     SparseSpaceType::Resize(r_V_col_par, system_size); // n x 1
-
-        // // // // // // //     auto  TM_col_par = SparseSpaceType::CreateEmptyVectorPointer();
-        // // // // // // //     auto& r_TM_col_par   = *TM_col_par;
-        // // // // // // //     SparseSpaceType::Resize(r_TM_col_par, system_size); // n x 1
-
-        // // // // // // //     auto  TK_col_par = SparseSpaceType::CreateEmptyVectorPointer();
-        // // // // // // //     auto& r_TK_col_par   = *TK_col_par;
-        // // // // // // //     SparseSpaceType::Resize(r_TK_col_par, system_size); // n x 1
-
-        // // // // // // //     auto  TD_col_par = SparseSpaceType::CreateEmptyVectorPointer();
-        // // // // // // //     auto& r_TD_col_par   = *TD_col_par;
-        // // // // // // //     SparseSpaceType::Resize(r_TD_col_par, system_size); // n x 1
-
-
-        // // // // // // //     TSystemVectorType tmp_M_col(reduced_system_size, 0.0);
-        // // // // // // //     TSystemVectorType tmp_K_col(reduced_system_size, 0.0);
-        // // // // // // //     TSystemVectorType tmp_D_col(reduced_system_size, 0.0);
-
-
-
-        // // // // // // //     TSystemMatrixType r_M_tmp_par(r_M_tmp);
-        // // // // // // //     TSystemMatrixType r_K_tmp_par(r_K_tmp);
-        // // // // // // //     TSystemMatrixType r_D_tmp_par(r_D_tmp);
-
-        // // // // // // //     auto  Vr_sparse_par = SparseSpaceType::CreateEmptyMatrixPointer();
-        // // // // // // //     auto& r_Vr_sparse_par   = *Vr_sparse_par;
-        // // // // // // //     SparseSpaceType::Resize(r_Vr_sparse_par, system_size, reduced_system_size); // n x r
-            
-        // // // // // // //     #pragma omp critical
-        // // // // // // //     noalias(r_Vr_sparse_par) = r_Vr_sparse;
-        // // // // // // // }
-
-
-
-//typename EigenSystemSolverType::Pointer test_new_ev_solver = GenEigensystemSolver<SparseSpaceType, DenseSpaceType>(mParam);
-//typename IterativeSolverType::Pointer test_new_ev_solver = EigenSystemSolverType(mParam); 
-//typename LinearSolverType::Pointer test_new_ev_solver = LinearSolverFactoryType().Create(mParam);
-// // KRATOS_WATCH(mParam)
-
-// // // Parameters new_val_param(R"(
-// // //         50
-// // //         )");
-
-// // Parameters new_val_param("50");
-
-// // mParam.SetValue("number_of_eigenvalues",new_val_param);// ["number_of_eigenvalues"] = 50;
-
-// // KRATOS_WATCH(mParam)
-
-//typename ComplexLinearSolverType::Pointer test_new_ev_solver = LinearSolverFactoryType().Create(mParam);
-
-// Parameters new_val_param(R"(
-//         {
-//             "number_of_eigenvalues": 50,
-//             "tolerance": 1e-5
-//         }
-//         )");
-
-// //KRATOS_WATCH(new_val_param.begin())
-// //KRATOS_WATCH(new_val_param.items())
-
-// KRATOS_WATCH(new_val_param)
-
-// new_val_param["number_of_eigenvalues"].SetString("5160");
-
-// KRATOS_WATCH(new_val_param)
-
-//mpLinearEigenSolver->SetParams("number_of_eigenvalues", "50");
-//mpLinearEigenSolver->test_fun();
-
-// // // Parameters test_params_ev(R"(
-// // //         {
-// // //             "number_of_eigenvalues": 8,
-// // //             "compute_eigenvectors": false,
-// // //             "normalize_eigenvectors": false,
-// // //             "max_iteration": 400,
-// // //             "tolerance": 1e-10,
-// // //             "echo_level": 1
-// // //         })");
-
-
-    // class TSparseSpaceType, // = typename TSolverType::TGlobalSpace,
-    // class TDenseSpaceType, // = typename TSolverType::TLocalSpace,
-    // class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
-    // class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
-
-//mParam["number_of_eigenvalues"].SetString("50");
-// mParam["number_of_eigenvalues"].SetInt(reduced_system_size*2);
-// mParam["compute_eigenvectors"].SetBool(false);
-//GenEigensystemSolver<SparseSpaceType, DenseSpaceType, PreconditionerType, ReordererType>* test_ev_solver_yay = new GenEigensystemSolver<SparseSpaceType, DenseSpaceType, PreconditionerType, ReordererType>(test_params_ev);
-//EigenSystemSolverType* test_ev_solver_yay = new EigenSystemSolverType(test_params_ev);
-//EigenSystemSolverType* test_ev_solver_yay = new EigenSystemSolverType(mParam);
-mpLinearEigenSolver = new EigenSystemSolverType(mParam);
-mParam["number_of_eigenvalues"].SetInt(reduced_system_size*2);
-mParam["compute_eigenvectors"].SetBool(false);
-
-
-
-//BaseType::SetTolerance(mParam["tolerance"].GetDouble());
-
-
+        // default settings for the iteration loop
         int iter = 1;
         int max_iter = 100;
         double err = 100.0;
         double tol = 1e-8;
+
+        // start iteration loop
         while(iter < max_iter && err > tol)
         {
 
@@ -621,171 +479,21 @@ mParam["compute_eigenvectors"].SetBool(false);
 
 
             // projections onto the reduced space
-
-            //#pragma omp parallel for schedule(dynamic)
-            //for(size_t i=0; i<reduced_system_size; i++){
-
-//###################   for serial def
             for(size_t i=0; i<reduced_system_size; i++){
                 r_V_col = column(r_Vr_sparse,i);
 
-                axpy_prod(r_M_tmp, r_V_col, r_T_col);     // M*V  (=T)
-                axpy_prod(r_T_col, r_Vr_sparse, tmp_col);     // V' * T
-                column(r_M_reduced, i) = tmp_col;             // Mr = V' M V
+                axpy_prod(r_M_tmp, r_V_col, r_T_col);      // M*V  (=T)
+                axpy_prod(r_T_col, r_Vr_sparse, tmp_col);  // V' * T
+                column(r_M_reduced, i) = tmp_col;          // Mr = V' M V
 
-                axpy_prod(r_K_tmp, r_V_col, r_T_col);     // K*V  (=T)
-                axpy_prod(r_T_col, r_Vr_sparse, tmp_col);     // V' * T
-                column(r_K_reduced, i) = tmp_col;             // Kr = V' K V
+                axpy_prod(r_K_tmp, r_V_col, r_T_col);      // K*V  (=T)
+                axpy_prod(r_T_col, r_Vr_sparse, tmp_col);  // V' * T
+                column(r_K_reduced, i) = tmp_col;          // Kr = V' K V
 
-                axpy_prod(r_D_tmp, r_V_col, r_T_col);     // D*V  (=T)
-                axpy_prod(r_T_col, r_Vr_sparse, tmp_col);     // V' * T
-                column(r_D_reduced, i) = tmp_col;             // Dr = V' D V
-
-                // axpy_prod(r_K_tmp, r_V_col_par, r_TK_col_par);     // K*V  (=T_K)
-                // axpy_prod(r_D_tmp, r_V_col_par, r_TD_col_par);     // D*V  (=T_D)
-                // axpy_prod(r_TM_col_par, r_Vr_sparse, tmp_M_col);   // V' * T_M
-                // axpy_prod(r_TK_col_par, r_Vr_sparse, tmp_K_col);   // V' * T_K
-                // axpy_prod(r_TD_col_par, r_Vr_sparse, tmp_D_col);   // V' * T_D
-                // column(r_M_reduced, i) = tmp_M_col;                // Mr = V' M V
-                // column(r_K_reduced, i) = tmp_K_col;                // Kr = V' K V
-                // column(r_D_reduced, i) = tmp_D_col;                // Dr = V' D V
+                axpy_prod(r_D_tmp, r_V_col, r_T_col);      // D*V  (=T)
+                axpy_prod(r_T_col, r_Vr_sparse, tmp_col);  // V' * T
+                column(r_D_reduced, i) = tmp_col;          // Dr = V' D V
             }
-
-
-            // for(size_t i=0; i<reduced_system_size; i++){
-            //     r_V_col_par = column(r_Vr_sparse,i);
-            //     axpy_prod(r_M_tmp, r_V_col_par, r_TM_col_par);     // M*V  (=T_M)
-            //     axpy_prod(r_K_tmp, r_V_col_par, r_TK_col_par);     // K*V  (=T_K)
-            //     axpy_prod(r_D_tmp, r_V_col_par, r_TD_col_par);     // D*V  (=T_D)
-            //     axpy_prod(r_TM_col_par, r_Vr_sparse, tmp_M_col);   // V' * T_M
-            //     axpy_prod(r_TK_col_par, r_Vr_sparse, tmp_K_col);   // V' * T_K
-            //     axpy_prod(r_TD_col_par, r_Vr_sparse, tmp_D_col);   // V' * T_D
-            //     column(r_M_reduced, i) = tmp_M_col;                // Mr = V' M V
-            //     column(r_K_reduced, i) = tmp_K_col;                // Kr = V' K V
-            //     column(r_D_reduced, i) = tmp_D_col;                // Dr = V' D V
-            // }
-
-
-// // // // // // //###################   for parallel def
-// // // // // // //unsigned int max_threads_num = omp_get_max_threads();
-// // // // // //         #pragma omp parallel
-// // // // // //         {
-// // // // // //             //#pragma omp for schedule(static,1)
-// // // // // //             //for(unsigned int i=0; i<max_threads_num; i++){
-// // // // // //         auto  V_col_par = SparseSpaceType::CreateEmptyVectorPointer();
-// // // // // //         auto& r_V_col_par   = *V_col_par;
-// // // // // //         SparseSpaceType::Resize(r_V_col_par, system_size); // n x 1
-
-// // // // // //         auto  TM_col_par = SparseSpaceType::CreateEmptyVectorPointer();
-// // // // // //         auto& r_TM_col_par   = *TM_col_par;
-// // // // // //         SparseSpaceType::Resize(r_TM_col_par, system_size); // n x 1
-
-// // // // // //         auto  TK_col_par = SparseSpaceType::CreateEmptyVectorPointer();
-// // // // // //         auto& r_TK_col_par   = *TK_col_par;
-// // // // // //         SparseSpaceType::Resize(r_TK_col_par, system_size); // n x 1
-
-// // // // // //         auto  TD_col_par = SparseSpaceType::CreateEmptyVectorPointer();
-// // // // // //         auto& r_TD_col_par   = *TD_col_par;
-// // // // // //         SparseSpaceType::Resize(r_TD_col_par, system_size); // n x 1
-
-
-// // // // // //         TSystemVectorType tmp_M_col(reduced_system_size, 0.0);
-// // // // // //         TSystemVectorType tmp_K_col(reduced_system_size, 0.0);
-// // // // // //         TSystemVectorType tmp_D_col(reduced_system_size, 0.0);
-
-
-// // // // // //             double start_par_copy = OpenMPUtils::GetCurrentTime();
-
-// // // // // //         std::cout<<"  enter par - test M"<<std::endl;
-// // // // // //         //#pragma omp critical  // does not work because of scope
-// // // // // //         TSystemMatrixType r_M_tmp_par(r_M_tmp);
-
-// // // // // //         std::cout<<"  enter par - test K"<<std::endl;
-// // // // // //         TSystemMatrixType r_K_tmp_par(r_K_tmp);
-
-// // // // // //         std::cout<<"  enter par - test D"<<std::endl;
-// // // // // //         TSystemMatrixType r_D_tmp_par(r_D_tmp);
-
-// // // // // //         // TSystemMatrixType r_M_tmp_par;
-// // // // // //         // TSystemMatrixType r_K_tmp_par;
-// // // // // //         // TSystemMatrixType r_D_tmp_par;
-
-// // // // // // //     std::cout<<"  enter par - test M"<<std::endl;
-// // // // // // //         #pragma omp critical (copyM)
-// // // // // // //         //r_M_tmp_par(r_M_tmp);
-// // // // // // //         noalias(r_M_tmp_par) = r_M_tmp;
-
-// // // // // // // std::cout<<"  enter par - test K"<<std::endl;
-// // // // // // //         #pragma omp critical (copyK)
-// // // // // // //         noalias(r_K_tmp_par) = r_K_tmp;
-
-// // // // // // // std::cout<<"  enter par - test D"<<std::endl;
-// // // // // // //         #pragma omp critical (copyD)
-// // // // // // //         noalias(r_D_tmp_par) = r_D_tmp;
-
-// // // // // //         auto  Vr_sparse_par = SparseSpaceType::CreateEmptyMatrixPointer();
-// // // // // //         auto& r_Vr_sparse_par   = *Vr_sparse_par;
-// // // // // //         SparseSpaceType::Resize(r_Vr_sparse_par, system_size, reduced_system_size); // n x r
-
-// // // // // // std::cout<<"  enter par - test V"<<std::endl;        
-// // // // // //         #pragma omp critical (copyV)
-// // // // // //         noalias(r_Vr_sparse_par) = r_Vr_sparse;
-// // // // // //             //} // parallel init end
-
-// // // // // //             double end_par_copy = OpenMPUtils::GetCurrentTime();
-// // // // // //             std::cout<<"    -- par copy: "<<end_par_copy-start_par_copy<<std::endl;
-
-
-
-
-// // // // // //         // #pragma omp critical
-// // // // // //         // std::cout<<"     passed here    "<<std::endl;
-
-
-// // // // // //             #pragma omp for schedule(dynamic)
-// // // // // //             for(size_t i=0; i<reduced_system_size; i++){
-// // // // // //                 std::cout<<"   - in loop - test 01"<<std::endl;
-
-// // // // // //                 //#pragma omp critical (copycolumnV)  // bringt auch nichts...
-// // // // // //                 r_V_col_par = column(r_Vr_sparse_par,i);
-
-// // // // // //                 std::cout<<"   - in loop - test 02"<<std::endl;
-// // // // // //                 axpy_prod(r_M_tmp_par, r_V_col_par, r_TM_col_par);     // M*V  (=T_M)
-// // // // // //                 std::cout<<"   - in loop - test 03"<<std::endl;
-// // // // // //                 axpy_prod(r_K_tmp_par, r_V_col_par, r_TK_col_par);     // K*V  (=T_K)
-// // // // // //                 std::cout<<"   - in loop - test 04"<<std::endl;
-// // // // // //                 axpy_prod(r_D_tmp_par, r_V_col_par, r_TD_col_par);     // D*V  (=T_D)
-// // // // // //                 std::cout<<"   - in loop - test 05"<<std::endl;
-// // // // // //                 axpy_prod(r_TM_col_par, r_Vr_sparse_par, tmp_M_col);   // V' * T_M
-// // // // // //                 std::cout<<"   - in loop - test 06"<<std::endl;
-// // // // // //                 axpy_prod(r_TK_col_par, r_Vr_sparse_par, tmp_K_col);   // V' * T_K
-// // // // // //                 std::cout<<"   - in loop - test 07"<<std::endl;
-// // // // // //                 axpy_prod(r_TD_col_par, r_Vr_sparse_par, tmp_D_col);   // V' * T_D
-// // // // // //                 std::cout<<"   - in loop - test 08"<<std::endl;
-// // // // // //                 column(r_M_reduced, i) = tmp_M_col;                // Mr = V' M V
-// // // // // //                 std::cout<<"   - in loop - test 09"<<std::endl;
-// // // // // //                 column(r_K_reduced, i) = tmp_K_col;                // Kr = V' K V
-// // // // // //                 std::cout<<"   - in loop - test 10"<<std::endl;
-// // // // // //                 column(r_D_reduced, i) = tmp_D_col;                // Dr = V' D V
-// // // // // //                 std::cout<<"   - in loop - test 11"<<std::endl;
-
-
-
-// // // // // // ///#### Speicherfehler, weil r_M_tmp etc. und r_Vr_sparse gleichzeitig benutzt werden
-// // // // // //                 // // r_V_col_par = column(r_Vr_sparse,i);
-// // // // // //                 // // axpy_prod(r_M_tmp, r_V_col_par, r_TM_col_par);     // M*V  (=T_M)
-// // // // // //                 // // axpy_prod(r_K_tmp, r_V_col_par, r_TK_col_par);     // K*V  (=T_K)
-// // // // // //                 // // axpy_prod(r_D_tmp, r_V_col_par, r_TD_col_par);     // D*V  (=T_D)
-// // // // // //                 // // axpy_prod(r_TM_col_par, r_Vr_sparse, tmp_M_col);   // V' * T_M
-// // // // // //                 // // axpy_prod(r_TK_col_par, r_Vr_sparse, tmp_K_col);   // V' * T_K
-// // // // // //                 // // axpy_prod(r_TD_col_par, r_Vr_sparse, tmp_D_col);   // V' * T_D
-// // // // // //                 // // column(r_M_reduced, i) = tmp_M_col;                // Mr = V' M V
-// // // // // //                 // // column(r_K_reduced, i) = tmp_K_col;                // Kr = V' K V
-// // // // // //                 // // column(r_D_reduced, i) = tmp_D_col;                // Dr = V' D V
-// // // // // //                 } // parallel for end
-// // // // // //             } // parallel region end
-
-
 
 
             double end_projections = OpenMPUtils::GetCurrentTime();
@@ -793,7 +501,7 @@ mParam["compute_eigenvectors"].SetBool(false);
 
 
 
-            double start_ev_setup = OpenMPUtils::GetCurrentTime();
+//            double start_ev_setup = OpenMPUtils::GetCurrentTime();
 
             // linearization of the quadratic eigenvalue problem to be solved using a GEP solver
             subrange(r_L1, 0, reduced_system_size, reduced_system_size, 2*reduced_system_size) = id_r;
@@ -804,16 +512,11 @@ mParam["compute_eigenvectors"].SetBool(false);
             subrange(r_L2, reduced_system_size, 2*reduced_system_size, reduced_system_size, 2*reduced_system_size) = r_M_reduced;
 
 
-            //TODO: hard code settings for the Eigensolver needed for IRKA
-            //i.e.: 
-            //number_of_eigenvalues = 2*reduced_system_size
-            //compute_eigenvectors = false
-
-            double end_ev_setup = OpenMPUtils::GetCurrentTime();
-            std::cout<<"-- ev setup: "<<end_ev_setup-start_ev_setup<<std::endl;
+            // double end_ev_setup = OpenMPUtils::GetCurrentTime();
+            // std::cout<<"-- ev setup: "<<end_ev_setup-start_ev_setup<<std::endl;
 
 
-            double start_ev_solver = OpenMPUtils::GetCurrentTime();
+//            double start_ev_solver = OpenMPUtils::GetCurrentTime();
 
             // output of this Solver is real (real parts and imaginary parts alternating)
             //test_ev_solver_yay->Solve(
@@ -824,8 +527,8 @@ mParam["compute_eigenvectors"].SetBool(false);
                 Eigenvectors
             );
 
-            double end_ev_solver = OpenMPUtils::GetCurrentTime();
-            std::cout<<"-- ev itself: "<<end_ev_solver-start_ev_solver<<std::endl;
+            // double end_ev_solver = OpenMPUtils::GetCurrentTime();
+            // std::cout<<"-- ev itself: "<<end_ev_solver-start_ev_solver<<std::endl;
 
             //store the Eigenvalues in a complex vector
             #pragma omp parallel for schedule(dynamic)
@@ -834,18 +537,18 @@ mParam["compute_eigenvectors"].SetBool(false);
                 lam_2r(ii) = complex( Eigenvalues(2*ii), Eigenvalues(2*ii+1) );
             }
 
-            double start_conjug = OpenMPUtils::GetCurrentTime();
+    //        double start_conjug = OpenMPUtils::GetCurrentTime();
 
             // mirror the Eigenvalues and sort them after their real part in increasing order
             // conjugate pairs stay together, with the minus element being the first
             lam_2r *= -1;
             this->sort_conjugate_pairs(lam_2r);
 
-            double end_conjug = OpenMPUtils::GetCurrentTime();
-            std::cout<<"-- conjugagte sort: "<<end_conjug-start_conjug<<std::endl;
+            // double end_conjug = OpenMPUtils::GetCurrentTime();
+            // std::cout<<"-- conjugagte sort: "<<end_conjug-start_conjug<<std::endl;
 
 
-            double start_error_calc = OpenMPUtils::GetCurrentTime();
+   //         double start_error_calc = OpenMPUtils::GetCurrentTime();
 
             // reduce to r Eigenvalues so that the dimension of the reduced system does not increase
             // choose the r Eigenvalues which are closest to the imaginary axis (done by previous sorting)
@@ -869,14 +572,15 @@ mParam["compute_eigenvectors"].SetBool(false);
                 abs_val_new(ii) = abs(mSamplingPoints(ii));
             }
 
+            // sort them to compare only the closest distance between iteration pairs
             sort(abs_val_old.begin(), abs_val_old.end());
             sort(abs_val_new.begin(), abs_val_new.end());
 
             err = norm_2(abs_val_new - abs_val_old) / norm_2(samplingPoints_old);
 
 
-            double end_error_calc = OpenMPUtils::GetCurrentTime();
-            std::cout<<"-- error_calc: "<<end_error_calc-start_error_calc<<std::endl;
+            // double end_error_calc = OpenMPUtils::GetCurrentTime();
+            // std::cout<<"-- error_calc: "<<end_error_calc-start_error_calc<<std::endl;
 
             // if the tolerance is already met, break here to avoid unnecessary computations
             if(err < tol) {break;}
@@ -891,6 +595,10 @@ mParam["compute_eigenvectors"].SetBool(false);
             #pragma omp parallel
             {
 
+                // initialization have to be repeated because of the underlying fork-join model and scope
+
+                // initialize helper variables for the complex solve
+                // each thread will create its own version, so no conflict arises
                 auto  tmp_Vr_col_ptr_par = ComplexDenseSpaceType::CreateEmptyVectorPointer();
                 auto& r_tmp_Vr_col_par   = *tmp_Vr_col_ptr_par;
                 ComplexDenseSpaceType::Resize(r_tmp_Vr_col_par, system_size); // n x 1
@@ -901,48 +609,34 @@ mParam["compute_eigenvectors"].SetBool(false);
                 ComplexSparseSpaceType::Resize(r_tmp_Vn_par, system_size, system_size); // n x n
                 TUblasSparseSpace<complex>::SetToZero(r_tmp_Vn_par);
 
-                typename ComplexLinearSolverType::Pointer test_solver_par = LinearSolverFactoryType().Create(comp_solv_params);
-                test_solver_par->Initialize( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b);
+                // initialize a separate solver for each thread
+                typename ComplexLinearSolverType::Pointer compl_solver_par = LinearSolverFactoryType().Create(compl_solve_params);
+                compl_solver_par->Initialize( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b);
 
-            //#pragma omp parallel for default(shared) schedule(static,1) num_threads(4)
-            //#pragma omp parallel for default(shared) schedule(static,1)
-            //#pragma omp parallel for default(shared) schedule(dynamic)
-            #pragma omp for schedule(dynamic)
-            for(size_t i=0; i < n_sampling_points/2; ++i)
-            {
-     
-//###################   for parallel def
-                // auto  tmp_Vr_col_ptr_par = ComplexDenseSpaceType::CreateEmptyVectorPointer();
-                // auto& r_tmp_Vr_col_par   = *tmp_Vr_col_ptr_par;
-                // ComplexDenseSpaceType::Resize(r_tmp_Vr_col_par, system_size); // n x 1
-                // ComplexDenseSpaceType::Set(r_tmp_Vr_col_par, 0.0); // set vector to zero
+                // start parallel solve
+                // dynamic behavior such that threads that finish earlier won't be idle for too long
+                #pragma omp for schedule(dynamic)
+                for(size_t i=0; i < n_sampling_points/2; ++i)
+                {
+                    // intermediate result
+                    r_tmp_Vn_par = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
 
-                // auto  tmp_Vn_ptr_par = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
-                // auto& r_tmp_Vn_par   = *tmp_Vn_ptr_par;
-                // ComplexSparseSpaceType::Resize(r_tmp_Vn_par, system_size, system_size); // n x n
-                // TUblasSparseSpace<complex>::SetToZero(r_tmp_Vn_par);
+                    // solve
+                    compl_solver_par->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b); // Ax = b, solve for x
 
+                    // write the result to the correct positions
+                    column(r_Vr_dense, 2*i) = real(r_tmp_Vr_col_par);
+                    column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col_par);
 
-                r_tmp_Vn_par = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
+    //###################   for serial def
+                    // // r_tmp_Vn = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
+                    // // mpComplexLinearSolver->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b); // Ax = b, solve for x
 
-                test_solver_par->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b); // Ax = b, solve for x
+                    // // column(r_Vr_dense, 2*i) = real(r_tmp_Vr_col);
+                    // // column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col);
 
-                column(r_Vr_dense, 2*i) = real(r_tmp_Vr_col_par);
-                column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col_par);
-
-
-
-
-
-//###################   for serial def
-                // // r_tmp_Vn = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
-                // // mpComplexLinearSolver->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b); // Ax = b, solve for x
-
-                // // column(r_Vr_dense, 2*i) = real(r_tmp_Vr_col);
-                // // column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col);
-
-            }
-            }
+                }
+            } // end of parallel part
 
                     std::cout<<"parallel part passed - iter "<<iter<<std::endl;
 
@@ -950,7 +644,7 @@ mParam["compute_eigenvectors"].SetBool(false);
             std::cout<<"-- par solve: "<<end_solve_par-start_solve_par<<std::endl;
 
 
-            double start_qr_orth = OpenMPUtils::GetCurrentTime();
+//            double start_qr_orth = OpenMPUtils::GetCurrentTime();
 
             // orthogonalize V
             mQR_decomposition.compute( system_size, reduced_system_size, &(r_Vr_dense)(0,0) );
@@ -966,14 +660,16 @@ mParam["compute_eigenvectors"].SetBool(false);
                 }
             }
 
-            double end_qr_orth = OpenMPUtils::GetCurrentTime();
-            std::cout<<"-- qr orthog.: "<<end_qr_orth-start_qr_orth<<std::endl;
+            // double end_qr_orth = OpenMPUtils::GetCurrentTime();
+            // std::cout<<"-- qr orthog.: "<<end_qr_orth-start_qr_orth<<std::endl;
 
             iter++;
         } // - end of loop
 
         // project the input vector onto the reduced space
-        r_b_reduced = prod( trans(r_Vr_sparse), r_b_tmp);
+        //r_b_reduced = prod( trans(r_Vr_sparse), r_b_tmp);
+        axpy_prod(r_b_tmp, r_Vr_sparse, r_b_reduced);  // br = V' b
+
 
         double end_time = OpenMPUtils::GetCurrentTime();
         double duration = end_time - start_time;
@@ -992,7 +688,7 @@ mParam["compute_eigenvectors"].SetBool(false);
         // write the matrices into files in order to do post-processing
         // TODO: this is a quick dirty output; build another function/file for the post-processing step
 
-        // write reduced matrices
+        // store reduced matrices
         std::stringstream matrix_market_m_reduced;
         matrix_market_m_reduced << "M_reduced" << ".mm";
         TDenseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_m_reduced.str()).c_str(), r_M_reduced, false);
@@ -1010,7 +706,7 @@ mParam["compute_eigenvectors"].SetBool(false);
         TDenseSpace::WriteMatrixMarketVector((char *)(matrix_market_b_reduced.str()).c_str(), r_b_reduced);
 
 
-        // write full system size matrices (double)
+        // store full system size matrices (double)
         
         std::stringstream matrix_market_m_full;
         matrix_market_m_full << "M_full" << ".mm";
@@ -1030,24 +726,17 @@ mParam["compute_eigenvectors"].SetBool(false);
         TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_b_full.str()).c_str(), r_b_tmp);
 
 
-        // write the transformation matrix
+        // store the transformation matrix
         std::stringstream matrix_market_vr;
         matrix_market_vr << "Vr" << ".mm";
         TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_vr.str()).c_str(), r_Vr_sparse, false);
 
    
-
+        // store the time
         std::ofstream time_file;
         time_file.open("times.txt", std::ios::out | std::ios::app);
         time_file << duration << " seconds\n";
         time_file.close();
-
-
-
-
-
-
-
 
 
 
