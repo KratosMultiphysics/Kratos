@@ -178,21 +178,37 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Get method for the scheme
+     * @return mpScheme: The pointer to the scheme considered
+     */
     SchemePointerType &pGetScheme()
     {
         return mpScheme;
     };
 
+    /**
+     * @brief Get method for the generalized eigenvalue problme solver
+     * @return mpEigenSolver: The pointer to the eigen solver considered
+     */
     BuilderAndSolverPointerType &pGetEigenSolver()
     {
         return mpEigenSolver;
     };
 
+    /**
+     * @brief Get method for the builder and solver
+     * @return mpBuilderAndSolver: The pointer to the builder and solver considered
+     */
     BuilderAndSolverPointerType &pGetBuilderAndSolver()
     {
         return mpBuilderAndSolver;
     };
 
+    /**
+     * @brief Get method for the convergence criteria
+     * @return mpConvergenceCriteria: The pointer to the convergence criteria considered
+     */
     ConvergenceCriteriaType &GetConvergenceCriteria()
     {
         return mpConvergenceCriteria;
@@ -205,16 +221,6 @@ public:
     bool GetSolutionFoundFlag()
     {
         return mSolutionFound;
-    }
-
-    void SetReformDofSetAtEachStepFlag(bool flag)
-    {
-        this->pBuilderAndSolver()->SetReshapeMatrixFlag(flag);
-    }
-
-    bool GetReformDofSetAtEachStepFlag() const
-    {
-        return this->pBuilderAndSolver()->GetReshapeMatrixFlag();
     }
 
     /**
@@ -243,10 +249,8 @@ public:
         KRATOS_TRY
 
         ModelPart &rModelPart = BaseType::GetModelPart();
-        const int rank = rModelPart.GetCommunicator().MyPID();
-        typename ConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
 
-        KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 )
             << "Entering Initialize" << std::endl;
 
         if (!mInitializeWasPerformed)
@@ -263,11 +267,11 @@ public:
                 pScheme->InitializeConditions(rModelPart);
         }
         // Initialization of the convergence criteria
-        pConvergenceCriteria->Initialize(BaseType::GetModelPart());
+        mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
         
         mInitializeWasPerformed = true;
 
-        KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 )
             << "Exiting Initialize" << std::endl;
 
         KRATOS_CATCH("")
@@ -322,13 +326,11 @@ public:
         KRATOS_TRY
         if (!mSolutionStepIsInitialized){
             ModelPart &rModelPart = BaseType::GetModelPart();
-            const int rank = rModelPart.GetCommunicator().MyPID();
 
-            KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 )
                 << "Entering InitializeSolutionStep" << std::endl;
 
             // Solver
-            BuilderAndSolverPointerType &pEigenSolver = this->pGetEigenSolver();
             BuilderAndSolverPointerType &pBuilderAndSolver = this->pGetBuilderAndSolver();
             // Scheme
             SchemePointerType &pScheme = this->pGetScheme();
@@ -336,15 +338,12 @@ public:
             typename ConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
             // Member Matrices and Vectors
             SparseMatrixType& rStiffnessMatrix  = *mpStiffnessMatrix;
-            SparseMatrixType& rStiffnessMatrixPrevious = *mpStiffnessMatrixPrevious;
             SparseVectorType& rRHS  = *mpRHS;
             SparseVectorType& rDx  = *mpDx;
 
             // Initialize dummy vectors
             SparseVectorPointerType _pDx = SparseSpaceType::CreateEmptyVectorPointer();
             SparseVectorPointerType _pb = SparseSpaceType::CreateEmptyVectorPointer();
-            auto &_rDx = *_pDx;
-            auto &_rb = *_pb;
 
             // Reset solution dofs
             BuiltinTimer system_construction_time;
@@ -356,7 +355,7 @@ public:
                 
                 pBuilderAndSolver->SetUpDofSet(pScheme, rModelPart);
 
-                KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0 )
                     << setup_dofs_time.ElapsedSeconds() << std::endl;
 
                 // Set global equation ids
@@ -364,7 +363,7 @@ public:
 
                 pBuilderAndSolver->SetUpSystem(rModelPart);
 
-                KRATOS_INFO_IF("Setup System Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                KRATOS_INFO_IF("Setup System Time", BaseType::GetEchoLevel() > 0 )
                     << setup_system_time.ElapsedSeconds() << std::endl;
 
                 // Resize and initialize system matrices
@@ -377,12 +376,12 @@ public:
                 pBuilderAndSolver->ResizeAndInitializeVectors(
                     pScheme, mpStiffnessMatrixPrevious, _pDx, _pb, rModelPart);
 
-                KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 )
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
 
             }
 
-            KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+            KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 )
                 << system_construction_time.ElapsedSeconds() << std::endl;
             
             // Initial operations ... things that are constant over the solution
@@ -397,7 +396,7 @@ public:
             pConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), rStiffnessMatrix, rDx, rRHS);
 
             mSolutionStepIsInitialized = true;
-            KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+            KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 )
                 << "Exiting InitializeSolutionStep" << std::endl;
         }
         KRATOS_CATCH("")
@@ -414,10 +413,6 @@ public:
         KRATOS_TRY
 
         ModelPart& rModelPart = BaseType::GetModelPart();
-        ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
-
-        const int rank = rModelPart.GetCommunicator().MyPID();
-
         SchemePointerType& pScheme = this->pGetScheme();
         BuilderAndSolverPointerType& pBuilderAndSolver = this->pGetBuilderAndSolver();
         SparseMatrixType& rStiffnessMatrix  = *mpStiffnessMatrix;
@@ -466,9 +461,9 @@ public:
         TSparseSpace::SetToZero(rRHS);
         TSparseSpace::SetToZero(rDx);
         // Build system and solve system
-        pBuilderAndSolver->BuildAndSolve(pScheme, rModelPart, rStiffnessMatrix,rDx, rRHS);
+        pBuilderAndSolver->BuildAndSolve(pScheme, rModelPart, rStiffnessMatrix, rDx, rRHS);
         // Update internal variables
-        pScheme->Update(rModelPart, pBuilderAndSolver->GetDofSet(), rStiffnessMatrix, rDx, rRHS);
+        pScheme->Update(rModelPart, pBuilderAndSolver->GetDofSet(), rStiffnessMatrix, rDx, rRHS );
         BaseType::MoveMesh();
         // Finalize nonlinear solution step
         pScheme->FinalizeNonLinIteration( rModelPart,rStiffnessMatrix, rDx, rRHS );
@@ -577,7 +572,7 @@ public:
 
             // Update eigenvalues to loadfactors (Instead of dividing matrix by delta_load_multiplier, here eigenvalues are multiplied)
             mLambda = Eigenvalues(0)*delta_load_multiplier;
-            for(int i = 0; i < Eigenvalues.size(); i++ )
+            for(unsigned int i = 0; i < Eigenvalues.size(); i++ )
             {
                 Eigenvalues[i] = mLambdaPrev + Eigenvalues[i]*delta_load_multiplier;
             }
@@ -612,8 +607,7 @@ public:
     {
         KRATOS_TRY;
 
-        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-        KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 )
             << "Entering FinalizeSolutionStep" << std::endl;
 
         typename ConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
@@ -635,7 +629,7 @@ public:
         // Reset flags for next step
         mSolutionStepIsInitialized = false;
 
-        KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 )
             << "Exiting FinalizeSolutionStep" << std::endl;
 
         KRATOS_CATCH("");
@@ -650,9 +644,8 @@ public:
         KRATOS_TRY
 
         ModelPart &rModelPart = BaseType::GetModelPart();
-        const int rank = rModelPart.GetCommunicator().MyPID();
 
-        KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 )
             << "Entering Check" << std::endl;
 
         // Check the model part
@@ -664,7 +657,7 @@ public:
         // Check the builder and solver
         this->pGetBuilderAndSolver()->Check(rModelPart);
 
-        KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("PrebucklingStrategy", BaseType::GetEchoLevel() > 2 )
             << "Exiting Check" << std::endl;
 
         return 0;
