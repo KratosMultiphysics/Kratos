@@ -21,6 +21,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
@@ -399,7 +400,16 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         const MatrixType& rRe
         );
 
-  private:
+    /**
+    * It interpolates a nodal variable (double type) at the integration point
+    * @param rVariable Nodal variable of double type that is interpolated
+    * @param rValues Parameters of the constitutive law
+    */
+    static double GetNodalVariableOnIntegrationPoint(
+        const Variable<double> &rVariable,
+        ConstitutiveLaw::Parameters &rValues);
+
+private:
 
 }; // class ConstitutiveLawUtilities
 } // namespace Kratos

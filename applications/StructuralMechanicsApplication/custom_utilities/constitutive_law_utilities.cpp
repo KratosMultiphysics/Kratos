@@ -953,6 +953,26 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateDirectPlasticDeformationGr
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TVoigtSize>
+double ConstitutiveLawUtilities<TVoigtSize>::GetNodalVariableOnIntegrationPoint(
+        const Variable<double>& rVariable,
+        ConstitutiveLaw::Parameters& rValues)
+    {
+        const Vector& r_N = rValues.GetShapeFunctionsValues();
+        const auto& r_geometry = rValues.GetElementGeometry();
+        const unsigned int number_of_nodes = r_geometry.size();
+        double value = 0.0;
+
+        for (unsigned int i = 0; i < number_of_nodes; i++) {
+            value += r_N[i] * r_geometry[i].GetSolutionStepValue(rVariable);
+        }
+        return value;
+
+    }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class ConstitutiveLawUtilities<3>;
 template class ConstitutiveLawUtilities<6>;
 
