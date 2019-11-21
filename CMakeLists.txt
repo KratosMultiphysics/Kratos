@@ -420,17 +420,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 
-# # Add external applications by directory (Thrid party apps, located elsewhere)
-# message("-- This external applications will be compiled:")
-# if(DEFINED ENV{KRATOS_APPLICATIONS})
-#     set(KRATOS_APPLICATIONS ${KRATOS_APPLICATIONS};$ENV{KRATOS_APPLICATIONS})
-# 	message("ENV{KRATOS_APPLICATIONS} : $ENV{KRATOS_APPLICATIONS}")
-#     foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
-#         get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
-#         message("\t${APPLICATION_NAME}")
-#     endforeach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
-# endif(DEFINED ENV{KRATOS_APPLICATIONS})
-
 # Configure kratos applications
 message("-- Configuring external applications (ENV):")
 if(DEFINED ENV{KRATOS_APPLICATIONS})
