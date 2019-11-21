@@ -11,8 +11,9 @@
                 "cores": 1,
                 "dimensions": 3,
                 "arraysize": 10e5,
-                "surfaces": 1
-
+                "surfaces": 1,
+                "ramp": 1,
+                "delta_T": 1e-3
             }
         }
     ]

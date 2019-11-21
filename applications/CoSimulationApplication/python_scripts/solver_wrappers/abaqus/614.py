@@ -38,25 +38,28 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         self.dimensions = self.settings['dimensions'].GetInt()
         self.array_size = self.settings["arraysize"].GetInt()
         self.surfaces = self.settings["surfaces"].GetInt()
+        self.ramp = self.settings["ramp"].GetInt()
 
         #prepare Abaqus USR
         usr = "USR.f"
-        with open(join(self.path_src, usr))as infile:
-            with open(join(self.dir_csm, usr)) as outfile:
+        with open(join(path_src, usr), "r")as infile:
+            with open(join(self.dir_csm, usr), "w") as outfile:
                 for line in infile:
-                    line = line.replace("|dimension|", self.dimensions)
-                    line = line.replace("|arraySize|", self.array_size)
-                    line = line.replace("|surfaces|", self.surfaces)
-                    line = line.replace("|cpus|", self.cores)
-                    line = line.replace("|PWD|", os.pardir(self.dir_csm))
-                    line = line.replace("|csmdir|", self.settings["working directory"])
+                    line = line.replace("|dimension|", str(self.dimensions))
+                    line = line.replace("|arraySize|", str(self.array_size))
+                    line = line.replace("|surfaces|", str(self.surfaces))
+                    line = line.replace("|cpus|", str(self.cores))
+                    line = line.replace("|PWD|", os.path.abspath(os.path.join(self.dir_csm, os.pardir)))
+                    line = line.replace("|CSMdir|", self.settings["working_directory"].GetString())
+                    line = line.replace("|ramp|", str(self.ramp))
+                    line = line.replace("|deltaT|", )
                     outfile.write(line)
 
         #compile Fortran and C++ codes
         path_libusr = join(self.dir_csm, "libusr")
         os.system("rm -r " + path_libusr)
-        os.system("mdkir " + path_libusr)
-        cmd = "abaqus make library=" + path_usr + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
+        os.system("mkdir " + path_libusr)
+        cmd = "abaqus make library=" + join(self.dir_csm, usr) + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
         print(cmd)
         self.abaqus_process = subprocess.Popen(cmd, executable='/bin/bash', shell=True, cwd=self.dir_csm)
 
