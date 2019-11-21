@@ -54,6 +54,7 @@
 #include "custom_advanced_constitutive/d_plus_d_minus_damage_masonry_3d.h"
 #include "custom_advanced_constitutive/generic_small_strain_plastic_damage_model.h"
 #include "custom_advanced_constitutive/generic_small_strain_orthotropic_damage.h"
+#include "custom_advanced_constitutive/serial_parallel_rule_of_mixtures_law.h"
 
 // Integrators
 #include "custom_advanced_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
@@ -81,6 +82,9 @@
 #include "custom_advanced_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
 #include "custom_advanced_constitutive/plastic_potentials/mohr_coulomb_plastic_potential.h"
 #include "custom_advanced_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
+
+// Rules of mixtures
+#include "custom_advanced_constitutive/rule_of_mixtures_law.h"
 
 namespace Kratos {
 namespace Python {
@@ -1715,6 +1719,14 @@ void  AddCustomAdvancedConstitutiveLawsToPython(pybind11::module& m)
     typename GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
     ConstitutiveLaw>
     (m,"SmallStrainOrthotropicDamageSimoJu2D").def(py::init<>());
+
+    py::class_< RuleOfMixturesLaw, typename RuleOfMixturesLaw::Pointer,  ConstitutiveLaw  >
+    (m,"RuleOfMixturesLaw").def(py::init<>())
+    ;
+
+    py::class_< SerialParallelRuleOfMixturesLaw, typename SerialParallelRuleOfMixturesLaw::Pointer,  ConstitutiveLaw  >
+    (m,"SerialParallelRuleOfMixturesLaw").def(py::init<>())
+    ;
 }
 
 }  // namespace Python.
