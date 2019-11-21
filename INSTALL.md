@@ -39,8 +39,6 @@ Ubuntu users need to be extra carefull with this as default versions tends to be
 
 Path to boost root directory.
 
-It is also possible to change the default locations 
-
 ## Adding Applications
 
 In order to add an application you can use the provided macro (`add_app [PATH]` for Linux, `CALL :add_app [PATH]` for Win) along with the route folder of the application that you want to compile. Several examples are provided in the configuration files.
