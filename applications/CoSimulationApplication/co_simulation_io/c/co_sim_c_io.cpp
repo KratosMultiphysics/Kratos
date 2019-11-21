@@ -34,7 +34,7 @@ void CoSimIO_ImportData(
 {
     using namespace CoSimIO::Internals;
     std::unique_ptr<DataContainer<double>> p_container(new DataContainerRawMemory<double>(ppData, *pSize)); // make_unique is c++14
-    CoSimIO::ImportData(pConnectionName, pIdentifier, p_container.get());
+    CoSimIO::ImportData(pConnectionName, pIdentifier, *p_container);
     // TODO check return of Size!
 }
 
@@ -46,7 +46,7 @@ void CoSimIO_ExportData(
 {
     using namespace CoSimIO::Internals;
     std::unique_ptr<DataContainer<double>> p_container(new DataContainerRawMemory<double>(&pData, Size)); // make_unique is c++14
-    CoSimIO::ExportData(pConnectionName, pIdentifier, p_container.get());
+    CoSimIO::ExportData(pConnectionName, pIdentifier, *p_container);
 }
 
 void ImportMesh(
@@ -62,7 +62,7 @@ void ImportMesh(
     std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerRawMemory<double>(ppNodalCoordinates, *pNumberOfNodes)); // make_unique is c++14
     std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerRawMemory<int>(ppElementConnectivities, *pNumberOfElements)); // make_unique is c++14
     std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerRawMemory<int>(ppElementTypes, *pNumberOfElements)); // make_unique is c++14
-    CoSimIO::ImportMesh(pConnectionName, pIdentifier, p_container_coords.get(), p_container_conn.get(), p_container_types.get());
+    CoSimIO::ImportMesh(pConnectionName, pIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
     // TODO check return of Sizes!
 }
 
@@ -79,5 +79,5 @@ void CoSimIO_ExportMesh(
     std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerRawMemory<double>(&pNodalCoordinates, NumberOfNodes)); // make_unique is c++14
     std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerRawMemory<int>(&pElementConnectivities, NumberOfElements)); // make_unique is c++14
     std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerRawMemory<int>(&pElementTypes, NumberOfElements)); // make_unique is c++14
-    CoSimIO::ExportMesh(pConnectionName, pIdentifier, p_container_coords.get(), p_container_conn.get(), p_container_types.get());
+    CoSimIO::ExportMesh(pConnectionName, pIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
 }

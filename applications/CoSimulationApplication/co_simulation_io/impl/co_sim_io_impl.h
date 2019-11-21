@@ -154,32 +154,32 @@ public:
 
     void ImportData(
         const std::string& rIdentifier,
-        Internals::DataContainer<double>* pContainer)
+        Internals::DataContainer<double>& pContainer)
     {
         // mpComm->ImportData(rIdentifier, rData);
     }
 
     void ExportData(
         const std::string& rIdentifier,
-        const Internals::DataContainer<double>* pContainer)
+        const Internals::DataContainer<double>& pContainer)
     {
         // mpComm->ExportData(rIdentifier, Size, pData);
     }
 
     void ImportMesh(
         const std::string& rIdentifier,
-        Internals::DataContainer<double>* pNodalCoords,
-        Internals::DataContainer<int>* pElementConnectivities,
-        Internals::DataContainer<int>* pElementTypes)
+        Internals::DataContainer<double>& pNodalCoords,
+        Internals::DataContainer<int>& pElementConnectivities,
+        Internals::DataContainer<int>& pElementTypes)
     {
         // mpComm->ImportMesh(rIdentifier, pNodalCoords, pElementConnectivities, pElementTypes);
     }
 
     void ExportMesh(
         const std::string& rIdentifier,
-        const Internals::DataContainer<double>* pNodalCoords,
-        const Internals::DataContainer<int>* pElementConnectivities,
-        const Internals::DataContainer<int>* pElementTypes)
+        const Internals::DataContainer<double>& pNodalCoords,
+        const Internals::DataContainer<int>& pElementConnectivities,
+        const Internals::DataContainer<int>& pElementTypes)
     {
         // mpComm->ExportMesh(rIdentifier, pNodalCoords, pElementConnectivities, pElementTypes);
     }

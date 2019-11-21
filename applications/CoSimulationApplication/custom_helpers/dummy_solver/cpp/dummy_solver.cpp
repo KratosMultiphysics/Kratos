@@ -164,12 +164,12 @@ void ExportMeshToCoSim(const std::string& rCommName, const MeshType& rMesh, cons
 
 void ImportDataFromCoSim(const std::string& rCommName, DataFieldType& rDataField, const std::string& rIdentifier)
 {
-    CoSimIO::ImportData(rCommName, rIdentifier, &rDataField);
+    CoSimIO::ImportData(rCommName, rIdentifier, rDataField);
 }
 
 void ExportDataToCoSim(const std::string& rCommName, DataFieldType& rDataField, const std::string& rIdentifier)
 {
-    CoSimIO::ExportData(rCommName, rIdentifier, &rDataField);
+    CoSimIO::ExportData(rCommName, rIdentifier, rDataField);
 }
 
 void RunSolutionLoop(MeshType& rMesh, DataFieldType& rDataField)

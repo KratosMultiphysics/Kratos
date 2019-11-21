@@ -40,41 +40,35 @@ template<class TContainerType>
 inline void ImportData(
     const std::string& rConnectionName, // TODO is this a memory error if the "const char*" comes from C???
     const std::string& rIdentifier,
-    TContainerType* pData);
+    TContainerType& pData);
 
 template<class TContainerType>
 inline void ExportData(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    TContainerType* pData);
+    TContainerType& pData);
 
 
 template<class TDoubleContainerType, class TIntContainerType>
 inline void ImportMesh(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    TDoubleContainerType* rNodalCoordinates,
-    TIntContainerType* rElementConnectivities,
-    TIntContainerType* rElementTypes);
+    TDoubleContainerType& rNodalCoordinates,
+    TIntContainerType& rElementConnectivities,
+    TIntContainerType& rElementTypes);
 
 template<class TDoubleContainerType, class TIntContainerType>
 inline void ExportMesh(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    TDoubleContainerType* rNodalCoordinates,
-    TIntContainerType* rElementConnectivities,
-    TIntContainerType* rElementTypes);
+    TDoubleContainerType& rNodalCoordinates,
+    TIntContainerType& rElementConnectivities,
+    TIntContainerType& rElementTypes);
 
 
-inline bool IsConverged(const std::string& rConnectionName)
-{
-    return Internals::GetIO(rConnectionName).IsConverged();
-}
+inline bool IsConverged(const std::string& rConnectionName);
 
-inline void Run(const std::string& rConnectionName)
-{
-    Internals::GetIO(rConnectionName).Run();
-}
+inline void Run(const std::string& rConnectionName);
 
 template<typename TFunctionType>
 inline void Register(
@@ -110,11 +104,11 @@ template<>
 inline void ImportData(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    std::vector<double>* pData)
+    std::vector<double>& pData)
 {
     using namespace CoSimIO::Internals;
-    std::unique_ptr<DataContainer<double>> p_container(new DataContainerStdVector<double>(*pData)); // make_unique is c++14
-    GetIO(rConnectionName).ImportData(rIdentifier, p_container.get());
+    std::unique_ptr<DataContainer<double>> p_container(new DataContainerStdVector<double>(pData)); // make_unique is c++14
+    GetIO(rConnectionName).ImportData(rIdentifier, *p_container);
 }
 
 // Version for C and fortran, there we already get a container
@@ -122,7 +116,7 @@ template<>
 inline void ImportData(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    CoSimIO::Internals::DataContainer<double>* pData)
+    CoSimIO::Internals::DataContainer<double>& pData)
 {
     Internals::GetIO(rConnectionName).ImportData(rIdentifier, pData);
 }
@@ -132,11 +126,11 @@ template<>
 inline void ExportData(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    std::vector<double>* pData)
+    std::vector<double>& pData)
 {
     using namespace CoSimIO::Internals;
-    std::unique_ptr<DataContainer<double>> p_container(new DataContainerStdVector<double>(*pData)); // make_unique is c++14
-    GetIO(rConnectionName).ExportData(rIdentifier, p_container.get());
+    std::unique_ptr<DataContainer<double>> p_container(new DataContainerStdVector<double>(pData)); // make_unique is c++14
+    GetIO(rConnectionName).ExportData(rIdentifier, *p_container);
 }
 
 // Version for C and fortran, there we already get a container
@@ -144,7 +138,7 @@ template<>
 inline void ExportData(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    CoSimIO::Internals::DataContainer<double>* pData)
+    CoSimIO::Internals::DataContainer<double>& pData)
 {
     Internals::GetIO(rConnectionName).ExportData(rIdentifier, pData);
 }
@@ -153,24 +147,24 @@ template<>
 inline void ImportMesh(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    std::vector<double>* pNodalCoordinates,
-    std::vector<int>* pElementConnectivities,
-    std::vector<int>* pElementTypes)
+    std::vector<double>& pNodalCoordinates,
+    std::vector<int>& pElementConnectivities,
+    std::vector<int>& pElementTypes)
 {
     using namespace CoSimIO::Internals;
-    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerStdVector<double>(*pNodalCoordinates)); // make_unique is c++14
-    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerStdVector<int>(*pElementConnectivities)); // make_unique is c++14
-    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerStdVector<int>(*pElementTypes)); // make_unique is c++14
-    Internals::GetIO(rConnectionName).ImportMesh(rIdentifier, p_container_coords.get(), p_container_conn.get(), p_container_types.get());
+    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerStdVector<double>(pNodalCoordinates)); // make_unique is c++14
+    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerStdVector<int>(pElementConnectivities)); // make_unique is c++14
+    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerStdVector<int>(pElementTypes)); // make_unique is c++14
+    Internals::GetIO(rConnectionName).ImportMesh(rIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
 }
 
 template<>
 inline void ImportMesh(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    CoSimIO::Internals::DataContainer<double>* pNodalCoordinates,
-    CoSimIO::Internals::DataContainer<int>* pElementConnectivities,
-    CoSimIO::Internals::DataContainer<int>* pElementTypes)
+    CoSimIO::Internals::DataContainer<double>& pNodalCoordinates,
+    CoSimIO::Internals::DataContainer<int>& pElementConnectivities,
+    CoSimIO::Internals::DataContainer<int>& pElementTypes)
 {
     Internals::GetIO(rConnectionName).ImportMesh(rIdentifier, pNodalCoordinates, pElementConnectivities, pElementTypes);
 }
@@ -179,26 +173,36 @@ template<>
 inline void ExportMesh(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    std::vector<double>* pNodalCoordinates,
-    std::vector<int>* pElementConnectivities,
-    std::vector<int>* pElementTypes)
+    std::vector<double>& pNodalCoordinates,
+    std::vector<int>& pElementConnectivities,
+    std::vector<int>& pElementTypes)
 {
     using namespace CoSimIO::Internals;
-    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerStdVector<double>(*pNodalCoordinates)); // make_unique is c++14
-    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerStdVector<int>(*pElementConnectivities)); // make_unique is c++14
-    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerStdVector<int>(*pElementTypes)); // make_unique is c++14
-    Internals::GetIO(rConnectionName).ExportMesh(rIdentifier, p_container_coords.get(), p_container_conn.get(), p_container_types.get());
+    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerStdVector<double>(pNodalCoordinates)); // make_unique is c++14
+    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerStdVector<int>(pElementConnectivities)); // make_unique is c++14
+    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerStdVector<int>(pElementTypes)); // make_unique is c++14
+    Internals::GetIO(rConnectionName).ExportMesh(rIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
 }
 
 template<>
 inline void ExportMesh(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    CoSimIO::Internals::DataContainer<double>* pNodalCoordinates,
-    CoSimIO::Internals::DataContainer<int>* pElementConnectivities,
-    CoSimIO::Internals::DataContainer<int>* pElementTypes)
+    CoSimIO::Internals::DataContainer<double>& pNodalCoordinates,
+    CoSimIO::Internals::DataContainer<int>& pElementConnectivities,
+    CoSimIO::Internals::DataContainer<int>& pElementTypes)
 {
     Internals::GetIO(rConnectionName).ExportMesh(rIdentifier, pNodalCoordinates, pElementConnectivities, pElementTypes);
+}
+
+inline bool IsConverged(const std::string& rConnectionName)
+{
+    return Internals::GetIO(rConnectionName).IsConverged();
+}
+
+inline void Run(const std::string& rConnectionName)
+{
+    Internals::GetIO(rConnectionName).Run();
 }
 
 } // namespace CoSimIO
