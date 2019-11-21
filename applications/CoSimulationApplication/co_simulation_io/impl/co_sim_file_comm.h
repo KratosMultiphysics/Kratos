@@ -49,29 +49,29 @@ static void CheckStream(const T& rStream, const std::string& rFileName)
     KRATOS_CO_SIM_ERROR_IF_NOT(rStream.is_open()) << rFileName << " could not be opened!" << std::endl;
 }
 
-static int GetNumNodesForVtkCellType(const int VtkCellType)
-{
-    const std::unordered_map<int, int> vtk_cell_type_map = {
-        { /*Point3D,          */ 1 ,  1},
-        { /*Line3D2,          */ 3 ,  2},
-        { /*Triangle3D3,      */ 5 ,  3},
-        { /*Quadrilateral3D4, */ 9 ,  4},
-        { /*Tetrahedra3D4,    */ 10 , 4},
-        { /*Hexahedra3D8,     */ 12 , 8},
-        { /*Prism3D6,         */ 13 , 6},
-        { /*Line3D3,          */ 21 , 3},
-        { /*Triangle3D6,      */ 22 , 6},
-        { /*Quadrilateral3D8, */ 23 , 7},
-        { /*Tetrahedra3D10,   */ 24,  10}
-    };
+// static int GetNumNodesForVtkCellType(const int VtkCellType)
+// {
+//     const std::unordered_map<int, int> vtk_cell_type_map = {
+//         { /*Point3D,          */ 1 ,  1},
+//         { /*Line3D2,          */ 3 ,  2},
+//         { /*Triangle3D3,      */ 5 ,  3},
+//         { /*Quadrilateral3D4, */ 9 ,  4},
+//         { /*Tetrahedra3D4,    */ 10 , 4},
+//         { /*Hexahedra3D8,     */ 12 , 8},
+//         { /*Prism3D6,         */ 13 , 6},
+//         { /*Line3D3,          */ 21 , 3},
+//         { /*Triangle3D6,      */ 22 , 6},
+//         { /*Quadrilateral3D8, */ 23 , 7},
+//         { /*Tetrahedra3D10,   */ 24,  10}
+//     };
 
-    if (vtk_cell_type_map.count(VtkCellType) > 0) {
-        return vtk_cell_type_map.at(VtkCellType);
-    } else {
-        KRATOS_CO_SIM_ERROR << "Unsupported cell type: " << VtkCellType << std::endl;
-        return 0;
-    }
-}
+//     if (vtk_cell_type_map.count(VtkCellType) > 0) {
+//         return vtk_cell_type_map.at(VtkCellType);
+//     } else {
+//         KRATOS_CO_SIM_ERROR << "Unsupported cell type: " << VtkCellType << std::endl;
+//         return 0;
+//     }
+// }
 
 } // helpers namespace
 
