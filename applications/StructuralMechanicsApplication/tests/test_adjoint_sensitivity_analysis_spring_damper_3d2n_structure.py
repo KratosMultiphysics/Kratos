@@ -11,21 +11,6 @@ if kratos_utilities.CheckIfApplicationsAvailable("HDF5Application"):
 else:
     has_hdf5_application = False
 
-# This utility will control the execution scope in case we need to access files or we depend
-# on specific relative locations of the files.
-
-# TODO: Should we move this to KratosUnittest?
-class controlledExecutionScope:
-    def __init__(self, scope):
-        self.currentPath = os.getcwd()
-        self.scope = scope
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
-
 def solve_primal_problem(file_name):
     with open(file_name,'r') as parameter_file:
         ProjectParametersPrimal = Parameters( parameter_file.read())
@@ -33,6 +18,8 @@ def solve_primal_problem(file_name):
     # To avoid many prints
     if (ProjectParametersPrimal["problem_data"]["echo_level"].GetInt() == 0):
         Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
+    else:
+        Logger.GetDefaultOutput().SetSeverity(Logger.Severity.INFO)
 
     model_primal = Model()
     primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, ProjectParametersPrimal)
@@ -40,7 +27,7 @@ def solve_primal_problem(file_name):
 
 def _get_test_working_dir():
     this_file_dir = os.path.dirname(os.path.realpath(__file__))
-    return os.path.join(this_file_dir, "adjoint_sensitivity_analysis_tests/adjoint_spring_damper_element_3d2n")
+    return os.path.join(this_file_dir, "adjoint_sensitivity_analysis_tests/adjoint_spring_damper_element_3d2n/")
 
 @KratosUnittest.skipUnless(has_hdf5_application,"Missing required application: HDF5Application")
 class TestAdjointSensitivityAnalysisSpringDamperStructure(KratosUnittest.TestCase):
@@ -48,12 +35,12 @@ class TestAdjointSensitivityAnalysisSpringDamperStructure(KratosUnittest.TestCas
     # called only once for this class, opposed of setUp()
     @classmethod
     def setUpClass(cls):
-        with controlledExecutionScope(_get_test_working_dir()):
+        with KratosUnittest.WorkFolderScope(_get_test_working_dir(), __file__):
             solve_primal_problem("ProjectParameters.json")
 
     def test_displacement_response(self):
         #Create the adjoint solver
-        with controlledExecutionScope(_get_test_working_dir()):
+        with KratosUnittest.WorkFolderScope(_get_test_working_dir() , __file__):
             with open("AdjointParameters.json",'r') as parameter_file:
                 ProjectParametersAdjoint = Parameters( parameter_file.read())
 
@@ -64,8 +51,8 @@ class TestAdjointSensitivityAnalysisSpringDamperStructure(KratosUnittest.TestCas
     # called only once for this class, opposed of tearDown()
     @classmethod
     def tearDownClass(cls):
-        with controlledExecutionScope(_get_test_working_dir()):
-            kratos_utilities.DeleteFileIfExisting("linear_truss_structure.time")
+        with KratosUnittest.WorkFolderScope(_get_test_working_dir(), __file__):
+            kratos_utilities.DeleteFileIfExisting("Spring_structure.time")
             for file_name in os.listdir():
                 if file_name.endswith(".h5"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
