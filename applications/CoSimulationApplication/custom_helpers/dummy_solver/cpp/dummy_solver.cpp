@@ -252,12 +252,12 @@ void RunSolutionCoSimulationOrchestrated(MeshType& rMesh, DataFieldType& rDataFi
     // p_co_sim_io->RegisterSolveSolutionStep(&SolveSolutionStep);
     // p_co_sim_io->RegisterFinalizeSolutionStep(&FinalizeSolutionStep);
 
-    // p_co_sim_io->RegisterDataExchange(&ImportGeometry, "ImportGeometry");
-    // p_co_sim_io->RegisterDataExchange(&ExportGeometry, "ExportGeometry");
-    // p_co_sim_io->RegisterDataExchange(&ImportMesh, "ImportMesh");
-    // p_co_sim_io->RegisterDataExchange(&ExportMesh, "ExportMesh");
-    // p_co_sim_io->RegisterDataExchange(&ImportData, "ImportData");
-    // p_co_sim_io->RegisterDataExchange(&ExportData, "ExportData");
+    CoSimIO::Register(comm_name, "ImportGeometry", &ImportGeometry);
+    CoSimIO::Register(comm_name, "ExportGeometry", &ExportGeometry);
+    CoSimIO::Register(comm_name, "ImportMesh", &ImportMesh);
+    CoSimIO::Register(comm_name, "ExportMesh", &ExportMesh);
+    CoSimIO::Register(comm_name, "ImportData", &ImportData);
+    CoSimIO::Register(comm_name, "ExportData", &ExportData);
 
     CoSimIO::Run(comm_name);
 

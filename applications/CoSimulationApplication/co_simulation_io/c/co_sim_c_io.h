@@ -53,6 +53,12 @@ void CoSimIO_ExportMesh(
     int* pElementConnectivities,
     int* pElementTypes);
 
+void CoSimIO_Register(
+    const char* pConnectionName,
+    const char* pFunctionName,
+    void (*pFunctionPointer)(const char*)
+    );
+
 #ifdef __cplusplus
 }
 #endif

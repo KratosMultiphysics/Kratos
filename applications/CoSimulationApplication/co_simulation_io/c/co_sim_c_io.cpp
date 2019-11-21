@@ -81,3 +81,12 @@ void CoSimIO_ExportMesh(
     std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerRawMemory<int>(&pElementTypes, NumberOfElements)); // make_unique is c++14
     CoSimIO::ExportMesh(pConnectionName, pIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
 }
+
+void CoSimIO_Register(
+    const char* pConnectionName,
+    const char* pFunctionName,
+    void (*pFunctionPointer)(const char*)
+    )
+{
+    CoSimIO::Register(pConnectionName, pFunctionName, pFunctionPointer);
+}
