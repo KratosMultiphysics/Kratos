@@ -67,7 +67,10 @@ class CouplingInterfaceData(object):
 
     def Initialize(self):
         # This can only be called after the ModelPart are read, i.e. after the solvers are initialized
-        self.model_part = self.model[self.settings["model_part_name"].GetString()]
+        if not self.model.HasModelPart(self.model_part_name):
+            self.__RaiseException('The ModelPart specified is not contained in the Model!')
+
+        self.model_part = self.model[self.model_part_name]
 
         # dimensionality of the data
         self.dimension = self.settings["dimension"].GetInt()
