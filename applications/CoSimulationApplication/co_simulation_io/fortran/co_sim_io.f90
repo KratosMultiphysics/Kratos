@@ -22,7 +22,7 @@ MODULE co_sim_io
             CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: ConnectionName
             CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: Identifier
             INTEGER(C_INT), INTENT(INOUT)  :: Size
-            type(C_PTR) :: Data
+            type(C_PTR), INTENT(INOUT) :: Data
         END SUBROUTINE CoSimIO_ImportData
 
         SUBROUTINE CoSimIO_ExportData(ConnectionName, Identifier, Size, Data) BIND (C, NAME="CoSimIO_ExportData")
@@ -30,7 +30,7 @@ MODULE co_sim_io
             CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: ConnectionName
             CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: Identifier
             INTEGER(C_INT), INTENT(IN)  :: Size
-            type(C_PTR) :: Data
+            type(C_PTR), INTENT(IN) :: Data
         END SUBROUTINE CoSimIO_ExportData
 
 
@@ -38,14 +38,14 @@ MODULE co_sim_io
                                       NumberOfElements, NodalCoordinates, &
                                       ElementConnectivities, ElementTypes&
                                       ) BIND (C, NAME="CoSimIO_ImportMesh")
-        USE, INTRINSIC :: ISO_C_BINDING
-        CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: ConnectionName
-        CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: Identifier
-        INTEGER(C_INT), INTENT(INOUT) :: NumberOfNodes
-        INTEGER(C_INT), INTENT(INOUT) :: NumberOfElements
-        type(C_PTR) :: NodalCoordinates
-        type(C_PTR) :: ElementConnectivities
-        type(C_PTR) :: ElementTypes
+            USE, INTRINSIC :: ISO_C_BINDING
+            CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: ConnectionName
+            CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: Identifier
+            INTEGER(C_INT), INTENT(INOUT) :: NumberOfNodes
+            INTEGER(C_INT), INTENT(INOUT) :: NumberOfElements
+            type(C_PTR), INTENT(INOUT) :: NodalCoordinates
+            type(C_PTR), INTENT(INOUT) :: ElementConnectivities
+            type(C_PTR), INTENT(INOUT) :: ElementTypes
         END SUBROUTINE CoSimIO_ImportMesh
 
         SUBROUTINE CoSimIO_ExportMesh(ConnectionName, Identifier, NumberOfNodes, &
@@ -57,9 +57,9 @@ MODULE co_sim_io
             CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: Identifier
             INTEGER(C_INT), INTENT(IN) :: NumberOfNodes
             INTEGER(C_INT), INTENT(IN) :: NumberOfElements
-            type(C_PTR) :: NodalCoordinates
-            type(C_PTR) :: ElementConnectivities
-            type(C_PTR) :: ElementTypes
+            type(C_PTR), INTENT(IN) :: NodalCoordinates
+            type(C_PTR), INTENT(IN) :: ElementConnectivities
+            type(C_PTR), INTENT(IN) :: ElementTypes
         END SUBROUTINE CoSimIO_ExportMesh
 
 
