@@ -115,7 +115,7 @@ public:
     ///@{
 
     /**
-     * @brief We initialize the Metrics of the MMG solver using the Divergence Free Metric matrix approach
+     * @brief We initialize the Metrics of the MMG solver using the Simple Error Calculator approach
      */
     void Execute() override;
 
