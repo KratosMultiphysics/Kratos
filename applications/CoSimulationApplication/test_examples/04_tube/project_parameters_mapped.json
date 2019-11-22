@@ -75,7 +75,7 @@
                 "settings": {
                     "solver_wrapper" :
                     {
-                        "type" : "solver_interfaces.pipe.structure_solver",
+                        "type" : "solver_wrappers.pipe.structure_solver",
                         "settings" :
                         {
                             "working_directory" : "CSD",
@@ -95,7 +95,7 @@
 						"type" : "mappers.interface",
 						"settings" :
 						{
-	                        "type" : "mappers.linear"
+	                        "type" : "mappers.nearest"
 						}
                     },
                     "mapper_interface_output":
@@ -103,7 +103,7 @@
 						"type" : "mappers.interface",
 						"settings" :
 						{
-	                        "type" : "mappers.linear"
+	                        "type" : "mappers.nearest"
 						}
                     }
                 }

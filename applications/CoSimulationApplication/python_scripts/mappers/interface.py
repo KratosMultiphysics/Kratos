@@ -7,7 +7,7 @@ def Create(parameters):
     return MapperInterface(parameters)
 
 
-# Class MapperInterface: Interface interpolation with same interpolator type for all modelparts.
+# Class MapperInterface: Interface interpolation with same interpolator type for all modelparts and variables.
 class MapperInterface(object):
     def __init__(self, parameters):
         super().__init__()
@@ -16,7 +16,7 @@ class MapperInterface(object):
         self.settings = parameters["settings"]
 
     def Initialize(self, interface_from, interface_to):
-        # Loop over modelparts and create mappers
+        # Loop over ModelParts and create mappers
         self.mappers = []
         for item_from, item_to in zip(interface_from.model_parts_variables,
                                       interface_to.model_parts_variables):
@@ -38,10 +38,5 @@ class MapperInterface(object):
             model_part_from = interface_from.model[key_from]
             model_part_to = interface_from.model[key_to]
             for var_from, var_to in zip(variables_from, variables_to):
-                mapper((model_part_from, var_from.GetString()),
-                       (model_part_to, var_to.GetString()))
-                """
-                A mapper takes two tuples as input, one for 'from'
-                and one for 'to'.
-                Each tuple contains a ModelPart and a Variable.
-                """
+                mapper((model_part_from, vars(KM)[var_from.GetString()]),
+                       (model_part_to, vars(KM)[var_to.GetString()]))
