@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
+#include "includes/kratos_components.h"
 
 namespace Kratos
 {
@@ -968,6 +969,10 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 ///@}
+
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents< Variable<Kratos::Parameters::Pointer> >;
+
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<Kratos::Parameters::Pointer> const& ThisComponent);
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
