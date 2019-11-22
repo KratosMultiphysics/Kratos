@@ -48,11 +48,33 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         self.delta_T = self.settings["delta_T"].GetDouble()  #TODO: move to higher-level parameter file?
         self.timestep_start = self.settings["timestep_start"].GetDouble()  #TODO: move to higher-level parameter file?
         self.surfaceIDs = self.settings["surfaceIDs"].GetString()
-
+        self.mp_mode = self.settings["mp_mode"].GetString()
         # Upon(re)starting Abaqus needs to run USRInit.f
         # A restart requires Abaqus to be booted with a restart file
 
         # prepare abaqus_v6.env
+        self.hostnames = []
+        self.hostnames_unique = []
+        with open(join(self.dir_csm, "AbaqusHosts.txt"), "r") as hostfile:
+            for line in hostfile:
+                self.hostnames.append(line.rstrip())
+                if not line.rstrip() in self.hostnames_unique:
+                    self.hostnames_unique.append(line.rstrip())
+        self.hostname_replace = ""
+        for hostname in self.hostnames_unique:
+            self.hostname_replace += "[\'" + hostname + "\', " + str(self.hostnames.count(hostname)) +"], "
+        self.hostname_replace = self.hostname_replace.rstrip(", ")
+        with open(join(path_src, "abaqus_v6.env"), "r") as infile:
+            with open(join(self.dir_csm, "abaqus_v6.env"), "w") as outfile:
+                for line in infile:
+                    line = line.replace("|HOSTNAME|", self.hostname_replace)
+                    line = line.replace("|MP_MODE|", self.mp_mode)
+                    line = line.replace("|PID|", str(os.getpid()))
+                    line = line.replace("|PWD|", os.path.abspath(os.path.join(self.dir_csm, os.pardir)))
+                    line = line.replace("|CSM_dir|", self.settings["working_directory"].GetString())
+                    if "|" in line:
+                        raise ValueError(f"The following line in abaqus_v6.env still contains a \"|\" after substitution: \n \t{line} \n Probably a parameter was not subsituted")
+                    outfile.write(line)
 
         # prepare Abaqus USRInit.f
         usr = "USRInit.f"
@@ -78,7 +100,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         path_libusr = join(self.dir_csm, "libusr/")
         os.system("rm -r " + path_libusr)
         os.system("mkdir " + path_libusr)
-        cmd = "abaqus make library=" + usr + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
+        cmd = "abaqus make library=usrInit.f directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
         commands = [cmd_settings1, cmd_settings2, cmd_settings3, cmd]
         self.run_shell(self.dir_csm, commands, name='Compile_USRInit')
 
@@ -105,7 +127,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     line = line.replace("|surfaceIDs|", str(self.surfaceIDs))
                     line = line.replace("|dimension|", str(self.dimensions))
                     if "|" in line:
-                        raise ValueError(f"The following line in USR.f still contains a \"|\" after substitution: \n \t{line} \n Probably a parameter was not subsituted")
+                        raise ValueError(f"The following line in GetOutput.cpp still contains a \"|\" after substitution: \n \t{line} \n Probably a parameter was not subsituted")
 
                     outfile.write(line)
 
@@ -116,12 +138,10 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
 
         # Get node positions (not load points) at startTimeStep
 
-
-
         # prepare Abaqus USR.f
         usr = "USR.f"
         with open(join(path_src, usr), "r") as infile:
-            with open(join(self.dir_csm, usr), "w") as outfile:
+            with open(join(self.dir_csm, "usr.f"), "w") as outfile:
                 for line in infile:
                     line = line.replace("|dimension|", str(self.dimensions))
                     line = line.replace("|arraySize|", str(self.array_size))
@@ -141,7 +161,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         # compile Abaqus USR.f
         os.system("rm -r " + path_libusr)  # remove libusr containing compiled USRInit.f
         os.system("mkdir " + path_libusr)
-        cmd = "abaqus make library=" + usr + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
+        cmd = "abaqus make library=usr.f directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
         commands = [cmd_settings1, cmd_settings2, cmd_settings3, cmd]
         self.run_shell(self.dir_csm, commands, name='Compile_USR')
 
