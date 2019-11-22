@@ -17,12 +17,15 @@ class SolverWrapperMapped(CoSimulationComponent):
         self.settings = parameters["settings"]
 
         # Create solver
-        self.solver_wrapper = cs_tools.CreateInstance(self.parameters["solver_wrapper"])
+        self.solver_wrapper = cs_tools.CreateInstance(self.settings["solver_wrapper"])
 
     def Initialize(self):
         super().Initialize()
 
         self.solver_wrapper.Initialize()
+
+        self.mapper_interface_input = None
+        self.mapper_interface_output = None
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
@@ -30,10 +33,15 @@ class SolverWrapperMapped(CoSimulationComponent):
         self.solver_wrapper.InitializeSolutionStep()
 
     def SolveSolutionStep(self, interface_input_from):
+        if self.mapper_interface_input is None:
+            self.SetInterfaceInput(interface_input_from)
+        if self.mapper_interface_output is None:
+            self.SetInterfaceOutput(interface_input_from)
+
         self.interface_input_from = interface_input_from
-        self.interface_input_to = self.mapper_interface_input(self.interface_input_from)
+        self.mapper_interface_input(self.interface_input_from, self.interface_input_to)
         self.interface_output_from = self.solver_wrapper.SolveSolutionStep(self.interface_input_to)
-        self.interface_output_to = self.mapper_interface_output(self.interface_output_from)
+        self.mapper_interface_output(self.interface_output_from, self.interface_output_to)
         return self.interface_output_to
 
     def FinalizeSolutionStep(self):
@@ -56,7 +64,7 @@ class SolverWrapperMapped(CoSimulationComponent):
         # Create input mapper
         self.interface_input_from = interface_input_from
         self.interface_input_to = self.solver_wrapper.GetInterfaceInput()
-        self.mapper_interface_input = cs_tools.CreateInstance(self.parameters["mapper_interface_input"])
+        self.mapper_interface_input = cs_tools.CreateInstance(self.settings["mapper_interface_input"])
         self.mapper_interface_input.Initialize(self.interface_input_from, self.interface_input_to)
 
     def GetInterfaceOutput(self):
@@ -66,6 +74,6 @@ class SolverWrapperMapped(CoSimulationComponent):
         # Create output mapper
         self.interface_output_to = interface_output_to
         self.interface_output_from = self.solver_wrapper.GetInterfaceOutput()
-        self.mapper_interface_output = cs_tools.CreateInstance(self.parameters["mapper_interface_output"])
+        self.mapper_interface_output = cs_tools.CreateInstance(self.settings["mapper_interface_output"])
         self.mapper_interface_output.Initialize(self.interface_output_from, self.interface_output_to)
 
