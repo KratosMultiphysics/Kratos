@@ -516,9 +516,9 @@ void MembraneElement::ContraVariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
     rBaseVectors[1] = rContraVariantMetric(1,0)*rCovariantBaseVectors[0] + rContraVariantMetric(1,1)*rCovariantBaseVectors[1];
 }
 
-void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMethod ThisMethod)
+void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMethod& ThisMethod)
 {
-    auto& r_geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType number_dofs = dimension*number_of_nodes;
@@ -577,13 +577,11 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
 
 
 void MembraneElement::MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
- const Matrix& rMaterialTangentModulus,const double& rDetJ, const double& rWeight,
- const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
- const array_1d<Vector,2>& rCurrentCovariantBaseVectors,const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference,
- const array_1d<Vector,2>& rTransformedBaseVectors, const Matrix& rTransformationMatrix)
+ const Matrix& rMaterialTangentModulus,const SizeType& rPositionI,
+const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
+ const array_1d<Vector,2>& rCurrentCovariantBaseVectors, const Matrix& rTransformationMatrix)
  {
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const double thickness = GetProperties()[THICKNESS];
 
     Vector strain_derivative = ZeroVector(dimension);
     DerivativeStrainGreenLagrange(strain_derivative,rShapeFunctionGradientValues,rPositionI,
@@ -594,28 +592,26 @@ void MembraneElement::MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
     DerivativeStrainGreenLagrange(strain_derivative,rShapeFunctionGradientValues,rPositionJ,
         rCurrentCovariantBaseVectors,rTransformationMatrix);
 
-    rEntryIJ += inner_prod(stress_derivative,strain_derivative)*rDetJ*rWeight*thickness;
+    rEntryIJ += inner_prod(stress_derivative,strain_derivative);
  }
 
 void MembraneElement::InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
- const Vector& rStressVector,const double& rDetJ, const double& rWeight,
- const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
- const array_1d<Vector,2>& rLocalContraVariantBaseVectorsReference, const array_1d<Vector,2>& rTransformedBaseVectors,
+ const Vector& rStressVector, const SizeType& rPositionI,
+ const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
  const Matrix& rTransformationMatrix)
  {
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const double thickness = GetProperties()[THICKNESS];
 
     Vector strain_derivative_2 = ZeroVector(dimension);
     Derivative2StrainGreenLagrange(strain_derivative_2,rShapeFunctionGradientValues,rPositionI,rPositionJ,
         rTransformationMatrix);
-    rEntryIJ += inner_prod(rStressVector,strain_derivative_2)*rDetJ*rWeight*thickness;
+    rEntryIJ += inner_prod(rStressVector,strain_derivative_2);
  }
 
 
-void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod ThisMethod)
+void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod& ThisMethod)
 {
-    auto& r_geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType number_dofs = dimension*number_of_nodes;
@@ -623,6 +619,8 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
 
     const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
+
+    const double thickness = GetProperties()[THICKNESS];
 
     array_1d<Vector,2> current_covariant_base_vectors;
     array_1d<Vector,2> reference_covariant_base_vectors;
@@ -672,13 +670,12 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
                 }
                 else{
                     MaterialStiffnessMatrixEntryIJ(rStiffnessMatrix(dof_s,dof_r),
-                        material_tangent_modulus,detJ,integration_weight_i,dof_s,dof_r,shape_functions_gradients_i,
-                        current_covariant_base_vectors,reference_contravariant_base_vectors,transformed_base_vectors,
-                        inplane_transformation_matrix_material);
+                        material_tangent_modulus,dof_s,dof_r,shape_functions_gradients_i,
+                        current_covariant_base_vectors,inplane_transformation_matrix_material);
                     InitialStressStiffnessMatrixEntryIJ(rStiffnessMatrix(dof_s,dof_r),
-                        stress,detJ,integration_weight_i,dof_s,dof_r,shape_functions_gradients_i,
-                        reference_contravariant_base_vectors,transformed_base_vectors,
+                        stress,dof_s,dof_r,shape_functions_gradients_i,
                         inplane_transformation_matrix_material);
+                    rStiffnessMatrix(dof_s,dof_r) *= detJ*integration_weight_i*thickness;
                 }
             }
         }

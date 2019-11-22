@@ -134,21 +134,19 @@ namespace Kratos
     void DerivativeCurrentCovariantMetric(Matrix& rMetric,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const array_1d<Vector,2> rCurrentCovariantBaseVectors);
 
-    void InternalForces(Vector& rInternalForces,const IntegrationMethod ThisMethod);
+    void InternalForces(Vector& rInternalForces,const IntegrationMethod& ThisMethod);
 
-    void TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod ThisMethod);
+    void TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod& ThisMethod);
 
     void InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
-      const Vector& rStressVector,const double& rDetJ, const double& rWeight,
+      const Vector& rStressVector,
       const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
-      const array_1d<Vector,2>& rLocalContraVariantBaseVectorsReference,
-      const array_1d<Vector,2>& rTransformedBaseVectors,const Matrix& rTransformationMatrix);
+      const Matrix& rTransformationMatrix);
 
     void MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
-      const Matrix& rMaterialTangentModulus,const double& rDetJ, const double& rWeight,
+      const Matrix& rMaterialTangentModulus,
       const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
-      const array_1d<Vector,2>& rCurrentCovariantBaseVectors, const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference,
-      const array_1d<Vector,2>& rTransformedBaseVectors,const Matrix& rTransformationMatrix);
+      const array_1d<Vector,2>& rCurrentCovariantBaseVectors,const Matrix& rTransformationMatrix);
 
     void TransformStrains(Vector& rStrains, Vector& rReferenceStrains, const Matrix& rTransformationMatrix);
 
