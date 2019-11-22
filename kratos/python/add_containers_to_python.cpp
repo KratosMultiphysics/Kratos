@@ -147,6 +147,10 @@ void  AddContainersToPython(pybind11::module& m)
     py::class_<Variable<ConstitutiveLaw::Pointer>,VariableData>(m, "ConstitutuveLawVariable")
     .def("__str__", PrintObject<Variable<ConstitutiveLaw::Pointer>>)
     ;
+    
+    py::class_<Variable<Kratos::Parameters::Pointer>,VariableData>(m, "KratosParametersVariable")
+    .def("__str__", PrintObject<Variable<Kratos::Parameters::Pointer>>)
+    ;
 
     py::class_<Variable<ConvectionDiffusionSettings::Pointer > ,VariableData>(m,"ConvectionDiffusionSettingsVariable")
     .def("__str__", PrintObject<Variable<ConvectionDiffusionSettings::Pointer >>)
