@@ -969,6 +969,14 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
+#undef  KRATOS_EXPORT_MACRO
+#define KRATOS_EXPORT_MACRO KRATOS_API
+
+KRATOS_DEFINE_VARIABLE(Parameters::Pointer, CONFIGURATION_PARAMETERS)
+
+#undef  KRATOS_EXPORT_MACRO
+#define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
+
 ///@} addtogroup block
 
 }  // namespace Kratos.

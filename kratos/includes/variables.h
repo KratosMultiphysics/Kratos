@@ -428,7 +428,6 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( Matrix, INERTIA )
 
     // For General kratos application:
-    KRATOS_DEFINE_VARIABLE( Kratos::Parameters::Pointer, CONFIGURATION_PARAMETERS )
 
     //for Structural application:
     //KRATOS_DEFINE_VARIABLE( GlobalPointersVector< GeometricalObject >, NEIGHBOUR_EMBEDDED_FACES )
