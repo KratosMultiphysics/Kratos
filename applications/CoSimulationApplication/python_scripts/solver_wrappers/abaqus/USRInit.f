@@ -87,8 +87,8 @@ C==============================================================================
 
          WRITE(FILENAME,'(A,A,I0,A,I0,A,I0,A)')
      &      '|PWD|',
-     &      '/Data/AbaqusSolver|RANK|/|TYPE||TESTID|Refine|REFINE|Time',
-     &      (KSTEP-1),'Surface',(R-1),'Cpu',ID,'FacesBis.dat'
+     &      '|CSM_dir|/CSM_Time',
+     &      (KSTEP),'Surface',(R-1),'Cpu',ID,'FacesBis.dat'
 
          OPEN(UNIT=UNIT_FACES(R),FILE=FILENAME,POSITION='APPEND')
 
@@ -149,8 +149,8 @@ C==============================================================================
 
          WRITE(FILENAME,'(A,A,I0,A,I0,A,I0,A)')
      &      '|PWD|',
-     &      '/Data/AbaqusSolver|RANK|/|TYPE||TESTID|Refine|REFINE|Time',
-     &      (KSTEP-1),'Surface',(R-1),'Cpu',ID,'Faces.dat'
+     &      '|CSM_dir|/CSM_Time',
+     &      (KSTEP),'Surface',(R-1),'Cpu',ID,'Faces.dat'
 
          OPEN(UNIT=UNIT_FACES(R),FILE=FILENAME,POSITION='APPEND')
 
