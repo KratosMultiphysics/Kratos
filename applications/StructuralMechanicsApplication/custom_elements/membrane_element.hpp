@@ -183,6 +183,21 @@ namespace Kratos
     void InPlaneTransformationMatrix(Matrix& rTransformationMatrix, const array_1d<Vector,2>& rTransformedBaseVectors,
       const T& rLocalReferenceBaseVectors);
 
+    void CalculateMassMatrix(MatrixType& rMassMatrix,ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLumpedMassVector(VectorType& rMassVector);
+
+    void AddExplicitContribution(
+      const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
+      Variable<array_1d<double, 3>>& rDestinationVariable,
+      const ProcessInfo& rCurrentProcessInfo) override;
+
+    void AddExplicitContribution(
+      const VectorType& rRHSVector,
+      const Variable<VectorType>& rRHSVariable,
+      Variable<double >& rDestinationVariable,
+      const ProcessInfo& rCurrentProcessInfo) override;
+
 protected:
   ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 

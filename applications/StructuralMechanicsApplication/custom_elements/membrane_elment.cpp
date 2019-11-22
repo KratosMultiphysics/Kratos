@@ -518,13 +518,14 @@ void MembraneElement::ContraVariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
 
 void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMethod ThisMethod)
 {
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType number_of_nodes = GetGeometry().size();
+    auto& r_geom = GetGeometry();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType number_of_nodes = r_geom.size();
     const SizeType number_dofs = dimension*number_of_nodes;
     rInternalForces = ZeroVector(number_dofs);
 
-    const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(ThisMethod);
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(ThisMethod);
+    const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
 
     const double thickness = GetProperties()[THICKNESS];
 
@@ -614,13 +615,14 @@ void MembraneElement::InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
 
 void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod ThisMethod)
 {
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType number_of_nodes = GetGeometry().size();
+    auto& r_geom = GetGeometry();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType number_of_nodes = r_geom.size();
     const SizeType number_dofs = dimension*number_of_nodes;
     rStiffnessMatrix = ZeroMatrix(number_dofs);
 
-    const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(ThisMethod);
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(ThisMethod);
+    const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
 
     array_1d<Vector,2> current_covariant_base_vectors;
     array_1d<Vector,2> reference_covariant_base_vectors;
@@ -680,6 +682,58 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
                 }
             }
         }
+    }
+}
+
+void MembraneElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
+     const array_1d<Vector,2>& rLocalBaseVectors){
+
+    // prepare for projection utility
+
+    /* // create local cartesian coordinate system aligned to global material vectors (orthotropic)
+    if (GetProperties().Has(LOCAL_MATERIAL_AXIS_1) && GetProperties().Has(LOCAL_MATERIAL_AXIS_2)){
+        Vector local_material_axis_1 = ZeroVector(3);
+        Vector local_material_axis_2 = ZeroVector(3);
+
+        for(unsigned int i=0; i<3;i++){
+            local_material_axis_1[i] = GetProperties()(LOCAL_MATERIAL_AXIS_1)[i];
+            local_material_axis_2[i] = GetProperties()(LOCAL_MATERIAL_AXIS_2)[i];
+        }
+
+        rBaseVectors[0] = local_material_axis_1/MathUtils<double>::Norm(local_material_axis_1);
+        rBaseVectors[1] = local_material_axis_2/MathUtils<double>::Norm(local_material_axis_2);
+
+    } */
+
+    // create local cartesian coordinate system aligned to global material vectors (orthotropic)
+    if (GetProperties().Has(PRESTRESS_AXIS_1_GLOBAL) && GetProperties().Has(PRESTRESS_AXIS_2_GLOBAL)){
+        array_1d<double,3> global_prestress_axis1, global_prestress_axis2;
+                for(unsigned int i=0; i<3;i++){
+                    global_prestress_axis1[i] = GetProperties()(PRESTRESS_AXIS_1_GLOBAL)[i];
+                    global_prestress_axis2[i] = GetProperties()(PRESTRESS_AXIS_2_GLOBAL)[i];
+                }
+
+        Vector base_3 = ZeroVector(3);
+        MathUtils<double>::CrossProduct(base_3, rLocalBaseVectors[0], rLocalBaseVectors[1]);
+        base_3 /= MathUtils<double>::Norm(base_3);
+
+        rBaseVectors[0] = ZeroVector(3);
+        rBaseVectors[1] = ZeroVector(3);
+
+        // simple projection
+        MathUtils<double>::CrossProduct(rBaseVectors[1], base_3, global_prestress_axis1);
+        rBaseVectors[1] /= MathUtils<double>::Norm(rBaseVectors[1]);
+
+        MathUtils<double>::CrossProduct(rBaseVectors[0],rBaseVectors[1], base_3);
+        rBaseVectors[0] /= MathUtils<double>::Norm(rBaseVectors[0]);
+    }
+    else {
+        // create local cartesian coordinate system
+        rBaseVectors[0] = ZeroVector(3);
+        rBaseVectors[1] = ZeroVector(3);
+        rBaseVectors[0] = rLocalBaseVectors[0] / MathUtils<double>::Norm(rLocalBaseVectors[0]);
+        rBaseVectors[1] = rLocalBaseVectors[1] - (inner_prod(rLocalBaseVectors[1],rBaseVectors[0]) * rBaseVectors[0]);
+        rBaseVectors[1] /= MathUtils<double>::Norm(rBaseVectors[1]);
     }
 }
 
@@ -780,59 +834,6 @@ void MembraneElement::CalculateOnIntegrationPoints(
     KRATOS_CATCH("")
 }
 
-void MembraneElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
-     const array_1d<Vector,2>& rLocalBaseVectors){
-
-    // prepare for projection utility
-
-    /* // create local cartesian coordinate system aligned to global material vectors (orthotropic)
-    if (GetProperties().Has(LOCAL_MATERIAL_AXIS_1) && GetProperties().Has(LOCAL_MATERIAL_AXIS_2)){
-        Vector local_material_axis_1 = ZeroVector(3);
-        Vector local_material_axis_2 = ZeroVector(3);
-
-        for(unsigned int i=0; i<3;i++){
-            local_material_axis_1[i] = GetProperties()(LOCAL_MATERIAL_AXIS_1)[i];
-            local_material_axis_2[i] = GetProperties()(LOCAL_MATERIAL_AXIS_2)[i];
-        }
-
-        rBaseVectors[0] = local_material_axis_1/MathUtils<double>::Norm(local_material_axis_1);
-        rBaseVectors[1] = local_material_axis_2/MathUtils<double>::Norm(local_material_axis_2);
-
-    } */
-
-    // create local cartesian coordinate system aligned to global material vectors (orthotropic)
-    if (GetProperties().Has(PRESTRESS_AXIS_1_GLOBAL) && GetProperties().Has(PRESTRESS_AXIS_2_GLOBAL)){
-        array_1d<double,3> global_prestress_axis1, global_prestress_axis2;
-                for(unsigned int i=0; i<3;i++){
-                    global_prestress_axis1[i] = GetProperties()(PRESTRESS_AXIS_1_GLOBAL)[i];
-                    global_prestress_axis2[i] = GetProperties()(PRESTRESS_AXIS_2_GLOBAL)[i];
-                }
-
-        Vector base_3 = ZeroVector(3);
-        MathUtils<double>::CrossProduct(base_3, rLocalBaseVectors[0], rLocalBaseVectors[1]);
-        base_3 /= MathUtils<double>::Norm(base_3);
-
-        rBaseVectors[0] = ZeroVector(3);
-        rBaseVectors[1] = ZeroVector(3);
-
-
-        // simple projection
-        MathUtils<double>::CrossProduct(rBaseVectors[1], base_3, global_prestress_axis1);
-        rBaseVectors[1] /= MathUtils<double>::Norm(rBaseVectors[1]);
-
-        MathUtils<double>::CrossProduct(rBaseVectors[0],rBaseVectors[1], base_3);
-        rBaseVectors[0] /= MathUtils<double>::Norm(rBaseVectors[0]);
-    }
-    else {
-        // create local cartesian coordinate system
-        rBaseVectors[0] = ZeroVector(3);
-        rBaseVectors[1] = ZeroVector(3);
-        rBaseVectors[0] = rLocalBaseVectors[0] / MathUtils<double>::Norm(rLocalBaseVectors[0]);
-        rBaseVectors[1] = rLocalBaseVectors[1] - (inner_prod(rLocalBaseVectors[1],rBaseVectors[0]) * rBaseVectors[0]);
-        rBaseVectors[1] /= MathUtils<double>::Norm(rBaseVectors[1]);
-    }
-}
-
 void MembraneElement::GetValueOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rOutput,
@@ -843,7 +844,149 @@ void MembraneElement::GetValueOnIntegrationPoints(
     KRATOS_CATCH("")
 }
 
+void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
 
+    // LUMPED MASS MATRIX
+    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int mat_size = number_of_nodes * 3;
+
+    if (rMassMatrix.size1() != mat_size) {
+        rMassMatrix.resize(mat_size, mat_size, false);
+    }
+
+    noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
+
+    const double total_mass = GetGeometry().Area() * GetProperties()[THICKNESS] *
+        StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+
+    Vector lump_fact = GetGeometry().LumpingFactors(lump_fact);
+
+    for (unsigned int i = 0; i < number_of_nodes; ++i) {
+        const double temp = lump_fact[i] * total_mass;
+
+        for (unsigned int j = 0; j < 3; ++j)
+        {
+            const unsigned int index = i * 3 + j;
+            rMassMatrix(index, index) = temp;
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+void MembraneElement::CalculateLumpedMassVector(VectorType& rMassVector)
+{
+    KRATOS_TRY
+    auto& r_geom = GetGeometry();
+    const unsigned int dimension = r_geom.WorkingSpaceDimension();
+    const unsigned int number_of_nodes = r_geom.size();
+    const unsigned int local_size = dimension*number_of_nodes;
+
+    if (rMassVector.size() != local_size) {
+        rMassVector.resize(local_size, false);
+    }
+
+    const double total_mass = GetGeometry().Area() * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
+
+    Vector lump_fact = GetGeometry().LumpingFactors(lump_fact);
+
+    for (unsigned int i = 0; i < number_of_nodes; ++i) {
+        const double temp = lump_fact[i] * total_mass;
+
+        for (unsigned int j = 0; j < 3; ++j)
+        {
+            const unsigned int index = i * 3 + j;
+            rMassVector[index] = temp;
+        }
+    }
+    KRATOS_CATCH("")
+}
+
+void MembraneElement::AddExplicitContribution(
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    Variable<double >& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    auto& r_geom = GetGeometry();
+    const unsigned int dimension = r_geom.WorkingSpaceDimension();
+    const unsigned int number_of_nodes = r_geom.size();
+    const unsigned int local_size = dimension*number_of_nodes;
+
+    if (rDestinationVariable == NODAL_MASS) {
+        VectorType element_mass_vector(local_size);
+        CalculateLumpedMassVector(element_mass_vector);
+
+        for (SizeType i = 0; i < number_of_nodes; ++i) {
+            double& r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
+            int index = i * dimension;
+
+            #pragma omp atomic
+            r_nodal_mass += element_mass_vector(index);
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+void MembraneElement::AddExplicitContribution(
+    const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
+    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    auto& r_geom = GetGeometry();
+    const unsigned int dimension = r_geom.WorkingSpaceDimension();
+    const unsigned int number_of_nodes = r_geom.size();
+    const unsigned int local_size = dimension*number_of_nodes;
+
+    if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
+
+        Vector damping_residual_contribution = ZeroVector(local_size);
+        Vector current_nodal_velocities = ZeroVector(local_size);
+        GetFirstDerivativesVector(current_nodal_velocities);
+        Matrix damping_matrix;
+        ProcessInfo temp_process_information; // cant pass const ProcessInfo
+        CalculateDampingMatrix(damping_matrix, temp_process_information);
+        // current residual contribution due to damping
+        noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
+
+        for (SizeType i = 0; i < number_of_nodes; ++i) {
+            SizeType index = dimension * i;
+            array_1d<double, 3>& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+            for (size_t j = 0; j < dimension; ++j) {
+                #pragma omp atomic
+                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+            }
+        }
+    } else if (rDestinationVariable == NODAL_INERTIA) {
+
+        // Getting the vector mass
+        VectorType mass_vector(local_size);
+        CalculateLumpedMassVector(mass_vector);
+
+        for (SizeType i = 0; i < number_of_nodes; ++i) {
+            double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
+            array_1d<double, 3>& r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
+            SizeType index = i * dimension;
+
+            #pragma omp atomic
+            r_nodal_mass += mass_vector[index];
+
+            for (SizeType k = 0; k < dimension; ++k) {
+                #pragma omp atomic
+                r_nodal_inertia[k] += 0.0;
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
+}
 
 //***********************************************************************************
 //***********************************************************************************
