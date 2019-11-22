@@ -24,8 +24,16 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         """
                settings of solver_wrappers.abaqus.614:
 
-                   working_directory       absolute path to working directory
+                    working_directory       absolute path to working directory
                                            or relative path w.r.t current directory
+                    dimension               dimensionality of the problem 2 or 3 
+                    arraySize               declare a sufficiently large array size for load array in FORTRAN
+                    surfaces                number of interface surfaces
+                    cpus                    number of cpus to be used for Abaqus 
+                    CSM_dir                 relative path to directory for the files and execution of the flow solver 
+                    ramp                    0 for step load, 1 for ramp load in Abaqus
+                    deltaT                  time step size
+                    timestep_start          time step from which is to be started (initial = 0) 
         """
 
         self.settings = parameters['settings']
@@ -40,6 +48,12 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         self.surfaces = self.settings["surfaces"].GetInt()
         self.ramp = self.settings["ramp"].GetInt()
         self.delta_T = self.settings["delta_T"].GetDouble()  #TODO: move to higher-level parameter file?
+        self.timestep_start = self.settings["timestep_start"].GetDouble()  #TODO: move to higher-level parameter file?
+
+        # Upon(re)starting Abaqus needs to run USRInit.f
+        # A restart requires Abaqus to be booted with a restart file
+        cmd0 = "" #To be implemented
+        cmd_restart = "" #To be implemented
 
         #prepare Abaqus USR
         usr = "USR.f"
