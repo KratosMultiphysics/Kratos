@@ -301,7 +301,6 @@ void MembraneElement::TransformStrains(Vector& rStrains,
     rStrains[2]*=2.0; // include E12 and E21 for voigt strain vector
 }
 
-
 void MembraneElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>& rTransformedBaseVectors){
 
     Vector pre_stress = ZeroVector(3);
@@ -784,28 +783,45 @@ void MembraneElement::CalculateOnIntegrationPoints(
 void MembraneElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
      const array_1d<Vector,2>& rLocalBaseVectors){
 
+    // prepare for projection utility
+
+    /* // create local cartesian coordinate system aligned to global material vectors (orthotropic)
+    if (GetProperties().Has(LOCAL_MATERIAL_AXIS_1) && GetProperties().Has(LOCAL_MATERIAL_AXIS_2)){
+        Vector local_material_axis_1 = ZeroVector(3);
+        Vector local_material_axis_2 = ZeroVector(3);
+
+        for(unsigned int i=0; i<3;i++){
+            local_material_axis_1[i] = GetProperties()(LOCAL_MATERIAL_AXIS_1)[i];
+            local_material_axis_2[i] = GetProperties()(LOCAL_MATERIAL_AXIS_2)[i];
+        }
+
+        rBaseVectors[0] = local_material_axis_1/MathUtils<double>::Norm(local_material_axis_1);
+        rBaseVectors[1] = local_material_axis_2/MathUtils<double>::Norm(local_material_axis_2);
+
+    } */
+
     // create local cartesian coordinate system aligned to global material vectors (orthotropic)
     if (GetProperties().Has(PRESTRESS_AXIS_1_GLOBAL) && GetProperties().Has(PRESTRESS_AXIS_2_GLOBAL)){
-    array_1d<double,3> global_prestress_axis1, global_prestress_axis2;
-            for(unsigned int i=0; i<3;i++){
-                global_prestress_axis1[i] = GetProperties()(PRESTRESS_AXIS_1_GLOBAL)[i];
-                global_prestress_axis2[i] = GetProperties()(PRESTRESS_AXIS_2_GLOBAL)[i];
-            }
+        array_1d<double,3> global_prestress_axis1, global_prestress_axis2;
+                for(unsigned int i=0; i<3;i++){
+                    global_prestress_axis1[i] = GetProperties()(PRESTRESS_AXIS_1_GLOBAL)[i];
+                    global_prestress_axis2[i] = GetProperties()(PRESTRESS_AXIS_2_GLOBAL)[i];
+                }
 
-    Vector base_3 = ZeroVector(3);
-    MathUtils<double>::CrossProduct(base_3, rLocalBaseVectors[0], rLocalBaseVectors[1]);
-    base_3 /= MathUtils<double>::Norm(base_3);
+        Vector base_3 = ZeroVector(3);
+        MathUtils<double>::CrossProduct(base_3, rLocalBaseVectors[0], rLocalBaseVectors[1]);
+        base_3 /= MathUtils<double>::Norm(base_3);
 
-    rBaseVectors[0] = ZeroVector(3);
-    rBaseVectors[1] = ZeroVector(3);
+        rBaseVectors[0] = ZeroVector(3);
+        rBaseVectors[1] = ZeroVector(3);
 
 
-    // simple projection
-    MathUtils<double>::CrossProduct(rBaseVectors[1], base_3, global_prestress_axis1);
-    rBaseVectors[1] /= MathUtils<double>::Norm(rBaseVectors[1]);
+        // simple projection
+        MathUtils<double>::CrossProduct(rBaseVectors[1], base_3, global_prestress_axis1);
+        rBaseVectors[1] /= MathUtils<double>::Norm(rBaseVectors[1]);
 
-    MathUtils<double>::CrossProduct(rBaseVectors[0],rBaseVectors[1], base_3);
-    rBaseVectors[0] /= MathUtils<double>::Norm(rBaseVectors[0]);
+        MathUtils<double>::CrossProduct(rBaseVectors[0],rBaseVectors[1], base_3);
+        rBaseVectors[0] /= MathUtils<double>::Norm(rBaseVectors[0]);
     }
     else {
         // create local cartesian coordinate system
