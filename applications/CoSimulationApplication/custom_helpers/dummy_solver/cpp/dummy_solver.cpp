@@ -226,12 +226,14 @@ void RunSolutionLoopWithStrongCoupling(MeshType& rMesh, DataFieldType& rDataFiel
         AdvanceInTime(&current_time);
         InitializeSolutionStep();
 
-        ImportDataFromCoSim(comm_name, rDataField, "interface_temp");
-        SolveSolutionStep();
-        ExportDataToCoSim(comm_name, rDataField, "interface_pressure");
+        while(true) {
+            ImportDataFromCoSim(comm_name, rDataField, "interface_temp");
+            SolveSolutionStep();
+            ExportDataToCoSim(comm_name, rDataField, "interface_pressure");
 
-        CoSimIO::IsConverged(comm_name, &convergence_signal);
-        if (convergence_signal) {break;}
+            CoSimIO::IsConverged(comm_name, &convergence_signal);
+            if (convergence_signal) {break;}
+        }
 
         FinalizeSolutionStep();
         std::cout << std::endl;
@@ -310,7 +312,7 @@ int main(int argc, char **argv)
         std::cout << ">> Doing COUPLED simulation (strongly coupled) <<\n" << std::endl;
         RunSolutionLoopWithStrongCoupling(mesh, data_field);
     } else if (settings[1] == 3) {
-        std::cout << ">> Doing COUPLED simulation orchestrated by CoSimulation <<\n" << std::endl;
+        std::cout << ">> Doing COUPLED simulation (orchestrated by CoSimulation) <<\n" << std::endl;
         RunSolutionCoSimulationOrchestrated(mesh, data_field);
     }
 
