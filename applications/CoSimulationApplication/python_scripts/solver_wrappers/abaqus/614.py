@@ -70,14 +70,14 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     outfile.write(line)
 
         # compile Abaqus USRInit.f
+        cmd_settings1 = "export INTEL_LICENSE_FILE=28518@157.193.126.6"
+        cmd_settings2 = "source /apps/SL6.3/Intel/compiler/2015.3.187/bin/compilervars.sh intel64"
+        cmd_settings3 = "module load ABAQUS/6.14"
         path_libusr = join(self.dir_csm, "libusr/")
         os.system("rm -r " + path_libusr)
         os.system("mkdir " + path_libusr)
-        cmd1 = "export INTEL_LICENSE_FILE=28518@157.193.126.6"
-        cmd2 = "source /apps/SL6.3/Intel/compiler/2015.3.187/bin/compilervars.sh intel64"
-        cmd3 = "module load ABAQUS/6.14"
-        cmd4 = "abaqus make library=" + usr + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
-        commands = [cmd1, cmd2, cmd3, cmd4]
+        cmd = "abaqus make library=" + usr + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
+        commands = [cmd_settings1, cmd_settings2, cmd_settings3, cmd]
         self.run_shell(self.dir_csm, commands, name='Compile_USRInit')
 
         # Get loadpoints from usrInit.f
@@ -93,6 +93,28 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                 f"output_precision=full interactive >> AbaqusSolver.log 2>&1"
             commands = [cmd1, cmd2]
             self.run_shell(self.dir_csm, commands, name=f'Abaqus_USRInit_Restart')
+
+        # prepare GetOutput.cpp
+        get_output = "GetOutput.cpp"
+        with open(join(path_src, get_output), "r") as infile:
+            with open(join(self.dir_csm, get_output), "w") as outfile:
+                for line in infile:
+                    line = line.replace("|surfaces|", str(self.surfaces))
+                    line = line.replace("|surfaceIDs|", str(self.surfaceIDs))
+                    line = line.replace("|dimension|", str(self.dimensions))
+                    if "|" in line:
+                        raise ValueError(f"The following line in USR.f still contains a \"|\" after substitution: \n \t{line} \n Probably a parameter was not subsituted")
+
+                    outfile.write(line)
+
+        # compile GetOutput.cpp
+        cmd = "abaqus make job=GetOutput user=GetOutput.cpp >> AbaqusSolver.log 2>&1"
+        commands = [cmd_settings1, cmd_settings2, cmd_settings3, cmd]
+        self.run_shell(self.dir_csm, commands, name='Compile_GetOutput')
+
+        # Get node positions (not load points) at startTimeStep
+
+
 
         # prepare Abaqus USR.f
         usr = "USR.f"
@@ -117,30 +139,11 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         # compile Abaqus USR.f
         os.system("rm -r " + path_libusr)  # remove libusr containing compiled USRInit.f
         os.system("mkdir " + path_libusr)
-        cmd1 = "export INTEL_LICENSE_FILE=28518@157.193.126.6"
-        cmd2 = "source /apps/SL6.3/Intel/compiler/2015.3.187/bin/compilervars.sh intel64"
-        cmd3 = "module load ABAQUS/6.14"
-        cmd4 = "abaqus make library=" + usr + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
-        commands = [cmd1, cmd2, cmd3, cmd4]
+        cmd = "abaqus make library=" + usr + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
+        commands = [cmd_settings1, cmd_settings2, cmd_settings3, cmd]
         self.run_shell(self.dir_csm, commands, name='Compile_USR')
 
-        # prepare GetOutput.cpp
-        get_output = "GetOutput.cpp"
-        with open(join(path_src, get_output), "r") as infile:
-            with open(join(self.dir_csm, get_output), "w") as outfile:
-                for line in infile:
-                    line = line.replace("|surfaces|", str(self.surfaces))
-                    line = line.replace("|surfaceIDs|", str(self.surfaceIDs))
-                    line = line.replace("|dimension|", str(self.dimensions))
-                    if "|" in line:
-                        raise ValueError(f"The following line in USR.f still contains a \"|\" after substitution: \n \t{line} \n Probably a parameter was not subsituted")
 
-                    outfile.write(line)
-
-        # compile GetOutput.cpp
-        cmd4 = "abaqus make job=GetOutput user=GetOutput.cpp >> AbaqusSolver.log 2>&1"
-        commands = [cmd1, cmd2, cmd3, cmd4]
-        self.run_shell(self.dir_csm, commands, name='Compile_GetOutput')
 
         # TODO:
         #   Read settings
