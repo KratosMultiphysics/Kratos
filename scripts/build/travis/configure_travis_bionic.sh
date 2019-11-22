@@ -22,6 +22,8 @@ export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 
 # Set build type
 export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:="Custom"}
+export PYTHON_EXECUTABLE="/usr/bin/python3.6"
+export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set applications to compile
 add_app ${KRATOS_APP_DIR}/ExternalSolversApplication;
@@ -43,14 +45,13 @@ echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 
 # Configure
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
--DPYTHON_EXECUTABLE="/usr/bin/python3.6" -DUSE_MPI=ON \
+-DUSE_MPI=ON \
 -DPYBIND11_PYTHON_VERSION="3.6" \
 -DCMAKE_CXX_FLAGS="-O0 -fopenmp -Wall \
 -Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable \
 -Werror=misleading-indentation -Werror=return-type \
 -Werror=sign-compare -Werror=unused-but-set-variable \
 -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized" \
--DINSTALL_PYTHON_USING_LINKS=ON \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \

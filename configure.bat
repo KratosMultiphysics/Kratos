@@ -45,11 +45,7 @@ del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
 rem Configure
 @echo on
- cmake                                                                                              ^
- -G"Visual Studio 16 2019"                                                                          ^
- -H"%KRATOS_SOURCE%"                                                                                ^
- -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"                                                             ^
- -DINCLUDE_FEAST=OFF
+cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" -DINCLUDE_FEAST=OFF
 
 rem Build
 cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install

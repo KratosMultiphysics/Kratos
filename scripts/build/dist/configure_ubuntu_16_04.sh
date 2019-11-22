@@ -23,6 +23,7 @@ export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 
 # Set build type
 export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:="Release"}
+export PYTHON_EXECUTABLE="/usr/bin/python3.5"
 
 # Set applications to compile
 add_app ${KRATOS_APP_DIR}/ExternalSolversApplication
@@ -36,9 +37,7 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 # Configure
-cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
--DPYTHON_EXECUTABLE="/usr/bin/python3.5"
+cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"
 
 # Buid
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity -- -j1
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install/fast -- -j1
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j4
