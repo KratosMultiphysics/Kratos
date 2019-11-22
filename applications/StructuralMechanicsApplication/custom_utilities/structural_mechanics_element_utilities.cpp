@@ -176,7 +176,7 @@ array_1d<double, 3> GetBodyForce(
 }
 
 bool ComputeLumpedMassMatrix(
-    const Properties& rProperites,
+    const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Giving the globally defined setting (through ProcessInfo) priority
@@ -185,8 +185,8 @@ bool ComputeLumpedMassMatrix(
     // mass matrix and specifies it's computation through the ProcessInfo
     if (rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX)) {
         return rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX];
-    } else if (rProperites.Has(COMPUTE_LUMPED_MASS_MATRIX)) {
-        return rProperites[COMPUTE_LUMPED_MASS_MATRIX];
+    } else if (rProperties.Has(COMPUTE_LUMPED_MASS_MATRIX)) {
+        return rProperties[COMPUTE_LUMPED_MASS_MATRIX];
     }
 
     // The default for all elements in StructuralMechanics is
@@ -198,24 +198,24 @@ bool ComputeLumpedMassMatrix(
 /***********************************************************************************/
 
 bool HasRayleighDamping(
-    const Properties& rProperites,
+    const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    return (std::abs(GetRayleighAlpha(rProperites, rCurrentProcessInfo)) > 0.0 ||
-            std::abs(GetRayleighBeta(rProperites, rCurrentProcessInfo)) > 0.0);
+    return (std::abs(GetRayleighAlpha(rProperties, rCurrentProcessInfo)) > 0.0 ||
+            std::abs(GetRayleighBeta(rProperties, rCurrentProcessInfo)) > 0.0);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 double GetRayleighAlpha(
-    const Properties& rProperites,
+    const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // giving the locally defined setting (through Properties) priority
     // over the globally defined one (through ProcessInfo)
-    if (rProperites.Has(RAYLEIGH_ALPHA)) {
-        return rProperites[RAYLEIGH_ALPHA];
+    if (rProperties.Has(RAYLEIGH_ALPHA)) {
+        return rProperties[RAYLEIGH_ALPHA];
     } else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA)) {
         return rCurrentProcessInfo[RAYLEIGH_ALPHA];
     }
@@ -227,13 +227,13 @@ double GetRayleighAlpha(
 /***********************************************************************************/
 
 double GetRayleighBeta(
-    const Properties& rProperites,
+    const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Giving the locally defined setting (through Properties) priority
     // over the globally defined one (through ProcessInfo)
-    if (rProperites.Has(RAYLEIGH_BETA)) {
-        return rProperites[RAYLEIGH_BETA];
+    if (rProperties.Has(RAYLEIGH_BETA)) {
+        return rProperties[RAYLEIGH_BETA];
     } else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA)) {
         return rCurrentProcessInfo[RAYLEIGH_BETA];
     }

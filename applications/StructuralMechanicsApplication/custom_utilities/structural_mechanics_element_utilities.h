@@ -97,42 +97,42 @@ array_1d<double, 3> GetBodyForce(
 
 /**
  * @brief Method to specify if the lumped or the consistent mass-matrix should be computed
- * @param rProperites The Properties where it is specified
+ * @param rProperties The Properties where it is specified
  * @param rCurrentProcessInfo The ProcessInfo where it is specified
  * @return whether to compute the lumped mass-matrix
  */
 bool ComputeLumpedMassMatrix(
-    const Properties& rProperites,
+    const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo);
 
 /**
  * @brief Method to specify if rayligh-damping is specified
- * @param rProperites The Properties where it is specified
+ * @param rProperties The Properties where it is specified
  * @param rCurrentProcessInfo The ProcessInfo where it is specified
  * @return whether rayleigh-damping was specified
  */
 bool HasRayleighDamping(
-    const Properties& rProperites,
+    const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo);
 
 /**
  * @brief Method to get the rayleigh-alpha parameter
- * @param rProperites The Properties where it is specified
+ * @param rProperties The Properties where it is specified
  * @param rCurrentProcessInfo The ProcessInfo where it is specified
  * @return rayleigh-alpha
  */
 double GetRayleighAlpha(
-    const Properties& rProperites,
+    const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo);
 
 /**
  * @brief Method to get the rayleigh-beta parameter
- * @param rProperites The Properties where it is specified
+ * @param rProperties The Properties where it is specified
  * @param rCurrentProcessInfo The ProcessInfo where it is specified
  * @return rayleigh-beta
  */
 double GetRayleighBeta(
-    const Properties& rProperites,
+    const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo);
 
 /**
