@@ -162,9 +162,9 @@ inline void ExportMesh(
     Internals::GetIO(rConnectionName).ExportMesh(rIdentifier, pNodalCoordinates, pElementConnectivities, pElementTypes);
 }
 
-inline bool IsConverged(const std::string& rConnectionName)
+inline void IsConverged(const std::string& rConnectionName, int* pConvergenceSignal)
 {
-    return Internals::GetIO(rConnectionName).IsConverged();
+    Internals::GetIO(rConnectionName).IsConverged(pConvergenceSignal);
 }
 
 inline void Run(const std::string& rConnectionName)
@@ -178,6 +178,9 @@ inline void Register(
     const std::string& rFunctionName,
     TFunctionType rFunction)
 {
+    // TODO If I use structs (base-class etc, constructed right here) then I can save all of them in one map and do the corresponding actions with them, since I know thich interface-fct to call!
+    // => this means that I have to specialize this fct, but the CoSimConnection class will be much cleaner
+    // (maybe internally they could be registered as void* to void* but probably not (a good idea))
     Internals::GetIO(rConnectionName).Register(rFunctionName, rFunction);
 }
 

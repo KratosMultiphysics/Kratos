@@ -79,7 +79,7 @@ public:
     // Only used for AdvanceInTime
     void Register(
         const std::string& rFunctionName,
-        double (*pFunctionPointer)(double))
+        void (*pFunctionPointer)(double*))
     {
         KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
         KRATOS_CO_SIM_ERROR_IF(rFunctionName == "AdvanceInTime") << "Only \"AdvanceInTime\" can be registered with this function!" << std::endl;
@@ -158,7 +158,7 @@ public:
                 std::vector<double> time_vec(1);
                 // DataContainers::Data time_data = {time_vec};
                 // Import(time_data, "time_from_co_sim");
-                time_vec[0] = mpAdvInTime(time_vec[0]);
+                mpAdvInTime(&time_vec[0]);
                 // Export(time_data, "time_to_co_sim");
             } else if (control_signal == CoSimIO::Internals::ControlSignal::InitializeSolutionStep) {
                 KRATOS_CO_SIM_ERROR_IF_NOT(mpInitSolStep) << "No function was registered for \"InitializeSolutionStep\"!" << std::endl;
@@ -181,10 +181,10 @@ public:
         }
     }
 
-    bool IsConverged()
+    void IsConverged(int* pConvergenceSignal)
     {
         std::string dummy("");
-        return RecvControlSignal(dummy) == CoSimIO::Internals::ControlSignal::ConvergenceAchieved;
+        *pConvergenceSignal = (RecvControlSignal(dummy) == CoSimIO::Internals::ControlSignal::ConvergenceAchieved);
     }
 
 
@@ -233,10 +233,10 @@ private:
 
     bool mIsConnectionMaster = false;
 
-    double (*mpAdvInTime)(double) = nullptr;
-    void   (*mpInitSolStep)()     = nullptr;
-    void   (*mpSolSolStep)()      = nullptr;
-    void   (*mpFinSolStep)()      = nullptr;
+    void (*mpAdvInTime)(double*) = nullptr;
+    void (*mpInitSolStep)()      = nullptr;
+    void (*mpSolSolStep)()       = nullptr;
+    void (*mpFinSolStep)()       = nullptr;
 
     std::map<const std::string, DataExchangeFunctionType> mDataExchangeFunctions;
     std::map<const std::string, DataExchangeCFunctionType> mDataExchangeCFunctions;

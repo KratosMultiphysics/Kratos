@@ -63,9 +63,10 @@ MODULE co_sim_io
         END SUBROUTINE CoSimIO_ExportMesh
 
 
-        SUBROUTINE CoSimIO_IsConverged (ConnectionName) BIND(C, NAME="CoSimIO_IsConverged")
+        SUBROUTINE CoSimIO_IsConverged (ConnectionName, ConvergenceSignal) BIND(C, NAME="CoSimIO_IsConverged")
             USE, INTRINSIC :: ISO_C_BINDING
             CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: ConnectionName
+            INTEGER(C_INT), INTENT(INOUT) :: ConvergenceSignal
         END SUBROUTINE CoSimIO_IsConverged
 
 

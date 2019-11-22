@@ -84,7 +84,7 @@ void CoSimIO_ExportMesh(
 
 void CoSimIO_RegisterAdvanceInTime(
     const char* pConnectionName,
-    double (*pFunctionPointer)(double))
+    void (*pFunctionPointer)(double*))
 {
     CoSimIO::Register(pConnectionName, "AdvanceInTime", pFunctionPointer);
 }
@@ -110,9 +110,9 @@ void CoSimIO_Run(const char* pConnectionName)
     CoSimIO::Run(pConnectionName);
 }
 
-int CoSimIO_IsConverged(const char* pConnectionName)
+void CoSimIO_IsConverged(const char* pConnectionName, int* pConvergenceSignal)
 {
-    return CoSimIO::IsConverged(pConnectionName);
+    CoSimIO::IsConverged(pConnectionName, pConvergenceSignal);
 }
 
 void _FreeMemory(void** ppData)

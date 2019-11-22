@@ -10,7 +10,7 @@
 //
 
 /*
-This is a dummy solver implementation that shows how the integration of a pure C++ client
+This is a dummy solver implementation that shows how the integration of a pure C++ solver
 into the CoSimulation framework works
 */
 
@@ -57,10 +57,10 @@ void Initialize(MeshType& rMesh, DataFieldType& rDataField, const int NumNodesPe
 }
 
 
-double AdvanceInTime(const double CurrentTime)
+void AdvanceInTime(double* pCurrentTime)
 {
-    std::cout << "\n\n  >>> AdvanceInTime: from: " << CurrentTime << " to: " << CurrentTime + 0.1 << std::endl;
-    return CurrentTime + 0.1;
+    std::cout << "\n\n  >>> AdvanceInTime: from: " << *pCurrentTime << " to: " << *pCurrentTime + 0.1 << std::endl;
+    *pCurrentTime += 0.1;
 }
 void InitializeSolutionStep()
 {
@@ -173,7 +173,7 @@ void RunSolutionLoop(MeshType& rMesh, DataFieldType& rDataField)
     double current_time = 0.0;
     const double end_time = 0.49;
     while (current_time<end_time) {
-        current_time = AdvanceInTime(current_time);
+        AdvanceInTime(&current_time);
         InitializeSolutionStep();
         SolveSolutionStep();
         FinalizeSolutionStep();
@@ -194,7 +194,7 @@ void RunSolutionLoopWithWeakCoupling(MeshType& rMesh, DataFieldType& rDataField)
     double current_time = 0.0;
     const double end_time = 0.49;
     while (current_time<end_time) {
-        current_time = AdvanceInTime(current_time);
+        AdvanceInTime(&current_time);
         InitializeSolutionStep();
 
         ImportDataFromCoSim(comm_name, rDataField, "interface_temp");
@@ -218,17 +218,20 @@ void RunSolutionLoopWithStrongCoupling(MeshType& rMesh, DataFieldType& rDataFiel
 
     ExportMeshToCoSim(comm_name, rMesh, "interface");
 
+    int convergence_signal;
+
     double current_time = 0.0;
     const double end_time = 0.49;
     while (current_time<end_time) {
-        current_time = AdvanceInTime(current_time);
+        AdvanceInTime(&current_time);
         InitializeSolutionStep();
 
         ImportDataFromCoSim(comm_name, rDataField, "interface_temp");
         SolveSolutionStep();
         ExportDataToCoSim(comm_name, rDataField, "interface_pressure");
 
-        if (CoSimIO::IsConverged(comm_name)) {break;}
+        CoSimIO::IsConverged(comm_name, &convergence_signal);
+        if (convergence_signal) {break;}
 
         FinalizeSolutionStep();
         std::cout << std::endl;
