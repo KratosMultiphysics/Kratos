@@ -49,7 +49,7 @@ void CoSimIO_ExportData(
     CoSimIO::ExportData(pConnectionName, pIdentifier, *p_container);
 }
 
-void ImportMesh(
+void CoSimIO_ImportMesh(
     const char* pConnectionName,
     const char* pIdentifier,
     int* pNumberOfNodes,
