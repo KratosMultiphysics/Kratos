@@ -1,36 +1,32 @@
 MODULE solver_globals
+    USE iso_c_binding
     IMPLICIT NONE
+
     INTEGER :: num_nodes
     INTEGER :: echo_level
     REAL :: delta_time = 0.1
     REAL :: end_time = 0.5
 
+    INTEGER :: size_real_array = 0
+    INTEGER :: num_elements = 0
+
+    REAL(8), DIMENSION(:), pointer :: f_ptr_data_real
+    INTEGER, DIMENSION(:), pointer :: f_ptr_data_elem_conn
+    INTEGER, DIMENSION(:), pointer :: f_ptr_data_elem_types
+
+    type (c_ptr) :: c_ptr_data_real
+    type (c_ptr) :: c_ptr_data_elem_conn
+    type (c_ptr) :: c_ptr_data_elem_types
+
 END MODULE solver_globals
 
 program dummy_solver_fortran
     use co_sim_io
-    use solver_globals, only: num_nodes, echo_level, delta_time, end_time
+    use solver_globals
     implicit none
-
-    INTEGER :: size
-    REAL(8), DIMENSION(:), pointer :: f_ptr_data_int
-    INTEGER, DIMENSION(:), pointer :: f_ptr_data_real
-    type (c_ptr) :: c_ptr_data
-
 
     CHARACTER(100) :: input_char
     INTEGER :: level_of_coupling
-
-    ! ! INTEGER :: size
-    ! ! REAL(8), DIMENSION(:), pointer :: f_ptr_data_int
-    ! ! INTEGER, DIMENSION(:), pointer :: f_ptr_data_real
-    ! ! type (c_ptr) :: c_ptr_data
-    ! ! call CoSimIO_ExportMesh("FortranSolver"//c_null_char, "temperature"//c_null_char, size, c_ptr_data)
-
-    ! call c_f_pointer(c_ptr_data, f_ptr_data_real, [size])
-
-    ! call FreeCMemory(c_ptr_data)
-
 
     ! Make sure the right number of command line arguments have been provided
     IF(COMMAND_ARGUMENT_COUNT().NE.3)THEN
@@ -46,6 +42,7 @@ program dummy_solver_fortran
     CALL GET_COMMAND_ARGUMENT(3,input_char)
     READ(input_char,*)echo_level
 
+    ! Select level of coupling
     IF (level_of_coupling == 0) THEN
         call run_solution_loop()
     ELSE IF (level_of_coupling == 1) THEN
@@ -59,6 +56,7 @@ program dummy_solver_fortran
         STOP
     END IF
 
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CONTAINS
 
     subroutine solver_print(string_to_print, req_echo_level)
@@ -95,7 +93,9 @@ program dummy_solver_fortran
         character(*), INTENT(IN) :: connection_name
         character(*), INTENT(IN) :: identifier
         call solver_print("    Before Importing Data from CoSim", 3)
-        ! call CoSimIO_ImportData(connection_name//c_null_char, identifier//c_null_char, size, c_ptr_data)
+        call CoSimIO_ImportData(connection_name//c_null_char, identifier//c_null_char,&
+            size_real_array, c_ptr_data_real)
+        call c_f_pointer(c_ptr_data_real, f_ptr_data_real, [size_real_array])
         call solver_print("    After Importing Data from CoSim", 3)
     END SUBROUTINE import_data_from_co_sim
 
@@ -103,7 +103,9 @@ program dummy_solver_fortran
         character(*), INTENT(IN) :: connection_name
         character(*), INTENT(IN) :: identifier
         call solver_print("    Before Exporting Data to CoSim", 3)
-        ! call CoSimIO_ExportData(connection_name//c_null_char, identifier//c_null_char, size, c_ptr_data)
+        ! TODO check how / what to pass (maybe let C allocate???)
+        call CoSimIO_ExportData(connection_name//c_null_char, identifier//c_null_char,&
+            size_real_array, c_ptr_data_real)
         call solver_print("    After Exporting Data to CoSim", 3)
     END SUBROUTINE export_data_to_co_sim
 
@@ -111,7 +113,14 @@ program dummy_solver_fortran
         character(*), INTENT(IN) :: connection_name
         character(*), INTENT(IN) :: identifier
         call solver_print("    Before Importing Mesh from CoSim", 3)
-        ! call CoSimIO_ImportMesh(connection_name//c_null_char, identifier//c_null_char, ...)
+        call CoSimIO_ImportMesh(connection_name//c_null_char, identifier//c_null_char, &
+            size_real_array, num_elements, c_ptr_data_real, c_ptr_data_elem_conn,&
+            c_ptr_data_elem_types)
+
+        call c_f_pointer(c_ptr_data_real, f_ptr_data_real, [size_real_array])
+        call c_f_pointer(c_ptr_data_elem_conn, f_ptr_data_elem_conn, [num_elements])
+        call c_f_pointer(c_ptr_data_elem_types, f_ptr_data_elem_types, [num_elements])
+
         call solver_print("    After Importing Mesh from CoSim", 3)
     END SUBROUTINE import_mesh_from_co_sim
 
@@ -119,9 +128,21 @@ program dummy_solver_fortran
         character(*), INTENT(IN) :: connection_name
         character(*), INTENT(IN) :: identifier
         call solver_print("    Before Exporting Mesh to CoSim", 3)
-        ! call CoSimIO_ExportMesh(connection_name//c_null_char, identifier//c_null_char, ...)
+        ! TODO check how / what to pass
+        call CoSimIO_ExportMesh(connection_name//c_null_char, identifier//c_null_char, &
+            size_real_array, num_elements, c_ptr_data_real, c_ptr_data_elem_conn,&
+            c_ptr_data_elem_types)
         call solver_print("    After Exporting Mesh to CoSim", 3)
     END SUBROUTINE export_mesh_to_co_sim
+
+    SUBROUTINE free_c_memory ()
+        ! deallocating them all at once bcs sure that all of them were used
+        call solver_print("    Before freeing memory", 3)
+        call FreeCMemory(c_ptr_data_real)
+        call FreeCMemory(c_ptr_data_elem_conn)
+        call FreeCMemory(c_ptr_data_elem_types)
+        call solver_print("    After freeing memory", 3)
+    END SUBROUTINE free_c_memory
 
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -167,6 +188,8 @@ program dummy_solver_fortran
 
         call CoSimIO_Disconnect("FortranSolver"//c_null_char)
 
+        call free_c_memory()
+
         call solver_print("Exiting", 1)
     END SUBROUTINE run_solution_loop_weak_coupling
 
@@ -201,6 +224,8 @@ program dummy_solver_fortran
 
         call CoSimIO_Disconnect("FortranSolver"//c_null_char)
 
+        call free_c_memory()
+
         call solver_print("Exiting", 1)
     END SUBROUTINE run_solution_loop_strong_coupling
 
@@ -230,6 +255,8 @@ program dummy_solver_fortran
         call CoSimIO_Run("FortranSolver"//c_null_char)
 
         call CoSimIO_Disconnect("FortranSolver"//c_null_char)
+
+        call free_c_memory()
 
         call solver_print("Exiting", 1)
     END SUBROUTINE run_solution_co_simulation_orchestrated
