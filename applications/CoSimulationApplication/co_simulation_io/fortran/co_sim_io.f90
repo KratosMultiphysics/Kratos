@@ -34,12 +34,18 @@ MODULE co_sim_io
         END SUBROUTINE CoSimIO_ExportData
 
 
-        SUBROUTINE CoSimIO_ImportMesh(ConnectionName, Identifier, NumberOfNodes, Data) BIND (C, NAME="CoSimIO_ImportMesh")
+        SUBROUTINE CoSimIO_ImportMesh(ConnectionName, Identifier, NumberOfNodes, &
+                                      NumberOfElements, NodalCoordinates, &
+                                      ElementConnectivities, ElementTypes&
+                                      ) BIND (C, NAME="CoSimIO_ImportMesh")
             USE, INTRINSIC :: ISO_C_BINDING
             CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: ConnectionName
             CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: Identifier
-            INTEGER(C_INT), INTENT(INOUT)  :: NumberOfNodes
-            type(C_PTR) :: Data
+            INTEGER(C_INT), INTENT(INOUT) :: NumberOfNodes
+            INTEGER(C_INT), INTENT(INOUT) :: NumberOfElements
+            type(C_PTR) :: NodalCoordinates
+            type(C_PTR) :: ElementConnectivities
+            type(C_PTR) :: ElementTypes
         END SUBROUTINE CoSimIO_ImportMesh
 
 
