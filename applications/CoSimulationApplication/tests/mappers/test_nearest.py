@@ -43,10 +43,6 @@ class TestMapperNearest(KratosUnittest.TestCase):
 
         self.assertListEqual(values, [0., 9., 49., 100.])
 
-        # test 1D problem with vectors?
-
-
-
         # test 3D problem with perturbed grid
         var_from = vars(KM)["TEMPERATURE"]
         model_from = cs_data_structure.Model()
@@ -83,6 +79,44 @@ class TestMapperNearest(KratosUnittest.TestCase):
 
         for node_from, node_to in zip(model_part_from.Nodes, model_part_to.Nodes):
             self.assertEqual(node_from.GetSolutionStepValue(var_from),
+                             node_to.GetSolutionStepValue(var_to))
+
+        # test 3D problem with perturbed grid and vector variables
+        var_from = vars(KM)["DISPLACEMENT"]
+        model_from = cs_data_structure.Model()
+        model_part_from = model_from.CreateModelPart('wall_from')
+        model_part_from.AddNodalSolutionStepVariable(var_from)
+
+        x = np.linspace(0, 10, 11)
+        y = np.linspace(0, 20, 21)
+        z = np.linspace(0, 30, 31)
+        X, Y, Z = np.meshgrid(x, y, z)
+        X, Y, Z = X.flatten(), Y.flatten(), Z.flatten()
+
+        for i in range(X.size):
+            node = model_part_from.CreateNewNode(i, X[i], Y[i], Z[i])
+            node.SetSolutionStepValue(var_from, 0, np.random.rand(3).tolist())
+
+        dX = (np.random.rand(X.size) - .5) * .49
+        dY = (np.random.rand(X.size) - .5) * .49
+        dZ = (np.random.rand(X.size) - .5) * .49
+
+        Xb, Yb, Zb = X + dX, Y + dY, Z + dZ
+
+        var_to = vars(KM)["FORCE"]
+        model_to = cs_data_structure.Model()
+        model_part_to = model_to.CreateModelPart('wall_to')
+        model_part_to.AddNodalSolutionStepVariable(var_to)
+
+        for i in range(Xb.size):
+            model_part_to.CreateNewNode(i, Xb[i], Yb[i], Zb[i])
+
+        mapper = cs_tools.CreateInstance(parameters['mapper'])
+        mapper.Initialize(model_part_from, model_part_to)
+        mapper((model_part_from, var_from), (model_part_to, var_to))
+
+        for node_from, node_to in zip(model_part_from.Nodes, model_part_to.Nodes):
+            self.assertListEqual(node_from.GetSolutionStepValue(var_from),
                              node_to.GetSolutionStepValue(var_to))
 
 

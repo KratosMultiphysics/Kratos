@@ -27,10 +27,6 @@ class MapperNearest(object):
         tree = cKDTree(coords_from)
         _, self.nearest = tree.query(coords_to, n_jobs=-1)  # runs in parallel
 
-
-        # *** add support for 3D variables
-        # *** add check to see if variables have same dimensions
-
     def Finalize(self):
         pass
 
@@ -38,10 +34,30 @@ class MapperNearest(object):
         model_part_from, var_from = args_from
         model_part_to, var_to = args_to
 
-        hist_var_from = np.zeros(model_part_from.NumberOfNodes())
-        for i, node in enumerate(model_part_from.Nodes):
-            hist_var_from[i] = node.GetSolutionStepValue(var_from)
+        # check if both Variables have same Type
+        if var_from.Type() != var_to.Type():
+            raise TypeError('Variables to be mapped have different Type.')
 
-        hist_var_to = hist_var_from[self.nearest]  # nearest-neighbour interpolation
-        for i, node in enumerate(model_part_to.Nodes):
-            node.SetSolutionStepValue(var_to, 0, hist_var_to[i])
+        # scalar interpolation
+        if var_from.Type() == 'Double':
+            hist_var_from = np.zeros(model_part_from.NumberOfNodes())
+            for i, node in enumerate(model_part_from.Nodes):
+                hist_var_from[i] = node.GetSolutionStepValue(var_from)
+
+            hist_var_to = hist_var_from[self.nearest]  # nearest-neighbour interpolation
+            for i, node in enumerate(model_part_to.Nodes):
+                node.SetSolutionStepValue(var_to, 0, hist_var_to[i])
+
+        # vector interpolation
+        elif var_from.Type() == 'Array':
+            hist_var_from = np.zeros((model_part_from.NumberOfNodes(), 3))
+            for i, node in enumerate(model_part_from.Nodes):
+                hist_var_from[i] = node.GetSolutionStepValue(var_from)
+
+            hist_var_to = hist_var_from[self.nearest, :]  # nearest-neighbour interpolation
+            for i, node in enumerate(model_part_to.Nodes):
+                node.SetSolutionStepValue(var_to, 0, hist_var_to[i, :].tolist())
+
+        # other types of Variables
+        else:
+            raise NotImplementedError(f'Mapping not yet implemented for Variable of Type {var_from.Type()}.')
