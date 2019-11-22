@@ -74,6 +74,6 @@ inline void Register(
 
 } // namespace CoSimIO
 
-#include "impl/co_sim_io_impl.h"
+#include "internals/impl/co_sim_io_impl.h"
 
 #endif /* KRATOS_CO_SIM_IO_H_INCLUDED */
