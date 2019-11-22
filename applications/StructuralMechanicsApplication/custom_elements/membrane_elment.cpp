@@ -269,6 +269,26 @@ void MembraneElement::VoigtNotation(const Matrix& rMetric, Vector& rOutputVector
     }
 }
 
+template <class T>
+void MembraneElement::InPlaneTransformationMatrix(Matrix& rTransformationMatrix, const array_1d<Vector,2>& rTransformedBaseVectors,
+    const T& rLocalReferenceBaseVectors)
+{
+    const double e_g_11 = inner_prod(rTransformedBaseVectors[0],rLocalReferenceBaseVectors[0]);
+    const double e_g_12 = inner_prod(rTransformedBaseVectors[0],rLocalReferenceBaseVectors[1]);
+    const double e_g_21 = inner_prod(rTransformedBaseVectors[1],rLocalReferenceBaseVectors[0]);
+    const double e_g_22 = inner_prod(rTransformedBaseVectors[1],rLocalReferenceBaseVectors[1]);
+    rTransformationMatrix = ZeroMatrix(3);
+    rTransformationMatrix(0,0) = e_g_11*e_g_11;
+    rTransformationMatrix(0,1) = e_g_12*e_g_12;
+    rTransformationMatrix(0,2) = 2.0*e_g_11*e_g_12;
+    rTransformationMatrix(1,0) = e_g_21*e_g_21;
+    rTransformationMatrix(1,1) = e_g_22*e_g_22;
+    rTransformationMatrix(1,2) = 2.0*e_g_21*e_g_22;
+    rTransformationMatrix(2,0) = e_g_11*e_g_21;
+    rTransformationMatrix(2,1) = e_g_12*e_g_22;
+    rTransformationMatrix(2,2) = (e_g_11*e_g_22) + (e_g_12*e_g_21);
+}
+
 void MembraneElement::TransformStrains(Vector& rStrains,
   Vector& rReferenceStrains, const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference, const array_1d<Vector,2>& rTransformedBaseVectors)
 {
@@ -300,9 +320,44 @@ void MembraneElement::TransformStrains(Vector& rStrains,
     rStrains[2]*=2.0; // include E12 and E21 for voigt strain vector
 }
 
-void MembraneElement::AddPreStressPk2(Vector& rStress){
+void MembraneElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>& rTransformedBaseVectors){
     //TODO
     Vector pre_stress = ZeroVector(3);
+
+    if (GetProperties().Has(PRESTRESS_VECTOR)){
+        pre_stress = GetProperties()(PRESTRESS_VECTOR);
+
+
+        if (GetProperties().Has(LOCAL_PRESTRESS_AXIS_1) && GetProperties().Has(LOCAL_PRESTRESS_AXIS_2)){
+
+
+            array_1d<double,3> normalized_local_pres_stress_axis_1 =
+             GetProperties()(LOCAL_PRESTRESS_AXIS_1)/MathUtils<double>::Norm(GetProperties()(LOCAL_PRESTRESS_AXIS_1));
+            array_1d<double,3> normalized_local_pres_stress_axis_2 =
+             GetProperties()(LOCAL_PRESTRESS_AXIS_2)/MathUtils<double>::Norm(GetProperties()(LOCAL_PRESTRESS_AXIS_2));
+
+            const double e_g_11 = inner_prod(rTransformedBaseVectors[0],normalized_local_pres_stress_axis_1);
+            const double e_g_12 = inner_prod(rTransformedBaseVectors[0],normalized_local_pres_stress_axis_2);
+            const double e_g_21 = inner_prod(rTransformedBaseVectors[1],normalized_local_pres_stress_axis_1);
+            const double e_g_22 = inner_prod(rTransformedBaseVectors[1],normalized_local_pres_stress_axis_2);
+
+            Matrix transformation_matrix = ZeroMatrix(3);
+            transformation_matrix(0,0) = e_g_11*e_g_11;
+            transformation_matrix(0,1) = e_g_12*e_g_12;
+            transformation_matrix(0,2) = 2.0*e_g_11*e_g_12;
+            transformation_matrix(1,0) = e_g_21*e_g_21;
+            transformation_matrix(1,1) = e_g_22*e_g_22;
+            transformation_matrix(1,2) = 2.0*e_g_21*e_g_22;
+            transformation_matrix(2,0) = e_g_11*e_g_21;
+            transformation_matrix(2,1) = e_g_12*e_g_22;
+            transformation_matrix(2,2) = (e_g_11*e_g_22) + (e_g_12*e_g_21);
+
+            pre_stress = prod(transformation_matrix,pre_stress);
+        }
+    }
+
+    if (this->Id()==1) KRATOS_WATCH(pre_stress);
+
     rStress += pre_stress;
 }
 
@@ -323,7 +378,7 @@ void MembraneElement::StressPk2(Vector& rStress,
     element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     mpConstitutiveLaw->CalculateMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
 
-    AddPreStressPk2(rStress);
+    AddPreStressPk2(rStress,rTransformedBaseVectors);
 }
 
 void MembraneElement::MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric,
@@ -761,6 +816,7 @@ void MembraneElement::CalculateOnIntegrationPoints(
 void MembraneElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
      const array_1d<Vector,2>& rLocalBaseVectors){
 
+    // create local cartesian coordinate system aligned to global material vectors (orthotropic)
     if (GetProperties().Has(PRESTRESS_AXIS_1_GLOBAL) && GetProperties().Has(PRESTRESS_AXIS_2_GLOBAL)){
     array_1d<double,3> global_prestress_axis1, global_prestress_axis2;
             for(unsigned int i=0; i<3;i++){
@@ -775,6 +831,8 @@ void MembraneElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
     rBaseVectors[0] = ZeroVector(3);
     rBaseVectors[1] = ZeroVector(3);
 
+
+    // simple projection
     MathUtils<double>::CrossProduct(rBaseVectors[1], base_3, global_prestress_axis1);
     rBaseVectors[1] /= MathUtils<double>::Norm(rBaseVectors[1]);
 
@@ -782,6 +840,7 @@ void MembraneElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
     rBaseVectors[0] /= MathUtils<double>::Norm(rBaseVectors[0]);
     }
     else {
+        // create local cartesian coordinate system
         rBaseVectors[0] = ZeroVector(3);
         rBaseVectors[1] = ZeroVector(3);
         rBaseVectors[0] = rLocalBaseVectors[0] / MathUtils<double>::Norm(rLocalBaseVectors[0]);

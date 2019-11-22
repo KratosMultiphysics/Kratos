@@ -130,7 +130,7 @@ namespace Kratos
       const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
       const array_1d<Vector,2> rLocalContraVariantBaseVectorsReference, const array_1d<Vector,2>& rTransformedBaseVectors);
 
-    void AddPreStressPk2(Vector& rStress);
+    void AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>& rTransformedBaseVectors);
 
     void VoigtNotation(const Matrix& rMetric, Vector& rOutputVector, const std::string StrainStressCheck);
 
@@ -183,6 +183,10 @@ namespace Kratos
 
     void TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
      const array_1d<Vector,2>& rLocalBaseVectors);
+
+    template <class T>
+    void InPlaneTransformationMatrix(Matrix& rTransformationMatrix, const array_1d<Vector,2>& rTransformedBaseVectors,
+      const T& rLocalReferenceBaseVectors);
 
 protected:
   ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
