@@ -62,7 +62,7 @@ public:
 
     bool Disconnect()
     {
-        return mpComm->Connect();
+        return mpComm->Disconnect();
     }
 
     void SendControlSignal(const Internals::ControlSignal Signal, const std::string& rIdentifier)
