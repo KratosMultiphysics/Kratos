@@ -137,6 +137,16 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         self.run_shell(self.dir_csm, commands, name='Compile_GetOutput')
 
         # Get node positions (not load points) at startTimeStep
+        cmd = f"abaqus ./GetOutput.exe CSM_Time{self.timestep_start+1} 0 >> AbaqusSolver0.log 2>&1"
+        commands=[cmd]
+        self.run_shell(self.dir_csm, commands, name='GetOutput_Start')
+
+        for i in range(0,self.surfaces):
+            path_output=f"CSM_Time{self.timestep_start+1}_Surface{i}Output.dat"
+            path_nodes=f"CSM_Time{self.timestep_start}_Surface{i}Nodes.dat"
+            cmd=f"mv {path_output} {path_nodes}"
+            commands = [cmd]
+            self.run_shell(self.dir_csm, commands, name='Move_Output_File_To_Node')
 
         # prepare Abaqus USR.f
         usr = "USR.f"
