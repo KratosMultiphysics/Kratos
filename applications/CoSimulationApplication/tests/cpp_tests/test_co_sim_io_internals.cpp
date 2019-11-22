@@ -67,7 +67,6 @@ KRATOS_TEST_CASE_IN_SUITE(DataContainers, KratosCoSimulationFastSuite)
 
     ref_values.resize(size_after_resize);
     for (std::size_t i=0; i<size_after_resize; ++i) {
-        KRATOS_WATCH(i)
         ref_values[i] = i*init_val+2.558;
         (*ptr_std_vec)[i] = i*init_val+2.558;
         (*ptr_raw_mem)[i] = i*init_val+2.558;
