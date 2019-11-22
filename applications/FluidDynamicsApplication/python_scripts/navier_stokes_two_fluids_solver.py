@@ -158,9 +158,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self.level_set_convection_process = self._set_level_set_convection_process()
 
-        #self.distance_modification_process = self._set_distance_modification_process()
-        #(self.distance_modification_process).ExecuteInitialize();
-        #(self.distance_modification_process).ExecuteBeforeSolutionLoop()
+        self.parallel_distance_process = self._set_parallel_distance_process()
 
         self.variational_distance_process = self._set_variational_distance_process()
         #(self.variational_distance_process).Execute()
@@ -208,17 +206,21 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             else:
                 (self.level_set_convection_process).Execute()
 
-            # Slightly adjust the distance not to coincide with the mesh faces
-            #(self.distance_modification_process).ExecuteInitializeSolutionStep();
-            #(self.distance_modification_process).ExecuteFinalizeSolutionStep();
+            # Recompute the distance field according to the new level-set position
+            TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+            #if (TimeStep % 5 == 0):
+            #    (self.variational_distance_process).Execute()
+
+            if (TimeStep % 1 == 0):
+                (self.parallel_distance_process).CalculateDistances(
+                    self.main_model_part, 
+                    KratosMultiphysics.DISTANCE, 
+                    KratosMultiphysics.NODAL_AREA, 
+                    10, 
+                    0.0015)
 
             # Compute the DISTANCE_GRADIENT on nodes
             (self.distance_gradient_process).Execute()
-
-            # Recompute the distance field according to the new level-set position
-            TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-            if (TimeStep % 20 == 0):
-                (self.variational_distance_process).Execute()
 
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
             self._SetNodalProperties()
@@ -356,6 +358,20 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         return variational_distance_process
 
+    def _set_parallel_distance_process(self):
+        # Construct the parallel distance process
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+                locator = KratosMultiphysics.BinBasedFastPointLocator2D(self.main_model_part)
+                locator.UpdateSearchDatabase()
+                parallel_distance_process = KratosMultiphysics.ParallelDistanceCalculator2D()
+        else:
+                locator = KratosMultiphysics.BinBasedFastPointLocator3D(self.main_model_part)
+                locator.UpdateSearchDatabase()
+                parallel_distance_process = KratosMultiphysics.ParallelDistanceCalculator3D()
+        
+        return parallel_distance_process
+
+
     def _set_distance_gradient_process(self):
         #Calculate DISTANCE_GRADIENT at nodes using ComputeNodalGradientProcess
         distance_gradient_process = KratosMultiphysics.ComputeNodalGradientProcess(
@@ -365,15 +381,3 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 KratosMultiphysics.NODAL_AREA)
 
         return distance_gradient_process
-
-    #def _set_distance_modification_process(self):
-        #Slightly move the distance according to a threshold in order not to coincide with the mesh faces
-    #    distance_modification_process = KratosCFD.DistanceModificationProcess(
-    #            self.main_model_part, 
-    #            1.0,
-    #            0.001,
-    #            True,
-    #            False,
-    #            False)
-    #
-    #    return distance_modification_process
