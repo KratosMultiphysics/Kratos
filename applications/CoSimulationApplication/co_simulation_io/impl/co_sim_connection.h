@@ -9,17 +9,17 @@
 //  Main authors:    Philipp Bucher
 //
 
-#ifndef KRATOS_CO_SIM_IO_IMPL_2_H_INCLUDED
-#define KRATOS_CO_SIM_IO_IMPL_2_H_INCLUDED
+#ifndef KRATOS_CO_SIM_CONNECTION_H_INCLUDED
+#define KRATOS_CO_SIM_CONNECTION_H_INCLUDED
 
 // Optional includes
 #ifdef KRATOS_CO_SIM_IO_ENABLE_SOCKETS
-#include "co_sim_sockets_comm.h"
+#include "co_sim_sockets_communication.h"
 #endif /* KRATOS_CO_SIM_IO_ENABLE_SOCKETS */
 
 
 #ifdef KRATOS_CO_SIM_IO_ENABLE_MPI
-#include "co_sim_mpi_comm.h"
+#include "co_sim_mpi_communication.h"
 #endif /* KRATOS_CO_SIM_IO_ENABLE_MPI */
 
 // System includes
@@ -33,24 +33,24 @@
 #include <utility>
 
 // Project includes
-#include "co_sim_file_comm.h"
+#include "co_sim_file_communication.h"
 
 namespace CoSimIO {
 namespace Internals {
 
-class CoSimIOImpl
+class CoSimConnection
 {
 
 public:
-    typedef CoSimComm::SettingsType SettingsType;
+    typedef CoSimCommunication::SettingsType SettingsType;
 
     typedef void (*DataExchangeFunctionType)(const std::string&, const std::string&);
     typedef void (*DataExchangeCFunctionType)(const char*, const char*);
 
-    explicit CoSimIOImpl(const std::string& rName, const std::string& rSettingsFileName)
-    : CoSimIOImpl(rName, Internals::ReadSettingsFile(rSettingsFileName)) { } // forwarding constructor call
+    explicit CoSimConnection(const std::string& rName, const std::string& rSettingsFileName)
+    : CoSimConnection(rName, Internals::ReadSettingsFile(rSettingsFileName)) { } // forwarding constructor call
 
-    explicit CoSimIOImpl(const std::string& rName, SettingsType rSettings) : mConnectionName(rName)
+    explicit CoSimConnection(const std::string& rName, SettingsType rSettings) : mConnectionName(rName)
     {
         Initialize(rSettings);
     }
@@ -227,7 +227,7 @@ public:
     }
 
 private:
-    std::unique_ptr<CoSimComm> mpComm; // handles communication (File, Sockets, MPI, ...)
+    std::unique_ptr<CoSimCommunication> mpComm; // handles communication (File, Sockets, MPI, ...)
 
     std::string mConnectionName;
 
@@ -255,16 +255,16 @@ private:
         KRATOS_CO_SIM_INFO("CoSimIO") << "CoSimIO for \"" << mConnectionName << "\" uses communication format: " << comm_format << std::endl;
 
         if (comm_format == "file") {
-            mpComm = std::unique_ptr<CoSimComm>(new FileComm(mConnectionName, rSettings, mIsConnectionMaster));
+            mpComm = std::unique_ptr<CoSimCommunication>(new CoSimFileCommunication(mConnectionName, rSettings, mIsConnectionMaster));
         } else if (comm_format == "sockets") {
             #ifdef KRATOS_CO_SIM_IO_ENABLE_SOCKETS
-            mpComm = std::unique_ptr<CoSimComm>(new SocketsComm(mConnectionName, rSettings, mIsConnectionMaster));
+            mpComm = std::unique_ptr<CoSimCommunication>(new CoSimSocketsCommunication(mConnectionName, rSettings, mIsConnectionMaster));
             #else
             KRATOS_CO_SIM_ERROR << "Support for Sockets was not compiled!" << std::endl;
             #endif /* KRATOS_CO_SIM_IO_ENABLE_SOCKETS */
         } else if (comm_format == "mpi") {
             #ifdef KRATOS_CO_SIM_IO_ENABLE_MPI
-            mpComm = std::unique_ptr<CoSimComm>(new MPIComm(mConnectionName, rSettings, mIsConnectionMaster));
+            mpComm = std::unique_ptr<CoSimCommunication>(new CoSimMPICommunication(mConnectionName, rSettings, mIsConnectionMaster));
             #else
             KRATOS_CO_SIM_ERROR << "Support for MPI was not compiled!" << std::endl;
             #endif /* KRATOS_CO_SIM_IO_ENABLE_MPI */
@@ -273,10 +273,10 @@ private:
         }
     }
 
-}; // class CoSimIOImpl
+}; // class CoSimConnection
 
 } // namespace Internals
 
 } // namespace CoSimIO
 
-#endif /* KRATOS_CO_SIM_IO_IMPL_2_H_INCLUDED */
+#endif /* KRATOS_CO_SIM_CONNECTION_H_INCLUDED */

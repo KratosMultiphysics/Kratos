@@ -18,7 +18,7 @@
 #include <iomanip>
 
 // Project includes
-#include "co_sim_comm.h"
+#include "co_sim_communication.h"
 
 namespace CoSimIO {
 
@@ -76,11 +76,11 @@ static void CheckStream(const T& rStream, const std::string& rFileName)
 } // helpers namespace
 
 
-class FileComm : public CoSimComm
+class CoSimFileCommunication : public CoSimCommunication
 {
 public:
-    explicit FileComm(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster)
-        : CoSimComm(rName, rSettings, IsConnectionMaster)
+    explicit CoSimFileCommunication(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster)
+        : CoSimCommunication(rName, rSettings, IsConnectionMaster)
     {
         const SettingsType default_settings = {
             {"use_folder_for_communication" , "0"}
@@ -95,7 +95,7 @@ public:
         }
     }
 
-    ~FileComm() override
+    ~CoSimFileCommunication() override
     {
         if (GetIsConnected()) {
             KRATOS_CO_SIM_INFO("CoSimIO") << "Warning: Disconnect was not performed, attempting automatic disconnection!" << std::endl;

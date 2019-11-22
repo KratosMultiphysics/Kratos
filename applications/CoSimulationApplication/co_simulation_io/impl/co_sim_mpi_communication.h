@@ -16,15 +16,15 @@
 #include "mpi.h"
 
 // Project includes
-#include "co_sim_comm.h"
+#include "co_sim_communication.h"
 
 namespace CoSimIO {
 
-class MPIComm : public CoSimComm
+class CoSimMPICommunication : public CoSimCommunication
 {
 public:
-    explicit MPIComm(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster)
-        : CoSimComm(rName, rSettings, IsConnectionMaster)
+    explicit CoSimMPICommunication(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster)
+        : CoSimCommunication(rName, rSettings, IsConnectionMaster)
     {
        KRATOS_CO_SIM_ERROR << "MPI Communication is not implemented yet" << std::endl;
     }

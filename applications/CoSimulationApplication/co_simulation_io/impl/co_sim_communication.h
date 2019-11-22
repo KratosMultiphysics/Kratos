@@ -19,12 +19,12 @@
 
 namespace CoSimIO {
 
-class CoSimComm
+class CoSimCommunication
 {
 public:
     typedef Internals::SettingsType SettingsType;
 
-    explicit CoSimComm(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster) : mrSettings(rSettings),mName(rName), mIsConnectionMaster(IsConnectionMaster)
+    explicit CoSimCommunication(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster) : mrSettings(rSettings),mName(rName), mIsConnectionMaster(IsConnectionMaster)
     {
         const SettingsType default_settings = {
             {"echo_level",   "1"},
@@ -36,7 +36,7 @@ public:
         mPrintTiming = (mrSettings.at("print_timing") == "1");
     }
 
-    virtual ~CoSimComm() = default; // impl of disconnect has to be in derived class due to order of class destruction
+    virtual ~CoSimCommunication() = default; // impl of disconnect has to be in derived class due to order of class destruction
 
     bool Connect()
     {

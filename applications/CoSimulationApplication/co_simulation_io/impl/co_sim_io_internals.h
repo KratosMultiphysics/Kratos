@@ -100,7 +100,7 @@ public:
         mSize = NewSize;
         delete [] mppData[0]; // delete the old memory and allocate new with different size
         std::cout << "Before New allocation" << std::endl;
-        *mppData = new TDataType[mSize];
+        *mppData = new TDataType[mSize]; // TODO is this correct? shouldn't be "*mppData[0] = new TDataType[mSize]"?
         std::cout << "After New allocation" << std::endl;
         KRATOS_CO_SIM_ERROR_IF_NOT(*mppData) << "Memory reallocation failed";
 

@@ -27,20 +27,20 @@ support for sockets and MPI can optionally be enabled
 #include <memory>
 
 // Project includes
-#include "co_sim_io_impl_2.h"
+#include "co_sim_connection.h"
 
 namespace CoSimIO {
 
 namespace Internals {
 // TODO make sure this is unique even across compilation units (test somehow)
-static std::unordered_map<std::string, std::unique_ptr<CoSimIOImpl>> s_co_sim_ios;
+static std::unordered_map<std::string, std::unique_ptr<CoSimConnection>> s_co_sim_ios;
 
 static bool HasIO(const std::string& rConnectionName)
 {
     return s_co_sim_ios.find(rConnectionName) != s_co_sim_ios.end();
 }
 
-static CoSimIOImpl& GetIO(const std::string& rConnectionName)
+static CoSimConnection& GetIO(const std::string& rConnectionName)
 {
     KRATOS_CO_SIM_ERROR_IF_NOT(HasIO(rConnectionName)) << "Trying to use connection " << rConnectionName << " which does not exist!" << std::endl;
     return *s_co_sim_ios.at(rConnectionName);
@@ -53,7 +53,7 @@ inline void Connect(const std::string& rConnectionName, const std::string& pSett
     using namespace Internals;
     KRATOS_CO_SIM_ERROR_IF(HasIO(rConnectionName)) << "A connection for " << rConnectionName << " already exists!" << std::endl;
 
-    s_co_sim_ios[std::string(rConnectionName)] = std::unique_ptr<CoSimIOImpl>(new CoSimIOImpl(rConnectionName, pSettingsFileName));
+    s_co_sim_ios[std::string(rConnectionName)] = std::unique_ptr<CoSimConnection>(new CoSimConnection(rConnectionName, pSettingsFileName));
     GetIO(rConnectionName).Connect();
 }
 
