@@ -488,8 +488,8 @@ private:
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
     const LinearPlaneStrain  mLinearPlaneStrain;
     const LinearPlaneStress  mLinearPlaneStress;
-    const UserProvidedLinearElasticLaw<2> mUserProvidedLinearElasticLaw2D;
-    const UserProvidedLinearElasticLaw<3> mUserProvidedLinearElasticLaw3D;
+    const UserProvidedLinearElasticLaw<2> mUserProvidedLinearElastic2DLaw;
+    const UserProvidedLinearElasticLaw<3> mUserProvidedLinearElastic3DLaw;
 
 #ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
     // Damage and plasticity laws
