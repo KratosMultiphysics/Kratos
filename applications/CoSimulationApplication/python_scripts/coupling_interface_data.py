@@ -160,7 +160,7 @@ class CouplingInterfaceData(object):
         # can be allocated beforehand. This is the reason why the name of the ModelPart is
         # retrieved from the settings and not from the ModelPart itself.
         if self.location == "node_historical":
-            return {self.settings["model_part_name"].GetString() : self.variable}
+            return {self.model_part_name : self.variable}
         else:
             return {}
 
