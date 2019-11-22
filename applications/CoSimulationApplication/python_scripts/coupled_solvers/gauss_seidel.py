@@ -2,7 +2,7 @@ from KratosMultiphysics.CoSimulationApplication.co_simulation_component import C
 from KratosMultiphysics.CoSimulationApplication.co_simulation_interface import CoSimulationInterface
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 cs_data_structure = cs_tools.cs_data_structure
-
+import matplotlib.pyplot as plt
 
 def Create(parameters):
     return CoupledSolverGaussSeidel(parameters)
@@ -16,7 +16,7 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         self.settings = parameters["settings"]
 
         self.echo_level = self.settings["echo_level"].GetInt()
-        self.master_solver_index = self.settings["master_solver_index"].GetInt()
+        self.master_solver_index = self.settings["master_solver_index"].GetInt()  # NOT USED
 
         self.predictor = cs_tools.CreateInstance(self.parameters["predictor"])
         self.convergence_accelerator = cs_tools.CreateInstance(self.parameters["convergence_accelerator"])
@@ -35,7 +35,27 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         for component in self.components[1:]:
             component.Initialize()
 
-        self.x = self.solver_wrappers[self.master_solver_index].GetInterfaceInput()
+        # Construct mappers if required
+        index_mapped = None
+        index_other = None
+        for i in range(2):
+            type = self.parameters["solver_wrappers"][i]["type"].GetString()
+            if type == "solver_wrappers.mapped":
+                index_mapped = i
+            else:
+                index_other = i
+        if index_other is None:
+            raise ValueError("Not both solvers may be mapped solvers.")
+        if index_mapped is not None:
+            # Construct input mapper
+            interface_input_from = self.solver_wrappers[index_other].GetInterfaceOutput()
+            self.solver_wrappers[index_mapped].SetInterfaceInput(interface_input_from)
+
+            # Construct output mapper
+            interface_output_to = self.solver_wrappers[index_other].GetInterfaceInput()
+            self.solver_wrappers[index_mapped].SetInterfaceOutput(interface_output_to)
+
+        self.x = self.solver_wrappers[0].GetInterfaceInput()
         self.predictor.Initialize(self.x)
 
     def Finalize(self):

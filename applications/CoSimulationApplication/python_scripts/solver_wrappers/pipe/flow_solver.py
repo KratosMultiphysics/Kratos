@@ -9,7 +9,6 @@ from KratosMultiphysics.CoSimulationApplication.co_simulation_interface import C
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 cs_data_structure = cs_tools.cs_data_structure
 
-
 def Create(parameters):
     return SolverWrapperPipeFlow(parameters)
 
@@ -123,7 +122,7 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         # Output does not contain boundary conditions
         p = self.p[1:self.m + 1]
         self.interface_output.SetNumpyArray(p)
-        return self.interface_output
+        return self.interface_output.deepcopy()  # ***
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()

@@ -36,7 +36,7 @@ class MapperInterface(object):
             key_from, variables_from = interface_from.model_parts_variables[i]
             key_to, variables_to = interface_to.model_parts_variables[i]
             model_part_from = interface_from.model[key_from]
-            model_part_to = interface_from.model[key_to]
+            model_part_to = interface_to.model[key_to]
             for var_from, var_to in zip(variables_from.list(), variables_to.list()):
                 mapper((model_part_from, vars(KM)[var_from.GetString()]),
                        (model_part_to, vars(KM)[var_to.GetString()]))
