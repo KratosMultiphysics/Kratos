@@ -46,7 +46,6 @@ def Create(parameters):
 class SolverWrapperAbaqus614(CoSimulationComponent):
     def __init__(self, parameters):
         super().__init__()
-
         #settings
         """
                settings of solver_wrappers.abaqus.614:
@@ -110,8 +109,8 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     line = line.replace("|deltaT|", str(self.delta_T))
 
                     # if PWD is too ling then FORTRAN code can not compile so this needs special treatment
-                    line = line.replace("|PWD|", os.path.abspath(os.path.join(self.dir_csm, os.pardir)))
-                    line = line.replace("|CSM_dir|", self.settings["working_directory"].GetString())
+                    line = FORT_replace(line, "|PWD|", os.path.abspath(os.path.join(self.dir_csm, os.pardir)))
+                    line = FORT_replace(line, "|CSM_dir|", self.settings["working_directory"].GetString())
                     if "|" in line:
                         raise ValueError(f"The following line in USR.f still contains a \"|\" after substitution: \n \t{line} \n Probably a parameter was not subsituted")
 
@@ -120,12 +119,16 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         #TODO: Deal with lines that are too long.
 
         #compile Fortran and C++ codes
+        cmd1 = "export INTEL_LICENSE_FILE=28518@157.193.126.6"
+        cmd2 = "source /apps/SL6.3/Intel/compiler/2015.3.187/bin/compilervars.sh intel64"
         path_libusr = join(self.dir_csm, "libusr")
         os.system("rm -r " + path_libusr)
         os.system("mkdir " + path_libusr)
-        cmd = "abaqus make library=" + join(self.dir_csm, usr) + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
-        print(cmd)
-        self.abaqus_process = subprocess.Popen(cmd, executable='/bin/bash', shell=True, cwd=self.dir_csm)
+        cmd3 = "abaqus make library=" + join(self.dir_csm, usr) + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
+        commands = [cmd1, cmd2, cmd3]
+        print(self.dir_csm)
+        self.run_shell(self.dir_csm, commands)
+        print(commands)
 
         # TODO:
         #   Read settings
@@ -244,3 +247,18 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             if file_name.endswith('.msg'):
                 file = join(self.dir_csm, file_name)
                 os.remove(file)
+
+    def run_shell(work_dir, commands, wait=True):
+        script = f'{work_dir}script.sh'
+        with open(script, 'w') as file:
+            file.write('#!/bin/bash\n')
+            file.write(f'cd {work_dir}\n')
+            for line in commands:
+                file.write(line + '\n')
+        os.chmod(script, 0o700)
+        if wait:
+            p = subprocess.call(script, shell=True)
+        else:
+            p = subprocess.Popen(script, shell=True)
+        return p
+
