@@ -109,7 +109,9 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
         KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
         self._check_results()
-        self.assertEqual(isinstance(self.model_part.Properties[1].GetValue(KratosMultiphysics.CONFIGURATION_PARAMETERS), KratosMultiphysics.Parameters), True)
+        custom_params = self.model_part.Properties[1].GetValue(KratosMultiphysics.CONFIGURATION_PARAMETERS)
+        self.assertEqual(isinstance(custom_params, KratosMultiphysics.Parameters), True)
+        self.assertEqual(custom_params["test"].GetBool(), True)
 
     def test_input_with_subproperties_cpp(self):
 
