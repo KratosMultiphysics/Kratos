@@ -44,14 +44,15 @@ class CoSimIOImpl
 public:
     typedef CoSimComm::SettingsType SettingsType;
 
-    typedef void (*DataExchangeFunctionType)(const std::string&);
+    typedef void (*DataExchangeFunctionType)(const std::string&, const std::string&);
+    typedef void (*DataExchangeCFunctionType)(const char*, const char*);
 
     explicit CoSimIOImpl(const std::string& rName, const std::string& rSettingsFileName)
     : CoSimIOImpl(rName, Internals::ReadSettingsFile(rSettingsFileName)) { } // forwarding constructor call
 
-    explicit CoSimIOImpl(const std::string& rName, SettingsType rSettings)
+    explicit CoSimIOImpl(const std::string& rName, SettingsType rSettings) : mConnectionName(rName)
     {
-        Initialize(rName, rSettings);
+        Initialize(rSettings);
     }
 
     bool Connect()
@@ -75,28 +76,61 @@ public:
         return mpComm->RecvControlSignal(rIdentifier);
     }
 
-    void RegisterAdvanceInTime(double (*pFuncPtr)(double))
+    // Only used for AdvanceInTime
+    void Register(
+        const std::string& rFunctionName,
+        double (*pFunctionPointer)(double))
     {
         KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-        mpAdvInTime = pFuncPtr;
+        KRATOS_CO_SIM_ERROR_IF(rFunctionName == "AdvanceInTime") << "Only \"AdvanceInTime\" can be registered with this function!" << std::endl;
+        KRATOS_CO_SIM_ERROR_IF(mpAdvInTime) << "A function was already registered for " << rFunctionName << "!" << std::endl;
+
+        mpAdvInTime = pFunctionPointer;
     }
 
-    void RegisterInitializeSolutionStep(void (*pFuncPtr)())
+    // Used for the solving functions
+    void Register(
+        const std::string& rFunctionName,
+        void (*pFunctionPointer)(void))
     {
         KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-        mpInitSolStep = pFuncPtr;
+
+        if (rFunctionName == "InitializeSolutionStep") {
+            KRATOS_CO_SIM_ERROR_IF(mpInitSolStep) << "A function was already registered for \"InitializeSolutionStep\"!" << std::endl;
+            mpInitSolStep = pFunctionPointer;
+        } else if (rFunctionName == "SolveSolutionStep") {
+            KRATOS_CO_SIM_ERROR_IF(mpSolSolStep) << "A function was already registered for \"SolveSolutionStep\"!" << std::endl;
+            mpSolSolStep = pFunctionPointer;
+        } else if (rFunctionName == "FinalizeSolutionStep") {
+            KRATOS_CO_SIM_ERROR_IF(mpFinSolStep) << "A function was already registered for \"FinalizeSolutionStep\"!" << std::endl;
+            mpFinSolStep = pFunctionPointer;
+        } else {
+            KRATOS_CO_SIM_ERROR << "Only functions for \"InitializeSolutionStep\", \"SolveSolutionStep\" \"FinalizeSolutionStep\" can be registered using this function, tried registering " << rFunctionName << std::endl;
+        }
     }
 
-    void RegisterSolveSolutionStep(void (*pFuncPtr)())
+    // Used for the data-exchange functions coming from C or Fortran
+    void Register(
+        const std::string& rFunctionName,
+        void (*pFunctionPointer)(const char*, const char*))
     {
         KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-        mpSolSolStep = pFuncPtr;
+        KRATOS_CO_SIM_ERROR_IF(mDataExchangeFunctions.size() > 0) << "Mixing of registering functions with different arguments is not allowed!" << std::endl;
+        KRATOS_CO_SIM_ERROR_IF((mDataExchangeCFunctions.count(rFunctionName)>0)) << "A function was already registered for " << rFunctionName << "!" << std::endl;
+        // TODO maybe check if the name of the function is allowed?
+        mDataExchangeCFunctions[rFunctionName] = pFunctionPointer;
     }
 
-    void RegisterFinalizeSolutionStep(void (*pFuncPtr)())
+    // Used for the data-exchange functions coming from C++
+    void Register(
+        const std::string& rFunctionName,
+        void (*pFunctionPointer)(const std::string&, const std::string&))
     {
         KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-        mpFinSolStep = pFuncPtr;
+        KRATOS_CO_SIM_ERROR_IF(mDataExchangeCFunctions.size() > 0) << "Mixing of registering functions with different arguments is not allowed!" << std::endl;
+        KRATOS_CO_SIM_ERROR_IF((mDataExchangeFunctions.count(rFunctionName)>0)) << "A function was already registered for " << rFunctionName << "!" << std::endl;
+        // TODO maybe check if the name of the function is allowed?
+        mDataExchangeFunctions[rFunctionName] = pFunctionPointer;
     }
 
     void Run()
@@ -140,7 +174,7 @@ public:
                 const auto& r_function_name(signal_to_name.at(control_signal));
 
                 KRATOS_CO_SIM_ERROR_IF_NOT((mDataExchangeFunctions.count(r_function_name)>0)) << "No function was registered for \"" << r_function_name << "\"!" << std::endl;
-                mDataExchangeFunctions.at(r_function_name)(identifier);
+                mDataExchangeFunctions.at(r_function_name)(mConnectionName, identifier);
             } else {
                 KRATOS_CO_SIM_ERROR << "Unknown control signal received: " << static_cast<int>(control_signal) << std::endl;;
             }
@@ -195,23 +229,19 @@ public:
 private:
     std::unique_ptr<CoSimComm> mpComm; // handles communication (File, Sockets, MPI, ...)
 
+    std::string mConnectionName;
+
     bool mIsConnectionMaster = false;
 
     double (*mpAdvInTime)(double) = nullptr;
-    void (*mpInitSolStep)()     = nullptr;
-    void (*mpSolSolStep)()      = nullptr;
-    void (*mpFinSolStep)()      = nullptr;
-
-    void (*mpImportData)()      = nullptr;
-    void (*mpExportData)()      = nullptr;
-    void (*mpImportMesh)()      = nullptr;
-    void (*mpExportMesh)()      = nullptr;
-    void (*mpImportGeometry)()  = nullptr;
-    void (*mpExportGeometry)()  = nullptr;
+    void   (*mpInitSolStep)()     = nullptr;
+    void   (*mpSolSolStep)()      = nullptr;
+    void   (*mpFinSolStep)()      = nullptr;
 
     std::map<const std::string, DataExchangeFunctionType> mDataExchangeFunctions;
+    std::map<const std::string, DataExchangeCFunctionType> mDataExchangeCFunctions;
 
-    void Initialize(const std::string& rName, SettingsType& rSettings)
+    void Initialize(SettingsType& rSettings)
     {
         std::string comm_format("file"); // default is file-communication
         if (rSettings.count("communication_format") != 0) { // communication format has been specified
@@ -222,19 +252,19 @@ private:
             mIsConnectionMaster = (rSettings.at("is_connection_master") == "1");
         }
 
-        KRATOS_CO_SIM_INFO("CoSimIO") << "CoSimIO for \"" << rName << "\" uses communication format: " << comm_format << std::endl;
+        KRATOS_CO_SIM_INFO("CoSimIO") << "CoSimIO for \"" << mConnectionName << "\" uses communication format: " << comm_format << std::endl;
 
         if (comm_format == "file") {
-            mpComm = std::unique_ptr<CoSimComm>(new FileComm(rName, rSettings, mIsConnectionMaster)); // make_unique is C++14
+            mpComm = std::unique_ptr<CoSimComm>(new FileComm(mConnectionName, rSettings, mIsConnectionMaster)); // make_unique is C++14
         } else if (comm_format == "sockets") {
             #ifdef KRATOS_CO_SIM_IO_ENABLE_SOCKETS
-            mpComm = std::unique_ptr<CoSimComm>(new SocketsComm(rName, rSettings, mIsConnectionMaster)); // make_unique is C++14
+            mpComm = std::unique_ptr<CoSimComm>(new SocketsComm(mConnectionName, rSettings, mIsConnectionMaster)); // make_unique is C++14
             #else
             KRATOS_CO_SIM_ERROR << "Support for Sockets was not compiled!" << std::endl;
             #endif /* KRATOS_CO_SIM_IO_ENABLE_SOCKETS */
         } else if (comm_format == "mpi") {
             #ifdef KRATOS_CO_SIM_IO_ENABLE_MPI
-            mpComm = std::unique_ptr<CoSimComm>(new MPIComm(rName, rSettings, mIsConnectionMaster)); // make_unique is C++14
+            mpComm = std::unique_ptr<CoSimComm>(new MPIComm(mConnectionName, rSettings, mIsConnectionMaster)); // make_unique is C++14
             #else
             KRATOS_CO_SIM_ERROR << "Support for MPI was not compiled!" << std::endl;
             #endif /* KRATOS_CO_SIM_IO_ENABLE_MPI */

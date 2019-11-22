@@ -53,11 +53,23 @@ void CoSimIO_ExportMesh(
     int* pElementConnectivities,
     int* pElementTypes);
 
-void CoSimIO_Register(
+void CoSimIO_RegisterAdvanceInTime(
+    const char* pConnectionName,
+    double (*pFunctionPointer)(double));
+
+void CoSimIO_RegisterSolvingFunction(
     const char* pConnectionName,
     const char* pFunctionName,
-    void (*pFunctionPointer)(const char*)
-    );
+    void (*pFunctionPointer)());
+
+void CoSimIO_RegisterDataExchangeFunction(
+    const char* pConnectionName,
+    const char* pFunctionName,
+    void (*pFunctionPointer)(const char*, const char*));
+
+void CoSimIO_Run(const char* pConnectionName);
+
+int CoSimIO_IsConverged(const char* pConnectionName);
 
 #ifdef __cplusplus
 }

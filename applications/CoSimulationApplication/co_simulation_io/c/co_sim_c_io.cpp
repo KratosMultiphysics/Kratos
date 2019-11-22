@@ -82,11 +82,36 @@ void CoSimIO_ExportMesh(
     CoSimIO::ExportMesh(pConnectionName, pIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
 }
 
-void CoSimIO_Register(
+void CoSimIO_RegisterAdvanceInTime(
+    const char* pConnectionName,
+    double (*pFunctionPointer)(double))
+{
+    CoSimIO::Register(pConnectionName, "AdvanceInTime", pFunctionPointer);
+}
+
+void CoSimIO_RegisterSolvingFunction(
     const char* pConnectionName,
     const char* pFunctionName,
-    void (*pFunctionPointer)(const char*)
-    )
+    void (*pFunctionPointer)())
 {
     CoSimIO::Register(pConnectionName, pFunctionName, pFunctionPointer);
 }
+
+void CoSimIO_RegisterDataExchangeFunction(
+    const char* pConnectionName,
+    const char* pFunctionName,
+    void (*pFunctionPointer)(const char*, const char*))
+{
+    CoSimIO::Register(pConnectionName, pFunctionName, pFunctionPointer);
+}
+
+void CoSimIO_Run(const char* pConnectionName)
+{
+    CoSimIO::Run(pConnectionName);
+}
+
+int CoSimIO_IsConverged(const char* pConnectionName)
+{
+    return CoSimIO::IsConverged(pConnectionName);
+}
+

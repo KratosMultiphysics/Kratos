@@ -73,10 +73,10 @@ inline void Run(const std::string& rConnectionName);
 template<typename TFunctionType>
 inline void Register(
     const std::string& rConnectionName,
-    const std::string& rIdentifier,
-    const TFunctionType& rFunction)
+    const std::string& rFunctionName,
+    TFunctionType rFunction)
 {
-
+    Internals::GetIO(rConnectionName).Register(rFunctionName, rFunction);
 }
 
 // TODO move the following definitions to a separate file and include this file here
