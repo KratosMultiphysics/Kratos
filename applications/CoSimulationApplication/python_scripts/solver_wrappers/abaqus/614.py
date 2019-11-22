@@ -97,7 +97,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         path_libusr = join(self.dir_csm, "libusr/")
         os.system("rm -r " + path_libusr)
         os.system("mkdir " + path_libusr)
-        cmd4 = "abaqus make library=" + join(self.dir_csm, usr) + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
+        cmd4 = "abaqus make library=" + usr + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
         commands = [cmd1, cmd2, cmd3, cmd4]
         self.run_shell(self.dir_csm, commands)
         print(cmd4)
