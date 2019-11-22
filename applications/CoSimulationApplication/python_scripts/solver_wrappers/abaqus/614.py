@@ -55,7 +55,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         # prepare Abaqus USRInit.f
         usr = "USRInit.f"
         with open(join(path_src, usr), "r") as infile:
-            with open(join(self.dir_csm, usr), "w") as outfile:
+            with open(join(self.dir_csm, "usrInit.f"), "w") as outfile:
                 for line in infile:
                     line = line.replace("|dimension|", str(self.dimensions))
                     line = line.replace("|surfaces|", str(self.surfaces))
@@ -80,7 +80,19 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         commands = [cmd1, cmd2, cmd3, cmd4]
         self.run_shell(self.dir_csm, commands, name='Compile_USRInit')
 
-        # call Abaqus
+        # Get loadpoints from usrInit.f
+        if(self.timestep_start == 0):
+            cmd1 = f"export PBS_NODEFILE=AbaqusHosts.txt && unset SLURM_GTIDS" #To get this to work on HPC?
+            cmd2 = f"abaqus job=CSM_Time{self.timestep_start+1} input=CSM_Time{self.timestep_start} cpus=1 user=usrInit.f" \
+                f"output_precision=full interactive >> AbaqusSolver.log 2>&1"
+            commands = [cmd1, cmd2]
+            self.run_shell(self.dir_csm, commands, name='Abaqus_USRInit_Time0')
+        else:
+            cmd1 = f"export PBS_NODEFILE=AbaqusHosts.txt && unset SLURM_GTIDS" #To get this to work on HPC?
+            cmd2 = f"abaqus job=CSM_Time{self.timestep_start+1} oldjob=CSM_Time{self.timestep_start} input=CSM_Restart cpus=1 user=usrInit.f" \
+                f"output_precision=full interactive >> AbaqusSolver.log 2>&1"
+            commands = [cmd1, cmd2]
+            self.run_shell(self.dir_csm, commands, name=f'Abaqus_USRInit_Restart')
 
         # prepare Abaqus USR.f
         usr = "USR.f"
