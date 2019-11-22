@@ -104,15 +104,17 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         # Get loadpoints from usrInit.f
         if(self.timestep_start == 0):
             cmd1 = f"export PBS_NODEFILE=AbaqusHosts.txt && unset SLURM_GTIDS" #To get this to work on HPC?
-            cmd2 = f"abaqus job=CSM_Time{self.timestep_start+1} input=CSM_Time{self.timestep_start} cpus=1 user=usrInit.f" \
+            cmd2 = f"rm CSM_Time{self.timestep_start}Surface*Faces.dat CSM_Time{self.timestep_start}Surface*FacesBis.dat"
+            cmd3 = f"abaqus job=CSM_Time{self.timestep_start+1} input=CSM_Time{self.timestep_start} cpus=1 user=usrInit.f" \
                 f" output_precision=full interactive >> AbaqusSolver.log 2>&1"
-            commands = [cmd1, cmd2]
+            commands = [cmd1, cmd2, cmd3]
             self.run_shell(self.dir_csm, commands, name='Abaqus_USRInit_Time0')
         else:
             cmd1 = f"export PBS_NODEFILE=AbaqusHosts.txt && unset SLURM_GTIDS" #To get this to work on HPC?
-            cmd2 = f"abaqus job=CSM_Time{self.timestep_start+1} oldjob=CSM_Time{self.timestep_start} input=CSM_Restart cpus=1 user=usrInit.f" \
+            cmd2 = f"rm CSM_Time{self.timestep_start}Surface*Faces.dat CSM_Time{self.timestep_start}Surface*FacesBis.dat"
+            cmd3 = f"abaqus job=CSM_Time{self.timestep_start+1} oldjob=CSM_Time{self.timestep_start} input=CSM_Restart cpus=1 user=usrInit.f" \
                 f" output_precision=full interactive >> AbaqusSolver.log 2>&1"
-            commands = [cmd1, cmd2]
+            commands = [cmd1, cmd2, cmd3]
             self.run_shell(self.dir_csm, commands, name=f'Abaqus_USRInit_Restart')
 
         # prepare GetOutput.cpp
@@ -139,11 +141,18 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         self.run_shell(self.dir_csm, commands, name='GetOutput_Start')
 
         for i in range(0,self.surfaces):
-            path_output=f"CSM_Time{self.timestep_start+1}_Surface{i}Output.dat"
-            path_nodes=f"CSM_Time{self.timestep_start}_Surface{i}Nodes.dat"
+            path_output=f"CSM_Time{self.timestep_start+1}Surface{i}Output.dat"
+            path_nodes=f"CSM_Time{self.timestep_start}Surface{i}Nodes.dat"
             cmd=f"mv {path_output} {path_nodes}"
             commands = [cmd]
             self.run_shell(self.dir_csm, commands, name='Move_Output_File_To_Node')
+
+            # Create elements file per surface
+            face_file = os.path.join(self.dir_csm,f"CSM_Time{self.timestep_start}Surface{i}Cpu0Faces.dat")
+            output_file = os.path.join(self.dir_csm,f"CSM_Time{self.timestep_start}Surface{i}Elements.dat")
+            self.makeElements(face_file, output_file)
+
+
 
         # prepare Abaqus USR.f
         usr = "USR.f"
@@ -291,6 +300,47 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             if file_name.endswith('.msg'):
                 file = join(self.dir_csm, file_name)
                 os.remove(file)
+
+    def makeElements(self,face_file, output_file):
+        firstLoop = 1
+        element = 0
+        element_prev = -1
+        point = 0
+        point_prev =-1
+        element_0 = -1
+        point_0 = -1
+        count=0
+        element_str = ""
+
+        with open(face_file, 'r') as file:
+            for line in file:
+                values = line.strip().split()
+                element = int(values[0])
+                point = int(values[1])
+                if element == element_0 and point == point_0:
+                    break
+                if element == element_prev:
+                    if point == point_prev + 1:
+                        point_prev = point
+                    else:
+                        raise ValueError(f"loadpoint number increases by more than one per line for element {element}")
+                else:
+                    if point == 1:
+                        point_prev = point
+                        element_prev = element
+                        element_str += str(element) + "\n"
+                        count+=1
+                        if firstLoop: #Faces contains all values multiple times, but we only want it once
+                            element_0=element
+                            point_0 = point
+                            firstLoop=0
+                    else:
+                        raise ValueError(
+                            f"loadpoint number does not start at 1 for element {element}")
+
+        element_str = f"{count}\n{point_prev}\n"+element_str
+        with open(output_file,"w") as file:
+            file.write(element_str)
 
     def run_shell(self, work_dir, commands, wait=True, name='script', delete=True):
         script = f'{work_dir}/{name}.sh'
