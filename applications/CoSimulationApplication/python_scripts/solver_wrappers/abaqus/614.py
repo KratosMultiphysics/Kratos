@@ -94,14 +94,11 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     outfile.write(line)
 
         # compile Abaqus USRInit.f
-        cmd_settings1 = "export INTEL_LICENSE_FILE=28518@157.193.126.6"
-        cmd_settings2 = "source /apps/SL6.3/Intel/compiler/2015.3.187/bin/compilervars.sh intel64"
-        cmd_settings3 = "module load ABAQUS/6.14"
         path_libusr = join(self.dir_csm, "libusr/")
         os.system("rm -r " + path_libusr)
         os.system("mkdir " + path_libusr)
         cmd = "abaqus make library=usrInit.f directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
-        commands = [cmd_settings1, cmd_settings2, cmd_settings3, cmd]
+        commands = [cmd]
         self.run_shell(self.dir_csm, commands, name='Compile_USRInit')
 
         # Get loadpoints from usrInit.f
@@ -133,7 +130,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
 
         # compile GetOutput.cpp
         cmd = "abaqus make job=GetOutput user=GetOutput.cpp >> AbaqusSolver.log 2>&1"
-        commands = [cmd_settings1, cmd_settings2, cmd_settings3, cmd]
+        commands = [cmd]
         self.run_shell(self.dir_csm, commands, name='Compile_GetOutput')
 
         # Get node positions (not load points) at startTimeStep
@@ -172,7 +169,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         os.system("rm -r " + path_libusr)  # remove libusr containing compiled USRInit.f
         os.system("mkdir " + path_libusr)
         cmd = "abaqus make library=usr.f directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
-        commands = [cmd_settings1, cmd_settings2, cmd_settings3, cmd]
+        commands = [cmd]
         self.run_shell(self.dir_csm, commands, name='Compile_USR')
 
 
