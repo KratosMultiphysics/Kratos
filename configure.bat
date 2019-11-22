@@ -2,7 +2,7 @@ rem For any question please contact with us in:
 rem  - https://github.com/KratosMultiphysics/Kratos
 
 rem Optional parameters:
-rem You can find a list will all the compiation options in 
+rem You can find a list will all the compiation options in INSTALL.md or here:
 rem  - https://github.com/KratosMultiphysics/Kratos/wiki/Compilation-options
 
 rem Set compiler
@@ -14,11 +14,11 @@ rem Set variables
 set KRATOS_SOURCE=.
 set KRATOS_BUILD=.\build
 set KRATOS_APP_DIR=applications
-set BOOST_ROOT=C:\CompiledLibs\boost_1_67_0
-set PYTHON_EXECUTABLE=C:\Users\Kratos64\AppData\Local\Programs\Python\Python35\python.exe
 
 rem Set basic configuration
 set KRATOS_BUILD_TYPE=Release
+set BOOST_ROOT=C:\CompiledLibs\boost_1_67_0
+set PYTHON_EXECUTABLE=C:\Users\Kratos64\AppData\Local\Programs\Python\Python35\python.exe
 
 rem Set applications to compile
 set KRATOS_APPLICATIONS=

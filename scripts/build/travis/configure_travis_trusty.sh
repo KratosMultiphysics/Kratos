@@ -5,7 +5,7 @@
 #   - https://github.com/KratosMultiphysics/Kratos
 
 # Optional parameters:
-# You can find a list will all the compiation options in 
+# You can find a list will all the compiation options in INSTALL.md or here:
 #   - https://github.com/KratosMultiphysics/Kratos/wiki/Compilation-options
 
 function add_app {
@@ -44,7 +44,7 @@ echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 
 # Configure
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
--DPYTHON_EXECUTABLE="/usr/bin/python3.4" -DMPI_NEEDED=ON \
+-DPYTHON_EXECUTABLE="/usr/bin/python3.4" -DUSE_MPI=ON \
 -DPYBIND11_PYTHON_VERSION="3.4" \
 -DCMAKE_CXX_FLAGS="-O0 -fopenmp -Wall \
 -Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable \

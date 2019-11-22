@@ -198,9 +198,13 @@ endif(NOT DEFINED KRATOS_BUILD_TESTING)
 # If install prefix is set, install all the files.
 SET(INSTALL_TESTING_FILES ON)
 SET(INSTALL_PYTHON_FILES ON)        # To be removed when all applications are ported
-if(NOT DEFINED INSTALL_PYTHON_USING_LINKS)
+
+# Links
+if(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
   SET(INSTALL_PYTHON_USING_LINKS OFF)
-endif(NOT DEFINED INSTALL_PYTHON_USING_LINKS)
+else(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
+  SET(INSTALL_PYTHON_USING_LINKS $ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
+endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 
 #include the file with custom installation properties
 include(install_function)
@@ -311,8 +315,7 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
   find_package(Tetgen REQUIRED)
 endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
 
-# Mpi
-if(${MPI_NEEDED} MATCHES ON )
+if(${USE_MPI} MATCHES ON )
   find_package(MPI REQUIRED)
   add_definitions( -DKRATOS_USING_MPI )
   set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
@@ -321,7 +324,7 @@ if(${MPI_NEEDED} MATCHES ON )
 
   # Note: that this will be included in the compilation of the kratos core, so that it is not needed to include it somewhere else
   include_directories(SYSTEM ${MPI_INCLUDE_PATH})
-endif(${MPI_NEEDED} MATCHES ON )
+endif(${USE_MPI} MATCHES ON )
 
 # Find zlib (for gidpost)
 find_package(ZLIB)

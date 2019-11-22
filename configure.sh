@@ -5,7 +5,7 @@
 #   - https://github.com/KratosMultiphysics/Kratos
 
 # Optional parameters:
-# You can find a list will all the compiation options in 
+# You can find a list will all the compiation options in INSTALL.md or here:
 #   - https://github.com/KratosMultiphysics/Kratos/wiki/Compilation-options
 
 # Function to add apps
@@ -21,6 +21,7 @@ export CXX=g++
 export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
+export KRATOS_INSTALL_PYTHON_USING_LINKS=OFF
 
 # Set basic configuration
 export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:="Release"}
@@ -39,7 +40,7 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 # Configure
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"         \
--DINSTALL_PYTHON_USING_LINKS=ON
+-DUSE_MPI=ON
 
 # Buid
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j4
+# cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j4

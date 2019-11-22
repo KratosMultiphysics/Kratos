@@ -258,6 +258,6 @@ install(TARGETS Kratos DESTINATION libs )
 install(TARGETS KratosCore DESTINATION libs)
 
 # Mpi
-if(${MPI_NEEDED} MATCHES ON )
+if(${USE_MPI} MATCHES ON )
   add_subdirectory(mpi)
-endif(${MPI_NEEDED} MATCHES ON )
+endif(${USE_MPI} MATCHES ON )

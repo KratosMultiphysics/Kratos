@@ -1,6 +1,10 @@
 rem For any question please contact with us in:
 rem  - https://github.com/KratosMultiphysics/Kratos
 
+rem Optional parameters:
+rem You can find a list will all the compiation options in INSTALL.md or here:
+rem   - https://github.com/KratosMultiphysics/Kratos/wiki/Compilation-options
+
 rem Set compiler
 @echo off
 set CC=cl.exe
