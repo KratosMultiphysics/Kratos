@@ -52,6 +52,8 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         # Upon(re)starting Abaqus needs to run USRInit.f
         # A restart requires Abaqus to be booted with a restart file
 
+        # prepare abaqus_v6.env
+
         # prepare Abaqus USRInit.f
         usr = "USRInit.f"
         with open(join(path_src, usr), "r") as infile:
@@ -273,7 +275,6 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         else:
             p = subprocess.Popen(script, shell=True)
         return p
-
 
     def FORT_replace(self, line, orig, new):
         '''The length of a line in FORTRAN 77 is limited, replacing working directories can exceed this limiet
