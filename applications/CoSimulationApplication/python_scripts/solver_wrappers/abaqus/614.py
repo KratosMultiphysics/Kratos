@@ -52,8 +52,23 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
 
         # Upon(re)starting Abaqus needs to run USRInit.f
         # A restart requires Abaqus to be booted with a restart file
-        cmd0 = "" #To be implemented
-        cmd_restart = "" #To be implemented
+
+        #prepare Abaqus USRInit.f
+        usr = "USRInit.f"
+        with open(join(path_src, usr), "r")as infile:
+            with open(join(self.dir_csm, usr), "w") as outfile:
+                for line in infile:
+                    line = line.replace("|dimension|", str(self.dimensions))
+                    line = line.replace("|surfaces|", str(self.surfaces))
+                    line = line.replace("|cpus|", str(self.cores))
+                    line = line.replace("|CSM_dir|", self.settings["working_directory"].GetString())
+
+                    #if PWD is too ling then FORTRAN code can not compile so this needs special treatment
+                    line = line.replace("|PWD|", os.path.abspath(os.path.join(self.dir_csm, os.pardir)))
+
+                    if line.contains("|"):
+                        raise ValueError("The following line in USRInit.f still contains a \"|\" after substitution: \n \t{line} \n Probably a parameter was not subsituted")
+                    outfile.write(line)
 
         #prepare Abaqus USR
         usr = "USR.f"
@@ -64,13 +79,19 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     line = line.replace("|arraySize|", str(self.array_size))
                     line = line.replace("|surfaces|", str(self.surfaces))
                     line = line.replace("|cpus|", str(self.cores))
-                    line = line.replace("|PWD|", os.path.abspath(os.path.join(self.dir_csm, os.pardir)))
                     line = line.replace("|CSM_dir|", self.settings["working_directory"].GetString())
                     line = line.replace("|ramp|", str(self.ramp))
                     line = line.replace("|deltaT|", str(self.delta_T))
+
+                    # if PWD is too ling then FORTRAN code can not compile so this needs special treatment
+                    line = line.replace("|PWD|", os.path.abspath(os.path.join(self.dir_csm, os.pardir)))
+
+                    if line.contains("|"):
+                        raise ValueError("The following line in USR.f still contains a \"|\" after substitution: \n \t{line} \n Probably a parameter was not subsituted")
+
                     outfile.write(line)
 
-        #TODO: Deal with lines that are too long. Ask Joris.
+        #TODO: Deal with lines that are too long.
 
         #compile Fortran and C++ codes
         path_libusr = join(self.dir_csm, "libusr")
