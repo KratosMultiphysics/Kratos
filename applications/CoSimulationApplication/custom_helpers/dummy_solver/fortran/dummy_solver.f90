@@ -61,9 +61,10 @@ program dummy_solver_fortran
 
     CONTAINS
 
-    subroutine solver_print(string_to_print)
+    subroutine solver_print(string_to_print, req_echo_level)
         character(*), INTENT(IN) :: string_to_print
-        IF (echo_level > 0) THEN
+        integer, INTENT(IN) :: req_echo_level
+        IF (echo_level >= req_echo_level) THEN
             write(*,*) "Solver [F]: ", string_to_print
         End IF
     end subroutine solver_print
@@ -74,52 +75,52 @@ program dummy_solver_fortran
         character(len=1024) :: print_string
         time = time + delta_time
         write(print_string,*) "AdvanceInTime; new time: ", time
-        call solver_print(adjustl(trim(print_string)))
+        call solver_print(adjustl(trim(print_string)), 2)
     END SUBROUTINE advance_in_time
 
     SUBROUTINE initialize_solution_step ()
-        call solver_print("InitializeSolutionStep")
+        call solver_print("InitializeSolutionStep", 2)
     END SUBROUTINE initialize_solution_step
 
     SUBROUTINE solve_solution_step ()
-        call solver_print("SolveSolutionStep")
+        call solver_print("SolveSolutionStep", 2)
     END SUBROUTINE solve_solution_step
 
     SUBROUTINE finalize_solution_step ()
-        call solver_print("FinalizeSolutionStep")
+        call solver_print("FinalizeSolutionStep", 2)
     END SUBROUTINE finalize_solution_step
 
     !!! data-exchange functions !!!
     SUBROUTINE import_data_from_co_sim (connection_name, identifier)
         character(*), INTENT(IN) :: connection_name
         character(*), INTENT(IN) :: identifier
-        call solver_print("    Before Importing Data from CoSim")
+        call solver_print("    Before Importing Data from CoSim", 3)
         ! call CoSimIO_ImportData(connection_name//c_null_char, identifier//c_null_char, size, c_ptr_data)
-        call solver_print("    After Importing Data from CoSim")
+        call solver_print("    After Importing Data from CoSim", 3)
     END SUBROUTINE import_data_from_co_sim
 
     SUBROUTINE export_data_to_co_sim (connection_name, identifier)
         character(*), INTENT(IN) :: connection_name
         character(*), INTENT(IN) :: identifier
-        call solver_print("    Before Exporting Data to CoSim")
+        call solver_print("    Before Exporting Data to CoSim", 3)
         ! call CoSimIO_ExportData(connection_name//c_null_char, identifier//c_null_char, size, c_ptr_data)
-        call solver_print("    After Exporting Data to CoSim")
+        call solver_print("    After Exporting Data to CoSim", 3)
     END SUBROUTINE export_data_to_co_sim
 
     SUBROUTINE import_mesh_from_co_sim (connection_name, identifier)
         character(*), INTENT(IN) :: connection_name
         character(*), INTENT(IN) :: identifier
-        call solver_print("    Before Importing Mesh from CoSim")
+        call solver_print("    Before Importing Mesh from CoSim", 3)
         ! call CoSimIO_ImportMesh(connection_name//c_null_char, identifier//c_null_char, ...)
-        call solver_print("    After Importing Mesh from CoSim")
+        call solver_print("    After Importing Mesh from CoSim", 3)
     END SUBROUTINE import_mesh_from_co_sim
 
     SUBROUTINE export_mesh_to_co_sim (connection_name, identifier)
         character(*), INTENT(IN) :: connection_name
         character(*), INTENT(IN) :: identifier
-        call solver_print("    Before Exporting Mesh to CoSim")
+        call solver_print("    Before Exporting Mesh to CoSim", 3)
         ! call CoSimIO_ExportMesh(connection_name//c_null_char, identifier//c_null_char, ...)
-        call solver_print("    After Exporting Mesh to CoSim")
+        call solver_print("    After Exporting Mesh to CoSim", 3)
     END SUBROUTINE export_mesh_to_co_sim
 
 
@@ -129,7 +130,7 @@ program dummy_solver_fortran
     SUBROUTINE run_solution_loop ()
         real :: current_time = 0.0
 
-        call solver_print("Doing STANDALONE simulation")
+        call solver_print("Doing STANDALONE simulation", 1)
 
         do while (current_time < end_time)
             write(*,*)
@@ -139,7 +140,7 @@ program dummy_solver_fortran
             call finalize_solution_step()
         end do
 
-        call solver_print("Exiting")
+        call solver_print("Exiting", 1)
     END SUBROUTINE run_solution_loop
 
 
@@ -147,7 +148,7 @@ program dummy_solver_fortran
     SUBROUTINE run_solution_loop_weak_coupling ()
         real :: current_time = 0.0
 
-        call solver_print("Doing COUPLED simulation (weakly coupled)")
+        call solver_print("Doing COUPLED simulation (weakly coupled)", 1)
 
         call CoSimIO_Connect("FortranSolver"//c_null_char, "FortranSolverInputFile"//c_null_char)
 
@@ -166,7 +167,7 @@ program dummy_solver_fortran
 
         call CoSimIO_Disconnect("FortranSolver"//c_null_char)
 
-        call solver_print("Exiting")
+        call solver_print("Exiting", 1)
     END SUBROUTINE run_solution_loop_weak_coupling
 
 
@@ -175,7 +176,7 @@ program dummy_solver_fortran
         real :: current_time = 0.0
         integer :: convergence_signal = 0
 
-        call solver_print("Doing COUPLED simulation (strongly coupled)")
+        call solver_print("Doing COUPLED simulation (strongly coupled)", 1)
 
         call CoSimIO_Connect("FortranSolver"//c_null_char, "FortranSolverInputFile"//c_null_char)
 
@@ -200,13 +201,13 @@ program dummy_solver_fortran
 
         call CoSimIO_Disconnect("FortranSolver"//c_null_char)
 
-        call solver_print("Exiting")
+        call solver_print("Exiting", 1)
     END SUBROUTINE run_solution_loop_strong_coupling
 
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     SUBROUTINE run_solution_co_simulation_orchestrated ()
-        call solver_print("Doing COUPLED simulation (orchestrated by CoSimulation)")
+        call solver_print("Doing COUPLED simulation (orchestrated by CoSimulation)", 1)
 
         call CoSimIO_Connect("FortranSolver"//c_null_char, "FortranSolverInputFile"//c_null_char)
 
@@ -230,7 +231,7 @@ program dummy_solver_fortran
 
         call CoSimIO_Disconnect("FortranSolver"//c_null_char)
 
-        call solver_print("Exiting")
+        call solver_print("Exiting", 1)
     END SUBROUTINE run_solution_co_simulation_orchestrated
 
 end program
