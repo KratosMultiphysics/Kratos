@@ -27,6 +27,10 @@ class MapperNearest(object):
         tree = cKDTree(coords_from)
         _, self.nearest = tree.query(coords_to, n_jobs=-1)  # runs in parallel
 
+
+        # *** add support for 3D variables
+        # *** add check to see if variables have same dimensions
+
     def Finalize(self):
         pass
 
@@ -39,5 +43,5 @@ class MapperNearest(object):
             hist_var_from[i] = node.GetSolutionStepValue(var_from)
 
         hist_var_to = hist_var_from[self.nearest]  # nearest-neighbour interpolation
-        for i, node in enumerate(model_part_from.Nodes):
+        for i, node in enumerate(model_part_to.Nodes):
             node.SetSolutionStepValue(var_to, 0, hist_var_to[i])

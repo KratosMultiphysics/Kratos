@@ -1,0 +1,10 @@
+{
+    "settings":
+    {
+        "data_structure" : "pyKratos"
+    },
+    "mapper" :
+    {
+        "type": "mappers.nearest"
+    }
+}
