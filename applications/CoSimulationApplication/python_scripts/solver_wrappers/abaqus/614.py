@@ -51,7 +51,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         # Upon(re)starting Abaqus needs to run USRInit.f
         # A restart requires Abaqus to be booted with a restart file
 
-        #prepare Abaqus USRInit.f
+        # prepare Abaqus USRInit.f
         usr = "USRInit.f"
         with open(join(path_src, usr), "r")as infile:
             with open(join(self.dir_csm, usr), "w") as outfile:
@@ -60,7 +60,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     line = line.replace("|surfaces|", str(self.surfaces))
                     line = line.replace("|cpus|", str(self.cores))
 
-                    #if PWD is too ling then FORTRAN code can not compile so this needs special treatment
+                    #if PWD is too long then FORTRAN code can not compile so this needs special treatment
                     line = self.FORT_replace(line,"|PWD|", os.path.abspath(os.path.join(self.dir_csm, os.pardir)))
                     line = self.FORT_replace(line,"|CSM_dir|", self.settings["working_directory"].GetString())
 
@@ -68,7 +68,20 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                         raise ValueError(f"The following line in USRInit.f still contains a \"|\" after substitution: \n \t{line} \n Probably a parameter was not subsituted")
                     outfile.write(line)
 
-        #prepare Abaqus USR
+        # compile Abaqus USRInit.f
+        path_libusr = join(self.dir_csm, "libusr/")
+        os.system("rm -r " + path_libusr)
+        os.system("mkdir " + path_libusr)
+        cmd1 = "export INTEL_LICENSE_FILE=28518@157.193.126.6"
+        cmd2 = "source /apps/SL6.3/Intel/compiler/2015.3.187/bin/compilervars.sh intel64"
+        cmd3 = "module load ABAQUS/6.14"
+        cmd4 = "abaqus make library=" + usr + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
+        commands = [cmd1, cmd2, cmd3, cmd4]
+        self.run_shell(self.dir_csm, commands, name='Compile_USR')
+
+        # call Abaqus
+
+        # prepare Abaqus USR.f
         usr = "USR.f"
         with open(join(path_src, usr), "r")as infile:
             with open(join(self.dir_csm, usr), "w") as outfile:
@@ -88,19 +101,15 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
 
                     outfile.write(line)
 
-        #TODO: Deal with lines that are too long.
-
-        #compile Fortran and C++ codes
+        # compile Abaqus USR.f
+        os.system("rm -r " + path_libusr)  # remove libusr contining compiled USRInit.f
+        os.system("mkdir " + path_libusr)
         cmd1 = "export INTEL_LICENSE_FILE=28518@157.193.126.6"
         cmd2 = "source /apps/SL6.3/Intel/compiler/2015.3.187/bin/compilervars.sh intel64"
         cmd3 = "module load ABAQUS/6.14"
-        path_libusr = join(self.dir_csm, "libusr/")
-        os.system("rm -r " + path_libusr)
-        os.system("mkdir " + path_libusr)
         cmd4 = "abaqus make library=" + usr + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
         commands = [cmd1, cmd2, cmd3, cmd4]
-        self.run_shell(self.dir_csm, commands)
-        print(cmd4)
+        self.run_shell(self.dir_csm, commands, name='Compile_USR')
 
         # TODO:
         #   Read settings
@@ -220,8 +229,8 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                 file = join(self.dir_csm, file_name)
                 os.remove(file)
 
-    def run_shell(self, work_dir, commands, wait=True):
-        script = f'{work_dir}/script.sh'
+    def run_shell(self, work_dir, commands, wait=True, name='script'):
+        script = f'{work_dir}/{name}.sh'
         with open(script, 'w') as file:
             file.write('#!/bin/bash\n')
             file.write(f'cd {work_dir}\n')
