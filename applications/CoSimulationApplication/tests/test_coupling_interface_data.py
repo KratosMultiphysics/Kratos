@@ -290,7 +290,7 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         }""")
 
         coupling_data = CouplingInterfaceData(settings, self.model)
-        with self.assertRaisesRegex(Exception, "The ModelPart specified is not contained in the Model!"):
+        with self.assertRaisesRegex(Exception, "The specified ModelPart is not in the Model, only the following ModelParts are available:"):
             coupling_data.Initialize()
 
     def test_GetHistoricalVariableDict(self):
