@@ -64,24 +64,81 @@ int SolidElementCheck(
  * @param rElement Reference to the element
  * @param rStrainTensor The strain tensor
  * @param rF The deformation gradient F
+ * @tparam TVectorType The vector type
+ * @tparam TMatrixType The matrix type
  */
+template<class TVectorType, class TMatrixType>
 void ComputeEquivalentF(
     const Element& rElement,
-    const Vector& rStrainTensor,
-    Matrix& rF
-    );
+    const TVectorType& rStrainTensor,
+    TMatrixType& rF
+    )
+{
+    const auto& r_geometry = rElement.GetGeometry();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+
+    if(dimension == 2) {
+        rF(0,0) = 1.0+rStrainTensor(0);
+        rF(0,1) = 0.5*rStrainTensor(2);
+        rF(1,0) = 0.5*rStrainTensor(2);
+        rF(1,1) = 1.0+rStrainTensor(1);
+    } else {
+        rF(0,0) = 1.0+rStrainTensor(0);
+        rF(0,1) = 0.5*rStrainTensor(3);
+        rF(0,2) = 0.5*rStrainTensor(5);
+        rF(1,0) = 0.5*rStrainTensor(3);
+        rF(1,1) = 1.0+rStrainTensor(1);
+        rF(1,2) = 0.5*rStrainTensor(4);
+        rF(2,0) = 0.5*rStrainTensor(5);
+        rF(2,1) = 0.5*rStrainTensor(4);
+        rF(2,2) = 1.0+rStrainTensor(2);
+    }
+}
 
 /**
  * @brief This method computes the deformation tensor B (for small deformation solid elements)
  * @param rElement Reference to the element
  * @param rDN_DX The shape function derivatives
  * @param rB The deformation tensor B
+ * @tparam TMatrixType1 The first matrix type
+ * @tparam TMatrixType2 The second matrix type
  */
+template<class TMatrixType1, class TMatrixType2>
 void CalculateB(
     const Element& rElement,
-    const Matrix& rDN_DX,
-    Matrix& rB
-    );
+    const TMatrixType1& rDN_DX,
+    TMatrixType2& rB
+    )
+{
+    const auto& r_geometry = rElement.GetGeometry();
+    const SizeType number_of_nodes = r_geometry.PointsNumber();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+
+    rB.clear();
+
+    if(dimension == 2) {
+        for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+            const IndexType initial_index = i*2;
+            rB(0, initial_index    ) = rDN_DX(i, 0);
+            rB(1, initial_index + 1) = rDN_DX(i, 1);
+            rB(2, initial_index    ) = rDN_DX(i, 1);
+            rB(2, initial_index + 1) = rDN_DX(i, 0);
+        }
+    } else if(dimension == 3) {
+        for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+            const IndexType initial_index = i*3;
+            rB(0, initial_index    ) = rDN_DX(i, 0);
+            rB(1, initial_index + 1) = rDN_DX(i, 1);
+            rB(2, initial_index + 2) = rDN_DX(i, 2);
+            rB(3, initial_index    ) = rDN_DX(i, 1);
+            rB(3, initial_index + 1) = rDN_DX(i, 0);
+            rB(4, initial_index + 1) = rDN_DX(i, 2);
+            rB(4, initial_index + 2) = rDN_DX(i, 1);
+            rB(5, initial_index    ) = rDN_DX(i, 2);
+            rB(5, initial_index + 2) = rDN_DX(i, 0);
+        }
+    }
+}
 
 /**
  * @brief This method returns the computed the computed body force
