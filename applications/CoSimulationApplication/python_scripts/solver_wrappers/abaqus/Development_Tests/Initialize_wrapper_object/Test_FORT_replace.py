@@ -33,7 +33,10 @@ def FORT_replace(line, orig, new):
                 temp_string = temp[count:count+char_limit-12]
                 n = len(temp_string)
                 count +=n
-                line+= "     &"+"      "+temp_string+"\n"
+                if count < N: #need to append an additional new line
+                    line+= "     &"+"      "+temp_string+"\n"
+                else:
+                    line += "     &" + "      " + temp_string
                 print (line)
         else:
             line = temp
