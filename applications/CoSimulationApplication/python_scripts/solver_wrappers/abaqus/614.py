@@ -93,14 +93,14 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         #compile Fortran and C++ codes
         cmd1 = "export INTEL_LICENSE_FILE=28518@157.193.126.6"
         cmd2 = "source /apps/SL6.3/Intel/compiler/2015.3.187/bin/compilervars.sh intel64"
-        path_libusr = join(self.dir_csm, "libusr")
+        cmd3 = "module load ABAQUS/6.14"
+        path_libusr = join(self.dir_csm, "libusr/")
         os.system("rm -r " + path_libusr)
         os.system("mkdir " + path_libusr)
-        cmd3 = "abaqus make library=" + join(self.dir_csm, usr) + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
-        commands = [cmd1, cmd2, cmd3]
-        print(self.dir_csm)
+        cmd4 = "abaqus make library=" + join(self.dir_csm, usr) + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
+        commands = [cmd1, cmd2, cmd3, cmd4]
         self.run_shell(self.dir_csm, commands)
-        print(commands)
+        print(cmd4)
 
         # TODO:
         #   Read settings
@@ -220,8 +220,8 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                 file = join(self.dir_csm, file_name)
                 os.remove(file)
 
-    def run_shell(work_dir, commands, wait=True):
-        script = f'{work_dir}script.sh'
+    def run_shell(self, work_dir, commands, wait=True):
+        script = f'{work_dir}/script.sh'
         with open(script, 'w') as file:
             file.write('#!/bin/bash\n')
             file.write(f'cd {work_dir}\n')
@@ -235,7 +235,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         return p
 
 
-    def FORT_replace(line, orig, new):
+    def FORT_replace(self, line, orig, new):
         '''The length of a line in FORTRAN 77 is limited, replacing working directories can exceed this limiet
         This functions splits these strings over multiple lines'''
 
