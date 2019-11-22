@@ -149,7 +149,7 @@ inline SettingsType ReadSettingsFile(const std::string& rSettingsFileName)
     std::ifstream settings_file(rSettingsFileName);
 
     if (!settings_file.good()) {
-        std::cout << "Input file \"" << rSettingsFileName << "\" could not be read, using default configuration" << std::endl;
+        KRATOS_CO_SIM_INFO("CoSimIO") << "Input file \"" << rSettingsFileName << "\" could not be read, using default configuration" << std::endl;
         return SettingsType();
     }
 
