@@ -102,7 +102,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     outfile.write(line)
 
         # compile Abaqus USR.f
-        os.system("rm -r " + path_libusr)  # remove libusr contining compiled USRInit.f
+        os.system("rm -r " + path_libusr)  # remove libusr containing compiled USRInit.f
         os.system("mkdir " + path_libusr)
         cmd1 = "export INTEL_LICENSE_FILE=28518@157.193.126.6"
         cmd2 = "source /apps/SL6.3/Intel/compiler/2015.3.187/bin/compilervars.sh intel64"
