@@ -198,18 +198,18 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         # Finally compute stress
         if(dim == 2):
             #here assume plane stress
-            c1 = E / (1.00 - NU*NU);
-            c2 = c1 * NU;
-            c3 = 0.5* E / (1 + NU);
+            c1 = E / (1.00 - NU*NU)
+            c2 = c1 * NU
+            c3 = 0.5* E / (1 + NU)
             reference_stress = KratosMultiphysics.Vector(3)
-            reference_stress[0] = c1*reference_strain[0] + c2 * (reference_strain[1])	;
-            reference_stress[1] = c1*reference_strain[1] + c2 * (reference_strain[0])	;
-            reference_stress[2] = c3*reference_strain[2];
+            reference_stress[0] = c1*reference_strain[0] + c2 * (reference_strain[1])
+            reference_stress[1] = c1*reference_strain[1] + c2 * (reference_strain[0])
+            reference_stress[2] = c3*reference_strain[2]
         else:
-            c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
-            c2 = c1 * ( 1 - NU );
-            c3 = c1 * NU;
-            c4 = c1 * 0.5 * ( 1 - 2 * NU );
+            c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) )
+            c2 = c1 * ( 1 - NU )
+            c3 = c1 * NU
+            c4 = c1 * 0.5 * ( 1 - 2 * NU )
             reference_stress = KratosMultiphysics.Vector(6)
             reference_stress[0] = c2*reference_strain[0] + c3 * (reference_strain[1] + reference_strain[2])
             reference_stress[1] = c2*reference_strain[1] + c3 * (reference_strain[0] + reference_strain[2])
