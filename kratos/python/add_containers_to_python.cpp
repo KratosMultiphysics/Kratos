@@ -25,7 +25,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
-
+#include "includes/kratos_parameters.h"
 #include "includes/convection_diffusion_settings.h"
 #include "includes/radiation_settings.h"
 #include "utilities/timer.h"
