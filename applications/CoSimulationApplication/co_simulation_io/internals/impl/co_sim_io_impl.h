@@ -42,7 +42,7 @@ static bool HasIO(const std::string& rConnectionName)
 
 static CoSimConnection& GetIO(const std::string& rConnectionName)
 {
-    KRATOS_CO_SIM_ERROR_IF_NOT(HasIO(rConnectionName)) << "Trying to use connection " << rConnectionName << " which does not exist!" << std::endl;
+    KRATOS_CO_SIM_ERROR_IF_NOT(HasIO(rConnectionName)) << "Trying to use connection \"" << rConnectionName << "\" which does not exist!" << std::endl;
     return *s_co_sim_ios.at(rConnectionName);
 }
 
@@ -51,7 +51,7 @@ static CoSimConnection& GetIO(const std::string& rConnectionName)
 inline void Connect(const std::string& rConnectionName, const std::string& pSettingsFileName)
 {
     using namespace Internals;
-    KRATOS_CO_SIM_ERROR_IF(HasIO(rConnectionName)) << "A connection for " << rConnectionName << " already exists!" << std::endl;
+    KRATOS_CO_SIM_ERROR_IF(HasIO(rConnectionName)) << "A connection for \"" << rConnectionName << "\" already exists!" << std::endl;
 
     s_co_sim_ios[std::string(rConnectionName)] = std::unique_ptr<CoSimConnection>(new CoSimConnection(rConnectionName, pSettingsFileName));
     GetIO(rConnectionName).Connect();
@@ -60,7 +60,7 @@ inline void Connect(const std::string& rConnectionName, const std::string& pSett
 inline void Disconnect(const std::string& rConnectionName)
 {
     using namespace Internals;
-    KRATOS_CO_SIM_ERROR_IF_NOT(HasIO(rConnectionName)) << "Trying to disconnect connection " << rConnectionName << " which does not exist!" << std::endl;
+    KRATOS_CO_SIM_ERROR_IF_NOT(HasIO(rConnectionName)) << "Trying to disconnect connection \"" << rConnectionName << "\" which does not exist!" << std::endl;
 
     GetIO(rConnectionName).Disconnect();
     s_co_sim_ios.erase(std::string(rConnectionName));
