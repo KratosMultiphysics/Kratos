@@ -115,3 +115,7 @@ int CoSimIO_IsConverged(const char* pConnectionName)
     return CoSimIO::IsConverged(pConnectionName);
 }
 
+void _FreeMemory(void** ppData)
+{
+    free(*ppData);
+}
