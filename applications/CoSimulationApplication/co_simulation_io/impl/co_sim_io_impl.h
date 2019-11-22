@@ -12,270 +12,26 @@
 #ifndef KRATOS_CO_SIM_IO_IMPL_H_INCLUDED
 #define KRATOS_CO_SIM_IO_IMPL_H_INCLUDED
 
-// Optional includes
-#ifdef KRATOS_CO_SIM_IO_ENABLE_SOCKETS
-#include "co_sim_sockets_comm.h"
-#endif /* KRATOS_CO_SIM_IO_ENABLE_SOCKETS */
+/*
+This file defines the IO of Kratos-CoSimulation for the exchange of data
+with external solvers.
+By default the communication is done through files,
+support for sockets and MPI can optionally be enabled
+*/
 
-
-#ifdef KRATOS_CO_SIM_IO_ENABLE_MPI
-#include "co_sim_mpi_comm.h"
-#endif /* KRATOS_CO_SIM_IO_ENABLE_MPI */
+// #define KRATOS_CO_SIM_IO_ENABLE_SOCKETS // uncomment for Sockets support
+// #define KRATOS_CO_SIM_IO_ENABLE_MPI // uncomment for MPI support
 
 // System includes
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <vector>
 #include <string>
-#include <map>
-#include <stdexcept>
-#include <utility>
+#include <memory>
 
 // Project includes
-#include "co_sim_file_comm.h"
+#include "co_sim_io_impl_2.h"
 
 namespace CoSimIO {
+
 namespace Internals {
-
-class CoSimIOImpl
-{
-
-public:
-    typedef CoSimComm::SettingsType SettingsType;
-
-    typedef void (*DataExchangeFunctionType)(const std::string&, const std::string&);
-    typedef void (*DataExchangeCFunctionType)(const char*, const char*);
-
-    explicit CoSimIOImpl(const std::string& rName, const std::string& rSettingsFileName)
-    : CoSimIOImpl(rName, Internals::ReadSettingsFile(rSettingsFileName)) { } // forwarding constructor call
-
-    explicit CoSimIOImpl(const std::string& rName, SettingsType rSettings) : mConnectionName(rName)
-    {
-        Initialize(rSettings);
-    }
-
-    bool Connect()
-    {
-        return mpComm->Connect();
-    }
-
-    bool Disconnect()
-    {
-        return mpComm->Connect();
-    }
-
-    void SendControlSignal(const Internals::ControlSignal Signal, const std::string& rIdentifier)
-    {
-        KRATOS_CO_SIM_ERROR_IF_NOT(mIsConnectionMaster) << "This function can only be called as the Connection-Master!" << std::endl;
-        mpComm->SendControlSignal(Signal, rIdentifier);
-    }
-    Internals::ControlSignal RecvControlSignal(std::string& rIdentifier)
-    {
-        KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-        return mpComm->RecvControlSignal(rIdentifier);
-    }
-
-    // Only used for AdvanceInTime
-    void Register(
-        const std::string& rFunctionName,
-        double (*pFunctionPointer)(double))
-    {
-        KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-        KRATOS_CO_SIM_ERROR_IF(rFunctionName == "AdvanceInTime") << "Only \"AdvanceInTime\" can be registered with this function!" << std::endl;
-        KRATOS_CO_SIM_ERROR_IF(mpAdvInTime) << "A function was already registered for " << rFunctionName << "!" << std::endl;
-
-        mpAdvInTime = pFunctionPointer;
-    }
-
-    // Used for the solving functions
-    void Register(
-        const std::string& rFunctionName,
-        void (*pFunctionPointer)(void))
-    {
-        KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-
-        if (rFunctionName == "InitializeSolutionStep") {
-            KRATOS_CO_SIM_ERROR_IF(mpInitSolStep) << "A function was already registered for \"InitializeSolutionStep\"!" << std::endl;
-            mpInitSolStep = pFunctionPointer;
-        } else if (rFunctionName == "SolveSolutionStep") {
-            KRATOS_CO_SIM_ERROR_IF(mpSolSolStep) << "A function was already registered for \"SolveSolutionStep\"!" << std::endl;
-            mpSolSolStep = pFunctionPointer;
-        } else if (rFunctionName == "FinalizeSolutionStep") {
-            KRATOS_CO_SIM_ERROR_IF(mpFinSolStep) << "A function was already registered for \"FinalizeSolutionStep\"!" << std::endl;
-            mpFinSolStep = pFunctionPointer;
-        } else {
-            KRATOS_CO_SIM_ERROR << "Only functions for \"InitializeSolutionStep\", \"SolveSolutionStep\" \"FinalizeSolutionStep\" can be registered using this function, tried registering " << rFunctionName << std::endl;
-        }
-    }
-
-    // Used for the data-exchange functions coming from C or Fortran
-    void Register(
-        const std::string& rFunctionName,
-        void (*pFunctionPointer)(const char*, const char*))
-    {
-        KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-        KRATOS_CO_SIM_ERROR_IF(mDataExchangeFunctions.size() > 0) << "Mixing of registering functions with different arguments is not allowed!" << std::endl;
-        KRATOS_CO_SIM_ERROR_IF((mDataExchangeCFunctions.count(rFunctionName)>0)) << "A function was already registered for " << rFunctionName << "!" << std::endl;
-        // TODO maybe check if the name of the function is allowed?
-        mDataExchangeCFunctions[rFunctionName] = pFunctionPointer;
-    }
-
-    // Used for the data-exchange functions coming from C++
-    void Register(
-        const std::string& rFunctionName,
-        void (*pFunctionPointer)(const std::string&, const std::string&))
-    {
-        KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-        KRATOS_CO_SIM_ERROR_IF(mDataExchangeCFunctions.size() > 0) << "Mixing of registering functions with different arguments is not allowed!" << std::endl;
-        KRATOS_CO_SIM_ERROR_IF((mDataExchangeFunctions.count(rFunctionName)>0)) << "A function was already registered for " << rFunctionName << "!" << std::endl;
-        // TODO maybe check if the name of the function is allowed?
-        mDataExchangeFunctions[rFunctionName] = pFunctionPointer;
-    }
-
-    void Run()
-    {
-        KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-
-        const std::map<const CoSimIO::Internals::ControlSignal, const std::string> signal_to_name = {
-            {CoSimIO::Internals::ControlSignal::ImportGeometry, "ImportGeometry"},
-            {CoSimIO::Internals::ControlSignal::ExportGeometry, "ExportGeometry"},
-            {CoSimIO::Internals::ControlSignal::ImportMesh,     "ImportMesh"},
-            {CoSimIO::Internals::ControlSignal::ExportMesh,     "ExportMesh"},
-            {CoSimIO::Internals::ControlSignal::ImportData,     "ImportData"},
-            {CoSimIO::Internals::ControlSignal::ExportData,     "ExportData"}
-        };
-
-        CoSimIO::Internals::ControlSignal control_signal;
-        std::string identifier;
-        while(true) {
-            control_signal = RecvControlSignal(identifier);
-            if (control_signal == CoSimIO::Internals::ControlSignal::BreakSolutionLoop) {
-                break; // coupled simulation is done
-            } else if (control_signal == CoSimIO::Internals::ControlSignal::AdvanceInTime) {
-                KRATOS_CO_SIM_ERROR_IF_NOT(mpAdvInTime) << "No function was registered for \"AdvanceInTime\"!" << std::endl;
-
-                std::vector<double> time_vec(1);
-                // DataContainers::Data time_data = {time_vec};
-                // Import(time_data, "time_from_co_sim");
-                time_vec[0] = mpAdvInTime(time_vec[0]);
-                // Export(time_data, "time_to_co_sim");
-            } else if (control_signal == CoSimIO::Internals::ControlSignal::InitializeSolutionStep) {
-                KRATOS_CO_SIM_ERROR_IF_NOT(mpInitSolStep) << "No function was registered for \"InitializeSolutionStep\"!" << std::endl;
-                mpInitSolStep();
-
-            } else if (control_signal == CoSimIO::Internals::ControlSignal::SolveSolutionStep) {
-                KRATOS_CO_SIM_ERROR_IF_NOT(mpSolSolStep) << "No function was registered for \"SolveSolutionStep\"!" << std::endl;
-                mpSolSolStep();
-            } else if (control_signal == CoSimIO::Internals::ControlSignal::FinalizeSolutionStep) {
-                KRATOS_CO_SIM_ERROR_IF_NOT(mpFinSolStep) << "No function was registered for \"FinalizeSolutionStep\"!" << std::endl;
-                mpFinSolStep();
-            } else if (signal_to_name.count(control_signal) > 0) {
-                const auto& r_function_name(signal_to_name.at(control_signal));
-
-                KRATOS_CO_SIM_ERROR_IF_NOT((mDataExchangeFunctions.count(r_function_name)>0)) << "No function was registered for \"" << r_function_name << "\"!" << std::endl;
-                mDataExchangeFunctions.at(r_function_name)(mConnectionName, identifier);
-            } else {
-                KRATOS_CO_SIM_ERROR << "Unknown control signal received: " << static_cast<int>(control_signal) << std::endl;;
-            }
-        }
-    }
-
-    bool IsConverged()
-    {
-        std::string dummy("");
-        return RecvControlSignal(dummy) == CoSimIO::Internals::ControlSignal::ConvergenceAchieved;
-    }
-
-
-    template<class... Args>
-    void ImportData(Args&&... args)
-    {
-        mpComm->ImportData(std::forward<Args>(args)...);
-    }
-
-    template<class... Args>
-    void ExportData(Args&&... args)
-    {
-        mpComm->ExportData(std::forward<Args>(args)...);
-    }
-
-    template<class... Args>
-    void ImportMesh(Args&&... args)
-    {
-        mpComm->ImportMesh(std::forward<Args>(args)...);
-    }
-
-    template<class... Args>
-    void ExportMesh(Args&&... args)
-    {
-        mpComm->ExportMesh(std::forward<Args>(args)...);
-    }
-
-    template<class... Args>
-    void ImportGeometry(Args&&... args)
-    {
-        KRATOS_CO_SIM_ERROR << "Importing of Geometry is not yet implemented!" << std::endl;
-        mpComm->ImportGeometry(std::forward<Args>(args)...);
-    }
-
-    template<class... Args>
-    void ExportGeometry(Args&&... args)
-    {
-        KRATOS_CO_SIM_ERROR << "Exporting of Geometry is not yet implemented!" << std::endl;
-        mpComm->ExportGeometry(std::forward<Args>(args)...);
-    }
-
-private:
-    std::unique_ptr<CoSimComm> mpComm; // handles communication (File, Sockets, MPI, ...)
-
-    std::string mConnectionName;
-
-    bool mIsConnectionMaster = false;
-
-    double (*mpAdvInTime)(double) = nullptr;
-    void   (*mpInitSolStep)()     = nullptr;
-    void   (*mpSolSolStep)()      = nullptr;
-    void   (*mpFinSolStep)()      = nullptr;
-
-    std::map<const std::string, DataExchangeFunctionType> mDataExchangeFunctions;
-    std::map<const std::string, DataExchangeCFunctionType> mDataExchangeCFunctions;
-
-    void Initialize(SettingsType& rSettings)
-    {
-        std::string comm_format("file"); // default is file-communication
-        if (rSettings.count("communication_format") != 0) { // communication format has been specified
-            comm_format = rSettings.at("communication_format");
-        }
-
-        if (rSettings.count("is_connection_master") != 0) { // is_connection_master has been specified
-            mIsConnectionMaster = (rSettings.at("is_connection_master") == "1");
-        }
-
-        KRATOS_CO_SIM_INFO("CoSimIO") << "CoSimIO for \"" << mConnectionName << "\" uses communication format: " << comm_format << std::endl;
-
-        if (comm_format == "file") {
-            mpComm = std::unique_ptr<CoSimComm>(new FileComm(mConnectionName, rSettings, mIsConnectionMaster));
-        } else if (comm_format == "sockets") {
-            #ifdef KRATOS_CO_SIM_IO_ENABLE_SOCKETS
-            mpComm = std::unique_ptr<CoSimComm>(new SocketsComm(mConnectionName, rSettings, mIsConnectionMaster));
-            #else
-            KRATOS_CO_SIM_ERROR << "Support for Sockets was not compiled!" << std::endl;
-            #endif /* KRATOS_CO_SIM_IO_ENABLE_SOCKETS */
-        } else if (comm_format == "mpi") {
-            #ifdef KRATOS_CO_SIM_IO_ENABLE_MPI
-            mpComm = std::unique_ptr<CoSimComm>(new MPIComm(mConnectionName, rSettings, mIsConnectionMaster));
-            #else
-            KRATOS_CO_SIM_ERROR << "Support for MPI was not compiled!" << std::endl;
-            #endif /* KRATOS_CO_SIM_IO_ENABLE_MPI */
-        } else {
-            KRATOS_CO_SIM_ERROR << "Unsupported communication format: " << comm_format << std::endl;
-        }
-    }
-
-}; // class CoSimIOImpl
-
-
 // TODO make sure this is unique even across compilation units (test somehow)
 static std::unordered_map<std::string, std::unique_ptr<CoSimIOImpl>> s_co_sim_ios;
 
@@ -291,6 +47,140 @@ static CoSimIOImpl& GetIO(const std::string& rConnectionName)
 }
 
 } // namespace Internals
+
+inline void Connect(const std::string& rConnectionName, const std::string& pSettingsFileName)
+{
+    using namespace Internals;
+    KRATOS_CO_SIM_ERROR_IF(HasIO(rConnectionName)) << "A connection for " << rConnectionName << " already exists!" << std::endl;
+
+    s_co_sim_ios[std::string(rConnectionName)] = std::unique_ptr<CoSimIOImpl>(new CoSimIOImpl(rConnectionName, pSettingsFileName));
+    GetIO(rConnectionName).Connect();
+}
+
+inline void Disconnect(const std::string& rConnectionName)
+{
+    using namespace Internals;
+    KRATOS_CO_SIM_ERROR_IF_NOT(HasIO(rConnectionName)) << "Trying to disconnect connection " << rConnectionName << " which does not exist!" << std::endl;
+
+    GetIO(rConnectionName).Disconnect();
+    s_co_sim_ios.erase(std::string(rConnectionName));
+}
+
+// Version for C++, there this input is a std::vector, which we have to wrap before passing it on
+template<>
+inline void ImportData(
+    const std::string& rConnectionName,
+    const std::string& rIdentifier,
+    std::vector<double>& pData)
+{
+    using namespace CoSimIO::Internals;
+    std::unique_ptr<DataContainer<double>> p_container(new DataContainerStdVector<double>(pData));
+    GetIO(rConnectionName).ImportData(rIdentifier, *p_container);
+}
+
+// Version for C and fortran, there we already get a container
+template<>
+inline void ImportData(
+    const std::string& rConnectionName,
+    const std::string& rIdentifier,
+    CoSimIO::Internals::DataContainer<double>& pData)
+{
+    Internals::GetIO(rConnectionName).ImportData(rIdentifier, pData);
+}
+
+// Version for C++, there this input is a std::vector, which we have to wrap before passing it on
+template<>
+inline void ExportData(
+    const std::string& rConnectionName,
+    const std::string& rIdentifier,
+    std::vector<double>& pData)
+{
+    using namespace CoSimIO::Internals;
+    std::unique_ptr<DataContainer<double>> p_container(new DataContainerStdVector<double>(pData));
+    GetIO(rConnectionName).ExportData(rIdentifier, *p_container);
+}
+
+// Version for C and fortran, there we already get a container
+template<>
+inline void ExportData(
+    const std::string& rConnectionName,
+    const std::string& rIdentifier,
+    CoSimIO::Internals::DataContainer<double>& pData)
+{
+    Internals::GetIO(rConnectionName).ExportData(rIdentifier, pData);
+}
+
+template<>
+inline void ImportMesh(
+    const std::string& rConnectionName,
+    const std::string& rIdentifier,
+    std::vector<double>& pNodalCoordinates,
+    std::vector<int>& pElementConnectivities,
+    std::vector<int>& pElementTypes)
+{
+    using namespace CoSimIO::Internals;
+    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerStdVector<double>(pNodalCoordinates));
+    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerStdVector<int>(pElementConnectivities));
+    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerStdVector<int>(pElementTypes));
+    Internals::GetIO(rConnectionName).ImportMesh(rIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
+}
+
+template<>
+inline void ImportMesh(
+    const std::string& rConnectionName,
+    const std::string& rIdentifier,
+    CoSimIO::Internals::DataContainer<double>& pNodalCoordinates,
+    CoSimIO::Internals::DataContainer<int>& pElementConnectivities,
+    CoSimIO::Internals::DataContainer<int>& pElementTypes)
+{
+    Internals::GetIO(rConnectionName).ImportMesh(rIdentifier, pNodalCoordinates, pElementConnectivities, pElementTypes);
+}
+
+template<>
+inline void ExportMesh(
+    const std::string& rConnectionName,
+    const std::string& rIdentifier,
+    std::vector<double>& pNodalCoordinates,
+    std::vector<int>& pElementConnectivities,
+    std::vector<int>& pElementTypes)
+{
+    using namespace CoSimIO::Internals;
+    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerStdVector<double>(pNodalCoordinates));
+    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerStdVector<int>(pElementConnectivities));
+    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerStdVector<int>(pElementTypes));
+    Internals::GetIO(rConnectionName).ExportMesh(rIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
+}
+
+template<>
+inline void ExportMesh(
+    const std::string& rConnectionName,
+    const std::string& rIdentifier,
+    CoSimIO::Internals::DataContainer<double>& pNodalCoordinates,
+    CoSimIO::Internals::DataContainer<int>& pElementConnectivities,
+    CoSimIO::Internals::DataContainer<int>& pElementTypes)
+{
+    Internals::GetIO(rConnectionName).ExportMesh(rIdentifier, pNodalCoordinates, pElementConnectivities, pElementTypes);
+}
+
+inline bool IsConverged(const std::string& rConnectionName)
+{
+    return Internals::GetIO(rConnectionName).IsConverged();
+}
+
+inline void Run(const std::string& rConnectionName)
+{
+    Internals::GetIO(rConnectionName).Run();
+}
+
+template<typename TFunctionType>
+inline void Register(
+    const std::string& rConnectionName,
+    const std::string& rFunctionName,
+    TFunctionType rFunction)
+{
+    Internals::GetIO(rConnectionName).Register(rFunctionName, rFunction);
+}
+
 } // namespace CoSimIO
 
 #endif /* KRATOS_CO_SIM_IO_IMPL_H_INCLUDED */
