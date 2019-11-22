@@ -255,16 +255,16 @@ private:
         KRATOS_CO_SIM_INFO("CoSimIO") << "CoSimIO for \"" << mConnectionName << "\" uses communication format: " << comm_format << std::endl;
 
         if (comm_format == "file") {
-            mpComm = std::unique_ptr<CoSimComm>(new FileComm(mConnectionName, rSettings, mIsConnectionMaster)); // make_unique is C++14
+            mpComm = std::unique_ptr<CoSimComm>(new FileComm(mConnectionName, rSettings, mIsConnectionMaster));
         } else if (comm_format == "sockets") {
             #ifdef KRATOS_CO_SIM_IO_ENABLE_SOCKETS
-            mpComm = std::unique_ptr<CoSimComm>(new SocketsComm(mConnectionName, rSettings, mIsConnectionMaster)); // make_unique is C++14
+            mpComm = std::unique_ptr<CoSimComm>(new SocketsComm(mConnectionName, rSettings, mIsConnectionMaster));
             #else
             KRATOS_CO_SIM_ERROR << "Support for Sockets was not compiled!" << std::endl;
             #endif /* KRATOS_CO_SIM_IO_ENABLE_SOCKETS */
         } else if (comm_format == "mpi") {
             #ifdef KRATOS_CO_SIM_IO_ENABLE_MPI
-            mpComm = std::unique_ptr<CoSimComm>(new MPIComm(mConnectionName, rSettings, mIsConnectionMaster)); // make_unique is C++14
+            mpComm = std::unique_ptr<CoSimComm>(new MPIComm(mConnectionName, rSettings, mIsConnectionMaster));
             #else
             KRATOS_CO_SIM_ERROR << "Support for MPI was not compiled!" << std::endl;
             #endif /* KRATOS_CO_SIM_IO_ENABLE_MPI */

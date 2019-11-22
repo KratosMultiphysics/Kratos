@@ -38,7 +38,7 @@ inline void Disconnect(const std::string& rConnectionName);
 
 template<class TContainerType>
 inline void ImportData(
-    const std::string& rConnectionName, // TODO is this a memory error if the "const char*" comes from C???
+    const std::string& rConnectionName,
     const std::string& rIdentifier,
     TContainerType& pData);
 
@@ -86,7 +86,7 @@ inline void Connect(const std::string& rConnectionName, const std::string& pSett
     using namespace Internals;
     KRATOS_CO_SIM_ERROR_IF(HasIO(rConnectionName)) << "A connection for " << rConnectionName << " already exists!" << std::endl;
 
-    s_co_sim_ios[std::string(rConnectionName)] = std::unique_ptr<CoSimIOImpl>(new CoSimIOImpl(rConnectionName, pSettingsFileName)); // make_unique is C++14
+    s_co_sim_ios[std::string(rConnectionName)] = std::unique_ptr<CoSimIOImpl>(new CoSimIOImpl(rConnectionName, pSettingsFileName));
     GetIO(rConnectionName).Connect();
 }
 
@@ -107,7 +107,7 @@ inline void ImportData(
     std::vector<double>& pData)
 {
     using namespace CoSimIO::Internals;
-    std::unique_ptr<DataContainer<double>> p_container(new DataContainerStdVector<double>(pData)); // make_unique is c++14
+    std::unique_ptr<DataContainer<double>> p_container(new DataContainerStdVector<double>(pData));
     GetIO(rConnectionName).ImportData(rIdentifier, *p_container);
 }
 
@@ -129,7 +129,7 @@ inline void ExportData(
     std::vector<double>& pData)
 {
     using namespace CoSimIO::Internals;
-    std::unique_ptr<DataContainer<double>> p_container(new DataContainerStdVector<double>(pData)); // make_unique is c++14
+    std::unique_ptr<DataContainer<double>> p_container(new DataContainerStdVector<double>(pData));
     GetIO(rConnectionName).ExportData(rIdentifier, *p_container);
 }
 
@@ -152,9 +152,9 @@ inline void ImportMesh(
     std::vector<int>& pElementTypes)
 {
     using namespace CoSimIO::Internals;
-    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerStdVector<double>(pNodalCoordinates)); // make_unique is c++14
-    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerStdVector<int>(pElementConnectivities)); // make_unique is c++14
-    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerStdVector<int>(pElementTypes)); // make_unique is c++14
+    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerStdVector<double>(pNodalCoordinates));
+    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerStdVector<int>(pElementConnectivities));
+    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerStdVector<int>(pElementTypes));
     Internals::GetIO(rConnectionName).ImportMesh(rIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
 }
 
@@ -178,9 +178,9 @@ inline void ExportMesh(
     std::vector<int>& pElementTypes)
 {
     using namespace CoSimIO::Internals;
-    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerStdVector<double>(pNodalCoordinates)); // make_unique is c++14
-    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerStdVector<int>(pElementConnectivities)); // make_unique is c++14
-    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerStdVector<int>(pElementTypes)); // make_unique is c++14
+    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerStdVector<double>(pNodalCoordinates));
+    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerStdVector<int>(pElementConnectivities));
+    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerStdVector<int>(pElementTypes));
     Internals::GetIO(rConnectionName).ExportMesh(rIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
 }
 

@@ -33,7 +33,7 @@ void CoSimIO_ImportData(
     double** ppData)
 {
     using namespace CoSimIO::Internals;
-    std::unique_ptr<DataContainer<double>> p_container(new DataContainerRawMemory<double>(ppData, *pSize)); // make_unique is c++14
+    std::unique_ptr<DataContainer<double>> p_container(new DataContainerRawMemory<double>(ppData, *pSize));
     CoSimIO::ImportData(pConnectionName, pIdentifier, *p_container);
     // TODO check return of Size!
 }
@@ -45,7 +45,7 @@ void CoSimIO_ExportData(
     double* pData)
 {
     using namespace CoSimIO::Internals;
-    std::unique_ptr<DataContainer<double>> p_container(new DataContainerRawMemory<double>(&pData, Size)); // make_unique is c++14
+    std::unique_ptr<DataContainer<double>> p_container(new DataContainerRawMemory<double>(&pData, Size));
     CoSimIO::ExportData(pConnectionName, pIdentifier, *p_container);
 }
 
@@ -59,9 +59,9 @@ void ImportMesh(
     int** ppElementTypes)
 {
     using namespace CoSimIO::Internals;
-    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerRawMemory<double>(ppNodalCoordinates, *pNumberOfNodes)); // make_unique is c++14
-    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerRawMemory<int>(ppElementConnectivities, *pNumberOfElements)); // make_unique is c++14
-    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerRawMemory<int>(ppElementTypes, *pNumberOfElements)); // make_unique is c++14
+    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerRawMemory<double>(ppNodalCoordinates, *pNumberOfNodes));
+    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerRawMemory<int>(ppElementConnectivities, *pNumberOfElements));
+    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerRawMemory<int>(ppElementTypes, *pNumberOfElements));
     CoSimIO::ImportMesh(pConnectionName, pIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
     // TODO check return of Sizes!
 }
@@ -76,9 +76,9 @@ void CoSimIO_ExportMesh(
     int* pElementTypes)
 {
     using namespace CoSimIO::Internals;
-    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerRawMemory<double>(&pNodalCoordinates, NumberOfNodes)); // make_unique is c++14
-    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerRawMemory<int>(&pElementConnectivities, NumberOfElements)); // make_unique is c++14
-    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerRawMemory<int>(&pElementTypes, NumberOfElements)); // make_unique is c++14
+    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerRawMemory<double>(&pNodalCoordinates, NumberOfNodes));
+    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerRawMemory<int>(&pElementConnectivities, NumberOfElements));
+    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerRawMemory<int>(&pElementTypes, NumberOfElements));
     CoSimIO::ExportMesh(pConnectionName, pIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
 }
 
