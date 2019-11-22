@@ -33,6 +33,9 @@
 #include "geometries/prism_interface_3d_6.h"
 #include "geometries/hexahedra_interface_3d_8.h"
 
+#include "geometries/prism_3d_6.h"
+#include "geometries/prism_3d_15.h"
+
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/condition.h"
