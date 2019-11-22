@@ -185,7 +185,7 @@ C==============================================================================
       DO R = 1,S
          WRITE(FILENAME,'(A,A,A,I0,A)') 
      &      '|PWD|',
-     &      '|CSM_dir|/CSM_Time',
+     &      '/|CSM_dir|/CSM_Time',
      &      'Surface',(R-1),'Elements.dat'
 
          OPEN(UNIT=UNIT_ELEM,FILE=FILENAME,STATUS='OLD')
@@ -211,7 +211,7 @@ C==============================================================================
       DO R = 1,S
          WRITE(FILENAME,'(A,A,I0,A,I0,A,I0,A)') 
      &      '|PWD|',
-     &      '|CSM_dir|/CSM_Time',
+     &      '/|CSM_dir|/CSM_Time',
      &      KSTEP,'Surface',(R-1),'Cpu',ID,'Input.dat'
 
          OPEN(UNIT=UNIT_LOAD,FILE=FILENAME,STATUS='OLD')
@@ -235,7 +235,7 @@ C==============================================================================
 #if RAMP
          WRITE(FILENAME,'(A,A,I0,A,I0,A,I0,A)') 
      &      '|PWD|',
-     &      '|CSM_dir|/CSM_Time',
+     &      '/|CSM_dir|/CSM_Time',
      &      (KSTEP-1),'Surface',(R-1),'Cpu',ID,'Input.dat'
 
          OPEN(UNIT=UNIT_LOAD,FILE=FILENAME,STATUS='OLD')

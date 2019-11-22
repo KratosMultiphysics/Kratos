@@ -105,13 +105,13 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         if(self.timestep_start == 0):
             cmd1 = f"export PBS_NODEFILE=AbaqusHosts.txt && unset SLURM_GTIDS" #To get this to work on HPC?
             cmd2 = f"abaqus job=CSM_Time{self.timestep_start+1} input=CSM_Time{self.timestep_start} cpus=1 user=usrInit.f" \
-                f"output_precision=full interactive >> AbaqusSolver.log 2>&1"
+                f" output_precision=full interactive >> AbaqusSolver.log 2>&1"
             commands = [cmd1, cmd2]
             self.run_shell(self.dir_csm, commands, name='Abaqus_USRInit_Time0')
         else:
             cmd1 = f"export PBS_NODEFILE=AbaqusHosts.txt && unset SLURM_GTIDS" #To get this to work on HPC?
             cmd2 = f"abaqus job=CSM_Time{self.timestep_start+1} oldjob=CSM_Time{self.timestep_start} input=CSM_Restart cpus=1 user=usrInit.f" \
-                f"output_precision=full interactive >> AbaqusSolver.log 2>&1"
+                f" output_precision=full interactive >> AbaqusSolver.log 2>&1"
             commands = [cmd1, cmd2]
             self.run_shell(self.dir_csm, commands, name=f'Abaqus_USRInit_Restart')
 
@@ -134,7 +134,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         self.run_shell(self.dir_csm, commands, name='Compile_GetOutput')
 
         # Get node positions (not load points) at startTimeStep
-        cmd = f"abaqus ./GetOutput.exe CSM_Time{self.timestep_start+1} 0 >> AbaqusSolver0.log 2>&1"
+        cmd = f"abaqus ./GetOutput.exe CSM_Time{self.timestep_start+1} 0 >> AbaqusSolver.log 2>&1"
         commands=[cmd]
         self.run_shell(self.dir_csm, commands, name='GetOutput_Start')
 
@@ -292,7 +292,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                 file = join(self.dir_csm, file_name)
                 os.remove(file)
 
-    def run_shell(self, work_dir, commands, wait=True, name='script'):
+    def run_shell(self, work_dir, commands, wait=True, name='script', delete=True):
         script = f'{work_dir}/{name}.sh'
         with open(script, 'w') as file:
             file.write('#!/bin/bash\n')
@@ -304,6 +304,8 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             p = subprocess.call(script, shell=True)
         else:
             p = subprocess.Popen(script, shell=True)
+        if delete:
+            os.system("rm " + script)
         return p
 
     def FORT_replace(self, line, orig, new):
@@ -323,13 +325,13 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                 line += temp[0:char_limit] + "\n"
                 count += char_limit
                 while count < N:
-                    temp_string = temp[count:count + char_limit - 12]
+                    temp_string = temp[count:count + char_limit - 6]
                     n = len(temp_string)
                     count += n
                     if count < N:  # need to append an additional new line
-                        line += "     &" + "      " + temp_string + "\n"
+                        line += "     &" + temp_string + "\n"
                     else:
-                        line += "     &" + "      " + temp_string
+                        line += "     &" + temp_string
             else:
                 line = temp
 
