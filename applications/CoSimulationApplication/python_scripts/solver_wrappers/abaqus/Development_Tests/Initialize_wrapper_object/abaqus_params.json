@@ -14,7 +14,8 @@
                 "surfaces": 1,
                 "ramp": 1,
                 "delta_T": 1e-3,
-                "timestep_start": 0
+                "timestep_start": 0,
+                "surfaceIDs": "\"BEAMINSIDEMOVING\""
             }
         }
     ]

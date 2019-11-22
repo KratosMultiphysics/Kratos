@@ -47,13 +47,14 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         self.ramp = self.settings["ramp"].GetInt()
         self.delta_T = self.settings["delta_T"].GetDouble()  #TODO: move to higher-level parameter file?
         self.timestep_start = self.settings["timestep_start"].GetDouble()  #TODO: move to higher-level parameter file?
+        self.surfaceIDs = self.settings["surfaceIDs"].GetString()
 
         # Upon(re)starting Abaqus needs to run USRInit.f
         # A restart requires Abaqus to be booted with a restart file
 
         # prepare Abaqus USRInit.f
         usr = "USRInit.f"
-        with open(join(path_src, usr), "r")as infile:
+        with open(join(path_src, usr), "r") as infile:
             with open(join(self.dir_csm, usr), "w") as outfile:
                 for line in infile:
                     line = line.replace("|dimension|", str(self.dimensions))
@@ -77,13 +78,13 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         cmd3 = "module load ABAQUS/6.14"
         cmd4 = "abaqus make library=" + usr + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
         commands = [cmd1, cmd2, cmd3, cmd4]
-        self.run_shell(self.dir_csm, commands, name='Compile_USR')
+        self.run_shell(self.dir_csm, commands, name='Compile_USRInit')
 
         # call Abaqus
 
         # prepare Abaqus USR.f
         usr = "USR.f"
-        with open(join(path_src, usr), "r")as infile:
+        with open(join(path_src, usr), "r") as infile:
             with open(join(self.dir_csm, usr), "w") as outfile:
                 for line in infile:
                     line = line.replace("|dimension|", str(self.dimensions))
@@ -110,6 +111,24 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         cmd4 = "abaqus make library=" + usr + " directory=" + path_libusr + " >> AbaqusSolver.log 2>&1"
         commands = [cmd1, cmd2, cmd3, cmd4]
         self.run_shell(self.dir_csm, commands, name='Compile_USR')
+
+        # prepare GetOutput.cpp
+        get_output = "GetOutput.cpp"
+        with open(join(path_src, get_output), "r") as infile:
+            with open(join(self.dir_csm, get_output), "w") as outfile:
+                for line in infile:
+                    line = line.replace("|surfaces|", str(self.surfaces))
+                    line = line.replace("|surfaceIDs|", str(self.surfaceIDs))
+                    line = line.replace("|dimension|", str(self.dimensions))
+                    if "|" in line:
+                        raise ValueError(f"The following line in USR.f still contains a \"|\" after substitution: \n \t{line} \n Probably a parameter was not subsituted")
+
+                    outfile.write(line)
+
+        # compile GetOutput.cpp
+        cmd4 = "abaqus make job=GetOutput user=GetOutput.cpp >> AbaqusSolver.log 2>&1"
+        commands = [cmd1, cmd2, cmd3, cmd4]
+        self.run_shell(self.dir_csm, commands, name='Compile_GetOutput')
 
         # TODO:
         #   Read settings
