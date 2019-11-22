@@ -82,7 +82,7 @@ public:
         void (*pFunctionPointer)(double*))
     {
         KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
-        KRATOS_CO_SIM_ERROR_IF(rFunctionName == "AdvanceInTime") << "Only \"AdvanceInTime\" can be registered with this function!" << std::endl;
+        KRATOS_CO_SIM_ERROR_IF(rFunctionName != "AdvanceInTime") << "Only \"AdvanceInTime\" can be registered with this function, trying to register \"" << rFunctionName << "\"!" << std::endl;
         KRATOS_CO_SIM_ERROR_IF(mpAdvInTime) << "A function was already registered for " << rFunctionName << "!" << std::endl;
 
         mpAdvInTime = pFunctionPointer;
