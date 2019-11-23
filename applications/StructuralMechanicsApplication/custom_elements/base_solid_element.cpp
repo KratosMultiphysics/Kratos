@@ -15,10 +15,11 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
-#include "custom_elements/base_solid_element.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
+
+// Application includes
+#include "custom_elements/base_solid_element.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 
@@ -1411,48 +1412,12 @@ int  BaseSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
-    Element::Check(rCurrentProcessInfo);
+    int check = Element::Check(rCurrentProcessInfo);
 
-    const SizeType number_of_nodes = this->GetGeometry().size();
-    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+    // Basic check
+    check = StructuralMechanicsElementUtilities::SolidElementCheck(*this, rCurrentProcessInfo, mConstitutiveLawVector);
 
-    // Verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY)
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
-
-    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for ( IndexType i = 0; i < number_of_nodes; i++ ) {
-        const NodeType &rnode = this->GetGeometry()[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
-//         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rnode)
-//         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rnode)
-
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
-    }
-
-    // Verify that the constitutive law exists
-    KRATOS_ERROR_IF_NOT(this->GetProperties().Has( CONSTITUTIVE_LAW )) << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
-
-    // Verify that the constitutive law has the correct dimension
-    const SizeType strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
-    if ( dimension == 2 ) {
-        KRATOS_ERROR_IF( strain_size < 3 || strain_size > 4) << "Wrong constitutive law used. This is a 2D element! expected strain size is 3 or 4 (el id = ) " << this->Id() << std::endl;
-    } else {
-        KRATOS_ERROR_IF_NOT(strain_size == 6) << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) "<<  this->Id() << std::endl;
-    }
-
-    // Check constitutive law
-    if ( mConstitutiveLawVector.size() > 0 ) {
-        return mConstitutiveLawVector[0]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
-    }
-
-    return 0;
+    return check;
 
     KRATOS_CATCH( "" );
 }
@@ -1669,31 +1634,11 @@ double BaseSolidElement::CalculateDerivativesOnCurrentConfiguration(
 /***********************************************************************************/
 
 array_1d<double, 3> BaseSolidElement::GetBodyForce(
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+    const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
     const IndexType PointNumber
     ) const
 {
-    array_1d<double, 3> body_force;
-    for (IndexType i = 0; i < 3; ++i)
-        body_force[i] = 0.0;
-
-    const auto& r_properties = GetProperties();
-    double density = 0.0;
-    if (r_properties.Has( DENSITY ))
-        density = r_properties[DENSITY];
-
-    if (r_properties.Has( VOLUME_ACCELERATION ))
-        noalias(body_force) += density * r_properties[VOLUME_ACCELERATION];
-
-    const auto& r_geometry = this->GetGeometry();
-    if( r_geometry[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
-        Vector N;
-        N = r_geometry.ShapeFunctionsValues(N, IntegrationPoints[PointNumber].Coordinates());
-        for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node)
-            noalias(body_force) += N[i_node] * density * r_geometry[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-    }
-
-    return body_force;
+    return StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
 }
 
 /***********************************************************************************/
