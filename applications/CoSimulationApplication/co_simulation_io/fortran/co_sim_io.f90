@@ -99,9 +99,21 @@ MODULE co_sim_io
             TYPE(C_FUNPTR), INTENT(IN), VALUE :: FunctionPointer
         END SUBROUTINE CoSimIO_RegisterDataExchangeFunction
 
-        SUBROUTINE FreeCMemory(Data) BIND (C,NAME='_FreeMemory')
+        SUBROUTINE AllocateCMemoryInt(size, c_pointer) BIND (C,NAME='_AllocateMemoryInt')
             USE, INTRINSIC :: ISO_C_BINDING
-            type(C_PTR) :: Data
+            INTEGER(C_INT), INTENT(IN) :: size
+            type(C_PTR), INTENT(IN) :: c_pointer
+        END SUBROUTINE AllocateCMemoryInt
+
+        SUBROUTINE AllocateCMemoryReal(size, c_pointer) BIND (C,NAME='_AllocateMemoryDouble')
+            USE, INTRINSIC :: ISO_C_BINDING
+            INTEGER(C_INT), INTENT(IN) :: size
+            type(C_PTR), INTENT(IN) :: c_pointer
+        END SUBROUTINE AllocateCMemoryReal
+
+        SUBROUTINE FreeCMemory(c_pointer) BIND (C,NAME='_FreeMemory')
+            USE, INTRINSIC :: ISO_C_BINDING
+            type(C_PTR), INTENT(IN) :: c_pointer
         END SUBROUTINE FreeCMemory
 
     END INTERFACE

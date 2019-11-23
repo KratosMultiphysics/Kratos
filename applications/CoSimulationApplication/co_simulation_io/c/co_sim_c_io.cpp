@@ -115,6 +115,28 @@ void CoSimIO_IsConverged(const char* pConnectionName, int* pConvergenceSignal)
     CoSimIO::IsConverged(pConnectionName, pConvergenceSignal);
 }
 
+void _AllocateMemoryInt(const int* pSize, int** ppData)
+{
+    free(*ppData); // making sure that potenetially allocated memory is freed. This is ok also if nothing is allocated aka NULL
+    *ppData = (int *)malloc((*pSize)*sizeof(int));
+
+    if (!(*ppData)) {
+        printf("ERROR, memory allocation (int) failed!");
+        exit(0);
+    }
+}
+
+void _AllocateMemoryDouble(const int* pSize, double** ppData)
+{
+    free(*ppData); // making sure that potenetially allocated memory is freed. This is ok also if nothing is allocated aka NULL
+    *ppData = (double *)malloc((*pSize)*sizeof(double));
+
+    if (!(*ppData)) {
+        printf("ERROR, memory allocation (double) failed!");
+        exit(0);
+    }
+}
+
 void _FreeMemory(void** ppData)
 {
     free(*ppData);

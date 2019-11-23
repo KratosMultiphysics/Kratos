@@ -71,8 +71,10 @@ void CoSimIO_Run(const char* pConnectionName);
 
 void CoSimIO_IsConverged(const char* pConnectionName, int* pConvergenceSignal);
 
-// This functions is intended to only be used from fortran
-// This is because the memory allocated in C should also be deleted in C
+// The following functions are intended to only be used from Fortran
+// This is because memory used in the CoSimIO should be allocated and freed in C
+void _AllocateMemoryInt(const int* pSize, int** ppData);
+void _AllocateMemoryDouble(const int* pSize, double** ppData);
 void _FreeMemory(void** ppData);
 
 #ifdef __cplusplus

@@ -14,9 +14,10 @@ MODULE solver_globals
     INTEGER, DIMENSION(:), pointer :: f_ptr_data_elem_conn
     INTEGER, DIMENSION(:), pointer :: f_ptr_data_elem_types
 
-    type (c_ptr) :: c_ptr_data_real
-    type (c_ptr) :: c_ptr_data_elem_conn
-    type (c_ptr) :: c_ptr_data_elem_types
+    ! assigning null otherwise memory is corrupted and valgrind complains
+    type (c_ptr) :: c_ptr_data_real = c_null_ptr
+    type (c_ptr) :: c_ptr_data_elem_conn = c_null_ptr
+    type (c_ptr) :: c_ptr_data_elem_types = c_null_ptr
 
 END MODULE solver_globals
 
@@ -93,8 +94,10 @@ program dummy_solver_fortran
         character(*), INTENT(IN) :: connection_name
         character(*), INTENT(IN) :: identifier
         call solver_print("    Before Importing Data from CoSim", 3)
+
         call CoSimIO_ImportData(connection_name//c_null_char, identifier//c_null_char,&
             size_real_array, c_ptr_data_real)
+
         call c_f_pointer(c_ptr_data_real, f_ptr_data_real, [size_real_array])
         call solver_print("    After Importing Data from CoSim", 3)
     END SUBROUTINE import_data_from_co_sim
@@ -103,16 +106,18 @@ program dummy_solver_fortran
         character(*), INTENT(IN) :: connection_name
         character(*), INTENT(IN) :: identifier
         call solver_print("    Before Exporting Data to CoSim", 3)
-        ! TODO check how / what to pass (maybe let C allocate???)
+
         call CoSimIO_ExportData(connection_name//c_null_char, identifier//c_null_char,&
             size_real_array, c_ptr_data_real)
-        call solver_print("    After Exporting Data to CoSim", 3)
+
+            call solver_print("    After Exporting Data to CoSim", 3)
     END SUBROUTINE export_data_to_co_sim
 
     SUBROUTINE import_mesh_from_co_sim (connection_name, identifier)
         character(*), INTENT(IN) :: connection_name
         character(*), INTENT(IN) :: identifier
         call solver_print("    Before Importing Mesh from CoSim", 3)
+
         call CoSimIO_ImportMesh(connection_name//c_null_char, identifier//c_null_char, &
             size_real_array, num_elements, c_ptr_data_real, c_ptr_data_elem_conn,&
             c_ptr_data_elem_types)
@@ -128,20 +133,43 @@ program dummy_solver_fortran
         character(*), INTENT(IN) :: connection_name
         character(*), INTENT(IN) :: identifier
         call solver_print("    Before Exporting Mesh to CoSim", 3)
-        ! TODO check how / what to pass
+
         call CoSimIO_ExportMesh(connection_name//c_null_char, identifier//c_null_char, &
             size_real_array, num_elements, c_ptr_data_real, c_ptr_data_elem_conn,&
             c_ptr_data_elem_types)
+
         call solver_print("    After Exporting Mesh to CoSim", 3)
     END SUBROUTINE export_mesh_to_co_sim
 
+    ! helper function to allocate memory in C - Integer version
+    SUBROUTINE allocate_c_memory_int(size, c_pointer, f_pointer)
+        type (c_ptr), INTENT(IN) :: c_pointer
+        INTEGER, DIMENSION(:), pointer, INTENT(INOUT) :: f_pointer
+        INTEGER, INTENT(IN) :: size
+        call solver_print("    Before allocating memory in C", 3)
+        call AllocateCMemoryInt(size, c_pointer)
+        call solver_print("    After allocating memory in C", 3)
+        call c_f_pointer(c_pointer, f_pointer, [size]) ! necessary according to valgrind
+    END SUBROUTINE allocate_c_memory_int
+
+    ! helper function to allocate memory in C - Real version
+    SUBROUTINE allocate_c_memory_real(size, c_pointer, f_pointer)
+        type (c_ptr), INTENT(IN) :: c_pointer
+        INTEGER, DIMENSION(:), pointer, INTENT(INOUT) :: f_pointer
+        INTEGER, INTENT(IN) :: size
+        call solver_print("    Before allocating memory in C", 3)
+        call AllocateCMemoryReal(size, c_pointer)
+        call solver_print("    After allocating memory in C", 3)
+        call c_f_pointer(c_pointer, f_pointer, [size]) ! necessary according to valgrind
+    END SUBROUTINE allocate_c_memory_real
+
     SUBROUTINE free_c_memory ()
-        ! deallocating them all at once bcs sure that all of them were used
-        call solver_print("    Before freeing memory", 3)
+        ! deallocating them all at once bcs does not matter if "free" is called on NULL
+        call solver_print("    Before freeing memory in C", 3)
         call FreeCMemory(c_ptr_data_real)
         call FreeCMemory(c_ptr_data_elem_conn)
         call FreeCMemory(c_ptr_data_elem_types)
-        call solver_print("    After freeing memory", 3)
+        call solver_print("    After freeing memory in C", 3)
     END SUBROUTINE free_c_memory
 
 
