@@ -109,7 +109,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
         KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
         self._check_results()
-        custom_params = self.model_part.Properties[1].GetValue(KratosMultiphysics.CONFIGURATION_PARAMETERS)
+        custom_params = self.model_part.Properties[1].GetValue(KratosMultiphysics.PARAMETERS)
         self.assertEqual(isinstance(custom_params, KratosMultiphysics.Parameters), True)
         self.assertEqual(custom_params["test"].GetBool(), True)
 
