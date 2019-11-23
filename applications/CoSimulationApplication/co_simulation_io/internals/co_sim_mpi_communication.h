@@ -27,6 +27,12 @@ public:
         : CoSimCommunication(rName, rSettings, IsConnectionMaster)
     {
        KRATOS_CO_SIM_ERROR << "MPI Communication is not implemented yet" << std::endl;
+       /*
+        Note to self:
+        If I directly use the buffer of the sender, then I have to ensure it can be reused when returning from the sending function. This can be achieved with two variants:
+        - Use blocking communication. This might block the sender for some time
+        - Use "buffered" non-blocking communication: => before calling Isend copy the values to a local buffer. Then wait for the send to complete => this is somehow nasty, could prob only be done in a separate thread??? Or I somehow save it internally and check if in the next time an IO function is called if the send is completed ...
+       */
     }
 
 };
