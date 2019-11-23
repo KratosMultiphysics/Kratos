@@ -49,29 +49,29 @@ static void CheckStream(const T& rStream, const std::string& rFileName)
     KRATOS_CO_SIM_ERROR_IF_NOT(rStream.is_open()) << rFileName << " could not be opened!" << std::endl;
 }
 
-// static int GetNumNodesForVtkCellType(const int VtkCellType)
-// {
-//     const std::unordered_map<int, int> vtk_cell_type_map = {
-//         { /*Point3D,          */ 1 ,  1},
-//         { /*Line3D2,          */ 3 ,  2},
-//         { /*Triangle3D3,      */ 5 ,  3},
-//         { /*Quadrilateral3D4, */ 9 ,  4},
-//         { /*Tetrahedra3D4,    */ 10 , 4},
-//         { /*Hexahedra3D8,     */ 12 , 8},
-//         { /*Prism3D6,         */ 13 , 6},
-//         { /*Line3D3,          */ 21 , 3},
-//         { /*Triangle3D6,      */ 22 , 6},
-//         { /*Quadrilateral3D8, */ 23 , 7},
-//         { /*Tetrahedra3D10,   */ 24,  10}
-//     };
+static int GetNumNodesForVtkCellType(const int VtkCellType)
+{
+    const std::unordered_map<int, int> vtk_cell_type_map = {
+        { /*Point3D,          */ 1 ,  1},
+        { /*Line3D2,          */ 3 ,  2},
+        { /*Triangle3D3,      */ 5 ,  3},
+        { /*Quadrilateral3D4, */ 9 ,  4},
+        { /*Tetrahedra3D4,    */ 10 , 4},
+        { /*Hexahedra3D8,     */ 12 , 8},
+        { /*Prism3D6,         */ 13 , 6},
+        { /*Line3D3,          */ 21 , 3},
+        { /*Triangle3D6,      */ 22 , 6},
+        { /*Quadrilateral3D8, */ 23 , 7},
+        { /*Tetrahedra3D10,   */ 24,  10}
+    };
 
-//     if (vtk_cell_type_map.count(VtkCellType) > 0) {
-//         return vtk_cell_type_map.at(VtkCellType);
-//     } else {
-//         KRATOS_CO_SIM_ERROR << "Unsupported cell type: " << VtkCellType << std::endl;
-//         return 0;
-//     }
-// }
+    if (vtk_cell_type_map.count(VtkCellType) > 0) {
+        return vtk_cell_type_map.at(VtkCellType);
+    } else {
+        KRATOS_CO_SIM_ERROR << "Unsupported cell type: " << VtkCellType << std::endl;
+        return 0;
+    }
+}
 
 } // helpers namespace
 
@@ -118,149 +118,217 @@ private:
         return true; // nothing needed here for file-based communication (maybe do sth here?)
     }
 
-    // bool ImportDetail(DataContainers::Mesh& rDataContainer, const std::string& rIdentifier) override
-    // {
-    //     const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetName() + "_" + rIdentifier + ".vtk"));
+     void ImportDataImpl(
+        const std::string& rIdentifier,
+        CoSimIO::Internals::DataContainer<double>& rData) override
+    {
+        const std::string file_name(GetFullPath("CoSimIO_data_" + GetName() + "_" + rIdentifier + ".dat"));
 
-    //     KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to receive mesh \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to receive array \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
 
-    //     WaitForFile(file_name);
+        WaitForFile(file_name);
 
-    //     const auto start_time(std::chrono::steady_clock::now());
+        const auto start_time(std::chrono::steady_clock::now());
 
-    //     std::ifstream input_file(file_name);
-    //     CheckStream(input_file, file_name);
+        std::ifstream input_file(file_name);
+        CheckStream(input_file, file_name);
 
-    //     // reading file
-    //     std::string current_line;
-    //     bool nodes_read = false;
+        input_file >> std::setprecision(14); // TODO maybe this should be configurable
 
-    //     while (std::getline(input_file, current_line)) {
-    //         // reading nodes
-    //         if (current_line.find("POINTS") != std::string::npos) {
-    //             KRATOS_CO_SIM_ERROR_IF(nodes_read) << "The nodes were read already!" << std::endl;
-    //             nodes_read = true;
+        int size_read;
+        input_file >> size_read; // the first number in the file is the size of the array
 
-    //             int num_nodes;
-    //             current_line = current_line.substr(current_line.find("POINTS") + 7); // removing "POINTS"
-    //             std::istringstream line_stream(current_line);
-    //             line_stream >> num_nodes;
+        // here if incoming size is larger than allocated size => resize
+        rData.resize_if_smaller(size_read); // TODO do we want to go this way???
 
-    //             KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Mesh contains " << num_nodes << " Nodes" << std::endl;
+        for (int i=0; i<size_read; ++i) {
+            input_file >> rData[i];
+        }
 
-    //             rDataContainer.node_coords.resize(3*num_nodes);
+        RemoveFile(file_name);
 
-    //             for (int i=0; i<num_nodes*3; ++i) {
-    //                 input_file >> rDataContainer.node_coords[i];
-    //             }
-    //         }
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished receiving array" << std::endl;
 
-    //         // reading cells
-    //         if (current_line.find("CELLS") != std::string::npos) {
-    //             KRATOS_CO_SIM_ERROR_IF_NOT(nodes_read) << "The nodes were not yet read!" << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetPrintTiming()) << "Receiving Array \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+    }
 
-    //             int /*num_nodes_per_cell,*/ num_cells, /*node_id,*/ cell_list_size;
-    //             current_line = current_line.substr(current_line.find("CELLS") + 6); // removing "CELLS"
-    //             std::istringstream line_stream(current_line);
-    //             line_stream >> num_cells;
-    //             line_stream >> cell_list_size;
+    void ExportDataImpl(
+        const std::string& rIdentifier,
+        const CoSimIO::Internals::DataContainer<double>& rData) override
+    {
+        const std::string file_name(GetFullPath("CoSimIO_data_" + GetName() + "_" + rIdentifier + ".dat"));
 
-    //             KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Mesh contains " << num_cells << " Cells" << std::endl;
+        KRATOS_CO_SIM_ERROR << "The next line is not correct, the size could be wrong if the buffer is resused!!!" << std::endl;
+        const int size = rData.size();
 
-    //             // int counter=0;
-    //             // for (int i=0; i<num_cells; ++i) {
-    //             //     input_file >> num_nodes_per_cell;
-    //             //     (*numNodesPerElem)[i] = num_nodes_per_cell;
-    //             //     for (int j=0; j<num_nodes_per_cell; ++j) {
-    //             //         input_file >> node_id;
-    //             //         (*elem)[counter++] = node_id+1; // Node Ids have an offset of 1 from Kratos to VTK
-    //             //     }
-    //             // }
-    //             break; // no further information reading required => CELL_TYPES are not used here
-    //         }
-    //     }
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send array \"" << rIdentifier << "\" with size: " << size << " in file \"" << file_name << "\" ..." << std::endl;
 
-    //     RemoveFile(file_name);
+        const auto start_time(std::chrono::steady_clock::now());
 
-    //     KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished receiving mesh" << std::endl;
+        std::ofstream output_file;
+        output_file.open(GetTempFileName(file_name));
+        CheckStream(output_file, file_name);
 
-    //     KRATOS_CO_SIM_INFO_IF("CoSimIO", GetPrintTiming()) << "Receiving Mesh \"" << file_name << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+        output_file << std::scientific << std::setprecision(14); // TODO maybe this should be configurable
 
-    //     return true;
-    // }
+        output_file << size << "\n";
 
-    // bool ExportDetail(const DataContainers::Mesh& rDataContainer, const std::string& rIdentifier) override
-    // {
-    //     const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetName() + "_" + rIdentifier + ".vtk"));
+        for (int i=0; i<size-1; ++i) {
+            output_file << rData[i] << " ";
+        }
+        // TODO check if size == 0!
+        output_file << rData[size-1]; // outside to not have trailing whitespace
 
-    //     const int num_nodes = rDataContainer.node_coords.size()/3;
-    //     const int num_cells = rDataContainer.cell_types.size();
+        output_file.close();
+        MakeFileVisible(file_name);
 
-    //     KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send mesh \"" << rIdentifier << "\" with " << num_nodes << " Nodes | " << num_cells << " Cells in file \"" << file_name << "\" ..." << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished sending array" << std::endl;
 
-    //     const auto start_time(std::chrono::steady_clock::now());
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetPrintTiming()) << "Sending Array \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+    }
 
-    //     std::ofstream output_file;
-    //     output_file.open(GetTempFileName(file_name));
-    //     CheckStream(output_file, file_name);
+    void ImportMeshImpl(
+        const std::string& rIdentifier,
+        CoSimIO::Internals::DataContainer<double>& rNodalCoordinates,
+        CoSimIO::Internals::DataContainer<int>& rElementConnectivities,
+        CoSimIO::Internals::DataContainer<int>& rElementTypes) override
+    {
+        const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetName() + "_" + rIdentifier + ".vtk"));
 
-    //     output_file << std::scientific << std::setprecision(7); // TODO maybe this should be configurable
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to receive mesh \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
 
-    //     // write file header
-    //     output_file << "# vtk DataFile Version 4.0\n";
-    //     output_file << "vtk output\n";
-    //     output_file << "ASCII\n";
-    //     output_file << "DATASET UNSTRUCTURED_GRID\n\n";
+        WaitForFile(file_name);
 
-    //     // write nodes
-    //     output_file << "POINTS " << num_nodes << " float\n";
-    //     for (int i=0; i<num_nodes; ++i) {
-    //         output_file << rDataContainer.node_coords[i*3] << " " << rDataContainer.node_coords[i*3+1] << " " << rDataContainer.node_coords[i*3+2] << "\n";
-    //     }
-    //     output_file << "\n";
+        const auto start_time(std::chrono::steady_clock::now());
 
-    //     // write cells connectivity
-    //     int counter=0;
-    //     output_file << "CELLS " << num_cells << " " << rDataContainer.connectivities.size() << "\n";
-    //     for (int i=0; i<num_cells; ++i) {
-    //         const int num_nodes_cell = GetNumNodesForVtkCellType(rDataContainer.cell_types[i]);
-    //         output_file << num_nodes_cell << " ";
-    //         for (int j=0; j<num_nodes_cell; ++j) {
-    //             output_file << rDataContainer.connectivities[counter++];
-    //             if (j<num_nodes_cell-1) output_file << " "; // not adding a whitespace after last number
-    //         }
-    //         output_file << "\n";
-    //     }
+        std::ifstream input_file(file_name);
+        CheckStream(input_file, file_name);
 
-    //     output_file << "\n";
+        // reading file
+        std::string current_line;
+        bool nodes_read = false;
 
-    //     // write cell types
-    //     output_file << "CELL_TYPES " << num_cells << "\n";
-    //     for (int i=0; i<num_cells; ++i) {
-    //         output_file << rDataContainer.cell_types[i] << "\n";
-    //     }
+        while (std::getline(input_file, current_line)) {
+            // reading nodes
+            if (current_line.find("POINTS") != std::string::npos) {
+                KRATOS_CO_SIM_ERROR_IF(nodes_read) << "The nodes were read already!" << std::endl;
+                nodes_read = true;
 
-    //     output_file.close();
-    //     MakeFileVisible(file_name);
+                int num_nodes;
+                current_line = current_line.substr(current_line.find("POINTS") + 7); // removing "POINTS"
+                std::istringstream line_stream(current_line);
+                line_stream >> num_nodes;
 
-    //     KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished sending mesh" << std::endl;
+                KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Mesh contains " << num_nodes << " Nodes" << std::endl;
 
-    //     KRATOS_CO_SIM_INFO_IF("CoSimIO", GetPrintTiming()) << "Sending Mesh \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+                rNodalCoordinates.resize_if_smaller(3*num_nodes);
 
-    //     return true;
-    // }
+                for (int i=0; i<num_nodes*3; ++i) {
+                    input_file >> rNodalCoordinates[i];
+                }
+            }
 
-    // bool ImportDetail(DataContainers::Data& rDataContainer, const std::string& rIdentifier) override
-    // {
-    //     ReceiveArray(rIdentifier, rDataContainer.data);
-    //     return true;
-    // }
+            // reading cells
+            if (current_line.find("CELLS") != std::string::npos) {
+                KRATOS_CO_SIM_ERROR_IF_NOT(nodes_read) << "The nodes were not yet read!" << std::endl;
 
-    // bool ExportDetail(const DataContainers::Data& rDataContainer, const std::string& rIdentifier) override
-    // {
-    //     SendArray(rIdentifier, rDataContainer.data);
-    //     return true;
-    // }
+                int /*num_nodes_per_cell,*/ num_cells, /*node_id,*/ cell_list_size;
+                current_line = current_line.substr(current_line.find("CELLS") + 6); // removing "CELLS"
+                std::istringstream line_stream(current_line);
+                line_stream >> num_cells;
+                line_stream >> cell_list_size;
+
+                KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Mesh contains " << num_cells << " Cells" << std::endl;
+
+                // int counter=0;
+                // for (int i=0; i<num_cells; ++i) {
+                //     input_file >> num_nodes_per_cell;
+                //     (*numNodesPerElem)[i] = num_nodes_per_cell;
+                //     for (int j=0; j<num_nodes_per_cell; ++j) {
+                //         input_file >> node_id;
+                //         (*elem)[counter++] = node_id+1; // Node Ids have an offset of 1 from Kratos to VTK
+                //     }
+                // }
+                break; // no further information reading required => CELL_TYPES are not used here
+            }
+        }
+
+        RemoveFile(file_name);
+
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished receiving mesh" << std::endl;
+
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetPrintTiming()) << "Receiving Mesh \"" << file_name << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+    }
+
+    void ExportMeshImpl(
+        const std::string& rIdentifier,
+        CoSimIO::Internals::DataContainer<double>& rNodalCoordinates,
+        CoSimIO::Internals::DataContainer<int>& rElementConnectivities,
+        CoSimIO::Internals::DataContainer<int>& rElementTypes) override
+    {
+        const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetName() + "_" + rIdentifier + ".vtk"));
+
+        KRATOS_CO_SIM_ERROR << "The next lines are not correct, the sizes could be wrong if the buffer is reused!!!" << std::endl;
+        const int num_nodes = 000; //rNodalCoordinates.size()/3; => has to come from outside, sizes might be wrong if buffer is reused!!!
+        const int num_cells = 000; //rElementConnectivities.size(); => has to come from outside, sizes might be wrong if buffer is reused!!!
+
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send mesh \"" << rIdentifier << "\" with " << num_nodes << " Nodes | " << num_cells << " Cells in file \"" << file_name << "\" ..." << std::endl;
+
+        const auto start_time(std::chrono::steady_clock::now());
+
+        std::ofstream output_file;
+        output_file.open(GetTempFileName(file_name));
+        CheckStream(output_file, file_name);
+
+        output_file << std::scientific << std::setprecision(7); // TODO maybe this should be configurable
+
+        // write file header
+        output_file << "# vtk DataFile Version 4.0\n";
+        output_file << "vtk output\n";
+        output_file << "ASCII\n";
+        output_file << "DATASET UNSTRUCTURED_GRID\n\n";
+
+        // write nodes
+        output_file << "POINTS " << num_nodes << " float\n";
+        for (int i=0; i<num_nodes; ++i) {
+            output_file << rNodalCoordinates[i*3] << " " << rNodalCoordinates[i*3+1] << " " << rNodalCoordinates[i*3+2] << "\n";
+        }
+        output_file << "\n";
+
+        // write cells connectivity
+        int cell_list_size = 0;
+        for (int i=0; i<num_cells; ++i) {
+            cell_list_size += GetNumNodesForVtkCellType(rElementTypes[i]) + 1;
+        }
+
+        // write cells connectivity
+        int counter=0;
+        output_file << "CELLS " << num_cells << " " << cell_list_size << "\n";
+        for (int i=0; i<num_cells; ++i) {
+            const int num_nodes_cell = GetNumNodesForVtkCellType(rElementTypes[i]);
+            output_file << num_nodes_cell << " ";
+            for (int j=0; j<num_nodes_cell; ++j) {
+                output_file << rElementConnectivities[counter++];
+                if (j<num_nodes_cell-1) output_file << " "; // not adding a whitespace after last number
+            }
+            output_file << "\n";
+        }
+
+        output_file << "\n";
+
+        // write cell types
+        output_file << "CELL_TYPES " << num_cells << "\n";
+        for (int i=0; i<num_cells; ++i) {
+            output_file << rElementTypes[i] << "\n";
+        }
+
+        output_file.close();
+        MakeFileVisible(file_name);
+
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished sending mesh" << std::endl;
+
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetPrintTiming()) << "Sending Mesh \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+    }
 
     void SendControlSignalDetail(Internals::ControlSignal Signal, const std::string& rIdentifier) override
     {
@@ -302,74 +370,6 @@ private:
         KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished receiving control signal" << std::endl;
 
         return static_cast<Internals::ControlSignal>(control_signal);
-    }
-
-
-    template<typename T>
-    void SendArray(const std::string& rIdentifier, const std::vector<T>& rArray)
-    {
-        const std::string file_name(GetFullPath("CoSimIO_data_" + GetName() + "_" + rIdentifier + ".dat"));
-
-        const int size = rArray.size();
-
-        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send array \"" << rIdentifier << "\" with size: " << size << " in file \"" << file_name << "\" ..." << std::endl;
-
-        const auto start_time(std::chrono::steady_clock::now());
-
-        std::ofstream output_file;
-        output_file.open(GetTempFileName(file_name));
-        CheckStream(output_file, file_name);
-
-        output_file << std::scientific << std::setprecision(14); // TODO maybe this should be configurable
-
-        output_file << size << "\n";
-
-        for (int i=0; i<size-1; ++i) {
-            output_file << rArray[i] << " ";
-        }
-        // TODO check if size == 0!
-        output_file << rArray[size-1]; // outside to not have trailing whitespace
-
-        output_file.close();
-        MakeFileVisible(file_name);
-
-        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished sending array" << std::endl;
-
-        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetPrintTiming()) << "Sending Array \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
-    }
-
-    template<typename T>
-    void ReceiveArray(const std::string& rIdentifier, std::vector<T>& rArray)
-    {
-        const std::string file_name(GetFullPath("CoSimIO_data_" + GetName() + "_" + rIdentifier + ".dat"));
-
-        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to receive array \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
-
-        WaitForFile(file_name);
-
-        const auto start_time(std::chrono::steady_clock::now());
-
-        std::ifstream input_file(file_name);
-        CheckStream(input_file, file_name);
-
-        input_file >> std::setprecision(14); // TODO maybe this should be configurable
-
-        int size_read;
-        input_file >> size_read; // the first number in the file is the size of the array
-
-        // here if incoming size is larger than allocated size => resize
-
-        rArray.resize(size_read);
-
-        for (int i=0; i<size_read; ++i) {
-            input_file >> rArray[i];
-        }
-
-        RemoveFile(file_name);
-
-        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished receiving array" << std::endl;
-
-        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetPrintTiming()) << "Receiving Array \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
     }
 
     std::string GetTempFileName(const std::string& rFileName)
