@@ -54,7 +54,7 @@ public:
     void resize_if_smaller(const std::size_t MinRequiredSize)
     {
         if (MinRequiredSize > this->size()) {
-            this-resize(MinRequiredSize);
+            this->resize(MinRequiredSize);
         }
     }
 };
