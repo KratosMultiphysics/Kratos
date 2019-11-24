@@ -18,7 +18,6 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include <unordered_map>
 
 // Project includes
 #include "co_sim_io_define.h"
@@ -132,8 +131,6 @@ enum class ControlSignal
     ImportData,
     ExportData,
 };
-
-typedef std::unordered_map<std::string, std::string> SettingsType;
 
 inline void AddMissingSettings(const SettingsType& rDefaultSettings, SettingsType& rSettings)
 {

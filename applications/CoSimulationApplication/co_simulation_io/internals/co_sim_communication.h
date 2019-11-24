@@ -18,12 +18,11 @@
 #include "co_sim_io_internals.h"
 
 namespace CoSimIO {
+namespace Internals {
 
 class CoSimCommunication
 {
 public:
-    typedef Internals::SettingsType SettingsType;
-
     explicit CoSimCommunication(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster) : mrSettings(rSettings),mName(rName), mIsConnectionMaster(IsConnectionMaster)
     {
         const SettingsType default_settings = {
@@ -197,6 +196,7 @@ private:
     }
 };
 
+} // namespace Internals
 } // namespace CoSimIO
 
 #endif /* KRATOS_CO_SIM_COMM_H_INCLUDED */

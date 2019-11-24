@@ -42,8 +42,6 @@ class CoSimConnection
 {
 
 public:
-    typedef CoSimCommunication::SettingsType SettingsType;
-
     typedef void (*DataExchangeFunctionType)(const std::string&, const std::string&);
     typedef void (*DataExchangeCFunctionType)(const char*, const char*);
 

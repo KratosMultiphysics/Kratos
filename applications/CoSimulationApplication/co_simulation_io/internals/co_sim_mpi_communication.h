@@ -19,6 +19,7 @@
 #include "co_sim_communication.h"
 
 namespace CoSimIO {
+namespace Internals {
 
 class CoSimMPICommunication : public CoSimCommunication
 {
@@ -37,6 +38,7 @@ public:
 
 };
 
+} // namespace Internals
 } // namespace CoSimIO
 
 #endif /* KRATOS_CO_SIM_MPI_COMM_H_INCLUDED */

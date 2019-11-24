@@ -18,6 +18,10 @@ This makes it possible to override them to use macros that are coming from
 the code where the CoSimIO is included
 */
 
+// System includes
+#include <string>
+#include <unordered_map>
+
 #ifndef KRATOS_CO_SIM_ERROR
     #include <iostream>
     #include <stdexcept>
@@ -44,5 +48,11 @@ the code where the CoSimIO is included
 #ifndef KRATOS_CO_SIM_INFO_IF
     #define KRATOS_CO_SIM_INFO_IF(label, conditional) if (conditional) KRATOS_CO_SIM_INFO(label)
 #endif
+
+namespace CoSimIO {
+
+typedef std::unordered_map<std::string, std::string> SettingsType;
+
+} //namespace CoSimIO
 
 #endif /* KRATOS_CO_SIM_IO_DEFINE_H_INCLUDED */
