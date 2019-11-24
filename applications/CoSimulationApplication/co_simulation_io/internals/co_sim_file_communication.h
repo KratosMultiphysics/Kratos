@@ -139,6 +139,7 @@ private:
 
         int size_read;
         input_file >> size_read; // the first number in the file is the size of the array
+        rSize = size_read;
 
         // here if incoming size is larger than allocated size => resize
         rData.resize_if_smaller(size_read); // TODO do we want to go this way???
@@ -160,6 +161,8 @@ private:
         const CoSimIO::Internals::DataContainer<double>& rData) override
     {
         const std::string file_name(GetFullPath("CoSimIO_data_" + GetName() + "_" + rIdentifier + ".dat"));
+
+        WaitUntilFileIsRemoved(file_name); // TODO maybe this can be queued somehow ... => then it would not block the sender
 
         KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send array \"" << rIdentifier << "\" with size: " << Size << " in file \"" << file_name << "\" ..." << std::endl;
 
@@ -220,6 +223,7 @@ private:
                 current_line = current_line.substr(current_line.find("POINTS") + 7); // removing "POINTS"
                 std::istringstream line_stream(current_line);
                 line_stream >> num_nodes;
+                rNumberOfNodes = num_nodes;
 
                 KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Mesh contains " << num_nodes << " Nodes" << std::endl;
 
@@ -239,6 +243,7 @@ private:
                 std::istringstream line_stream(current_line);
                 line_stream >> num_cells;
                 line_stream >> cell_list_size;
+                rNumberOfElements = num_cells;
 
                 KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Mesh contains " << num_cells << " Cells" << std::endl;
 
@@ -271,6 +276,8 @@ private:
         CoSimIO::Internals::DataContainer<int>& rElementTypes) override
     {
         const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetName() + "_" + rIdentifier + ".vtk"));
+
+        WaitUntilFileIsRemoved(file_name); // TODO maybe this can be queued somehow ... => then it would not block the sender
 
         KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send mesh \"" << rIdentifier << "\" with " << NumberOfNodes << " Nodes | " << NumberOfElements << " Cells in file \"" << file_name << "\" ..." << std::endl;
 
