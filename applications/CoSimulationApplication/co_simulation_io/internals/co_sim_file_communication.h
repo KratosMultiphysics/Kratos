@@ -395,7 +395,7 @@ private:
     {
         KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Waiting for file: \"" << rFileName << "\"" << std::endl;
         while(!FileExists(rFileName)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(500)); // wait 0.5s before next check
+            std::this_thread::sleep_for(std::chrono::milliseconds(50)); // wait 0.05s before next check
             KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>2) << "    Waiting" << std::endl;
         }
         KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Found file: \"" << rFileName << "\"" << std::endl;
@@ -405,7 +405,7 @@ private:
     {
         KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Waiting for file: \"" << rFileName << "\" to be removed" << std::endl;
         while(FileExists(rFileName)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(500)); // wait 0.5s before next check
+            std::this_thread::sleep_for(std::chrono::milliseconds(50)); // wait 0.05s before next check
             KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>2) << "    Waiting" << std::endl;
         }
         KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "File: \"" << rFileName << "\" was removed" << std::endl;
