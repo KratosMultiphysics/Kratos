@@ -39,7 +39,7 @@ public:
 
     bool Connect()
     {
-        KRATOS_CO_SIM_INFO("CoSimIO") << "Connecting \"" << mName << "\" as Connection-" << (mIsConnectionMaster ? "MASTER" : "SLAVE") << " ..." << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Connecting \"" << mName << "\" as Connection-" << (mIsConnectionMaster ? "MASTER" : "SLAVE") << " ..." << std::endl;
 
         KRATOS_CO_SIM_ERROR_IF(mIsConnected) << "A connection was already established!" << std::endl;
 
@@ -47,14 +47,14 @@ public:
 
         KRATOS_CO_SIM_ERROR_IF_NOT(mIsConnected) << "Connection was not successful!" << std::endl;
 
-        KRATOS_CO_SIM_INFO("CoSimIO") << "Connection established" << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Connection established" << std::endl;
 
         return mIsConnected;
     }
 
     bool Disconnect()
     {
-        KRATOS_CO_SIM_INFO("CoSimIO") << "Disconnecting \"" << mName << "\" ..." << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Disconnecting \"" << mName << "\" ..." << std::endl;
 
         if (mIsConnected) {
             mIsConnected = !DisconnectDetail();
@@ -67,7 +67,7 @@ public:
             return false;
         }
 
-        KRATOS_CO_SIM_INFO("CoSimIO") << "Disconnecting successful" << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Disconnecting successful" << std::endl;
 
         return true;
     }
