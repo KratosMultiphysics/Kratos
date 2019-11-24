@@ -124,7 +124,7 @@ private:
         int& rSize,
         CoSimIO::Internals::DataContainer<double>& rData) override
     {
-        const std::string file_name(GetFullPath("CoSimIO_data_" + GetName() + "_" + rIdentifier + ".dat"));
+        const std::string file_name(GetFullPath("CoSimIO_data_" + GetConnectionName() + "_" + rIdentifier + ".dat"));
 
         KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to receive array \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
 
@@ -160,7 +160,7 @@ private:
         const int Size,
         const CoSimIO::Internals::DataContainer<double>& rData) override
     {
-        const std::string file_name(GetFullPath("CoSimIO_data_" + GetName() + "_" + rIdentifier + ".dat"));
+        const std::string file_name(GetFullPath("CoSimIO_data_" + GetConnectionName() + "_" + rIdentifier + ".dat"));
 
         WaitUntilFileIsRemoved(file_name); // TODO maybe this can be queued somehow ... => then it would not block the sender
 
@@ -198,7 +198,7 @@ private:
         CoSimIO::Internals::DataContainer<int>& rElementConnectivities,
         CoSimIO::Internals::DataContainer<int>& rElementTypes) override
     {
-        const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetName() + "_" + rIdentifier + ".vtk"));
+        const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetConnectionName() + "_" + rIdentifier + ".vtk"));
 
         KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to receive mesh \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
 
@@ -275,7 +275,7 @@ private:
         CoSimIO::Internals::DataContainer<int>& rElementConnectivities,
         CoSimIO::Internals::DataContainer<int>& rElementTypes) override
     {
-        const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetName() + "_" + rIdentifier + ".vtk"));
+        const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetConnectionName() + "_" + rIdentifier + ".vtk"));
 
         WaitUntilFileIsRemoved(file_name); // TODO maybe this can be queued somehow ... => then it would not block the sender
 
@@ -339,7 +339,7 @@ private:
 
     void SendControlSignalDetail(Internals::ControlSignal Signal, const std::string& rIdentifier) override
     {
-        const std::string file_name(GetFullPath("CoSimIO_control_signal_" + GetName() + ".dat"));
+        const std::string file_name(GetFullPath("CoSimIO_control_signal_" + GetConnectionName() + ".dat"));
 
         WaitUntilFileIsRemoved(file_name); // TODO maybe this can be queued somehow ... => then it would not block the sender
 
@@ -359,7 +359,7 @@ private:
 
     Internals::ControlSignal RecvControlSignalDetail(std::string& rIdentifier) override
     {
-        const std::string file_name(GetFullPath("CoSimIO_control_signal_" + GetName() + ".dat"));
+        const std::string file_name(GetFullPath("CoSimIO_control_signal_" + GetConnectionName() + ".dat"));
 
         KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to receive control signal in file \"" << file_name << "\" ..." << std::endl;
 

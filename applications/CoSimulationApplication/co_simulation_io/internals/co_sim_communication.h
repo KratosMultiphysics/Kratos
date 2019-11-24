@@ -23,7 +23,7 @@ namespace Internals {
 class CoSimCommunication
 {
 public:
-    explicit CoSimCommunication(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster) : mrSettings(rSettings),mName(rName), mIsConnectionMaster(IsConnectionMaster)
+    explicit CoSimCommunication(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster) : mrSettings(rSettings),mConnectionName(rName), mIsConnectionMaster(IsConnectionMaster)
     {
         const SettingsType default_settings = {
             {"echo_level",   "1"},
@@ -39,7 +39,7 @@ public:
 
     bool Connect()
     {
-        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Connecting \"" << mName << "\" as Connection-" << (mIsConnectionMaster ? "MASTER" : "SLAVE") << " ..." << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Connecting \"" << mConnectionName << "\" as Connection-" << (mIsConnectionMaster ? "MASTER" : "SLAVE") << " ..." << std::endl;
 
         KRATOS_CO_SIM_ERROR_IF(mIsConnected) << "A connection was already established!" << std::endl;
 
@@ -54,7 +54,7 @@ public:
 
     bool Disconnect()
     {
-        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Disconnecting \"" << mName << "\" ..." << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Disconnecting \"" << mConnectionName << "\" ..." << std::endl;
 
         if (mIsConnected) {
             mIsConnected = !DisconnectDetail();
@@ -126,14 +126,14 @@ public:
 protected:
     SettingsType& mrSettings;
 
-    std::string GetName() const        {return mName;}
-    int GetEchoLevel() const           {return mEchoLevel;}
-    bool GetIsConnectionMaster() const {return mIsConnectionMaster;}
-    bool GetPrintTiming() const        {return mPrintTiming;}
-    bool GetIsConnected() const        {return mIsConnected;}
+    std::string GetConnectionName() const {return mConnectionName;}
+    int GetEchoLevel() const              {return mEchoLevel;}
+    bool GetIsConnectionMaster() const    {return mIsConnectionMaster;}
+    bool GetPrintTiming() const           {return mPrintTiming;}
+    bool GetIsConnected() const           {return mIsConnected;}
 
 private:
-    std::string mName;
+    std::string mConnectionName;
     int mEchoLevel = 1;
     bool mIsConnectionMaster = false;
     bool mPrintTiming = false;
