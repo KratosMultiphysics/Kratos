@@ -100,6 +100,36 @@ void ExportImportData_StdVector(
     export_thread.join();
 }
 
+void ExportImportData_RawMemory(
+    CoSimComm& rCoSimCommExport,
+    CoSimComm& rCoSimCommImport,
+    const SizeValueVectorType& rSizesValues)
+{
+    std::string identifier("dummy_data");
+
+    // Exporting (done in separate thread to avoid deadlocks)
+    double** values_raw_export = (double**)malloc(sizeof(double*)*1);
+    values_raw_export[0]= NULL;
+
+    Kratos::unique_ptr<BaseDataContainter> p_data_container_export(Kratos::make_unique<DataContainterRawMem>(values_raw_export, 0));
+
+    std::thread export_thread(ExportDataDetail, std::ref(rCoSimCommExport), std::ref(*p_data_container_export), identifier, std::ref(rSizesValues));
+
+    // Importing
+    double** values_raw_import = (double**)malloc(sizeof(double*)*1);
+    values_raw_import[0]= NULL;
+    Kratos::unique_ptr<BaseDataContainter> p_data_container_import(Kratos::make_unique<DataContainterRawMem>(values_raw_import, 0));
+    ImportDataDetail(rCoSimCommImport, *p_data_container_import, identifier, rSizesValues);
+
+    export_thread.join();
+
+    // deallocating memory
+    free(*values_raw_export);
+    free(*values_raw_import);
+    free(values_raw_export);
+    free(values_raw_import);
+}
+
 // void ExportImportMesh(CoSimComm& rCoSimComm)
 // {
 
@@ -128,13 +158,13 @@ KRATOS_TEST_CASE_IN_SUITE(FileCommunication_Data_Connect_Disconnect, KratosCoSim
     ExportImportData_StdVector(*exporter, *importer, sizes_values);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FileCommunication_Data_Once_StdVector, KratosCoSimulationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FileCommunication_Data_Once, KratosCoSimulationFastSuite)
 {
     CoSimIO::SettingsType settings = { // only disabling prints, otherwise use default configuration
             {"echo_level",   "0"},
             {"print_timing", "0"}
     };
-    std::string connection_name("FileCommunication_Data_Once_StdVector");
+    std::string connection_name("FileCommunication_Data_Once_RawMemory");
 
     Kratos::unique_ptr<CoSimComm> exporter(Kratos::make_unique<CoSimFileComm>(connection_name, settings, true));
     Kratos::unique_ptr<CoSimComm> importer(Kratos::make_unique<CoSimFileComm>(connection_name, settings, false));
@@ -144,15 +174,16 @@ KRATOS_TEST_CASE_IN_SUITE(FileCommunication_Data_Once_StdVector, KratosCoSimulat
     };
 
     ExportImportData_StdVector(*exporter, *importer, sizes_values);
+    ExportImportData_RawMemory(*exporter, *importer, sizes_values);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FileCommunication_Data_Multiple_StdVector, KratosCoSimulationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FileCommunication_Data_Multiple, KratosCoSimulationFastSuite)
 {
     CoSimIO::SettingsType settings = { // only disabling prints, otherwise use default configuration
             {"echo_level",   "0"},
             {"print_timing", "0"}
     };
-    std::string connection_name("FileCommunication_Data_Multiple_StdVector");
+    std::string connection_name("FileCommunication_Data_Multiple_RawMemory");
 
     Kratos::unique_ptr<CoSimComm> exporter(Kratos::make_unique<CoSimFileComm>(connection_name, settings, true));
     Kratos::unique_ptr<CoSimComm> importer(Kratos::make_unique<CoSimFileComm>(connection_name, settings, false));
@@ -166,20 +197,7 @@ KRATOS_TEST_CASE_IN_SUITE(FileCommunication_Data_Multiple_StdVector, KratosCoSim
     };
 
     ExportImportData_StdVector(*exporter, *importer, sizes_values);
-}
-
-
-
-KRATOS_TEST_CASE_IN_SUITE(FileCommunication_Data_RawMemory, KratosCoSimulationFastSuite)
-{
-}
-
-KRATOS_TEST_CASE_IN_SUITE(FileCommunication_Mesh_StdVector, KratosCoSimulationFastSuite)
-{
-}
-
-KRATOS_TEST_CASE_IN_SUITE(FileCommunication_Mesh_RawMemory, KratosCoSimulationFastSuite)
-{
+    ExportImportData_RawMemory(*exporter, *importer, sizes_values);
 }
 
 } // namespace Testing
