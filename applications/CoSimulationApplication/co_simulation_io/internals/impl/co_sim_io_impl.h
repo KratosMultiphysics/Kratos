@@ -71,11 +71,12 @@ template<>
 inline void ImportData(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
+    int& rSize,
     std::vector<double>& pData)
 {
     using namespace CoSimIO::Internals;
     std::unique_ptr<DataContainer<double>> p_container(new DataContainerStdVector<double>(pData));
-    GetIO(rConnectionName).ImportData(rIdentifier, *p_container);
+    GetIO(rConnectionName).ImportData(rIdentifier, rSize, *p_container);
 }
 
 // Version for C and fortran, there we already get a container
@@ -83,9 +84,10 @@ template<>
 inline void ImportData(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
+    int& rSize,
     CoSimIO::Internals::DataContainer<double>& pData)
 {
-    Internals::GetIO(rConnectionName).ImportData(rIdentifier, pData);
+    Internals::GetIO(rConnectionName).ImportData(rIdentifier, rSize, pData);
 }
 
 // Version for C++, there this input is a std::vector, which we have to wrap before passing it on
@@ -93,11 +95,12 @@ template<>
 inline void ExportData(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
+    const int Size,
     std::vector<double>& pData)
 {
     using namespace CoSimIO::Internals;
     std::unique_ptr<DataContainer<double>> p_container(new DataContainerStdVector<double>(pData));
-    GetIO(rConnectionName).ExportData(rIdentifier, *p_container);
+    GetIO(rConnectionName).ExportData(rIdentifier, Size, *p_container);
 }
 
 // Version for C and fortran, there we already get a container
@@ -105,15 +108,18 @@ template<>
 inline void ExportData(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
+    const int Size,
     CoSimIO::Internals::DataContainer<double>& pData)
 {
-    Internals::GetIO(rConnectionName).ExportData(rIdentifier, pData);
+    Internals::GetIO(rConnectionName).ExportData(rIdentifier, Size, pData);
 }
 
 template<>
 inline void ImportMesh(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
+    int& rNumberOfNodes,
+    int& rNumberOfElements,
     std::vector<double>& pNodalCoordinates,
     std::vector<int>& pElementConnectivities,
     std::vector<int>& pElementTypes)
@@ -122,24 +128,28 @@ inline void ImportMesh(
     std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerStdVector<double>(pNodalCoordinates));
     std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerStdVector<int>(pElementConnectivities));
     std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerStdVector<int>(pElementTypes));
-    Internals::GetIO(rConnectionName).ImportMesh(rIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
+    Internals::GetIO(rConnectionName).ImportMesh(rIdentifier, rNumberOfNodes, rNumberOfElements, *p_container_coords, *p_container_conn, *p_container_types);
 }
 
 template<>
 inline void ImportMesh(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
+    int& rNumberOfNodes,
+    int& rNumberOfElements,
     CoSimIO::Internals::DataContainer<double>& pNodalCoordinates,
     CoSimIO::Internals::DataContainer<int>& pElementConnectivities,
     CoSimIO::Internals::DataContainer<int>& pElementTypes)
 {
-    Internals::GetIO(rConnectionName).ImportMesh(rIdentifier, pNodalCoordinates, pElementConnectivities, pElementTypes);
+    Internals::GetIO(rConnectionName).ImportMesh(rIdentifier, rNumberOfNodes, rNumberOfElements, pNodalCoordinates, pElementConnectivities, pElementTypes);
 }
 
 template<>
 inline void ExportMesh(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
+    const int NumberOfNodes,
+    const int NumberOfElements,
     std::vector<double>& pNodalCoordinates,
     std::vector<int>& pElementConnectivities,
     std::vector<int>& pElementTypes)
@@ -148,18 +158,20 @@ inline void ExportMesh(
     std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerStdVector<double>(pNodalCoordinates));
     std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerStdVector<int>(pElementConnectivities));
     std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerStdVector<int>(pElementTypes));
-    Internals::GetIO(rConnectionName).ExportMesh(rIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
+    Internals::GetIO(rConnectionName).ExportMesh(rIdentifier, NumberOfNodes, NumberOfElements, *p_container_coords, *p_container_conn, *p_container_types);
 }
 
 template<>
 inline void ExportMesh(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
+    const int NumberOfNodes,
+    const int NumberOfElements,
     CoSimIO::Internals::DataContainer<double>& pNodalCoordinates,
     CoSimIO::Internals::DataContainer<int>& pElementConnectivities,
     CoSimIO::Internals::DataContainer<int>& pElementTypes)
 {
-    Internals::GetIO(rConnectionName).ExportMesh(rIdentifier, pNodalCoordinates, pElementConnectivities, pElementTypes);
+    Internals::GetIO(rConnectionName).ExportMesh(rIdentifier, NumberOfNodes, NumberOfElements, pNodalCoordinates, pElementConnectivities, pElementTypes);
 }
 
 inline void IsConverged(const std::string& rConnectionName, int* pConvergenceSignal)

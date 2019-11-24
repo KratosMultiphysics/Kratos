@@ -36,12 +36,14 @@ template<class TContainerType>
 inline void ImportData(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
+    int& rSize,
     TContainerType& pData);
 
 template<class TContainerType>
 inline void ExportData(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
+    const int Size,
     TContainerType& pData);
 
 
@@ -49,6 +51,8 @@ template<class TDoubleContainerType, class TIntContainerType>
 inline void ImportMesh(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
+    int& rNumberOfNodes,
+    int& rNumberOfElements,
     TDoubleContainerType& rNodalCoordinates,
     TIntContainerType& rElementConnectivities,
     TIntContainerType& rElementTypes);
@@ -57,6 +61,8 @@ template<class TDoubleContainerType, class TIntContainerType>
 inline void ExportMesh(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
+    const int NumberOfNodes,
+    const int NumberOfElements,
     TDoubleContainerType& rNodalCoordinates,
     TIntContainerType& rElementConnectivities,
     TIntContainerType& rElementTypes);

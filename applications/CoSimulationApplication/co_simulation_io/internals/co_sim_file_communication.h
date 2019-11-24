@@ -120,6 +120,7 @@ private:
 
      void ImportDataImpl(
         const std::string& rIdentifier,
+        int& rSize,
         CoSimIO::Internals::DataContainer<double>& rData) override
     {
         const std::string file_name(GetFullPath("CoSimIO_data_" + GetName() + "_" + rIdentifier + ".dat"));
@@ -154,6 +155,7 @@ private:
 
     void ExportDataImpl(
         const std::string& rIdentifier,
+        const int Size,
         const CoSimIO::Internals::DataContainer<double>& rData) override
     {
         const std::string file_name(GetFullPath("CoSimIO_data_" + GetName() + "_" + rIdentifier + ".dat"));
@@ -189,6 +191,8 @@ private:
 
     void ImportMeshImpl(
         const std::string& rIdentifier,
+        int& rNumberOfNodes,
+        int& rNumberOfElements,
         CoSimIO::Internals::DataContainer<double>& rNodalCoordinates,
         CoSimIO::Internals::DataContainer<int>& rElementConnectivities,
         CoSimIO::Internals::DataContainer<int>& rElementTypes) override
@@ -262,6 +266,8 @@ private:
 
     void ExportMeshImpl(
         const std::string& rIdentifier,
+        const int NumberOfNodes,
+        const int NumberOfElements,
         CoSimIO::Internals::DataContainer<double>& rNodalCoordinates,
         CoSimIO::Internals::DataContainer<int>& rElementConnectivities,
         CoSimIO::Internals::DataContainer<int>& rElementTypes) override
