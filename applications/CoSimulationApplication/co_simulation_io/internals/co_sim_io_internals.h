@@ -94,16 +94,11 @@ public:
     std::size_t size() const override {return mSize;};
     void resize(const std::size_t NewSize) override
     {
-        // TODO use C-functions (malloc & free, or realloc)
-        std::cout << "Before Resize" << std::endl;
         mSize = NewSize;
-        delete [] mppData[0]; // delete the old memory and allocate new with different size
-        std::cout << "Before New allocation" << std::endl;
-        *mppData = new TDataType[mSize]; // TODO is this correct? shouldn't be "*mppData[0] = new TDataType[mSize]"?
-        std::cout << "After New allocation" << std::endl;
-        KRATOS_CO_SIM_ERROR_IF_NOT(*mppData) << "Memory reallocation failed";
+        free(*mppData); // this is ok according to the standard, no matter if it is null or allocated
 
-        std::cout << "Exiting ..." << std::endl;
+        *mppData = (TDataType *)malloc((mSize)*sizeof(TDataType));
+        KRATOS_CO_SIM_ERROR_IF_NOT(*mppData) << "Memory reallocation failed";
 
     };
     const TDataType* data() const override {return *mppData;}

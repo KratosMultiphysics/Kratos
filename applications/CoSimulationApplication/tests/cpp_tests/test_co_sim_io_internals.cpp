@@ -36,9 +36,9 @@ KRATOS_TEST_CASE_IN_SUITE(DataContainers, KratosCoSimulationFastSuite)
 
     std::vector<ValueType> ref_values(init_size);
     std::vector<ValueType> values_vec(init_size);
-    // double* values_raw = new double[init_size];
-    double** values_raw = new ValueType*[1];
-    *values_raw = new ValueType[init_size];
+
+    double** values_raw = (double**)malloc(sizeof(double*)*1);
+    values_raw[0]= (double*)malloc(sizeof(double)*init_size);
 
     for (std::size_t i=0; i<init_size; ++i) {
         ref_values[i] = i*init_val;
@@ -73,8 +73,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataContainers, KratosCoSimulationFastSuite)
     }
 
     // deallocating memory
-    delete [] values_raw[0];
-    delete [] values_raw;
+    free(*values_raw);
+    free(values_raw);
 }
 
 } // namespace Testing
