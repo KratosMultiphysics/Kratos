@@ -29,7 +29,7 @@ MODULE co_sim_io
             USE, INTRINSIC :: ISO_C_BINDING
             CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: ConnectionName
             CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: Identifier
-            INTEGER(C_INT), INTENT(IN)  :: Size
+            INTEGER(C_INT), value  :: Size
             type(C_PTR), INTENT(IN) :: Data
         END SUBROUTINE CoSimIO_ExportData
 
@@ -55,8 +55,8 @@ MODULE co_sim_io
             USE, INTRINSIC :: ISO_C_BINDING
             CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: ConnectionName
             CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: Identifier
-            INTEGER(C_INT), INTENT(IN) :: NumberOfNodes
-            INTEGER(C_INT), INTENT(IN) :: NumberOfElements
+            INTEGER(C_INT), value :: NumberOfNodes
+            INTEGER(C_INT), value :: NumberOfElements
             type(C_PTR), INTENT(IN) :: NodalCoordinates
             type(C_PTR), INTENT(IN) :: ElementConnectivities
             type(C_PTR), INTENT(IN) :: ElementTypes
@@ -101,13 +101,13 @@ MODULE co_sim_io
 
         SUBROUTINE AllocateCMemoryInt(size, c_pointer) BIND (C,NAME='_AllocateMemoryInt')
             USE, INTRINSIC :: ISO_C_BINDING
-            INTEGER(C_INT), INTENT(IN) :: size
+            INTEGER(C_INT), value :: size
             type(C_PTR), INTENT(IN) :: c_pointer
         END SUBROUTINE AllocateCMemoryInt
 
         SUBROUTINE AllocateCMemoryReal(size, c_pointer) BIND (C,NAME='_AllocateMemoryDouble')
             USE, INTRINSIC :: ISO_C_BINDING
-            INTEGER(C_INT), INTENT(IN) :: size
+            INTEGER(C_INT), value :: size
             type(C_PTR), INTENT(IN) :: c_pointer
         END SUBROUTINE AllocateCMemoryReal
 
