@@ -21,6 +21,7 @@
 #include "co_sim_communication.h"
 
 namespace CoSimIO {
+namespace Internals {
 
 namespace { // helpers namespace
 
@@ -160,10 +161,7 @@ private:
     {
         const std::string file_name(GetFullPath("CoSimIO_data_" + GetName() + "_" + rIdentifier + ".dat"));
 
-        KRATOS_CO_SIM_ERROR << "The next line is not correct, the size could be wrong if the buffer is resused!!!" << std::endl;
-        const int size = rData.size();
-
-        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send array \"" << rIdentifier << "\" with size: " << size << " in file \"" << file_name << "\" ..." << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send array \"" << rIdentifier << "\" with size: " << Size << " in file \"" << file_name << "\" ..." << std::endl;
 
         const auto start_time(std::chrono::steady_clock::now());
 
@@ -173,13 +171,13 @@ private:
 
         output_file << std::scientific << std::setprecision(14); // TODO maybe this should be configurable
 
-        output_file << size << "\n";
+        output_file << Size << "\n";
 
-        for (int i=0; i<size-1; ++i) {
+        for (int i=0; i<Size-1; ++i) {
             output_file << rData[i] << " ";
         }
         // TODO check if size == 0!
-        output_file << rData[size-1]; // outside to not have trailing whitespace
+        output_file << rData[Size-1]; // outside to not have trailing whitespace
 
         output_file.close();
         MakeFileVisible(file_name);
@@ -274,11 +272,7 @@ private:
     {
         const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetName() + "_" + rIdentifier + ".vtk"));
 
-        KRATOS_CO_SIM_ERROR << "The next lines are not correct, the sizes could be wrong if the buffer is reused!!!" << std::endl;
-        const int num_nodes = 000; //rNodalCoordinates.size()/3; => has to come from outside, sizes might be wrong if buffer is reused!!!
-        const int num_cells = 000; //rElementConnectivities.size(); => has to come from outside, sizes might be wrong if buffer is reused!!!
-
-        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send mesh \"" << rIdentifier << "\" with " << num_nodes << " Nodes | " << num_cells << " Cells in file \"" << file_name << "\" ..." << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send mesh \"" << rIdentifier << "\" with " << NumberOfNodes << " Nodes | " << NumberOfElements << " Cells in file \"" << file_name << "\" ..." << std::endl;
 
         const auto start_time(std::chrono::steady_clock::now());
 
@@ -295,22 +289,22 @@ private:
         output_file << "DATASET UNSTRUCTURED_GRID\n\n";
 
         // write nodes
-        output_file << "POINTS " << num_nodes << " float\n";
-        for (int i=0; i<num_nodes; ++i) {
+        output_file << "POINTS " << NumberOfNodes << " float\n";
+        for (int i=0; i<NumberOfNodes; ++i) {
             output_file << rNodalCoordinates[i*3] << " " << rNodalCoordinates[i*3+1] << " " << rNodalCoordinates[i*3+2] << "\n";
         }
         output_file << "\n";
 
         // write cells connectivity
         int cell_list_size = 0;
-        for (int i=0; i<num_cells; ++i) {
+        for (int i=0; i<NumberOfElements; ++i) {
             cell_list_size += GetNumNodesForVtkCellType(rElementTypes[i]) + 1;
         }
 
         // write cells connectivity
         int counter=0;
-        output_file << "CELLS " << num_cells << " " << cell_list_size << "\n";
-        for (int i=0; i<num_cells; ++i) {
+        output_file << "CELLS " << NumberOfElements << " " << cell_list_size << "\n";
+        for (int i=0; i<NumberOfElements; ++i) {
             const int num_nodes_cell = GetNumNodesForVtkCellType(rElementTypes[i]);
             output_file << num_nodes_cell << " ";
             for (int j=0; j<num_nodes_cell; ++j) {
@@ -323,8 +317,8 @@ private:
         output_file << "\n";
 
         // write cell types
-        output_file << "CELL_TYPES " << num_cells << "\n";
-        for (int i=0; i<num_cells; ++i) {
+        output_file << "CELL_TYPES " << NumberOfElements << "\n";
+        for (int i=0; i<NumberOfElements; ++i) {
             output_file << rElementTypes[i] << "\n";
         }
 
@@ -419,6 +413,7 @@ private:
 
 };
 
+} // namespace Internals
 } // namespace CoSimIO
 
 #endif /* KRATOS_CO_SIM_FILE_COMM_H_INCLUDED */
