@@ -31,7 +31,7 @@ class MoveMeshProcess(KratosMultiphysics.Process):
 
         self.model_part.SetValue(KratosMultiphysics.DEMApplication.LINEAR_VELOCITY, [0.0,0.0,0.0])
         self.model_part.SetValue(KratosMultiphysics.VELOCITY_PERIOD, 0.0)
-        self.model_part.SetValue(KratosMultiphysics.ANGULAR_VELOCITY, [0.0,0.0,50.0])
+        self.model_part.SetValue(KratosMultiphysics.ANGULAR_VELOCITY, [0.0,0.0,50])
         self.model_part.SetValue(KratosMultiphysics.ROTATION_CENTER, [0.0,0.0,0.0])
         self.model_part.SetValue(KratosMultiphysics.ANGULAR_VELOCITY_PERIOD, 0.0)
         self.model_part.SetValue(KratosMultiphysics.DEMApplication.VELOCITY_START_TIME, 0.0)
@@ -48,12 +48,10 @@ class MoveMeshProcess(KratosMultiphysics.Process):
 
         self.mesh_motion = KratosMultiphysics.DEMApplication.DEMFEMUtilities()
 
-    def ExecuteFinalizeSolutionStep(self):
+    def ExecuteInitializeSolutionStep(self):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-
-        print("time: " + str(time))
-        print("self.model_part: " + str(self.model_part.NumberOfNodes()))
-
+        #print("time: " + str(time))
+        #print("self.time_step: " + str(self.time_step))
         self.mesh_motion.MoveAllMeshes(self.model_part, time, self.time_step)
 
-        print(str(self.model_part.GetNode(4).X) + " " + str(self.model_part.GetNode(4).Y) + " " + str(self.model_part.GetNode(4).Z))
+        #print(str(self.model_part.GetNode(4).X) + " " + str(self.model_part.GetNode(4).Y) + " " + str(self.model_part.GetNode(4).Z))
