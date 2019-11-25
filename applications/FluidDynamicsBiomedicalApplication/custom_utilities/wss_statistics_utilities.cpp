@@ -62,14 +62,14 @@ void WssStatisticsUtilities::CalculateWSS(ModelPart &rModelPart)
     }
 }
 
-void WssStatisticsUtilities::CalculateTWSS(
-    ModelPart &rModelPart,
-    int Step) // TODO: GET IT FROM PROCESSINFO
+void WssStatisticsUtilities::CalculateTWSS(ModelPart &rModelPart)
 {
-
     // Allocate auxiliary arrays
     array_1d<double,3> previous_tangential;
     array_1d<double,3> tangential;
+
+    // Get the step counter
+    const unsigned int step = rModelPart.GetProcessInfo()[STEP];
 
     //TWSS :Time-averaged wall shear stress (save in the last value)
     double twss = 0.0;
@@ -81,19 +81,17 @@ void WssStatisticsUtilities::CalculateTWSS(
         //Calculate the sum of the vector components of WSS for all times step
         previous_tangential=it_node->FastGetSolutionStepValue(TEMPORAL_OSI,0);
         tangential=it_node->FastGetSolutionStepValue(TANGENTIAL_STRESS,0);
-        previous_tangential[0]=previous_tangential[0]+((tangential[0]-previous_tangential[0])/Step);
-        previous_tangential[1]=previous_tangential[1]+((tangential[1]-previous_tangential[1])/Step);
-        previous_tangential[2]=previous_tangential[2]+((tangential[2]-previous_tangential[2])/Step);
+        previous_tangential[0]=previous_tangential[0]+((tangential[0]-previous_tangential[0])/step);
+        previous_tangential[1]=previous_tangential[1]+((tangential[1]-previous_tangential[1])/step);
+        previous_tangential[2]=previous_tangential[2]+((tangential[2]-previous_tangential[2])/step);
         it_node->FastGetSolutionStepValue(TEMPORAL_OSI)=previous_tangential;
         //Calculates the sum of the WSS magnitudes for all time steps
-        twss= it_node->FastGetSolutionStepValue(TAWSS,0) + (norm_2(tangential) - (it_node->FastGetSolutionStepValue(TAWSS,0)/(Step)) );
+        twss= it_node->FastGetSolutionStepValue(TAWSS,0) + (norm_2(tangential) - (it_node->FastGetSolutionStepValue(TAWSS,0)/(step)) );
         it_node->FastGetSolutionStepValue(TAWSS)=twss;
     }
 }
 
-void WssStatisticsUtilities::CalculateOSI(
-    ModelPart &rModelPart,
-    int Step) // TODO: GET IT FROM PROCESSINFO
+void WssStatisticsUtilities::CalculateOSI(ModelPart &rModelPart)
 {
     // Allocate auxiliary arrays
     double aux_ECAP = 0.0;
@@ -103,6 +101,9 @@ void WssStatisticsUtilities::CalculateOSI(
     double aux_WSS = 0.0;
     array_1d<double,3> SumWSS;
 
+    // Get the step counter
+    const unsigned int step = rModelPart.GetProcessInfo()[STEP];
+
     const unsigned int n_nodes = rModelPart.NumberOfNodes();
     #pragma omp parallel for
     for (int i_node = 0; i_node < n_nodes; ++i_node)
@@ -110,10 +111,10 @@ void WssStatisticsUtilities::CalculateOSI(
         auto it_node = rModelPart.NodesBegin() + i_node;
         //Calculate the sum of the vector components of WSS for all times step
         SumWSS=it_node->FastGetSolutionStepValue(TEMPORAL_OSI,0);
-        SumWSS *= (1/Step);
+        SumWSS *= (1/step);
         aux_WSS=norm_2(SumWSS);
         //Calculates the magnitude of the time-averaged WSS vector
-        aux_TWSS=(it_node->FastGetSolutionStepValue(TWSS,0)/Step);
+        aux_TWSS=(it_node->FastGetSolutionStepValue(TWSS,0)/step);
         aux_OSI=(0.5* (1.0-(aux_WSS/aux_TWSS)));
         aux_RRT=1/((1-2*OSI)*aux_WSS);
         aux_ECAP= (OSI/aux_WSS);

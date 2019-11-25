@@ -12,8 +12,8 @@
 //                   Eduardo Soudah
 //
 
-#if !defined(KRATOS_WSS_UTILITIES_H )
-#define  KRATOS_WSS_UTILITIES_H
+#if !defined(KRATOS_WSS_STATISTICS_UTILITIES_H )
+#define  KRATOS_WSS_STATISTICS_UTILITIES_H
 
 // External includes
 
@@ -62,9 +62,26 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Calculate the Wall Shear Stress (WSS)
+     * This method computes the Wall Shear Stress (WSS).
+     * @param rModelPart Model part in where the WSS is computed
+     */
     static void CalculateWSS(ModelPart &rModelPart);
-    static void CalculateOSI(ModelPart &rModelPart,int Step);
-    static void CalculateTWSS(ModelPart &rModelPart, int Step);
+
+    /**
+     * @brief Calculate the Oscillatory Shear Index (OSI)
+     * This method computes the Oscillatory Shear Index (OSI)
+     * @param rModelPart Model part in where the OSI is computed
+     */
+    static void CalculateOSI(ModelPart &rModelPart);
+
+    /**
+     * @brief Calulate the Temporal Wall Shear Stress (TWSS)
+     * This method computes the Temporal Wall Shear Stress (TWSS)
+     * @param rModelPart Model part in where the TWSS is computed
+     */
+    static void CalculateTWSS(ModelPart &rModelPart);
 
     ///@}
 
@@ -76,4 +93,4 @@ public:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_WSS_UTILITIES_H  defined
+#endif // KRATOS_WSS_STATISTICS_UTILITIES_H  defined
