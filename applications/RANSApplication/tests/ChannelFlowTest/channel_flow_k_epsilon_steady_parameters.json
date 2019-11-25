@@ -18,11 +18,11 @@
         "echo_level": 0,
         "compute_reactions": true,
         "consider_periodic_conditions": false,
-        "maximum_iterations": 300,
+        "maximum_iterations": 10,
         "relative_velocity_tolerance": 0.001,
-        "absolute_velocity_tolerance": 1e-5,
+        "absolute_velocity_tolerance": 1e-7,
         "relative_pressure_tolerance": 0.001,
-        "absolute_pressure_tolerance": 1e-5,
+        "absolute_pressure_tolerance": 1e-7,
         "volume_model_part_name": "Parts_fluid",
         "skin_parts": [
             "AutomaticInlet2D_inlet",
@@ -102,8 +102,8 @@
                 "turbulent_kinetic_energy_settings": {
                     "is_periodic": false,
                     "relative_tolerance": 1e-3,
-                    "absolute_tolerance": 1e-5,
-                    "max_iterations": 10000,
+                    "absolute_tolerance": 1e-7,
+                    "max_iterations": 10,
                     "echo_level": 0,
                     "relaxation_factor": 0.5,
                     "linear_solver_settings": {
@@ -113,8 +113,8 @@
                 "turbulent_energy_dissipation_rate_settings": {
                     "is_periodic": false,
                     "relative_tolerance": 1e-3,
-                    "absolute_tolerance": 1e-5,
-                    "max_iterations": 10000,
+                    "absolute_tolerance": 1e-7,
+                    "max_iterations": 10,
                     "echo_level": 0,
                     "relaxation_factor": 0.5,
                     "linear_solver_settings": {
@@ -126,8 +126,8 @@
                 },
                 "coupling_settings": {
                     "relative_tolerance": 1e-3,
-                    "absolute_tolerance": 1e-5,
-                    "max_iterations": 100,
+                    "absolute_tolerance": 1e-8,
+                    "max_iterations": 10,
                     "echo_level": 0,
                     "number_of_parent_solve_iterations" : 0
                 }
