@@ -7,8 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Eduardo Soudah,
-//                   Ruben Zorrilla,
+//  Main authors:    Ruben Zorrilla,
 //                   Eduardo Soudah
 //
 
@@ -29,8 +28,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// A set of functions to compute the Wall Shear Stress (WSS)
-class WssStatisticsUtilities {
+/// A set of functions to compute the Wall Shear Stress (WSS) 
+class KRATOS_API(FLUID_DYNAMICS_BIOMEDICAL_APPLICATION) WssStatisticsUtilities {
 public:
     ///@name Type Definitions
     ///@{
