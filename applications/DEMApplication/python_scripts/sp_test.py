@@ -28,11 +28,8 @@ class SPTest(DEM_material_test_script.MaterialTest):
             node.SetSolutionStepValue(VELOCITY_Z, 0.0)
             node.Fix(VELOCITY_Z)
 
-    if self.test_type == "SandP":
         absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
         self.graph_export   = open(absolute_path_to_file, 'w')
-
-        self.Procedures.KratosPrintInfo('Initial Height of the Model: ' + str(self.height)+'\n')
 
         (self.xlat_area) = self.CircularSkinDetermination()
 
@@ -46,22 +43,26 @@ class SPTest(DEM_material_test_script.MaterialTest):
         perimeter = 3.141592 * d
         xlat_area = 0.0
 
+        kk
+
         for element in self.spheres_model_part.Elements:
+          print(element)
 
-            element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 0)
+          element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 0)
 
-            node = element.GetNode(0)
-            r = node.GetSolutionStepValue(RADIUS)
-            x = node.X
-            y = node.Y
+          node = element.GetNode(0)
+          r = node.GetSolutionStepValue(RADIUS)
+          x = node.X
+          y = node.Y
 
-            cross_section = 2.0 * r
+          cross_section = 2.0 * r
 
-            if ((x * x + y * y) >= ((d / 2 - eps * r) * (d / 2 - eps * r))):
+          if ((x * x + y * y) >= ((d / 2 - eps * r) * (d / 2 - eps * r))):
+              kkkk
 
-                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
-                self.LAT.append(node)
-                xlat_area = xlat_area + cross_section
+              element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
+              self.LAT.append(node)
+              xlat_area = xlat_area + cross_section
 
         if(len(self.LAT)==0):
             self.Procedures.KratosPrintWarning("ERROR! in Circular Skin Determination - NO LATERAL PARTICLES" + "\n")
@@ -75,7 +76,7 @@ class SPTest(DEM_material_test_script.MaterialTest):
 
     if self.test_type == "SandP":
       average_zstress_value = self.aux.ComputeAverageZStressFor2D(self.spheres_model_part)
-      print (average_zstress_value)
+      #print (average_zstress_value)
       self.ApplyLateralStress(average_zstress_value, self.LAT)
 
 
@@ -90,6 +91,7 @@ class SPTest(DEM_material_test_script.MaterialTest):
 
           values = Array3()
           vect = Array3()
+          #print(r)
 
           cross_section = 2.0 * r
 
@@ -102,6 +104,7 @@ class SPTest(DEM_material_test_script.MaterialTest):
 
           values[0] = cross_section * average_zstress_value * vect[0]
           values[1] = cross_section * average_zstress_value * vect[1]
+          print(values)
 
           node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
 
