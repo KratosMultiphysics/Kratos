@@ -11,12 +11,6 @@
 *.pyc
 
 # Common build directory
-cmake_build/*
-!cmake_build/example_configure.bat.do_not_touch
-!cmake_build/example_configure.sh.do_not_touch
-packaging/*
-packaging_aux/KratosLoader.py
-packaging_aux/kratos.conf
 build/*
 bin/*
 
@@ -77,6 +71,3 @@ script.py
 
 # Most used editor files
 *.vscode
-
-# Auxiliar file (deprecated?)
-applications/python_scripts/beam_profiles\.csv
