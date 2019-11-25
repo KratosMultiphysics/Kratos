@@ -3,7 +3,7 @@
     {
         "echo_level" : 1,
         "start_step" : 1,
-        "stop_step" : 11,
+        "stop_step" : 101,
         "data_structure" : "pyKratos"
     },
     "coupled_solver" :

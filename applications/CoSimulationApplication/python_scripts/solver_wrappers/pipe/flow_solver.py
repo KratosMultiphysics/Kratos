@@ -93,7 +93,7 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
 
     def SolveSolutionStep(self, interface_input):
         # Input does not contain boundary conditions
-        self.interface_input = interface_input
+        self.interface_input.CopyDataFrom(interface_input)
         a = self.interface_input.GetNumpyArray()
         self.a[1:self.m + 1] = a
         self.a[0] = self.a[1]
@@ -122,7 +122,7 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         # Output does not contain boundary conditions
         p = self.p[1:self.m + 1]
         self.interface_output.SetNumpyArray(p)
-        return self.interface_output.deepcopy()  # ***
+        return self.interface_output
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()

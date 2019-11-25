@@ -54,7 +54,12 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
             interface_output_to = self.solver_wrappers[index_other].GetInterfaceInput()
             self.solver_wrappers[index_mapped].SetInterfaceOutput(interface_output_to)
 
-        self.x = self.solver_wrappers[0].GetInterfaceInput()#.deepcopy()
+        # Initialize variables with deepcopy
+        self.x = self.solver_wrappers[1].GetInterfaceOutput().deepcopy()
+        self.r = self.x.deepcopy()
+        self.xt = self.x.deepcopy()
+        self.dx = self.x.deepcopy()
+
         self.predictor.Initialize(self.x)
 
     def Finalize(self):
@@ -73,16 +78,16 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         # Coupling iteration loop
         while not self.convergence_criterion.IsSatisfied():
             if not self.convergence_accelerator.IsReady():
-                self.x = self.predictor.Predict(self.x)
+                self.x.CopyDataFrom(self.predictor.Predict(self.x))
             else:
-                dx = self.convergence_accelerator.Predict(r)
-                self.x += dx
-            y = self.solver_wrappers[0].SolveSolutionStep(self.x)
-            xt = self.solver_wrappers[1].SolveSolutionStep(y)
+                self.dx.CopyDataFrom(self.convergence_accelerator.Predict(self.r))
+                self.x += self.dx
+            y_tmp = self.solver_wrappers[0].SolveSolutionStep(self.x)
+            self.xt.CopyDataFrom(self.solver_wrappers[1].SolveSolutionStep(y_tmp))
+            self.r = self.xt - self.x
 
-            r = xt - self.x
-            self.convergence_accelerator.Update(self.x, xt)
-            self.convergence_criterion.Update(r)
+            self.convergence_accelerator.Update(self.x, self.xt)
+            self.convergence_criterion.Update(self.r)
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
