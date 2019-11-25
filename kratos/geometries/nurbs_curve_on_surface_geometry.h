@@ -29,16 +29,14 @@
 namespace Kratos {
 
 template <int TWorkingSpaceDimension, class TCurveContainerPointType, class TSurfaceContainerPointType>
-class NurbsCurveOnSurfaceGeometry : public Geometry<typename TCurveContainerPointType::value_type>
+class NurbsCurveOnSurfaceGeometry : public Geometry<typename TSurfaceContainerPointType::value_type>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Geometry as base class.
-    typedef Geometry<typename TCurveContainerPointType::value_type> BaseType;
-    // typedef NurbsCurveGeometry<2, TCurveContainerPointType> BaseType;
-    typedef NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TCurveContainerPointType, TSurfaceContainerPointType> GeometryType;
+    typedef Geometry<typename TSurfaceContainerPointType::value_type> BaseType;
 
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
