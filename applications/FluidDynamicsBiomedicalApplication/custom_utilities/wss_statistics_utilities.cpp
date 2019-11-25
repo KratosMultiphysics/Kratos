@@ -99,7 +99,7 @@ void WssStatisticsUtilities::CalculateOSI(ModelPart &rModelPart)
     double aux_OSI = 0.0;
     double aux_TWSS = 0.0;
     double aux_WSS = 0.0;
-    array_1d<double,3> SumWSS;
+    array_1d<double,3> sum_WSS;
 
     // Get the step counter
     const unsigned int step = rModelPart.GetProcessInfo()[STEP];
@@ -110,9 +110,9 @@ void WssStatisticsUtilities::CalculateOSI(ModelPart &rModelPart)
     {
         auto it_node = rModelPart.NodesBegin() + i_node;
         //Calculate the sum of the vector components of WSS for all times step
-        SumWSS=it_node->FastGetSolutionStepValue(TEMPORAL_OSI,0);
-        SumWSS *= (1/step);
-        aux_WSS=norm_2(SumWSS);
+        sum_WSS=it_node->FastGetSolutionStepValue(TEMPORAL_OSI,0);
+        sum_WSS *= (1/step);
+        aux_WSS=norm_2(sum_WSS);
         //Calculates the magnitude of the time-averaged WSS vector
         aux_TWSS=(it_node->FastGetSolutionStepValue(TWSS,0)/step);
         aux_OSI=(0.5* (1.0-(aux_WSS/aux_TWSS)));
