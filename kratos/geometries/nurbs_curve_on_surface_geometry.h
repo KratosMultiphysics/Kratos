@@ -131,17 +131,17 @@ public:
     }
 
     ///@}
-    ///@name OperationsZeroVector(3);
+    ///@name Operations
     ///@{
 
     /*typename BaseType::Pointer Create(
-        PointsArrayType const& ThisPoints) const override
+        TSurfaceContainerPointType const& ThisPoints) const override
     {
         return Kratos::make_shared<NurbsCurveOnSurfaceGeometry>(ThisPoints);
     }*/
 
     ///@}
-    ///@name Operations
+    ///@name Operation within Global Space
     ///@{
 
     /*
