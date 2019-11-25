@@ -3,7 +3,7 @@
     {
         "echo_level" : 1,
         "start_step" : 1,
-        "stop_step" : 101,
+        "stop_step" : 11,
         "data_structure" : "pyKratos"
     },
     "coupled_solver" :
@@ -11,8 +11,7 @@
         "type" : "coupled_solvers.gauss_seidel",
         "settings" :
         {
-            "echo_level" : 1,
-            "master_solver_index" : 0
+            "echo_level" : 1
         },
         "predictor" :
         {
