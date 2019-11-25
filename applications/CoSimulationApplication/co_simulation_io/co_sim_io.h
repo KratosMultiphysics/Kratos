@@ -25,9 +25,13 @@ support for sockets and MPI can optionally be enabled
 // System includes
 #include <string>
 
+// Project includes
+#include "internals/co_sim_io_define.h"
+
 namespace CoSimIO {
 
-inline void Connect(const std::string& rConnectionName, const std::string& pSettingsFileName);
+inline void Connect(const std::string& rConnectionName, CoSimIO::SettingsType Settings);
+inline void Connect(const std::string& rConnectionName, const std::string& rSettingsFileName);
 
 inline void Disconnect(const std::string& rConnectionName);
 

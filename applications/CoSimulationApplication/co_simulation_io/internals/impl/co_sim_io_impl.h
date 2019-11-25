@@ -48,13 +48,18 @@ static CoSimConnection& GetConnection(const std::string& rConnectionName)
 
 } // namespace Internals
 
-inline void Connect(const std::string& rConnectionName, const std::string& pSettingsFileName)
+inline void Connect(const std::string& rConnectionName, CoSimIO::SettingsType Settings)
 {
     using namespace Internals;
     KRATOS_CO_SIM_ERROR_IF(HasIO(rConnectionName)) << "A connection for \"" << rConnectionName << "\" already exists!" << std::endl;
 
-    s_co_sim_connections[std::string(rConnectionName)] = std::unique_ptr<CoSimConnection>(new CoSimConnection(rConnectionName, pSettingsFileName));
+    s_co_sim_connections[std::string(rConnectionName)] = std::unique_ptr<CoSimConnection>(new CoSimConnection(rConnectionName, Settings));
     GetConnection(rConnectionName).Connect();
+}
+
+inline void Connect(const std::string& rConnectionName, const std::string& rSettingsFileName)
+{
+    Connect(rConnectionName, Internals::ReadSettingsFile(rSettingsFileName)); // forward call to funciton above
 }
 
 inline void Disconnect(const std::string& rConnectionName)

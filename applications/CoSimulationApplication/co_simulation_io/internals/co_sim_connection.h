@@ -29,7 +29,6 @@
 #include <vector>
 #include <string>
 #include <map>
-#include <stdexcept>
 #include <utility>
 
 // Project includes
@@ -48,9 +47,9 @@ public:
     explicit CoSimConnection(const std::string& rName, const std::string& rSettingsFileName)
     : CoSimConnection(rName, Internals::ReadSettingsFile(rSettingsFileName)) { } // forwarding constructor call
 
-    explicit CoSimConnection(const std::string& rName, SettingsType rSettings) : mConnectionName(rName)
+    explicit CoSimConnection(const std::string& rName, SettingsType Settings) : mConnectionName(rName)
     {
-        Initialize(rSettings);
+        Initialize(Settings);
     }
 
     bool Connect()
