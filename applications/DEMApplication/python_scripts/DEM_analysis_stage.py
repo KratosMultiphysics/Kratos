@@ -532,7 +532,7 @@ class DEMAnalysisStage(AnalysisStage):
         #### PRINTING GRAPHS ####
         self.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.time, self.graphs_path)
         self.materialTest.MeasureForcesAndPressure()
-        #self.materialTest.PrintGraph(self.time)
+        self.materialTest.PrintGraph(self.time)
         self.DEMFEMProcedures.PrintGraph(self.time)
         self.DEMFEMProcedures.PrintBallsGraph(self.time)
         self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)

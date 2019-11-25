@@ -17,11 +17,10 @@ class SPTest(DEM_material_test_script.MaterialTest):
 
   def Initialize(self):
     self.PrepareTests()
-    self.DefineBoundaries()
+    #self.DefineBoundaries()
 
 
   def PrepareTests(self):
-
     ##Fixing vertical
     if self.test_type == "SandP":
         for node in self.TOP:
@@ -35,7 +34,7 @@ class SPTest(DEM_material_test_script.MaterialTest):
 
 
   def CircularSkinDetermination(self):
-
+        print("CircularSkinDetermination")
         # Cylinder dimensions
         d = self.diameter
         eps = 2.0
@@ -76,9 +75,8 @@ class SPTest(DEM_material_test_script.MaterialTest):
 
     if self.test_type == "SandP":
       average_zstress_value = self.aux.ComputeAverageZStressFor2D(self.spheres_model_part)
-      #print (average_zstress_value)
-      self.ApplyLateralStress(average_zstress_value, self.LAT)
-
+      print (average_zstress_value)
+      self.ApplyLateralStress(average_zstress_value, self.LAT)   # esto va muy lento
 
 
   def ApplyLateralStress(self, average_zstress_value, LAT):
@@ -107,6 +105,21 @@ class SPTest(DEM_material_test_script.MaterialTest):
           print(values)
 
           node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
+
+
+
+
+  def PrintGraph(self, time):
+    pass
+
+    # if(self.graph_counter == self.graph_frequency):
+
+    #   self.graph_counter = 0
+    #   self.graph_export.write(str("%.6g"%self.strain).rjust(13)+"  "+str("%.6g"%(self.total_stress_mean*1e-6)).rjust(13) +"  "+str("%.8g"%time).rjust(12)+'\n')
+    #   self.Flush(self.graph_export)
+
+    # self.graph_counter += 1
+
 
 
   def Flush(self,a):

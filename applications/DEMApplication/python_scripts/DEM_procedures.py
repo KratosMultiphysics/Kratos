@@ -1287,7 +1287,7 @@ class MaterialTest(object):
                 self.script = sp_test.SPTest(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
             else:
                 self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
-                self.script.Initialize()
+            self.script.Initialize()
 
             #self.PreUtils = DEM_material_test_script.PreUtils(spheres_model_part)
             #self.PreUtils.BreakBondUtility(spheres_model_part)
