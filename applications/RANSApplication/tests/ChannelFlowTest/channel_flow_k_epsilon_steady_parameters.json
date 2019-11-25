@@ -331,7 +331,7 @@
                 "Parameters": {
                     "model_part_name": "FluidModelPart.Slip2D",
                     "write_drag_output_file": true,
-                    "print_drag_to_screen": true,
+                    "print_drag_to_screen": false,
                     "interval": [
                         0.0,
                         "End"
