@@ -33,7 +33,7 @@ Compilation Type. Options are `Release`,`RelWithDebInfo`,`Debug`,`FullDebug`,`Cu
 `PYTHON_EXECUTABLE`
 
 Path to the python executable that Kratos will use. We recommend that you manually set this in case you have multiple versions of python in the system.
-Ubuntu users need to be extra carefull with this as default versions tends to be Python2, while Kratos is preferably compiled with Python3
+Ubuntu users need to be extra careful with this as default versions tends to be Python2, while Kratos is preferably compiled with Python3
 
 `BOOST_ROOT`
 
