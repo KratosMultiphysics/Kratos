@@ -249,7 +249,7 @@ void ImportMeshDetail(
         KRATOS_CHECK_EQUAL(exp_num_elems, received_num_elems);
 
         // cannot use the vector check macro, bcs the size might be larger / does not work with manual memory!
-        for (int j=0; j<received_num_nodes; ++j) {
+        for (std::size_t j=0; j<rNodeCoords[i].size(); ++j) {
             KRATOS_CHECK_DOUBLE_EQUAL(rNodeCoords[i][j], rDataContainerNodalCoords[j]);
         }
 
