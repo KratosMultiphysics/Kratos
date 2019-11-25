@@ -213,11 +213,13 @@ private:
         // reading file
         std::string current_line;
         bool nodes_read = false;
+        bool cells_read = false;
 
         while (std::getline(input_file, current_line)) {
             // reading nodes
             if (current_line.find("POINTS") != std::string::npos) {
                 KRATOS_CO_SIM_ERROR_IF(nodes_read) << "The nodes were read already!" << std::endl;
+                KRATOS_CO_SIM_ERROR_IF(cells_read) << "The cells were read already!" << std::endl;
                 nodes_read = true;
 
                 int num_nodes;
@@ -238,26 +240,40 @@ private:
             // reading cells
             if (current_line.find("CELLS") != std::string::npos) {
                 KRATOS_CO_SIM_ERROR_IF_NOT(nodes_read) << "The nodes were not yet read!" << std::endl;
+                KRATOS_CO_SIM_ERROR_IF(cells_read) << "The cells were read already!" << std::endl;
+                cells_read = true;
 
-                int /*num_nodes_per_cell,*/ num_cells, /*node_id,*/ cell_list_size;
+                int num_nodes_per_cell, num_cells, elem_conn, cell_list_size;
                 current_line = current_line.substr(current_line.find("CELLS") + 6); // removing "CELLS"
                 std::istringstream line_stream(current_line);
                 line_stream >> num_cells;
                 line_stream >> cell_list_size;
                 rNumberOfElements = num_cells;
 
-                KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Mesh contains " << num_cells << " Cells" << std::endl;
+                rElementConnectivities.resize_if_smaller(cell_list_size);
+                rElementTypes.resize_if_smaller(num_cells);
 
-                // int counter=0;
-                // for (int i=0; i<num_cells; ++i) {
-                //     input_file >> num_nodes_per_cell;
-                //     (*numNodesPerElem)[i] = num_nodes_per_cell;
-                //     for (int j=0; j<num_nodes_per_cell; ++j) {
-                //         input_file >> node_id;
-                //         (*elem)[counter++] = node_id+1; // Node Ids have an offset of 1 from Kratos to VTK
-                //     }
-                // }
-                break; // no further information reading required => CELL_TYPES are not used here
+                KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Mesh contains " << num_cells << " Elements" << std::endl;
+
+                int counter=0;
+                for (int i=0; i<num_cells; ++i) {
+                    input_file >> num_nodes_per_cell;
+                    for (int j=0; j<num_nodes_per_cell; ++j) {
+                        input_file >> elem_conn;
+                        rElementConnectivities[counter++] = elem_conn;
+                    }
+                }
+            }
+
+            // reading cell types
+            if (current_line.find("CELL_TYPES") != std::string::npos) {
+                KRATOS_CO_SIM_ERROR_IF_NOT(nodes_read) << "The nodes were not yet read!" << std::endl;
+                KRATOS_CO_SIM_ERROR_IF_NOT(cells_read) << "The cells were not yet read!" << std::endl;
+
+                for (int i=0; i<rNumberOfElements; ++i) {
+                    input_file >> rElementTypes[i];
+                }
+
             }
         }
 
@@ -315,7 +331,7 @@ private:
             }
         }
 
-        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1 && connectivities_offset != 0) << "Connectivities have an offset of " << connectivities_offset << std::endl;
+        KRATOS_CO_SIM_ERROR_IF(connectivities_offset != 0) << "Connectivities have an offset of " << connectivities_offset << " which is not allowed!" << std::endl;
 
         // write cells connectivity
         counter = 0;
@@ -412,12 +428,14 @@ private:
 
     void WaitUntilFileIsRemoved(const std::string& rFileName)
     {
-        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Waiting for file: \"" << rFileName << "\" to be removed" << std::endl;
-        while(FileExists(rFileName)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(50)); // wait 0.05s before next check
-            KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>2) << "    Waiting" << std::endl;
+        if (FileExists(rFileName)) { // only issue the wating message if the file exists initially
+            KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Waiting for file: \"" << rFileName << "\" to be removed" << std::endl;
+            while(FileExists(rFileName)) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(50)); // wait 0.05s before next check
+                KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>2) << "    Waiting" << std::endl;
+            }
+            KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "File: \"" << rFileName << "\" was removed" << std::endl;
         }
-        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>0) << "File: \"" << rFileName << "\" was removed" << std::endl;
     }
 
     void MakeFileVisible(const std::string& rFinalFileName)
