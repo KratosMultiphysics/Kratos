@@ -34,6 +34,7 @@ if(NOT DEFINED INSTALL_RUNKRATOS)
 endif(NOT DEFINED INSTALL_RUNKRATOS)
 
 # If build mode is not defined, assume Release
+set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 if(DEFINED ENV{KRATOS_BUILD_TYPE})
     list(FIND CMAKE_CONFIGURATION_TYPES $ENV{KRATOS_BUILD_TYPE} FOUND_MODE)
     if(FOUND_MODE EQUAL -1)
@@ -109,7 +110,6 @@ else(GIT_FOUND)
 endif(GIT_FOUND)
 
 # Configure files depending on the build type
-set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 if( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
   set (KratosMultiphysics_BUILD_SUFFIX "")
 else( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
