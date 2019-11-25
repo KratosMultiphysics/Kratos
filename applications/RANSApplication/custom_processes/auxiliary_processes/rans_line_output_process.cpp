@@ -162,8 +162,6 @@ void RansLineOutputProcess::ExecuteInitialize()
 {
     KRATOS_TRY
 
-    mCurrentStepCount = 0;
-
     const array_1d<double, 3>& r_direction_vector = mEndPoint - mStartPoint;
 
     mSamplingPoints.resize(mNumberOfSamplingPoints * 3);
