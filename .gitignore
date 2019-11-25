@@ -17,7 +17,7 @@ cmake_build/*
 packaging/*
 packaging_aux/KratosLoader.py
 packaging_aux/kratos.conf
-.build/*
+build/*
 bin/*
 
 # Compile and install directories
