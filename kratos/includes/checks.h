@@ -12,6 +12,7 @@
 //
 
 #include <cstring>
+#include <limits>
 #include "includes/exception.h"
 
 #if !defined(KRATOS_CHECKS_H_INCLUDED )
