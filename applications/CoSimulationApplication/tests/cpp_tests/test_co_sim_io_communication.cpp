@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
 #include "testing/testing.h"
 #include "co_simulation_io/internals/co_sim_file_communication.h"
 
@@ -30,13 +29,45 @@ typedef CoSimIO::Internals::CoSimFileCommunication CoSimFileComm;
 typedef CoSimIO::Internals::DataContainer<double> BaseDataContainter;
 typedef CoSimIO::Internals::DataContainerStdVector<double> DataContainterStdVec;
 typedef CoSimIO::Internals::DataContainerRawMemory<double> DataContainterRawMem;
-typedef std::vector<std::pair<std::size_t, double>> SizeValueVectorType;
+typedef std::vector<std::pair<std::size_t, double>> SizeValuePairsVectorType;
+typedef std::vector<std::pair<std::string, CoSimIO::ControlSignal>> IdentifierSignalPairsVectorType;
+
+void SendControlSignals(
+    CoSimComm& rCoSimComm,
+    const IdentifierSignalPairsVectorType& rIdentifiersSignals)
+{
+    rCoSimComm.Connect();
+
+    for (const auto& ident_signal_pair : rIdentifiersSignals) {
+        rCoSimComm.SendControlSignal(ident_signal_pair.first, ident_signal_pair.second);
+    }
+
+    rCoSimComm.Disconnect();
+}
+
+void RecvControlSignals(
+    CoSimComm& rCoSimComm,
+    const IdentifierSignalPairsVectorType& rIdentifiersSignals)
+{
+    rCoSimComm.Connect();
+
+    std::string received_identifier;
+    CoSimIO::ControlSignal received_signal;
+
+    for (const auto& ident_signal_pair : rIdentifiersSignals) {
+        received_signal = rCoSimComm.RecvControlSignal(received_identifier);
+        KRATOS_CHECK_STRING_EQUAL(ident_signal_pair.first, received_identifier);
+        KRATOS_CHECK_EQUAL(static_cast<int>(ident_signal_pair.second), static_cast<int>(received_signal));
+    }
+
+    rCoSimComm.Disconnect();
+}
 
 void ExportDataDetail(
     CoSimComm& rCoSimComm,
     BaseDataContainter& rDataContainer,
     const std::string& rIdentifier,
-    const std::vector<std::pair<std::size_t, double>>& rSizesValues)
+    const SizeValuePairsVectorType& rSizesValues)
 {
     rCoSimComm.Connect();
 
@@ -56,7 +87,7 @@ void ImportDataDetail(
     CoSimComm& rCoSimComm,
     BaseDataContainter& rDataContainer,
     const std::string& rIdentifier,
-    const std::vector<std::pair<std::size_t, double>>& rSizesValues)
+    const SizeValuePairsVectorType& rSizesValues)
 {
     int received_size;
 
@@ -82,7 +113,7 @@ void ImportDataDetail(
 void ExportImportData_StdVector(
     CoSimComm& rCoSimCommExport,
     CoSimComm& rCoSimCommImport,
-    const SizeValueVectorType& rSizesValues)
+    const SizeValuePairsVectorType& rSizesValues)
 {
     std::string identifier("dummy_data");
 
@@ -103,7 +134,7 @@ void ExportImportData_StdVector(
 void ExportImportData_RawMemory(
     CoSimComm& rCoSimCommExport,
     CoSimComm& rCoSimCommImport,
-    const SizeValueVectorType& rSizesValues)
+    const SizeValuePairsVectorType& rSizesValues)
 {
     std::string identifier("dummy_data");
 
@@ -130,46 +161,84 @@ void ExportImportData_RawMemory(
     free(values_raw_import);
 }
 
-// void ExportImportMesh(CoSimComm& rCoSimComm)
-// {
-
-// }
-
-// void SendReceiveControlSignal(CoSimComm& rCoSimComm)
-// {
-
-// }
-
 } // helpers namespace
 
 KRATOS_TEST_CASE_IN_SUITE(FileCommunication_Data_Connect_Disconnect, KratosCoSimulationFastSuite)
 {
-    CoSimIO::SettingsType settings = { // only disabling prints, otherwise use default configuration
-            {"echo_level",   "0"},
-            {"print_timing", "0"}
+    CoSimIO::SettingsType settings { // only disabling prints, otherwise use default configuration
+        {"echo_level",   "0"},
+        {"print_timing", "0"}
     };
     std::string connection_name("FileCommunication_Data_Connect_Disconnect");
 
     Kratos::unique_ptr<CoSimComm> exporter(Kratos::make_unique<CoSimFileComm>(connection_name, settings, true));
     Kratos::unique_ptr<CoSimComm> importer(Kratos::make_unique<CoSimFileComm>(connection_name, settings, false));
 
-    const SizeValueVectorType sizes_values; // assigning nothing here results in connecting and disconnecting
+    const SizeValuePairsVectorType sizes_values; // assigning nothing here results in connecting and disconnecting
 
     ExportImportData_StdVector(*exporter, *importer, sizes_values);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FileCommunication_Data_Once, KratosCoSimulationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(FileCommunication_ControlSignal_Once, KratosCoSimulationFastSuite)
 {
-    CoSimIO::SettingsType settings = { // only disabling prints, otherwise use default configuration
-            {"echo_level",   "0"},
-            {"print_timing", "0"}
+    CoSimIO::SettingsType settings { // only disabling prints, otherwise use default configuration
+        {"echo_level",   "0"},
+        {"print_timing", "0"}
     };
-    std::string connection_name("FileCommunication_Data_Once_RawMemory");
+    std::string connection_name("FileCommunication_ControlSignal_Once");
 
     Kratos::unique_ptr<CoSimComm> exporter(Kratos::make_unique<CoSimFileComm>(connection_name, settings, true));
     Kratos::unique_ptr<CoSimComm> importer(Kratos::make_unique<CoSimFileComm>(connection_name, settings, false));
 
-    const SizeValueVectorType sizes_values = {
+    const IdentifierSignalPairsVectorType identifier_signals_pairs {
+        {"ab258cc", CoSimIO::ControlSignal::Dummy}
+    };
+
+    std::thread export_thread(SendControlSignals, std::ref(*exporter), std::ref(identifier_signals_pairs));
+
+    RecvControlSignals(*importer, identifier_signals_pairs);
+
+    export_thread.join();
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FileCommunication_ControlSignal_Multiple, KratosCoSimulationFastSuite)
+{
+    CoSimIO::SettingsType settings { // only disabling prints, otherwise use default configuration
+        {"echo_level",   "0"},
+        {"print_timing", "0"}
+    };
+    std::string connection_name("FileCommunication_ControlSignal_Multiple");
+
+    Kratos::unique_ptr<CoSimComm> exporter(Kratos::make_unique<CoSimFileComm>(connection_name, settings, true));
+    Kratos::unique_ptr<CoSimComm> importer(Kratos::make_unique<CoSimFileComm>(connection_name, settings, false));
+
+    const IdentifierSignalPairsVectorType identifier_signals_pairs {
+        {"abcc", CoSimIO::ControlSignal::Dummy},
+        {"frt1", CoSimIO::ControlSignal::ConvergenceAchieved},
+        {"bbhh", CoSimIO::ControlSignal::AdvanceInTime},
+        {"oott", CoSimIO::ControlSignal::SolveSolutionStep},
+        {"lkuz", CoSimIO::ControlSignal::ExportData}
+    };
+
+    std::thread export_thread(SendControlSignals, std::ref(*exporter), std::ref(identifier_signals_pairs));
+
+    RecvControlSignals(*importer, identifier_signals_pairs);
+
+    export_thread.join();
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FileCommunication_Data_Once, KratosCoSimulationFastSuite)
+{
+    CoSimIO::SettingsType settings { // only disabling prints, otherwise use default configuration
+        {"echo_level",   "0"},
+        {"print_timing", "0"}
+    };
+    std::string connection_name("FileCommunication_Data_Once");
+
+    Kratos::unique_ptr<CoSimComm> exporter(Kratos::make_unique<CoSimFileComm>(connection_name, settings, true));
+    Kratos::unique_ptr<CoSimComm> importer(Kratos::make_unique<CoSimFileComm>(connection_name, settings, false));
+
+    const SizeValuePairsVectorType sizes_values {
         {15, 1.884}
     };
 
@@ -179,16 +248,16 @@ KRATOS_TEST_CASE_IN_SUITE(FileCommunication_Data_Once, KratosCoSimulationFastSui
 
 KRATOS_TEST_CASE_IN_SUITE(FileCommunication_Data_Multiple, KratosCoSimulationFastSuite)
 {
-    CoSimIO::SettingsType settings = { // only disabling prints, otherwise use default configuration
-            {"echo_level",   "0"},
-            {"print_timing", "0"}
+    CoSimIO::SettingsType settings { // only disabling prints, otherwise use default configuration
+        {"echo_level",   "0"},
+        {"print_timing", "0"}
     };
-    std::string connection_name("FileCommunication_Data_Multiple_RawMemory");
+    std::string connection_name("FileCommunication_Data_Multiple");
 
     Kratos::unique_ptr<CoSimComm> exporter(Kratos::make_unique<CoSimFileComm>(connection_name, settings, true));
     Kratos::unique_ptr<CoSimComm> importer(Kratos::make_unique<CoSimFileComm>(connection_name, settings, false));
 
-    const SizeValueVectorType sizes_values = {
+    const SizeValuePairsVectorType sizes_values {
         {15, 1.884},
         {25, -147.884},
         {10, 11447.556},
