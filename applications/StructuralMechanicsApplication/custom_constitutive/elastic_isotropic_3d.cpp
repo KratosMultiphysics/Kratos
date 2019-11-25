@@ -434,13 +434,14 @@ void ElasticIsotropic3D::ComputeThermalStrainVector(
 {
     if (rThermalStrainVector.size() != VoigtSize)
         rThermalStrainVector.resize(VoigtSize);
-    rThermalStrainVector[0] = 1.0;
-    rThermalStrainVector[1] = 1.0;
-    rThermalStrainVector[2] = 1.0;
+
+    const double thermal_factor = (Temperature - ReferenceTemperature) * ThermalExpansionCoeff;
+    rThermalStrainVector[0] = thermal_factor;
+    rThermalStrainVector[1] = thermal_factor;
+    rThermalStrainVector[2] = thermal_factor;
     rThermalStrainVector[3] = 0.0;
     rThermalStrainVector[4] = 0.0;
     rThermalStrainVector[5] = 0.0;
-    rThermalStrainVector *= (Temperature - ReferenceTemperature) * ThermalExpansionCoeff;
 }
 
 } // Namespace Kratos
