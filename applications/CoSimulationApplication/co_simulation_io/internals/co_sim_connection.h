@@ -129,7 +129,7 @@ public:
     {
         KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
 
-        const std::map<const CoSimIO::ControlSignal, const std::string> signal_to_name = {
+        const std::map<const CoSimIO::ControlSignal, const std::string> signal_to_name {
             {CoSimIO::ControlSignal::ImportGeometry, "ImportGeometry"},
             {CoSimIO::ControlSignal::ExportGeometry, "ExportGeometry"},
             {CoSimIO::ControlSignal::ImportMesh,     "ImportMesh"},

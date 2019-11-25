@@ -25,7 +25,7 @@ class CoSimCommunication
 public:
     explicit CoSimCommunication(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster) : mrSettings(rSettings),mConnectionName(rName), mIsConnectionMaster(IsConnectionMaster)
     {
-        const SettingsType default_settings = {
+        const SettingsType default_settings {
             {"echo_level",   "1"},
             {"print_timing", "0"}
         };

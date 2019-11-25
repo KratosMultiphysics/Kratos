@@ -52,7 +52,7 @@ static void CheckStream(const T& rStream, const std::string& rFileName)
 
 static int GetNumNodesForVtkCellType(const int VtkCellType)
 {
-    const std::unordered_map<int, int> vtk_cell_type_map = {
+    const std::unordered_map<int, int> vtk_cell_type_map {
         { /*Point3D,          */ 1 ,  1},
         { /*Line3D2,          */ 3 ,  2},
         { /*Triangle3D3,      */ 5 ,  3},
@@ -83,7 +83,7 @@ public:
     explicit CoSimFileCommunication(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster)
         : CoSimCommunication(rName, rSettings, IsConnectionMaster)
     {
-        const SettingsType default_settings = {
+        const SettingsType default_settings {
             {"use_folder_for_communication" , "0"}
         };
         Internals::AddMissingSettings(default_settings, mrSettings);
