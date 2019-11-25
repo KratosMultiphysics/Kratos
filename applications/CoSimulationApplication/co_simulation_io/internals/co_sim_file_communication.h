@@ -16,6 +16,7 @@
 #include <chrono>
 #include <thread>
 #include <iomanip>
+#include <algorithm>
 
 // Project includes
 #include "co_sim_communication.h"
@@ -302,20 +303,26 @@ private:
         }
         output_file << "\n";
 
-        // write cells connectivity
+        // get connectivity information
         int cell_list_size = 0;
+        int counter = 0;
+        int connectivities_offset = std::numeric_limits<int>::max(); //in paraview the connectivities start from 0, hence we have to check beforehand what is the connectivities offset
         for (int i=0; i<NumberOfElements; ++i) {
-            cell_list_size += GetNumNodesForVtkCellType(rElementTypes[i]) + 1;
+            const int num_nodes_cell = GetNumNodesForVtkCellType(rElementTypes[i]);
+            cell_list_size += num_nodes_cell + 1; // +1 for size of connectivity
+            for (int j=0; j<num_nodes_cell; ++j) {
+                connectivities_offset = std::min(connectivities_offset, rElementConnectivities[counter++]);
+            }
         }
 
         // write cells connectivity
-        int counter=0;
+        counter = 0;
         output_file << "CELLS " << NumberOfElements << " " << cell_list_size << "\n";
         for (int i=0; i<NumberOfElements; ++i) {
             const int num_nodes_cell = GetNumNodesForVtkCellType(rElementTypes[i]);
             output_file << num_nodes_cell << " ";
             for (int j=0; j<num_nodes_cell; ++j) {
-                output_file << rElementConnectivities[counter++];
+                output_file << (rElementConnectivities[counter++]-connectivities_offset);
                 if (j<num_nodes_cell-1) output_file << " "; // not adding a whitespace after last number
             }
             output_file << "\n";
