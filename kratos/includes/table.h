@@ -256,6 +256,14 @@ public:
     {
         mData.push_back(RecordType(X,Y));
     }
+    
+    /**
+     * @brief This method clears databse
+     */
+    void Clear()
+    {
+        mData.clear();
+    }
 
     ///@}
     ///@name Access
@@ -688,8 +696,15 @@ public:
         Result= dy/dx;
         return Result;
     }
-
-
+    
+    /**
+     * @brief This method clears databse
+     */
+    void Clear()
+    {
+        mData.clear();
+    }
+    
     ///@}
     ///@name Access
     ///@{
