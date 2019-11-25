@@ -74,6 +74,11 @@ inline void ExportMesh(
 
 inline void IsConverged(const std::string& rConnectionName, int* pConvergenceSignal);
 
+inline void SendControlSignal(
+    const std::string& rConnectionName,
+    const std::string& rIdentifier,
+    const CoSimIO::ControlSignal Signal);
+
 inline void Run(const std::string& rConnectionName);
 
 template<typename TFunctionType>

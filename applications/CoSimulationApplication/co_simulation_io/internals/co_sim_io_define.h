@@ -53,6 +53,25 @@ namespace CoSimIO {
 
 typedef std::unordered_map<std::string, std::string> SettingsType;
 
+enum class ControlSignal
+{
+    Dummy,
+    BreakSolutionLoop,
+    ConvergenceAchieved,
+
+    AdvanceInTime,
+    InitializeSolutionStep,
+    SolveSolutionStep,
+    FinalizeSolutionStep,
+
+    ImportGeometry,
+    ExportGeometry,
+    ImportMesh,
+    ExportMesh,
+    ImportData,
+    ExportData,
+};
+
 } //namespace CoSimIO
 
 #endif /* KRATOS_CO_SIM_IO_DEFINE_H_INCLUDED */

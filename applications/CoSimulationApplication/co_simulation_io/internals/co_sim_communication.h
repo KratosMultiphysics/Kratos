@@ -72,11 +72,11 @@ public:
         return true;
     }
 
-    void SendControlSignal(Internals::ControlSignal Signal, const std::string& rIdentifier)
+    void SendControlSignal(const std::string& rIdentifier, const CoSimIO::ControlSignal Signal)
     {
-        CheckConnection(); return SendControlSignalDetail(Signal, rIdentifier);
+        CheckConnection(); SendControlSignalDetail(rIdentifier, Signal);
     }
-    Internals::ControlSignal RecvControlSignal(std::string& rIdentifier)
+    CoSimIO::ControlSignal RecvControlSignal(std::string& rIdentifier)
     {
         CheckConnection(); return RecvControlSignalDetail(rIdentifier);
     }
@@ -84,43 +84,37 @@ public:
     template<class... Args>
     void ImportData(Args&&... args)
     {
-        CheckConnection();
-        ImportDataImpl(std::forward<Args>(args)...);
+        CheckConnection(); ImportDataImpl(std::forward<Args>(args)...);
     }
 
     template<class... Args>
     void ExportData(Args&&... args)
     {
-        CheckConnection();
-        ExportDataImpl(std::forward<Args>(args)...);
+        CheckConnection(); ExportDataImpl(std::forward<Args>(args)...);
     }
 
     template<class... Args>
     void ImportMesh(Args&&... args)
     {
-        CheckConnection();
-        ImportMeshImpl(std::forward<Args>(args)...);
+        CheckConnection(); ImportMeshImpl(std::forward<Args>(args)...);
     }
 
     template<class... Args>
     void ExportMesh(Args&&... args)
     {
-        CheckConnection();
-        ExportMeshImpl(std::forward<Args>(args)...);
+        CheckConnection(); ExportMeshImpl(std::forward<Args>(args)...);
     }
 
     template<class... Args>
     void ImportGeometry(Args&&... args)
     {
-        CheckConnection();
-        // ImportGeometryImpl(std::forward<Args>(args)...);
+        CheckConnection(); // ImportGeometryImpl(std::forward<Args>(args)...);
     }
 
     template<class... Args>
     void ExportGeometry(Args&&... args)
     {
-        CheckConnection();
-        // ExportGeometryImpl(std::forward<Args>(args)...);
+        CheckConnection(); // ExportGeometryImpl(std::forward<Args>(args)...);
     }
 
 protected:
@@ -142,14 +136,14 @@ private:
     virtual bool ConnectDetail() = 0;
     virtual bool DisconnectDetail() = 0;
 
-    virtual void SendControlSignalDetail(Internals::ControlSignal Signal, const std::string& rIdentifier)
+    virtual void SendControlSignalDetail(const std::string& rIdentifier, CoSimIO::ControlSignal Signal)
     {
         KRATOS_CO_SIM_ERROR << "SendControlSignalDetail not implemented for this comm-type" << std::endl;
     }
-    virtual Internals::ControlSignal RecvControlSignalDetail(std::string& rIdentifier)
+    virtual CoSimIO::ControlSignal RecvControlSignalDetail(std::string& rIdentifier)
     {
         KRATOS_CO_SIM_ERROR << "RecvControlSignalDetail not implemented for this comm-type" << std::endl;
-        return Internals::ControlSignal::Dummy;
+        return CoSimIO::ControlSignal::Dummy;
     }
 
     virtual void ImportDataImpl(

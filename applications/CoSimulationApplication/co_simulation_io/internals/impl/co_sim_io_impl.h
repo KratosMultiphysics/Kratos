@@ -27,6 +27,7 @@ support for sockets and MPI can optionally be enabled
 #include <memory>
 
 // Project includes
+#include "../co_sim_io_define.h"
 #include "../co_sim_connection.h"
 
 namespace CoSimIO {
@@ -182,6 +183,14 @@ inline void ExportMesh(
 inline void IsConverged(const std::string& rConnectionName, int* pConvergenceSignal)
 {
     Internals::GetConnection(rConnectionName).IsConverged(pConvergenceSignal);
+}
+
+inline void SendControlSignal(
+    const std::string& rConnectionName,
+    const std::string& rIdentifier,
+    const CoSimIO::ControlSignal Signal)
+{
+    Internals::GetConnection(rConnectionName).SendControlSignal(rIdentifier, Signal);
 }
 
 inline void Run(const std::string& rConnectionName)

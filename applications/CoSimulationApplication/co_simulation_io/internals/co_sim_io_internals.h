@@ -108,25 +108,6 @@ private:
     std::size_t mSize;
 };
 
-enum class ControlSignal
-{
-    Dummy,
-    BreakSolutionLoop,
-    ConvergenceAchieved,
-
-    AdvanceInTime,
-    InitializeSolutionStep,
-    SolveSolutionStep,
-    FinalizeSolutionStep,
-
-    ImportGeometry,
-    ExportGeometry,
-    ImportMesh,
-    ExportMesh,
-    ImportData,
-    ExportData,
-};
-
 inline void AddMissingSettings(const SettingsType& rDefaultSettings, SettingsType& rSettings)
 {
     for (const auto& r_setting : rDefaultSettings) {

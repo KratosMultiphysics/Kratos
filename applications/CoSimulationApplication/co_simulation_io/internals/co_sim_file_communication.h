@@ -337,7 +337,7 @@ private:
         KRATOS_CO_SIM_INFO_IF("CoSimIO", GetPrintTiming()) << "Sending Mesh \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
     }
 
-    void SendControlSignalDetail(Internals::ControlSignal Signal, const std::string& rIdentifier) override
+    void SendControlSignalDetail(const std::string& rIdentifier, const CoSimIO::ControlSignal Signal) override
     {
         const std::string file_name(GetFullPath("CoSimIO_control_signal_" + GetConnectionName() + ".dat"));
 
@@ -357,7 +357,7 @@ private:
         KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished sending control signal" << std::endl;
     }
 
-    Internals::ControlSignal RecvControlSignalDetail(std::string& rIdentifier) override
+    CoSimIO::ControlSignal RecvControlSignalDetail(std::string& rIdentifier) override
     {
         const std::string file_name(GetFullPath("CoSimIO_control_signal_" + GetConnectionName() + ".dat"));
 
@@ -376,7 +376,7 @@ private:
 
         KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished receiving control signal" << std::endl;
 
-        return static_cast<Internals::ControlSignal>(control_signal);
+        return static_cast<CoSimIO::ControlSignal>(control_signal);
     }
 
     std::string GetTempFileName(const std::string& rFileName)
