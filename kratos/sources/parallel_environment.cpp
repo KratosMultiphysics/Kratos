@@ -52,6 +52,12 @@ int ParallelEnvironment::GetDefaultSize()
     return env.mDefaultSize;
 }
 
+void ParallelEnvironment::SetUpMPIEnvironment(MPIManager::Pointer& pMPIManager)
+{
+    ParallelEnvironment& env = GetInstance();
+    env.SetUpMPIEnvironmentDetail(pMPIManager);
+}
+
 void ParallelEnvironment::RegisterDataCommunicator(
     const std::string& Name,
     DataCommunicator::UniquePointer pPrototype,
@@ -77,6 +83,18 @@ std::string ParallelEnvironment::GetDefaultDataCommunicatorName()
 {
     const ParallelEnvironment& env = GetInstance();
     return env.mDefaultCommunicator->first;
+}
+
+bool ParallelEnvironment::MPIIsInitialized()
+{
+    const ParallelEnvironment& env = GetInstance();
+    return env.MPIIsInitializedDetail();
+}
+
+bool ParallelEnvironment::MPIIsFinalized()
+{
+    const ParallelEnvironment& env = GetInstance();
+    return env.MPIIsFinalized();
 }
 
 std::string ParallelEnvironment::Info()
@@ -106,6 +124,15 @@ ParallelEnvironment::ParallelEnvironment()
 
 ParallelEnvironment::~ParallelEnvironment()
 {
+    // First release the registered DataCommunicators
+    mDataCommunicators.clear();
+
+    // Then finalize MPI if necessary
+    if (mpMPIManager != nullptr)
+    {
+        mpMPIManager.release();
+    }    
+
     mDestroyed = true;
     mpInstance = nullptr;
 }
@@ -143,6 +170,14 @@ void ParallelEnvironment::Create()
 {
     static ParallelEnvironment parallel_environment;
     mpInstance = &parallel_environment;
+}
+
+void ParallelEnvironment::SetUpMPIEnvironmentDetail(MPIManager::Pointer& pMPIManager)
+{
+    KRATOS_ERROR_IF(MPIIsInitialized() || MPIIsFinalized())
+    << "Trying to configure run for MPI twice. This should not be happening!" << std::endl;
+
+    mpMPIManager = std::move(pMPIManager);
 }
 
 void ParallelEnvironment::RegisterDataCommunicatorDetail(
@@ -217,6 +252,15 @@ bool ParallelEnvironment::HasDataCommunicatorDetail(const std::string& rName) co
     return (mDataCommunicators.find(rName) != mDataCommunicators.end());
 }
 
+bool ParallelEnvironment::MPIIsInitializedDetail() const
+{
+    return (mpMPIManager == nullptr) ? false : mpMPIManager->IsInitialized();
+}
+
+bool ParallelEnvironment::MPIIsFinalizedDetail() const
+{
+    return (mpMPIManager == nullptr) ? false : mpMPIManager->IsFinalized();
+}
 
 std::string ParallelEnvironment::InfoDetail() const
 {
