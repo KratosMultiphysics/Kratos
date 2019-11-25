@@ -76,7 +76,7 @@ Path to the C++ compiler. Overrides `CXX` environment variable
 
 `-DCMAKE_INSTALL_PREFIX=String`
 
-Install path for Kratos. If not set the installation will be done in `bin/[os]/[build_type]`
+Install path for Kratos. If not set the installation will be done in `bin/[build_type]`
 
 `-DCMAKE_C_FLAGS=String`
 
