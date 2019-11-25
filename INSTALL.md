@@ -9,6 +9,7 @@
     * [Feast](#feast)
     * [Metis](#metis)
     * [Trilinos](#trilinos)
+* [Applications](#applications)
 
 
 ## Basic Configuration
@@ -160,3 +161,13 @@ Indicates the prefix of the trilinos libraries in case they have:
 libepetra.so          -> No prefix
 libtrilinos_epetra.so -> -DTRILINOS_PREFIX="trilinos_"
 ```
+
+## Applications
+
+Specific compilation information about applications can be found in their own directories:
+
+- [EigenSolvers Application](applications/EigenSolversApplication/README.md#build-instructions)
+- [HDF5 Application](applications/HDF5Application/README.md#build-instructions)
+- [MultilevelMontecarlo Application](applications/MultilevelMonteCarloApplication/README.md#external-libraries)
+- [Poromechanics Application](applications/PoromechanicsApplication/README.md#how-to-use-mpi-in-poromechanics-application)
+- [Trilinos Application (Aditional notes)](applications/TrilinosApplication/README.md#notes-for-compilation)
