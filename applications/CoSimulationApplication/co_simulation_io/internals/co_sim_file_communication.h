@@ -91,6 +91,13 @@ public:
 
         mCommFolder = ".CoSimIOFileComm_"+rName;
         // mCommInFolder = (mrSettings.at("use_folder_for_communication") == "1"); // this is not yet supported
+        /* Comments on folder:
+        See http://www.martinbroadhurst.com/list-the-files-in-a-directory-in-c.html
+        Probably should be optional since it includes OS-dependent headers
+        Only with C++17 we can enable it by default (but not many compilers fully support it yet!) => maybe check with __has_include
+        if including "windows.h" remember to define "WIN32_LEAN_AND_MEAN"
+        */
+
 
         if (mCommInFolder && GetIsConnectionMaster()) {
             // delete and recreate folder
