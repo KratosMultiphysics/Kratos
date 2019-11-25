@@ -180,9 +180,9 @@ inline void ExportMesh(
     Internals::GetConnection(rConnectionName).ExportMesh(rIdentifier, NumberOfNodes, NumberOfElements, pNodalCoordinates, pElementConnectivities, pElementTypes);
 }
 
-inline void IsConverged(const std::string& rConnectionName, int* pConvergenceSignal)
+inline void IsConverged(const std::string& rConnectionName, int& rConvergenceSignal)
 {
-    Internals::GetConnection(rConnectionName).IsConverged(pConvergenceSignal);
+    Internals::GetConnection(rConnectionName).IsConverged(rConvergenceSignal);
 }
 
 inline void SendControlSignal(

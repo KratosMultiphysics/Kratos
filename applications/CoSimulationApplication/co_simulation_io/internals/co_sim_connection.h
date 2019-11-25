@@ -173,10 +173,10 @@ public:
         }
     }
 
-    void IsConverged(int* pConvergenceSignal)
+    void IsConverged(int& rConvergenceSignal)
     {
         std::string dummy("");
-        *pConvergenceSignal = (RecvControlSignal(dummy) == CoSimIO::ControlSignal::ConvergenceAchieved);
+        rConvergenceSignal = (RecvControlSignal(dummy) == CoSimIO::ControlSignal::ConvergenceAchieved);
     }
 
 

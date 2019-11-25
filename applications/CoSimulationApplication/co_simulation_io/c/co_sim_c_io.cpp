@@ -110,7 +110,7 @@ void CoSimIO_Run(const char* pConnectionName)
 
 void CoSimIO_IsConverged(const char* pConnectionName, int* pConvergenceSignal)
 {
-    CoSimIO::IsConverged(pConnectionName, pConvergenceSignal);
+    CoSimIO::IsConverged(pConnectionName, *pConvergenceSignal);
 }
 
 void _AllocateMemoryInt(const int* pSize, int** ppData)
