@@ -24,14 +24,42 @@ if(NOT DEFINED KRATOS_SOURCE_DIR)
 endif(NOT DEFINED KRATOS_SOURCE_DIR)
 
 if(NOT DEFINED KRATOS_BINARY_DIR)
-message("-- No KRATOS_BINARY_DIR is defined, using: ${CMAKE_BINARY_DIR}")
-set(KRATOS_BINARY_DIR ${CMAKE_BINARY_DIR})
+  message("-- No KRATOS_BINARY_DIR is defined, using: ${CMAKE_BINARY_DIR}")
+  set(KRATOS_BINARY_DIR ${CMAKE_BINARY_DIR})
 endif(NOT DEFINED KRATOS_BINARY_DIR)
 
 if(NOT DEFINED INSTALL_RUNKRATOS)
-message("-- No INSTALL_RUNKRATOS is defined, setting to ON")
-set(INSTALL_RUNKRATOS ON)
+  message("-- No INSTALL_RUNKRATOS is defined, setting to ON")
+  set(INSTALL_RUNKRATOS ON)
 endif(NOT DEFINED INSTALL_RUNKRATOS)
+
+# If build mode is not defined, assume Release
+if(DEFINED ENV{KRATOS_BUILD_TYPE})
+    list(FIND CMAKE_CONFIGURATION_TYPES $ENV{KRATOS_BUILD_TYPE} FOUND_MODE)
+    if(FOUND_MODE EQUAL -1)
+        message("Unknown CMAKE_BUILD_TYPE '${CMAKE_BUILD_TYPE}', using 'Release'.")
+        set(CMAKE_BUILD_TYPE Release)
+    else(FOUND_MODE EQUAL -1)
+        set(CMAKE_BUILD_TYPE $ENV{KRATOS_BUILD_TYPE})
+    endif(FOUND_MODE EQUAL -1)
+else(DEFINED ENV{KRATOS_BUILD_TYPE})
+    message("--No CMAKE_BUILD_TYPE is defined, building in 'Release' mode.")
+    set(CMAKE_BUILD_TYPE Release)
+endif(DEFINED ENV{KRATOS_BUILD_TYPE})
+
+# Link on install
+if(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
+  message("--No KRATOS_INSTALL_PYTHON_USING_LINKS is defined, setting to OFF")
+  SET(INSTALL_PYTHON_USING_LINKS OFF)
+else(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
+  SET(INSTALL_PYTHON_USING_LINKS $ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
+endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
+
+# If no test policy enable by default
+if(NOT DEFINED KRATOS_BUILD_TESTING)
+	message("--No KRATOS_BUILD_TESTING is defined. Setting to ON")
+	SET (KRATOS_BUILD_TESTING ON)
+endif(NOT DEFINED KRATOS_BUILD_TESTING)
 
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${KRATOS_SOURCE_DIR}/cmake_modules")
@@ -79,20 +107,6 @@ else(GIT_FOUND)
   message("Git was not found on your system. SHA1 number will be set to 0.")
   set (KratosMultiphysics_SHA1_NUMBER 0)
 endif(GIT_FOUND)
-
-# If build mode is not defined, assume Release
-if(DEFINED ENV{KRATOS_BUILD_TYPE})
-    list(FIND CMAKE_CONFIGURATION_TYPES $ENV{KRATOS_BUILD_TYPE} FOUND_MODE)
-    if(FOUND_MODE EQUAL -1)
-        message("Unknown CMAKE_BUILD_TYPE '${CMAKE_BUILD_TYPE}', using 'Release'.")
-        set(CMAKE_BUILD_TYPE Release)
-    else(FOUND_MODE EQUAL -1)
-        set(CMAKE_BUILD_TYPE $ENV{KRATOS_BUILD_TYPE})
-    endif(FOUND_MODE EQUAL -1)
-else(DEFINED ENV{KRATOS_BUILD_TYPE})
-    message("Undefined CMAKE_BUILD_TYPE, building in 'Release' mode.")
-    set(CMAKE_BUILD_TYPE Release)
-endif(DEFINED ENV{KRATOS_BUILD_TYPE})
 
 # Configure files depending on the build type
 set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
@@ -189,22 +203,9 @@ if(${MSVC14})
   # Nothing needed right now
 endif(${MSVC14})
 
-# If no test policy enable by default
-if(NOT DEFINED KRATOS_BUILD_TESTING)
-	message("KRATOS_BUILD_TESTING not defined. Setting to ON")
-	SET (KRATOS_BUILD_TESTING ON)
-endif(NOT DEFINED KRATOS_BUILD_TESTING)
-
 # If install prefix is set, install all the files.
 SET(INSTALL_TESTING_FILES ON)
 SET(INSTALL_PYTHON_FILES ON)        # To be removed when all applications are ported
-
-# Link on install
-if(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
-  SET(INSTALL_PYTHON_USING_LINKS OFF)
-else(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
-  SET(INSTALL_PYTHON_USING_LINKS $ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
-endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 
 #include the file with custom installation properties
 include(install_function)
