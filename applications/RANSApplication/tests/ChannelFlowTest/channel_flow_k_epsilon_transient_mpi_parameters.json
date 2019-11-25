@@ -18,11 +18,11 @@
         "echo_level": 0,
         "compute_reactions": true,
         "consider_periodic_conditions": false,
-        "maximum_iterations": 300,
+        "maximum_iterations": 20,
         "relative_velocity_tolerance": 0.001,
-        "absolute_velocity_tolerance": 1e-5,
+        "absolute_velocity_tolerance": 1e-7,
         "relative_pressure_tolerance": 0.001,
-        "absolute_pressure_tolerance": 1e-5,
+        "absolute_pressure_tolerance": 1e-7,
         "volume_model_part_name": "Parts_fluid",
         "skin_parts": [
             "AutomaticInlet2D_inlet",
@@ -100,9 +100,9 @@
                 "echo_level": 0,
                 "turbulent_kinetic_energy_settings": {
                     "is_periodic": false,
-                    "relative_tolerance": 1e-3,
-                    "absolute_tolerance": 1e-5,
-                    "max_iterations": 10000,
+                    "relative_tolerance": 1e-4,
+                    "absolute_tolerance": 1e-8,
+                    "max_iterations": 10,
                     "echo_level": 0,
                     "relaxation_factor": 0.5,
                     "linear_solver_settings": {
@@ -111,9 +111,9 @@
                 },
                 "turbulent_energy_dissipation_rate_settings": {
                     "is_periodic": false,
-                    "relative_tolerance": 1e-3,
-                    "absolute_tolerance": 1e-5,
-                    "max_iterations": 10000,
+                    "relative_tolerance": 1e-4,
+                    "absolute_tolerance": 1e-8,
+                    "max_iterations": 10,
                     "echo_level": 0,
                     "relaxation_factor": 0.5,
                     "linear_solver_settings": {
@@ -124,9 +124,9 @@
                     "ramp_up_time": 5e-4
                 },
                 "coupling_settings": {
-                    "relative_tolerance": 1e-3,
-                    "absolute_tolerance": 1e-5,
-                    "max_iterations": 100,
+                    "relative_tolerance": 1e-8,
+                    "absolute_tolerance": 1e-9,
+                    "max_iterations": 10,
                     "echo_level": 0,
                     "number_of_parent_solve_iterations" : 0
                 }
@@ -330,7 +330,7 @@
                 "Parameters": {
                     "model_part_name": "FluidModelPart.Slip2D",
                     "write_drag_output_file": true,
-                    "print_drag_to_screen": true,
+                    "print_drag_to_screen": false,
                     "interval": [
                         0.0,
                         "End"
