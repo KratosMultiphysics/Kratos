@@ -129,20 +129,6 @@ public:
     ///@{
 
     /**
-     * @brief Sets the pointer to the geometry
-     * @param pGeometry The pointer of the geometry
-     */
-    void pSetGeometry(GeometryType::Pointer pGeometry)
-    {
-//         // TODO: This is more right?
-//         GeometryType::Pointer p_geometry_aux(std::move(pGeometry)); // Invokes move constructor
-//         pGeometry = std::move(mpGeometry);                          // Invokes move assignment
-//         mpGeometry = std::move(p_geometry_aux);                     // Invokes move assignment
-
-        mpGeometry = pGeometry;
-    }
-
-    /**
      * @brief Returns the pointer to the geometry
      * @return The pointer of the geometry
      */
@@ -347,7 +333,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-
+    
     //*********************************************
     //this block is needed for refcounting
     mutable std::atomic<int> mReferenceCounter;
