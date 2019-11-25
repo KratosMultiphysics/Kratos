@@ -74,9 +74,9 @@ public:
 protected:
 
     /**
-     * Parameters to be used in the Element as they are. Direct interface to Parameters Struct
+     * Parameters to be used in the Element
+     * for optimized memory allocation.
      */
-
     struct KinematicVariables
     {
     public:
@@ -86,7 +86,6 @@ protected:
         double  detFT;
         // Deformation Gradient
         Matrix  F;
-
         // Shape Function Derivatives in global space
         Matrix  DN_DX;
 
@@ -108,6 +107,11 @@ protected:
         }
     };
 
+
+    /*
+    * Constitutive variables hold the strain vector, the stress vector
+    * and the constitutive matrix with according memory allocation.
+    */
     struct ConstitutiveVariables
     {
     public:
@@ -117,7 +121,7 @@ protected:
         Matrix  ConstitutiveMatrix;
 
         /**
-        * The default constructor
+        * The default constructor to allocate memory.
         * @param WorkingSpaceDimension of the simulation
         */
         ConstitutiveVariables(const SizeType& WorkingSpaceDimension)
@@ -136,25 +140,32 @@ protected:
     };
 
 public:
-
-
     ///@name Life Cycle
     ///@{
 
     /// Empty constructor needed for serialization
-    UpdatedLagrangianElement(){}
+    UpdatedLagrangianElement() {
+        mDeterminantF0 = 1.0;
+        mFinalizedStep = false;
+    };
 
     /// Default constructors
     UpdatedLagrangianElement(
         IndexType NewId, GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
-    {};
+    {
+        mDeterminantF0 = 1.0;
+        mFinalizedStep = false;
+    };
 
     /// Default constructors
     UpdatedLagrangianElement(
         IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties)
-    {}
+    {
+        mDeterminantF0 = 1.0;
+        mFinalizedStep = false;
+    }
 
     ///Copy constructor
     UpdatedLagrangianElement(UpdatedLagrangianElement const& rOther)
@@ -188,7 +199,7 @@ public:
     }
 
     ///@}
-    ///@name Operations
+    ///@name Create and Clone
     ///@{
 
     /// Create with Id, pointer to geometry and pointer to property
@@ -202,7 +213,6 @@ public:
             NewId, pGeom, pProperties);
     };
 
-
     /// Create with Id, pointer to geometry and pointer to property
     Element::Pointer Create(
         IndexType NewId,
@@ -214,13 +224,7 @@ public:
             NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
 
-    /**
-     * clones the selected element variables, creating a new one
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
-     * @return a Pointer to the new element
-     */
+    /// Clones the selected element variables, creating a new one
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
     {
         UpdatedLagrangianElement NewElement(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
@@ -234,7 +238,9 @@ public:
         return Element::Pointer(new UpdatedLagrangianElement(NewElement));
     }
 
-    //************* GETTING METHODS
+    ///@}
+    ///@name Dofs
+    ///@{
 
     /// Sets on rElementalDofList the degrees of freedom of the element
     void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
@@ -242,16 +248,9 @@ public:
     /// Sets on rResult the ID's of the element degrees of freedom
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-    /// Sets nodal displacements on rValues
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
-
-    /// Sets nodal velocitites on rValues
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
-
-    /// Sets nodal accelerations on rValues
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
-
-    //************* STARTING - ENDING  METHODS
+    ///@}
+    ///@name Life Time Operations
+    ///@{
 
     /**
       * Called to initialize the element.
@@ -269,9 +268,9 @@ public:
      */
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
-
-    //************* COMPUTING  METHODS
-
+    ///@}
+    ///@name Allocation of Contribution Matrices
+    ///@{
 
     /**
      * this is called during the assembling process in order
@@ -308,6 +307,7 @@ public:
             true, true);
     }
 
+    /// Check if necessary at certain points!
     ///**
     // * this function provides a more general interface to the element.
     // * it is designed so that rLHSvariables and rRHSvariables are passed TO the element
@@ -335,7 +335,8 @@ public:
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
-        const SizeType matrix_size = number_of_nodes * dimension;   //number of degrees of freedom
+        //number of degrees of freedom
+        const SizeType matrix_size = number_of_nodes * dimension;
 
         Matrix LeftHandSideMatrix; //resetting LHS
 
@@ -351,6 +352,7 @@ public:
             false, true);
     }
 
+    /// Check if necessary at certain points!
     ///**
     // * this function provides a more general interface to the element.
     // * it is designed so that rRHSvariables are passed TO the element
@@ -374,12 +376,13 @@ public:
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
-        const SizeType matrix_size = number_of_nodes * dimension;   //number of degrees of freedom
+        //number of degrees of freedom
+        const SizeType matrix_size = number_of_nodes * dimension;
 
         if (rLeftHandSideMatrix.size1() != matrix_size)
             rLeftHandSideMatrix.resize(matrix_size, matrix_size, false);
 
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(matrix_size, matrix_size); //resetting LHS
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(matrix_size, matrix_size);
 
         Vector RightHandSideVector;
 
@@ -390,9 +393,12 @@ public:
             true, false);
     }
 
+    ///@}
+    ///@name Operations for Dynamic
+    ///@{
+
     /**
-      * this is called during the assembling process in order
-      * to calculate the elemental mass matrix
+      * Computes the mass matrix
       * @param rMassMatrix: the elemental mass matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
@@ -400,37 +406,33 @@ public:
                              ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-      * this is called during the assembling process in order
-      * to calculate the elemental damping matrix
+      * Computes the damping matrix
       * @param rDampingMatrix: the elemental damping matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
                                 ProcessInfo& rCurrentProcessInfo) override;
 
+    /// Sets nodal displacements on rValues
+    void GetValuesVector(Vector& rValues, int Step = 0) override;
 
-    //************************************************************************************
-    //************************************************************************************
-    /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo
-     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    /// Sets nodal velocitites on rValues
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
 
+    /// Sets nodal accelerations on rValues
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
     ///@}
     ///@name Access
     ///@{
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+    /// check completeness of input.
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Input and output
     ///@{
+
     /// Turn back information as a string.
     std::string Info() const override
     {
@@ -450,42 +452,30 @@ public:
     {
         GetGeometry().PrintData(rOStream);
     }
-    ///@}
-    ///@name Friends
-    ///@{
+
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-    ///@}
     ///@name Protected member Variables
     ///@{
-    /**
-     * Container for historical total elastic deformation measure F0 = dx/dX
-     */
+    
+    /// Container for historical total elastic deformation measure F0 = dx/dX
     Matrix mDeformationGradientF0;
-    /**
-     * Container for the total deformation gradient determinants
-     */
+
+    /// Container for the total deformation gradient determinants
     double mDeterminantF0;
 
-    /**
-     * Container for constitutive law instances on each integration point
-     */
+    /// Container for constitutive law instances on each integration point
     ConstitutiveLaw::Pointer mConstitutiveLawVector;
 
-
-    /**
-     * Finalize and Initialize label
-     */
+    /// Finalize and Initialize label
     bool mFinalizedStep;
-
 
     ///@}
     ///@name Protected Operators
     ///@{
 
+    /// Assembles required components for operation.
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -493,36 +483,9 @@ protected:
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag);
 
-
-    /**
-     * Calculates the elemental contributions
-     * \f$ K^e = w\,B^T\,D\,B \f$ and
-     * \f$ r^e \f$
-     */
-    //virtual void CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
-    //                                      ProcessInfo& rCurrentProcessInfo);
     ///@}
-    ///@name Protected Operations
+    ///@name Protected Stiffness and Force Contribution
     ///@{
-
-
-    ///**
-    // * Calculation and addition of the matrices of the LHS
-    // */
-
-    //virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-    //                                GeneralVariables& rVariables,
-    //                                const double& rIntegrationWeight);
-
-    ///**
-    // * Calculation and addition of the vectors of the RHS
-    // */
-
-    //virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-    //                                GeneralVariables& rVariables,
-    //                                Vector& rVolumeForce,
-    //                                const double& rIntegrationWeight);
-
 
     /// Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
     void UpdatedLagrangianElement::CalculateAndAddKuum(
@@ -543,89 +506,46 @@ protected:
             Vector& rVolumeForce,
             const double& rIntegrationWeight) const;
 
-
-    /**
-      * Calculation of the Internal Forces Vector. Fi = B * sigma
-      */
+    /// Calculation of the Internal Forces Vector. Fi = B * sigma
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
         const Matrix& rB,
         const Vector& rStressVector,
         const double& rIntegrationWeight);
 
+    ///@}
+    ///@name Protected Kinematics and Constitutive behavior
+    ///@{
 
-    ///**
-    // * Set Variables of the Element to the Parameters of the Constitutive Law
-    // */
-    //virtual void SetGeneralVariables(GeneralVariables& rVariables,
-    //                                 ConstitutiveLaw::Parameters& rValues);
-
-
-    ///**
-    // * Initialize System Matrices
-    // */
-    //virtual void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-    //                                      VectorType& rRightHandSideVector,
-    //                                      Flags& rCalculationFlags);
-
-
-
-    /**
-     * Initialize Material Properties on the Constitutive Law
-     */
-    void InitializeMaterial ();
-
-
-    /**
-     * Reset the Constitutive Law Parameters
-     */
-    void ResetConstitutiveLaw() override;
-
-
-    ///**
-    // * Clear Nodal Forces
-    // */
-    //void ClearNodalForces ();
-
-    /// Calculate Element Kinematics
+    /// Calculates Element Kinematics
     void CalculateKinematics(
         KinematicVariables& rKinematicVariables,
         ProcessInfo& rCurrentProcessInfo) const;
-
-    /// Calculation of the Current Displacement
-    Matrix& SetCurrentDisplacement(
-        Matrix & rCurrentDisp) const;
-
-    ///**
-    // * Initialize Element General Variables
-    // */
-    //virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-
-
-    /**
-      * Finalize Element Internal Variables
-      */
-    virtual void FinalizeStepVariables(
-        KinematicVariables & rVariables,
-        ConstitutiveVariables& rConstitutiveVariables,
-        const ProcessInfo& rCurrentProcessInfo);
-
-    /**
-      * Update the position of the MP or Gauss point when Finalize Element Internal Variables is called
-      */
-
-    virtual void UpdateGaussPoint(
-        const ProcessInfo& rCurrentProcessInfo);
-
-    ///**
-    // * Get the Historical Deformation Gradient to calculate after finalize the step
-    // */
-    //virtual void GetHistoricalVariables( GeneralVariables& rVariables);
-
 
     /// Calculation of the Deformation Matrix B
     virtual void CalculateBMatrix(
         Matrix& rB,
         const Matrix& rDN_DX) const;
+
+    /// Calculates Constitutive response
+    void CalculateConstitutiveVariables(
+        KinematicVariables& rDeformationGradient,
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveLaw::Parameters& rValues,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure) const;
+
+    ///@}
+    ///@name Protected Constitutive Law
+    ///@{
+
+    /// Initialize Material Properties on the Constitutive Law
+    void InitializeMaterial();
+
+    /// Reset the Constitutive Law Parameters
+    void ResetConstitutiveLaw() override;
+
+    ///@}
+    ///@name Protected Integration Parameters
+    ///@{
 
     /// Calculation of the Integration Weight
     virtual double CalculateIntegrationWeight(
@@ -634,40 +554,39 @@ protected:
     /// Calculation of the Volume Change of the Element
     virtual double& CalculateVolumeChange(double& rVolumeChange, KinematicVariables& rVariables);
 
-    /**
-     * Calculation of the Volume Force of the Element
-     */
+    /// Calculation of the Volume Force of the Element
     virtual Vector& CalculateVolumeForce(Vector& rVolumeForce);
 
+    ///@}
+    ///@name Protected MPM Life Time Variables
+    ///@{
 
-    void CalculateConstitutiveVariables(
-        KinematicVariables& rDeformationGradient,
-        ConstitutiveVariables& rThisConstitutiveVariables,
-        ConstitutiveLaw::Parameters& rValues,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure
-    );
+    /// Calculation of the Current Displacement
+    Matrix& SetCurrentDisplacement(
+        Matrix& rCurrentDisp) const;
+
+    /// Finalize Element Internal Variables
+    virtual void FinalizeStepVariables(
+        KinematicVariables & rVariables,
+        ConstitutiveVariables& rConstitutiveVariables,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    /// Update the position of the MP or Gauss point when Finalize Element Internal Variables is called
+    virtual void UpdateGaussPoint(
+        const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
 
 private:
-
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
     ///@name Serialization
     ///@{
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-
-            rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
+        rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
         rSerializer.save("DeformationGradientF0", mDeformationGradientF0);
         rSerializer.save("DeterminantF0", mDeterminantF0);
     }
@@ -675,7 +594,6 @@ private:
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-
         rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
         rSerializer.load("DeformationGradientF0", mDeformationGradientF0);
         rSerializer.load("DeterminantF0", mDeterminantF0);
@@ -686,12 +604,6 @@ private:
 }; // Class UpdatedLagrangianElement
 
 ///@}
-///@name Type Definitions
-///@{
-///@}
-///@name Input and output
-///@{
-///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED defined

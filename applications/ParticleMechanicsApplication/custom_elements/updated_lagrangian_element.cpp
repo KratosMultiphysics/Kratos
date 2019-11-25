@@ -180,9 +180,6 @@ void UpdatedLagrangianElement::CalculateAll(
         // Operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
         this->CalculateAndAddInternalForces(rRightHandSideVector, B, constitutive_variables.StressVector, integration_weight);
     }
-
-    KRATOS_WATCH(rLeftHandSideMatrix)
-        KRATOS_WATCH(rRightHandSideVector)
 }
 
 void UpdatedLagrangianElement::CalculateConstitutiveVariables(
@@ -190,7 +187,7 @@ void UpdatedLagrangianElement::CalculateConstitutiveVariables(
     ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
     const ConstitutiveLaw::StressMeasure ThisStressMeasure
-)
+) const
 {
     // Set element specific options
     rValues.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
@@ -212,7 +209,8 @@ void UpdatedLagrangianElement::CalculateConstitutiveVariables(
     rThisConstitutiveVariables.ConstitutiveMatrix(0, 0) = 1000;
     rThisConstitutiveVariables.ConstitutiveMatrix(1, 1) = 1000;
     rThisConstitutiveVariables.ConstitutiveMatrix(2, 2) = 500;
-    //mConstitutiveLawVector->CalculateMaterialResponse(rValues, ThisStressMeasure);
+
+    mConstitutiveLawVector->CalculateMaterialResponse(rValues, ThisStressMeasure);
 }
 
 void UpdatedLagrangianElement::CalculateKinematics(
@@ -280,8 +278,8 @@ void UpdatedLagrangianElement::CalculateBMatrix(
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
 
     if( dimension == 2 )
     {
@@ -291,10 +289,10 @@ void UpdatedLagrangianElement::CalculateBMatrix(
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            unsigned int index = 2 * i;
-            rB( 0, index + 0 ) = rDN_DX( i, 0 );
+            IndexType index = 2 * i;
+            rB( 0, index     ) = rDN_DX( i, 0 );
             rB( 1, index + 1 ) = rDN_DX( i, 1 );
-            rB( 2, index + 0 ) = rDN_DX( i, 1 );
+            rB( 2, index     ) = rDN_DX( i, 1 );
             rB( 2, index + 1 ) = rDN_DX( i, 0 );
         }
     }
@@ -306,19 +304,19 @@ void UpdatedLagrangianElement::CalculateBMatrix(
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            unsigned int index = 3 * i;
+            IndexType index = 3 * i;
 
-            rB( 0, index + 0 ) = rDN_DX( i, 0 );
+            rB( 0, index     ) = rDN_DX( i, 0 );
             rB( 1, index + 1 ) = rDN_DX( i, 1 );
             rB( 2, index + 2 ) = rDN_DX( i, 2 );
 
-            rB( 3, index + 0 ) = rDN_DX( i, 1 );
+            rB( 3, index     ) = rDN_DX( i, 1 );
             rB( 3, index + 1 ) = rDN_DX( i, 0 );
 
             rB( 4, index + 1 ) = rDN_DX( i, 2 );
             rB( 4, index + 2 ) = rDN_DX( i, 1 );
 
-            rB( 5, index + 0 ) = rDN_DX( i, 2 );
+            rB( 5, index     ) = rDN_DX( i, 2 );
             rB( 5, index + 2 ) = rDN_DX( i, 0 );
         }
     }
@@ -403,13 +401,9 @@ void UpdatedLagrangianElement::CalculateAndAddKuug(
 double& UpdatedLagrangianElement::CalculateVolumeChange( double& rVolumeChange,
     KinematicVariables & rVariables )
 {
-    KRATOS_TRY
-
     rVolumeChange = 1.0 / (rVariables.detF * mDeterminantF0);
 
     return rVolumeChange;
-
-    KRATOS_CATCH( "" )
 }
 
 Vector& UpdatedLagrangianElement::CalculateVolumeForce(
@@ -426,9 +420,6 @@ Vector& UpdatedLagrangianElement::CalculateVolumeForce(
 
     KRATOS_CATCH( "" )
 }
-
-////************************************************************************************
-////************************************************************************************
 
 void UpdatedLagrangianElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
@@ -569,10 +560,10 @@ void UpdatedLagrangianElement::UpdateGaussPoint(const ProcessInfo& rCurrentProce
 
     // Update the MP Position
     const array_1d<double,3>& new_xg = xg + delta_xg ;
-    this -> SetValue(MP_COORD,new_xg);
+    this -> SetValue(MP_COORD, new_xg);
 
     // Update the MP Acceleration
-    this -> SetValue(MP_ACCELERATION,MP_acceleration);
+    this -> SetValue(MP_ACCELERATION, MP_acceleration);
 
     // Update the MP total displacement
     array_1d<double,3>& MP_Displacement = this->GetValue(MP_DISPLACEMENT);
@@ -593,7 +584,7 @@ Matrix& UpdatedLagrangianElement::SetCurrentDisplacement(
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
     //resize Matrix
-    if (rCurrentDisp.size1() != number_of_nodes, rCurrentDisp.size2() != dimension)
+    if (rCurrentDisp.size1() != number_of_nodes && rCurrentDisp.size2() != dimension)
         rCurrentDisp.resize(number_of_nodes, dimension);
     rCurrentDisp = ZeroMatrix(number_of_nodes, dimension);
 
@@ -611,97 +602,6 @@ Matrix& UpdatedLagrangianElement::SetCurrentDisplacement(
 
     KRATOS_CATCH( "" )
 }
-
-
-////*************************COMPUTE ALMANSI STRAIN*************************************
-////************************************************************************************
-//// Almansi Strain: E = 0.5 (I - U^(-2))
-//void UpdatedLagrangianElement::CalculateAlmansiStrain(const Matrix& rF,
-//        Vector& rStrainVector )
-//{
-//    KRATOS_TRY
-//
-//    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-//
-//    // Left Cauchy-Green Calculation
-//    Matrix left_cauchy_green = prod( rF, trans( rF ) );
-//
-//    // Calculating the inverse of the jacobian
-//    Matrix inv_left_cauchy_green ( dimension, dimension );
-//    double det_b=0;
-//    MathUtils<double>::InvertMatrix( left_cauchy_green, inv_left_cauchy_green, det_b);
-//
-//    if( dimension == 2 )
-//    {
-//        // Almansi Strain Calculation
-//        rStrainVector[0] = 0.5 * (  1.00 - inv_left_cauchy_green( 0, 0 ) );
-//        rStrainVector[1] = 0.5 * (  1.00 - inv_left_cauchy_green( 1, 1 ) );
-//        rStrainVector[2] = - inv_left_cauchy_green( 0, 1 ); // xy
-//    }
-//    else if( dimension == 3 )
-//    {
-//
-//        // Almansi Strain Calculation
-//        if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
-//        rStrainVector[0] = 0.5 * (  1.00 - inv_left_cauchy_green( 0, 0 ) );
-//        rStrainVector[1] = 0.5 * (  1.00 - inv_left_cauchy_green( 1, 1 ) );
-//        rStrainVector[2] = 0.5 * (  1.00 - inv_left_cauchy_green( 2, 2 ) );
-//        rStrainVector[3] = - inv_left_cauchy_green( 0, 1 ); // xy
-//        rStrainVector[4] = - inv_left_cauchy_green( 1, 2 ); // yz
-//        rStrainVector[5] = - inv_left_cauchy_green( 0, 2 ); // xz
-//    }
-//    else
-//    {
-//        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
-//    }
-//
-//    KRATOS_CATCH( "" )
-//}
-////*************************COMPUTE GREEN-LAGRANGE STRAIN*************************************
-////************************************************************************************
-//// Green-Lagrange Strain: E = 0.5 * (U^2 - I) = 0.5 * (C - I)
-//void UpdatedLagrangianElement::CalculateGreenLagrangeStrain(const Matrix& rF,
-//        Vector& rStrainVector )
-//{
-//    KRATOS_TRY
-//
-//    const unsigned int dimension  = GetGeometry().WorkingSpaceDimension();
-//
-//    // Right Cauchy-Green Calculation
-//    Matrix C ( dimension, dimension );
-//    noalias( C ) = prod( trans( rF ), rF );
-//
-//    if( dimension == 2 )
-//    {
-//        // Green Lagrange Strain Calculation
-//        if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
-//        rStrainVector[0] = 0.5 * ( C( 0, 0 ) - 1.00 );
-//        rStrainVector[1] = 0.5 * ( C( 1, 1 ) - 1.00 );
-//        rStrainVector[2] = C( 0, 1 ); // xy
-//    }
-//    else if( dimension == 3 )
-//    {
-//        // Green Lagrange Strain Calculation
-//        if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
-//        rStrainVector[0] = 0.5 * ( C( 0, 0 ) - 1.00 );
-//        rStrainVector[1] = 0.5 * ( C( 1, 1 ) - 1.00 );
-//        rStrainVector[2] = 0.5 * ( C( 2, 2 ) - 1.00 );
-//        rStrainVector[3] = C( 0, 1 ); // xy
-//        rStrainVector[4] = C( 1, 2 ); // yz
-//        rStrainVector[5] = C( 0, 2 ); // xz
-//    }
-//    else
-//    {
-//        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
-//    }
-//
-//    KRATOS_CATCH( "" )
-//}
-
-
-
-//************************************************************************************
-//************************************************************************************
 
 double UpdatedLagrangianElement::CalculateIntegrationWeight(const KinematicVariables& rKinematicVariables)
 {
@@ -724,11 +624,9 @@ double UpdatedLagrangianElement::CalculateIntegrationWeight(const KinematicVaria
     return MP_volume;
 }
 
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo )
+void UpdatedLagrangianElement::EquationIdVector(
+    EquationIdVectorType& rResult,
+    ProcessInfo& CurrentProcessInfo )
 {
     GeometryType& r_geometry = GetGeometry();
     int number_of_nodes = r_geometry.size();
@@ -740,7 +638,7 @@ void UpdatedLagrangianElement::EquationIdVector( EquationIdVectorType& rResult, 
 
     for ( int i = 0; i < number_of_nodes; i++ )
     {
-        int index = i * dimension;
+        IndexType index = i * dimension;
         rResult[index] = r_geometry[i].GetDof( DISPLACEMENT_X ).EquationId();
         rResult[index + 1] = r_geometry[i].GetDof( DISPLACEMENT_Y ).EquationId();
 
@@ -750,7 +648,9 @@ void UpdatedLagrangianElement::EquationIdVector( EquationIdVectorType& rResult, 
 
 }
 
-void UpdatedLagrangianElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo )
+void UpdatedLagrangianElement::GetDofList(
+    DofsVectorType& rElementalDofList,
+    ProcessInfo& CurrentProcessInfo )
 {
     GeometryType& r_geometry = GetGeometry();
     rElementalDofList.resize( 0 );
@@ -768,7 +668,9 @@ void UpdatedLagrangianElement::GetDofList( DofsVectorType& rElementalDofList, Pr
 
 }
 
-void UpdatedLagrangianElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangianElement::CalculateDampingMatrix(
+    MatrixType& rDampingMatrix,
+    ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -821,7 +723,9 @@ void UpdatedLagrangianElement::CalculateDampingMatrix( MatrixType& rDampingMatri
     KRATOS_CATCH( "" )
 }
 
-void UpdatedLagrangianElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangianElement::CalculateMassMatrix(
+    MatrixType& rMassMatrix,
+    ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     // Lumped
@@ -914,13 +818,6 @@ void UpdatedLagrangianElement::GetSecondDerivativesVector( Vector& values, int S
     }
 }
 
-/**
- * This function provides the place to perform checks on the completeness of the input.
- * It is designed to be called only once (or anyway, not often) typically at the beginning
- * of the calculations, so to verify that nothing is missing from the input
- * or that no common error is found.
- * @param rCurrentProcessInfo
- */
 int  UpdatedLagrangianElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
