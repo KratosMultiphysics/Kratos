@@ -722,9 +722,11 @@ namespace Testing
         );
         auto normal = geom.Normal(0);
 
-        array_1d<double, 3> cross_norm(3, 0.0);
+        array_1d<double, 3> cross_norm;
+        cross_norm[0] = 0.0;
+        cross_norm[1] = 0.0;
         cross_norm[2] = 1.0;
-        array_1d<double, 3> cross(3, 0.0);
+        array_1d<double, 3> cross;
         MathUtils<double>::CrossProduct(cross, cross_norm, normal);
 
         KRATOS_CHECK_NEAR(cross[0], 0.0, TOLERANCE);
