@@ -9,12 +9,12 @@
 //
 //  Main authors:    Eduardo Soudah,
 //                   Ruben Zorilla,
-//                   Jordi Cotela
+//                   Eduardo Soudah
 //
 
 #include "includes/variables.h"
 #include "utilities/variable_redistribution_utility.h"
-#include "wss_statistics_utility.h"
+#include "wss_statistics_utilities.h"
 #include "fluid_dynamics_biomedical_application_variables.h"
 
 namespace Kratos {

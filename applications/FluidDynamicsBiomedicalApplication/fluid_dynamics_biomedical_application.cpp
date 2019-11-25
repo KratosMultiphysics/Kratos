@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Jordi Cotela
+//  Main authors:    Eduardo Soudah
 //
 
 // System includes
@@ -16,15 +16,11 @@
 
 // Project includes
 #include "includes/define.h"
-#include "geometries/triangle_2d_3.h"
-#include "geometries/triangle_3d_3.h"
-#include "geometries/tetrahedra_3d_4.h"
-#include "geometries/quadrilateral_2d_4.h"
-#include "geometries/hexahedra_3d_8.h"
-#include "geometries/line_2d_2.h"
-#include "geometries/line_2d_3.h"
-#include "fluid_dynamics_application.h"
 #include "includes/variables.h"
+
+// Application includes
+#include "fluid_dynamics_biomedical_application.h"
+#include "fluid_dynamics_biomedical_application_variables.h"
 
 namespace Kratos
 {

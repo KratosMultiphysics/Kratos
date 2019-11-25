@@ -9,7 +9,7 @@
 //
 //  Main authors:    Eduardo Soudah,
 //                   Ruben Zorrilla,
-//                   Jordi Cotela
+//                   Eduardo Soudah
 //
 
 #if !defined(KRATOS_WSS_UTILITIES_H )
@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
