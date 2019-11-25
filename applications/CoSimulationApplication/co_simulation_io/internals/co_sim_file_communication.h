@@ -315,6 +315,8 @@ private:
             }
         }
 
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1 && connectivities_offset != 0) << "Connectivities have an offset of " << connectivities_offset << std::endl;
+
         // write cells connectivity
         counter = 0;
         output_file << "CELLS " << NumberOfElements << " " << cell_list_size << "\n";
