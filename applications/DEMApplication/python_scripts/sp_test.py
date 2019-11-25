@@ -17,7 +17,13 @@ class SPTest(DEM_material_test_script.MaterialTest):
 
   def Initialize(self):
     self.PrepareTests()
+    self.PrepareTestSandP()
     #self.DefineBoundaries()
+
+  def PrepareTestSandP(self):
+
+        self.alpha_lat = self.perimeter/(self.xlat_area)
+        print(self.alpha_lat)
 
 
   def PrepareTests(self):
@@ -39,17 +45,13 @@ class SPTest(DEM_material_test_script.MaterialTest):
         d = self.diameter
         eps = 2.0
 
-        perimeter = 3.141592 * d
-        xlat_area = 0.0
-
-        kk
+        self.perimeter = 3.141592 * d
+        self.xlat_area = 0.0
 
         for element in self.spheres_model_part.Elements:
-          print(element)
-
           element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 0)
-
           node = element.GetNode(0)
+          print(node)
           r = node.GetSolutionStepValue(RADIUS)
           x = node.X
           y = node.Y
@@ -57,16 +59,18 @@ class SPTest(DEM_material_test_script.MaterialTest):
           cross_section = 2.0 * r
 
           if ((x * x + y * y) >= ((d / 2 - eps * r) * (d / 2 - eps * r))):
-              kkkk
 
               element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
               self.LAT.append(node)
-              xlat_area = xlat_area + cross_section
+              self.xlat_area = self.xlat_area + cross_section
+        print(len(self.LAT))
+        print(self.perimeter)
+        print(self.xlat_area)
 
         if(len(self.LAT)==0):
             self.Procedures.KratosPrintWarning("ERROR! in Circular Skin Determination - NO LATERAL PARTICLES" + "\n")
 
-        return (xlat_area)
+        return (self.xlat_area)
 
 
   def MeasureForcesAndPressure(self):
@@ -76,10 +80,10 @@ class SPTest(DEM_material_test_script.MaterialTest):
     if self.test_type == "SandP":
       average_zstress_value = self.aux.ComputeAverageZStressFor2D(self.spheres_model_part)
       print (average_zstress_value)
-      self.ApplyLateralStress(average_zstress_value, self.LAT)   # esto va muy lento
+      self.ApplyLateralStress(average_zstress_value, self.LAT, self.alpha_lat)
 
 
-  def ApplyLateralStress(self, average_zstress_value, LAT):
+  def ApplyLateralStress(self, average_zstress_value, LAT, alpha_lat):
 
       for node in LAT:
 
@@ -99,12 +103,17 @@ class SPTest(DEM_material_test_script.MaterialTest):
           if(vect_moduli > 0.0):
               vect[0] = -x / vect_moduli
               vect[1] = -y / vect_moduli
+          print("vect", vect)
 
-          values[0] = cross_section * average_zstress_value * vect[0]
-          values[1] = cross_section * average_zstress_value * vect[1]
-          print(values)
+
+          values[0] = cross_section * average_zstress_value * vect[0] * alpha_lat
+          values[1] = cross_section * average_zstress_value * vect[1] * alpha_lat
+          #values[0] = 0.0001 * vect[0]
+          #values[1] = 0.0001 * vect[1]
+          #print(values)
 
           node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
+      kkkk
 
 
 
