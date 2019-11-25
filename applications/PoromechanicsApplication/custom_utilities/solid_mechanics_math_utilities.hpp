@@ -1,5 +1,5 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
+//   Project Name:        KratosPoromechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
 //   Date:                $Date:                July 2013 $
