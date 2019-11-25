@@ -218,6 +218,7 @@ void KratosDamApplication::Register()
 
     //From Solid
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FORCE_LOAD)
+    KRATOS_REGISTER_VARIABLE(COMPUTE_CONSISTENT_MASS_MATRIX)
 }
 
 }// namespace Kratos.

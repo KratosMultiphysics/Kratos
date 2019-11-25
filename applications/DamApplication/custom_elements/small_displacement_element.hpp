@@ -1,5 +1,5 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
+//   Project Name:        KratosDamApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
 //   Date:                $Date:                July 2013 $
@@ -42,7 +42,7 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D
  */
 
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) SmallDisplacementElement
+class KRATOS_API(DAM_APPLICATION) SmallDisplacementElement
     : public SolidElement
 {
 public:

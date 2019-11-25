@@ -49,5 +49,6 @@ namespace Kratos
 
     // From Solid
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( FORCE_LOAD )
+    KRATOS_CREATE_VARIABLE(bool, COMPUTE_CONSISTENT_MASS_MATRIX)
 
 }// namespace Kratos.
