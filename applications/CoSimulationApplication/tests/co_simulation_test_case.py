@@ -41,6 +41,7 @@ class CoSimulationTestCase(KratosUnittest.TestCase):
         CoSimulationAnalysis(self.cosim_parameters).Run()
         p.communicate()
         kratos_utils.DeleteTimeFiles(self.problem_dir_name)
+        self.assertEqual(p.returncode, 0)
 
     # called only once for this class, opposed of tearDown()
     @classmethod
