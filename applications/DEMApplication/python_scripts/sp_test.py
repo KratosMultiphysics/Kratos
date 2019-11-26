@@ -93,7 +93,6 @@ class SPTest(DEM_material_test_script.MaterialTest):
 
           values = Array3()
           vect = Array3()
-          #print(r)
 
           cross_section = 2.0 * r
 
@@ -101,19 +100,13 @@ class SPTest(DEM_material_test_script.MaterialTest):
           vect_moduli = math.sqrt(x * x + y * y)
 
           if(vect_moduli > 0.0):
-              vect[0] = -x / vect_moduli
-              vect[1] = -y / vect_moduli
-          print("vect", vect)
-
+              vect[0] = x / vect_moduli
+              vect[1] = y / vect_moduli
 
           values[0] = cross_section * average_zstress_value * vect[0] * alpha_lat
           values[1] = cross_section * average_zstress_value * vect[1] * alpha_lat
-          #values[0] = 0.0001 * vect[0]
-          #values[1] = 0.0001 * vect[1]
-          #print(values)
-
           node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
-      kkkk
+
 
 
 
