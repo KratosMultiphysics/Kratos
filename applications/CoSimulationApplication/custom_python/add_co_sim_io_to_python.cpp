@@ -385,6 +385,29 @@ void ImportData_Vector(
     }
 }
 
+std::vector<double> ImportData_Values(
+    const std::string& rConnectionName,
+    const std::string& rIdentifier)
+{
+    CoSimIO::ImportData(
+        rConnectionName,
+        rIdentifier,
+        DataBuffers::vector_doubles);
+
+    return DataBuffers::vector_doubles;
+}
+
+void ExportData_Values(
+    const std::string& rConnectionName,
+    const std::string& rIdentifier,
+    std::vector<double>& rValues)
+{
+    CoSimIO::ExportData(
+        rConnectionName,
+        rIdentifier,
+        rValues);
+}
+
 } // helpers namespace
 
 void  AddCoSimIOToPython(pybind11::module& m)
@@ -410,6 +433,8 @@ void  AddCoSimIOToPython(pybind11::module& m)
     mCoSimIO.def("ExportData", CoSimIO_Wrappers::ExportData_Scalar);
     mCoSimIO.def("ImportData", CoSimIO_Wrappers::ImportData_Vector);
     mCoSimIO.def("ExportData", CoSimIO_Wrappers::ExportData_Vector);
+    mCoSimIO.def("ImportData", CoSimIO_Wrappers::ImportData_Values);
+    mCoSimIO.def("ExportData", CoSimIO_Wrappers::ExportData_Values);
 
     // mCoSimIO.def("ImportGeometry", CoSimIO_Wrappers::ImportGeometry); // This is not yet implemented in the CoSimIO
     // mCoSimIO.def("ExportGeometry", CoSimIO_Wrappers::ExportGeometry); // This is not yet implemented in the CoSimIO
