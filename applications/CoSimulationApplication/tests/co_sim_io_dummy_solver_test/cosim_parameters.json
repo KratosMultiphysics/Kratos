@@ -1,0 +1,95 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time"   : 0.5,
+        "echo_level" : 0,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_weak",
+        "echo_level" : 0,
+        "data_transfer_operators" : {
+            "data_transfer" : {
+                "type" : "kratos_mapping",
+                "mapper_settings" : {
+                    "mapper_type" : "nearest_neighbor"
+                }
+            }
+        },
+        "coupling_sequence":
+        [
+            {
+                "name": "helpers_dummy_kratos_solver",
+                "input_data_list"  : [
+                ],
+                "output_data_list" : [
+                    {
+                        "data"           : "interface_pressure",
+                        "to_solver"      : "external_dummy_solver",
+                        "to_solver_data" : "field_pressure",
+                        "data_transfer_operator" : "data_transfer"
+                    }
+                ]
+            },
+            {
+                "name": "external_dummy_solver",
+                "input_data_list"   : [
+                ],
+                "output_data_list"  : [{
+                    "data"           : "field_velocity",
+                    "to_solver"      : "helpers_dummy_kratos_solver",
+                    "to_solver_data" : "interface_vel",
+                    "data_transfer_operator" : "data_transfer"
+                }]
+            }
+        ],
+        "solvers" :
+        {
+            "helpers_dummy_kratos_solver":
+            {
+                "type" : "helpers.dummy_solver_wrapper",
+                "solver_wrapper_settings" : {
+                    "time_step" : 0.1,
+                    "main_model_part_name" : "interface",
+                    "mdpa_file_name" : "co_sim_io_dummy_solver_test/domain_2d",
+                    "domain_size" : 2
+                },
+                "data" : {
+                    "interface_pressure" : {
+                        "model_part_name" : "interface",
+                        "variable_name"   : "PRESSURE"
+                    },
+                    "interface_vel" : {
+                        "model_part_name" : "interface",
+                        "variable_name"   : "VELOCITY",
+                        "dimension"   : 3
+                    }
+                }
+            },
+            "external_dummy_solver" :
+            {
+                "type" : "solver_wrappers.dummy_solver.dummy_solver_wrapper",
+                "solver_wrapper_settings" : {
+                    "main_model_part_name" : "interface_mesh_tri"
+                },
+                "io_settings" : {
+                    "echo_level" : 2
+                },
+                "data" : {
+                    "field_pressure" : {
+                        "model_part_name" : "interface_mesh_tri",
+                        "variable_name"   : "PRESSURE"
+                    },
+                    "field_velocity" : {
+                        "model_part_name" : "interface_mesh_tri",
+                        "variable_name"   : "VELOCITY",
+                        "dimension"   : 3
+                    }
+                }
+            }
+        }
+    }
+}

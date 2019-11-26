@@ -22,8 +22,6 @@ class KratosCoSimIO(CoSimulationIO):
     def __init__(self, settings, model, solver_name):
         super(KratosCoSimIO, self).__init__(settings, model, solver_name)
 
-        print(cs_tools.ParametersToStringDict(self.settings))
-
         KratosCoSim.CoSimIO.Connect(self.solver_name, cs_tools.ParametersToStringDict(self.settings))
 
     def Finalize(self):
