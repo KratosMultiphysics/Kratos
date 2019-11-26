@@ -9,7 +9,7 @@
 #   - https://github.com/KratosMultiphysics/Kratos/wiki/Compilation-options
 
 # Function to add apps
-function add_app {
+add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
 }
 
