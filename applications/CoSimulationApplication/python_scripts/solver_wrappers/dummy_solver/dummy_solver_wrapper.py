@@ -30,7 +30,8 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
 
             full_command = [command_txt]
             full_command.extend(command_args)
-            self.external_solver_process = subprocess.Popen(full_command, stderr=subprocess.PIPE, start_new_session=True)
+            # self.external_solver_process = subprocess.Popen(full_command, stderr=subprocess.PIPE, start_new_session=True) # TODO check what to use here
+            self.external_solver_process = subprocess.Popen(full_command)
 
         self.controlling_external_solver = wrapper_settings["controlling_external_solver"].GetBool()
 
@@ -48,7 +49,7 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
     def AdvanceInTime(self, current_time):
         # self.__CheckExternalSolverProcess() # TODO check why this is blocking
         if self.controlling_external_solver:
-            self.__SendControlSignal(KratosCoSim.ControlSignal.AdvanceInTime)
+            self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.AdvanceInTime)
             data_config = {
                 "type"       : "time",
                 "time"     : current_time
@@ -62,44 +63,44 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
     def InitializeSolutionStep(self):
         super(DummySolverWrapper, self).InitializeSolutionStep()
         if self.controlling_external_solver:
-            self.__SendControlSignal(KratosCoSim.ControlSignal.InitializeSolutionStep)
+            self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.InitializeSolutionStep)
 
     def SolveSolutionStep(self):
         super(DummySolverWrapper, self).SolveSolutionStep()
         if self.controlling_external_solver:
-            self.__SendControlSignal(KratosCoSim.ControlSignal.SolveSolutionStep)
+            self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.SolveSolutionStep)
 
     def FinalizeSolutionStep(self):
         super(DummySolverWrapper, self).FinalizeSolutionStep()
         if self.controlling_external_solver:
-            self.__SendControlSignal(KratosCoSim.ControlSignal.FinalizeSolutionStep)
+            self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.FinalizeSolutionStep)
 
     def Finalize(self):
         if self.controlling_external_solver:
-            self.__SendControlSignal(KratosCoSim.ControlSignal.BreakSolutionLoop)
+            self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.BreakSolutionLoop)
         super(DummySolverWrapper, self).Finalize() # this also does the disconnect
 
     def ImportCouplingInterface(self, interface_config):
         if self.controlling_external_solver:
-            self.__SendControlSignal(KratosCoSim.ControlSignal.ExportMesh, interface_config["model_part_name"]) # TODO this can also be geometry at some point
+            self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.ExportMesh, interface_config["model_part_name"]) # TODO this can also be geometry at some point
         super(DummySolverWrapper, self).ImportCouplingInterface(interface_config)
 
     def ExportCouplingInterface(self, interface_config):
         if self.controlling_external_solver:
-            self.__SendControlSignal(KratosCoSim.ControlSignal.ImportMesh, interface_config["model_part_name"]) # TODO this can also be geometry at some point
+            self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.ImportMesh, interface_config["model_part_name"]) # TODO this can also be geometry at some point
         super(DummySolverWrapper, self).ExportCouplingInterface(interface_config)
 
     def ImportData(self, data_config):
         if self.controlling_external_solver and data_config["type"] == "coupling_interface_data":
             # CoSim imports, the external solver exports
-            self.__SendControlSignal(KratosCoSim.ControlSignal.ExportData, data_config["interface_data"].name)
+            self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.ExportData, data_config["interface_data"].name)
         super(DummySolverWrapper, self).ImportData(data_config)
 
     def ExportData(self, data_config):
         if self.controlling_external_solver:
             if data_config["type"] == "coupling_interface_data":
                 # CoSim exports, the external solver imports
-                self.__SendControlSignal(KratosCoSim.ControlSignal.ImportData, data_config["interface_data"].name)
+                self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.ImportData, data_config["interface_data"].name)
             elif data_config["type"] == "convergence_signal":
                 return # we control the ext solver, no need for sending a convergence signal
         super(DummySolverWrapper, self).ExportData(data_config)
