@@ -3,8 +3,31 @@
         "problem_name"    : "Mok_CSM",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
-        "end_time"        : 1.0,
+        "end_time"        : 15.0,
         "echo_level"      : 0
+    },
+    "co_sim_settings" : {
+        "INFO" : "this block is only used if Kratos is used as an external solver for CoSimulation!",
+        "connection_name" : "structure",
+        "is_strong_coupling" : true,
+        "io_settings" : {
+            "echo_level" : 1
+        },
+        "communication_settings" : {
+            "export_meshes" : [
+                "Structure.GENERIC_FSI"
+            ],
+            "export_fields" : [{
+                "identifier"      : "disp",
+                "model_part_name" : "Structure.GENERIC_FSI",
+                "variable_name"   : "DISPLACEMENT"
+            }],
+            "import_fields" : [{
+                "identifier"      : "load",
+                "model_part_name" : "Structure.GENERIC_FSI",
+                "variable_name"   : "POINT_LOAD"
+            }]
+        }
     },
     "solver_settings"          : {
         "solver_type"                        : "dynamic",

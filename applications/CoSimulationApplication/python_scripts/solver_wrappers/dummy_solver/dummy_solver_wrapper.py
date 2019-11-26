@@ -15,7 +15,7 @@ def Create(settings, solver_name):
     return DummySolverWrapper(settings, solver_name)
 
 class DummySolverWrapper(CoSimulationSolverWrapper):
-    """This class serves as wrapper for the cpp/fortran dummy solver
+    """This class serves as wrapper for the cpp / c / fortran dummy solver
     """
     def __init__(self, settings, solver_name):
         super(DummySolverWrapper, self).__init__(settings, solver_name)
