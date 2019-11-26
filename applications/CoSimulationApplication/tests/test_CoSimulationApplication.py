@@ -1,4 +1,5 @@
 # Import Kratos "wrapper" for unittests
+import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
@@ -22,6 +23,7 @@ if numpy_available:
     from test_sdof_solver import TestSdofSolver
 if not using_pykratos:
     from test_cosim_EMPIRE_API import TestCoSim_EMPIRE_API
+    import run_cpp_unit_tests
 
 
 def AssembleTestSuites():
@@ -73,4 +75,11 @@ def AssembleTestSuites():
 
 
 if __name__ == '__main__':
+    if not using_pykratos:
+        KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
+        run_cpp_unit_tests.run()
+        KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
+
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
