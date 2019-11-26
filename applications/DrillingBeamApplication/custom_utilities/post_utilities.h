@@ -9,6 +9,7 @@
 
 namespace Kratos {
 
+
     class PostUtilities {
 
     public:
@@ -26,61 +27,24 @@ namespace Kratos {
 
         virtual ~PostUtilities() {};
 
-
-    void ComputeCurvatureOfBeamSolids(ModelPart& r_model_part){
-
-        typedef ModelPart::NodesContainerType NodesArrayType;
-        NodesArrayType& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
-
-        //#pragma omp parallel for
-        for (int k = 0; k < (int) pNodes.size(); k++) {
-
-            ModelPart::NodeIterator i_iterator = pNodes.ptr_begin() + k;
-            Node < 3 > & i = *i_iterator;
-
-            //const double& displacement = i.FastGetSolutionStepValue(DISPLACEMENT);
-            const array_1d<double, 3>& coords = i.Coordinates();
-
-            KRATOS_WATCH(coords)
-            
-        }//for Node
-    }
-
-    void ComputeCurvatureOfBeam(ModelPart& r_model_part){
-
-        typedef ModelPart::NodesContainerType NodesArrayType;
-        NodesArrayType& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
-
-        //#pragma omp parallel for
-        for (int k = 0; k < (int) pNodes.size(); k++) {
-
-            ModelPart::NodeIterator i_iterator = pNodes.ptr_begin() + k;
-            Node < 3 > & i = *i_iterator;
-
-            //const double& displacement = i.FastGetSolutionStepValue(DISPLACEMENT);
-            const array_1d<double, 3>& coords = i.Coordinates();
-
-            KRATOS_WATCH(coords)
-        }//for Node
-    }
-        
+     
     void CreateSkinForBeam(ModelPart& r_model_part){
 
-        typedef ModelPart::NodesContainerType NodesArrayType;
-        NodesArrayType& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
+        // typedef ModelPart::NodesContainerType NodesArrayType;
+        // NodesArrayType& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
 
         //#pragma omp parallel for
-        for (int k = 0; k < (int) pNodes.size(); k++) {
+        // for (int k = 0; k < (int) pNodes.size(); k++) {
 
-            ModelPart::NodeIterator i_iterator = pNodes.ptr_begin() + k;
-            Node < 3 > & i = *i_iterator;
+        //     ModelPart::NodeIterator i_iterator = pNodes.ptr_begin() + k;
+        //     Node < 3 > & i = *i_iterator;
 
-            //const double& displacement = i.FastGetSolutionStepValue(DISPLACEMENT);
-            const array_1d<double, 3>& coords = i.Coordinates();
+        //     //const double& displacement = i.FastGetSolutionStepValue(DISPLACEMENT);
+        //     const array_1d<double, 3>& coords = i.Coordinates();
 
-            KRATOS_WATCH(coords)
+        //     KRATOS_WATCH(coords)
             
-        }//for Node
+        // }//for Node
     }
 
     }; // Class PostUtilities

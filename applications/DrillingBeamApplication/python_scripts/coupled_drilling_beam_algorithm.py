@@ -17,17 +17,22 @@ import dem_structures_coupling_gid_output
 import dem_fem_coupling_algorithm
 import KratosMultiphysics.DrillingBeamApplication as DBA
 
+
 class CoupledDrillingBeamAlgorithm(dem_fem_coupling_algorithm.Algorithm):
 
     def Initialize(self):
-        self.structural_solution.Initialize() # Reading mdpa
-        self.dem_solution.Initialize() # Adding DEM variables and reading
+        self.structural_solution.Initialize()    # Reading mdpa
+        self.structural_main_model_part = self.structural_solution._GetSolver().main_model_part
+        
+        self.dem_solution.Initialize()    # Adding DEM variables and reading
 
         self._DetectStructuresSkin()
         self._TransferStructuresSkinToDem()
         self.dem_solution.solver.Initialize()
 
         self.sandwich_simulation = False
+
+        self.curvatures_utility = DBA.CurvaturesUtility(self.structural_main_model_part)       
 
         mixed_mp = self.model.CreateModelPart('MixedPart')
         filename = os.path.join(self.dem_solution.post_path, self.dem_solution.DEM_parameters["problem_name"].GetString())
@@ -167,7 +172,7 @@ class CoupledDrillingBeamAlgorithm(dem_fem_coupling_algorithm.Algorithm):
 
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
 
-    # DBA.PostUtilities().ComputeCurvatureOfBeamSolids(self.structural_mp)
+            self.curvatures_utility.ComputeCurvatureOfBeamSolids(self.structural_main_model_part)
 
 if __name__ == "__main__":
     CoupledDrillingBeamAlgorithm().Run()
