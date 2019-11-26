@@ -11,7 +11,7 @@ from glob import glob
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
-import KratosMultiphysics.DEMApplication.sp_test as sp_test
+import KratosMultiphysics.DEMApplication.triaxial2d_test as triaxial2d_test
 
 def Flush(a):
     a.flush()
@@ -1284,7 +1284,7 @@ class MaterialTest(object):
 
         if self.TestType != "None":
             if self.TestType == "Triaxial2D":
-                self.script = sp_test.Triaxial2D(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
+                self.script = triaxial2d_test.Triaxial2D(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
             else:
                 self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
             self.script.Initialize()

@@ -43,7 +43,7 @@ class Triaxial2D(Dem.DEM_material_test_script.MaterialTest):
         for element in self.spheres_model_part.Elements:
             element.GetNode(0).SetSolutionStepValue(Dem.SKIN_SPHERE, 0)
             node = element.GetNode(0)
-            r = node.GetSolutionStepValue(RADIUS)
+            r = node.GetSolutionStepValue(Dem.RADIUS)
             x = node.X
             y = node.Y
 
@@ -60,18 +60,11 @@ class Triaxial2D(Dem.DEM_material_test_script.MaterialTest):
 
         return self.xlat_area
 
-    def MeasureForcesAndPressure(self):
-        super(Triaxial2D, self).MeasureForcesAndPressure()
-        average_zstress_value = 0.0
-
-        if self.test_type == "Triaxial2D":
-            average_zstress_value = self.aux.ComputeAverageZStressFor2D(self.spheres_model_part)
-            ApplyLateralStress(average_zstress_value, self.LAT, self.alpha_lat)
-
+    @staticmethod
     def ApplyLateralStress(average_zstress_value, LAT, alpha_lat):
 
         for node in LAT:
-            r = node.GetSolutionStepValue(RADIUS)
+            r = node.GetSolutionStepValue(Dem.RADIUS)
             x = node.X
             y = node.Y
 
@@ -90,15 +83,23 @@ class Triaxial2D(Dem.DEM_material_test_script.MaterialTest):
             values[1] = cross_section * average_zstress_value * vect[1] * alpha_lat
             node.SetSolutionStepValue(Dem.EXTERNAL_APPLIED_FORCE, values)
 
+    def MeasureForcesAndPressure(self):
+        super(Triaxial2D, self).MeasureForcesAndPressure()
+        average_zstress_value = 0.0
+
+        if self.test_type == "Triaxial2D":
+            average_zstress_value = self.aux.ComputeAverageZStressFor2D(self.spheres_model_part)
+            ApplyLateralStress(average_zstress_value, self.LAT, self.alpha_lat)
+
     def PrintGraph(self, time):
         pass
-        '''if self.graph_counter == self.graph_frequency:
-            self.graph_counter = 0
-            self.graph_export.write(str("%.6g"%self.strain).rjust(13) + "  " +
-                                    str("%.6g"%(self.total_stress_mean*1e-6)).rjust(13) + "  " + str("%.8g"%time).rjust(12)+'\n')
-            self.Flush(self.graph_export)
+        #if self.graph_counter == self.graph_frequency:
+        #    self.graph_counter = 0
+        #    self.graph_export.write(str("%.6g"%self.strain).rjust(13) + "  " +
+        #                            str("%.6g"%(self.total_stress_mean*1e-6)).rjust(13) + "  " + str("%.8g"%time).rjust(12)+'\n')
+        #    self.Flush(self.graph_export)
 
-        self.graph_counter += 1'''
+        #self.graph_counter += 1
 
     def Flush(self,a):
         pass
