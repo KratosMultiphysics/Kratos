@@ -42,7 +42,7 @@ class KratosCoSimIO(CoSimulationIO):
             KratosCoSim.CoSimIO.ImportData(self.solver_name, interface_data.name, interface_data.GetModelPart(), interface_data.variable, GetDataLocation(interface_data.location))
 
         elif data_type == "time":
-            time_list = KratosCoSim.CoSimIO.ImportData("time_to_co_sim", time_list)
+            time_list = KratosCoSim.CoSimIO.ImportData(self.solver_name, "time_to_co_sim")
             if len(time_list) != 1:
                 raise Exception("Wrong size received!")
             data_config["time"] = time_list[0]
