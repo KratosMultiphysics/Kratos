@@ -120,14 +120,14 @@ template<>
 inline void ImportMesh(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    std::vector<double>& pNodalCoordinates,
-    std::vector<int>& pElementConnectivities,
-    std::vector<int>& pElementTypes)
+    std::vector<double>& rNodalCoordinates,
+    std::vector<int>& rElementConnectivities,
+    std::vector<int>& rElementTypes)
 {
     using namespace CoSimIO::Internals;
-    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerStdVector<double>(pNodalCoordinates));
-    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerStdVector<int>(pElementConnectivities));
-    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerStdVector<int>(pElementTypes));
+    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerStdVector<double>(rNodalCoordinates));
+    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerStdVector<int>(rElementConnectivities));
+    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerStdVector<int>(rElementTypes));
     Internals::GetConnection(rConnectionName).ImportMesh(rIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
 }
 
@@ -135,25 +135,25 @@ template<>
 inline void ImportMesh(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    CoSimIO::Internals::DataContainer<double>& pNodalCoordinates,
-    CoSimIO::Internals::DataContainer<int>& pElementConnectivities,
-    CoSimIO::Internals::DataContainer<int>& pElementTypes)
+    CoSimIO::Internals::DataContainer<double>& rNodalCoordinates,
+    CoSimIO::Internals::DataContainer<int>& rElementConnectivities,
+    CoSimIO::Internals::DataContainer<int>& rElementTypes)
 {
-    Internals::GetConnection(rConnectionName).ImportMesh(rIdentifier, pNodalCoordinates, pElementConnectivities, pElementTypes);
+    Internals::GetConnection(rConnectionName).ImportMesh(rIdentifier, rNodalCoordinates, rElementConnectivities, rElementTypes);
 }
 
 template<>
 inline void ExportMesh(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    std::vector<double>& pNodalCoordinates,
-    std::vector<int>& pElementConnectivities,
-    std::vector<int>& pElementTypes)
+    std::vector<double>& rNodalCoordinates,
+    std::vector<int>& rElementConnectivities,
+    std::vector<int>& rElementTypes)
 {
     using namespace CoSimIO::Internals;
-    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerStdVector<double>(pNodalCoordinates));
-    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerStdVector<int>(pElementConnectivities));
-    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerStdVector<int>(pElementTypes));
+    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerStdVector<double>(rNodalCoordinates));
+    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerStdVector<int>(rElementConnectivities));
+    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerStdVector<int>(rElementTypes));
     Internals::GetConnection(rConnectionName).ExportMesh(rIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
 }
 
@@ -161,11 +161,11 @@ template<>
 inline void ExportMesh(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    CoSimIO::Internals::DataContainer<double>& pNodalCoordinates,
-    CoSimIO::Internals::DataContainer<int>& pElementConnectivities,
-    CoSimIO::Internals::DataContainer<int>& pElementTypes)
+    CoSimIO::Internals::DataContainer<double>& rNodalCoordinates,
+    CoSimIO::Internals::DataContainer<int>& rElementConnectivities,
+    CoSimIO::Internals::DataContainer<int>& rElementTypes)
 {
-    Internals::GetConnection(rConnectionName).ExportMesh(rIdentifier, pNodalCoordinates, pElementConnectivities, pElementTypes);
+    Internals::GetConnection(rConnectionName).ExportMesh(rIdentifier, rNodalCoordinates, rElementConnectivities, rElementTypes);
 }
 
 inline void IsConverged(const std::string& rConnectionName, int& rConvergenceSignal)

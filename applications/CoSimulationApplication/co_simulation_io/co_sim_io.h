@@ -41,13 +41,13 @@ template<class TContainerType>
 inline void ImportData(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    TContainerType& pData);
+    TContainerType& rData);
 
 template<class TContainerType>
 inline void ExportData(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    TContainerType& pData);
+    TContainerType& rData);
 
 
 template<class TDoubleContainerType, class TIntContainerType>
