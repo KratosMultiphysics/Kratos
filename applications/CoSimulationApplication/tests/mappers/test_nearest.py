@@ -4,12 +4,9 @@ from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import Impor
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 import numpy as np
-import time
 
 class TestMapperNearest(KratosUnittest.TestCase):
     def test_mapper_nearest(self):
-        self.assertAlmostEqual(1, 1)
-
         parameter_file_name = 'test_nearest.json'
         cs_data_structure = ImportDataStructure(parameter_file_name)
         with open(parameter_file_name, 'r') as parameter_file:
