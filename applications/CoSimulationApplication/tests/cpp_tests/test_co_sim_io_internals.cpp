@@ -11,8 +11,6 @@
 
 // System includes
 #include <vector>
-// #include <cstdlib>
-#include <cmath>
 
 // External includes
 
@@ -29,48 +27,153 @@ typedef Kratos::unique_ptr<DataContainerBase> DataContainerBasePointer;
 typedef CoSimIO::Internals::DataContainerStdVector<ValueType> DataContainerStdVectorType;
 typedef CoSimIO::Internals::DataContainerRawMemory<ValueType> DataContainerRawMemoryType;
 
-KRATOS_TEST_CASE_IN_SUITE(DataContainers, KratosCoSimulationFastSuite)
+namespace {
+
+void TestDataContainerBasics(const std::vector<ValueType>& rRefValues, DataContainerBase& rDataContainer)
 {
-    const std::size_t init_size(15);
-    const double init_val(1.23);
-
-    std::vector<ValueType> ref_values(init_size);
-    std::vector<ValueType> values_vec(init_size);
-
-    double** values_raw = (double**)malloc(sizeof(double*)*1);
-    values_raw[0]= (double*)malloc(sizeof(double)*init_size);
-
-    for (std::size_t i=0; i<init_size; ++i) {
-        ref_values[i] = i*init_val;
-        values_vec[i] = i*init_val;
-        (*values_raw)[i] = i*init_val;
-    }
-
-    DataContainerBasePointer ptr_std_vec(Kratos::make_unique<DataContainerStdVectorType>(values_vec));
-    DataContainerBasePointer ptr_raw_mem(Kratos::make_unique<DataContainerRawMemoryType>(values_raw, init_size));
-
     // checking size
-    KRATOS_CHECK_EQUAL(init_size, ptr_std_vec->size());
-    KRATOS_CHECK_EQUAL(init_size, ptr_raw_mem->size());
+    KRATOS_CHECK_EQUAL(rRefValues.size(), rDataContainer.size());
 
     // checking values
-    KRATOS_CHECK_VECTOR_NEAR(ref_values, (*ptr_std_vec), 1e-12)
-    KRATOS_CHECK_VECTOR_NEAR(ref_values, (*ptr_raw_mem), 1e-12)
+    KRATOS_CHECK_VECTOR_NEAR(rRefValues, rDataContainer, 1e-12)
+}
 
-    // checking resize (increasing size)
-    std::size_t size_after_resize(init_size+10);
-    ptr_std_vec->resize(size_after_resize);
-    ptr_raw_mem->resize(size_after_resize);
+void TestDataContainerDifferentValues(const std::vector<std::vector<ValueType>>& rRefValues, DataContainerBase& rDataContainer)
+{
+    for (const auto& r_current_ref_vals : rRefValues) {
+        const std::size_t current_size(r_current_ref_vals.size());
+        if (rDataContainer.size() != current_size) {
+            rDataContainer.resize(current_size);
+        }
 
-    KRATOS_CHECK_EQUAL(size_after_resize, ptr_std_vec->size());
-    KRATOS_CHECK_EQUAL(size_after_resize, ptr_raw_mem->size());
+        for (std::size_t i=0; i<current_size; ++i) {
+            rDataContainer[i] = r_current_ref_vals[i];
+        }
 
-    ref_values.resize(size_after_resize);
-    for (std::size_t i=0; i<size_after_resize; ++i) {
-        ref_values[i] = i*init_val+2.558;
-        (*ptr_std_vec)[i] = i*init_val+2.558;
-        (*ptr_raw_mem)[i] = i*init_val+2.558;
+        // checking size
+        KRATOS_CHECK_EQUAL(current_size, rDataContainer.size());
+
+        // checking values
+        KRATOS_CHECK_VECTOR_NEAR(r_current_ref_vals, rDataContainer, 1e-12)
     }
+}
+
+} // helpers namespace
+
+KRATOS_TEST_CASE_IN_SUITE(DataContainers_RawMemory_empty, KratosCoSimulationFastSuite)
+{
+    ValueType** values_raw = (ValueType**)malloc(sizeof(ValueType*)*1);
+    values_raw[0] = NULL;
+
+    DataContainerBasePointer p_container(Kratos::make_unique<DataContainerRawMemoryType>(values_raw, 0));
+
+    KRATOS_CHECK_EQUAL(0, p_container->size());
+
+    // deallocating memory
+    free(*values_raw);
+    free(values_raw);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataContainers_StdVector_basics, KratosCoSimulationFastSuite)
+{
+    const std::vector<ValueType> ref_values {
+        1.0, -2.333, 15.88, 14.7, -99.6
+    };
+
+    std::vector<ValueType> values_vec(ref_values);
+
+    DataContainerBasePointer p_container(Kratos::make_unique<DataContainerStdVectorType>(values_vec));
+
+    TestDataContainerBasics(ref_values, *p_container);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataContainers_RawMemory_basics, KratosCoSimulationFastSuite)
+{
+    const std::vector<ValueType> ref_values {
+        1.0, -2.333, 15.88, 14.7, -99.6
+    };
+
+    const std::size_t size(ref_values.size());
+
+    ValueType** values_raw = (ValueType**)malloc(sizeof(ValueType*)*1);
+    values_raw[0]= (ValueType*)malloc(sizeof(ValueType)*size);
+
+    for (std::size_t i=0; i<size; ++i) {
+        (*values_raw)[i] = ref_values[i];
+    }
+
+    DataContainerBasePointer p_container(Kratos::make_unique<DataContainerRawMemoryType>(values_raw, size));
+
+    TestDataContainerBasics(ref_values, *p_container);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataContainers_StdVector_multiple_resizes, KratosCoSimulationFastSuite)
+{
+    const std::vector<std::vector<ValueType>> ref_values {
+        {1.0, -2.333, 15.88, 14.7, -99.6},
+        {2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.5},
+        {-88.66, 77.9}
+    };
+
+    std::vector<ValueType> values_vec;
+
+    DataContainerBasePointer p_container(Kratos::make_unique<DataContainerStdVectorType>(values_vec));
+
+    TestDataContainerDifferentValues(ref_values, *p_container);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataContainers_RawMemory_resize_larger, KratosCoSimulationFastSuite)
+{
+    const std::vector<std::vector<ValueType>> ref_values {
+        {1.0, -2.333, 15.88, 14.7, -99.6},
+        {2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.5}
+    };
+
+    ValueType** values_raw = (ValueType**)malloc(sizeof(ValueType*)*1);
+    values_raw[0] = NULL;
+    DataContainerBasePointer p_container(Kratos::make_unique<DataContainerRawMemoryType>(values_raw, 0));
+
+    TestDataContainerDifferentValues(ref_values, *p_container);
+
+    // deallocating memory
+    free(*values_raw);
+    free(values_raw);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataContainers_RawMemory_resize_smaller, KratosCoSimulationFastSuite)
+{
+    const std::vector<std::vector<ValueType>> ref_values {
+        {1.0, -2.333, 15.88, 14.7, -99.6},
+        {-88.66, 77.9}
+    };
+
+    ValueType** values_raw = (ValueType**)malloc(sizeof(ValueType*)*1);
+    values_raw[0] = NULL;
+    DataContainerBasePointer p_container(Kratos::make_unique<DataContainerRawMemoryType>(values_raw, 0));
+
+    TestDataContainerDifferentValues(ref_values, *p_container);
+
+    // deallocating memory
+    free(*values_raw);
+    free(values_raw);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataContainers_RawMemory_multiple_resizes, KratosCoSimulationFastSuite)
+{
+    const std::vector<std::vector<ValueType>> ref_values {
+        {1.0, -2.333, 15.88, 14.7, -99.6},
+        {-88.66, 77.9},
+        {1.0, -2.333, 15.88, 14.7, -99.6},
+        {2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.5},
+        {1.0, -2.333, 15.88, 14.7, -99.6},
+        {-88.66, 77.9}
+    };
+
+    ValueType** values_raw = (ValueType**)malloc(sizeof(ValueType*)*1);
+    values_raw[0] = NULL;
+    DataContainerBasePointer p_container(Kratos::make_unique<DataContainerRawMemoryType>(values_raw, 0));
+
+    TestDataContainerDifferentValues(ref_values, *p_container);
 
     // deallocating memory
     free(*values_raw);
