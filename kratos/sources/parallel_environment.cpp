@@ -127,10 +127,10 @@ ParallelEnvironment::~ParallelEnvironment()
     // First release the registered DataCommunicators
     mDataCommunicators.clear();
 
-    // Then finalize MPI if necessary
-    if (mpEnvironmentManager != nullptr)
+    // Then finalize MPI if necessary by freeing the manager instance
+    if (mpEnvironmentManager)
     {
-        mpEnvironmentManager.release();
+        mpEnvironmentManager.reset();
     }    
 
     mDestroyed = true;
