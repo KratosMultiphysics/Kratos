@@ -36,8 +36,8 @@ addons:
       - libtrilinos-teuchos-dev
 
 before_script:
-- export PYTHONPATH=${PYTHONPATH}:${TRAVIS_BUILD_DIR}/bin/Linux/Custom
-- export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${TRAVIS_BUILD_DIR}/bin/Linux/Custom/libs
+- export PYTHONPATH=${PYTHONPATH}:${TRAVIS_BUILD_DIR}/bin/Custom
+- export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${TRAVIS_BUILD_DIR}/bin/Custom/libs
 
 script:
 - cp scripts/build/travis/configure_travis_bionic.sh configure.sh
