@@ -83,11 +83,11 @@ void ExportDataDetail(
 
     for (const auto& r_size_val_pair : rSizesValues) {
         const std::size_t current_size = r_size_val_pair.first;
-        rDataContainer.resize_if_smaller(current_size);
+        rDataContainer.resize(current_size);
         for (std::size_t i=0; i<current_size; ++i) {
             rDataContainer[i] = r_size_val_pair.second;
         }
-        rCoSimComm.ExportData(rIdentifier, current_size, rDataContainer);
+        rCoSimComm.ExportData(rIdentifier, rDataContainer);
     }
 
     rCoSimComm.Disconnect();
@@ -99,16 +99,14 @@ void ImportDataDetail(
     const std::string& rIdentifier,
     const SizeValuePairsVectorType& rSizesValues)
 {
-    int received_size;
-
     rCoSimComm.Connect();
 
     for (const auto& r_size_val_pair : rSizesValues) {
-        rCoSimComm.ImportData(rIdentifier, received_size, rDataContainer);
+        rCoSimComm.ImportData(rIdentifier, rDataContainer);
 
         const int expected_size = r_size_val_pair.first;
         const double expected_value = r_size_val_pair.second;
-
+        const int received_size = rDataContainer.size();
         KRATOS_CHECK_EQUAL(expected_size, received_size);
 
         // cannot use the vector check macro, bcs the size might be larger / does not work with manual memory!
@@ -196,9 +194,9 @@ void ExportMeshDetail(
         const std::size_t num_connectivities = rElemConnectivities[i].size();
         const std::size_t num_elems = rElemTypes[i].size();
 
-        rDataContainerNodalCoords.resize_if_smaller(size_nodal_coords);
-        rDataContainerElementConnectivities.resize_if_smaller(num_connectivities);
-        rDataContainerElementTypes.resize_if_smaller(num_elems);
+        rDataContainerNodalCoords.resize(size_nodal_coords);
+        rDataContainerElementConnectivities.resize(num_connectivities);
+        rDataContainerElementTypes.resize(num_elems);
 
         for (std::size_t j=0; j<size_nodal_coords; ++j) {
             rDataContainerNodalCoords[j] = rNodeCoords[i][j];
@@ -212,9 +210,7 @@ void ExportMeshDetail(
             rDataContainerElementTypes[j] = rElemTypes[i][j];
         }
 
-        const int num_nodes = size_nodal_coords/3;
-
-        rCoSimComm.ExportMesh(rIdentifier, num_nodes, num_elems, rDataContainerNodalCoords, rDataContainerElementConnectivities, rDataContainerElementTypes);
+        rCoSimComm.ExportMesh(rIdentifier, rDataContainerNodalCoords, rDataContainerElementConnectivities, rDataContainerElementTypes);
     }
 
     rCoSimComm.Disconnect();
@@ -230,8 +226,6 @@ void ImportMeshDetail(
     const ElementQuantitiesVectorType& rElemConnectivities,
     const ElementQuantitiesVectorType& rElemTypes)
 {
-    int received_num_nodes;
-    int received_num_elems;
 
     rCoSimComm.Connect();
 
@@ -241,8 +235,10 @@ void ImportMeshDetail(
     KRATOS_CHECK_EQUAL(num_meshes, rElemTypes.size());
 
     for (std::size_t i=0; i<num_meshes; ++i) {
-        rCoSimComm.ImportMesh(rIdentifier, received_num_nodes, received_num_elems, rDataContainerNodalCoords, rDataContainerElementConnectivities, rDataContainerElementTypes);
+        rCoSimComm.ImportMesh(rIdentifier, rDataContainerNodalCoords, rDataContainerElementConnectivities, rDataContainerElementTypes);
 
+        const int received_num_nodes = rDataContainerNodalCoords.size()/3;
+        const int received_num_elems = rDataContainerElementTypes.size();
         const int exp_num_nodes = rNodeCoords[i].size()/3;
         const int exp_num_elems = rElemTypes[i].size();
         KRATOS_CHECK_EQUAL(exp_num_nodes, received_num_nodes);

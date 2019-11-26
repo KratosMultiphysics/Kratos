@@ -129,7 +129,6 @@ private:
 
      void ImportDataImpl(
         const std::string& rIdentifier,
-        int& rSize,
         CoSimIO::Internals::DataContainer<double>& rData) override
     {
         const std::string file_name(GetFullPath("CoSimIO_data_" + GetConnectionName() + "_" + rIdentifier + ".dat"));
@@ -147,10 +146,8 @@ private:
 
         int size_read;
         input_file >> size_read; // the first number in the file is the size of the array
-        rSize = size_read;
 
-        // here if incoming size is larger than allocated size => resize
-        rData.resize_if_smaller(size_read); // TODO do we want to go this way???
+        rData.resize(size_read);
 
         for (int i=0; i<size_read; ++i) {
             input_file >> rData[i];
@@ -165,14 +162,14 @@ private:
 
     void ExportDataImpl(
         const std::string& rIdentifier,
-        const int Size,
         const CoSimIO::Internals::DataContainer<double>& rData) override
     {
         const std::string file_name(GetFullPath("CoSimIO_data_" + GetConnectionName() + "_" + rIdentifier + ".dat"));
 
         WaitUntilFileIsRemoved(file_name); // TODO maybe this can be queued somehow ... => then it would not block the sender
 
-        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send array \"" << rIdentifier << "\" with size: " << Size << " in file \"" << file_name << "\" ..." << std::endl;
+        const int size = rData.size();
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send array \"" << rIdentifier << "\" with size: " << size << " in file \"" << file_name << "\" ..." << std::endl;
 
         const auto start_time(std::chrono::steady_clock::now());
 
@@ -182,13 +179,13 @@ private:
 
         output_file << std::scientific << std::setprecision(14); // TODO maybe this should be configurable
 
-        output_file << Size << "\n";
+        output_file << size << "\n";
 
-        for (int i=0; i<Size-1; ++i) {
+        for (int i=0; i<size-1; ++i) {
             output_file << rData[i] << " ";
         }
         // TODO check if size == 0!
-        output_file << rData[Size-1]; // outside to not have trailing whitespace
+        output_file << rData[size-1]; // outside to not have trailing whitespace
 
         output_file.close();
         MakeFileVisible(file_name);
@@ -200,8 +197,6 @@ private:
 
     void ImportMeshImpl(
         const std::string& rIdentifier,
-        int& rNumberOfNodes,
-        int& rNumberOfElements,
         CoSimIO::Internals::DataContainer<double>& rNodalCoordinates,
         CoSimIO::Internals::DataContainer<int>& rElementConnectivities,
         CoSimIO::Internals::DataContainer<int>& rElementTypes) override
@@ -233,11 +228,10 @@ private:
                 current_line = current_line.substr(current_line.find("POINTS") + 7); // removing "POINTS"
                 std::istringstream line_stream(current_line);
                 line_stream >> num_nodes;
-                rNumberOfNodes = num_nodes;
 
                 KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Mesh contains " << num_nodes << " Nodes" << std::endl;
 
-                rNodalCoordinates.resize_if_smaller(3*num_nodes);
+                rNodalCoordinates.resize(3*num_nodes);
 
                 for (int i=0; i<num_nodes*3; ++i) {
                     input_file >> rNodalCoordinates[i];
@@ -255,10 +249,9 @@ private:
                 std::istringstream line_stream(current_line);
                 line_stream >> num_cells;
                 line_stream >> cell_list_size;
-                rNumberOfElements = num_cells;
 
-                rElementConnectivities.resize_if_smaller(cell_list_size);
-                rElementTypes.resize_if_smaller(num_cells);
+                rElementConnectivities.resize(cell_list_size);
+                rElementTypes.resize(num_cells);
 
                 KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Mesh contains " << num_cells << " Elements" << std::endl;
 
@@ -277,7 +270,7 @@ private:
                 KRATOS_CO_SIM_ERROR_IF_NOT(nodes_read) << "The nodes were not yet read!" << std::endl;
                 KRATOS_CO_SIM_ERROR_IF_NOT(cells_read) << "The cells were not yet read!" << std::endl;
 
-                for (int i=0; i<rNumberOfElements; ++i) {
+                for (std::size_t i=0; i<rElementTypes.size(); ++i) { // rElementTypes was resized to correct size above
                     input_file >> rElementTypes[i];
                 }
 
@@ -293,8 +286,6 @@ private:
 
     void ExportMeshImpl(
         const std::string& rIdentifier,
-        const int NumberOfNodes,
-        const int NumberOfElements,
         CoSimIO::Internals::DataContainer<double>& rNodalCoordinates,
         CoSimIO::Internals::DataContainer<int>& rElementConnectivities,
         CoSimIO::Internals::DataContainer<int>& rElementTypes) override
@@ -303,7 +294,10 @@ private:
 
         WaitUntilFileIsRemoved(file_name); // TODO maybe this can be queued somehow ... => then it would not block the sender
 
-        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send mesh \"" << rIdentifier << "\" with " << NumberOfNodes << " Nodes | " << NumberOfElements << " Cells in file \"" << file_name << "\" ..." << std::endl;
+        const int num_nodes = rNodalCoordinates.size()/3;
+        const int num_elems = rElementTypes.size();
+
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send mesh \"" << rIdentifier << "\" with " << num_nodes << " Nodes | " << num_elems << " Elements in file \"" << file_name << "\" ..." << std::endl;
 
         const auto start_time(std::chrono::steady_clock::now());
 
@@ -320,8 +314,8 @@ private:
         output_file << "DATASET UNSTRUCTURED_GRID\n\n";
 
         // write nodes
-        output_file << "POINTS " << NumberOfNodes << " float\n";
-        for (int i=0; i<NumberOfNodes; ++i) {
+        output_file << "POINTS " << num_nodes << " float\n";
+        for (int i=0; i<num_nodes; ++i) {
             output_file << rNodalCoordinates[i*3] << " " << rNodalCoordinates[i*3+1] << " " << rNodalCoordinates[i*3+2] << "\n";
         }
         output_file << "\n";
@@ -330,7 +324,7 @@ private:
         int cell_list_size = 0;
         int counter = 0;
         int connectivities_offset = std::numeric_limits<int>::max(); //in paraview the connectivities start from 0, hence we have to check beforehand what is the connectivities offset
-        for (int i=0; i<NumberOfElements; ++i) {
+        for (int i=0; i<num_elems; ++i) {
             const int num_nodes_cell = GetNumNodesForVtkCellType(rElementTypes[i]);
             cell_list_size += num_nodes_cell + 1; // +1 for size of connectivity
             for (int j=0; j<num_nodes_cell; ++j) {
@@ -342,8 +336,8 @@ private:
 
         // write cells connectivity
         counter = 0;
-        output_file << "CELLS " << NumberOfElements << " " << cell_list_size << "\n";
-        for (int i=0; i<NumberOfElements; ++i) {
+        output_file << "CELLS " << num_elems << " " << cell_list_size << "\n";
+        for (int i=0; i<num_elems; ++i) {
             const int num_nodes_cell = GetNumNodesForVtkCellType(rElementTypes[i]);
             output_file << num_nodes_cell << " ";
             for (int j=0; j<num_nodes_cell; ++j) {
@@ -356,8 +350,8 @@ private:
         output_file << "\n";
 
         // write cell types
-        output_file << "CELL_TYPES " << NumberOfElements << "\n";
-        for (int i=0; i<NumberOfElements; ++i) {
+        output_file << "CELL_TYPES " << num_elems << "\n";
+        for (int i=0; i<num_elems; ++i) {
             output_file << rElementTypes[i] << "\n";
         }
 

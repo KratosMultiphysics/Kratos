@@ -127,6 +127,7 @@ public:
 
     void Run()
     {
+        // TODO make this work again, currently does not work bcs of the two different containers for fct-ptrs
         KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
 
         const std::map<const CoSimIO::ControlSignal, const std::string> signal_to_name {
@@ -148,6 +149,7 @@ public:
                 KRATOS_CO_SIM_ERROR_IF_NOT(mpAdvInTime) << "No function was registered for \"AdvanceInTime\"!" << std::endl;
 
                 std::vector<double> time_vec(1);
+                // TODO update this
                 // DataContainers::Data time_data = {time_vec};
                 // Import(time_data, "time_from_co_sim");
                 mpAdvInTime(&time_vec[0]);

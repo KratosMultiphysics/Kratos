@@ -19,6 +19,7 @@ By default the communication is done through files,
 support for sockets and MPI can optionally be enabled
 */
 
+// TODO check how to do those macros! => maybe put in co_sim_io_define???
 // #define KRATOS_CO_SIM_IO_ENABLE_SOCKETS // uncomment for Sockets support
 // #define KRATOS_CO_SIM_IO_ENABLE_MPI // uncomment for MPI support
 
@@ -40,14 +41,12 @@ template<class TContainerType>
 inline void ImportData(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    int& rSize,
     TContainerType& pData);
 
 template<class TContainerType>
 inline void ExportData(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    const int Size,
     TContainerType& pData);
 
 
@@ -55,8 +54,6 @@ template<class TDoubleContainerType, class TIntContainerType>
 inline void ImportMesh(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    int& rNumberOfNodes,
-    int& rNumberOfElements,
     TDoubleContainerType& rNodalCoordinates,
     TIntContainerType& rElementConnectivities,
     TIntContainerType& rElementTypes);
@@ -65,8 +62,6 @@ template<class TDoubleContainerType, class TIntContainerType>
 inline void ExportMesh(
     const std::string& rConnectionName,
     const std::string& rIdentifier,
-    const int NumberOfNodes,
-    const int NumberOfElements,
     TDoubleContainerType& rNodalCoordinates,
     TIntContainerType& rElementConnectivities,
     TIntContainerType& rElementTypes);

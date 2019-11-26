@@ -34,7 +34,8 @@ void CoSimIO_ImportData(
 {
     using namespace CoSimIO::Internals;
     std::unique_ptr<DataContainer<double>> p_container(new DataContainerRawMemory<double>(ppData, *pSize));
-    CoSimIO::ImportData(pConnectionName, pIdentifier, *pSize, *p_container);
+    CoSimIO::ImportData(pConnectionName, pIdentifier, *p_container);
+    *pSize = p_container->size();
 }
 
 void CoSimIO_ExportData(
@@ -45,7 +46,7 @@ void CoSimIO_ExportData(
 {
     using namespace CoSimIO::Internals;
     std::unique_ptr<DataContainer<double>> p_container(new DataContainerRawMemory<double>(&pData, Size));
-    CoSimIO::ExportData(pConnectionName, pIdentifier, Size, *p_container);
+    CoSimIO::ExportData(pConnectionName, pIdentifier, *p_container);
 }
 
 void CoSimIO_ImportMesh(
@@ -59,9 +60,11 @@ void CoSimIO_ImportMesh(
 {
     using namespace CoSimIO::Internals;
     std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerRawMemory<double>(ppNodalCoordinates, *pNumberOfNodes));
-    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerRawMemory<int>(ppElementConnectivities, *pNumberOfElements));
+    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerRawMemory<int>(ppElementConnectivities, *pNumberOfElements)); // using "NumberOfElements" here is wrong! => has to be computed! Or sth like this ... (maybe even has to be passed...)
     std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerRawMemory<int>(ppElementTypes, *pNumberOfElements));
-    CoSimIO::ImportMesh(pConnectionName, pIdentifier, *pNumberOfNodes, *pNumberOfElements, *p_container_coords, *p_container_conn, *p_container_types);
+    CoSimIO::ImportMesh(pConnectionName, pIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
+    *pNumberOfNodes = p_container_coords->size();
+    *pNumberOfElements = p_container_types->size();
 }
 
 void CoSimIO_ExportMesh(
@@ -75,9 +78,9 @@ void CoSimIO_ExportMesh(
 {
     using namespace CoSimIO::Internals;
     std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerRawMemory<double>(&pNodalCoordinates, NumberOfNodes));
-    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerRawMemory<int>(&pElementConnectivities, NumberOfElements));
+    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerRawMemory<int>(&pElementConnectivities, NumberOfElements)); // using "NumberOfElements" here is wrong! => has to be computed! Or sth like this ... (maybe even has to be passed...)
     std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerRawMemory<int>(&pElementTypes, NumberOfElements));
-    CoSimIO::ExportMesh(pConnectionName, pIdentifier, NumberOfNodes, NumberOfElements, *p_container_coords, *p_container_conn, *p_container_types);
+    CoSimIO::ExportMesh(pConnectionName, pIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
 }
 
 void CoSimIO_RegisterAdvanceInTime(

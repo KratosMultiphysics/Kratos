@@ -36,11 +36,18 @@ namespace CoSimIO_Wrappers { // helpers namespace
 
 // creating static buffers such that memory does not constantly have to be reallocated during the data-exchange
 // this is not threadsafe, but the functions should never be executed by different threads at the same time (we don't do shared-memory parallelism from python)
+// defining the static members
 struct DataBuffers {
     static std::vector<double> vector_doubles;
     static std::vector<int> vector_connectivities;
     static std::vector<int> vector_types;
 };
+
+// declaring the static members
+std::vector<double> DataBuffers::vector_doubles;
+std::vector<int> DataBuffers::vector_connectivities;
+std::vector<int> DataBuffers::vector_types;
+
 
 enum class DataLocation { NodeHistorical, NodeNonHistorical, Element, Condition, ModelPart };
 
@@ -56,13 +63,9 @@ void ImportMesh(
     const std::string& rIdentifier,
     ModelPart& rModelPart)
 {
-    int num_nodes;
-    int num_elements;
     CoSimIO::ImportMesh(
         rConnectionName,
         rIdentifier,
-        num_nodes,
-        num_elements,
         DataBuffers::vector_doubles,
         DataBuffers::vector_connectivities,
         DataBuffers::vector_types);
@@ -89,7 +92,7 @@ void ImportMesh(
 
     // fill ModelPart with received entities // TODO do this in OMP and add only after creation!
 
-    for (int i=0; i<num_nodes; ++i) {
+    for (std::size_t i=0; i<DataBuffers::vector_doubles.size()/3; ++i) {
         rModelPart.CreateNewNode(
             i+1,
             DataBuffers::vector_doubles[i*3],
@@ -100,7 +103,7 @@ void ImportMesh(
     auto p_props = rModelPart.CreateNewProperties(0);
 
     int counter=0;
-    for (int i=0; i<num_elements; ++i) {
+    for (std::size_t i=0; i<DataBuffers::vector_types.size(); ++i) {
         const auto& vtk_type_info = vtk_type_map.at(DataBuffers::vector_types[i]);
         const int num_nodes_elem = vtk_type_info.first;
         std::vector<ModelPart::IndexType> elem_node_ids(num_nodes_elem);
@@ -159,7 +162,6 @@ void ExportData_Scalar(
     CoSimIO::ExportData(
         rConnectionName,
         rIdentifier,
-        DataBuffers::vector_doubles.size(),
         DataBuffers::vector_doubles);
 }
 
@@ -170,12 +172,9 @@ void ImportData_Scalar(
     const Variable<double>& rVariable,
     const DataLocation DataLoc)
 {
-    int received_size;
-
     CoSimIO::ImportData(
         rConnectionName,
         rIdentifier,
-        received_size,
         DataBuffers::vector_doubles);
 
     // TODO implement size-checks
@@ -267,7 +266,6 @@ void ExportData_Vector(
     CoSimIO::ExportData(
         rConnectionName,
         rIdentifier,
-        DataBuffers::vector_doubles.size(),
         DataBuffers::vector_doubles);
 }
 
@@ -278,12 +276,9 @@ void ImportData_Vector(
     const Variable< array_1d<double, 3> >& rVariable,
     const DataLocation DataLoc)
 {
-    int received_size;
-
     CoSimIO::ImportData(
         rConnectionName,
         rIdentifier,
-        received_size,
         DataBuffers::vector_doubles);
 
     // TODO implement size-checks
