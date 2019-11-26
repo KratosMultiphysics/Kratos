@@ -13,6 +13,7 @@
 #include "includes/parallel_environment.h"
 
 #include "mpi/includes/mpi_data_communicator.h"
+#include "mpi/includes/mpi_manager.h"
 #include "mpi/includes/mpi_message.h"
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE
@@ -227,7 +228,12 @@ namespace Kratos {
 MPIDataCommunicator::MPIDataCommunicator(MPI_Comm MPIComm):
     DataCommunicator(),
     mComm(MPIComm)
-{}
+{
+    if (!ParallelEnvironment::MPIIsInitialized())
+    {
+        ParallelEnvironment::SetUpMPIEnvironment(MPIManager::Create());
+    }
+}
 
 MPIDataCommunicator::~MPIDataCommunicator()
 {
