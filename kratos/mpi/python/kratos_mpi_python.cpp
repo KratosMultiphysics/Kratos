@@ -29,10 +29,6 @@ namespace Python {
 
 void InitializeMPIParallelRun()
 {
-    // Initialize MPI
-    MPIEnvironment& mpi_environment = MPIEnvironment::Instance();
-    mpi_environment.Initialize();
-
     // Define the World DataCommunicator as a wrapper for MPI_COMM_WORLD and make it the default.
     ParallelEnvironment::RegisterDataCommunicator("World", MPIDataCommunicator::Create(MPI_COMM_WORLD), ParallelEnvironment::MakeDefault);
 }
