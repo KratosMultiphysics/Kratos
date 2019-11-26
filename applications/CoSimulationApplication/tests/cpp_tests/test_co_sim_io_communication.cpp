@@ -592,6 +592,11 @@ KRATOS_TEST_CASE_IN_SUITE(FileCommunication_Mesh_Multiple, KratosCoSimulationFas
         4.0, 2.5, 1.7, // 3
         4.0, 0.0, 1.7, // 4
         6.0, 0.0, 1.8 //  5
+    },{
+        -1.5, -1.8, 0.0, // 0
+         0.0, -1.8, 0.0, // 1
+         0.0,  0.0, 0.0, // 2
+        -1.5,  0.0, 0.0, // 3
     }};
 
     ElementQuantitiesVectorType elem_connectivities {{
@@ -604,11 +609,12 @@ KRATOS_TEST_CASE_IN_SUITE(FileCommunication_Mesh_Multiple, KratosCoSimulationFas
         1, 3, 2, // 2
         1, 4, 3, // 3
         3, 4, 5, // 4
-    }};
+    },{ }}; // no elements!
 
     ElementQuantitiesVectorType elem_types {
         {9,9,9,9}, // VTK_QUAD
-        {5,5,5,5}  // VTK_TRIANGLE
+        {5,5,5,5}, // VTK_TRIANGLE
+        {} // no elements!
     };
 
     ExportImportMesh_StdVector(*exporter, *importer, node_coords, elem_connectivities, elem_types);

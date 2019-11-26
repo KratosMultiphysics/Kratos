@@ -332,7 +332,7 @@ private:
             }
         }
 
-        KRATOS_CO_SIM_ERROR_IF(connectivities_offset != 0) << "Connectivities have an offset of " << connectivities_offset << " which is not allowed!" << std::endl;
+        KRATOS_CO_SIM_ERROR_IF(num_elems > 0 && connectivities_offset != 0) << "Connectivities have an offset of " << connectivities_offset << " which is not allowed!" << std::endl;
 
         // write cells connectivity
         counter = 0;
