@@ -11,7 +11,7 @@
         "connection_name" : "structure",
         "is_strong_coupling" : true,
         "io_settings" : {
-            "echo_level" : 1
+            "echo_level" : 0
         },
         "communication_settings" : {
             "export_meshes" : [

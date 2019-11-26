@@ -23,6 +23,7 @@ def GetFilePath(fileName):
 
 class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
     cfd_tes_file_name = "fsi_mok/ProjectParametersCFD_for_test.json"
+
     def setUp(self):
         if not numpy_available:
             self.skipTest("Numpy not available")

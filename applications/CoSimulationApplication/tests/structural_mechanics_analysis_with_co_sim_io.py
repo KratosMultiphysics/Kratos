@@ -11,6 +11,15 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 class StructuralMechanicsAnalysisWithCoSimIO(StructuralMechanicsAnalysis):
     '''Main script for structural mechanics with CoSimIO'''
 
+    def __init__(self, model, parameters):
+        super(StructuralMechanicsAnalysisWithCoSimIO,self).__init__(model, parameters)
+
+        # To avoid many prints
+        if (self.echo_level == 0):
+            KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
+        else:
+            KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.INFO)
+
     def Initialize(self):
         super(StructuralMechanicsAnalysisWithCoSimIO, self).Initialize()
         self.co_sim_settings = self.project_parameters["co_sim_settings"]
