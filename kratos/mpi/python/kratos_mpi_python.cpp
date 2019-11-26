@@ -16,7 +16,6 @@
 #include "mpi.h"
 
 // Module includes
-#include "mpi/mpi_environment.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "add_mpi_communicator_to_python.h"
 #include "add_mpi_data_communicator_to_python.h"

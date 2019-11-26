@@ -7,7 +7,6 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 ## Kratos MPI extension sources
 set( KRATOS_MPI_SOURCES
-   mpi_environment.cpp
    sources/mpi_data_communicator.cpp
    sources/mpi_manager.cpp
    utilities/data_communicator_factory.cpp

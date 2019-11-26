@@ -16,7 +16,6 @@
 #include "containers/model.h"
 #include "includes/data_communicator.h"
 #include "includes/model_part.h"
-#include "mpi/mpi_environment.h"
 
 #include "testing/testing.h"
 

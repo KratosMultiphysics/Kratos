@@ -12,7 +12,6 @@
 //
 
 #include "mpi.h"
-#include "mpi/mpi_environment.h"
 #include "includes/parallel_environment.h"
 #include "utilities/communication_coloring_utilities.h"
 
