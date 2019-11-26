@@ -231,7 +231,7 @@ void RunSolutionLoopWithStrongCoupling(MeshType& rMesh, DataFieldType& rDataFiel
             SolveSolutionStep();
             ExportDataToCoSim(comm_name, rDataField, "interface_pressure");
 
-            CoSimIO::IsConverged(comm_name, &convergence_signal);
+            CoSimIO::IsConverged(comm_name, convergence_signal);
             if (convergence_signal) {break;}
         }
 
