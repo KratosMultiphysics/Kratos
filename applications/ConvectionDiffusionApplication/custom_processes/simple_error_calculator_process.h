@@ -16,6 +16,7 @@
 // Project includes
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
+#include "includes/element.h"
 #include "processes/process.h"
 
 namespace Kratos{
@@ -78,6 +79,8 @@ public:
 
     /// The type of array considered for the tensor
     typedef typename std::conditional<TDim == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
+
+    typedef Ge
 
     /// Pointer definition of SimpleErrorCalculatorProcess
     KRATOS_CLASS_POINTER_DEFINITION(SimpleErrorCalculatorProcess);
