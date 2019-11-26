@@ -34,6 +34,14 @@ namespace Python {
 // BIG TODO: make OMP parallel most loops
 namespace CoSimIO_Wrappers { // helpers namespace
 
+// creating static buffers such that memory does not constantly have to be reallocated during the data-exchange
+// this is not threadsafe, but the functions should never be executed by different threads at the same time (we don't do shared-memory parallelism from python)
+struct DataBuffers {
+    static std::vector<double> vector_doubles;
+    static std::vector<int> vector_connectivities;
+    static std::vector<int> vector_types;
+};
+
 enum class DataLocation { NodeHistorical, NodeNonHistorical, Element, Condition, ModelPart };
 
 void ExportMesh(
@@ -45,215 +53,238 @@ void ExportMesh(
 
 void ImportMesh(
     const std::string& rConnectionName,
+    const std::string& rIdentifier,
     ModelPart& rModelPart)
 {
-    std::vector<double> node_coords;
-    std::vector<int> connectivities;
-    std::vector<int> cell_types;
-    // CoSim::DataContainers::Mesh mesh = {node_coords, connectivities, cell_types};
-    // rCoSimIO.Import(mesh, rModelPart.Name());
+    int num_nodes;
+    int num_elements;
+    CoSimIO::ImportMesh(
+        rConnectionName,
+        rIdentifier,
+        num_nodes,
+        num_elements,
+        DataBuffers::vector_doubles,
+        DataBuffers::vector_connectivities,
+        DataBuffers::vector_types);
 
     // fill ModelPart from received Mesh
     KRATOS_ERROR_IF(rModelPart.NumberOfNodes() > 0) << "ModelPart is not empty, it has nodes!" << std::endl;
     KRATOS_ERROR_IF(rModelPart.NumberOfProperties() > 0) << "ModelPart is not empty, it has properties!" << std::endl;
     KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
 
-    const std::unordered_map<int, std::string> element_name_map = {
+    const std::unordered_map<int, std::pair<int, std::string>> vtk_type_map = {
         // {1 , "Element3D1N"}, // does not yet exist
-        {2 , "Element3D2N"},
-        {3 , "Element3D3N"},
-        {4 , "Element3D4N"}
+        {3 ,  {2, "Element2D2N"} }, // line
+        {5 ,  {3, "Element2D3N"} }, // triangle
+        {9 ,  {4, "Element2D4N"} }, // quad
+        {10 , {4, "Element3D4N"} }, // tetra
+        {12 , {8, "Element3D4N"} }  // hexa
     };
-    const std::unordered_map<int, std::string> condition_name_map = {
-        {1 , "PointCondition3D1N"},
-        {2 , "LineCondition3D2N"},
-        {3 , "SurfaceCondition3D3N"},
-        {4 , "SurfaceCondition3D4N"}
-    };
+    // const std::unordered_map<int, std::string> condition_name_map = {
+    //     {1 , "PointCondition3D1N"},
+    //     {2 , "LineCondition3D2N"},
+    //     {3 , "SurfaceCondition3D3N"},
+    //     {4 , "SurfaceCondition3D4N"}
+    // };
 
     // fill ModelPart with received entities // TODO do this in OMP and add only after creation!
 
-    const int num_nodes = node_coords.size()/3;
     for (int i=0; i<num_nodes; ++i) {
-        rModelPart.CreateNewNode(i+1, node_coords[i*3], node_coords[i*3+1], node_coords[i*3+2]);
+        rModelPart.CreateNewNode(
+            i+1,
+            DataBuffers::vector_doubles[i*3],
+            DataBuffers::vector_doubles[i*3+1],
+            DataBuffers::vector_doubles[i*3+2]);
     }
 
-    // auto p_props = rModelPart.CreateNewProperties(0);
+    auto p_props = rModelPart.CreateNewProperties(0);
 
-    // int counter=0;
-    // for (int i=0; i<numElems; ++i) {
-    //     const int num_nodes_elem = (*numNodesPerElem)[i];
-    //     std::vector<ModelPart::IndexType> elem_node_ids(num_nodes_elem);
-    //     for (int j=0; j<num_nodes_elem; ++j) {
-    //         elem_node_ids[j] = (*elem)[counter++];
-    //     }
-    //     if (UseConditions) {
-    //         rModelPart.CreateNewCondition(condition_name_map.at(num_nodes_elem), i+1, elem_node_ids, p_props);
-    //     } else {
-    //         rModelPart.CreateNewElement(element_name_map.at(num_nodes_elem), i+1, elem_node_ids, p_props);
-    //     }
-    // }
+    int counter=0;
+    for (int i=0; i<num_elements; ++i) {
+        const auto& vtk_type_info = vtk_type_map.at(DataBuffers::vector_types[i]);
+        const int num_nodes_elem = vtk_type_info.first;
+        std::vector<ModelPart::IndexType> elem_node_ids(num_nodes_elem);
+        for (int j=0; j<num_nodes_elem; ++j) {
+            elem_node_ids[j] = DataBuffers::vector_connectivities[counter++];
+        }
+        // if (UseConditions) {
+        //     rModelPart.CreateNewCondition(condition_name_map.at(num_nodes_elem), i+1, elem_node_ids, p_props);
+        // } else {
+            rModelPart.CreateNewElement(vtk_type_info.second, i+1, elem_node_ids, p_props);
+        // }
+    }
 }
 
 void ExportData_Scalar(
     const std::string& rConnectionName,
+    const std::string& rIdentifier,
     const ModelPart& rModelPart,
     const Variable<double>& rVariable,
-    const DataLocation DataLoc,
-    const std::string& rIdentifier)
+    const DataLocation DataLoc)
 {
-    std::vector<double> data_vals;
-
+    // TODO resize only if too small
     if (DataLoc == DataLocation::NodeHistorical) {
         std::size_t counter = 0;
-        data_vals.resize(rModelPart.NumberOfNodes());
+        DataBuffers::vector_doubles.resize(rModelPart.NumberOfNodes());
         for (const auto& r_node : rModelPart.Nodes()) {
-            data_vals[counter++] = r_node.FastGetSolutionStepValue(rVariable);
+            DataBuffers::vector_doubles[counter++] = r_node.FastGetSolutionStepValue(rVariable);
         }
 
     } else if (DataLoc == DataLocation::NodeNonHistorical) {
         std::size_t counter = 0;
-        data_vals.resize(rModelPart.NumberOfNodes());
+        DataBuffers::vector_doubles.resize(rModelPart.NumberOfNodes());
         for (const auto& r_node : rModelPart.Nodes()) {
-            data_vals[counter++] = r_node.GetValue(rVariable);
+            DataBuffers::vector_doubles[counter++] = r_node.GetValue(rVariable);
         }
 
     } else if (DataLoc == DataLocation::Element) {
         std::size_t counter = 0;
-        data_vals.resize(rModelPart.NumberOfElements());
+        DataBuffers::vector_doubles.resize(rModelPart.NumberOfElements());
         for (const auto& r_elem : rModelPart.Elements()) {
-            data_vals[counter++] = r_elem.GetValue(rVariable);
+            DataBuffers::vector_doubles[counter++] = r_elem.GetValue(rVariable);
         }
 
     } else if (DataLoc == DataLocation::Condition) {
         std::size_t counter = 0;
-        data_vals.resize(rModelPart.NumberOfConditions());
+        DataBuffers::vector_doubles.resize(rModelPart.NumberOfConditions());
         for (const auto& r_cond : rModelPart.Conditions()) {
-            data_vals[counter++] = r_cond.GetValue(rVariable);
+            DataBuffers::vector_doubles[counter++] = r_cond.GetValue(rVariable);
         }
 
     } else if (DataLoc == DataLocation::ModelPart) {
-        data_vals.resize(1);
-        data_vals[0] = rModelPart[rVariable];
+        DataBuffers::vector_doubles.resize(1);
+        DataBuffers::vector_doubles[0] = rModelPart[rVariable];
     }
 
-    // CoSim::DataContainers::Data data_container = {data_vals};
-    // rCoSimIO.Export(data_container, rIdentifier);
+    CoSimIO::ExportData(
+        rConnectionName,
+        rIdentifier,
+        DataBuffers::vector_doubles.size(),
+        DataBuffers::vector_doubles);
 }
 
 void ImportData_Scalar(
     const std::string& rConnectionName,
+    const std::string& rIdentifier,
     ModelPart& rModelPart,
     const Variable<double>& rVariable,
-    const DataLocation DataLoc,
-    const std::string& rIdentifier)
+    const DataLocation DataLoc)
 {
-    std::vector<double> data_vals;
-    // CoSim::DataContainers::Data data_container = {data_vals};
-    // rCoSimIO.Import(data_container, rIdentifier);
+    int received_size;
+
+    CoSimIO::ImportData(
+        rConnectionName,
+        rIdentifier,
+        received_size,
+        DataBuffers::vector_doubles);
 
     // TODO implement size-checks
 
     if (DataLoc == DataLocation::NodeHistorical) {
         std::size_t counter = 0;
         for (auto& r_node : rModelPart.Nodes()) {
-            r_node.FastGetSolutionStepValue(rVariable) = data_vals[counter++];
+            r_node.FastGetSolutionStepValue(rVariable) = DataBuffers::vector_doubles[counter++];
         }
 
     } else if (DataLoc == DataLocation::NodeNonHistorical) {
         std::size_t counter = 0;
         for (auto& r_node : rModelPart.Nodes()) {
-            r_node.GetValue(rVariable) = data_vals[counter++];
+            r_node.GetValue(rVariable) = DataBuffers::vector_doubles[counter++];
         }
 
     } else if (DataLoc == DataLocation::Element) {
         std::size_t counter = 0;
         for (auto& r_elem : rModelPart.Elements()) {
-            r_elem.GetValue(rVariable) = data_vals[counter++];
+            r_elem.GetValue(rVariable) = DataBuffers::vector_doubles[counter++];
         }
 
     } else if (DataLoc == DataLocation::Condition) {
         std::size_t counter = 0;
         for (auto& r_cond : rModelPart.Conditions()) {
-            r_cond.GetValue(rVariable) = data_vals[counter++];
+            r_cond.GetValue(rVariable) = DataBuffers::vector_doubles[counter++];
         }
 
     } else if (DataLoc == DataLocation::ModelPart) {
-        rModelPart[rVariable] = data_vals[0];
+        rModelPart[rVariable] = DataBuffers::vector_doubles[0];
     }
 }
 
 void ExportData_Vector(
     const std::string& rConnectionName,
+    const std::string& rIdentifier,
     const ModelPart& rModelPart,
     const Variable< array_1d<double, 3> >& rVariable,
-    const DataLocation DataLoc,
-    const std::string& rIdentifier)
+    const DataLocation DataLoc)
 {
-    std::vector<double> data_vals;
-
     if (DataLoc == DataLocation::NodeHistorical) {
         std::size_t counter = 0;
-        data_vals.resize(rModelPart.NumberOfNodes()*3);
+        DataBuffers::vector_doubles.resize(rModelPart.NumberOfNodes()*3);
         for (const auto& r_node : rModelPart.Nodes()) {
             const array_1d<double, 3>& r_val = r_node.FastGetSolutionStepValue(rVariable);
-            data_vals[counter++] = r_val[0];
-            data_vals[counter++] = r_val[1];
-            data_vals[counter++] = r_val[2];
+            DataBuffers::vector_doubles[counter++] = r_val[0];
+            DataBuffers::vector_doubles[counter++] = r_val[1];
+            DataBuffers::vector_doubles[counter++] = r_val[2];
         }
 
     } else if (DataLoc == DataLocation::NodeNonHistorical) {
         std::size_t counter = 0;
-        data_vals.resize(rModelPart.NumberOfNodes()*3);
+        DataBuffers::vector_doubles.resize(rModelPart.NumberOfNodes()*3);
         for (const auto& r_node : rModelPart.Nodes()) {
             const array_1d<double, 3>& r_val = r_node.GetValue(rVariable);
-            data_vals[counter++] = r_val[0];
-            data_vals[counter++] = r_val[1];
-            data_vals[counter++] = r_val[2];
+            DataBuffers::vector_doubles[counter++] = r_val[0];
+            DataBuffers::vector_doubles[counter++] = r_val[1];
+            DataBuffers::vector_doubles[counter++] = r_val[2];
         }
 
     } else if (DataLoc == DataLocation::Element) {
         std::size_t counter = 0;
-        data_vals.resize(rModelPart.NumberOfElements()*3);
+        DataBuffers::vector_doubles.resize(rModelPart.NumberOfElements()*3);
         for (const auto& r_elem : rModelPart.Elements()) {
             const array_1d<double, 3>& r_val = r_elem.GetValue(rVariable);
-            data_vals[counter++] = r_val[0];
-            data_vals[counter++] = r_val[1];
-            data_vals[counter++] = r_val[2];
+            DataBuffers::vector_doubles[counter++] = r_val[0];
+            DataBuffers::vector_doubles[counter++] = r_val[1];
+            DataBuffers::vector_doubles[counter++] = r_val[2];
         }
 
     } else if (DataLoc == DataLocation::Condition) {
         std::size_t counter = 0;
-        data_vals.resize(rModelPart.NumberOfConditions()*3);
+        DataBuffers::vector_doubles.resize(rModelPart.NumberOfConditions()*3);
         for (const auto& r_cond : rModelPart.Conditions()) {
             const array_1d<double, 3>& r_val = r_cond.GetValue(rVariable);
-            data_vals[counter++] = r_val[0];
-            data_vals[counter++] = r_val[1];
-            data_vals[counter++] = r_val[2];
+            DataBuffers::vector_doubles[counter++] = r_val[0];
+            DataBuffers::vector_doubles[counter++] = r_val[1];
+            DataBuffers::vector_doubles[counter++] = r_val[2];
         }
 
     } else if (DataLoc == DataLocation::ModelPart) {
-        data_vals.resize(3);
+        DataBuffers::vector_doubles.resize(3);
         const auto& r_val = rModelPart[rVariable];
-        data_vals[0] = r_val[0];
-        data_vals[1] = r_val[1];
-        data_vals[2] = r_val[2];
+        DataBuffers::vector_doubles[0] = r_val[0];
+        DataBuffers::vector_doubles[1] = r_val[1];
+        DataBuffers::vector_doubles[2] = r_val[2];
     }
 
-    // CoSim::DataContainers::Data data_container = {data_vals};
-    // rCoSimIO.Export(data_container, rIdentifier);
+    CoSimIO::ExportData(
+        rConnectionName,
+        rIdentifier,
+        DataBuffers::vector_doubles.size(),
+        DataBuffers::vector_doubles);
 }
 
 void ImportData_Vector(
     const std::string& rConnectionName,
+    const std::string& rIdentifier,
     ModelPart& rModelPart,
     const Variable< array_1d<double, 3> >& rVariable,
-    const DataLocation DataLoc,
-    const std::string& rIdentifier)
+    const DataLocation DataLoc)
 {
-    std::vector<double> data_vals;
-    // CoSim::DataContainers::Data data_container = {data_vals};
-    // rCoSimIO.Import(data_container, rIdentifier);
+    int received_size;
+
+    CoSimIO::ImportData(
+        rConnectionName,
+        rIdentifier,
+        received_size,
+        DataBuffers::vector_doubles);
 
     // TODO implement size-checks
 
@@ -261,46 +292,45 @@ void ImportData_Vector(
         std::size_t counter = 0;
         for (auto& r_node : rModelPart.Nodes()) {
             array_1d<double, 3>& r_val = r_node.FastGetSolutionStepValue(rVariable);
-            r_val[0] = data_vals[counter++];
-            r_val[1] = data_vals[counter++];
-            r_val[2] = data_vals[counter++];
+            r_val[0] = DataBuffers::vector_doubles[counter++];
+            r_val[1] = DataBuffers::vector_doubles[counter++];
+            r_val[2] = DataBuffers::vector_doubles[counter++];
         }
 
     } else if (DataLoc == DataLocation::NodeNonHistorical) {
         std::size_t counter = 0;
         for (auto& r_node : rModelPart.Nodes()) {
             array_1d<double, 3>& r_val = r_node.GetValue(rVariable);
-            r_val[0] = data_vals[counter++];
-            r_val[1] = data_vals[counter++];
-            r_val[2] = data_vals[counter++];
+            r_val[0] = DataBuffers::vector_doubles[counter++];
+            r_val[1] = DataBuffers::vector_doubles[counter++];
+            r_val[2] = DataBuffers::vector_doubles[counter++];
         }
 
     } else if (DataLoc == DataLocation::Element) {
         std::size_t counter = 0;
         for (auto& r_elem : rModelPart.Elements()) {
             array_1d<double, 3>& r_val = r_elem.GetValue(rVariable);
-            r_val[0] = data_vals[counter++];
-            r_val[1] = data_vals[counter++];
-            r_val[2] = data_vals[counter++];
+            r_val[0] = DataBuffers::vector_doubles[counter++];
+            r_val[1] = DataBuffers::vector_doubles[counter++];
+            r_val[2] = DataBuffers::vector_doubles[counter++];
         }
 
     } else if (DataLoc == DataLocation::Condition) {
         std::size_t counter = 0;
         for (auto& r_cond : rModelPart.Conditions()) {
             array_1d<double, 3>& r_val = r_cond.GetValue(rVariable);
-            r_val[0] = data_vals[counter++];
-            r_val[1] = data_vals[counter++];
-            r_val[2] = data_vals[counter++];
+            r_val[0] = DataBuffers::vector_doubles[counter++];
+            r_val[1] = DataBuffers::vector_doubles[counter++];
+            r_val[2] = DataBuffers::vector_doubles[counter++];
         }
 
     } else if (DataLoc == DataLocation::ModelPart) {
         auto& r_val = rModelPart[rVariable];
-        r_val[0] = data_vals[0];
-        r_val[1] = data_vals[1];
-        r_val[2] = data_vals[2];
+        r_val[0] = DataBuffers::vector_doubles[0];
+        r_val[1] = DataBuffers::vector_doubles[1];
+        r_val[2] = DataBuffers::vector_doubles[2];
     }
 }
-
 
 } // helpers namespace
 
