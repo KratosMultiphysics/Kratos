@@ -417,10 +417,8 @@ void  AddCoSimIOToPython(pybind11::module& m)
     auto mCoSimIO = m.def_submodule("CoSimIO");
 
     void (*ConnectWithSettings)(const std::string&, CoSimIO::SettingsType) = &CoSimIO::Connect;
-    void (*ConnectWithFileName)(const std::string&, const std::string&)    = &CoSimIO::Connect;
 
     mCoSimIO.def("Connect", ConnectWithSettings);
-    mCoSimIO.def("Connect", ConnectWithFileName);
 
     mCoSimIO.def("Disonnect", CoSimIO::Disconnect);
 
