@@ -111,6 +111,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.DISTANCE_AUX)                   # Auxiliary distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Fluid solver variables added correctly.")
@@ -158,13 +159,17 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self.level_set_convection_process = self._set_level_set_convection_process()
 
+        self.surface_smoothing_process = self._set_surface_smoothing_process()
+        #(self.surface_smoothing_process).Execute();
+
         self.parallel_distance_process = self._set_parallel_distance_process()
+        #(self.parallel_distance_process).Execute()
 
         self.variational_distance_process = self._set_variational_distance_process()
         #(self.variational_distance_process).Execute()
 
         self.distance_gradient_process = self._set_distance_gradient_process()
-        (self.distance_gradient_process).Execute()
+        #(self.distance_gradient_process).Execute()
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],   # Domain size (2,3)
                                                                                         self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1) # DOFs (3,4)
@@ -206,18 +211,27 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             else:
                 (self.level_set_convection_process).Execute()
 
+            # Smoothing the surface to filter oscillatory surface
+            (self.surface_smoothing_process).Execute()
+
+            #for node in self.main_model_part.Nodes:
+            #    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+            #    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+
             # Recompute the distance field according to the new level-set position
             TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-            #if (TimeStep % 5 == 0):
+
+            #if (TimeStep % 10 == 0):
             #    (self.variational_distance_process).Execute()
 
-            if (TimeStep % 1 == 0):
-                (self.parallel_distance_process).CalculateDistances(
-                    self.main_model_part, 
-                    KratosMultiphysics.DISTANCE, 
-                    KratosMultiphysics.NODAL_AREA, 
-                    10, 
-                    0.0015)
+            #if (TimeStep % 1 == 0):
+            #    (self.parallel_distance_process).CalculateDistances(
+            #        self.main_model_part, 
+            #        KratosMultiphysics.DISTANCE, 
+            #        KratosMultiphysics.NODAL_AREA, 
+            #        10, 
+            #        0.0015),
+            #        (self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
             # Compute the DISTANCE_GRADIENT on nodes
             (self.distance_gradient_process).Execute()
@@ -376,8 +390,18 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #Calculate DISTANCE_GRADIENT at nodes using ComputeNodalGradientProcess
         distance_gradient_process = KratosMultiphysics.ComputeNodalGradientProcess(
                 self.main_model_part, 
-                KratosMultiphysics.DISTANCE, 
+                KratosCFD.DISTANCE_AUX, #KratosMultiphysics.DISTANCE,
                 KratosMultiphysics.DISTANCE_GRADIENT, 
                 KratosMultiphysics.NODAL_AREA)
 
         return distance_gradient_process
+
+    def _set_surface_smoothing_process(self):
+        #Smoothing the surface (zero DISTANCE) by solving a diffusion problem
+        surface_smoothing_process = KratosCFD.SurfaceSmoothingProcess(
+                self.main_model_part, 
+                self.linear_solver)
+
+        return surface_smoothing_process
+
+    

@@ -2121,7 +2121,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateCurvature(
     
     for (unsigned int gpt = 0; gpt < n_gpt; gpt++){ 
 
-        array_1d<double,n_nodes> DN_Dx, DN_Dy, DN_Dz;
+        array_1d<double,n_nodes> DN_Dx, DN_Dy, DN_Dz; 
         array_1d<double,n_nodes> GradPhiX, GradPhiY, GradPhiZ;
 
         for (unsigned int i=0; i < n_nodes; ++i){
