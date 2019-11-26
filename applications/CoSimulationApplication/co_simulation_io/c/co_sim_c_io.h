@@ -33,7 +33,7 @@ void CoSimIO_ExportData(
     const char* pConnectionName,
     const char* pIdentifier,
     int Size,
-    double* pData);
+    double** pData);
 
 void CoSimIO_ImportMesh(
     const char* pConnectionName,
@@ -49,9 +49,9 @@ void CoSimIO_ExportMesh(
     const char* pIdentifier,
     int NumberOfNodes,
     int NumberOfElements,
-    double* pNodalCoordinates,
-    int* pElementConnectivities,
-    int* pElementTypes);
+    double** pNodalCoordinates,
+    int** pElementConnectivities,
+    int** pElementTypes);
 
 void CoSimIO_RegisterAdvanceInTime(
     const char* pConnectionName,

@@ -42,10 +42,10 @@ void CoSimIO_ExportData(
     const char* pConnectionName,
     const char* pIdentifier,
     int Size,
-    double* pData)
+    double** pData)
 {
     using namespace CoSimIO::Internals;
-    std::unique_ptr<DataContainer<double>> p_container(new DataContainerRawMemory<double>(&pData, Size));
+    std::unique_ptr<DataContainer<double>> p_container(new DataContainerRawMemory<double>(pData, Size));
     CoSimIO::ExportData(pConnectionName, pIdentifier, *p_container);
 }
 
@@ -72,14 +72,14 @@ void CoSimIO_ExportMesh(
     const char* pIdentifier,
     int NumberOfNodes,
     int NumberOfElements,
-    double* pNodalCoordinates,
-    int* pElementConnectivities,
-    int* pElementTypes)
+    double** pNodalCoordinates,
+    int** pElementConnectivities,
+    int** pElementTypes)
 {
     using namespace CoSimIO::Internals;
-    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerRawMemory<double>(&pNodalCoordinates, NumberOfNodes));
-    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerRawMemory<int>(&pElementConnectivities, NumberOfElements)); // using "NumberOfElements" here is wrong! => has to be computed! Or sth like this ... (maybe even has to be passed...)
-    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerRawMemory<int>(&pElementTypes, NumberOfElements));
+    std::unique_ptr<DataContainer<double>> p_container_coords(new DataContainerRawMemory<double>(pNodalCoordinates, NumberOfNodes));
+    std::unique_ptr<DataContainer<int>> p_container_conn(new DataContainerRawMemory<int>(pElementConnectivities, NumberOfElements)); // using "NumberOfElements" here is wrong! => has to be computed! Or sth like this ... (maybe even has to be passed...)
+    std::unique_ptr<DataContainer<int>> p_container_types(new DataContainerRawMemory<int>(pElementTypes, NumberOfElements));
     CoSimIO::ExportMesh(pConnectionName, pIdentifier, *p_container_coords, *p_container_conn, *p_container_types);
 }
 
@@ -135,6 +135,12 @@ void _AllocateMemoryDouble(const int Size, double** ppData)
     if (!(*ppData)) {
         printf("ERROR, memory allocation (double) failed!");
         exit(0);
+    }
+
+    for(int i = 0; i < Size; i++) {
+        const double val = i*1.225;
+        printf("\tC i = %i; value = %f\n",i, val);
+        ppData[0][i] = val;
     }
 }
 
