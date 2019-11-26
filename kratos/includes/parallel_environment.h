@@ -32,16 +32,16 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(KRATOS_CORE) MPIManager
+class KRATOS_API(KRATOS_CORE) EnvironmentManager
 {
   public:
-    typedef std::unique_ptr<MPIManager> Pointer;
+    typedef std::unique_ptr<EnvironmentManager> Pointer;
 
-    MPIManager() = delete;
+    EnvironmentManager() = delete;
 
-    MPIManager(MPIManager& rOther) = delete;
+    EnvironmentManager(EnvironmentManager& rOther) = delete;
 
-    virtual ~MPIManager() = default;
+    virtual ~EnvironmentManager() = default;
 
     virtual bool IsInitialized() const = 0;
 
@@ -86,7 +86,7 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     ///@name Operations
     ///@{
 
-    static void SetUpMPIEnvironment(MPIManager::Pointer& pMPIManager);
+    static void SetUpMPIEnvironment(EnvironmentManager::Pointer& pEnvironmentManager);
 
     /// Add a new DataCommunicator instance to the ParallelEnvironment.
     /** @param rName The name to be used to identify the DataCommunicator within ParallelEnvironment.
@@ -151,7 +151,7 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
 
     static void Create();
 
-    void SetUpMPIEnvironmentDetail(MPIManager::Pointer& pMPIManager);
+    void SetUpMPIEnvironmentDetail(EnvironmentManager::Pointer& pEnvironmentManager);
 
     void RegisterDataCommunicatorDetail(
         const std::string& Name,
@@ -208,7 +208,7 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     int mDefaultRank;
     int mDefaultSize;
 
-    MPIManager::Pointer mpMPIManager;
+    EnvironmentManager::Pointer mpEnvironmentManager;
 
     static ParallelEnvironment* mpInstance;
     static bool mDestroyed;

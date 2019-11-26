@@ -52,10 +52,10 @@ int ParallelEnvironment::GetDefaultSize()
     return env.mDefaultSize;
 }
 
-void ParallelEnvironment::SetUpMPIEnvironment(MPIManager::Pointer& pMPIManager)
+void ParallelEnvironment::SetUpMPIEnvironment(EnvironmentManager::Pointer& pEnvironmentManager)
 {
     ParallelEnvironment& env = GetInstance();
-    env.SetUpMPIEnvironmentDetail(pMPIManager);
+    env.SetUpMPIEnvironmentDetail(pEnvironmentManager);
 }
 
 void ParallelEnvironment::RegisterDataCommunicator(
@@ -128,9 +128,9 @@ ParallelEnvironment::~ParallelEnvironment()
     mDataCommunicators.clear();
 
     // Then finalize MPI if necessary
-    if (mpMPIManager != nullptr)
+    if (mpEnvironmentManager != nullptr)
     {
-        mpMPIManager.release();
+        mpEnvironmentManager.release();
     }    
 
     mDestroyed = true;
@@ -172,12 +172,12 @@ void ParallelEnvironment::Create()
     mpInstance = &parallel_environment;
 }
 
-void ParallelEnvironment::SetUpMPIEnvironmentDetail(MPIManager::Pointer& pMPIManager)
+void ParallelEnvironment::SetUpMPIEnvironmentDetail(EnvironmentManager::Pointer& pEnvironmentManager)
 {
     KRATOS_ERROR_IF(MPIIsInitialized() || MPIIsFinalized())
     << "Trying to configure run for MPI twice. This should not be happening!" << std::endl;
 
-    mpMPIManager = std::move(pMPIManager);
+    mpEnvironmentManager = std::move(pEnvironmentManager);
 }
 
 void ParallelEnvironment::RegisterDataCommunicatorDetail(
@@ -254,12 +254,12 @@ bool ParallelEnvironment::HasDataCommunicatorDetail(const std::string& rName) co
 
 bool ParallelEnvironment::MPIIsInitializedDetail() const
 {
-    return (mpMPIManager == nullptr) ? false : mpMPIManager->IsInitialized();
+    return (mpEnvironmentManager == nullptr) ? false : mpEnvironmentManager->IsInitialized();
 }
 
 bool ParallelEnvironment::MPIIsFinalizedDetail() const
 {
-    return (mpMPIManager == nullptr) ? false : mpMPIManager->IsFinalized();
+    return (mpEnvironmentManager == nullptr) ? false : mpEnvironmentManager->IsFinalized();
 }
 
 std::string ParallelEnvironment::InfoDetail() const
