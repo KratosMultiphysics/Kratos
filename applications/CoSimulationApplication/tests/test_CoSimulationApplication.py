@@ -13,6 +13,7 @@ except:
 
 from co_simulation_test_factory import TestSmallCoSimulationCases
 from co_simulation_test_factory import TestCoSimulationCases
+from test_mok_fsi import TestMokFSI
 from test_function_callback_utility import TestGenericCallFunction
 from test_ping_pong_coupling import TestPingPong
 if numpy_available:
@@ -54,6 +55,7 @@ def AssembleTestSuites():
 
     ################################################################################
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMokFSI]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
 
     nightSuite.addTests(smallSuite)
