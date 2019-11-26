@@ -24,6 +24,7 @@ void WssStatisticsUtilities::CalculateWSS(ModelPart &rModelPart)
     // Distribute the REACTION as a surface load
     const double tolerance = 1.0e-5;
     const unsigned int max_it = 100;
+    
     VariableRedistributionUtility::DistributePointValues(rModelPart, REACTION, FACE_LOAD, tolerance, max_it);
 
     // Allocate auxiliary arrays
