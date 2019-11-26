@@ -24,6 +24,7 @@ if numpy_available:
     from test_sdof_solver import TestSdofSolver
 if not using_pykratos:
     from test_cosim_EMPIRE_API import TestCoSim_EMPIRE_API
+    from test_co_sim_io_kratos_python_exposure import TestCoSimIOKratosPythonExposure
     import run_cpp_unit_tests
 
 
@@ -50,6 +51,7 @@ def AssembleTestSuites():
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSdofSolver]))
     if not using_pykratos:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOKratosPythonExposure]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPingPong]))
 
 
