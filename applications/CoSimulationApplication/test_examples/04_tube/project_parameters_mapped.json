@@ -3,7 +3,7 @@
     {
         "echo_level" : 1,
         "start_step" : 1,
-        "stop_step" : 101,
+        "stop_step" : 11,
         "data_structure" : "pyKratos"
     },
     "coupled_solver" :
@@ -94,7 +94,11 @@
 						"type" : "mappers.interface",
 						"settings" :
 						{
-	                        "type" : "mappers.nearest"
+	                        "type": "mappers.linear_1d",
+                            "settings":
+                            {
+                                "direction" : "Z"
+                            }
 						}
                     },
                     "mapper_interface_output":
@@ -102,7 +106,11 @@
 						"type" : "mappers.interface",
 						"settings" :
 						{
-	                        "type" : "mappers.nearest"
+	                        "type": "mappers.linear_1d",
+                            "settings":
+                            {
+                                "direction" : "Z"
+                            }
 						}
                     }
                 }
