@@ -9,7 +9,7 @@ from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import Co
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
 using_pykratos = UsingPyKratos()
 
-import os
+import os, subprocess
 
 class CoSimulationTestCase(KratosUnittest.TestCase):
     '''This class is the basis for the testing the framework
@@ -34,6 +34,12 @@ class CoSimulationTestCase(KratosUnittest.TestCase):
 
     def _runTest(self):
         CoSimulationAnalysis(self.cosim_parameters).Run()
+        kratos_utils.DeleteTimeFiles(self.problem_dir_name)
+
+    def _runTestWithExternal(self, subprocess_args_list):
+        p = subprocess.Popen(subprocess_args_list)
+        CoSimulationAnalysis(self.cosim_parameters).Run()
+        p.communicate()
         kratos_utils.DeleteTimeFiles(self.problem_dir_name)
 
     # called only once for this class, opposed of tearDown()
