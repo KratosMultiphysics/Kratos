@@ -27,7 +27,7 @@ public:
 
     ~MPIManager() override;
 
-    static EnvironmentManager::Pointer Create();
+    static MPIManager::Pointer Create();
 
     bool IsInitialized() const override;
 

@@ -24,7 +24,7 @@ MPIManager::~MPIManager()
     }
 }
 
-EnvironmentManager::Pointer MPIManager::Create()
+MPIManager::Pointer MPIManager::Create()
 {
     return MPIManager::Pointer(new MPIManager());
 }
