@@ -52,10 +52,10 @@ int ParallelEnvironment::GetDefaultSize()
     return env.mDefaultSize;
 }
 
-void ParallelEnvironment::SetUpMPIEnvironment(EnvironmentManager::Pointer& pEnvironmentManager)
+void ParallelEnvironment::SetUpMPIEnvironment(EnvironmentManager::Pointer pEnvironmentManager)
 {
     ParallelEnvironment& env = GetInstance();
-    env.SetUpMPIEnvironmentDetail(pEnvironmentManager);
+    env.SetUpMPIEnvironmentDetail(std::move(pEnvironmentManager));
 }
 
 void ParallelEnvironment::RegisterDataCommunicator(
@@ -94,7 +94,7 @@ bool ParallelEnvironment::MPIIsInitialized()
 bool ParallelEnvironment::MPIIsFinalized()
 {
     const ParallelEnvironment& env = GetInstance();
-    return env.MPIIsFinalized();
+    return env.MPIIsFinalizedDetail();
 }
 
 std::string ParallelEnvironment::Info()
@@ -172,7 +172,7 @@ void ParallelEnvironment::Create()
     mpInstance = &parallel_environment;
 }
 
-void ParallelEnvironment::SetUpMPIEnvironmentDetail(EnvironmentManager::Pointer& pEnvironmentManager)
+void ParallelEnvironment::SetUpMPIEnvironmentDetail(EnvironmentManager::Pointer pEnvironmentManager)
 {
     KRATOS_ERROR_IF(MPIIsInitialized() || MPIIsFinalized())
     << "Trying to configure run for MPI twice. This should not be happening!" << std::endl;

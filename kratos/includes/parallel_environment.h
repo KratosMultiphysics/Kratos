@@ -37,8 +37,6 @@ class KRATOS_API(KRATOS_CORE) EnvironmentManager
   public:
     typedef std::unique_ptr<EnvironmentManager> Pointer;
 
-    EnvironmentManager() = delete;
-
     EnvironmentManager(EnvironmentManager& rOther) = delete;
 
     virtual ~EnvironmentManager() = default;
@@ -46,6 +44,9 @@ class KRATOS_API(KRATOS_CORE) EnvironmentManager
     virtual bool IsInitialized() const = 0;
 
     virtual bool IsFinalized() const = 0;
+
+  protected:
+    EnvironmentManager() = default;
 };
 
 /// Holder for general data related to MPI (or suitable serial equivalents for non-MPI runs).
@@ -86,7 +87,7 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     ///@name Operations
     ///@{
 
-    static void SetUpMPIEnvironment(EnvironmentManager::Pointer& pEnvironmentManager);
+    static void SetUpMPIEnvironment(EnvironmentManager::Pointer pEnvironmentManager);
 
     /// Add a new DataCommunicator instance to the ParallelEnvironment.
     /** @param rName The name to be used to identify the DataCommunicator within ParallelEnvironment.
@@ -151,7 +152,7 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
 
     static void Create();
 
-    void SetUpMPIEnvironmentDetail(EnvironmentManager::Pointer& pEnvironmentManager);
+    void SetUpMPIEnvironmentDetail(EnvironmentManager::Pointer pEnvironmentManager);
 
     void RegisterDataCommunicatorDetail(
         const std::string& Name,
