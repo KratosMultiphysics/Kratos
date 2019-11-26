@@ -11,6 +11,8 @@
 
 // System includes
 #include <unordered_map>
+#include <map>
+#include <limits>
 
 // External includes
 
@@ -32,6 +34,7 @@ namespace Kratos {
 namespace Python {
 
 // BIG TODO: make OMP parallel most loops
+// TOD use elements or conditions?? => how to switch?
 namespace CoSimIO_Wrappers { // helpers namespace
 
 // creating static buffers such that memory does not constantly have to be reallocated during the data-exchange
@@ -53,9 +56,64 @@ enum class DataLocation { NodeHistorical, NodeNonHistorical, Element, Condition,
 
 void ExportMesh(
     const std::string& rConnectionName,
+    const std::string& rIdentifier,
     const ModelPart& rModelPart)
 {
-    KRATOS_ERROR << "This function is not yet implemented!" << std::endl;
+    // extract information from ModelPart
+    const int num_nodes = rModelPart.NumberOfNodes();
+    const int num_elems = /*(UseConditions) ? (rModelPart.NumberOfConditions()) :*/ (rModelPart.NumberOfElements());
+
+    DataBuffers::vector_doubles.resize(num_nodes*3);
+    DataBuffers::vector_types.resize(num_elems);
+    DataBuffers::vector_connectivities.clear();
+
+    std::size_t node_counter = 0;
+    for (const auto& r_node : rModelPart.Nodes()) {
+        const auto& r_coords = r_node.GetInitialPosition(); // TODO or current coords?
+        DataBuffers::vector_doubles[node_counter*3]   = r_coords[0];
+        DataBuffers::vector_doubles[node_counter*3+1] = r_coords[1];
+        DataBuffers::vector_doubles[node_counter*3+2] = r_coords[2];
+    }
+
+    // NOTE: See https://vtk.org/wp-content/uploads/2015/04/file-formats.pdf
+    const std::map<GeometryData::KratosGeometryType, int> geo_type_vtk_cell_type_map = {
+        { GeometryData::KratosGeometryType::Kratos_Point2D,          1 },
+        { GeometryData::KratosGeometryType::Kratos_Point3D,          1 },
+        { GeometryData::KratosGeometryType::Kratos_Line2D2,          3 },
+        { GeometryData::KratosGeometryType::Kratos_Line3D2,          3 },
+        { GeometryData::KratosGeometryType::Kratos_Triangle2D3,      5 },
+        { GeometryData::KratosGeometryType::Kratos_Triangle3D3,      5 },
+        { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, 9 },
+        { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, 9 },
+        { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4,    10 },
+        { GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,     12 }
+    };
+
+    std::size_t elem_counter = 0;
+    int connectivities_offset = std::numeric_limits<int>::max(); //in paraview the connectivities start from 0, hence we have to check beforehand what is the connectivities offset
+    for (const auto& r_elem : rModelPart.Elements()) {
+        const auto& r_geom = r_elem.GetGeometry();
+        DataBuffers::vector_types[elem_counter++] = geo_type_vtk_cell_type_map.at(r_geom.GetGeometryType()); // TODO add check
+
+        for (const auto& r_node : r_geom) {
+            const int current_id = r_node.Id();
+            DataBuffers::vector_connectivities.push_back(current_id);
+            connectivities_offset = std::min(connectivities_offset, current_id);
+        }
+    }
+
+    if (connectivities_offset != 0) {
+        for(auto& r_connectivity : DataBuffers::vector_connectivities) {
+            r_connectivity -= connectivities_offset;
+        }
+    }
+
+    CoSimIO::ExportMesh(
+        rConnectionName,
+        rIdentifier,
+        DataBuffers::vector_doubles,
+        DataBuffers::vector_connectivities,
+        DataBuffers::vector_types);
 }
 
 void ImportMesh(
@@ -81,7 +139,7 @@ void ImportMesh(
         {5 ,  {3, "Element2D3N"} }, // triangle
         {9 ,  {4, "Element2D4N"} }, // quad
         {10 , {4, "Element3D4N"} }, // tetra
-        {12 , {8, "Element3D4N"} }  // hexa
+        {12 , {8, "Element3D8N"} }  // hexa
     };
     // const std::unordered_map<int, std::string> condition_name_map = {
     //     {1 , "PointCondition3D1N"},
@@ -104,7 +162,7 @@ void ImportMesh(
 
     int counter=0;
     for (std::size_t i=0; i<DataBuffers::vector_types.size(); ++i) {
-        const auto& vtk_type_info = vtk_type_map.at(DataBuffers::vector_types[i]);
+        const auto& vtk_type_info = vtk_type_map.at(DataBuffers::vector_types[i]); // TODO add check
         const int num_nodes_elem = vtk_type_info.first;
         std::vector<ModelPart::IndexType> elem_node_ids(num_nodes_elem);
         for (int j=0; j<num_nodes_elem; ++j) {
