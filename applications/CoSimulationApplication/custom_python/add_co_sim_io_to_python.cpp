@@ -70,9 +70,9 @@ void ExportMesh(
     std::size_t node_counter = 0;
     for (const auto& r_node : rModelPart.Nodes()) {
         const auto& r_coords = r_node.GetInitialPosition(); // TODO or current coords?
-        DataBuffers::vector_doubles[node_counter*3]   = r_coords[0];
-        DataBuffers::vector_doubles[node_counter*3+1] = r_coords[1];
-        DataBuffers::vector_doubles[node_counter*3+2] = r_coords[2];
+        DataBuffers::vector_doubles[node_counter++] = r_coords[0];
+        DataBuffers::vector_doubles[node_counter++] = r_coords[1];
+        DataBuffers::vector_doubles[node_counter++] = r_coords[2];
     }
 
     // NOTE: See https://vtk.org/wp-content/uploads/2015/04/file-formats.pdf
@@ -408,6 +408,13 @@ void ExportData_Values(
         rValues);
 }
 
+bool IsConverged(const std::string& rConnectionName)
+{
+    int convergence_signal;
+    CoSimIO::IsConverged(rConnectionName, convergence_signal);
+    return convergence_signal;
+}
+
 } // helpers namespace
 
 void  AddCoSimIOToPython(pybind11::module& m)
@@ -420,7 +427,9 @@ void  AddCoSimIOToPython(pybind11::module& m)
 
     mCoSimIO.def("Connect", ConnectWithSettings);
 
-    mCoSimIO.def("Disonnect", CoSimIO::Disconnect);
+    mCoSimIO.def("Disconnect", CoSimIO::Disconnect);
+
+    mCoSimIO.def("IsConverged", CoSimIO_Wrappers::IsConverged);
 
     mCoSimIO.def("SendControlSignal", CoSimIO::SendControlSignal);
 
