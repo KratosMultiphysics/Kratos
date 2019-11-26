@@ -172,7 +172,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    int mLoadingIndex = 0;
+    unsigned int mLoadingIndex = 0;
     double mStrain0 = 0.0;
     double mStress0 = 0.0;
     double mStrainR = 0.0;
@@ -181,7 +181,7 @@ private:
     double mStrainMax = 0.0;
     double mStrainMin = 0.0;
 
-    int mConvergedLoadingIndex = 0;
+    unsigned int mConvergedLoadingIndex = 0;
     double mConvergedStrain0 = 0.0;
     double mConvergedStress0 = 0.0;
     double mConvergedStrainR = 0.0;

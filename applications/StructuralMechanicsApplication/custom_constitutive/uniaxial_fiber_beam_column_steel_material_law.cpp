@@ -44,7 +44,14 @@ void UniaxialFiberBeamColumnSteelMaterialLaw::CalculateMaterialResponse()
 {
     KRATOS_TRY
 
-    double deps = mStrain - mConvergedStrain;
+    double fy = GetProperties()[STEEL_YIELD_STRENGTH];
+    double E  = GetProperties()[STEEL_YOUNGS_MODULUS];
+    double b  = GetProperties()[STEEL_HARDENING_RATIO];
+    double R0 = GetProperties()[STEEL_TRANSITION_VARIABLE];
+    double a1 = GetProperties()[STEEL_A1_COEFFICIENT];
+    double a2 = GetProperties()[STEEL_A2_COEFFICIENT];
+    double E_inf = b * E;
+    double epsy  = fy / E;
 
     mStrainMax     = mConvergedStrainMax;
     mStrainMin     = mConvergedStrainMin;
@@ -55,29 +62,19 @@ void UniaxialFiberBeamColumnSteelMaterialLaw::CalculateMaterialResponse()
     mStressR       = mConvergedStressR;
     mLoadingIndex  = mConvergedLoadingIndex;
 
-    double fy = GetProperties()[STEEL_YIELD_STRENGTH];
-    double E  = GetProperties()[STEEL_YOUNGS_MODULUS];
-    double b  = GetProperties()[STEEL_HARDENING_RATIO];
-    double R0 = GetProperties()[STEEL_TRANSITION_VARIABLE];
-    double a1 = GetProperties()[STEEL_A1_COEFFICIENT];
-    double a2 = GetProperties()[STEEL_A2_COEFFICIENT];
-    double E_inf = b * E;
-    double epsy  = fy / E;
+    double deps = mStrain - mConvergedStrain;
 
-    if ((mLoadingIndex == 0) || (mLoadingIndex == 3))
+    if (mLoadingIndex == 0 || mLoadingIndex == 3)
     {
         if (std::abs(deps) < std::numeric_limits<double>::epsilon())
         {
-            mTangentModulus = E;
-            mStress = 0.0;
-            mLoadingIndex = 3;
             return;
         }
         else
         {
             mStrainMax = epsy;
             mStrainMin = -epsy;
-            if (deps < 0) {
+            if (deps < 0.0) {
                 mLoadingIndex = 2;
                 mStrain0 = mStrainMin;
                 mStress0 = -fy;
@@ -92,7 +89,7 @@ void UniaxialFiberBeamColumnSteelMaterialLaw::CalculateMaterialResponse()
         }
     }
 
-    if ((mLoadingIndex == 2) && deps > 0)
+    if (mLoadingIndex == 2 && deps > 0.0)
     {
         // load reversal
         mLoadingIndex = 1;
@@ -105,7 +102,7 @@ void UniaxialFiberBeamColumnSteelMaterialLaw::CalculateMaterialResponse()
         mStress0 = fy + E_inf*(mStrain0-epsy);
         mStrainPlastic = mStrainMax;
     }
-    else if ((mLoadingIndex == 1) && (deps < 0))
+    else if (mLoadingIndex == 1 && deps < 0.0)
     {
         // load reversal
         mLoadingIndex = 2;
@@ -116,11 +113,11 @@ void UniaxialFiberBeamColumnSteelMaterialLaw::CalculateMaterialResponse()
         }
         mStrain0 = (-fy + E_inf*epsy - mStressR + E*mStrainR) / (E - E_inf);
         mStress0 = -fy + E_inf*(mStrain0+epsy);
-        mStrainPlastic = mStrainMax;
+        mStrainPlastic = mStrainMin;
     }
 
-    double plastic_excursion = std::abs( (mStrainPlastic - mStrain0) / epsy );
-    double R = R0 - a1 * ( plastic_excursion / (a2 + plastic_excursion) );
+    double xi = std::abs( (mStrainPlastic - mStrain0) / epsy );
+    double R = R0 - a1*xi / (a2 + xi);
     double eps_star = (mStrain - mStrainR) / (mStrain0 - mStrainR);
     double dummy1 = 1.0 + std::pow( std::abs(eps_star), R );
     double dummy2 = std::pow( dummy1, 1.0/R );
@@ -136,6 +133,7 @@ void UniaxialFiberBeamColumnSteelMaterialLaw::FinalizeMaterialResponse()
 {
     KRATOS_TRY
     mConvergedLoadingIndex  = mLoadingIndex;
+    // mTangentModulus
     mConvergedStrain0       = mStrain0;
     mConvergedStress0       = mStress0;
     mConvergedStrainR       = mStrainR;
@@ -174,11 +172,45 @@ void UniaxialFiberBeamColumnSteelMaterialLaw::PrintData(std::ostream& rOStream) 
 
 void UniaxialFiberBeamColumnSteelMaterialLaw::save(Serializer& rSerializer) const
 {
-    // rSerializer.save("mId", mId);
+    rSerializer.save("mLoadingIndex", mLoadingIndex);
+    rSerializer.save("mStrain0", mStrain0);
+    rSerializer.save("mStress0", mStress0);
+    rSerializer.save("mStrainR", mStrainR);
+    rSerializer.save("mStressR", mStressR);
+    rSerializer.save("mStrainPlastic", mStrainPlastic);
+    rSerializer.save("mStrainMax", mStrainMax);
+    rSerializer.save("mStrainMin", mStrainMin);
+    rSerializer.save("mConvergedLoadingIndex", mConvergedLoadingIndex);
+    rSerializer.save("mConvergedStrain0", mConvergedStrain0);
+    rSerializer.save("mConvergedStress0", mConvergedStress0);
+    rSerializer.save("mConvergedStrainR", mConvergedStrainR);
+    rSerializer.save("mConvergedStressR", mConvergedStressR);
+    rSerializer.save("mConvergedStrainPlastic", mConvergedStrainPlastic);
+    rSerializer.save("mConvergedStrainMax", mConvergedStrainMax);
+    rSerializer.save("mConvergedStrainMin", mConvergedStrainMin);
+    rSerializer.save("mConvergedStrain", mConvergedStrain);
+    rSerializer.save("mConvergedStress", mConvergedStress);
 }
 void UniaxialFiberBeamColumnSteelMaterialLaw::load(Serializer& rSerializer)
 {
-    // rSerializer.load("mId", mId);
+    rSerializer.load("mLoadingIndex", mLoadingIndex);
+    rSerializer.load("mStrain0", mStrain0);
+    rSerializer.load("mStress0", mStress0);
+    rSerializer.load("mStrainR", mStrainR);
+    rSerializer.load("mStressR", mStressR);
+    rSerializer.load("mStrainPlastic", mStrainPlastic);
+    rSerializer.load("mStrainMax", mStrainMax);
+    rSerializer.load("mStrainMin", mStrainMin);
+    rSerializer.load("mConvergedLoadingIndex", mConvergedLoadingIndex);
+    rSerializer.load("mConvergedStrain0", mConvergedStrain0);
+    rSerializer.load("mConvergedStress0", mConvergedStress0);
+    rSerializer.load("mConvergedStrainR", mConvergedStrainR);
+    rSerializer.load("mConvergedStressR", mConvergedStressR);
+    rSerializer.load("mConvergedStrainPlastic", mConvergedStrainPlastic);
+    rSerializer.load("mConvergedStrainMax", mConvergedStrainMax);
+    rSerializer.load("mConvergedStrainMin", mConvergedStrainMin);
+    rSerializer.load("mConvergedStrain", mConvergedStrain);
+    rSerializer.load("mConvergedStress", mConvergedStress);
 }
 
 } // namespace Kratos.

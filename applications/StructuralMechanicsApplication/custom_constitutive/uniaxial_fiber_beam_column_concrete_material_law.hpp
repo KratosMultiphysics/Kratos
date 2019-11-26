@@ -90,6 +90,7 @@ public:
     ///@{
 
     void Initialize() override;
+    void Confine();
     void CalculateMaterialResponse() override;
     void FinalizeMaterialResponse() override;
 
@@ -136,10 +137,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    double mStress;
-    double mStrain;
-    double mTangentModulus;
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -172,6 +169,29 @@ private:
     ///@name Member Variables
     ///@{
 
+    // material parameters
+    double mFc = 0.0;
+    double mStrain0 = 0.0;
+    double mStrainUltimate = 0.0;
+    double mInitialTangentModulus = 0.0;
+
+    // material history variables
+    double mStress = 0.0;
+    double mStrain = 0.0;
+    double mStrainMin = 0.0;
+    double mStrainEnd = 0.0;
+    double mUnloadSlope = 0.0;
+    double mTangentModulus = 0.0;
+
+    // material converged history variables
+    double mConvergedStress = 0.0;
+    double mConvergedStrain = 0.0;
+    double mConvergedStrainMin = 0.0;
+    double mConvergedStrainEnd = 0.0;
+    double mConvergedUnloadSlope = 0.0;
+    double mConvergedTangentModulus = 0.0;
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -179,6 +199,10 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void Reload();
+    void Envelope();
+    void Unload();
 
     ///@}
     ///@name Serialization

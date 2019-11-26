@@ -24,13 +24,11 @@ FiberBeamColumnUniaxialFiber::FiberBeamColumnUniaxialFiber(IndexType NewId)
 
 FiberBeamColumnUniaxialFiber::FiberBeamColumnUniaxialFiber(
     IndexType NewId, double Y, double Z, double Area, UniaxialFiberBeamColumnMaterialLaw::Pointer pMaterial)
-    : mId(NewId)
+    : mId(NewId), mArea(Area), mpMaterial(pMaterial)
 {
     mTransformationVector[0] = -Y;
     mTransformationVector[1] =  Z;
     mTransformationVector[2] = 1.0;
-    mArea = Area;
-    mpMaterial = pMaterial;
 }
 
 void FiberBeamColumnUniaxialFiber::Initialize()
@@ -42,24 +40,18 @@ void FiberBeamColumnUniaxialFiber::Initialize()
 Matrix FiberBeamColumnUniaxialFiber::CreateGlobalFiberStiffnessMatrix(){
     KRATOS_TRY
     double ea = mpMaterial->GetTangentModulus() * mArea;
-    Matrix global_stiffness = ZeroMatrix(3);
-    CalculateTransformationMatrix(global_stiffness);
-    global_stiffness *= ea;
+    Matrix global_stiffness = ZeroMatrix(3, 3);
+    noalias(global_stiffness) = ea * outer_prod(mTransformationVector, mTransformationVector);
+    // FIXME check this
     return global_stiffness;
     KRATOS_CATCH("")
 }
 
-void FiberBeamColumnUniaxialFiber::CalculateTransformationMatrix(Matrix& rTransformationMatrix){
-    KRATOS_TRY
-    rTransformationMatrix = outer_prod(mTransformationVector, mTransformationVector);
-    KRATOS_CATCH("")
-}
-
-void FiberBeamColumnUniaxialFiber::SetStrainIncrements(Vector ChangeSectionDeformationIncrements)
+void FiberBeamColumnUniaxialFiber::StateDetermination(Vector ChangeSectionDeformationIncrements)
 {
     KRATOS_TRY
-    mChangeStrainIncrement = inner_prod(mTransformationVector, ChangeSectionDeformationIncrements);
-    mStrainIncrement += mChangeStrainIncrement;
+    double chng_strain_incr = inner_prod(mTransformationVector, ChangeSectionDeformationIncrements);
+    mStrainIncrement += chng_strain_incr;
     mStrain = mConvergedStrain + mStrainIncrement;
     mpMaterial->SetStrain(mStrain);
     mpMaterial->CalculateMaterialResponse();
@@ -100,7 +92,7 @@ void FiberBeamColumnUniaxialFiber::save(Serializer& rSerializer) const
     rSerializer.save("mTransformationVector", mTransformationVector);
     rSerializer.save("mArea", mArea);
     rSerializer.save("mpMaterial", mpMaterial);
-    rSerializer.save("mChangeStrainIncrement", mChangeStrainIncrement);
+    // rSerializer.save("mChangeStrainIncrement", mChangeStrainIncrement);
     rSerializer.save("mStrainIncrement", mStrainIncrement);
     rSerializer.save("mStrain", mStrain);
     rSerializer.save("mConvergedStrain", mConvergedStrain);
@@ -113,7 +105,7 @@ void FiberBeamColumnUniaxialFiber::load(Serializer& rSerializer)
     rSerializer.load("mTransformationVector", mTransformationVector);
     rSerializer.load("mArea", mArea);
     rSerializer.load("mpMaterial", mpMaterial);
-    rSerializer.load("mChangeStrainIncrement", mChangeStrainIncrement);
+    // rSerializer.load("mChangeStrainIncrement", mChangeStrainIncrement);
     rSerializer.load("mStrainIncrement", mStrainIncrement);
     rSerializer.load("mStrain", mStrain);
     rSerializer.load("mConvergedStrain", mConvergedStrain);

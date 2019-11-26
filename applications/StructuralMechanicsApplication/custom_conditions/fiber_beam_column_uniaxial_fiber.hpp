@@ -79,6 +79,8 @@ public:
     ///@name Pointer Definitions
     ///@{
 
+    KRATOS_CLASS_POINTER_DEFINITION(FiberBeamColumnUniaxialFiber);
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -91,7 +93,9 @@ public:
         IndexType NewId, double Y, double Z, double Area, UniaxialFiberBeamColumnMaterialLaw::Pointer pMaterial);
 
     Matrix CreateGlobalFiberStiffnessMatrix();
-    void SetStrainIncrements(Vector ChangeSectionDeformationIncrements);
+
+    void StateDetermination(Vector ChangeSectionDeformationIncrements);
+    // void SetStrainIncrements(Vector ChangeSectionDeformationIncrements);
     Vector CreateGlobalFiberResistingForces();
     void FinalizeSolutionStep();
 
@@ -145,9 +149,9 @@ protected:
     IndexType mId;
     Vector mTransformationVector = ZeroVector(3);
     double mArea = 0;
-    UniaxialFiberBeamColumnMaterialLaw::Pointer mpMaterial = nullptr;
+    UniaxialFiberBeamColumnMaterialLaw::Pointer mpMaterial;
 
-    double mChangeStrainIncrement;
+    // double mChangeStrainIncrement;
     double mStrainIncrement;
     double mStrain;
     double mConvergedStrain;
@@ -162,8 +166,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    void CalculateTransformationMatrix(Matrix& rTransformationMatrix);
 
     ///@}
     ///@name Protected  Access

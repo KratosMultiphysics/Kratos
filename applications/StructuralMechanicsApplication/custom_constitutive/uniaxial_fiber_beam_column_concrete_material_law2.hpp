@@ -9,8 +9,8 @@
 //  Main authors: Mahmoud Zidan
 //
 
-#if !defined(KRATOS_UNIAXIAL_FIBER_BEAM_COLUMN_MATERIAL_LAW_H_INCLUDED )
-#define  KRATOS_UNIAXIAL_FIBER_BEAM_COLUMN_MATERIAL_LAW_H_INCLUDED
+#if !defined(KRATOS_UNIAXIAL_FIBER_BEAM_COLUMN_CONCRETE_MATERIAL_LAW_2_H_INCLUDED )
+#define  KRATOS_UNIAXIAL_FIBER_BEAM_COLUMN_CONCRETE_MATERIAL_LAW_2_H_INCLUDED
 
 // System includes
 
@@ -19,9 +19,10 @@
 
 
 // Project includes
-#include "includes/properties.h"
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "structural_mechanics_application_variables.h"
+#include "custom_constitutive/uniaxial_fiber_beam_column_material_law.hpp"
 
 namespace Kratos
 {
@@ -54,8 +55,8 @@ namespace Kratos
  * @author Mahmoud Zidan
  */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) UniaxialFiberBeamColumnMaterialLaw
-    // : public ConstitutiveLaw
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) UniaxialFiberBeamColumnConcreteMaterialLaw2
+    : public UniaxialFiberBeamColumnMaterialLaw
 {
 
 public:
@@ -63,22 +64,22 @@ public:
     ///@name Type Definitions
     ///@{
 
-
-    typedef Properties PropertiesType;
+    typedef UniaxialFiberBeamColumnMaterialLaw          BaseType;
+    typedef BaseType::PropertiesType              PropertiesType;
+    typedef std::size_t                                 SizeType;
 
     ///@}
     ///@name Pointer Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(UniaxialFiberBeamColumnMaterialLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(UniaxialFiberBeamColumnConcreteMaterialLaw2);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Constructor
-    UniaxialFiberBeamColumnMaterialLaw();
-    UniaxialFiberBeamColumnMaterialLaw( PropertiesType::Pointer pProperties );
+    UniaxialFiberBeamColumnConcreteMaterialLaw2();
+    UniaxialFiberBeamColumnConcreteMaterialLaw2(PropertiesType::Pointer pProperties);
 
     ///@}
     ///@name Operators
@@ -88,22 +89,19 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Initialize();
-    virtual void CalculateMaterialResponse();
-    virtual void FinalizeMaterialResponse();
+    void Initialize() override;
+    void Confine();
+    void CalculateMaterialResponse() override;
+    void FinalizeMaterialResponse() override;
 
     ///@}
     ///@name Access
     ///@{
 
-    virtual double& GetTangentModulus();
-    virtual double& GetStress();
-    virtual void SetStrain(const double Strain);
+    void SetStrain(const double Strain) override { mStrain = Strain; }
 
-    PropertiesType& GetProperties() { return *mpProperties; }
-    PropertiesType const& GetProperties() const { return *mpProperties; }
-    PropertiesType::Pointer pGetProperties() { return mpProperties; }
-    const PropertiesType::Pointer pGetProperties() const { return mpProperties; }
+    double& GetStress() override         { return mStress; }
+    double& GetTangentModulus() override { return mTangentModulus; }
 
     ///@}
     ///@name Inquiry
@@ -115,13 +113,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const override;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -171,7 +169,26 @@ private:
     ///@name Member Variables
     ///@{
 
-    PropertiesType::Pointer mpProperties = nullptr;
+    double mFc = 0.0;
+    double mK = 0.0;
+    double mStrain0 = 0.0;
+    double mStrainU = 0.0;
+    double mTangentModulus = 0.0;
+
+    double mStress = 0.0;
+    double mStrain = 0.0;
+    double mStressR = 0.0;
+    double mStrainR = 0.0;
+    double mStrainP = 0.0;
+    unsigned int mLoadingIndex = 0;
+
+    double mConvStress = 0.0;
+    double mConvStrain = 0.0;
+    double mConvStressR = 0.0;
+    double mConvStrainR = 0.0;
+    double mConvStrainP = 0.0;
+    unsigned int mConvLoadingIndex = 0;
+
 
     ///@}
     ///@name Private Operators
@@ -186,9 +203,8 @@ private:
     ///@{
 
     friend Serializer;
-
-    virtual void save(Serializer& rSerializer) const;
-    virtual void load(Serializer& rSerializer);
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private  Access
@@ -204,10 +220,10 @@ private:
 
     ///@}
 
-};  // class UniaxialFiberBeamColumnMaterialLaw
+};  // class UniaxialFiberBeamColumnConcreteMaterialLaw2
 
 /// output stream
-inline std::ostream & operator <<(std::ostream& rOStream, const UniaxialFiberBeamColumnMaterialLaw& rThis)
+inline std::ostream & operator <<(std::ostream& rOStream, const UniaxialFiberBeamColumnConcreteMaterialLaw2& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;

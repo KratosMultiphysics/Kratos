@@ -92,18 +92,24 @@ public:
     // FiberBeamColumnSection(FiberBeamColumnSection const& rOther);
 
     // /// Destructor
-    // ~FiberBeamColumnSection() ;//override;
+    // ~FiberBeamColumnSection()
+    // {
+    //     delete mFibers;
+    // }
 
-    void CalculateLocalStiffnessMatrix(Matrix& rLocalStiffnessMatrix);
-    void CalculateLocalFlexibilityMatrix(Matrix& rLocalFlexibilityMatrix);
+    // void CalculateLocalStiffnessMatrix(Matrix& rLocalStiffnessMatrix);
+    void CalculateLocalFlexibilityMatrix();
     void CalculateBMatrix(Matrix& rBMatrix);
     Matrix GetGlobalFlexibilityMatrix();
     Vector GetGlobalDeformationResiduals();
-    void SetSectionForces(Vector ChangeElementForceIncrements);
-    void CalculateDeformationIncrements();
-    void CalculateFiberState();
-    void CalculateResiduals();
-    bool CheckConvergence();
+
+    bool StateDetermination(Vector ChangeElementForceIncrements);
+    void ResetResidual();
+    // void SetSectionForces(Vector ChangeElementForceIncrements);
+    // void CalculateDeformationIncrements();
+    // void CalculateFiberState();
+    // void CalculateResiduals();
+    // bool CheckConvergence();
 
     void FinalizeSolutionStep();
 
@@ -129,6 +135,8 @@ public:
 
     double GetWeight() { return mWeight; }
     Vector GetResiduals() { return mDeformationResiduals; }
+
+    void SetFibers (std::vector<FiberBeamColumnUniaxialFiber> Fibers) { mFibers = Fibers; }
 
     ///@}
     ///@name Inquiry
@@ -163,22 +171,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    std::vector<FiberBeamColumnUniaxialFiber> mFibers;
-
-    Matrix mBMatrix = ZeroMatrix(3, 5);
-    Matrix mLocalFlexibilityMatrix = ZeroMatrix(3, 3);
-
-    double mTolerance = 0.05;
-
-    Vector mChangeForceIncrements = ZeroVector(3);
-    Vector mForceIncrements = ZeroVector(3);
-    Vector mForces = ZeroVector(3);
-    Vector mConvergedForces = ZeroVector(3);
-    Vector mUnbalanceForces = ZeroVector(3);
-
-    Vector mChangeDeformationIncrements = ZeroVector(3);
-    Vector mDeformationResiduals = ZeroVector(3);
 
     ///@}
     ///@name Protected Operators
@@ -215,6 +207,21 @@ private:
     IndexType mId;
     double mPosition;
     double mWeight;
+    std::vector<FiberBeamColumnUniaxialFiber> mFibers;
+
+    Matrix mBMatrix = ZeroMatrix(3, 5);
+    Matrix mLocalFlexibilityMatrix = ZeroMatrix(3, 3);
+
+    double mTolerance;
+
+    Vector mChangeForceIncrements = ZeroVector(3);
+    Vector mForceIncrements = ZeroVector(3);
+    Vector mForces = ZeroVector(3);
+    Vector mConvergedForces = ZeroVector(3);
+    Vector mUnbalanceForces = ZeroVector(3);
+
+    Vector mChangeDeformationIncrements = ZeroVector(3);
+    Vector mDeformationResiduals = ZeroVector(3);
 
     ///@}
     ///@name Private Operators

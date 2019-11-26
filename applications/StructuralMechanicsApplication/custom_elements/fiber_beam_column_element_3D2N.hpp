@@ -164,8 +164,8 @@ public:
     void Initialize() override;
 
     void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-    void ElementLoop(ProcessInfo& rCurrentProcessInfo);
-    void CalculateDeformationResiduals();
+    // void ElementLoop(ProcessInfo& rCurrentProcessInfo);
+    // void CalculateDeformationResiduals();
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -257,17 +257,17 @@ protected:
     std::vector<FiberBeamColumnSection> mSections;  // vector of the sections
 
     Matrix mTransformationMatrix = ZeroMatrix(msGlobalSize, msLocalSize);
-    Matrix mLocalStiffnessMatrix = ZeroMatrix(msLocalSize);
+    Matrix mLocalStiffnessMatrix = ZeroMatrix(msLocalSize, msLocalSize);
 
     Vector mDeformationPreviousIteration   = ZeroVector(msLocalSize);
     Vector mDeformationCurrentIteration    = ZeroVector(msLocalSize);
     Vector mDeformationPreviousIncerements = ZeroVector(msLocalSize);
     Vector mDeformationCurrentIncerements  = ZeroVector(msLocalSize);
-    Vector mChangeDeformationIncerements   = ZeroVector(msLocalSize);
+    // Vector mChangeDeformationIncerements   = ZeroVector(msLocalSize);
     Vector mConvergedDeformations          = ZeroVector(msLocalSize);
     Vector mDeformationResiduals           = ZeroVector(msLocalSize);
 
-    Vector mChangeForceIncerements         = ZeroVector(msLocalSize);
+    // Vector mChangeForceIncerements         = ZeroVector(msLocalSize);
     Vector mForceIncerements               = ZeroVector(msLocalSize);
     Vector mForces                         = ZeroVector(msLocalSize);
     Vector mConvergedForces                = ZeroVector(msLocalSize);
@@ -316,7 +316,7 @@ private:
      * @brief returns local stiffness matrix 5x5
      * @param rCurrentProcessInfo Current process info
      */
-    void CalculateElementLocalStiffnessMatrix(Matrix& rLocalStiffnessMatrix);
+    void CalculateElementLocalStiffnessMatrix();
 
     /**
      * @brief returns local internal forces 5x1
@@ -333,7 +333,7 @@ private:
      * @brief This function calculates the transformation matrix to globalize vectors and/or matrices
      * return 12x5 matrix
      */
-    void CalculateTransformationMatrix(Matrix& rTransformationMatrix);
+    void CalculateTransformationMatrix();
 
     Matrix CreateInitialLocalCoordSys() const;
 

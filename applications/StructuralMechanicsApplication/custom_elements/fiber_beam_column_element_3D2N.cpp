@@ -23,6 +23,8 @@
 
 
 #include "custom_constitutive/uniaxial_fiber_beam_column_steel_material_law.hpp"
+#include "custom_constitutive/uniaxial_fiber_beam_column_concrete_material_law.hpp"
+#include "custom_constitutive/uniaxial_fiber_beam_column_concrete_material_law2.hpp"
 
 namespace Kratos {
 
@@ -159,25 +161,49 @@ void FiberBeamColumnElement3D2N::Initialize()
 {
     KRATOS_TRY
 
-    const IndexType number_of_sections = GetProperties()[NUMBER_OF_SECTIONS];
-    if (mSections.size() != number_of_sections) {
-        mSections.resize(number_of_sections);
-    }
-    KRATOS_INFO("::[FiberBeamColumnElement3D2N]:: ") << "Constructed " << mSections.size() << " sections" << std::endl;
+    // reserve memory without using a default constructor
+    const unsigned int number_of_sections = GetProperties()[NUMBER_OF_SECTIONS];
+    mSections.reserve(number_of_sections);
 
-    int no_fibers = 0;
     const GeometryData::IntegrationPointsArrayType integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
-    for (SizeType i = 0; i < number_of_sections; ++i) {
-        mSections[i] = FiberBeamColumnSection(
-            i+1, integration_points[i], pGetProperties() );
-        mSections[i].Initialize();
-        no_fibers += mSections[i].Size();
+
+    for (unsigned int i = 0; i < number_of_sections; ++i) {
+        mSections.push_back( FiberBeamColumnSection( i+1, integration_points[i], pGetProperties() ));
     }
 
-    CalculateTransformationMatrix(mTransformationMatrix);
-    CalculateElementLocalStiffnessMatrix(mLocalStiffnessMatrix);
+    Matrix concrete_fibers_data = GetProperties()[CONCRETE_FIBERS_DATA];
+    Matrix steel_fibers_data = GetProperties()[STEEL_FIBERS_DATA];
 
-    KRATOS_INFO("::[FiberBeamColumnElement3D2N]:: ") << "Constructed " << no_fibers << " fibers" << std::endl;
+    for (unsigned int i = 0; i < number_of_sections; ++i) {
+
+        std::vector<FiberBeamColumnUniaxialFiber> fibers;
+        fibers.reserve(concrete_fibers_data.size1() + steel_fibers_data.size1());
+
+        for (unsigned int k = 0; k < concrete_fibers_data.size1(); ++k) {
+            auto p_material = Kratos::make_shared<UniaxialFiberBeamColumnConcreteMaterialLaw>(pGetProperties());
+            p_material->Confine();
+            fibers.push_back( FiberBeamColumnUniaxialFiber( 0,
+                concrete_fibers_data(k, 0),
+                concrete_fibers_data(k, 1),
+                concrete_fibers_data(k, 2),
+                p_material) );
+        }
+
+        for (unsigned int k = 0; k < steel_fibers_data.size1(); ++k) {
+            auto p_material = Kratos::make_shared<UniaxialFiberBeamColumnSteelMaterialLaw>(pGetProperties());
+            fibers.push_back( FiberBeamColumnUniaxialFiber( 0,
+                steel_fibers_data(k, 0),
+                steel_fibers_data(k, 1),
+                steel_fibers_data(k, 2),
+                p_material) );
+        }
+
+        mSections[i].SetFibers(fibers);
+        mSections[i].Initialize();
+    }
+
+    CalculateTransformationMatrix();
+    CalculateElementLocalStiffnessMatrix();
 
     KRATOS_CATCH("")
 }
@@ -189,10 +215,15 @@ GeometryData::IntegrationMethod FiberBeamColumnElement3D2N::GetIntegrationMethod
         case 2: return GeometryData::GI_GAUSS_2;
         case 3: return GeometryData::GI_GAUSS_3;
         case 4: return GeometryData::GI_GAUSS_4;
-        case 5: return GeometryData::GI_GAUSS_5;
+        // case 5: return GeometryData::GI_GAUSS_5;
+        // case 6: return GeometryData::GI_EXTENDED_GAUSS_1;
+        // case 7: return GeometryData::GI_EXTENDED_GAUSS_2;
+        // case 8: return GeometryData::GI_EXTENDED_GAUSS_3;
+        // case 9: return GeometryData::GI_EXTENDED_GAUSS_4;
+        // case 10:return GeometryData::GI_EXTENDED_GAUSS_5;
         default:
         {
-            KRATOS_ERROR << "NUMBER_OF_SECTIONS can only be in range [2, 5]."
+            KRATOS_ERROR << "NUMBER_OF_SECTIONS can only be in range [2, 10]."
             << "The given NUMBER_OF_SECTIONS is: " << number_of_sections << std::endl;
             break;
         }
@@ -208,21 +239,62 @@ void FiberBeamColumnElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurren
 
     Vector deformation_current_step = ZeroVector(msGlobalSize);
     GetValuesVector(deformation_current_step, rCurrentProcessInfo[STEP]);
-    mDeformationCurrentIteration = prod(trans(mTransformationMatrix), deformation_current_step);
+    mDeformationCurrentIteration = prod(Matrix(trans(mTransformationMatrix)), deformation_current_step);
 
     mDeformationCurrentIncerements = mDeformationCurrentIteration - mConvergedDeformations;
-    mChangeDeformationIncerements = mDeformationCurrentIncerements - mDeformationPreviousIncerements;
+    Vector chng_def_incr = mDeformationCurrentIncerements - mDeformationPreviousIncerements;
 
     // check if change in deformation increments is nearly zero
     // if so, no need to do the element loop
-    unsigned int check = 0;
-    for (unsigned int i = 0; i < msLocalSize; ++i) {
-        if (std::abs(mChangeDeformationIncerements[i]) < std::numeric_limits<double>::epsilon()) {
-            check++;
+    // unsigned int check = 0;
+    // for (unsigned int i = 0; i < msLocalSize; ++i) {
+    //     if (std::abs(chng_def_incr[i]) < std::numeric_limits<double>::epsilon()) {
+    //         check++;
+    //     }
+    // }
+    // if (check != msLocalSize) {
+    // }
+    unsigned int max_iterations = 100;
+    Vector chng_force_incr = ZeroVector(msLocalSize);
+    for (unsigned int j = 1; j <= max_iterations; ++j)
+    {
+        if (j == 1){
+            noalias(chng_force_incr) = prod(mLocalStiffnessMatrix, chng_def_incr);
+        } else {
+            noalias(chng_force_incr) = -1.0 * prod(mLocalStiffnessMatrix, mDeformationResiduals);
+        }
+
+        mForceIncerements += chng_force_incr;
+        mForces = mConvergedForces + mForceIncerements;
+
+        bool converged = true;
+        for (FiberBeamColumnSection& r_section : mSections){
+            converged *= r_section.StateDetermination(chng_force_incr);
+        }
+        CalculateElementLocalStiffnessMatrix();
+
+        if (converged) {
+            KRATOS_INFO("FiberBeamColumnElement3D2N")
+            << "Element equilibrium achieved in " << j << " iterations." << std::endl;
+            break;
+        } else {
+            std::fill(mDeformationResiduals.begin(), mDeformationResiduals.end(), 0.0);
+            // integrate over sections
+            const double reference_length = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+            for (FiberBeamColumnSection& r_section : mSections) {
+                mDeformationResiduals += r_section.GetGlobalDeformationResiduals() * reference_length/2.0 * r_section.GetWeight();
+            }
+        }
+
+        if (j == max_iterations) {
+            KRATOS_WARNING("FiberBeamColumnElement3D2N")
+            << "Maximum number of iterations in element equilibrum loop reached." << std::endl;
         }
     }
-    if (check != msLocalSize) {
-        ElementLoop(rCurrentProcessInfo);
+
+    // CalculateElementLocalStiffnessMatrix();
+    for (FiberBeamColumnSection& r_section : mSections) {
+        r_section.ResetResidual();
     }
 
     KRATOS_CATCH("")
@@ -249,77 +321,34 @@ void FiberBeamColumnElement3D2N::GetValuesVector(Vector& rValues, int Step)
     KRATOS_CATCH("")
 }
 
-void FiberBeamColumnElement3D2N::ElementLoop(ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
+// void FiberBeamColumnElement3D2N::ElementLoop(ProcessInfo& rCurrentProcessInfo)
+// {
+//     KRATOS_TRY
+//     KRATOS_CATCH("")
+// }
 
-
-    unsigned int converged = 0;
-    unsigned int max_iterations = 100;
-    for (unsigned int j = 0; j < max_iterations; ++j)
-    {
-        converged = 0;
-        if (j == 0){
-            mChangeForceIncerements = prod(mLocalStiffnessMatrix, mChangeDeformationIncerements);
-        } else {
-            mChangeForceIncerements = -1.0 * prod(mLocalStiffnessMatrix, mDeformationResiduals);
-        }
-
-        mForceIncerements += mChangeForceIncerements;
-        mForces = mConvergedForces + mForceIncerements;
-
-        // element state determination
-        for (FiberBeamColumnSection& r_section : mSections){
-            r_section.SetSectionForces(mChangeForceIncerements);
-            r_section.CalculateDeformationIncrements();
-            r_section.CalculateFiberState();
-        }
-        CalculateElementLocalStiffnessMatrix(mLocalStiffnessMatrix);
-
-        CalculateDeformationResiduals();
-
-        for (FiberBeamColumnSection& r_section : mSections){
-            converged += r_section.CheckConvergence();
-        }
-
-        if (converged == mSections.size()) {
-            KRATOS_INFO("::[FiberBeamColumnElement3D2N]:: ")
-            << "Element j loop converged in " << j + 1 << " iterations." << std::endl;
-            break;
-        }
-        if (j == max_iterations - 1){
-            KRATOS_WARNING("::[FiberBeamColumnElement3D2N]:: ")
-            << "Maximum number of iterations in element loop reached." << std::endl;
-        }
-    }
-
-    KRATOS_CATCH("")
-}
-
-void FiberBeamColumnElement3D2N::CalculateDeformationResiduals()
-{
-    KRATOS_TRY
-    std::fill(mDeformationResiduals.begin(), mDeformationResiduals.end(), 0.0);
-    // integrate over sections
-    const double reference_length = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-    for (FiberBeamColumnSection& r_section : mSections) {
-        r_section.CalculateResiduals();
-        mDeformationResiduals += r_section.GetGlobalDeformationResiduals() * reference_length/2 * r_section.GetWeight();
-    }
-    KRATOS_CATCH("")
-}
+// void FiberBeamColumnElement3D2N::CalculateDeformationResiduals()
+// {
+//     KRATOS_TRY
+//     std::fill(mDeformationResiduals.begin(), mDeformationResiduals.end(), 0.0);
+//     // integrate over sections
+//     const double reference_length = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+//     for (FiberBeamColumnSection& r_section : mSections) {
+//         r_section.CalculateResiduals();
+//         mDeformationResiduals += r_section.GetGlobalDeformationResiduals() * reference_length/2 * r_section.GetWeight();
+//     }
+//     KRATOS_CATCH("")
+// }
 
 void FiberBeamColumnElement3D2N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    CalculateElementLocalStiffnessMatrix(mLocalStiffnessMatrix);
-    std::fill(mDeformationResiduals.begin(), mDeformationResiduals.end(), 0.0);
-
     mConvergedForces = mForces;
+    mForceIncerements = ZeroVector(msLocalSize);
+    // mDeformationResiduals = ZeroVector(msLocalSize);
     mConvergedDeformations = mDeformationCurrentIteration;
-    mForceIncerements = ZeroVector(mForceIncerements.size());
-    mDeformationCurrentIncerements = ZeroVector(mDeformationCurrentIncerements.size());
+    mDeformationCurrentIncerements = ZeroVector(msLocalSize);
 
     for (FiberBeamColumnSection& r_section : mSections){
         r_section.FinalizeSolutionStep();
@@ -336,6 +365,7 @@ void FiberBeamColumnElement3D2N::CalculateLocalSystem(
     KRATOS_TRY;
     CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
+
     KRATOS_CATCH("")
 }
 
@@ -352,22 +382,22 @@ void FiberBeamColumnElement3D2N::CalculateLeftHandSide(
     KRATOS_CATCH("")
 }
 
-void FiberBeamColumnElement3D2N::CalculateElementLocalStiffnessMatrix(Matrix& rLocalStiffnessMatrix)
+void FiberBeamColumnElement3D2N::CalculateElementLocalStiffnessMatrix()
 {
     KRATOS_TRY
 
     // allocate memory
-    Matrix local_flexibility = ZeroMatrix(msLocalSize);
+    Matrix local_flexibility = ZeroMatrix(msLocalSize, msLocalSize);
 
     // integrate over sections to get flexibility matrix
     const double reference_length = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-    for (auto& r_section : mSections) {
+    for (FiberBeamColumnSection& r_section : mSections) {
         local_flexibility += r_section.GetGlobalFlexibilityMatrix() * reference_length/2 * r_section.GetWeight();
     }
 
     // invert to get stiffness matrix
     double det_flexibility = MathUtils<double>::Det(local_flexibility);
-    MathUtils<double>::InvertMatrix(local_flexibility, rLocalStiffnessMatrix, det_flexibility);
+    MathUtils<double>::InvertMatrix(local_flexibility, mLocalStiffnessMatrix, det_flexibility);
 
     KRATOS_CATCH("")
 }
@@ -382,7 +412,7 @@ void FiberBeamColumnElement3D2N::CalculateRightHandSide(
     KRATOS_CATCH("")
 }
 
-void FiberBeamColumnElement3D2N::CalculateTransformationMatrix(Matrix& rTransformationMatrix)
+void FiberBeamColumnElement3D2N::CalculateTransformationMatrix()
 {
     KRATOS_TRY
     Matrix local_cs = CreateInitialLocalCoordSys();
@@ -390,38 +420,38 @@ void FiberBeamColumnElement3D2N::CalculateTransformationMatrix(Matrix& rTransfor
 
     // forces 1st node
     for (int i = 0; i < 3; ++i ) {
-        rTransformationMatrix(i, 0) += local_cs(1, i) / L0;
-        rTransformationMatrix(i, 1) += local_cs(1, i) / L0;
-        rTransformationMatrix(i, 2) -= local_cs(2, i) / L0;
-        rTransformationMatrix(i, 3) -= local_cs(2, i) / L0;
-        rTransformationMatrix(i, 4) -= local_cs(0, i);
+        mTransformationMatrix(i, 0) += local_cs(1, i) / L0;
+        mTransformationMatrix(i, 1) += local_cs(1, i) / L0;
+        mTransformationMatrix(i, 2) -= local_cs(2, i) / L0;
+        mTransformationMatrix(i, 3) -= local_cs(2, i) / L0;
+        mTransformationMatrix(i, 4) -= local_cs(0, i);
     }
 
     // moments 1st node
-    // rTransformationMatrix(3, 0) += local_cs(2, 0);
-    // rTransformationMatrix(4, 0) += local_cs(2, 1);
-    // rTransformationMatrix(5, 0) += local_cs(2, 2);
-    // rTransformationMatrix(3, 2) += local_cs(1, 0);
-    // rTransformationMatrix(4, 2) += local_cs(1, 1);
-    // rTransformationMatrix(5, 2) += local_cs(1, 2);
+    // mTransformationMatrix(3, 0) += local_cs(2, 0);
+    // mTransformationMatrix(4, 0) += local_cs(2, 1);
+    // mTransformationMatrix(5, 0) += local_cs(2, 2);
+    // mTransformationMatrix(3, 2) += local_cs(1, 0);
+    // mTransformationMatrix(4, 2) += local_cs(1, 1);
+    // mTransformationMatrix(5, 2) += local_cs(1, 2);
     for ( int i=3, j=0; i<6 && j<3; ++i, ++j ) {
-        rTransformationMatrix(i, 0) += local_cs(2, j);
-        rTransformationMatrix(i, 2) += local_cs(1, j);
+        mTransformationMatrix(i, 0) += local_cs(2, j);
+        mTransformationMatrix(i, 2) += local_cs(1, j);
     }
 
     // forces 2nd node
     for ( int i=6, j=0; i<9 && j<3; ++i, ++j ) {
-        rTransformationMatrix(i, 0) -= local_cs(1, j) / L0;
-        rTransformationMatrix(i, 1) -= local_cs(1, j) / L0;
-        rTransformationMatrix(i, 2) += local_cs(2, j) / L0;
-        rTransformationMatrix(i, 3) += local_cs(2, j) / L0;
-        rTransformationMatrix(i, 4) += local_cs(0, j);
+        mTransformationMatrix(i, 0) -= local_cs(1, j) / L0;
+        mTransformationMatrix(i, 1) -= local_cs(1, j) / L0;
+        mTransformationMatrix(i, 2) += local_cs(2, j) / L0;
+        mTransformationMatrix(i, 3) += local_cs(2, j) / L0;
+        mTransformationMatrix(i, 4) += local_cs(0, j);
     }
 
     // moments 2nd node
     for ( int i=9, j=0; i<12 && j<3; ++i, ++j ) {
-        rTransformationMatrix(i, 1) += local_cs(2, j);
-        rTransformationMatrix(i, 3) += local_cs(1, j);
+        mTransformationMatrix(i, 1) += local_cs(2, j);
+        mTransformationMatrix(i, 3) += local_cs(1, j);
     }
 
     KRATOS_CATCH("")
@@ -535,10 +565,10 @@ void FiberBeamColumnElement3D2N::save(Serializer& rSerializer) const
     rSerializer.save("mDeformationCurrentIteration", mDeformationCurrentIteration);
     rSerializer.save("mDeformationPreviousIncerements", mDeformationPreviousIncerements);
     rSerializer.save("mDeformationCurrentIncerements", mDeformationCurrentIncerements);
-    rSerializer.save("mChangeDeformationIncerements", mChangeDeformationIncerements);
+    // rSerializer.save("mChangeDeformationIncerements", mChangeDeformationIncerements);
     rSerializer.save("mConvergedDeformations", mConvergedDeformations);
     rSerializer.save("mDeformationResiduals", mDeformationResiduals);
-    rSerializer.save("mChangeForceIncerements", mChangeForceIncerements);
+    // rSerializer.save("mChangeForceIncerements", mChangeForceIncerements);
     rSerializer.save("mForceIncerements", mForceIncerements);
     rSerializer.save("mForces", mForces);
     rSerializer.save("mConvergedForces", mConvergedForces);
@@ -553,10 +583,10 @@ void FiberBeamColumnElement3D2N::load(Serializer& rSerializer)
     rSerializer.load("mDeformationCurrentIteration", mDeformationCurrentIteration);
     rSerializer.load("mDeformationPreviousIncerements", mDeformationPreviousIncerements);
     rSerializer.load("mDeformationCurrentIncerements", mDeformationCurrentIncerements);
-    rSerializer.load("mChangeDeformationIncerements", mChangeDeformationIncerements);
+    // rSerializer.load("mChangeDeformationIncerements", mChangeDeformationIncerements);
     rSerializer.load("mConvergedDeformations", mConvergedDeformations);
     rSerializer.load("mDeformationResiduals", mDeformationResiduals);
-    rSerializer.load("mChangeForceIncerements", mChangeForceIncerements);
+    // rSerializer.load("mChangeForceIncerements", mChangeForceIncerements);
     rSerializer.load("mForceIncerements", mForceIncerements);
     rSerializer.load("mForces", mForces);
     rSerializer.load("mConvergedForces", mConvergedForces);
