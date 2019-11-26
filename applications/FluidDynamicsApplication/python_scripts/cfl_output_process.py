@@ -5,7 +5,7 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 # other imports
 from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 
-from numpy import mean, max, std, asarray
+from statistics import mean, stdev
 
 
 def Factory(settings, model):
@@ -130,15 +130,15 @@ class CFLOutputProcess(KratosMultiphysics.Process):
             "CFLOutputProcess", "Current time: " + result_msg)
 
     def _CalculateWithRespectToThreshold(self, x):
-        x = asarray(x)
-        y = x[x < self.cfl_threshold]
-        y1 = x[x < 1.0]
+
+        y = [val for val in x if val < self.cfl_threshold]
+        y1 = [val for val in x if val < 1.0]
         how_many = ((len(x)-len(y))/len(x))*100  # % of element with cfl above threshold
         how_many1 = ((len(x)-len(y1))/len(x))*100  # % of element with cfl above 1
 
         # quantifying the mean and std for values below the threshold
         y_mean = mean(y)
-        y_std = std(y)
+        y_std = stdev(y)
         
         # qunatifying the global max
         x_max = max(x)
