@@ -115,3 +115,25 @@ def RecursiveCreateModelParts(model_part, model_part_name):
         model_part = model_part.CreateSubModelPart(model_part_name)
     if len(sub_model_part_names) > 0:
         RecursiveCreateModelParts(model_part, ".".join(sub_model_part_names))
+
+
+def ParametersToStringDict(param):
+    '''This function converts the Parameters to a dict<str,str>, which is the input for the CoSimIO
+    '''
+    string_dict = {}
+
+    for k,v in param.items():
+        if v.IsInt():
+            v = v.GetInt()
+        elif v.IsBool():
+            v = int(v.GetBool())
+        elif v.IsDouble():
+            v = v.GetDouble()
+        elif v.IsString():
+            v = v.GetString()
+        else:
+            raise Exception("Only int, double, bool and string are allowed!")
+
+        string_dict[k] = str(v)
+
+    return string_dict
