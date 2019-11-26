@@ -55,7 +55,8 @@ def AssembleTestSuites():
 
     ################################################################################
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMokFSI]))
+    nightSuite.addTest(TestMokFSI('test_mok_fsi_mvqn'))
+    nightSuite.addTest(TestMokFSI('test_mok_fsi_aitken'))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
 
     nightSuite.addTests(smallSuite)
@@ -64,6 +65,7 @@ def AssembleTestSuites():
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimulationCases]))
+    validationSuite.addTest(TestMokFSI('test_mok_fsi_mvqn_external_structure'))
     if not using_pykratos and numpy_available:
         validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFLOWerCoupling]))
 
