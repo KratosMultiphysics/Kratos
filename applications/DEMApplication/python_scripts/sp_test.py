@@ -28,44 +28,45 @@ class SPTest(DEM_material_test_script.MaterialTest):
   def PrepareTests(self):
     ##Fixing vertical
     if self.test_type == "SandP":
-        for node in self.TOP:
-            node.SetSolutionStepValue(VELOCITY_Z, 0.0)
-            node.Fix(VELOCITY_Z)
+      for element in self.spheres_model_part.Elements:
+          node = element.GetNode(0)
+          node.SetSolutionStepValue(VELOCITY_Z, 0.0)
+          node.Fix(VELOCITY_Z)
 
-        absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
-        self.graph_export   = open(absolute_path_to_file, 'w')
+    absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
+    self.graph_export   = open(absolute_path_to_file, 'w')
 
-        (self.xlat_area) = self.CircularSkinDetermination()
+    (self.xlat_area) = self.CircularSkinDetermination()
 
 
   def CircularSkinDetermination(self):
 
-        # Cylinder dimensions
-        d = self.diameter
-        eps = 2.0
+    # Cylinder dimensions
+    d = self.diameter
+    eps = 2.0
 
-        self.perimeter = 3.141592 * d
-        self.xlat_area = 0.0
+    self.perimeter = 3.141592 * d
+    self.xlat_area = 0.0
 
-        for element in self.spheres_model_part.Elements:
-          element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 0)
-          node = element.GetNode(0)
-          r = node.GetSolutionStepValue(RADIUS)
-          x = node.X
-          y = node.Y
+    for element in self.spheres_model_part.Elements:
+      element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 0)
+      node = element.GetNode(0)
+      r = node.GetSolutionStepValue(RADIUS)
+      x = node.X
+      y = node.Y
 
-          cross_section = 2.0 * r
+      cross_section = 2.0 * r
 
-          if ((x * x + y * y) >= ((d / 2 - eps * r) * (d / 2 - eps * r))):
+      if ((x * x + y * y) >= ((d / 2 - eps * r) * (d / 2 - eps * r))):
 
-              element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
-              self.LAT.append(node)
-              self.xlat_area = self.xlat_area + cross_section
+          element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
+          self.LAT.append(node)
+          self.xlat_area = self.xlat_area + cross_section
 
-        if(len(self.LAT)==0):
-            self.Procedures.KratosPrintWarning("ERROR! in Circular Skin Determination - NO LATERAL PARTICLES" + "\n")
+    if(len(self.LAT)==0):
+        self.Procedures.KratosPrintWarning("ERROR! in Circular Skin Determination - NO LATERAL PARTICLES" + "\n")
 
-        return (self.xlat_area)
+    return (self.xlat_area)
 
 
   def MeasureForcesAndPressure(self):
@@ -79,27 +80,27 @@ class SPTest(DEM_material_test_script.MaterialTest):
 
   def ApplyLateralStress(self, average_zstress_value, LAT, alpha_lat):
 
-      for node in LAT:
+    for node in LAT:
 
-          r = node.GetSolutionStepValue(RADIUS)
-          x = node.X
-          y = node.Y
+      r = node.GetSolutionStepValue(RADIUS)
+      x = node.X
+      y = node.Y
 
-          values = Array3()
-          vect = Array3()
+      values = Array3()
+      vect = Array3()
 
-          cross_section = 2.0 * r
+      cross_section = 2.0 * r
 
-          # vector normal al centre:
-          vect_moduli = math.sqrt(x * x + y * y)
+      # vector normal al centre:
+      vect_moduli = math.sqrt(x * x + y * y)
 
-          if(vect_moduli > 0.0):
-              vect[0] = x / vect_moduli
-              vect[1] = y / vect_moduli
+      if(vect_moduli > 0.0):
+          vect[0] = x / vect_moduli
+          vect[1] = y / vect_moduli
 
-          values[0] = cross_section * average_zstress_value * vect[0] * alpha_lat
-          values[1] = cross_section * average_zstress_value * vect[1] * alpha_lat
-          node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
+      values[0] = cross_section * average_zstress_value * vect[0] * alpha_lat
+      values[1] = cross_section * average_zstress_value * vect[1] * alpha_lat
+      node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
 
 
 
