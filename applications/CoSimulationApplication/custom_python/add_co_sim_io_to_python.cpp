@@ -152,7 +152,7 @@ void ImportMesh(
 
     for (std::size_t i=0; i<DataBuffers::vector_doubles.size()/3; ++i) {
         rModelPart.CreateNewNode(
-            i+1,
+            i, // TODO check this, this will create nodes with Id=0
             DataBuffers::vector_doubles[i*3],
             DataBuffers::vector_doubles[i*3+1],
             DataBuffers::vector_doubles[i*3+2]);
