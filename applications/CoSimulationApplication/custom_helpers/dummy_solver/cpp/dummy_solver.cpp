@@ -28,151 +28,138 @@ typedef std::vector<double> DataFieldType;
 
 namespace { // helpers namespace
 
-void Initialize(MeshType& rMesh, DataFieldType& rDataField, const int NumNodesPerDir)
+static int sEchoLevel = 1;
+static const double sDeltaTime = 0.1;
+static const double sEndTime = 0.5;
+
+static std::vector<double> sNodalCoords;
+static std::vector<int> sElementConnectivities;
+static std::vector<int> sElementTypes;
+
+static std::vector<double> sFieldPressure;
+static std::vector<double> sFieldVelocity;
+
+#define solver_print(level) if(sEchoLevel>=level) std::cout << "Solver [C++]: "
+
+void Initialize()
 {
-    // defining (hard-coding for now) the size of the (2D) domain
-    double domain_x[] = {0.0, 10,0};
-    double domain_y[] = {0.0, 5,0};
+    // Defining the mesh
 
-    const double dx = (domain_x[1] - domain_x[0]) / (NumNodesPerDir-1);
-    const double dy = (domain_y[1] - domain_y[0]) / (NumNodesPerDir-1);
+    /*    -- Mesh --
+        0      2      3
+        x------x------x
+         \     |     /|\
+          \  1 |  2 / | \
+           \   |   /  |  \
+            \  |  /   |   \
+             \ | /  3 |  4 \
+              \|/     |     \
+               x------x-----x
+               1      4     5
+    */
 
-    // creating the mesh
-    rMesh.resize(NumNodesPerDir);
+    sNodalCoords = {
+        0.0, 2.5, 1.0, // 0
+        2.0, 0.0, 1.5, // 1
+        2.0, 2.5, 1.5, // 2
+        4.0, 2.5, 1.7, // 3
+        4.0, 0.0, 1.7, // 4
+        6.0, 0.0, 1.8 //  5
+    };
 
-    for (int i_x=0; i_x<NumNodesPerDir; ++i_x) {
-        rMesh[i_x].resize(NumNodesPerDir);
-        for (int i_y=0; i_y<NumNodesPerDir; ++i_y) {
-            std::array<double, 2> xy_coord = {i_x*dx, i_y*dy};
-            rMesh[i_x][i_y] = xy_coord;
-        }
-    }
+    sElementConnectivities = {
+        0, 1, 2, // 1
+        1, 3, 2, // 2
+        1, 4, 3, // 3
+        3, 4, 5, // 4
+    };
 
-    // intializing the data-field
-    const int size_data_field = NumNodesPerDir*NumNodesPerDir;
-    rDataField.resize(size_data_field);
-    for (int i=0; i<size_data_field; ++i) {
-        rDataField[i] = 0.0;
+    sElementTypes = {
+        5,5,5,5 // VTK_TRIANGLE
+    };
+
+    // Initializing the fields
+    // sFieldPressure is coming from outside, we do nothing with it
+
+    sFieldVelocity.resize(sNodalCoords.size()); // a value for each component on each node
+    for (std::size_t i=0; i<sNodalCoords.size(); ++i) {
+        sFieldVelocity[i] = i*0.125;
     }
 }
 
 
 void AdvanceInTime(double* pCurrentTime)
 {
-    std::cout << "\n\n  >>> AdvanceInTime: from: " << *pCurrentTime << " to: " << *pCurrentTime + 0.1 << std::endl;
-    *pCurrentTime += 0.1;
+    *pCurrentTime += sDeltaTime;
+    solver_print(2) << "AdvanceInTime; new time: " << *pCurrentTime << std::endl;
 }
+
 void InitializeSolutionStep()
 {
-    std::cout << "  >>> InitializeSolutionStep" << std::endl;
+    solver_print(2) << "InitializeSolutionStep" << std::endl;
 }
-// void Predict()
-// {
-//     std::cout << "  >>> Predict" << std::endl;
-// }
+
 void SolveSolutionStep()
 {
-    std::cout << "  >>> SolveSolutionStep" << std::endl;
+    solver_print(2) << "SolveSolutionStep" << std::endl;
 }
+
 void FinalizeSolutionStep()
 {
-    std::cout << "  >>> FinalizeSolutionStep" << std::endl;
-}
-// void OutputSolutionStep()
-// {
-//     std::cout << "  >>> OutputSolutionStep" << std::endl;
-// }
-
-void ImportGeometry(const std::string& rCommName, const std::string& rIdentifier)
-{
-    throw std::runtime_error("not yet implemented");
-}
-
-void ExportGeometry(const std::string& rCommName, const std::string& rIdentifier)
-{
-    throw std::runtime_error("not yet implemented");
+    solver_print(2) << "FinalizeSolutionStep" << std::endl;
 }
 
 void ImportMesh(const std::string& rCommName, const std::string& rIdentifier)
 {
-    throw std::runtime_error("not yet implemented");
+    // importing the mesh, but doing nothing with it to not overcomplicate this example
+    std::vector<double> incoming_nodal_coords;
+    std::vector<int> incoming_elem_connectivities;
+    std::vector<int> incoming_elem_types;
+
+    solver_print(3) << "\tBefore Importing Mesh from CoSim" << std::endl;
+    CoSimIO::ImportMesh(rCommName, rIdentifier, incoming_nodal_coords, incoming_elem_connectivities, incoming_elem_types);
+    solver_print(3) << "\tAfter Importing Mesh from CoSim" << std::endl;
+
+    // Now copy the imported mesh to the solver-internal data structure to use it ...
+    // "rIdentifier" is used to identify which mesh was imported
 }
 
 void ExportMesh(const std::string& rCommName, const std::string& rIdentifier)
 {
-    MeshType mesh;
-    DataFieldType data_field;
-
-    Initialize(mesh, data_field, 15);
-
-    std::vector<double> node_coords(mesh.size()*mesh.size()*3, 0.0);
-    int counter=0;
-    for (int i_x=0; i_x<static_cast<int>(mesh.size()); ++i_x) {
-        for (int i_y=0; i_y<static_cast<int>(mesh.size()); ++i_y) {
-            node_coords[counter++] = mesh[i_x][i_y][0];
-            node_coords[counter++] = mesh[i_x][i_y][1];
-            node_coords[counter++] = 0.0; // for 3D
-        }
-    }
-
-    // mesh has no cells, hence arguments are only dummy
-    std::vector<int> connectivities;
-    std::vector<int> cell_types;
-    // CoSim::DataContainers::Mesh data_mesh = {node_coords, connectivities, cell_types};
-    // p_co_sim_io->Export(data_mesh, rIdentifier);
+    // usually use "rIdentifier" to select which mesh to export
+    // (and then copy from solver-specific data structure to buffer which is passed to the IO)
+    // in this example this is not necessary since we only export one mesh
+    solver_print(3) << "\tBefore Exporting Mesh from CoSim" << std::endl;
+    CoSimIO::ExportMesh(rCommName, rIdentifier, sNodalCoords, sElementConnectivities, sElementTypes);
+    solver_print(3) << "\tAfter Exporting Mesh from CoSim" << std::endl;
 }
 
-void ImportData(const std::string& rCommName, const std::string& rIdentifier)
+void ImportDataFromCoSim(const std::string& rCommName, const std::string& rIdentifier)
 {
-    DataFieldType data_field;
+    // usually use "rIdentifier" to select which data to import
+    // (and then copy from solver-specific data structure to buffer which is passed to the IO)
+    // in this example this is not necessary since we always import "field_pressure"
 
-    CoSimIO::ImportData(rCommName, rIdentifier, data_field);
+    solver_print(3) << "\tBefore Importing Data from CoSim" << std::endl;
+    CoSimIO::ImportData(rCommName, rIdentifier, sFieldPressure);
+    solver_print(3) << "\tAfter Importing Data from CoSim" << std::endl;
 }
 
-void ExportData(const std::string& rCommName, const std::string& rIdentifier)
+void ExportDataToCoSim(const std::string& rCommName, const std::string& rIdentifier)
 {
-    MeshType mesh;
-    DataFieldType data_field;
+    // usually use "rIdentifier" to select which data to export
+    // (and then copy from solver-specific data structure to buffer which is passed to the IO)
+    // in this example this is not necessary since we always export "field_velocity"
 
-    Initialize(mesh, data_field, 15);
-
-    CoSimIO::ExportData(rCommName, rIdentifier, data_field);
+    solver_print(3) << "\tBefore Importing Data from CoSim" << std::endl;
+    CoSimIO::ExportData(rCommName, rIdentifier, sFieldVelocity);
+    solver_print(3) << "\tAfter Importing Data from CoSim" << std::endl;
 }
 
-void ExportMeshToCoSim(const std::string& rCommName, const MeshType& rMesh, const std::string& rIdentifier)
-{
-    std::vector<double> node_coords(rMesh.size()*rMesh.size()*3, 0.0);
-    int counter=0;
-    for (int i_x=0; i_x<static_cast<int>(rMesh.size()); ++i_x) {
-        for (int i_y=0; i_y<static_cast<int>(rMesh.size()); ++i_y) {
-            node_coords[counter++] = rMesh[i_x][i_y][0];
-            node_coords[counter++] = rMesh[i_x][i_y][1];
-            node_coords[counter++] = 0.0; // for 3D
-        }
-    }
-
-    // mesh has no cells, hence arguments are only dummy
-    std::vector<int> connectivities;
-    std::vector<int> cell_types;
-
-    CoSimIO::ExportMesh(rCommName, rIdentifier, node_coords, connectivities, cell_types);
-}
-
-void ImportDataFromCoSim(const std::string& rCommName, DataFieldType& rDataField, const std::string& rIdentifier)
-{
-    CoSimIO::ImportData(rCommName, rIdentifier, rDataField);
-}
-
-void ExportDataToCoSim(const std::string& rCommName, DataFieldType& rDataField, const std::string& rIdentifier)
-{
-    CoSimIO::ExportData(rCommName, rIdentifier, rDataField);
-}
-
-void RunSolutionLoop(MeshType& rMesh, DataFieldType& rDataField)
+void RunSolutionLoop()
 {
     double current_time = 0.0;
-    const double end_time = 0.49;
-    while (current_time<end_time) {
+    while (current_time < sEndTime) {
         AdvanceInTime(&current_time);
         InitializeSolutionStep();
         SolveSolutionStep();
@@ -181,25 +168,25 @@ void RunSolutionLoop(MeshType& rMesh, DataFieldType& rDataField)
     }
 }
 
-void RunSolutionLoopWithWeakCoupling(MeshType& rMesh, DataFieldType& rDataField)
+void RunSolutionLoopWithWeakCoupling()
 {
     // Note the following only works with one coupling interface, requires more effort to make it work with multiple coupling interfaces.
 
-    const std::string comm_name("dummy_solver_weakly_coupled");
+    const std::string comm_name("external_dummy_solver");
 
-    CoSimIO::Connect(comm_name, "dummy_solver_io_settings");
+    CoSimIO::Connect(comm_name, "unspecified");
 
-    ExportMeshToCoSim(comm_name, rMesh, "interface");
+    // ImportMesh(comm_name, "interface_mesh_quads");
+    ExportMesh(comm_name, "interface_mesh_tri");
 
     double current_time = 0.0;
-    const double end_time = 0.49;
-    while (current_time<end_time) {
+    while (current_time < sEndTime) {
         AdvanceInTime(&current_time);
         InitializeSolutionStep();
 
-        ImportDataFromCoSim(comm_name, rDataField, "interface_temp");
+        ImportDataFromCoSim(comm_name, "field_pressure");
         SolveSolutionStep();
-        ExportDataToCoSim(comm_name, rDataField, "interface_pressure");
+        ExportDataToCoSim(comm_name, "field_velocity");
 
         FinalizeSolutionStep();
         std::cout << std::endl;
@@ -208,28 +195,26 @@ void RunSolutionLoopWithWeakCoupling(MeshType& rMesh, DataFieldType& rDataField)
     CoSimIO::Disconnect(comm_name);
 }
 
-void RunSolutionLoopWithStrongCoupling(MeshType& rMesh, DataFieldType& rDataField)
+void RunSolutionLoopWithStrongCoupling()
 {
-    // Note the following only works with one coupling interface, requires more effort to make it work with multiple coupling interfaces.
+    const std::string comm_name("external_dummy_solver");
 
-    const std::string comm_name("dummy_solver_strongly_coupled");
+    CoSimIO::Connect(comm_name, "unspecified");
 
-    CoSimIO::Connect(comm_name, "dummy_solver_io_settings");
-
-    ExportMeshToCoSim(comm_name, rMesh, "interface");
+    // ImportMesh(comm_name, "interface_mesh_quads");
+    ExportMesh(comm_name, "interface_mesh_tri");
 
     int convergence_signal;
 
     double current_time = 0.0;
-    const double end_time = 0.49;
-    while (current_time<end_time) {
+    while (current_time < sEndTime) {
         AdvanceInTime(&current_time);
         InitializeSolutionStep();
 
         while(true) {
-            ImportDataFromCoSim(comm_name, rDataField, "interface_temp");
+            ImportDataFromCoSim(comm_name, "field_pressure");
             SolveSolutionStep();
-            ExportDataToCoSim(comm_name, rDataField, "interface_pressure");
+            ExportDataToCoSim(comm_name, "field_velocity");
 
             CoSimIO::IsConverged(comm_name, convergence_signal);
             if (convergence_signal) {break;}
@@ -242,83 +227,58 @@ void RunSolutionLoopWithStrongCoupling(MeshType& rMesh, DataFieldType& rDataFiel
     CoSimIO::Disconnect(comm_name);
 }
 
-void RunSolutionCoSimulationOrchestrated(MeshType& rMesh, DataFieldType& rDataField)
+void RunSolutionCoSimulationOrchestrated()
 {
-    const std::string comm_name("dummy_solver_co_sim_controlled");
+    const std::string comm_name("external_dummy_solver");
 
-    CoSimIO::Connect(comm_name, "dummy_solver_io_settings");
+    CoSimIO::Connect(comm_name, "unspecified");
 
     CoSimIO::Register(comm_name, "AdvanceInTime",          &AdvanceInTime);
     CoSimIO::Register(comm_name, "InitializeSolutionStep", &InitializeSolutionStep);
     CoSimIO::Register(comm_name, "SolveSolutionStep",      &SolveSolutionStep);
     CoSimIO::Register(comm_name, "FinalizeSolutionStep",   &FinalizeSolutionStep);
 
-    CoSimIO::Register(comm_name, "ImportData",     &ImportData);
-    CoSimIO::Register(comm_name, "ExportData",     &ExportData);
+    CoSimIO::Register(comm_name, "ImportData",     &ImportDataFromCoSim);
+    CoSimIO::Register(comm_name, "ExportData",     &ExportDataToCoSim);
     CoSimIO::Register(comm_name, "ImportMesh",     &ImportMesh);
     CoSimIO::Register(comm_name, "ExportMesh",     &ExportMesh);
-    CoSimIO::Register(comm_name, "ImportGeometry", &ImportGeometry);
-    CoSimIO::Register(comm_name, "ExportGeometry", &ExportGeometry);
 
     CoSimIO::Run(comm_name);
 
     CoSimIO::Disconnect(comm_name);
 }
 
-void Finalize()
-{
-
-}
-
-void ParseInput(int argc, char **argv, int* Settings)
-{
-    if (argc > 3) {
-        throw std::runtime_error("Max 2 input arguments accepted!");
-    }
-
-    for (int i=1; i<argc; ++i) {
-        Settings[i-1] = std::atoi(argv[i]);
-    }
-    std::cout << "Using configuration:";
-    std::cout << "\n    Number of nodes/dir: " << Settings[0] << std::endl;
-}
-
 } // helpers namespace
-
-
 
 int main(int argc, char **argv)
 {
-    // defining the default settings
-    int settings[] = {
-        10, // number of nodes/dir
-        0
-    };
-
-    ParseInput(argc, argv, settings);
-
-    MeshType mesh;
-    DataFieldType data_field;
-
-    Initialize(mesh, data_field, settings[0]);
-
-    if (settings[1] == 0) {
-        std::cout << ">> Doing STANDALONE simulation <<\n" << std::endl;
-        RunSolutionLoop(mesh, data_field);
-    } else if (settings[1] == 1) {
-        std::cout << ">> Doing COUPLED simulation (weakly coupled) <<\n" << std::endl;
-        RunSolutionLoopWithWeakCoupling(mesh, data_field);
-    } else if (settings[1] == 2) {
-        std::cout << ">> Doing COUPLED simulation (strongly coupled) <<\n" << std::endl;
-        RunSolutionLoopWithStrongCoupling(mesh, data_field);
-    } else if (settings[1] == 3) {
-        std::cout << ">> Doing COUPLED simulation (orchestrated by CoSimulation) <<\n" << std::endl;
-        RunSolutionCoSimulationOrchestrated(mesh, data_field);
+    // parsing input
+    if (argc != 3) {
+        throw std::runtime_error("Two input arguments required (level of coupling & echo-level)!");
     }
 
-    Finalize();
+    const int level_of_coupling = std::atoi(argv[1]);
+    sEchoLevel = std::atoi(argv[2]);
 
-    std::cout << "finished simulation" << std::endl;
+    Initialize();
+
+    if (level_of_coupling == 0) {
+        solver_print(1) << "Doing STANDALONE simulation" << std::endl;
+        RunSolutionLoop();
+    } else if (level_of_coupling == 1) {
+        solver_print(1) << "Doing COUPLED simulation (weakly coupled)" << std::endl;
+        RunSolutionLoopWithWeakCoupling();
+    } else if (level_of_coupling == 2) {
+        solver_print(1) << "Doing COUPLED simulation (strongly coupled)" << std::endl;
+        RunSolutionLoopWithStrongCoupling();
+    } else if (level_of_coupling == 3) {
+        solver_print(1) << "Doing COUPLED simulation (orchestrated by CoSimulation)" << std::endl;
+        RunSolutionCoSimulationOrchestrated();
+    } else {
+        throw std::runtime_error("ERROR, WRONG LEVEL OF COUPLING; CAN ONLY BE 0, 1, 2, 3, STOPPING");
+    }
+
+    solver_print(1) << "Exiting" << std::endl;
 
     return (0);
 }
