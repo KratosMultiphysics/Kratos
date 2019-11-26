@@ -34,11 +34,8 @@ public:
     virtual std::size_t size() const = 0;
     virtual void resize(const std::size_t NewSize) = 0;
 
+    virtual TDataType* data() = 0;
     virtual const TDataType* data() const  = 0;
-    TDataType* data()
-    {
-        return const_cast<TDataType*>(const_cast<const DataContainer*>(this)->data());
-    }
 
     const TDataType& operator[](const std::size_t Index) const
     {
@@ -47,14 +44,7 @@ public:
 
     TDataType& operator[](const std::size_t Index)
     {
-        return const_cast<TDataType&>(const_cast<const DataContainer*>(this)->operator[](Index));
-    }
-
-    void resize_if_smaller(const std::size_t MinRequiredSize)
-    {
-        if (MinRequiredSize > this->size()) {
-            this->resize(MinRequiredSize);
-        }
+        return this->data()[Index];
     }
 };
 
@@ -64,9 +54,17 @@ template<typename TDataType>
 inline std::ostream& operator << (std::ostream& rOStream,
                                   const DataContainer<TDataType>& rThis)
 {
-    // rThis.PrintInfo(rOStream);
-    // rOStream << std::endl;
-    // rThis.PrintData(rOStream);
+    std::size_t size = rThis.size();
+
+    rOStream << "[";
+    if(size>0) rOStream << rThis[0];
+    if(size>1) {
+        for(std::size_t i=1; i<size; ++i)
+            rOStream<<", "<<rThis[i];
+    }
+    rOStream << "]";
+
+    return rOStream;
 
     return rOStream;
 }
@@ -78,8 +76,9 @@ public:
     DataContainerStdVector(std::vector<TDataType>& rVector) : mrVector(rVector) {}
 
     std::size_t size() const override {return mrVector.size();}
-    void resize(const std::size_t NewSize) override {mrVector.resize(NewSize);}
+    void resize(const std::size_t NewSize) override {mrVector.resize(NewSize);} // resize does not change the capacity if resized to a smaller size
     const TDataType* data() const override {return mrVector.data();}
+    TDataType* data() override {return mrVector.data();}
 
 private:
     std::vector<TDataType>& mrVector;
@@ -94,14 +93,17 @@ public:
     std::size_t size() const override {return mSize;};
     void resize(const std::size_t NewSize) override
     {
-        mSize = NewSize;
-        free(*mppData); // this is ok according to the standard, no matter if it is null or allocated
+        if (NewSize > mSize) { // only increase the capacity if too small => same behavior as std::vector
+            free(*mppData); // this is ok according to the standard, no matter if it is null or allocated //also check if using "std::"
 
-        *mppData = (TDataType *)malloc((mSize)*sizeof(TDataType));
-        KRATOS_CO_SIM_ERROR_IF_NOT(*mppData) << "Memory reallocation failed";
+            *mppData = (TDataType *)malloc((NewSize)*sizeof(TDataType)); // TODO maybe use realloc? //also check if using "std::"
+            KRATOS_CO_SIM_ERROR_IF_NOT(*mppData) << "Memory reallocation failed";
+        }
+        mSize = NewSize;
 
     };
     const TDataType* data() const override {return *mppData;}
+    TDataType* data() override {return *mppData;}
 
 private:
     TDataType** mppData;
