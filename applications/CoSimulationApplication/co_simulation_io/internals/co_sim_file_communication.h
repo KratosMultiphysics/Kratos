@@ -155,7 +155,7 @@ private:
 
         RemoveFile(file_name);
 
-        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished receiving array" << std::endl;
+        KRATOS_CO_SIM_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished receiving array with size: " << size_read << std::endl;
 
         KRATOS_CO_SIM_INFO_IF("CoSimIO", GetPrintTiming()) << "Receiving Array \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
     }
