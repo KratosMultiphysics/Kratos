@@ -10,24 +10,24 @@ from KratosMultiphysics.DEMApplication import *
 
 import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
 
-class SPTest(DEM_material_test_script.MaterialTest):
+class Triaxial2D(DEM_material_test_script.MaterialTest):
 
   def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
-      super(SPTest,self).__init__(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
+      super(Triaxial2D, self).__init__(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
 
   def Initialize(self):
     self.PrepareTests()
-    self.PrepareTestSandP()
+    self.PrepareTestTriaxial2D()
 
 
-  def PrepareTestSandP(self):
+  def PrepareTestTriaxial2D(self):
 
     self.alpha_lat = self.perimeter/(self.xlat_area)
 
 
   def PrepareTests(self):
     ##Fixing vertical
-    if self.test_type == "SandP":
+    if self.test_type == "Triaxial2D":
       for element in self.spheres_model_part.Elements:
           node = element.GetNode(0)
           node.SetSolutionStepValue(VELOCITY_Z, 0.0)
@@ -70,12 +70,12 @@ class SPTest(DEM_material_test_script.MaterialTest):
 
 
   def MeasureForcesAndPressure(self):
-    super(SPTest,self).MeasureForcesAndPressure()
-    average_zstress_value = 0.0
+      super(Triaxial2D, self).MeasureForcesAndPressure()
+      average_zstress_value = 0.0
 
-    if self.test_type == "SandP":
-      average_zstress_value = self.aux.ComputeAverageZStressFor2D(self.spheres_model_part)
-      self.ApplyLateralStress(average_zstress_value, self.LAT, self.alpha_lat)
+      if self.test_type == "Triaxial2D":
+          average_zstress_value = self.aux.ComputeAverageZStressFor2D(self.spheres_model_part)
+          self.ApplyLateralStress(average_zstress_value, self.LAT, self.alpha_lat)
 
 
   def ApplyLateralStress(self, average_zstress_value, LAT, alpha_lat):
