@@ -17,6 +17,11 @@
 
 namespace Kratos
 {
+///@addtogroup KratosMPICore
+///@{
+
+///@name Kratos Classes
+///@{
 
 /// Helper class to manage the MPI lifecycle.
 /** This class initializes MPI on construction and finalizes it
@@ -29,12 +34,23 @@ namespace Kratos
 class KRATOS_API(KRATOS_MPI_CORE) MPIManager: public EnvironmentManager
 {
 public:
+    ///@name Type Definitions
+    ///@{
+
     typedef std::unique_ptr<MPIManager> Pointer;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     MPIManager(MPIManager& rOther) = delete;
 
     /// Destruct the manager, finalizing MPI in the process.
     ~MPIManager() override;
+
+    ///@}
+    ///@name Inquiry
+    ///@{
 
     /// Query MPI initialization status.
     /** returns false if MPI_Initialized would return 0, true otherwise. */
@@ -43,17 +59,34 @@ public:
     /// Query MPI finalization status.
     /** returns false if MPI_Finalized would return 0, true otherwise. */
     bool IsFinalized() const override;
+
+    ///@}
 private:
+    ///@name Friends
+    ///@{
 
     friend class MPIDataCommunicator;
+
+    ///@}
+    ///@name Private LifeCycle
+    ///@{
     
+    MPIManager();
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
     /// Create a MPIManager instance.
     /** This initializes MPI if it is not initialized yet. */
     static MPIManager::Pointer Create();
 
-    MPIManager();
+    ///@}
 };
 
+///@}
+
+///@}
 }
 
 #endif
