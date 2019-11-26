@@ -10,25 +10,26 @@ import KratosMultiphysics.CoSimulationApplication.CoSimIO as CoSimIO
 import os
 
 def Create(model, settings, solver_name):
-    return DummySolverIO(model, settings, solver_name)
+    return KratosCoSimIO(model, settings, solver_name)
 
-class DummySolverIO(CoSimulationIO):
-    """This class is used if a Solver directly uses Kratos as a data-structure
-    e.g. Kratos itself or simple-solvers written in Python
+class KratosCoSimIO(CoSimulationIO):
+    """Wrapper for the CoSimIO to be used with Kratos
     """
     def __init__(self, settings, model, solver_name):
-        super(DummySolverIO, self).__init__(settings, model, solver_name)
+        super(KratosCoSimIO, self).__init__(settings, model, solver_name)
 
-        KratosCoSimCoSimIO.Connect(self.solver_name, ParametersToStringDict(self.settings), True)
+        CoSimIO.Connect(self.solver_name, ParametersToStringDict(self.settings))
 
     def Finalize(self):
-        KratosCoSimCoSimIO.Disconnect(self.solver_name)
+        CoSimIO.Disconnect(self.solver_name)
 
     def ImportCouplingInterface(self, interface_config):
-        CoSimIO.ImportMesh(self.solver_name, self.model[interface_config["model_part_name"]]) # TODO this can also be geometry at some point
+        model_part_name = interface_config["model_part_name"]
+        CoSimIO.ImportMesh(self.solver_name, model_part_name, self.model[model_part_name]) # TODO this can also be geometry at some point
 
     def ImportCouplingInterface(self, interface_config):
-        CoSimIO.ExportMesh(self.solver_name, self.model[interface_config["model_part_name"]]) # TODO this can also be geometry at some point
+        model_part_name = interface_config["model_part_name"]
+        CoSimIO.ExportMesh(self.solver_name, model_part_name, self.model[model_part_name]) # TODO this can also be geometry at some point
 
     def ImportData(self, data_config):
         data_type = data_config["type"]
@@ -37,8 +38,9 @@ class DummySolverIO(CoSimulationIO):
             CoSimIO.ImportData(self.solver_name, interface_data.name, interface_data.GetModelPart(), interface_data.variable, GetDataLocation(interface_data.location))
 
         elif data_type == "time":
-            time_list = [0.0]
-            KratosCoSim.CoSimIO.ImportData("time_to_co_sim", time_list)
+            time_list = KratosCoSim.CoSimIO.ImportData("time_to_co_sim", time_list)
+            if len(time_list) != 1:
+                raise Exception("Wrong size received!")
             data_config["time"] = time_list[0]
         else:
             raise NotImplementedError('Exporting interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
@@ -67,10 +69,20 @@ class DummySolverIO(CoSimulationIO):
             raise NotImplementedError('Exporting interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
 
     def PrintInfo(self):
-        print("This is the EMPIRE-IO")
+        print("This is the KratosCoSimIO")
 
     def Check(self):
         pass
+
+    @classmethod
+    def _GetDefaultSettings(cls):
+        this_defaults = KM.Parameters("""{
+            "is_connection_master" : true,
+            "communication_format" : "file",
+            "print_timing"         : false
+        }""")
+        this_defaults.AddMissingParameters(super(KratosCoSimIO, cls)._GetDefaultSettings())
+        return this_defaults
 
 
 def ParametersToStringDict(param):

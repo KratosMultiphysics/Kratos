@@ -108,7 +108,7 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
         cs_tools.cs_print_info(self._ClassName(), "printing info...")
 
     def _GetIOType(self):
-        return "dummy_solver.dummy_solver_io"
+        return "kratos_co_sim_io"
 
     def __SendControlSignal(self, signal, identifier=""):
         data_config = {
