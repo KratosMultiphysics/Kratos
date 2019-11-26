@@ -185,7 +185,7 @@ C==============================================================================
       DO R = 1,S
          WRITE(FILENAME,'(A,A,A,I0,A)') 
      &      '|PWD|',
-     &      '/|CSM_dir|/CSM_Time',
+     &      '/|CSM_dir|/CSM_Time0',
      &      'Surface',(R-1),'Elements.dat'
 
          OPEN(UNIT=UNIT_ELEM,FILE=FILENAME,STATUS='OLD')

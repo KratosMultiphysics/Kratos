@@ -4,6 +4,7 @@ import subprocess
 import time
 import numpy as np
 import copy
+import re
 
 
 import KratosMultiphysics as KM
@@ -24,11 +25,12 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
 
                     working_directory       absolute path to working directory
                                            or relative path w.r.t current directory
+                    input_file              Name of the Abaqus input file (Located in the directory where Python is launched)
                     dimension               dimensionality of the problem 2 or 3 
                     arraySize               declare a sufficiently large array size for load array in FORTRAN
                     surfaces                number of interface surfaces
                     cpus                    number of cpus to be used for Abaqus 
-                    CSM_dir                 relative path to directory for the files and execution of the flow solver 
+                    CSM_dir                 relative path to directory for the files and execution of the structural solver 
                     ramp                    0 for step load, 1 for ramp load in Abaqus
                     deltaT                  time step size
                     timestep_start          time step from which is to be started (initial = 0) 
@@ -49,6 +51,8 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         self.timestep_start = self.settings["timestep_start"].GetDouble()  #TODO: move to higher-level parameter file?
         self.surfaceIDs = self.settings["surfaceIDs"].GetString()
         self.mp_mode = self.settings["mp_mode"].GetString()
+        self.input_file = self.settings["input_file"].GetString()
+
         # Upon(re)starting Abaqus needs to run USRInit.f
         # A restart requires Abaqus to be booted with a restart file
 
@@ -75,6 +79,9 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     if "|" in line:
                         raise ValueError(f"The following line in abaqus_v6.env still contains a \"|\" after substitution: \n \t{line} \n Probably a parameter was not subsituted")
                     outfile.write(line)
+
+        #Create start and restart file
+        self.write_start_and_restart_inp(self.input_file, self.dir_csm+"/CSM_Time0.inp", self.dir_csm+"/CSM_Restart.inp")
 
         # prepare Abaqus USRInit.f
         usr = "USRInit.f"
@@ -386,3 +393,52 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                 line = temp
 
         return line
+
+    def write_start_and_restart_inp(self,input_file,output_file,restart_file):
+        bool_restart = 0
+
+        rf = open(restart_file,"w")
+        of = open(output_file,"w")
+
+        rf.write("*HEADING \n")
+        rf.write("*RESTART, READ \n")
+
+        with open(input_file) as f:
+            line=f.readline()
+            while line:
+                if "*step" in line.lower():
+                    contents=line.split(",") #Split string on commas
+                    for s in contents:
+                        if s.strip().startswith("inc="):
+                            numbers=re.findall("\d+",s)
+                            if int(numbers[0])!=1:
+                                raise NotImplementedError(f"inc={numbers[0]}: currently only single increment steps are implemented for the Abaqus wrapper")
+                    of.write(line)
+                    if bool_restart:
+                        rf.write(line)
+                    line = f.readline()
+                elif "*dynamic" in line.lower():
+                    contents = line.split(",")
+                    for s in contents:
+                        if "application" in s.lower():
+                            contents_B = s.split("=")
+                            if contents_B[1].lower().strip() != "quasi-static":
+                                raise NotImplementedError(
+                                    f"{contents_B[1]} not available: Currently only quasi-static is implemented for the Abaqus wrapper")
+                    of.write(line)
+                    if bool_restart:
+                        rf.write(line)
+                    line=f.readline() #need to skip the next line
+                    of.write(f"{self.delta_T}, {self.delta_T},\n") #Change the time step in the Abaqus step
+                    if bool_restart:
+                        rf.write(f"{self.delta_T}, {self.delta_T},\n") #Change the time step in the Abaqus step (restart-file)
+                    line = f.readline()
+                else:
+                    of.write(line)
+                    if bool_restart:
+                        rf.write(line)
+                    line=f.readline()
+                if "** --"in line:
+                    bool_restart=1
+        rf.close()
+        of.close()
