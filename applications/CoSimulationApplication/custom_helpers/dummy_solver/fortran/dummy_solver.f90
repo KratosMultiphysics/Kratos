@@ -2,7 +2,6 @@ MODULE solver_globals
     USE iso_c_binding
     IMPLICIT NONE
 
-    INTEGER :: num_nodes
     INTEGER :: echo_level
     REAL :: delta_time = 0.1
     REAL :: end_time = 0.5
@@ -30,8 +29,8 @@ program dummy_solver_fortran
     INTEGER :: level_of_coupling
 
     ! Make sure the right number of command line arguments have been provided
-    IF(COMMAND_ARGUMENT_COUNT().NE.3)THEN
-      WRITE(*,*)'ERROR, THREE COMMAND-LINE ARGUMENTS REQUIRED, STOPPING'
+    IF(COMMAND_ARGUMENT_COUNT().NE.2)THEN
+      WRITE(*,*)'ERROR, TWO COMMAND-LINE ARGUMENTS REQUIRED, STOPPING'
       STOP
     ENDIF
 
@@ -39,8 +38,6 @@ program dummy_solver_fortran
     CALL GET_COMMAND_ARGUMENT(1,input_char)
     READ(input_char,*)level_of_coupling
     CALL GET_COMMAND_ARGUMENT(2,input_char)
-    READ(input_char,*)num_nodes
-    CALL GET_COMMAND_ARGUMENT(3,input_char)
     READ(input_char,*)echo_level
 
     ! Select level of coupling
@@ -132,6 +129,38 @@ program dummy_solver_fortran
     SUBROUTINE export_mesh_to_co_sim (connection_name, identifier)
         character(*), INTENT(IN) :: connection_name
         character(*), INTENT(IN) :: identifier
+        INTEGER :: i
+
+        !    -- Mesh --
+        ! 0      2      3
+        ! x------x------x
+        !  \     |     /|\
+        !   \  1 |  2 / | \
+        !    \   |   /  |  \
+        !     \  |  /   |   \
+        !      \ | /  3 |  4 \
+        !       \|/     |     \
+        !        x------x-----x
+        !        1      4     5
+        !
+
+        real :: nodal_coords(18) = (/ &
+        0.0, 2.5, 1.0, & ! 0
+        2.0, 0.0, 1.5, & ! 1
+        2.0, 2.5, 1.5, & ! 2
+        4.0, 2.5, 1.7, & ! 3
+        4.0, 0.0, 1.7, & ! 4
+        6.0, 0.0, 1.8  & ! 5
+        /)
+
+        size_real_array = 18
+
+        call allocate_c_memory_real(size_real_array, c_ptr_data_real, f_ptr_data_real)
+
+        do i = 1, size_real_array
+            f_ptr_data_real(i) = nodal_coords(i)
+        end do
+
         call solver_print("    Before Exporting Mesh to CoSim", 3)
 
         call CoSimIO_ExportMesh(connection_name//c_null_char, identifier//c_null_char, &
@@ -155,7 +184,7 @@ program dummy_solver_fortran
     ! helper function to allocate memory in C - Real version
     SUBROUTINE allocate_c_memory_real(size, c_pointer, f_pointer)
         type (c_ptr), INTENT(IN) :: c_pointer
-        INTEGER, DIMENSION(:), pointer, INTENT(INOUT) :: f_pointer
+        REAL(8), DIMENSION(:), pointer, INTENT(INOUT) :: f_pointer
         INTEGER, INTENT(IN) :: size
         call solver_print("    Before allocating memory in C", 3)
         call AllocateCMemoryReal(size, c_pointer)
@@ -199,22 +228,22 @@ program dummy_solver_fortran
 
         call solver_print("Doing COUPLED simulation (weakly coupled)", 1)
 
-        call CoSimIO_Connect("FortranSolver"//c_null_char, "FortranSolverInputFile"//c_null_char)
+        call CoSimIO_Connect("external_dummy_solver"//c_null_char, "unspecified"//c_null_char)
 
-        call import_mesh_from_co_sim("FortranSolver", "interface_1")
-        call export_mesh_to_co_sim("FortranSolver", "interface_2")
+        ! call import_mesh_from_co_sim("external_dummy_solver", "interface_1")
+        call export_mesh_to_co_sim("external_dummy_solver", "interface_mesh_tri")
 
         do while (current_time < end_time)
             write(*,*)
             call advance_in_time(current_time)
             call initialize_solution_step()
-            call import_data_from_co_sim("FortranSolver", "pressure")
+            call import_data_from_co_sim("external_dummy_solver", "field_pressure")
             call solve_solution_step()
-            call export_data_to_co_sim("FortranSolver", "temperature")
+            call export_data_to_co_sim("external_dummy_solver", "field_velocity")
             call finalize_solution_step()
         end do
 
-        call CoSimIO_Disconnect("FortranSolver"//c_null_char)
+        call CoSimIO_Disconnect("external_dummy_solver"//c_null_char)
 
         call free_c_memory()
 
@@ -229,20 +258,20 @@ program dummy_solver_fortran
 
         call solver_print("Doing COUPLED simulation (strongly coupled)", 1)
 
-        call CoSimIO_Connect("FortranSolver"//c_null_char, "FortranSolverInputFile"//c_null_char)
+        call CoSimIO_Connect("external_dummy_solver"//c_null_char, "unspecified"//c_null_char)
 
-        call import_mesh_from_co_sim("FortranSolver", "interface_1")
-        call export_mesh_to_co_sim("FortranSolver", "interface_2")
+        ! call import_mesh_from_co_sim("external_dummy_solver", "interface_1")
+        call export_mesh_to_co_sim("external_dummy_solver", "interface_mesh_tri")
 
         do while (current_time < end_time)
             write(*,*)
             call advance_in_time(current_time)
             call initialize_solution_step()
             do ! convergence loop, execute until convergence is achieved
-                call import_data_from_co_sim("FortranSolver", "pressure")
+                call import_data_from_co_sim("external_dummy_solver", "field_pressure")
                 call solve_solution_step()
-                call export_data_to_co_sim("FortranSolver", "temperature")
-                call CoSimIO_IsConverged("FortranSolver"//c_null_char, convergence_signal)
+                call export_data_to_co_sim("external_dummy_solver", "field_velocity")
+                call CoSimIO_IsConverged("external_dummy_solver"//c_null_char, convergence_signal)
                 if(convergence_signal.NE.0) exit
             end do
 
@@ -250,7 +279,7 @@ program dummy_solver_fortran
 
         end do
 
-        call CoSimIO_Disconnect("FortranSolver"//c_null_char)
+        call CoSimIO_Disconnect("external_dummy_solver"//c_null_char)
 
         call free_c_memory()
 
@@ -262,27 +291,27 @@ program dummy_solver_fortran
     SUBROUTINE run_solution_co_simulation_orchestrated ()
         call solver_print("Doing COUPLED simulation (orchestrated by CoSimulation)", 1)
 
-        call CoSimIO_Connect("FortranSolver"//c_null_char, "FortranSolverInputFile"//c_null_char)
+        call CoSimIO_Connect("external_dummy_solver"//c_null_char, "unspecified"//c_null_char)
 
-        call CoSimIO_RegisterAdvanceInTime("FortranSolver"//c_null_char, C_FUNLOC(advance_in_time))
-        call CoSimIO_RegisterSolvingFunction("FortranSolver"//c_null_char,&
+        call CoSimIO_RegisterAdvanceInTime("external_dummy_solver"//c_null_char, C_FUNLOC(advance_in_time))
+        call CoSimIO_RegisterSolvingFunction("external_dummy_solver"//c_null_char,&
             "InitializeSolutionStep"//c_null_char, C_FUNLOC(initialize_solution_step))
-        call CoSimIO_RegisterSolvingFunction("FortranSolver"//c_null_char,&
+        call CoSimIO_RegisterSolvingFunction("external_dummy_solver"//c_null_char,&
             "SolveSolutionStep"//c_null_char, C_FUNLOC(solve_solution_step))
 
-        call CoSimIO_RegisterDataExchangeFunction("FortranSolver"//c_null_char,&
+        call CoSimIO_RegisterDataExchangeFunction("external_dummy_solver"//c_null_char,&
             "ImportData"//c_null_char, C_FUNLOC(import_data_from_co_sim))
-        call CoSimIO_RegisterDataExchangeFunction("FortranSolver"//c_null_char,&
+        call CoSimIO_RegisterDataExchangeFunction("external_dummy_solver"//c_null_char,&
             "ExportData"//c_null_char, C_FUNLOC(export_data_to_co_sim))
 
-        call CoSimIO_RegisterDataExchangeFunction("FortranSolver"//c_null_char,&
+        call CoSimIO_RegisterDataExchangeFunction("external_dummy_solver"//c_null_char,&
             "ImportMesh"//c_null_char, C_FUNLOC(import_mesh_from_co_sim))
-        call CoSimIO_RegisterDataExchangeFunction("FortranSolver"//c_null_char,&
+        call CoSimIO_RegisterDataExchangeFunction("external_dummy_solver"//c_null_char,&
             "ExportMesh"//c_null_char, C_FUNLOC(export_mesh_to_co_sim))
 
-        call CoSimIO_Run("FortranSolver"//c_null_char)
+        call CoSimIO_Run("external_dummy_solver"//c_null_char)
 
-        call CoSimIO_Disconnect("FortranSolver"//c_null_char)
+        call CoSimIO_Disconnect("external_dummy_solver"//c_null_char)
 
         call free_c_memory()
 
