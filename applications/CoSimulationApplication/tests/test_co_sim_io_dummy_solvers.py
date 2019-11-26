@@ -16,10 +16,9 @@ class TestCoSimIODummySolvers(KratosUnittest.TestCase):
         with open("co_sim_io_dummy_solver_test/cosim_parameters.json", 'r') as parameter_file:
             self.cosim_parameters = KM.Parameters(parameter_file.read())
         self.start_external_solver = True
-        self.echo_level_ext_solver = 2 # can be added to each test if desired
+        self.echo_level_ext_solver = 0 # can be added to each test if desired
 
     def test_weak_coupling_Cpp_solver(self):
-        self.skipTest("This test is not finished")
         self.name_executable = "dummy_solver_cpp"
         self.execute_test_weak_coupling()
 
@@ -29,61 +28,58 @@ class TestCoSimIODummySolvers(KratosUnittest.TestCase):
         self.execute_test_weak_coupling()
 
     def test_strong_coupling_Cpp_solver(self):
-        self.skipTest("This test is not finished")
         self.name_executable = "dummy_solver_cpp"
         self.execute_test_strong_coupling()
 
     def test_co_sim_orchestrated_weak_coupling_Cpp_solver(self):
-        self.skipTest("This test is not finished")
         self.name_executable = "dummy_solver_cpp"
         self.execute_test_co_sim_orchestrated_weak_coupling()
 
     def test_co_sim_orchestrated_strong_coupling_Cpp_solver(self):
-        self.skipTest("This test is not finished")
         self.name_executable = "dummy_solver_cpp"
         self.execute_test_co_sim_orchestrated_strong_coupling()
 
 
-    def test_weak_coupling_C_solver(self):
-        self.skipTest("This test is not finished")
-        self.name_executable = "dummy_solver_c"
-        self.execute_test_weak_coupling()
+    # def test_weak_coupling_C_solver(self):
+    #     self.skipTest("This test is not finished")
+    #     self.name_executable = "dummy_solver_c"
+    #     self.execute_test_weak_coupling()
 
-    def test_strong_coupling_C_solver(self):
-        self.skipTest("This test is not finished")
-        self.name_executable = "dummy_solver_c"
-        self.execute_test_strong_coupling()
+    # def test_strong_coupling_C_solver(self):
+    #     self.skipTest("This test is not finished")
+    #     self.name_executable = "dummy_solver_c"
+    #     self.execute_test_strong_coupling()
 
-    def test_co_sim_orchestrated_weak_coupling_C_solver(self):
-        self.skipTest("This test is not finished")
-        self.name_executable = "dummy_solver_c"
-        self.execute_test_co_sim_orchestrated_weak_coupling()
+    # def test_co_sim_orchestrated_weak_coupling_C_solver(self):
+    #     self.skipTest("This test is not finished")
+    #     self.name_executable = "dummy_solver_c"
+    #     self.execute_test_co_sim_orchestrated_weak_coupling()
 
-    def test_co_sim_orchestrated_strong_coupling_C_solver(self):
-        self.skipTest("This test is not finished")
-        self.name_executable = "dummy_solver_c"
-        self.execute_test_co_sim_orchestrated_strong_coupling()
+    # def test_co_sim_orchestrated_strong_coupling_C_solver(self):
+    #     self.skipTest("This test is not finished")
+    #     self.name_executable = "dummy_solver_c"
+    #     self.execute_test_co_sim_orchestrated_strong_coupling()
 
 
-    def test_weak_coupling_Fortran_solver(self):
-        self.skipTest("This test is not finished")
-        self.name_executable = "dummy_solver_fortran"
-        self.execute_test_weak_coupling()
+    # def test_weak_coupling_Fortran_solver(self):
+    #     self.skipTest("This test is not finished")
+    #     self.name_executable = "dummy_solver_fortran"
+    #     self.execute_test_weak_coupling()
 
-    def test_strong_coupling_Fortran_solver(self):
-        self.skipTest("This test is not finished")
-        self.name_executable = "dummy_solver_fortran"
-        self.execute_test_strong_coupling()
+    # def test_strong_coupling_Fortran_solver(self):
+    #     self.skipTest("This test is not finished")
+    #     self.name_executable = "dummy_solver_fortran"
+    #     self.execute_test_strong_coupling()
 
-    def test_co_sim_orchestrated_weak_coupling_Fortran_solver(self):
-        self.skipTest("This test is not finished")
-        self.name_executable = "dummy_solver_fortran"
-        self.execute_test_co_sim_orchestrated_weak_coupling()
+    # def test_co_sim_orchestrated_weak_coupling_Fortran_solver(self):
+    #     self.skipTest("This test is not finished")
+    #     self.name_executable = "dummy_solver_fortran"
+    #     self.execute_test_co_sim_orchestrated_weak_coupling()
 
-    def test_co_sim_orchestrated_strong_coupling_Fortran_solver(self):
-        self.skipTest("This test is not finished")
-        self.name_executable = "dummy_solver_fortran"
-        self.execute_test_co_sim_orchestrated_strong_coupling()
+    # def test_co_sim_orchestrated_strong_coupling_Fortran_solver(self):
+    #     self.skipTest("This test is not finished")
+    #     self.name_executable = "dummy_solver_fortran"
+    #     self.execute_test_co_sim_orchestrated_strong_coupling()
 
 
     def execute_test_weak_coupling(self):
@@ -120,10 +116,19 @@ class TestCoSimIODummySolvers(KratosUnittest.TestCase):
             ext_solver_params.AddEmptyValue("external_solver_start_command").SetString(self.external_solver_start_command)
             ext_solver_params.AddEmptyList("external_solver_arguments")
             ext_solver_params["external_solver_arguments"].Append(str(self.coupling_level))
+            ext_solver_params["external_solver_arguments"].Append(str(self.echo_level_ext_solver))
 
     def __ModifyCoSimParametersForStrongCoupling(self):
         self.cosim_parameters["solver_settings"]["type"].SetString("coupled_solvers.gauss_seidel_strong")
         self.cosim_parameters["solver_settings"].AddEmptyValue("num_coupling_iterations").SetInt(3)
+
+        self.cosim_parameters["solver_settings"].AddValue("convergence_criteria", KM.Parameters("""[
+            {
+                "type"          : "relative_norm_previous_residual",
+                "solver"        : "helpers_dummy_kratos_solver",
+                "data_name"     : "interface_pressure"
+            }
+        ]"""))
 
     def execute_test(self):
         if self.start_external_solver:
