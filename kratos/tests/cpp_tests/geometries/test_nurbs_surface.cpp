@@ -151,6 +151,34 @@ namespace Testing {
             points, p, q, knot_u, knot_v);
     }
 
+    Geometry<Node<3>>::Pointer GenerateReferenceNodeSurfacePointer() {
+        PointerVector<NodeType> points;
+
+        points.push_back(NodeType::Pointer(new NodeType(1, 0, 5, 0)));
+        points.push_back(NodeType::Pointer(new NodeType(2, 5, 5, 0)));
+        points.push_back(NodeType::Pointer(new NodeType(3, 10, 5, -4)));
+        points.push_back(NodeType::Pointer(new NodeType(4, 0, 0, 0)));
+        points.push_back(NodeType::Pointer(new NodeType(5, 5, 0, 0)));
+        points.push_back(NodeType::Pointer(new NodeType(6, 10, 0, -4)));
+
+        Vector knot_u = ZeroVector(4);
+        knot_u[0] = 0.0;
+        knot_u[1] = 0.0;
+        knot_u[2] = 10.0;
+        knot_u[3] = 10.0;
+        Vector knot_v = ZeroVector(2);
+        knot_v[0] = 0.0;
+        knot_v[1] = 5.0;
+
+        int p = 2;
+        int q = 1;
+
+        Geometry<Node<3>>::Pointer p_this_nurbs_surface Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(
+            points, p, q, knot_u, knot_v);
+
+        return p_this_nurbs_surface;
+    }
+
     NurbsSurfaceGeometry<3, PointerVector<Point>> GenerateReferenceQuarterSphereGeometry()
     {
         NurbsSurfaceGeometry<3, PointerVector<Point>>::PointsArrayType points;
@@ -407,6 +435,24 @@ namespace Testing {
         KRATOS_CHECK_NEAR(result[0], 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(result[1], 4.0, TOLERANCE);
         KRATOS_CHECK_NEAR(result[2], 0.0, TOLERANCE);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceNode, KratosCoreNurbsGeometriesFastSuite) {
+        auto p_surface = GenerateReferenceNodeSurfacePointer();
+
+        // Check general information, input to ouput
+        KRATOS_CHECK_EQUAL(p_surface->Dimension(), 2);
+        KRATOS_CHECK_EQUAL(p_surface->WorkingSpaceDimension(), 3);
+        KRATOS_CHECK_EQUAL(p_surface->LocalSpaceDimension(), 2);
+        KRATOS_CHECK_EQUAL(p_surface->PointsNumber(), 6);
+
+        array_1d<double, 3> parameter(0.0);
+        parameter[0] = 10.0;
+        parameter[1] = 3.5;
+        array_1d<double, 3> result(0.0);
+
+        p_surface->GlobalCoordinates(result, parameter);
+        KRATOS_CHECK_VECTOR_NEAR(result, { 10.0, 1.5, -4.0 }, TOLERANCE);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsQuarterSphereSurface, KratosCoreNurbsGeometriesFastSuite) {
