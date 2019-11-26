@@ -478,7 +478,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         elasticity_tensor[4, 4] = c4
         elasticity_tensor[5, 5] = c4
 
-        #apply anisotropic user-provided material properties
+        #apply isotropic user-provided material properties
         claw = StructuralMechanicsApplication.UserProvidedLinearElastic3DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, claw)
         mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.ELASTICITY_TENSOR, elasticity_tensor)
