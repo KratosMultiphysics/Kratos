@@ -36,10 +36,6 @@ public:
     /// Destruct the manager, finalizing MPI in the process.
     ~MPIManager() override;
 
-    /// Create a MPIManager instance.
-    /** This initializes MPI if it is not initialized yet. */
-    static MPIManager::Pointer Create();
-
     /// Query MPI initialization status.
     /** returns false if MPI_Initialized would return 0, true otherwise. */
     bool IsInitialized() const override;
@@ -48,6 +44,13 @@ public:
     /** returns false if MPI_Finalized would return 0, true otherwise. */
     bool IsFinalized() const override;
 private:
+
+    friend class MPIDataCommunicator;
+    
+    /// Create a MPIManager instance.
+    /** This initializes MPI if it is not initialized yet. */
+    static MPIManager::Pointer Create();
+
     MPIManager();
 };
 
