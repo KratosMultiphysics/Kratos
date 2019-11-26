@@ -54,6 +54,8 @@
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 #include "geometries/quadrature_point_geometry.h"
+#include "geometries/nurbs_surface_geometry.h"
+#include "geometries/nurbs_curve_geometry.h"
 
 /* Factories */
 #include "factories/standard_linear_solver_factory.h"
@@ -315,6 +317,22 @@ void KratosApplication::RegisterKratosCore() {
 
     QuadraturePointGeometry< NodeType, 2, 1 > QuadraturePointGeometryCurve2dPrototype(GeometryType::PointsArrayType(1));
     Serializer::Register("QuadraturePointGeometryCurve2d", QuadraturePointGeometryCurve2dPrototype);
+
+    //NurbsGeometry:
+    NurbsSurfaceGeometry<3, NodeType> NurbsSurfaceGeometry3dPrototype(GeometryType());
+    Serializer::Register("NurbsSurfaceGeometry3d", NurbsSurfaceGeometry3dPrototype);
+
+    NurbsSurfaceGeometry<2, NodeType> NurbsSurfaceGeometry2dPrototype(GeometryType());
+    Serializer::Register("NurbsSurfaceGeometry2d", NurbsSurfaceGeometry2dPrototype);
+
+    NurbsCurveGeometry<3, NodeType> NurbsCurveGeometry3dPrototype(GeometryType());
+    Serializer::Register("NurbsCurveGeometry3d", NurbsCurveGeometry3dPrototype);
+
+    NurbsCurveGeometry<2, NodeType> NurbsCurveGeometry2dPrototype(GeometryType());
+    Serializer::Register("NurbsCurveGeometry2d", NurbsCurveGeometry2dPrototype);
+
+    NurbsCurveGeometry<1, NodeType> NurbsCurveGeometry1dPrototype(GeometryType());
+    Serializer::Register("NurbsCurveGeometry1d", NurbsCurveGeometry1dPrototype);
 
     // Register flags:
     KRATOS_REGISTER_FLAG(STRUCTURE);
