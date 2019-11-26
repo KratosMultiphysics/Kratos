@@ -18,12 +18,11 @@ class SPTest(DEM_material_test_script.MaterialTest):
   def Initialize(self):
     self.PrepareTests()
     self.PrepareTestSandP()
-    #self.DefineBoundaries()
+
 
   def PrepareTestSandP(self):
 
-        self.alpha_lat = self.perimeter/(self.xlat_area)
-        print(self.alpha_lat)
+    self.alpha_lat = self.perimeter/(self.xlat_area)
 
 
   def PrepareTests(self):
@@ -40,7 +39,7 @@ class SPTest(DEM_material_test_script.MaterialTest):
 
 
   def CircularSkinDetermination(self):
-        print("CircularSkinDetermination")
+
         # Cylinder dimensions
         d = self.diameter
         eps = 2.0
@@ -51,7 +50,6 @@ class SPTest(DEM_material_test_script.MaterialTest):
         for element in self.spheres_model_part.Elements:
           element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 0)
           node = element.GetNode(0)
-          print(node)
           r = node.GetSolutionStepValue(RADIUS)
           x = node.X
           y = node.Y
@@ -63,9 +61,6 @@ class SPTest(DEM_material_test_script.MaterialTest):
               element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
               self.LAT.append(node)
               self.xlat_area = self.xlat_area + cross_section
-        print(len(self.LAT))
-        print(self.perimeter)
-        print(self.xlat_area)
 
         if(len(self.LAT)==0):
             self.Procedures.KratosPrintWarning("ERROR! in Circular Skin Determination - NO LATERAL PARTICLES" + "\n")
@@ -79,7 +74,6 @@ class SPTest(DEM_material_test_script.MaterialTest):
 
     if self.test_type == "SandP":
       average_zstress_value = self.aux.ComputeAverageZStressFor2D(self.spheres_model_part)
-      print (average_zstress_value)
       self.ApplyLateralStress(average_zstress_value, self.LAT, self.alpha_lat)
 
 
