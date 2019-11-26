@@ -97,18 +97,20 @@ class CFLOutputProcess(KratosMultiphysics.Process):
             if (self.model_part.GetCommunicator().MyPID() == 0):
                 output = self._SummarizeCFL(cfl_value)
                 output_vals = [format(val, self.format) for val in output]
-                
+
                 # not formatting time in order to not lead to problems with time recognition
                 # in the file writer when restarting
                 output_vals.insert(0, str(current_time))
 
-                res_labels = ["time: ", "mean: ", "std: ", "max: ", "cfl"+ "{:.1f}".format(self.cfl_threshold) + ": ", "cfl1.0: "]
+                res_labels = ["time: ", "mean: ", "std: ", "max: ", "cfl" +
+                              "{:.1f}".format(self.cfl_threshold) + ": ", "cfl1.0: "]
 
                 if (self.print_to_screen):
-  
+
                     result_msg = 'CFL evaluation for model part ' + \
                         self.model_part_name + '\n'
-                    result_msg += ', '.join([a+b for a,b in zip(res_labels, output_vals)])
+                    result_msg += ', '.join([a+b for a,
+                                             b in zip(res_labels, output_vals)])
                     self._PrintToScreen(result_msg)
 
                 if (self.write_output_file):
@@ -119,8 +121,10 @@ class CFLOutputProcess(KratosMultiphysics.Process):
             self.output_file.close()
 
     def _GetFileHeader(self):
-        header = '# CFL for model part ' + self.model_part_name + '| CFL_threshold: ' + str(self.cfl_threshold) + '\n'
-        header += '# Time Mean Std Max HowMany>' + "{:.1f}".format(self.cfl_threshold) + ' [%] HowMany>1.0 [%]\n'
+        header = '# CFL for model part ' + self.model_part_name + \
+            '| CFL_threshold: ' + str(self.cfl_threshold) + '\n'
+        header += '# Time Mean Std Max HowMany>' + \
+            "{:.1f}".format(self.cfl_threshold) + ' [%] HowMany>1.0 [%]\n'
         return header
 
     def _PrintToScreen(self, result_msg):
@@ -133,13 +137,15 @@ class CFLOutputProcess(KratosMultiphysics.Process):
 
         y = [val for val in x if val < self.cfl_threshold]
         y1 = [val for val in x if val < 1.0]
-        how_many = ((len(x)-len(y))/len(x))*100  # % of element with cfl above threshold
-        how_many1 = ((len(x)-len(y1))/len(x))*100  # % of element with cfl above 1
+        # % of element with cfl above threshold
+        how_many = ((len(x)-len(y))/len(x))*100
+        # % of element with cfl above 1
+        how_many1 = ((len(x)-len(y1))/len(x))*100
 
         # quantifying the mean and std for values below the threshold
         y_mean = mean(y)
         y_std = stdev(y)
-        
+
         # qunatifying the global max
         x_max = max(x)
         return [y_mean, y_std, x_max, how_many, how_many1]
@@ -152,7 +158,7 @@ class CFLOutputProcess(KratosMultiphysics.Process):
             KratosCFD.EstimateDtUtility3D.CalculateLocalCFL(self.model_part)
 
         local_cfl = []
-        for elem in self.model_part.Elements:           
+        for elem in self.model_part.Elements:
             local_cfl.append(elem.GetValue(KratosMultiphysics.CFL_NUMBER))
 
         if (self.model_part.GetCommunicator().TotalProcesses() > 1):
@@ -163,11 +169,12 @@ class CFLOutputProcess(KratosMultiphysics.Process):
         return local_cfl
 
     def _SummarizeCFL(self, local_cfl):
-        
+
         global_cfl = []
         for k in local_cfl:
             global_cfl.extend(k)
 
-        cfl_mean, cfl_std, cfl_max, cfl_how_many, cfl_how_many1 = self._CalculateWithRespectToThreshold(global_cfl)
+        cfl_mean, cfl_std, cfl_max, cfl_how_many, cfl_how_many1 = self._CalculateWithRespectToThreshold(
+            global_cfl)
 
         return [cfl_mean, cfl_std, cfl_max, cfl_how_many, cfl_how_many1]
