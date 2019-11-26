@@ -19,6 +19,7 @@ class TestCoSimIODummySolvers(KratosUnittest.TestCase):
         self.echo_level_ext_solver = 2 # can be added to each test if desired
 
     def test_weak_coupling_Cpp_solver(self):
+        self.skipTest("This test is not finished")
         self.name_executable = "dummy_solver_cpp"
         self.execute_test_weak_coupling()
 
@@ -28,48 +29,59 @@ class TestCoSimIODummySolvers(KratosUnittest.TestCase):
         self.execute_test_weak_coupling()
 
     def test_strong_coupling_Cpp_solver(self):
+        self.skipTest("This test is not finished")
         self.name_executable = "dummy_solver_cpp"
         self.execute_test_strong_coupling()
 
     def test_co_sim_orchestrated_weak_coupling_Cpp_solver(self):
+        self.skipTest("This test is not finished")
         self.name_executable = "dummy_solver_cpp"
         self.execute_test_co_sim_orchestrated_weak_coupling()
 
     def test_co_sim_orchestrated_strong_coupling_Cpp_solver(self):
+        self.skipTest("This test is not finished")
         self.name_executable = "dummy_solver_cpp"
         self.execute_test_co_sim_orchestrated_strong_coupling()
 
 
     def test_weak_coupling_C_solver(self):
+        self.skipTest("This test is not finished")
         self.name_executable = "dummy_solver_c"
         self.execute_test_weak_coupling()
 
     def test_strong_coupling_C_solver(self):
+        self.skipTest("This test is not finished")
         self.name_executable = "dummy_solver_c"
         self.execute_test_strong_coupling()
 
     def test_co_sim_orchestrated_weak_coupling_C_solver(self):
+        self.skipTest("This test is not finished")
         self.name_executable = "dummy_solver_c"
         self.execute_test_co_sim_orchestrated_weak_coupling()
 
     def test_co_sim_orchestrated_strong_coupling_C_solver(self):
+        self.skipTest("This test is not finished")
         self.name_executable = "dummy_solver_c"
         self.execute_test_co_sim_orchestrated_strong_coupling()
 
 
     def test_weak_coupling_Fortran_solver(self):
+        self.skipTest("This test is not finished")
         self.name_executable = "dummy_solver_fortran"
         self.execute_test_weak_coupling()
 
     def test_strong_coupling_Fortran_solver(self):
+        self.skipTest("This test is not finished")
         self.name_executable = "dummy_solver_fortran"
         self.execute_test_strong_coupling()
 
     def test_co_sim_orchestrated_weak_coupling_Fortran_solver(self):
+        self.skipTest("This test is not finished")
         self.name_executable = "dummy_solver_fortran"
         self.execute_test_co_sim_orchestrated_weak_coupling()
 
     def test_co_sim_orchestrated_strong_coupling_Fortran_solver(self):
+        self.skipTest("This test is not finished")
         self.name_executable = "dummy_solver_fortran"
         self.execute_test_co_sim_orchestrated_strong_coupling()
 
@@ -115,8 +127,7 @@ class TestCoSimIODummySolvers(KratosUnittest.TestCase):
 
     def execute_test(self):
         if self.start_external_solver:
-            # CoSimulationAnalysis(self.cosim_parameters).Run()
-            pass
+            CoSimulationAnalysis(self.cosim_parameters).Run()
         else:
             subprocess_cmd = [self.external_solver_start_command, str(self.coupling_level), str(self.echo_level_ext_solver)]
             p = subprocess.Popen(subprocess_cmd)

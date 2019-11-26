@@ -16,6 +16,7 @@ from co_simulation_test_factory import TestCoSimulationCases
 from test_mok_fsi import TestMokFSI
 from test_function_callback_utility import TestGenericCallFunction
 from test_ping_pong_coupling import TestPingPong
+from test_co_sim_io_dummy_solvers import TestCoSimIODummySolvers
 if numpy_available:
     from test_coupling_interface_data import TestCouplingInterfaceData
     from test_data_transfer_operators import TestDataTransferOperators
@@ -70,6 +71,7 @@ def AssembleTestSuites():
     validationSuite.addTest(TestMokFSI('test_mok_fsi_mvqn_external_structure'))
     if not using_pykratos and numpy_available:
         validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFLOWerCoupling]))
+        validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIODummySolvers]))
 
     ################################################################################
     # Create a test suit that contains all the tests:
