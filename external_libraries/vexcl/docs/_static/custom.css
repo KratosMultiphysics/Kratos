@@ -1,0 +1,31 @@
+.label {
+    color: black;
+}
+
+table.citation td {
+    float: left;
+    min-width: 5%;
+    max-width: 90%;
+}
+
+pre, dl.class, dl.type, dl.function, dl.macro, dl.member {
+    box-shadow: 0px 1px 6px 1px lightgray;
+}
+
+dl.class, dl.type, dl.function, dl.macro, dl.member {
+    padding: 5px;
+}
+
+.breathe-sectiondef {
+    width: auto;
+}
+
+pre {
+    overflow: auto;
+    word-wrap: normal;
+    white-space: pre;
+}
+
+.table col {
+    width: auto;
+}

@@ -15,7 +15,7 @@ namespace Kratos {
 
         DEM_Dempack_dev() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         ~DEM_Dempack_dev() {
         }
@@ -74,7 +74,8 @@ namespace Kratos {
                 SphericContinuumParticle* element1,
                 SphericContinuumParticle* element2,
                 int i_neighbour_count,
-                int time_steps) override;
+                int time_steps,
+            const ProcessInfo& r_process_info) override;
 
         void AddContributionOfShearStrainParallelToBond(double OldLocalElasticContactForce[3],
                                                     double LocalElasticExtraContactForce[3],
@@ -102,7 +103,7 @@ namespace Kratos {
         void AddPoissonContribution(const double equiv_poisson,
                                     double LocalCoordSystem[3][3],
                                     double& normal_force,
-                                    double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1,
+                                    double calculation_area, BoundedMatrix<double, 3, 3>* mSymmStressTensor, SphericContinuumParticle* element1,
                                     SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation) override;
 
     private:

@@ -319,27 +319,6 @@ struct HPX {
 //---------------------------------------------------------------------------
 // Backend interface implementation
 //---------------------------------------------------------------------------
-template < typename real >
-struct rows_impl< hpx_matrix<real> > {
-    static size_t get(const hpx_matrix<real> &A) {
-        return A.rows();
-    }
-};
-
-template < typename real >
-struct cols_impl< hpx_matrix<real> > {
-    static size_t get(const hpx_matrix<real> &A) {
-        return A.cols();
-    }
-};
-
-template < typename real >
-struct nonzeros_impl< hpx_matrix<real> > {
-    static size_t get(const hpx_matrix<real> &A) {
-        return A.nonzeros();
-    }
-};
-
 template < typename Alpha, typename Beta, typename real >
 struct spmv_impl<
     Alpha, hpx_matrix<real>, hpx_vector<real>,

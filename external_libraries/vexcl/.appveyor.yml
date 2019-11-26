@@ -1,0 +1,47 @@
+environment:
+    matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      GENERATOR: Visual Studio 15 2017 Win64
+      BOOST_ROOT: C:\Libraries\boost_1_67_0
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      GENERATOR: Visual Studio 14 2015 Win64
+      BOOST_ROOT: C:\Libraries\boost_1_63_0
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu1804
+      GENERATOR: Unix Makefiles
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu1604
+      GENERATOR: Unix Makefiles
+
+before_build:
+  # Install OpenCL headers and libraries
+  - set NUGETDIR=C:\NUGET
+  - nuget install opencl-nug -Version 0.777.77 -OutputDirectory %NUGETDIR%
+  - dir %NUGETDIR%\opencl-nug.0.777.77\build\native\
+  - set OCL_ROOT=%NUGETDIR%\opencl-nug.0.777.77\build\native
+  # Install OpenCL Runtime
+  - choco install opencl-intel-cpu-runtime
+  # Check if it's working
+  - ps: appveyor DownloadFile "https://ci.appveyor.com/api/projects/oblomov/clinfo/artifacts/clinfo.exe?job=platform:+x64" -FileName clinfo.exe
+
+build_script:
+  - cmd: .\clinfo
+  - sh: clinfo
+  - mkdir build && cd build
+  - cmd: cmake .. -G"%GENERATOR%" -DVEXCL_BUILD_EXAMPLES=ON -DVEXCL_BUILD_TESTS=ON
+  - sh: cmake .. -G"$GENERATOR" -DVEXCL_BUILD_EXAMPLES=ON -DVEXCL_BUILD_TESTS=ON
+  - cmake --build . --config Release
+
+test_script:
+  - ctest -C Release --output-on-failure
+
+
+for:
+-
+  matrix:
+    only:
+    - GENERATOR: Unix Makefiles
+
+  before_build:
+  - sudo apt-get update
+  - sudo apt-get install libboost-all-dev -y
+  - sudo apt-get install ocl-icd-opencl-dev opencl-headers clinfo -y
+  - source .travis/opencl_install.sh

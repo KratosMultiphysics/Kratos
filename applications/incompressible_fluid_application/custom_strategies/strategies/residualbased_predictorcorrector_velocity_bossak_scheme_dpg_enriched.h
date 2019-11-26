@@ -169,7 +169,7 @@ public:
     ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched
            (double NewAlphaBossak, double MoveMeshStrategy,unsigned int DomainSize)
         : ResidualBasedPredictorCorrectorVelocityBossakScheme<TSparseSpace, TDenseSpace>(NewAlphaBossak,MoveMeshStrategy),
-          mRotationTool(DomainSize,DomainSize+1,IS_STRUCTURE,0.0)
+          mRotationTool(DomainSize,DomainSize+1,SLIP)
     {
 
         std::cout << "using the ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched" << std::endl;

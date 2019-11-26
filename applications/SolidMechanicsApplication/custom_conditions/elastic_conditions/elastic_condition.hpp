@@ -52,7 +52,7 @@ public:
     typedef GeometryData::SizeType SizeType;
 
     // Counted pointer of ElasticCondition
-    KRATOS_CLASS_POINTER_DEFINITION( ElasticCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( ElasticCondition );
 
     ///@}
     ///@name Life Cycle

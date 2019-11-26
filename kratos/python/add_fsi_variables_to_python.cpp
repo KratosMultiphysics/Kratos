@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
 //  Main authors:   Jordi Cotela
 //                  Ruben Zorrilla
@@ -20,8 +20,6 @@
 #include "includes/define_python.h"
 #include "includes/fsi_variables.h"
 #include "python/add_fsi_variables_to_python.h"
-
-
 
 namespace Kratos
 {
@@ -45,7 +43,8 @@ void  AddFSIVariablesToPython(pybind11::module& m)
   KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,MAPPER_VECTOR_PROJECTION_RHS);
   KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,VAUX_EQ_TRACTION);
   KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,VECTOR_PROJECTED);
-  KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,RELAXED_DISP);
+  KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,RELAXED_DISPLACEMENT);
+  KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,OLD_RELAXED_DISPLACEMENT);
   KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,FSI_INTERFACE_RESIDUAL);
   KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,FSI_INTERFACE_MESH_RESIDUAL);
   KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,POSITIVE_MAPPED_VECTOR_VARIABLE);

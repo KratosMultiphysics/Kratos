@@ -18,7 +18,7 @@
 
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/fluid_element_data.h"
-#include "custom_utilities/element_size_calculator.h"
+#include "utilities/element_size_calculator.h"
 
 namespace Kratos {
 
@@ -101,7 +101,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     bdf1 = BDFVector[1];
     bdf2 = BDFVector[2];
 
-    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::AverageElementSize(r_geometry);
+    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);
 
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
     noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));

@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 
@@ -150,17 +150,17 @@ public:
 
     virtual void GenerateModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Element const& rReferenceElement, Condition const& rReferenceBoundaryCondition)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "This modeler CAN NOT be used for mesh generation.", "");
+        KRATOS_ERROR << "This modeler CAN NOT be used for mesh generation." << std::endl;
     }
 
     virtual void GenerateMesh(ModelPart& ThisModelPart, Element const& rReferenceElement, Condition const& rReferenceBoundaryCondition)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "This modeler CAN NOT be used for mesh generation.", "");
+        KRATOS_ERROR << "This modeler CAN NOT be used for mesh generation." << std::endl;
     }
 
     virtual void GenerateNodes(ModelPart& ThisModelPart)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "This modeler CAN NOT be used for node generation.", "");
+        KRATOS_ERROR << "This modeler CAN NOT be used for node generation." << std::endl;
     }
 
     ///@}
@@ -314,6 +314,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MODELER_H_INCLUDED  defined 
+#endif // KRATOS_MODELER_H_INCLUDED  defined
 
 

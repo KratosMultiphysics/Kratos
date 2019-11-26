@@ -137,6 +137,10 @@ namespace Kratos {
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         SendProcessInfoToClustersModelPart();
 
+        if (r_model_part.GetCommunicator().MyPID() == 0) {
+            KRATOS_INFO("DEM") << "------------------DISCONTINUUM SOLVER STRATEGY---------------------" << "\n" << std::endl;
+        }
+
         mNumberOfThreads = OpenMPUtils::GetNumThreads();
         DisplayThreadInfo();
 
@@ -154,6 +158,7 @@ namespace Kratos {
         GetSearchControl() = r_process_info[SEARCH_CONTROL];
 
         InitializeDEMElements();
+
         InitializeFEMElements();
         UpdateMaxIdOfCreatorDestructor();
         InitializeClusters(); // This adds elements to the balls modelpart
@@ -162,7 +167,6 @@ namespace Kratos {
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
 
         InitializeSolutionStep();
-
         ApplyInitialConditions();
 
         // Search Neighbours and related operations
@@ -235,10 +239,18 @@ namespace Kratos {
 
         #pragma omp parallel for schedule(dynamic, 100)
         for (int i = 0; i < number_of_particles; i++) {
-            auto neighbour_walls = mListOfSphericParticles[i]->mNeighbourRigidFaces;
-            if (neighbour_walls.size()) {
-                if( neighbour_walls[0]->Is(DEMFlags::STICKY) ) {
-                    mListOfSphericParticles[i]->SwapIntegrationSchemeToGluedToWall(neighbour_walls[0]);
+            std::vector<DEMWall*>& neighbour_walls_vector = mListOfSphericParticles[i]->mNeighbourPotentialRigidFaces;
+            for (int j = 0; j<(int)neighbour_walls_vector.size(); j++) {
+                if( neighbour_walls_vector[j]->Is(DEMFlags::STICKY) ) {
+                    const bool is_inside = mListOfSphericParticles[i]->SwapIntegrationSchemeToGluedToWall(neighbour_walls_vector[j]);
+                    if(is_inside) {
+                        #pragma omp critical
+                        {
+                            neighbour_walls_vector[j]->GetVectorOfGluedParticles().push_back(mListOfSphericParticles[i]);
+                        }
+                        mListOfSphericParticles[i]->Set(DEMFlags::STICKY, true);
+                        break;
+                    }
                 }
             }
         }
@@ -288,6 +300,7 @@ namespace Kratos {
                 double& node_area = geometry[i].FastGetSolutionStepValue(DEM_NODAL_AREA);
                 node_area += 0.333333333333333 * Element_Area; //TODO: ONLY FOR TRIANGLE... Generalize for 3 or 4 nodes
             }
+
         }
 
         KRATOS_CATCH("")
@@ -432,16 +445,14 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    double ExplicitSolverStrategy::Solve() {
+    double ExplicitSolverStrategy::SolveSolutionStep() {
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
 
-        InitializeSolutionStep();
         SearchDEMOperations(r_model_part);
         SearchFEMOperations(r_model_part);
         ForceOperations(r_model_part);
         PerformTimeIntegrationOfMotion();
-        FinalizeSolutionStep();
 
         return 0.00;
 
@@ -665,7 +676,7 @@ namespace Kratos {
 
             #pragma omp for nowait
             for (int k = 0; k < (int) pGhostClusters.size(); k++) {
-                 ElementsArrayType::iterator it = pGhostClusters.ptr_begin() + k;
+                ElementsArrayType::iterator it = pGhostClusters.ptr_begin() + k;
                 Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
                 cluster_element.RigidBodyElement3D::Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
@@ -797,6 +808,7 @@ namespace Kratos {
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
 
         if (fem_model_part.NumberOfSubModelParts()) {
+
             for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
 
                 ModelPart& submp = *sub_model_part;
@@ -805,9 +817,10 @@ namespace Kratos {
                 #pragma omp parallel for
                 for (int i=0; i<(int)pTConditions.size(); i++) {
                     ConditionsArrayType::iterator it = pTConditions.ptr_begin() + i;
-                    (it)->Initialize();
+                    (it)->Initialize(r_process_info);
                 }
 
+                if (!r_process_info[IS_RESTARTED]){
                 // Central Node
                 Node<3>::Pointer central_node;
                 Geometry<Node<3> >::PointsArrayType central_node_list;
@@ -886,6 +899,20 @@ namespace Kratos {
 
                 rigid_body_element->Initialize(r_process_info);
                 rigid_body_element->CustomInitialize(submp);
+                }
+                else {
+
+                    // There is no need to create the rigid body elements, they already there
+                    // But they need to be initialized
+                    ElementsArrayType& pFemElements = fem_model_part.GetCommunicator().LocalMesh().Elements();
+
+                    for (int k = 0; k < (int) pFemElements.size(); k++) {
+                        ElementsArrayType::iterator it = pFemElements.ptr_begin() + k;
+                        RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
+                        rigid_body_element.Initialize(r_process_info);
+                        rigid_body_element.CustomInitialize(submp);
+                    }
+                }
             }
         }
 
@@ -901,7 +928,7 @@ namespace Kratos {
 
         Vector rhs_cond;
         Vector rhs_cond_elas;
-        DenseVector<unsigned int> condition_partition;
+        std::vector<unsigned int> condition_partition;
         OpenMPUtils::CreatePartition(mNumberOfThreads, pConditions.size(), condition_partition);
         unsigned int index;
 
@@ -935,6 +962,7 @@ namespace Kratos {
                     array_1d<double, 3>& node_rhs_tang = geom[i].FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
                     double& node_pressure = geom[i].FastGetSolutionStepValue(DEM_PRESSURE);
                     array_1d<double, 3> rhs_cond_comp;
+                    noalias(rhs_cond_comp) = ZeroVector(3);
 
                     geom[i].SetLock();
 
@@ -997,8 +1025,10 @@ namespace Kratos {
             double& shear_stress = i->FastGetSolutionStepValue(SHEAR_STRESS);
             array_1d<double, 3>& node_rhs_tang = i->FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
 
-            node_pressure = node_pressure / node_area;
-            shear_stress = GeometryFunctions::module(node_rhs_tang) / node_area;
+            if (node_area > 0.0){
+                node_pressure = node_pressure / node_area;
+                shear_stress = GeometryFunctions::module(node_rhs_tang) / node_area;
+            }
         }
         KRATOS_CATCH("")
     }
@@ -1394,13 +1424,12 @@ namespace Kratos {
 
         #pragma omp parallel
         {
-            DenseVector<int> mTempNeighboursIds;
-            std::vector<array_1d<double, 3> > mTempNeighbourElasticContactForces;
-            std::vector<array_1d<double, 3> > mTempNeighbourTotalContactForces;
+            DenseVector<int> temp_neighbours_ids;
+            std::vector<array_1d<double, 3> > temp_neighbour_elastic_contact_forces;
 
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
-                mListOfSphericParticles[i]->ComputeNewNeighboursHistoricalData(mTempNeighboursIds, mTempNeighbourElasticContactForces);
+                mListOfSphericParticles[i]->ComputeNewNeighboursHistoricalData(temp_neighbours_ids, temp_neighbour_elastic_contact_forces);
             }
         }
 
@@ -1527,8 +1556,9 @@ namespace Kratos {
         KRATOS_TRY
         //CONTACT MODEL PART
         ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
-        DenseVector<unsigned int> contact_element_partition;
+        std::vector<unsigned int> contact_element_partition;
         OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
+        const ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
 
         #pragma omp parallel for
         for (int k = 0; k < mNumberOfThreads; k++) {
@@ -1536,7 +1566,7 @@ namespace Kratos {
             ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
 
             for (ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
-                (it_contact)->Initialize();
+                (it_contact)->Initialize(r_process_info);
             } //loop over CONTACT ELEMENTS
         }// loop threads OpenMP
 
@@ -1547,7 +1577,7 @@ namespace Kratos {
     //     ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
     //     ProcessInfo& r_process_info = (*mpContact_model_part).GetProcessInfo();
 
-    //     DenseVector<unsigned int> contact_element_partition;
+    //     std::vector<unsigned int> contact_element_partition;
 
     //     OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
     //     #pragma omp parallel for
@@ -1566,7 +1596,7 @@ namespace Kratos {
     void ExplicitSolverStrategy::PrepareContactElementsForPrinting() {
 
         ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
-        DenseVector<unsigned int> contact_element_partition;
+        std::vector<unsigned int> contact_element_partition;
 
         OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
 
@@ -1784,7 +1814,7 @@ namespace Kratos {
         ProcessInfo& r_process_info = (*mpDem_model_part).GetProcessInfo();
         ElementsArrayType& pElements = (*mpDem_model_part).GetCommunicator().LocalMesh().Elements();
 
-        DenseVector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
 
         OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), element_partition);
 

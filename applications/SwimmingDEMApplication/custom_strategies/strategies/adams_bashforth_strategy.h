@@ -57,8 +57,8 @@ namespace Kratos {
         typedef BaseType::ElementsArrayType ElementsArrayType;
         typedef BaseType::ElementsIterator ElementsIterator;
         typedef BaseType::ConditionsArrayType ConditionsArrayType;
-        typedef WeakPointerVector<Element> ParticleWeakVectorType;
-        typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+        typedef GlobalPointersVector<Element> ParticleWeakVectorType;
+        typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
         typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 
         using BaseType::mpInlet_model_part;
@@ -84,8 +84,7 @@ namespace Kratos {
                 ParticleCreatorDestructor::Pointer p_creator_destructor,
                 DEM_FEM_Search::Pointer p_dem_fem_search,
                 SpatialSearch::Pointer pSpSearch,
-                Parameters strategy_parameters,
-                const bool do_search_balls = true):
+                Parameters strategy_parameters):
                 ExplicitSolverStrategy(settings,
                                        max_delta_time,
                                        n_step_search,
@@ -94,8 +93,7 @@ namespace Kratos {
                                        p_creator_destructor,
                                        p_dem_fem_search,
                                        pSpSearch,
-                                       strategy_parameters,
-                                       do_search_balls)
+                                       strategy_parameters)
         {
             mFirstStep = true;
             ExplicitSolverStrategy::GetParticleCreatorDestructor() = p_creator_destructor;
@@ -103,7 +101,7 @@ namespace Kratos {
         /// Destructor.
         virtual ~AdamsBashforthStrategy() {}
 
-        double Solve() override;
+        double SolveSolutionStep() override;
 
     protected:
 

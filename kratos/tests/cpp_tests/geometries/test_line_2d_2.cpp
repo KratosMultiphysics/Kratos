@@ -70,7 +70,20 @@ namespace Testing {
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D2EdgesNumber, KratosCoreGeometriesFastSuite) {
         auto geom = GeneratePointsUnitXDirectionLine2D2();
-        KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 2);
+        KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 1);
+    }
+
+    /** Checks if the edges are correct.
+    * Checks if the edges are correct.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2Edges, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GeneratePointsUnitXDirectionLine2D2();
+
+        const auto& r_edges = p_geom->GenerateEdges();
+        KRATOS_CHECK_NEAR((r_edges[0])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[0].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[1].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[1].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
     }
 
     /** Checks if the number of faces is correct.
@@ -78,7 +91,7 @@ namespace Testing {
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D2FacesNumber, KratosCoreGeometriesFastSuite) {
         auto geom = GeneratePointsUnitXDirectionLine2D2();
-        KRATOS_CHECK_EQUAL(geom->FacesNumber(), 2);
+        KRATOS_CHECK_EQUAL(geom->FacesNumber(), 0);
     }
 
     /** Checks if the length of the line is calculated correctly.
@@ -88,6 +101,21 @@ namespace Testing {
         auto geom = GeneratePointsDiagonalLine2D2();
 
         KRATOS_CHECK_NEAR(geom->Length(), std::sqrt(2.0), TOLERANCE);
+    }
+
+    /** Checks if the bounding box of the line is calculated correctly.
+    * Checks if the bounding box of the line is calculated correctly.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(BoundingBoxLine2D2, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GeneratePointsDiagonalLine2D2();
+
+        Point low_point, high_point;
+        p_geom->BoundingBox(low_point, high_point);
+
+        KRATOS_CHECK_NEAR(low_point.X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR(low_point.Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR(high_point.X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR(high_point.Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
     }
 
     /** Checks the inside test for a given point respect to the line
@@ -123,7 +151,7 @@ namespace Testing {
 
         // Compute the global coordinates of the baricentre
         const Geometry<Point>::PointsArrayType geom_pts = geom->Points();
-        Point centre = geom_pts[0] + geom_pts[1];
+        Point centre = Point{geom_pts[0] + geom_pts[1]};
         centre *= 1.0/2.0;
 
         // Compute the centre local coordinates
@@ -309,8 +337,8 @@ namespace Testing {
         KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 5.0/6.0, TOLERANCE);
         auto& r_geom = *geom;
         auto p_geom_nodes = Kratos::make_shared<Line2D2<Node<3>>>(
-        Kratos::make_shared<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
-        Kratos::make_shared<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
+        Kratos::make_intrusive<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
+        Kratos::make_intrusive<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
         );
         CrossCheckShapeFunctionsValues(*p_geom_nodes);
     }
@@ -338,8 +366,8 @@ namespace Testing {
         auto geom = GeneratePointsDiagonalLine2D2();
         auto& r_geom = *geom;
         auto p_geom_nodes = Kratos::make_shared<Line2D2<Node<3>>>(
-        Kratos::make_shared<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
-        Kratos::make_shared<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
+        Kratos::make_intrusive<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
+        Kratos::make_intrusive<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
         );
         TestAllShapeFunctionsLocalGradients(*p_geom_nodes);
     }

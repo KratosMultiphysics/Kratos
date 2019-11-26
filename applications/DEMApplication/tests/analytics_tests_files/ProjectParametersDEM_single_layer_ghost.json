@@ -21,6 +21,10 @@
 "RotationOption"                   : true,
 "CleanIndentationsOption"          : true,
 "RemoveBallsInEmbeddedOption"      : true,
+"solver_settings" : {
+    "strategy"                 : "sphere_strategy",
+    "RemoveBallsInitiallyTouchingWalls"          : false
+},
 
 "DeltaOption"                      : "Absolute",
 "SearchTolerance"                  : 0.0,

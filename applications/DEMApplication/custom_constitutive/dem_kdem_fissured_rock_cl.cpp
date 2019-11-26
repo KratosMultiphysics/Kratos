@@ -14,7 +14,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_KDEM_Fissured_Rock_CL::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEM_KDEM_Fissured_Rock_CL::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         KRATOS_INFO("DEM") << "Assigning DEM_KDEM_Fissured_Rock_CL to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
@@ -23,7 +23,7 @@ namespace Kratos {
 
         Properties& element1_props = element1->GetProperties();
         Properties& element2_props = element2->GetProperties();
-        const double mohr_coulomb_c = 1e6 * 0.5*(element1_props[INTERNAL_COHESION] + element2_props[INTERNAL_COHESION]);
+        const double mohr_coulomb_c = 0.5*(element1_props[INTERNAL_COHESION] + element2_props[INTERNAL_COHESION]);
 
         // calculation of equivalent young modulus
         double myYoung = element1->GetYoung();
@@ -52,7 +52,7 @@ namespace Kratos {
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 
         if (failure_type == 0) {
-            Matrix average_stress_tensor = ZeroMatrix(3,3);
+            BoundedMatrix<double, 3, 3> average_stress_tensor = ZeroMatrix(3,3);
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
                     average_stress_tensor(i,j) = 0.5 * ((*(element1->mSymmStressTensor))(i,j) + (*(element2->mSymmStressTensor))(i,j));
@@ -65,9 +65,9 @@ namespace Kratos {
             Properties& element1_props = element1->GetProperties();
             Properties& element2_props = element2->GetProperties();
 
-            double tension_limit = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin()); //N/m2
+            double tension_limit = 0.5 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2)); //N/m2
 
-            const double slope = 0.5 * (element1_props[TENSION_LIMIT_INCREASE_SLOPE] + element2_props[TENSION_LIMIT_INCREASE_SLOPE]);
+            const double slope = 0.5*(element1_props[TENSION_LIMIT_INCREASE_SLOPE] + element2_props[TENSION_LIMIT_INCREASE_SLOPE]);
 
             Vector ordered_principal_stresses(3);
             if(principal_stresses[1]>=principal_stresses[0]) {

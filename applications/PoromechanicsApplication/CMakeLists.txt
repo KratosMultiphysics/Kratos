@@ -42,6 +42,9 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/modified_mises_nonlocal_damage_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/modified_mises_nonlocal_damage_plane_strain_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/modified_mises_nonlocal_damage_plane_stress_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/history_linear_elastic_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/history_linear_elastic_plane_strain_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/history_linear_elastic_plane_stress_2D_law.cpp
 
     # Elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_element.cpp
@@ -71,7 +74,7 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
 
 if(${USE_PORO_MPI} MATCHES ON)
 
-    include_directories( ${CMAKE_SOURCE_DIR}/applications/trilinos_application )
+    include_directories( ${CMAKE_SOURCE_DIR}/applications/TrilinosApplication )
     include_directories(${TRILINOS_INCLUDE_DIR})
 
     ## Define python interface sources

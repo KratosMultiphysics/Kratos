@@ -101,6 +101,8 @@ public:
         KRATOS_TRY;
 
         const unsigned int domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
+        KRATOS_ERROR_IF(mrModelPart.NumberOfConditions() == 0) <<
+            "> Normal calculation requires surface or line conditions to be defined!" << std::endl;
         KRATOS_ERROR_IF((domain_size == 3 && mrModelPart.ConditionsBegin()->GetGeometry().size() == 2)) <<
             "> Normal calculation of 2-noded conditions in 3D domains is not possible!" << std::endl;
         CalculateAreaNormals(mrModelPart.Conditions(),domain_size);
@@ -330,7 +332,7 @@ private:
                 else if (cond_i.GetGeometry().PointsNumber() == 4)
                     CalculateNormal3DQuad(cond_i,An,v1,v2);
                 else
-                    KRATOS_ERROR << "> Calculation of surface normal not implemented for the given surface conditions!";
+                    KRATOS_ERROR << "Calculation of surface normal not implemented for the given surface conditions!";
             }
         }
 
@@ -407,7 +409,12 @@ private:
         {
             const array_1d<double,3>& area_normal = node_i.FastGetSolutionStepValue(NORMAL);
             array_3d& normalized_normal = node_i.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
-            noalias(normalized_normal) = area_normal/norm_2(area_normal);
+
+            const double norm2 = norm_2(area_normal);
+            KRATOS_ERROR_IF(norm2<1e-10) << "CalculateUnitNormals: Norm2 of normal for node "
+                << node_i.Id() << " is < 1e-10!" << std::endl;
+
+            noalias(normalized_normal) = area_normal/norm2;
         }
     }
 

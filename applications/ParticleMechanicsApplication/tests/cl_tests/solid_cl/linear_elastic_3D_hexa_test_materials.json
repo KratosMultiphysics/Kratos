@@ -1,10 +1,10 @@
 {
     "properties" : [{
-        "model_part_name" : "Parts_Parts_Auto1",
+        "model_part_name" : "Initial_MPM_Material.Parts_Parts_Auto1",
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "LinearElastic3DLaw"
+                "name" : "LinearElasticIsotropic3DLaw"
             },
             "Variables"        : {
                 "DENSITY"       : 1.0,

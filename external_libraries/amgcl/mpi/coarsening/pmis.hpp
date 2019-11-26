@@ -433,7 +433,7 @@ struct pmis {
 
         // 2. Apply PMIS algorithm to the symbolic square.
         ptrdiff_t n_undone = 0;
-        std::vector<ptrdiff_t> rem_state(Sp.recv.count(), undone);
+        std::vector<ptrdiff_t> rem_state(Sp.recv.count(), pmis::undone);
         std::vector<int>       rem_owner(Sp.recv.count(), -1);
         std::vector<ptrdiff_t> send_state(Sp.send.count());
         std::vector<int>       send_owner(Sp.send.count());
@@ -445,10 +445,10 @@ struct pmis {
             ptrdiff_t wr = S_rem.ptr[i+1] - S_rem.ptr[i];
 
             if (wl + wr == 1) {
-                loc_state[i] = deleted;
+                loc_state[i] = pmis::deleted;
                 ++n_undone;
             } else {
-                loc_state[i] = undone;
+                loc_state[i] = pmis::undone;
             }
 
             loc_owner[i] = -1;
@@ -477,7 +477,7 @@ struct pmis {
 
             if (n_undone) {
                 for(ptrdiff_t i = 0; i < n; ++i) {
-                    if (loc_state[i] != undone) continue;
+                    if (loc_state[i] != pmis::undone) continue;
 
                     if (S_rem.ptr[i+1] > S_rem.ptr[i]) {
                         // Boundary points
@@ -486,7 +486,7 @@ struct pmis {
                             int d,c;
                             std::tie(d,c) = Sp.remote_info(S_rem.col[j]);
 
-                            if (rem_state[c] == undone && Sp.recv.nbr[d] > comm.rank) {
+                            if (rem_state[c] == pmis::undone && Sp.recv.nbr[d] > comm.rank) {
                                 selectable = false;
                                 break;
                             }
@@ -503,7 +503,7 @@ struct pmis {
                         for(ptrdiff_t j = A_loc.ptr[i], e = A_loc.ptr[i+1]; j < e; ++j) {
                             ptrdiff_t c = A_loc.col[j];
                             if (c != i) {
-                                if (loc_state[c] == undone) --n_undone;
+                                if (loc_state[c] == pmis::undone) --n_undone;
                                 loc_owner[c] = comm.rank;
                                 loc_state[c] = id;
                             }
@@ -523,7 +523,7 @@ struct pmis {
                         // S gives removed neighbors
                         for(ptrdiff_t j = S_loc.ptr[i], e = S_loc.ptr[i+1]; j < e; ++j) {
                             ptrdiff_t c = S_loc.col[j];
-                            if (c != i && loc_state[c] == undone) {
+                            if (c != i && loc_state[c] == pmis::undone) {
                                 loc_owner[c] = comm.rank;
                                 loc_state[c] = id;
                                 --n_undone;
@@ -535,7 +535,7 @@ struct pmis {
                             int d,k;
                             std::tie(d,k) = Sp.remote_info(c);
 
-                            if (rem_state[k] == undone) {
+                            if (rem_state[k] == pmis::undone) {
                                 rem_state[k] = id;
                                 send_pts[d].push_back(c);
                                 send_pts[d].push_back(id);
@@ -553,8 +553,8 @@ struct pmis {
                         for(ptrdiff_t j = A_loc.ptr[i], e = A_loc.ptr[i+1]; j < e; ++j) {
                             ptrdiff_t c = A_loc.col[j];
 
-                            if (c != i && loc_state[c] != deleted) {
-                                if (loc_state[c] == undone) --n_undone;
+                            if (c != i && loc_state[c] != pmis::deleted) {
+                                if (loc_state[c] == pmis::undone) --n_undone;
                                 loc_owner[c] = comm.rank;
                                 loc_state[c] = id;
                                 nbr.push_back(c);
@@ -564,7 +564,7 @@ struct pmis {
                         for(ptrdiff_t k : nbr) {
                             for(ptrdiff_t j = A_loc.ptr[k], e = A_loc.ptr[k+1]; j < e; ++j) {
                                 ptrdiff_t c = A_loc.col[j];
-                                if (c != k && loc_state[c] == undone) {
+                                if (c != k && loc_state[c] == pmis::undone) {
                                     loc_owner[c] = comm.rank;
                                     loc_state[c] = id;
                                     --n_undone;
@@ -595,7 +595,7 @@ struct pmis {
                     ptrdiff_t c  = recv_pts[k] - Sp.loc_col_shift();
                     ptrdiff_t id = recv_pts[k+1];
 
-                    if (loc_state[c] == undone) --n_undone;
+                    if (loc_state[c] == pmis::undone) --n_undone;
 
                     loc_owner[c] = Sp.send.nbr[i];
                     loc_state[c] = id;
@@ -685,6 +685,13 @@ struct pmis {
                     loc_state[c] = id;
                 }
             }
+
+            for(size_t i = 0; i < Sp.recv.nbr.size(); ++i) {
+                int npts = send_pts[i].size();
+                MPI_Wait(&send_cnt_req[i], MPI_STATUS_IGNORE);
+                if (!npts) continue;
+                MPI_Wait(&send_pts_req[i], MPI_STATUS_IGNORE);
+            }
         }
 
         AMGCL_TOC("drop empty aggregates");
@@ -710,7 +717,7 @@ struct pmis {
 
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < n; ++i) {
-            if (state[i] == deleted) continue;
+            if (state[i] == pmis::deleted) continue;
 
             if (owner[i] == comm.rank) {
                 ++P_loc.ptr[i+1];
@@ -725,7 +732,7 @@ struct pmis {
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < n; ++i) {
             ptrdiff_t s = state[i];
-            if (s == deleted) continue;
+            if (s == pmis::deleted) continue;
 
             int d = owner[i];
             if (d == comm.rank) {

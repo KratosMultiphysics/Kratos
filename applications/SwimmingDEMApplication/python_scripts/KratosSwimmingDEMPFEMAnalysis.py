@@ -7,28 +7,29 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Kratos
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
-from KratosMultiphysics.DelaunayMeshingApplication import *
-from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.PfemFluidDynamicsApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
+import KratosMultiphysics as Kratos
+from KratosMultiphysics import Model, Parameters
+import KratosMultiphysics.FluidDynamicsApplication
+import KratosMultiphysics.DEMApplication
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
+import KratosMultiphysics.SolidMechanicsApplication
+import KratosMultiphysics.PfemFluidDynamicsApplication
+import KratosMultiphysics.ExternalSolversApplication
 
+from swimming_DEM_PFEM_analysis import SDEMPFEMAnalysis
 
-class Solution:
-    def __init__(self, model, algorithm = None, varying_parameters = Parameters("{}")):
-        self.model = model
-        self.alg = algorithm
+class SDEMPFEMAnalysisWithFlush(SDEMPFEMAnalysis):
+    def __init__(self, model, algorithm = None, parameters = Parameters("{}")):
+        with open('ProjectParameters.json','r') as parameter_file:
+                parameters = Parameters(parameter_file.read())
+        super(SDEMPFEMAnalysisWithFlush, self).__init__(model, parameters)
+    def __enter__ (self):
+        return self
 
-        if self.alg == None:
-            import swimming_DEM_PFEM_analysis
-            self.alg = swimming_DEM_PFEM_analysis.Algorithm(model, varying_parameters)
-
-    def Run(self):
-        return self.alg.Run()
+    def __exit__(self, exception_type, exception_value, traceback):
+        pass
 
 if __name__=="__main__":
     model = Model()
-    Solution(model).Run()
+    simulation = SDEMPFEMAnalysisWithFlush(model=model)
+    simulation.Run()

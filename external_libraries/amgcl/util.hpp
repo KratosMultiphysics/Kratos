@@ -33,6 +33,9 @@ THE SOFTWARE.
 
 #include <iostream>
 #include <iomanip>
+#include <iterator>
+#include <vector>
+#include <array>
 #include <string>
 #include <set>
 #include <complex>
@@ -58,10 +61,12 @@ THE SOFTWARE.
  * If AMGCL_PROFILING is undefined, then AMGCL_TIC and AMGCL_TOC are noop macros.
  */
 #ifdef AMGCL_PROFILING
-#  include <amgcl/profiler.hpp>
-#  define AMGCL_TIC(name) amgcl::prof.tic(name);
-#  define AMGCL_TOC(name) amgcl::prof.toc(name);
+#  if !defined(AMGCL_TIC) || !defined(AMGCL_TOC)
+#    include <amgcl/profiler.hpp>
+#    define AMGCL_TIC(name) amgcl::prof.tic(name);
+#    define AMGCL_TOC(name) amgcl::prof.toc(name);
 namespace amgcl { extern profiler<> prof; }
+#  endif
 #else
 #  ifndef AMGCL_TIC
 #    define AMGCL_TIC(name)
@@ -190,6 +195,44 @@ struct empty_params {
 
 } // namespace detail
 
+// Iterator range
+template <class Iterator>
+class iterator_range {
+    public:
+        typedef Iterator iterator;
+        typedef Iterator const_iterator;
+        typedef typename std::iterator_traits<Iterator>::value_type value_type;
+
+        iterator_range(Iterator b, Iterator e)
+            : b(b), e(e) {}
+
+        ptrdiff_t size() const {
+            return std::distance(b, e);
+        }
+
+        Iterator begin() const {
+            return b;
+        }
+
+        Iterator end() const {
+            return e;
+        }
+
+        const value_type& operator[](size_t i) const {
+            return b[i];
+        }
+
+        value_type& operator[](size_t i) {
+            return b[i];
+        }
+    private:
+        Iterator b, e;
+};
+
+template <class Iterator>
+iterator_range<Iterator> make_iterator_range(Iterator b, Iterator e) {
+    return iterator_range<Iterator>(b, e);
+}
 
 // N-dimensional dense matrix
 template <class T, int N>

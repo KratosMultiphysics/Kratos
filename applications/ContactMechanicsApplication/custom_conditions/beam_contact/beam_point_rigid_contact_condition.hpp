@@ -65,7 +65,7 @@ public:
 
     ///@{
     // Counted pointer of BeamPointRigidContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( BeamPointRigidContactCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BeamPointRigidContactCondition );
     ///@}
 
 protected:

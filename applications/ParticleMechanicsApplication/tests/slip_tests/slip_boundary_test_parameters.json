@@ -36,14 +36,15 @@
             "input_type"     : "mdpa",
             "input_filename" : "slip_tests/slip_boundary_test_Grid"
         },
-        "pressure_dofs"                      : false
+        "pressure_dofs"                      : false,
+        "auxiliary_variables_list"           : ["NORMAL","IS_STRUCTURE"]
     },
     "processes"        : {
         "constraints_process_list" : [{
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "model_part_name" : "Background_Grid.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0],
@@ -54,14 +55,14 @@
             "python_module" : "apply_mpm_slip_boundary_process",
             "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
             "Parameters"    : {
-                "model_part_name" : "Slip2D_Slip_Auto1"
+                "model_part_name" : "Background_Grid.Slip2D_Slip_Auto1"
             }
         },
         {
-            "python_module"   : "mpm_from_json_check_result_process",
+            "python_module"   : "particle_from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
             "help"                  : "",
-            "process_name"          : "ParticleMPMFromJsonCheckResultProcess",
+            "process_name"          : "ParticleFromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["MP_VELOCITY"],
                 "input_file_name"  : "slip_tests/slip_boundary_test_results.json",
@@ -77,7 +78,7 @@
             "Parameters"            : {
                 "check_variables"  : ["NORMAL"],
                 "input_file_name"  : "slip_tests/slip_boundary_test_results2.json",
-                "model_part_name"  : "Slip2D_Slip_Auto1",
+                "model_part_name"  : "Background_Grid.Slip2D_Slip_Auto1",
                 "time_frequency"   : 1.49
             }
         }],
@@ -94,10 +95,10 @@
         }]
     },
     "print_output_process" : [{
-        "python_module"   : "mpm_json_output_process",
+        "python_module"   : "particle_json_output_process",
         "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
         "help"                  : "",
-        "process_name"          : "ParticleMPMJsonOutputProcess",
+        "process_name"          : "ParticleJsonOutputProcess",
         "Parameters"            : {
             "gauss_points_output_variables"  : ["MP_VELOCITY"],
             "output_file_name"               : "slip_tests/slip_boundary_test_results.json",
@@ -113,7 +114,7 @@
         "Parameters"            : {
             "output_variables"  : ["NORMAL"],
             "output_file_name"  : "slip_tests/slip_boundary_test_results2.json",
-            "model_part_name"   : "Slip2D_Slip_Auto1",
+            "model_part_name"   : "Background_Grid.Slip2D_Slip_Auto1",
             "time_frequency"    : 1.49
         }
     }]

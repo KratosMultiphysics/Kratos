@@ -72,6 +72,84 @@ public:
     typedef DenseMatrix<Second_Order_Tensor> Matrix_Second_Tensor;
 
     /**
+     * This function returns rotation matrix from given normal vector and dimension
+     * @param rRotationMatrix: Rotation Matrix
+     * @param rNormalVector: Normal Vector at the material point condition
+     * @param Dimension: given dimension
+     */
+    static inline void GetRotationMatrix(
+        MatrixType& rRotationMatrix,
+        const VectorType& rNormalVector,
+        const unsigned int Dimension
+        )
+    {
+        if(Dimension == 2){
+            if (rRotationMatrix.size1() != 2 && rRotationMatrix.size2() != 2)
+                rRotationMatrix.resize(2,2,false);
+            noalias(rRotationMatrix) = IdentityMatrix(Dimension);
+
+            double aux = rNormalVector[0]*rNormalVector[0] + rNormalVector[1]*rNormalVector[1];
+            aux = std::sqrt(aux);
+            if (std::abs(aux) < std::numeric_limits<double>::epsilon()) aux = std::numeric_limits<double>::epsilon();
+
+            rRotationMatrix(0,0) =  rNormalVector[0]/aux;
+            rRotationMatrix(0,1) =  rNormalVector[1]/aux;
+            rRotationMatrix(1,0) = -rNormalVector[1]/aux;
+            rRotationMatrix(1,1) =  rNormalVector[0]/aux;
+        }
+        else if (Dimension == 3){
+            if (rRotationMatrix.size1() != 3 && rRotationMatrix.size2() != 3)
+                rRotationMatrix.resize(2,2,false);
+            noalias(rRotationMatrix) = IdentityMatrix(Dimension);
+
+            double aux = rNormalVector[0]*rNormalVector[0] + rNormalVector[1]*rNormalVector[1] + rNormalVector[2]*rNormalVector[2];
+            aux = std::sqrt(aux);
+            if (std::abs(aux) < std::numeric_limits<double>::epsilon()) aux = std::numeric_limits<double>::epsilon();
+
+            rRotationMatrix(0,0) = rNormalVector[0]/aux;
+            rRotationMatrix(0,1) = rNormalVector[1]/aux;
+            rRotationMatrix(0,2) = rNormalVector[2]/aux;
+
+            // Define the new coordinate system, where the first vector is aligned with the normal
+            // To choose the remaining two vectors, we project the first component of the cartesian base to the tangent plane
+            Vector rT1 = ZeroVector(3);
+            rT1(0) = 1.0;
+            rT1(1) = 0.0;
+            rT1(2) = 0.0;
+            double dot = rRotationMatrix(0,0); //this->Dot(rN,rT1);
+
+            // It is possible that the normal is aligned with (1,0,0), resulting in norm(rT1) = 0
+            // If this is the case, repeat the procedure using (0,1,0)
+            if ( std::abs(dot) > 0.99 )
+            {
+                rT1(0) = 0.0;
+                rT1(1) = 1.0;
+                rT1(2) = 0.0;
+
+                dot = rRotationMatrix(0,1); //this->Dot(rN,rT1);
+            }
+
+            // Calculate projection and normalize
+            rT1[0] -= dot*rRotationMatrix(0,0);
+            rT1[1] -= dot*rRotationMatrix(0,1);
+            rT1[2] -= dot*rRotationMatrix(0,2);
+            ParticleMechanicsMathUtilities<double>::Normalize(rT1);
+
+            rRotationMatrix(1,0) = rT1[0];
+            rRotationMatrix(1,0) = rT1[1];
+            rRotationMatrix(1,0) = rT1[2];
+
+            // The third base component is choosen as N x T1, which is normalized by construction
+            rRotationMatrix(2,0) = rRotationMatrix(0,1)*rT1[2] - rRotationMatrix(0,2)*rT1[1];
+            rRotationMatrix(2,1) = rRotationMatrix(0,2)*rT1[0] - rRotationMatrix(0,0)*rT1[2];
+            rRotationMatrix(2,2) = rRotationMatrix(0,0)*rT1[1] - rRotationMatrix(0,1)*rT1[0];
+        }
+        else{
+            KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
+        }
+    }
+
+    /**
      * Calculates the radius of axisymmetry
      * @param N: The Gauss Point shape function
      * @param Geom: The geometry studied
@@ -148,52 +226,52 @@ public:
             KRATOS_ERROR<<" GIVEN MATRIX IS NOT A SQUARE MATRIX: QRFactorization calculation"<<std::endl;
 
         // QR Factorization with Householder-Algorithm
-        unsigned int dim= A.size1();
+        unsigned int dimension= A.size1();
 
-        Vector y(dim);
+        Vector y(dimension);
 
-        Vector w(dim);
+        Vector w(dimension);
 
-        R.resize(dim,dim,false);
+        R.resize(dimension,dimension,false);
 
-        noalias(R)=ZeroMatrix(dim, dim);
+        noalias(R)=ZeroMatrix(dimension, dimension);
 
-        Q.resize(dim,dim,false);
+        Q.resize(dimension,dimension,false);
 
-        noalias(Q)=ZeroMatrix(dim, dim);
+        noalias(Q)=ZeroMatrix(dimension, dimension);
 
         Matrix Help(A.size1(),A.size2());
 	    noalias(Help) = A;
 
-        Matrix unity(dim,dim);
-	    noalias(unity) = ZeroMatrix(dim, dim);
+        Matrix unity(dimension,dimension);
+	    noalias(unity) = ZeroMatrix(dimension, dimension);
 
-        for(unsigned int j=0; j<dim; j++)
+        for(unsigned int j=0; j<dimension; j++)
             unity(j,j)=1.0;
 
-        std::vector<Matrix> HelpQ(dim-1);
+        std::vector<Matrix> HelpQ(dimension-1);
 
-        std::vector<Matrix> HelpR(dim-1);
+        std::vector<Matrix> HelpR(dimension-1);
 
-        for(unsigned int i=0; i< dim-1; i++)
+        for(unsigned int i=0; i< dimension-1; i++)
         {
-            HelpQ[i].resize(dim,dim,false);
-            HelpR[i].resize(dim,dim,false);
+            HelpQ[i].resize(dimension,dimension,false);
+            HelpR[i].resize(dimension,dimension,false);
             noalias(HelpQ[i])= unity;
-            noalias(HelpR[i])= ZeroMatrix(dim, dim);
+            noalias(HelpR[i])= ZeroMatrix(dimension, dimension);
         }
 
-        for(unsigned int iteration=0; iteration< dim-1; iteration++)
+        for(unsigned int iteration=0; iteration< dimension-1; iteration++)
         {
             // Vector y
-            for(unsigned int i=iteration; i<dim; i++)
+            for(unsigned int i=iteration; i<dimension; i++)
                 y[i]= Help(i,iteration);
 
 
             // Helpvalue l
             double normy=0.0;
 
-            for(unsigned int i=iteration; i<dim; i++)
+            for(unsigned int i=iteration; i<dimension; i++)
                 normy += y[i]*y[i];
 
             normy= std::sqrt(normy);
@@ -207,7 +285,7 @@ public:
             else
                 k= -normy;
 
-            for(unsigned int i=iteration; i<dim; i++)
+            for(unsigned int i=iteration; i<dimension; i++)
             {
                 double e=0;
 
@@ -217,14 +295,14 @@ public:
                 w[i]= 1/(2*l)*(y[i]-k*e);
             }
 
-            for(unsigned int i=iteration; i<dim; i++)
-                for(unsigned int j=iteration; j<dim; j++)
+            for(unsigned int i=iteration; i<dimension; i++)
+                for(unsigned int j=iteration; j<dimension; j++)
                     HelpQ[iteration](i,j)= unity(i,j)- 2*w[i]*w[j];
 
 
-            for(unsigned int i=iteration; i<dim; i++)
-                for(unsigned int j=iteration; j<dim; j++)
-                    for(unsigned int k=iteration; k<dim; k++)
+            for(unsigned int i=iteration; i<dimension; i++)
+                for(unsigned int j=iteration; j<dimension; j++)
+                    for(unsigned int k=iteration; k<dimension; k++)
                         HelpR[iteration](i,j)+= HelpQ[iteration](i,k)*Help(k,j);
 
             Help= HelpR[iteration];
@@ -232,23 +310,23 @@ public:
         }
 
         // Assembling R
-        for(unsigned int k=0; k<dim-1; k++)
+        for(unsigned int k=0; k<dimension-1; k++)
         {
-            for(unsigned int i=k; i<dim; i++)
-                for(unsigned int j=k; j<dim; j++)
+            for(unsigned int i=k; i<dimension; i++)
+                for(unsigned int j=k; j<dimension; j++)
                     R(i,j) =HelpR[k](i,j);
 
         }
 
-        for(unsigned int k=1; k<dim-1; k++)
+        for(unsigned int k=1; k<dimension-1; k++)
         {
-            for(unsigned int i=0; i<dim; i++)
-                for(unsigned int j=0; j<dim; j++)
-                    for(unsigned int l=0; l<dim; l++)
+            for(unsigned int i=0; i<dimension; i++)
+                for(unsigned int j=0; j<dimension; j++)
+                    for(unsigned int l=0; l<dimension; l++)
                         Q(i,j)+= HelpQ[(k-1)](i,l)*HelpQ[k](l,j);
             noalias(HelpQ[k])=Q;
         }
-        if(dim-1==1)
+        if(dimension-1==1)
             noalias(Q)=HelpQ[0];
 
     }
@@ -265,26 +343,26 @@ public:
      */
     static inline Vector EigenValues(const Matrix& A, const double rTolerance = 1e-9, const double rZeroTolerance = 1e-9)
     {
-        unsigned int dim= A.size1();
+        unsigned int dimension= A.size1();
 
-        Matrix Convergence(2,dim);
-	    noalias(Convergence) = ZeroMatrix(2,dim);
+        Matrix Convergence(2,dimension);
+	    noalias(Convergence) = ZeroMatrix(2,dimension);
 
         double delta = 0.0;
 
         double abs   = 0.0;
 
-        Vector Result(dim);
-	    noalias(Result) = ZeroVector(dim);
+        Vector Result(dimension);
+	    noalias(Result) = ZeroVector(dimension);
 
-        Matrix HelpA(dim,dim);
-	    noalias(HelpA) = ZeroMatrix(dim, dim);
+        Matrix HelpA(dimension,dimension);
+	    noalias(HelpA) = ZeroMatrix(dimension, dimension);
 
-        Matrix HelpQ(dim,dim);
-	    noalias(HelpQ) = ZeroMatrix(dim, dim);
+        Matrix HelpQ(dimension,dimension);
+	    noalias(HelpQ) = ZeroMatrix(dimension, dimension);
 
-        Matrix HelpR(dim,dim);
-	    noalias(HelpR) = ZeroMatrix(dim, dim);
+        Matrix HelpR(dimension,dimension);
+	    noalias(HelpR) = ZeroMatrix(dimension, dimension);
 
         HelpA=A;
 
@@ -294,23 +372,23 @@ public:
 
         while(is_converged == false && iter<max_iters )
         {
-            double shift= HelpA((dim-1),(dim-1));
+            double shift= HelpA((dimension-1),(dimension-1));
 
-            for(unsigned int i=0; i<dim; i++)
+            for(unsigned int i=0; i<dimension; i++)
             {
                 HelpA(i,i) = HelpA(i,i)- shift;
             }
 
             ParticleMechanicsMathUtilities<double>::QRFactorization(HelpA, HelpQ, HelpR);
 
-            HelpA= ZeroMatrix(dim, dim);
+            HelpA= ZeroMatrix(dimension, dimension);
 
-            for(unsigned int i=0; i<dim; i++)
+            for(unsigned int i=0; i<dimension; i++)
             {
                 HelpA(i,i) += shift;
-                for(unsigned int j=0; j< dim; j++)
+                for(unsigned int j=0; j< dimension; j++)
                 {
-                    for(unsigned int k=0; k< dim; k++)
+                    for(unsigned int k=0; k< dimension; k++)
                     {
                         HelpA(i,j) += HelpR(i,k)*HelpQ(k,j);
                     }
@@ -321,7 +399,7 @@ public:
 
             abs = 0.0;
 
-            for(unsigned int i=0; i<dim; i++)
+            for(unsigned int i=0; i<dimension; i++)
             {
                 Convergence(0,i)=Convergence(1,i);
                 Convergence(1,i)=HelpA(i,i);
@@ -343,7 +421,7 @@ public:
         }
 
 
-        for(unsigned int i=0; i<dim; i++)
+        for(unsigned int i=0; i<dimension; i++)
         {
             Result[i]= HelpA(i,i);
 
@@ -364,9 +442,9 @@ public:
     static inline Vector EigenValuesDirectMethod(const Matrix& A)
     {
         // Given a real symmetric 3x3 matrix A, compute the eigenvalues
-        unsigned int dim= A.size1();
-        Vector Result(dim);
-	    noalias(Result) = ZeroVector(dim);
+        unsigned int dimension= A.size1();
+        Vector Result(dimension);
+	    noalias(Result) = ZeroVector(dimension);
 
         const double p1 = A(0,1)*A(0,1) + A(0,2)*A(0,2) + A(1,2)*A(1,2);
         if (p1 == 0)
@@ -584,9 +662,11 @@ public:
      * @brief Normalises a vector. Vector is scaled by \f$ V_{norm} = \frac{V}{|V|} \f$
      * @param[in/out] v Vector to be normalized
      */
-    static inline void Normalize( VectorType& v )
+    template< class TVectorType >
+    static inline void Normalize( TVectorType& v )
     {
-        v *= 1.0/(MathUtilsType::Norm( v ));
+        if (MathUtilsType::Norm( v ) > std::numeric_limits<double>::epsilon())
+            v *= 1.0/(MathUtilsType::Norm( v ));
     }
 
 

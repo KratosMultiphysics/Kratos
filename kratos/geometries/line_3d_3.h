@@ -52,8 +52,8 @@ namespace Kratos
  * @class Line3D3
  * @ingroup KratosCore
  * @brief An three node 3D line geometry with quadratic shape functions
- * @details The node ordering corresponds with: 
- *      0-----2----1 
+ * @details The node ordering corresponds with:
+ *      0-----2----1
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -374,14 +374,14 @@ public:
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
-        const CoordinatesArrayType& rPoint, 
+        const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
-        ) override
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
-        if ( fabs( rResult[0] ) <= (1.0 + Tolerance) )
+        if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) )
             return true;
 
         return false;
@@ -895,6 +895,8 @@ private:
 
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -1056,13 +1058,16 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 
 template<class TPointType>
-const GeometryData Line3D3<TPointType>::msGeometryData( 3,
-        3,
-        1,
+const GeometryData Line3D3<TPointType>::msGeometryData(
+        &msGeometryDimension,
         GeometryData::GI_GAUSS_2,
         Line3D3<TPointType>::AllIntegrationPoints(),
         Line3D3<TPointType>::AllShapeFunctionsValues(),
         AllShapeFunctionsLocalGradients() );
+
+template<class TPointType>
+const GeometryDimension Line3D3<TPointType>::msGeometryDimension(
+    3, 3, 1);
 
 }  // namespace Kratos.
 

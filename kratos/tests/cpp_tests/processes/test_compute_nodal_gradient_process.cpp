@@ -17,6 +17,7 @@
 // Project includes
 #include "containers/model.h"
 #include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_3d_3.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -49,9 +50,8 @@ namespace Kratos
         
         /**
         * Checks the correct work of the nodal gradient compute
-        * Test triangle
+        * Test triangle (2D)
         */
-
         KRATOS_TEST_CASE_IN_SUITE(NodalGradient1, KratosCoreFastSuite)
         {
             Model current_model;
@@ -134,10 +134,93 @@ namespace Kratos
 
         /**
         * Checks the correct work of the nodal gradient compute
+        * Test triangle (3D)
+        */
+        KRATOS_TEST_CASE_IN_SUITE(NodalGradient2, KratosCoreFastSuite)
+        {
+            Model current_model;
+
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
+            this_model_part.SetBufferSize(2);
+
+            this_model_part.AddNodalSolutionStepVariable(DISTANCE);
+            this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
+
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
+
+            auto& process_info = this_model_part.GetProcessInfo();
+            process_info.SetValue(DOMAIN_SIZE, 2);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
+
+            // First we create the nodes
+            NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+            NodeType::Pointer p_node_2 = this_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+            NodeType::Pointer p_node_3 = this_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
+            NodeType::Pointer p_node_4 = this_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
+            NodeType::Pointer p_node_5 = this_model_part.CreateNewNode(5, 2.0 , 0.0 , 0.0);
+            NodeType::Pointer p_node_6 = this_model_part.CreateNewNode(6, 2.0 , 1.0 , 0.0);
+
+            // Initialize nodal area
+            for (auto& node : this_model_part.Nodes())
+                node.SetValue(NODAL_AREA, 0.0);
+
+            // Now we create the "conditions"
+            std::vector<NodeType::Pointer> element_nodes_0 (3);
+            element_nodes_0[0] = p_node_1;
+            element_nodes_0[1] = p_node_2;
+            element_nodes_0[2] = p_node_3;
+            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{element_nodes_0} );
+
+            std::vector<NodeType::Pointer> element_nodes_1 (3);
+            element_nodes_1[0] = p_node_1;
+            element_nodes_1[1] = p_node_3;
+            element_nodes_1[2] = p_node_4;
+            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{element_nodes_1} );
+
+            std::vector<NodeType::Pointer> element_nodes_2 (3);
+            element_nodes_2[0] = p_node_2;
+            element_nodes_2[1] = p_node_5;
+            element_nodes_2[2] = p_node_3;
+            Triangle3D3 <NodeType> triangle_2( PointerVector<NodeType>{element_nodes_2} );
+
+            std::vector<NodeType::Pointer> element_nodes_3 (3);
+            element_nodes_3[0] = p_node_5;
+            element_nodes_3[1] = p_node_6;
+            element_nodes_3[2] = p_node_3;
+            Triangle3D3 <NodeType> triangle_3( PointerVector<NodeType>{element_nodes_3} );
+
+            Element::Pointer p_elem_0 = this_model_part.CreateNewElement("Element3D3N", 1, triangle_0, p_elem_prop);
+            Element::Pointer p_elem_1 = this_model_part.CreateNewElement("Element3D3N", 2, triangle_1, p_elem_prop);
+            Element::Pointer p_elem_2 = this_model_part.CreateNewElement("Element3D3N", 3, triangle_2, p_elem_prop);
+            Element::Pointer p_elem_3 = this_model_part.CreateNewElement("Element3D3N", 4, triangle_3, p_elem_prop);
+
+            // Set DISTANCE
+            for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
+                auto it_node = this_model_part.Nodes().begin() + i_node;
+                it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
+                it_node->SetValue(NODAL_AREA, 0.0);
+            }
+
+            typedef ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable> GradientType;
+            GradientType process = GradientType(this_model_part, DISTANCE, DISTANCE_GRADIENT);
+            process.Execute();
+
+//             // DEBUG
+//             GiDIODebugGradient(this_model_part);
+
+            const double tolerance = 1.0e-8;
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_2->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_5->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_6->FastGetSolutionStepValue(DISTANCE_GRADIENT_X)) - 1.0, tolerance);
+        }
+
+        /**
+        * Checks the correct work of the nodal gradient compute
         * Test tetrahedra
         */
-
-        KRATOS_TEST_CASE_IN_SUITE(NodalGradient2, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NodalGradient3, KratosCoreFastSuite)
         {
             Model current_model;
 
@@ -301,7 +384,7 @@ namespace Kratos
         * Checks the correct work of the nodal gradient compute
         * Test quadrilateral
         */
-        KRATOS_TEST_CASE_IN_SUITE(NodalGradient3, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NodalGradient4, KratosCoreFastSuite)
         {
             Model current_model;
             
@@ -373,7 +456,7 @@ namespace Kratos
         * Checks the correct work of the nodal gradient compute
         * Test hexahedra
         */
-        KRATOS_TEST_CASE_IN_SUITE(NodalGradient4, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NodalGradient5, KratosCoreFastSuite)
         {
             Model current_model;
 

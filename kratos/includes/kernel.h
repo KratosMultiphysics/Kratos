@@ -64,13 +64,13 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     ///@{
 
     /// Default constructor.
-    /** The default constructor creates a list of registerd variables in variables.cpp
-        by calling the RegisterVariables method of application class.
+    /** The default constructor creates a list of registered variables and classes in kratos_core.cpp
+        by calling the RegisterKratosCore method of application class.
 
         @see KratosApplication
 
     */
-    Kernel();
+    Kernel(bool IsDistributedRun = false);
 
     /// Copy constructor.
     /** This constructor is empty
@@ -111,6 +111,8 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     bool IsImported(std::string ApplicationName) const;
 
+    static bool IsDistributedRun();
+
     ///@}
     ///@name Input and output
     ///@{
@@ -131,6 +133,8 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     static std::string BuildType();
 
+    void PrintParallelismSupportInfo() const;
+
     ///@}
    protected:
    private:
@@ -138,6 +142,8 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     ///@{
 
         KratosApplication::Pointer mpKratosCoreApplication;
+
+    static bool mIsDistributedRun;
 
     ///@}
     ///@name Member Variables
@@ -147,7 +153,7 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     ///@name Private Operations
     ///@{
 
-    void RegisterVariables();
+    void RegisterKratosCore();
 
     ///@}
     ///@name Un accessible methods

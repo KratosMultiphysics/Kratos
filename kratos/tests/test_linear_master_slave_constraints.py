@@ -1,18 +1,14 @@
 from __future__ import print_function, absolute_import, division
 
 # Importing the Kratos Library
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
-try:
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as KratosUtils
+
+structural_mechanics_is_available = KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication")
+if structural_mechanics_is_available:
     import KratosMultiphysics.StructuralMechanicsApplication
-    missing_external_dependencies = False
-    missing_application = ''
-except ImportError as e:
-    missing_external_dependencies = True
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
-                                    '{0}'.format(e)).group(1)
+
 
 class TestLinearMultipointConstraints(KratosUnittest.TestCase):
     def setUp(self):
@@ -95,8 +91,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
 
         #define a minimal newton raphson solver
         self.linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        #self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-        self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithConstraints(
+        self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(
             self.linear_solver)
         self.scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(
             -0.01)
@@ -268,38 +263,38 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
 
         self.mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
+    @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
     def test_MPC_Constraints(self):
-        if (missing_external_dependencies is False):
-            dim = 2
-            current_model = KratosMultiphysics.Model()
-            self.mp= current_model.CreateModelPart("MainModelPart")
-            self._add_variables()
-            self._setup_model_part()
-            self._add_dofs()
-            self._apply_material_properties(dim)
+        dim = 2
+        current_model = KratosMultiphysics.Model()
+        self.mp= current_model.CreateModelPart("MainModelPart")
+        self._add_variables()
+        self._setup_model_part()
+        self._add_dofs()
+        self._apply_material_properties(dim)
 
-            #time integration parameters
-            dt = 0.002
-            time = 0.0
-            end_time = 0.01
-            step = 0
+        #time integration parameters
+        dt = 0.002
+        time = 0.0
+        end_time = 0.01
+        step = 0
 
-            self._set_and_fill_buffer(2, dt)
-            # Applying boundary conditions
-            self._apply_BCs()
-            # Applying constraints
-            self._apply_mpc_constraints()
-            # Solving the system of equations
-            self._setup_solver()
+        self._set_and_fill_buffer(2, dt)
+        # Applying boundary conditions
+        self._apply_BCs()
+        # Applying constraints
+        self._apply_mpc_constraints()
+        # Solving the system of equations
+        self._setup_solver()
 
-            while (time <= end_time):
-                time = time + dt
-                step = step + 1
-                self.mp.CloneTimeStep(time)
-                self._solve()
-            # Checking the results
-            self._check_results()
-            self._reset()
+        while (time <= end_time):
+            time = time + dt
+            step = step + 1
+            self.mp.CloneTimeStep(time)
+            self._solve()
+        # Checking the results
+        self._check_results()
+        self._reset()
 
 if __name__ == '__main__':
     KratosUnittest.main()

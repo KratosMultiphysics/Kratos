@@ -11,12 +11,8 @@
 //
 //
 
-
-
 #if !defined(KRATOS_MODEL_PART_H_INCLUDED )
 #define  KRATOS_MODEL_PART_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -24,9 +20,7 @@
 #include <sstream>
 #include <cstddef>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -259,8 +253,6 @@ public:
     */
     typedef SubModelPartsContainerType::const_iterator SubModelPartConstantIterator;
 
-
-
     ///@}
     ///@name Flags
     ///@{
@@ -272,13 +264,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    KRATOS_DEPRECATED_MESSAGE("Old style Modelpart constructor will be removed on nov 1 2018")
-        ModelPart(std::string const& NewName, Model& rOwnerModel);
-
 
     /// Destructor.
     ~ModelPart() override;
-
 
     ///@}
     ///@name Operators
@@ -290,7 +278,6 @@ public:
     ///@}
     ///@name Solution Steps
     ///@{
-
 
     IndexType CreateSolutionStep();
 
@@ -364,7 +351,6 @@ public:
                     KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
                 else
                     aux.push_back( *(it.base()) );
-
             }
         }
 
@@ -391,7 +377,7 @@ public:
 
     /** Inserts a node in the current mesh.
      */
-    NodeType::Pointer CreateNewNode(int Id, double x, double y, double z, VariablesList* pNewVariablesList, IndexType ThisIndex = 0);
+    NodeType::Pointer CreateNewNode(int Id, double x, double y, double z, VariablesList::Pointer pNewVariablesList, IndexType ThisIndex = 0);
 
     NodeType::Pointer CreateNewNode(IndexType Id, double x, double y, double z, IndexType ThisIndex = 0);
 
@@ -534,7 +520,17 @@ public:
         return *mpVariablesList;
     }
 
+    VariablesList::Pointer pGetNodalSolutionStepVariablesList()
+    {
+        return mpVariablesList;
+    }
+
     void SetNodalSolutionStepVariablesList();
+
+    void SetNodalSolutionStepVariablesList(VariablesList::Pointer pNewVariablesList)
+    {
+        mpVariablesList = pNewVariablesList;
+    }
 
     SizeType GetNodalSolutionStepDataSize()
     {
@@ -545,7 +541,6 @@ public:
     {
         return mpVariablesList->DataSize() * mBufferSize;
     }
-
 
     ///@}
     ///@name Tables
@@ -611,7 +606,6 @@ public:
         return mTables.GetContainer();
     }
 
-
     ///@}
     ///@name MasterSlaveConstraints
     ///@{
@@ -650,8 +644,6 @@ public:
     {
         return GetMesh(ThisIndex).MasterSlaveConstraintsEnd();
     }
-
-
 
     /** Inserts a master-slave constraint in the current modelpart.
      */
@@ -782,45 +774,39 @@ public:
     /** Returns a const reference MasterSlaveConstraint corresponding to it's identifier */
     const MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0) const ;
 
-
     ///@}
     ///@name Properties
     ///@{
 
-    SizeType NumberOfProperties(IndexType ThisIndex = 0) const
-    {
-        return GetMesh(ThisIndex).NumberOfProperties();
-    }
+    /**
+     * @brief Returns the number of properties of the mesh
+     * @param ThisIndex The index identifying the mesh
+     * @return The number of properties of the mesh
+     */
+    SizeType NumberOfProperties(IndexType ThisIndex = 0) const;
 
-    /** Inserts a properties in the current mesh.
+    /**
+     * @brief Inserts a properties in the current mesh.
+     * @param pNewProperties The new property pointer to be added
+     * @param ThisIndex The index identifying the mesh
      */
     void AddProperties(PropertiesType::Pointer pNewProperties, IndexType ThisIndex = 0);
 
-    /** Returns if the Properties corresponding to it's identifier exists */
-    bool HasProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const
-    {
-        auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
-        if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
-            return true;
-        }
+    /**
+     * @brief Returns if the Properties corresponding to it's identifier exists
+     * @param PropertiesId The id identifying the property
+     * @param ThisIndex The index identifying the mesh
+     * @return True if the properties exist, false otherwise
+     */
+    bool HasProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
 
-        return false;
-    }
-
-    /** Returns if the Properties corresponding to it's identifier exists in any of the model parts */
-    bool RecursivelyHasProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const
-    {
-        auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
-        if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
-            return true;
-        } else {
-            if(IsSubModelPart()) {
-                return mpParentModelPart->RecursivelyHasProperties(PropertiesId, MeshIndex);
-            } else {
-                return false;
-            }
-        }
-    }
+    /**
+     * @brief Returns if the Properties corresponding to it's identifier exists in any of the model parts
+     * @param PropertiesId The id identifying the property
+     * @param ThisIndex The index identifying the mesh
+     * @return True if the properties exist, false otherwise
+     */
+    bool RecursivelyHasProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
 
     /**
      * @brief Creates a new property in the current mesh
@@ -829,23 +815,7 @@ public:
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The new created properties
      */
-    PropertiesType::Pointer CreateNewProperties(IndexType PropertiesId, IndexType MeshIndex = 0)
-    {
-        auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
-        if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
-            KRATOS_ERROR << "Property already existing. Please use pGetProperties() instead" << std::endl;
-        } else {
-            if(IsSubModelPart()) {
-                PropertiesType::Pointer pprop =  mpParentModelPart->CreateNewProperties(PropertiesId, MeshIndex);
-                GetMesh(MeshIndex).AddProperties(pprop);
-                return pprop;
-            } else {
-                PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
-                GetMesh(MeshIndex).AddProperties(pnew_property);
-                return pnew_property;
-            }
-        }
-    }
+    PropertiesType::Pointer CreateNewProperties(IndexType PropertiesId, IndexType MeshIndex = 0);
 
     /**
      * @brief Returns the Properties::Pointer  corresponding to it's identifier
@@ -854,24 +824,16 @@ public:
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (pointer)
      */
-    PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType MeshIndex = 0)
-    {
-        auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
-        if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
-            return *(pprop_it.base());
-        } else {
-            if(IsSubModelPart()) {
-                PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, MeshIndex);
-                GetMesh(MeshIndex).AddProperties(pprop);
-                return pprop;
-            } else {
-                KRATOS_WARNING("ModelPart") << "Property " << PropertiesId << " does not exist!. Creating and adding new property. Please use CreateNewProperties() instead" << std::endl;
-                PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
-                GetMesh(MeshIndex).AddProperties(pnew_property);
-                return pnew_property;
-            }
-        }
-    }
+    PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType MeshIndex = 0);
+
+    /**
+     * @brief Returns the Properties::Pointer  corresponding to it's identifier (const version)
+     * @details If the property is not existing it will return a warning
+     * @param PropertiesId The Id of the new property
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (pointer)
+     */
+    PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
 
     /**
      * @brief Returns the Properties::Pointer  corresponding to it's identifier
@@ -880,24 +842,75 @@ public:
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (reference)
      */
-    PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0)
-    {
-        auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
-        if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
-            return *pprop_it;
-        } else {
-            if(IsSubModelPart()) {
-                PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, MeshIndex);
-                GetMesh(MeshIndex).AddProperties(pprop);
-                return *pprop;
-            } else {
-                KRATOS_WARNING("ModelPart") << "Property " << PropertiesId << " does not exist!. Creating and adding new property. Please use CreateNewProperties() instead" << std::endl;
-                PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
-                GetMesh(MeshIndex).AddProperties(pnew_property);
-                return *pnew_property;
-            }
-        }
-    }
+    PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0);
+
+    /**
+     * @brief Returns the Properties::Pointer  corresponding to it's identifier (const version)
+     * @details If the property is not existing it will return a warning
+     * @param PropertiesId The Id of the new property
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (reference)
+     */
+    PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
+
+    /**
+     * @brief Returns if the sub Properties corresponding to it's address exists
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param ThisIndex The index identifying the mesh
+     * @return True if the properties exist, false otherwise
+     */
+    bool HasProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        ) const;
+
+    /**
+     * @brief Returns the sub Properties::Pointer  corresponding to it's address
+     * @details If the property is not existing it will return a warning
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (pointer)
+     */
+    PropertiesType::Pointer pGetProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        );
+
+    /**
+     * @brief Returns the sub Properties::Pointer  corresponding to it's address (const version)
+     * @details If the property is not existing it will return a warning
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (pointer)
+     */
+    const PropertiesType::Pointer pGetProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        ) const;
+
+    /**
+     * @brief Returns the sub Properties::Pointer  corresponding to it's address
+     * @details If the property is not existing it will return a warning
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (reference)
+     */
+    PropertiesType& GetProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        );
+
+    /**
+     * @brief Returns the sub Properties::Pointer corresponding to it's address (const version)
+     * @details If the property is not existing it will return a warning
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @param MeshIndex The Id of the mesh (0 by default)
+     * @return The desired properties (reference)
+     */
+    const PropertiesType& GetProperties(
+        const std::string& rAddress,
+        IndexType MeshIndex = 0
+        ) const;
 
     /** Remove the Properties with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
@@ -1140,7 +1153,6 @@ public:
         return GetMesh(ThisIndex).ElementsArray();
     }
 
-
     ///@}
     ///@name Conditions
     ///@{
@@ -1339,11 +1351,9 @@ public:
     ModelPart& GetSubModelPart(std::string const& SubModelPartName)
     {
         SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-        if(i == mSubModelParts.end())
-            KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
-            //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
+        KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
 
-            return *i;
+        return *i;
     }
 
     /** Returns a shared pointer to the sub_model part with given string name
@@ -1352,9 +1362,7 @@ public:
     ModelPart* pGetSubModelPart(std::string const& SubModelPartName)
     {
         SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-        if(i == mSubModelParts.end())
-            KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
-            //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
+        KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
 
         return (i.base()->second).get();
     }
@@ -1510,10 +1518,23 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This method returns the name list of submodelparts
+     * @return A vector conrtaining the list of submodelparts contained
+     */
     std::vector<std::string> GetSubModelPartNames();
 
+    /**
+     * @brief This method sets the suffer size of the model part database
+     * @details Must be called on root model part, otherwise error is thrown
+     * @param NewBufferSize The new buffer size to be set
+     */
     void SetBufferSize(IndexType NewBufferSize);
 
+    /**
+     * @brief This method gets the suffer size of the model part database
+     * @return mBufferSize The buffer size
+     */
     IndexType GetBufferSize() const
     {
         return mBufferSize;
@@ -1534,6 +1555,11 @@ public:
     bool IsSubModelPart() const
     {
         return (mpParentModelPart != NULL);
+    }
+
+    bool IsDistributed() const
+    {
+        return mpCommunicator->IsDistributed();
     }
 
     ///@}
@@ -1568,13 +1594,13 @@ private:
     friend class Model;
 
     /// Default constructor.
-    ModelPart(VariablesList* pVariableList, Model& rOwnerModel);
+    ModelPart(VariablesList::Pointer pVariableList, Model& rOwnerModel);
 
     /// Constructor with name
-    ModelPart(std::string const& NewName,VariablesList* pVariableList, Model& rOwnerModel);
+    ModelPart(std::string const& NewName,VariablesList::Pointer pVariableList, Model& rOwnerModel);
 
     /// Constructor with name and bufferSize
-    ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariableList, Model& rOwnerModel);
+    ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList::Pointer pVariableList, Model& rOwnerModel);
 
     /// Copy constructor.
     ModelPart(ModelPart const& rOther) = delete;
@@ -1588,27 +1614,25 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::string mName;
+    std::string mName; /// The name of the model part
 
-    IndexType mBufferSize;
+    IndexType mBufferSize; /// The buffers size of the database
 
-    ProcessInfo::Pointer mpProcessInfo;
+    ProcessInfo::Pointer mpProcessInfo; /// The process info instance
 
-    TablesContainerType mTables;
+    TablesContainerType mTables; /// The tables contained on the model part
 
-    std::vector<IndexType> mIndices;
+    MeshesContainerType mMeshes; /// The container of all meshes
 
-    MeshesContainerType mMeshes;
+    VariablesList::Pointer mpVariablesList; /// The variable list
 
-    VariablesList* mpVariablesList;
+    Communicator::Pointer mpCommunicator; /// The communicator
 
-    Communicator::Pointer mpCommunicator;
+    ModelPart* mpParentModelPart = NULL; /// The parent model part of the current model part
 
-    ModelPart* mpParentModelPart;
+    SubModelPartsContainerType mSubModelParts; /// The container of the submodelparts
 
-    SubModelPartsContainerType mSubModelParts;
-
-    Model& mrModel;
+    Model& mrModel; /// The model which contains this model part
 
     ///@}
     ///@name Private Operators
@@ -1618,6 +1642,32 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method trims a string in the different components to access recursively to any subproperty
+     * @param rStringName The given name to be trimmed
+     * @return The list of indexes
+     */
+    std::vector<IndexType> TrimComponentName(const std::string& rStringName) const
+    {
+        std::vector<IndexType> list_indexes;
+
+        std::stringstream ss(rStringName);
+        for (std::string index_string; std::getline(ss, index_string, '.'); ) {
+            list_indexes.push_back(std::stoi(index_string));
+        }
+
+        KRATOS_ERROR_IF(list_indexes.size() == 0) << "Properties:: Empty list of indexes when reading suproperties" << std::endl;
+
+        return list_indexes;
+    }
+
+    /**
+     * @brief This method sets the suffer size of the submodelparts belonging to the current model part (recursively)
+     * @param NewBufferSize The new buffer size to be set
+     */
+    void SetBufferSizeSubModelParts(IndexType NewBufferSize);
+
 
     void SetParentModelPart(ModelPart* pParentModelPart)
     {

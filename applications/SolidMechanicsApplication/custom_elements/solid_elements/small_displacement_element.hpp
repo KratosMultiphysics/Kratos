@@ -64,7 +64,7 @@ public:
     typedef SolidElement::ElementDataType ElementDataType;
 
     /// Counted pointer of SmallDisplacementElement
-    KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SmallDisplacementElement );
 
     ///@}
 

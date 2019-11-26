@@ -1,26 +1,12 @@
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    have_external_solvers = True
-except ImportError as e:
-    have_external_solvers = False
-
-
+import KratosMultiphysics.process_factory as process_factory
 import KratosMultiphysics.KratosUnittest as UnitTest
+import KratosMultiphysics.kratos_utilities as KratosUtilities
 
-import os
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
 
-class WorkFolderScope:
-    def __init__(self, work_folder):
-        self.currentPath = os.getcwd()
-        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
+have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
 @UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class EmbeddedCouetteImposedTest(UnitTest.TestCase):
@@ -45,7 +31,7 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
         self.ExecuteEmbeddedCouetteTest()
 
     def ExecuteEmbeddedCouetteTest(self):
-        with WorkFolderScope(self.work_folder):
+        with UnitTest.WorkFolderScope(self.work_folder,__file__):
             self.setUp()
             self.setUpProblem()
             self.setUpDistanceField()
@@ -61,21 +47,18 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
         self.print_reference_values = False
 
     def tearDown(self):
-        with WorkFolderScope(self.work_folder):
-            try:
-                os.remove(self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()+'.time')
-            except FileNotFoundError as e:
-                pass
+        with UnitTest.WorkFolderScope(self.work_folder,__file__):
+            KratosUtilities.DeleteFileIfExisting(
+                self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()+'.time')
 
     def setUpProblem(self):
-        with WorkFolderScope(self.work_folder):
+        with UnitTest.WorkFolderScope(self.work_folder,__file__):
             with open(self.settings, 'r') as parameter_file:
                 self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
             self.model = KratosMultiphysics.Model()
 
             ## Solver construction
-            import python_solvers_wrapper_fluid
             self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
 
             ## Set the "is_slip" field in the json settings (to avoid duplication it is set to false in all tests)
@@ -95,9 +78,8 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
             self.solver.Initialize()
 
             ## Processes construction
-            import process_factory
-            self.list_of_processes  = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
-            self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
+            self.list_of_processes  = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["processes"]["gravity"] )
+            self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["processes"]["boundary_conditions_process_list"] )
 
             ## Processes initialization
             for process in self.list_of_processes:
@@ -117,7 +99,7 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
                 distance = self.distance - node.Z
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
 
-        # Set the ELEMENTAL_VELOCITY in the intersected elements
+        # Set the EMBEDDED_VELOCITY in the intersected elements nodes
         for elem in self.main_model_part.Elements:
             n_pos = 0
             n_neg = 0
@@ -128,8 +110,8 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
                     n_pos += 1
 
             if ((n_pos != 0) and (n_neg != 0)):
-                embedded_velocity = KratosMultiphysics.Vector([self.embedded_velocity,0.0,0.0])
-                elem.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY,embedded_velocity)
+                for node in elem.GetNodes():
+                    node.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY, [self.embedded_velocity, 0.0, 0.0])
 
     def setUpNoSlipBoundaryConditions(self):
         # Set the inlet function
@@ -141,12 +123,9 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
                     vel_x = (self.embedded_velocity/self.distance)*node.Y
                     aux_vel = KratosMultiphysics.Vector([vel_x,0.0,0.0])
                     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
-                else:
-                    aux_vel = KratosMultiphysics.Vector([0.0,0.0,0.0])
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
-                node.Fix(KratosMultiphysics.VELOCITY_X)
-                node.Fix(KratosMultiphysics.VELOCITY_Y)
-                node.Fix(KratosMultiphysics.VELOCITY_Z)
+                    node.Fix(KratosMultiphysics.VELOCITY_X)
+                    node.Fix(KratosMultiphysics.VELOCITY_Y)
+                    node.Fix(KratosMultiphysics.VELOCITY_Z)
         else:
             for node in self.main_model_part.GetSubModelPart("Inlet").Nodes:
                 dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
@@ -154,12 +133,9 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
                     vel_x = (self.embedded_velocity/self.distance)*node.Z
                     aux_vel = KratosMultiphysics.Vector([vel_x,0.0,0.0])
                     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
-                else:
-                    aux_vel = KratosMultiphysics.Vector([0.0,0.0,0.0])
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
-                node.Fix(KratosMultiphysics.VELOCITY_X)
-                node.Fix(KratosMultiphysics.VELOCITY_Y)
-                node.Fix(KratosMultiphysics.VELOCITY_Z)
+                    node.Fix(KratosMultiphysics.VELOCITY_X)
+                    node.Fix(KratosMultiphysics.VELOCITY_Y)
+                    node.Fix(KratosMultiphysics.VELOCITY_Z)
 
     def setUpNoSlipInitialCondition(self):
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
@@ -170,6 +146,8 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
                     vel_x = (self.embedded_velocity/self.distance)*node.Y
                     init_v = KratosMultiphysics.Vector([vel_x,0.0,0.0])
                     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, init_v)
+                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1, init_v)
+                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 2, init_v)
         else:
             for node in self.main_model_part.Nodes:
                 dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
@@ -177,9 +155,11 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
                     vel_x = (self.embedded_velocity/self.distance)*node.Z
                     init_v = KratosMultiphysics.Vector([vel_x,0.0,0.0])
                     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, init_v)
+                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1, init_v)
+                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 2, init_v)
 
     def runTest(self):
-        with WorkFolderScope(self.work_folder):
+        with UnitTest.WorkFolderScope(self.work_folder,__file__):
             if (self.print_output):
                 gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostBinary
                 multifile = KratosMultiphysics.MultiFileFlag.SingleFile
@@ -235,7 +215,7 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
                 gid_io.FinalizeResults()
 
     def checkResults(self):
-        with WorkFolderScope(self.work_folder):
+        with UnitTest.WorkFolderScope(self.work_folder,__file__):
             ## 2D results check
             if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
                 if self.print_reference_values:

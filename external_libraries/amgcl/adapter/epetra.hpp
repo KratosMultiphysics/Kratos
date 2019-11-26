@@ -49,6 +49,8 @@ namespace adapter {
 /// Adapts Epetra_CrsMatrix
 class epetra_map {
     public:
+        typedef double value_type;
+
         epetra_map(const Epetra_CrsMatrix &A)
             : A(A), order(A.ColMap())
         {
@@ -149,53 +151,6 @@ inline epetra_map map(const Epetra_CrsMatrix &A) {
 }
 
 } // namespace adapter
-
-//---------------------------------------------------------------------------
-// Specialization of matrix interface
-//---------------------------------------------------------------------------
-namespace backend {
-
-template <>
-struct value_type < adapter::epetra_map > {
-    typedef double type;
-};
-
-template <>
-struct rows_impl < adapter::epetra_map > {
-    static size_t get(const adapter::epetra_map &A) {
-        return A.rows();
-    }
-};
-
-template <>
-struct cols_impl < adapter::epetra_map > {
-    static size_t get(const adapter::epetra_map &A) {
-        return A.cols();
-    }
-};
-
-template <>
-struct nonzeros_impl < adapter::epetra_map > {
-    static size_t get(const adapter::epetra_map &A) {
-        return A.nonzeros();
-    }
-};
-
-template <>
-struct row_iterator < adapter::epetra_map > {
-    typedef adapter::epetra_map::row_iterator type;
-};
-
-template <>
-struct row_begin_impl< adapter::epetra_map >
-{
-    static typename row_iterator< adapter::epetra_map >::type
-    get(const adapter::epetra_map &A, size_t row) {
-        return A.row_begin(row);
-    }
-};
-
-} // namespace backend
 } // namespace amgcl
 
 

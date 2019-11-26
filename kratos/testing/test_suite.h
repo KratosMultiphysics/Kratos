@@ -19,6 +19,7 @@
 
 // Project includes
 #include "testing/test_case.h"
+#include "testing/distributed_test_case.h"
 
 namespace Kratos {
 namespace Testing {
@@ -39,8 +40,8 @@ class AddThisTestToTestSuite {
 ///@{
 
 /// This class holds an array of test cases and run them one by one in its Run method
-/** this class implements a composite pattern. Derived from TestCase and has an array pointers to the 
-			TestCase to be run. The Run and Profile methods are overridden to call the corresponidng methods 
+/** this class implements a composite pattern. Derived from TestCase and has an array pointers to the
+			TestCase to be run. The Run and Profile methods are overridden to call the corresponidng methods
 			of the TestCases.
 		*/
 class KRATOS_API(KRATOS_CORE) TestSuite : public TestCase {
@@ -61,7 +62,7 @@ class KRATOS_API(KRATOS_CORE) TestSuite : public TestCase {
     TestSuite(TestSuite const& rOther) = delete;
 
     /// The constructor to be called
-    TestSuite(std::string const& Name);
+    explicit TestSuite(std::string const& Name);
 
     /// Destructor.
     virtual ~TestSuite();
@@ -197,6 +198,34 @@ inline std::ostream& operator<<(
                 KRATOS_TESTING_CONVERT_TO_STRING(Test##TestCaseName),   \
                 KRATOS_TESTING_CONVERT_TO_STRING(TestSuiteName));       \
                                                                         \
+    void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
+
+// Macro for MPI tests
+#define KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TestCaseName, TestSuiteName)     \
+    KRATOS_TESTING_TEST_CASE_IN_SUITE_CLASS(TestCaseName, DistributedTestCase) \
+    const Kratos::Testing::Internals::RegisterThisTest<                        \
+        KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)>                        \
+        KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy;                \
+    const Kratos::Testing::Internals::AddThisTestToTestSuite                   \
+        KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mAnotherDummy =        \
+            Kratos::Testing::Internals::AddThisTestToTestSuite(                \
+                KRATOS_TESTING_CONVERT_TO_STRING(Test##TestCaseName),          \
+                KRATOS_TESTING_CONVERT_TO_STRING(TestSuiteName));              \
+                                                                               \
+    void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
+
+// Disabled version of the MPI macro
+#define KRATOS_DISABLED_DISTRIBUTED_TEST_CASE_IN_SUITE(TestCaseName, TestSuiteName) \
+    KRATOS_TESTING_TEST_CASE_IN_SUITE_CLASS(TestCaseName, DistributedTestCase)      \
+    const Kratos::Testing::Internals::RegisterThisTest<                             \
+        KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)>                             \
+        KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy(true);               \
+    const Kratos::Testing::Internals::AddThisTestToTestSuite                        \
+        KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mAnotherDummy =             \
+            Kratos::Testing::Internals::AddThisTestToTestSuite(                     \
+                KRATOS_TESTING_CONVERT_TO_STRING(Test##TestCaseName),               \
+                KRATOS_TESTING_CONVERT_TO_STRING(TestSuiteName));                   \
+                                                                                    \
     void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
 
 #define KRATOS_TEST_CASE_WITH_FIXTURE_IN_SUITE(                            \

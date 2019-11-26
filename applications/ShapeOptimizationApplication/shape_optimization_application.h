@@ -29,9 +29,6 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
-//conditions
-#include "custom_conditions/shape_optimization_condition.h"
-
 // Variables
 #include "includes/variables.h"
 
@@ -253,13 +250,6 @@ namespace Kratos
 		///@}
 		///@name Member Variables
 		///@{
-
-        //conditions
-        const ShapeOptimizationCondition mShapeOptimizationCondition3D3N;
-		const ShapeOptimizationCondition mShapeOptimizationCondition3D4N;
-        const ShapeOptimizationCondition mShapeOptimizationCondition2D2N;
-		const ShapeOptimizationCondition mShapeOptimizationCondition3D2N;
-
 
 		///@}
 		///@name Private Operators

@@ -59,7 +59,7 @@ public:
      * The default constructor
      */
     
-    TableStreamUtility(const bool UseBoldFont = true):
+    explicit TableStreamUtility(const bool UseBoldFont = true):
         mTable(&std::cout, "|", UseBoldFont)
     {
     }

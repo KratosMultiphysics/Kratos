@@ -107,7 +107,7 @@ TotalLagrangian::TotalLagrangian( IndexType NewId, GeometryType::Pointer pGeomet
 
 Element::Pointer TotalLagrangian::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared<TotalLagrangian>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<TotalLagrangian>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 //************************************************************************************
@@ -115,7 +115,7 @@ Element::Pointer TotalLagrangian::Create( IndexType NewId, NodesArrayType const&
 
 Element::Pointer TotalLagrangian::Create( IndexType NewId,  GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared<TotalLagrangian>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<TotalLagrangian>( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
@@ -135,7 +135,7 @@ Element::Pointer TotalLagrangian::Clone (
 {
     KRATOS_TRY
 
-    TotalLagrangian::Pointer p_new_elem = Kratos::make_shared<TotalLagrangian>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    TotalLagrangian::Pointer p_new_elem = Kratos::make_intrusive<TotalLagrangian>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
 
@@ -459,7 +459,7 @@ void TotalLagrangian::CalculateShapeSensitivity(ShapeParameter Deriv,
     auto sensitivity_utility =
         GeometricalSensitivityUtility(J0, rDN_De);
     sensitivity_utility.CalculateSensitivity(Deriv, rDetJ0_Deriv, rDN_DX0_Deriv);
-    rF_Deriv.resize(ws_dim, ws_dim);
+    rF_Deriv.resize(ws_dim, ws_dim, false);
     rF_Deriv.clear();
     for (unsigned i = 0; i < ws_dim; ++i)
         for (unsigned j = 0; j < ws_dim; ++j)
@@ -540,12 +540,12 @@ void TotalLagrangian::CalculateSensitivityMatrix(
         const std::size_t ws_dim = r_geom.WorkingSpaceDimension();
         const std::size_t nnodes = r_geom.PointsNumber();
         const std::size_t mat_dim = nnodes * ws_dim;
-        rOutput.resize(mat_dim, mat_dim);
+        rOutput.resize(mat_dim, mat_dim, false);
         rOutput.clear();
         Matrix F, F_deriv, DN_DX0_deriv, strain_tensor_deriv, DN_DX0, B, B_deriv;
         Matrix M_deriv;
         const auto strain_size = GetStrainSize();
-        B.resize(strain_size, ws_dim * nnodes);
+        B.resize(strain_size, ws_dim * nnodes, false);
         Vector strain_vector_deriv(strain_size);
         Vector stress_vector(strain_size), stress_vector_deriv(strain_size);
         Vector residual_deriv(ws_dim * nnodes);

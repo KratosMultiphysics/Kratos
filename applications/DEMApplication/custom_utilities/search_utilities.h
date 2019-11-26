@@ -210,7 +210,7 @@ namespace Kratos
 
       SpatialSearchPtrType              mSpatialSearch;
 
-      DenseVector<unsigned int>              mPartition;
+      std::vector<unsigned int>              mPartition;
 
     private:
 

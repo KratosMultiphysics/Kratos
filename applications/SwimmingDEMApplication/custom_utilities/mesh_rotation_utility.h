@@ -22,9 +22,9 @@ KRATOS_CLASS_POINTER_DEFINITION(MeshRotationUtility);
 
 MeshRotationUtility(Parameters & r_parameters): mpStationaryModelPart(NULL)
 {
-    mOmega = r_parameters["angular_velocity_magnitude"].GetDouble();
-    mAInit = r_parameters["frame_rotation_axis_initial_point"].GetVector();
-    mAFinal = r_parameters["frame_rotation_axis_final_point"].GetVector();
+    mOmega = r_parameters["frame_of_reference"]["angular_velocity_magnitude"].GetDouble();
+    mAInit = r_parameters["frame_of_reference"]["frame_rotation_axis_initial_point"].GetVector();
+    mAFinal = r_parameters["frame_of_reference"]["frame_rotation_axis_final_point"].GetVector();
     mAxisVersor = CalculateNormalized(mAFinal - mAInit);
 
     // Constructing auxiliary Rodrigues matrices

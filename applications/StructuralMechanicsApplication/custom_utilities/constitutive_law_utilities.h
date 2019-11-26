@@ -210,6 +210,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     static double CalculateCharacteristicLength(const GeometryType& rGeometry);
 
     /**
+     * @brief Calculates the maximal distance between corner node of a geometry and its center (on reference configuration)
+     * @param rGeometry The geometry to compute
+     * @return The characteristic length
+     */
+    static double CalculateCharacteristicLengthOnReferenceConfiguration(const GeometryType& rGeometry);
+
+    /**
      * @brief This method computes the equivalent deformation gradient for the elements which provide the deformation gradient as input
      * @param rStrainVector The strain vector
      */
@@ -258,7 +265,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         const MatrixType& rCauchyTensor,
         VectorType& rStrainVector
         );
-    
+
     /**
      * @brief The deformation gradient F, like any invertible second-order tensor, can be decomposed, using the polar decomposition theorem, into a product of two second-order tensors (Truesdell and Noll, 1965): an orthogonal tensor and a positive definite symmetric tensor, i.e F = R U
      * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Polar_decomposition_of_the_deformation_gradient_tensor
@@ -338,12 +345,55 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         );
 
     /**
-     * @brief This computes the exponential plastic deformation gradient increment
+     * @brief This computes the elastic deformation gradient
+     * @param rElasticTrial The elastic trial deformation gradient
+     * @param rPlasticPotentialDerivative The derivative of the plastic potential
+     * @param PlasticConsistencyFactorIncrement The incremenetal of plastic flow
+     * @param rRe The rotation decomposition of the elastic eformation
+     * @note Formula 14.75 in Souza book
+     */
+    static MatrixType CalculateExponentialElasticDeformationGradient(
+        const MatrixType& rElasticTrial,
+        const BoundedVectorType& rPlasticPotentialDerivative,
+        const double PlasticConsistencyFactorIncrement,
+        const MatrixType& rRe
+        );
+
+    /**
+     * @brief This computes the elastic deformation gradient
+     * @param rElasticTrial The elastic trial deformation gradient
      * @param rPlasticPotentialDerivative The derivative of the plastic potential
      * @param PlasticConsistencyFactorIncrement The incremenetal of plastic flow
      * @param rRe The rotation decomposition of the elastic eformation
      */
+    static MatrixType CalculateDirectElasticDeformationGradient(
+        const MatrixType& rElasticTrial,
+        const BoundedVectorType& rPlasticPotentialDerivative,
+        const double PlasticConsistencyFactorIncrement,
+        const MatrixType& rRe
+        );
+
+    /**
+     * @brief This computes the exponential plastic deformation gradient increment
+     * @param rPlasticPotentialDerivative The derivative of the plastic potential
+     * @param PlasticConsistencyFactorIncrement The incremenetal of plastic flow
+     * @param rRe The rotation decomposition of the elastic eformation
+     * @note Formula 14.73 in Souza book
+     */
     static MatrixType CalculateExponentialPlasticDeformationGradientIncrement(
+        const BoundedVectorType& rPlasticPotentialDerivative,
+        const double PlasticConsistencyFactorIncrement,
+        const MatrixType& rRe
+        );
+
+    /**
+     * @brief This computes the exponential plastic deformation gradient increment
+     * @param rPlasticPotentialDerivative The derivative of the plastic potential
+     * @param PlasticConsistencyFactorIncrement The incremenetal of plastic flow
+     * @param rRe The rotation decomposition of the elastic eformation
+     * @note Formula 14.74 in Souza book
+     */
+    static MatrixType CalculateDirectPlasticDeformationGradientIncrement(
         const BoundedVectorType& rPlasticPotentialDerivative,
         const double PlasticConsistencyFactorIncrement,
         const MatrixType& rRe

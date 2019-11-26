@@ -64,7 +64,7 @@ public:
     ///@{
 
     /// Pointer definition of FluidElement
-    KRATOS_CLASS_POINTER_DEFINITION(FluidElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FluidElement);
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;

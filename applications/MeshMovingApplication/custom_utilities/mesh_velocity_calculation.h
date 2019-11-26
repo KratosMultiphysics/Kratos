@@ -19,12 +19,10 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "includes/mesh_moving_variables.h"
 #include "utilities/time_discretization.h"
 
 namespace Kratos {
+class ModelPart; // forward-declaring to not having to include it here
 namespace MeshVelocityCalculation {
 
 void CalculateMeshVelocities(ModelPart& rModelPart,

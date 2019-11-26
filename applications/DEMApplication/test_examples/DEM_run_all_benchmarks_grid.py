@@ -1,5 +1,7 @@
 from __future__ import print_function
-import os,subprocess,sys
+import os
+import subprocess
+import sys
 import multiprocessing as mp
 if sys.version_info >= (3, 0):
     import queue
@@ -19,7 +21,16 @@ sys.path.append(path)
 path = os.getcwd()
 path = os.path.join(path,'basic_benchmarks')
 os.chdir(path)
-initial_number_of_threads = os.environ['OMP_NUM_THREADS']
+
+if "OMP_NUM_THREADS" in os.environ:
+    max_available_threads = int(os.environ['OMP_NUM_THREADS'])
+else:
+    max_available_threads = mp.cpu_count() - 1
+    if max_available_threads == 0:
+        max_available_threads = 1
+
+
+#initial_number_of_threads = os.environ['OMP_NUM_THREADS']
 os.environ['OMP_NUM_THREADS']='1'
 os.system("echo Benchmarks will be running on $OMP_NUM_THREADS cpu")
 
@@ -59,37 +70,39 @@ Benchmark_text = ["Running DEM Benchmark 1.... Elastic normal impact of two iden
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-def run(benchmark):
-    out_file_name = '{0}.info'.format(benchmark)
-    f = open(out_file_name, 'wb')
-
-    path_to_callable_script = os.path.join(path,"DEM_benchmarks.py")
+def run(benchmark, file_for_output):
+    path_to_callable_script = os.path.join(path, "DEM_benchmarks_analysis.py")
 
     if sys.version_info >= (3, 0):
-        subprocess.check_call(["python3", path_to_callable_script, str(benchmark)], stdout=f, stderr=f)
+        subprocess.check_call(["python3", path_to_callable_script, str(benchmark)], stdout=file_for_output, stderr=file_for_output)
     else:
-        subprocess.check_call(["python", "-3", path_to_callable_script, str(benchmark)], stdout=f, stderr=f)
-
-    f.close()
-
-    file_to_remove = out_file_name
-    kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
+        subprocess.check_call(["python", "-3", path_to_callable_script, str(benchmark)], stdout=file_for_output, stderr=file_for_output)
 
 def worker(queue):
-    """Process files from the queue."""
+
     for benchmark in iter(queue.get, None):
+        out_file_name = '{0}.info'.format(benchmark)
+        f = open(out_file_name, 'wb')
+        print(Benchmark_text[benchmark - 1])
+
         try:
-            print(Benchmark_text[benchmark - 1])
-            run(benchmark)
-        except Exception as e:# catch exceptions to avoid exiting the thread prematurely
+            run(benchmark, f)
+        except Exception:# catch exceptions to avoid exiting the thread prematurely
+            with open(out_file_name, 'r') as fin:
+                print(fin.read())
             print("A problem was found in DEM Benchmark " + str(benchmark) + "... Resuming...\n")
             g = open("errors.err", "a")
             g.write("DEM Benchmark " + str(benchmark) + ": KO!........ Test " + str(benchmark) + " FAILED\n")
             g.close()
 
+        f.close()
+        file_to_remove = out_file_name
+        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
+
 def main():
     try:
         print("\nAdding processes to DEM parallel Benchmarking..............\n")
+        delete_archives()
         g = open("errors.err", "w")
         g.write("The complete list of benchmarks are included at the end of this message as a quick reference.\n")
         g.close()
@@ -115,7 +128,7 @@ def main():
             #print(Benchmark_text[item - 1])
             q.put_nowait(item)
 
-        threads = [Thread(target=worker, args=(q,)) for _ in range(int(initial_number_of_threads))]
+        threads = [Thread(target=worker, args=(q,)) for _ in range(int(max_available_threads))]
         for t in threads:
             t.daemon = True # threads die if the program dies
             t.start()
@@ -178,7 +191,6 @@ def main():
 
 def delete_archives():
 
-    #.......................Removing extra files
     files_to_delete_list = glob('*.time')
     files_to_delete_list.extend(glob('*.dat'))
     files_to_delete_list.extend(glob('*.gp'))
@@ -186,12 +198,15 @@ def delete_archives():
     files_to_delete_list.extend(glob('*.lst'))
     files_to_delete_list.extend(glob('*.info'))
     files_to_delete_list.extend(glob('*.err'))
+    files_to_delete_list.extend(glob('*.hdf5'))
 
     for to_erase_file in files_to_delete_list:
-        os.remove(to_erase_file)
+        try:
+            os.remove(to_erase_file)
+        except OSError:
+            pass
 
-    #............Getting rid of unuseful folders
-    folders_to_delete_list      = glob('*Data')
+    folders_to_delete_list = []
     folders_to_delete_list.extend(glob('*ists'))
     folders_to_delete_list.extend(glob('*ults'))
     folders_to_delete_list.extend(glob('*he__'))
@@ -199,7 +214,10 @@ def delete_archives():
     folders_to_delete_list.extend(glob('*iles'))
 
     for to_erase_folder in folders_to_delete_list:
-        shutil.rmtree(to_erase_folder)
+        try:
+            shutil.rmtree(to_erase_folder)
+        except OSError:
+            pass
 
 
 

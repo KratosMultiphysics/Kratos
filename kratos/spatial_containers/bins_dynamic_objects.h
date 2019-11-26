@@ -837,7 +837,7 @@ protected:
             }
         }
 
-        PointType Epsilon = mMaxPoint - mMinPoint;
+        auto Epsilon = PointType{mMaxPoint - mMinPoint};
 
         for(SizeType i = 0 ; i < Dimension ; i++)
         {

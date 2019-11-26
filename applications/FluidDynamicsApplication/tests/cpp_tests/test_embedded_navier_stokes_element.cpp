@@ -51,7 +51,6 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
 			modelPart.AddNodalSolutionStepVariable(VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
-			modelPart.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
 
 			// Process info creation
@@ -66,7 +65,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
 			// Set the element properties
-			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
 			pElemProp->SetValue(DENSITY, 1000.0);
 			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
 			Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
@@ -93,7 +92,12 @@ namespace Kratos {
 				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
 			}
 
+			array_1d<double, 3> embedded_vel;
+			embedded_vel(0) = 1.0;
+			embedded_vel(1) = 2.0;
+			embedded_vel(2) = 0.0;
 			for(unsigned int i=0; i<3; i++){
+				pElement->GetGeometry()[i].SetValue(EMBEDDED_VELOCITY, embedded_vel);
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
@@ -109,11 +113,6 @@ namespace Kratos {
 			pElement->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -1.0;
 			pElement->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) = -1.0;
 			pElement->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) =  0.5;
-			array_1d<double, 3> embedded_vel;
-			embedded_vel(0) = 1.0;
-			embedded_vel(1) = 2.0;
-			embedded_vel(2) = 0.0;
-			pElement->SetValue(EMBEDDED_VELOCITY, embedded_vel);
 
 			// Compute RHS and LHS
 			Vector RHS = ZeroVector(9);
@@ -122,7 +121,7 @@ namespace Kratos {
 			pElement->Initialize(); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
-			// Check the RHS values (the RHS is computed as the LHS x previous_solution, 
+			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
 			KRATOS_CHECK_NEAR(RHS(0), 0.0475309, 1e-7);
 			KRATOS_CHECK_NEAR(RHS(1), 0.0975309, 1e-7);
@@ -152,7 +151,6 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
 			modelPart.AddNodalSolutionStepVariable(VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(DISTANCE);
-			modelPart.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
 
 			// Process info creation
@@ -167,7 +165,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
 			// Set the element properties
-			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
 			pElemProp->SetValue(DENSITY, 1000.0);
 			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
 			Newtonian3DLaw::Pointer pConsLaw(new Newtonian3DLaw());
@@ -196,7 +194,12 @@ namespace Kratos {
 				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
 			}
 
+			array_1d<double, 3> embedded_vel;
+			embedded_vel(0) = 1.0;
+			embedded_vel(1) = 2.0;
+			embedded_vel(2) = 3.0;
 			for(unsigned int i=0; i<4; i++){
+				pElement->GetGeometry()[i].SetValue(EMBEDDED_VELOCITY, embedded_vel);
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
@@ -213,11 +216,6 @@ namespace Kratos {
 			pElement->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) =  1.0;
 			pElement->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = -1.0;
 			pElement->GetGeometry()[3].FastGetSolutionStepValue(DISTANCE) =  1.0;
-			array_1d<double, 3> embedded_vel;
-			embedded_vel(0) = 1.0;
-			embedded_vel(1) = 2.0;
-			embedded_vel(2) = 3.0;
-			pElement->SetValue(EMBEDDED_VELOCITY, embedded_vel);
 
 			// Compute RHS and LHS
 			Vector RHS = ZeroVector(16);
@@ -226,7 +224,7 @@ namespace Kratos {
 			pElement->Initialize(); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
-			// Check the RHS values (the RHS is computed as the LHS x previous_solution, 
+			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
 			KRATOS_CHECK_NEAR(RHS(0), 0.023845, 1e-6);
 			KRATOS_CHECK_NEAR(RHS(1), 0.048607, 1e-6);
@@ -244,7 +242,7 @@ namespace Kratos {
 			KRATOS_CHECK_NEAR(RHS(13), 4.29637, 1e-2);
 			KRATOS_CHECK_NEAR(RHS(14), 5.67408, 1e-2);
 			KRATOS_CHECK_NEAR(RHS(15), 0.000903677, 1e-9);
-			
+
 		}
 	} // namespace Testing
 }  // namespace Kratos.

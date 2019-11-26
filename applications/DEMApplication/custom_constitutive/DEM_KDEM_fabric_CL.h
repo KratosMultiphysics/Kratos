@@ -19,7 +19,7 @@ namespace Kratos {
 
         ~DEM_KDEMFabric() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
@@ -27,7 +27,7 @@ namespace Kratos {
                                     double LocalCoordSystem[3][3],
                                     double& normal_force,
                                     double calculation_area,
-                                    Matrix* mSymmStressTensor,
+                                    BoundedMatrix<double, 3, 3>* mSymmStressTensor,
                                     SphericContinuumParticle* element1,
                                     SphericContinuumParticle* element2,
                                     const ProcessInfo& r_process_info,

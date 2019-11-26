@@ -41,6 +41,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "ManufacturedSolutionTest/"
         },
+        "material_import_settings": {
+            "materials_filename": "ManufacturedSolutionTestMaterials.json"
+        },
         "compute_reactions"            : true,
         "maximum_iterations"           : 20,
         "relative_velocity_tolerance"  : 1e-5,
@@ -48,7 +51,7 @@
         "relative_pressure_tolerance"  : 1e-5,
         "absolute_pressure_tolerance"  : 1e-7,
         "linear_solver_settings"       : {
-            "solver_type"         : "SuperLUSolver"
+            "solver_type"         : "ExternalSolversApplication.super_lu"
         },
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Inlet2D_Contour"],
@@ -62,7 +65,9 @@
             "dynamic_tau": 0.001
         }
     },
-    "initial_conditions_process_list"  : [],
-    "boundary_conditions_process_list" : [],
-    "gravity"                          : []
+    "processes": {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [],
+        "gravity"                          : []
+    }
 }

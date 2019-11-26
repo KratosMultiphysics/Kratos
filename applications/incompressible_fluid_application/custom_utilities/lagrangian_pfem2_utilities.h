@@ -512,7 +512,7 @@ public:
                 hnode2 *= hnode2; //take the square
 
                 //loop on neighbours and erase if they are too close
-                for (WeakPointerVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
+                for (GlobalPointersVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
                         i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
                 {
                     if (static_cast<bool> (i->Is(TO_ERASE)) == false) //we can erase the current node only if the neighb is not to be erased

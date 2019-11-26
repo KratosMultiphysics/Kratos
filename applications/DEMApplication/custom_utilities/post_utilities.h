@@ -428,11 +428,11 @@ namespace Kratos {
         }//QuasiStaticAdimensionalNumber
 
 
-        DenseVector<unsigned int>& GetElementPartition() {return (mElementPartition);};
+        std::vector<unsigned int>& GetElementPartition() {return (mElementPartition);};
 
     protected:
 
-        DenseVector<unsigned int> mElementPartition;
+        std::vector<unsigned int> mElementPartition;
 
     }; // Class PostUtilities
 

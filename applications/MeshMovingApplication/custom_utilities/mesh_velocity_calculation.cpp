@@ -16,6 +16,8 @@
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
+#include "includes/mesh_moving_variables.h"
 #include "mesh_velocity_calculation.h"
 
 namespace Kratos {
@@ -46,6 +48,7 @@ void CalculateMeshVelocitiesGeneralizedAlpha(ModelPart& rModelPart,
 
         r_mesh_v0 = const_u * (r_mesh_u0 - r_mesh_u1) + const_v * r_mesh_v1 + const_a * r_mesh_a1;
         r_mesh_a0 = (1.0 / (delta_time * Gamma)) * (r_mesh_v0 - r_mesh_v1) - ((1 - Gamma) / Gamma) * r_mesh_a1;
+
     }
 
     rModelPart.GetCommunicator().SynchronizeVariable(MESH_VELOCITY);
@@ -59,15 +62,13 @@ void CalculateMeshVelocities(ModelPart& rModelPart,
     const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
     const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
 
-    const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
-
-    const auto coeffs = rBDF.ComputeBDFCoefficients(delta_time);
+    const auto coeffs = rBDF.ComputeBDFCoefficients(rModelPart.GetProcessInfo());
 
     #pragma omp parallel for
     for (int i=0; i<num_local_nodes; i++) {
         const auto it_node  = nodes_begin + i;
         auto& r_mesh_v0       = it_node->FastGetSolutionStepValue(MESH_VELOCITY);
-        noalias(r_mesh_v0)  = coeffs[0] * it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+        noalias(r_mesh_v0) = coeffs[0] * it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
         noalias(r_mesh_v0) += coeffs[1] * it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
     }
 
@@ -80,18 +81,13 @@ void CalculateMeshVelocities(ModelPart& rModelPart,
     const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
     const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
 
-    const auto& r_current_process_info = rModelPart.GetProcessInfo();
-
-    const double delta_time = r_current_process_info[DELTA_TIME];
-    const double previous_delta_time = r_current_process_info.GetPreviousTimeStepInfo(1)[DELTA_TIME];
-
-    const auto coeffs = rBDF.ComputeBDFCoefficients(delta_time, previous_delta_time);
+    const auto coeffs = rBDF.ComputeBDFCoefficients(rModelPart.GetProcessInfo());
 
     #pragma omp parallel for
     for (int i=0; i<num_local_nodes; i++) {
         const auto it_node  = nodes_begin + i;
         auto& r_mesh_v0 = it_node->FastGetSolutionStepValue(MESH_VELOCITY);
-        noalias(r_mesh_v0)  = coeffs[0] * it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+        noalias(r_mesh_v0) = coeffs[0] * it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
         noalias(r_mesh_v0) += coeffs[1] * it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
         noalias(r_mesh_v0) += coeffs[2] * it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 2);
     }

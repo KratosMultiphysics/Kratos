@@ -118,6 +118,7 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
+            "name" : "ResidualBasedEliminationBuilderAndSolver"
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -481,8 +482,6 @@ public:
 
         Timer::Stop("Build");
 
-//         ApplyPointLoads(pScheme,rModelPart,b);
-
         // Does nothing...dirichlet conditions are naturally dealt with in defining the residual
         ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
 
@@ -716,7 +715,7 @@ public:
         Doftemp.reserve(dofs_aux_list[0].size());
         for (auto it = dofs_aux_list[0].begin(); it != dofs_aux_list[0].end(); it++)
         {
-            Doftemp.push_back(it->get());
+            Doftemp.push_back(*it);
         }
         Doftemp.Sort();
 

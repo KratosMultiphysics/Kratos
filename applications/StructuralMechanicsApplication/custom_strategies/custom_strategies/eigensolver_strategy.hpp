@@ -22,6 +22,7 @@
 // Project includes
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "utilities/builtin_timer.h"
+#include "spaces/ublas_space.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
@@ -90,7 +91,8 @@ public:
     EigensolverStrategy(
         ModelPart& rModelPart,
         SchemePointerType pScheme,
-        BuilderAndSolverPointerType pBuilderAndSolver
+        BuilderAndSolverPointerType pBuilderAndSolver,
+        bool ComputeModalDecomposition = false
         )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
     {
@@ -99,6 +101,8 @@ public:
         mpScheme = pScheme;
 
         mpBuilderAndSolver = pBuilderAndSolver;
+
+        mComputeModalDecompostion = ComputeModalDecomposition;
 
         // ensure initialization of system matrices in InitializeSolutionStep()
         mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
@@ -395,14 +399,28 @@ public:
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
         TSparseSpace::SetToZero(rMassMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rMassMatrix,b);
+        if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
+            this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rMassMatrix, b);
+        }
         this->ApplyDirichletConditions(rMassMatrix, 1.0);
+
+        if (BaseType::GetEchoLevel() == 4) {
+            TSparseSpace::WriteMatrixMarketMatrix("MassMatrix.mm", rMassMatrix, false);
+        }
 
         // Generate rhs matrix. the factor -1 is chosen to make
         // Eigenvalues corresponding to fixed dofs negative
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
         TSparseSpace::SetToZero(rStiffnessMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStiffnessMatrix,b);
+        if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
+            this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rStiffnessMatrix, b);
+        }
         ApplyDirichletConditions(rStiffnessMatrix,-1.0);
+
+        if (BaseType::GetEchoLevel() == 4) {
+            TSparseSpace::WriteMatrixMarketMatrix("StiffnessMatrix.mm", rStiffnessMatrix, false);
+        }
 
         // Eigenvector matrix and eigenvalue vector are initialized by the solver
         DenseVectorType Eigenvalues;
@@ -419,7 +437,13 @@ public:
         KRATOS_INFO_IF("System Solve Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                 << system_solve_time.ElapsedSeconds() << std::endl;
 
+
         this->AssignVariables(Eigenvalues,Eigenvectors);
+
+
+        if (mComputeModalDecompostion) {
+            ComputeModalDecomposition(Eigenvectors);
+        }
 
         return true;
         KRATOS_CATCH("")
@@ -539,6 +563,7 @@ private:
 
     bool mInitializeWasPerformed = false;
 
+    bool mComputeModalDecompostion = false;
     ///@}
     ///@name Private Operators
     ///@{
@@ -653,21 +678,50 @@ private:
                 rNodeEigenvectors.resize(NumEigenvalues,NumNodeDofs,false);
             }
 
-            // the jth column index of EIGENVECTOR_MATRIX corresponds to the jth nodal dof. therefore,
-            // the dof ordering must not change.
-            if (NodeDofs.IsSorted() == false)
-            {
-                NodeDofs.Sort();
-            }
+            // TO BE VERIFIED!! In the current implmentation of Dofs there are nor reordered and only pushec back. 
+            // // the jth column index of EIGENVECTOR_MATRIX corresponds to the jth nodal dof. therefore,
+            // // the dof ordering must not change.
+            // if (NodeDofs.IsSorted() == false)
+            // {
+            //     NodeDofs.Sort();
+            // }
 
             // fill the EIGENVECTOR_MATRIX
             for (std::size_t i = 0; i < NumEigenvalues; i++)
                 for (std::size_t j = 0; j < NumNodeDofs; j++)
                 {
                     auto itDof = std::begin(NodeDofs) + j;
-                    rNodeEigenvectors(i,j) = rEigenvectors(i,itDof->EquationId());
+                    rNodeEigenvectors(i,j) = rEigenvectors(i,(*itDof)->EquationId());
                 }
         }
+    }
+    ///
+     /**
+     * Computes the modal decomposition depending on the number of eigenvalues
+     * chosen and stores them in the corresponding variables. Can be activated by setting
+     * bool variable exposed to the python interface.
+     */
+    void ComputeModalDecomposition(const DenseMatrixType& rEigenvectors)
+    {
+        const SparseMatrixType& rMassMatrix = this->GetMassMatrix();
+        SparseMatrixType m_temp = ZeroMatrix(rEigenvectors.size1(),rEigenvectors.size2());
+        boost::numeric::ublas::axpy_prod(rEigenvectors,rMassMatrix,m_temp,true);
+        Matrix modal_mass_matrix = ZeroMatrix(m_temp.size1(),m_temp.size1());
+        boost::numeric::ublas::axpy_prod(m_temp,trans(rEigenvectors),modal_mass_matrix);
+
+        const SparseMatrixType& rStiffnessMatrix = this->GetStiffnessMatrix();
+        SparseMatrixType k_temp = ZeroMatrix(rEigenvectors.size1(),rEigenvectors.size2());
+        boost::numeric::ublas::axpy_prod(rEigenvectors,rStiffnessMatrix,k_temp,true);
+        Matrix modal_stiffness_matrix = ZeroMatrix(k_temp.size1(),k_temp.size1());
+        boost::numeric::ublas::axpy_prod(k_temp,trans(rEigenvectors),modal_stiffness_matrix);
+
+        ModelPart& rModelPart = BaseType::GetModelPart();
+        rModelPart.GetProcessInfo()[MODAL_MASS_MATRIX] = modal_mass_matrix;
+        rModelPart.GetProcessInfo()[MODAL_STIFFNESS_MATRIX] = modal_stiffness_matrix;
+
+        KRATOS_INFO("ModalMassMatrix")      << modal_mass_matrix << std::endl;
+        KRATOS_INFO("ModalStiffnessMatrix") << modal_stiffness_matrix << std::endl;
+
     }
 
     ///@}

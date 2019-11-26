@@ -19,28 +19,13 @@ namespace Kratos {
 
         ~DEM_D_Linear_HighStiffness() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
         void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override;
 
         void InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta = 0.0) override;
-
-
-    //private:
-
-        // friend class Serializer;
-
-        // virtual void save(Serializer& rSerializer) const override {
-        //     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEM_D_Linear_viscous_Coulomb)
-        //             //rSerializer.save("MyMemberName",myMember);
-        // }
-
-        // virtual void load(Serializer& rSerializer) override {
-        //     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEM_D_Linear_viscous_Coulomb)
-        //             //rSerializer.load("MyMemberName",myMember);
-        // }
 
     };
 

@@ -23,10 +23,10 @@ namespace Kratos {
 namespace Testing {
 
 void TriangleModelPartForVorticityTests(ModelPart& rModelPart) {
-    
+
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
     rModelPart.SetBufferSize(3);
-    Properties::Pointer p_properties = rModelPart.pGetProperties(0);
+    Properties::Pointer p_properties = rModelPart.CreateNewProperties(0);
 
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -49,17 +49,17 @@ void TriangleModelPartForVorticityTests(ModelPart& rModelPart) {
         double r = std::sqrt(dx*dx + dy*dy);
         double cosine = dx/r;
         double sine = dy/r;
-        
+
         r_node.FastGetSolutionStepValue(VELOCITY_X) = omega*r*sine;
         r_node.FastGetSolutionStepValue(VELOCITY_Y) = -omega*r*cosine;
     }
 }
 
 void TetrahedraModelPartForVorticityTests(ModelPart& rModelPart) {
-    
+
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
     rModelPart.SetBufferSize(3);
-    Properties::Pointer p_properties = rModelPart.pGetProperties(0);
+    Properties::Pointer p_properties = rModelPart.CreateNewProperties(0);
 
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -84,7 +84,7 @@ void TetrahedraModelPartForVorticityTests(ModelPart& rModelPart) {
         double r = std::sqrt(dx*dx + dz*dz);
         double cosine = dx/r;
         double sine = dz/r;
-        
+
         r_node.FastGetSolutionStepValue(VELOCITY_X) = omega*r*sine;
         r_node.FastGetSolutionStepValue(VELOCITY_Z) = -omega*r*cosine;
     }
@@ -111,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities2DVorticityMagnitude, FluidDynamicsA
 
     std::vector<double> VorticityMagnitudes;
     ModelPart.ElementsBegin()->GetValueOnIntegrationPoints(VORTICITY_MAGNITUDE,VorticityMagnitudes,ModelPart.GetProcessInfo());
-    
+
     KRATOS_CHECK_EQUAL(VorticityMagnitudes.size(),3);
     for (unsigned int i = 0; i < VorticityMagnitudes.size(); i++) {
         KRATOS_CHECK_NEAR(VorticityMagnitudes[i],2.0,1e-6);
@@ -125,7 +125,7 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities2DVorticity, FluidDynamicsApplicatio
 
     std::vector< array_1d<double,3> > Vorticities;
     ModelPart.ElementsBegin()->GetValueOnIntegrationPoints(VORTICITY,Vorticities,ModelPart.GetProcessInfo());
-    
+
     KRATOS_CHECK_EQUAL(Vorticities.size(),3);
     for (unsigned int i = 0; i < Vorticities.size(); i++) {
         KRATOS_CHECK_NEAR(Vorticities[i][0], 0.0,1e-6);
@@ -170,7 +170,7 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities3DVorticity, FluidDynamicsApplicatio
 
     std::vector< array_1d<double,3> > Vorticities;
     ModelPart.ElementsBegin()->GetValueOnIntegrationPoints(VORTICITY,Vorticities,ModelPart.GetProcessInfo());
-    
+
     KRATOS_CHECK_EQUAL(Vorticities.size(),4);
     for (unsigned int i = 0; i < Vorticities.size(); i++) {
         KRATOS_CHECK_NEAR(Vorticities[i][0], 0.0,1e-6);

@@ -1,42 +1,93 @@
+"""Load simulation results before each solution step for a single mesh from HDF5.
+
+This process works with or without MPI.
+
+license: HDF5Application/license.txt
+"""
+
+
+__all__ = ["Factory"]
+
+
 import KratosMultiphysics
-import KratosMultiphysics.HDF5Application as KratosHDF5
-import hdf5_io
+import KratosMultiphysics.HDF5Application.core as core
+from KratosMultiphysics.HDF5Application.utils import ParametersWrapper
+from KratosMultiphysics.HDF5Application.utils import IsDistributed
+from KratosMultiphysics.HDF5Application.utils import CreateOperationSettings
+
 
 def Factory(settings, Model):
-    """Return a process to read a transient solution from HDF5."""
-    if not isinstance(settings, KratosMultiphysics.Parameters):
-        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    default_settings = KratosMultiphysics.Parameters("""
+    """Return the process for single mesh temporal input with HDF5.
+
+    The input settings are given in the following table:
+    +-------------------------------------+------------+-----------------------------------------+
+    | Setting                             | Type       | Default Value                           |
+    +-------------------------------------+------------+-----------------------------------------+
+    | "model_part_name"                   | String     | ""                                      |
+    +-------------------------------------+------------+-----------------------------------------+
+    | "file_settings"                     | Parameters | "file_name": "<model_part_name>-<time>" |
+    |                                     |            | "time_format": "0.4f"                   |
+    |                                     |            | "echo_level":  0                        |
+    +-------------------------------------+------------+-----------------------------------------+
+    | "nodal_solution_step_data_settings" | Parameters | "prefix": "/ResultsData"                |
+    |                                     |            | "list_of_variables": []                 |
+    +-------------------------------------+------------+-----------------------------------------+
+    | "nodal_data_value_settings"         | Parameters | "prefix": "/ResultsData"                |
+    |                                     |            | "list_of_variables": []                 |
+    +-------------------------------------+------------+-----------------------------------------+
+    | "element_data_value_settings"       | Parameters | "prefix": "/ResultsData"                |
+    |                                     |            | "list_of_variables": []                 |
+    +-------------------------------------+------------+-----------------------------------------+
+    """
+    core_settings = CreateCoreSettings(settings["Parameters"])
+    return SingleMeshTemporalInputProcessFactory(core_settings, Model)
+
+
+def SingleMeshTemporalInputProcessFactory(core_settings, Model):
+    return core.Factory(core_settings, Model)
+
+
+def CreateCoreSettings(user_settings):
+    """Return the core settings."""
+    # Configure the defaults:
+    core_settings = ParametersWrapper("""
+        [{
+            "model_part_name" : "",
+            "process_step": "initialize_solution_step",
+            "io_settings": {
+                "io_type": "serial_hdf5_file_io",
+                "file_name": "<model_part_name>-<time>.h5",
+                "file_access_mode": "read_only"
+            },
+            "list_of_operations": []
+        }]
+        """)
+    # Apply the user settings:
+    user_settings.ValidateAndAssignDefaults(
+        KratosMultiphysics.Parameters("""
             {
                 "model_part_name" : "MainModelPart",
-                "file_settings" : {
-                    "file_access_mode" : "read_only"
-                },
+                "file_settings" : {},
                 "nodal_solution_step_data_settings" : {},
-                "element_data_value_settings" : {},
                 "nodal_data_value_settings": {},
-                "time_tag_precision" : 4,
-                "file_name": "DEFAULT_NAME"
+                "element_data_value_settings" : {}
             }
             """)
-    settings = settings["Parameters"].Clone()
-    settings.ValidateAndAssignDefaults(default_settings)
-    model_part = Model[settings["model_part_name"].GetString()]
-    hdf5_file_factory = hdf5_io.HDF5SerialFileFactory(settings["file_settings"])
-    nodal_solution_step_input = hdf5_io.NodalSolutionStepDataInput(settings["nodal_solution_step_data_settings"])
-    element_data_value_input = hdf5_io.ElementDataValueInput(settings["element_data_value_settings"])
-    nodal_data_value_input = hdf5_io.NodalDataValueInput(settings["nodal_data_value_settings"])
-    input_time_settings = KratosMultiphysics.Parameters("""{}""")
-    input_time_settings.AddEmptyValue("time_tag_precision")
-    input_time_settings.AddEmptyValue("file_name")
-    if settings["file_name"].GetString()=="DEFAULT_NAME":
-        input_time_settings["file_name"].SetString(model_part.Name)
+    )
+    user_settings = ParametersWrapper(user_settings)
+    core_settings[0]["model_part_name"] = user_settings["model_part_name"]
+    for key in user_settings["file_settings"]:
+        core_settings[0]["io_settings"][key] = user_settings["file_settings"][key]
+    if IsDistributed():
+        core_settings[0]["io_settings"]["io_type"] = "parallel_hdf5_file_io"
     else:
-        input_time_settings["file_name"].SetString(settings["file_name"].GetString())
-    input_time_settings["time_tag_precision"].SetInt(settings["time_tag_precision"].GetInt())
-    temporal_input_process = hdf5_io.TemporalInputProcess(
-        model_part, hdf5_file_factory, input_time_settings)
-    temporal_input_process.AddInput(nodal_solution_step_input)
-    temporal_input_process.AddInput(element_data_value_input)
-    temporal_input_process.AddInput(nodal_data_value_input)
-    return temporal_input_process
+        core_settings[0]["io_settings"]["io_type"] = "serial_hdf5_file_io"
+    core_settings[0]["list_of_operations"] = [
+        CreateOperationSettings("nodal_solution_step_data_input",
+                                user_settings["nodal_solution_step_data_settings"]),
+        CreateOperationSettings("nodal_data_value_input",
+                                user_settings["nodal_data_value_settings"]),
+        CreateOperationSettings("element_data_value_input",
+                                user_settings["element_data_value_settings"]),
+    ]
+    return core_settings

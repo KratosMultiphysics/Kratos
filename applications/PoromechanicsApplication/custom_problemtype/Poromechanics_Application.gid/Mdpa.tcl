@@ -47,7 +47,11 @@ proc WriteMdpa { basename dir problemtypedir } {
             incr PropertyId
             dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
             puts $FileVar "Begin Properties $PropertyId"
-            puts $FileVar "  CONSTITUTIVE_LAW_NAME LinearElastic3DLaw"
+            if { ([GiD_AccessValue get gendata Initial_Stresses] eq false) || (([GiD_AccessValue get gendata Initial_Stresses] eq true) && ([GiD_AccessValue get gendata Mode] eq "save")) } {
+                puts $FileVar "  CONSTITUTIVE_LAW_NAME LinearElastic3DLaw"
+            } else {
+                puts $FileVar "  CONSTITUTIVE_LAW_NAME HistoryLinearElastic3DLaw"
+            }
             puts $FileVar "  YOUNG_MODULUS [lindex [lindex $Groups $i] 4]"
             puts $FileVar "  POISSON_RATIO [lindex [lindex $Groups $i] 5]"
             puts $FileVar "  DENSITY_SOLID [lindex [lindex $Groups $i] 6]"
@@ -68,7 +72,15 @@ proc WriteMdpa { basename dir problemtypedir } {
             incr PropertyId
             dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
             puts $FileVar "Begin Properties $PropertyId"
-            puts $FileVar "  CONSTITUTIVE_LAW_NAME [lindex [lindex $Groups $i] 3]"
+            if { ([GiD_AccessValue get gendata Initial_Stresses] eq false) || (([GiD_AccessValue get gendata Initial_Stresses] eq true) && ([GiD_AccessValue get gendata Mode] eq "save")) } {
+                puts $FileVar "  CONSTITUTIVE_LAW_NAME [lindex [lindex $Groups $i] 3]"
+            } else {
+                if {[lindex [lindex $Groups $i] 3] eq "LinearElasticPlaneStrain2DLaw"} {
+                    puts $FileVar "  CONSTITUTIVE_LAW_NAME HistoryLinearElasticPlaneStrain2DLaw"
+                } else {
+                    puts $FileVar "  CONSTITUTIVE_LAW_NAME HistoryLinearElasticPlaneStress2DLaw"
+                }
+            }
             puts $FileVar "  YOUNG_MODULUS [lindex [lindex $Groups $i] 4]"
             puts $FileVar "  POISSON_RATIO [lindex [lindex $Groups $i] 5]"
             puts $FileVar "  DENSITY_SOLID [lindex [lindex $Groups $i] 6]"

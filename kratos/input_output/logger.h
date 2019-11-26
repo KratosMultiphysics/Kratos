@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Carlos Roig
@@ -48,10 +48,10 @@ namespace Kratos
 
   /// Logger is in charge of writing the messages to output streams.
   /** Logger is the main class in message writing pipeline which holds an
-	  array of logger outputs and dispach the arriving logger messages
-	  to them. Implements a singletone for the list of the outputs and
-	  also has public constructors and destructors to perform the
-	  streaming.
+    array of logger outputs and dispach the arriving logger messages
+    to them. Implements a singletone for the list of the outputs and
+    also has public constructors and destructors to perform the
+    streaming.
   */
   class KRATOS_API(KRATOS_CORE) Logger
     {
@@ -59,25 +59,27 @@ namespace Kratos
       ///@name Type Definitions
       ///@{
 
-		using LoggerOutputContainerType = std::vector<LoggerOutput::Pointer>;
-	  ///@}
-	  ///@name Enums
-	  ///@{
+    using LoggerOutputContainerType = std::vector<LoggerOutput::Pointer>;
+    ///@}
+    ///@name Enums
+    ///@{
 
-		using Severity = LoggerMessage::Severity;
+    using Severity = LoggerMessage::Severity;
 
-		using Category = LoggerMessage::Category;
+    using Category = LoggerMessage::Category;
 
-	  ///@}
+    using DistributedFilter = LoggerMessage::DistributedFilter;
+
+    ///@}
       ///@name Life Cycle
       ///@{
 
-      Logger(std::string const& TheLabel);
+      explicit Logger(std::string const& TheLabel);
 
       Logger();
 
-	  /// Avoiding Logger to be copied
-	  Logger(Logger const& rOther) = delete;
+    /// Avoiding Logger to be copied
+    Logger(Logger const& rOther) = delete;
 
 
       /// Destructor is in charge of passing the message into outputs
@@ -88,8 +90,8 @@ namespace Kratos
       ///@name Operators
       ///@{
 
-	  /// Loggers can not be assigned.
-	  Logger& operator=(Logger const& rOther) = delete;
+    /// Loggers can not be assigned.
+    Logger& operator=(Logger const& rOther) = delete;
 
       ///@}
       ///@name Operations
@@ -100,10 +102,10 @@ namespace Kratos
       ///@name Static Methods
       ///@{
 
-	  static LoggerOutputContainerType& GetOutputsInstance()
-	  {
-		  static LoggerOutputContainerType instance;
-		  return instance;
+    static LoggerOutputContainerType& GetOutputsInstance()
+    {
+      static LoggerOutputContainerType instance;
+      return instance;
       }
 
       static LoggerOutput& GetDefaultOutputInstance()
@@ -112,7 +114,7 @@ namespace Kratos
           return defaultOutputInstance;
       }
 
-	  static void AddOutput(LoggerOutput::Pointer pTheOutput);
+    static void AddOutput(LoggerOutput::Pointer pTheOutput);
 
     static void Flush();
 
@@ -121,8 +123,8 @@ namespace Kratos
       ///@name Access
       ///@{
 
-	  std::string const& GetCurrentMessage() {
-		  return mCurrentMessage.GetMessage();
+    std::string const& GetCurrentMessage() {
+      return mCurrentMessage.GetMessage();
         }
 
       ///@}
@@ -144,29 +146,29 @@ namespace Kratos
       virtual void PrintData(std::ostream& rOStream) const;
 
 
-	  /// string stream function
-	  template<class StreamValueType>
-	  Logger& operator << (StreamValueType const& rValue)
-	  {
-		  mCurrentMessage << rValue;
+    /// string stream function
+    template<class StreamValueType>
+    Logger& operator << (StreamValueType const& rValue)
+    {
+      mCurrentMessage << rValue;
 
-		  return *this;
+      return *this;
     }
 
-	  /// Manipulator stream function
-	  Logger& operator << (std::ostream& (*pf)(std::ostream&));
+    /// Manipulator stream function
+    Logger& operator << (std::ostream& (*pf)(std::ostream&));
 
-	  /// char stream function
+    /// char stream function
     Logger& operator << (const char * rString);
 
     // Location stream function
     Logger& operator << (CodeLocation const& TheLocation);
 
-	  /// Severity stream function
-	  Logger& operator << (Severity const& TheSeverity);
+    /// Severity stream function
+    Logger& operator << (Severity const& TheSeverity);
 
-	  /// Category stream function
-	  Logger& operator << (Category const& TheCategory);
+    /// Category stream function
+    Logger& operator << (Category const& TheCategory);
 
 
       ///@}
@@ -179,7 +181,7 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-	  LoggerMessage mCurrentMessage;
+    LoggerMessage mCurrentMessage;
 
       ///@}
       ///@name Private Operators
@@ -223,11 +225,11 @@ namespace Kratos
 
   /// input stream function
   inline std::istream& operator >> (std::istream& rIStream,
-				    Logger& rThis);
+            Logger& rThis);
 
   /// output stream function
   inline std::ostream& operator << (std::ostream& rOStream,
-				    const Logger& rThis)
+            const Logger& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -248,15 +250,30 @@ namespace Kratos
 #define KRATOS_INFO_ONCE(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == 0) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::INFO
 #define KRATOS_INFO_FIRST_N(label, logger_count) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES < logger_count) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::INFO
 
+#define KRATOS_INFO_ALL_RANKS(label) KRATOS_INFO(label) << Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_INFO_IF_ALL_RANKS(label, conditional) KRATOS_INFO_IF(label, conditional) << Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_INFO_ONCE_ALL_RANKS(label) KRATOS_INFO_ONCE(label) << Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_INFO_FIRST_N_ALL_RANKS(label, logger_count) KRATOS_INFO_FIRST_N(label, logger_count) << Logger::DistributedFilter::FromAllRanks()
+
 #define KRATOS_WARNING(label) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING
 #define KRATOS_WARNING_IF(label, conditional) if(conditional) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING
 #define KRATOS_WARNING_ONCE(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == 0) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING
 #define KRATOS_WARNING_FIRST_N(label, logger_count) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES < logger_count) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING
 
+#define KRATOS_WARNING_ALL_RANKS(label) KRATOS_WARNING(label) << Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_WARNING_IF_ALL_RANKS(label, conditional) KRATOS_WARNING_IF(label, conditional) << Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_WARNING_ONCE_ALL_RANKS(label) KRATOS_WARNING_ONCE(label) << Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_WARNING_FIRST_N_ALL_RANKS(label, logger_count) KRATOS_WARNING_FIRST_N(label, logger_count) << Logger::DistributedFilter::FromAllRanks()
+
 #define KRATOS_DETAIL(label) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::DETAIL
 #define KRATOS_DETAIL_IF(label, conditional) if(conditional) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::DETAIL
 #define KRATOS_DETAIL_ONCE(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == 0) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::DETAIL
 #define KRATOS_DETAIL_FIRST_N(label, logger_count) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES < logger_count) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::DETAIL
+
+#define KRATOS_DETAIL_ALL_RANKS(label) KRATOS_DETAIL(label) << Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_DETAIL_IF_ALL_RANKS(label, conditional) KRATOS_DETAIL_IF(label, conditional) << Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_DETAIL_ONCE_ALL_RANKS(label) KRATOS_DETAIL_ONCE(label) << Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_DETAIL_FIRST_N_ALL_RANKS(label, logger_count) KRATOS_DETAIL_FIRST_N(label, logger_count) << Logger::DistributedFilter::FromAllRanks()
 
 #ifdef KRATOS_DEBUG
 #define KRATOS_TRACE(label) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::TRACE
@@ -269,6 +286,11 @@ namespace Kratos
 #define KRATOS_TRACE_ONCE(label) if(false) KRATOS_WARNING(label)
 #define KRATOS_TRACE_FIRST_N(label, logger_count) if(false) KRATOS_WARNING(label)
 #endif
+
+#define KRATOS_TRACE_ALL_RANKS(label) KRATOS_TRACE(label) << Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_TRACE_IF_ALL_RANKS(label, conditional) KRATOS_TRACE_IF(label, conditional) << Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_TRACE_ONCE_ALL_RANKS(label) KRATOS_TRACE_ONCE(label) << Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_TRACE_FIRST_N_ALL_RANKS(label, logger_count) KRATOS_TRACE_FIRST_N(label, logger_count) << Logger::DistributedFilter::FromAllRanks()
 
 #if defined(KRATOS_ENABLE_CHECK_POINT)
 #define KRATOS_CHECK_POINT(label) Logger(label) << Logger::Category::CHECKING

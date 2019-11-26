@@ -209,44 +209,64 @@ void ModelPartAddProperties2(ModelPart& rModelPart, Properties::Pointer pNewProp
     rModelPart.AddProperties(pNewProperties, ThisIndex);
 }
 
-bool ModelPartHasPropertiesById1(const ModelPart& rModelPart, const unsigned int PropertiesId, const unsigned int MeshId)
+bool ModelPartHasProperties1(const ModelPart& rModelPart, const unsigned int PropertiesId, const unsigned int MeshId)
 {
     return rModelPart.HasProperties(PropertiesId, MeshId);
 }
 
-bool ModelPartHasPropertiesById2(const ModelPart& rModelPart, const unsigned int PropertiesId)
+bool ModelPartHasProperties2(const ModelPart& rModelPart, const unsigned int PropertiesId)
 {
     return rModelPart.HasProperties(PropertiesId, 0);
 }
 
-bool ModelPartRecursivelyHasPropertiesById1(const ModelPart& rModelPart, const unsigned int PropertiesId, const unsigned int MeshId)
+bool ModelPartHasSubProperties1(const ModelPart& rModelPart, const std::string& rAdress, const unsigned int MeshId)
+{
+    return rModelPart.HasProperties(rAdress, MeshId);
+}
+
+bool ModelPartHasSubProperties2(const ModelPart& rModelPart, const std::string& rAdress)
+{
+    return rModelPart.HasProperties(rAdress, 0);
+}
+
+bool ModelPartRecursivelyHasProperties1(const ModelPart& rModelPart, const unsigned int PropertiesId, const unsigned int MeshId)
 {
     return rModelPart.RecursivelyHasProperties(PropertiesId, MeshId);
 }
 
-bool ModelPartRecursivelyHasPropertiesById2(const ModelPart& rModelPart, const unsigned int PropertiesId)
+bool ModelPartRecursivelyHasProperties2(const ModelPart& rModelPart, const unsigned int PropertiesId)
 {
     return rModelPart.RecursivelyHasProperties(PropertiesId, 0);
 }
 
-Properties::Pointer ModelPartCreateNewPropertiesById1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
+Properties::Pointer ModelPartCreateNewProperties1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
 {
     return rModelPart.CreateNewProperties(PropertiesId, MeshId);
 }
 
-Properties::Pointer ModelPartCreateNewPropertiesById2(ModelPart& rModelPart, unsigned int PropertiesId)
+Properties::Pointer ModelPartCreateNewProperties2(ModelPart& rModelPart, unsigned int PropertiesId)
 {
     return rModelPart.CreateNewProperties(PropertiesId, 0);
 }
 
-Properties::Pointer ModelPartGetPropertiesById1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
+Properties::Pointer ModelPartGetPropertiesDirect1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
 {
     return rModelPart.pGetProperties(PropertiesId, MeshId);
 }
 
-Properties::Pointer ModelPartGetPropertiesById2(ModelPart& rModelPart, unsigned int PropertiesId)
+Properties::Pointer ModelPartGetPropertiesDirect2(ModelPart& rModelPart, unsigned int PropertiesId)
 {
     return rModelPart.pGetProperties(PropertiesId);
+}
+
+Properties::Pointer ModelPartGetSubProperties1(ModelPart& rModelPart, const std::string& rAdress, unsigned int MeshId)
+{
+    return rModelPart.pGetProperties(rAdress, MeshId);
+}
+
+Properties::Pointer ModelPartSubProperties2(ModelPart& rModelPart, const std::string& rAdress)
+{
+    return rModelPart.pGetProperties(rAdress);
 }
 
 ModelPart::PropertiesContainerType::Pointer ModelPartGetProperties1(ModelPart& rModelPart)
@@ -685,38 +705,51 @@ bool CommunicatorAssembleNonHistoricalData(Communicator& rCommunicator, Variable
 template<class TDataType>
 TDataType CommunicatorSumAll(Communicator& rCommunicator, const TDataType& rValue)
 {
-    TDataType Value = rValue;
-    rCommunicator.SumAll(Value);
-    return Value;
+    KRATOS_WARNING("Communicator")
+    << "Using deprecated method Communicator::SumAll " << std::endl
+    << "Please retrieve the data communicator with Communicator::GetDataCommunicator "
+    << "and use DataCommunicator::SumAll instead." << std::endl;
+    return rCommunicator.GetDataCommunicator().SumAll(rValue);
 }
 
 template<class TDataType>
 TDataType CommunicatorMinAll(Communicator& rCommunicator, const TDataType& rValue)
 {
-    TDataType Value = rValue;
-    rCommunicator.MinAll(Value);
-    return Value;
+    KRATOS_WARNING("Communicator")
+    << "Using deprecated method Communicator::MinAll " << std::endl
+    << "Please retrieve the data communicator with Communicator::GetDataCommunicator "
+    << "and use DataCommunicator::MinAll instead." << std::endl;
+    return rCommunicator.GetDataCommunicator().MinAll(rValue);
 }
 
 template<class TDataType>
 TDataType CommunicatorMaxAll(Communicator& rCommunicator, const TDataType& rValue)
 {
-    TDataType Value = rValue;
-    rCommunicator.MaxAll(Value);
-    return Value;
+    KRATOS_WARNING("Communicator")
+    << "Using deprecated method Communicator::MaxAll " << std::endl
+    << "Please retrieve the data communicator with Communicator::GetDataCommunicator "
+    << "and use DataCommunicator::MaxAll instead." << std::endl;
+    return rCommunicator.GetDataCommunicator().MaxAll(rValue);
 }
 
 template<class TDataType>
 TDataType CommunicatorScanSum(Communicator& rCommunicator, const TDataType rSendPartial, TDataType rReceiveAccumulated)
 {
-    TDataType SendPartial = rSendPartial;
-    TDataType ReceiveAccumulated = rReceiveAccumulated;
-    rCommunicator.ScanSum(SendPartial, ReceiveAccumulated);
-    return ReceiveAccumulated;
+    KRATOS_WARNING("Communicator")
+    << "Using deprecated method Communicator::ScanSum " << std::endl
+    << "Please retrieve the data communicator with Communicator::GetDataCommunicator "
+    << "and use DataCommunicator::ScanSum instead." << std::endl;
+    return rCommunicator.GetDataCommunicator().ScanSum(rSendPartial);
 }
 
-
-
+void CommunicatorBarrier(Communicator& rCommunicator)
+{
+    KRATOS_WARNING("Communicator")
+    << "Using deprecated method Communicator::Barrier " << std::endl
+    << "Please retrieve the data communicator with Communicator::GetDataCommunicator "
+    << "and use DataCommunicator::Barrier instead." << std::endl;
+    return rCommunicator.GetDataCommunicator().Barrier();
+}
 
 void AddModelPartToPython(pybind11::module& m)
 {
@@ -734,7 +767,7 @@ void AddModelPartToPython(pybind11::module& m)
     py::class_<Communicator > (m,"Communicator")
         .def(py::init<>())
         .def("MyPID", &Communicator::MyPID)
-        .def("Barrier", &Communicator::Barrier)
+        .def("Barrier", CommunicatorBarrier)
         .def("TotalProcesses", &Communicator::TotalProcesses)
         .def("GetNumberOfColors", &Communicator::GetNumberOfColors)
         .def("NeighbourIndices", NeighbourIndicesConst, py::return_value_policy::reference_internal)
@@ -746,6 +779,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GhostMesh", CommunicatorGetGhostMeshWithIndex, py::return_value_policy::reference_internal )
         .def("InterfaceMesh", CommunicatorGetInterfaceMesh, py::return_value_policy::reference_internal )
         .def("InterfaceMesh", CommunicatorGetInterfaceMeshWithIndex, py::return_value_policy::reference_internal )
+        .def("GetDataCommunicator", &Communicator::GetDataCommunicator, py::return_value_policy::reference_internal )
         .def("SumAll", CommunicatorSumAll<int> )
         .def("SumAll", CommunicatorSumAll<double> )
         .def("SumAll", CommunicatorSumAll<array_1d<double,3> > )
@@ -785,18 +819,6 @@ void AddModelPartToPython(pybind11::module& m)
     PointerVectorSetPythonInterface<ModelPart::MasterSlaveConstraintContainerType>().CreateInterface(m,"MasterSlaveConstraintsArray");
 
     py::class_<ModelPart, Kratos::shared_ptr<ModelPart>, DataValueContainer, Flags >(m,"ModelPart")
-        .def(py::init([](const std::string& name) {
-                    KRATOS_WARNING("DEPRECATION") << "************************************************************" << std::endl;
-                    KRATOS_WARNING("DEPRECATION") << "USING OLD DEPRECATED CONSTRUCTOR OF MODELPART" << std::endl;
-                    KRATOS_WARNING("DEPRECATION") << "THIS WILL BE REMOVED ON NOV 1 2018" << std::endl;
-                    KRATOS_WARNING("DEPRECATION") << "the call to ModelPart(" << name << " ) " << std::endl;
-                    KRATOS_WARNING("DEPRECATION") << "should be substituted by current_model.CreateModelPart(" << name << ") " << std::endl;
-                    KRATOS_WARNING("DEPRECATION") << "************************************************************" << std::endl;
-                    static Model static_model; //NOT NICE! to be removed!!
-                    return std::make_shared<ModelPart>(name, static_model);
-                }
-            )
-        ) //TODO: REMOVE! THIS IS JUST UNTIL NOV 1 2018
         .def_property("Name", GetModelPartName, SetModelPartName)
         //  .def_property("ProcessInfo", GetProcessInfo, SetProcessInfo)
         .def_property("ProcessInfo", pointer_to_get_process_info, pointer_to_set_process_info)
@@ -833,6 +855,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("RemoveNode", ModelPartRemoveNode2)
         .def("RemoveNode", ModelPartRemoveNode3)
         .def("RemoveNode", ModelPartRemoveNode4)
+        .def("RemoveNodes", &ModelPart::RemoveNodes)
         .def("RemoveNodeFromAllLevels", ModelPartRemoveNodeFromAllLevels1)
         .def("RemoveNodeFromAllLevels", ModelPartRemoveNodeFromAllLevels2)
         .def("RemoveNodeFromAllLevels", ModelPartRemoveNodeFromAllLevels3)
@@ -842,14 +865,16 @@ void AddModelPartToPython(pybind11::module& m)
         .def("NumberOfTables", &ModelPart::NumberOfTables)
         .def("AddTable", &ModelPart::AddTable)
         .def("GetTable", &ModelPart::pGetTable)
-        .def("HasProperties", ModelPartHasPropertiesById1)
-        .def("HasProperties", ModelPartHasPropertiesById2)
-        .def("RecursivelyHasProperties", ModelPartRecursivelyHasPropertiesById1)
-        .def("RecursivelyHasProperties", ModelPartRecursivelyHasPropertiesById2)
-        .def("CreateNewProperties", ModelPartCreateNewPropertiesById1)
-        .def("CreateNewProperties", ModelPartCreateNewPropertiesById2)
-        .def("GetProperties", ModelPartGetPropertiesById1)
-//         .def("GetProperties", ModelPartGetPropertiesById2) // NOTE: This method conflicts with the other GetProperties methods
+        .def("HasProperties", ModelPartHasProperties1)
+        .def("HasProperties", ModelPartHasProperties2)
+        .def("HasProperties", ModelPartHasSubProperties1)
+        .def("HasProperties", ModelPartHasSubProperties2)
+        .def("RecursivelyHasProperties", ModelPartRecursivelyHasProperties1)
+        .def("RecursivelyHasProperties", ModelPartRecursivelyHasProperties2)
+        .def("CreateNewProperties", ModelPartCreateNewProperties1)
+        .def("CreateNewProperties", ModelPartCreateNewProperties2)
+        .def("GetProperties", ModelPartGetPropertiesDirect1)
+        .def("GetProperties", ModelPartGetSubProperties1)
         .def_property("Properties", ModelPartGetProperties1, ModelPartSetProperties1)
         .def("AddProperties", ModelPartAddProperties1)
         .def("AddProperties", ModelPartAddProperties2)
@@ -933,6 +958,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GetCommunicator", ModelPartGetCommunicator, py::return_value_policy::reference_internal)
         .def("Check", &ModelPart::Check)
         .def("IsSubModelPart", &ModelPart::IsSubModelPart)
+        .def("IsDistributed", &ModelPart::IsDistributed)
         .def("AddNode", &ModelPart::AddNode)
         .def("AddNodes",AddNodesByIds)
         .def("AddCondition", &ModelPart::AddCondition)

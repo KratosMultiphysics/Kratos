@@ -101,9 +101,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_<ExplicitSolverStrategy, ExplicitSolverStrategy::Pointer>(m, "ExplicitSolverStrategy")
-        .def(py::init< ExplicitSolverSettings&, double, int, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters, const bool>())
-        .def("Solve", &ExplicitSolverStrategy::Solve)
+        .def(py::init< ExplicitSolverSettings&, double, int, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
+        .def("SolveSolutionStep", &ExplicitSolverStrategy::SolveSolutionStep)
         .def("Initialize", &ExplicitSolverStrategy::Initialize)
+        .def("InitializeSolutionStep", &ExplicitSolverStrategy::InitializeSolutionStep)
+        .def("FinalizeSolutionStep", &ExplicitSolverStrategy::FinalizeSolutionStep)
+        .def("SearchDemNeighbours", &ExplicitSolverStrategy::SearchDEMOperations)
+        .def("SearchFemNeighbours", &ExplicitSolverStrategy::SearchFEMOperations)
         .def("SetSearchRadiiOnAllParticles", &ExplicitSolverStrategy::SetSearchRadiiOnAllParticles)
         .def("SetNormalRadiiOnAllParticles", &ExplicitSolverStrategy::SetNormalRadiiOnAllParticles)
         .def("SetSearchRadiiWithFemOnAllParticles", &ExplicitSolverStrategy::SetSearchRadiiWithFemOnAllParticles)
@@ -112,6 +116,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("PrepareElementsForPrinting", &ExplicitSolverStrategy::PrepareElementsForPrinting)
         .def("ResetPrescribedMotionFlagsRespectingImposedDofs", &ExplicitSolverStrategy::ResetPrescribedMotionFlagsRespectingImposedDofs)
         .def("PrepareContactElementsForPrinting", &ExplicitSolverStrategy::PrepareContactElementsForPrinting)
+        .def("AttachSpheresToStickyWalls", &ExplicitSolverStrategy::AttachSpheresToStickyWalls)
         ;
 
     py::class_<ContinuumExplicitSolverStrategy, ContinuumExplicitSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "ContinuumExplicitSolverStrategy")
@@ -119,7 +124,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_<IterativeSolverStrategy, IterativeSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "IterativeSolverStrategy")
-        .def(py::init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters, const bool>())
+        .def(py::init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
         ;
 
     py::class_<VelocityVerletSolverStrategy<ExplicitSolverStrategy>, VelocityVerletSolverStrategy<ExplicitSolverStrategy>::Pointer, ExplicitSolverStrategy>(m, "VelocityVerletSolverStrategy")

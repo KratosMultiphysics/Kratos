@@ -17,6 +17,7 @@
 #include <vector>
 #include <math.h>
 #include <algorithm>
+#include <numeric>
 #ifdef _OPENMP
 #include <omp.h>
 #endif

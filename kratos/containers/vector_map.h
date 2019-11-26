@@ -102,7 +102,7 @@ public:
 
     VectorMap(const VectorMap& rOther) :  mData(rOther.mData), mSortedPartSize(rOther.mSortedPartSize), mMaxBufferSize(rOther.mMaxBufferSize) {}
 
-    VectorMap(const TContainerType& rContainer) :  mData(rContainer), mSortedPartSize(size_type()), mMaxBufferSize(100)
+    explicit VectorMap(const TContainerType& rContainer) :  mData(rContainer), mSortedPartSize(size_type()), mMaxBufferSize(100)
     {
         Sort();
         auto p = [](const value_type& v1, const value_type& v2) -> bool {
@@ -538,7 +538,7 @@ private:
     {
         key_type mKey;
     public:
-        EqualKeyTo(key_type k) : mKey(k) {}
+        explicit EqualKeyTo(key_type k) : mKey(k) {}
         bool operator()(value_type a) const
         {
             return a.first == mKey;
