@@ -61,15 +61,13 @@ class TestCoSimIODummySolvers(KratosUnittest.TestCase):
     #     self.execute_test_co_sim_orchestrated_strong_coupling()
 
 
-    # def test_weak_coupling_Fortran_solver(self):
-    #     self.skipTest("This test is not finished")
-    #     self.name_executable = "dummy_solver_fortran"
-    #     self.execute_test_weak_coupling()
+    def test_weak_coupling_Fortran_solver(self):
+        self.name_executable = "dummy_solver_fortran"
+        self.execute_test_weak_coupling()
 
-    # def test_strong_coupling_Fortran_solver(self):
-    #     self.skipTest("This test is not finished")
-    #     self.name_executable = "dummy_solver_fortran"
-    #     self.execute_test_strong_coupling()
+    def test_strong_coupling_Fortran_solver(self):
+        self.name_executable = "dummy_solver_fortran"
+        self.execute_test_strong_coupling()
 
     # def test_co_sim_orchestrated_weak_coupling_Fortran_solver(self):
     #     self.skipTest("This test is not finished")
