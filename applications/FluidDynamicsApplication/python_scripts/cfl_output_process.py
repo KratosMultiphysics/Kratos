@@ -37,43 +37,41 @@ class CFLOutputProcess(KratosMultiphysics.Process):
             }
             """)
 
-        self.params = params
+  
         # Detect "End" as a tag and replace it by a large number
-        if(self.params.Has("interval")):
-            if(self.params["interval"][1].IsString()):
-                if(self.params["interval"][1].GetString() == "End"):
-                    self.params["interval"][1].SetDouble(1e30)
+        if(params.Has("interval")):
+            if(params["interval"][1].IsString()):
+                if(params["interval"][1].GetString() == "End"):
+                    params["interval"][1].SetDouble(1e30)
                 else:
                     raise Exception("The second value of interval can be \"End\" or a number, interval currently:" +
-                                    self.params["interval"].PrettyPrintJsonString())
+                                    params["interval"].PrettyPrintJsonString())
 
-        self.params.ValidateAndAssignDefaults(default_settings)
+        params.ValidateAndAssignDefaults(default_settings)
 
         # getting the ModelPart from the Model
-        self.model_part_name = self.params["model_part_name"].GetString()
+        self.model_part_name = params["model_part_name"].GetString()
         if self.model_part_name == "":
             raise Exception('No "model_part_name" was specified!')
         else:
             self.model_part = model[self.model_part_name]
 
-    def ExecuteInitialize(self):
-
-        self.interval = KratosMultiphysics.Vector(2)
-        self.interval[0] = self.params["interval"][0].GetDouble()
-        self.interval[1] = self.params["interval"][1].GetDouble()
+        self.interval = params["interval"].GetVector()
+        self.interval[0] = params["interval"][0].GetDouble()
+        self.interval[1] = params["interval"][1].GetDouble()
 
         # getting threshold
-        self.cfl_threshold = self.params["cfl_threshold"].GetDouble()
+        self.cfl_threshold = params["cfl_threshold"].GetDouble()
 
-        self.format = self.params["print_format"].GetString()
-        self.output_step = self.params["output_step"].GetInt()
-        self.print_to_screen = self.params["print_to_screen"].GetBool()
-        self.write_output_file = self.params["write_output_file"].GetBool()
+        self.format = params["print_format"].GetString()
+        self.output_step = params["output_step"].GetInt()
+        self.print_to_screen = params["print_to_screen"].GetBool()
+        self.write_output_file = params["write_output_file"].GetBool()
 
         if (self.model_part.GetCommunicator().MyPID() == 0):
             if (self.write_output_file):
                 file_handler_params = KratosMultiphysics.Parameters(
-                    self.params["output_file_settings"])
+                    params["output_file_settings"])
 
                 file_header = self._GetFileHeader()
                 self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part,
