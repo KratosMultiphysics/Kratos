@@ -304,11 +304,6 @@ void RunResidualSensitivityTest(
         GeometryType& r_primal_geometry = r_primal_element.GetGeometry();
         r_primal_element.Check(r_primal_process_info);
 
-        const auto& primal_integration_method = r_primal_element.GetIntegrationMethod();
-        const auto& adjoint_integration_method = r_adjoint_element.GetIntegrationMethod();
-
-        KRATOS_CHECK_EQUAL(primal_integration_method, adjoint_integration_method);
-
         Vector residual, residual_0, residual_sensitivity;
 
         for (auto process : rPrimalProcesses)

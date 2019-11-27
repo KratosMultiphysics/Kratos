@@ -755,8 +755,7 @@ public:
             const double primal_variable_relaxed_rate = this->EvaluateInPoint(
                 this->GetPrimalRelaxedRateVariable(), gauss_shape_functions);
 
-            if (velocity_magnitude_square > std::numeric_limits<double>::epsilon() &&
-                primal_variable_gradient_norm > std::numeric_limits<double>::epsilon())
+            if (velocity_magnitude_square > 0.0 && primal_variable_gradient_norm > 0.0)
             {
                 residual = primal_variable_relaxed_rate;
                 residual += velocity_dot_primal_variable_gradient;
@@ -1596,8 +1595,7 @@ private:
 
             double chi{0.0}, k1{0.0}, k2{0.0}, residual{0.0},
                 positivity_preserving_coeff{0.0};
-            if (scalar_gradient_norm > std::numeric_limits<double>::epsilon() &&
-                velocity_magnitude_square > std::numeric_limits<double>::epsilon())
+            if (scalar_gradient_norm > 0.0 && velocity_magnitude_square > 0.0)
             {
                 residual = relaxed_scalar_rate;
                 residual += velocity_dot_scalar_gradient;
@@ -1833,8 +1831,7 @@ private:
                 this->GetPrimalRelaxedRateVariable(), gauss_shape_functions);
 
             double chi{0.0}, k1{0.0}, k2{0.0}, residual{0.0};
-            if (scalar_gradient_norm > std::numeric_limits<double>::epsilon() &&
-                velocity_magnitude_square > std::numeric_limits<double>::epsilon())
+            if (scalar_gradient_norm > 0.0 && velocity_magnitude_square > 0.0)
             {
                 residual = relaxed_scalar_rate;
                 residual += velocity_dot_scalar_gradient;
@@ -1846,25 +1843,17 @@ private:
                     effective_kinematic_viscosity, reaction, bossak_alpha,
                     bossak_gamma, delta_time, element_length, dynamic_tau);
 
-                const double abs_residual = std::abs(residual);
-                if (abs_residual <= std::numeric_limits<double>::epsilon())
+                if (residual > 0.0)
                 {
-                    positivity_preserving_coeff_derivatives.clear();
+                    noalias(positivity_preserving_coeff_derivatives) =
+                        gauss_shape_functions * chi /
+                        (scalar_gradient_norm * velocity_magnitude_square);
                 }
                 else
                 {
-                    if (residual > 0.0)
-                    {
-                        noalias(positivity_preserving_coeff_derivatives) =
-                            gauss_shape_functions * chi /
-                            (scalar_gradient_norm * velocity_magnitude_square);
-                    }
-                    else
-                    {
-                        noalias(positivity_preserving_coeff_derivatives) =
-                            -1.0 * gauss_shape_functions * chi /
-                            (scalar_gradient_norm * velocity_magnitude_square);
-                    }
+                    noalias(positivity_preserving_coeff_derivatives) =
+                        -1.0 * gauss_shape_functions * chi /
+                        (scalar_gradient_norm * velocity_magnitude_square);
                 }
             }
             else
@@ -2136,8 +2125,7 @@ private:
                 cross_wind_diffusion_coeff{0.0}, residual{0.0},
                 positivity_preserving_coeff{0.0};
 
-            if (primal_variable_gradient_norm > std::numeric_limits<double>::epsilon() &&
-                velocity_magnitude_square > std::numeric_limits<double>::epsilon())
+            if (primal_variable_gradient_norm > 0.0 && velocity_magnitude_square > 0.0)
             {
                 residual = primal_variable_relaxed_rate;
                 residual += velocity_dot_primal_variable_gradient;
@@ -2239,9 +2227,7 @@ private:
                             residual, velocity, DN_DX_deriv, primal_variable_value,
                             primal_variable_nodal_values, reaction_deriv, source_deriv);
 
-                    if (primal_variable_gradient_norm >
-                            std::numeric_limits<double>::epsilon() &&
-                        velocity_magnitude_square > std::numeric_limits<double>::epsilon())
+                    if (primal_variable_gradient_norm > 0.0 && velocity_magnitude_square > 0.0)
                     {
                         positivity_preserving_coeff_deriv =
                             StabilizedConvectionDiffusionReactionAdjointUtilities::CalculatePositivityPreservationCoefficientShapeSensitivity(
