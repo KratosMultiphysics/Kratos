@@ -1,3 +1,13 @@
+# ==============================================================================
+#  KratosShapeOptimizationApplication
+#
+#  License:         BSD License
+#                   license: ShapeOptimizationApplication/license.txt
+#
+#  Main authors:    Geiser Armin, https://github.com/armingeiser
+#
+# ==============================================================================
+
 class Shape:
     def __init__(self):
         self.name = None
