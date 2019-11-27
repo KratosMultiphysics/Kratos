@@ -163,11 +163,11 @@ void ShallowWaterUtilities::IdentifyWetDomain(ModelPart& rModelPart, Flags WetFl
     {
         auto it_elem = rModelPart.ElementsBegin() + i;
 
-        bool wet_element = false;
+        bool wet_element = true;
         for(auto& node : it_elem->GetGeometry())
         {
-            if (node.Is(WetFlag)) {
-                wet_element = true;  // It means there is almost a wet node
+            if (node.IsNot(WetFlag)) {
+                wet_element = false;  // It means there is almost a dry node
                 break;
             }
         }
@@ -204,6 +204,19 @@ void ShallowWaterUtilities::ComputeVisualizationWaterSurface(ModelPart& rModelPa
     {
         auto it_node = rModelPart.NodesBegin() + i;
         it_node->SetValue(WATER_SURFACE_Z, it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION));
+    }
+}
+
+void ShallowWaterUtilities::NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+    {
+        auto it_node = rModelPart.NodesBegin() + i;
+        auto& vector = it_node->FastGetSolutionStepValue(rVariable);
+        const auto modulus = norm_2(vector);
+        if (modulus > std::numeric_limits<double>::epsilon())
+            vector /= modulus;
     }
 }
 
