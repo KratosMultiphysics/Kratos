@@ -161,10 +161,7 @@ class CFLOutputProcess(KratosMultiphysics.Process):
         for elem in self.model_part.Elements:
             local_cfl.append(elem.GetValue(KratosMultiphysics.CFL_NUMBER))
 
-        if (self.model_part.GetCommunicator().TotalProcesses() > 1):
-            local_cfl = self.model_part.GetCommunicator().GetDataCommunicator().GathervDoubles(local_cfl, 0)
-        else:
-            local_cfl = [local_cfl]
+        local_cfl = self.model_part.GetCommunicator().GetDataCommunicator().GathervDoubles(local_cfl, 0)
 
         return local_cfl
 
