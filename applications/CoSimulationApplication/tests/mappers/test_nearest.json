@@ -5,6 +5,10 @@
     },
     "mapper" :
     {
-        "type": "mappers.nearest"
+        "type": "mappers.nearest",
+        "settings":
+        {
+            "balanced_tree" : false
+        }
     }
 }

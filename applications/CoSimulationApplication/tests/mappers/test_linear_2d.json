@@ -9,7 +9,8 @@
         "settings":
         {
             "direction_1" : "X",
-            "direction_2" : "Y"
+            "direction_2" : "Y",
+            "balanced_tree" : false
         }
     }
 }

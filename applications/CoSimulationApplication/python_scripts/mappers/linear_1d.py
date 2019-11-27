@@ -26,22 +26,27 @@ class MapperLinear1D(object):
 
         self.settings = parameters['settings']
 
-    def Initialize(self, model_part_from, model_part_to):
-        coord = self.settings['direction'].GetString().upper()
-        if coord not in ['X', 'Y', 'Z']:
-            raise ValueError(f'{coord} is not a valid direction.')
+        self.balanced_tree = self.settings['balanced_tree'].GetBool()
+        self.coord = self.settings['direction'].GetString().upper()
+        if self.coord not in ['X', 'Y', 'Z']:
+            raise ValueError(f'{self.coord} is not a valid direction.')
 
+    def Initialize(self, model_part_from, model_part_to):
         self.n_from = model_part_from.NumberOfNodes()
         coords_from = np.zeros((self.n_from, 1))
         for i, node in enumerate(model_part_from.Nodes):
-            coords_from[i] = getattr(node, coord)
+            coords_from[i] = getattr(node, self.coord)
 
         self.n_to = model_part_to.NumberOfNodes()
         coords_to = np.zeros((self.n_to, 1))
         for i, node in enumerate(model_part_to.Nodes):
-            coords_to[i] = getattr(node, coord)
+            coords_to[i] = getattr(node, self.coord)
 
-        tree = cKDTree(coords_from)  # time-intensive part
+        # build and query tree
+        if self.balanced_tree:  # time-intensive
+            tree = cKDTree(coords_from)
+        else:  # less stable
+            tree = cKDTree(coords_from, balanced_tree=False)
         _, self.nearest = tree.query(coords_to, k=2, n_jobs=-1)
 
         # linear interpolation/extrapolation from nearest points

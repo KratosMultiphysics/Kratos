@@ -4,6 +4,22 @@ import numpy as np
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 cs_data_structure = cs_tools.cs_data_structure
 
+import time
+from contextlib import contextmanager
+@contextmanager
+def timer(name=None, t=0, n=0, ms=False):
+    startTime = time.time()
+    yield
+    elapsedTime = time.time() - startTime
+    if ms:
+        s = '\n' * n + '\t' * t + f'{elapsedTime * 1000:.2f}ms'
+        s.replace(',', ' ')
+    else:
+        s = '\n' * n + '\t' * t + f'{elapsedTime:.1f}s'
+    if name is not None:
+        s += f' - {name}'
+    s += '\n' * n
+    print(s)
 
 def Create(parameters):
     return MapperNearest(parameters)
@@ -11,8 +27,12 @@ def Create(parameters):
 
 # Class MapperNearest: 3D nearest-neighbour interpolation.
 class MapperNearest(object):
-    def __init__(self, _unused):
+    def __init__(self, parameters):
         super().__init__()
+
+        self.settings = parameters['settings']
+
+        self.balanced_tree = self.settings['balanced_tree'].GetBool()
 
     def Initialize(self, model_part_from, model_part_to):
         coords_from = np.zeros((model_part_from.NumberOfNodes(), 3))
@@ -23,8 +43,11 @@ class MapperNearest(object):
         for i, node in enumerate(model_part_to.Nodes):
             coords_to[i, :] = [node.X, node.Y, node.Z]
 
-        # find nearest neighbour
-        tree = cKDTree(coords_from)
+        # build and query tree
+        if self.balanced_tree:  # time-intensive
+            tree = cKDTree(coords_from)
+        else:  # less stable
+            tree = cKDTree(coords_from, balanced_tree=False)
         _, self.nearest = tree.query(coords_to, n_jobs=-1)  # runs in parallel
 
     def Finalize(self):

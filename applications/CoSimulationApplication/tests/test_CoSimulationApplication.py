@@ -7,6 +7,7 @@ from convergence_criteria.test_and import TestConvergenceCriterionAnd
 from convergence_criteria.test_iteration_limit import TestConvergenceCriterionIterationLimit
 from convergence_criteria.test_or import TestConvergenceCriterionOr
 from convergence_criteria.test_relative_norm import TestConvergenceCriterionRelativeNorm
+from mappers.test_nearest import TestMapperNearest
 from mappers.test_linear import TestMapperLinear
 from predictors.test_linear import TestPredictorLinear
 from solver_wrappers.pipe.test_flow_solver import TestSolverWrapperPipeFlowSolver
@@ -40,11 +41,13 @@ def AssembleTestSuites():
     smallSuite.addTest(TestConvergenceCriterionIterationLimit("test_convergence_criterion_iteration_limit"))
     smallSuite.addTest(TestConvergenceCriterionOr("test_convergence_criterion_or"))
     smallSuite.addTest(TestConvergenceCriterionRelativeNorm("test_convergence_criterion_relative_norm"))
-    smallSuite.addTest(TestMapperLinear("test_mapper_linear"))
+    smallSuite.addTest(TestMapperNearest("test_mapper_nearest"))
+    smallSuite.addTest(TestMapperLinear("test_mapper_linear_1d"))
+    smallSuite.addTest(TestMapperLinear("test_mapper_linear_2d"))
     smallSuite.addTest(TestPredictorLinear("test_predictor_linear"))
     smallSuite.addTest(TestSolverWrapperPipeFlowSolver("test_solver_wrapper_pipe_flow_solver"))
     smallSuite.addTest(TestSolverWrapperPipeStructureSolver("test_solver_wrapper_pipe_structure_solver"))
-    smallSuite.addTest(TestSolverWrapperFluent2019R1("test_solver_wrapper_fluent_2019R1"))  # duration ~500s
+    # smallSuite.addTest(TestSolverWrapperFluent2019R1("test_solver_wrapper_fluent_2019R1"))  # duration ~500s
     smallSuite.addTest(TestPyKratosParameters("test_pykratos_parameters"))
     smallSuite.addTest(TestPyKratosVariables("test_pykratos_variables"))
     smallSuite.addTest(TestCoSimulationInterface("test_cosimulation_interface"))
