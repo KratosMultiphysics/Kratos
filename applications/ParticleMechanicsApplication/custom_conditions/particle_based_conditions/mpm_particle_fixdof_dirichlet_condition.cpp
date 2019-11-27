@@ -76,19 +76,6 @@ void MPMParticleFixDofDirichletCondition::InitializeSolutionStep( ProcessInfo& r
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    if (this->GetValue(FIX_DOF))
-    {
-        for (unsigned int i = 0; i < number_of_nodes; ++i)
-        {
-            r_geometry[i].SetLock();
-            r_geometry[i].pGetDof(DISPLACEMENT_X)->FixDof();
-            r_geometry[i].pGetDof(DISPLACEMENT_Y)->FixDof();
-            if(dimension == 3)
-                r_geometry[i].pGetDof(DISPLACEMENT_Z)->FixDof();
-            r_geometry[i].UnSetLock();
-        }
-
-    }
 
     // Additional treatment for slip conditions
     if (Is(SLIP))
@@ -114,6 +101,24 @@ void MPMParticleFixDofDirichletCondition::InitializeSolutionStep( ProcessInfo& r
             r_geometry[i].UnSetLock();
         }
     }
+
+    if (this->GetValue(FIX_DOF))
+    {
+        for (unsigned int i = 0; i < number_of_nodes; ++i)
+        {
+            r_geometry[i].SetLock();
+            r_geometry[i].pGetDof(DISPLACEMENT_X)->FixDof();
+            if(!Is(SLIP)){
+                r_geometry[i].pGetDof(DISPLACEMENT_Y)->FixDof();
+                if(dimension == 3)
+                    r_geometry[i].pGetDof(DISPLACEMENT_Z)->FixDof();
+            }
+
+            r_geometry[i].UnSetLock();
+        }
+
+    }
+
 }
 
 //************************************************************************************
