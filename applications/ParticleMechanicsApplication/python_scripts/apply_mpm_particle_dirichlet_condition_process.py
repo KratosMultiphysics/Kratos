@@ -17,8 +17,6 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 "particles_per_condition"   : 0,
                 "imposition_type"           : "penalty",
                 "penalty_factor"            : 0,
-                "augmentation_factor"         : 0,
-                "stabilization"             : false,
                 "variable_name"             : "DISPLACEMENT",
                 "modulus"                   : 1.0,
                 "constrained"               : "fixed",
@@ -45,16 +43,12 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         if (self.imposition_type == "penalty" or self.imposition_type == "Penalty"):
             self.penalty_factor = settings["penalty_factor"].GetDouble()
             self.boundary_condition_type = 1
-        elif (self.imposition_type == "lagrange" or self.imposition_type == "Lagrange"):
-            self.augmentation_factor = settings["augmentation_factor"].GetDouble()
-            self.boundary_condition_type = 2
-            self.stabilization = settings["stabilization"].GetBool()
         elif (self.imposition_type == "fixdof" or self.imposition_type == "FixDof"):
             self.fix_dof = False
             self.boundary_condition_type = 3
         else:
             err_msg =  "The requested type of Dirichlet boundary imposition: \"" + self.imposition_type + "\" is not available!\n"
-            err_msg += "Available option is: \"penalty\"or \"lagrange\"or \"fixdof\"."
+            err_msg += "Available option is: \"penalty\"or \"fixdof\"."
             raise Exception(err_msg)
 
         # check constraint
@@ -112,9 +106,6 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 ### Set necessary essential BC variables
                 if self.boundary_condition_type==1:
                     condition.SetValue(KratosParticle.PENALTY_FACTOR, self.penalty_factor)
-                elif self.boundary_condition_type==2:
-                    condition.SetValue(KratosParticle.AUGMENTATION_FACTOR, self.augmentation_factor)
-                    condition.SetValue(KratosParticle.STABILIZATION_LAGRANGE_MULTIPLIER, self.stabilization)
                 elif self.boundary_condition_type==3:
                     condition.SetValue(KratosParticle.FIX_DOF, self.fix_dof)
 

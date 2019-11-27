@@ -279,8 +279,6 @@ namespace MPMParticleGeneratorUtility
 
         double mpc_area = 0.0;
         double mpc_penalty_factor = 0.0;
-        double mpc_augmentation_factor = 0.0;
-        bool mpc_stabilization = false;
         bool mpc_fix_dof = false;
 
         // Determine condition index: This convention is done in order for the purpose of visualization in GiD
@@ -521,10 +519,6 @@ namespace MPMParticleGeneratorUtility
                             mpc_imposed_acceleration = i->GetValue(ACCELERATION);
                         if (i->Has(PENALTY_FACTOR))
                             mpc_penalty_factor = i->GetValue(PENALTY_FACTOR);
-                        if (i->Has(AUGMENTATION_FACTOR))
-                            mpc_augmentation_factor = i->GetValue(AUGMENTATION_FACTOR);
-                        if (i->Has(STABILIZATION_LAGRANGE_MULTIPLIER))
-                            mpc_stabilization = i->GetValue(STABILIZATION_LAGRANGE_MULTIPLIER);
                         if (i->Has(FIX_DOF))
                             mpc_fix_dof = i->GetValue(FIX_DOF);
 
@@ -549,20 +543,6 @@ namespace MPMParticleGeneratorUtility
                                             condition_type_name = "MPMParticlePenaltyDirichletCondition3D4N";
                                         else if (background_geo_type == GeometryData::Kratos_Hexahedra3D8)
                                             condition_type_name = "MPMParticlePenaltyDirichletCondition3D8N";
-                                    }
-                                }
-                                else if (boundary_condition_type==2){
-                                    if (domain_size==2){
-                                        if (background_geo_type == GeometryData::Kratos_Triangle2D3)
-                                            condition_type_name = "MPMParticleLagrangeDirichletCondition2D3N";
-                                        else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4)
-                                            condition_type_name = "MPMParticleLagrangeDirichletCondition2D4N";
-                                    }
-                                    else if (domain_size==3){
-                                        if (background_geo_type == GeometryData::Kratos_Tetrahedra3D4)
-                                            condition_type_name = "MPMParticleLagrangeDirichletCondition3D4N";
-                                        else if (background_geo_type == GeometryData::Kratos_Hexahedra3D8)
-                                            condition_type_name = "MPMParticleLagrangeDirichletCondition3D8N";
                                     }
                                 }
                                 else if (boundary_condition_type==3){
@@ -639,12 +619,6 @@ namespace MPMParticleGeneratorUtility
                             else{
                                 if (boundary_condition_type == 1)
                                     p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
-                                else if (boundary_condition_type == 2)
-                                {
-                                    p_condition->SetValue(AUGMENTATION_FACTOR, mpc_augmentation_factor);
-                                    p_condition->SetValue(STABILIZATION_LAGRANGE_MULTIPLIER, mpc_stabilization);
-
-                                }
                                 else if (boundary_condition_type == 3)
                                     p_condition->SetValue(FIX_DOF, mpc_fix_dof);
 
@@ -703,11 +677,6 @@ namespace MPMParticleGeneratorUtility
                             else{
                                 if (boundary_condition_type == 1)
                                     p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
-                                else if (boundary_condition_type == 2)
-                                {
-                                    p_condition->SetValue(AUGMENTATION_FACTOR, mpc_augmentation_factor);
-                                    p_condition->SetValue(STABILIZATION_LAGRANGE_MULTIPLIER, mpc_stabilization);
-                                }
                                 else if (boundary_condition_type == 3)
                                     p_condition->SetValue(FIX_DOF, mpc_fix_dof);
 
