@@ -9,10 +9,11 @@ from KratosMultiphysics.ShapeOptimizationApplication.custom_ios.wrl_io import Wr
 class WrlIOTest(TestCase):
 
     def test_simple_model_part(self):
-        model = KM.Model()
-        model_part = model.CreateModelPart("wrl_model_part")
-        model_part_io = WrlIO("joined")
-        model_part_io.ReadModelPart(model_part)
+        with KM.KratosUnittest.WorkFolderScope(".", __file__):
+            model = KM.Model()
+            model_part = model.CreateModelPart("wrl_model_part")
+            model_part_io = WrlIO("joined")
+            model_part_io.ReadModelPart(model_part)
 
         self.assertEqual(model_part.NumberOfNodes(), 20)
         self.assertEqual(model_part.NumberOfConditions(), 18)
@@ -77,10 +78,11 @@ class WrlIOTest(TestCase):
             i+=1
 
     def test_split_model_part(self):
-        model = KM.Model()
-        model_part = model.CreateModelPart("wrl_model_part")
-        model_part_io = WrlIO("split")
-        model_part_io.ReadModelPart(model_part)
+        with KM.KratosUnittest.WorkFolderScope(".", __file__):
+            model = KM.Model()
+            model_part = model.CreateModelPart("wrl_model_part")
+            model_part_io = WrlIO("split")
+            model_part_io.ReadModelPart(model_part)
 
         self.assertEqual(model_part.NumberOfNodes(), 18)
         self.assertEqual(model_part.NumberOfConditions(), 16)
