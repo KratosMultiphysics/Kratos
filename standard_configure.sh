@@ -25,9 +25,10 @@ export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 
 # Set basic configuration
 export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:="Release"}
-export PYTHON_EXECUTABLE="/usr/bin/python3"
+export PYTHON_EXECUTABLE=${KRATOS_BUILD_TYPE:="/usr/bin/python3"}
 
 # Set applications to compile
+export KRATOS_APPLICATIONS=
 add_app ${KRATOS_APP_DIR}/ExternalSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication

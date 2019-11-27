@@ -16,9 +16,9 @@ set KRATOS_BUILD=.\build
 set KRATOS_APP_DIR=applications
 
 rem Set basic configuration
-set KRATOS_BUILD_TYPE=Release
-set BOOST_ROOT=C:\CompiledLibs\boost_1_67_0
-set PYTHON_EXECUTABLE=C:\Users\Kratos64\AppData\Local\Programs\Python\Python35\python.exe
+if not defined KRATOS_BUILD_TYPE set KRATOS_BUILD_TYPE=Release
+if not defined BOOST_ROOT set BOOST_ROOT=C:\CompiledLibs\boost_1_67_0
+if not defined PYTHON_EXECUTABLE set PYTHON_EXECUTABLE=python.exe
 
 rem Set applications to compile
 set KRATOS_APPLICATIONS=
