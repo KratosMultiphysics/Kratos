@@ -13,7 +13,7 @@ set CC=cl.exe
 set CXX=cl.exe
 
 rem Set variables
-set KRATOS_SOURCE=%mypath:~0,-1%/..
+set KRATOS_SOURCE=.
 set KRATOS_BUILD=.\build
 set KRATOS_APP_DIR=applications
 
