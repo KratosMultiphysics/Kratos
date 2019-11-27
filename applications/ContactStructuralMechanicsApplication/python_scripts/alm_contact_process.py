@@ -70,12 +70,14 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             "interval"                      : [0.0,"End"],
             "normal_variation"              : "no_derivatives_computation",
             "frictional_law"                : "Coulomb",
-            "tangent_factor"                : 1.0e0,
-            "slip_convergence_coefficient"  : 1.0,
-            "slip_augmentation_coefficient" : 1.0,
+            "tangent_factor"                : 2.5e-2,
+            "operator_threshold"            : 1.0e-3,
+            "slip_augmentation_coefficient" : 0.0,
+            "slip_threshold"                : 2.0e-2,
             "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
             "clear_inactive_for_post"       : true,
+            "slip_step_reset_frequency"     : 1,
             "search_parameters"             : {
                 "type_search"                         : "in_radius_with_obb",
                 "simple_search"                       : false,
@@ -87,7 +89,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
                 "dynamic_search"                      : false,
                 "static_check_movement"               : false,
                 "database_step_update"                : 1,
-                "normal_orientation_threshold"        : 0.0,
+                "normal_orientation_threshold"        : 1.0e-1,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
@@ -161,6 +163,8 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             if not not_normal_update_frictional and not "WithNormalUpdate" in contact_type:
                 contact_type += "WithNormalUpdate"
             self.is_frictional = True
+            self.slip_step_reset_frequency = self.contact_settings["slip_step_reset_frequency"].GetInt()
+            self.slip_step_reset_counter = 0
             if "PureSlip" in contact_type:
                 self.pure_slip = True
             else:
@@ -210,6 +214,9 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
 
         # We call to the base process
         super(ALMContactProcess, self).ExecuteInitializeSolutionStep()
+
+        # Reset slip flag
+        self._reset_slip_flag()
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -380,6 +387,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         max_gap_factor = self.contact_settings["advance_ALM_parameters"]["max_gap_factor"].GetDouble()
         process_info[CSMA.ADAPT_PENALTY] = self.contact_settings["advance_ALM_parameters"]["adapt_penalty"].GetBool()
         process_info[CSMA.MAX_GAP_FACTOR] = max_gap_factor
+        process_info[CSMA.OPERATOR_THRESHOLD] = self.contact_settings["operator_threshold"].GetDouble()
 
     def _initialize_search_values(self):
         """ This method initializes some values and variables used during contact computations
@@ -411,8 +419,8 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         # We set the value that scales in the tangent direction the penalty and scale parameter
         if self.is_frictional:
             process_info[KM.TANGENT_FACTOR] = self.contact_settings["tangent_factor"].GetDouble()
-            process_info[CSMA.SLIP_CONVERGENCE_COEFFICIENT] = self.contact_settings["slip_convergence_coefficient"].GetDouble()
             process_info[CSMA.SLIP_AUGMENTATION_COEFFICIENT] = self.contact_settings["slip_augmentation_coefficient"].GetDouble()
+            process_info[CSMA.SLIP_THRESHOLD] = self.contact_settings["slip_threshold"].GetDouble()
 
     def _initialize_problem_parameters(self):
         """ This method initializes the ALM parameters from the process info
@@ -464,3 +472,21 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
 
         alm_init_var = CSMA.ALMFastInit(self._get_process_model_part())
         alm_init_var.Execute()
+
+    def _reset_slip_flag(self):
+        """ This method resets the SLIP flag
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
+        if self.is_frictional:
+            if not self.pure_slip:
+                if self.slip_step_reset_frequency > 0:
+                    self.slip_step_reset_counter += 1
+                    if self.slip_step_reset_counter >= self.slip_step_reset_frequency:
+                        KM.VariableUtils().SetFlag(KM.SLIP, False, self._get_process_model_part().Nodes)
+                        self.slip_step_reset_counter = 0
+                else: # If zero never reseted, if negative will consider the direction of the WEIGHTED_SLIP
+                    if self.slip_step_reset_frequency < 0: # Update using the slip direction directly (a la PureSlip style)
+                        KM.MortarUtilities.ComputeNodesTangentModelPart(self._get_process_model_part(), CSMA.WEIGHTED_SLIP, 1.0, True)

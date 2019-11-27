@@ -20,6 +20,7 @@ if numpy_available:
     from test_data_transfer_operators import TestDataTransferOperators
     from test_coupling_operations import TestScalingOperation
     from test_flower_coupling import TestFLOWerCoupling
+    from test_sdof_solver import TestSdofSolver
     from test_convergence_criteria import TestConvergenceCriteria
     from test_coupling_interface_residual import TestCouplingInterfaceResidual
 
@@ -47,6 +48,7 @@ def AssembleTestSuites():
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCouplingInterfaceData]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestScalingOperation]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSdofSolver]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceCriteria]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCouplingInterfaceResidual]))
     if not using_pykratos:

@@ -41,6 +41,9 @@
         "mpc_contact_settings"                : {
             "contact_type"                  : "Frictionless",
             "update_each_nl_iteration"      : false
+        },
+        "linear_solver_settings"             : {
+                "solver_type": "skyline_lu_factorization"
         }
     },
     "processes"        : {
@@ -217,7 +220,7 @@
                 "nodal_flags"                        : ["ACTIVE","MASTER","SLAVE"],
                 "element_data_value_variables"       : [],
                 "condition_data_value_variables"     : [],
-                "gauss_point_variables"              : []
+                "gauss_point_variables_extrapolated_to_nodes"              : []
             }
         }]
     }

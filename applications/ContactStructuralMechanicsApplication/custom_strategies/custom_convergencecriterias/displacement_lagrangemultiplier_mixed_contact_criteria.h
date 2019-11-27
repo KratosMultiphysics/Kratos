@@ -92,6 +92,9 @@ public:
     /// The key type definition
     typedef std::size_t                                       KeyType;
 
+    /// The epsilon tolerance definition
+    static constexpr double Tolerance = std::numeric_limits<double>::epsilon();
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -213,42 +216,47 @@ public:
             std::size_t dof_id = 0;
             TDataType residual_dof_value = 0.0, dof_value = 0.0, dof_incr = 0.0;
 
+            // The number of active dofs
+            const std::size_t number_active_dofs = rb.size();
+
             // Loop over Dofs
-            #pragma omp parallel for reduction(+:disp_residual_solution_norm,lm_solution_norm,lm_increase_norm,disp_dof_num,lm_dof_num,dof_id,residual_dof_value,dof_value,dof_incr)
+            #pragma omp parallel for firstprivate(dof_id, residual_dof_value, dof_value, dof_incr) reduction(+:disp_residual_solution_norm, lm_solution_norm, lm_increase_norm, disp_dof_num, lm_dof_num)
             for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
                 auto it_dof = it_dof_begin + i;
 
                 dof_id = it_dof->EquationId();
 
-                if (mActiveDofs[dof_id]) {
-
-                    const auto curr_var = it_dof->GetVariable();
-                    if ((curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
-                        dof_value = it_dof->GetSolutionStepValue(0);
-                        dof_incr = rDx[dof_id];
-                        lm_solution_norm += dof_value * dof_value;
-                        lm_increase_norm += dof_incr * dof_incr;
-                        lm_dof_num++;
-                    } else {
-                        residual_dof_value = rb[dof_id];
-                        disp_residual_solution_norm += residual_dof_value * residual_dof_value;
-                        disp_dof_num++;
+                // Check dof id is solved
+                if (dof_id < number_active_dofs) {
+                    if (mActiveDofs[dof_id]) {
+                        const auto& r_curr_var = it_dof->GetVariable();
+                        if ((r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (r_curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
+                            dof_value = it_dof->GetSolutionStepValue(0);
+                            dof_incr = rDx[dof_id];
+                            lm_solution_norm += dof_value * dof_value;
+                            lm_increase_norm += dof_incr * dof_incr;
+                            lm_dof_num++;
+                        } else {
+                            residual_dof_value = rb[dof_id];
+                            disp_residual_solution_norm += residual_dof_value * residual_dof_value;
+                            disp_dof_num++;
+                        }
                     }
                 }
             }
 
-            if(lm_increase_norm == 0.0) lm_increase_norm = 1.0;
-            KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierMixedContactCriteria::ENSURE_CONTACT) && lm_solution_norm == 0.0) << "ERROR::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
+            if(lm_increase_norm < Tolerance) lm_increase_norm = 1.0;
+            KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierMixedContactCriteria::ENSURE_CONTACT) && lm_solution_norm < Tolerance) << "ERROR::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
 
             mDispCurrentResidualNorm = disp_residual_solution_norm;
-            const TDataType lm_ratio = std::sqrt(lm_increase_norm/lm_solution_norm);
-            const TDataType lm_abs = std::sqrt(lm_increase_norm)/ static_cast<TDataType>(lm_dof_num);
+            const TDataType lm_ratio = lm_solution_norm > Tolerance ? std::sqrt(lm_increase_norm/lm_solution_norm) : 0.0;
+            const TDataType lm_abs = std::sqrt(lm_increase_norm)/static_cast<TDataType>(lm_dof_num);
 
             TDataType residual_disp_ratio;
 
             // We initialize the solution
             if (mOptions.IsNot(DisplacementLagrangeMultiplierMixedContactCriteria::INITIAL_RESIDUAL_IS_SET)) {
-                mDispInitialResidualNorm = (disp_residual_solution_norm == 0.0) ? 1.0 : disp_residual_solution_norm;
+                mDispInitialResidualNorm = (disp_residual_solution_norm < Tolerance) ? 1.0 : disp_residual_solution_norm;
                 residual_disp_ratio = 1.0;
                 mOptions.Set(DisplacementLagrangeMultiplierMixedContactCriteria::INITIAL_RESIDUAL_IS_SET, true);
             }
@@ -288,7 +296,7 @@ public:
 
             // We check if converged
             const bool disp_converged = (residual_disp_ratio <= mDispRatioTolerance || residual_disp_abs <= mDispAbsTolerance);
-            const bool lm_converged = (mOptions.IsNot(DisplacementLagrangeMultiplierMixedContactCriteria::ENSURE_CONTACT) && lm_solution_norm == 0.0) ? true : (lm_ratio <= mLMRatioTolerance || lm_abs <= mLMAbsTolerance);
+            const bool lm_converged = (mOptions.IsNot(DisplacementLagrangeMultiplierMixedContactCriteria::ENSURE_CONTACT) && lm_solution_norm < Tolerance) ? true : (lm_ratio <= mLMRatioTolerance || lm_abs <= mLMAbsTolerance);
 
             if ( disp_converged && lm_converged ) {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {

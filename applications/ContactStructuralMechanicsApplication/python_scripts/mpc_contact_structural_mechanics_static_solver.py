@@ -17,19 +17,7 @@ from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliar_me
 from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
 
 def GetDefaults():
-    this_defaults = KratosMultiphysics.Parameters("""
-    {
-        "mpc_contact_settings" :
-        {
-            "contact_type"                  : "Frictionless",
-            "simplified_semi_smooth_newton" : false,
-            "inner_loop_iterations"         : 10,
-            "update_each_nl_iteration"      : false,
-            "enforce_ntn"                   : false
-        }
-    }
-    """)
-    return this_defaults
+    return auxiliar_methods_solvers.AuxiliarMPCContactSettings()
 
 def CreateSolver(model, custom_settings):
     return MPCContactStaticSolver(model, custom_settings)
@@ -56,17 +44,9 @@ class MPCContactStaticSolver(structural_mechanics_static_solver.StaticMechanical
         self.mpc_contact_settings.RecursivelyAddMissingParameters(GetDefaults()["mpc_contact_settings"])
 
         # Setting the parameters
-        if not self.settings["compute_reactions"].GetBool():
-            KratosMultiphysics.Logger.PrintInfo("Compute reactions", "Storage must be cleared each step. Switching to True")
-            self.settings["compute_reactions"].SetBool(True)
-        if not self.settings["clear_storage"].GetBool():
-            KratosMultiphysics.Logger.PrintInfo("Clear storage", "Storage must be cleared each step. Switching to True")
-            self.settings["clear_storage"].SetBool(True)
-        if not self.settings["reform_dofs_at_each_step"].GetBool():
-            KratosMultiphysics.Logger.PrintInfo("Reform DoFs", "DoF must be reformed each time step. Switching to True")
-            self.settings["reform_dofs_at_each_step"].SetBool(True)
+        auxiliar_methods_solvers.AuxiliarMPCSetSettings(self.settings, self.mpc_contact_settings)
 
-        # Construct the base solver.
+        # Logger
         KratosMultiphysics.Logger.PrintInfo("::[MPCContactStaticSolver]:: ", "Construction finished")
 
     def AddVariables(self):
@@ -75,11 +55,7 @@ class MPCContactStaticSolver(structural_mechanics_static_solver.StaticMechanical
 
         # We add the contact related variables
         contact_type = self.mpc_contact_settings["contact_type"].GetString()
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)  # Add normal
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H) # Add nodal size variable
-        self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_GAP)  # Add normal contact gap
-        if contact_type == "Frictional":
-            self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_SLIP) # Add contact slip
+        auxiliar_methods_solvers.AuxiliarMPCAddVariables(self.main_model_part, contact_type)
 
     def Initialize(self):
         KratosMultiphysics.Logger.PrintInfo("::[MPCContactStaticSolver]:: ", "Initializing ...")
@@ -114,21 +90,7 @@ class MPCContactStaticSolver(structural_mechanics_static_solver.StaticMechanical
         self.linear_solver = self.get_linear_solver()
         self.mechanical_convergence_criterion = self.get_convergence_criterion()
         self.builder_and_solver = self.get_builder_and_solver()
-        newton_parameters = KratosMultiphysics.Parameters("""{}""")
-        newton_parameters.AddValue("inner_loop_iterations", self.mpc_contact_settings["inner_loop_iterations"])
-        newton_parameters.AddValue("update_each_nl_iteration", self.mpc_contact_settings["update_each_nl_iteration"])
-        newton_parameters.AddValue("enforce_ntn", self.mpc_contact_settings["enforce_ntn"])
-        return ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonMPCContactStrategy(computing_model_part,
-                                                                    self.mechanical_scheme,
-                                                                    self.linear_solver,
-                                                                    self.mechanical_convergence_criterion,
-                                                                    self.builder_and_solver,
-                                                                    self.settings["max_iteration"].GetInt(),
-                                                                    self.settings["compute_reactions"].GetBool(),
-                                                                    self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                    self.settings["move_mesh_flag"].GetBool(),
-                                                                    newton_parameters
-                                                                    )
+        return auxiliar_methods_solvers.AuxiliarMPCNewton(computing_model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.mpc_contact_settings)
 
     @classmethod
     def GetDefaultSettings(cls):

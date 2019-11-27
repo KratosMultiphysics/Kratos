@@ -12,7 +12,7 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
-#include "solid_mechanics_application_variables.h"
+#include "structural_mechanics_application_variables.h"
 #include "poromechanics_application_variables.h"
 
 
@@ -54,6 +54,10 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE(DAM_APPLICATION, Matrix, NODAL_CAUCHY_STRESS_TENSOR )
     KRATOS_DEFINE_APPLICATION_VARIABLE(DAM_APPLICATION, Matrix, INITIAL_NODAL_CAUCHY_STRESS_TENSOR )
     KRATOS_DEFINE_APPLICATION_VARIABLE(DAM_APPLICATION, double, PLACEMENT_TEMPERATURE )
+
+    // From Solid
+    KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( DAM_APPLICATION, FORCE_LOAD )
+    KRATOS_DEFINE_APPLICATION_VARIABLE( DAM_APPLICATION, bool, COMPUTE_CONSISTENT_MASS_MATRIX )
 
 }  // namespace Kratos.
 
