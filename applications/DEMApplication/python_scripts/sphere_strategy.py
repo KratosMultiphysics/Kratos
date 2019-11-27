@@ -352,6 +352,7 @@ class ExplicitStrategy(object):
 
     def Initialize(self):
         self.CheckMomentumConservation()
+        self._UpdateTimeInModelParts(0.0)
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy (C++) Initialize function (initializes all elements and performs other necessary tasks before starting the time loop in Python)
 
     def SetDt(self, dt):
