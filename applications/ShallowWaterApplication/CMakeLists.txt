@@ -12,10 +12,6 @@ set( KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rv_swe.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cv_swe.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/swe.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/primitive_var_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conserved_var_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/euler_prim_var_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/euler_cons_var_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/nothing_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/estimate_dt_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/post_process_utilities.cpp
