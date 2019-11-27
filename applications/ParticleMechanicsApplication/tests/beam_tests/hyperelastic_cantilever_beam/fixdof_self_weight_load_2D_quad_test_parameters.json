@@ -70,7 +70,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["DISPLACEMENT"],
-                "input_file_name"  : "beam_tests/hyperelastic_cantilever_beam/self_weight_load_2D_quad_test_results.json",
+                "input_file_name"  : "beam_tests/hyperelastic_cantilever_beam/self_weight_load_2D_quad_test_boundary_particles_results.json",
                 "model_part_name"  : "Background_Grid",
                 "time_frequency"   : 1.0,
                 "tolerance"        : 1e-2
@@ -84,7 +84,7 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "output_variables"  : ["DISPLACEMENT"],
-            "output_file_name"  : "beam_tests/hyperelastic_cantilever_beam/self_weight_load_2D_quad_test_results.json",
+            "output_file_name"  : "beam_tests/hyperelastic_cantilever_beam/self_weight_load_2D_quad_test_boundary_particles_results.json",
             "model_part_name"   : "Background_Grid",
             "time_frequency"    : 1.0
         }
