@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
+from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_solver as thermal_solver
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
@@ -30,7 +31,7 @@ class TestCaseConfiguration(object):
 
         self.ux = 0.0
         self.source = 0.0
-        
+
 
 class SourceTermTest(UnitTest.TestCase):
 
@@ -53,7 +54,6 @@ class SourceTermTest(UnitTest.TestCase):
         self.config = TestCaseConfiguration()
 
     def tearDown(self):
-        import os
         with WorkFolderScope("SourceTermTest"):
             try:
                 os.remove(self.input_file+'.time')
@@ -87,9 +87,9 @@ class SourceTermTest(UnitTest.TestCase):
         #    import math
         #    L = self.config.xmax - self.config.xmin
         #    a = self.config.rho*self.config.ux / self.config.k
-        #    return x / L - (1.0 - math.exp( a*x ) ) / ( 1.0 - math.exp( a*L ) ) 
-        #print( [ F(float(i)) for i in range(0, 10) ] )            
-        
+        #    return x / L - (1.0 - math.exp( a*x ) ) / ( 1.0 - math.exp( a*L ) )
+        #print( [ F(float(i)) for i in range(0, 10) ] )
+
         self.testSourceTerm()
 
 
@@ -105,9 +105,9 @@ class SourceTermTest(UnitTest.TestCase):
         #    import math
         #    L = self.config.xmax - self.config.xmin
         #    a = self.config.rho*self.config.ux / self.config.k
-        #    return x / L - (1.0 - math.exp( a*x ) ) / ( 1.0 - math.exp( a*L ) ) 
-        #print( [ F(float(i)) for i in range(0, 10) ] )  
-        
+        #    return x / L - (1.0 - math.exp( a*x ) ) / ( 1.0 - math.exp( a*L ) )
+        #print( [ F(float(i)) for i in range(0, 10) ] )
+
         self.testSourceTerm()
 
     def testReaction(self):
@@ -154,7 +154,6 @@ class SourceTermTest(UnitTest.TestCase):
 
     def setUpSolvers(self):
 
-        import convection_diffusion_solver as thermal_solver
         thermal_solver.AddVariables(self.model_part)
 
         model_part_io = KratosMultiphysics.ModelPartIO(self.input_file)

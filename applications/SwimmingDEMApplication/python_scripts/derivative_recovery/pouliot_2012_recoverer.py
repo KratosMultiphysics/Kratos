@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics as Kratos
 from . import recoverer
 from . import L2_projection_recoverer
-import parameters_tools as PT
+import KratosMultiphysics.SwimmingDEMApplication.parameters_tools as PT
 import sys
 
 class Pouliot2012GradientRecoverer(L2_projection_recoverer.L2ProjectionGradientRecoverer):

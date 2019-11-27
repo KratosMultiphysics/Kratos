@@ -68,7 +68,7 @@ namespace Testing
         SetTestModelPart(test_model_part);
 
         // Set the condition properties
-        Properties::Pointer p_cond_prop = test_model_part.pGetProperties(0);
+        auto p_cond_prop = test_model_part.CreateNewProperties(0);
         p_cond_prop->SetValue(EMISSIVITY, 1.0);
         p_cond_prop->SetValue(AMBIENT_TEMPERATURE, 293.0);
         p_cond_prop->SetValue(CONVECTION_COEFFICIENT, 20.0);
@@ -112,7 +112,7 @@ namespace Testing
         SetTestModelPart(test_model_part);
 
         // Set the condition properties
-        Properties::Pointer p_cond_prop = test_model_part.pGetProperties(0);
+        auto p_cond_prop = test_model_part.CreateNewProperties(0);
         p_cond_prop->SetValue(EMISSIVITY, 1.0);
         p_cond_prop->SetValue(AMBIENT_TEMPERATURE, 293.0);
         p_cond_prop->SetValue(CONVECTION_COEFFICIENT, 20.0);
@@ -158,7 +158,7 @@ namespace Testing
         SetTestModelPart(test_model_part);
 
         // Set the condition properties
-        Properties::Pointer p_cond_prop = test_model_part.pGetProperties(0);
+        auto p_cond_prop = test_model_part.CreateNewProperties(0);
         p_cond_prop->SetValue(EMISSIVITY, 1.0);
         p_cond_prop->SetValue(AMBIENT_TEMPERATURE, 293.0);
         p_cond_prop->SetValue(CONVECTION_COEFFICIENT, 20.0);

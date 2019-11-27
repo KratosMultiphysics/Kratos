@@ -29,10 +29,6 @@ def CreateSolver(model, custom_settings):
         err_msg += "Available options are: \"OpenMP\""
         raise Exception(err_msg)
 
-    # Remove settings that are not needed any more
-    custom_settings["solver_settings"].RemoveValue("solver_type")
-    custom_settings["solver_settings"].RemoveValue("time_integration_method") # does not throw even if the value is not existing
-
     module_full = 'KratosMultiphysics.ContactStructuralMechanicsApplication.' + solver_module_name
     solver = import_module(module_full).CreateSolver(model, custom_settings["solver_settings"])
 
