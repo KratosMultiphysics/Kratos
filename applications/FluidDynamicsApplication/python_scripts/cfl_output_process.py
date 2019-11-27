@@ -28,7 +28,7 @@ class CFLOutputProcess(KratosMultiphysics.Process):
             {
                 "model_part_name"      : "",
                 "interval"             : [0.0, 1e30],
-                "cfl_threshold"        : 5.0,
+                "cfl_output_limit"     : 2.5,
                 "print_to_screen"      : false,
                 "print_format"         : ".8f",
                 "write_output_file"    : true,
@@ -61,7 +61,7 @@ class CFLOutputProcess(KratosMultiphysics.Process):
         self.interval[1] = params["interval"][1].GetDouble()
 
         # getting threshold
-        self.cfl_threshold = params["cfl_threshold"].GetDouble()
+        self.cfl_output_limit = params["cfl_output_limit"].GetDouble()
 
         self.format = params["print_format"].GetString()
         self.output_step = params["output_step"].GetInt()
@@ -94,7 +94,7 @@ class CFLOutputProcess(KratosMultiphysics.Process):
                 output_vals.insert(0, str(current_time))
 
                 res_labels = ["time: ", "mean: ", "std: ", "max: ", "cfl" +
-                              "{:.1f}".format(self.cfl_threshold) + ": ", "cfl1.0: "]
+                              "{:.1f}".format(self.cfl_output_limit) + ": ", "cfl1.0: "]
 
                 if (self.print_to_screen):
 
@@ -113,9 +113,9 @@ class CFLOutputProcess(KratosMultiphysics.Process):
 
     def _GetFileHeader(self):
         header = '# CFL for model part ' + self.model_part_name + \
-            '| CFL_threshold: ' + str(self.cfl_threshold) + '\n'
+            '| CFL_threshold: ' + str(self.cfl_output_limit) + '\n'
         header += '# Time Mean Std Max HowMany>' + \
-            "{:.1f}".format(self.cfl_threshold) + ' [%] HowMany>1.0 [%]\n'
+            "{:.1f}".format(self.cfl_output_limit) + ' [%] HowMany>1.0 [%]\n'
         return header
 
     def _PrintToScreen(self, result_msg):
@@ -126,7 +126,7 @@ class CFLOutputProcess(KratosMultiphysics.Process):
 
     def _CalculateWithRespectToThreshold(self, x):
 
-        y = [val for val in x if val < self.cfl_threshold]
+        y = [val for val in x if val < self.cfl_output_limit]
         y1 = [val for val in x if val < 1.0]
         # % of element with cfl above threshold
         how_many = ((len(x)-len(y))/len(x))*100
