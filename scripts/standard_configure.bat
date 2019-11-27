@@ -13,14 +13,14 @@ set CC=cl.exe
 set CXX=cl.exe
 
 rem Set variables
-set KRATOS_SOURCE=.
+set KRATOS_SOURCE=~0,-1%/..
 set KRATOS_BUILD=.\build
 set KRATOS_APP_DIR=applications
 
 rem Set basic configuration
 if not defined KRATOS_BUILD_TYPE set KRATOS_BUILD_TYPE=Release
 if not defined BOOST_ROOT set BOOST_ROOT=C:\CompiledLibs\boost_1_67_0
-if not defined PYTHON_EXECUTABLE set PYTHON_EXECUTABLE=python.exe
+if not defined PYTHON_EXECUTABLE set PYTHON_EXECUTABLE="C:\Windows\py.exe"
 
 rem Set applications to compile
 set KRATOS_APPLICATIONS=
@@ -35,7 +35,10 @@ del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
 rem Configure
 @echo on
-cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" -DINCLUDE_FEAST=OFF
+cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"          ^
+-DINCLUDE_FEAST=OFF                                                                                 ^
+-DLAPACK_LIBRARIES="C:\CompiledLibs\blas_x64\liblapack.lib"                                         ^
+-DBLAS_LIBRARIES="C:\CompiledLibs\blas_x64\libblas.lib"
 
 rem Build
 cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install
