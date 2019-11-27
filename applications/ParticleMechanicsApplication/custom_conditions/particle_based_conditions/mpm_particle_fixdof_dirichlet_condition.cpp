@@ -181,17 +181,6 @@ void MPMParticleFixDofDirichletCondition::CalculateAll(
             }
         }
 
-        /*for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-
-            for ( unsigned int j = 0; j < dimension; j++)
-            {
-                if (MathUtils<double>::Norm(field_displacement)>0.0001)
-                    this->SetValue(FIX_DOF,true);
-            }
-
-        }*/
-
         const double penetration = MathUtils<double>::Dot((field_displacement - imposed_displacement), unit_normal_vector);
 
         // If penetrates, apply constraint, otherwise no
@@ -256,75 +245,6 @@ int MPMParticleFixDofDirichletCondition::Check( const ProcessInfo& rCurrentProce
 
     return 0;
 }
-
-void MPMParticleFixDofDirichletCondition::GetDofList(
-    DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-    KRATOS_TRY
-
-    GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_of_nodes = r_geometry.size();
-    const unsigned int dimension =  r_geometry.WorkingSpaceDimension();
-    rElementalDofList.resize(0);
-    rElementalDofList.reserve(dimension * number_of_nodes);
-
-
-    for (unsigned int i = 0; i < number_of_nodes; ++i)
-    {
-        rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
-        rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
-        if(dimension == 3)
-            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Z));
-
-    }
-
-
-    KRATOS_CATCH("")
-}
-
-void MPMParticleFixDofDirichletCondition::EquationIdVector(
-    EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-
-    GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_of_nodes = r_geometry.size();
-    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    if (rResult.size() != dimension * number_of_nodes)
-    {
-        rResult.resize(dimension*number_of_nodes,false);
-    }
-
-    const unsigned int pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
-
-    if(dimension == 2)
-    {
-        for (unsigned int i = 0; i < number_of_nodes; ++i)
-        {
-            const unsigned int index = i * 2;
-            rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
-            rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
-        }
-    }
-    else
-    {
-        for (unsigned int i = 0; i < number_of_nodes; ++i)
-        {
-            const unsigned int index = i * 3;
-            rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
-            rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
-            rResult[index + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z,pos + 2).EquationId();
-        }
-    }
-
-
-    KRATOS_CATCH("")
-}
-
 
 } // Namespace Kratos
 

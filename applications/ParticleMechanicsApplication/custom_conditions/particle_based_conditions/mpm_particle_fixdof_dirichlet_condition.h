@@ -170,25 +170,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    /*
-     * Sets on rResult the ID's of the element degrees of freedom
-     * @param rResult The vector containing the equation id
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void EquationIdVector(
-        EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
-    /*
-     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
-     * @param rElementalDofList The vector containing the dof of the element
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void GetDofList(
-        DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
-
     /**
      * This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix: The LHS
