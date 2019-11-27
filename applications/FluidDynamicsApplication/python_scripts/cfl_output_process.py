@@ -57,10 +57,8 @@ class CFLOutputProcess(KratosMultiphysics.Process):
             self.model_part = model[self.model_part_name]
 
         self.interval = params["interval"].GetVector()
-        self.interval[0] = params["interval"][0].GetDouble()
-        self.interval[1] = params["interval"][1].GetDouble()
 
-        # getting threshold
+        # getting output limit for summarization
         self.cfl_output_limit = params["cfl_output_limit"].GetDouble()
 
         self.format = params["print_format"].GetString()
