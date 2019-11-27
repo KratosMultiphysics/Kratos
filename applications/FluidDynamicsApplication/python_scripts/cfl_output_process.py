@@ -18,17 +18,10 @@ def Factory(settings, model):
 
 class CFLOutputProcess(KratosMultiphysics.Process):
     """
-    Auxiliary base class to output total flow forces
-    over obstacles in fluid dynamics problems.
-    A derived class needs to be implemented to be able to use
-    this functionality, as calling the base class alone is not enough.
+    A class responsible for the CFL output, which is an element value in Kratos.
     """
 
     def __init__(self, model, params):
-        """
-        Auxiliary class to output total flow forces over obstacles
-        in fluid dynamics problems for a body fitted model part.
-        """
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
