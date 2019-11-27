@@ -22,13 +22,8 @@
 #include "testing/testing.h"
 
 // Application includes
-#include "custom_elements/evm_k_epsilon/evm_k_epsilon_adjoint_utilities.h"
-#include "custom_processes/auxiliary_processes/rans_logarithmic_y_plus_calculation_process.h"
-#include "custom_processes/auxiliary_processes/rans_logarithmic_y_plus_velocity_sensitivities_process.h"
-#include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_calculation_process.h"
-#include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_sensitivities_process.h"
-#include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/test_utilities.h"
+#include "rans_modelling_application_variables.h"
 #include "test_k_epsilon_utilities.h"
 
 namespace Kratos
@@ -72,20 +67,16 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_GetDofList, KratosRansFastSuite)
         KRATOS_CHECK_EQUAL(dofs.size(), element.GetGeometry().PointsNumber());
         for (std::size_t i = 0; i < dofs.size(); ++i)
         {
-            KRATOS_ERROR_IF(
-                dofs[i] !=
-                element.GetGeometry()[i].pGetDof(RANS_SCALAR_1_ADJOINT_1))
+            KRATOS_ERROR_IF(dofs[i] != element.GetGeometry()[i].pGetDof(RANS_SCALAR_1_ADJOINT_1))
                 << "Dofs mismatch.";
         }
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_GetValuesVector,
-                          KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_GetValuesVector, KratosRansFastSuite)
 {
     Model adjoint_model;
-    ModelPart& r_adjoint_model_part =
-        adjoint_model.CreateModelPart("test");
+    ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ElementsContainerType>(
         r_adjoint_model_part, "RansEvmKAdjoint2D3N");
 
@@ -111,12 +102,10 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_GetValuesVector,
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_GetFirstDerivativesVector,
-                          KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_GetFirstDerivativesVector, KratosRansFastSuite)
 {
     Model adjoint_model;
-    ModelPart& r_adjoint_model_part =
-        adjoint_model.CreateModelPart("test");
+    ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ElementsContainerType>(
         r_adjoint_model_part, "RansEvmKAdjoint2D3N");
 
@@ -134,12 +123,10 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_GetFirstDerivativesVector,
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_GetSecondDerivativesVector,
-                          KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_GetSecondDerivativesVector, KratosRansFastSuite)
 {
     Model adjoint_model;
-    ModelPart& r_adjoint_model_part =
-        adjoint_model.CreateModelPart("test");
+    ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart<ModelPart::ElementsContainerType>(
         r_adjoint_model_part, "RansEvmKAdjoint2D3N");
 
@@ -158,8 +145,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_GetSecondDerivativesVector,
         for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node)
         {
             const NodeType& r_node = r_geometry[i_node];
-            values[local_index++] =
-                r_node.FastGetSolutionStepValue(RANS_SCALAR_1_ADJOINT_3);
+            values[local_index++] = r_node.FastGetSolutionStepValue(RANS_SCALAR_1_ADJOINT_3);
         }
 
         RansModellingApplicationTestUtilities::CheckNear(element_values, values);
@@ -174,8 +160,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_CalculateFirstDerivativesLHS, Krat
         };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ElementsContainerType>(
-        "RansEvmKEpsilonK2D3N", "RansEvmKAdjoint2D3N",
-        TURBULENT_KINETIC_ENERGY, calculate_sensitivity_matrix, 1e-7, 1e-5);
+        "RansEvmKEpsilonK2D3N", "RansEvmKAdjoint2D3N", TURBULENT_KINETIC_ENERGY,
+        calculate_sensitivity_matrix, 1e-7, 1e-5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_Calculate_RANS_TURBULENT_ENERGY_DISSIPATION_RATE_PARTIAL_DERIVATIVE,
@@ -214,8 +200,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_CalculateSensitivityMatrix, Kratos
     };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ElementsContainerType>(
-        "RansEvmKEpsilonK2D3N", "RansEvmKAdjoint2D3N",
-        SHAPE_SENSITIVITY, calculate_sensitivity_matrix, 1e-7, 1e-5);
+        "RansEvmKEpsilonK2D3N", "RansEvmKAdjoint2D3N", SHAPE_SENSITIVITY,
+        calculate_sensitivity_matrix, 1e-7, 1e-5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_Calculate_RANS_VELOCITY_PRESSURE_PARTIAL_DERIVATIVE,

@@ -22,14 +22,9 @@
 #include "testing/testing.h"
 
 // Application includes
-#include "custom_elements/evm_k_epsilon/evm_k_epsilon_adjoint_utilities.h"
-#include "custom_processes/auxiliary_processes/rans_logarithmic_y_plus_calculation_process.h"
-#include "custom_processes/auxiliary_processes/rans_logarithmic_y_plus_velocity_sensitivities_process.h"
-#include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_calculation_process.h"
-#include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_sensitivities_process.h"
-#include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/test_utilities.h"
 #include "fluid_dynamics_application_variables.h"
+#include "rans_modelling_application_variables.h"
 #include "test_k_epsilon_utilities.h"
 
 namespace Kratos
