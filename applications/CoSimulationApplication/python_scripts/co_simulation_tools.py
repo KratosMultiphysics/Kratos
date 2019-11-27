@@ -4,11 +4,14 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics as KM
 
 # CoSimulation imports
-from KratosMultiphysics.CoSimulationApplication.factories.predictor_factory import CreatePredictor
-from KratosMultiphysics.CoSimulationApplication.factories.convergence_accelerator_factory import CreateConvergenceAccelerator
-from KratosMultiphysics.CoSimulationApplication.factories.convergence_criterion_factory import CreateConvergenceCriterion
 from KratosMultiphysics.CoSimulationApplication.factories.coupling_operation_factory import CreateCouplingOperation
 from KratosMultiphysics.CoSimulationApplication.factories.data_transfer_operator_factory import CreateDataTransferOperator
+from KratosMultiphysics.CoSimulationApplication.convergence_accelerators.convergence_accelerator_wrapper import ConvergenceAcceleratorWrapper
+
+from KratosMultiphysics.CoSimulationApplication.factories.predictor_factory import CreatePredictor
+from KratosMultiphysics.CoSimulationApplication.factories.convergence_criterion_factory import CreateConvergenceCriterion
+
+
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 ### This file contains functionalities that are commonly used in CoSimulation ###
@@ -52,7 +55,7 @@ def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers
     for conv_acc_settings in convergence_accelerator_settings_list:
         solver = solvers[conv_acc_settings["solver"].GetString()]
         AddEchoLevelToSettings(conv_acc_settings, parent_echo_level)
-        convergence_accelerators.append(CreateConvergenceAccelerator(conv_acc_settings, solver))
+        convergence_accelerators.append(ConvergenceAcceleratorWrapper(conv_acc_settings, solver))
 
     return convergence_accelerators
 
