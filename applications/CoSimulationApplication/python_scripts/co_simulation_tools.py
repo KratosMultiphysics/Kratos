@@ -24,11 +24,7 @@ def cs_print_warning(label, *args):
 
 
 def UsingPyKratos():
-    for i_path in KM.__path__:
-        if "pyKratos" in i_path:
-            return True
-    return False
-
+    return any(["pyKratos" in i_path for i_path in KM.__path__])
 
 def SettingsTypeCheck(settings):
     if not isinstance(settings, KM.Parameters):
@@ -37,8 +33,8 @@ def SettingsTypeCheck(settings):
 
 def AddEchoLevelToSettings(settings, echo_level):
     echo_level_params = KM.Parameters("""{
-        "echo_level" : """ + str(echo_level) + """
-    }""")
+        "echo_level" : %d
+    }""" % echo_level)
     settings.AddMissingParameters(echo_level_params)
 
 
