@@ -104,6 +104,8 @@ program dummy_solver_fortran
         character(*), INTENT(IN) :: identifier
         call solver_print("    Before Exporting Data to CoSim", 3)
 
+        ! TODO actually send some values ...
+
         call CoSimIO_ExportData(connection_name//c_null_char, identifier//c_null_char,&
             size_real_array, c_ptr_data_real)
 
@@ -160,6 +162,8 @@ program dummy_solver_fortran
         do i = 1, size_real_array
             f_ptr_data_real(i) = nodal_coords(i)
         end do
+
+        ! TODO add missing parts of Mesh
 
         call solver_print("    Before Exporting Mesh to CoSim", 3)
 
