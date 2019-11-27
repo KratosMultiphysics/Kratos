@@ -64,8 +64,8 @@ public:
     typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
 
     /// The definition of the node, element and geometry type
-    typedef Node <3>                                                                NodeType;
-    typedef Geometry<Node<3>>                                                   GeometryType;
+    typedef Node <TDim>                                                                NodeType;
+    typedef Geometry<Node<TDim>>                                                   GeometryType;
 
     /// Definition of the iterators
     typedef WeakPointerVector< Element >::iterator                         WeakElementItType;
