@@ -63,8 +63,9 @@ public:
     typedef ModelPart::ElementsContainerType                               ElementsArrayType;
     typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
 
-    /// The definition of the node type
+    /// The definition of the node, element and geometry type
     typedef Node <3>                                                                NodeType;
+    typedef Geometry<Node<3>>                                                   GeometryType;
 
     /// Definition of the iterators
     typedef WeakPointerVector< Element >::iterator                         WeakElementItType;
@@ -79,8 +80,6 @@ public:
 
     /// The type of array considered for the tensor
     typedef typename std::conditional<TDim == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
-
-    typedef Ge
 
     /// Pointer definition of SimpleErrorCalculatorProcess
     KRATOS_CLASS_POINTER_DEFINITION(SimpleErrorCalculatorProcess);

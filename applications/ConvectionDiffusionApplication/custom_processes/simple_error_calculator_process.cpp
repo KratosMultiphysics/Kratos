@@ -92,12 +92,13 @@ void SimpleErrorCalculatorProcess<TDim>::ErrorEstimatorImplementation()
         auto it_elem = it_elem_begin + i_elem;
         auto r_geometry = it_elem->GetGeometry();
         auto n_nodes = r_geomentry.size();
+
         array_1d<double, n_nodes> nodal_temp; 
         for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
             nodal_temp[i_node] = r_geometry[i].FastGetSolutionStepValue(TEMPERATURE)
         }
-        //const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints( GeometryData::GI_GAUSS_1 );
-        auto integration_points = r_geometry.IntegrationPoints( GeometryData::GI_GAUSS_1 );
+        
+        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints( GeometryData::GI_GAUSS_1 );
         const unsigned int NumGPoints = integration_points.size();
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
         r_geometry.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer, GeometryData::GI_GAUSS_1);
