@@ -1,0 +1,73 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+   1        0.0000000000        0.0000000000        0.0000000000
+   2        0.0000000000        0.0000000000        1.0000000000
+End Nodes
+
+Begin Elements SpringDamperElement3D2N// GUI group identifier: Beam
+    1     0      1       2
+End Elements
+
+Begin Conditions PointLoadCondition3D1N// GUI group identifier: load
+    1   0   2
+End Conditions
+
+Begin SubModelPart Parts_spring
+    Begin SubModelPartNodes
+        1
+        2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        1
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart DISPLACEMENT_X_Y_Z_support // Group DIRICH_BC // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+         1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart DISPLACEMENT_X_Y_support // Group DIRICH_BC // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+         2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart  ROTATION_X_Y_Z_support // Group DIRICH_BC // Subtree ROTATION
+    Begin SubModelPartNodes
+         1
+         2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart PointLoad3D_load // Group load // Subtree PointLoad3D
+    Begin SubModelPartNodes
+        2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+        1
+    End SubModelPartConditions
+End SubModelPart
+

@@ -54,7 +54,6 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosS
     material_properties.SetValue(POISSON_RATIO, 0.3);
     material_properties.SetValue(YIELD_STRESS, 0.5);
     material_properties.SetValue(INFINITY_YIELD_STRESS, 0.7);
-    //material_properties.SetValue(ISOTROPIC_HARDENING_MODULUS, 0.3);
     Vector hardening_moduli(2);
     hardening_moduli(0) = 0.3; hardening_moduli(1) = 0.15;
     material_properties.SetValue(HARDENING_MODULI_VECTOR, hardening_moduli);
@@ -84,9 +83,16 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosS
     //
     // Test: check correct behavior of internal and calculated variables
     //
-    KRATOS_CHECK(cl.Has(INELASTIC_FLAG));  // = True - TO BE REMOVED
     KRATOS_CHECK_IS_FALSE(cl.Has(STRAIN_ENERGY));  // = False, in order to use CalculateValue())
     KRATOS_CHECK_IS_FALSE(cl.Has(DAMAGE_VARIABLE));  // = False, in order to use CalculateValue())
+    KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // = True
+    Vector internal_variables_w(1);
+    internal_variables_w[0] = 0.123;
+    cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
+    Vector internal_variables_r;  // CL should internally resize it to 1
+    cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
+    KRATOS_CHECK_NEAR(internal_variables_r.size(), 1., 1.e-5);  // = True
+    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.123, 1.e-5);  // = True
 
 
     //

@@ -434,6 +434,9 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
         (self.solver).Initialize()
 
+        if hasattr(self, "_turbulence_model_solver"):
+            self._turbulence_model_solver.SetParentSolvingStrategy(self.solver)
+
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
