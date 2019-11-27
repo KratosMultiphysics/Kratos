@@ -136,12 +136,6 @@ void _AllocateMemoryDouble(const int Size, double** ppData)
         printf("ERROR, memory allocation (double) failed!");
         exit(0);
     }
-
-    for(int i = 0; i < Size; i++) {
-        const double val = i*1.225;
-        printf("\tC i = %i; value = %f\n",i, val);
-        ppData[0][i] = val;
-    }
 }
 
 void _FreeMemory(void** ppData)
