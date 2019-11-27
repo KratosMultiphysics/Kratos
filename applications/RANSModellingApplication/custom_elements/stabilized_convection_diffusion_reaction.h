@@ -731,6 +731,7 @@ public:
         const double bossak_gamma =
             TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
         const double dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
+        const double eps = std::numeric_limits<double>::epsilon();
 
         array_1d<double, 3> variable_gradient;
         const Variable<double>& primal_variable = this->GetPrimalVariable();
@@ -780,7 +781,7 @@ public:
             const double variable_value =
                 this->EvaluateInPoint(primal_variable, gauss_shape_functions);
 
-            if (variable_gradient_norm > 0.0 && velocity_magnitude_square > 0.0)
+            if (variable_gradient_norm > eps && velocity_magnitude_square > eps)
             {
                 const double source = this->CalculateSourceTerm(
                     r_current_data, gauss_shape_functions, r_shape_derivatives,

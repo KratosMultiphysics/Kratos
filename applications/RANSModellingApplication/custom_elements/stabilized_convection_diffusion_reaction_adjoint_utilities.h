@@ -70,20 +70,6 @@ inline void CalculateStabilizationTauScalarDerivatives(
         (-1.0 * std::pow(Tau, 3));
 }
 
-inline double SmoothPositiveDerivative(const double value, const double value_derivative)
-{
-    return SmoothMaxDerivative(value, value_derivative, 0.0, 0.0);
-}
-
-inline double SmoothMaxDerivative(const double value_1,
-                                  const double value_1_derivative,
-                                  const double value_2,
-                                  const double value_2_derivative)
-{
-    return (1.0 / (std::exp(value_1) + std::exp(value_2))) *
-           (value_1_derivative * std::exp(value_1) + value_2_derivative * std::exp(value_2));
-}
-
 template <std::size_t TDim, std::size_t TNumNodes>
 inline void CalculateStabilizationTauVelocityDerivatives(
     BoundedMatrix<double, TNumNodes, TDim>& rOutput,
