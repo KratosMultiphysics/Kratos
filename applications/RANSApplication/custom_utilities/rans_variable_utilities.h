@@ -29,30 +29,34 @@ namespace Kratos
 
 namespace RansVariableUtilities
 {
-void ClipScalarVariable(unsigned int& rNumberOfNodesBelowMinimum,
-                        unsigned int& rNumberOfNodesAboveMaximum,
-                        unsigned int& rNumberOfSelectedNodes,
-                        const double MinimumValue,
-                        const double MaximumValue,
-                        const Variable<double>& rVariable,
-                        ModelPart& rModelPart);
+void  KRATOS_API(RANS_APPLICATION) ClipScalarVariable(unsigned int& rNumberOfNodesBelowMinimum,
+                                                      unsigned int& rNumberOfNodesAboveMaximum,
+                                                      unsigned int& rNumberOfSelectedNodes,
+                                                      const double MinimumValue,
+                                                      const double MaximumValue,
+                                                      const Variable<double>& rVariable,
+                                                      ModelPart& rModelPart);
 
-double GetMinimumScalarValue(const ModelPart& rModelPart, const Variable<double>& rVariable);
+double KRATOS_API(RANS_APPLICATION) GetMinimumScalarValue(const ModelPart& rModelPart,
+                                                          const Variable<double>& rVariable);
 
-double GetMaximumScalarValue(const ModelPart& rModelPart, const Variable<double>& rVariable);
+double KRATOS_API(RANS_APPLICATION) GetMaximumScalarValue(const ModelPart& rModelPart,
+                                                          const Variable<double>& rVariable);
 
-void GetNodalVariablesVector(Vector& rValues,
-                             const ModelPart::NodesContainerType& rNodes,
-                             const Variable<double>& rVariable);
+void KRATOS_API(RANS_APPLICATION) GetNodalVariablesVector(Vector& rValues,
+                                                          const ModelPart::NodesContainerType& rNodes,
+                                                          const Variable<double>& rVariable);
 
-void GetNodalArray(Vector& rNodalValues, const Element& rElement, const Variable<double>& rVariable);
+void KRATOS_API(RANS_APPLICATION) GetNodalArray(Vector& rNodalValues,
+                                                const Element& rElement,
+                                                const Variable<double>& rVariable);
 
-void SetNodalVariables(ModelPart::NodesContainerType& rNodes,
-                       const Vector& rValues,
-                       const Variable<double>& rVariable);
+void KRATOS_API(RANS_APPLICATION) SetNodalVariables(ModelPart::NodesContainerType& rNodes,
+                                                    const Vector& rValues,
+                                                    const Variable<double>& rVariable);
 
-void CopyNodalSolutionStepVariablesList(ModelPart& rOriginModelPart,
-                                        ModelPart& rDestinationModelPart);
+void KRATOS_API(RANS_APPLICATION) CopyNodalSolutionStepVariablesList(ModelPart& rOriginModelPart,
+                                                                     ModelPart& rDestinationModelPart);
 
 ///@}
 } // namespace RansVariableUtilities

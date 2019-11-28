@@ -58,7 +58,7 @@ namespace Kratos
  * $k$ is the turbulent kinetic energy, $\epsilon$ is the turbulent energy dissipation rate
  */
 
-class RansNutKEpsilonHighReCalculationProcess : public Process
+class KRATOS_API(RANS_APPLICATION) RansNutKEpsilonHighReCalculationProcess : public Process
 {
 public:
     ///@name Type Definitions

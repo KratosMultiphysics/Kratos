@@ -46,7 +46,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class RansNutLowReCalculationProcess : public Process
+class KRATOS_API(RANS_APPLICATION) RansNutLowReCalculationProcess : public Process
 {
 public:
     ///@name Type Definitions

@@ -140,17 +140,14 @@ public:
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY);
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_ENERGY_DISSIPATION_RATE);
 
-        RansCheckUtilities rans_check_utilities;
+        RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
-        rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
+        const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-        const ModelPart::NodesContainerType& r_nodes =
-            mrModel.GetModelPart(mModelPartName).Nodes();
-
-        rans_check_utilities.CheckIfVariableExistsInNodesContainer(
-            r_nodes, TURBULENT_KINETIC_ENERGY);
-        rans_check_utilities.CheckIfVariableExistsInNodesContainer(
-            r_nodes, TURBULENT_ENERGY_DISSIPATION_RATE);
+        RansCheckUtilities::CheckIfVariableExistsInModelPart(
+            r_model_part, TURBULENT_KINETIC_ENERGY);
+        RansCheckUtilities::CheckIfVariableExistsInModelPart(
+            r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE);
 
         return 0;
 

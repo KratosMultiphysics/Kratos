@@ -25,10 +25,13 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
     #${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/generic_large_displacement_femdem_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/extend_pressure_condition_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/update_pressure_value_pfem_conditions_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/update_pressure_volume_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_pressure_id_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/expand_wet_nodes_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_initial_volume_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/regenerate_pfem_pressure_conditions_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/generate_dem_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/generate_initial_skin_DEM_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/update_dem_kinematics_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/transfer_nodal_forces_to_fem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_normalized_free_energy_on_nodes_process.cpp
@@ -42,6 +45,8 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_plane_strain.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_plane_stress.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/elastic_isotropic_3d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.cpp
 )
 
 # define library Kratos which defines the basic python interface

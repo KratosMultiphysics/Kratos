@@ -162,7 +162,7 @@ if(echo_level>1):
 
 #obtain the list of the processes to be applied
 
-from KratosMultiphysics.SolidMechanicsApplication.process_handler import ProcessHandler
+from KratosMultiphysics.PfemFluidDynamicsApplication.process_handler import ProcessHandler
 
 process_parameters = KratosMultiphysics.Parameters("{}")
 process_parameters.AddValue("echo_level", ProjectParameters["problem_data"]["echo_level"])

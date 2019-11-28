@@ -46,7 +46,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class RansVectorAlignProcess : public Process
+class KRATOS_API(RANS_APPLICATION) RansVectorAlignProcess : public Process
 {
 public:
     ///@name Type Definitions

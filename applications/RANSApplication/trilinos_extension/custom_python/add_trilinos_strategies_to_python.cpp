@@ -24,7 +24,7 @@
 // TrilinosApplication dependencies
 #include "trilinos_space.h"
 
-// RANSModelling trilinos extensions
+// RANS trilinos extensions
 #include "custom_strategies/generic_convergence_criteria.h"
 #include "custom_strategies/generic_residual_based_bossak_velocity_scalar_scheme.h"
 #include "custom_strategies/generic_residualbased_simple_steady_scalar_scheme.h"

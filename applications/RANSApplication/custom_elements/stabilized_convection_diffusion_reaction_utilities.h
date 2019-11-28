@@ -23,6 +23,9 @@
 #include "includes/ublas_interface.h"
 #include "custom_elements/stabilized_convection_diffusion_reaction_utilities.h"
 
+// Application includes
+#include "custom_utilities/rans_calculation_utilities.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -119,13 +122,13 @@ inline void CalculateCrossWindDiffusionParameters(double& rChi,
     value -= (EffectiveKinematicViscosity + Tau * std::pow(VelocityMagnitude, 2));
     value += psi_two;
 
-    rStreamLineDiffusionCoeff = std::max(value, 0.0);
+    rStreamLineDiffusionCoeff = RansCalculationUtilities::SoftPositive(value);
 
     value = 0.5 * std::abs(psi_one) * ElementLength;
     value -= EffectiveKinematicViscosity;
     value += psi_two;
 
-    rCrossWindDiffusionCoeff = std::max(value, 0.0);
+    rCrossWindDiffusionCoeff = RansCalculationUtilities::SoftPositive(value);
 }
 } // namespace StabilizedConvectionDiffusionReactionUtilities
 

@@ -63,6 +63,11 @@ class TurbulenceModelSolver(PythonSolver):
         msg += " Please override it in the derrived class to set the epetra_communicator for RANS model parts"
         raise Exception(msg)
 
+    def SetParentSolvingStrategy(self, parent_solving_strategy):
+        msg = "Calling the base TurbulenceModelSolver class SetParentSolvingStrategy method."
+        msg += " Please override it in the derrived class to set the parent_solving_strategy for RANS solving strategy"
+        raise Exception(msg)
+
     def Finalize(self):
         msg = "Calling the base TurbulenceModelSolver class SetCommunicator method."
         msg += " Please override it in the derrived class"

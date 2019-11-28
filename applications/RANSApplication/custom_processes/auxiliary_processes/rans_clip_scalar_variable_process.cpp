@@ -61,10 +61,9 @@ int RansClipScalarVariableProcess::Check()
     const Variable<double>& r_scalar_variable =
         KratosComponents<Variable<double>>::Get(mVariableName);
 
-    RansCheckUtilities rans_check_utilities;
 
-    rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
-    rans_check_utilities.CheckIfVariableExistsInModelPart(
+    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(
         mrModel.GetModelPart(mModelPartName), r_scalar_variable);
 
     return 0;

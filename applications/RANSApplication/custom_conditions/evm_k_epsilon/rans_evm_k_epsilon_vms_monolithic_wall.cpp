@@ -12,20 +12,23 @@
 
 // System includes
 #include <iostream>
+#include <limits>
 #include <string>
+#include <cmath>
 
 // External includes
 
 // Project includes
 #include "includes/checks.h"
 #include "includes/define.h"
+#include "includes/variables.h"
 
 // Application includes
-#include "rans_evm_k_epsilon_vms_monolithic_wall.h"
-
 #include "custom_utilities/rans_calculation_utilities.h"
-#include "includes/variables.h"
 #include "rans_application_variables.h"
+
+// Include base h
+#include "rans_evm_k_epsilon_vms_monolithic_wall.h"
 
 namespace Kratos
 {
@@ -252,8 +255,6 @@ void RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::ApplyRansBasedWallLaw(
 {
     KRATOS_TRY
 
-
-
     GeometryType& r_geometry = this->GetGeometry();
 
     const GeometryType::IntegrationPointsArrayType& integration_points =
@@ -294,7 +295,7 @@ void RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::ApplyRansBasedWallLaw(
 
         if (wall_velocity_magnitude > eps)
         {
-            const double u_tau = std::max(
+            const double u_tau = RansCalculationUtilities::SoftMax(
                 c_mu_25 * std::sqrt(std::max(tke, 0.0)),
                 wall_velocity_magnitude / (inv_von_karman * std::log(y_plus) + beta));
             const double value = rho * std::pow(u_tau, 2) * weight / wall_velocity_magnitude;

@@ -12,6 +12,8 @@
 //
 
 /* System includes */
+#include <limits>
+#include <cmath>
 
 /* External includes */
 

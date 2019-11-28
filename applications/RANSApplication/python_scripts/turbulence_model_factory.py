@@ -14,7 +14,7 @@ def Factory(settings, Model):
 
     model_type = settings["model_type"].GetString()
     if not model_type in turbulence_models_list:
-        msg = "Uknown turbulence \"model_type\" name : \"" + model_type
+        msg = "Unknown turbulence \"model_type\" name : \"" + model_type
         msg += "\".\nSupported \"model_type\" names:"
         msg += "\n\t".join(turbulence_models_list)
         raise Exception(msg)

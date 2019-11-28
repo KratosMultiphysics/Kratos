@@ -53,7 +53,7 @@ int RansFindConditionParentProcess::Check()
 {
     KRATOS_TRY
 
-    RansCheckUtilities().CheckIfModelPartExists(mrModel, mModelPartName);
+    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
     return 0;
 

@@ -97,8 +97,7 @@ int RansLineOutputProcess::Check()
 {
     KRATOS_TRY
 
-    RansCheckUtilities rans_check_utilities;
-    rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
+        RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
     const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
@@ -110,13 +109,13 @@ int RansLineOutputProcess::Check()
             {
                 const Variable<double>& r_variable =
                     KratosComponents<Variable<double>>::Get(variable_name);
-                rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, r_variable);
+                RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, r_variable);
             }
             else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name))
             {
                 const Variable<array_1d<double, 3>>& r_variable =
                     KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
-                rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, r_variable);
+                RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, r_variable);
             }
             else
             {
@@ -162,8 +161,6 @@ int RansLineOutputProcess::Check()
 void RansLineOutputProcess::ExecuteInitialize()
 {
     KRATOS_TRY
-
-    mCurrentStepCount = 0;
 
     const array_1d<double, 3>& r_direction_vector = mEndPoint - mStartPoint;
 

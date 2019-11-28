@@ -57,16 +57,15 @@ int RansNutLowReCalculationProcess::Check()
 {
     KRATOS_TRY
 
-    RansCheckUtilities rans_check_utilities;
 
-    rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
+    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
     const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_KINETIC_ENERGY);
-    rans_check_utilities.CheckIfVariableExistsInModelPart(
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_KINETIC_ENERGY);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(
         r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE);
-    rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_VISCOSITY);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_VISCOSITY);
 
     return 0;
 

@@ -39,7 +39,8 @@ RansNutYPlusWallFunctionProcess::RansNutYPlusWallFunctionProcess(Model& rModel, 
             "echo_level"      : 0,
             "c_mu"            : 0.09,
             "von_karman"      : 0.41,
-            "beta"            : 5.2
+            "beta"            : 5.2,
+            "min_value"       : 1e-18
         })");
 
     mrParameters.ValidateAndAssignDefaults(default_parameters);
@@ -49,6 +50,7 @@ RansNutYPlusWallFunctionProcess::RansNutYPlusWallFunctionProcess(Model& rModel, 
     mCmu = mrParameters["c_mu"].GetDouble();
     mVonKarman = mrParameters["von_karman"].GetDouble();
     mBeta = mrParameters["beta"].GetDouble();
+    mMinValue = mrParameters["min_value"].GetDouble();
     mLimitYPlus =
         RansCalculationUtilities::CalculateLogarithmicYPlusLimit(mVonKarman, mBeta);
 
@@ -64,15 +66,13 @@ int RansNutYPlusWallFunctionProcess::Check()
 {
     KRATOS_TRY
 
-    RansCheckUtilities rans_check_utilities;
-
-    rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
+    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
     const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, KINEMATIC_VISCOSITY);
-    rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_VISCOSITY);
-    rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, RANS_Y_PLUS);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, KINEMATIC_VISCOSITY);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_VISCOSITY);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, RANS_Y_PLUS);
 
     return 0;
 
@@ -87,8 +87,6 @@ void RansNutYPlusWallFunctionProcess::Execute()
 
     const int number_of_nodes = r_model_part.NumberOfNodes();
 
-    const double nu_t_min = r_model_part.GetProcessInfo()[TURBULENT_VISCOSITY_MIN];
-
     unsigned int number_of_modified_nu_t_nodes = 0;
 
 #pragma omp parallel for reduction(+ : number_of_modified_nu_t_nodes)
@@ -101,11 +99,11 @@ void RansNutYPlusWallFunctionProcess::Execute()
         if (y_plus > mLimitYPlus)
         {
             r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = mVonKarman * y_plus * nu;
-            number_of_modified_nu_t_nodes++;
+            ++number_of_modified_nu_t_nodes;
         }
         else
         {
-            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = nu_t_min;
+            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = mMinValue;
         }
     }
 

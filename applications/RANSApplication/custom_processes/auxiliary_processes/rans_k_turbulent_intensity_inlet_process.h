@@ -64,7 +64,7 @@ namespace Kratos
  *
  */
 
-class RansKTurbulentIntensityInletProcess : public Process
+class KRATOS_API(RANS_APPLICATION) RansKTurbulentIntensityInletProcess : public Process
 {
 public:
     ///@name Type Definitions

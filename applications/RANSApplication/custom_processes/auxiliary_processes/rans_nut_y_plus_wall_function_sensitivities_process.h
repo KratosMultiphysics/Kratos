@@ -20,12 +20,12 @@
 
 // Project includes
 #include "containers/model.h"
+#include "custom_utilities/rans_check_utilities.h"
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "rans_application_variables.h"
-#include "custom_utilities/rans_check_utilities.h"
 
 namespace Kratos
 {
@@ -105,7 +105,7 @@ public:
     {
         KRATOS_TRY
 
-        RansCheckUtilities().CheckIfModelPartExists(mrModel, mModelPartName);
+        RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
         return 0;
 

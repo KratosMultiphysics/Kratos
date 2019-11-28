@@ -14,8 +14,10 @@
 #define SCALAR_CO_SOLVING_PROCESS_H_INCLUDED
 
 // System includes
+#include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -71,11 +73,12 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "relative_tolerance"    : 1e-3,
-            "absolute_tolerance"    : 1e-5,
-            "max_iterations"        : 10,
-            "echo_level"            : 0,
-            "relaxation_factor"     : 1.0
+            "relative_tolerance"                : 1e-3,
+            "absolute_tolerance"                : 1e-5,
+            "max_iterations"                    : 10,
+            "echo_level"                        : 0,
+            "relaxation_factor"                 : 1.0,
+            "number_of_parent_solve_iterations" : 0
         })");
 
         rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -85,6 +88,9 @@ public:
         mConvergenceAbsoluteTolerance = rParameters["absolute_tolerance"].GetDouble();
         mRelaxationFactor = rParameters["relaxation_factor"].GetDouble();
         mMaxIterations = rParameters["max_iterations"].GetInt();
+        mSkipIterations = rParameters["number_of_parent_solve_iterations"].GetInt();
+
+        mCurrentParentIteration = 0;
     }
 
     /// Destructor.
@@ -110,6 +116,11 @@ public:
     void AddAuxiliaryProcess(Process::Pointer pAuxiliaryProcess)
     {
         mAuxiliaryProcessList.push_back(pAuxiliaryProcess);
+    }
+
+    void SetParentSolvingStrategy(typename SolvingStrategyType::Pointer pParentSolvingStrategy)
+    {
+        mpParentSolvingStrategy = pParentSolvingStrategy;
     }
 
     /// Execute method is used to execute the ScalarCoSolvingProcess algorithms.
@@ -223,117 +234,139 @@ protected:
 
     void SolveEquations()
     {
-        this->UpdateBeforeSolveEquations();
+        ++mCurrentParentIteration;
 
-        for (auto p_solving_strategy : this->mrSolvingStrategiesList)
+        if (mCurrentParentIteration > mSkipIterations ||
+            mpParentSolvingStrategy->IsConverged())
         {
-            p_solving_strategy->InitializeSolutionStep();
-            p_solving_strategy->Predict();
-        }
+            mCurrentParentIteration = 0;
+            this->UpdateBeforeSolveEquations();
 
-        bool is_converged = false;
-        int iteration = 1;
-
-        Communicator& r_communicator = mrModelPart.GetCommunicator();
-
-        ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
-        const ProcessInfo& r_current_process_info = mrModelPart.GetProcessInfo();
-
-        Vector old_values(r_nodes.size());
-        Vector new_values(r_nodes.size());
-        Vector delta_values(r_nodes.size());
-
-        int iteration_format_length =
-            static_cast<int>(std::log10(this->mMaxIterations)) + 1;
-
-        while (!is_converged && iteration <= this->mMaxIterations)
-        {
-            RansVariableUtilities::GetNodalVariablesVector(
-                old_values, r_nodes, this->mrConvergenceVariable);
-
-            for (int i = 0;
-                 i < static_cast<int>(this->mrSolvingStrategiesList.size()); ++i)
+            for (auto p_solving_strategy : this->mrSolvingStrategiesList)
             {
-                auto p_solving_strategy = this->mrSolvingStrategiesList[i];
-                auto scalar_variable_name = this->mrSolvingVariableNamesList[i];
-
-                p_solving_strategy->SolveSolutionStep();
-                const unsigned int iterations = r_current_process_info[NL_ITERATION_NUMBER];
-                KRATOS_INFO_IF(this->Info(), this->mEchoLevel > 0)
-                    << "Solving " << scalar_variable_name << " used "
-                    << iterations << " iterations.\n";
+                p_solving_strategy->InitializeSolutionStep();
+                p_solving_strategy->Predict();
             }
 
-            this->UpdateConvergenceVariable();
+            bool is_converged = false;
+            int iteration = 1;
 
-            RansVariableUtilities::GetNodalVariablesVector(
-                new_values, r_nodes, this->mrConvergenceVariable);
-            noalias(delta_values) = new_values - old_values;
+            Communicator& r_communicator = mrModelPart.GetCommunicator();
 
-            // This vector stores norms of the residual
-            // index - 0 : increase_norm
-            // index - 1 : solution_norm
-            // index - 3 : number of nodes
-            std::vector<double> residual_norms(3);
-            residual_norms[0] = std::pow(norm_2(delta_values), 2);
-            residual_norms[1] = std::pow(norm_2(new_values), 2);
-            residual_norms[2] = static_cast<double>(r_nodes.size());
-            const std::vector<double>& total_residual_norms =
-                r_communicator.GetDataCommunicator().SumAll(residual_norms);
+            ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
+            const ProcessInfo& r_current_process_info = mrModelPart.GetProcessInfo();
 
-            noalias(new_values) = old_values + delta_values * mRelaxationFactor;
-            RansVariableUtilities::SetNodalVariables(r_nodes, new_values, this->mrConvergenceVariable);
-            r_communicator.SynchronizeVariable(this->mrConvergenceVariable);
+            Vector old_values(r_nodes.size());
+            Vector new_values(r_nodes.size());
+            Vector delta_values(r_nodes.size());
 
-            double convergence_relative =
-                total_residual_norms[0] /
-                (total_residual_norms[1] <= std::numeric_limits<double>::epsilon()
-                     ? 1.0
-                     : total_residual_norms[1]);
-            double convergence_absolute =
-                std::sqrt(total_residual_norms[0]) / total_residual_norms[2];
+            int iteration_format_length =
+                static_cast<int>(std::log10(this->mMaxIterations)) + 1;
 
-            is_converged = (convergence_relative < this->mConvergenceRelativeTolerance ||
-                            convergence_absolute < this->mConvergenceAbsoluteTolerance);
-
-            if (this->mEchoLevel > 1)
+            while (!is_converged && iteration <= this->mMaxIterations)
             {
-                std::stringstream conv_check_msg;
-                conv_check_msg
-                    << "[Itr.#" << std::setw(iteration_format_length) << iteration
-                    << "] CONVERGENCE CHECK: " << mrConvergenceVariable.Name()
-                    << " ratio = " << std::setprecision(3) << std::scientific << convergence_relative
-                    << "; exp. ratio = " << this->mConvergenceRelativeTolerance
-                    << "; abs = " << convergence_absolute
-                    << "; exp.abs = " << this->mConvergenceAbsoluteTolerance << "\n";
-                KRATOS_INFO(this->Info()) << conv_check_msg.str();
+                RansVariableUtilities::GetNodalVariablesVector(
+                    old_values, r_nodes, this->mrConvergenceVariable);
 
-                if (is_converged)
+                for (int i = 0;
+                     i < static_cast<int>(this->mrSolvingStrategiesList.size()); ++i)
                 {
-                    std::stringstream conv_msg;
-                    conv_msg << "[Itr.#" << std::setw(iteration_format_length) << iteration
-                             << "] CONVERGENCE CHECK: " << mrConvergenceVariable.Name()
-                             << " *** CONVERGENCE IS ACHIEVED ***\n";
-                    KRATOS_INFO(this->Info()) << conv_msg.str();
+                    auto p_solving_strategy = this->mrSolvingStrategiesList[i];
+                    auto scalar_variable_name = this->mrSolvingVariableNamesList[i];
+
+                    p_solving_strategy->SolveSolutionStep();
+                    const unsigned int iterations =
+                        r_current_process_info[NL_ITERATION_NUMBER];
+                    KRATOS_INFO_IF(this->Info(), this->mEchoLevel > 0)
+                        << "Solving " << scalar_variable_name << " used "
+                        << iterations << " iterations.\n";
                 }
+
+                this->UpdateConvergenceVariable();
+
+                RansVariableUtilities::GetNodalVariablesVector(
+                    new_values, r_nodes, this->mrConvergenceVariable);
+                noalias(delta_values) = new_values - old_values;
+
+                // This vector stores norms of the residual
+                // index - 0 : increase_norm
+                // index - 1 : solution_norm
+                // index - 3 : number of nodes
+                std::vector<double> residual_norms(3);
+                residual_norms[0] = std::pow(norm_2(delta_values), 2);
+                residual_norms[1] = std::pow(norm_2(new_values), 2);
+                residual_norms[2] = static_cast<double>(r_nodes.size());
+                const std::vector<double>& total_residual_norms =
+                    r_communicator.GetDataCommunicator().SumAll(residual_norms);
+
+                noalias(new_values) = old_values + delta_values * mRelaxationFactor;
+                RansVariableUtilities::SetNodalVariables(
+                    r_nodes, new_values, this->mrConvergenceVariable);
+                r_communicator.SynchronizeVariable(this->mrConvergenceVariable);
+
+                double convergence_relative =
+                    total_residual_norms[0] /
+                    (total_residual_norms[1] <= std::numeric_limits<double>::epsilon()
+                         ? 1.0
+                         : total_residual_norms[1]);
+                double convergence_absolute =
+                    std::sqrt(total_residual_norms[0]) / total_residual_norms[2];
+
+                is_converged =
+                    (convergence_relative < this->mConvergenceRelativeTolerance ||
+                     convergence_absolute < this->mConvergenceAbsoluteTolerance);
+
+                if (this->mEchoLevel > 1)
+                {
+                    std::stringstream conv_check_msg;
+                    conv_check_msg
+                        << "[Itr.#" << std::setw(iteration_format_length)
+                        << iteration << "/" << this->mMaxIterations
+                        << "] CONVERGENCE CHECK: " << mrConvergenceVariable.Name()
+                        << " ratio = " << std::setprecision(3)
+                        << std::scientific << convergence_relative
+                        << "; exp. ratio = " << this->mConvergenceRelativeTolerance
+                        << "; abs = " << convergence_absolute
+                        << "; exp.abs = " << this->mConvergenceAbsoluteTolerance << "\n";
+                    KRATOS_INFO(this->Info()) << conv_check_msg.str();
+
+                    if (is_converged)
+                    {
+                        std::stringstream conv_msg;
+                        conv_msg
+                            << "[Itr.#" << std::setw(iteration_format_length)
+                            << iteration << "/" << this->mMaxIterations
+                            << "] CONVERGENCE CHECK: " << mrConvergenceVariable.Name()
+                            << " *** CONVERGENCE IS ACHIEVED ***\n";
+                        KRATOS_INFO(this->Info()) << conv_msg.str();
+                    }
+                }
+
+                iteration++;
             }
 
-            iteration++;
+            this->UpdateAfterSolveEquations();
+
+            KRATOS_INFO_IF(this->Info(), !is_converged && this->mEchoLevel > 2)
+                << "\n-------------------------------------------------------"
+                << "\n    INFO: Max coupling iterations reached.             "
+                << "\n          Please increase coupling max_iterations      "
+                << "\n          or decrease coupling                         "
+                << "\n          relative_tolerance/absolute tolerance        "
+                << "\n-------------------------------------------------------"
+                << "\n";
+
+            for (auto p_solving_strategy : this->mrSolvingStrategiesList)
+                p_solving_strategy->FinalizeSolutionStep();
         }
-
-        this->UpdateAfterSolveEquations();
-
-        KRATOS_WARNING_IF(this->Info(), !is_converged)
-            << "\n-------------------------------------------------------"
-            << "\n    WARNING: Max coupling iterations reached.          "
-            << "\n             Please increase coupling max_iterations   "
-            << "\n             or decrease coupling                      "
-            << "\n             relative_tolerance/absolute tolerance     "
-            << "\n-------------------------------------------------------"
-            << "\n";
-
-        for (auto p_solving_strategy : this->mrSolvingStrategiesList)
-            p_solving_strategy->FinalizeSolutionStep();
+        else
+        {
+            KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
+                << "Skipping co-solving process for parent solve to continue, "
+                   "since parent solve itertions are less than "
+                   "\"number_of_parent_solve_iterations\" [ "
+                << mCurrentParentIteration << " <= " << mSkipIterations << " ].\n";
+        }
     }
 
     ///@}
@@ -351,7 +384,11 @@ private:
     std::vector<Process::Pointer> mAuxiliaryProcessList;
     Variable<double>& mrConvergenceVariable;
 
+    typename SolvingStrategyType::Pointer mpParentSolvingStrategy;
+
     int mMaxIterations;
+    int mSkipIterations;
+    int mCurrentParentIteration;
     double mConvergenceAbsoluteTolerance;
     double mConvergenceRelativeTolerance;
     double mRelaxationFactor;

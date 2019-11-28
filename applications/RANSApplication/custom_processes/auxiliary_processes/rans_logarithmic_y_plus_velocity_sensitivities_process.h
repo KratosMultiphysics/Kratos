@@ -124,22 +124,14 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-        KRATOS_CHECK_VARIABLE_KEY(DISTANCE);
-        KRATOS_CHECK_VARIABLE_KEY(KINEMATIC_VISCOSITY);
-        KRATOS_CHECK_VARIABLE_KEY(RANS_Y_PLUS);
-        KRATOS_CHECK_VARIABLE_KEY(RANS_Y_PLUS_VELOCITY_DERIVATIVES);
+        RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
-        RansCheckUtilities rans_check_utilities;
-        rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
+        const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-        const ModelPart::NodesContainerType& r_nodes =
-            mrModel.GetModelPart(mModelPartName).Nodes();
-
-        rans_check_utilities.CheckIfVariableExistsInNodesContainer(r_nodes, VELOCITY);
-        rans_check_utilities.CheckIfVariableExistsInNodesContainer(r_nodes, DISTANCE);
-        rans_check_utilities.CheckIfVariableExistsInNodesContainer(r_nodes, KINEMATIC_VISCOSITY);
-        rans_check_utilities.CheckIfVariableExistsInNodesContainer(r_nodes, RANS_Y_PLUS);
+        RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, VELOCITY);
+        RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, DISTANCE);
+        RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, KINEMATIC_VISCOSITY);
+        RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, RANS_Y_PLUS);
 
         return 0;
 

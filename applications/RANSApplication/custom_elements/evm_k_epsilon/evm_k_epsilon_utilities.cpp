@@ -14,10 +14,12 @@
 #include <cmath>
 
 // Project includes
-#include "evm_k_epsilon_utilities.h"
 
 // Application includes
 #include "custom_utilities/rans_calculation_utilities.h"
+
+// Include base h
+#include "evm_k_epsilon_utilities.h"
 
 namespace Kratos
 {
@@ -83,8 +85,8 @@ double CalculateGamma(const double C_mu,
                       const double turbulent_kinetic_energy,
                       const double turbulent_kinematic_viscosity)
 {
-    return std::max<double>(
-        0.0, C_mu * f_mu * turbulent_kinetic_energy / turbulent_kinematic_viscosity);
+    return RansCalculationUtilities::SoftPositive(
+        C_mu * f_mu * turbulent_kinetic_energy / turbulent_kinematic_viscosity);
 }
 
 template double CalculateSourceTerm<2>(const BoundedMatrix<double, 2, 2>&, const double, const double);

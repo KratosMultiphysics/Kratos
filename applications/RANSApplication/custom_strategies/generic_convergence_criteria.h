@@ -16,6 +16,7 @@
 // System includes
 #include <string>
 #include <unordered_map>
+#include <cmath>
 
 /* Project includes */
 #include "includes/model_part.h"
@@ -36,7 +37,7 @@ namespace Kratos
  relative and absolute tolerances for both must be specified.
  */
 template <class TSparseSpace, class TDenseSpace>
-class GenericConvergenceCriteria : public ConvergenceCriteria<TSparseSpace, TDenseSpace>
+class KRATOS_API(RANS_APPLICATION) GenericConvergenceCriteria : public ConvergenceCriteria<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions

@@ -138,9 +138,6 @@ public:
     // Solve for the mesh movement
     mstrategy->Solve();
 
-    MoveMeshUtilities::MoveMesh(
-        mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
-
     // Clearing the system if needed
     if (mreform_dof_set_at_each_step == true)
       mstrategy->Clear();

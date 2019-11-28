@@ -39,7 +39,8 @@ void AddTrilinosSolvingProcessesToPython(pybind11::module& m)
         m, "MPIScalarCoSolvingProcess")
         .def(py::init<ModelPart&, Parameters&, Variable<double>&>())
         .def("AddStrategy", &MPIScalarCoSolvingProcessType::AddStrategy)
-        .def("AddAuxiliaryProcess", &MPIScalarCoSolvingProcessType::AddAuxiliaryProcess);
+        .def("AddAuxiliaryProcess", &MPIScalarCoSolvingProcessType::AddAuxiliaryProcess)
+        .def("SetParentSolvingStrategy", &MPIScalarCoSolvingProcessType::SetParentSolvingStrategy);
 
     using MPIKEpsilonCoSolvingProcessType =
         KEpsilonCoSolvingProcess<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>;

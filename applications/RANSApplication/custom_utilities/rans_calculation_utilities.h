@@ -13,6 +13,10 @@
 #if !defined(KRATOS_RANS_APPLICATION_CALCULATION_UTILITIES_H_INCLUDED)
 #define KRATOS_RANS_APPLICATION_CALCULATION_UTILITIES_H_INCLUDED
 
+// System includes
+#include <cmath>
+
+// Project includes
 #include "geometries/geometry.h"
 #include "geometries/geometry_data.h"
 #include "includes/model_part.h"
@@ -30,6 +34,16 @@ using NodeType = ModelPart::NodeType;
 
 /// Geometry type (using with given NodeType)
 using GeometryType = Geometry<NodeType>;
+
+inline long double SoftMax(const long double value_1, const long double value_2)
+{
+    return std::max(value_1, value_2);
+}
+
+inline long double SoftPositive(const long double value)
+{
+    return SoftMax(value, 0.0);
+}
 
 void CalculateGeometryData(const GeometryType& rGeometry,
                            const GeometryData::IntegrationMethod& rIntegrationMethod,
@@ -77,10 +91,11 @@ Vector GetVector(const array_1d<double, 3>& rVector);
 
 Vector GetVector(const array_1d<double, 3>& rVector, const unsigned int Dim);
 
-double CalculateLogarithmicYPlusLimit(const double Kappa,
-                                      const double Beta,
-                                      const int MaxIterations = 20,
-                                      const double Tolerance = 1e-6);
+double KRATOS_API(RANS_APPLICATION)
+    CalculateLogarithmicYPlusLimit(const double Kappa,
+                                   const double Beta,
+                                   const int MaxIterations = 20,
+                                   const double Tolerance = 1e-6);
 
 } // namespace RansCalculationUtilities
 

@@ -60,7 +60,7 @@ namespace Kratos
  *
  * @see class ResidualBasedBlockBuilderAndSolverPeriodic
  */
-class RansApplyExactNodalPeriodicConditionProcess : public Process
+class KRATOS_API(RANS_APPLICATION) RansApplyExactNodalPeriodicConditionProcess : public Process
 {
 public:
     ///@name Type Definitions

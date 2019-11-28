@@ -55,6 +55,7 @@ def AssembleTestSuites():
     nightSuite.addTest(EvmKEpsilonTest('testBackwardFacingStepKEpsilonTransient'))
     nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteady'))
     nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteadyPeriodic'))
+    nightSuite.addTest(EvmKEpsilonTest('testOneElementKEpsilonSteady'))
 
     # Adjoint tests
     nightSuite.addTest(AdjointKEpsilonSensitivity2D('testOneElementSteady'))

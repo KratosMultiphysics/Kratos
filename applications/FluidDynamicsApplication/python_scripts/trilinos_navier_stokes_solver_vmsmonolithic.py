@@ -264,6 +264,9 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
 
         (self.solver).Initialize()
 
+        if hasattr(self, "_turbulence_model_solver"):
+            self._turbulence_model_solver.SetParentSolvingStrategy(self.solver)
+
         KratosMultiphysics.Logger.Print("Monolithic MPI solver initialization finished.")
 
     def Finalize(self):

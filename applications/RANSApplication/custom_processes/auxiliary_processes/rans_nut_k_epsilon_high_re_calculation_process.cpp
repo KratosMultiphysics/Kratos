@@ -11,6 +11,8 @@
 //
 
 // System includes
+#include <cmath>
+#include <limits>
 
 // External includes
 
@@ -28,8 +30,7 @@
 
 namespace Kratos
 {
-RansNutKEpsilonHighReCalculationProcess::RansNutKEpsilonHighReCalculationProcess(
-    Model& rModel, Parameters rParameters)
+RansNutKEpsilonHighReCalculationProcess::RansNutKEpsilonHighReCalculationProcess(Model& rModel, Parameters rParameters)
     : mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY
@@ -58,16 +59,14 @@ int RansNutKEpsilonHighReCalculationProcess::Check()
 {
     KRATOS_TRY
 
-    RansCheckUtilities rans_check_utilities;
-
-    rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
+    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
     const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_KINETIC_ENERGY);
-    rans_check_utilities.CheckIfVariableExistsInModelPart(
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_KINETIC_ENERGY);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(
         r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE);
-    rans_check_utilities.CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_VISCOSITY);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_VISCOSITY);
 
     return 0;
 
@@ -81,7 +80,7 @@ void RansNutKEpsilonHighReCalculationProcess::Execute()
     ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     NodesContainerType& r_nodes = r_model_part.Nodes();
-    int number_of_nodes = r_nodes.size();
+    const int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)

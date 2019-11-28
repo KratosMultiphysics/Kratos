@@ -53,7 +53,7 @@ namespace Kratos
  *
  */
 
-class RansFindConditionParentProcess : public Process
+class KRATOS_API(RANS_APPLICATION) RansFindConditionParentProcess : public Process
 {
 public:
     ///@name Type Definitions
