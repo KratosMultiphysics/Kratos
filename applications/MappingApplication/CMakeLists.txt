@@ -15,6 +15,7 @@ set( KRATOS_MAPPING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/interpolative_mapper_base.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/nearest_neighbor_mapper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/nearest_element_mapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/coupling_geometry_mapper.cpp
     # # Searching
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_communicator.cpp
     # # Utilities
