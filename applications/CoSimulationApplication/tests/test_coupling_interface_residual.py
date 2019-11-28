@@ -33,8 +33,9 @@ class TestCouplingInterfaceResidual(KratosUnittest.TestCase):
         data_settings_vector = KM.Parameters("""{
             "model_part_name" : "default",
             "variable_name"   : "VELOCITY",
-            "dimension"       : %d
-        }""" % self.dimension )
+            "dimension"       : -1
+        }""")
+        data_settings_vector["dimension"].SetInt(self.dimension)
         self.interface_data_vector = CouplingInterfaceData(data_settings_vector, self.model)
         self.interface_data_vector.Initialize()
 
