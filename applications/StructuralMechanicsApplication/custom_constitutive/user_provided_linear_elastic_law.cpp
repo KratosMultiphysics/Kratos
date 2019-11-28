@@ -247,7 +247,7 @@ void UserProvidedLinearElasticLaw<TDim>::CalculatePK2Stress(
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const Matrix C = r_material_properties[ELASTICITY_TENSOR];
-    rStressVector = prod(C, rStrainVector);
+    noalias(rStressVector) = prod(C, rStrainVector);
 }
 
 /***********************************************************************************/
