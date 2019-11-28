@@ -197,8 +197,10 @@ template<class TMapperLocalSystem>
 void CreateMapperLocalSystemsFromGeometries(const Communicator& rModelPartCommunicator,
                                             std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems)
 {
-    const std::size_t num_elements = rModelPartCommunicator.LocalMesh().NumberOfElements();
-    const auto elems_ptr_begin = rModelPartCommunicator.LocalMesh().Elements().ptr_begin();
+    // @tteschemachen here kann man zwischen Elementen & Conditions wählen
+    // hab doch conditions genommen weil das in meinm MDPA so war :)
+    const std::size_t num_elements = rModelPartCommunicator.LocalMesh().NumberOfConditions();
+    const auto elems_ptr_begin = rModelPartCommunicator.LocalMesh().Conditions().ptr_begin();
 
     if (rLocalSystems.size() != num_elements) {
         rLocalSystems.resize(num_elements);
