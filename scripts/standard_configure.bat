@@ -20,7 +20,7 @@ set KRATOS_APP_DIR=applications
 rem Set basic configuration
 if not defined KRATOS_BUILD_TYPE set KRATOS_BUILD_TYPE=Release
 if not defined BOOST_ROOT set BOOST_ROOT=C:\CompiledLibs\boost_1_67_0
-if not defined PYTHON_EXECUTABLE set PYTHON_EXECUTABLE="C:\Windows\py.exe"
+if not defined PYTHON_EXECUTABLE set PYTHON_EXECUTABLE=C:\Windows\py.exe
 
 rem Set applications to compile
 set KRATOS_APPLICATIONS=
