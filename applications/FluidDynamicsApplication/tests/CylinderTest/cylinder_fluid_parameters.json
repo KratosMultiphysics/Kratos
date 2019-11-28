@@ -149,7 +149,7 @@
                 "model_part_name"        : "MainModelPart",
                 "write_output_file" : true,
                 "print_to_screen"   : true,
-                "cfl_threshold" : 2.5,
+                "cfl_output_limit"  : 2.5,
                 "interval"               : [0.0,"End"],
                 "output_step"          : 1,
                 "output_file_settings" : {
