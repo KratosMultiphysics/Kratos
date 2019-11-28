@@ -19,16 +19,7 @@
 // External includes
 
 // Project includes
-#include "containers/model.h"
-#include "includes/cfd_variables.h"
-#include "includes/checks.h"
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "processes/process.h"
-#include "rans_application_variables.h"
-
-#include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
-#include "custom_utilities/rans_check_utilities.h"
 
 namespace Kratos
 {
@@ -82,7 +73,7 @@ namespace Kratos
  * @see RansNutKEpsilonHighReCalculationProcess
  */
 
-class RansNutKEpsilonHighReSensitivitiesProcess : public Process
+class KRATOS_API(RANS_APPLICATION) RansNutKEpsilonHighReSensitivitiesProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -99,31 +90,10 @@ public:
 
     /// Constructor
 
-    RansNutKEpsilonHighReSensitivitiesProcess(Model& rModel, Parameters& rParameters)
-        : mrModel(rModel), mrParameters(rParameters)
-    {
-        KRATOS_TRY
-
-        Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "echo_level"      : 0,
-            "c_mu"            : 0.09
-        })");
-
-        mrParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mEchoLevel = mrParameters["echo_level"].GetInt();
-        mModelPartName = mrParameters["model_part_name"].GetString();
-        mCmu = mrParameters["c_mu"].GetDouble();
-
-        KRATOS_CATCH("");
-    }
+    RansNutKEpsilonHighReSensitivitiesProcess(Model& rModel, Parameters& rParameters);
 
     /// Destructor.
-    ~RansNutKEpsilonHighReSensitivitiesProcess() override
-    {
-    }
+    ~RansNutKEpsilonHighReSensitivitiesProcess() override;
 
     ///@}
     ///@name Operators
@@ -133,63 +103,11 @@ public:
     ///@name Operations
     ///@{
 
-    int Check() override
-    {
-        KRATOS_TRY
+    int Check() override;
 
-        KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY);
-        KRATOS_CHECK_VARIABLE_KEY(TURBULENT_ENERGY_DISSIPATION_RATE);
+    void ExecuteInitializeSolutionStep() override;
 
-        RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
-
-        const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
-
-        RansCheckUtilities::CheckIfVariableExistsInModelPart(
-            r_model_part, TURBULENT_KINETIC_ENERGY);
-        RansCheckUtilities::CheckIfVariableExistsInModelPart(
-            r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE);
-
-        return 0;
-
-        KRATOS_CATCH("");
-    }
-
-    void ExecuteInitializeSolutionStep() override
-    {
-        Execute();
-    }
-
-    void Execute() override
-    {
-        KRATOS_TRY
-
-        ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
-
-        ModelPart::NodesContainerType& r_nodes = r_model_part.Nodes();
-        int number_of_nodes = r_nodes.size();
-
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            NodeType& r_node = *(r_nodes.begin() + i_node);
-            Vector nut_partial_derivatives(2);
-
-            const double& tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-            const double& epsilon =
-                r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
-
-            nut_partial_derivatives[0] = 2.0 * mCmu * tke / epsilon;
-            nut_partial_derivatives[1] = -1.0 * mCmu * std::pow(tke / epsilon, 2);
-
-            r_node.SetValue(RANS_NUT_SCALAR_PARTIAL_DERIVATIVES, nut_partial_derivatives);
-        }
-
-        KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
-            << "Calculated k-epsilon high Re nu_t sensitivities for nodes in"
-            << mModelPartName << "\n";
-
-        KRATOS_CATCH("");
-    }
+    void Execute() override;
 
     ///@}
     ///@name Access
@@ -204,21 +122,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return std::string("RansNutKEpsilonHighReSensitivitiesProcess");
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << this->Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends

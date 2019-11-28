@@ -19,13 +19,7 @@
 // External includes
 
 // Project includes
-#include "containers/model.h"
-#include "custom_utilities/rans_check_utilities.h"
-#include "includes/checks.h"
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "processes/process.h"
-#include "rans_application_variables.h"
 
 namespace Kratos
 {
@@ -51,7 +45,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class RansNutYPlusWallFunctionSensitivitiesProcess : public Process
+class KRATOS_API(RANS_APPLICATION) RansNutYPlusWallFunctionSensitivitiesProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -68,30 +62,10 @@ public:
 
     /// Constructor
 
-    RansNutYPlusWallFunctionSensitivitiesProcess(Model& rModel, Parameters& rParameters)
-        : mrModel(rModel), mrParameters(rParameters)
-    {
-        KRATOS_TRY
-
-        Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "echo_level"      : 0
-        })");
-
-        mrParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mEchoLevel = mrParameters["echo_level"].GetInt();
-        mModelPartName = mrParameters["model_part_name"].GetString();
-
-        KRATOS_CATCH("");
-    }
+    RansNutYPlusWallFunctionSensitivitiesProcess(Model& rModel, Parameters& rParameters);
 
     /// Destructor.
-    ~RansNutYPlusWallFunctionSensitivitiesProcess() override
-    {
-        // delete mpDistanceCalculator;
-    }
+    ~RansNutYPlusWallFunctionSensitivitiesProcess() override;
 
     ///@}
     ///@name Operators
@@ -101,49 +75,11 @@ public:
     ///@name Operations
     ///@{
 
-    int Check() override
-    {
-        KRATOS_TRY
+    int Check() override;
 
-        RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
+    void ExecuteInitializeSolutionStep() override;
 
-        return 0;
-
-        KRATOS_CATCH("");
-    }
-
-    void ExecuteInitializeSolutionStep() override
-    {
-        Execute();
-    }
-
-    void Execute() override
-    {
-        KRATOS_TRY
-
-        ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
-
-        const int number_of_nodes = r_model_part.NumberOfNodes();
-
-        unsigned int number_of_modified_nu_t_nodes = 0;
-
-#pragma omp parallel for reduction(+ : number_of_modified_nu_t_nodes)
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            NodeType& r_node = *(r_model_part.NodesBegin() + i_node);
-            Vector nut_partial_derivatives(2);
-            nut_partial_derivatives.clear();
-            r_node.SetValue(RANS_NUT_SCALAR_PARTIAL_DERIVATIVES, nut_partial_derivatives);
-            number_of_modified_nu_t_nodes++;
-        }
-
-        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-            << "Applied nu_t y_plus wall function sensitivities to "
-            << number_of_modified_nu_t_nodes << " of total "
-            << r_model_part.NumberOfNodes() << " nodes in " << mModelPartName << "\n";
-
-        KRATOS_CATCH("");
-    }
+    void Execute() override;
 
     ///@}
     ///@name Access
@@ -158,21 +94,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return std::string("RansNutYPlusWallFunctionSensitivitiesProcess");
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << this->Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends

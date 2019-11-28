@@ -152,11 +152,6 @@ public:
 
         BaseType::Check(rCurrentProcessInfo);
 
-        KRATOS_CHECK_VARIABLE_KEY(RELAXED_ACCELERATION);
-        KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-        KRATOS_CHECK_VARIABLE_KEY(VISCOSITY);
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-
         for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
         {
             NodeType& r_node = this->GetGeometry()[iNode];
