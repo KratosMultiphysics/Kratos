@@ -83,7 +83,7 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
   /* Calculate Nodal Reference Temperature */
   double NodalReferenceTemperature;
   this->CalculateNodalReferenceTemperature(ElasticVariables,NodalReferenceTemperature);
-  
+
   // ReturnMappingVariables
   FlowRule::RadialReturnVariables ReturnMappingVariables;
   ReturnMappingVariables.initialize();
@@ -256,7 +256,7 @@ void ThermalNonlocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rVa
     /* Calculate Nodal Reference Temperature */
     double NodalReferenceTemperature;
     this->CalculateNodalReferenceTemperature(ElasticVariables,NodalReferenceTemperature);
-    
+
     // Compute Thermal strain
     Vector ThermalStrainVector(VoigtSize);
     this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,NodalReferenceTemperature);
@@ -309,9 +309,11 @@ double&  ThermalNonlocalDamage3DLaw::CalculateNodalReferenceTemperature (const M
 
     rNodalReferenceTemperature = 0.0;
 
-    for ( unsigned int j = 0; j < number_of_nodes; j++ )
-    {
-      rNodalReferenceTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(REFERENCE_TEMPERATURE);
+    if( DomainGeometry[0].SolutionStepsDataHas(REFERENCE_TEMPERATURE) ){
+        for ( unsigned int j = 0; j < number_of_nodes; j++ )
+        {
+            rNodalReferenceTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].FastGetSolutionStepValue(REFERENCE_TEMPERATURE);
+        }
     }
 
     return rNodalReferenceTemperature;
