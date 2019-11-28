@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosContactStructuralMechanicsApplication",
 	"included_modules": ["ContactStructuralMechanicsApplication"],
-	"included_binaries": ["KratosContactStructuralMechanicsApplication.cpython-${PYTHON}m-x86_64-linux-gnu.so"],
+	"included_binaries": ["KratosContactStructuralMechanicsApplication.cpython-${PYTHON}-x86_64-linux-gnu.so"],
 	"excluded_binaries": ["libKratosStructuralMechanicsCore"],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}", "KratosStructuralMechanicsApplication==${KRATOS_VERSION}"],
 	"author": "Vicente Mataix Ferrándiz",
