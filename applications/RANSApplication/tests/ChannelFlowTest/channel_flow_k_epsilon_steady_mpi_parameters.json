@@ -21,11 +21,11 @@
         "echo_level": 0,
         "compute_reactions": true,
         "consider_periodic_conditions": false,
-        "maximum_iterations": 300,
+        "maximum_iterations": 10,
         "relative_velocity_tolerance": 0.001,
-        "absolute_velocity_tolerance": 1e-5,
+        "absolute_velocity_tolerance": 1e-7,
         "relative_pressure_tolerance": 0.001,
-        "absolute_pressure_tolerance": 1e-5,
+        "absolute_pressure_tolerance": 1e-7,
         "volume_model_part_name": "Parts_fluid",
         "skin_parts": [
             "AutomaticInlet2D_inlet",
@@ -61,7 +61,7 @@
                     }
                 },
                 {
-                    "python_module": "apply_custom_process",
+                    "python_module": "cpp_process_factory",
                     "kratos_module": "KratosMultiphysics.RANSApplication",
                     "process_name": "NutKEpsilonHighReCalculationProcess",
                     "Parameters": {
@@ -70,7 +70,7 @@
                     }
                 },
                 {
-                    "python_module": "apply_custom_process",
+                    "python_module": "cpp_process_factory",
                     "kratos_module": "KratosMultiphysics.RANSApplication",
                     "process_name": "NutYPlusWallFunctionProcess",
                     "Parameters": {
@@ -79,13 +79,13 @@
                     }
                 },
                 {
-                    "python_module": "apply_custom_process",
+                    "python_module": "cpp_process_factory",
                     "kratos_module": "KratosMultiphysics.RANSApplication",
                     "process_name": "ClipScalarVariableProcess",
                     "Parameters": {
                         "model_part_name": "FluidModelPart",
                         "variable_name": "TURBULENT_VISCOSITY",
-                        "echo_level": 1,
+                        "echo_level": 0,
                         "min_value": 1e-18,
                         "max_value": 1e+30
                     }
@@ -93,8 +93,6 @@
             ],
             "mesh_moving": false,
             "echo_level": 0,
-            "turbulent_viscosity_min": 1e-18,
-            "turbulent_viscosity_max": 1e+2,
             "model_settings": {
                 "scheme_settings": {
                     "scheme_type": "steady",
@@ -104,9 +102,9 @@
                 "turbulent_kinetic_energy_settings": {
                     "is_periodic": false,
                     "relative_tolerance": 1e-3,
-                    "absolute_tolerance": 1e-5,
-                    "max_iterations": 10000,
-                    "echo_level": 1,
+                    "absolute_tolerance": 1e-7,
+                    "max_iterations": 10,
+                    "echo_level": 0,
                     "relaxation_factor": 0.5,
                     "linear_solver_settings": {
                         "solver_type": "multi_level"
@@ -115,9 +113,9 @@
                 "turbulent_energy_dissipation_rate_settings": {
                     "is_periodic": false,
                     "relative_tolerance": 1e-3,
-                    "absolute_tolerance": 1e-5,
-                    "max_iterations": 10000,
-                    "echo_level": 1,
+                    "absolute_tolerance": 1e-7,
+                    "max_iterations": 10,
+                    "echo_level": 0,
                     "relaxation_factor": 0.5,
                     "linear_solver_settings": {
                         "solver_type": "multi_level"
@@ -128,9 +126,9 @@
                 },
                 "coupling_settings": {
                     "relative_tolerance": 1e-3,
-                    "absolute_tolerance": 1e-5,
-                    "max_iterations": 100,
-                    "echo_level": 2
+                    "absolute_tolerance": 1e-8,
+                    "max_iterations": 10,
+                    "echo_level": 0
                 }
             }
         }
@@ -138,7 +136,7 @@
     "processes": {
         "initial_conditions_process_list": [
             {
-                "python_module": "apply_custom_process",
+                "python_module": "cpp_process_factory",
                 "kratos_module": "KratosMultiphysics.RANSApplication",
                 "process_name": "ApplyFlagProcess",
                 "Parameters": {
@@ -213,7 +211,7 @@
                 }
             },
             {
-                "python_module": "apply_custom_process",
+                "python_module": "cpp_process_factory",
                 "kratos_module": "KratosMultiphysics.RANSApplication",
                 "process_name" : "KTurbulentIntensityInletProcess",
                 "Parameters": {
@@ -222,7 +220,7 @@
                 }
             },
             {
-                "python_module": "apply_custom_process",
+                "python_module": "cpp_process_factory",
                 "kratos_module": "KratosMultiphysics.RANSApplication",
                 "process_name" : "EpsilonTurbulentMixingLengthInletProcess",
                 "Parameters": {
@@ -332,7 +330,7 @@
                 "Parameters": {
                     "model_part_name": "FluidModelPart.Slip2D",
                     "write_drag_output_file": true,
-                    "print_drag_to_screen": true,
+                    "print_drag_to_screen": false,
                     "interval": [
                         0.0,
                         "End"

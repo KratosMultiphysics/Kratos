@@ -236,7 +236,7 @@
             },
             {
                 "kratos_module": "KratosMultiphysics.RANSApplication",
-                "python_module": "apply_custom_process",
+                "python_module": "cpp_process_factory",
                 "process_name" : "NutKEpsilonHighReSensitivitiesProcess",
                 "Parameters": {
                     "model_part_name" : "MainModelPart"
@@ -244,7 +244,7 @@
             },
             {
                 "kratos_module": "KratosMultiphysics.RANSApplication",
-                "python_module": "apply_custom_process",
+                "python_module": "cpp_process_factory",
                 "process_name" : "NutYPlusWallFunctionSensitivitiesProcess",
                 "Parameters": {
                     "model_part_name" : "MainModelPart.Boundary"
