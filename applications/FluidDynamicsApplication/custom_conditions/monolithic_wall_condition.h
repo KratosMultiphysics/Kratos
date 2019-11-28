@@ -258,8 +258,6 @@ public:
             rRightHandSideVector.resize(LocalSize);
 
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
-        MatrixType LHS;
-        this->ApplyNeumannCondition(LHS, rRightHandSideVector);
     }
 
 

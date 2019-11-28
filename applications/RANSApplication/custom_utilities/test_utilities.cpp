@@ -114,13 +114,12 @@ void CalculateResidual(Vector& residual, TClassType& rClassTypeObject, ProcessIn
 {
     const double bossak_alpha = rProcessInfo[BOSSAK_ALPHA];
 
-    Vector rhs, nodal_scalar_values, current_nodal_scalar_rate_values,
-        old_nodal_scalar_rate_values;
-    Matrix damping_matrix, mass_matrix;
+    Vector nodal_scalar_values, current_nodal_scalar_rate_values, old_nodal_scalar_rate_values;
+    Matrix lhs, damping_matrix, mass_matrix;
 
-    rClassTypeObject.CalculateRightHandSide(rhs, rProcessInfo);
-    rClassTypeObject.CalculateDampingMatrix(damping_matrix, rProcessInfo);
+    rClassTypeObject.CalculateLocalSystem(lhs, residual, rProcessInfo);
     rClassTypeObject.CalculateMassMatrix(mass_matrix, rProcessInfo);
+    rClassTypeObject.CalculateLocalVelocityContribution(damping_matrix, residual, rProcessInfo);
 
     rClassTypeObject.GetFirstDerivativesVector(nodal_scalar_values);
     rClassTypeObject.GetSecondDerivativesVector(current_nodal_scalar_rate_values);
@@ -130,22 +129,16 @@ void CalculateResidual(Vector& residual, TClassType& rClassTypeObject, ProcessIn
         current_nodal_scalar_rate_values * (1 - bossak_alpha) +
         old_nodal_scalar_rate_values * bossak_alpha;
 
-    IndexType residual_equations_size =
-        std::max({rhs.size(), damping_matrix.size1(), mass_matrix.size1(),
-                  nodal_scalar_values.size(), current_nodal_scalar_rate_values.size(),
-                  old_nodal_scalar_rate_values.size()});
+    IndexType residual_equations_size = std::max(
+        {damping_matrix.size1(), mass_matrix.size1(), nodal_scalar_values.size(),
+         current_nodal_scalar_rate_values.size(), old_nodal_scalar_rate_values.size()});
 
-    if (residual.size() != residual_equations_size)
-        residual.resize(residual_equations_size);
-    residual.clear();
-
-    if (rhs.size() != 0)
+    if (residual.size() != 0)
     {
-        KRATOS_ERROR_IF(rhs.size() != residual_equations_size)
+        KRATOS_ERROR_IF(residual.size() != residual_equations_size)
             << rClassTypeObject.Info() << "::CalculateRightHandSide RHS vector size doesn't match with max residual_equations_size "
-            << residual_equations_size << " [ RHS_size = " << rhs.size()
+            << residual_equations_size << " [ RHS_size = " << residual.size()
             << " != " << residual_equations_size << " ].\n";
-        noalias(residual) += rhs;
     }
 
     if (damping_matrix.size1() != 0 && nodal_scalar_values.size() != 0)
@@ -165,7 +158,6 @@ void CalculateResidual(Vector& residual, TClassType& rClassTypeObject, ProcessIn
             << residual_equations_size
             << " [ Values_size = " << nodal_scalar_values.size()
             << " != " << residual_equations_size << " ].\n";
-        noalias(residual) -= prod(damping_matrix, nodal_scalar_values);
     }
 
     if (mass_matrix.size1() != 0 && current_nodal_scalar_rate_values.size() != 0)
