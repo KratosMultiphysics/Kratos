@@ -69,6 +69,7 @@ namespace Python
         .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::ConditionsContainerType>)
         .def("ComputeVisualizationWaterHeight", &ShallowWaterUtilities::ComputeVisualizationWaterHeight)
         .def("ComputeVisualizationWaterSurface", &ShallowWaterUtilities::ComputeVisualizationWaterSurface)
+        .def("NormalizeVector", &ShallowWaterUtilities::NormalizeVector)
         ;
 
     py::class_< EstimateDtShallow > (m, "EstimateDtShallow")

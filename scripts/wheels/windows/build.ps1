@@ -1,4 +1,4 @@
-$pythons = "37","36","35"
+$pythons = "38","37","36","35"
 $env:kratos_version = "7.0.3"
 
 $kratosRoot = "c:\kratos\kratos"
