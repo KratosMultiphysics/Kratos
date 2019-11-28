@@ -193,6 +193,29 @@ void CreateMapperLocalSystemsFromNodes(const Communicator& rModelPartCommunicato
         << "No mapper local systems were created" << std::endl;
 }
 
+template<class TMapperLocalSystem>
+void CreateMapperLocalSystemsFromGeometries(const Communicator& rModelPartCommunicator,
+                                            std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems)
+{
+    const std::size_t num_elements = rModelPartCommunicator.LocalMesh().NumberOfElements();
+    const auto elems_ptr_begin = rModelPartCommunicator.LocalMesh().Elements().ptr_begin();
+
+    if (rLocalSystems.size() != num_elements) {
+        rLocalSystems.resize(num_elements);
+    }
+
+    #pragma omp parallel for
+    for (int i = 0; i< static_cast<int>(num_elements); ++i) {
+        auto it_elem = elems_ptr_begin + i;
+        Geometry<Node<3>>* p_geom(&((*it_elem)->GetGeometry()));
+        rLocalSystems[i] = Kratos::make_unique<TMapperLocalSystem>(p_geom);
+    }
+
+    int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
+
+    KRATOS_ERROR_IF_NOT(num_local_systems > 0) << "No mapper local systems were created" << std::endl;
+}
+
 inline int ComputeNumberOfNodes(ModelPart& rModelPart)
 {
     int num_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
