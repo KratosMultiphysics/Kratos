@@ -21,7 +21,6 @@
 // Project includes
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "includes/ublas_interface.h"
-#include "custom_elements/stabilized_convection_diffusion_reaction_utilities.h"
 
 // Application includes
 #include "custom_utilities/rans_calculation_utilities.h"
