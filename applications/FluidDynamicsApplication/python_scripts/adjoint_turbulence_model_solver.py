@@ -4,12 +4,12 @@ from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 def CreateAdjointTurbulenceModel(model, settings):
-    if not CheckIfApplicationsAvailable("RANSModellingApplication"):
-        msg = "Using a turbulence model requires the RANSModellingApplication. "
-        msg += "Please re-install/re-compile with RANSModellingApplication."
+    if not CheckIfApplicationsAvailable("RANSApplication"):
+        msg = "Using a turbulence model requires the RANSApplication. "
+        msg += "Please re-install/re-compile with RANSApplication."
         raise Exception(msg)
 
-    from KratosMultiphysics.RANSModellingApplication.adjoint_turbulence_model_factory import Factory
+    from KratosMultiphysics.RANSApplication.adjoint_turbulence_model_factory import Factory
     return Factory(settings, model)
 
 class AdjointTurbulenceModelSolver(PythonSolver):
