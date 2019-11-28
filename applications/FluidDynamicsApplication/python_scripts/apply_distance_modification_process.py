@@ -33,6 +33,13 @@ class ApplyDistanceModificationProcess(KratosMultiphysics.Process):
         self.fluid_model_part = Model[settings["model_part_name"].GetString()]
         self.DistanceModificationProcess = KratosFluid.DistanceModificationProcess(self.fluid_model_part, settings)
 
+        KratosMultiphysics.Logger.PrintInfo("ApplyDistanceModificationProcess","Construction finished.")
+
+        self.DistanceModificationProcess.ExecuteInitialize()
+        self.DistanceModificationProcess.ExecuteBeforeSolutionLoop()
+        self.DistanceModificationProcess.ExecuteInitializeSolutionStep()
+        self.DistanceModificationProcess.ExecuteFinalizeSolutionStep()
+
 
     def ExecuteInitialize(self):
         self.DistanceModificationProcess.ExecuteInitialize()

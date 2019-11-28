@@ -141,14 +141,21 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
     }
 
     // assembly of the log message
+    std::ostringstream oss;
+    //oss.precision(std::numeric_limits<double>::digits10);
+    oss << std::scientific << neg_vol << "\t\t" << pos_vol << "\t\t" << water_volume_error 
+        << "\t\t" << net_inflow_inlet << "\t\t" << net_inflow_outlet << "\t\t" << inter_area << "\t\t" << shift_for_correction << "\n";
+    std::string add_string = oss.str();
+
     std::string output_line_timestep =  std::to_string(current_time) + "\t\t";
-    output_line_timestep +=             std::to_string(neg_vol) + "\t\t";
-    output_line_timestep +=             std::to_string(pos_vol) + "\t\t";
-    output_line_timestep +=             std::to_string(water_volume_error) + "\t\t";
-    output_line_timestep +=             std::to_string(net_inflow_inlet) + "\t\t";
-    output_line_timestep +=             std::to_string(net_inflow_outlet) + "\t\t";
-    output_line_timestep +=             std::to_string(inter_area) + "\t\t";
-    output_line_timestep +=             std::to_string(shift_for_correction) +"\n";
+    //output_line_timestep +=             std::to_string(neg_vol) + "\t\t";
+    //output_line_timestep +=             std::to_string(pos_vol) + "\t\t";
+    //output_line_timestep +=             std::to_string(water_volume_error) + "\t\t";
+    //output_line_timestep +=             std::to_string(net_inflow_inlet) + "\t\t";
+    //output_line_timestep +=             std::to_string(net_inflow_outlet) + "\t\t";
+    //output_line_timestep +=             std::to_string(inter_area) + "\t\t";
+    //output_line_timestep +=             std::to_string(shift_for_correction) +"\n";
+    output_line_timestep += add_string;
     return output_line_timestep;
 }
 
@@ -206,9 +213,14 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
                 Distance[i] = rGeom[i].FastGetSolutionStepValue(DISTANCE);
             }
 
+            //KRATOS_INFO("MassConservationProcess") << "About to construct the ModifiedShapeFunctions" << std::endl;
+
             if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
             else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
+
             else { KRATOS_ERROR << "The process can not be applied on this kind of element" << std::endl; }
+
+            //KRATOS_INFO("MassConservationProcess") << "Constructed the ModifiedShapeFunctions" << std::endl;
 
             // Call the positive side modified shape functions calculator (Gauss weights woulb be enough)
             // Object p_modified_sh_func has full knowledge of slit geometry

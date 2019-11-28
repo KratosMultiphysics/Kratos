@@ -75,15 +75,52 @@ void SurfaceSmoothingProcess::CreateAuxModelPart()
 
 void SurfaceSmoothingProcess::Execute()
 {
+    const unsigned int NumNodes = mrModelPart.NumberOfNodes();
+    const unsigned int NumElements = mrModelPart.NumberOfElements();
+
+    std::vector<double> DistDiff(NumNodes);
+    std::vector<double> DistDiffAvg(NumNodes);
+    std::vector<double> NumNeighbors(NumNodes);
+
     #pragma omp parallel for
-       for (int k = 0; k < static_cast<int>(mrModelPart.NumberOfNodes()); ++k) {
-            auto it_node = mrModelPart.NodesBegin() + k;
-            it_node->FastGetSolutionStepValue(DISTANCE_AUX) = it_node->FastGetSolutionStepValue(DISTANCE);
-        }
+    for (unsigned int k = 0; k < NumNodes; ++k) {
+        auto it_node = mrModelPart.NodesBegin() + k;
+        it_node->FastGetSolutionStepValue(DISTANCE_AUX) = it_node->FastGetSolutionStepValue(DISTANCE);
+    }
 
     KRATOS_INFO("SurfaceSmoothingProcess") << "About to solve the LSE" << std::endl;
     mp_solving_strategy->Solve();
     KRATOS_INFO("SurfaceSmoothingProcess") << "LSE is solved" << std::endl;
+
+    #pragma omp parallel for
+    for (unsigned int k = 0; k < NumNodes; ++k) {
+        auto it_node = mrModelPart.NodesBegin() + k;
+        DistDiff[it_node->Id()-1] = it_node->FastGetSolutionStepValue(DISTANCE_AUX) - it_node->FastGetSolutionStepValue(DISTANCE);
+    }
+
+    for (unsigned int k = 0; k < NumElements; ++k) {
+        auto it_elem = mrModelPart.ElementsBegin() + k;
+        auto geom = it_elem->pGetGeometry();
+
+        for (unsigned int i=0; i < num_nodes; i++){
+            for (unsigned int j=i+1; j < num_nodes; j++){
+                const int iId = (*geom)[i].Id() - 1;
+                const int jId = (*geom)[j].Id() - 1;
+                NumNeighbors[iId] += 1.0;
+                NumNeighbors[jId] += 1.0;
+
+                DistDiffAvg[iId] += DistDiff[jId];
+                DistDiffAvg[jId] += DistDiff[iId];
+            }
+        }
+    }
+
+    #pragma omp parallel for
+    for (unsigned int k = 0; k < NumNodes; ++k) {
+        auto it_node = mrModelPart.NodesBegin() + k;
+        it_node->FastGetSolutionStepValue(DISTANCE_AUX) = 
+            it_node->FastGetSolutionStepValue(DISTANCE_AUX) - 1.0/NumNeighbors[it_node->Id()-1]*DistDiffAvg[it_node->Id()-1];
+    }
 }
 
 void SurfaceSmoothingProcess::ExecuteInitialize()

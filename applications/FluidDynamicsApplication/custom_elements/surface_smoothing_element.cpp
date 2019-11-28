@@ -219,12 +219,13 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
     KRATOS_TRY
 
-    const double epsilon = 1.0e-10;
+    const double epsilon = 1.0e-6;
 
     BoundedMatrix<double,num_nodes,dim> DN_DX;  // Gradients matrix 
     array_1d<double,num_nodes> N; //dimension = number of nodes . Position of the gauss point 
     array_1d<double,num_nodes> tempVdof; //dimension = number of DOFs . . since we are using a residualbased approach
-    array_1d<double,num_nodes> tempVold; //dimension = number of DOFs . . since we are using a residualbased approach  
+    array_1d<double,num_nodes> tempVold; //dimension = number of DOFs . . since we are using a residualbased approach
+    //array_1d<double,num_nodes> tempRHS = ZeroVector(num_nodes);  
     BoundedMatrix<double,num_nodes,num_nodes> tempM;
     tempM = ZeroMatrix(num_nodes,num_nodes);
     BoundedMatrix<double,num_nodes,num_nodes> tempA;
@@ -258,10 +259,14 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
             for (unsigned int k = 0; k<dim; k++){
                 tempA(i,j) += area*epsilon*DN_DX(i,k)*DN_DX(j,k);
             }
+
+            //tempRHS(i) += epsilon*DN_DX(j,0)*GetGeometry()[j].FastGetSolutionStepValue(DISTANCE_GRADIENT_X)*area*N[i];
+            //tempRHS(i) += epsilon*DN_DX(j,1)*GetGeometry()[j].FastGetSolutionStepValue(DISTANCE_GRADIENT_Y)*area*N[i];
+            //tempRHS(i) += epsilon*DN_DX(j,2)*GetGeometry()[j].FastGetSolutionStepValue(DISTANCE_GRADIENT_Z)*area*N[i];
         }
     }
     noalias(rLeftHandSideMatrix) = tempM + tempA;
-    noalias(rRightHandSideVector) = prod(tempM,tempVold) /* + prod(tempA,tempVold) */ - prod(rLeftHandSideMatrix,tempVdof); //Phi_smooth + epsilon*laplacian(Phi_smooth) = Phi_old
+    noalias(rRightHandSideVector) = prod(tempM,tempVold) /* + prod(tempA,tempVold) */ /* + tempRHS */ - prod(rLeftHandSideMatrix,tempVdof); //Phi_smooth + epsilon*laplacian(Phi_smooth) = Phi_old
 
     KRATOS_CATCH("");
 }
