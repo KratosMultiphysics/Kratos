@@ -9,18 +9,17 @@ if (NOT TRILINOS_FOUND)
 endif()
 
 include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
-link_directories(${TRILINOS_LIBRARIES})
 
 file(
   GLOB_RECURSE
-  KRATOS_RANS_MODELLING_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES
+  KRATOS_RANS_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
 ## Python module
-pybind11_add_module( KratosRANSTrilinosExtension MODULE THIN_LTO ${KRATOS_RANS_MODELLING_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES} )
-target_link_libraries( KratosRANSTrilinosExtension PRIVATE KratosRANSCore KratosTrilinosCore KratosMPICore)
+pybind11_add_module( KratosRANSTrilinosExtension MODULE THIN_LTO ${KRATOS_RANS_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES} )
+target_link_libraries( KratosRANSTrilinosExtension PRIVATE KratosRANSCore KratosTrilinosCore KratosMPICore ${TRILINOS_LIBRARIES})
 set_target_properties( KratosRANSTrilinosExtension PROPERTIES PREFIX "")
 
 ###############################################################################

@@ -18,9 +18,10 @@
 #include "includes/model_part.h"
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-#include "Epetra_FEVector.h"
-#include "trilinos_space.h"
+class Epetra_Import;
 #endif
+
+
 
 namespace Kratos
 {
@@ -39,7 +40,7 @@ namespace Kratos
  *  auxiliary infrastructure.
   */
 template< class TSparseSpace >
-class RelaxedDofUpdater
+class KRATOS_API(RANS_APPLICATION) RelaxedDofUpdater
 {
 public:
     ///@name Type Definitions
@@ -155,7 +156,7 @@ private:
 
     #ifdef KRATOS_USING_MPI // mpi-parallel compilation
     /// Auxiliary trilinos data structure to import out-of-process data in the update vector.
-    std::unique_ptr<Epetra_Import> mpDofImport = nullptr;
+    std::shared_ptr<Epetra_Import> mpDofImport = nullptr;
     #endif
 
     ///@}
