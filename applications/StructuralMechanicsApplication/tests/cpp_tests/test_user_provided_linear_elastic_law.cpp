@@ -55,7 +55,7 @@ namespace Testing
         strain_vect[0] = 1.0;
         strain_vect[1] = 1.0;
         strain_vect[2] = 1.0;
-        Vector stress_vect;
+        Vector stress_vect(3);
         Matrix constitutive_tensor;
 
         Flags cl_options;
@@ -108,7 +108,7 @@ namespace Testing
         strain_vect[3] = 1.0;
         strain_vect[4] = 1.0;
         strain_vect[5] = 1.0;
-        Vector stress_vect;
+        Vector stress_vect(6);
         Matrix constitutive_tensor;
 
         Flags cl_options;
