@@ -47,7 +47,15 @@ namespace Kratos
 ///@{
 
 /// Short class definition.
+// This condition fixes the dof's of the background element when a boundary particle is inside.
+
 /** Detail class definition.
+ * The MPMParticleFixDofDirichletCondition can be used for the imposition of non-conforming boundary conditions.
+ * there are several possibilities:
+ * - "fixed": all dof's of the background element are fixed, if a boundary particle is inside
+ * - "contact": only if penetration at the boundary occurs, the dof's are fixed
+ * - "slip": only the local dof in x-direction is fixed
+ * - "contact-slip": combination
 */
 
 class MPMParticleFixDofDirichletCondition
