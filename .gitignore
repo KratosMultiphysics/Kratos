@@ -11,6 +11,8 @@
 *.pyc
 
 # Common build directory
+scripts/configure.sh
+scripts/configure.bat
 build/*
 bin/*
 
