@@ -37,7 +37,7 @@ RansKTurbulentIntensityInletProcess::RansKTurbulentIntensityInletProcess(Model& 
             "turbulent_intensity" : 0.05,
             "echo_level"          : 0,
             "is_fixed"            : true,
-            "min_k_value"         : 1e-18
+            "min_value"           : 1e-18
         })");
 
     mrParameters.ValidateAndAssignDefaults(default_parameters);
@@ -46,7 +46,7 @@ RansKTurbulentIntensityInletProcess::RansKTurbulentIntensityInletProcess(Model& 
     mIsConstrained = mrParameters["is_fixed"].GetBool();
     mEchoLevel = mrParameters["echo_level"].GetInt();
     mModelPartName = mrParameters["model_part_name"].GetString();
-    mMinValue = mrParameters["min_k_value"].GetDouble();
+    mMinValue = mrParameters["min_value"].GetDouble();
 
     KRATOS_ERROR_IF(mTurbulentIntensity < 0.0)
         << "Turbulent intensity needs to be positive in the modelpart "
