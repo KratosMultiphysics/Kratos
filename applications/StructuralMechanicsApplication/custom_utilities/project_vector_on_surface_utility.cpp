@@ -66,15 +66,11 @@ void ProjectVectorOnSurfaceUtility::PlanarProjection(ModelPart& rModelPart, cons
 
 	// Declare working variables
 	Matrix local_coordinate_orientation;
-	// declaration of copy of global_vector
-	Vector3 global_vector_copy;
+
 
 	// Loop over all elements in part
 	for (auto &element : rModelPart.Elements())
 	{
-
-		// make a copy of global_vector
-		global_vector_copy = global_vector;
 
 		// get local axis in cartesian coordinates
 		element.Calculate(LOCAL_ELEMENT_ORIENTATION, local_coordinate_orientation, r_process_info);
@@ -103,7 +99,7 @@ void ProjectVectorOnSurfaceUtility::PlanarProjection(ModelPart& rModelPart, cons
 		// Global Z vector onto the shell surface
 
 		// First, check if specified global_vector is normal to the shell surface
-		if (std::abs(inner_prod(global_vector_copy, local_axis_1)) < std::numeric_limits<double>::epsilon() && std::abs(inner_prod(global_vector_copy, local_axis_2)) < std::numeric_limits<double>::epsilon())
+		if (std::abs(inner_prod(global_vector, local_axis_1)) < std::numeric_limits<double>::epsilon() && std::abs(inner_prod(global_vector, local_axis_2)) < std::numeric_limits<double>::epsilon())
 		{
 			KRATOS_ERROR << "Global direction is perpendicular to element " << element.GetId() << " please define a different projection plane or use another type of projection "
 				<< ", available: radial,spherical" << std::endl;
@@ -114,7 +110,7 @@ void ProjectVectorOnSurfaceUtility::PlanarProjection(ModelPart& rModelPart, cons
 			// http://www.euclideanspace.com/maths/geometry/elements/plane/lineOnPlane/index.htm
 			// vector to be projected = vec_a
 			// Surface normal = vec_b
-			const Vector& vec_a = global_vector_copy;
+			const Vector& vec_a = global_vector;
 			const Vector& vec_b = local_axis_3;
 
 			Vector a_cross_b = ZeroVector(3);
@@ -132,7 +128,74 @@ void ProjectVectorOnSurfaceUtility::PlanarProjection(ModelPart& rModelPart, cons
 
 void ProjectVectorOnSurfaceUtility::RadialProjection(ModelPart& rModelPart, const Parameters& MethodParameters)
 {
-	KRATOS_ERROR << "RadialProjection not implemented" << std::endl;
+	const auto specific_parameters = MethodParameters["method_specific_settings"];
+	const std::string& r_local_variable_name = specific_parameters["local_variable_name"].GetString();
+
+	KRATOS_ERROR_IF_NOT(KratosComponents<ArrayVariableType>::Has(r_local_variable_name)) << "Variable " << r_local_variable_name << " not known" << std::endl;
+	const ArrayVariableType& r_variable = KratosComponents<ArrayVariableType>::Get(r_local_variable_name);
+
+	Vector3 global_vector;
+
+	//global_vector is the global fiber direction given by user
+	//read this global direction
+	CheckAndReadVectors(specific_parameters, "global_fiber_direction", global_vector);
+
+	//Normalize global_vector
+	global_vector /=  norm_2(global_vector);
+
+	const auto& r_process_info = rModelPart.GetProcessInfo();
+
+	// Declare working variables
+	Matrix local_coordinate_orientation;
+
+	// Loop over all elements in part
+	for (auto &element : rModelPart.Elements())
+	{
+
+		// get local axis in cartesian coordinates
+		element.Calculate(LOCAL_ELEMENT_ORIENTATION, local_coordinate_orientation, r_process_info);
+
+		Vector local_axis_1 = ZeroVector(3);
+		Vector local_axis_2 = ZeroVector(3);
+		Vector local_axis_3 = ZeroVector(3);
+
+		for (size_t i=0;i<3;++i)
+		{
+			local_axis_1[i] = local_coordinate_orientation(i,0);
+			local_axis_2[i] = local_coordinate_orientation(i,1);
+			local_axis_3[i] = local_coordinate_orientation(i,2);
+		}
+
+		// normalise local axis vectors (global cartesian)
+		local_axis_1 /= norm_2(local_axis_1);
+		local_axis_2 /= norm_2(local_axis_2);
+		local_axis_3 /= norm_2(local_axis_3);
+
+		// (Abaqus default projection)
+		// http://130.149.89.49:2080/v6.8/books/gsa/default.htm?startat=ch05s03.html
+		// Shell local axis 1 is the projection of Global X vector onto the shell surface.
+		// If the Global X vector is normal to the shell surface,
+		// the shell local 1-direction is the projection of the
+		// Global Z vector onto the shell surface
+
+		// First, check if specified global_vector is normal to the shell surface
+		if (std::abs(inner_prod(global_vector, local_axis_1)) < std::numeric_limits<double>::epsilon() && std::abs(inner_prod(global_vector, local_axis_2)) < std::numeric_limits<double>::epsilon())
+		{
+			KRATOS_ERROR << "Global direction is perpendicular to element " << element.GetId() << " please define a different projection plane or use another type of projection "
+				<< ", available: planar,spherical" << std::endl;
+		}
+		else
+		{
+			Vector projected_result = ZeroVector(3);
+
+			MathUtils<double>::CrossProduct(projected_result, global_vector, local_axis_3);
+
+			//noramlize projected result
+			projected_result /= MathUtils<double>::Norm(projected_result);
+
+			element.SetValue(r_variable, projected_result);
+		}
+	}
 }
 
 void ProjectVectorOnSurfaceUtility::SphericalProjection(ModelPart& rModelPart, const Parameters& MethodParameters)

@@ -316,9 +316,24 @@ void MembraneElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>&
             Matrix transformation_matrix = ZeroMatrix(3);
             InPlaneTransformationMatrix(transformation_matrix,rTransformedBaseVectors,local_prestress_axis);
             pre_stress = prod(transformation_matrix,pre_stress);
+
+        } else if (Has(LOCAL_PRESTRESS_AXIS_1)) {
+
+            Vector base_3 = ZeroVector(3);
+            MathUtils<double>::CrossProduct(base_3, rTransformedBaseVectors[0], rTransformedBaseVectors[1]);
+            base_3 /= MathUtils<double>::Norm(base_3);
+
+            array_1d<array_1d<double,3>,2> local_prestress_axis;
+            local_prestress_axis[0] = GetValue(LOCAL_PRESTRESS_AXIS_1)/MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_1));
+
+            MathUtils<double>::CrossProduct(local_prestress_axis[1], base_3, local_prestress_axis[0]);
+            local_prestress_axis[1] /= MathUtils<double>::Norm(local_prestress_axis[1]);
+
+            Matrix transformation_matrix = ZeroMatrix(3);
+            InPlaneTransformationMatrix(transformation_matrix,rTransformedBaseVectors,local_prestress_axis);
+            pre_stress = prod(transformation_matrix,pre_stress);
         }
     }
-
     rStress += pre_stress;
 }
 
@@ -689,6 +704,13 @@ void MembraneElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
     if (Has(LOCAL_MATERIAL_AXIS_1) && Has(LOCAL_MATERIAL_AXIS_2)){
         rBaseVectors[0] = GetValue(LOCAL_MATERIAL_AXIS_1)/MathUtils<double>::Norm(GetValue(LOCAL_MATERIAL_AXIS_1));
         rBaseVectors[1] = GetValue(LOCAL_MATERIAL_AXIS_2)/MathUtils<double>::Norm(GetValue(LOCAL_MATERIAL_AXIS_2));
+    } else if (Has(LOCAL_MATERIAL_AXIS_1)) {
+        Vector base_3 = ZeroVector(3);
+        MathUtils<double>::CrossProduct(base_3, rLocalBaseVectors[0], rLocalBaseVectors[1]);
+        base_3 /= MathUtils<double>::Norm(base_3);
+        rBaseVectors[0] = GetValue(LOCAL_MATERIAL_AXIS_1)/MathUtils<double>::Norm(GetValue(LOCAL_MATERIAL_AXIS_1));
+        MathUtils<double>::CrossProduct(rBaseVectors[1], base_3, rBaseVectors[0]);
+        rBaseVectors[1] /= MathUtils<double>::Norm(rBaseVectors[1]);
     } else {
         // create local cartesian coordinate system
         rBaseVectors[0] = ZeroVector(3);
