@@ -14,13 +14,13 @@ import KratosMultiphysics.CoSimulationApplication.colors as colors
 import numpy as np
 from numpy import linalg as la
 
-def Create(settings, solver_wrapper):
+def Create(settings):
     cs_tools.SettingsTypeCheck(settings)
-    return RelativeNormInitialResidualConvergenceCriteria(settings, solver_wrapper)
+    return RelativeNormInitialResidualConvergenceCriteria(settings)
 
 class RelativeNormInitialResidualConvergenceCriteria(CoSimulationConvergenceCriteria):
-    def __init__(self, settings, solver_wrapper):
-        super(RelativeNormInitialResidualConvergenceCriteria, self).__init__( settings, solver_wrapper)
+    def __init__(self, settings):
+        super(RelativeNormInitialResidualConvergenceCriteria, self).__init__(settings)
 
         self.abs_tolerance = self.settings["abs_tolerance"].GetDouble()
         self.rel_tolerance = self.settings["rel_tolerance"].GetDouble()
@@ -28,15 +28,7 @@ class RelativeNormInitialResidualConvergenceCriteria(CoSimulationConvergenceCrit
     def InitializeSolutionStep(self):
         self.initial_iteration = True
 
-    def InitializeNonLinearIteration(self):
-        # Saving the previous data (at beginning of iteration) for the computation of the residual
-        self.prev_data = self.interface_data.GetData()
-
-    def IsConverged(self):
-        new_data = self.interface_data.GetData()
-
-        residual = new_data - self.prev_data
-
+    def IsConverged(self, residual, current_data):
         abs_norm = la.norm(residual) / np.sqrt(residual.size)
 
         if self.initial_iteration:
@@ -48,7 +40,8 @@ class RelativeNormInitialResidualConvergenceCriteria(CoSimulationConvergenceCrit
         is_converged = abs_norm < self.abs_tolerance or rel_norm < self.rel_tolerance
 
         if self.echo_level > 1:
-            info_msg  = 'Convergence for "'+colors.bold(self.interface_data.variable.Name())+'": '
+            # info_msg  = 'Convergence for "'+colors.bold(self.interface_data.variable.Name())+'": ' ### TODO find a good way to bring this back
+            info_msg  = 'Convergence '
             if is_converged:
                 info_msg += colors.green("ACHIEVED")
             else:

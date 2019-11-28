@@ -11,11 +11,9 @@ class CoSimulationConvergenceCriteria(object):
     """Baseclass for the convergence criteria used for CoSimulation
     Checks if convergence was achieved in a (strongly) coupled simulation
     """
-    def __init__(self, settings, solver_wrapper):
+    def __init__(self, settings):
         self.settings = settings
         self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
-
-        self.interface_data = solver_wrapper.GetInterfaceData(self.settings["data_name"].GetString())
 
         self.echo_level = self.settings["echo_level"].GetInt()
 
@@ -38,7 +36,7 @@ class CoSimulationConvergenceCriteria(object):
     def FinalizeNonLinearIteration(self):
         pass
 
-    def IsConverged(self):
+    def IsConverged(self, residual, current_data):
         raise NotImplementedError('"IsConverged" has to be implemented in the derived class!')
 
     def PrintInfo(self):

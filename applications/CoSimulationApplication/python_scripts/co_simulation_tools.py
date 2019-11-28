@@ -7,9 +7,8 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.factories.coupling_operation_factory import CreateCouplingOperation
 from KratosMultiphysics.CoSimulationApplication.factories.data_transfer_operator_factory import CreateDataTransferOperator
 from KratosMultiphysics.CoSimulationApplication.convergence_accelerators.convergence_accelerator_wrapper import ConvergenceAcceleratorWrapper
-
+from KratosMultiphysics.CoSimulationApplication.convergence_criteria.convergence_criteria_wrapper import ConvergenceCriteriaWrapper
 from KratosMultiphysics.CoSimulationApplication.factories.predictor_factory import CreatePredictor
-from KratosMultiphysics.CoSimulationApplication.factories.convergence_criterion_factory import CreateConvergenceCriterion
 
 
 import KratosMultiphysics.CoSimulationApplication.colors as colors
@@ -60,7 +59,7 @@ def CreateConvergenceCriteria(convergence_criterion_settings_list, solvers, pare
     for conv_crit_settings in convergence_criterion_settings_list:
         solver = solvers[conv_crit_settings["solver"].GetString()]
         AddEchoLevelToSettings(conv_crit_settings, parent_echo_level)
-        convergence_criteria.append(CreateConvergenceCriterion(conv_crit_settings, solver))
+        convergence_criteria.append(ConvergenceCriteriaWrapper(conv_crit_settings, solver))
 
     return convergence_criteria
 
