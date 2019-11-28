@@ -370,6 +370,14 @@ public:
         }
     }
 
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override
+    {
+        const unsigned int LocalSize = (TDim + 1) * TNumNodes;
+        Vector right_hand_side(LocalSize);
+        CalculateLocalVelocityContribution(rDampingMatrix, right_hand_side, rCurrentProcessInfo);
+
+    }
+
     /// Computes the local contribution associated to 'new' velocity and pressure values
     /**
      * Provides local contributions to the system associated to the velocity and
