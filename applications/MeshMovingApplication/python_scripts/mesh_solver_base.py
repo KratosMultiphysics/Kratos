@@ -23,12 +23,6 @@ class MeshSolverBase(PythonSolver):
     mesh_model_part -- the mesh motion model part.
     """
     def __init__(self, model, custom_settings):
-        if custom_settings.Has("calculate_mesh_velocities"):
-            from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
-            warn_msg  = 'Yor input-settings contain "calculate_mesh_velocities". This was removed from the solver and moved to MeshMovingApplication.MeshVelocityCalculationPlease update your code'
-            IssueDeprecationWarning("MeshSolverBase", warn_msg)
-            custom_settings.RemoveValue("calculate_mesh_velocities")
-
         self._validate_settings_in_baseclass=True # To be removed eventually
         super(MeshSolverBase,self).__init__(model, custom_settings)
 
@@ -48,6 +42,13 @@ class MeshSolverBase(PythonSolver):
             raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
 
         self.mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+
+        # Doing this after the solver-settings have been validated in the base Python solver
+        self._SelectMeshVelocityCalculationSettings()
+
+        # If required, create the time discretization helper
+        if self.settings["calculate_mesh_velocity"].GetBool():
+            self._CreateTimeIntegratorHelper()
 
         KratosMultiphysics.Logger.PrintInfo("::[MeshSolverBase]:: Construction finished")
 
@@ -80,8 +81,11 @@ class MeshSolverBase(PythonSolver):
             },
             "reform_dofs_each_step"     : false,
             "compute_reactions"         : false,
+            "poisson_ratio"             : 0.3,
+            "calculate_mesh_velocity"   : false,
+            "mesh_velocity_calculation" : { },
             "superimpose_mesh_disp_with": [],
-            "poisson_ratio"             : 0.3
+            "superimpose_mesh_velocity_with": [ ]
         }""")
         this_defaults.AddMissingParameters(super(MeshSolverBase, cls).GetDefaultSettings())
         return this_defaults
@@ -89,8 +93,17 @@ class MeshSolverBase(PythonSolver):
     #### Public user interface functions ####
 
     def AddVariables(self):
+        # Add variables required for the mesh moving calculation
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_REACTION)
+
+        # Adding Variables used for computation of Mesh-Velocity
+        if self.settings["calculate_mesh_velocity"].GetBool():
+            self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
+            time_scheme = self.settings["mesh_velocity_calculation"]["time_scheme"].GetString()
+            if not time_scheme.startswith("bdf"): # bdfx does not need MESH_ACCELERATION
+                self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_ACCELERATION)
+
         KratosMultiphysics.Logger.PrintInfo("::[MeshSolverBase]:: Variables ADDED.")
 
     def AddDofs(self):
@@ -126,8 +139,15 @@ class MeshSolverBase(PythonSolver):
         # explicit bool conversion is only needed bcs "Solve" returns a double
         is_converged = bool(self.get_mesh_motion_solving_strategy().Solve())
         self.MoveMesh()
+
+        # Superimpose the user-defined mesh displacement
         for variable in KratosMultiphysics.kratos_utilities.GenerateVariableListFromInput(self.settings["superimpose_mesh_disp_with"]):
             KMM.SuperImposeMeshDisplacement(variable)
+
+        # Superimpose the user-defined mesh velocity
+        for variable in KratosMultiphysics.kratos_utilities.GenerateVariableListFromInput(self.settings["superimpose_mesh_velocity_with"]):
+            KMM.SuperImposeMeshVelocity(variable)
+
         return is_converged
 
     def SetEchoLevel(self, level):
@@ -140,12 +160,19 @@ class MeshSolverBase(PythonSolver):
         self.get_mesh_motion_solving_strategy().Clear()
 
     def GetMinimumBufferSize(self):
-        return max(self.settings["buffer_size"].GetInt(), self.mesh_model_part.GetBufferSize())
+        buffer_size = max(self.settings["buffer_size"].GetInt(), self.mesh_model_part.GetBufferSize())
+        if self.settings["calculate_mesh_velocity"].GetBool():
+            buffer_size = max(buffer_size, KratosMultiphysics.TimeDiscretization.GetMinimumBufferSize(self.time_int_helper))
+        return buffer_size
 
     def MoveMesh(self):
         # move local and ghost nodes
         self.mesh_model_part.GetCommunicator().SynchronizeVariable(KratosMultiphysics.MESH_DISPLACEMENT)
         KMM.MoveMesh(self.mesh_model_part.Nodes)
+
+        # If required, calculate the MESH_VELOCITY. Deactivated by default.
+        if self.settings["calculate_mesh_velocity"].GetBool():
+            KMM.CalculateMeshVelocities(self.mesh_model_part, self.time_int_helper)
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
@@ -202,3 +229,43 @@ class MeshSolverBase(PythonSolver):
             self.mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
             self.mesh_model_part.CloneTimeStep(time)
         self.mesh_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
+
+    def _SelectMeshVelocityCalculationSettings(self):
+        '''Specifying the time-scheme used to calculate the mesh-velocity
+        It can be overridden in derived classes
+        '''
+
+        # BDF2 was the default in the MeshSolver-Strategies
+        default_settings = KratosMultiphysics.Parameters("""{
+            "time_scheme" : "bdf2"
+        }""")
+
+        self.settings["mesh_velocity_calculation"].ValidateAndAssignDefaults(default_settings)
+
+    def _CreateTimeIntegratorHelper(self):
+        '''Initializing the helper-class for the time-integration
+        '''
+        time_int_settings = self.settings["mesh_velocity_calculation"]
+        time_scheme = time_int_settings["time_scheme"].GetString()
+
+        if time_scheme == "bdf1":
+            self.time_int_helper = KratosMultiphysics.TimeDiscretization.BDF1()
+        elif time_scheme == "bdf2":
+            self.time_int_helper = KratosMultiphysics.TimeDiscretization.BDF2()
+        elif time_scheme == "newmark":
+            self.time_int_helper = KratosMultiphysics.TimeDiscretization.Newmark()
+        elif time_scheme == "bossak":
+            if time_int_settings.Has("alpha_m"):
+                alpha_m = time_int_settings["alpha_m"].GetDouble()
+                self.time_int_helper = KratosMultiphysics.TimeDiscretization.Bossak(alpha_m)
+            else:
+                self.time_int_helper = KratosMultiphysics.TimeDiscretization.Bossak()
+        elif time_scheme == "generalized_alpha":
+            alpha_m = time_int_settings["alpha_m"].GetDouble()
+            alpha_f = time_int_settings["alpha_f"].GetDouble()
+            self.time_int_helper = KratosMultiphysics.TimeDiscretization.GeneralizedAlpha(alpha_m, alpha_f)
+        else:
+            err_msg =  'The requested time scheme "' + time_scheme + '" is not available!\n'
+            err_msg += 'Available options are: "bdf1", "bdf2", '
+            err_msg += '"newmark", "bossak", "generalized_alpha"'
+            raise Exception(err_msg)
