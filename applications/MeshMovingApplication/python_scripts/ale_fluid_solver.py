@@ -83,9 +83,8 @@ class AleFluidSolver(PythonSolver):
         # Getting the min_buffer_size from both solvers
         # and assigning it to the fluid_solver, bcs this one handles the model_part
         self.fluid_solver.min_buffer_size = max(
-            [ self.fluid_solver.GetMinimumBufferSize(),
-              self.mesh_motion_solver_full_mesh.GetMinimumBufferSize(),
-              KM.TimeDiscretization.GetMinimumBufferSize(self.time_int_helper) ] )
+            self.fluid_solver.GetMinimumBufferSize(),
+            self.mesh_motion_solver_full_mesh.GetMinimumBufferSize())
 
         KM.Logger.PrintInfo("::[AleFluidSolver]::", "Construction finished")
 
