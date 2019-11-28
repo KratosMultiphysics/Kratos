@@ -176,7 +176,7 @@ void RansEvmKEpsilonKElement<TDim, TNumNodes>::EquationIdVector(EquationIdVector
     if (rResult.size() != TNumNodes)
         rResult.resize(TNumNodes, false);
 
-    for (unsigned int i = 0; i < TNumNodes; i++)
+    for (unsigned int i = 0; i < TNumNodes; ++i)
         rResult[i] = Element::GetGeometry()[i].GetDof(TURBULENT_KINETIC_ENERGY).EquationId();
 }
 
@@ -192,7 +192,7 @@ void RansEvmKEpsilonKElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rEleme
     if (rElementalDofList.size() != TNumNodes)
         rElementalDofList.resize(TNumNodes);
 
-    for (unsigned int i = 0; i < TNumNodes; i++)
+    for (unsigned int i = 0; i < TNumNodes; ++i)
         rElementalDofList[i] = Element::GetGeometry()[i].pGetDof(TURBULENT_KINETIC_ENERGY);
 }
 

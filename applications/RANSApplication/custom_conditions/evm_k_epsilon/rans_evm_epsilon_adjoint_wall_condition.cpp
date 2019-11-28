@@ -417,7 +417,7 @@ void RansEvmEpsilonAdjointWallCondition<TNumNodes, TDim>::CalculateConditionResi
             turbulent_kinematic_viscosity_sensitivities[0] / epsilon_sigma;
     }
 
-    for (unsigned int g = 0; g < num_gauss_points; g++)
+    for (unsigned int g = 0; g < num_gauss_points; ++g)
     {
         const Vector& gauss_shape_functions = row(shape_functions, g);
         const double weight = J * integration_points[g].Weight();
@@ -509,7 +509,7 @@ void RansEvmEpsilonAdjointWallCondition<TNumNodes, TDim>::CalculateConditionResi
             turbulent_kinematic_viscosity_sensitivities[1] / epsilon_sigma;
     }
 
-    for (unsigned int g = 0; g < num_gauss_points; g++)
+    for (unsigned int g = 0; g < num_gauss_points; ++g)
     {
         const Vector& gauss_shape_functions = row(shape_functions, g);
         const double weight = J * integration_points[g].Weight();
@@ -642,7 +642,7 @@ void RansEvmEpsilonAdjointWallCondition<TNumNodes, TDim>::CalculateResidualShape
     const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
     const double eps = std::numeric_limits<double>::epsilon();
 
-    for (unsigned int g = 0; g < num_gauss_points; g++)
+    for (unsigned int g = 0; g < num_gauss_points; ++g)
     {
         const Vector& gauss_shape_functions = row(shape_functions, g);
         noalias(shape_function_local_gradients) =
@@ -675,7 +675,7 @@ void RansEvmEpsilonAdjointWallCondition<TNumNodes, TDim>::CalculateResidualShape
                 double jacobian_sensitivity;
                 sensitivity_utility.CalculateSensitivity(deriv, jacobian_sensitivity);
 
-                for (unsigned int i = 0; i < num_nodes; i++)
+                for (unsigned int i = 0; i < num_nodes; ++i)
                 {
                     rOutput(deriv.NodeIndex * dimension + deriv.Direction, i) +=
                         coeff_1 * gauss_shape_functions[i] * jacobian_sensitivity;
@@ -706,10 +706,10 @@ typename RansEvmEpsilonAdjointWallCondition<TNumNodes, TDim>::MatrixType RansEvm
                         r_geometry.LocalSpaceDimension());
     MatrixType coordinates(r_geometry.WorkingSpaceDimension(), r_geometry.PointsNumber());
 
-    for (unsigned int i = 0; i < r_geometry.PointsNumber(); i++)
+    for (unsigned int i = 0; i < r_geometry.PointsNumber(); ++i)
     {
         const auto& r_coordinates = r_geometry[i].Coordinates();
-        for (unsigned int d = 0; d < r_geometry.WorkingSpaceDimension(); d++)
+        for (unsigned int d = 0; d < r_geometry.WorkingSpaceDimension(); ++d)
         {
             coordinates(d, i) = r_coordinates[d];
         }

@@ -761,7 +761,7 @@ void RansEvmVmsMonolithicAdjointWallCondition<TDim>::CalculateResidualShapeSensi
                 double J_deriv;
                 sensitivity_utility.CalculateSensitivity(deriv, J_deriv);
 
-                for (unsigned int i = 0; i < num_nodes; i++)
+                for (unsigned int i = 0; i < num_nodes; ++i)
                 {
                     for (unsigned int d = 0; d < dimension; ++d)
                     {
@@ -802,7 +802,7 @@ void RansEvmVmsMonolithicAdjointWallCondition<TDim>::CalculateResidualShapeSensi
                     double J_deriv;
                     sensitivity_utility.CalculateSensitivity(deriv, J_deriv);
 
-                    for (unsigned int i = 0; i < num_nodes; i++)
+                    for (unsigned int i = 0; i < num_nodes; ++i)
                     {
                         for (unsigned int d = 0; d < dimension; ++d)
                         {
@@ -1018,10 +1018,10 @@ typename RansEvmVmsMonolithicAdjointWallCondition<TDim>::MatrixType RansEvmVmsMo
                         r_geometry.LocalSpaceDimension());
     MatrixType coordinates(r_geometry.WorkingSpaceDimension(), r_geometry.PointsNumber());
 
-    for (unsigned int i = 0; i < r_geometry.PointsNumber(); i++)
+    for (unsigned int i = 0; i < r_geometry.PointsNumber(); ++i)
     {
         const auto& r_coordinates = r_geometry[i].Coordinates();
-        for (unsigned int d = 0; d < r_geometry.WorkingSpaceDimension(); d++)
+        for (unsigned int d = 0; d < r_geometry.WorkingSpaceDimension(); ++d)
         {
             coordinates(d, i) = r_coordinates[d];
         }

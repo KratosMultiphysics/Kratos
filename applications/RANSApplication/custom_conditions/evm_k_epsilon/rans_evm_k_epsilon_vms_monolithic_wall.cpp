@@ -185,7 +185,7 @@ void RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::ApplyLogarithmicWallLaw(
             const double nu = rGeometry[itNode].FastGetSolutionStepValue(VISCOSITY);
 
             double wall_vel = 0.0;
-            for (size_t d = 0; d < TDim; d++)
+            for (size_t d = 0; d < TDim; ++d)
             {
                 wall_vel += Vel[d] * Vel[d];
             }
@@ -232,7 +232,7 @@ void RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::ApplyLogarithmicWallLaw(
                     }
                 }
                 const double Tmp = area * utau * utau * rho / wall_vel;
-                for (size_t d = 0; d < TDim; d++)
+                for (size_t d = 0; d < TDim; ++d)
                 {
                     size_t k = itNode * BlockSize + d;
                     rLocalVector[k] -= Vel[d] * Tmp;

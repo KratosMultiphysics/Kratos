@@ -44,7 +44,7 @@ void CalculateGeometryData(const GeometryType& rGeometry,
         rGaussWeights.resize(number_of_gauss_points, false);
     }
 
-    for (unsigned int g = 0; g < number_of_gauss_points; g++)
+    for (unsigned int g = 0; g < number_of_gauss_points; ++g)
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
 }
 
@@ -55,7 +55,7 @@ double EvaluateInPoint(const GeometryType& rGeometry,
 {
     const unsigned int number_of_nodes = rGeometry.PointsNumber();
     double value = 0.0;
-    for (unsigned int c = 0; c < number_of_nodes; c++)
+    for (unsigned int c = 0; c < number_of_nodes; ++c)
     {
         value += rShapeFunction[c] * rGeometry[c].FastGetSolutionStepValue(rVariable, Step);
     }
@@ -70,7 +70,7 @@ array_1d<double, 3> EvaluateInPoint(const GeometryType& rGeometry,
 {
     const unsigned int number_of_nodes = rGeometry.PointsNumber();
     array_1d<double, 3> value = ZeroVector(3);
-    for (unsigned int c = 0; c < number_of_nodes; c++)
+    for (unsigned int c = 0; c < number_of_nodes; ++c)
     {
         value += rShapeFunction[c] * rGeometry[c].FastGetSolutionStepValue(rVariable, Step);
     }

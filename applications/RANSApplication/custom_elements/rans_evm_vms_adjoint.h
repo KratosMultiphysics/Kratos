@@ -356,16 +356,16 @@ protected:
 
         // u * Grad(N)
         array_1d<double, TNumNodes> DensityVelGradN;
-        for (IndexType i = 0; i < TNumNodes; i++)
+        for (IndexType i = 0; i < TNumNodes; ++i)
         {
             DensityVelGradN[i] = 0.0;
-            for (IndexType d = 0; d < TDim; d++)
+            for (IndexType d = 0; d < TDim; ++d)
                 DensityVelGradN[i] += Density * DN_DX(i, d) * Velocity[d];
         }
 
         // Stabilization parameters
         double VelNorm = 0.0;
-        for (IndexType d = 0; d < TDim; d++)
+        for (IndexType d = 0; d < TDim; ++d)
             VelNorm += Velocity[d] * Velocity[d];
         VelNorm = std::sqrt(VelNorm);
         const double ElemSize = this->CalculateElementSize(Volume);
@@ -397,10 +397,10 @@ protected:
 
         // x * Grad(N)
         array_1d<double, TNumNodes> DensityXGradN;
-        for (IndexType i = 0; i < TNumNodes; i++)
+        for (IndexType i = 0; i < TNumNodes; ++i)
         {
             DensityXGradN[i] = 0.0;
-            for (IndexType d = 0; d < TDim; d++)
+            for (IndexType d = 0; d < TDim; ++d)
                 DensityXGradN[i] += Density * DN_DX(i, d) * X[d];
         }
 
@@ -642,16 +642,16 @@ protected:
 
         // u * Grad(N)
         array_1d<double, TNumNodes> DensityVelGradN;
-        for (IndexType i = 0; i < TNumNodes; i++)
+        for (IndexType i = 0; i < TNumNodes; ++i)
         {
             DensityVelGradN[i] = 0.0;
-            for (IndexType d = 0; d < TDim; d++)
+            for (IndexType d = 0; d < TDim; ++d)
                 DensityVelGradN[i] += Density * DN_DX(i, d) * Velocity[d];
         }
 
         // Stabilization parameters
         double VelNorm = 0.0;
-        for (IndexType d = 0; d < TDim; d++)
+        for (IndexType d = 0; d < TDim; ++d)
             VelNorm += Velocity[d] * Velocity[d];
         VelNorm = std::sqrt(VelNorm);
         const double ElemSize = this->CalculateElementSize(Volume);
@@ -684,10 +684,10 @@ protected:
 
         // x * Grad(N)
         array_1d<double, TNumNodes> DensityXGradN;
-        for (IndexType i = 0; i < TNumNodes; i++)
+        for (IndexType i = 0; i < TNumNodes; ++i)
         {
             DensityXGradN[i] = 0.0;
-            for (IndexType d = 0; d < TDim; d++)
+            for (IndexType d = 0; d < TDim; ++d)
                 DensityXGradN[i] += Density * DN_DX(i, d) * X[d];
         }
 

@@ -682,7 +682,7 @@ public:
 
         TElementData current_data;
 
-        for (unsigned int g = 0; g < num_gauss_points; g++)
+        for (unsigned int g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
             const Vector& gauss_shape_functions = row(shape_functions, g);
@@ -1530,7 +1530,7 @@ private:
 
         TElementData current_data;
 
-        for (unsigned int g = 0; g < num_gauss_points; g++)
+        for (unsigned int g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
             const Vector& gauss_shape_functions = row(shape_functions, g);
@@ -1675,7 +1675,7 @@ private:
                 for (unsigned int c = 0; c < TNumNodes; ++c)
                 {
                     double dNa_dNc = 0.0;
-                    for (unsigned int i = 0; i < TDim; i++)
+                    for (unsigned int i = 0; i < TDim; ++i)
                         dNa_dNc += r_shape_derivatives(a, i) * r_shape_derivatives(c, i);
 
                     double value = 0.0;
@@ -1783,7 +1783,7 @@ private:
 
         TElementData current_data;
 
-        for (unsigned int g = 0; g < num_gauss_points; g++)
+        for (unsigned int g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
             const Vector& gauss_shape_functions = row(shape_functions, g);
@@ -1945,7 +1945,7 @@ private:
 
         TElementData current_data;
 
-        for (unsigned int g = 0; g < num_gauss_points; g++)
+        for (unsigned int g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
             const Vector& gauss_shape_functions = row(shape_functions, g);
@@ -2065,7 +2065,7 @@ private:
 
         array_1d<double, 3> primal_variable_gradient, primal_variable_gradient_deriv;
 
-        for (unsigned int g = 0; g < num_gauss_points; g++)
+        for (unsigned int g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& gauss_r_dn_de = r_dn_de[g];
             const Matrix& r_shape_derivatives = shape_derivatives[g];

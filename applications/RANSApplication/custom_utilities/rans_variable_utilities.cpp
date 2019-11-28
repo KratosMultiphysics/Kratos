@@ -46,7 +46,7 @@ void ClipScalarVariable(unsigned int& rNumberOfNodesBelowMinimum,
     unsigned int number_of_nodes_selected = 0;
 
 #pragma omp parallel for reduction( +: number_of_nodes_below_minimum, number_of_nodes_above_maximum, number_of_nodes_selected)
-    for (int i = 0; i < number_of_nodes; i++)
+    for (int i = 0; i < number_of_nodes; ++i)
     {
         ModelPart::NodeType& r_node = *(r_nodes.begin() + i);
         double& r_value = r_node.FastGetSolutionStepValue(rVariable);
@@ -110,7 +110,7 @@ double GetMinimumScalarValue(const ModelPart& rModelPart, const Variable<double>
             auto nodes_end = r_nodes.begin() + node_partition[k + 1];
             min_values[k] = nodes_begin->FastGetSolutionStepValue(rVariable);
 
-            for (auto itNode = nodes_begin; itNode != nodes_end; itNode++)
+            for (auto itNode = nodes_begin; itNode != nodes_end; ++itNode)
             {
                 const double value = itNode->FastGetSolutionStepValue(rVariable);
                 min_values[k] = std::min(min_values[k], value);
@@ -158,7 +158,7 @@ double GetMaximumScalarValue(const ModelPart& rModelPart, const Variable<double>
             auto nodes_end = r_nodes.begin() + node_partition[k + 1];
             max_values[k] = nodes_begin->FastGetSolutionStepValue(rVariable);
 
-            for (auto itNode = nodes_begin; itNode != nodes_end; itNode++)
+            for (auto itNode = nodes_begin; itNode != nodes_end; ++itNode)
             {
                 const double value = itNode->FastGetSolutionStepValue(rVariable);
                 max_values[k] = std::max(max_values[k], value);
