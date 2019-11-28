@@ -16,9 +16,11 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/user_provided_linear_elastic_law.h"
 #include "includes/checks.h"
 
+// Application includes
+#include "custom_constitutive/user_provided_linear_elastic_law.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -73,7 +75,7 @@ void  UserProvidedLinearElasticLaw<TDim>::CalculateMaterialResponsePK2(Constitut
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if(r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        CalculateCauchyGreenStrain(rValues, r_strain_vector);
+        CalculateGreenLagrangeStrainVector(rValues, r_strain_vector);
     }
 
     if( r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
@@ -132,7 +134,7 @@ double& UserProvidedLinearElasticLaw<TDim>::CalculateValue(
     Vector& r_stress_vector = rParameterValues.GetStressVector();
 
     if (rThisVariable == STRAIN_ENERGY) {
-        this->CalculateCauchyGreenStrain(rParameterValues, r_strain_vector);
+        this->CalculateGreenLagrangeStrainVector(rParameterValues, r_strain_vector);
         this->CalculatePK2Stress( r_strain_vector, r_stress_vector, rParameterValues);
         rValue = 0.5 * inner_prod( r_strain_vector, r_stress_vector); // Strain energy = 0.5*E:C:E
     }
@@ -151,7 +153,7 @@ Vector& UserProvidedLinearElasticLaw<TDim>::CalculateValue(
     )
 {
     if (rThisVariable == STRAIN || rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR || rThisVariable == ALMANSI_STRAIN_VECTOR) {
-        this->CalculateCauchyGreenStrain( rParameterValues, rValue);
+        this->CalculateGreenLagrangeStrainVector( rParameterValues, rValue);
     } else if (rThisVariable == STRESSES || rThisVariable == CAUCHY_STRESS_VECTOR || rThisVariable == KIRCHHOFF_STRESS_VECTOR || rThisVariable == PK2_STRESS_VECTOR) {
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
@@ -254,7 +256,7 @@ void UserProvidedLinearElasticLaw<TDim>::CalculatePK2Stress(
 /***********************************************************************************/
 
 template<unsigned int TDim>
-void UserProvidedLinearElasticLaw<TDim>::CalculateCauchyGreenStrain(
+void UserProvidedLinearElasticLaw<TDim>::CalculateGreenLagrangeStrainVector(
     ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
     )
@@ -262,18 +264,14 @@ void UserProvidedLinearElasticLaw<TDim>::CalculateCauchyGreenStrain(
     const SizeType dim = this->WorkingSpaceDimension();
 
     // Get the deformation gradient tensor F
-    const Matrix& F = rValues.GetDeformationGradientF();
+    const Matrix& rF = rValues.GetDeformationGradientF();
     KRATOS_DEBUG_ERROR_IF(F.size1()!= dim || F.size2() != dim) << "expected size of F " << dim << "x" << dim << ", got " << F.size1() << "x" << F.size2() << std::endl;
 
     // Calculate the Cauchy - Green strain tensor
-    Matrix E_tensor = prod(trans(F),F);
-    for(unsigned int i=0; i< dim; ++i) {
-        E_tensor(i,i) -= 1.0;
-    }
-    E_tensor *= 0.5;
+    Matrix left_cauchy_green = prod(trans(rF), rF));
 
-    // Store the E tensor in Voigt notation
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
+    // Calculate Green - Lagrange strain tensor
+    ConstitutiveLawUtilities<StrainSize>::CalculateGreenLagrangianStrain(left_cauchy_green, rStrainVector);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
