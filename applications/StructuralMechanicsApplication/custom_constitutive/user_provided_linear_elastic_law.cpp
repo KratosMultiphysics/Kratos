@@ -232,7 +232,7 @@ void UserProvidedLinearElasticLaw<TDim>::CalculateElasticMatrix(
     )
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    rConstitutiveMatrix = r_material_properties[ELASTICITY_TENSOR];
+    noalias(rConstitutiveMatrix) = r_material_properties[ELASTICITY_TENSOR];
 }
 
 /***********************************************************************************/
