@@ -21,6 +21,9 @@
 #include "includes/constitutive_law.h"
 #include "includes/master_slave_constraint.h"
 
+/* Processes */
+#include "processes/process.h"
+
 /* Utilities */
 #include "utilities/quaternion.h"
 
@@ -115,6 +118,11 @@ void AddKratosComponent(std::string const& Name, Variable<Flags> const& ThisComp
     KratosComponents<Variable<Flags> >::Add(Name, ThisComponent);
 }
 
+void AddKratosComponent(std::string const& Name, Process const& ThisComponent)
+{
+    KratosComponents<Process>::Add(Name, ThisComponent);
+}
+
 void AddKratosComponent(std::string const& Name, Element const& ThisComponent)
 {
     KratosComponents<Element>::Add(Name, ThisComponent);
@@ -154,6 +162,7 @@ template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1
 template class KratosComponents<Variable<Flags> >;
 template class KratosComponents<Flags>;
 template class KratosComponents<DataCommunicator>;
+template class KratosComponents<Process>;
 
 template class KratosComponents<Element>;
 template class KratosComponents<Condition>;

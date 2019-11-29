@@ -258,6 +258,10 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Process >;
+
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Process const& ThisComponent);
+
 
 }  // namespace Kratos.
 
