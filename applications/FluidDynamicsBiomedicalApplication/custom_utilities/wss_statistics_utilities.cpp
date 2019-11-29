@@ -63,9 +63,10 @@ void WssStatisticsUtilities::CalculateWSS(ModelPart &rModelPart)
             const double normal_norm = norm_2(normal);
             if (normal_norm > 1.0e-12) {
                 normal /= normal_norm;
-            } else {
-                std::cout << "Node " << str(it_node->Id()) << " has normal_norm " << str(normal_norm) << std::endl;
-            }
+            } 
+            // else {
+            //     std::cout << "Node " << str(it_node->Id()) << " has normal_norm " << str(normal_norm) << std::endl;
+            // }
 
             // Calculate the FACE_LOAD (distributed REACTION) projections
             const auto& r_face_load = it_node->FastGetSolutionStepValue(FACE_LOAD);
@@ -147,10 +148,10 @@ void WssStatisticsUtilities::CalculateTWSS(ModelPart &rModelPart)
             aux_TWSS=(it_node->GetValue(TWSS,0)/step);
             // KRATOS_WATCH(aux_WSS)
             if((aux_WSS/aux_TWSS)>1){
-                    aux_OSI = 0.0
-                else{
-                    aux_OSI=(0.5* (1.0-(aux_WSS/aux_TWSS)));
-                }
+                aux_OSI = 0.0;
+            }
+            else {
+            aux_OSI=(0.5* (1.0-(aux_WSS/aux_TWSS)));
             }
             if (aux_WSS > 1.0e-12) {
                 if (aux_OSI==0.5){
