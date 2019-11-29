@@ -15,6 +15,7 @@
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 
 namespace Kratos
 {
@@ -33,6 +34,7 @@ PYBIND11_MODULE(KratosDEMApplication,m)
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomConstitutiveLawsToPython(m);
+    AddCustomProcessesToPython(m);
 
     //Constitutive law
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME )
