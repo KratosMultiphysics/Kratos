@@ -18,11 +18,21 @@
 
 // Project includes
 #include "includes/define_python.h"
+#include "fluid_dynamics_application.h"
+#include "custom_python/add_custom_strategies_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_response_functions_to_python.h"
 
 // Application includes
 #include "fluid_dynamics_biomedical_application.h"
 #include "fluid_dynamics_biomedical_application_variables.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+
+
+// Project includes
+
+
 
 namespace Kratos
 {
