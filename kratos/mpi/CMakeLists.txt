@@ -3,7 +3,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR OFF)
 
 message("**** configuring Kratos to be compiled with MPI-Support ****")
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## Kratos MPI extension sources
 set( KRATOS_MPI_SOURCES
