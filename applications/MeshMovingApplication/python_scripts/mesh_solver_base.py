@@ -85,7 +85,7 @@ class MeshSolverBase(PythonSolver):
             "calculate_mesh_velocity"   : false,
             "mesh_velocity_calculation" : { },
             "superimpose_mesh_disp_with": [],
-            "superimpose_mesh_velocity_with": [ ]
+            "superimpose_mesh_velocity_with": []
         }""")
         this_defaults.AddMissingParameters(super(MeshSolverBase, cls).GetDefaultSettings())
         return this_defaults
