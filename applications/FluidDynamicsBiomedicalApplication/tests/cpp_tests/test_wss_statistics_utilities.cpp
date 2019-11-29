@@ -53,7 +53,7 @@ KRATOS_TEST_CASE_IN_SUITE(WSSUtilities3DWSS, FluidDynamicsBiomedicalApplicationF
     ModelPart& test_model_part = model.CreateModelPart("TestPart");
     TetrahedraModelPartForWSSTests(test_model_part);
 
-    WssStatisticsUtilities::CalculateWSS(test_model_part);
+    // WssStatisticsUtilities::CalculateWSS(test_model_part,);
 
     // std::vector< array_1d<double,3> > WSSTangentialStress;
     // ModelPart.NodesBegin()->GetValueNodes(WSS_TANGENTIAL_STRESS,WSSTangentialStress,ModelPart.GetProcessInfo());

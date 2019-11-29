@@ -115,7 +115,7 @@ class AnalysisStage(object):
         """
         for process in self._GetListOfProcesses():
             process.ExecuteFinalize()
-
+        
         self._GetSolver().Finalize()
 
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")

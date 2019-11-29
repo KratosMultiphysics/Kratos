@@ -3,6 +3,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosFluidDynamicsBiomedicalApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_SOURCE_DIR}/kratos/applications/FluidDynamicsApplication)
 
 ## define application core sources (pure C++ parts)
 set( KRATOS_FLUID_DYNAMICS_BIOMEDICAL_APPLICATION_CORE_SOURCES
@@ -88,7 +89,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 ###############################################################################
 ## If trilinos is avaliable, switch on the Fluid trilinos extension
 
-#if((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON))
-#  message("Enabling trilinos extension for KratosFluidDynamicsBiomedicalApplication")
-#  add_subdirectory(trilinos_extension)
-#endif((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON) )
+if((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON))
+  message("Enabling trilinos extension for KratosFluidDynamicsBiomedicalApplication")
+  add_subdirectory(trilinos_extension)
+endif((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON) )

@@ -127,6 +127,8 @@ public:
     {
         KRATOS_TRY
 
+        KRATOS_WATCH(r_model_part)
+
         ModelPart::ElementsContainerType& rElements = r_model_part.Elements();
 
         //resetting the normals - only for the nodes on which we will do the calculate
@@ -185,6 +187,7 @@ public:
                     for(unsigned int j=0; j<3; j++)
                     {
                         normal[j] += Volume*DN_DX(i,j);
+                        KRATOS_WATCH ("HOLLLLLLLLLLLLLLLLLLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
                     }
                 }
             }

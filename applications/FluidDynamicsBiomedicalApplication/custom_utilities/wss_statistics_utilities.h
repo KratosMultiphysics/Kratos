@@ -65,8 +65,10 @@ public:
      * @brief Calculate the Wall Shear Stress (WSS)
      * This method computes the Wall Shear Stress (WSS).
      * @param rModelPart Model part in where the WSS is computed
+     * @param rSkinModelPart Model part in where the WSS is computed
      */
     static void CalculateWSS(ModelPart &rModelPart);
+    //, ModelPart &rSkinModelPart);
 
     /**
      * @brief Calculate the Oscillatory Shear Index (OSI)
@@ -81,6 +83,14 @@ public:
      * @param rModelPart Model part in where the TWSS is computed
      */
     static void CalculateTWSS(ModelPart &rModelPart);
+
+    // /**
+    //  * @brief Calculate the Wall Shear Stress (WSS) using Gauss point
+    //  * This method computes the Wall Shear Stress (WSS).
+    //  * @param rModelPart Model part in where the WSS is computed
+    //  */
+    // static void CalculateWSSGauss(ModelPart &rModelPart);
+
 
     ///@}
 
