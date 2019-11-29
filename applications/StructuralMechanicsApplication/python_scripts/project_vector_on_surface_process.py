@@ -37,4 +37,4 @@ class ProjectVectorOnSurfaceProcess(KratosMultiphysics.Process):
 
         # The main model part
         main_model_part = Model[settings["main_model_part_name"].GetString()]
-        StructuralMechanicsApplication.ProjectVectorOnSurfaceUtility().Execute(main_model_part,settings)
+        StructuralMechanicsApplication.ProjectVectorOnSurfaceUtility.Execute(main_model_part,settings)

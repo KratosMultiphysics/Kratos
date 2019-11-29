@@ -50,8 +50,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Finalize",&RVEPeriodicityUtility::Finalize)
         ;
 
-    py::class_<ProjectVectorOnSurfaceUtility>(m,"ProjectVectorOnSurfaceUtility").def(py::init<>())
-        .def("Execute",&ProjectVectorOnSurfaceUtility::Execute);
+    py::class_<ProjectVectorOnSurfaceUtility>(m,"ProjectVectorOnSurfaceUtility")
+        .def_static("Execute",&ProjectVectorOnSurfaceUtility::Execute);
 }
 
 }  // namespace Python.

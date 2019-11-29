@@ -51,8 +51,8 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    //ProjectVectorOnSurfaceUtility();
+    /// Default constructor, not accessible
+    ProjectVectorOnSurfaceUtility() = delete;
 
     /// Destructor.
     virtual ~ProjectVectorOnSurfaceUtility() = default;
@@ -62,28 +62,21 @@ public:
     ///@name Operations
     ///@{
 
-    void Execute(ModelPart& rModelPart, const Parameters MethodParameters);
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
+    static void Execute(ModelPart& rModelPart, const Parameters MethodParameters);
 
     ///@}
-
-    void CheckAndReadVectors(Parameters ThisParameters, const std::string KeyName, Vector3 &rVector);
-
-    void PlanarProjection(ModelPart& rModelPart, const Parameters& MethodParameters);
-    void RadialProjection(ModelPart& rModelPart, const Parameters& MethodParameters);
-    void SphericalProjection(ModelPart& rModelPart, const Parameters& MethodParameters);
 
 private:
-    ///@name Member Variables
-    ///@{
-
     ///@}
     ///@name Private Operations
     ///@{
+
+    static void CheckAndReadVectors(Parameters ThisParameters, const std::string KeyName, Vector3 &rVector);
+
+    static void PlanarProjection(ModelPart& rModelPart, const Parameters& MethodParameters);
+    static void RadialProjection(ModelPart& rModelPart, const Parameters& MethodParameters);
+    static void SphericalProjection(ModelPart& rModelPart, const Parameters& MethodParameters);
+
     ///@}
 
 }; // Class ProjectVectorOnSurfaceUtility
@@ -94,4 +87,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ASSIGN_MATERIAL_ORIENTATION_UTILITY_H  defined
+#endif // KRATOS_ASSIGN_MATERIAL_ORIENTATION_UTILITY_H defined
