@@ -32,6 +32,9 @@
 #include "includes/master_slave_constraint.h"
 #include "includes/linear_master_slave_constraint.h"
 
+/* Processes */
+#include "processes/process.h"
+
 namespace Kratos {
 ///@name Kratos Classes
 ///@{
@@ -77,6 +80,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
           mpArray1D4VariableComponents(rOther.mpArray1D4VariableComponents),
           mpArray1D6VariableComponents(rOther.mpArray1D6VariableComponents),
           mpArray1D9VariableComponents(rOther.mpArray1D9VariableComponents),
+          mpProcesses(rOther.mpProcesses),
           mpElements(rOther.mpElements),
           mpConditions(rOther.mpConditions),
           mpMasterSlaveConstraints(rOther.mpMasterSlaveConstraints) {}
@@ -190,6 +194,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         return *mpVariableData;
     }
 
+    KratosComponents<Process>::ComponentsContainerType& GetProcesses() {
+        return *mpProcesses;
+    }
+    
     KratosComponents<Element>::ComponentsContainerType& GetElements() {
         return *mpElements;
     }
@@ -214,9 +222,12 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         }
     }
 
-    void SetComponents(KratosComponents<Element>::ComponentsContainerType const&
-            ElementComponents)
+    void SetComponents(KratosComponents<Process>::ComponentsContainerType const& ProcessComponents)
+    {
+        mpProcesses->insert(ProcessComponents.begin(), ProcessComponents.end());
+    }
 
+    void SetComponents(KratosComponents<Element>::ComponentsContainerType const& ElementComponents)
     {
         // It's better to make a loop over new components and add them if they are NOT already exist in application. Or make an ERROR for incompatibility between applications.
         mpElements->insert(ElementComponents.begin(), ElementComponents.end());
@@ -320,8 +331,12 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///@name Protected member Variables
 
     ///@{
+       
     std::string mApplicationName;
 
+    // Definition of the processes
+    const Process mProcess;
+    
     // General conditions must be defined
 
     // Point conditions
@@ -415,6 +430,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >::ComponentsContainerType* mpArray1D9VariableComponents;
 
+    KratosComponents<Process>::ComponentsContainerType* mpProcesses;
+    
     KratosComponents<Element>::ComponentsContainerType* mpElements;
 
     KratosComponents<Condition>::ComponentsContainerType* mpConditions;

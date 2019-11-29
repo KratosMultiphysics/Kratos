@@ -150,6 +150,7 @@ void KratosApplication::RegisterKratosCore() {
     //Register objects with general definition
     Serializer::Register("Node", NodeType());
     Serializer::Register("Dof", Dof<double>());
+    Serializer::Register("Process", Process());
     Serializer::Register("Element", Element());
     Serializer::Register("Condition", Condition());
     Serializer::Register("Properties", Properties());
@@ -161,6 +162,9 @@ void KratosApplication::RegisterKratosCore() {
 
     Serializer::Register("MasterSlaveConstraint", MasterSlaveConstraint());
 
+    // Definition of the processes
+    KRATOS_REGISTER_PROCESS("Process", mProcess);
+    
     //Register specific conditions ( must be completed : conditions defined in kratos_application.h)
 
     //point conditions
