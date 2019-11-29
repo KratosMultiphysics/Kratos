@@ -62,7 +62,7 @@ public:
     ///@name Operations
     ///@{
 
-    static void Execute(ModelPart& rModelPart, const Parameters MethodParameters);
+    static void Execute(ModelPart& rModelPart, const Parameters ThisParameters);
 
     ///@}
 
@@ -71,11 +71,26 @@ private:
     ///@name Private Operations
     ///@{
 
-    static void CheckAndReadVectors(Parameters ThisParameters, const std::string KeyName, Vector3 &rVector);
+    static void PlanarProjection(
+        ModelPart& rModelPart,
+        const Parameters ThisParameters,
+        const Vector3& rGlobalDirection,
+        const ArrayVariableType& rVariable,
+        const int EchoLevel);
 
-    static void PlanarProjection(ModelPart& rModelPart, const Parameters& MethodParameters);
-    static void RadialProjection(ModelPart& rModelPart, const Parameters& MethodParameters);
-    static void SphericalProjection(ModelPart& rModelPart, const Parameters& MethodParameters);
+    static void RadialProjection(
+        ModelPart& rModelPart,
+        const Parameters ThisParameters,
+        const Vector3& rGlobalDirection,
+        const ArrayVariableType& rVariable,
+        const int EchoLevel);
+
+    static void SphericalProjection(
+        ModelPart& rModelPart,
+        const Parameters ThisParameters,
+        const Vector3& rGlobalDirection,
+        const ArrayVariableType& rVariable,
+        const int EchoLevel);
 
     ///@}
 

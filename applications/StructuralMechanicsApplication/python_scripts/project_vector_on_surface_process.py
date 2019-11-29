@@ -12,7 +12,6 @@ def Factory(settings, Model):
 ## All the processes python should be derived from "Process"
 class ProjectVectorOnSurfaceProcess(KratosMultiphysics.Process):
 
-
     def __init__(self, Model, settings ):
         """ The default constructor of the class
 
@@ -23,18 +22,13 @@ class ProjectVectorOnSurfaceProcess(KratosMultiphysics.Process):
         """
         KratosMultiphysics.Process.__init__(self)
 
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "main_model_part_name"        : "Structure",
-            "echo_level"      : 1,
-            "method_specific_settings" : {
-                "projection_type"        : "planar",
-                "global_fiber_direction" : [1,0,0],
-                "local_variable_name"    : "LOCAL_MATERIAL_AXIS_1"
-            }
-        }
-        """)
+        default_settings = KratosMultiphysics.Parameters("""{
+            "model_part_name"  : "Structure",
+            "echo_level"       : 0,
+            "projection_type"  : "planar",
+            "global_direction" : [1,0,0],
+            "variable_name"    : "PLEASE_SPECIFY",
+            "method_specific_settings" : { }
+        }""")
 
-        # The main model part
-        main_model_part = Model[settings["main_model_part_name"].GetString()]
-        StructuralMechanicsApplication.ProjectVectorOnSurfaceUtility.Execute(main_model_part,settings)
+        StructuralMechanicsApplication.ProjectVectorOnSurfaceUtility.Execute(Model[settings["model_part_name"].GetString()],settings)
