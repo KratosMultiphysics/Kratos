@@ -20,7 +20,7 @@ export CC=gcc
 export CXX=g++
 
 # Set variables
-export KRATOS_SOURCE="E:/SRC/Kratos"
+export KRATOS_SOURCE="kratos_folder/Kratos"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 # export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
