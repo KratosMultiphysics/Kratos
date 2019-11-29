@@ -6,7 +6,7 @@ End Table
 
 
 Begin Properties 1
-  CONSTITUTIVE_LAW_NAME LinearElasticPlaneStrain2DLaw
+  CONSTITUTIVE_LAW_NAME LinearElasticPlaneStrainSolid2DLaw
   YOUNG_MODULUS 2.5e7
   POISSON_RATIO 0.2
   DENSITY_SOLID 2.0e3
