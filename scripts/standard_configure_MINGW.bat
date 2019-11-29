@@ -1,4 +1,3 @@
-del CMakeCache.txt
 :: this is an example file...please DO NOT MODIFY if you don't want to do it for everyone
 :: to use it, copy it to another file and run it
 
