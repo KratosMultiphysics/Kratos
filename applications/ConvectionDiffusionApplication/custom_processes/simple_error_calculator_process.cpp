@@ -91,7 +91,7 @@ void SimpleErrorCalculatorProcess<TDim>::ErrorEstimatorImplementation()
     for (int i_elem = 0; i_elem < number_elements; ++i_elem) {
         auto it_elem = it_elem_begin + i_elem;
         auto r_geometry = it_elem->GetGeometry();
-        auto n_nodes = r_geomentry.size();
+        auto n_nodes = r_geometry.size();
 
         array_1d<double, n_nodes> nodal_temp; 
         for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
