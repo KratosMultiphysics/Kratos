@@ -26,8 +26,8 @@ def AssembleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(test_guis.TestGUIs("test_GUIs_1"))
-    smallSuite.addTest(test_guis.TestGUIs("test_GUIs_2"))
+    #smallSuite.addTest(test_guis.TestGUIs("test_GUIs_1"))
+    #smallSuite.addTest(test_guis.TestGUIs("test_GUIs_2"))
     smallSuite.addTest(test_kinematic_constraints.TestKinematicConstraints("test_KinematicConstraints_1"))
     smallSuite.addTest(test_particle_creator_destructor.TestParticleCreatorDestructor("test_CreateSphericParticle1"))
     smallSuite.addTest(test_particle_creator_destructor.TestParticleCreatorDestructor("test_CreateSphericParticle2"))
