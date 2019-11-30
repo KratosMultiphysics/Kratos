@@ -18,9 +18,11 @@
 #include "utilities/element_size_calculator.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/math_utils.h"
+#include "includes/checks.h"
 
 // Application includes
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos
 {
@@ -169,7 +171,7 @@ void SmallDisplacementMixedVolumetricStrainElement::Initialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+void SmallDisplacementMixedVolumetricStrainElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -199,7 +201,7 @@ void SmallDisplacementMixedVolumetricStrainElement::InitializeSolutionStep(Proce
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedVolumetricStrainElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+void SmallDisplacementMixedVolumetricStrainElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -674,30 +676,10 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateConstitutiveVariabl
 
 array_1d<double, 3> SmallDisplacementMixedVolumetricStrainElement::GetBodyForce(
     const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
-    const IndexType PointNumber) const
+    const IndexType PointNumber
+    ) const
 {
-    array_1d<double, 3> body_force;
-    for (IndexType i = 0; i < 3; ++i) {
-        body_force[i] = 0.0;
-    }
-
-    const auto& r_properties = GetProperties();
-    const double density = r_properties.Has(DENSITY) ? r_properties[DENSITY] : 0.0;
-
-    if (r_properties.Has(VOLUME_ACCELERATION)) {
-        noalias(body_force) += density * r_properties[VOLUME_ACCELERATION];
-    }
-
-    const auto& r_geometry = GetGeometry();
-    if(r_geometry[0].SolutionStepsDataHas(VOLUME_ACCELERATION)) {
-        Vector N;
-        N = r_geometry.ShapeFunctionsValues(N, rIntegrationPoints[PointNumber].Coordinates());
-        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
-            noalias(body_force) += N[i_node] * density * r_geometry[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-        }
-    }
-
-    return body_force;
+    return StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
 }
 
 /***********************************************************************************/
@@ -748,35 +730,12 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateKinematicVariables(
 
 void SmallDisplacementMixedVolumetricStrainElement::CalculateB(
     Matrix& rB,
-    const Matrix& rDN_DX) const
+    const Matrix& rDN_DX
+    ) const
 {
     KRATOS_TRY;
 
-    const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-
-    rB.clear();
-
-    if(dimension == 2) {
-        for ( SizeType i = 0; i < number_of_nodes; ++i ) {
-            rB(0, i*2    ) = rDN_DX(i, 0);
-            rB(1, i*2 + 1) = rDN_DX(i, 1);
-            rB(2, i*2    ) = rDN_DX(i, 1);
-            rB(2, i*2 + 1) = rDN_DX(i, 0);
-        }
-    } else if(dimension == 3) {
-        for ( SizeType i = 0; i < number_of_nodes; ++i ) {
-            rB(0, i*3    ) = rDN_DX(i, 0);
-            rB(1, i*3 + 1) = rDN_DX(i, 1);
-            rB(2, i*3 + 2) = rDN_DX(i, 2);
-            rB(3, i*3    ) = rDN_DX(i, 1);
-            rB(3, i*3 + 1) = rDN_DX(i, 0);
-            rB(4, i*3 + 1) = rDN_DX(i, 2);
-            rB(4, i*3 + 2) = rDN_DX(i, 1);
-            rB(5, i*3    ) = rDN_DX(i, 2);
-            rB(5, i*3 + 2) = rDN_DX(i, 0);
-        }
-    }
+    StructuralMechanicsElementUtilities::CalculateB(*this, rDN_DX, rB);
 
     KRATOS_CATCH( "" )
 }
@@ -808,33 +767,17 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateEquivalentStrain(Ki
 /***********************************************************************************/
 
 void SmallDisplacementMixedVolumetricStrainElement::ComputeEquivalentF(
-    Matrix &rF,
-    const Vector &rStrainTensor) const
+    Matrix& rF,
+    const Vector& rStrainTensor
+    ) const
 {
-    const SizeType dim = GetGeometry().WorkingSpaceDimension();
-
-    if(dim == 2) {
-        rF(0,0) = 1.0+rStrainTensor(0);
-        rF(0,1) = 0.5*rStrainTensor(2);
-        rF(1,0) = 0.5*rStrainTensor(2);
-        rF(1,1) = 1.0+rStrainTensor(1);
-    } else {
-        rF(0,0) = 1.0+rStrainTensor(0);
-        rF(0,1) = 0.5*rStrainTensor(3);
-        rF(0,2) = 0.5*rStrainTensor(5);
-        rF(1,0) = 0.5*rStrainTensor(3);
-        rF(1,1) = 1.0+rStrainTensor(1);
-        rF(1,2) = 0.5*rStrainTensor(4);
-        rF(2,0) = 0.5*rStrainTensor(5);
-        rF(2,1) = 0.5*rStrainTensor(4);
-        rF(2,2) = 1.0+rStrainTensor(2);
-    }
+    StructuralMechanicsElementUtilities::ComputeEquivalentF(*this, rStrainTensor, rF);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-double SmallDisplacementMixedVolumetricStrainElement::CalculateElementSize(const KinematicVariables &rThisKinematicVariables) const
+double SmallDisplacementMixedVolumetricStrainElement::CalculateElementSize(const KinematicVariables& rThisKinematicVariables) const
 {
     const auto& r_geometry = GetGeometry();
     switch (r_geometry.GetGeometryType())
@@ -915,8 +858,8 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateApproximatedBulkM
 /***********************************************************************************/
 
 double SmallDisplacementMixedVolumetricStrainElement::CalculateLinearisedBulkModulus(
-    const KinematicVariables &rThisKinematicVariables,
-    const ConstitutiveVariables &rThisConstitutiveVariables) const
+    const KinematicVariables& rThisKinematicVariables,
+    const ConstitutiveVariables& rThisConstitutiveVariables) const
 {
     const auto& r_geom = GetGeometry();
     const SizeType dim = r_geom.WorkingSpaceDimension();
@@ -935,8 +878,8 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateLinearisedBulkMod
 /***********************************************************************************/
 
 double SmallDisplacementMixedVolumetricStrainElement::CalculateLinearisedShearModulus(
-    const KinematicVariables &rThisKinematicVariables,
-    const ConstitutiveVariables &rThisConstitutiveVariables) const
+    const KinematicVariables& rThisKinematicVariables,
+    const ConstitutiveVariables& rThisConstitutiveVariables) const
 {
     const auto& r_geom = GetGeometry();
     const SizeType dim = r_geom.WorkingSpaceDimension();
@@ -965,9 +908,24 @@ int  SmallDisplacementMixedVolumetricStrainElement::Check(const ProcessInfo& rCu
 {
     KRATOS_TRY
 
-    int base_element_check = SmallDisplacementMixedVolumetricStrainElement::BaseType::Check(rCurrentProcessInfo);
+    int check = SmallDisplacementMixedVolumetricStrainElement::BaseType::Check(rCurrentProcessInfo);
 
-    return base_element_check;
+    // Base check
+    check = StructuralMechanicsElementUtilities::SolidElementCheck(*this, rCurrentProcessInfo, mConstitutiveLawVector);
+
+    // Verify that the variables are correctly initialized
+    KRATOS_CHECK_VARIABLE_KEY(VOLUMETRIC_STRAIN)
+
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+    const auto& r_geometry = this->GetGeometry();
+    for ( IndexType i = 0; i < r_geometry.size(); i++ ) {
+        const NodeType& r_node = r_geometry[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUMETRIC_STRAIN,r_node)
+
+        KRATOS_CHECK_DOF_IN_NODE(VOLUMETRIC_STRAIN, r_node)
+    }
+
+    return check;
 
     KRATOS_CATCH( "" );
 }

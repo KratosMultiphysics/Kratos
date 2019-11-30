@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication as KratosExternal
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.DamApplication as KratosDam
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 
@@ -110,13 +110,13 @@ class DamEigenSolver():
             raise Exception("solver_type is not yet implemented.")
 
         if solution_type == "Dynamic":
-            self.scheme = KratosSolid.EigensolverDynamicScheme()
+            self.scheme = KratosStructural.EigensolverDynamicScheme()
         else:
             raise Exception("solution_type is not yet implemented.")
 
         self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
-        self.solver = KratosSolid.EigensolverStrategy(
+        self.solver = KratosStructural.EigensolverStrategy(
             self.main_model_part,
             self.scheme,
             self.builder_and_solver,

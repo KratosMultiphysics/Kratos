@@ -165,9 +165,6 @@ void HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponseCauchy (Constitu
 
 void HyperElasticIsotropicKirchhoff3D::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
-//     rValues.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
-//     HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponsePK1(rValues);
-//     rValues.Reset(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
 }
 
 /***********************************************************************************/
@@ -175,9 +172,6 @@ void HyperElasticIsotropicKirchhoff3D::InitializeMaterialResponsePK1(Constitutiv
 
 void HyperElasticIsotropicKirchhoff3D::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
-//     rValues.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
-//     HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponsePK2(rValues);
-//     rValues.Reset(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
 }
 
 /***********************************************************************************/
@@ -185,9 +179,6 @@ void HyperElasticIsotropicKirchhoff3D::InitializeMaterialResponsePK2(Constitutiv
 
 void HyperElasticIsotropicKirchhoff3D::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-//     rValues.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
-//     HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponseCauchy(rValues);
-//     rValues.Reset(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
 }
 
 /***********************************************************************************/
@@ -195,9 +186,6 @@ void HyperElasticIsotropicKirchhoff3D::InitializeMaterialResponseCauchy(Constitu
 
 void HyperElasticIsotropicKirchhoff3D::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
-//     rValues.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
-//     HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponseKirchhoff(rValues);
-//     rValues.Reset(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
 }
 
 /***********************************************************************************/
@@ -205,9 +193,6 @@ void HyperElasticIsotropicKirchhoff3D::InitializeMaterialResponseKirchhoff(Const
 
 void HyperElasticIsotropicKirchhoff3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
-//     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
-//     HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponsePK1(rValues);
-//     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 }
 
 /***********************************************************************************/
@@ -215,9 +200,6 @@ void HyperElasticIsotropicKirchhoff3D::FinalizeMaterialResponsePK1(ConstitutiveL
 
 void HyperElasticIsotropicKirchhoff3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
-//     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
-//     HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponsePK2(rValues);
-//     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 }
 
 /***********************************************************************************/
@@ -225,9 +207,6 @@ void HyperElasticIsotropicKirchhoff3D::FinalizeMaterialResponsePK2(ConstitutiveL
 
 void HyperElasticIsotropicKirchhoff3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-//     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
-//     HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponseCauchy(rValues);
-//     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 }
 
 /***********************************************************************************/
@@ -235,9 +214,6 @@ void HyperElasticIsotropicKirchhoff3D::FinalizeMaterialResponseCauchy(Constituti
 
 void HyperElasticIsotropicKirchhoff3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
-//     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
-//     HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponseKirchhoff(rValues);
-//     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 }
 
 /***********************************************************************************/
