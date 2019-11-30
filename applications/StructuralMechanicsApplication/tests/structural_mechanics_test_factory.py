@@ -236,6 +236,9 @@ class BigCubeSmallDeformationPlasticityDPTest(StructuralMechanicsTestFactory):
 class BigCubeSmallDeformationPlasticityTTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_T_test"
 
+class SerialParallelRuleOfMixturesCubeDamageTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SerialParallelRuleOfMixturesCube/serial_parallel_damage_test"
+
 class SmallDeformationPlasticityTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SmallDeformationPlasticity/small_deformation_plasticity_test"
 

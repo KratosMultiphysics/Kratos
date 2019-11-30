@@ -104,7 +104,7 @@ Condition::Pointer DisplacementControlCondition::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
-DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition::GetDisplacementInDirection()
+DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition::GetDisplacementInDirection() const
 {
     KRATOS_TRY
 
@@ -132,7 +132,7 @@ DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition
 /***********************************************************************************/
 /***********************************************************************************/
 
-DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition::GetPointLoadInDirection()
+DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition::GetPointLoadInDirection() const
 {
     KRATOS_TRY
 
@@ -308,8 +308,8 @@ void DisplacementControlCondition::CalculateAll(
     SizeType number_of_nodes = 1;
     SizeType mat_size = number_of_nodes * GetBlockSize();
 
-    auto p_load = GetPointLoadInDirection();
-    auto p_disp = GetDisplacementInDirection();
+    const auto* p_load = GetPointLoadInDirection();
+    const auto* p_disp = GetDisplacementInDirection();
 
     if ( CalculateStiffnessMatrixFlag ) {
         if ( rLeftHandSideMatrix.size1() != mat_size) {
