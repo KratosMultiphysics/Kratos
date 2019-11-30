@@ -1,10 +1,10 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
 # pyKratos imports
+import KratosMultiphysics as KM
 from .Node import Node
 from .Element import Element
 from .data_value_container import DataValueContainer
-from .Variables import *
 from .Logger import Logger
 
 # Other imports
@@ -42,7 +42,7 @@ class ModelPart(DataValueContainer):
             RuntimeError("No empty names for modelpart are allowed. Please rename ! ")
 
         self.Name = name
-        self.ProcessInfo = {TIME: 0.0, DELTA_TIME: 0.0}  # empty dictionary
+        self.ProcessInfo = {KM.TIME: 0.0, KM.DELTA_TIME: 0.0}  # empty dictionary
 
 
     def IsDistributed(self):

@@ -12,8 +12,8 @@ MAIL_TO=${MAIL_TO_ADDRESS}
 # Indicate that we want the stacktraces of crashes.
 export LIBC_FATAL_STDERR_=1
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/ubuntu/Kratos/libs:/home/ubuntu/CompiledLibs/clang-3.8.0-16.04-prebuilt/lib
-export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Kratos
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/ubuntu/Kratos/bin/Linux/Custom/libs:/home/ubuntu/CompiledLibs/clang-3.8.0-16.04-prebuilt/lib
+export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Kratos/bin/Linux/Custom
 
 ## Step0: Prevent apt-get from triggering before the unasisted updates have finished
 while fuser /var/lib/dpkg/lock >/dev/null 2>&1 ; do

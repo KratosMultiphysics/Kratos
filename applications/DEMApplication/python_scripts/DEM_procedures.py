@@ -11,6 +11,7 @@ from glob import glob
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
+import KratosMultiphysics.DEMApplication.triaxial2d_test as triaxial2d_test
 
 def Flush(a):
     a.flush()
@@ -873,10 +874,10 @@ class DEMFEMProcedures(object):
         # GLOBAL VARIABLES OF THE SCRIPT
         self.DEM_parameters = DEM_parameters
 
-        if not "TestType" in DEM_parameters.keys():
+        if not "material_test_settings" in DEM_parameters.keys():
             self.TestType = "None"
         else:
-            self.TestType = self.DEM_parameters["TestType"].GetString()
+            self.TestType = self.DEM_parameters["material_test_settings"]["TestType"].GetString()
 
         # Initialization of member variables
         # SIMULATION FLAGS
@@ -1276,13 +1277,16 @@ class MaterialTest(object):
 
     def Initialize(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
 
-        if not "TestType" in DEM_parameters.keys():
+        if not "material_test_settings" in DEM_parameters.keys():
             self.TestType = "None"
         else:
-            self.TestType = DEM_parameters["TestType"].GetString()
+            self.TestType = DEM_parameters["material_test_settings"]["TestType"].GetString()
 
         if self.TestType != "None":
-            self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
+            if self.TestType == "Triaxial2D":
+                self.script = triaxial2d_test.Triaxial2D(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
+            else:
+                self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
             self.script.Initialize()
 
             #self.PreUtils = DEM_material_test_script.PreUtils(spheres_model_part)
