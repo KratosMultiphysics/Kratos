@@ -342,6 +342,16 @@ void recvMesh_DefaultName(ModelPart& rModelPart, const bool UseConditions, const
     recvMesh(rModelPart, rModelPart.Name().c_str(), UseConditions, UseRawPointers);
 }
 
+void SetEchoLevel(const int EchoLevel)
+{
+    EMPIRE_API_helpers::EchoLevel = EchoLevel;
+}
+
+void SetPrintTiming(const bool PrintTiming)
+{
+    EMPIRE_API_helpers::PrintTiming = PrintTiming;
+}
+
 } // helpers namespace
 
 void  AddCustomIOToPython(pybind11::module& m)
@@ -384,6 +394,9 @@ void  AddCustomIOToPython(pybind11::module& m)
 
     mEMPIREAPI.def("EMPIRE_API_recvConvergenceSignal", EMPIRE_API_recvConvergenceSignal, py::arg("file_name_extension")="default");
     mEMPIREAPI.def("EMPIRE_API_sendConvergenceSignal", EMPIRE_API_sendConvergenceSignal, py::arg("signal"), py::arg("file_name_extension")="default");
+
+    mEMPIREAPI.def("EMPIRE_API_SetEchoLevel", EMPIRE_API_Wrappers::SetEchoLevel);
+    mEMPIREAPI.def("EMPIRE_API_PrintTiming",  EMPIRE_API_Wrappers::SetPrintTiming);
 }
 
 }  // namespace Python.

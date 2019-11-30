@@ -30,7 +30,7 @@ namespace Kratos
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRESS,               1 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_CONSTITUTIVE_TENSOR,  2 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRAIN_ENERGY,        3 );
-  
+
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ISOCHORIC_TENSOR_ONLY,        4 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, VOLUMETRIC_TENSOR_ONLY,       5 );
 
@@ -40,7 +40,7 @@ namespace Kratos
 
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INITIALIZE_MATERIAL_RESPONSE, 9 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINALIZE_MATERIAL_RESPONSE,  10 );
-  
+
 
     /**
      * Flags related to the Features of the Constitutive Law
@@ -534,8 +534,6 @@ void ConstitutiveLaw::InitializeNonLinearIteration(const Properties& rMaterialPr
 
 }
 
-
-
 /**
  * to be called at the end of each step iteration
  * (e.g. from Element::FinalizeNonLinearIteration)
@@ -585,7 +583,6 @@ void ConstitutiveLaw::CalculateMaterialResponse(Parameters& rValues,const Stress
     }
 }
 
-
 /**
  * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
  * @see Parameters
@@ -626,6 +623,16 @@ void ConstitutiveLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     KRATOS_ERROR <<  "Calling virtual function for CalculateMaterialResponseCauchy"<< std::endl;;
 }
 
+/**
+ * Computes the material response in terms of Cauchy stresses and constitutive tensor
+ * @see Parameters
+ */
+
+void ConstitutiveLaw::CalculateStressResponse (Parameters& rValues, Vector& rInternalVariables)
+{
+    KRATOS_ERROR <<  "Calling virtual function for CalculateStressResponse"<< std::endl;;
+}
+
 
 /**
  * @brief Initialize the material response,  called by the element in InitializeSolutionStep.
@@ -637,20 +644,20 @@ void ConstitutiveLaw::InitializeMaterialResponse(Parameters& rValues,const Stres
     switch(rStressMeasure)
     {
         case StressMeasure_PK1:         InitializeMaterialResponsePK1(rValues);
-            break;
+        break;
 
         case StressMeasure_PK2:         InitializeMaterialResponsePK2(rValues);
-            break;
+        break;
 
         case StressMeasure_Kirchhoff: 	InitializeMaterialResponseKirchhoff(rValues);
-            break;
+        break;
 
         case StressMeasure_Cauchy:	InitializeMaterialResponseCauchy(rValues);
-            break;
+        break;
 
         default:
-            KRATOS_THROW_ERROR(std::logic_error, " Stress Measure not Defined ", "");
-            break;
+        KRATOS_ERROR << " Stress Measure not Defined " << std::endl;
+        break;
     }
 }
 
@@ -660,7 +667,7 @@ void ConstitutiveLaw::InitializeMaterialResponse(Parameters& rValues,const Stres
  */
 void ConstitutiveLaw::InitializeMaterialResponsePK1 (Parameters& rValues)
 {
-    KRATOS_ERROR << "Calling virtual function for InitializeMaterialResponsePK1" << std::endl;
+    KRATOS_ERROR_IF(this->RequiresInitializeMaterialResponse()) <<  "Calling virtual function for InitializeMaterialResponsePK1. Please implement InitializeMaterialResponsePK1 or RequiresInitializeMaterialResponse in case this CL does not require it" << std::endl;
 }
 
 /**
@@ -669,7 +676,7 @@ void ConstitutiveLaw::InitializeMaterialResponsePK1 (Parameters& rValues)
  */
 void ConstitutiveLaw::InitializeMaterialResponsePK2 (Parameters& rValues)
 {
-    KRATOS_ERROR << "Calling virtual function for InitializeMaterialResponsePK2" << std::endl;
+    KRATOS_ERROR_IF(this->RequiresInitializeMaterialResponse()) <<  "Calling virtual function for InitializeMaterialResponsePK2. Please implement InitializeMaterialResponsePK2 or RequiresInitializeMaterialResponse in case this CL does not require it" << std::endl;
 }
 
 /**
@@ -678,7 +685,7 @@ void ConstitutiveLaw::InitializeMaterialResponsePK2 (Parameters& rValues)
  */
 void ConstitutiveLaw::InitializeMaterialResponseKirchhoff (Parameters& rValues)
 {
-    KRATOS_ERROR << "Calling virtual function for InitializeMaterialResponseKirchhoff" << std::endl;
+    KRATOS_ERROR_IF(this->RequiresInitializeMaterialResponse()) <<  "Calling virtual function for InitializeMaterialResponseKirchhoff. Please implement InitializeMaterialResponseKirchhoff or RequiresInitializeMaterialResponse in case this CL does not require it" << std::endl;
 }
 
 /**
@@ -687,7 +694,7 @@ void ConstitutiveLaw::InitializeMaterialResponseKirchhoff (Parameters& rValues)
  */
 void ConstitutiveLaw::InitializeMaterialResponseCauchy (Parameters& rValues)
 {
-    KRATOS_ERROR << "Calling virtual function for InitializeMaterialResponseCauchy" << std::endl;
+    KRATOS_ERROR_IF(this->RequiresInitializeMaterialResponse()) <<  "Calling virtual function for InitializeMaterialResponseCauchy. Please implement InitializeMaterialResponseCauchy or RequiresInitializeMaterialResponse in case this CL does not require it" << std::endl;
 }
 
 /**
@@ -724,7 +731,7 @@ void ConstitutiveLaw::FinalizeMaterialResponse(Parameters& rValues,const StressM
 
 void ConstitutiveLaw::FinalizeMaterialResponsePK1 (Parameters& rValues)
 {
-    KRATOS_ERROR <<  "Calling virtual function for FinalizeMaterialResponsePK1"<< std::endl;;
+    KRATOS_ERROR_IF(this->RequiresFinalizeMaterialResponse()) <<  "Calling virtual function for FinalizeMaterialResponsePK1. Please implement FinalizeMaterialResponsePK1 or RequiresFinalizeMaterialResponse in case this CL does not require it" << std::endl;
 }
 
 /**
@@ -734,7 +741,7 @@ void ConstitutiveLaw::FinalizeMaterialResponsePK1 (Parameters& rValues)
 
 void ConstitutiveLaw::FinalizeMaterialResponsePK2 (Parameters& rValues)
 {
-    KRATOS_ERROR <<  "Calling virtual function for FinalizeMaterialResponsePK2"<< std::endl;;
+    KRATOS_ERROR_IF(this->RequiresFinalizeMaterialResponse()) <<  "Calling virtual function for FinalizeMaterialResponsePK2. Please implement FinalizeMaterialResponsePK2 or RequiresFinalizeMaterialResponse in case this CL does not require it" << std::endl;
 }
 
 /**
@@ -744,7 +751,7 @@ void ConstitutiveLaw::FinalizeMaterialResponsePK2 (Parameters& rValues)
 
 void ConstitutiveLaw::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
 {
-    KRATOS_ERROR <<  "Calling virtual function for FinalizeMaterialResponseKirchhoff"<< std::endl;;
+    KRATOS_ERROR_IF(this->RequiresFinalizeMaterialResponse()) <<  "Calling virtual function for FinalizeMaterialResponseKirchhoff. Please implement FinalizeMaterialResponseKirchhoff or RequiresFinalizeMaterialResponse in case this CL does not require it" << std::endl;
 }
 
 /**
@@ -754,10 +761,8 @@ void ConstitutiveLaw::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
 
 void ConstitutiveLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
 {
-    KRATOS_ERROR <<  "Calling virtual function for FinalizeMaterialResponseCauchy"<< std::endl;;
+    KRATOS_ERROR_IF(this->RequiresFinalizeMaterialResponse()) <<  "Calling virtual function for FinalizeMaterialResponseCauchy. Please implement FinalizeMaterialResponseCauchy or RequiresFinalizeMaterialResponse in case this CL does not require it" << std::endl;
 }
-
-
 
 /**
  * This can be used in order to reset all internal variables of the
