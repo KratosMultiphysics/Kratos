@@ -689,10 +689,9 @@ public:
      * @param ContributionCoefficients The matrix containing the coefficients to be considered (copy, so we don't need to provide it)
      * @param TransposeBlocks The matrix containing the flags telling us to transpose the blocks (copy, so we don't need to provide it)
      */
-    template <class TMatrix>
     static inline void AssembleSparseMatrixByBlocks(
-        TMatrix& rMatrix,
-        const DenseMatrix<TMatrix*>& rMatricespBlocks,
+        CompressedMatrix& rMatrix,
+        const DenseMatrix<CompressedMatrix*>& rMatricespBlocks,
         DenseMatrix<double> ContributionCoefficients = DenseMatrix<double>(0,0),
         DenseMatrix<bool> TransposeBlocks = DenseMatrix<bool>(0,0)
         )
@@ -784,22 +783,22 @@ public:
                         IndexType partial_matrix_cols_aux = 0;
                     #endif
                         // Skip if empty matrix
-                        TMatrix& r_matrix = *rMatricespBlocks(i, j);
+                        CompressedMatrix& r_matrix = *rMatricespBlocks(i, j);
                         if (r_matrix.nnz() > 0) {
                             if (TransposeBlocks(i, j)) {
                                 // We compute the transposed matrix
                                 const SizeType size_system_1 = r_matrix.size1();
                                 const SizeType size_system_2 = r_matrix.size2();
-                                TMatrix transpose(size_system_2, size_system_1);
-                                TransposeMatrix<TMatrix, TMatrix>(transpose, r_matrix);
-                                ComputeNonZeroBlocks<TMatrix>(transpose, k, matrix_cols_aux);
+                                CompressedMatrix transpose(size_system_2, size_system_1);
+                                TransposeMatrix<CompressedMatrix, CompressedMatrix>(transpose, r_matrix);
+                                ComputeNonZeroBlocks(transpose, k, matrix_cols_aux);
                             #ifdef KRATOS_DEBUG
-                                ComputeNonZeroBlocks<TMatrix>(transpose, k, partial_matrix_cols_aux);
+                                ComputeNonZeroBlocks(transpose, k, partial_matrix_cols_aux);
                             #endif
                             } else {
-                                ComputeNonZeroBlocks<TMatrix>(r_matrix, k, matrix_cols_aux);
+                                ComputeNonZeroBlocks(r_matrix, k, matrix_cols_aux);
                             #ifdef KRATOS_DEBUG
-                                ComputeNonZeroBlocks<TMatrix>(r_matrix, k, partial_matrix_cols_aux);
+                                ComputeNonZeroBlocks(r_matrix, k, partial_matrix_cols_aux);
                             #endif
                             }
                         }
@@ -837,7 +836,7 @@ public:
     #endif
 
         // Initialize matrix with the corresponding non-zero values
-        rMatrix = TMatrix(nrows, ncols, nonzero_values);
+        rMatrix = CompressedMatrix(nrows, ncols, nonzero_values);
 
         // Fill the new matrix
         double* Matrix_values = rMatrix.value_data().begin();
@@ -859,17 +858,17 @@ public:
                         const SizeType initial_index_column = std::accumulate(column_sizes.begin(), column_sizes.begin() + j, 0);
 
                         // Skip if empty matrix
-                        TMatrix& r_matrix = *rMatricespBlocks(i, j);
+                        CompressedMatrix& r_matrix = *rMatricespBlocks(i, j);
                         if (r_matrix.nnz() > 0) {
                             if (TransposeBlocks(i, j)) {
                                 // We compute the transposed matrix
                                 const SizeType size_system_1 = r_matrix.size1();
                                 const SizeType size_system_2 = r_matrix.size2();
-                                TMatrix transpose(size_system_2, size_system_1);
-                                TransposeMatrix<TMatrix, TMatrix>(transpose, r_matrix);
-                                ComputeAuxiliarValuesBlocks<TMatrix>(transpose, Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
+                                CompressedMatrix transpose(size_system_2, size_system_1);
+                                TransposeMatrix<CompressedMatrix, CompressedMatrix>(transpose, r_matrix);
+                                ComputeAuxiliarValuesBlocks(transpose, Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
                             } else {
-                                ComputeAuxiliarValuesBlocks<TMatrix>(r_matrix, Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
+                                ComputeAuxiliarValuesBlocks(r_matrix, Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
                             }
                         }
                     }
@@ -890,9 +889,8 @@ public:
      * @param CurrentRow The current row computed
      * @param rNonZeroColsAux2 The nonzero rows array
      */
-    template <class TMatrix>
     static inline void ComputeNonZeroBlocks(
-        const TMatrix& rMatrix,
+        const CompressedMatrix& rMatrix,
         const int CurrentRow,
         IndexType& rNonZeroColsAux2
         )
@@ -917,9 +915,8 @@ public:
      * @param RowEnd The last column computed
      * @param InitialIndexColumn The initial column index of the auxiliar block in the final matrix
      */
-    template <class TMatrix>
     static inline void ComputeAuxiliarValuesBlocks(
-        const TMatrix& rMatrix,
+        const CompressedMatrix& rMatrix,
         IndexType* AuxIndex2,
         double* AuxVals,
         const int CurrentRow,
