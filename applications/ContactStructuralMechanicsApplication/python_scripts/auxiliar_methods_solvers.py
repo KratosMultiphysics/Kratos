@@ -12,32 +12,36 @@ def  AuxiliarContactSettings():
     {
         "contact_settings" :
         {
-            "mortar_type"                                       : "",
-            "condn_convergence_criterion"                       : false,
-            "fancy_convergence_criterion"                       : true,
-            "print_convergence_criterion"                       : false,
-            "ensure_contact"                                    : false,
-            "frictional_decomposed"                             : true,
-            "compute_dynamic_factor"                            : false,
-            "gidio_debug"                                       : false,
-            "adaptative_strategy"                               : false,
-            "split_factor"                                      : 10.0,
-            "max_number_splits"                                 : 3,
-            "inner_loop_iterations"                             : 5,
-            "inner_loop_adaptive"                               : false,
-            "contact_displacement_relative_tolerance"           : 1.0e-4,
-            "contact_displacement_absolute_tolerance"           : 1.0e-9,
-            "contact_residual_relative_tolerance"               : 1.0e-4,
-            "contact_residual_absolute_tolerance"               : 1.0e-9,
-            "frictional_contact_displacement_relative_tolerance": 1.0e-4,
-            "frictional_contact_displacement_absolute_tolerance": 1.0e-9,
-            "frictional_contact_residual_relative_tolerance"    : 1.0e-4,
-            "frictional_contact_residual_absolute_tolerance"    : 1.0e-9,
-            "ratio_normal_tangent_threshold"                    : 1.0e-4,
-            "silent_strategy"                                   : true,
-            "simplified_semi_smooth_newton"                     : false,
-            "rescale_linear_solver"                             : false,
-            "use_mixed_ulm_solver"                              : true,
+            "mortar_type"                                             : "",
+            "condn_convergence_criterion"                             : false,
+            "fancy_convergence_criterion"                             : true,
+            "print_convergence_criterion"                             : false,
+            "ensure_contact"                                          : false,
+            "frictional_decomposed"                                   : true,
+            "compute_dynamic_factor"                                  : false,
+            "gidio_debug"                                             : false,
+            "adaptative_strategy"                                     : false,
+            "split_factor"                                            : 10.0,
+            "max_number_splits"                                       : 3,
+            "inner_loop_iterations"                                   : 5,
+            "inner_loop_adaptive"                                     : false,
+            "contact_displacement_relative_tolerance"                 : 1.0e-4,
+            "contact_displacement_absolute_tolerance"                 : 1.0e-9,
+            "contact_residual_relative_tolerance"                     : 1.0e-4,
+            "contact_residual_absolute_tolerance"                     : 1.0e-9,
+            "frictional_stick_contact_displacement_relative_tolerance": 1.0e-4,
+            "frictional_stick_contact_displacement_absolute_tolerance": 1.0e-9,
+            "frictional_stick_contact_residual_relative_tolerance"    : 1.0e-4,
+            "frictional_stick_contact_residual_absolute_tolerance"    : 1.0e-9,
+            "frictional_slip_contact_displacement_relative_tolerance" : 1.0e-4,
+            "frictional_slip_contact_displacement_absolute_tolerance" : 1.0e-9,
+            "frictional_slip_contact_residual_relative_tolerance"     : 1.0e-4,
+            "frictional_slip_contact_residual_absolute_tolerance"     : 1.0e-9,
+            "ratio_normal_tangent_threshold"                          : 1.0e-4,
+            "silent_strategy"                                         : true,
+            "simplified_semi_smooth_newton"                           : false,
+            "rescale_linear_solver"                                   : false,
+            "use_mixed_ulm_solver"                                    : true,
             "mixed_ulm_solver_parameters" :
             {
                 "solver_type"          : "mixed_ulm_linear_solver",
@@ -226,10 +230,14 @@ def  AuxiliarCreateConvergenceParameters(main_model_part, settings, contact_sett
     conv_params.AddValue("contact_displacement_absolute_tolerance", contact_settings["contact_displacement_absolute_tolerance"])
     conv_params.AddValue("contact_residual_relative_tolerance", contact_settings["contact_residual_relative_tolerance"])
     conv_params.AddValue("contact_residual_absolute_tolerance", contact_settings["contact_residual_absolute_tolerance"])
-    conv_params.AddValue("frictional_contact_displacement_relative_tolerance", contact_settings["frictional_contact_displacement_relative_tolerance"])
-    conv_params.AddValue("frictional_contact_displacement_absolute_tolerance", contact_settings["frictional_contact_displacement_absolute_tolerance"])
-    conv_params.AddValue("frictional_contact_residual_relative_tolerance", contact_settings["frictional_contact_residual_relative_tolerance"])
-    conv_params.AddValue("frictional_contact_residual_absolute_tolerance", contact_settings["frictional_contact_residual_absolute_tolerance"])
+    conv_params.AddValue("frictional_stick_contact_displacement_relative_tolerance", contact_settings["frictional_stick_contact_displacement_relative_tolerance"])
+    conv_params.AddValue("frictional_stick_contact_displacement_absolute_tolerance", contact_settings["frictional_stick_contact_displacement_absolute_tolerance"])
+    conv_params.AddValue("frictional_stick_contact_residual_relative_tolerance", contact_settings["frictional_stick_contact_residual_relative_tolerance"])
+    conv_params.AddValue("frictional_stick_contact_residual_absolute_tolerance", contact_settings["frictional_stick_contact_residual_absolute_tolerance"])
+    conv_params.AddValue("frictional_slip_contact_displacement_relative_tolerance", contact_settings["frictional_slip_contact_displacement_relative_tolerance"])
+    conv_params.AddValue("frictional_slip_contact_displacement_absolute_tolerance", contact_settings["frictional_slip_contact_displacement_absolute_tolerance"])
+    conv_params.AddValue("frictional_slip_contact_residual_relative_tolerance", contact_settings["frictional_slip_contact_residual_relative_tolerance"])
+    conv_params.AddValue("frictional_slip_contact_residual_absolute_tolerance", contact_settings["frictional_slip_contact_residual_absolute_tolerance"])
     conv_params.AddValue("ratio_normal_tangent_threshold", contact_settings["ratio_normal_tangent_threshold"])
     conv_params.AddValue("mortar_type", contact_settings["mortar_type"])
     conv_params.AddValue("condn_convergence_criterion", contact_settings["condn_convergence_criterion"])
