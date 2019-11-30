@@ -1,7 +1,5 @@
 from scipy.spatial import cKDTree
-
 import numpy as np
-import multiprocessing
 from multiprocessing import Pool
 
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
@@ -32,21 +30,37 @@ def Create(parameters):
 class MapperLinear1D(object):
     def __init__(self, parameters):
         """
-        This mapper uses the two closest points; this does
-        not mean that the projection of the point to be
-        interpolated lies in between them, e.g. when
-        there is grid stretching.
-        This can lead to discontinuities if grid spacing
-        changes quickly.
+        This mapper uses the 3 nearest points.
+        Barycentric interpolation is done, based on
+        the projection of the point onto the plane
+        through the 3 points.
+        If this projected point lies outside the
+        triangle, the data is extrapolated.
 
-        At the boundaries of the domain, linear
-        extrapolation is used. *** change this explanation
+        If the 3 closest points are co-linear,
+        a (specified) number of next nearest points
+        are checked to find a triangle.
+
+        If no triangle is found, the point is
+        projected on the line through the 2 nearest
+        points, and interpolation/extrapolation
+        is done based on only 2 points.
+
+        Parallellization can be used for calculating
+        the coefficients. Speed improvement on a
+        36-core machine is only ~4.4, so there is
+        probably room for improvement here.
+
+        On 36 cores, 1e6 points took around
+        70s to Initialize, and 10s to do the
+        mapping with __call__.
         """
         super().__init__()
 
         self.settings = parameters['settings']
 
         self.balanced_tree = self.settings['balanced_tree'].GetBool()
+        self.parallel = self.settings['parallel'].GetBool()
 
     def Initialize(self, model_part_from, model_part_to):
         self.n_from = model_part_from.NumberOfNodes()
@@ -67,81 +81,17 @@ class MapperLinear1D(object):
         _, self.nearest_bis = tree.query(self.coords_to, k=20)
         self.nearest = self.nearest_bis[:, :3].copy()
 
-        # *** TODO: add comments in code, clean up, do more thorough testing?
-
         # calculate coefficients
-        with timer('parallel', ms=True):
-            with Pool() as self.pool:
-                 out = self.pool.map(self.fun, range(self.n_to))
-            self.coeffs = np.vstack(tuple([_[0] for _ in out]))
-            self.nearest = np.vstack(tuple([_[1] for _ in out]))
-
-
-
-
-        # # non-parallel method:
-        # with timer('serial', ms=True):
-        #     if 0:
-        #         self.coeffs = np.zeros((self.n_to, 3))
-        #         for i in range(self.n_to):
-        #             p_0 = self.coords_to[i, :]  # point to be projected
-        #             p_1 = self.coords_from[self.nearest[i, 0], :]  # nearest point 1
-        #             p_2 = self.coords_from[self.nearest[i, 1], :]  # nearest point 2
-        #             p_3 = self.coords_from[self.nearest[i, 2], :]  # nearest point 2
-        #
-        #             triangle_interpolation = True
-        #             if degenerate(p_1, p_2, p_3):
-        #                 triangle_interpolation = False
-        #                 for j in range(3, self.nearest_bis.shape[1]):
-        #                     p_3 = self.coords_from[self.nearest_bis[i, j], :]
-        #                     if not degenerate(p_1, p_2, p_3):
-        #                         triangle_interpolation = True
-        #                         self.nearest[i, 2] = self.nearest_bis[i, j]
-        #                         break
-        #
-        #             v_01 = p_1 - p_0  # vector from p_0 to p_1
-        #             v_12 = p_2 - p_1
-        #             v_13 = p_3 - p_1
-        #             v_23 = p_3 - p_2
-        #
-        #             if triangle_interpolation:
-        #                 tmp = np.cross(v_12, v_13)
-        #                 v_n = normalize(tmp)
-        #                 p = p_0 + v_n * np.dot(v_01, v_n)  # projected point
-        #                 v_p1 = p_1 - p
-        #                 v_p2 = p_2 - p
-        #                 v_p3 = p_3 - p
-        #                 ref = np.linalg.norm(tmp)
-        #
-        #                 v_a = np.cross(v_p2, v_p3)
-        #                 v_b = np.cross(v_12, v_13)
-        #                 c_1 = np.sign(np.dot(v_a, v_b)) * np.linalg.norm(v_a) / ref
-        #
-        #                 v_a = np.cross(v_p3, v_p1)
-        #                 v_b = np.cross(v_23, -v_12)
-        #                 c_2 = np.sign(np.dot(v_a, v_b)) * np.linalg.norm(v_a) / ref
-        #
-        #                 c_3 = 1. - c_1 - c_2
-        #             else:
-        #                 # line interpolation
-        #                 v_t = normalize(v_12)
-        #                 p = p_0 + (v_01 - v_t * np.dot(v_01, v_t))  # projected point
-        #
-        #                 v_p2 = p_2 - p
-        #
-        #                 ref = np.linalg.norm(v_12)
-        #                 c_1 = np.sign(np.dot(v_p2, v_12)) * np.linalg.norm(v_p2) / ref
-        #                 c_2 = 1. - c_1
-        #                 c_3 = 0.
-        #
-        #             self.coeffs[i, :] = [c_1, c_2, c_3]
-        #     else:
-        #         self.coeffs = self.coeffs_bis.copy()
-        #         self.nearest = self.nearest_bis.copy()
-        #
-        # print(f'error = {np.abs(self.coeffs - self.coeffs_bis).max()}')
-        # print(f'error2 = {np.abs(self.nearest - self.nearest_bis).max()}')
-
+        with timer('coeffs', ms=True):
+            if self.parallel:
+                with Pool() as self.pool:
+                    out = self.pool.map(self.fun, range(self.n_to))
+                self.coeffs = np.vstack(tuple([_[0] for _ in out]))
+                self.nearest = np.vstack(tuple([_[1] for _ in out]))
+            else:
+                self.coeffs = np.zeros((self.n_to, 3))
+                for i in range(self.n_to):
+                    self.coeffs[i, :] = self.fun(i)[0]
 
     def Finalize(self):
         pass
@@ -190,6 +140,18 @@ class MapperLinear1D(object):
         return self_dict
 
     def fun(self, i):
+        """
+        indices:
+            0 = point coords_to[i]
+            1, 2, 3 = 3 nearest points from coords_from
+            no index = projection of point 0 on
+                       triangle 1-2-3 or line 1-2
+
+        names:
+            p = point
+            v_ab = vector from point a to point b
+            c = interpolation coefficients
+        """
         def normalize(v):
             # return normalized a vector
             n = v / np.linalg.norm(v)
@@ -211,10 +173,10 @@ class MapperLinear1D(object):
                 return True
             return False
 
-        p_0 = self.coords_to[i, :]  # point to be projected
-        p_1 = self.coords_from[self.nearest[i, 0], :]  # nearest point 1
-        p_2 = self.coords_from[self.nearest[i, 1], :]  # nearest point 2
-        p_3 = self.coords_from[self.nearest[i, 2], :]  # nearest point 2
+        p_0 = self.coords_to[i, :]
+        p_1 = self.coords_from[self.nearest[i, 0], :]
+        p_2 = self.coords_from[self.nearest[i, 1], :]
+        p_3 = self.coords_from[self.nearest[i, 2], :]
 
         triangle_interpolation = True
         if degenerate(p_1, p_2, p_3):
@@ -226,15 +188,18 @@ class MapperLinear1D(object):
                     self.nearest[i, 2] = self.nearest_bis[i, j]
                     break
 
-        v_01 = p_1 - p_0  # vector from p_0 to p_1
+        v_01 = p_1 - p_0
         v_12 = p_2 - p_1
         v_13 = p_3 - p_1
         v_23 = p_3 - p_2
 
         if triangle_interpolation:
+            # project on triangle
             tmp = np.cross(v_12, v_13)
             v_n = normalize(tmp)
-            p = p_0 + v_n * np.dot(v_01, v_n)  # projected point
+            p = p_0 + v_n * np.dot(v_01, v_n)
+
+            # calculate weights
             v_p1 = p_1 - p
             v_p2 = p_2 - p
             v_p3 = p_3 - p
@@ -250,16 +215,15 @@ class MapperLinear1D(object):
 
             c_3 = 1. - c_1 - c_2
         else:
-            # line interpolation
+            # project on line
             v_t = normalize(v_12)
-            p = p_0 + (v_01 - v_t * np.dot(v_01, v_t))  # projected point
+            p = p_0 + (v_01 - v_t * np.dot(v_01, v_t))
 
+            # calculate weights
             v_p2 = p_2 - p
-
             ref = np.linalg.norm(v_12)
             c_1 = np.sign(np.dot(v_p2, v_12)) * np.linalg.norm(v_p2) / ref
             c_2 = 1. - c_1
             c_3 = 0.
-        out = (np.array([[c_1, c_2, c_3]]), self.nearest[i:i+1, :])
 
-        return out
+        return (np.array([[c_1, c_2, c_3]]), self.nearest[i:i+1, :])

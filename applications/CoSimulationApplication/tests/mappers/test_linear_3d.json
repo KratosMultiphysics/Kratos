@@ -1,14 +1,15 @@
 {
-    "settings":
+    "settings" :
     {
         "data_structure" : "pyKratos"
     },
     "mapper" :
     {
-        "type": "mappers.linear_3d",
-        "settings":
+        "type" : "mappers.linear_3d",
+        "settings" :
         {
-            "balanced_tree" : false
+            "balanced_tree" : false,
+            "parallel" : true
         }
     }
 }
