@@ -3,14 +3,14 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
-def CreateTurbulenceModel(model, settings, is_distributed = False):
-    if not CheckIfApplicationsAvailable("RANSModellingApplication"):
-        msg = "Using a turbulence model requires the RANSModellingApplication. "
-        msg += "Please re-install/re-compile with RANSModellingApplication."
+def CreateTurbulenceModel(model, settings):
+    if not CheckIfApplicationsAvailable("RANSApplication"):
+        msg = "Using a turbulence model requires the RANSApplication. "
+        msg += "Please re-install/re-compile with RANSApplication."
         raise Exception(msg)
 
-    from KratosMultiphysics.RANSModellingApplication.turbulence_model_factory import Factory
-    return Factory(settings, model, is_distributed)
+    from KratosMultiphysics.RANSApplication.turbulence_model_factory import Factory
+    return Factory(settings, model)
 
 class TurbulenceModelSolver(PythonSolver):
     def AddVariables(self):
@@ -61,6 +61,11 @@ class TurbulenceModelSolver(PythonSolver):
     def SetCommunicator(self, epetra_communicator):
         msg = "Calling the base TurbulenceModelSolver class SetCommunicator method."
         msg += " Please override it in the derrived class to set the epetra_communicator for RANS model parts"
+        raise Exception(msg)
+
+    def SetParentSolvingStrategy(self, parent_solving_strategy):
+        msg = "Calling the base TurbulenceModelSolver class SetParentSolvingStrategy method."
+        msg += " Please override it in the derrived class to set the parent_solving_strategy for RANS solving strategy"
         raise Exception(msg)
 
     def Finalize(self):
