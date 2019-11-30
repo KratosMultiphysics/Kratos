@@ -17,10 +17,8 @@
 
 // Project includes
 #include "geometries/geometry.h"
-
 #include "geometries/nurbs_shape_function_utilities/nurbs_curve_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
-
 
 namespace Kratos {
 
@@ -407,7 +405,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return TWorkingSpaceDimension + " dimensional nurbs curve.";
+        return std::to_string(TWorkingSpaceDimension) + " dimensional nurbs curve.";
     }
 
     /// Print information about this object.

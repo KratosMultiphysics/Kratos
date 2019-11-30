@@ -1,6 +1,6 @@
 {
     "properties": [{
-            "model_part_name": "Parts_plate",
+            "model_part_name": "Structure.Parts_plate",
             "properties_id": 4,
             "Material": {
                     "name": "Material",
