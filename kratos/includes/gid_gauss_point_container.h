@@ -560,13 +560,13 @@ public:
             {
                 GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Prism, NULL, 6, 0, 0 );
 
-                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
-                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
-                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
+				GiD_fWriteGaussPoint3D(MeshFile, 1.00 / 6.00, 1.00 / 6.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
+				GiD_fWriteGaussPoint3D(MeshFile, 2.00 / 3.00, 1.00 / 6.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
+				GiD_fWriteGaussPoint3D(MeshFile, 1.00 / 6.00, 2.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
 
-                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
-                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
-                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
+				GiD_fWriteGaussPoint3D(MeshFile, 1.00 / 6.00, 1.00 / 6.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
+				GiD_fWriteGaussPoint3D(MeshFile, 2.00 / 3.00, 1.00 / 6.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
+				GiD_fWriteGaussPoint3D(MeshFile, 1.00 / 6.00, 2.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
 
                 GiD_fEndGaussPoint(MeshFile);
             }

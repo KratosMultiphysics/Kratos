@@ -1,5 +1,5 @@
 #!/bin/bash
-PYTHONS=("35" "36" "37")
+PYTHONS=("35" "36" "37" "38")
 export KRATOS_VERSION="7.0.3"
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
@@ -102,11 +102,12 @@ build () {
 }
 
 
-for PYTHON in  "${PYTHONS[@]}"
+for PYTHON_VERSION in  "${PYTHONS[@]}"
 do
-    export PYTHON=$PYTHON
+    PYTHON_TMP=$(ls /opt/python | grep $PYTHON_VERSION | cut -d "-" -f 2)
+    export PYTHON=${PYTHON_TMP#cp}
     echo starting build for python${PYTHON}
-	PYTHON_LOCATION=/opt/python/cp${PYTHON}-cp${PYTHON}m/bin/python
+	PYTHON_LOCATION=/opt/python/$(ls /opt/python | grep $PYTHON_VERSION)/bin/python
     build $PYTHON_LOCATION $1
 	
 	
@@ -124,7 +125,7 @@ do
 
     build_kratos_all_wheel
 
-	echo finished build for python${PYTHON}
+	echo finished build for python${PYTHON_VERSION}
 
 	export LD_LIBRARY_PATH=$BASE_LD_LIBRARY_PATH
 
