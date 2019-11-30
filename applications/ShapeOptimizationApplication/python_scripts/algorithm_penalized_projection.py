@@ -205,8 +205,8 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
                 return True
 
             # Check for relative tolerance
-            relativeChangeOfObjectiveValue = self.data_logger.GetValues("rel_change_objective")[self.optimization_iteration]
-            if abs(relativeChangeOfObjectiveValue) < self.relative_tolerance:
+            relative_change_of_objective_value = self.data_logger.GetValues("rel_change_objective")[self.optimization_iteration]
+            if abs(relative_change_of_objective_value) < self.relative_tolerance:
                 KM.Logger.Print("")
                 KM.Logger.PrintInfo("ShapeOpt", "Optimization problem converged within a relative objective tolerance of ",self.relative_tolerance,"%.")
                 return True

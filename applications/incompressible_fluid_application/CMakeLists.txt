@@ -13,7 +13,7 @@ set( KRATOS_INCOMPRESSIBLE_FLUID_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_edgebased_levelset_solver_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_edgebased_levelset_solver_to_python.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/proj_dirichlet_cond.cpp		
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/proj_dirichlet_cond3D.cpp	
@@ -30,7 +30,7 @@ set( KRATOS_INCOMPRESSIBLE_FLUID_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/NDfluid_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/NDfluid_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/NDfluid_2d_CrankNicolson.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_2dGLS.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_2dGLS.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_2dGLS_expl.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_3dGLS_expl.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_2dGLS_expl_comp.cpp   
@@ -53,7 +53,6 @@ set( KRATOS_INCOMPRESSIBLE_FLUID_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/explicit_asgs_comp_pr_dc_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/explicit_asgs_compressible_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/explicit_asgs_comp_pr_dc_3d.cpp   	
-
 )
 
 ###############################################################
@@ -73,21 +72,29 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosIncompressibleFluidApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-install(TARGETS KratosIncompressibleFluidApplication DESTINATION libs )
-
-if(${INSTALL_TESTING_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_TESTING_FILES} MATCHES ON)
-
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
-
-
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("KratosIncompressibleFluidApplication subdir inc_dirs = ${inc_dirs}")
+# Cotire
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosIncompressibleFluidApplication)
+endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/IncompressibleFluidApplication.py" DESTINATION KratosMultiphysics )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/IncompressibleFluidApplication.py KratosMultiphysics/IncompressibleFluidApplication/__init__.py )
+
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
+
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
+  )
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
+
+# Install targets
+install(TARGETS KratosIncompressibleFluidApplication DESTINATION libs )
