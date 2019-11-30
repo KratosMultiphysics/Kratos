@@ -41,7 +41,7 @@ KRATOS_TEST_CASE_IN_SUITE(AssembleSparseMatrixByBlocks, KratosCoreFastSuite)
     contribution_coefficients(1,1) = 1.0;
 
     SparseMatrixType solution_matrix;
-    SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks<SparseMatrixType>(solution_matrix, matrices_p_blocks, contribution_coefficients);
+    SparseMatrixMultiplicationUtility::AssembleSparseMatrixByBlocks(solution_matrix, matrices_p_blocks, contribution_coefficients);
 
     const double tolerance = 1.0e-16;
     KRATOS_CHECK_NEAR(solution_matrix(0,0), 1.0, tolerance);
