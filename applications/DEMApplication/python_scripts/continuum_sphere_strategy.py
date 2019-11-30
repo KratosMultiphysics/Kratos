@@ -106,6 +106,10 @@ class ExplicitStrategy(BaseExplicitStrategy):
         spheres_model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
         spheres_model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
 
+        spheres_model_part.AddNodalSolutionStepVariable(TARGET_STRESS)
+        spheres_model_part.AddNodalSolutionStepVariable(REACTION_STRESS)
+        spheres_model_part.AddNodalSolutionStepVariable(LOADING_VELOCITY)
+
     def ModifyProperties(self, properties, param = 0):
         BaseExplicitStrategy.ModifyProperties(self, properties, param)
 
