@@ -5,7 +5,7 @@ import KratosMultiphysics.mpi as mpi
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
@@ -209,8 +209,8 @@ class DamMPIThermoMechanicSolver(dam_thermo_mechanic_solver.DamThermoMechanicSol
 
         rayleigh_m = self.settings["mechanical_solver_settings"]["rayleigh_m"].GetDouble()
         rayleigh_k = self.settings["mechanical_solver_settings"]["rayleigh_k"].GetDouble()
-        self.main_model_part.ProcessInfo.SetValue(KratosSolid.RAYLEIGH_ALPHA, rayleigh_m)
-        self.main_model_part.ProcessInfo.SetValue(KratosSolid.RAYLEIGH_BETA, rayleigh_k)
+        self.main_model_part.ProcessInfo.SetValue(KratosStructural.RAYLEIGH_ALPHA, rayleigh_m)
+        self.main_model_part.ProcessInfo.SetValue(KratosStructural.RAYLEIGH_BETA, rayleigh_k)
         if(solution_type == "Quasi-Static"):
             if(rayleigh_m<1.0e-20 and rayleigh_k<1.0e-20):
                 scheme =  TrilinosApplication.TrilinosResidualBasedIncrementalUpdateStaticScheme()
