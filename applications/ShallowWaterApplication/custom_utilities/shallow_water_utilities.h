@@ -112,6 +112,8 @@ public:
 
     void ComputeVisualizationWaterSurface(ModelPart& rModelPart);
 
+    void NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable);
+
     ///@}
     ///@name Access
     ///@{
