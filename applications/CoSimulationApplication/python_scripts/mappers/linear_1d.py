@@ -47,7 +47,7 @@ class MapperLinear1D(object):
             tree = cKDTree(coords_from)
         else:  # less stable
             tree = cKDTree(coords_from, balanced_tree=False)
-        _, self.nearest = tree.query(coords_to, k=2, n_jobs=-1)
+        _, self.nearest = tree.query(coords_to, k=2)
 
         # linear interpolation/extrapolation from nearest points
         self.coeffs = np.zeros((self.n_to, 2))

@@ -48,7 +48,7 @@ class MapperNearest(object):
             tree = cKDTree(coords_from)
         else:  # less stable
             tree = cKDTree(coords_from, balanced_tree=False)
-        _, self.nearest = tree.query(coords_to, n_jobs=-1)  # runs in parallel
+        _, self.nearest = tree.query(coords_to)
 
     def Finalize(self):
         pass
