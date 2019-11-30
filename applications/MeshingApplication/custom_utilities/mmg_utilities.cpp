@@ -3612,7 +3612,7 @@ void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
     // In case of considering metric tensor
     if (it_node_begin->Has(r_tensor_variable)) {
         // Auxilia metric
-        TensorArrayType metric;
+        TensorArrayType metric = ZeroVector(3 * (Dimension - 1));
 
         #pragma omp parallel for firstprivate(metric)
         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
@@ -3625,7 +3625,7 @@ void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
         }
     } else {
         // Auxilia metric
-        double metric;
+        double metric = 0.0;
 
         #pragma omp parallel for firstprivate(metric)
         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {

@@ -206,6 +206,7 @@ protected:
         double porosity;
         double height_units;
         double permeability;
+        double discharge_penalty;
 
         // Element variables
         array_1d<double, 2> projected_momentum; // It is used to compute friction terms
@@ -220,7 +221,6 @@ protected:
         LocalVectorType rain;
         LocalVectorType unknown;
         LocalVectorType prev_unk;
-        LocalVectorType proj_unk;
 
         // Shape functions and derivatives
         BoundedMatrix<double, 2, LocalSize> N_q;
