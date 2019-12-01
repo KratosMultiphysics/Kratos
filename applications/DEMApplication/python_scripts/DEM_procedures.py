@@ -428,6 +428,10 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
+        # TODO: only if control module is used
+        model_part.AddNodalSolutionStepVariable(TARGET_STRESS)
+        model_part.AddNodalSolutionStepVariable(REACTION_STRESS)
+        model_part.AddNodalSolutionStepVariable(LOADING_VELOCITY)
 
     def AddSpheresVariables(self, model_part, DEM_parameters):
 
