@@ -53,7 +53,7 @@ public:
                 "reaction_stress_variable_name": "REACTION_STRESS_VARIABLE_NAME",
                 "loading_velocity_variable_name": "LOADING_VELOCITY_VARIABLE_NAME",
                 "radial_displacement" : false,
-                "target_stress_table_id" : 1,
+                "target_stress_table_id" : 0,
                 "initial_velocity" : 0.0,
                 "limit_velocity" : 1.0,
                 "velocity_factor" : 1.0,
