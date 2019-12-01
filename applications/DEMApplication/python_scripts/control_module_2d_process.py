@@ -4,7 +4,7 @@ import KratosMultiphysics.DEMApplication as Dem
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ControlModuleProcess(Model, settings["Parameters"])
+    return ControlModule2DProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
 
