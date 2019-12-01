@@ -18,7 +18,7 @@
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
-#include "dem_application_variables.h"
+#include "DEM_application_variables.h"
 
 namespace Kratos
 {
@@ -75,21 +75,7 @@ public:
         mUpdateStiffness = rParameters["update_stiffness"].GetBool();
         mReactionStressOld = 0.0;
         mStiffness = mYoungModulus/mCompressionLength;
-
-        if (mImposedDirection == 2) {
-            // Z direction
-            mFaceArea = rParameters["face_area"].GetDouble();
-        } else {
-            // X and Y directions
-            mFaceArea = 0.0;
-            const int NCons = static_cast<int>(mrModelPart.Conditions().size());
-            ModelPart::ConditionsContainerType::iterator con_begin = mrModelPart.ConditionsBegin();
-            #pragma omp parallel for reduction(+:mFaceArea)
-            for(int i = 0; i < NCons; i++) {
-                ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
-                mFaceArea += itCond->GetGeometry().Area();
-            }
-        }
+        mFaceArea = rParameters["face_area"].GetDouble();
 
         KRATOS_CATCH("");
     }
@@ -111,6 +97,18 @@ public:
     void ExecuteInitialize() override
     {
         KRATOS_TRY;
+
+        if (mImposedDirection != 2) {
+            // X and Y directions
+            mFaceArea = 0.0;
+            const int NCons = static_cast<int>(mrModelPart.Conditions().size());
+            ModelPart::ConditionsContainerType::iterator con_begin = mrModelPart.ConditionsBegin();
+            #pragma omp parallel for reduction(+:mFaceArea)
+            for(int i = 0; i < NCons; i++) {
+                ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
+                mFaceArea += itCond->GetGeometry().Area();
+            }
+        }
 
         const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
         ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
