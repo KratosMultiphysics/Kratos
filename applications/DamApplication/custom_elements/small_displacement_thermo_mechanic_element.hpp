@@ -16,7 +16,7 @@
 
 /* Project includes */
 #include "includes/serializer.h"
-#include "custom_elements/solid_elements/small_displacement_element.hpp"
+#include "custom_elements/small_displacement_element.hpp"
 
 #include "custom_utilities/poro_element_utilities.hpp"
 
