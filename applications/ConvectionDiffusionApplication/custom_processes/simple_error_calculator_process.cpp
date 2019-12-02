@@ -47,8 +47,8 @@ void SimpleErrorCalculatorProcess<TDim>::Execute()
     // Initialize the metric
     // a) Check for Metric Scalar in Meshing Application
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has("METRIC_SCALAR")) << "Import Meshing Application" <<std::endl;
-    KRATOS_ERROR_IF_NOT(KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has("NODAL_TEMP_GRADIENT")) << "Error Creating Temperature Gradient" <<std::endl;
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has("NODAL_AREA")) << "ERROR:: NODAL_AREA Variable doesn't exist" <<std::endl;
+    KRATOS_ERROR_IF_NOT(KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has("NODAL_TEMP_GRADIENT")) << "Error Creating Temperature Gradient" <<std::endl;
     const double& scalar_variable = KratosComponents<Variable<double>>::Get("METRIC_SCALAR");
 
     // b) Retrive Nodes and Elements from the Model Part
@@ -138,5 +138,5 @@ void SimpleErrorCalculatorProcess<TDim>::ErrorEstimatorImplementation()
                 }
             } 
         }                
-
+    }
 }
