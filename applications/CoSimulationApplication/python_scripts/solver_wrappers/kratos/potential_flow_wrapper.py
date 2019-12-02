@@ -26,7 +26,7 @@ class PotentialFlowWrapper(kratos_base_wrapper.KratosBaseWrapper):
         return PotentialFlowAnalysis(self.model, self.project_parameters)
 
     def AdvanceInTime(self, current_time):
-        self.time = 0.0
+        self.time = 1.0
         return self.time
     def Predict(self):
         return
