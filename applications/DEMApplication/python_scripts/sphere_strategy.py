@@ -217,6 +217,7 @@ class ExplicitStrategy(object):
             self.all_model_parts.Get(name).ProcessInfo.SetValue(IS_RESTARTED, self._GetInputType() == 'rest')
 
         # SIMULATION FLAGS
+        self.spheres_model_part.ProcessInfo.SetValue(IS_TIME_TO_PRINT, False)
         self.spheres_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
         self.spheres_model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
         self.spheres_model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
@@ -352,7 +353,6 @@ class ExplicitStrategy(object):
 
     def Initialize(self):
         self.CheckMomentumConservation()
-        self._UpdateTimeInModelParts(0.0)
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy (C++) Initialize function (initializes all elements and performs other necessary tasks before starting the time loop in Python)
 
     def SetDt(self, dt):
