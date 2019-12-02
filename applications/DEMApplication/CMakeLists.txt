@@ -152,6 +152,11 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
         PATTERN "*.h" EXCLUDE
         PATTERN "*.cpp" EXCLUDE
         PATTERN "*.hpp" EXCLUDE
+        PATTERN "*.vtk" EXCLUDE
+        PATTERN "*.lst" EXCLUDE
+        PATTERN "*.pyc" EXCLUDE
+        PATTERN "*.bin" EXCLUDE
+        PATTERN "*.time" EXCLUDE
   )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
