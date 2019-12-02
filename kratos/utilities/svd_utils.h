@@ -106,8 +106,9 @@ public:
      * @param UMatrix The unitary U matrix
      * @param SMatrix The diagonal S matrix
      * @param VMatrix The unitary V matrix
-     * @param Tolerance The tolerance considered
      * @param TypeSVD The type of SVD algorithm (Jacobi by default)
+     * @param Tolerance The tolerance considered
+     * @param MaxIter Maximum number of iterations
      * @return iter: The number of iterations
      */
     static inline std::size_t SingularValueDecomposition(
@@ -116,11 +117,11 @@ public:
         MatrixType& SMatrix,
         MatrixType& VMatrix,
         const std::string& TypeSVD = "Jacobi",
-        const TDataType Tolerance = std::numeric_limits<double>::epsilon()
-        )
+        const TDataType Tolerance = std::numeric_limits<double>::epsilon(),
+        const IndexType MaxIter = 200)
     {
         if (TypeSVD == "Jacobi") {
-            return JacobiSingularValueDecomposition(InputMatrix, UMatrix, SMatrix, VMatrix, Tolerance);
+            return JacobiSingularValueDecomposition(InputMatrix, UMatrix, SMatrix, VMatrix, Tolerance, MaxIter);
         } else {
             KRATOS_ERROR << "SVD Type not implemented" << std::endl;
         }
@@ -136,6 +137,7 @@ public:
      * @param SMatrix The diagonal S matrix
      * @param VMatrix The unitary V matrix
      * @param Tolerance The tolerance considered
+     * @param MaxIter Maximum number of iterations
      * @return iter: The number of iterations
      */
 
@@ -144,8 +146,8 @@ public:
         MatrixType& UMatrix,
         MatrixType& SMatrix,
         MatrixType& VMatrix,
-        const TDataType Tolerance = std::numeric_limits<double>::epsilon()
-        )
+        const TDataType Tolerance = std::numeric_limits<double>::epsilon(),
+        const IndexType MaxIter = 200)
     {
         const SizeType m = InputMatrix.size1();
         const SizeType n = InputMatrix.size2();
@@ -204,6 +206,10 @@ public:
             }
 
             ++iter;
+            if (iter > MaxIter) {
+                KRATOS_WARNING("JacobiSingularValueDecomposition") << "Maximum number of iterations " << MaxIter << " reached." << std::endl;
+                break;
+            }
         }
 
         return iter;
@@ -408,10 +414,10 @@ public:
         const MatrixType& InputMatrix,
         const std::string TypeSVD = "Jacobi",
         const TDataType Tolerance = std::numeric_limits<double>::epsilon()
-        )
+        const IndexType MaxIter = 200)
     {
         MatrixType u_matrix, s_matrix, v_matrix;
-        SingularValueDecomposition(InputMatrix, u_matrix, s_matrix, v_matrix, TypeSVD, Tolerance);
+        SingularValueDecomposition(InputMatrix, u_matrix, s_matrix, v_matrix, TypeSVD, Tolerance, MaxIter);
 
         const SizeType size_s = s_matrix.size1();
         const TDataType condition_number = s_matrix(0, 0)/s_matrix(size_s - 1, size_s - 1);
@@ -487,4 +493,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_SVD_UTILS  defined */
-
