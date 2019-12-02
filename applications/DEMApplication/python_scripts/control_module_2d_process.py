@@ -14,7 +14,7 @@ class ControlModule2DProcess(KratosMultiphysics.Process):
 
         # Control module process acting on the imposed direction: 0 (X), 1 (Y), 2 (Z) or 3 (radial)
         # The radial direction is valid only for the vertical walls of a right cylinder with the base
-        # on the 'X-Y' plane centered on (0,0). TODO: Negative target_stress means compression.
+        # on the 'X-Y' plane centered on (0,0). Negative target_stress means compression.
 
         self.model_part = Model[settings["model_part_name"].GetString()]
 

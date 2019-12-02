@@ -14,9 +14,13 @@
 #if !defined(KRATOS_CONTROL_MODULE_2D_PROCESS )
 #define  KRATOS_CONTROL_MODULE_2D_PROCESS
 
+// Project includes
 #include "includes/table.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
+
+// Application includes
+#include "custom_elements/spheric_continuum_particle.h"
 
 #include "DEM_application_variables.h"
 
@@ -181,6 +185,7 @@ public:
                 it->FastGetSolutionStepValue(VELOCITY_X) = mVelocity;
                 it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_X) = it->FastGetSolutionStepValue(VELOCITY_X) * delta_time;
                 it->FastGetSolutionStepValue(DISPLACEMENT_X) += it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_X);
+                it->X() = it->X0() + it->FastGetSolutionStepValue(DISPLACEMENT_X);
             }
         } else if (mImposedDirection == 1) {
             // Y direction
@@ -190,6 +195,7 @@ public:
                 it->FastGetSolutionStepValue(VELOCITY_Y) = mVelocity;
                 it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_Y) = it->FastGetSolutionStepValue(VELOCITY_Y) * delta_time;
                 it->FastGetSolutionStepValue(DISPLACEMENT_Y) += it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_Y);
+                it->Y() = it->Y0() + it->FastGetSolutionStepValue(DISPLACEMENT_Y);
             }
         } else if (mImposedDirection == 2) {
             // Z direction
@@ -205,9 +211,11 @@ public:
                 it->FastGetSolutionStepValue(VELOCITY_X) = mVelocity * cos_theta;
                 it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_X) = it->FastGetSolutionStepValue(VELOCITY_X) * delta_time;
                 it->FastGetSolutionStepValue(DISPLACEMENT_X) += it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_X);
+                it->X() = it->X0() + it->FastGetSolutionStepValue(DISPLACEMENT_X);
                 it->FastGetSolutionStepValue(VELOCITY_Y) = mVelocity * sin_theta;
                 it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_Y) = it->FastGetSolutionStepValue(VELOCITY_Y) * delta_time;
                 it->FastGetSolutionStepValue(DISPLACEMENT_Y) += it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_Y);
+                it->Y() = it->Y0() + it->FastGetSolutionStepValue(DISPLACEMENT_Y);
             }
         }
 
@@ -244,10 +252,21 @@ public:
                 }
             } else if (mImposedDirection == 2) {
                 // Z direction
+                ModelPart::ElementsContainerType& rElements = mrModelPart.GetCommunicator().LocalMesh().Elements();
+
                 #pragma omp parallel for reduction(+:FaceReaction)
-                for(int i = 0; i<NNodes; i++) {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    FaceReaction += it->FastGetSolutionStepValue(TOTAL_FORCES_Z);
+                for (int i = 0; i < (int)rElements.size(); i++) {
+                    ModelPart::ElementsContainerType::ptr_iterator ptr_itElem = rElements.ptr_begin() + i;
+
+                    Element* p_element = ptr_itElem->get();
+                    SphericContinuumParticle* pDemElem = dynamic_cast<SphericContinuumParticle*>(p_element);
+
+                    BoundedMatrix<double, 3, 3> stress_tensor = ZeroMatrix(3,3);
+                    noalias(stress_tensor) = (*(pDemElem->mSymmStressTensor));
+
+                    const double radius = pDemElem->GetRadius();
+
+                    FaceReaction += stress_tensor(2,2) * Globals::Pi*radius*radius;
                 }
             } else {
                 // Radial direction
@@ -270,7 +289,6 @@ public:
                     FaceReaction += n_dot_r;
                 }
             }
-
             const double ReactionStress = FaceReaction/mFaceArea;
 
             // Update K if required
