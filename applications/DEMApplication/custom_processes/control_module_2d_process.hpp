@@ -58,7 +58,6 @@ public:
                 "velocity_factor" : 1.0,
                 "compression_length" : 1.0,
                 "young_modulus" : 1.0e9,
-                "face_area" : 1.0,
                 "stress_increment_tolerance": 100.0,
                 "update_stiffness": true,
                 "start_time" : 0.0
@@ -79,7 +78,6 @@ public:
         mUpdateStiffness = rParameters["update_stiffness"].GetBool();
         mReactionStressOld = 0.0;
         mStiffness = mYoungModulus/mCompressionLength;
-        mFaceArea = rParameters["face_area"].GetDouble();
 
         KRATOS_CATCH("");
     }
@@ -101,18 +99,6 @@ public:
     void ExecuteInitialize() override
     {
         KRATOS_TRY;
-
-        if (mImposedDirection != 2) {
-            // X and Y directions
-            mFaceArea = 0.0;
-            const int NCons = static_cast<int>(mrModelPart.Conditions().size());
-            ModelPart::ConditionsContainerType::iterator con_begin = mrModelPart.ConditionsBegin();
-            #pragma omp parallel for reduction(+:mFaceArea)
-            for(int i = 0; i < NCons; i++) {
-                ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
-                mFaceArea += itCond->GetGeometry().Area();
-            }
-        }
 
         const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
         ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
@@ -231,6 +217,35 @@ public:
 
         if(CurrentTime >= mStartTime && mTargetStressTableId > 0)
         {
+            // Calculate mFaceArea
+            mFaceArea = 0.0;
+            if (mImposedDirection == 2) {
+                // Z direction
+                ModelPart::ElementsContainerType& rElements = mrModelPart.GetCommunicator().LocalMesh().Elements();
+
+                #pragma omp parallel for reduction(+:mFaceArea)
+                for (int i = 0; i < (int)rElements.size(); i++) {
+                    ModelPart::ElementsContainerType::ptr_iterator ptr_itElem = rElements.ptr_begin() + i;
+
+                    Element* p_element = ptr_itElem->get();
+                    SphericContinuumParticle* pDemElem = dynamic_cast<SphericContinuumParticle*>(p_element);
+
+                    const double radius = pDemElem->GetRadius();
+
+                    mFaceArea += Globals::Pi*radius*radius;
+                }
+            } else {
+                // X and Y directions
+
+                const int NCons = static_cast<int>(mrModelPart.Conditions().size());
+                ModelPart::ConditionsContainerType::iterator con_begin = mrModelPart.ConditionsBegin();
+                #pragma omp parallel for reduction(+:mFaceArea)
+                for(int i = 0; i < NCons; i++) {
+                    ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
+                    mFaceArea += itCond->GetGeometry().Area();
+                }
+            }
+
             // Calculate ReactionStress
             const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
@@ -241,14 +256,14 @@ public:
                 #pragma omp parallel for reduction(+:FaceReaction)
                 for(int i = 0; i<NNodes; i++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    FaceReaction += it->FastGetSolutionStepValue(TOTAL_FORCES_X);
+                    FaceReaction -= it->FastGetSolutionStepValue(CONTACT_FORCES_X);
                 }
             } else if (mImposedDirection == 1) {
                 // Y direction
                 #pragma omp parallel for reduction(+:FaceReaction)
                 for(int i = 0; i<NNodes; i++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    FaceReaction += it->FastGetSolutionStepValue(TOTAL_FORCES_Y);
+                    FaceReaction -= it->FastGetSolutionStepValue(CONTACT_FORCES_Y);
                 }
             } else if (mImposedDirection == 2) {
                 // Z direction
@@ -283,10 +298,10 @@ public:
                     n[1] *= inv_norm;
 
                     // Scalar product between reaction and normal
-                    double n_dot_r = n[0] * it->FastGetSolutionStepValue(TOTAL_FORCES_X) +
-                                     n[1] * it->FastGetSolutionStepValue(TOTAL_FORCES_Y);
+                    double n_dot_r = n[0] * it->FastGetSolutionStepValue(CONTACT_FORCES_X) +
+                                     n[1] * it->FastGetSolutionStepValue(CONTACT_FORCES_Y);
 
-                    FaceReaction += n_dot_r;
+                    FaceReaction -= n_dot_r;
                 }
             }
             const double ReactionStress = FaceReaction/mFaceArea;

@@ -27,7 +27,6 @@ class ControlModule2DProcess(KratosMultiphysics.Process):
         self.params.AddValue("velocity_factor",settings["velocity_factor"])
         self.params.AddValue("compression_length",settings["compression_length"])
         self.params.AddValue("young_modulus",settings["young_modulus"])
-        self.params.AddValue("face_area",settings["face_area"])
         self.params.AddValue("stress_increment_tolerance",settings["stress_increment_tolerance"])
         self.params.AddValue("update_stiffness",settings["update_stiffness"])
         self.params.AddValue("start_time",settings["start_time"])
