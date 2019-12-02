@@ -413,7 +413,7 @@ public:
     static inline TDataType SVDConditionNumber(
         const MatrixType& InputMatrix,
         const std::string TypeSVD = "Jacobi",
-        const TDataType Tolerance = std::numeric_limits<double>::epsilon()
+        const TDataType Tolerance = std::numeric_limits<double>::epsilon(),
         const IndexType MaxIter = 200)
     {
         MatrixType u_matrix, s_matrix, v_matrix;
