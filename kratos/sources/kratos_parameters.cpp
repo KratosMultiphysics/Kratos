@@ -693,7 +693,7 @@ void Parameters::AddDouble(
     )
 {
     Parameters aux_parameters(R"({"value": 0.0})");
-    aux_parameters.SetDouble(Value);
+    aux_parameters["value"].SetDouble(Value);
     this->AddValue(rEntry, aux_parameters["value"]);
 }
 
@@ -706,7 +706,7 @@ void Parameters::AddInt(
     )
 {
     Parameters aux_parameters(R"({"value": 0})");
-    aux_parameters.SetInt(Value);
+    aux_parameters["value"].SetInt(Value);
     this->AddValue(rEntry, aux_parameters["value"]);
 }
 
@@ -719,7 +719,7 @@ void Parameters::AddBool(
     )
 {
     Parameters aux_parameters(R"({"value": false})");
-    aux_parameters.SetBool(Value);
+    aux_parameters["value"].SetBool(Value);
     this->AddValue(rEntry, aux_parameters["value"]);
 }
 
@@ -732,7 +732,7 @@ void Parameters::AddString(
     )
 {
     Parameters aux_parameters(R"({"value": ""})");
-    aux_parameters.SetString(rValue);
+    aux_parameters["value"].SetString(rValue);
     this->AddValue(rEntry, aux_parameters["value"]);
 }
 
@@ -745,7 +745,7 @@ void Parameters::AddVector(
     )
 {
     Parameters aux_parameters(R"({"value": []})");
-    aux_parameters.SetVector(rValue);
+    aux_parameters["value"].SetVector(rValue);
     this->AddValue(rEntry, aux_parameters["value"]);
 }
 
@@ -758,7 +758,7 @@ void Parameters::AddMatrix(
     )
 {
     Parameters aux_parameters(R"({"value": []})");
-    aux_parameters.SetMatrix(rValue);
+    aux_parameters["value"].SetMatrix(rValue);
     this->AddValue(rEntry, aux_parameters["value"]);
 }
 
