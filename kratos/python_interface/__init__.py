@@ -15,9 +15,6 @@ class KratosPaths(object):
 sys.path.append(KratosPaths.kratos_libs)
 from Kratos import *
 
-# adding the scripts in "kratos/python_scripts" such that they are treated as a regular python-module
-__path__.append(KratosPaths.kratos_scripts)
-
 def __ModuleInitDetail():
     """
     Configure the parallel environment.
