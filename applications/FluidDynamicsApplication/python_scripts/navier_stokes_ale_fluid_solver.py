@@ -28,7 +28,7 @@ class NavierStokesAleFluidSolver(AleFluidSolver):
         By now the parameters of the FluidSolver have been validated, which means
         that the time-integration method used by the fluid can be queried
         '''
-        mesh_vel_calc_settings = self.settings["mesh_velocity_calculation"]
+        mesh_vel_calc_settings = self._GetMeshVelocityCalculationSettings()
         fluid_settings = self.settings["fluid_solver_settings"]
 
         fluid_solver_type = fluid_settings["solver_type"].GetString()
@@ -86,3 +86,33 @@ class NavierStokesAleFluidSolver(AleFluidSolver):
             warn_msg += 'no automatic selection\nof "time_scheme" for the calculation '
             warn_msg += 'of the mesh-velocity performed'
             KratosMultiphysics.Logger.PrintWarning("::[ALEFluidSolver]::", warn_msg)
+
+    def _GetMeshVelocityCalculationSettings(self):
+        ''' Auxiliary method to get the MESH_VELOCITY calculation settings.
+        These can be provided either in the "solver_settings" or inside the
+        "mesh_motion_solver_settings". This makes it possible to customize the
+        MESH_VELOCITY calculation when the ALE solver is used standalone.
+        If the user-provided parameters are in the "solver_settings" level we move
+        them to the "mesh_motion_solver_settings" as the ALE solver expects the
+        "mesh_velocity_calculation" settings to be there.
+        '''
+
+        print(self.settings)
+
+        mesh_vel_calc_in_solv_setts = self.settings.Has("mesh_velocity_calculation")
+        mesh_vel_calc_in_mesh_mot_setts = self.settings["mesh_motion_solver_settings"].Has("mesh_velocity_calculation")
+
+        if (mesh_vel_calc_in_solv_setts and mesh_vel_calc_in_mesh_mot_setts):
+            err_msg = 'Mesh velocity calculation settings is provided in both "solver_settings" and "mesh_motion_solver_settings"'
+            raise Exception(err_msg)
+
+        if mesh_vel_calc_in_solv_setts:
+            self.settings["mesh_motion_solver_settings"].AddEmptyValue("mesh_velocity_calculation")
+            self.settings["mesh_motion_solver_settings"]["mesh_velocity_calculation"].SetValue(self.settings["mesh_velocity_calculation"])
+            self.settings.RemoveValue("mesh_velocity_calculation")
+            return self.settings["mesh_motion_solver_settings"]["mesh_velocity_calculation"]
+        elif mesh_vel_calc_in_mesh_mot_setts:
+            return self.settings["mesh_motion_solver_settings"]["mesh_velocity_calculation"]
+        else:
+            self.settings["mesh_motion_solver_settings"].AddEmptyValue("mesh_velocity_calculation")
+            return self.settings["mesh_motion_solver_settings"]["mesh_velocity_calculation"]

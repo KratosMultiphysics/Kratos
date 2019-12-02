@@ -237,7 +237,9 @@ class MeshSolverBase(PythonSolver):
 
         # BDF2 was the default in the MeshSolver-Strategies
         default_settings = KratosMultiphysics.Parameters("""{
-            "time_scheme" : "bdf2"
+            "time_scheme" : "bdf2",
+            "alpha_m": 0.0,
+            "alpha_f": 0.0
         }""")
 
         self.settings["mesh_velocity_calculation"].ValidateAndAssignDefaults(default_settings)

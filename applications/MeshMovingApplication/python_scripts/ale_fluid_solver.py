@@ -69,6 +69,9 @@ class AleFluidSolver(PythonSolver):
         else:
             mesh_motion_solver_settings.AddEmptyValue("calculate_mesh_velocity").SetBool(True)
 
+        # Calling this method ensures that the MESH_VELOCITY is consistently computed (same scheme as the fluid)
+        self._SelectMeshVelocityCalculationSettings()
+
         # Constructing the mesh-solver with the entire mesh
         # if no submodelparts are specified then this is used for the computation of the mesh-motion
         # otherwise it only adds the dofs and the variables (to the entire ModelPart!)

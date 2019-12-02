@@ -13,10 +13,7 @@
         "mesh_motion_parts"           : ["circ_mesh", "rect_mesh"],
         "mesh_motion_solver_settings" : {
             "solver_type" : "structural_similarity",
-            "calculate_mesh_velocity": true,
-            "mesh_velocity_calculation": {
-                "time_scheme": "bossak"
-            }
+            "calculate_mesh_velocity": true
         },
         "fluid_solver_settings"  : {
             "model_part_name"             : "FluidModelPart",
