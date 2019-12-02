@@ -8,12 +8,6 @@ if not CheckIfApplicationsAvailable("CompressiblePotentialFlowApplication"):
     raise ImportError("The CompressiblePotentialFlowApplication is not available!")
 import KratosMultiphysics.CompressiblePotentialFlowApplication
 
-try:
-    import KratosMultiphysics.MeshMovingApplication
-    KratosMultiphysics.Logger.PrintInfo("MeshMovingApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("MeshMovingApplication", "not imported")
-
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.solver_wrappers.kratos import kratos_base_wrapper
 
@@ -23,9 +17,6 @@ from KratosMultiphysics.CompressiblePotentialFlowApplication.compute_forces_on_n
 from KratosMultiphysics.CompressiblePotentialFlowApplication.define_wake_process_2d import DefineWakeProcess2D
 from KratosMultiphysics.CompressiblePotentialFlowApplication.compute_lift_process import ComputeLiftProcess
 from KratosMultiphysics.gid_output_process import Factory as GiDFactory
-
-# def Create(cosim_solver_settings, level):
-#     return PotentialFlowWrapper(cosim_solver_settings, level)
 
 def Create(settings, solver_name):
     return PotentialFlowWrapper(settings, solver_name)
@@ -37,6 +28,8 @@ class PotentialFlowWrapper(kratos_base_wrapper.KratosBaseWrapper):
     def AdvanceInTime(self, current_time):
         self.time = 0.0
         return self.time
+    def Predict(self):
+        return
 
     def Initialize(self):
 
@@ -80,9 +73,3 @@ class PotentialFlowWrapper(kratos_base_wrapper.KratosBaseWrapper):
     def FinalizeSolutionStep(self):
         super(PotentialFlowWrapper, self).FinalizeSolutionStep()
         self.gid_output_process.ExecuteFinalize()
-
-    def _GetParallelType(self):
-        return self.project_parameters["problem_data"]["parallel_type"].GetString()
-
-    def _Name(self):
-        return self.__class__.__name__

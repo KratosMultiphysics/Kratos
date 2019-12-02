@@ -78,6 +78,9 @@ class SDoFStaticSolver(object):
                 #outputs results
                 results_sdof_static.write(str(self.dx) + "\n")
 
+    def Predict(self):
+        return
+
     def AdvanceInTime(self, current_time):
         self.time = 0.0
         return self.time

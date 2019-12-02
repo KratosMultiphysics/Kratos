@@ -70,6 +70,7 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
 
     def _Check(self, from_solver_data, to_solver_data):
         def CheckData(data_to_check):
+            print(data_to_check.location)
             if data_to_check.location != "node_historical":
                 raise Exception('Currently only historical nodal values are supported by the "{}"\nChecking ModelPart "{}" of solver "{}"'.format(self._ClassName(), data_to_check.model_part_name, data_to_check.solver_name))
 
