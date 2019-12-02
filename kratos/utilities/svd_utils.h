@@ -113,7 +113,7 @@ public:
         const MatrixType& InputMatrix,
         MatrixType& UMatrix,
         MatrixType& SMatrix,
-        MatrixType& VMatrix
+        MatrixType& VMatrix,
         const Parameters ThisParameters
     	)
     {
