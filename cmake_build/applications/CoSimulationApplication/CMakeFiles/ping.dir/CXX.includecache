@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../applications/CoSimulationApplication/custom_io/co_sim_EMPIRE_API.h
+iostream
+-
+sstream
+-
+iomanip
+-
+fstream
+-
+stdexcept
+-
+chrono
+-
+thread
+-
+unordered_map
+-
+chrono
+-
+vector
+-
+
+/home/bsaridar/Software/Kratos_FullDebug/Kratos/applications/CoSimulationApplication/tests/cpp_ping_pong_solvers/cpp_test_solver_ping/cpp_test_solver_ping.cpp
+custom_io/co_sim_EMPIRE_API.h
+/home/bsaridar/Software/Kratos_FullDebug/Kratos/applications/CoSimulationApplication/tests/cpp_ping_pong_solvers/cpp_test_solver_ping/custom_io/co_sim_EMPIRE_API.h
+assert.h
+-
+stdio.h
+-
+
