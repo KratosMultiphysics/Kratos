@@ -83,6 +83,7 @@ void KratosConvectionDiffusionApplication::Register() {
 
 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NODAL_TEMP_GRADIENT)
 
     // Registering elements and conditions here
     KRATOS_REGISTER_ELEMENT("EulerianConvDiff2D", mEulerianConvDiff2D);

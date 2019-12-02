@@ -47,6 +47,8 @@ void SimpleErrorCalculatorProcess<TDim>::Execute()
     // Initialize the metric
     // a) Check for Metric Scalar in Meshing Application
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has("METRIC_SCALAR")) << "Import Meshing Application" <<std::endl;
+    KRATOS_ERROR_IF_NOT(KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has("NODAL_TEMP_GRADIENT")) << "Error Creating Temperature Gradient" <<std::endl;
+    KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has("NODAL_AREA")) << "ERROR:: NODAL_AREA Variable doesn't exist" <<std::endl;
     const double& scalar_variable = KratosComponents<Variable<double>>::Get("METRIC_SCALAR");
 
     // b) Retrive Nodes and Elements from the Model Part
@@ -82,26 +84,59 @@ void SimpleErrorCalculatorProcess<TDim>::ErrorEstimatorImplementation()
     const int number_nodes = static_cast<int>(nodes_array.size());
     const int number_elements = static_cast<int>(elements_array.size());
     KRATOS_DEBUG_ERROR_IF(number_nodes == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
+    KRATOS_DEBUG_ERROR_IF(number_elements == 0) <<  "ERROR:: Empty list of elements" << std::endl;
 
-    array_1d<double, number_elements> elem_sigma; // Container for element sigma star value
     const auto it_elem_begin = elements_array.begin();
-    auto n_nodes = it_elem_begin->GetGeometry().size();
-    BoundedMatrix<double, n_nodes, TDim> DN_DX; // Container for shape function gradient 
+ 
     // Loop over the elements
     for (int i_elem = 0; i_elem < number_elements; ++i_elem) {
         auto it_elem = it_elem_begin + i_elem;
         auto r_geometry = it_elem->GetGeometry();
         auto n_nodes = r_geometry.size();
 
-        array_1d<double, n_nodes> nodal_temp; 
-        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-            nodal_temp[i_node] = r_geometry[i].FastGetSolutionStepValue(TEMPERATURE)
-        }
-        
-        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints( GeometryData::GI_GAUSS_1 );
+        Vector GaussWeights;
+        Vector DetJ;
+        Matrix ShapeFunctions;
+        ShapeFunctionDerivativesArrayType ShapeDerivatives;
+
+        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_1);
         const unsigned int NumGPoints = integration_points.size();
-        GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
-        r_geometry.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer, GeometryData::GI_GAUSS_1);
-        noalias(DN_DX) = DN_DXContainer[0];
+
+        r_geometry.ShapeFunctionsIntegrationPointsGradients(ShapeDerivatives, DetJ, GeometryData::GI_GAUSS_1);
+        
+        if (ShapeFunctions.size1() != NumGPoints || ShapeFunctions.size2() != n_nodes) {
+            ShapeFunctions.resize(NumGPoints, n_nodes, false);
+        }
+        ShapeFunctions = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+
+        if (GaussWeights.size() != NumGPoints) {
+            GaussWeights.resize(NumGPoints, false);
+        }
+
+        for (unsigned int g = 0; g < NumGPoints; g++)
+            GaussWeights[g] = DetJ[g] * integration_points[g].Weight();
+        
+        for (unsigned int g = 0; g < NumGPoints; g++) {
+            const auto& rDN_DX = ShapeDerivatives[g];
+            const auto& Ncontainer = ShapeFunctions[g];
+
+            std::vector<double,TDim> GaussPointTGrad;
+            for (unsigned int k = 0; k < TDim; k++) {
+                GaussPointTGrad[k] = 0.0;
+            }
+
+            for (unsigned int j = 0; j < TDim; j++) {
+                for (unsigned int i_node = 0; i_node < n_nodes; i_node++) {
+                    GaussPointTGrad[j] += rDN_DX(i_node,j)*r_geometry[i_node].FastGetSolutionStepValue(TEMPERATURE); 
+                }
+                GaussPointTGrad[j] *= GaussWeights[g];
+            }
+
+            for (int i_node = 0; i_node < n_nodes; i_node++) {
+                for (unsigned int i_dim = 0; i_dim < TDim; i_dim++) {
+                    r_geometry[i_node].FastGetSolutionStepValue(NODAL_TEMP_GRADIENT)[i_dim] += Ncontainer[i_node]*GaussPointTGrad[i_dim]*rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
+                }
+            } 
+        }                
 
 }

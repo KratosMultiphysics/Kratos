@@ -64,8 +64,8 @@ public:
     typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
 
     /// The definition of the node, element and geometry type
-    typedef Node <TDim>                                                                NodeType;
-    typedef Geometry<Node<TDim>>                                                   GeometryType;
+    typedef Node <TDim>                                                             NodeType;
+    typedef Geometry<Node<TDim>>                                                GeometryType;
 
     /// Definition of the iterators
     typedef WeakPointerVector< Element >::iterator                         WeakElementItType;
@@ -75,8 +75,9 @@ public:
     /// Definition of the indextype
     typedef std::size_t                                                            IndexType;
 
-    /// Matrix type definition
-    typedef BoundedMatrix<double, TDim, TDim> MatrixType;
+    /// Matrix and integration type definition
+    typedef BoundedMatrix<double, TDim, TDim>                                     MatrixType;
+    typedef GeometryType::ShapeFunctionsGradientsType      ShapeFunctionDerivativesArrayType;
 
     /// The type of array considered for the tensor
     typedef typename std::conditional<TDim == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
@@ -217,6 +218,18 @@ private:
      * @brief This method computes the Error Ratio and Writes it to the nodes/elements
      */
     void ErrorEstimatorImplementation();
+
+    // /**
+    //  * @brief This method computes the Gauss Point Quantites for the element
+    //  */
+    // void CalculateGaussPointData(Vector& rGaussWeights,
+    //                              Matrix& rNContainer,
+    //                              ShapeFunctionDerivativesArrayType& rDN_DX);
+
+    /**
+     * @brief This method computes the temperature gradient at nodes using the ShapeFunctions
+     */
+    void CalculateNodalTempGradient();
 
     /**
      * @brief In this final step the metric is computed for MMGProcess
