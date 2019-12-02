@@ -2,7 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosFluidDynamicsApplication ****")
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## define application core sources (pure C++ parts)
 set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
@@ -113,42 +113,36 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosFluidDynamicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-###############################################################################
+# Cotire
 if(USE_COTIRE MATCHES ON)
     cotire(KratosFluidDynamicsCore)
     cotire(KratosFluidDynamicsApplication)
 endif(USE_COTIRE MATCHES ON)
 
-###############################################################################
-## installing the resulting libraries
-
-install(TARGETS KratosFluidDynamicsCore DESTINATION libs )
-install(TARGETS KratosFluidDynamicsApplication DESTINATION libs )
-
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/FluidDynamicsApplication.py" DESTINATION "KratosMultiphysics/FluidDynamicsApplication" RENAME "__init__.py")
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/FluidDynamicsApplication.py KratosMultiphysics/FluidDynamicsApplication/__init__.py )
 
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
-    PATTERN "*.git" EXCLUDE
-    PATTERN "*.c" EXCLUDE
-    PATTERN "*.h" EXCLUDE
-    PATTERN "*.cpp" EXCLUDE
-    PATTERN "*.hpp" EXCLUDE
-  )
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
+      )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
-###############################################################################
-## If trilinos is avaliable, switch on the Fluid trilinos extension
+# Install targets
+install(TARGETS KratosFluidDynamicsCore DESTINATION libs )
+install(TARGETS KratosFluidDynamicsApplication DESTINATION libs )
 
-if((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON))
+## If trilinos is avaliable, switch on the Fluid trilinos extension 
+if((${USE_MPI} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON))
   message("Enabling trilinos extension for KratosFluidDynamicsApplication")
   add_subdirectory(trilinos_extension)
-endif((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON) )
+endif((${USE_MPI} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON) )

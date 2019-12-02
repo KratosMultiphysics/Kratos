@@ -51,9 +51,7 @@ Make sure that the following lines are properly set in the configure.sh file:
 >
 > -DEXTERNAL_SOLVERS_APPLICATION=ON \\
 >
-> -DCONSTITUTIVE_MODELS_APPLICATION=ON \\
->
-> -DSOLID_MECHANICS_APPLICATION=ON \\
+> -DSTRUCTURAL_MECHANICS_APPLICATION=ON \\
 >
 > -DFLUID_DYNAMICS_APPLICATION=ON \\
 >
