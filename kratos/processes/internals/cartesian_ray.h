@@ -110,7 +110,7 @@ public:
 
     void CollapseIntersectionPoints(double Tolerance){
 
-        if (mIntersections.empty()) {
+        if (mIntersections.size() < 2) {
             return;
         }
 
@@ -177,6 +177,35 @@ public:
         }
 
         mIsValid = !is_inside; // Ray is not valid if is_inside is true after the last intersection
+
+        // now coloring the points after the last intersection as outside
+        while(current_index < size){
+            ResultingColors[current_index++] = OutsideColor;
+        }
+    }
+
+    void MarkIntersectedIntervals(std::vector<double> const& Coordinates, int InsideColor, int OutsideColor, std::vector<double>& ResultingColors, double NearEnough){
+
+        const std::size_t size = Coordinates.size() - 1;
+
+        if(ResultingColors.size() != Coordinates.size())
+            ResultingColors.resize(size);
+    
+        std::size_t current_index=0;
+
+        for(auto& i_intersection : mIntersections){
+            while(current_index < size){
+                if((i_intersection.first - Coordinates[current_index+1]) > NearEnough){
+                    ResultingColors[current_index] = OutsideColor;
+                    current_index++;
+                }
+                else{
+                    ResultingColors[current_index] = InsideColor;
+                    current_index++;
+                    break;
+                } 
+            }
+        }
 
         // now coloring the points after the last intersection as outside
         while(current_index < size){
