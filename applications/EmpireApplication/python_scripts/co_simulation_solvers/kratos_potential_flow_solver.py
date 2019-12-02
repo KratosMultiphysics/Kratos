@@ -17,7 +17,7 @@ from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_anal
 from KratosMultiphysics.CompressiblePotentialFlowApplication.compute_forces_on_nodes_process import ComputeForcesOnNodesProcess
 from KratosMultiphysics.CompressiblePotentialFlowApplication.define_wake_process_2d import DefineWakeProcess2D
 from KratosMultiphysics.CompressiblePotentialFlowApplication.compute_lift_process import ComputeLiftProcess
-from gid_output_process import Factory as GiDFactory
+from KratosMultiphysics.gid_output_process import Factory as GiDFactory
 
 def CreateSolver(cosim_solver_settings, level):
     return KratosPotentialFlowSolver(cosim_solver_settings, level)

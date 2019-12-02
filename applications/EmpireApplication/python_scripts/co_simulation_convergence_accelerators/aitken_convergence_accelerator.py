@@ -11,7 +11,7 @@ from co_simulation_base_convergence_accelerator import CoSimulationBaseConvergen
 import numpy as np
 from copy import deepcopy
 from collections import deque
-from co_simulation_tools import red, classprint
+from KratosMultiphysics.EmpireApplication.co_simulation_tools import red, classprint
 
 def Create(settings, solvers, level):
     return Aitken(settings, solvers, level)

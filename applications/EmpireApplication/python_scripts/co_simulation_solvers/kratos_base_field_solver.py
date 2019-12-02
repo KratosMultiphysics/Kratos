@@ -4,11 +4,11 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 # Importing the base class
-from co_simulation_solvers.co_simulation_base_solver import CoSimulationBaseSolver
+from KratosMultiphysics.EmpireApplication.co_simulation_solvers.co_simulation_base_solver import CoSimulationBaseSolver
 
 # Other imports
-import co_simulation_tools
-from co_simulation_tools import solverprint, bold, red
+import KratosMultiphysics.EmpireApplication.co_simulation_tools
+from KratosMultiphysics.EmpireApplication.co_simulation_tools import solverprint, bold, red
 
 class KratosBaseFieldSolver(CoSimulationBaseSolver):
     def __init__(self, cosim_solver_settings, level):
@@ -77,7 +77,7 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
         ## TODO print additional stuff with higher echo-level
 
     def Check(self):
-        is_distributed = co_simulation_tools.COSIM_SPACE.IsDistributed()
+        is_distributed = KratosMultiphysics.EmpireApplication.co_simulation_tools.COSIM_SPACE.IsDistributed()
         solver_parallel_type = self._GetParallelType()
         if is_distributed and not solver_parallel_type == "MPI":
             warning_msg  = 'WARNING: Global "parallel_type" (MPI) is different '

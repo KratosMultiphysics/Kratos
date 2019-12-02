@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the base class of the cosim-solvers
-from co_simulation_solvers.co_simulation_base_solver import CoSimulationBaseSolver
+from KratosMultiphysics.EmpireApplication.co_simulation_solvers.co_simulation_base_solver import CoSimulationBaseSolver
 
 def CreateSolver(cosim_solver_settings, level):
     """This function creates and returns the solvers used for CoSimulation

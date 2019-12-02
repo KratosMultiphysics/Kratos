@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 # Other imports
 import numpy as np
-import co_simulation_tools as cs_tools
+import KratosMultiphysics.EmpireApplication.co_simulation_tools as cs_tools
 
 class CoSimulationBaseConvergenceAccelerator(object):
     def __init__(self, settings, solvers, level):

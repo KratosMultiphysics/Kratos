@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
-import co_simulation_tools as cs_tools
-from co_simulation_tools import csprint, bold, red, CheckCoSimulationSettingsAndAssignDefaults
+import KratosMultiphysics.EmpireApplication.co_simulation_tools as cs_tools
+from KratosMultiphysics.EmpireApplication.co_simulation_tools import csprint, bold, red, CheckCoSimulationSettingsAndAssignDefaults
 
 import sys
 
@@ -94,7 +94,7 @@ class CoSimulationAnalysis(object):
     def _CreateSolver(self):
         """Create the solver
         """
-        import co_simulation_solvers.python_solvers_wrapper_co_simulation as solvers_wrapper
+        import KratosMultiphysics.EmpireApplication.co_simulation_solvers.python_solvers_wrapper_co_simulation as solvers_wrapper
         return solvers_wrapper.CreateSolver(self.cosim_settings["solver_settings"], level=0)
 
 if __name__ == '__main__':

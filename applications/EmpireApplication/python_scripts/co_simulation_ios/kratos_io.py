@@ -9,7 +9,7 @@ from co_simulation_base_io import CoSimulationBaseIO
 
 # Other imports
 import numpy as np
-from co_simulation_tools import csprint, bold, green, red
+from KratosMultiphysics.EmpireApplication.co_simulation_tools import csprint, bold, green, red
 
 def Create(solvers, solver_name, level):
     return KratosIO(solvers, solver_name, level)

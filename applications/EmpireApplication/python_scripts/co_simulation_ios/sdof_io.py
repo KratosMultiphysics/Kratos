@@ -5,7 +5,7 @@ from co_simulation_base_io import CoSimulationBaseIO
 
 # Other imports
 import numpy as np
-import co_simulation_tools as cs_tools
+import KratosMultiphysics.EmpireApplication.co_simulation_tools as cs_tools
 
 def Create(solvers, solver_name, level):
     return SDoFIO(solvers, solver_name, level)

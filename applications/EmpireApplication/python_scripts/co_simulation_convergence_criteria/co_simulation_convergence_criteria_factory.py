@@ -3,8 +3,8 @@ from __future__ import print_function, absolute_import, division  # makes these 
 # Other imports
 import numpy as np
 from numpy import linalg as la
-from co_simulation_tools import classprint, bold, green, red
-import co_simulation_tools as cs_tools
+from KratosMultiphysics.EmpireApplication.co_simulation_tools import classprint, bold, green, red
+import KratosMultiphysics.EmpireApplication.co_simulation_tools as cs_tools
 
 def CreateConvergenceCriteria(settings, solvers, level):
     return CoSimulationConvergenceCriteria(settings, solvers, level)

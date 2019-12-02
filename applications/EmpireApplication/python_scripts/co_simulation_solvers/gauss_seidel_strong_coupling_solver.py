@@ -1,12 +1,12 @@
 from __future__ import print_function, absolute_import, division
 
 # Importing the base class
-from co_simulation_solvers.co_simulation_base_coupling_solver import CoSimulationBaseCouplingSolver
+from KratosMultiphysics.EmpireApplication.co_simulation_solvers.co_simulation_base_coupling_solver import CoSimulationBaseCouplingSolver
 
 # Other imports
-from co_simulation_convergence_accelerators.co_simulation_convergence_accelerator_factory import CreateConvergenceAccelerator
-from co_simulation_convergence_criteria.co_simulation_convergence_criteria_factory import CreateConvergenceCriteria
-from co_simulation_tools import couplingsolverprint, red, green, cyan, bold
+from KratosMultiphysics.EmpireApplication.co_simulation_convergence_accelerators.co_simulation_convergence_accelerator_factory import CreateConvergenceAccelerator
+from KratosMultiphysics.EmpireApplication.co_simulation_convergence_criteria.co_simulation_convergence_criteria_factory import CreateConvergenceCriteria
+from KratosMultiphysics.EmpireApplication.co_simulation_tools import couplingsolverprint, red, green, cyan, bold
 
 def CreateSolver(cosim_solver_settings, level):
     return GaussSeidelStrongCouplingSolver(cosim_solver_settings, level)
