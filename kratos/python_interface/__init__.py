@@ -67,17 +67,5 @@ def _ImportApplicationAsModule(application, application_name, application_folder
     # Add application to kernel
     Kernel.ImportApplication(application)
 
-def _ImportApplicationAsModuleCustomFolder(application, application_name, application_folder, mod_path):
-    Kernel = KratosGlobals.Kernel
-
-    Logger.PrintInfo("", "Importing    " + application_name)
-
-    # adding the scripts in "APP_NAME/python_scripts" such that they are treated as a regular python-module
-    python_path = os.path.join(application_folder, 'python_scripts')
-    mod_path.append(python_path)
-
-    # Add application to kernel
-    Kernel.ImportApplication(application)
-
 def IsDistributedRun():
     return KratosGlobals.Kernel.IsDistributedRun()
