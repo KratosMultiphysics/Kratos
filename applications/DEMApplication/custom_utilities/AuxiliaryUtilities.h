@@ -23,8 +23,6 @@ namespace Kratos {
         AuxiliaryUtilities() {};
         virtual ~AuxiliaryUtilities() {};
 
-
-
         double ComputeAverageZStressFor2D(ModelPart& rSpheresModelPart) {
 
             ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
@@ -35,12 +33,12 @@ namespace Kratos {
             for (int k = 0; k < (int)pElements.size(); k++) {
 
                 ElementsArrayType::iterator it = pElements.ptr_begin() + k;
-                    Element* p_element = &(*it);
-                    SphericContinuumParticle* p_sphere = dynamic_cast<SphericContinuumParticle*>(p_element);
+                Element* p_element = &(*it);
+                SphericContinuumParticle* p_sphere = dynamic_cast<SphericContinuumParticle*>(p_element);
 
-                    if (p_sphere->mNeighbourElements[k] == NULL) continue;
-                    double z_tensor_value = (*p_sphere->mSymmStressTensor)(2,2);
-                    sub_total += z_tensor_value;
+                if (p_sphere->mNeighbourElements[k] == NULL) continue;
+                double z_tensor_value = (*p_sphere->mSymmStressTensor)(2,2);
+                sub_total += z_tensor_value;
             }
             average_value = sub_total/(int)pElements.size();
             return average_value;

@@ -63,7 +63,6 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
     # Cotire
     if(USE_COTIRE MATCHES ON)
         cotire(KratosCoSimulationApplication)
-        cotire(KratosConvectionDiffusionApplication)
     endif(USE_COTIRE MATCHES ON)
 
     # Add to the KratosMultiphisics Python module
