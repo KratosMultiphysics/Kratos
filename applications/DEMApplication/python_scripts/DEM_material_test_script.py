@@ -95,7 +95,6 @@ class MaterialTest(object):
       self.PreUtilities = PreUtilities()
 
   def Initialize(self):
-
       self.PrepareTests()
       self.PrepareTestTriaxialHydro()
       self.PrepareTestOedometric()
