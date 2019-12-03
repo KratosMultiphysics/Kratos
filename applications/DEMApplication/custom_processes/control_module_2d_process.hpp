@@ -78,6 +78,7 @@ public:
         mUpdateStiffness = rParameters["update_stiffness"].GetBool();
         mReactionStressOld = 0.0;
         mStiffness = mYoungModulus/mCompressionLength;
+        mFaceArea = 1.0;
 
         KRATOS_CATCH("");
     }

@@ -21,7 +21,7 @@ class ControlModuleProcess(KratosMultiphysics.Process):
 
         self.components_process_list = []
 
-        if settings.Has("radial_displacement") and settings["radial_displacement"].GetBool() == True:
+        if settings.Has("radial_displacement") and settings["radial_displacement"].GetBool():
             # Control module on the vertical walls of a right cylinder with the base on the 'X-Y' plane centered on (0,0).
             # Negative target_stress means compression.
             self.params = KratosMultiphysics.Parameters("{}")
