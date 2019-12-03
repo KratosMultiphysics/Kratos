@@ -359,9 +359,9 @@ public:
 
         this->GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
         auto& r_constraints_array = BaseType::GetModelPart().MasterSlaveConstraints();
-        const std::size_t local_number_of_constraints = r_constraints_array.size();
+        const int local_number_of_constraints = r_constraints_array.size();
         const int global_number_of_constraints = r_comm.SumAll(local_number_of_constraints);
-        if(global_number_of_constraints != 0) {        
+        if(global_number_of_constraints != 0) {
             const auto& rProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 
             auto it_begin = BaseType::GetModelPart().MasterSlaveConstraints().begin();
@@ -373,7 +373,7 @@ public:
             #pragma omp parallel for firstprivate(it_begin)
             for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
                  (it_begin+i)->Apply(rProcessInfo);
-            
+
             //the following is needed since we need to eventually compute time derivatives after applying 
             //Master slave relations
             TSparseSpace::SetToZero(rDx);
