@@ -199,6 +199,8 @@ namespace Kratos
     void Calculate(const Variable<Matrix>& rVariable,
       Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector);
+
 protected:
   ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 

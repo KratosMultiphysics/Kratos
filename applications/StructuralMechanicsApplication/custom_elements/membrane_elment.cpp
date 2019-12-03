@@ -167,6 +167,7 @@ void MembraneElement::CalculateRightHandSide(
     InternalForces(internal_forces,GetGeometry().GetDefaultIntegrationMethod());
     rRightHandSideVector = ZeroVector(system_size);
     rRightHandSideVector -= internal_forces;
+    CalculateAndAddBodyForce(rRightHandSideVector);
 }
 
 //***********************************************************************************
@@ -864,9 +865,10 @@ void MembraneElement::GetValueOnIntegrationPoints(
 void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+    auto& r_geom = GetGeometry();
 
     // LUMPED MASS MATRIX
-    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int number_of_nodes = r_geom.size();
     unsigned int mat_size = number_of_nodes * 3;
 
     if (rMassMatrix.size1() != mat_size) {
@@ -875,10 +877,11 @@ void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& 
 
     noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
 
-    const double total_mass = GetGeometry().Area() * GetProperties()[THICKNESS] *
+    const double total_mass = r_geom.Area() * GetProperties()[THICKNESS] *
         StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
-    Vector lump_fact = GetGeometry().LumpingFactors(lump_fact);
+    Vector lump_fact =  ZeroVector(number_of_nodes);
+    r_geom.LumpingFactors(lump_fact);
 
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
         const double temp = lump_fact[i] * total_mass;
@@ -905,9 +908,10 @@ void MembraneElement::CalculateLumpedMassVector(VectorType& rMassVector)
         rMassVector.resize(local_size, false);
     }
 
-    const double total_mass = GetGeometry().Area() * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
+    const double total_mass = r_geom.Area() * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
 
-    Vector lump_fact = GetGeometry().LumpingFactors(lump_fact);
+    Vector lump_fact =  ZeroVector(number_of_nodes);
+    r_geom.LumpingFactors(lump_fact);
 
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
         const double temp = lump_fact[i] * total_mass;
@@ -1002,6 +1006,29 @@ void MembraneElement::AddExplicitContribution(
         }
     }
 
+    KRATOS_CATCH("")
+}
+
+void MembraneElement::CalculateAndAddBodyForce(VectorType& rRightHandSideVector)
+{
+    KRATOS_TRY
+    auto& r_geom = GetGeometry();
+    const unsigned int number_of_nodes = r_geom.size();
+
+    const double total_mass = r_geom.Area() * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
+
+    Vector lump_fact =  ZeroVector(number_of_nodes);
+    r_geom.LumpingFactors(lump_fact);
+
+    for (unsigned int i = 0; i < number_of_nodes; ++i) {
+        const double temp = lump_fact[i] * total_mass;
+
+        for (unsigned int j = 0; j < 3; ++j)
+        {
+            const unsigned int index = i * 3 + j;
+            rRightHandSideVector[index] += temp * r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION)[j];
+        }
+    }
     KRATOS_CATCH("")
 }
 
