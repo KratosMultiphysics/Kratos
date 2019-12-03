@@ -20,7 +20,6 @@ class KratosFreeSurfaceGeneralTests(KratosUnittest.TestCase):
         self.work_folder = "Reservoir2D"
         self.problem_name = "Reservoir2D"
         self.reference_file = "reference_reservoir_2D"
-        self.settings = "problem_settings.py"
         self.ExecuteReservoirTests()
 
     def testReservoir3D(self):
@@ -33,7 +32,6 @@ class KratosFreeSurfaceGeneralTests(KratosUnittest.TestCase):
         self.work_folder = "Reservoir3D"
         self.problem_name = "Reservoir3D"
         self.reference_file = "reference_reservoir_3D"
-        self.settings = "problem_settings.py"
         self.ExecuteReservoirTests()
 
     def ExecuteReservoirTests(self):
