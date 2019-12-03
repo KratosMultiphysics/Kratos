@@ -52,6 +52,10 @@ class KratosFreeSurfaceGeneralTests(KratosUnittest.TestCase):
         pass
 
     def runTest(self):
+        # Set number of OMP threads
+        parallel=KratosMultiphysics.OpenMPUtils()
+        parallel.SetNumThreads(1)
+
         # setting the domain size for the problem to be solved
         domain_size = self.domain_size
 
