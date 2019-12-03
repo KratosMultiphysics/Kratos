@@ -18,6 +18,3 @@ from KratosMPI import *
 if sys.platform.startswith('linux'):
     # restore default system flags
     sys.setdlopenflags(flags)
-
-from . import legacy_mpi_python_interface
-mpi = legacy_mpi_python_interface.LegacyMPIPythonInterface()
