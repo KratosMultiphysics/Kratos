@@ -82,6 +82,7 @@ def GetDefaultInputParameters():
             "ComputeStressTensorOption"        : false,
             "ImposeZStrainIn2DOption"          : false,
             "ZStrainValue"                     : "0.0*t",
+            "ImposeZStrainIn2DWithControlModule" : false,
             "GlobalDamping"                    : 0.0,
             "PoissonEffectOption"              : true,
             "ShearStrainParallelToBondOption"  : true,
@@ -164,6 +165,7 @@ def GetDefaultInputParameters():
             "PostTangentialImpactVelocity"     : false,
             "PostFaceNormalImpactVelocity"     : false,
             "PostFaceTangentialImpactVelocity" : false,
+            "PostControlModule"                : false,
             "post_vtk_option"                  : false,
 
             "IntegrationScheme"                : "deprecated_key_since_6_december_2017",
