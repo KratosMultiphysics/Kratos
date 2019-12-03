@@ -78,6 +78,10 @@ def Factory(settings, Model):
         [
             "CheckVectorBoundsProcess",
             KratosRANS.RansCheckVectorBoundsProcess
+        ],
+        [
+            "TimeAveragingProcess",
+            KratosRANS.RansTimeAveragingProcess
         ]
     ]
 
