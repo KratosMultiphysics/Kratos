@@ -62,19 +62,11 @@ class KratosFreeSurfaceGeneralTests(KratosUnittest.TestCase):
         self.main_model_part = FreeSurfaceModel.CreateModelPart("FluidPart")
 
         # importing the solvers needed
-        from KratosMultiphysics.FreeSurfaceApplication import edgebased_levelset_solver
-        edgebased_levelset_solver.AddVariables(self.main_model_part)
+        from KratosMultiphysics.FreeSurfaceApplication.edgebased_levelset_solver import EdgeBasedLevelSetSolver
+        EdgeBasedLevelSetSolver.AddVariables(self.main_model_part)
 
         # introducing input file name
         input_file_name = self.problem_name
-
-        # reading the fluid part
-        gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostBinary
-        multifile = KratosMultiphysics.MultiFileFlag.MultipleFiles
-        deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteUndeformed
-        write_conditions = KratosMultiphysics.WriteConditionsFlag.WriteConditions
-
-        gid_io = KratosMultiphysics.GidIO(input_file_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
 
         model_part_io_fluid = KratosMultiphysics.ModelPartIO(input_file_name)
         model_part_io_fluid.ReadModelPart(self.main_model_part)
@@ -83,7 +75,7 @@ class KratosFreeSurfaceGeneralTests(KratosUnittest.TestCase):
         self.main_model_part.SetBufferSize(2)
 
         # adding dofs
-        edgebased_levelset_solver.AddDofs(self.main_model_part)
+        EdgeBasedLevelSetSolver.AddDofs(self.main_model_part)
 
         # we assume here that all of the internal nodes are marked with a negative distance
         # set the distance of all of the internal nodes to a small value
@@ -115,7 +107,7 @@ class KratosFreeSurfaceGeneralTests(KratosUnittest.TestCase):
 
         viscosity = 1.0e-06
         density = 1000.0
-        fluid_solver = edgebased_levelset_solver.EdgeBasedLevelSetSolver(self.main_model_part, domain_size, body_force, viscosity, density)
+        fluid_solver = EdgeBasedLevelSetSolver(self.main_model_part, domain_size, body_force, viscosity, density)
         fluid_solver.redistance_frequency = 5.0
         fluid_solver.extrapolation_layers = int(5)
         fluid_solver.stabdt_pressure_factor = 1.0
@@ -130,7 +122,6 @@ class KratosFreeSurfaceGeneralTests(KratosUnittest.TestCase):
 
         # settings to be changed
         max_Dt = 1.0e-02
-        initial_Dt = 0.001 * max_Dt
         final_time = 5.0
         safety_factor = self.safety_factor
 
@@ -169,14 +160,14 @@ class KratosFreeSurfaceGeneralTests(KratosUnittest.TestCase):
                 if(check_dt < Dt):
 
                     # we found a velocity too large! we need to reduce the time step
-                    fluid_solver.fluid_solver.ReduceTimeStep(self.main_model_part, time)  # this is to set the database to the value at the beginning of the step
+                    fluid_solver.ReduceTimeStep(self.main_model_part, time)  # this is to set the database to the value at the beginning of the step
 
                     safety_factor *= 3.00000e-01
                     reduced_dt = fluid_solver.EstimateTimeStep(safety_factor, max_Dt)
 
                     time = time - Dt + reduced_dt
 
-                    fluid_solver.fluid_solver.ReduceTimeStep(self.main_model_part, time)  # this is to set the database to the value at the beginning of the step
+                    fluid_solver.ReduceTimeStep(self.main_model_part, time)  # this is to set the database to the value at the beginning of the step
 
                     fluid_solver.Solve()
 
@@ -200,7 +191,6 @@ class KratosFreeSurfaceGeneralTests(KratosUnittest.TestCase):
 
                         for node in self.main_model_part.Nodes:
                             values = [ float(i) for i in line.rstrip('\n ').split(',') ]
-                            node_id = values[0]
                             reference_dist = values[1]
 
                             distance = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)

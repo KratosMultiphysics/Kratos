@@ -5,64 +5,65 @@ import problem_settings
 domain_size = problem_settings.domain_size
 
 # importing Kratos main library
-import KratosMultiphysics as KM
+import KratosMultiphysics
+import KratosMultiphysics.FreeSurfaceApplication as KratosFreeSurface
 
 # defining a model part for the fluid and one for the structure
-FreeSurfaceModel = KM.Model()
+FreeSurfaceModel = KratosMultiphysics.Model()
 fluid_model_part = FreeSurfaceModel.CreateModelPart("FluidPart")
 
 # importing the solvers needed
-from KratosMultiphysics.FreeSurfaceApplication import edgebased_levelset_solver
-edgebased_levelset_solver.AddVariables(fluid_model_part)
+from KratosMultiphysics.FreeSurfaceApplication.edgebased_levelset_solver import EdgeBasedLevelSetSolver
+EdgeBasedLevelSetSolver.AddVariables(fluid_model_part)
 
 # introducing input file name
 input_file_name = problem_settings.problem_name
 
 # reading the fluid part
-gid_mode = KM.GiDPostMode.GiD_PostBinary
-multifile = KM.MultiFileFlag.MultipleFiles
-deformed_mesh_flag = KM.WriteDeformedMeshFlag.WriteUndeformed
-write_conditions = KM.WriteConditionsFlag.WriteConditions
+gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostBinary
+multifile = KratosMultiphysics.MultiFileFlag.MultipleFiles
+deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteUndeformed
+write_conditions = KratosMultiphysics.WriteConditionsFlag.WriteConditions
 
 # selecting output format
-if(problem_settings.print_layers == True):
-    gid_io = EdgebasedGidIO(input_file_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
+if problem_settings.print_layers:
+    gid_io = KratosFreeSurface.EdgebasedGidIO(input_file_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
 else:
-    gid_io = KM.GidIO(input_file_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
+    gid_io = KratosMultiphysics.GidIO(input_file_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
 
-model_part_io_fluid = KM.ModelPartIO(input_file_name)
+model_part_io_fluid = KratosMultiphysics.ModelPartIO(input_file_name)
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
 # setting up the buffer size: SHOULD BE DONE AFTER READING!!!
 fluid_model_part.SetBufferSize(2)
 
 # adding dofs
-edgebased_levelset_solver.AddDofs(fluid_model_part)
+EdgeBasedLevelSetSolver.AddDofs(fluid_model_part)
 
 # we assume here that all of the internal nodes are marked with a negative distance
 # set the distance of all of the internal nodes to a small value
 small_value = 0.0001
 n_active = 0
 for node in fluid_model_part.Nodes:
-    dist = node.GetSolutionStepValue(KM.DISTANCE)
+    dist = node.GetSolutionStepValue( KratosMultiphysics.DISTANCE)
     if(dist < 0.0):
         n_active = n_active + 1
-        node.SetSolutionStepValue(KM.DISTANCE, 0, -small_value)
+        node.SetSolutionStepValue( KratosMultiphysics.DISTANCE, 0, -small_value)
     else:
-        node.SetSolutionStepValue(KM.DISTANCE, 0, small_value)
+        node.SetSolutionStepValue( KratosMultiphysics.DISTANCE, 0, small_value)
 
 if(n_active == 0):
     raise "ERROR. At least one node has to be initialized with a distance lesser than 0"
 
 # make sure that the porosity is not zero on any node (set by default to fluid only)
 for node in fluid_model_part.Nodes:
-    if(node.GetSolutionStepValue(KM.POROSITY) == 0.0):
-        node.SetSolutionStepValue(KM.POROSITY, 0, 1.0)
-    if(node.GetSolutionStepValue(KM.DIAMETER) == 0.0):
-        node.SetSolutionStepValue(KM.DIAMETER, 0, 1.0)
+    if(node.GetSolutionStepValue( KratosMultiphysics.POROSITY) == 0.0):
+        node.SetSolutionStepValue( KratosMultiphysics.POROSITY, 0, 1.0)
+    if(node.GetSolutionStepValue( KratosMultiphysics.DIAMETER) == 0.0):
+        node.SetSolutionStepValue( KratosMultiphysics.DIAMETER, 0, 1.0)
 
 # constructing the solver
-body_force = KM.Vector(3)
+body_force = KratosMultiphysics.Vector(3)
 body_force[0] = problem_settings.body_force_x
 body_force[1] = problem_settings.body_force_y
 body_force[2] = problem_settings.body_force_z
@@ -71,7 +72,7 @@ if(body_force[0] == 0.0 and body_force[1] == 0.0 and body_force[2] == 0.0):
 
 viscosity = problem_settings.viscosity
 density = problem_settings.density
-fluid_solver = edgebased_levelset_solver.EdgeBasedLevelSetSolver(fluid_model_part, domain_size, body_force, viscosity, density)
+fluid_solver = EdgeBasedLevelSetSolver(fluid_model_part, domain_size, body_force, viscosity, density)
 fluid_solver.redistance_frequency = problem_settings.redistance_frequency
 fluid_solver.extrapolation_layers = int(problem_settings.extrapolation_layers)
 fluid_solver.stabdt_pressure_factor = problem_settings.stabdt_pressure_factor
@@ -109,7 +110,7 @@ out = 0
 original_max_dt = max_Dt
 
 # mesh to be printed
-if(problem_settings.single_output_file == True):
+if problem_settings.single_output_file:
     mesh_name = 0.0
     gid_io.InitializeMesh(mesh_name)
     gid_io.WriteMesh(fluid_model_part.GetMesh())
@@ -173,23 +174,23 @@ while(time < final_time):
             fluid_solver.Solve()
 
     if(time >= next_output_time):
-        if(problem_settings.single_output_file == False):
+        if not problem_settings.single_output_file:
             # writing mesh
             gid_io.InitializeMesh(time)
             gid_io.WriteMesh((fluid_model_part).GetMesh())
             gid_io.FinalizeMesh()
             gid_io.InitializeResults(time, (fluid_model_part).GetMesh())
 
-        gid_io.WriteNodalResults(KM.PRESSURE, fluid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(KM.POROSITY, fluid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(KM.VELOCITY, fluid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(KM.DISTANCE, fluid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(KM.PRESS_PROJ, fluid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(KM.LIN_DARCY_COEF, fluid_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults( KratosMultiphysics.PRESSURE, fluid_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults( KratosMultiphysics.POROSITY, fluid_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults( KratosMultiphysics.VELOCITY, fluid_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults( KratosMultiphysics.DISTANCE, fluid_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults( KratosMultiphysics.PRESS_PROJ, fluid_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults( KratosMultiphysics.LIN_DARCY_COEF, fluid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(KM.NONLIN_DARCY_COEF, fluid_model_part.Nodes, time, 0)
         gid_io.Flush()
 
-        if(problem_settings.single_output_file == False):
+        if not problem_settings.single_output_file:
             gid_io.FinalizeResults()
 
         next_output_time = time + output_dt
@@ -199,5 +200,5 @@ while(time < final_time):
     out = out + 1
     step = step + 1
 
-if(problem_settings.single_output_file == True):
+if problem_settings.single_output_file:
     gid_io.FinalizeResults()
