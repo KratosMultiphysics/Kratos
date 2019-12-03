@@ -367,11 +367,11 @@ public:
             auto it_begin = BaseType::GetModelPart().MasterSlaveConstraints().begin();
 
             #pragma omp parallel for firstprivate(it_begin)
-            for(int i=0; i<local_number_of_constraints; ++i)
+            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
                 (it_begin+i)->ResetSlaveDofs(rProcessInfo);
 
             #pragma omp parallel for firstprivate(it_begin)
-            for(int i=0; i<local_number_of_constraints; ++i)
+            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
                  (it_begin+i)->Apply(rProcessInfo);
             
             //the following is needed since we need to eventually compute time derivatives after applying 
