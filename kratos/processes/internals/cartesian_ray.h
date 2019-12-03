@@ -113,19 +113,59 @@ public:
         if (mIntersections.size() < 2) {
             return;
         }
-
-        std::size_t new_size = 0;
         // Sort
         std::sort(mIntersections.begin(), mIntersections.end());
         // Unique
+        // auto i_unique = mIntersections.begin();
+        // auto i_patch_begin = mIntersections.begin();
+        // auto i_patch_end = mIntersections.begin();
+        // bool patch_started = false;
+        // for(auto i_intersection = mIntersections.begin() + 1 ; i_intersection != mIntersections.end() ; i_intersection++){
+        //     if (std::abs(i_intersection->first - i_patch_begin->first) < Tolerance) { // There is a near hit so we start the patch
+        //        if(i_intersection + 1 == mIntersections.end()){ // we are at the end so we should finish the patch and check if it is really pass through a duplicated surface or just passing tangent to model
+        //             i_patch_end = i_intersection;
+        //             if(CheckPassingThroughByExtraRays(i_patch_begin, i_patch_end, Tolerance,  2.00*Tolerance)) {
+        //                 if(i_unique != i_patch_begin) {
+        //                     *i_unique=std::move(*i_patch_begin); 
+        //                 }
+        //                 i_unique++;
+        //             }
+        //         }
+        //         else {
+        //             patch_started = true;
+        //         }
+        //     }
+        //     else { // the hit points are far enough 
+        //         if(patch_started){ // then we should finish the patch and check if it is really pass through a duplicated surface or just passing tangent to model
+        //             i_patch_end = i_intersection;
+        //             if(CheckPassingThroughByExtraRays(i_patch_begin, i_patch_end, Tolerance,  2.00*Tolerance)) {
+        //                 if(i_unique != i_patch_begin) {
+        //                     *i_unique=std::move(*i_patch_begin); 
+        //                 }
+        //                 i_unique++;
+        //             }
+        //             patch_started = false;
+        //         }
+        //         else{
+        //             i_patch_begin = i_intersection; // This would be the next patch begin or not depending on the next intersection.
+        //             if(i_unique != i_intersection) {
+        //                 *i_unique=std::move(*i_intersection);
+        //             } 
+        //             i_unique++;
+        //         }
+        //     }
+        // }
+        // auto new_size = std::distance(mIntersections.begin(), i_unique);
+        std::size_t new_size = 0;
         auto i_begin = mIntersections.begin();
         auto i_intersection = mIntersections.begin();
         while (++i_begin != mIntersections.end()) {
             // considering the very near points as the same points
             if (std::abs(i_begin->first - i_intersection->first) > Tolerance) { // if the hit points are far enough they are not the same 
                 if(new_size == 0)
-                    new_size++; // we should consider the first intersection then.               
-                *(++i_intersection) = *i_begin;
+                    new_size++; // we should consider the first intersection then.    
+                if(++i_intersection != i_begin)           
+                    *i_intersection = std::move(*i_begin);
                 new_size++;
             }
             else{ // Now there are near hits, so we check if it is really pass through a duplicated surface or just passing tangent to model
@@ -141,7 +181,8 @@ public:
                 i_patch_end = i_begin;
 
                 if(CheckPassingThroughByExtraRays(i_patch_begin, i_patch_end, Tolerance,  2.00*Tolerance)) {
-                    *(++i_intersection) = *i_begin;
+                    if(++i_intersection != i_begin)           
+                        *i_intersection = std::move(*i_begin);
                     new_size++;
                 }
 
