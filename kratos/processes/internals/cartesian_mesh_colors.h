@@ -46,6 +46,7 @@ namespace Kratos
       std::vector<array_1d<double,3>> mElementalRayColors;
       std::vector<double> mNodalColors;
       std::vector<double> mElementalColors;
+      std::vector<array_1d<double,6>> mElementalFaceColors;
       DenseMatrix<Internals::CartesianRay<Element::GeometryType>> mXYRays;
       DenseMatrix<Internals::CartesianRay<Element::GeometryType>> mXZRays;
       DenseMatrix<Internals::CartesianRay<Element::GeometryType>> mYZRays;
@@ -91,6 +92,7 @@ namespace Kratos
         mNodalColors.resize(mNodalCoordinates[0].size()*mNodalCoordinates[1].size()*mNodalCoordinates[2].size());
         mElementalRayColors.resize((mNodalCoordinates[0].size() - 1) * (mNodalCoordinates[1].size() - 1)*(mNodalCoordinates[2].size() - 1));
         mElementalColors.resize((mNodalCoordinates[0].size() - 1) * (mNodalCoordinates[1].size() - 1)*(mNodalCoordinates[2].size() - 1));
+        mElementalFaceColors.resize((mNodalCoordinates[0].size() - 1) * (mNodalCoordinates[1].size() - 1)*(mNodalCoordinates[2].size() - 1));
 
         Point min_point( mNodalCoordinates[0][0] - mTolerance, mNodalCoordinates[1][0] - mTolerance, mNodalCoordinates[2][0] - mTolerance);
         Point max_point( mNodalCoordinates[0].back() + mTolerance, mNodalCoordinates[1].back() + mTolerance, mNodalCoordinates[2].back() + mTolerance);
@@ -104,17 +106,16 @@ namespace Kratos
     void SetAllColors(double TheColor){
 
         const int number_of_nodes = static_cast<int>(mNodalColors.size());
-        #pragma omp parallel for
         for(int i = 0 ; i < number_of_nodes ; i++ ){
             mNodalRayColors[i] = ScalarVector(3,TheColor);
             mNodalColors[i] = TheColor;
         }
 
         const int number_of_elements = static_cast<int>(mElementalColors.size());
-        #pragma omp parallel for
         for(int i = 0 ; i < number_of_elements ; i++ ){
             mElementalRayColors[i] = ScalarVector(3,TheColor);
             mElementalColors[i] = TheColor;
+            mElementalFaceColors[i] = ScalarVector(6,TheColor);
         }
     }
 
@@ -128,9 +129,16 @@ namespace Kratos
         return mElementalColors[index];
     }
 
+    array_1d<double,6>& GetElementalFaceColor(std::size_t I, std::size_t J, std::size_t K){
+        const std::size_t index = I + J * mElementCenterCoordinates[0].size() + K * mElementCenterCoordinates[1].size() * mElementCenterCoordinates[0].size();
+        return mElementalFaceColors[index];
+    }
+
     std::vector<double>& GetNodalColors(){ return mNodalColors;}
 
     std::vector<double>& GetElementalColors(){return mElementalColors;}
+
+    std::vector<array_1d<double,6>>& GetElementalFaceColors(){return mElementalFaceColors;}
 
     Point GetPoint(std::size_t I, std::size_t J, std::size_t K){
         return Point(mNodalCoordinates[0][I], mNodalCoordinates[1][J], mNodalCoordinates[2][K]);
@@ -150,7 +158,7 @@ namespace Kratos
         std::vector<double>* p_y_coordinates = &(mNodalCoordinates[1]);
         std::vector<double>* p_z_coordinates = &(mNodalCoordinates[2]);
 
-        if(EntititesToColor == "center_of_elements"){
+        if((EntititesToColor == "center_of_elements") || (EntititesToColor == "face_of_elements")){
             p_x_coordinates = &(mElementCenterCoordinates[0]);
             p_y_coordinates = &(mElementCenterCoordinates[1]);
             p_z_coordinates = &(mElementCenterCoordinates[2]);
@@ -361,6 +369,188 @@ namespace Kratos
 
         }
 
+        void CalculateElementalFaceColors(array_1d< std::size_t, 3 > const& MinRayPosition, array_1d< std::size_t, 3 > const& MaxRayPosition, int InsideColor, int OutsideColor, int VolumeColor){
+            std::vector<double> colors;
+            const std::size_t size_x = mElementCenterCoordinates[0].size();
+            const std::size_t size_y = mElementCenterCoordinates[1].size();
+            const std::size_t size_z = mElementCenterCoordinates[2].size();
+            
+            std::vector<double> x_coordinates(size_x + 2);
+            std::vector<double> y_coordinates(size_y + 2);
+            std::vector<double> z_coordinates(size_z + 2);
+
+            x_coordinates.front() = mNodalCoordinates[0].front();
+            y_coordinates.front() = mNodalCoordinates[1].front();
+            z_coordinates.front() = mNodalCoordinates[2].front();
+
+            for(std::size_t i = 0 ; i < size_x ; i++){
+                x_coordinates[i+1] = mElementCenterCoordinates[0][i];
+            }
+
+            for(std::size_t i = 0 ; i < size_y ; i++){
+                y_coordinates[i+1] = mElementCenterCoordinates[1][i];
+            }
+
+            for(std::size_t i = 0 ; i < size_z ; i++){
+                z_coordinates[i+1] = mElementCenterCoordinates[2][i];
+            }
+
+            x_coordinates.back() = mNodalCoordinates[0].back();
+            y_coordinates.back() = mNodalCoordinates[1].back();
+            z_coordinates.back() = mNodalCoordinates[2].back();
+
+            #pragma omp parallel for
+            for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
+                for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
+                    auto& ray = mXYRays(i,j);
+                    ray.CollapseIntersectionPoints(mTolerance);
+                    ray.MarkIntersectedIntervals(z_coordinates, InsideColor, OutsideColor, colors, mTolerance);
+                    double previous_center_color = OutsideColor;
+                    for(std::size_t k = 0 ; k < size_z; k++){
+                        auto next_center_color = GetElementalColor(i,j,k);
+                        auto interval_color = colors[k];
+                        if(interval_color == InsideColor){
+                            if((previous_center_color == VolumeColor) && (next_center_color != VolumeColor)){
+                                GetElementalFaceColor(i,j,k-1)[5] = InsideColor;   // [-x,-y,-z,x,y,z]
+                            }
+                            else if((previous_center_color != VolumeColor) && (next_center_color == VolumeColor)){ 
+                                GetElementalFaceColor(i,j,k)[2] = InsideColor;   // [-x,-y,-z,x,y,z]
+                            }
+                            else{
+                                KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << i << "," << j << "," << k << "]" << std::endl;
+                            }
+                        }
+                        previous_center_color = next_center_color;
+                    }
+                    if(colors.back() == InsideColor){
+                        if(previous_center_color == VolumeColor){
+                            GetElementalFaceColor(i,j,size_z-1)[5] = InsideColor;   // [-x,-y,-z,x,y,z]
+                        }
+                        else{
+                            KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << i << "," << j << "," << size_z-1 << "]" << std::endl;
+                        }
+                    }
+                }
+            }
+
+            #pragma omp parallel for
+            for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
+                for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
+                    auto& ray = mXZRays(i,k);
+                    ray.CollapseIntersectionPoints(mTolerance);
+                    ray.MarkIntersectedIntervals(y_coordinates, InsideColor, OutsideColor, colors, mTolerance);
+                    double previous_center_color = OutsideColor;
+                    for(std::size_t j = 0 ; j < size_y ; j++){
+                        auto next_center_color = GetElementalColor(i,j,k);
+                        auto interval_color = colors[j];
+                        if(interval_color == InsideColor){
+                            if((previous_center_color == VolumeColor) && (next_center_color != VolumeColor)){
+                                GetElementalFaceColor(i,j-1,k)[4] = InsideColor;   // [-x,-y,-z,x,y,z]
+                            }
+                            else if((previous_center_color != VolumeColor) && (next_center_color == VolumeColor)){ 
+                                GetElementalFaceColor(i,j,k)[1] = InsideColor;   // [-x,-y,-z,x,y,z]
+                            }
+                            else{
+                                KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << i << "," << j << "," << k << "]" << std::endl;
+                            }
+                        }
+                        previous_center_color = next_center_color;
+                    }
+                    if(colors.back() == InsideColor){
+                        if(previous_center_color == VolumeColor){
+                            GetElementalFaceColor(i, size_y-1,k)[4] = InsideColor;   // [-x,-y,-z,x,y,z]
+                        }
+                        else{
+                            KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << i << "," << size_y-1 << "," << k << "]" << std::endl;
+                        }
+                    }
+                }
+            }
+
+            // #pragma omp parallel for
+            for(int j = MinRayPosition[1] ; j < static_cast<int>(MaxRayPosition[1]) ; j++){
+                for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
+                    auto& ray= mYZRays(j,k);
+                    ray.CollapseIntersectionPoints(mTolerance);
+                    ray.MarkIntersectedIntervals(x_coordinates, InsideColor, OutsideColor, colors, mTolerance);
+                    double previous_center_color = OutsideColor;
+                    for(std::size_t i = 0 ; i < size_x ; i++){
+                        auto next_center_color = GetElementalColor(i,j,k);
+                        auto interval_color = colors[i];
+                        if(interval_color == InsideColor){
+                            if((previous_center_color == VolumeColor) && (next_center_color != VolumeColor)){
+                                GetElementalFaceColor(i-1,j,k)[3] = InsideColor;   // [-x,-y,-z,x,y,z]
+                            }
+                            else if((previous_center_color != VolumeColor) && (next_center_color == VolumeColor)){ 
+                                GetElementalFaceColor(i,j,k)[0] = InsideColor;   // [-x,-y,-z,x,y,z]
+                            }
+                            else{
+                                KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << i << "," << j << "," << k << "]" << std::endl;
+                            }
+                        }
+                        previous_center_color = next_center_color;
+                    }
+                    if(colors.back() == InsideColor){
+                        if(previous_center_color == VolumeColor){
+                            GetElementalFaceColor(size_x-1,j,k)[3] = InsideColor;   // [-x,-y,-z,x,y,z]
+                        }
+                        else{
+                            KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << size_x-1 << "," << j << "," << k << "]" << std::endl;
+                        }
+                    }
+                }
+            }
+        }
+
+        // void CalculateElementalFaceColors(array_1d< std::size_t, 3 > const& MinRayPosition, array_1d< std::size_t, 3 > const& MaxRayPosition, 
+        //         int InsideColor, int OutsideColor, int VolumeColor, int Direction){
+
+        //     std::vector<double> colors;
+        //     const std::size_t size = mElementCenterCoordinates[Direction].size();
+
+        //     std::vector<double> coordinates(size + 2);
+        //     coordinates[0] = mNodalCoordinates[Direction].front();
+
+        //     for(std::size_t i = 0 ; i < size ; i++){
+        //         coordinates[i+1] = mElementCenterCoordinates[Direction][i];
+        //     }
+        //     coordinates.back() = mNodalCoordinates[Direction].back();
+
+        //     // #pragma omp parallel for
+        //     for(int j = MinRayPosition[1] ; j < static_cast<int>(MaxRayPosition[1]) ; j++){
+        //         for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
+        //             auto& ray= mYZRays(j,k);
+        //             ray.CollapseIntersectionPoints(mTolerance);
+        //             ray.MarkIntersectedIntervals(coordinates, InsideColor, OutsideColor, colors, mTolerance);
+        //             double previous_center_color = OutsideColor;
+        //             for(std::size_t i = 0 ; i < size ; i++){
+        //                 auto next_center_color = GetElementalColor(i,j,k);
+        //                 auto interval_color = colors[i];
+        //                 if(interval_color == InsideColor){
+        //                     if((previous_center_color == VolumeColor) && (next_center_color != VolumeColor)){
+        //                         GetElementalFaceColor(i-1,j,k)[3] = InsideColor;   // [-x,-y,-z,x,y,z]
+        //                     }
+        //                     else if((previous_center_color != VolumeColor) && (next_center_color == VolumeColor)){ 
+        //                         GetElementalFaceColor(i,j,k)[0] = InsideColor;   // [-x,-y,-z,x,y,z]
+        //                     }
+        //                     else{
+        //                         KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << i << "," << j << "," << k << "]" << std::endl;
+        //                     }
+        //                 }
+        //                 previous_center_color = next_center_color;
+        //             }
+        //             if(colors.back() == InsideColor){
+        //                 if(previous_center_color == VolumeColor){
+        //                     GetElementalFaceColor(size-1,j,k)[3] = InsideColor;   // [-x,-y,-z,x,y,z]
+        //                 }
+        //                 else{
+        //                     KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << size_x-1 << "," << j << "," << k << "]" << std::endl;
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+
         template<typename TPointsContainerType>
         void CalculateMinMaxNodePositions(TPointsContainerType const& Points, array_1d< std::size_t, 3 >& MinNodePosition, array_1d< std::size_t, 3 >& MaxNodePosition){
             if(Points.empty())
@@ -479,6 +669,15 @@ namespace Kratos
                 output_file << "<DataArray type=\"Float64\" Name=\"" << "RayColor" << i << "\" NumberOfComponents=\"1\" format=\"ascii\">" << std::endl;
                 
                 for (auto& color: mElementalRayColors) {
+                    output_file << color[i] << " ";
+                }
+                output_file << std::endl;  
+                output_file << "</DataArray> " << std::endl;
+            }
+            for(int i = 0 ; i < 6 ; i++){
+                output_file << "<DataArray type=\"Float64\" Name=\"" << "FaceColor" << i << "\" NumberOfComponents=\"1\" format=\"ascii\">" << std::endl;
+                
+                for (auto& color: mElementalFaceColors) {
                     output_file << color[i] << " ";
                 }
                 output_file << std::endl;  
