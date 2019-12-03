@@ -233,7 +233,7 @@ namespace Kratos
 		
 		array_1d< std::size_t, 3 > min_ray_position;
 		array_1d< std::size_t, 3 > max_ray_position;
-		if(coloring_entities == "center_of_elements"){
+		if((coloring_entities == "center_of_elements") || (coloring_entities == "face_of_elements")){
 			mColors.CalculateMinMaxCenterOfElementPositions(TheSkinModelPart.Nodes(), min_ray_position, max_ray_position);
 		}
 		else{
@@ -256,6 +256,9 @@ namespace Kratos
 		else if(coloring_entities == "center_of_elements") {
 			mColors.CalculateElementalRayColors(min_ray_position, max_ray_position, inside_color, outside_color);
 		}
+		else if(coloring_entities == "face_of_elements") {
+			mColors.CalculateElementalFaceColors(min_ray_position, max_ray_position, inside_color, outside_color, inside_color);
+		}
 	}
 
 	void VoxelMeshGeneratorProcess::Generate3DMesh() {
@@ -277,6 +280,18 @@ namespace Kratos
 				for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
 					for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
 							colors[index++] = mColors.GetElementalColor(i,j,k);
+					}
+				}
+			}
+			auto& face_colors = mrVolumePart.GetValue(VOXEL_FACE_COLORS);
+			face_colors.resize(mColors.GetElementalFaceColors().size(), 6, false);
+			index = 0;
+			for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
+				for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
+					for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
+						auto row = index++;
+						for(std::size_t i_face = 0 ; i_face < 6 ; i_face++)
+							face_colors(row, i_face) = mColors.GetElementalFaceColors()[row][i_face];
 					}
 				}
 			}
@@ -399,6 +414,18 @@ namespace Kratos
 				for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
 					for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
 							colors[index++] = mColors.GetElementalColor(i,j,k);
+					}
+				}
+			}
+			auto& face_colors = mrVolumePart.GetValue(VOXEL_FACE_COLORS);
+			face_colors.resize(mColors.GetElementalFaceColors().size(), 6, false);
+			index = 0;
+			for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
+				for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
+					for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
+						auto row = index++;
+						for(std::size_t i_face = 0 ; i_face < 6 ; i_face++)
+							face_colors(row, i_face) = mColors.GetElementalFaceColors()[row][i_face];
 					}
 				}
 			}

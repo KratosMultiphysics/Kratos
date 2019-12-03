@@ -111,12 +111,31 @@ namespace Kratos
 			for (std::size_t j = 1; j < mNumberOfDivisions[1]; j++) {
 				for (std::size_t i = 1; i < mNumberOfDivisions[0]; i++) {
 					double color = mColors.GetElementalColor(i,j,k);
+					auto face_color = mColors.GetElementalFaceColor(i,j,k);
 					if(color != mColors.GetElementalColor(i-1,j,k))
 						x_cell_coarse[i]=true;
 					if(color != mColors.GetElementalColor(i,j-1,k))
 						y_cell_coarse[j]=true;
 					if(color != mColors.GetElementalColor(i,j,k-1))
 						z_cell_coarse[k]=true;
+
+					auto& previous_x_face_color = mColors.GetElementalFaceColor(i-1, j,k);
+					for(std::size_t i_face = 0 ; i_face < 6 ; i_face++){
+						if(face_color[i_face] != previous_x_face_color[i_face]) // assuming that there are no face condition inside a volume
+							x_cell_coarse[i]=true;
+					}
+						
+					auto& previous_y_face_color = mColors.GetElementalFaceColor(i,j-1,k);
+					for(std::size_t i_face = 0 ; i_face < 6 ; i_face++){
+						if(face_color[i_face] != previous_y_face_color[i_face]) // assuming that there are no face condition inside a volume
+							y_cell_coarse[i]=true;
+					}
+						
+					auto& previous_z_face_color = mColors.GetElementalFaceColor(i,j,k-1);
+					for(std::size_t i_face = 0 ; i_face < 6 ; i_face++){
+						if(face_color[i_face] != previous_z_face_color[i_face]) // assuming that there are no face condition inside a volume
+							z_cell_coarse[i]=true;
+					}
 				}
 			}
 		}
@@ -159,14 +178,39 @@ namespace Kratos
 
 			auto& colors = mrVolumePart.GetValue(COLORS);
 			colors.resize((x_key_planes.size() - 1)*(y_key_planes.size() - 1) * (z_key_planes.size() - 1), false);
-			std::size_t index = 0;
+			auto& face_colors = mrVolumePart.GetValue(VOXEL_FACE_COLORS);
+			face_colors.resize((x_key_planes.size() - 1)*(y_key_planes.size() - 1) * (z_key_planes.size() - 1), 6, false);
+			int index = 0;
+			int previous_index_i = -1;
+			int previous_index_j = -1;
+			int previous_index_k = -1;
 			for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
-				for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
-					for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
-						if(x_cell_coarse[i]&y_cell_coarse[j]&z_cell_coarse[k]){
-							colors[index++] = mColors.GetElementalColor(i,j,k);
+				if(z_cell_coarse[k]){
+					for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
+						if(y_cell_coarse[j]){
+							for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
+								if(x_cell_coarse[i]){
+									auto face_color =  mColors.GetElementalFaceColor(i,j,k);
+									for(std::size_t i_face = 0 ; i_face < 6 ; i_face++){
+										face_colors(index, i_face) = face_color[i_face];
+									}
+									if(previous_index_i >= 0){
+										face_colors(previous_index_i, 3) = mColors.GetElementalFaceColor(i-1,j,k)[3];
+									}
+									if(previous_index_j >= 0){
+										face_colors(previous_index_j, 4) = mColors.GetElementalFaceColor(i,j-1,k)[4];
+									}
+									if(previous_index_k >= 0){
+										face_colors(previous_index_k, 5) = mColors.GetElementalFaceColor(i,j,k-1)[5];
+									}
+									colors[index] = mColors.GetElementalColor(i,j,k);
+									previous_index_i = index++;
+								}
+							}
+							previous_index_j = index;
 						}
 					}
+					previous_index_k = index;
 				}
 			}
 
