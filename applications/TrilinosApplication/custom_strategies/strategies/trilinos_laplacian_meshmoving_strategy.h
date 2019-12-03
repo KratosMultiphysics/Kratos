@@ -295,8 +295,6 @@ private:
 
         mpmesh_model_part  = &mrReferenceModelPart.GetModel().CreateModelPart(mrReferenceModelPart.Name()+"_StructuralMeshMovingPart");
 
-        mpmesh_model_part->AddNodalSolutionStepVariable(PARTITION_INDEX); // required by the parallel_fill_communicator
-
         // Initializing mesh nodes
         mpmesh_model_part->Nodes() = BaseType::GetModelPart().Nodes();
 
