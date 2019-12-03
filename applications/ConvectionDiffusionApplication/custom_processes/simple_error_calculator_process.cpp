@@ -48,7 +48,7 @@ void SimpleErrorCalculatorProcess<TDim>::Execute()
     // a) Check for Metric Scalar in Meshing Application
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has("METRIC_SCALAR")) << "Import Meshing Application" <<std::endl;
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has("NODAL_AREA")) << "ERROR:: NODAL_AREA Variable doesn't exist" <<std::endl;
-    KRATOS_ERROR_IF_NOT(KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has("NODAL_TEMP_GRADIENT")) << "ERROR:: Nodal Temperature Gradient Does not Exist" <<std::endl;
+    KRATOS_ERROR_IF_NOT(KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has("NODAL_TEMP_GRADIENT")) << "ERROR:: NODAL_TEMP_GRADIENT Does not Exist" <<std::endl;
     
     const double& scalar_variable = KratosComponents<Variable<double>>::Get("METRIC_SCALAR");
     const array_1d<double,TDim>& TDim_variable = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get("NODAL_TEMP_GRADIENT");
@@ -132,7 +132,8 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalTempGradient()
         
         for (unsigned int g = 0; g < NumGPoints; g++) {
             const auto& rDN_DX = ShapeDerivatives[g];
-            const auto& Ncontainer = ShapeFunctions[g];
+            //const auto& Ncontainer = ShapeFunctions[g];
+            const Vector& Ncontainer = row(ShapeFunctions, g);
 
             std::vector<double,TDim> GaussPointTGrad;
             for (unsigned int k = 0; k < TDim; k++) {
