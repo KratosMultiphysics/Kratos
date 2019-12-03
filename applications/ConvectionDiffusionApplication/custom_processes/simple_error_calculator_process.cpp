@@ -208,7 +208,8 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateElementError()
         
         for (unsigned int g = 0; g < NumGPoints; g++) {
             const auto& rDN_DX = ShapeDerivatives[g];
-            const auto& Ncontainer = ShapeFunctions[g];
+            //const auto& Ncontainer = ShapeFunctions[g];
+            const Vector& Ncontainer = row(ShapeFunctions, g);
 
             std::vector<double,TDim> GaussPointTGrad;
             std::vector<double,TDim> NodalTempGrad;
