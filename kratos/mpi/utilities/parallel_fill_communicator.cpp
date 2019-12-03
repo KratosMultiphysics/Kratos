@@ -196,7 +196,9 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(PARTITION_INDEX)) << "\"PARTITION_INDEX\" missing as solution step variable in ModelPart \"" << rModelPart.Name() << "\"!" << std::endl;
+    if (rModelPart.NumberOfNodes() > 0) {
+        KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->FastGetSolutionStepValue(PARTITION_INDEX)) << "\"PARTITION_INDEX\" missing as solution step variable for nodes of ModelPart \"" << rModelPart.Name() << "\"!" << std::endl;
+    }
 
     constexpr unsigned root_id = 0;
 
