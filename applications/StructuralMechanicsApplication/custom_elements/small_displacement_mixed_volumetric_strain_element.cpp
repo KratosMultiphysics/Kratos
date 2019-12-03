@@ -336,7 +336,8 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
                     B_i(k,l) = kinematic_variables.B(k, i_node * dim + l);
                 }
             }
-            aux += prod(trans(B_i), Matrix(prod(Ddev, B_i)));
+            aux += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
+            // aux += prod(trans(B_i), Matrix(prod(Ddev, B_i)));
         }
         double det;
         Matrix tau_1_mat_w_k(dim, dim);
@@ -372,7 +373,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
         const Matrix C_m = MathUtils<double>::StressVectorToTensor(C_m_voigt); // Expansion from Voigt to tensor notation
         const Vector transB_C_m = prod(trans(kinematic_variables.B), C_m_voigt);
         const Vector grad_eps = prod(trans(kinematic_variables.DN_DX), kinematic_variables.VolumetricNodalStrains);
-        const Vector tau_1_C_m_grad_eps = prod(Matrix(prod(tau_1_mat_w_k,C_m)), grad_eps);
+        // const Vector tau_1_C_m_grad_eps = prod(Matrix(prod(tau_1_mat_w_k,C_m)), grad_eps);
         const Vector tau_1_body = prod(tau_1_mat_w_k, body_force);
 
         for (IndexType i = 0; i < n_nodes; ++i) {
@@ -383,6 +384,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
             r_rhs_mass_row += w_1_tau_2_k * kinematic_variables.N[i] * vol_residual;
 
             const Vector G_I = row(kinematic_variables.DN_DX, i);
+            const Vector G_I_tau_1_mat_w_kpow2 = bulk_modulus * prod(G_I, tau_1_mat_w_k);
             for (IndexType d = 0; d < dim; ++d) {
                 double& r_rhs_mom_row = rRightHandSideVector[i * block_size + d];
                 // Add momentum body force RHS contribution
@@ -394,7 +396,8 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
                 r_rhs_mom_row += w_alpha * transB_C_m(i * dim + d) * vol_residual;
                 r_rhs_mom_row -= w_1_tau_2_k * G_I(d) * vol_residual;
                 // Add the divergence mass stabilization term (grad(eps_vol) x grad(eps_vol)) to the RHS
-                r_rhs_mass_row += kinematic_variables.DN_DX(i, d) * tau_1_C_m_grad_eps(d);
+                // r_rhs_mass_row += kinematic_variables.DN_DX(i, d) * tau_1_C_m_grad_eps(d);
+                r_rhs_mass_row += G_I_tau_1_mat_w_kpow2(d) * grad_eps(d);
                 // Add the divergence mass stabilization term (grad(eps_vol) x body_force) to the RHS
                 r_rhs_mass_row -= kinematic_variables.DN_DX(i, d) * tau_1_body[d];
 
@@ -414,12 +417,13 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
             }
 
             // Add mass conservation volumetric strain LHS contribution
-            const Vector tau_1_G_I_C_m = prod(G_I, Matrix(prod(tau_1_mat_w_k,C_m)));
+            // const Vector tau_1_G_I_C_m = prod(G_I, Matrix(prod(tau_1_mat_w_k,C_m)));
             for (IndexType j = 0; j < n_nodes; ++j) {
                 const Vector G_J = row(kinematic_variables.DN_DX, j);
                 double& r_LHS_mass_mass = rLeftHandSideMatrix(i * block_size + dim, j * block_size + dim);
                 r_LHS_mass_mass -= w_1_tau_2_k * kinematic_variables.N[i] * kinematic_variables.N[j];
-                r_LHS_mass_mass -= inner_prod(tau_1_G_I_C_m, G_J);
+                r_LHS_mass_mass -= inner_prod(G_I_tau_1_mat_w_kpow2, G_J);
+                // r_LHS_mass_mass -= inner_prod(tau_1_G_I_C_m, G_J);
             }
         }
     }
