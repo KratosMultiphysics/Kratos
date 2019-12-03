@@ -954,6 +954,16 @@ void MembraneElement::AddExplicitContribution(
     KRATOS_CATCH("")
 }
 
+void MembraneElement::CalculateDampingMatrix(
+    MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
+        *this,
+        rDampingMatrix,
+        rCurrentProcessInfo,
+        GetGeometry().WorkingSpaceDimension()*GetGeometry().size());
+}
+
 void MembraneElement::AddExplicitContribution(
     const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
     Variable<array_1d<double, 3>>& rDestinationVariable,

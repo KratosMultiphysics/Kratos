@@ -201,6 +201,8 @@ namespace Kratos
 
     void CalculateAndAddBodyForce(VectorType& rRightHandSideVector);
 
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
+
 protected:
   ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
