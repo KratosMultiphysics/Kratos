@@ -78,7 +78,6 @@ public:
         mUpdateStiffness = rParameters["update_stiffness"].GetBool();
         mReactionStressOld = 0.0;
         mStiffness = mYoungModulus/mCompressionLength;
-        mFaceArea = 1.0;
 
         KRATOS_CATCH("");
     }
@@ -217,13 +216,13 @@ public:
 
         if(CurrentTime >= mStartTime && mTargetStressTableId > 0)
         {
-            // Calculate mFaceArea
-            mFaceArea = 0.0;
+            // Calculate face_area
+            double face_area = 0.0;
             if (mImposedDirection == 2) {
                 // Z direction
                 ModelPart::ElementsContainerType& rElements = mrModelPart.GetCommunicator().LocalMesh().Elements();
 
-                #pragma omp parallel for reduction(+:mFaceArea)
+                #pragma omp parallel for reduction(+:face_area)
                 for (int i = 0; i < (int)rElements.size(); i++) {
                     ModelPart::ElementsContainerType::ptr_iterator ptr_itElem = rElements.ptr_begin() + i;
 
@@ -232,17 +231,17 @@ public:
 
                     const double radius = pDemElem->GetRadius();
 
-                    mFaceArea += Globals::Pi*radius*radius;
+                    face_area += Globals::Pi*radius*radius;
                 }
             } else {
                 // X and Y directions
 
                 const int NCons = static_cast<int>(mrModelPart.Conditions().size());
                 ModelPart::ConditionsContainerType::iterator con_begin = mrModelPart.ConditionsBegin();
-                #pragma omp parallel for reduction(+:mFaceArea)
+                #pragma omp parallel for reduction(+:face_area)
                 for(int i = 0; i < NCons; i++) {
                     ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
-                    mFaceArea += itCond->GetGeometry().Area();
+                    face_area += itCond->GetGeometry().Area();
                 }
             }
 
@@ -304,7 +303,7 @@ public:
                     FaceReaction -= n_dot_r;
                 }
             }
-            const double ReactionStress = FaceReaction/mFaceArea;
+            const double ReactionStress = FaceReaction/face_area;
 
             // Update K if required
             const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
@@ -429,7 +428,6 @@ protected:
     double mCompressionLength;
     double mYoungModulus;
     double mStartTime;
-    double mFaceArea;
     double mReactionStressOld;
     double mStressIncrementTolerance;
     double mStiffness;
