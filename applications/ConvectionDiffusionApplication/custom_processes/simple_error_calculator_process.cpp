@@ -48,8 +48,10 @@ void SimpleErrorCalculatorProcess<TDim>::Execute()
     // a) Check for Metric Scalar in Meshing Application
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has("METRIC_SCALAR")) << "Import Meshing Application" <<std::endl;
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has("NODAL_AREA")) << "ERROR:: NODAL_AREA Variable doesn't exist" <<std::endl;
-    KRATOS_ERROR_IF_NOT(KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has("NODAL_TEMP_GRADIENT")) << "Error Creating Temperature Gradient" <<std::endl;
+    KRATOS_ERROR_IF_NOT(KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has("NODAL_TEMP_GRADIENT")) << "ERROR:: Nodal Temperature Gradient Does not Exist" <<std::endl;
+    
     const double& scalar_variable = KratosComponents<Variable<double>>::Get("METRIC_SCALAR");
+    const array_1d<double,TDim>& TDim_variable = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get("NODAL_TEMP_GRADIENT");
 
     // b) Retrive Nodes and Elements from the Model Part
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
@@ -57,13 +59,22 @@ void SimpleErrorCalculatorProcess<TDim>::Execute()
     ElementsArrayType& elements_array = mrThisModelPart.Elements();
     KRATOS_DEBUG_ERROR_IF(elements_array.size() == 0) <<  "ERROR:: Empty list of elements" << std::endl;
 
-    // c) Initialize Metric Scalar for all nodes to 0
+    // c) Initialize Metric Scalar and Nodal Temperature Gradient for all nodes to 0
     const auto it_node_begin = nodes_array.begin();
     if (it_node_begin->Has(scalar_variable) == false) {
         // Iterate over the nodes
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
             (it_node_begin + i)->SetValue(scalar_variable, 0.0);
+    }
+
+    if (it_node_begin->Has(TDim_variable) == false) {
+        // Iterate over the nodes
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
+            (it_node_begin + i)->SetValue(NODAL_TEMP_GRADIENT_X, 0.0);
+            (it_node_begin + i)->SetValue(NODAL_TEMP_GRADIENT_Y, 0.0);
+            (it_node_begin + i)->SetValue(NODAL_TEMP_GRADIENT_Z, 0.0);
     }
 
     // d) Call the Nodal Temperature Gradient Calculator Function
@@ -136,8 +147,14 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalTempGradient()
             }
 
             for (int i_node = 0; i_node < n_nodes; i_node++) {
-                for (unsigned int i_dim = 0; i_dim < TDim; i_dim++) {
-                    r_geometry[i_node].FastGetSolutionStepValue(NODAL_TEMP_GRADIENT)[i_dim] += Ncontainer[i_node]*GaussPointTGrad[i_dim]*rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
+                if (TDim == 2) {
+                    r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_X) += Ncontainer[i_node]*GaussPointTGrad[0]*rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
+                    r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_Y) += Ncontainer[i_node]*GaussPointTGrad[1]*rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
+                }
+                else if (TDim == 3) {
+                    r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_X) += Ncontainer[i_node]*GaussPointTGrad[0]*rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
+                    r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_Y) += Ncontainer[i_node]*GaussPointTGrad[1]*rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
+                    r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_Z) += Ncontainer[i_node]*GaussPointTGrad[2]*rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
                 }
             } 
         }                
@@ -206,14 +223,20 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateElementError()
                 GaussPointTGrad[j] *= GaussWeights[g];
             }
 
-            for (unsigned int j = 0; j < TDim; j++) {
-                for (unsigned int i_node = 0; i_node < n_nodes; i_node++) {
-                    NodalTempGrad[j] += Ncontainer[i_node]*r_geometry[i_node].FastGetSolutionStepValue(NODAL_TEMP_GRADIENT)[i_dim]; 
+            for (unsigned int i_node = 0; i_node < n_nodes; i_node++) {
+                if (TDim == 2) {
+                    NodalTempGrad[0] += Ncontainer[i_node]*r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_X);
+                    NodalTempGrad[1] += Ncontainer[i_node]*r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_Y);
                 }
-                NodalTempGrad[j] *= GaussWeights[g];
+                else if (TDim == 3) {
+                    NodalTempGrad[0] += Ncontainer[i_node]*r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_X);
+                    NodalTempGrad[1] += Ncontainer[i_node]*r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_Y);
+                    NodalTempGrad[2] += Ncontainer[i_node]*r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_Z);
+                }
             }
 
             for (unsigned int j = 0; j < TDim; j++) {
+                NodalTempGrad[j] *= GaussWeights[g];
                 elem_error(elem_index, j) += (NodalTempGrad[j] - GaussPointTGrad[j]);
             }
 
