@@ -52,9 +52,9 @@ void UpdatedLagrangianElement::InitializeMaterial()
 {
     KRATOS_TRY
 
-    mConstitutiveLawVector = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+    mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
 
-    mConstitutiveLawVector->InitializeMaterial(
+    mpConstitutiveLaw->InitializeMaterial(
         GetProperties(),
         GetGeometry(),
         row(GetGeometry().ShapeFunctionsValues(), 0));
@@ -66,7 +66,7 @@ void UpdatedLagrangianElement::ResetConstitutiveLaw()
 {
     KRATOS_TRY
 
-    mConstitutiveLawVector->ResetMaterial(
+    mpConstitutiveLaw->ResetMaterial(
         GetProperties(),
         GetGeometry(),
         row(GetGeometry().ShapeFunctionsValues(), 0));
@@ -210,7 +210,7 @@ void UpdatedLagrangianElement::CalculateConstitutiveVariables(
     rThisConstitutiveVariables.ConstitutiveMatrix(1, 1) = 1000;
     rThisConstitutiveVariables.ConstitutiveMatrix(2, 2) = 500;
 
-    mConstitutiveLawVector->CalculateMaterialResponse(rValues, ThisStressMeasure);
+    mpConstitutiveLaw->CalculateMaterialResponse(rValues, ThisStressMeasure);
 }
 
 void UpdatedLagrangianElement::CalculateKinematics(
@@ -445,7 +445,7 @@ void UpdatedLagrangianElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
         ConstitutiveLaw::StressMeasure_Cauchy);
 
     // Call the constitutive law to update material variables
-    mConstitutiveLawVector->FinalizeMaterialResponse(
+    mpConstitutiveLaw->FinalizeMaterialResponse(
         constitutive_law_parameters,
         ConstitutiveLaw::StressMeasure_Cauchy);
 
@@ -477,23 +477,23 @@ void UpdatedLagrangianElement::FinalizeStepVariables(
     this->SetValue(MP_ALMANSI_STRAIN_VECTOR, rConstitutiveVariables.StrainVector);
 
     // Delta Plastic Strains
-    double delta_plastic_strain = mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_STRAIN, delta_plastic_strain );
+    double delta_plastic_strain = mpConstitutiveLaw->GetValue(MP_DELTA_PLASTIC_STRAIN, delta_plastic_strain );
     this->SetValue(MP_DELTA_PLASTIC_STRAIN, delta_plastic_strain);
 
-    double delta_plastic_volumetric_strain = mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, delta_plastic_volumetric_strain);
+    double delta_plastic_volumetric_strain = mpConstitutiveLaw->GetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, delta_plastic_volumetric_strain);
     this->SetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, delta_plastic_volumetric_strain);
 
-    double delta_plastic_deviatoric_strain = mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, delta_plastic_deviatoric_strain);
+    double delta_plastic_deviatoric_strain = mpConstitutiveLaw->GetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, delta_plastic_deviatoric_strain);
     this->SetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, delta_plastic_deviatoric_strain);
 
     // Total Plastic Strain
-    double equivalent_plastic_strain = mConstitutiveLawVector->GetValue(MP_EQUIVALENT_PLASTIC_STRAIN, equivalent_plastic_strain );
+    double equivalent_plastic_strain = mpConstitutiveLaw->GetValue(MP_EQUIVALENT_PLASTIC_STRAIN, equivalent_plastic_strain );
     this->SetValue(MP_EQUIVALENT_PLASTIC_STRAIN, equivalent_plastic_strain);
 
-    double accumulated_plastic_volumetric_strain = mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, accumulated_plastic_volumetric_strain);
+    double accumulated_plastic_volumetric_strain = mpConstitutiveLaw->GetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, accumulated_plastic_volumetric_strain);
     this->SetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, accumulated_plastic_volumetric_strain);
 
-    double accumulated_plastic_deviatoric_strain = mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, accumulated_plastic_deviatoric_strain);
+    double accumulated_plastic_deviatoric_strain = mpConstitutiveLaw->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, accumulated_plastic_deviatoric_strain);
     this->SetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, accumulated_plastic_deviatoric_strain);
 
     this->UpdateGaussPoint(rCurrentProcessInfo);

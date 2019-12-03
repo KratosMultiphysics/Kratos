@@ -172,7 +172,7 @@ public:
         : Element(rOther)
         , mDeformationGradientF0(rOther.mDeformationGradientF0)
         , mDeterminantF0(rOther.mDeterminantF0)
-        , mConstitutiveLawVector(rOther.mConstitutiveLawVector)
+        , mpConstitutiveLaw(rOther.mpConstitutiveLaw)
         , mFinalizedStep(rOther.mFinalizedStep)
     {
     }
@@ -193,7 +193,7 @@ public:
         mDeformationGradientF0 = rOther.mDeformationGradientF0;
 
         mDeterminantF0 = rOther.mDeterminantF0;
-        mConstitutiveLawVector = rOther.mConstitutiveLawVector;
+        mpConstitutiveLaw = rOther.mpConstitutiveLaw;
 
         return *this;
     }
@@ -229,7 +229,7 @@ public:
     {
         UpdatedLagrangianElement NewElement(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
 
-        NewElement.mConstitutiveLawVector = mConstitutiveLawVector->Clone();
+        NewElement.mpConstitutiveLaw = mpConstitutiveLaw->Clone();
 
         NewElement.mDeformationGradientF0 = mDeformationGradientF0;
 
@@ -466,7 +466,7 @@ protected:
     double mDeterminantF0;
 
     /// Container for constitutive law instances on each integration point
-    ConstitutiveLaw::Pointer mConstitutiveLawVector;
+    ConstitutiveLaw::Pointer mpConstitutiveLaw;
 
     /// Finalize and Initialize label
     bool mFinalizedStep;
@@ -586,7 +586,7 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-        rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
+        rSerializer.save("ConstitutiveLawVector", mpConstitutiveLaw);
         rSerializer.save("DeformationGradientF0", mDeformationGradientF0);
         rSerializer.save("DeterminantF0", mDeterminantF0);
     }
@@ -594,7 +594,7 @@ private:
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-        rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+        rSerializer.load("ConstitutiveLawVector", mpConstitutiveLaw);
         rSerializer.load("DeformationGradientF0", mDeformationGradientF0);
         rSerializer.load("DeterminantF0", mDeterminantF0);
     }
