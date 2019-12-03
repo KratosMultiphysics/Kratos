@@ -124,15 +124,14 @@ namespace Kratos
         const double Accuracy = 1e-6)
     {
         // Initialize variables
-        bool clampU = false;
-        bool clampV = false;
+        bool is_first_row_zero, is_second_row_zero, is_first_column_zero, is_second_column_zero, is_system_invertible;
         double d_u = 0.0;
         double d_v = 0.0;
-        double A1_length, A2_length, A1_times_distance_vector, A1_length_times_distance, 
-            A2_times_distance_vector, A2_length_times_distance, A1_times_distance_normalized, A2_times_distance_normalized;
-        double residualU, residualV, J_00, J_01, J_11;
+        double xi_cos, eta_cos, residual_u, residual_v,j_00, j_01, j_11, det_j;
 
+        // Loop over all the Newton-Raphson iterations
         for (int i = 0; i < MaxIterations; i++) {
+
             // Compute the position, the base and the acceleration vectors
             std::vector<array_1d<double, 3>> s;
             rNurbsSurface.GlobalSpaceDerivatives(s,rParameterLocalCoordinates, 2);
@@ -146,46 +145,68 @@ namespace Kratos
             if (distance < Accuracy)
                 return true;
 
-            // Compute the lengths of the base vectors
-            A1_length = norm_2(s[1]);
-            A2_length = norm_2(s[2]);
+            // Compute the residuals along both parametric directions
+            residual_u = - inner_prod(s[1], distance_vector);
+            residual_v = - inner_prod(s[2], distance_vector);
+            
+            // Compute the cosine with respect to the u-parametric coordinate
+            xi_cos = std::abs(residual_u)/norm_2(s[1])/norm_2(distance_vector);
 
-            A1_times_distance_vector = std::abs(inner_prod(s[1], distance_vector));
-            A1_length_times_distance = A1_length * distance;
+            // Compute the cosine with respect to the v-parametric coordinate
+            eta_cos = std::abs(residual_v)/norm_2(s[2])/norm_2(distance_vector);
 
-            A2_times_distance_vector = std::abs(inner_prod(s[2], distance_vector));
-            A2_length_times_distance = A2_length * distance;
-
-            A1_times_distance_normalized = A1_times_distance_vector / A1_length_times_distance;
-            A2_times_distance_normalized = A2_times_distance_vector / A2_length_times_distance;
-
-            if (A1_times_distance_normalized < Accuracy && A2_times_distance_normalized < Accuracy)
+            // Check the orthogonality condition
+            if (xi_cos < Accuracy && eta_cos < Accuracy)
                 return true;
 
-            // Compute the residuals along both parametric directions
-            residualU = inner_prod(s[1], distance_vector);
-            residualV = inner_prod(s[2], distance_vector);
-
             // Compute the Jacobian of the nonlinear system
-            J_00 = inner_prod(s[1], s[1]) + inner_prod(s[3], distance_vector);
-            J_01 = inner_prod(s[1], s[2]) + inner_prod(s[4], distance_vector);
-            J_11 = inner_prod(s[2], s[2]) + inner_prod(s[5], distance_vector);
+            j_00 = inner_prod(s[1], s[1]) + inner_prod(s[3], distance_vector);
+            j_01 = inner_prod(s[1], s[2]) + inner_prod(s[4], distance_vector);
+            j_11 = inner_prod(s[2], s[2]) + inner_prod(s[5], distance_vector);
             
             // Check for singularities otherwise update the parametric coordinates as usual
-            if (std::abs(J_00) < Accuracy || clampU) {
-                d_u = 0.0;
-                d_v = residualV/J_11;
-                clampU = false;
-                clampV = true;
-            } else if (std::abs(J_11) < Accuracy || clampV) {
-                d_u = residualU/J_00;
-                d_v = 0.0;
-                clampU = true;
-                clampV = false;
+            is_first_row_zero = false;
+            if ((std::abs(j_00) < Accuracy && std::abs(j_01) < Accuracy) ){
+                is_first_row_zero = true;
+            }
+            is_second_row_zero = false;
+            if (std::abs(j_01) < Accuracy && fabs(j_11) < Accuracy){
+                is_second_row_zero = true;
+            }
+            is_first_column_zero = false;
+            if ((std::abs(j_00) < Accuracy && std::abs(j_01) < Accuracy) ){
+                is_first_column_zero = true;
+            }
+            is_second_column_zero = false;
+            if ((std::abs(j_01) < Accuracy && std::abs(j_11) < Accuracy) ){
+                is_second_column_zero = true;
+            }
+
+            // Check if the system is solvable by checking the condition of the diagonal entries
+            is_system_invertible = true;
+            if (is_first_row_zero || is_second_row_zero || is_first_column_zero || is_second_column_zero){
+                is_system_invertible = false;
+            }
+
+            // Solve the 2x2 linear equation system and take into account special cases where singularities occur
+            if (is_system_invertible){
+                det_j = j_00 * j_11 - j_01 * j_01;
+                d_u = - (residual_v * j_01 - residual_u * j_11) / det_j;
+                d_v = - (residual_u * j_01 - residual_v * j_00) / det_j;
             } else {
-                double det_J = J_00 * J_11 - J_01 * J_01;
-                d_u = (residualV * J_01 - residualU * J_11) / det_J;
-                d_v = (residualU * J_01 - residualV * J_00) / det_J;
+                if (is_first_row_zero){
+                    d_u = residual_v / j_11;
+                    d_v = 0.0;
+                } else if(is_second_row_zero){
+                    d_u = residual_u / j_00;
+                    d_v = 0.0;
+                } else if(is_first_column_zero){
+                    d_v = (residual_u + residual_v)/(j_01 + j_11);
+                    d_u = 0.0;
+                } else if(is_second_column_zero){
+                    d_u = (residual_u + residual_v)/(j_00 + j_01);
+                    d_v = 0.0;
+                }
             }
 
             // Check if the step size is too small

@@ -18,6 +18,12 @@ conv_signal_file_name = os.path.join(communication_folder, "EMPIRE_convergence_s
 
 class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        # to silence prints
+        KratosCoSim.EMPIRE_API.EMPIRE_API_SetEchoLevel(0)
+        KratosCoSim.EMPIRE_API.EMPIRE_API_PrintTiming(False)
+
     def setUp(self):
         # delete and recreate communication folder to avoid leftover files
         kratos_utils.DeleteDirectoryIfExisting(communication_folder)
@@ -28,6 +34,7 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
 
     def test_unused_fcts(self):
+        # to make sure theses fcts still exist in case a solver still calls them
         KratosCoSim.EMPIRE_API.EMPIRE_API_Connect("dummy.xml")
         KratosCoSim.EMPIRE_API.EMPIRE_API_Disconnect()
         KratosCoSim.EMPIRE_API.EMPIRE_API_getUserDefinedText("dummy_element")

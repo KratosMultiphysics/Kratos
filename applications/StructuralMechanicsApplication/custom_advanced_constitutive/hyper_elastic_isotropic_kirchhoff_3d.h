@@ -44,34 +44,34 @@ namespace Kratos
  * @class HyperElasticIsotropicKirchhoff3D
  * @ingroup StructuralMechanicsApplication
  * @brief This law defines an hyperelastic material according to the Saint-Venant–Kirchhoff formulation for 3D cases
- * @details The simplest hyperelastic material model is the Saint Venant–Kirchhoff model which is just an extension of the linear elastic material model to the nonlinear regime. 
+ * @details The simplest hyperelastic material model is the Saint Venant–Kirchhoff model which is just an extension of the linear elastic material model to the nonlinear regime.
  * More info https://en.wikipedia.org/wiki/Hyperelastic_material#Saint_Venant%E2%80%93Kirchhoff_model
  * @author Malik Ali Dawi
  * @author Ruben Zorrilla
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HyperElasticIsotropicKirchhoff3D 
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HyperElasticIsotropicKirchhoff3D
     : public ConstitutiveLaw
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    
+
     /// The definition of the process info
     typedef ProcessInfo      ProcessInfoType;
-    
+
     /// The definition of the base class
     typedef ConstitutiveLaw         BaseType;
-    
+
     /// The definition of the size type
     typedef std::size_t             SizeType;
 
     /// Static definition of the dimension
     static constexpr SizeType Dimension = 3;
-    
+
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 6;
-    
+
     /// Pointer definition of HyperElasticIsotropicKirchhoff3D
     KRATOS_CLASS_POINTER_DEFINITION( HyperElasticIsotropicKirchhoff3D );
 
@@ -112,7 +112,7 @@ public:
     /**
      * @brief Dimension of the law:
      */
-    SizeType WorkingSpaceDimension() override 
+    SizeType WorkingSpaceDimension() override
     {
         return Dimension;
     };
@@ -120,7 +120,7 @@ public:
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() override 
+    SizeType GetStrainSize() override
     {
         return VoigtSize;
     };
@@ -142,7 +142,7 @@ public:
     {
         return StressMeasure_PK2;
     }
-    
+
     /**
      * @brief Computes the material response: PK1 stresses and algorithmic ConstitutiveMatrix
      * @param rValues The Internalvalues of the law
@@ -224,6 +224,22 @@ public:
     void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresInitializeMaterialResponse() override
+    {
+        return false;
+    }
+
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return false;
+    }
+
+    /**
      * @brief It calculates the value of a specified variable (double)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
@@ -232,7 +248,7 @@ public:
      */
     double& CalculateValue(
         ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<double>& rThisVariable, 
+        const Variable<double>& rThisVariable,
         double& rValue
         ) override;
 
@@ -245,7 +261,7 @@ public:
      */
     Vector& CalculateValue(
         ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<Vector>& rThisVariable, 
+        const Variable<Vector>& rThisVariable,
         Vector& rValue
         ) override;
 
@@ -258,7 +274,7 @@ public:
      */
     Matrix& CalculateValue(
         ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<Matrix>& rThisVariable, 
+        const Variable<Matrix>& rThisVariable,
         Matrix& rValue
         ) override;
 
@@ -289,7 +305,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -369,7 +385,7 @@ protected:
         ConstitutiveLaw::Parameters& rValues,
         Vector& rStrainVector
         );
-    
+
     ///@}
 
 private:
