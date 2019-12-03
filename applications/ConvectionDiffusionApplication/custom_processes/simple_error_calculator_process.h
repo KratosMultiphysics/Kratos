@@ -64,8 +64,8 @@ public:
     typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
 
     /// The definition of the node, element and geometry type
-    typedef Node <TDim>                                                             NodeType;
-    typedef Geometry<Node<TDim>>                                                GeometryType;
+    typedef Node <3>                                                                NodeType;
+    typedef Geometry<Node<3>>                                                   GeometryType;
 
     /// Definition of the iterators
     typedef WeakPointerVector< Element >::iterator                         WeakElementItType;
@@ -219,17 +219,15 @@ private:
      */
     void ErrorEstimatorImplementation();
 
-    // /**
-    //  * @brief This method computes the Gauss Point Quantites for the element
-    //  */
-    // void CalculateGaussPointData(Vector& rGaussWeights,
-    //                              Matrix& rNContainer,
-    //                              ShapeFunctionDerivativesArrayType& rDN_DX);
-
     /**
      * @brief This method computes the temperature gradient at nodes using the ShapeFunctions
      */
     void CalculateNodalTempGradient();
+    
+    /**
+     * @brief This method computes the elemental error between the C1 and C0 continuous definitions
+     */
+    void CalculateElementError();
 
     /**
      * @brief In this final step the metric is computed for MMGProcess
