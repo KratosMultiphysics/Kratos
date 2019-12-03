@@ -114,26 +114,24 @@ public:
         MatrixType& UMatrix,
         MatrixType& SMatrix,
         MatrixType& VMatrix,
-        const Parameters ThisParameters
-    	)
+        Parameters ThisParameters)
     {
-	// Validating defaults
+        // Validating defaults
         Parameters default_parameters = Parameters(R"(
-	{
-	    "type_svd"             : "Jacobi",
-	    "tolerance"            : 0.0,
-	    "max_iter"             : 200
-	 })" );
-	 
-	 default_parameters["tolerance"].SetDouble(std::numeric_limits<double>::epsilon());
-	 ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-	    
-	 const std::string& r_type_svd = ThisParameters["type_svd"].GetString();
-	 const double tolerance = ThisParameters["tolerance"].GetDouble();
-	 const double max_iter = ThisParameters["max_iter"].GetInt();
-	 return SingularValueDecomposition(InputMatrix, UMatrix, SMatrix, VMatrix, r_type_svd, tolerance, max_iter);
+        {
+            "type_svd"             : "Jacobi",
+            "tolerance"            : 0.0,
+            "max_iter"             : 200
+        })");
+        default_parameters["tolerance"].SetDouble(std::numeric_limits<double>::epsilon());
+        ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+        const std::string& r_type_svd = ThisParameters["type_svd"].GetString();
+        const double tolerance = ThisParameters["tolerance"].GetDouble();
+        const double max_iter = ThisParameters["max_iter"].GetInt();
+        return SingularValueDecomposition(InputMatrix, UMatrix, SMatrix, VMatrix, r_type_svd, tolerance, max_iter);
     }
-	
+
     /**
      * @brief This function gives the SVD of a given mxn matrix (m>=n), returns U,S; where A=U*S*V
      * @details U and V are unitary, and S is a diagonal matrix.
