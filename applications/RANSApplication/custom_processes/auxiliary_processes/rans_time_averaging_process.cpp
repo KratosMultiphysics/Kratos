@@ -15,13 +15,10 @@
 // External includes
 
 // Project includes
-#include "includes/cfd_variables.h"
 #include "includes/define.h"
 
 // Application includes
-#include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/rans_check_utilities.h"
-#include "rans_application_variables.h"
 
 // Include base h
 #include "rans_time_averaging_process.h"
