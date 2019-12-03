@@ -108,7 +108,6 @@ public:
             #pragma omp parallel for
             for(int i = 0; i<NNodes; i++) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-                // TODO: do we need to fix any dof in dem walls?
                 it->FastGetSolutionStepValue(DISPLACEMENT_X) = 0.0;
                 it->FastGetSolutionStepValue(DELTA_DISPLACEMENT_X) = 0.0;
                 it->FastGetSolutionStepValue(VELOCITY_X) = mVelocity;
