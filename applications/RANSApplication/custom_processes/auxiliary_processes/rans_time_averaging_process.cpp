@@ -145,10 +145,8 @@ void RansTimeAveragingProcess::Execute()
         ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
 
         const double delta_time = r_model_part.GetProcessInfo()[DELTA_TIME];
-        mCurrentTime += delta_time;
 
         std::stringstream msg;
-
         msg << "Integrating historical";
 
         for (const std::string& variable_name : mVariableNamesList)
@@ -169,6 +167,8 @@ void RansTimeAveragingProcess::Execute()
             msg << " " << variable_name << ",";
         }
 
+        mCurrentTime += delta_time;
+
         msg.seekp(-1, msg.cur);
         msg << " variable(s) in " << mModelPartName << ".\n";
 
@@ -181,44 +181,6 @@ void RansTimeAveragingProcess::Execute()
 void RansTimeAveragingProcess::ExecuteFinalizeSolutionStep()
 {
     Execute();
-}
-
-void RansTimeAveragingProcess::ExecuteFinalize()
-{
-    KRATOS_TRY
-
-    ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
-    Communicator& r_communicator = r_model_part.GetCommunicator();
-    ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
-
-    std::stringstream msg;
-
-    msg << "Time averaging historical";
-
-    for (const std::string& variable_name : mVariableNamesList)
-    {
-        if (KratosComponents<Variable<double>>::Has(variable_name))
-        {
-            const Variable<double>& r_variable =
-                KratosComponents<Variable<double>>::Get(variable_name);
-            this->CalculateTimeAveragedQuantity(r_nodes, r_variable);
-        }
-        else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name))
-        {
-            const Variable<array_1d<double, 3>>& r_variable =
-                KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
-            this->CalculateTimeAveragedQuantity(r_nodes, r_variable);
-        }
-
-        msg << " " << variable_name << ",";
-    }
-
-    msg.seekp(-1, msg.cur);
-    msg << " variable(s) in " << mModelPartName << ".\n";
-
-    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << msg.str();
-
-    KRATOS_CATCH("");
 }
 
 bool RansTimeAveragingProcess::IsIntegrationStep() const
@@ -285,23 +247,9 @@ void RansTimeAveragingProcess::CalculateTimeIntegratedQuantity(ModelPart::NodesC
         NodeType& r_node = *(rNodes.begin() + i_node);
         const TDataType& r_temporal_value = r_node.FastGetSolutionStepValue(rVariable);
         TDataType& r_integrated_value = r_node.GetValue(rVariable);
-        r_integrated_value += r_temporal_value * DeltaTime;
-    }
-}
-
-template <typename TDataType>
-void RansTimeAveragingProcess::CalculateTimeAveragedQuantity(
-    ModelPart::NodesContainerType& rNodes, const Variable<TDataType>& rVariable) const
-{
-    const int number_of_nodes = rNodes.size();
-    const double weighting_factor = 1.0 / mCurrentTime;
-
-#pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        NodeType& r_node = *(rNodes.begin() + i_node);
-        TDataType& r_integrated_value = r_node.GetValue(rVariable);
-        r_integrated_value = r_integrated_value * weighting_factor;
+        r_integrated_value =
+            (r_integrated_value * mCurrentTime + r_temporal_value * DeltaTime) /
+            (mCurrentTime + DeltaTime);
     }
 }
 
@@ -318,11 +266,5 @@ template void RansTimeAveragingProcess::CalculateTimeIntegratedQuantity<double>(
 
 template void RansTimeAveragingProcess::CalculateTimeIntegratedQuantity<array_1d<double, 3>>(
     ModelPart::NodesContainerType&, const Variable<array_1d<double, 3>>&, const double) const;
-
-template void RansTimeAveragingProcess::CalculateTimeAveragedQuantity<double>(
-    ModelPart::NodesContainerType&, const Variable<double>&) const;
-
-template void RansTimeAveragingProcess::CalculateTimeAveragedQuantity<array_1d<double, 3>>(
-    ModelPart::NodesContainerType&, const Variable<array_1d<double, 3>>&) const;
 
 } // namespace Kratos.

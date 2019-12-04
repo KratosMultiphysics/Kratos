@@ -85,8 +85,6 @@ public:
 
     void ExecuteFinalizeSolutionStep() override;
 
-    void ExecuteFinalize() override;
-
     ///@}
     ///@name Access
     ///@{
@@ -181,10 +179,6 @@ private:
     void CalculateTimeIntegratedQuantity(ModelPart::NodesContainerType& rNodes,
                                          const Variable<TDataType>& rVariable,
                                          const double DeltaTime) const;
-
-    template <typename TDataType>
-    void CalculateTimeAveragedQuantity(ModelPart::NodesContainerType& rNodes,
-                                       const Variable<TDataType>& rVariable) const;
 
     ///@}
     ///@name Private  Access
