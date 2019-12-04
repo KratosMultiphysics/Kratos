@@ -242,6 +242,9 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             faces_file = join(self.dir_csm, tmp)
             faces = np.loadtxt(faces_file)
 
+            if faces.shape[1] != self.dimensions + 2:
+                raise ValueError(f'given dimension does not match coordinates')
+
             #get load point coordinates and id's of load points
             prev_elem = 0
             prev_lp = 0
@@ -280,6 +283,9 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             nodes_file = join(self.dir_csm, tmp)
             nodes = np.loadtxt(nodes_file,skiprows=1)
 
+            if nodes.shape[1] != self.dimensions:
+                raise ValueError(f'given dimension does not match coordinates')
+
             # get surface node coordinates and id's
             n_nodes = nodes.shape[0]
             ids_tmp = np.zeros(n_nodes).astype(str)
@@ -296,15 +302,14 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
 
             self.write_Nodes_test()  # This should be commented out in the final code
 
+        # create CoSimulationInterfaces
+        self.interface_input = CoSimulationInterface(self.model, self.settings['interface_input'])
+        self.interface_output = CoSimulationInterface(self.model, self.settings['interface_output'])
 
-        # TODO:
-        #   Read settings
-        #   Prepare Abaqus usr (if necessary), probably some keyword substitutions
-        #   Abaqus needs to print a file with the location of its load points (usr_init.f ?)
-        #   Create Model with ModelParts
-        #   Add variables to ModelParts
-        #   Add Nodes to input ModelParts and output ModelParts, based on file written by Abaqus
-
+        # create Variables
+        self.pressure = vars(KM)['PRESSURE']
+        self.traction = vars(KM)['TRACTION']
+        self.displacement = vars(KM)['DISPLACEMENT']
 
     def Initialize(self):
         # super().Initialize()
