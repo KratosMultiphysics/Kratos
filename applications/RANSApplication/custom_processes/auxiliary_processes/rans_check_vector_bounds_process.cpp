@@ -86,8 +86,8 @@ void RansCheckVectorBoundsProcess::Execute()
     const Variable<array_1d<double, 3>> vector_variable =
         KratosComponents<Variable<array_1d<double, 3>>>::Get(mVariableName);
 
-    const ModelPart::NodesContainerType& r_nodes =
-        mrModel.GetModelPart(mModelPartName).Nodes();
+    const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    const ModelPart::NodesContainerType& r_nodes = r_model_part.Nodes();
 
     array_1d<double, 3> vector_weights;
 
@@ -153,6 +153,10 @@ void RansCheckVectorBoundsProcess::Execute()
         min_value = std::min(min_value, min_values[i]);
         max_value = std::max(max_value, max_values[i]);
     }
+
+    const Communicator& r_communicator = r_model_part.GetCommunicator();
+    min_value = r_communicator.GetDataCommunicator().MinAll(min_value);
+    max_value = r_communicator.GetDataCommunicator().MaxAll(max_value);
 
     KRATOS_INFO(this->Info())
         << vector_variable.Name() << " is bounded between [ " << min_value
