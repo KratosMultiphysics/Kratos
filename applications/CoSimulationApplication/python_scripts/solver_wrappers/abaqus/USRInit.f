@@ -92,7 +92,7 @@ C==============================================================================
 
          OPEN(UNIT=UNIT_FACES(R),FILE=FILENAME,POSITION='APPEND')
 
-         WRITE(UNIT_FACES(R),FMT_FACES) NOEL,NPT,COORDS(D:1:-1)
+         WRITE(UNIT_FACES(R),FMT_FACES) NOEL,NPT,COORDS
 
          CLOSE(UNIT_FACES(R))
       ELSE IF (KINC > 1) THEN
@@ -154,7 +154,7 @@ C==============================================================================
 
          OPEN(UNIT=UNIT_FACES(R),FILE=FILENAME,POSITION='APPEND')
 
-         WRITE(UNIT_FACES(R),FMT_FACES) NOEL,NPT,COORDS(D:1:-1)
+         WRITE(UNIT_FACES(R),FMT_FACES) NOEL,NPT,COORDS
 
          CLOSE(UNIT_FACES(R))
       ELSE IF (KINC > 1) THEN

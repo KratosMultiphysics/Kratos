@@ -225,7 +225,7 @@ C==============================================================================
          END IF
          DO I = 1,M(R)
             READ(UNIT_LOAD,FMT_LOAD,IOSTAT=IOS)
-     &         LOADNEW(1,I,R),LOADNEW((D+1):2:-1,I,R)
+     &         LOADNEW(:,I,R)
             IF (IOS < 0) THEN
                CALL STDB_ABQERR(-3,'USR-error: problem while reading')
             END IF
@@ -249,7 +249,7 @@ C==============================================================================
          END IF
          DO I = 1,M(R)
             READ(UNIT_LOAD,FMT_LOAD,IOSTAT=IOS)
-     &         LOADOLD(1,I,R),LOADOLD((D+1):2:-1,I,R)
+     &         LOADOLD(:,I,R)
             IF (IOS < 0) THEN
                CALL STDB_ABQERR(-3,'USR-error: problem while reading')
             END IF
