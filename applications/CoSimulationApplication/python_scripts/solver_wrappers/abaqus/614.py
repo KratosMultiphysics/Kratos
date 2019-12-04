@@ -324,7 +324,17 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         print(f'\tTimestep {self.timestep}')
 
     def SolveSolutionStep(self, interface_input):
-        print('\nSolveSolutionStep')
+        self.iteration += 1
+        print(f'\t\tIteration {self.iteration}')
+
+        # store incoming loads
+        self.interface_input.SetPythonList(interface_input.GetPythonList())
+
+        # write loads (from interface data to a file that will be read by USR.f
+        self.write_loads()
+
+        #Run Abaqus?
+
         return 0
 
     def FinalizeSolutionStep(self):
@@ -526,3 +536,19 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                         file.write(f'{node.X:27.17e} {node.Y:27.17e} {node.Id:>27}\n')
                     else:
                         file.write(f'{node.X:27.17e} {node.Y:27.17e} {node.Z:27.17e} {node.Id:>27}\n')
+
+    def write_loads(self):
+        for key in self.settings['interface_input'].keys():
+            mp = self.model[key]
+            tmp = f'CSM_Time{self.timestep}Surface{mp.thread_id}Cpu0Input.dat'
+
+            file_name = join(self.dir_csm, tmp)
+            with open(file_name, 'w') as file:
+                file.write(f'{mp.NumberOfNodes()}\n')
+                for node in mp.Nodes:
+                    pressure = node.GetSolutionStepValue(self.pressure)
+                    traction = node.GetSolutionStepValue(self.traction)
+                    if self.dimensions == 2:
+                        file.write(f'{pressure:27.17e} {traction[0]:27.17e} {traction[1]:>27}\n')
+                    else:
+                        file.write(f'{pressure:27.17e} {traction[0]:27.17e} {traction[1]:27.17e} {traction[2]:>27}\n')
