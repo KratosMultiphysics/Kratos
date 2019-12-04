@@ -8,10 +8,9 @@ $wheelOutDir = "c:\out"
 
 function build ($python, $pythonPath) {
     cd $kratosRoot
-    cd cmake_build
     cp "$($kratosRoot)\scripts\wheels\windows\configure.bat" .\configure.bat
     cmd.exe /c "call configure.bat $($pythonPath)"
-    MSBuild.exe /m INSTALL.vcxproj /p:Configuration=Custom /p:Platform="x64"
+    cmake --build "$($kratos_root)/build/Release" --target install -- /property:configuration=Release /p:Platform=x64
 }
 
 function  setup_wheel_dir {
@@ -27,6 +26,13 @@ function create_core_wheel ($pythonPath) {
     cd $kratosRoot
     cp KratosMultiphysics\* "$($wheelRoot)\KratosMultiphysics"
     cp scripts\wheels\windows\KratosMultiphysics.json "$($wheelRoot)\wheel.json"
+
+    Get-ChildItem "C:\workspace\cimne\Kratos\bin\release\kratosmultiphysics" -Filter "*.py"|
+    Foreach-Object {
+        cp $_.FullName "$($wheelRoot)\KratosMultiphysics"
+    }
+
+
     cp scripts\wheels\__init__.py "$($wheelRoot)\KratosMultiphysics\__init__.py"
     cd $wheelRoot
     & $pythonPath setup.py bdist_wheel
