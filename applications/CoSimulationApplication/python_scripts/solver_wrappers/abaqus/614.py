@@ -44,6 +44,8 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
 
         self.cores = self.settings['cores'].GetInt() #  number of cpus Abaqus has to use
         self.dimensions = self.settings['dimensions'].GetInt()
+        if self.dimensions == 2:
+            print('\x1b[0;30;43m' + "Warning for Axisymmetric cases:\n\tIn Abaqus these have to be constructed around the y-axis. \n\tSwitching of x and y-coordinates might be necessary but should be accomplished by using an appropriate mapper." + '\x1b[0m')
         self.array_size = self.settings["arraysize"].GetInt()
         self.surfaces = self.settings["surfaces"].GetInt()
         self.ramp = self.settings["ramp"].GetInt()
@@ -235,7 +237,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             if elements.shape[0]-2 != int(n_elem):
                 raise ValueError(f"Number of lines ({elements.shape[0]}) in {elem_file} does not correspond with the number of elements ({n_elem})")
 
-            # read in Faces file for load points
+            ### --- read in Faces file for load points --- ###
             tmp = f'CSM_Time{self.timestep_start}Surface{mp.thread_id}Cpu0Faces.dat'
             faces_file = join(self.dir_csm, tmp)
             faces = np.loadtxt(faces_file)
@@ -268,7 +270,42 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                 mp.CreateNewNode(ids_tmp[i],
                                  coords_tmp[i, 0], coords_tmp[i, 1], coords_tmp[i, 2])
 
-            self.write_node_positions_test()
+            self.write_node_positions_test() #This should be commented out in the final code
+
+            # ### --- read in Nodes file for surface nodes --- ###
+            # tmp = f'CSM_Time{self.timestep_start}Surface{mp.thread_id}Nodes.dat'
+            # faces_file = join(self.dir_csm, tmp)
+            # faces = np.loadtxt(faces_file,skiprows=1)
+            #
+            # # get surface node coordinates and id's, Abaqus doesn't use id's
+            # prev_elem = 0
+            # prev_lp = 0
+            # ids_tmp = np.zeros(n_elem * n_lp).astype(str)  # create string ids element_loadpoint
+            # coords_tmp = np.zeros((n_elem * n_lp, 3)).astype(
+            #     float)  # Framework also requires z-coordinate which is 0.0 for 2D
+            # for i in range(0, n_elem * n_lp):
+            #     elem = int(faces[i, 0])
+            #     lp = int(faces[i, 1])
+            #     if elem < prev_elem:
+            #         raise ValueError(f"Element sequence is wrong ({elem}<{prev_elem})")
+            #     elif elem == prev_elem and lp != prev_lp + 1:
+            #         raise ValueError(f"Next line for same element ({elem}) does not contain next load point")
+            #     elif elem > prev_elem and lp != 1:
+            #         raise ValueError(f"First line for Element ({elem}) does not contain its first load point")
+            #     if lp > n_lp:
+            #         raise ValueError(f"lp ({lp}) exceeds the number of load points per element {n_lp}")
+            #
+            #     ids_tmp[i] = f"{elem}_{lp}"
+            #     coords_tmp[i, :self.dimensions] = faces[i,
+            #                                       -self.dimensions:]  # extract last "dimensions" columns from the file
+            #
+            #     prev_elem = elem
+            #     prev_lp = lp
+            #
+            # # create Nodes for load points
+            # for i in range(ids_tmp.size):
+            #     mp.CreateNewNode(ids_tmp[i],
+            #                      coords_tmp[i, 0], coords_tmp[i, 1], coords_tmp[i, 2])
 
 
         # TODO:

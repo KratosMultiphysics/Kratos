@@ -64,7 +64,7 @@ int ABQmain(int argc, char **argv)
 			int numComp = 0;
 			const double* const pos = val.dataDouble(numComp);
 			outputFile << "\n";
-			for (int comp = numComp-1; comp >= 0; comp--) {
+			for (unsigned int comp = 0; comp < numComp; comp++) {
 				outputFile.width(dataWidth);
 				outputFile << pos[comp];
 			}
