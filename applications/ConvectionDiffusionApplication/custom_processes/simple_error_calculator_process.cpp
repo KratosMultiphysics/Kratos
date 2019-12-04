@@ -55,8 +55,8 @@ void SimpleErrorCalculatorProcess<TDim>::Execute()
 
     // b) Retrive Nodes and Elements from the Model Part
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
-    KRATOS_DEBUG_ERROR_IF(nodes_array.size() == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
     ElementsArrayType& elements_array = mrThisModelPart.Elements();
+    KRATOS_DEBUG_ERROR_IF(nodes_array.size() == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
     KRATOS_DEBUG_ERROR_IF(elements_array.size() == 0) <<  "ERROR:: Empty list of elements" << std::endl;
 
     // c) Initialize Metric Scalar and Nodal Temperature Gradient for all nodes to 0
@@ -71,19 +71,20 @@ void SimpleErrorCalculatorProcess<TDim>::Execute()
     if (it_node_begin->Has(TDim_variable) == false) {
         // Iterate over the nodes
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             (it_node_begin + i)->SetValue(NODAL_TEMP_GRADIENT_X, 0.0);
             (it_node_begin + i)->SetValue(NODAL_TEMP_GRADIENT_Y, 0.0);
             (it_node_begin + i)->SetValue(NODAL_TEMP_GRADIENT_Z, 0.0);
+        }
     }
 
     // d) Call the Nodal Temperature Gradient Calculator Function
     CalculateNodalTempGradient();
 
-    // e) Call the Element Error Function
-    CalculateElementError();
+    // e) Call the Nodal Error Function
+    CalculateNodalError();
 
-    // e) Call the MetricScalar Function 
+    // e) Call the Metric Scalar Function 
     CalculateMetricScalar();
 }
 
@@ -101,12 +102,14 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalTempGradient()
     KRATOS_DEBUG_ERROR_IF(number_elements == 0) <<  "ERROR:: Empty list of elements" << std::endl;
 
     const auto it_elem_begin = elements_array.begin();
+    const auto it_node_begin = nodes_array.begin();
+    BoundedMatrix<double, number_nodes, 3> nodal_grad = ZeroMatrix(number_nodes, 3);
  
     // Loop over the elements
-    for (int i_elem = 0; i_elem < number_elements; ++i_elem) {
+    for (unsigned int i_elem = 0; i_elem < number_elements; ++i_elem) {
         auto it_elem = it_elem_begin + i_elem;
         auto r_geometry = it_elem->GetGeometry();
-        auto n_nodes = r_geometry.size();
+        const auto n_nodes = r_geometry.size();
 
         Vector GaussWeights;
         Vector DetJ;
@@ -126,11 +129,9 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalTempGradient()
         if (GaussWeights.size() != NumGPoints) {
             GaussWeights.resize(NumGPoints, false);
         }
-
-        for (unsigned int g = 0; g < NumGPoints; g++)
-            GaussWeights[g] = DetJ[g] * integration_points[g].Weight();
         
         for (unsigned int g = 0; g < NumGPoints; g++) {
+            GaussWeights[g] = DetJ[g] * integration_points[g].Weight();
             const auto& rDN_DX = ShapeDerivatives[g];
             //const auto& Ncontainer = ShapeFunctions[g];
             const Vector& Ncontainer = row(ShapeFunctions, g);
@@ -149,39 +150,53 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalTempGradient()
 
             for (int i_node = 0; i_node < n_nodes; i_node++) {
                 if (TDim == 2) {
-                    r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_X) += Ncontainer[i_node]*GaussPointTGrad[0]*rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
-                    r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_Y) += Ncontainer[i_node]*GaussPointTGrad[1]*rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
+                    nodal_grad(r_geometry[i_node].Id()-1, 0) += Ncontainer[i_node]*GaussPointTGrad[0]*rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
+                    nodal_grad(r_geometry[i_node].Id()-1, 1) += Ncontainer[i_node]*GaussPointTGrad[1]*rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
                 }
                 else if (TDim == 3) {
-                    r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_X) += Ncontainer[i_node]*GaussPointTGrad[0]*rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
-                    r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_Y) += Ncontainer[i_node]*GaussPointTGrad[1]*rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
-                    r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_Z) += Ncontainer[i_node]*GaussPointTGrad[2]*rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
+                    nodal_grad(r_geometry[i_node].Id()-1, 0) += Ncontainer[i_node]*GaussPointTGrad[0]*rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
+                    nodal_grad(r_geometry[i_node].Id()-1, 1) += Ncontainer[i_node]*GaussPointTGrad[1]*rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
+                    nodal_grad(r_geometry[i_node].Id()-1, 2) += Ncontainer[i_node]*GaussPointTGrad[2]*rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
                 }
             } 
         }                
     }
+
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+        (it_node_begin + i)->SetValue(NODAL_TEMP_GRADIENT_X, nodal_grad(i,0));
+        (it_node_begin + i)->SetValue(NODAL_TEMP_GRADIENT_Y, nodal_grad(i,1));
+        (it_node_begin + i)->SetValue(NODAL_TEMP_GRADIENT_Z, nodal_grad(i,2));
+    }
+
 }
 template<SizeType TDim>
-void SimpleErrorCalculatorProcess<TDim>::CalculateElementError()
+void SimpleErrorCalculatorProcess<TDim>::CalculateNodalError()
 {
     // a) Obtain Nodes and Elements from Model Part
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
     ElementsArrayType& elements_array = mrThisModelPart.Elements();
 
-    // b) Loop over Elements and calculate RHS
+    // b) Check Nodes and Elements
     const int number_nodes = static_cast<int>(nodes_array.size());
     const int number_elements = static_cast<int>(elements_array.size());
     KRATOS_DEBUG_ERROR_IF(number_nodes == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
     KRATOS_DEBUG_ERROR_IF(number_elements == 0) <<  "ERROR:: Empty list of elements" << std::endl;
 
     const auto it_elem_begin = elements_array.begin();
-    BoundedMatrix<double, number_elements, TDim> elem_error;
+    double GlobalOmega = 0.0;
+    double GlobalErrorNormSquare = 0.0;
+    double Global_delSigma = 0.0;
+    BoundedVector<double, number_elements> ElementdelSigma = ZeroVector(number_elements);
+    BoundedVector<double, number_elements> ElementErrorNormSquare = ZeroVector(number_elements);
+    BoundedVector<double, number_nodes> NodalErrorProjection = ZeroVector(number_nodes);
+    BoundedMatrix<double, number_elements, TDim> ElementError = ZeroMatrix(number_elements, TDim);
 
-    // c) Loop over the elements
+    // c) Loop over the elements to calculate Element Error
     for (int i_elem = 0; i_elem < number_elements; ++i_elem) {
         auto it_elem = it_elem_begin + i_elem;
         auto r_geometry = it_elem->GetGeometry();
-        auto n_nodes = r_geometry.size();
+        const auto n_nodes = r_geometry.size();
         const unsigned int elem_index = r_geometry->Id() - 1;
 
         Vector GaussWeights;
@@ -201,15 +216,15 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateElementError()
 
         if (GaussWeights.size() != NumGPoints) {
             GaussWeights.resize(NumGPoints, false);
-        }
-
-        for (unsigned int g = 0; g < NumGPoints; g++)
-            GaussWeights[g] = DetJ[g] * integration_points[g].Weight();
+        }    
         
         for (unsigned int g = 0; g < NumGPoints; g++) {
+            GaussWeights[g] = DetJ[g] * integration_points[g].Weight();
             const auto& rDN_DX = ShapeDerivatives[g];
             //const auto& Ncontainer = ShapeFunctions[g];
             const Vector& Ncontainer = row(ShapeFunctions, g);
+
+            GlobalOmega += GaussWeights[g];
 
             std::vector<double,TDim> GaussPointTGrad;
             std::vector<double,TDim> NodalTempGrad;
@@ -239,10 +254,14 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateElementError()
 
             for (unsigned int j = 0; j < TDim; j++) {
                 NodalTempGrad[j] *= GaussWeights[g];
-                elem_error(elem_index, j) += (NodalTempGrad[j] - GaussPointTGrad[j]);
+                ElementError(elem_index, j) += (NodalTempGrad[j] - GaussPointTGrad[j]);               
             }
-
         }
+
+        for (unsigned int j = 0; j < TDim; j++) {
+            ElementErrorNormSquare[elem_index] += std::pow(ElementError(elem_index, j), 2);
+        }
+        GlobalErrorNormSquare += ElementErrorNormSquare[elem_index];
     }
 }
 }

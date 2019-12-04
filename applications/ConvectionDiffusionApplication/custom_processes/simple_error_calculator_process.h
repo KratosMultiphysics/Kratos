@@ -225,9 +225,9 @@ private:
     void CalculateNodalTempGradient();
     
     /**
-     * @brief This method computes the elemental error between the C1 and C0 continuous definitions
+     * @brief This method computes the Nodal error between the C1 and C0 continuous definitions
      */
-    void CalculateElementError();
+    void CalculateNodalError();
 
     /**
      * @brief In this final step the metric is computed for MMGProcess
