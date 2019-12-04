@@ -24,13 +24,8 @@ function  setup_wheel_dir {
 function create_core_wheel ($pythonPath) {
     setup_wheel_dir
     cd $kratosRoot
-    cp KratosMultiphysics\* "$($wheelRoot)\KratosMultiphysics"
+    cp bin\release\KratosMultiphysics\* "$($wheelRoot)\KratosMultiphysics"
     cp scripts\wheels\windows\KratosMultiphysics.json "$($wheelRoot)\wheel.json"
-
-    Get-ChildItem "C:\workspace\cimne\Kratos\bin\release\kratosmultiphysics" -Filter "*.py"|
-    Foreach-Object {
-        cp $_.FullName "$($wheelRoot)\KratosMultiphysics"
-    }
 
 
     cp scripts\wheels\__init__.py "$($wheelRoot)\KratosMultiphysics\__init__.py"
