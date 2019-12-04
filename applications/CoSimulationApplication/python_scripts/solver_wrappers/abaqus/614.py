@@ -52,6 +52,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         # self.surfaceIDs = self.settings["surfaceIDs"].GetString()
         self.surfaceIDs = [_.GetString() for _ in self.settings['surfaceIDs'].list()]
         self.n_surfaces = len(self.surfaceIDs)
+        self.thread_ids = [i for i in range(0,self.n_surfaces)]
         self.mp_mode = self.settings["mp_mode"].GetString()
         self.input_file = self.settings["input_file"].GetString()
 
@@ -193,28 +194,82 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         commands = [cmd]
         self.run_shell(self.dir_csm, commands, name='Compile_USR')
 
-        # ### --- Create Model --- ###
-        # self.model = cs_data_structure.Model()
-        #
-        # # create ModelParts
-        # for key, value in (self.settings['interface_input'].items() +
-        #                    self.settings['interface_output'].items()):
-        #     # add ModelPart to Model
-        #     self.model.CreateModelPart(key)
-        #     mp = self.model[key]
-        #
-        #     # add historical variables to ModelPart
-        #     for var_name in value.list():
-        #         var = vars(KM)[var_name.GetString()]
-        #         mp.AddNodalSolutionStepVariable(var)
-        #
-        #     # add information to ModelPart
-        #     for i in range(self.n_threads):
-        #         if self.thread_names[i] in key:
-        #             mp.thread_name = self.thread_names[i]
-        #             mp.thread_id = self.thread_ids[i]
-        #             if 'thread_id' not in dir(mp):
-        #                 raise AttributeError('could not find thread name corresponding to key')
+        ### --- Create Model --- ###
+        self.model = cs_data_structure.Model()
+
+        # create ModelParts
+        for key, value in (self.settings['interface_input'].items() +
+                           self.settings['interface_output'].items()):
+            # add ModelPart to Model
+            self.model.CreateModelPart(key)
+            mp = self.model[key]
+
+            # add historical variables to ModelPart
+            for var_name in value.list():
+                var = vars(KM)[var_name.GetString()]
+                mp.AddNodalSolutionStepVariable(var)
+
+            # add information to ModelPart
+            for i in range(self.n_surfaces):
+                if self.surfaceIDs[i] in key:
+                    mp.thread_name = self.surfaceIDs[i]
+                    mp.thread_id = self.thread_ids[i] #This is just a number from 0 to n_surfaces
+                    if 'thread_id' not in dir(mp):
+                        raise AttributeError('Could not find thread id corresponding to key')
+                else:
+                    raise AttributeError(f'Could not find interface_input object for {self.surfaceIDs[i]}. Check parameter file.')
+
+        # add Nodes to input ModelParts (load_points)
+        # elements line 1 contains number of elements
+        # elements line 2 contains number of load points per element
+        # elements remainder contains element numbers involved in interface
+        for key in self.settings['interface_input'].keys():
+            mp = self.model[key]
+
+            # read in elements file
+            tmp = f'CSM_Time{self.timestep_start}Surface{mp.thread_id}Elements.dat'
+            elem_file = join(self.dir_csm, tmp)
+            elements = np.loadtxt(elem_file)
+            n_elem = int(elements[0])
+            n_lp = int(elements[1])
+            if elements.shape[0]-2 != int(n_elem):
+                raise ValueError(f"Number of lines ({elements.shape[0]}) in {elem_file} does not correspond with the number of elements ({n_elem})")
+
+            # read in Faces file for load points
+            tmp = f'CSM_Time{self.timestep_start}Surface{mp.thread_id}Cpu0Faces.dat'
+            faces_file = join(self.dir_csm, tmp)
+            faces = np.loadtxt(faces_file)
+
+                #get load point coordinates and id's
+            prev_elem = 0
+            prev_lp = 0
+            ids_tmp = np.zeros(n_elem*n_lp).astype(str) #create string ids element_loadpoint
+            coords_tmp = np.zeros((n_elem*n_lp,3)).astype(float) #Framework also requires z-coordinate which is 0.0 for 2D
+            for i in range(0,n_elem*n_lp):
+                elem = int(faces[i, 0])
+                lp = int(faces[i, 1])
+                if elem < prev_elem:
+                    raise ValueError(f"Element sequence is wrong ({elem}<{prev_elem})")
+                elif elem == prev_elem and lp != prev_lp+1:
+                    raise ValueError(f"Next line for same element ({elem}) does not contain next load point")
+                elif elem > prev_elem and lp != 1:
+                    raise ValueError(f"First line for Element ({elem}) does not contain its first load point")
+                if lp > n_lp:
+                    raise ValueError(f"lp ({lp}) exceeds the number of load points per element {n_lp}")
+
+                ids_tmp[i] = f"{elem}_{lp}"
+                coords_tmp[i,:self.dimensions]=faces[i,-self.dimensions:] #extract last "dimensions" columns from the file
+
+                prev_elem = elem
+                prev_lp = lp
+
+            # create Nodes for load points
+            for i in range(ids_tmp.size):
+                mp.CreateNewNode(ids_tmp[i],
+                                 coords_tmp[i, 0], coords_tmp[i, 1], coords_tmp[i, 2])
+
+            self.write_node_positions_test()
+
 
         # TODO:
         #   Read settings
@@ -468,3 +523,16 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     bool_restart=1
         rf.close()
         of.close()
+
+    def write_node_positions_test(self):
+        for key in self.settings['interface_input'].keys():
+            mp = self.model[key]
+            tmp = f'key_testNodes_thread{mp.thread_id}.dat'
+            file_name = join(self.dir_csm, tmp)
+            with open(file_name, 'w') as file:
+                file.write(f'{mp.NumberOfNodes()}\n')
+                for node in mp.Nodes:
+                    if self.dimensions == 2:
+                        file.write(f'{node.X:27.17e} {node.Y:27.17e} {node.Id:>27}\n')
+                    else:
+                        file.write(f'{node.X:27.17e} {node.Y:27.17e} {node.Z:27.17e} {node.Id:>27}\n')

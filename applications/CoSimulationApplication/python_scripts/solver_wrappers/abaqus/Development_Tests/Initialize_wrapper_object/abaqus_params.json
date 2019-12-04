@@ -9,7 +9,7 @@
             "settings": {
                 "working_directory" : "CSM",
                 "cores": 1,
-                "dimensions": 3,
+                "dimensions": 2,
                 "arraysize": 10e5,
                 "surfaces": 1,
                 "ramp": 1,
@@ -18,11 +18,11 @@
                 "surfaceIDs": ["BEAMINSIDEMOVING"],
                 "interface_input":
                 {
-                    "load_points": ["PRESSURE", "TRACTION"]
+                    "BEAMINSIDEMOVING_load_points": ["PRESSURE", "TRACTION"]
                 },
                 "interface_output":
                 {
-                    "surface_nodes": "DISPLACEMENT"
+                    "BEAMINSIDEMOVING_nodes": "DISPLACEMENT"
                 },
                 "mp_mode": "THREADS",
                 "input_file": "Base.inp"
