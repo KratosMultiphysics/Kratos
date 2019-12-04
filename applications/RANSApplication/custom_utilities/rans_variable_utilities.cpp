@@ -133,7 +133,7 @@ double GetMaximumScalarValue(const ModelPart& rModelPart, const Variable<double>
 {
     KRATOS_TRY
 
-    double max_value = std::numeric_limits<double>::min();
+    double max_value = std::numeric_limits<double>::lowest();
 
     const Communicator& r_communicator = rModelPart.GetCommunicator();
 
