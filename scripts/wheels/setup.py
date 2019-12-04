@@ -21,7 +21,7 @@ with open(os.path.join(os.environ["KRATOS_ROOT"], conf["readme"]), "r") as fh:
 import shutil
 
 for module in conf["included_modules"]:
-    shutil.copytree(os.path.join(os.environ["KRATOS_ROOT"], "KratosMultiphysics", "bin", "Release", module), os.path.join("KratosMultiphysics", module))
+    shutil.copytree(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", "KratosMultiphysics", module), os.path.join("KratosMultiphysics", module))
 
 for binary in conf["included_binaries"]:
     shutil.copy(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", "libs", replaceKeyword(binary)), os.path.join("KratosMultiphysics", ".libs"))
