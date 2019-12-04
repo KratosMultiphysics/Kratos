@@ -20,7 +20,7 @@ build_core_wheel () {
     setup_wheel_dir
     cd $KRATOS_ROOT
     
-    cp build/Release/KratosMultiphysics/* ${WHEEL_ROOT}/KratosMultiphysics
+    cp bin/Release/KratosMultiphysics/* ${WHEEL_ROOT}/KratosMultiphysics
     cp scripts/wheels/linux/KratosMultiphysics.json ${WHEEL_ROOT}/wheel.json
     cp scripts/wheels/__init__.py ${WHEEL_ROOT}/KratosMultiphysics/__init__.py
     
