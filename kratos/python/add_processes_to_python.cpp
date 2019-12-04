@@ -59,6 +59,7 @@
 #include "processes/apply_periodic_boundary_condition_process.h"
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
 #include "processes/voxel_mesh_generator_process.h"
+#include "processes/coarse_voxel_mesh_generator_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -595,6 +596,11 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<VoxelMeshGeneratorProcess, VoxelMeshGeneratorProcess::Pointer, Process>(m,"VoxelMeshGeneratorProcess")
+            .def(py::init<Point const&, Point const&, ModelPart&, ModelPart&, Parameters&>()) 
+            .def(py::init<std::vector<double> const&, std::vector<double> const&, std::vector<double> const&, ModelPart&, ModelPart&, Parameters&>()) 
+    ;
+
+    py::class_<CoarseVoxelMeshGeneratorProcess, CoarseVoxelMeshGeneratorProcess::Pointer, VoxelMeshGeneratorProcess>(m,"CoarseVoxelMeshGeneratorProcess")
             .def(py::init<Point const&, Point const&, ModelPart&, ModelPart&, Parameters&>()) 
             .def(py::init<std::vector<double> const&, std::vector<double> const&, std::vector<double> const&, ModelPart&, ModelPart&, Parameters&>()) 
     ;
