@@ -31,6 +31,7 @@
 #include "custom_strategies/custom_strategies/linear_mor_matrix_output_strategy.hpp"
 #include "custom_strategies/custom_strategies/mor_offline_second_order_strategy.hpp"
 #include "custom_strategies/custom_strategies/mor_online_strategy.hpp"
+#include "custom_strategies/custom_strategies/mor_online_second_order_strategy.hpp"
 #include "custom_strategies/custom_strategies/frequency_response_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/mor_second_order_krylov_strategy.hpp"
 
@@ -68,6 +69,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef FrequencyResponseAnalysisStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType > FrequencyResponseAnalysisStrategyType;
     typedef MorOnlineStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOnlineStrategyType;
     typedef MorOfflineSecondOrderStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOfflineSecondOrderStrategyType;
+    typedef MorOnlineSecondOrderStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType, ComplexSpaceType, ComplexLocalSpaceType, ComplexLinearSolverType > MorOnlineSecondOrderStrategyType;
 
     typedef MorSecondOrderKrylovStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorSecondOrderKrylovStrategyType;
 
@@ -89,14 +91,16 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     py::class_< MorOfflineSecondOrderStrategyType, typename MorOfflineSecondOrderStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorOfflineSecondOrderStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, bool >())
+        .def("SetBuilderAndSolver", &MorOfflineSecondOrderStrategyType::SetBuilderAndSolver)
         ;
-
+        
     py::class_< MorSecondOrderKrylovStrategyType, typename MorSecondOrderKrylovStrategyType::Pointer, MorOfflineSecondOrderStrategyType >(m,"MorSecondOrderKrylovStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, vector<double>, bool >())
         ;
     
     py::class_< FrequencyResponseAnalysisStrategyType, typename FrequencyResponseAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"FrequencyResponseAnalysisStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, ComplexLinearSolverPointer, bool, bool >())
+        .def("GetBuilderAndSolver", &FrequencyResponseAnalysisStrategyType::GetBuilderAndSolver)
         ;
 
     //********************************************************************
@@ -105,6 +109,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     py::class_< SystemMatrixBuilderAndSolverType, typename SystemMatrixBuilderAndSolverType::Pointer, BuilderAndSolverType >(m, "SystemMatrixBuilderAndSolver")
         .def(py::init < LinearSolverPointer >())
+        .def(py::init < LinearSolverPointer, Parameters >())
+        .def("BuildEquationIdVector", &SystemMatrixBuilderAndSolverType::BuildEquationIdVector)
+        .def("BuildOutputStructure", &SystemMatrixBuilderAndSolverType::BuildOutputStructure)
         ;
 
 }

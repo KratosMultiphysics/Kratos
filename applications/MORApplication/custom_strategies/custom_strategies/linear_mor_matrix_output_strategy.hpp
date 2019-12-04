@@ -382,7 +382,8 @@ class LinearMorMatrixOutputStrategy
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpRHS, mpRHS,
                                                                  BaseType::GetModelPart());
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpM, mpRHS, mpRHS,
-                                                                 BaseType::GetModelPart());                                                                 
+                                                                 BaseType::GetModelPart());
+                TDenseSpace::Resize(mMap, p_builder_and_solver->GetEquationSystemSize());
                 KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
             }
@@ -461,6 +462,7 @@ class LinearMorMatrixOutputStrategy
         TSystemMatrixType& rA  = *mpA;
         TSystemMatrixType& rM = *mpM;
         TSystemVectorType& rRHS  = *mpRHS;
+        LocalSystemVectorType rMap = mMap;
 
         TSystemVectorType tmp(rA.size1(), 0.0);
 
@@ -474,6 +476,8 @@ class LinearMorMatrixOutputStrategy
         p_builder_and_solver->ApplyDirichletConditionsForMassMatrix(p_scheme, BaseType::GetModelPart(), rM);
 
         p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), rRHS);
+
+        p_builder_and_solver->BuildEquationIdVector(p_scheme, BaseType::GetModelPart(), mMap);
 
         EchoInfo(0);
 
@@ -596,6 +600,7 @@ class LinearMorMatrixOutputStrategy
     TSystemVectorPointerType mpRHS; /// The RHS vector of the system of equations
     TSystemMatrixPointerType mpA; /// The Stiffness matrix of the system of equations
     TSystemMatrixPointerType mpM; /// The Mass matrix of the system of equations
+    LocalSystemVectorType mMap; /// The mapping vector
 
     /**
      * @brief Flag telling if it is needed to reform the DofSet at each
@@ -645,6 +650,10 @@ class LinearMorMatrixOutputStrategy
         std::stringstream matrix_market_vectname;
         matrix_market_vectname << "RHS_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
         TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), rRHS);
+
+        std::stringstream matrix_market_mapping_vectname;
+        matrix_market_mapping_vectname << "mapping.mm.rhs";
+        TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_mapping_vectname.str()).c_str(), mMap);
     }
 
     /**

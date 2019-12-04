@@ -114,12 +114,14 @@ class MorOfflineSecondOrderStrategy
      * @param rModelPart The model part of the problem
      * @param pScheme The integration schemed
      * @param MoveMeshFlag The flag that allows to move the mesh
+     * @param UseDefinedOutputFlag If true, the solution is only computed at specified dofs
      */
     MorOfflineSecondOrderStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
-        bool MoveMeshFlag = false)
+        bool MoveMeshFlag = false)//,
+        // bool UseDefinedOutputFlag = false)
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY;
@@ -287,10 +289,12 @@ class MorOfflineSecondOrderStrategy
             mpS = TSparseSpace::CreateEmptyMatrixPointer();
             mpM = TSparseSpace::CreateEmptyMatrixPointer();
             mpRHS = TSparseSpace::CreateEmptyVectorPointer();
+            mpOV = TSparseSpace::CreateEmptyVectorPointer();
 
             mpAr = TSparseSpace::CreateEmptyMatrixPointer();
             mpMr = TSparseSpace::CreateEmptyMatrixPointer();
             mpRHSr = TSparseSpace::CreateEmptyVectorPointer();
+            mpOVr = TSparseSpace::CreateEmptyVectorPointer();
             mpBasis = TSparseSpace::CreateEmptyMatrixPointer();
             mpSr = TSparseSpace::CreateEmptyMatrixPointer();
 
@@ -330,10 +334,12 @@ class MorOfflineSecondOrderStrategy
             SparseSpaceType::Clear(mpA);
         if (mpM != nullptr)
             SparseSpaceType::Clear(mpM);
+        if (mpS != nullptr)
+            SparseSpaceType::Clear(mpS);
         if (mpRHS != nullptr)
             SparseSpaceType::Clear(mpRHS);
-        if (mpS != nullptr)
-            SparseSpaceType::Clear(mpRHS);
+        if (mpOV != nullptr)
+            SparseSpaceType::Clear(mpOV);
 
         //setting to zero the internal flag to ensure that the dof sets are recalculated
         GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
@@ -382,11 +388,11 @@ class MorOfflineSecondOrderStrategy
 
                 //setting up the Vectors involved to the correct size
                 BuiltinTimer system_matrix_resize_time;
-                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpRHS, mpRHS,
+                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpOV, mpRHS,
                                                                  BaseType::GetModelPart());
-                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpM, mpRHS, mpRHS,
+                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpM, mpOV, mpRHS,
                                                                  BaseType::GetModelPart()); 
-                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpS, mpRHS, mpRHS,
+                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpS, mpOV, mpRHS,
                                                                  BaseType::GetModelPart()); 
 
                 KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
@@ -399,14 +405,18 @@ class MorOfflineSecondOrderStrategy
             TSystemMatrixType& rA  = *mpA;
             TSystemMatrixType& rM = *mpM;
             TSystemVectorType& rRHS  = *mpRHS;
+            TSystemVectorType& rOV  = *mpOV;
 
             //initial operations ... things that are constant over the Solution Step
-            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rA, rRHS, rRHS);
-            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rM, rRHS, rRHS);
+            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rA, rOV, rRHS);
+            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rM, rOV, rRHS);
 
             //initial operations ... things that are constant over the Solution Step
-            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rA, rRHS, rRHS);
-            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rM, rRHS, rRHS);
+            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rA, rOV, rRHS);
+            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rM, rOV, rRHS);
+
+            //create output vector
+            p_builder_and_solver->BuildOutputStructure(BaseType::GetModelPart(), rOV);
 
             mSolutionStepIsInitialized = true;
         }
@@ -455,6 +465,7 @@ class MorOfflineSecondOrderStrategy
             SparseSpaceType::Clear(mpRHS);
             SparseSpaceType::Clear(mpM);
             SparseSpaceType::Clear(mpS);
+            SparseSpaceType::Clear(mpOV);
 
             this->Clear();
         }
@@ -656,6 +667,7 @@ class MorOfflineSecondOrderStrategy
     TSystemMatrixPointerType mpA; /// The Stiffness matrix of the system of equations
     TSystemMatrixPointerType mpM; /// The Mass matrix of the system of equations
     TSystemMatrixPointerType mpS; /// The Damping matrix of the system of equations
+    TSystemVectorPointerType mpOV; /// The output vector for single output
 
 
     // reduced matrices
@@ -665,6 +677,7 @@ class MorOfflineSecondOrderStrategy
     // TDenseMatrixPointerType mpBasis;
     TSystemMatrixPointerType mpBasis;
     TSystemMatrixPointerType mpSr;
+    TSystemVectorPointerType mpOVr;
 
     int myTestInteger = 42;
 

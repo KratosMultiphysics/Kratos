@@ -117,6 +117,36 @@ public:
 
     }
 
+    SystemMatrixBuilderAndSolver(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver, Parameters ThisParameters)
+        : ResidualBasedBlockBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > (pNewLinearSystemSolver)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "build_output_structure": false,
+            "output_structure_type": "vector",
+            "model_part_names" : ["model"],
+            "output_variable_names" : ["DISPLACEMENT_Z"]
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        // if( ThisParameters["build_output_vector"].GetBool() && ThisParameters["build_output_matrix"].GetBool() )
+        // KRATOS_ERROR_IF(ThisParameters["build_output_vector"].GetBool() && ThisParameters["build_output_matrix"].GetBool() ) 
+        //     << "Cannot build output vector and matrix at the same time!" << std::endl;
+        if( ThisParameters["build_output_structure"].GetBool() && 
+            ( ThisParameters["output_structure_type"].GetString() == "vector" ) )
+                mBuildOutputVectorFlag = true;
+
+        if( ThisParameters["build_output_structure"].GetBool() && 
+            ( ThisParameters["output_structure_type"].GetString() == "matrix" ) )
+                KRATOS_ERROR << "not yet implemented!\n";
+
+        mOutputModelPartNames = ThisParameters["model_part_names"].GetStringArray();
+        mOutputVariableNames = ThisParameters["output_variable_names"].GetStringArray();
+    }
+
     /** Destructor.
      */
     ~SystemMatrixBuilderAndSolver() override
@@ -130,6 +160,71 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    void BuildEquationIdVector(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& b)
+    {
+        KRATOS_TRY
+
+        const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+        ModelPart::NodesContainerType::iterator n_begin = rModelPart.NodesBegin();
+
+        for (int k=0; k < nnodes; ++k)
+        {
+            ModelPart::NodesContainerType::iterator it = n_begin + k;
+            
+            unsigned int i = 0;
+            for (auto const& dof : it->GetDofs())
+            {
+                b(3*k+i) = dof.EquationId();
+                i++;
+            }
+        }
+        KRATOS_WATCH(b)
+
+        KRATOS_CATCH("")
+    }
+
+    void BuildOutputStructure(
+        // typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& b)//,
+        // std::string variableName)
+    {
+        KRATOS_TRY
+
+        if( mBuildOutputVectorFlag )
+        {
+            std::cout << "hello\n";
+            size_t n_model_parts = mOutputModelPartNames.size();
+            for( size_t i=0; i<n_model_parts; ++i )
+            {
+                auto const this_model_part = rModelPart.pGetSubModelPart( mOutputModelPartNames[i] );
+                KRATOS_WATCH(*this_model_part)
+                for( auto& node : this_model_part->Nodes() )
+                {
+                    for( auto& dof : node.GetDofs() )
+                    {
+                        if( dof.GetVariable().Name() == mOutputVariableNames[i] )
+                        {
+                            b( dof.EquationId() ) = 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void ResizeAndInitializeOutput(
+        typename TSchemeType::Pointer pScheme
+    )
+    {
+
+    }
 
     /**
      * @brief Function to perform the build of the StiffnessMatrix. The vector could be sized as the total number
@@ -514,6 +609,8 @@ public:
 
     }
 
+    // void BuildOutputStructure(ModelPart& rModelPart)
+
 
     /**
      * @brief Applies the dirichlet conditions specifically for mass matrix to output. This operation may be very heavy or completely
@@ -725,6 +822,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+        bool mBuildOutputVectorFlag = false;
+        std::vector<std::string> mOutputModelPartNames;
+        std::vector<std::string> mOutputVariableNames;
 
     ///@}
     ///@name Private Operators
