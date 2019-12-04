@@ -39,6 +39,7 @@
 #include "custom_elements/conserved_var_element.hpp"
 #include "custom_elements/euler_prim_var_element.hpp"
 #include "custom_elements/euler_cons_var_element.hpp"
+#include "custom_elements/conserved_element.h"
 #include "custom_conditions/nothing_condition.hpp"
 
 
@@ -220,6 +221,8 @@ namespace Kratos
         const EulerPrimVarElement<4> mEulerPrimVarElement2D4N;
         const EulerConsVarElement<3> mEulerConsVarElement2D3N;
         const EulerConsVarElement<4> mEulerConsVarElement2D4N;
+        const ConservedElement<3> mConservedElement2D3N;
+        const ConservedElement<4> mConservedElement2D4N;
         // Condition
         const NothingCondition<2> mNothingCondition2D2N;
 
