@@ -264,7 +264,7 @@ template <typename TDataType>
 void RansTimeAveragingProcess::InitializeTimeAveragedQuantity(
     ModelPart::NodesContainerType& rNodes, const Variable<TDataType>& rVariable) const
 {
-    int number_of_nodes = rNodes.size();
+    const int number_of_nodes = rNodes.size();
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
@@ -278,7 +278,7 @@ void RansTimeAveragingProcess::CalculateTimeIntegratedQuantity(ModelPart::NodesC
                                                                const Variable<TDataType>& rVariable,
                                                                const double DeltaTime) const
 {
-    int number_of_nodes = rNodes.size();
+    const int number_of_nodes = rNodes.size();
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
@@ -293,7 +293,7 @@ template <typename TDataType>
 void RansTimeAveragingProcess::CalculateTimeAveragedQuantity(
     ModelPart::NodesContainerType& rNodes, const Variable<TDataType>& rVariable) const
 {
-    int number_of_nodes = rNodes.size();
+    const int number_of_nodes = rNodes.size();
     const double weighting_factor = 1.0 / mCurrentTime;
 
 #pragma omp parallel for

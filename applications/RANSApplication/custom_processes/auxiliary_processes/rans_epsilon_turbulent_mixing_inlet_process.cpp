@@ -92,7 +92,7 @@ void RansEpsilonTurbulentMixingLengthInletProcess::Execute()
 
     ModelPart::NodesContainerType& r_nodes =
         mrModel.GetModelPart(mModelPartName).Nodes();
-    int number_of_nodes = r_nodes.size();
+    const int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)

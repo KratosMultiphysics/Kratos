@@ -82,7 +82,7 @@ void RansNutLowReCalculationProcess::Execute()
     const double c_mu = r_process_info[TURBULENCE_RANS_C_MU];
 
     NodesContainerType& r_nodes = r_model_part.Nodes();
-    int number_of_nodes = r_nodes.size();
+    const int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
