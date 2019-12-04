@@ -16,6 +16,14 @@
                 "delta_T": 1e-3,
                 "timestep_start": 0,
                 "surfaceIDs": "\"BEAMINSIDEMOVING\"",
+                "interface_input":
+                {
+                    "load_points": ["PRESSURE", "TRACTION"]
+                },
+                "interface_output":
+                {
+                    "surface_nodes": "DISPLACEMENT"
+                },
                 "mp_mode": "THREADS",
                 "input_file": "Base.inp"
             }
