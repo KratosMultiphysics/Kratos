@@ -116,7 +116,7 @@ void RansCheckVectorBoundsProcess::Execute()
     }
 
     double min_value = std::numeric_limits<double>::max();
-    double max_value = std::numeric_limits<double>::min();
+    double max_value = std::numeric_limits<double>::lowest();
 
     const int number_of_nodes = r_nodes.size();
     const int number_of_threads = OpenMPUtils::GetNumThreads();
