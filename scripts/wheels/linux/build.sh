@@ -95,7 +95,7 @@ build () {
 	chmod +x configure.sh
 	./configure.sh $PYTHON_LOCATION
 
-	cmake --build "${KRATOS_ROOT}/bin/Release" --target install -- -j$2
+	cmake --build "${KRATOS_ROOT}/build/Release" --target install -- -j$2
 }
 
 
