@@ -20,7 +20,7 @@ build_core_wheel () {
     setup_wheel_dir
     cd $KRATOS_ROOT
     
-    cp KratosMultiphysics/* ${WHEEL_ROOT}/KratosMultiphysics
+    cp build/Release/KratosMultiphysics/* ${WHEEL_ROOT}/KratosMultiphysics
     cp scripts/wheels/linux/KratosMultiphysics.json ${WHEEL_ROOT}/wheel.json
     cp scripts/wheels/__init__.py ${WHEEL_ROOT}/KratosMultiphysics/__init__.py
     
@@ -96,9 +96,7 @@ build () {
 	chmod +x configure.sh
 	./configure.sh $PYTHON_LOCATION
 
-	make -j$2
-	make install
-
+	cmake --build "${KRATOS_ROOT}/build/Release" --target install -- -j$2
 }
 
 
