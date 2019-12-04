@@ -9,8 +9,8 @@ $wheelOutDir = "c:\out"
 function build ($python, $pythonPath) {
     cd $kratosRoot
     cp "$($kratosRoot)\scripts\wheels\windows\configure.bat" .\configure.bat
-    cmd.exe /c "call configure.bat $($pythonPath)"
-    cmake --build "$($kratos_root)/build/Release" --target install -- /property:configuration=Release /p:Platform=x64
+    cmd.exe /c "call configure.bat $($pythonPath) $($kratosRoot)"
+    cmake --build "$($kratosRoot)/build/Release" --target install -- /property:configuration=Release /p:Platform=x64
 }
 
 function  setup_wheel_dir {
