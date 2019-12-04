@@ -242,13 +242,18 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalError()
 
             for (unsigned int i_node = 0; i_node < n_nodes; i_node++) {
                 if (TDim == 2) {
-                    NodalTempGrad[0] += Ncontainer[i_node]*r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_X);
-                    NodalTempGrad[1] += Ncontainer[i_node]*r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_Y);
+                    array_1d<double, 3>& tempGrad = r_geometry[i_node].FastGetSolutionStepValue(NODAL_TEMP_GRADIENT);
+                    NodalTempGrad[0] += Ncontainer[i_node]*tempGrad[0];
+                    NodalTempGrad[1] += Ncontainer[i_node]*tempGrad[1];
                 }
                 else if (TDim == 3) {
-                    NodalTempGrad[0] += Ncontainer[i_node]*r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_X);
-                    NodalTempGrad[1] += Ncontainer[i_node]*r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_Y);
-                    NodalTempGrad[2] += Ncontainer[i_node]*r_geometry[i_node].GetDof(NODAL_TEMP_GRADIENT_Z);
+                    array_1d<double, 3>& tempGrad = r_geometry[i_node].FastGetSolutionStepValue(NODAL_TEMP_GRADIENT);
+                    NodalTempGrad[0] += Ncontainer[i_node]*tempGrad[0];
+                    NodalTempGrad[1] += Ncontainer[i_node]*tempGrad[1];
+                    NodalTempGrad[2] += Ncontainer[i_node]*tempGrad[2];
+                    //NodalTempGrad[0] += Ncontainer[i_node]*r_geometry[i_node].GetValue(NODAL_TEMP_GRADIENT_X);
+                    //NodalTempGrad[1] += Ncontainer[i_node]*r_geometry[i_node].GetValue(NODAL_TEMP_GRADIENT_Y);
+                    //NodalTempGrad[2] += Ncontainer[i_node]*r_geometry[i_node].GetValue(NODAL_TEMP_GRADIENT_Z);
                 }
             }
 
