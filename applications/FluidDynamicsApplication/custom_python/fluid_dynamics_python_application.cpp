@@ -101,6 +101,9 @@ PYBIND11_MODULE(KratosFluidDynamicsApplication,m)
 
     // Smoothed surface to calculate DISTANCE_GRADIENT
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,DISTANCE_AUX);
+
+    // Parallel levelset distance calculator needs an AREA_VARIABLE_AUX
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,AREA_VARIABLE_AUX);
 }
 
 

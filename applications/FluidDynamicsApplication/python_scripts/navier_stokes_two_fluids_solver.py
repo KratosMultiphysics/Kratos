@@ -164,7 +164,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.level_set_convection_process = self._set_level_set_convection_process()
 
         self.parallel_distance_process = self._set_parallel_distance_process()
-        #(self.parallel_distance_process).Execute()
+        (self.parallel_distance_process).CalculateDistances(
+                    self.main_model_part, 
+                    KratosMultiphysics.DISTANCE, 
+                    KratosCFD.AREA_VARIABLE_AUX, 
+                    100, 
+                    0.05,
+                    (self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
         self.variational_distance_process = self._set_variational_distance_process()
         #(self.variational_distance_process).Execute()
@@ -229,13 +235,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #    (self.variational_distance_process).Execute()
 
             if (TimeStep % 1 == 0):
-                (self.parallel_distance_process).CalculateDistances(
+                (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
                     self.main_model_part, 
                     KratosMultiphysics.DISTANCE, 
                     KratosCFD.AREA_VARIABLE_AUX, 
-                    200, 
-                    0.01,
-                    (self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                    100, 
+                    0.05)#,
+                    #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
             # Compute the DISTANCE_GRADIENT on nodes
             (self.distance_gradient_process).Execute()

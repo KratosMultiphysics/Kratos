@@ -80,4 +80,7 @@ KRATOS_CREATE_VARIABLE( double, UPDATE_STATISTICS )
 // Smoothing surface auxiliary distance
 KRATOS_CREATE_VARIABLE( double,  DISTANCE_AUX)
 
+// Parallel levelset distance calculator needs an AREA_VARIABLE_AUX
+KRATOS_CREATE_VARIABLE( double,  AREA_VARIABLE_AUX)
+
 }

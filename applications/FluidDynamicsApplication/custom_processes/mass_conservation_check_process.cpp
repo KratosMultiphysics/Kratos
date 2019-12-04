@@ -84,10 +84,18 @@ std::string MassConservationCheckProcess::Initialize(){
     this->mTheoreticalNegativeVolume = neg_vol;
     inter_area = r_comm.SumAll(inter_area);
 
+    std::ostringstream oss;
+    //oss.precision(std::numeric_limits<double>::digits10);
+    oss << std::scientific << "  positive volume (air)   = " << this->mInitialPositiveVolume << "\n" 
+        << "  negative volume (water) = " << this->mInitialNegativeVolume << "\n" 
+        << "  fluid interface (area)  = " << inter_area << "\n\n";
+    std::string add_string = oss.str();
+
     std::string output_line =   "------ Initial values ----------------- \n";
-    output_line +=              "  positive volume (air)   = " + std::to_string(this->mInitialPositiveVolume) + "\n";
-    output_line +=              "  negative volume (water) = " + std::to_string(this->mInitialNegativeVolume) + "\n";
-    output_line +=              "  fluid interface (area)  = " + std::to_string(inter_area) + "\n\n";
+    //output_line +=              "  positive volume (air)   = " + std::to_string(this->mInitialPositiveVolume) + "\n";
+    //output_line +=              "  negative volume (water) = " + std::to_string(this->mInitialNegativeVolume) + "\n";
+    //output_line +=              "  fluid interface (area)  = " + std::to_string(inter_area) + "\n\n";
+    output_line += add_string;
     output_line +=              "------ Time step values --------------- \n";
     output_line +=              "sim_time \t\twater_vol \t\tair_vol \t\twater_err \t\tnet_inf \t\t";
     output_line +=              "net_outf \t\tint_area \t\tcorr_shift \n";
