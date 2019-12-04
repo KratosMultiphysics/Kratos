@@ -110,7 +110,7 @@ do
 	
 	cd $KRATOS_ROOT
 	export HASH=$(git show -s --format=%h) #used in version number
-	export LD_LIBRARY_PATH=$(pwd)/libs:$BASE_LD_LIBRARY_PATH
+	export LD_LIBRARY_PATH=${KRATOS_ROOT}/bin/Release/libs:$BASE_LD_LIBRARY_PATH
 	echo $LD_LIBRARY_PATH
 
     build_core_wheel
