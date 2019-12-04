@@ -49,11 +49,13 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         self.ramp = self.settings["ramp"].GetInt()
         self.delta_T = self.settings["delta_T"].GetDouble()  #TODO: move to higher-level parameter file?
         self.timestep_start = self.settings["timestep_start"].GetDouble()  #TODO: move to higher-level parameter file?
-        self.surfaceIDs = self.settings["surfaceIDs"].GetString()
+        # self.surfaceIDs = self.settings["surfaceIDs"].GetString()
+        self.surfaceIDs = [_.GetString() for _ in self.settings['surfaceIDs'].list()]
+        self.n_surfaces = len(self.surfaceIDs)
         self.mp_mode = self.settings["mp_mode"].GetString()
         self.input_file = self.settings["input_file"].GetString()
 
-        # Upon(re)starting Abaqus needs to run USRInit.f
+        # Upon (re)starting Abaqus needs to run USRInit.f
         # A restart requires Abaqus to be booted with a restart file
 
         # prepare abaqus_v6.env
@@ -126,11 +128,16 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
 
         # prepare GetOutput.cpp
         get_output = "GetOutput.cpp"
+        temp_str = ""
+        for j in range(0, self.n_surfaces - 1):
+            temp_str += f"\"{self.surfaceIDs[j]}\", "
+        temp_str += f"\"{self.surfaceIDs[self.n_surfaces-1]}\""
+
         with open(join(path_src, get_output), "r") as infile:
             with open(join(self.dir_csm, get_output), "w") as outfile:
                 for line in infile:
                     line = line.replace("|surfaces|", str(self.surfaces))
-                    line = line.replace("|surfaceIDs|", str(self.surfaceIDs))
+                    line = line.replace("|surfaceIDs|", temp_str)
                     line = line.replace("|dimension|", str(self.dimensions))
                     if "|" in line:
                         raise ValueError(f"The following line in GetOutput.cpp still contains a \"|\" after substitution: \n \t{line} \n Probably a parameter was not subsituted")
@@ -159,8 +166,6 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             output_file = os.path.join(self.dir_csm,f"CSM_Time{self.timestep_start}Surface{i}Elements.dat")
             self.makeElements(face_file, output_file)
 
-
-
         # prepare Abaqus USR.f
         usr = "USR.f"
         with open(join(path_src, usr), "r") as infile:
@@ -188,7 +193,28 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         commands = [cmd]
         self.run_shell(self.dir_csm, commands, name='Compile_USR')
 
-
+        # ### --- Create Model --- ###
+        # self.model = cs_data_structure.Model()
+        #
+        # # create ModelParts
+        # for key, value in (self.settings['interface_input'].items() +
+        #                    self.settings['interface_output'].items()):
+        #     # add ModelPart to Model
+        #     self.model.CreateModelPart(key)
+        #     mp = self.model[key]
+        #
+        #     # add historical variables to ModelPart
+        #     for var_name in value.list():
+        #         var = vars(KM)[var_name.GetString()]
+        #         mp.AddNodalSolutionStepVariable(var)
+        #
+        #     # add information to ModelPart
+        #     for i in range(self.n_threads):
+        #         if self.thread_names[i] in key:
+        #             mp.thread_name = self.thread_names[i]
+        #             mp.thread_id = self.thread_ids[i]
+        #             if 'thread_id' not in dir(mp):
+        #                 raise AttributeError('could not find thread name corresponding to key')
 
         # TODO:
         #   Read settings
