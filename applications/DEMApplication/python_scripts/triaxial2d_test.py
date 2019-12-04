@@ -3,8 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import math
 import os
 
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
+import KratosMultiphysics as Kratos
 import KratosMultiphysics.DEMApplication as Dem
 
 class Triaxial2D(Dem.DEM_material_test_script.MaterialTest):
@@ -24,8 +23,8 @@ class Triaxial2D(Dem.DEM_material_test_script.MaterialTest):
         if self.test_type == "Triaxial2D":
             for element in self.spheres_model_part.Elements:
                 node = element.GetNode(0)
-                node.SetSolutionStepValue(Dem.VELOCITY_Z, 0.0)
-                node.Fix(Dem.VELOCITY_Z)
+                node.SetSolutionStepValue(Kratos.VELOCITY_Z, 0.0)
+                node.Fix(Kratos.VELOCITY_Z)
 
         absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
         self.graph_export   = open(absolute_path_to_file, 'w')
@@ -43,14 +42,13 @@ class Triaxial2D(Dem.DEM_material_test_script.MaterialTest):
         for element in self.spheres_model_part.Elements:
             element.GetNode(0).SetSolutionStepValue(Dem.SKIN_SPHERE, 0)
             node = element.GetNode(0)
-            r = node.GetSolutionStepValue(Dem.RADIUS)
+            r = node.GetSolutionStepValue(Kratos.RADIUS)
             x = node.X
             y = node.Y
 
             cross_section = 2.0 * r
 
             if ((x * x + y * y) >= ((d / 2 - eps * r) * (d / 2 - eps * r))):
-
                 element.GetNode(0).SetSolutionStepValue(Dem.SKIN_SPHERE, 1)
                 self.LAT.append(node)
                 self.xlat_area = self.xlat_area + cross_section
@@ -60,16 +58,15 @@ class Triaxial2D(Dem.DEM_material_test_script.MaterialTest):
 
         return self.xlat_area
 
-    @staticmethod
-    def ApplyLateralStress(average_zstress_value, LAT, alpha_lat):
+    def ApplyLateralStress(self, average_zstress_value, LAT, alpha_lat):
 
         for node in LAT:
-            r = node.GetSolutionStepValue(Dem.RADIUS)
+            r = node.GetSolutionStepValue(Kratos.RADIUS)
             x = node.X
             y = node.Y
 
-            values = Dem.Array3()
-            vect = Dem.Array3()
+            values = Kratos.Array3()
+            vect = Kratos.Array3()
 
             cross_section = 2.0 * r
 
@@ -81,7 +78,7 @@ class Triaxial2D(Dem.DEM_material_test_script.MaterialTest):
 
             values[0] = cross_section * average_zstress_value * vect[0] * alpha_lat
             values[1] = cross_section * average_zstress_value * vect[1] * alpha_lat
-            node.SetSolutionStepValue(Dem.EXTERNAL_APPLIED_FORCE, values)
+            node.SetSolutionStepValue(Kratos.EXTERNAL_APPLIED_FORCE, values)
 
     def MeasureForcesAndPressure(self):
         super(Triaxial2D, self).MeasureForcesAndPressure()
@@ -89,7 +86,7 @@ class Triaxial2D(Dem.DEM_material_test_script.MaterialTest):
 
         if self.test_type == "Triaxial2D":
             average_zstress_value = self.aux.ComputeAverageZStressFor2D(self.spheres_model_part)
-            ApplyLateralStress(average_zstress_value, self.LAT, self.alpha_lat)
+            self.ApplyLateralStress(average_zstress_value, self.LAT, self.alpha_lat)
 
     def PrintGraph(self, time):
         pass
