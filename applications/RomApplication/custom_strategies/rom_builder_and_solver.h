@@ -378,10 +378,17 @@ public:
 
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
-        //   ###Matrix MatrixResiduals( (nelements + nconditions), mRomDofs);   // Matrix of reduced residuals.
-//       #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
+        int nthreads;
+        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo)
         {
-//            # pragma omp for  schedule(guided, 512) nowait
+
+            Matrix tempA = ZeroMatrix(mRomDofs,mRomDofs);
+            Vector tempb = ZeroVector(mRomDofs);
+            int id, nthrds;
+            id = omp_get_thread_num();
+            nthrds = omp_get_num_threads();
+            if(id==0) nthreads = nthrds;
+            #pragma omp for 
             for (int k = 0; k < nelements; k++)
             {
                 auto it_el = el_begin + k;
@@ -403,7 +410,7 @@ public:
                     //compute the elemental reduction matrix T
                     const auto& geom = it_el->GetGeometry();
                     Matrix Telemental(geom.size()*mNodalDofs, mRomDofs);
-                    Vector ResidualReduced(mRomDofs); // The size of the residual will vary only when using more ROM modes
+                    
 
                     for(unsigned int i=0; i<geom.size(); ++i)
 
@@ -421,27 +428,22 @@ public:
                     }
 
                     Matrix aux = prod(LHS_Contribution, Telemental);
-					noalias(Arom) += prod(trans(Telemental), aux);
-                    noalias(brom) += prod(trans(Telemental), RHS_Contribution);
-                    ResidualReduced = prod(trans(Telemental), RHS_Contribution);
-
-                    //   ###row(MatrixResiduals, k) = ResidualReduced;
+					tempA += prod(trans(Telemental), aux);
+                    tempb += prod(trans(Telemental), RHS_Contribution);
                     
 
-                    //PrintData(Telemental);
-                    //KRATOS_WATCH(Telemental)
-                    //KRATOS_WATCH(RHS_Contribution)
-                    //KRATOS_WATCH(ResidualReduced)
-                    //KRATOS_WATCH(Arom)
 
-                    // clean local elemental me overridemory
                     pScheme->CleanMemory(*(it_el.base()));                
                 }
                 
             }
+            #pragma omp critical 
+            Arom +=tempA;
+            brom +=tempb;
 
-
-            // #pragma omp for  schedule(guided , 512)
+            tempA = ZeroMatrix(mRomDofs,mRomDofs);
+            tempb = ZeroVector(mRomDofs);
+            #pragma omp for
             for (int k = 0; k < nconditions;  k++)
             {
                 ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
@@ -463,7 +465,7 @@ public:
                     //compute the elemental reduction matrix T
                     const auto& r_geom = it->GetGeometry();
                     Matrix Telemental(r_geom.size()*mNodalDofs, mRomDofs);
-                    Vector ResidualReduced(mRomDofs); // The size of the residual will vary only when using more ROM modes
+                    
 
                     for(unsigned int i=0; i<r_geom.size(); ++i)
                     {
@@ -477,27 +479,22 @@ public:
                         }
                     }
                     Matrix aux = prod(LHS_Contribution, Telemental);
-                    noalias(Arom) += prod(trans(Telemental), aux);
-                    noalias(brom) += prod(trans(Telemental), RHS_Contribution);
+                    tempA += prod(trans(Telemental), aux);
+                    tempb += prod(trans(Telemental), RHS_Contribution);
                     
-                    ResidualReduced = prod(trans(Telemental), RHS_Contribution);
-
-                    // ### row(MatrixResiduals, k+nelements) = ResidualReduced;
+                 
+                 
 
                     // clean local elemental memory
                     pScheme->CleanMemory(*(it.base()));
                 }
             }
-
-            //std::ofstream myfile;
-            //myfile.open ("/home/jrbravo/Desktop/PhD/example.txt");
-            //myfile << MatrixResiduals;
-            //myfile.close();            
-            //KRATOS_WATCH(MatrixResiduals)
+            #pragma omp critical 
+            Arom +=tempA;
+            brom +=tempb;
         }
-
         const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << "for a total of "<< nthreads << " treads"<<std::endl;
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
