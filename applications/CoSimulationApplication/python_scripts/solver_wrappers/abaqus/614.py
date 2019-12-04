@@ -196,7 +196,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         commands = [cmd]
         self.run_shell(self.dir_csm, commands, name='Compile_USR')
 
-        ### --- Create Model --- ###
+### --- Create Model --- ###
         self.model = cs_data_structure.Model()
 
         # create ModelParts
@@ -237,12 +237,12 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             if elements.shape[0]-2 != int(n_elem):
                 raise ValueError(f"Number of lines ({elements.shape[0]}) in {elem_file} does not correspond with the number of elements ({n_elem})")
 
-            ### --- read in Faces file for load points --- ###
+            # read in Faces file for load points
             tmp = f'CSM_Time{self.timestep_start}Surface{mp.thread_id}Cpu0Faces.dat'
             faces_file = join(self.dir_csm, tmp)
             faces = np.loadtxt(faces_file)
 
-                #get load point coordinates and id's
+            #get load point coordinates and id's of load points
             prev_elem = 0
             prev_lp = 0
             ids_tmp = np.zeros(n_elem*n_lp).astype(str) #create string ids element_loadpoint
@@ -270,42 +270,31 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                 mp.CreateNewNode(ids_tmp[i],
                                  coords_tmp[i, 0], coords_tmp[i, 1], coords_tmp[i, 2])
 
-            self.write_node_positions_test() #This should be commented out in the final code
+        # add Nodes to output ModelParts (surface_points)
+        # first line is a header, remaining lines are x, y (and z) coordinates
+        #abaqus does not use node id's but maintains the output order
+        for key in self.settings['interface_output'].keys():
+            mp = self.model[key]
+            # read in Nodes file for surface nodes
+            tmp = f'CSM_Time{self.timestep_start}Surface{mp.thread_id}Nodes.dat'
+            nodes_file = join(self.dir_csm, tmp)
+            nodes = np.loadtxt(nodes_file,skiprows=1)
 
-            # ### --- read in Nodes file for surface nodes --- ###
-            # tmp = f'CSM_Time{self.timestep_start}Surface{mp.thread_id}Nodes.dat'
-            # faces_file = join(self.dir_csm, tmp)
-            # faces = np.loadtxt(faces_file,skiprows=1)
-            #
-            # # get surface node coordinates and id's, Abaqus doesn't use id's
-            # prev_elem = 0
-            # prev_lp = 0
-            # ids_tmp = np.zeros(n_elem * n_lp).astype(str)  # create string ids element_loadpoint
-            # coords_tmp = np.zeros((n_elem * n_lp, 3)).astype(
-            #     float)  # Framework also requires z-coordinate which is 0.0 for 2D
-            # for i in range(0, n_elem * n_lp):
-            #     elem = int(faces[i, 0])
-            #     lp = int(faces[i, 1])
-            #     if elem < prev_elem:
-            #         raise ValueError(f"Element sequence is wrong ({elem}<{prev_elem})")
-            #     elif elem == prev_elem and lp != prev_lp + 1:
-            #         raise ValueError(f"Next line for same element ({elem}) does not contain next load point")
-            #     elif elem > prev_elem and lp != 1:
-            #         raise ValueError(f"First line for Element ({elem}) does not contain its first load point")
-            #     if lp > n_lp:
-            #         raise ValueError(f"lp ({lp}) exceeds the number of load points per element {n_lp}")
-            #
-            #     ids_tmp[i] = f"{elem}_{lp}"
-            #     coords_tmp[i, :self.dimensions] = faces[i,
-            #                                       -self.dimensions:]  # extract last "dimensions" columns from the file
-            #
-            #     prev_elem = elem
-            #     prev_lp = lp
-            #
-            # # create Nodes for load points
-            # for i in range(ids_tmp.size):
-            #     mp.CreateNewNode(ids_tmp[i],
-            #                      coords_tmp[i, 0], coords_tmp[i, 1], coords_tmp[i, 2])
+            # get surface node coordinates and id's
+            n_nodes = nodes.shape[0]
+            ids_tmp = np.zeros(n_nodes).astype(str)
+
+            coords_tmp = np.zeros((n_elem * n_lp, 3)).astype(float)  # Framework also requires z-coordinate which is 0.0 for 2D
+
+            for i in range(0,n_nodes):
+                ids_tmp[i]=str(i)
+                coords_tmp[i,:self.dimensions]=nodes[i,:]
+
+            # create Nodes for surface points
+            for i in range(ids_tmp.size):
+                mp.CreateNewNode(ids_tmp[i], coords_tmp[i, 0], coords_tmp[i, 1], coords_tmp[i, 2])
+
+            self.write_Nodes_test()  # This should be commented out in the final code
 
 
         # TODO:
@@ -561,10 +550,10 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         rf.close()
         of.close()
 
-    def write_node_positions_test(self):
-        for key in self.settings['interface_input'].keys():
+    def write_Nodes_test(self):
+        for key in (self.settings['interface_input'].keys()+self.settings['interface_output'].keys()):
             mp = self.model[key]
-            tmp = f'key_testNodes_thread{mp.thread_id}.dat'
+            tmp = f'{key}_testNodes_thread{mp.thread_id}.dat'
             file_name = join(self.dir_csm, tmp)
             with open(file_name, 'w') as file:
                 file.write(f'{mp.NumberOfNodes()}\n')
