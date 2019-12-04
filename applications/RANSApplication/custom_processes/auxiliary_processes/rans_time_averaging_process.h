@@ -154,7 +154,9 @@ private:
 
     Model& mrModel;
     Parameters mrParameters;
+
     std::string mModelPartName;
+    std::string mIntegrationControlVariableName;
 
     std::vector<std::string> mVariableNamesList;
 
@@ -169,19 +171,20 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    bool IsIntegrationStep() const;
 
     template <typename TDataType>
     void InitializeTimeAveragedQuantity(ModelPart::NodesContainerType& rNodes,
-                                        const Variable<TDataType>& rVariable);
+                                        const Variable<TDataType>& rVariable) const;
 
     template <typename TDataType>
     void CalculateTimeIntegratedQuantity(ModelPart::NodesContainerType& rNodes,
                                          const Variable<TDataType>& rVariable,
-                                         const double DeltaTime);
+                                         const double DeltaTime) const;
 
     template <typename TDataType>
     void CalculateTimeAveragedQuantity(ModelPart::NodesContainerType& rNodes,
-                                       const Variable<TDataType>& rVariable);
+                                       const Variable<TDataType>& rVariable) const;
 
     ///@}
     ///@name Private  Access
