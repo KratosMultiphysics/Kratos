@@ -20,6 +20,7 @@
 #include "includes/model_part.h"
 #include "particle_mechanics_application_variables.h"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
+#include "custom_conditions/particle_based_conditions/mpm_particle_lagrange_dirichlet_condition.h"
 
 
 namespace Kratos
@@ -393,6 +394,9 @@ namespace MPMParticleGeneratorUtility
                             {
                                 case 0: // Default case
                                     break;
+                                case 1:     //TODO: Just for test cases
+                                    shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                    break;
                                 case 2: // Only nodal
                                     break;
                                 case 3:
@@ -428,6 +432,9 @@ namespace MPMParticleGeneratorUtility
                             switch (particles_per_condition)
                             {
                                 case 0: // Default case
+                                    break;
+                                case 1:     //TODO: Just for test cases
+                                    shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
                                     break;
                                 case 3: // Only nodal
                                     break;
@@ -468,6 +475,9 @@ namespace MPMParticleGeneratorUtility
                             {
                                 case 0: // Default case
                                     break;
+                                case 1:     //TODO: Just for test cases
+                                    shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                    break;
                                 case 4: // Only nodal
                                     break;
                                 case 5:
@@ -507,8 +517,10 @@ namespace MPMParticleGeneratorUtility
 
                         // Evaluation of geometric length/area
                         const double area = r_geometry.Area();
-                        mpc_area = area / (1 + integration_point_per_conditions);
-                        const double mpc_nodal_area = mpc_area / r_geometry.size();
+                        mpc_area = area / (integration_point_per_conditions);
+                        const double mpc_nodal_area = mpc_area ;
+                        //mpc_area = area / (1 + integration_point_per_conditions);
+                        //const double mpc_nodal_area = mpc_area / r_geometry.size();
 
                         // Check condition variables
                         if (i->Has(DISPLACEMENT))
@@ -544,6 +556,22 @@ namespace MPMParticleGeneratorUtility
                                         else if (background_geo_type == GeometryData::Kratos_Hexahedra3D8)
                                             condition_type_name = "MPMParticlePenaltyDirichletCondition3D8N";
                                     }
+                                }
+                                else if (boundary_condition_type==2){
+                                    if (domain_size==2){
+                                        if (background_geo_type == GeometryData::Kratos_Triangle2D3)
+                                            condition_type_name = "MPMParticleLagrangeDirichletCondition2D3N";
+                                        else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4)
+                                            condition_type_name = "MPMParticleLagrangeDirichletCondition2D4N";
+                                        }
+                                    else if (domain_size==3){
+                                        if (background_geo_type == GeometryData::Kratos_Triangle2D3)
+                                            condition_type_name = "MPMParticleLagrangeDirichletCondition3D4N";
+                                        else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4)
+                                            condition_type_name = "MPMParticleLagrangeDirichletCondition3D8N";
+
+                                    }
+
                                 }
                                 else if (boundary_condition_type==3){
                                     if (domain_size==2){
@@ -587,16 +615,39 @@ namespace MPMParticleGeneratorUtility
                         {
                             // Create new material point condition
                             new_condition_id = last_condition_id + point_number;
-                            Condition::Pointer p_condition = new_condition.Create(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
 
                             mpc_xg.clear();
-
                             // Loop over the nodes of the grid condition
                             for (unsigned int dimension = 0; dimension < r_geometry.WorkingSpaceDimension(); dimension++){
                                 for ( unsigned int j = 0; j < r_geometry.size(); j ++){
                                     mpc_xg[dimension] = mpc_xg[dimension] + shape_functions_values(point_number, j) * r_geometry[j].Coordinates()[dimension];
                                 }
                             }
+
+                            Condition::Pointer p_condition;
+
+                            if (boundary_condition_type==2)
+                            {
+                                auto p_new_node = rBackgroundGridModelPart.CreateNewNode(rBackgroundGridModelPart.Nodes().size() + 1, mpc_xg[0], mpc_xg[1], mpc_xg[2]);
+                                p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_X,WEIGHTED_VECTOR_RESIDUAL_X);
+                                p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Y,WEIGHTED_VECTOR_RESIDUAL_Y);
+                                p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Z,WEIGHTED_VECTOR_RESIDUAL_Z);
+                                p_new_node->AddDof(DISPLACEMENT_X,REACTION_X);
+                                p_new_node->AddDof(DISPLACEMENT_Y,REACTION_Y);
+                                p_new_node->AddDof(DISPLACEMENT_Z,REACTION_Z);
+
+
+                                p_condition = Kratos::make_intrusive<MPMParticleLagrangeDirichletCondition>(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->pGetGeometry(), properties, p_new_node.get());
+
+                            }
+                            else
+                                p_condition = new_condition.Create(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
+
+
+
+
+
+
 
                             // Check Normal direction
                             if (flip_normal_direction) mpc_normal *= -1.0;
@@ -640,62 +691,68 @@ namespace MPMParticleGeneratorUtility
                         last_condition_id += integration_point_per_conditions;
 
                         // 2. Loop over the nodes associated to each condition to create nodal particle condition
-                        for ( unsigned int j = 0; j < r_geometry.size(); j ++)
-                        {
-                            // Nodal normal vector is used
-                            if (r_geometry[j].Has(NORMAL)) mpc_normal = r_geometry[j].FastGetSolutionStepValue(NORMAL);
-                            const double denominator = std::sqrt(mpc_normal[0]*mpc_normal[0] + mpc_normal[1]*mpc_normal[1] + mpc_normal[2]*mpc_normal[2]);
-                            if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) mpc_normal *= 1.0 / denominator;
+                        if (boundary_condition_type==1 or boundary_condition_type==3){
+                            for ( unsigned int j = 0; j < r_geometry.size(); j ++)
+                            {
+                                // Nodal normal vector is used
+                                if (r_geometry[j].Has(NORMAL)) mpc_normal = r_geometry[j].FastGetSolutionStepValue(NORMAL);
+                                const double denominator = std::sqrt(mpc_normal[0]*mpc_normal[0] + mpc_normal[1]*mpc_normal[1] + mpc_normal[2]*mpc_normal[2]);
+                                if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) mpc_normal *= 1.0 / denominator;
 
-                            // Check Normal direction
-                            if (flip_normal_direction) mpc_normal *= -1.0;
+                                // Check Normal direction
+                                if (flip_normal_direction) mpc_normal *= -1.0;
 
-                            // Create new material point condition
-                            new_condition_id = last_condition_id + j;
-                            Condition::Pointer p_condition = new_condition.Create(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
+                                // Create new material point condition
+                                new_condition_id = last_condition_id + j;
+                                Condition::Pointer p_condition = new_condition.Create(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
 
-                            mpc_xg.clear();
-                            for (unsigned int dimension = 0; dimension < r_geometry.WorkingSpaceDimension(); dimension++){
-                                mpc_xg[dimension] = r_geometry[j].Coordinates()[dimension];
-                            }
-
-                            // Setting particle condition's initial condition
-                            // TODO: If any variable is added or remove here, please add and remove also at the first loop above
-                            p_condition->SetValue(MPC_CONDITION_ID, mpc_condition_id);
-                            p_condition->SetValue(MPC_COORD, mpc_xg);
-                            p_condition->SetValue(MPC_AREA, mpc_nodal_area);
-                            p_condition->SetValue(MPC_NORMAL, mpc_normal);
-                            p_condition->SetValue(MPC_DISPLACEMENT, mpc_displacement);
-                            p_condition->SetValue(MPC_IMPOSED_DISPLACEMENT, mpc_imposed_displacement);
-                            p_condition->SetValue(MPC_VELOCITY, mpc_velocity);
-                            p_condition->SetValue(MPC_IMPOSED_VELOCITY, mpc_imposed_velocity);
-                            p_condition->SetValue(MPC_ACCELERATION, mpc_acceleration);
-                            p_condition->SetValue(MPC_IMPOSED_ACCELERATION, mpc_imposed_acceleration);
-
-                            if (is_neumann_condition)
-                                p_condition->SetValue(POINT_LOAD, point_load);
-                            else{
-                                if (boundary_condition_type == 1)
-                                    p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
-                                else if (boundary_condition_type == 3)
-                                    p_condition->SetValue(FIX_DOF, mpc_fix_dof);
-
-                                if (is_slip)
-                                    p_condition->Set(SLIP);
-                                if (is_contact)
-                                    p_condition->Set(CONTACT);
-                                if (is_interface)
-                                {
-                                    p_condition->Set(INTERFACE);
-                                    p_condition->SetValue(MPC_CONTACT_FORCE, mpc_contact_force);
+                                mpc_xg.clear();
+                                for (unsigned int dimension = 0; dimension < r_geometry.WorkingSpaceDimension(); dimension++){
+                                    mpc_xg[dimension] = r_geometry[j].Coordinates()[dimension];
                                 }
+
+                                // Setting particle condition's initial condition
+                                // TODO: If any variable is added or remove here, please add and remove also at the first loop above
+                                p_condition->SetValue(MPC_CONDITION_ID, mpc_condition_id);
+                                p_condition->SetValue(MPC_COORD, mpc_xg);
+                                p_condition->SetValue(MPC_AREA, mpc_nodal_area);
+                                p_condition->SetValue(MPC_NORMAL, mpc_normal);
+                                p_condition->SetValue(MPC_DISPLACEMENT, mpc_displacement);
+                                p_condition->SetValue(MPC_IMPOSED_DISPLACEMENT, mpc_imposed_displacement);
+                                p_condition->SetValue(MPC_VELOCITY, mpc_velocity);
+                                p_condition->SetValue(MPC_IMPOSED_VELOCITY, mpc_imposed_velocity);
+                                p_condition->SetValue(MPC_ACCELERATION, mpc_acceleration);
+                                p_condition->SetValue(MPC_IMPOSED_ACCELERATION, mpc_imposed_acceleration);
+
+                                if (is_neumann_condition)
+                                    p_condition->SetValue(POINT_LOAD, point_load);
+                                else{
+                                    if (boundary_condition_type == 1)
+                                        p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
+                                    else if (boundary_condition_type == 3)
+                                        p_condition->SetValue(FIX_DOF, mpc_fix_dof);
+
+                                    if (is_slip)
+                                        p_condition->Set(SLIP);
+                                    if (is_contact)
+                                        p_condition->Set(CONTACT);
+                                    if (is_interface)
+                                    {
+                                        p_condition->Set(INTERFACE);
+                                        p_condition->SetValue(MPC_CONTACT_FORCE, mpc_contact_force);
+                                    }
+                                }
+
+                                // Add the MP Condition to the model part
+                                rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
                             }
 
-                            // Add the MP Condition to the model part
-                            rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
                         }
 
-                        last_condition_id += r_geometry.size();
+                        if (boundary_condition_type == 2)
+                            last_condition_id += 0;
+                        else
+                            last_condition_id += r_geometry.size();
                     }
                 }
             }
