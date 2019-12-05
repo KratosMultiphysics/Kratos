@@ -2081,10 +2081,13 @@ public:
     /**
     * @brief Computes the distance between a given location and
     *        the closest point of this geometry.
+    *        If projection fails, std::max will be returned.
     * @param rPointGlobalCoordinates the point to which the
     *        closest point has to be found.
     * @param Tolerance accepted orthogonal error.
-    * @return true if solution converged, false if not.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D solids.
+    *         0        -> on/ in the geometry.
     */
     virtual double CalculateDistance(
         const CoordinatesArrayType& rPointGlobalCoordinates,
@@ -2093,11 +2096,16 @@ public:
     {
         CoordinatesArrayType global_coordinates(ZeroVector(3));
 
-        ClosestPoint(
+        if (ClosestPoint(
             rPointGlobalCoordinates,
             global_coordinates,
-            Tolerance);
+            Tolerance) == 0)
+        {
+            // If projection fails, infinite distance will be returned
+            return std::max();
+        }
 
+        // Distance to projected point
         return norm_2(rPointGlobalCoordinates - global_coordinates);
     }
 
