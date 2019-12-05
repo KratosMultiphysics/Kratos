@@ -302,6 +302,16 @@ class MorSecondOrderIRKAStrategy
         const std::size_t n_sampling_points = mSamplingPoints.size(); // number of sampling points
         const std::size_t reduced_system_size = n_sampling_points; // r
 
+        std::cout<<"Full system size: "<<system_size<<std::endl;
+        std::cout<<"Reduced system size: "<<reduced_system_size<<std::endl;
+
+        // check if the reduced system size is odd (conjugate eigenvalues don't make sense then)
+        if ( reduced_system_size % 2 != 0 ){
+            KRATOS_TRY;
+            KRATOS_ERROR << "Reduced system size is odd! Use an even number for the reduced size." << std::endl;
+            KRATOS_CATCH("")
+        }
+
         // sort the sampling points after their real part in increasing order
         // conjugate pairs stay together, with the minus element being the first
         this->sort_conjugate_pairs(mSamplingPoints);
@@ -376,8 +386,8 @@ class MorSecondOrderIRKAStrategy
             for(size_t i=0; i < n_sampling_points/2; ++i)
             {
                 int tid = omp_get_thread_num();
-                #pragma omp critical
-                std::cout<<" --- Thread "<<tid<<" sampling point "<<mSamplingPoints(2*i)<<std::endl;
+                //#pragma omp critical
+                //std::cout<<" --- Thread "<<tid<<" sampling point "<<mSamplingPoints(2*i)<<std::endl;
                 // intermediate result
                 r_tmp_Vn_par = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
 
@@ -386,15 +396,15 @@ class MorSecondOrderIRKAStrategy
                 compl_solver_par->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b); // Ax = b, solve for x
                 double end_solve_step_first = OpenMPUtils::GetCurrentTime();
                 #pragma omp critical
-                std::cout<<" --- Thread " <<tid<<" solve step: "<<end_solve_step_first-solve_step_first<<std::endl;
+                std::cout<<" --- Thread " <<tid<<" solve step: "<<end_solve_step_first-solve_step_first<<" using sample "<<mSamplingPoints(2*i)<<std::endl;
 
                 // write the result to the correct positions
-                double write_step_first = OpenMPUtils::GetCurrentTime();
+                //double write_step_first = OpenMPUtils::GetCurrentTime();
                 column(r_Vr_dense, 2*i)   = real(r_tmp_Vr_col_par);
                 column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col_par);
-                double end_write_step_first = OpenMPUtils::GetCurrentTime();
-                #pragma omp critical
-                std::cout<<" --- Thread " <<tid<<" write step: "<<end_write_step_first-write_step_first<<std::endl;
+                //double end_write_step_first = OpenMPUtils::GetCurrentTime();
+                //#pragma omp critical
+                //std::cout<<" --- Thread " <<tid<<" write step: "<<end_write_step_first-write_step_first<<std::endl;
             }
         } // end of parallel part
 
@@ -489,7 +499,7 @@ class MorSecondOrderIRKAStrategy
         while(iter < max_iter && err > tol)
         {
 
-            double start_projections = OpenMPUtils::GetCurrentTime();
+            //double start_projections = OpenMPUtils::GetCurrentTime();
 
 
             // projections onto the reduced space
@@ -510,8 +520,8 @@ class MorSecondOrderIRKAStrategy
             }
 
 
-            double end_projections = OpenMPUtils::GetCurrentTime();
-            std::cout<<"-- projections: "<<end_projections-start_projections<<std::endl;
+            //double end_projections = OpenMPUtils::GetCurrentTime();
+            //std::cout<<"-- projections: "<<end_projections-start_projections<<std::endl;
 
 
 
