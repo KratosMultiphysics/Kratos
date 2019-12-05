@@ -2079,8 +2079,9 @@ public:
     }
 
     /**
-    * @brief Computes the distance between a given location and
-    *        the closest point of this geometry.
+    * @brief Computes the distance between an point in
+    *        global coordinates and the closest point
+    *        of this geometry.
     *        If projection fails, std::max will be returned.
     * @param rPointGlobalCoordinates the point to which the
     *        closest point has to be found.
