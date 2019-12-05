@@ -128,13 +128,13 @@ namespace Kratos
 					auto& previous_y_face_color = mColors.GetElementalFaceColor(i,j-1,k);
 					for(std::size_t i_face = 0 ; i_face < 6 ; i_face++){
 						if(face_color[i_face] != previous_y_face_color[i_face]) // assuming that there are no face condition inside a volume
-							y_cell_coarse[i]=true;
+							y_cell_coarse[j]=true;
 					}
 						
 					auto& previous_z_face_color = mColors.GetElementalFaceColor(i,j,k-1);
 					for(std::size_t i_face = 0 ; i_face < 6 ; i_face++){
 						if(face_color[i_face] != previous_z_face_color[i_face]) // assuming that there are no face condition inside a volume
-							z_cell_coarse[i]=true;
+							z_cell_coarse[k]=true;
 					}
 				}
 			}
