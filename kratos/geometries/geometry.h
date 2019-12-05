@@ -2840,7 +2840,7 @@ public:
     ///@{
 
     /// Return geometry information as a string.
-    std::string Info() const override
+    virtual std::string Info() const
     {
         std::stringstream buffer;
         buffer << "Geometry # "
@@ -2859,7 +2859,7 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << Info();
     }
@@ -2870,7 +2870,7 @@ public:
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {
         if (mpGeometryData) {
             mpGeometryData->PrintData(rOStream);
@@ -3175,13 +3175,13 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const override
+    virtual void save( Serializer& rSerializer ) const
     {
         rSerializer.save("Id", mId);
         rSerializer.save( "Points", mPoints);
     }
 
-    virtual void load( Serializer& rSerializer ) override
+    virtual void load( Serializer& rSerializer )
     {
         rSerializer.load("Id", mId);
         rSerializer.load( "Points", mPoints );
