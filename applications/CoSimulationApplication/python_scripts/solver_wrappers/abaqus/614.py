@@ -290,7 +290,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             n_nodes = nodes.shape[0]
             ids_tmp = np.zeros(n_nodes).astype(str)
 
-            coords_tmp = np.zeros((n_elem * n_lp, 3)).astype(float)  # Framework also requires z-coordinate which is 0.0 for 2D
+            coords_tmp = np.zeros((n_nodes, 3)).astype(float)  # Framework also requires z-coordinate which is 0.0 for 2D
 
             for i in range(0,n_nodes):
                 ids_tmp[i]=str(i)
@@ -333,17 +333,59 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         # write loads (from interface data to a file that will be read by USR.f
         self.write_loads()
 
-        #Run Abaqus?
+        # Run Abaqus
+        if self.timestep==1:
+            cmd1 = f"export PBS_NODEFILE=AbaqusHosts.txt && unset SLURM_GTIDS"
+            cmd2 = f"abaqus job=CSM_Time{self.timestep} input=CSM_Time{self.timestep - 1}" \
+                f" cpus={self.cores} output_precision=full interactive >> AbaqusSolver.log 2>&1"
+            commands = [cmd1, cmd2]
+            self.run_shell(self.dir_csm, commands, name='Abaqus_Calculate')
 
-        return 0
+        else:
+            cmd1 = f"export PBS_NODEFILE=AbaqusHosts.txt && unset SLURM_GTIDS"
+            cmd2 = f"abaqus job=CSM_Time{self.timestep} oldjob=CSM_Time{self.timestep - 1} input=CSM_Restart" \
+                f" cpus={self.cores} output_precision=full interactive >> AbaqusSolver.log 2>&1"
+            commands = [cmd1, cmd2]
+            self.run_shell(self.dir_csm, commands, name='Abaqus_Calculate')
+
+        # Write Abaqus output
+        cmd = f"abaqus ./GetOutput.exe CSM_Time{self.timestep} 1 >> AbaqusSolver.log 2>&1"
+        self.run_shell(self.dir_csm, [cmd], name='GetOutput')
+
+        # Read Abaqus output data
+        for key in self.settings['interface_output'].keys():
+            mp = self.model[key]
+            # read in Nodes file for surface nodes
+            tmp = f'CSM_Time{self.timestep}Surface{mp.thread_id}Output.dat'
+            disp_file = join(self.dir_csm, tmp)
+            disp = np.loadtxt(disp_file,skiprows=1)
+
+            if disp.shape[1] != self.dimensions:
+                raise ValueError(f'given dimension does not match coordinates')
+
+            # get surface node displacements
+            n_nodes = disp.shape[0]
+            if n_nodes != mp.NumberOfNodes():
+                raise ValueError('number of nodes does not match size of data')
+
+            ids_tmp = np.array(range(0, n_nodes)).astype(int).astype(str)
+            disp_tmp = np.zeros((n_nodes,3)) #also require z-input for 2D cases
+            disp_tmp[:,:self.dimensions]=disp
+
+            index=0
+            for node in mp.Nodes:
+                if ids_tmp[index] != node.Id:
+                    raise ValueError(f'node IDs do not match: {ids_tmp[index]}, {node.Id}')
+
+                node.SetSolutionStepValue(self.displacement, 0, disp_tmp[index, :].tolist())
+                index += 1
+
+
+        return self.interface_output
 
     def FinalizeSolutionStep(self):
-        # super().FinalizeSolutionStep()
-        #
-        # if not self.timestep % self.settings['save_iterations'].GetInt():
-        #     self.send_message('save')
-        #     self.wait_message('save_ready')
-        print('\nFinalizeSolutionStep')
+        super().FinalizeSolutionStep()
+        print("FinalizeSolutionStep: Should still be implemented and should clean up files if necessary")
 
     def Finalize(self):
         # super().Finalize()
@@ -549,6 +591,11 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     pressure = node.GetSolutionStepValue(self.pressure)
                     traction = node.GetSolutionStepValue(self.traction)
                     if self.dimensions == 2:
-                        file.write(f'{pressure:27.17e} {traction[0]:27.17e} {traction[1]:>27}\n')
+                        file.write(f'{pressure:27.17e} {traction[0]:27.17e} {traction[1]:27.17e}\n')
                     else:
-                        file.write(f'{pressure:27.17e} {traction[0]:27.17e} {traction[1]:27.17e} {traction[2]:>27}\n')
+                        file.write(f'{pressure:27.17e} {traction[0]:27.17e} {traction[1]:27.17e} {traction[2]:27.17e}\n')
+
+            if self.iteration == 1 and self.timestep == 1 and self.settings[
+                'ramp'].GetInt() == 1:  # Start of a simulation with ramp, needs an initial load at time 0
+                cmd = f"cp CSM_Time{self.timestep}Surface{mp.thread_id}Cpu0Input.dat CSM_Time{self.timestep-1}Surface{mp.thread_id}Cpu0Input.dat"
+                self.run_shell(self.dir_csm, [cmd], name='GetOutput')
