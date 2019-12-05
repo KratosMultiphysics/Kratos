@@ -2082,7 +2082,7 @@ public:
     * @brief Computes the distance between an point in
     *        global coordinates and the closest point
     *        of this geometry.
-    *        If projection fails, std::max will be returned.
+    *        If projection fails, double::max will be returned.
     * @param rPointGlobalCoordinates the point to which the
     *        closest point has to be found.
     * @param Tolerance accepted orthogonal error.
@@ -2102,8 +2102,8 @@ public:
             global_coordinates,
             Tolerance) == 0)
         {
-            // If projection fails, infinite distance will be returned
-            return std::max();
+            // If projection fails, double::max will be returned
+            return std::numeric_limits<double>::max();
         }
 
         // Distance to projected point
