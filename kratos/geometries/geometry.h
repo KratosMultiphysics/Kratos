@@ -1975,20 +1975,20 @@ public:
     }
 
     /**
-    * @brief Returns the coordinates of the closest piont on
-    *        the geometry given to an arbitrary in global coordinates.
-    *        The basic concept is to first do a projection on
-    *        this geometry and afterwards checking if the projection
-    *        was successfull or if no pointon the geometry can be found.
+    * @brief Returns all coordinates of the closest point on
+    *        the geometry given to an arbitrary point in global coordinates.
+    *        The basic concept is to first do a projection towards
+    *        this geometry and second checking if the projection
+    *        was successfull or if no point on the geometry was found.
     * @param rPointGlobalCoordinates the point to which the
     *        closest point has to be found.
     * @param rClosestPointGlobalCoordinates the location of the
     *        closest point in global coordinates.
     * @param rClosestPointLocalCoordinates the location of the
     *        closest point in local coordinates.
-    *        The variable can also be used as initial guess.
+    *        IMPORTANT: The variable can also be used as initial guess.
     * @param Tolerance accepted orthogonal error.
-    * @return 0 -> outside
+    * @return 0 -> outside/ failed
     *         1 -> inside
     *         2 -> on the boundary
     */
@@ -2016,13 +2016,19 @@ public:
     }
 
     /**
-    * @brief Returns the local coordinates of a given arbitrary point
+    * @brief Returns global coordinates of the closest point on
+    *        the geometry given to an arbitrary point in global coordinates.
+    *        The basic concept is to first do a projection towards
+    *        this geometry and second checking if the projection
+    *        was successfull or if no point on the geometry was found.
     * @param rPointGlobalCoordinates the point to which the
     *        closest point has to be found.
     * @param rClosestPointGlobalCoordinates the location of the
     *        closest point in global coordinates.
+    *        WARNING: This function does not provide the possibility
+    *        to use an initial guess!!
     * @param Tolerance accepted orthogonal error.
-    * @return 0 -> outside
+    * @return 0 -> outside/ dailed
     *         1 -> inside
     *         2 -> on the boundary
     */
@@ -2042,14 +2048,18 @@ public:
     }
 
     /**
-    * @brief Returns the local coordinates of a given arbitrary point
+    * @brief Returns local coordinates of the closest point on
+    *        the geometry given to an arbitrary point in global coordinates.
+    *        The basic concept is to first do a projection towards
+    *        this geometry and second checking if the projection
+    *        was successfull or if no point on the geometry was found.
     * @param rPointGlobalCoordinates the point to which the
     *        closest point has to be found.
     * @param rClosestPointLocalCoordinates the location of the
     *        closest point in local coordinates.
-    *        The variable can also be used as initial guess.
+    *        IMPORTANT: The variable can also be used as initial guess.
     * @param Tolerance accepted orthogonal error.
-    * @return 0 -> outside
+    * @return 0 -> outside/ failed
     *         1 -> inside
     *         2 -> on the boundary
     */
