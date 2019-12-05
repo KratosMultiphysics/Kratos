@@ -121,20 +121,23 @@ namespace Kratos
 
 					auto& previous_x_face_color = mColors.GetElementalFaceColor(i-1, j,k);
 					for(std::size_t i_face = 0 ; i_face < 6 ; i_face++){
-						if(face_color[i_face] != previous_x_face_color[i_face]) // assuming that there are no face condition inside a volume
-							x_cell_coarse[i]=true;
+						if((i_face != 0) && (i_face != 3)) // assuming that there are no face condition inside a volume
+							if(face_color[i_face] != previous_x_face_color[i_face]) 
+								x_cell_coarse[i]=true;
 					}
 						
 					auto& previous_y_face_color = mColors.GetElementalFaceColor(i,j-1,k);
 					for(std::size_t i_face = 0 ; i_face < 6 ; i_face++){
-						if(face_color[i_face] != previous_y_face_color[i_face]) // assuming that there are no face condition inside a volume
-							y_cell_coarse[j]=true;
+						if((i_face != 1) && (i_face != 4)) // assuming that there are no face condition inside a volume
+							if(face_color[i_face] != previous_y_face_color[i_face]) 
+								y_cell_coarse[j]=true;
 					}
 						
 					auto& previous_z_face_color = mColors.GetElementalFaceColor(i,j,k-1);
 					for(std::size_t i_face = 0 ; i_face < 6 ; i_face++){
-						if(face_color[i_face] != previous_z_face_color[i_face]) // assuming that there are no face condition inside a volume
-							z_cell_coarse[k]=true;
+						if((i_face != 2) && (i_face != 5)) // assuming that there are no face condition inside a volume
+							if(face_color[i_face] != previous_z_face_color[i_face])
+								z_cell_coarse[k]=true;
 					}
 				}
 			}
