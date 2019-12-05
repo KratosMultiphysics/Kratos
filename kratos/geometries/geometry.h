@@ -554,27 +554,6 @@ public:
             *i = typename PointType::Pointer( new PointType( **i ) );
     }
 
-     // virtual Kratos::shared_ptr< Geometry< Point > > Clone() const
-     // {
-     //     Geometry< Point >::PointsArrayType NewPoints;
-
-     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
-
-     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-     //     {
-     //        NewPoints.push_back(Kratos::make_shared< Point >((*mpPointVector)[i]));
-     //     }
-
-     //     //NewPoints[i] = typename Point::Pointer(new Point(*mPoints[i]));
-
-     //     //creating a geometry with the new points
-     //     Geometry< Point >::Pointer p_clone( new Geometry< Point >( NewPoints ) );
-
-     //     p_clone->ClonePoints();
-
-     //     return p_clone;
-     // }
-
     ///@}
     ///@name Parent
     ///@{
