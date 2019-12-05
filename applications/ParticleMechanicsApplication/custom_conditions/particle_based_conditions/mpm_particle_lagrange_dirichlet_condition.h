@@ -1,4 +1,4 @@
-/    |  /           |
+//    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
@@ -83,7 +83,8 @@ public:
     MPMParticleLagrangeDirichletCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties
+        PropertiesType::Pointer pProperties,
+        Node<3>* p_new_node
         );
 
     /// Destructor.
@@ -124,7 +125,6 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     unsigned int GetBlockSize()
     {
@@ -285,7 +285,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+        Node<3>* pBoundaryParticle;
     ///@}
     ///@name Private Operators
     ///@{

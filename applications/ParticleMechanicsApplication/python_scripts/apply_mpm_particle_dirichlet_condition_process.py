@@ -36,19 +36,21 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         """
         Set boundary_condition_type:
         1. penalty
-        2. lagrange (WIP)
+        2. lagrange
         3. fixdof
         """
 
         if (self.imposition_type == "penalty" or self.imposition_type == "Penalty"):
             self.penalty_factor = settings["penalty_factor"].GetDouble()
             self.boundary_condition_type = 1
+        elif (self.imposition_type == "lagrange" or self.imposition_type == "Lagrange"):
+            self.boundary_condition_type = 2
         elif (self.imposition_type == "fixdof" or self.imposition_type == "FixDof"):
             self.fix_dof = False
             self.boundary_condition_type = 3
         else:
             err_msg =  "The requested type of Dirichlet boundary imposition: \"" + self.imposition_type + "\" is not available!\n"
-            err_msg += "Available option is: \"penalty\"or \"fixdof\"."
+            err_msg += "Available option is: \"penalty\"or \"lagrange\"or \"fixdof\"."
             raise Exception(err_msg)
 
         # check constraint

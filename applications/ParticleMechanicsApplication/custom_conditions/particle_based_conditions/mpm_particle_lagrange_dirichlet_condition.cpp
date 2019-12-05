@@ -38,9 +38,10 @@ MPMParticleLagrangeDirichletCondition::MPMParticleLagrangeDirichletCondition( In
 //************************************************************************************
 //************************************************************************************
 
-MPMParticleLagrangeDirichletCondition::MPMParticleLagrangeDirichletCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
+MPMParticleLagrangeDirichletCondition::MPMParticleLagrangeDirichletCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties , Node<3>* p_new_node)
     : MPMParticleBaseDirichletCondition( NewId, pGeometry, pProperties )
 {
+    pBoundaryParticle = p_new_node;
 }
 
 //********************************* CREATE *******************************************
@@ -48,15 +49,15 @@ MPMParticleLagrangeDirichletCondition::MPMParticleLagrangeDirichletCondition( In
 
 Condition::Pointer MPMParticleLagrangeDirichletCondition::Create(IndexType NewId,GeometryType::Pointer pGeometry,PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<MPMParticleLagrangeDirichletCondition>(NewId, pGeometry, pProperties);
+    return Kratos::make_intrusive<MPMParticleLagrangeDirichletCondition>(NewId, pGeometry, pProperties, nullptr);
 }
 
 //************************************************************************************
 //************************************************************************************
 
-Condition::Pointer MPMParticleLagrangeDirichletCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
+Condition::Pointer MPMParticleLagrangeDirichletCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties  ) const
 {
-    return Kratos::make_intrusive<MPMParticleLagrangeDirichletCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<MPMParticleLagrangeDirichletCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties, nullptr);
 }
 
 //******************************* DESTRUCTOR *****************************************
@@ -74,21 +75,16 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( ProcessInfo&
     MPMParticleBaseDirichletCondition::InitializeSolutionStep( rCurrentProcessInfo );
 
     GeometryType& r_geometry = GetGeometry();
+
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    array_1d<double, 3 > & r_lagrange_multiplier  = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+
+    for ( unsigned int j = 0; j < dimension; j++ )
     {
-        array_1d<double, 3 > & r_lagrange_multiplier  = r_geometry[0].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            #pragma omp atomic
-            r_lagrange_multiplier[j] *= 0.0;
-        }
+        r_lagrange_multiplier[0] *= 0.0;
     }
-
-
 
 }
 
@@ -101,6 +97,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 {
     KRATOS_TRY
 
+    GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int matrix_size = number_of_nodes * dimension + dimension;
@@ -133,6 +130,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     // Prepare variables
     GeneralVariables Variables;
+    KRATOS_WATCH(xg_c)
 
     // Calculating shape function
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
@@ -174,9 +172,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
 
-                const double N = Variables.N[i];
                 const unsigned int ibase = dimension * number_of_nodes;
-                const unsigned int jbase = j * dimension;
 
                 // Matrix in following shape:
                 // |0       N^T|
@@ -184,12 +180,10 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
                 for (unsigned int k = 0; k < dimension; k++)
                 {
-                    lagrange_matrix(i+k, ibase+k) = N;
-                    lagrange_matrix(ibase+k, i+k) = N;
+                    lagrange_matrix(i* dimension+k, ibase+k) = Variables.N[i];
+                    lagrange_matrix(ibase+k, i*dimension + k) = Variables.N[i];
                 }
-            }
         }
-        KRATOS_WATCH(lagrange_matrix)
 
         lagrange_matrix  *= this->GetIntegrationWeight();
 
@@ -197,6 +191,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
         if ( CalculateStiffnessMatrixFlag == true )
         {
             rLeftHandSideMatrix = lagrange_matrix;
+            KRATOS_WATCH(rLeftHandSideMatrix)
         }
 
         if ( CalculateResidualVectorFlag == true )
@@ -204,22 +199,21 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
             Vector gap_function = ZeroVector(matrix_size);
             for (unsigned int i = 0; i < number_of_nodes; i++)
             {
-                const array_1d<double, 3>& r_displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+                const array_1d<double, 3>& r_displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
                 const int index = dimension * i;
 
-
-
-                for (unsigned int j = 0; j < dimension; j++){
+                for (unsigned int j = 0; j < dimension; j++)
                     gap_function[index+j]          = r_displacement[j] - r_imposed_displacement[j];
-                    gap_function[lagrange_index+j] = r_lagrange_multiplier[j];
-                }
+
             }
-            const array_1d<double, 3>& r_lagrange_multiplier = GetGeometry()[0].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+            const array_1d<double, 3>& r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+            KRATOS_WATCH(r_lagrange_multiplier)
             for (unsigned int j = 0; j < dimension; j++)
                     gap_function[dimension * number_of_nodes+j] = r_lagrange_multiplier[j];
 
 
             noalias(rRightHandSideVector) -= prod(lagrange_matrix, gap_function);
+            KRATOS_WATCH(gap_function)
         }
 
     }
@@ -237,22 +231,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 //************************************************************************************
 //************************************************************************************
 
-int MPMParticleLagrangeDirichletCondition::Check( const ProcessInfo& rCurrentProcessInfo )
-{
-    MPMParticleBaseDirichletCondition::Check(rCurrentProcessInfo);
-    const unsigned int number_of_nodes = GetGeometry().size();
-    // Verify that the dofs exist
-    for ( IndexType i = 0; i < number_of_nodes; i++ ) {
-        const NodeType &rnode = this->GetGeometry()[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VECTOR_LAGRANGE_MULTIPLIER,rnode)
 
-        KRATOS_CHECK_DOF_IN_NODE(VECTOR_LAGRANGE_MULTIPLIER_X,rnode)
-        KRATOS_CHECK_DOF_IN_NODE(VECTOR_LAGRANGE_MULTIPLIER_Y,rnode)
-        KRATOS_CHECK_DOF_IN_NODE(VECTOR_LAGRANGE_MULTIPLIER_Z,rnode)
-    }
-
-    return 0;
-}
 
 void MPMParticleLagrangeDirichletCondition::EquationIdVector(
     EquationIdVectorType& rResult,
@@ -261,7 +240,7 @@ void MPMParticleLagrangeDirichletCondition::EquationIdVector(
     KRATOS_TRY
 
     GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int number_of_nodes = r_geometry.size() ;
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     if (rResult.size() != dimension * number_of_nodes + dimension)
     {
@@ -280,10 +259,11 @@ void MPMParticleLagrangeDirichletCondition::EquationIdVector(
     }
 
     unsigned int index = number_of_nodes * dimension;
-    rResult[index    ] = r_geometry[0].GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
-    rResult[index + 1] = r_geometry[0].GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
+
+    rResult[index    ] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
+    rResult[index + 1] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
     if(dimension == 3)
-        rResult[index + 2] = r_geometry[0].GetDof(VECTOR_LAGRANGE_MULTIPLIER_Z).EquationId();
+        rResult[index + 2] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_Z).EquationId();
 
     KRATOS_CATCH("")
 }
@@ -301,11 +281,6 @@ void MPMParticleLagrangeDirichletCondition::GetDofList(
     rElementalDofList.resize(0);
     rElementalDofList.reserve(dimension * number_of_nodes + dimension);
 
-    GeneralVariables Variables;
-    const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
-    // Calculating shape function
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
-
     for (unsigned int i = 0; i < number_of_nodes; ++i)
     {
         rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
@@ -315,10 +290,10 @@ void MPMParticleLagrangeDirichletCondition::GetDofList(
 
     }
 
-    rElementalDofList.push_back( r_geometry[0].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
-    rElementalDofList.push_back( r_geometry[0].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
+    rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+    rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
     if(dimension == 3)
-        rElementalDofList.push_back( r_geometry[0].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
+        rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
 
 
     KRATOS_CATCH("")
@@ -343,6 +318,7 @@ void MPMParticleLagrangeDirichletCondition::GetValuesVector(
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         const array_1d<double, 3 > & r_displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+        KRATOS_WATCH(r_displacement)
 
         unsigned int index = i * dimension;
 
@@ -351,7 +327,7 @@ void MPMParticleLagrangeDirichletCondition::GetValuesVector(
             rValues[index + k] = r_displacement[k];
         }
     }
-    const array_1d<double, 3 > & r_lagrange_multiplier = r_geometry[0].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, Step);
+    const array_1d<double, 3 > & r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, Step);
     const unsigned int lagrange_index = number_of_nodes * dimension;
     for(unsigned int k = 0; k < dimension; ++k)
         {
