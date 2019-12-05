@@ -32,6 +32,8 @@
 #include "utilities/math_utils.h"
 #include "input_output/logger.h"
 
+#include "utilities/indexed_object.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -67,6 +69,7 @@ namespace Kratos
  */
 template<class TPointType>
 class Geometry
+    : public IndexedObject
 {
 public:
     ///@}
@@ -222,7 +225,7 @@ public:
 
     /// Standard Constructor
     Geometry(IndexType Id = 0)
-        : mId(Id),
+        : IndexedObject(Id),
           mpGeometryData(&GeometryDataInstance())
     {
 
@@ -290,7 +293,7 @@ public:
         const PointsArrayType &ThisPoints,
         GeometryData const *pThisGeometryData = &GeometryDataInstance(),
         IndexType Id = 0)
-        : mId(Id),
+        : IndexedObject(Id),
           mpGeometryData(pThisGeometryData),
           mPoints(ThisPoints)
     {
@@ -307,7 +310,7 @@ public:
     Geometry( 
         const Geometry& rOther,
         IndexType Id = 0)
-        : mId(Id),
+        : IndexedObject(Id),
           mpGeometryData( rOther.mpGeometryData ),
           mPoints( rOther.mPoints)
     {
@@ -328,7 +331,7 @@ public:
     template<class TOtherPointType> Geometry(
         Geometry<TOtherPointType> const & rOther,
         IndexType Id = 0)
-        : mId(Id),
+        : IndexedObject(Id),
           mpGeometryData(rOther.mpGeometryData)
     {
         mPoints = new PointsArrayType(rOther.begin(), rOther.end());
@@ -3161,8 +3164,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    IndexType mId;
-
     GeometryData const* mpGeometryData;
 
     static const GeometryDimension msGeometryDimension;
@@ -3177,13 +3178,13 @@ private:
 
     virtual void save( Serializer& rSerializer ) const
     {
-        rSerializer.save("Id", mId);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject);
         rSerializer.save( "Points", mPoints);
     }
 
     virtual void load( Serializer& rSerializer )
     {
-        rSerializer.load("Id", mId);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject);
         rSerializer.load( "Points", mPoints );
     }
 
