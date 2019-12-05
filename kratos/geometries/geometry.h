@@ -577,7 +577,7 @@ public:
         mId = Id;
     }
 
-    /// Sets Id with the use of the name of this Geometry
+    /// Sets Id with the use of the name of this geometry
     void SetId(std::string name)
     {
         SetGeometryIdName();
