@@ -348,6 +348,7 @@ class MorSecondOrderIRKAStrategy
 
         //std::cout<<"max threads: "<<omp_get_max_threads()<<std::endl;
         
+        double start_solve_par_first = OpenMPUtils::GetCurrentTime();
         // build V
         #pragma omp parallel
         {
@@ -374,19 +375,32 @@ class MorSecondOrderIRKAStrategy
             #pragma omp for schedule(dynamic)
             for(size_t i=0; i < n_sampling_points/2; ++i)
             {
+                int tid = omp_get_thread_num();
+                #pragma omp critical
+                std::cout<<" --- Thread "<<tid<<" sampling point "<<mSamplingPoints(2*i)<<std::endl;
                 // intermediate result
                 r_tmp_Vn_par = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
 
                 // solve 
+                double solve_step_first = OpenMPUtils::GetCurrentTime();
                 compl_solver_par->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b); // Ax = b, solve for x
+                double end_solve_step_first = OpenMPUtils::GetCurrentTime();
+                #pragma omp critical
+                std::cout<<" --- Thread " <<tid<<" solve step: "<<end_solve_step_first-solve_step_first<<std::endl;
 
                 // write the result to the correct positions
+                double write_step_first = OpenMPUtils::GetCurrentTime();
                 column(r_Vr_dense, 2*i)   = real(r_tmp_Vr_col_par);
                 column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col_par);
+                double end_write_step_first = OpenMPUtils::GetCurrentTime();
+                #pragma omp critical
+                std::cout<<" --- Thread " <<tid<<" write step: "<<end_write_step_first-write_step_first<<std::endl;
             }
         } // end of parallel part
 
         //std::cout<<"parallel part passed"<<std::endl;
+        double end_solve_par_first = OpenMPUtils::GetCurrentTime();
+            std::cout<<"-- par solve first: "<<end_solve_par_first-start_solve_par_first<<std::endl;
 
 
         //orthogonalize V
@@ -707,7 +721,7 @@ class MorSecondOrderIRKAStrategy
 
 
         // store full system size matrices (double)
-        
+/*        
         std::stringstream matrix_market_m_full;
         matrix_market_m_full << "M_full" << ".mm";
         TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_m_full.str()).c_str(), r_M_tmp, false);
@@ -730,7 +744,7 @@ class MorSecondOrderIRKAStrategy
         std::stringstream matrix_market_vr;
         matrix_market_vr << "Vr" << ".mm";
         TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_vr.str()).c_str(), r_Vr_sparse, false);
-
+*/
    
         // store the time
         std::ofstream time_file;
