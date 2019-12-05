@@ -399,7 +399,7 @@ namespace Kratos
             y_coordinates.back() = mNodalCoordinates[1].back();
             z_coordinates.back() = mNodalCoordinates[2].back();
 
-            #pragma omp parallel for
+            #pragma omp parallel for private(colors)
             for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
                 for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                     auto& ray = mXYRays(i,j);
@@ -433,7 +433,7 @@ namespace Kratos
                 }
             }
 
-            #pragma omp parallel for
+            #pragma omp parallel for private(colors)
             for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                     auto& ray = mXZRays(i,k);
@@ -467,7 +467,7 @@ namespace Kratos
                 }
             }
 
-            // #pragma omp parallel for
+            // #pragma omp parallel for private(colors)
             for(int j = MinRayPosition[1] ; j < static_cast<int>(MaxRayPosition[1]) ; j++){
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                     auto& ray= mYZRays(j,k);
