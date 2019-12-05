@@ -7,7 +7,7 @@ from KratosMultiphysics.python_solver import PythonSolver
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 def CreateSolver(model, custom_settings):
     return UPwSolver(model, custom_settings)
@@ -370,8 +370,8 @@ class UPwSolver(PythonSolver):
             theta = self.settings["newmark_theta"].GetDouble()
             rayleigh_m = self.settings["rayleigh_m"].GetDouble()
             rayleigh_k = self.settings["rayleigh_k"].GetDouble()
-            self.main_model_part.ProcessInfo.SetValue(KratosSolid.RAYLEIGH_ALPHA,rayleigh_m)
-            self.main_model_part.ProcessInfo.SetValue(KratosSolid.RAYLEIGH_BETA,rayleigh_k)
+            self.main_model_part.ProcessInfo.SetValue(KratosStructural.RAYLEIGH_ALPHA,rayleigh_m)
+            self.main_model_part.ProcessInfo.SetValue(KratosStructural.RAYLEIGH_BETA,rayleigh_k)
             if(solution_type == "quasi_static"):
                 if(rayleigh_m<1.0e-20 and rayleigh_k<1.0e-20):
                     scheme = KratosPoro.NewmarkQuasistaticUPwScheme(beta,gamma,theta)

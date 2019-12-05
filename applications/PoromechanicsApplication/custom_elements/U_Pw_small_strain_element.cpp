@@ -126,6 +126,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::InitializeNonLinearIteration(Process
     double detF = 1.0;
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); //Note: this is for nonlocal damage
     ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
     ConstitutiveParameters.SetStressVector(StressVector);
@@ -194,6 +195,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeSolutionStep( ProcessInfo& r
     ConstitutiveParameters.SetDeterminantF(detF);
     ConstitutiveParameters.SetDeformationGradientF(F);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     if(rCurrentProcessInfo[NODAL_SMOOTHING] == true)
     {
@@ -520,6 +522,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
         double detF = 1.0;
         ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
         ConstitutiveParameters.SetStressVector(StressVector);
         ConstitutiveParameters.SetStrainVector(StrainVector);
@@ -636,6 +639,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
         double detF = 1.0;
         ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
         ConstitutiveParameters.SetStressVector(StressVector);
         ConstitutiveParameters.SetStrainVector(StrainVector);
@@ -717,6 +721,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
         double detF = 1.0;
         ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
         ConstitutiveParameters.SetStressVector(StressVector);
         ConstitutiveParameters.SetStrainVector(StrainVector);
@@ -876,6 +881,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandS
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //Element variables
     ElementVariables Variables;
@@ -932,6 +938,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHand
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //Element variables
     ElementVariables Variables;

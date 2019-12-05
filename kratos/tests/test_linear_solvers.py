@@ -16,7 +16,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             settings = all_settings["test_list"][i]
             self._auxiliary_test_function(settings)
 
-    def _auxiliary_test_function(self, settings, matrix_name="auxiliar_files_for_python_unnitest/sparse_matrix_files/A.mm"):
+    def _auxiliary_test_function(self, settings, matrix_name="auxiliar_files_for_python_unittest/sparse_matrix_files/A.mm"):
         space = KratosMultiphysics.UblasSparseSpace()
 
         #read the matrices
