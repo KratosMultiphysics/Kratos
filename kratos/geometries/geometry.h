@@ -555,6 +555,22 @@ public:
     }
 
     ///@}
+    ///@name Id
+    ///@{
+
+    /// Id of this Geometry
+    IndexType Id()
+    {
+        return mId;
+    }
+
+    /// Sets Id of this Geometry
+    void SetId(IndexType Id)
+    {
+        mId = Id;
+    }
+
+    ///@}
     ///@name Parent
     ///@{
 
