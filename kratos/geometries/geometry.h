@@ -567,8 +567,24 @@ public:
     /// Sets Id of this Geometry
     void SetId(IndexType Id)
     {
+        // The first two bits of the Id are used to detect if Id
+        // or hash of name.
+        KRATOS_ERROR_IF((Id & (IndexType(1) << 63)) && (Id & (IndexType(1) << 62)))
+            << "Id out of range. The first bits of the "
+            << "Geometry Ids are used to detect if Id is int or hash of name."
+            << std::endl;
+
         mId = Id;
     }
+
+    /// Sets Id with the use of the name of this Geometry
+    void SetId(std::string name)
+    {
+        SetGeometryIdName();
+
+        mId = std::hash(name);
+    }
+
 
     ///@}
     ///@name Parent
@@ -3163,6 +3179,32 @@ private:
     static const GeometryDimension msGeometryDimension;
 
     PointsArrayType mPoints;
+
+    ///@}
+    ///@name Id Bit-Change Operations
+    ///@{
+
+    /// Checks first bit in mId. 0 -> id; 1 -> name
+    bool IsGeometryIdName()
+    {
+        return mId & (IndexType(1) << 63) :
+    }
+
+    void SetGeometryIdName()
+    {
+        mId |= (IndexType(1) << 63);
+    }
+
+    /// Checks second bit in mId. 0 -> foreign id; 1 -> self assigned
+    void IsSelfAssignedId()
+    {
+        mId& (IndexType(1) << 62);
+    }
+
+    void SetSelfAssignedId()
+    {
+        mId |= (IndexType(1) << 62);
+    }
 
     ///@}
     ///@name Serialization
