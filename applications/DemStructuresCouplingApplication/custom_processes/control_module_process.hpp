@@ -57,7 +57,8 @@ public:
                 "initial_velocity" : 0.0,
                 "limit_velocity" : 1.0,
                 "velocity_factor" : 1.0,
-                "compression_length" : 0.0,
+                "compression_length" : 1.0,
+                "face_area": 1.0,
                 "young_modulus" : 1.0e7,
                 "stress_increment_tolerance": 1000.0,
                 "update_stiffness": true,
@@ -76,13 +77,11 @@ public:
         mVelocity = rParameters["initial_velocity"].GetDouble();
         mLimitVelocity = rParameters["limit_velocity"].GetDouble();
         mVelocityFactor = rParameters["velocity_factor"].GetDouble();
-        mCompressionLength = rParameters["compression_length"].GetDouble();
-        mYoungModulus = rParameters["young_modulus"].GetDouble();
         mStartTime = rParameters["start_time"].GetDouble();
         mStressIncrementTolerance = rParameters["stress_increment_tolerance"].GetDouble();
         mUpdateStiffness = rParameters["update_stiffness"].GetBool();
         mReactionStressOld = 0.0;
-        mStiffness = mYoungModulus/mCompressionLength;
+        mStiffness = rParameters["young_modulus"].GetDouble()*rParameters["face_area"].GetDouble()/rParameters["compression_length"].GetDouble();
 
         mRadialDisplacement = rParameters["radial_displacement"].GetBool();
         if(mRadialDisplacement == true) {
@@ -370,8 +369,6 @@ protected:
     double mVelocity;
     double mLimitVelocity;
     double mVelocityFactor;
-    double mCompressionLength;
-    double mYoungModulus;
     double mStartTime;
     double mReactionStressOld;
     double mStressIncrementTolerance;
