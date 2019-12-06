@@ -18,6 +18,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+    - name: Cache Build
+      id: cache-build
+      uses: actions/cache@v1
+      with:
+        path: ${GITHUB_WORKSPACE}/build
+        key: ${{ runner.os }}-build
     - name: Build
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
