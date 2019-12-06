@@ -22,7 +22,7 @@ jobs:
       id: cache-build
       uses: actions/cache@v1
       with:
-        path: ${GITHUB_WORKSPACE}/build
+        path: build
         key: ${{ runner.os }}-build
     - name: Build
       run: |
