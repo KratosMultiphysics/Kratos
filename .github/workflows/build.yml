@@ -1,0 +1,27 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: oberbichler/kratos-dev
+      env:
+        CCACHE_SLOPPINESS: pch_defines,time_macros
+        CCACHE_COMPILERCHECK: content
+        CCACHE_COMPRESS: true
+        CCACHE_NODISABLE: true
+        CCACHE_MAXSIZE: 500M
+        FC: gfortran-7
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Build
+      run: |
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        cp scripts/build/travis/configure_travis_bionic.sh configure.sh
+        bash configure.sh
+        python3 kratos/python_scripts/run_tests.py -l small -c python3
