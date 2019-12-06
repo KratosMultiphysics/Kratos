@@ -22,8 +22,8 @@ jobs:
       id: cache-build
       uses: actions/cache@v1
       with:
-        path: build
-        key: ${{ runner.os }}-build
+        path: ~/.ccache
+        key: ${{ runner.os }}-ccache
     - name: Build
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
@@ -31,4 +31,4 @@ jobs:
         cp scripts/build/travis/configure_travis_bionic.sh configure.sh
         bash configure.sh
         python3 kratos/python_scripts/run_tests.py -l small -c python3
-
+        ccache -s
