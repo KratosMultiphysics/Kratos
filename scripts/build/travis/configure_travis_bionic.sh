@@ -48,7 +48,6 @@ echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DUSE_MPI=ON \
 -DPYBIND11_PYTHON_VERSION="3.6" \
--DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
 -DCMAKE_CXX_FLAGS="-O0 -fopenmp -Wall \
 -Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable \
 -Werror=misleading-indentation -Werror=return-type \
