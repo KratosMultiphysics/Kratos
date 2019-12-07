@@ -15,8 +15,6 @@ jobs:
         CCACHE_NODISABLE: true
         CCACHE_MAXSIZE: 500M
         FC: gfortran-7
-        CC: ccache gcc
-        CXX: ccache g++
 
     steps:
     - uses: actions/checkout@v1
