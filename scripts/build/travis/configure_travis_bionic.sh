@@ -48,6 +48,7 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DUSE_MPI=ON \
 -DPYBIND11_PYTHON_VERSION="3.6" \
 -DCMAKE_CXX_FLAGS="-O0 -fopenmp -Wall \
+-DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
 -Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable \
 -Werror=misleading-indentation -Werror=return-type \
 -Werror=sign-compare -Werror=unused-but-set-variable \
