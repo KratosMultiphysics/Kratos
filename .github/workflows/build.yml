@@ -23,7 +23,8 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.ccache
-        key: ${{ runner.os }}-ccache
+        key: ${{ runner.os }}-ccache-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-ccache-
     - name: Build
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
