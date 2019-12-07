@@ -12,6 +12,10 @@ add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
 }
 
+# Set compiler
+export CC=/usr/lib/ccache/gcc
+export CXX=/usr/lib/ccache/g++
+
 # Set variables
 export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
