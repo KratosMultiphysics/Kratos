@@ -17,7 +17,7 @@ jobs:
         FC: gfortran-7
 
     steps:
-    - uses: actions/checkout@v2-beta
+    - uses: actions/checkout@v1
     - name: Cache Build
       id: cache-build
       uses: actions/cache@v1
