@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: docker.pkg.github.com/oberbichler/kratos-dev/kratos-dev:latest
+      image: oberbichler/kratos-dev:latest
       env:
         CCACHE_SLOPPINESS: pch_defines,time_macros
         CCACHE_COMPILERCHECK: content
