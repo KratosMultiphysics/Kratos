@@ -161,13 +161,20 @@ public:
         // We call the base class
         BaseType::PostCriteria(rModelPart, rDofSet, rA, rDx, rb);
 
-        // Compute the active set
-        const IndexType is_converged = ActiveSetUtilities::ComputeALMFrictionlessComponentsActiveSet(rModelPart);
-
-        // We save to the process info if the active set has converged
-        const bool active_set_converged = (is_converged == 0 ? true : false);
+        // Getting process info
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-        r_process_info[ACTIVE_SET_CONVERGED] = active_set_converged;
+
+        // Compute the active set
+        if (!r_process_info[ACTIVE_SET_COMPUTED]) {
+            const IndexType is_converged = ActiveSetUtilities::ComputeALMFrictionlessComponentsActiveSet(rModelPart);
+
+            // We save to the process info if the active set has converged
+            r_process_info[ACTIVE_SET_CONVERGED] = is_converged == 0 ? true : false;
+            r_process_info[ACTIVE_SET_COMPUTED] = true;
+        }
+
+        // Getting converged bools
+        const bool active_set_converged = r_process_info[ACTIVE_SET_CONVERGED];
 
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
             if (r_process_info.Has(TABLE_UTILITY)) {
@@ -208,7 +215,8 @@ public:
      */
     void Initialize(ModelPart& rModelPart) override
     {
-        ConvergenceCriteriaBaseType::mConvergenceCriteriaIsInitialized = true;
+        // Calling base criteria
+        BaseType::Initialize(rModelPart);
 
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         if (r_process_info.Has(TABLE_UTILITY) && BaseType::mOptions.IsNot(ALMFrictionlessComponentsMortarConvergenceCriteria::TABLE_IS_INITIALIZED)) {
@@ -304,13 +312,13 @@ private:
 
 /// Local Flags
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionlessComponentsMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::PRINTING_OUTPUT(Kratos::Flags::Create(2));
+const Kratos::Flags ALMFrictionlessComponentsMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::PRINTING_OUTPUT(Kratos::Flags::Create(3));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionlessComponentsMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_PRINTING_OUTPUT(Kratos::Flags::Create(2, false));
+const Kratos::Flags ALMFrictionlessComponentsMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_PRINTING_OUTPUT(Kratos::Flags::Create(3, false));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionlessComponentsMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(3));
+const Kratos::Flags ALMFrictionlessComponentsMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(4));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionlessComponentsMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(3, false));
+const Kratos::Flags ALMFrictionlessComponentsMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(4, false));
 
 }  // namespace Kratos
 

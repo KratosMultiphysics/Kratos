@@ -15,9 +15,9 @@
 
 #include "containers/model.h"
 #include "includes/model_part.h"
+#include "includes/parallel_environment.h"
 #include "mpi/includes/mpi_communicator.h"
-
-#include "../applications/TrilinosApplication/custom_utilities/parallel_fill_communicator.h"
+#include "mpi/utilities/parallel_fill_communicator.h"
 
 #include "testing/testing.h"
 
@@ -732,7 +732,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeDofIds, KratosMP
         auto& r_dofs = i_node->GetDofs();
         for (auto i_dof = r_dofs.begin(); i_dof != r_dofs.end(); ++i_dof)
         {
-            i_dof->SetEquationId(id_offset + i);
+            (*i_dof)->SetEquationId(id_offset + i);
             ++i;
         }
     }
@@ -743,9 +743,48 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeDofIds, KratosMP
         auto& r_dofs = i_node->GetDofs();
         for (auto i_dof = r_dofs.begin(); i_dof != r_dofs.end(); ++i_dof)
         {
-            KRATOS_CHECK_NOT_EQUAL(i_dof->EquationId(), 0);
+            KRATOS_CHECK_NOT_EQUAL((*i_dof)->EquationId(), 0);
         }
     }
 }
+
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecution, KratosMPICoreFastSuite)
+{
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    MPIDataCommunicator comm_world(MPI_COMM_WORLD);
+    Internals::ModelPartForMPICommunicatorTests(r_model_part, comm_world);
+
+    auto& r_mpi_comm = r_model_part.GetCommunicator();
+    unsigned int number_of_colors = r_mpi_comm.GetNumberOfColors();
+    auto neighbor_indices = r_mpi_comm.NeighbourIndices();
+
+    int neighbor;
+    double local_index = comm_world.Rank(); // PARTITION_INDEX is a double
+    for (unsigned int i = 0; i < number_of_colors; i++)
+    {
+        if ((neighbor = neighbor_indices[i]) > -1)
+        {
+            std::size_t interface_size = r_mpi_comm.InterfaceMeshes()[i].Nodes().size();
+            std::size_t local_size = r_mpi_comm.LocalMeshes()[i].Nodes().size();
+            std::size_t ghost_size = r_mpi_comm.GhostMeshes()[i].Nodes().size();
+            KRATOS_CHECK_GREATER(interface_size, 0);
+            KRATOS_CHECK_EQUAL(interface_size, local_size+ghost_size);
+            double neighbor_index = neighbor; // PARTITION_INDEX is a double
+            for (auto& node : r_mpi_comm.LocalMeshes()[i].Nodes())
+            {
+                KRATOS_CHECK_EQUAL(node.FastGetSolutionStepValue(PARTITION_INDEX,0), local_index);
+            }
+            for (auto& node : r_mpi_comm.GhostMeshes()[i].Nodes())
+            {
+                KRATOS_CHECK_EQUAL(node.FastGetSolutionStepValue(PARTITION_INDEX,0), neighbor_index);
+            }
+        }
+    }
+}
+
 }
 }

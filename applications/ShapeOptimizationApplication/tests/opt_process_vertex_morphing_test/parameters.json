@@ -18,7 +18,7 @@
         "objectives" : [{
                 "identifier" : "targetDeviation",
                 "type"       : "minimization",
-                "use_kratos" : false,
+                "analyzer"   : "external",
                 "project_gradient_on_surface_normals" : true
         }],
         "constraints" : [],

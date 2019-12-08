@@ -85,8 +85,8 @@ namespace Kratos {
 /**
  The generalized wall model in "T.-H. Shih, L.A. Povinelli, N.-S. Liu, M.G. Potapczuk
  and J.L. Lumley, A generalized wall function, Tech. Report NASA/TM-1999-209398, 1999"
- is used to calculate wall stress. For distributed problems the 
- MetisDivideHeterogeneousInputProcess must be used with SynchronizeConditions = true. 
+ is used to calculate wall stress. For distributed problems the
+ MetisDivideHeterogeneousInputProcess must be used with SynchronizeConditions = true.
  This ensures the condition belongs to the same partition as its parent element.
 
  Interface artificial compressibility (IAC) is used on the fluid-structure interface
@@ -332,7 +332,7 @@ public:
 		this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
 	}
 
-	/// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.
+	/// Calculate wall stress term for all nodes with SLIP set.
 	/**
 	 @param rLeftHandSideMatrix Left-hand side matrix
 	 @param rRightHandSideVector Right-hand side vector
@@ -366,7 +366,7 @@ public:
 			noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 			noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-			if (this->GetValue(IS_STRUCTURE) != 0.0)
+			if (this->Is(SLIP))
 			  this->ApplyWallLaw(rLeftHandSideMatrix, rRightHandSideVector);
 		}
 		else if (rCurrentProcessInfo[FRACTIONAL_STEP] == 5)
@@ -431,8 +431,6 @@ public:
 			KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
 			if(NORMAL.Key() == 0)
 			KRATOS_THROW_ERROR(std::invalid_argument,"NORMAL Key is 0. Check if the application was correctly registered.","");
-			if(IS_STRUCTURE.Key() == 0)
-			KRATOS_THROW_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
 
 			// Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
 			for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
@@ -857,7 +855,7 @@ protected:
 			for(SizeType i=0; i < rGeometry.PointsNumber(); ++i)
 			{
 				const NodeType& rNode = rGeometry[i];
-				if(rNode.GetValue(Y_WALL) != 0.0 && rNode.GetValue(IS_STRUCTURE) != 0.0)
+				if(rNode.GetValue(Y_WALL) != 0.0 && rNode.Is(SLIP))
 				{
 					WallVel = rNode.FastGetSolutionStepValue(VELOCITY,1) - rNode.FastGetSolutionStepValue(MESH_VELOCITY,1);
 					tmp = norm_2(WallVel);

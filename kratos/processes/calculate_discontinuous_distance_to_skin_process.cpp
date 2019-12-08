@@ -40,30 +40,21 @@ namespace Kratos
 		// Initialize the intersected objects process
 		mFindIntersectedObjectsProcess.Initialize();
 
-		// Reset the nodal distance values
-		const double initial_distance = 1.0;
-
-		#pragma omp parallel for
-		for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfNodes()); ++k) {
-			ModelPart::NodesContainerType::iterator itNode = mrVolumePart.NodesBegin() + k;
-			itNode->Set(TO_SPLIT, false);
-			itNode->GetSolutionStepValue(DISTANCE) = initial_distance;
-		}
-
-		// Reset the Elemental distance to 1.0 which is the maximum distance in our normalized space.
-		// Also initialize the embedded velocity of the fluid element and the TO_SPLIT flag.
+		// Initialize the elemental distances to the domain characteristic length
+		const double initial_distance = this->CalculateCharacteristicLength();
 		constexpr std::size_t num_nodes = TDim + 1;
-		array_1d<double,num_nodes> ElementalDistances;
+		array_1d<double,num_nodes> init_dist_vect;
 		for (unsigned int i_node = 0; i_node < num_nodes; ++i_node) {
-			ElementalDistances[i_node] = initial_distance;
+			init_dist_vect[i_node] = initial_distance;
 		}
 
+		// Also initialize the embedded velocity of the fluid element and the TO_SPLIT flag.
 		#pragma omp parallel for
 		for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfElements()); ++k) {
 			ModelPart::ElementsContainerType::iterator itElement = mrVolumePart.ElementsBegin() + k;
 			itElement->Set(TO_SPLIT, false);
 			itElement->SetValue(EMBEDDED_VELOCITY, ZeroVector(3));
-			itElement->SetValue(ELEMENTAL_DISTANCES,ElementalDistances);
+			itElement->SetValue(ELEMENTAL_DISTANCES,init_dist_vect);
 		}
 	}
 
@@ -100,6 +91,7 @@ namespace Kratos
 	template<std::size_t TDim>
 	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::Execute()
 	{
+		this->Clear();
 		this->Initialize();
 		this->FindIntersections();
 		this->CalculateDistances(this->GetIntersections());
@@ -197,13 +189,13 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	unsigned int CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputeEdgesIntersections(
-		Element& rElement1, 
+		Element& rElement1,
 		const PointerVector<GeometricalObject>& rIntersectedObjects,
 		std::vector<unsigned int> &rCutEdgesVector,
       	std::vector<array_1d <double,3> > &rIntersectionPointsArray)
 	{
 		auto &r_geometry = rElement1.GetGeometry();
-		const auto r_edges_container = r_geometry.Edges();
+		const auto r_edges_container = r_geometry.GenerateEdges();
 		const std::size_t n_edges = r_geometry.EdgesNumber();
 
 		// Initialize cut edges and points arrays
@@ -262,9 +254,9 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	int CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputeEdgeIntersection(
-		const Element::GeometryType& rIntObjGeometry, 
-		const Element::NodeType& rEdgePoint1, 
-		const Element::NodeType& rEdgePoint2, 
+		const Element::GeometryType& rIntObjGeometry,
+		const Element::NodeType& rEdgePoint1,
+		const Element::NodeType& rEdgePoint2,
 		Point& rIntersectionPoint)
 	{
 		int intersection_flag = 0;
@@ -304,7 +296,7 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputePlaneApproximation(
-		const Element& rElement1, 
+		const Element& rElement1,
 		const std::vector< array_1d<double,3> >& rPointsCoord,
 		array_1d<double,3>& rPlaneBasePointCoords,
 		array_1d<double,3>& rPlaneNormal)
@@ -375,7 +367,7 @@ namespace Kratos
 	Plane3D CalculateDiscontinuousDistanceToSkinProcess<2>::SetIntersectionPlane(
 		const std::vector<array_1d<double,3>> &rIntPtsVector)
 	{
-		// Since the Plane3D object only works in 3D, in 2D we set the intersection 
+		// Since the Plane3D object only works in 3D, in 2D we set the intersection
 		// plane by extruding the intersection point 0 in the z-direction.
 		array_1d<double,3> z_coord_pt = rIntPtsVector[0];
 		z_coord_pt[2] = 1.0;
@@ -387,6 +379,36 @@ namespace Kratos
 		const std::vector<array_1d<double,3>> &rIntPtsVector)
 	{
 		return Plane3D(Point{rIntPtsVector[0]}, Point{rIntPtsVector[1]}, Point{rIntPtsVector[2]});
+	}
+
+	template<std::size_t TDim>
+	double CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateCharacteristicLength()
+	{
+		// Get the background mesh model part
+		const auto &r_model_part = mFindIntersectedObjectsProcess.GetModelPart1();
+		KRATOS_ERROR_IF(r_model_part.NumberOfNodes() == 0)
+			<< "Background mesh model part has no nodes." << std::endl;
+
+		// Compute the domain characteristic length
+		double max_x(0.0), max_y(0.0), max_z(0.0);
+		double min_x(0.0), min_y(0.0), min_z(0.0);
+
+		// #pragma omp parallel for reduction(max:max_x, max_y, max_z) reduction(min:min_x, min_y, min_z) // Activate this once Windows OpenMP standard suppors max and min reductions
+		for (int i_node = 0; i_node < static_cast<int>(r_model_part.NumberOfNodes()); ++i_node) {
+			const auto it_node = r_model_part.NodesBegin() + i_node;
+			max_x = (max_x < (*it_node)[0]) ? (*it_node)[0] : max_x;
+			max_y = (max_y < (*it_node)[1]) ? (*it_node)[1] : max_y;
+			max_z = (max_z < (*it_node)[2]) ? (*it_node)[2] : max_z;
+			min_x = (min_x > (*it_node)[0]) ? (*it_node)[0] : min_x;
+			min_y = (min_y > (*it_node)[1]) ? (*it_node)[1] : min_y;
+			min_z = (min_z > (*it_node)[2]) ? (*it_node)[2] : min_z;
+		}
+
+		const double char_length = std::sqrt(std::pow(max_x - min_x, 2) + std::pow(max_y - min_y, 2) + std::pow(max_z - min_z, 2));
+		KRATOS_ERROR_IF(char_length < std::numeric_limits<double>::epsilon())
+			<< "Domain characteristic length is close to zero. Check if there is any node in the model part." << std::endl;
+
+		return char_length;
 	}
 
 	template<>

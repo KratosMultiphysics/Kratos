@@ -7,6 +7,7 @@ import KratosMultiphysics.DEMApplication as Dem
 import KratosMultiphysics.ExternalSolversApplication as ExternalSolvers
 import KratosMultiphysics.StructuralMechanicsApplication as Structural
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
-import dem_fem_coupling_algorithm
 
-dem_fem_coupling_algorithm.Algorithm().Run()
+from KratosMultiphysics.DemStructuresCouplingApplication.dem_fem_coupling_algorithm import Algorithm
+
+Algorithm().Run()

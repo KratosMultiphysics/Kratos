@@ -19,6 +19,7 @@
 // Project includes
 #include "rough_porous_layer_wetting_model.h"
 #include "shallow_water_application_variables.h"
+#include "custom_utilities/shallow_water_utilities.h"
 
 
 namespace Kratos
@@ -89,27 +90,7 @@ void RoughPorousLayerWettingModel::ExecuteInitializeSolutionStep()
 
 void RoughPorousLayerWettingModel::ExecuteFinalizeSolutionStep()
 {
-    // Definition of the first node iterator
-    auto it_elements_begin = mrModelPart.ElementsBegin();
-
-    // Identification of the dry and wet elements
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
-    {
-        auto it_elem = it_elements_begin + i;
-
-        bool wet_element = false;
-        for(auto& node : it_elem->GetGeometry())
-        {
-            const double free_surface = node.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
-            const double topography = node.FastGetSolutionStepValue(TOPOGRAPHY);
-            if (free_surface > topography) {
-                wet_element = true;  // It means there is almost a wet node
-            }
-        }
-
-        it_elem->Set(FLUID, wet_element);
-    }
+    ShallowWaterUtilities().IdentifyWetDomain(mrModelPart, FLUID, mLayerThickness);
 }
 
 }  // namespace Kratos

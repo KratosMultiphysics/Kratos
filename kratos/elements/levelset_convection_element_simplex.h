@@ -27,6 +27,7 @@
 #include "includes/variables.h"
 #include "includes/serializer.h"
 #include "includes/cfd_variables.h"
+#include "includes/convection_diffusion_settings.h"
 #include "utilities/geometry_utilities.h"
 
 namespace Kratos
@@ -68,6 +69,8 @@ public:
     ///@{
 
     /// Default constructor.
+    LevelSetConvectionElementSimplex() : Element()
+    {}
 
     LevelSetConvectionElementSimplex(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
@@ -334,10 +337,6 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-
-    LevelSetConvectionElementSimplex() : Element()
-    {
-    }
 
     ///@}
     ///@name Protected Operations

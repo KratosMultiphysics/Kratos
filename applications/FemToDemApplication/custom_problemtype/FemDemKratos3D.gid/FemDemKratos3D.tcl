@@ -76,7 +76,7 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
         source [file join $problemtypedir ProjectParametersDEM.tcl]
         WriteProjectParametersDEM $basename $dir $problemtypedir
 
-        file copy -force [file join $problemtypedir KratosFemDemCoupled3DApplication.py] [file join $dir KratosFemDemCoupled3DApplication.py]
+        file copy -force [file join $problemtypedir MainKratos.py] [file join $dir MainKratos.py]
     } else {
         file copy -force [file join $problemtypedir DEM_explicit_solver_var.py] [file join $dir DEM_explicit_solver_var.py]
         file copy -force [file join $problemtypedir KratosFemDemApplication.py] [file join $dir KratosFemDemApplication.py]

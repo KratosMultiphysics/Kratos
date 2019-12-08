@@ -30,7 +30,7 @@ namespace Kratos
 //*******************************CONSTRUCTOR******************************************
 //************************************************************************************
 MCYieldCriterion::MCYieldCriterion()
-    :MPMYieldCriterion()
+    :ParticleYieldCriterion()
 {
 
 }
@@ -39,7 +39,7 @@ MCYieldCriterion::MCYieldCriterion()
 //************************************************************************************
 
 MCYieldCriterion::MCYieldCriterion(HardeningLawPointer pHardeningLaw)
-    :MPMYieldCriterion(pHardeningLaw)
+    :ParticleYieldCriterion(pHardeningLaw)
 {
 
 }
@@ -49,7 +49,7 @@ MCYieldCriterion::MCYieldCriterion(HardeningLawPointer pHardeningLaw)
 
 MCYieldCriterion& MCYieldCriterion::operator=(MCYieldCriterion const& rOther)
 {
-    MPMYieldCriterion::operator=(rOther);
+    ParticleYieldCriterion::operator=(rOther);
     return *this;
 }
 
@@ -57,7 +57,7 @@ MCYieldCriterion& MCYieldCriterion::operator=(MCYieldCriterion const& rOther)
 //************************************************************************************
 
 MCYieldCriterion::MCYieldCriterion(MCYieldCriterion const& rOther)
-    :MPMYieldCriterion(rOther)
+    :ParticleYieldCriterion(rOther)
 {
 
 }
@@ -86,20 +86,14 @@ double& MCYieldCriterion::CalculateYieldCondition(double& rStateFunction, const 
     return rStateFunction;
 }
 
-
-double MCYieldCriterion::GetPI()
-{
-    return std::atan(1.0)*4.0;
-}
-
 void MCYieldCriterion::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMYieldCriterion )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ParticleYieldCriterion )
 }
 
 void MCYieldCriterion::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMYieldCriterion )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ParticleYieldCriterion )
 }
 
 

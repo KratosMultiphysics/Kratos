@@ -117,11 +117,7 @@ namespace Testing {
         p_mesh_moving->Initialize(origin_model_part);
 
         // Copy the origin model part data to the virtual one
-        VariableUtils::Pointer p_var_utils = Kratos::make_shared<VariableUtils>();
-        for (unsigned int i_step = 0; i_step < n_steps; ++i_step){
-            p_var_utils->CopyModelPartNodalVar<Variable<double>>(PRESSURE, origin_model_part, virtual_model_part, i_step);
-            p_var_utils->CopyModelPartNodalVar<Variable<array_1d<double,3>>>(VELOCITY, origin_model_part, virtual_model_part, i_step);
-        }
+        p_mesh_moving->SetVirtualMeshValuesFromOriginMesh();
 
         // Execute the explicit mesh movement operations
         const unsigned int buffer_size = 3;

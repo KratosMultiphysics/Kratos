@@ -25,8 +25,7 @@ namespace Kratos
 AxisymLineLoadCondition2D::AxisymLineLoadCondition2D(
     IndexType NewId,
     GeometryType::Pointer pGeometry
-    )
-        : LineLoadCondition2D( NewId, pGeometry )
+    ) : LineLoadCondition<2>( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -38,8 +37,7 @@ AxisymLineLoadCondition2D::AxisymLineLoadCondition2D(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
-    )
-        : LineLoadCondition2D( NewId, pGeometry, pProperties )
+    ) : LineLoadCondition<2>( NewId, pGeometry, pProperties )
 {
 }
 
@@ -118,7 +116,7 @@ double AxisymLineLoadCondition2D::GetIntegrationWeight(
 
 void AxisymLineLoadCondition2D::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoadCondition2D );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoadCondition<2> );
 }
 
 /***********************************************************************************/
@@ -126,7 +124,7 @@ void AxisymLineLoadCondition2D::save( Serializer& rSerializer ) const
 
 void AxisymLineLoadCondition2D::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineLoadCondition2D );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineLoadCondition<2> );
 }
 
 } // Namespace Kratos

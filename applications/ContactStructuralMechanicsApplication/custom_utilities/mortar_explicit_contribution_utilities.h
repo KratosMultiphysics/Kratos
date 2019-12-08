@@ -136,14 +136,18 @@ public:
      * @param IntegrationOrder The integration order of the utility
      * @param AxisymmetricCase If consider the axisymmetric coefficient
      * @param ComputeNodalArea If the contribution of the nodal are must be computed
+     * @param ComputeDualLM If condider dual LM to begin with
+     * @param rAreaVariable The nodal area variable
+     * @return The mortar operators
      */
     static MortarConditionMatrices AddExplicitContributionOfMortarCondition(
         PairedCondition* pCondition,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const IndexType IntegrationOrder = 2,
         const bool AxisymmetricCase = false,
-        const bool ComputeNodalArea = false
-
+        const bool ComputeNodalArea = false,
+        const bool ComputeDualLM = true,
+        Variable<double>& rAreaVariable = NODAL_AREA
         );
     /**
      * @brief This method computes the explicit contributions of the mortar contact conditions
@@ -154,14 +158,21 @@ public:
      * @param IntegrationOrder The integration order of the utility
      * @param AxisymmetricCase If consider the axisymmetric coefficient
      * @param ComputeNodalArea If the contribution of the nodal are must be computed
+     * @param ComputeDualLM If condider dual LM to begin with
+     * @param rAreaVariable The nodal area variable
+     * @param ConsiderObjetiveFormulation If the objetive formulation is considered always
+     * @return The mortar operators
      */
     static MortarConditionMatrices AddExplicitContributionOfMortarFrictionalCondition(
         PairedCondition* pCondition,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
         const IndexType IntegrationOrder = 2,
         const bool AxisymmetricCase = false,
-        const bool ComputeNodalArea = false
+        const bool ComputeNodalArea = false,
+        const bool ComputeDualLM = true,
+        Variable<double>& rAreaVariable = NODAL_AREA,
+        const bool ConsiderObjetiveFormulation = false
         );
 
     /**
@@ -207,18 +218,45 @@ public:
         );
 
     /**
+     * @brief This method computes the nodal area
+     * @details This method is created in order to avoid duplicated code
+     * @param pCondition The condition pointer to compute the explicit contribution
+     * @param rCurrentProcessInfo The current instance process info
+     * @param rAreaVariable The nodal area variable
+     * @param IntegrationOrder The integration order of the utility
+     * @param AxisymmetricCase If consider the axisymmetric coefficient
+     * @return True is dual LM, false otherwise
+     */
+    static void ComputeNodalArea(
+        PairedCondition* pCondition,
+        const ProcessInfo& rCurrentProcessInfo,
+        Variable<double>& rAreaVariable = NODAL_AREA,
+        const IndexType IntegrationOrder = 2,
+        const bool AxisymmetricCase = false
+        );
+
+    /**
      * @brief This method computes the previous mortar operators
      * @details This method is created in order to avoid duplicated code
      * @param pCondition The condition pointer to compute the explicit contribution
      * @param rCurrentProcessInfo The current instance process info
      * @param rPreviousMortarOperators The previous mortar operators
+     * @param IntegrationOrder The integration order of the utility
+     * @param AxisymmetricCase If consider the axisymmetric coefficient
+     * @param ComputeNodalArea If the contribution of the nodal are must be computed
+     * @param ComputeDualLM If condider dual LM to begin with
+     * @param rAreaVariable The nodal area variable
+     * @return True is dual LM, false otherwise
      */
-    static void ComputePreviousMortarOperators(
+    static bool ComputePreviousMortarOperators(
         PairedCondition* pCondition,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
         const IndexType IntegrationOrder = 2,
-        const bool AxisymmetricCase = false
+        const bool AxisymmetricCase = false,
+        const bool ComputeNodalArea = false,
+        const bool ComputeDualLM = true,
+        Variable<double>& rAreaVariable = NODAL_AREA
         );
 
     /**

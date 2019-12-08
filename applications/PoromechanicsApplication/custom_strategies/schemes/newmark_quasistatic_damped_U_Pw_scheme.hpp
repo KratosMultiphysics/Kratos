@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        KratosPoromechanicsApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:            January 2016 $
@@ -34,12 +34,9 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ///Constructor
-    NewmarkQuasistaticDampedUPwScheme(double beta, double gamma, double theta,
-                            double rayleigh_m, double rayleigh_k) : NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
+    NewmarkQuasistaticDampedUPwScheme(double beta, double gamma, double theta)
+        : NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
     {
-        mRayleighAlpha = rayleigh_m;
-        mRayleighBeta = rayleigh_k;
-                
         //Allocate auxiliary memory
         int NumThreads = OpenMPUtils::GetNumThreads();
         mDampingMatrix.resize(NumThreads);
@@ -47,47 +44,10 @@ public:
     }
 
     //------------------------------------------------------------------------------------
-    
+
     ///Destructor
     ~NewmarkQuasistaticDampedUPwScheme() override {}
-    
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    int Check(ModelPart& r_model_part) override
-    {
-        KRATOS_TRY
-        
-        int ierr = NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::Check(r_model_part);
-        if(ierr != 0) return ierr;
-
-        if ( RAYLEIGH_ALPHA.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "RAYLEIGH_ALPHA Key is 0. Check if all applications were correctly registered.", "" )
-        if ( RAYLEIGH_BETA.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "RAYLEIGH_BETA Key is 0. Check if all applications were correctly registered.", "" )
-            
-        // Check rayleigh coefficients
-        if( mRayleighAlpha < 0.0 || mRayleighBeta < 0.0 )
-            KRATOS_THROW_ERROR( std::invalid_argument,"Some of the rayleigh coefficients has an invalid value ", "" )
-            
-        return ierr;
-        
-        KRATOS_CATCH( "" )
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void Initialize(ModelPart& r_model_part) override
-    {
-        KRATOS_TRY
-        
-        NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::Initialize(r_model_part);
-        
-        r_model_part.GetProcessInfo()[RAYLEIGH_ALPHA] = mRayleighAlpha;
-        r_model_part.GetProcessInfo()[RAYLEIGH_BETA] = mRayleighBeta;
-        
-        KRATOS_CATCH("")
-    }
-    
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Note: this is in a parallel loop
@@ -169,12 +129,9 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-    
+
     /// Member Variables
-    
-    double mRayleighAlpha;
-    double mRayleighBeta;
-    
+
     std::vector< Matrix > mDampingMatrix;
     std::vector< Vector > mVelocityVector;
 
@@ -186,7 +143,7 @@ protected:
         if (C.size1() != 0)
             noalias(LHS_Contribution) += mGamma/(mBeta*mDeltaTime)*C;
     }
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void AddDampingToRHS(Element::Pointer rCurrentElement,LocalSystemVectorType& RHS_Contribution,

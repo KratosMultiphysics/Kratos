@@ -18,7 +18,7 @@
         "move_mesh_flag"                    : false,
         "response_function_settings" : {
             "response_type"     : "adjoint_local_stress",
-            "use_kratos"        : true,
+            "analyzer"          : "kratos",
             "gradient_mode"     : "semi_analytic",
             "step_size"         : 1.0e-6,
             "adapt_step_size"   : true,
@@ -35,10 +35,7 @@
             "build_mode": "static"
         },
         "echo_level"                   : 0,
-        "problem_domain_sub_model_part_list" : ["Parts_AREAS"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC", "PointLoad3D_NODES", "Structure"],
-        "computing_model_part_name" : "computing_domain",
-        "rotation_dofs"                      : true,
+        "rotation_dofs"                : true,
         "linear_solver_settings"       : {
             "solver_type"         : "ExternalSolversApplication.super_lu"
         },
@@ -58,7 +55,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_DIR_BC",
+            "model_part_name" : "Structure.DISPLACEMENT_DIR_BC",
             "variable_name"   : "ADJOINT_DISPLACEMENT",
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
@@ -72,7 +69,7 @@
         "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "PointLoad3D_NODES",
+            "model_part_name" : "Structure.PointLoad3D_NODES",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : 10.0,
             "direction"       : [0.0,0.0,1],

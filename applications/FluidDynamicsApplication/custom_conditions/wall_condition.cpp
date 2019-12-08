@@ -227,7 +227,7 @@ template<unsigned int TDim, unsigned int TNumNodes>
 void WallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &rLocalMatrix, VectorType &rLocalVector)
 {
     const WallCondition<TDim,TNumNodes>& rConstThis = *this;
-    if (rConstThis.GetValue(IS_STRUCTURE) == 0.0)
+    if (!rConstThis.Is(SLIP))
     {
         const unsigned int LocalSize = TDim;
         const GeometryType& rGeom = this->GetGeometry();

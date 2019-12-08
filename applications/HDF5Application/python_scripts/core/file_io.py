@@ -2,35 +2,37 @@
 
 license: HDF5Application/license.txt
 '''
+
+
+import os
+
+
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
-from . import utils
-import os
+from .utils import ParametersWrapper
 
 
 class _FileIO(object):
 
-    def _FileSettings(self, identifier):
-        settings = KratosMultiphysics.Parameters()
-        settings.AddEmptyValue('file_name').SetString(
-            self.filename_getter.Get(identifier))
-        settings.AddEmptyValue('file_access_mode').SetString(
-            self.file_access_mode)
-        settings.AddEmptyValue('file_driver').SetString(self.file_driver)
-        settings.AddEmptyValue('echo_level').SetInt(self.echo_level)
+    def _FileSettings(self, model_part):
+        settings = ParametersWrapper()
+        settings['file_name'] = self.filename_getter.Get(model_part)
+        settings['file_access_mode'] = self.file_access_mode
+        settings['file_driver'] = self.file_driver
+        settings['echo_level'] = self.echo_level
         return settings
 
 
 class _HDF5SerialFileIO(_FileIO):
 
-    def Get(self, identifier=None):
-        return KratosHDF5.HDF5FileSerial(self._FileSettings(identifier))
+    def Get(self, model_part=None):
+        return KratosHDF5.HDF5FileSerial(self._FileSettings(model_part).Get())
 
 
 class _HDF5ParallelFileIO(_FileIO):
 
-    def Get(self, identifier=None):
-        return KratosHDF5.HDF5FileParallel(self._FileSettings(identifier))
+    def Get(self, model_part=None):
+        return KratosHDF5.HDF5FileParallel(self._FileSettings(model_part).Get())
 
 
 class _HDF5MockFileIO(_FileIO):
@@ -42,26 +44,25 @@ class _HDF5MockFileIO(_FileIO):
 
         def GetFileName(self): return self.file_name
 
-    def Get(self, identifier=None):
-        settings = self._FileSettings(identifier)
-        file_name = settings['file_name'].GetString()
+    def Get(self, model_part=None):
+        settings = self._FileSettings(model_part)
+        file_name = settings['file_name']
         return self.MockFile(file_name)
 
 
 def _SetDefaults(settings):
-    default_setter = utils.DefaultSetter(settings)
-    default_setter.AddString('io_type', 'serial_hdf5_file_io')
-    default_setter.AddString('file_name', 'kratos')
-    if '<time>' in settings['file_name'].GetString():
-        default_setter.AddString('time_format', '0.4f')
-    default_setter.AddString('file_access_mode', 'exclusive')
-    if 'parallel' in settings['io_type'].GetString():
-        default_setter.AddString('file_driver', 'mpio')
+    settings.SetDefault('io_type', 'serial_hdf5_file_io')
+    settings.SetDefault('file_name', 'kratos')
+    if '<time>' in settings['file_name']:
+        settings.SetDefault('time_format', '0.4f')
+    settings.SetDefault('file_access_mode', 'exclusive')
+    if 'parallel' in settings['io_type']:
+        settings.SetDefault('file_driver', 'mpio')
     elif os.name == 'nt':
-        default_setter.AddString('file_driver', 'windows')
+        settings.SetDefault('file_driver', 'windows')
     else:
-        default_setter.AddString('file_driver', 'sec2')
-    default_setter.AddInt('echo_level', 0)
+        settings.SetDefault('file_driver', 'sec2')
+    settings.SetDefault('echo_level', 0)
 
 
 def _GetIO(io_type):
@@ -79,21 +80,21 @@ def _GetIO(io_type):
 class _FilenameGetter(object):
 
     def __init__(self, settings):
-        filename = settings['file_name'].GetString()
+        filename = settings['file_name']
         self.filename_parts = filename.split('<time>')
         if settings.Has('time_format'):
-            self.time_format = settings['time_format'].GetString()
+            self.time_format = settings['time_format']
         else:
             self.time_format = ''
 
-    def Get(self, identifier=None):
-        if hasattr(identifier, 'ProcessInfo'):
-            time = identifier.ProcessInfo[KratosMultiphysics.TIME]
+    def Get(self, model_part=None):
+        if hasattr(model_part, 'ProcessInfo'):
+            time = model_part.ProcessInfo[KratosMultiphysics.TIME]
             filename = format(time, self.time_format).join(self.filename_parts)
         else:
             filename = ''.join(self.filename_parts)
-        if hasattr(identifier, 'Name'):
-            filename = filename.replace('<identifier>', identifier.Name)
+        if hasattr(model_part, 'Name'):
+            filename = filename.replace('<model_part_name>', model_part.Name)
         if not filename.endswith('.h5'):
             filename += '.h5'
         return filename
@@ -104,8 +105,8 @@ class _FilenameGetterWithDirectoryInitialization(object):
     def __init__(self, settings):
         self.filename_getter = _FilenameGetter(settings)
 
-    def Get(self, identifier=None):
-        file_name = self.filename_getter.Get(identifier)
+    def Get(self, model_part=None):
+        file_name = self.filename_getter.Get(model_part)
         self._InitializeDirectory(file_name)
         return file_name
 
@@ -125,9 +126,9 @@ def Create(settings):
     function call.
     '''
     _SetDefaults(settings)
-    io = _GetIO(settings['io_type'].GetString())
+    io = _GetIO(settings['io_type'])
     io.filename_getter = _FilenameGetterWithDirectoryInitialization(settings)
-    io.file_access_mode = settings['file_access_mode'].GetString()
-    io.file_driver = settings['file_driver'].GetString()
-    io.echo_level = settings['echo_level'].GetInt()
+    io.file_access_mode = settings['file_access_mode']
+    io.file_driver = settings['file_driver']
+    io.echo_level = settings['echo_level']
     return io

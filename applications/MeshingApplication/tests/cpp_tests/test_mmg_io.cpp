@@ -69,7 +69,12 @@ namespace Kratos
             }
 
             // Auxiliar submodelpart to check colors
-            r_model_part.CreateSubModelPart("AuxiliarSubModelPart");
+            auto& r_sub = r_model_part.CreateSubModelPart("AuxiliarSubModelPart");
+
+            // Now we create the conditions
+            r_sub.AddNode(r_model_part.pGetNode(1));
+            r_sub.AddNode(r_model_part.pGetNode(2));
+            auto p_cond = r_sub.CreateNewCondition("LineCondition2D2N", 1, {{1,2}}, p_elem_prop);
 
             // Compute read/write
             Parameters params = Parameters(R"({ "echo_level" : 0 })" );
@@ -91,6 +96,8 @@ namespace Kratos
             remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_2d.mesh").c_str());
             remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_2d.sol").c_str());
             remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_2d.json").c_str());
+            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_2d.cond.ref.json").c_str());
+            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_2d.elem.ref.json").c_str());
         }
 
         /**
@@ -152,7 +159,13 @@ namespace Kratos
             }
 
             // Auxiliar submodelpart to check colors
-            r_model_part.CreateSubModelPart("AuxiliarSubModelPart");
+            auto& r_sub = r_model_part.CreateSubModelPart("AuxiliarSubModelPart");
+
+            // Now we create the conditions
+            r_sub.AddNode(r_model_part.pGetNode(1));
+            r_sub.AddNode(r_model_part.pGetNode(2));
+            r_sub.AddNode(r_model_part.pGetNode(3));
+            auto p_cond = r_sub.CreateNewCondition("SurfaceCondition3D3N", 1, {{1,2,3}}, p_elem_prop);
 
             // Compute read/write
             Parameters params = Parameters(R"({ "echo_level" : 0 })" );
@@ -174,6 +187,8 @@ namespace Kratos
             remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_3d.mesh").c_str());
             remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_3d.sol").c_str());
             remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_3d.json").c_str());
+            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_3d.cond.ref.json").c_str());
+            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_3d.elem.ref.json").c_str());
         }
     } // namespace Testing
 }  // namespace Kratos.

@@ -6,6 +6,7 @@ import sys
 import getopt
 import threading
 import subprocess
+from importlib import import_module
 
 import KratosMultiphysics as KtsMp
 import KratosMultiphysics.KratosUnittest as KtsUt
@@ -118,7 +119,7 @@ class Commander(object):
                         script,
                         '-l'+level,
                         '-v'+str(verbose)
-                    ], stdout=subprocess.PIPE)
+                    ], stdout=subprocess.PIPE, cwd=os.path.dirname(os.path.abspath(script)))
                 except OSError:
                     # Command does not exist
                     print('[Error]: Unable to execute {}'.format(command), file=sys.stderr)
@@ -161,7 +162,7 @@ class Commander(object):
 
         # importing the apps such that they get registered for the cpp-tests
         for application in applications:
-            __import__("KratosMultiphysics." + application)
+            import_module("KratosMultiphysics." + application)
 
         try:
             KtsMp.Tester.SetVerbosity(KtsMp.Tester.Verbosity.PROGRESS)

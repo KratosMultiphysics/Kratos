@@ -26,7 +26,7 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(
-		ModelPart& rVolumePart, 
+		ModelPart& rVolumePart,
 		ModelPart& rSkinPart)
 		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart)
 	{
@@ -34,11 +34,11 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(
-		ModelPart& rVolumePart, 
+		ModelPart& rVolumePart,
 		ModelPart& rSkinPart,
-		const double ExtraRaysEpsilon)
+		const double RayCastingRelativeTolerance)
 		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart),
-		mExtraRaysEpsilon(ExtraRaysEpsilon)
+		mRayCastingRelativeTolerance(RayCastingRelativeTolerance)
 	{
 	}
 
@@ -60,9 +60,14 @@ namespace Kratos
 		// Get the volume model part from the base discontinuous distance process
 		ModelPart& ModelPart1 = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess).GetModelPart1();
 
+		// Calculate the domain characteristic length
+		const double char_length = this->CalculateCharacteristicLength();
+
 		// Initialize the nodal distance values to a maximum positive value
-		for (auto& node : ModelPart1.Nodes()){
-			node.GetSolutionStepValue(DISTANCE) = std::numeric_limits<double>::max();
+		#pragma omp parallel for firstprivate(char_length)
+		for (int i_node = 0; i_node < static_cast<int>(ModelPart1.NumberOfNodes()); ++i_node) {
+			auto it_node = ModelPart1.NodesBegin() + i_node;
+			it_node->GetSolutionStepValue(DISTANCE) = char_length;
 		}
 	}
 
@@ -94,7 +99,7 @@ namespace Kratos
 		#pragma omp parallel for schedule(dynamic)
 		for (int i = 0; i < number_of_elements; ++i) {
 			Element &r_element = *(r_elements[i]);
-			PointerVector<GeometricalObject>& r_element_intersections = rIntersectedObjects[i]; 
+			PointerVector<GeometricalObject>& r_element_intersections = rIntersectedObjects[i];
 
 			// Check if the element has intersections
 			if (r_element_intersections.empty()) {
@@ -189,7 +194,7 @@ namespace Kratos
 	template<std::size_t TDim>
 	void CalculateDistanceToSkinProcess<TDim>::CalculateRayDistances()
 	{
-		ApplyRayCastingProcess<TDim> ray_casting_process(CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess, mExtraRaysEpsilon);
+		ApplyRayCastingProcess<TDim> ray_casting_process(CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess, mRayCastingRelativeTolerance);
 		ray_casting_process.Execute();
 	}
 
@@ -214,14 +219,6 @@ namespace Kratos
 			rIntObjGeom[1],
 			rIntObjGeom[2],
 			rDistancePoint);
-	}
-
-	template<std::size_t TDim>
-	void CalculateDistanceToSkinProcess<TDim>::Execute()
-	{
-		this->Initialize();
-		this->FindIntersections();
-		this->CalculateDistances(this->GetIntersections());
 	}
 
 	/// Turn back information as a string.

@@ -30,10 +30,10 @@ class InitialPerturbationProcess(KM.Process):
 
         self.variable_name = settings["variable_name"].GetString()
         self.model_part = Model[settings["model_part_name"].GetString()]
+        variable = KM.KratosGlobals.GetVariable(self.variable_name)
 
         # Creation of the parameters for the c++ process
         cpp_parameters = KM.Parameters("""{}""")
-        cpp_parameters.AddValue("variable_name", settings["variable_name"])
         cpp_parameters.AddValue("default_value", settings["default_value"])
         cpp_parameters.AddValue("distance_of_influence", settings["distance_of_influence"])
         cpp_parameters.AddValue("maximum_perturbation_value", settings["maximum_perturbation_value"])
@@ -45,12 +45,12 @@ class InitialPerturbationProcess(KM.Process):
                 raise Exception('The source_point_coordinates has to be provided with 3 coordinates! It has ', point_position.Size())
             node = KM.Node(1, point_position[0], point_position[1], point_position[2])
             # Construction of the process with one node
-            self.perturbation_process = SW.InitialPerturbationProcess(self.model_part, node, cpp_parameters)
+            self.perturbation_process = SW.ApplyPerturbationFunctionToScalar(self.model_part, node, variable, cpp_parameters)
 
         elif settings["source_type"].GetString() == "model_part":
             # Construction of the process with a sub model part
             source_model_part = Model[settings["source_model_part_name"].GetString()]
-            self.perturbation_process = SW.InitialPerturbationProcess(self.model_part, source_model_part.Nodes, cpp_parameters)
+            self.perturbation_process = SW.ApplyPerturbationFunctionToScalar(self.model_part, source_model_part.Nodes, variable, cpp_parameters)
 
         else:
             raise Exception("InitialPerturbationProcess: unknown source type")

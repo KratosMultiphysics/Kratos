@@ -27,71 +27,26 @@ KRATOS_CREATE_LOCAL_FLAG(ModelPart, ALL_ENTITIES, 0);
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, OVERWRITE_ENTITIES, 1);
 
 /// Default constructor.
-ModelPart::ModelPart(VariablesList* pVariablesList, Model& rOwnerModel)
-    : DataValueContainer()
-    , Flags()
-    , mBufferSize(1)
-    , mpProcessInfo(new ProcessInfo())
-    , mIndices(1, 0)
-    , mpVariablesList(pVariablesList)
-    , mpCommunicator(new Communicator)
-    , mpParentModelPart(NULL)
-    , mSubModelParts()
-    , mrModel(rOwnerModel)
-{
-    mName = "Default";
-    MeshType mesh;
-    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
-    mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
-}
+ModelPart::ModelPart(VariablesList::Pointer pVariablesList, Model& rOwnerModel) : ModelPart("Default", pVariablesList, rOwnerModel) { }
 
 /// Constructor with name
-ModelPart::ModelPart(std::string const& NewName,VariablesList* pVariablesList, Model& rOwnerModel)
-    : DataValueContainer()
-    , Flags()
-    , mBufferSize(1)
-    , mpProcessInfo(new ProcessInfo())
-    , mIndices(1, 0)
-    , mpVariablesList(pVariablesList)
-    , mpCommunicator(new Communicator)
-    , mpParentModelPart(NULL)
-    , mSubModelParts()
-    , mrModel(rOwnerModel)
-{
-    KRATOS_ERROR_IF( NewName.empty() )
-        << "Please don't use empty names (\"\") when creating a ModelPart"
-        << std::endl;
-
-    KRATOS_ERROR_IF_NOT( NewName.find(".") == std::string::npos )
-        << "Please don't use names containing (\".\") when creating a ModelPart"
-        << std::endl;
-
-    mName = NewName;
-    MeshType mesh;
-    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
-    mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
-}
+ModelPart::ModelPart(std::string const& NewName,VariablesList::Pointer pVariablesList, Model& rOwnerModel) : ModelPart(NewName, 1, pVariablesList, rOwnerModel) { }
 
 /// Constructor with name and bufferSize
-ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariablesList, Model& rOwnerModel)
+ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList::Pointer pVariablesList, Model& rOwnerModel)
     : DataValueContainer()
     , Flags()
     , mBufferSize(NewBufferSize)
     , mpProcessInfo(new ProcessInfo())
-    , mIndices(NewBufferSize, 0)
     , mpVariablesList(pVariablesList)
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
     , mrModel(rOwnerModel)
 {
-    KRATOS_ERROR_IF( NewName.empty() )
-        << "Please don't use empty names (\"\") when creating a ModelPart"
-        << std::endl;
+    KRATOS_ERROR_IF(NewName.empty()) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
 
-    KRATOS_ERROR_IF_NOT( NewName.find(".") == std::string::npos )
-        << "Please don't use names containing (\".\") when creating a ModelPart"
-        << std::endl;
+    KRATOS_ERROR_IF_NOT(NewName.find(".") == std::string::npos) << "Please don't use names containing (\".\") when creating a ModelPart (used in \"" << NewName << "\")" << std::endl;
 
     mName = NewName;
     MeshType mesh;
@@ -102,15 +57,6 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
 /// Destructor.
 ModelPart::~ModelPart()
 {
-    if (!IsSubModelPart()){
-
-      for (NodeIterator i_node = NodesBegin(); i_node != NodesEnd(); i_node++)
-	{
-	  if (i_node->pGetVariablesList() == mpVariablesList)
-	    i_node->ClearSolutionStepsData();
-	}
-    }
-
     mpCommunicator->Clear();
 
     for(auto i_mesh = mMeshes.begin() ; i_mesh != mMeshes.end() ; i_mesh++)
@@ -276,7 +222,7 @@ void ModelPart::AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIn
 
 /** Inserts a node in the mesh with ThisIndex.
 */
-ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y, double z, VariablesList* pNewVariablesList, ModelPart::IndexType ThisIndex)
+ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y, double z, VariablesList::Pointer pNewVariablesList, ModelPart::IndexType ThisIndex)
 {
     KRATOS_TRY
     if (IsSubModelPart())
@@ -723,6 +669,101 @@ ModelPart::PropertiesType& ModelPart::GetProperties(
             KRATOS_ERROR << "Property " << PropertiesId << " does not exist!. This is constant model part and cannot be created a new one" << std::endl;
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool ModelPart::HasProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    ) const
+{
+    const std::vector<IndexType> component_name = TrimComponentName(rAddress);
+    if (HasProperties(component_name[0], MeshIndex)) {
+        bool has_properties = true;
+        Properties::Pointer p_prop = pGetProperties(component_name[0], MeshIndex);
+        for (IndexType i = 1; i < component_name.size(); ++i) {
+            if (p_prop->HasSubProperties(component_name[i])) {
+                p_prop = p_prop->pGetSubProperties(component_name[i]);
+            } else {
+                return false;
+            }
+        }
+        return has_properties;
+    } else {
+        return false;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Properties::Pointer ModelPart::pGetProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    )
+{
+    const std::vector<IndexType> component_name = TrimComponentName(rAddress);
+    if (HasProperties(component_name[0], MeshIndex)) {
+        Properties::Pointer p_prop = pGetProperties(component_name[0], MeshIndex);
+        for (IndexType i = 1; i < component_name.size(); ++i) {
+            if (p_prop->HasSubProperties(component_name[i])) {
+                p_prop = p_prop->pGetSubProperties(component_name[i]);
+            } else {
+                KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
+            }
+        }
+        return p_prop;
+    } else {
+        KRATOS_ERROR << "First index is wrong, does not correspond with any sub Properties Id: " << component_name[0] << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Properties::Pointer ModelPart::pGetProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    ) const
+{
+    const std::vector<IndexType> component_name = TrimComponentName(rAddress);
+    if (HasProperties(component_name[0], MeshIndex)) {
+        Properties::Pointer p_prop = pGetProperties(component_name[0], MeshIndex);
+        for (IndexType i = 1; i < component_name.size(); ++i) {
+            if (p_prop->HasSubProperties(component_name[i])) {
+                p_prop = p_prop->pGetSubProperties(component_name[i]);
+            } else {
+                KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
+            }
+        }
+        return p_prop;
+    } else {
+        KRATOS_ERROR << "First index is wrong, does not correspond with any sub Properties Id: " << component_name[0] << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Properties& ModelPart::GetProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    )
+{
+    return *pGetProperties(rAddress, MeshIndex);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Properties& ModelPart::GetProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    ) const
+{
+    return *pGetProperties(rAddress, MeshIndex);
 }
 
 /** Remove the Properties with given Id from mesh with ThisIndex in this modelpart and all its subs.
@@ -1665,9 +1706,8 @@ std::vector<std::string> ModelPart::GetSubModelPartNames()
 {
     std::vector<std::string> SubModelPartsNames;
 
-    for(SubModelPartIterator i_sub_model_part = mSubModelParts.begin(); i_sub_model_part != mSubModelParts.end(); i_sub_model_part++)
-    {
-        SubModelPartsNames.push_back(i_sub_model_part->Name());
+    for(auto& r_sub_model_part : mSubModelParts) {
+        SubModelPartsNames.push_back(r_sub_model_part.Name());
     }
 
     return SubModelPartsNames;
@@ -1679,9 +1719,8 @@ void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
         << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
-    for(SubModelPartIterator i_sub_model_part = mSubModelParts.begin(); i_sub_model_part != mSubModelParts.end(); i_sub_model_part++)
-    {
-        i_sub_model_part->mBufferSize = NewBufferSize;
+    for(auto& r_sub_model_part : mSubModelParts) {
+        r_sub_model_part.SetBufferSizeSubModelParts(NewBufferSize);
     }
 
     mBufferSize = NewBufferSize;
@@ -1695,6 +1734,15 @@ void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
         node_iterator->SetBufferSize(mBufferSize);
     }
 
+}
+
+void ModelPart::SetBufferSizeSubModelParts(ModelPart::IndexType NewBufferSize)
+{
+    for(auto& r_sub_model_part : mSubModelParts) {
+        r_sub_model_part.SetBufferSizeSubModelParts(NewBufferSize);
+    }
+
+    mBufferSize = NewBufferSize;
 }
 
 /// run input validation
@@ -1730,6 +1778,8 @@ void ModelPart::PrintInfo(std::ostream& rOStream) const
 
 void ModelPart::PrintData(std::ostream& rOStream) const
 {
+    DataValueContainer::PrintData(rOStream);
+
     if (!IsSubModelPart()) {
         rOStream  << "    Buffer Size : " << mBufferSize << std::endl;
     }

@@ -33,7 +33,6 @@ void TriangleModelPartForDistanceModification(
     ModelPart& rModelPart) {
 
     rModelPart.SetBufferSize(3);
-    rModelPart.AddNodalSolutionStepVariable(NODAL_H);
     rModelPart.AddNodalSolutionStepVariable(DISTANCE);
     Properties::Pointer p_properties = rModelPart.CreateNewProperties(0);
 
@@ -64,12 +63,13 @@ KRATOS_TEST_CASE_IN_SUITE(DistanceModificationTriangle, FluidDynamicsApplication
 
     Parameters distance_mod_params( R"(
     {
-        "model_part_name"                        : "TestPart",
-        "distance_threshold"                     : 0.001,
-        "continuous_distance"                    : true,
-        "avoid_almost_empty_elements"            : true,
-        "deactivate_full_negative_elements"      : true,
-        "recover_original_distance_at_each_step" : true
+        "model_part_name"                             : "TestPart",
+        "distance_threshold"                          : 0.001,
+        "continuous_distance"                         : true,
+        "avoid_almost_empty_elements"                 : true,
+        "deactivate_full_negative_elements"           : true,
+        "recover_original_distance_at_each_step"      : true,
+        "full_negative_elements_fixed_variables_list" : []
     }  )" );
 
     DistanceModificationProcess dist_mod_process(model_part,distance_mod_params);

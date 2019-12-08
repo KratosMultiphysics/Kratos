@@ -66,7 +66,6 @@ public:
     /// Local Flags
     KRATOS_DEFINE_LOCAL_FLAG( PRINTING_OUTPUT );
     KRATOS_DEFINE_LOCAL_FLAG( TABLE_IS_INITIALIZED );
-    KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
 
     /// The base convergence criteria class definition
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > ConvergenceCriteriaBaseType;
@@ -104,12 +103,11 @@ public:
         const bool PrintingOutput = false,
         const bool ComputeDynamicFactor = false,
         const bool IODebug = false
-        ) : BaseType(ComputeDynamicFactor, IODebug)
+        ) : BaseType(ComputeDynamicFactor, IODebug, PureSlip)
     {
         // Set local flags
         BaseType::mOptions.Set(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT, PrintingOutput);
         BaseType::mOptions.Set(ALMFrictionalMortarConvergenceCriteria::TABLE_IS_INITIALIZED, false);
-        BaseType::mOptions.Set(ALMFrictionalMortarConvergenceCriteria::PURE_SLIP, PureSlip);
     }
 
     ///Copy constructor
@@ -167,19 +165,28 @@ public:
         // We call the base class
         BaseType::PostCriteria(rModelPart, rDofSet, rA, rDx, rb);
 
-        // Compute the active set
-        const array_1d<std::size_t, 2> is_converged = ActiveSetUtilities::ComputeALMFrictionalActiveSet(rModelPart, BaseType::mOptions.Is(ALMFrictionalMortarConvergenceCriteria::PURE_SLIP));
-
-        // We save to the process info if the active set has converged
-        const bool active_set_converged = (is_converged[0] + is_converged[1]) == 0 ? true : false;
+        // Getting process info
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-        r_process_info[ACTIVE_SET_CONVERGED] = active_set_converged;
+
+        // Compute the active set
+        if (!r_process_info[ACTIVE_SET_COMPUTED]) {
+            const array_1d<std::size_t, 2> is_converged = ActiveSetUtilities::ComputeALMFrictionalActiveSet(rModelPart, BaseType::mOptions.Is(BaseType::PURE_SLIP), this->GetEchoLevel());
+
+            // We save to the process info if the active set has converged
+            r_process_info[ACTIVE_SET_CONVERGED] = is_converged[0] == 0 ? true : false;
+            r_process_info[SLIP_SET_CONVERGED] = is_converged[1] == 0 ? true : false;
+            r_process_info[ACTIVE_SET_COMPUTED] = true;
+        }
+
+        // Getting converged bools
+        const bool active_set_converged = r_process_info[ACTIVE_SET_CONVERGED];
+        const bool slip_set_converged = r_process_info[SLIP_SET_CONVERGED];
 
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
             if (r_process_info.Has(TABLE_UTILITY)) {
                 TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
                 auto& r_table = p_table->GetTable();
-                if (is_converged[0] == 0) {
+                if (active_set_converged) {
                     if (BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT))
                         r_table << BOLDFONT(FGRN("       Achieved"));
                     else
@@ -190,19 +197,21 @@ public:
                     else
                         r_table << "Not achieved";
                 }
-                if (is_converged[1] == 0) {
-                    if (BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT))
-                        r_table << BOLDFONT(FGRN("       Achieved"));
-                    else
-                        r_table << "Achieved";
-                } else {
-                    if (BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT))
-                        r_table << BOLDFONT(FRED("   Not achieved"));
-                    else
-                        r_table << "Not achieved";
+                if (BaseType::mOptions.IsNot(BaseType::PURE_SLIP)) {
+                    if (slip_set_converged) {
+                        if (BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT))
+                            r_table << BOLDFONT(FGRN("       Achieved"));
+                        else
+                            r_table << "Achieved";
+                    } else {
+                        if (BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT))
+                            r_table << BOLDFONT(FRED("   Not achieved"));
+                        else
+                            r_table << "Not achieved";
+                    }
                 }
             } else {
-                if (is_converged[0] == 0) {
+                if (active_set_converged) {
                     if (BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT))
                         KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
                     else
@@ -214,21 +223,23 @@ public:
                         KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << "\tActive set convergence is not achieved" << std::endl;
                 }
 
-                if (is_converged[1] == 0) {
-                    if (BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT))
-                        KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
-                    else
-                        KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << "\tSlip/stick set convergence is achieved" << std::endl;
-                } else {
-                    if (BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT))
-                        KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
-                    else
-                        KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << "\tSlip/stick set  convergence is not achieved" << std::endl;
+                if (BaseType::mOptions.IsNot(BaseType::PURE_SLIP)) {
+                    if (slip_set_converged) {
+                        if (BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT))
+                            KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                        else
+                            KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << "\tSlip/stick set convergence is achieved" << std::endl;
+                    } else {
+                        if (BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT))
+                            KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
+                        else
+                            KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << "\tSlip/stick set  convergence is not achieved" << std::endl;
+                    }
                 }
             }
         }
 
-        return active_set_converged;
+        return (active_set_converged && slip_set_converged);
     }
 
     /**
@@ -237,14 +248,17 @@ public:
      */
     void Initialize(ModelPart& rModelPart) override
     {
-        ConvergenceCriteriaBaseType::mConvergenceCriteriaIsInitialized = true;
+        // Calling base criteria
+        BaseType::Initialize(rModelPart);
 
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         if (r_process_info.Has(TABLE_UTILITY) && BaseType::mOptions.IsNot(ALMFrictionalMortarConvergenceCriteria::TABLE_IS_INITIALIZED)) {
             TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
             auto& r_table = p_table->GetTable();
             r_table.AddColumn("ACTIVE SET CONV", 15);
-            r_table.AddColumn("SLIP/STICK CONV", 15);
+            if (BaseType::mOptions.IsNot(BaseType::PURE_SLIP)) {
+                r_table.AddColumn("SLIP/STICK CONV", 15);
+            }
             BaseType::mOptions.Set(ALMFrictionalMortarConvergenceCriteria::TABLE_IS_INITIALIZED, true);
         }
     }
@@ -349,17 +363,13 @@ private:
 
 /// Local Flags
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::PRINTING_OUTPUT(Kratos::Flags::Create(2));
+const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::PRINTING_OUTPUT(Kratos::Flags::Create(3));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_PRINTING_OUTPUT(Kratos::Flags::Create(2, false));
+const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_PRINTING_OUTPUT(Kratos::Flags::Create(3, false));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(3));
+const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(4));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(3, false));
-template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::PURE_SLIP(Kratos::Flags::Create(4));
-template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_PURE_SLIP(Kratos::Flags::Create(4, false));
+const Kratos::Flags ALMFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(4, false));
 
 }  // namespace Kratos
 

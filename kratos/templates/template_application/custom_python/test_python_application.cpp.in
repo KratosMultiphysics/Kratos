@@ -20,7 +20,7 @@
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "@{APP_NAME_LOW}_application.h"
 #include "@{APP_NAME_LOW}_application_variables.h"
 #include "custom_python/add_custom_strategies_to_python.h"

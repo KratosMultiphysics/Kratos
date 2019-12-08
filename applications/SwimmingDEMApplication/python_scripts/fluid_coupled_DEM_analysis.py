@@ -1,7 +1,8 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
-import DEM_analysis_stage
+import KratosMultiphysics.DEMApplication.DEM_analysis_stage as DEM_analysis_stage
+from importlib import import_module
 
 BaseAnalysis = DEM_analysis_stage.DEMAnalysisStage
 
@@ -12,15 +13,14 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
         super(FluidCoupledDEMAnalysisStage, self).__init__(model, project_parameters['dem_parameters'])
 
     def SetSolverStrategy(self):
-        import swimming_sphere_strategy as SolverStrategy
+        import KratosMultiphysics.SwimmingDEMApplication.swimming_sphere_strategy as SolverStrategy
         return SolverStrategy
 
     def _CreateSolver(self):
-
         def SetSolverStrategy():
-            strategy = self.sdem_parameters['dem_parameters']['solver_settings']['strategy'].GetString()
-            filename = __import__(strategy)
-            return filename
+            strategy_file_name = self.sdem_parameters['dem_parameters']['solver_settings']['strategy'].GetString()
+            imported_module = import_module("KratosMultiphysics.SwimmingDEMApplication" + "." + strategy_file_name)
+            return imported_module
 
         return SetSolverStrategy().SwimmingStrategy(self.all_model_parts,
                                                     self.creator_destructor,
