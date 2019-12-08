@@ -30,6 +30,11 @@ try:
 except ImportError:
     import pickle
 
+from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
+# from pycompss.api.task import task
+# from pycompss.api.api import compss_wait_on
+# from pycompss.api.parameter import *
+
 
 class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
 
@@ -146,7 +151,6 @@ class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
 ###############################################################################################################################################################################
 
 
-
 """
 function executing a set of instances of the problem
 input:
@@ -156,20 +160,14 @@ input:
 output:
         QoI: U_hat = U @ Sigma
 """
+
+@ExaquteTask(returns=1)
 def Get_Basis_From_Simulations(pickled_model, pickled_parameters, Cases):
     #Run a batch of simulations, and obtain its basis
     qoi_loop = []
-    # #### Serial fashion (Or time dependent)
-    # for sample in Cases:
-    #     qoi_loop.append(Single_Simulation(pickled_model,pickled_parameters,sample))
-
-    #### Sub-serialization with concurrent futures
-    with concurrent.futures.ProcessPoolExecutor() as executor2:
-        #### Run time independent simulations
-        for sample in Cases:
-            qoi_loop.append(executor2.submit(Single_Simulation,pickled_model,pickled_parameters,sample))
-        for i in range(len(qoi_loop)):
-            qoi_loop[i]=(qoi_loop[i]).result()
+    #### When using COMPSs, only send one entry in Case per time-dependent scenario
+    for sample in Cases:
+        qoi_loop.append(Single_Simulation(pickled_model,pickled_parameters,sample))
 
     # Build snapshot matrix        
     SnapshotMatrix = np.zeros((len(qoi_loop[0]),len(qoi_loop)))
@@ -185,6 +183,7 @@ def Get_Basis_From_Simulations(pickled_model, pickled_parameters, Cases):
     del (u, s)
     return u_hat
 
+@ExaquteTask(returns=1)
 def Single_Simulation(pickled_model,pickled_parameters,sample):
     model_serializer = pickle.loads(pickled_model)
     current_model = KratosMultiphysics.Model()
@@ -200,6 +199,7 @@ def Single_Simulation(pickled_model,pickled_parameters,sample):
     QoI = simulation.EvaluateQuantityOfInterest()
     return QoI
 
+@ExaquteTask(returns=1,MatricesList=COLLECTION_IN)
 def build_snapshots_matrix(MatricesList):
     for i in range(len(MatricesList)):
         if i ==0:
@@ -209,22 +209,25 @@ def build_snapshots_matrix(MatricesList):
     #concatenated_matrix = np.c_[args]        
     return concatenated_matrix
 
+
+@ExaquteTask(returns=1,MatricesList=COLLECTION_IN)
 def Get_Basis_From_Basis(MatricesList):
     concatenated_matrix = build_snapshots_matrix(MatricesList)
     DATA = {}
     DATA['TypeOfSVD'] = 0   
     u,s,_,_=rsvdt(concatenated_matrix,0,0,0, DATA)
-    #u, s, _ = linalg.svd(concatenated_matrix, full_matrices=False)
     diagSigma = np.diag(s)
     u_hat = u @ diagSigma
-    del (u, s)
     return u_hat
 
-def Get_Final_Data_From_Basis(MatricesList):
+@ExaquteTask(returns=1,MatricesList=COLLECTION_IN)
+def Get_Final_Data_From_Basis(MatricesList):  
     concatenated_matrix = build_snapshots_matrix(MatricesList)
-    #u,s,_,_ = svdt(concatenated_matrix)
-    u, s, _ = linalg.svd(concatenated_matrix, full_matrices=False)
+    DATA = {}
+    DATA['TypeOfSVD'] = 0   
+    u,s,_,_=rsvdt(concatenated_matrix,0,0,0, DATA)
     return [u,s]
+
 
 """
 function serializing and pickling the model and the parameters of the problem
@@ -234,7 +237,6 @@ output:
         pickled_model:      model serializaton
         pickled_parameters: project parameters serialization
 """
-
 def SerializeModelParameters_Task(parameter_file_name):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
@@ -253,14 +255,32 @@ def SerializeModelParameters_Task(parameter_file_name):
     return pickled_model,pickled_parameters
 
 
-"""
-Function to calculate the  Singular Values and Left Singular Vectors of a series of simulations
-by creating a reduction tree. A set of simulations is sent to a specified number of CPUs and
-the required data is saved as txt and json.
-"""
+def splittig(qoi,Batch, MinimumBatchAdmisible = 'none'):
+    #### Setting defaults
+    if MinimumBatchAdmisible == 'none':
+        MinimumBatchAdmisible = np.ceil(Batch/2)
+    #### Creating a new list to save values
+    qoi2=[]  
+    #### Splitting into smaller batches for SVD computation
+    Index = []
+    for i in range(len(qoi)):
+        Index.append(i) 
+    for i,j in zip(Index[0::Batch], Index[Batch-1::Batch]):
+        if j+Batch > len(Index)-1:
+            if ( len(Index) - j - 1  ) >= MinimumBatchAdmisible and (j < (len(Index)-1)):   
+                qoi2.append( Get_Basis_From_Basis(qoi[i:j+1]))
+                qoi2.append( Get_Basis_From_Basis(qoi[j+1:]))
+            else:
+                qoi2.append(Get_Basis_From_Basis(qoi[i:]))
+        else:
+            qoi2.append(Get_Basis_From_Basis(qoi[i:j+1]))
+    return qoi2
+
+
+
 def main():
     # set the ProjectParameters.json path
-    parameter_file_name = "ProjectParameters.json"
+    parameter_file_name = "/home/jrbravo/Desktop/PhD/Hyper-Reduction/Siemens_Project/SiemensExample/Training_Phi/ProjectParameters.json"
     # create a serialization of the model and of the project parameters
     pickled_model, pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
     
@@ -284,7 +304,7 @@ def main():
     ######## Creating a subset of cases to send to each CPU  ######################
     qoi = []
     qoi2 = []
-    TotalNumberOFCases = len(Cases)
+    TotalNumberOFCases = 33#len(Cases)
     print(TotalNumberOFCases)
     i = 0
     j= 0
@@ -293,59 +313,42 @@ def main():
     ###############################################################################
 
 ################################################################################## Reduction Tree ##################################################################    
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        #### Run Simulations and Get Basis
-        while i < TotalNumberOFCases and j<TotalNumberOFCases:
-            if i+SliceOfCases < TotalNumberOFCases and (TotalNumberOFCases-i) > (SliceOfCases + MinimumSizeOfCases):
-                j = i+SliceOfCases
-                qoi.append(executor.submit(Get_Basis_From_Simulations, pickled_model, pickled_parameters, Cases[i:j]))
-            else:
-                j = TotalNumberOFCases
-                qoi.append(executor.submit(Get_Basis_From_Simulations, pickled_model, pickled_parameters, Cases[i:j]))
-            print(i,j)
-            i += SliceOfCases
 
-        ##### Get Basis from other Basis (Setting a mini batch, to send multiple Snapshot matrices to a task)
-        Batch = 3 
-        MinimumBatchAdmisible = np.ceil(Batch/2)   
-        while (len(qoi)) > Batch:
-            Index = []
-            for i in range(len(qoi)):
-                qoi[i]=(qoi[i]).result()
-                Index.append(i) 
-            #### Splitting into smaller batches for SVD computation
-            for i,j in zip(Index[0::Batch], Index[Batch-1::Batch]):
-                if j+Batch > len(Index)-1:
-                    if ( len(Index) - j - 1  ) >= MinimumBatchAdmisible and (j < (len(Index)-1)):   
-                        qoi2.append( executor.submit(Get_Basis_From_Basis,qoi[i:j+1]))
-                        qoi2.append( executor.submit(Get_Basis_From_Basis,qoi[j+1:]))
-                    else:
-                        qoi2.append(executor.submit(Get_Basis_From_Basis,qoi[i:]))
-                else:
-                    qoi2.append(executor.submit(Get_Basis_From_Basis,qoi[i:j+1]))
-            qoi=qoi2
-            qoi2 = []
+    #### Run Simulations and Get Basis
+    while i < TotalNumberOFCases and j<TotalNumberOFCases:
+        if i+SliceOfCases < TotalNumberOFCases and (TotalNumberOFCases-i) > (SliceOfCases + MinimumSizeOfCases):
+            j = i+SliceOfCases
+            qoi.append(Get_Basis_From_Simulations (pickled_model, pickled_parameters, Cases[i:j]))
+        else:
+            j = TotalNumberOFCases
+            qoi.append(Get_Basis_From_Simulations (pickled_model, pickled_parameters, Cases[i:j]))
+        print(i, j)
+        i += SliceOfCases
 
+    ##### Get Basis from other Basis (Setting a mini batch, to send multiple Snapshot matrices to a task)
+    MiniBatchSVDs = 2    
+    while MiniBatchSVDs<len(qoi):
+        print('entering split by batches')
+        qoi = splittig(qoi, MiniBatchSVDs)
 
-        ##### Get singular values from Basis
-        print('The number of cases is: ', len(qoi))
-        for i in range(len(qoi)):
-            qoi[i]=(qoi[i]).result()
-            Index.append(i)         
-        z = executor.submit(Get_Final_Data_From_Basis,qoi)
-        u = z.result()[0]
-        s = z.result()[1]        
-####################################################################################################################################################################
+    ##### Get singular values from Basis
+    result = Get_Final_Data_From_Basis(qoi) 
+    result = compss_wait_on(result)
 
-    return u,s
+####################################################################################################################################################################      
+
+    return result[0],result[1]
 
 
 if __name__ == '__main__':
+    
     u,s = main()
 
     plt.plot( np.linspace(1, len(s), len(s)), s, 'bo-')
     plt.title('Singular Values')
     plt.ylabel('Log scale')
     plt.show()
+    np.savetxt('LeftSingularVectors_new', u)
+    np.savetxt('SingularValues_new', s)
 
 
