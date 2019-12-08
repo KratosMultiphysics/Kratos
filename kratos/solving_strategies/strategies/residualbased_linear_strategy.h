@@ -341,6 +341,7 @@ public:
     void Predict() override
     {
         KRATOS_TRY
+        const DataCommunicator &r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         //if the operations needed were already performed this does nothing
         if(mInitializeWasPerformed == false)
@@ -357,21 +358,22 @@ public:
         DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
 
         this->GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
-
-        if(BaseType::GetModelPart().MasterSlaveConstraints().size() != 0)
-        {
+        auto& r_constraints_array = BaseType::GetModelPart().MasterSlaveConstraints();
+        const int local_number_of_constraints = r_constraints_array.size();
+        const int global_number_of_constraints = r_comm.SumAll(local_number_of_constraints);
+        if(global_number_of_constraints != 0) {
             const auto& rProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 
             auto it_begin = BaseType::GetModelPart().MasterSlaveConstraints().begin();
 
             #pragma omp parallel for firstprivate(it_begin)
-            for(int i=0; i<static_cast<int>(BaseType::GetModelPart().MasterSlaveConstraints().size()); ++i)
+            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
                 (it_begin+i)->ResetSlaveDofs(rProcessInfo);
 
             #pragma omp parallel for firstprivate(it_begin)
-            for(int i=0; i<static_cast<int>(BaseType::GetModelPart().MasterSlaveConstraints().size()); ++i)
+            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
                  (it_begin+i)->Apply(rProcessInfo);
-            
+
             //the following is needed since we need to eventually compute time derivatives after applying 
             //Master slave relations
             TSparseSpace::SetToZero(rDx);
