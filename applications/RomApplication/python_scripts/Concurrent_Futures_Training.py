@@ -10,9 +10,7 @@ from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_anal
 from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
 from KratosMultiphysics.ConvectionDiffusionApplication.apply_thermal_face_process import ApplyThermalFaceProcess
 
-
 import concurrent.futures
-
 
 # Import packages
 from scipy import linalg
@@ -21,7 +19,6 @@ import h5py
 import json
 from matplotlib import pyplot as plt
 from RSVDT_Library import rsvdt
-#import pdb
 
 # Import cpickle to pickle the serializer
 try:
@@ -162,10 +159,8 @@ output:
 """
 def Get_Basis_From_Simulations(pickled_model, pickled_parameters, Cases):
     #Run a batch of simulations, and obtain its basis
-    #this could be parallelized itself...
     qoi_loop = []
-
-    # #### Serial fashion  (similar to time dependent :/)
+    # #### Serial fashion (Or time dependent)
     # for sample in Cases:
     #     qoi_loop.append(Single_Simulation(pickled_model,pickled_parameters,sample))
 
@@ -191,7 +186,6 @@ def Get_Basis_From_Simulations(pickled_model, pickled_parameters, Cases):
     del (u, s)
     return u_hat
 
-
 def Single_Simulation(pickled_model,pickled_parameters,sample):
     model_serializer = pickle.loads(pickled_model)
     current_model = KratosMultiphysics.Model()
@@ -207,9 +201,17 @@ def Single_Simulation(pickled_model,pickled_parameters,sample):
     QoI = simulation.EvaluateQuantityOfInterest()
     return QoI
 
+def build_snapshots_matrix(MatricesList):
+    for i in range(len(MatricesList)):
+        if i ==0:
+            concatenated_matrix = MatricesList[i]
+        else:            
+            concatenated_matrix = np.c_[ concatenated_matrix , MatricesList[i]]
+    #concatenated_matrix = np.c_[args]        
+    return concatenated_matrix
 
-def Get_Basis_From_Basis(*args):
-    concatenated_matrix = np.c_[args]
+def Get_Basis_From_Basis(MatricesList):
+    concatenated_matrix = build_snapshots_matrix(MatricesList)
     DATA = {}
     DATA['TypeOfSVD'] = 0   
     u,s,_,_=rsvdt(concatenated_matrix,0,0,0, DATA)
@@ -219,9 +221,8 @@ def Get_Basis_From_Basis(*args):
     del (u, s)
     return u_hat
 
-
-def Get_Final_Data_From_Basis(*args):
-    concatenated_matrix = np.c_[args]
+def Get_Final_Data_From_Basis(MatricesList):
+    concatenated_matrix = build_snapshots_matrix(MatricesList)
     #u,s,_,_ = svdt(concatenated_matrix)
     u, s, _ = linalg.svd(concatenated_matrix, full_matrices=False)
     return [u,s]
@@ -275,29 +276,24 @@ def main():
     AmTemp2 = [333.0, 353.0, 373.0, 393.0]
     
     Cases=[]
-
-
     for j in range (0,len(ImpTemp)):
         for k in range (0,len(AmTemp1)):
             for l in range (0,len(AmTemp2)):
                 Cases.append([ ImpTemp[j], AmTemp1[k], AmTemp2[l] ] )
-    TotalNumberOFCases = len(Cases)
-    #pdb.set_trace()
+
     ###############################################################################
     ######## Creating a subset of cases to send to each CPU  ######################
     qoi = []
     qoi2 = []
-    TotalNumberOFCases = 8#len(Cases)
+    TotalNumberOFCases = 333#len(Cases)
     print(TotalNumberOFCases)
     i = 0
     j= 0
-    SliceOfCases = 4   ## Number of cases to send to each CPU
+    SliceOfCases = 3   ## Number of cases to send to each CPU
     MinimumSizeOfCases = np.ceil(SliceOfCases/2)
     ###############################################################################
 
-
-
-
+################################################################################## Reduction Tree ##################################################################    
     with concurrent.futures.ProcessPoolExecutor() as executor:
         #### Run Simulations and Get Basis
         while i < TotalNumberOFCases and j<TotalNumberOFCases:
@@ -310,38 +306,44 @@ def main():
             print(i,j)
             i += SliceOfCases
 
-        ##### Get Basis from other Basis
-        while (len(qoi)) > 2:
-            print('The number of cases is: ', len(qoi))
-            for i, j in zip(qoi[0::2], qoi[1::2]):
-                a = i.result()
-                b = j.result()
-                qoi_2.append(executor.submit(Get_Basis_From_Basis, a, b))
+        ##### Get Basis from other Basis (Setting a mini batch, to send multiple Snapshot matrices to a task)
+        Batch = 3 
+        MinimumBatchAdmisible = np.ceil(Batch/2)   
+        while (len(qoi)) > Batch:
+            Index = []
+            for i in range(len(qoi)):
+                qoi[i]=(qoi[i]).result()
+                Index.append(i) 
+            #### Splitting into smaller batches for SVD computation
+            for i,j in zip(Index[0::Batch], Index[Batch-1::Batch]):
+                if j+Batch > len(Index)-1:
+                    if ( len(Index) - j - 1  ) >= MinimumBatchAdmisible and (j < (len(Index)-1)):   
+                        qoi2.append( executor.submit(Get_Basis_From_Basis,qoi[i:j+1]))
+                        qoi2.append( executor.submit(Get_Basis_From_Basis,qoi[j+1:]))
+                    else:
+                        qoi2.append(executor.submit(Get_Basis_From_Basis,qoi[i:]))
+                else:
+                    qoi2.append(executor.submit(Get_Basis_From_Basis,qoi[i:j+1]))
+            qoi=qoi2
+            qoi2 = []
 
-            if (len(qoi) % 2) == 0:
-                qoi = qoi_2
-
-            else:
-                qoi_2.append(qoi[-1])
-                qoi = qoi_2
-            qoi_2 = []
 
         ##### Get singular values from Basis
         print('The number of cases is: ', len(qoi))
-        z = executor.submit(Get_Final_Data_From_Basis, qoi[0].result(), qoi[1].result())
-        u=z.result()[0]
-        s=z.result()[1]
-    
+        for i in range(len(qoi)):
+            qoi[i]=(qoi[i]).result()
+            Index.append(i)         
+        z = executor.submit(Get_Final_Data_From_Basis,qoi)
+        u = z.result()[0]
+        s = z.result()[1]        
+####################################################################################################################################################################
+
     return u,s
 
 
-
-
-
 if __name__ == '__main__':
-    #u,s = main()
-    u,s =main()
-        
+    u,s = main()
+
     plt.plot( np.linspace(1, len(s), len(s)), s, 'bo-')
     plt.title('Singular Values')
     plt.ylabel('Log scale')
