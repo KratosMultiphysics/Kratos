@@ -18,6 +18,7 @@
 
 // Project includes
 #include "includes/serializer.h"
+#include "includes/checks.h"
 #include "includes/constitutive_law.h"
 
 // Application includes
