@@ -15,7 +15,6 @@
 
 // Project includes
 #include "adjoint_finite_difference_base_element.h"
-#include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "custom_response_functions/response_utilities/element_finite_difference_utility.h"
 #include "includes/checks.h"
@@ -24,6 +23,8 @@
 #include "custom_elements/truss_element_3D2N.hpp"
 #include "custom_elements/truss_element_linear_3D2N.hpp"
 #include "custom_elements/small_displacement.h"
+#include "custom_elements/spring_damper_element_3D2N.hpp"
+
 
 namespace Kratos
 {
@@ -137,9 +138,10 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::Calculate(const Varia
 {
     KRATOS_TRY;
 
-
     if(rVariable == STRESS_DISP_DERIV_ON_GP)
+    {
         this->CalculateStressDisplacementDerivative(STRESS_ON_GP, rOutput, rCurrentProcessInfo);
+    }
     else if(rVariable == STRESS_DISP_DERIV_ON_NODE)
     {
         this->CalculateStressDisplacementDerivative(STRESS_ON_NODE, rOutput, rCurrentProcessInfo);
@@ -178,6 +180,10 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::Calculate(const Varia
             this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_NODE, rOutput, rCurrentProcessInfo);
         }
     }
+    else if(rVariable == LOCAL_ELEMENT_ORIENTATION)
+    {
+        this->pGetPrimalElement()->Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    }
     else
     {
         KRATOS_WARNING("AdjointFiniteDifferencingBaseElement") << "Calculate function called for unknown variable: " << rVariable << std::endl;
@@ -200,17 +206,46 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
         const double& output_value = this->GetValue(rVariable);
 
         // Resize Output
-        const SizeType  write_points_number = this->GetGeometry()
+        const SizeType  gauss_points_number = this->GetGeometry()
             .IntegrationPointsNumber(this->GetIntegrationMethod());
-        if (rValues.size() != write_points_number)
-            rValues.resize(write_points_number);
+        if (rValues.size() != gauss_points_number)
+            rValues.resize(gauss_points_number);
 
         // Write scalar result value on all Gauss-Points
-        for(IndexType i = 0; i < write_points_number; ++i)
+        for(IndexType i = 0; i < gauss_points_number; ++i)
             rValues[i] = output_value;
     }
     else
         KRATOS_ERROR << "Unsupported output variable." << std::endl;
+
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable, std::vector< array_1d<double, 3 > >& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    if(this->Has(rVariable)) {
+        // Get result value for output
+        const auto& output_value = this->GetValue(rVariable);
+
+        // Resize Output
+        const SizeType gauss_points_number = this->GetGeometry()
+            .IntegrationPointsNumber(this->GetIntegrationMethod());
+        if (rOutput.size() != gauss_points_number) {
+            rOutput.resize(gauss_points_number);
+        }
+
+        // Write scalar result value on all Gauss-Points
+        for(IndexType i = 0; i < gauss_points_number; ++i) {
+            rOutput[i] = output_value;
+        }
+
+    } else {
+        KRATOS_ERROR << "Unsupported output variable." << std::endl;
+    }
 
     KRATOS_CATCH("")
 }
@@ -643,6 +678,7 @@ template class AdjointFiniteDifferencingBaseElement<CrBeamElementLinear3D2N>;
 template class AdjointFiniteDifferencingBaseElement<TrussElement3D2N>;
 template class AdjointFiniteDifferencingBaseElement<TrussElementLinear3D2N>;
 template class AdjointFiniteDifferencingBaseElement<SmallDisplacement>;
+template class AdjointFiniteDifferencingBaseElement<SpringDamperElement3D2N>;
 
 } // namespace Kratos
 

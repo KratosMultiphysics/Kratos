@@ -671,6 +671,101 @@ ModelPart::PropertiesType& ModelPart::GetProperties(
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool ModelPart::HasProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    ) const
+{
+    const std::vector<IndexType> component_name = TrimComponentName(rAddress);
+    if (HasProperties(component_name[0], MeshIndex)) {
+        bool has_properties = true;
+        Properties::Pointer p_prop = pGetProperties(component_name[0], MeshIndex);
+        for (IndexType i = 1; i < component_name.size(); ++i) {
+            if (p_prop->HasSubProperties(component_name[i])) {
+                p_prop = p_prop->pGetSubProperties(component_name[i]);
+            } else {
+                return false;
+            }
+        }
+        return has_properties;
+    } else {
+        return false;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Properties::Pointer ModelPart::pGetProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    )
+{
+    const std::vector<IndexType> component_name = TrimComponentName(rAddress);
+    if (HasProperties(component_name[0], MeshIndex)) {
+        Properties::Pointer p_prop = pGetProperties(component_name[0], MeshIndex);
+        for (IndexType i = 1; i < component_name.size(); ++i) {
+            if (p_prop->HasSubProperties(component_name[i])) {
+                p_prop = p_prop->pGetSubProperties(component_name[i]);
+            } else {
+                KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
+            }
+        }
+        return p_prop;
+    } else {
+        KRATOS_ERROR << "First index is wrong, does not correspond with any sub Properties Id: " << component_name[0] << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Properties::Pointer ModelPart::pGetProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    ) const
+{
+    const std::vector<IndexType> component_name = TrimComponentName(rAddress);
+    if (HasProperties(component_name[0], MeshIndex)) {
+        Properties::Pointer p_prop = pGetProperties(component_name[0], MeshIndex);
+        for (IndexType i = 1; i < component_name.size(); ++i) {
+            if (p_prop->HasSubProperties(component_name[i])) {
+                p_prop = p_prop->pGetSubProperties(component_name[i]);
+            } else {
+                KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
+            }
+        }
+        return p_prop;
+    } else {
+        KRATOS_ERROR << "First index is wrong, does not correspond with any sub Properties Id: " << component_name[0] << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Properties& ModelPart::GetProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    )
+{
+    return *pGetProperties(rAddress, MeshIndex);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Properties& ModelPart::GetProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    ) const
+{
+    return *pGetProperties(rAddress, MeshIndex);
+}
+
 /** Remove the Properties with given Id from mesh with ThisIndex in this modelpart and all its subs.
 */
 void ModelPart::RemoveProperties(ModelPart::IndexType PropertiesId, IndexType ThisIndex)
@@ -1614,6 +1709,8 @@ void ModelPart::PrintInfo(std::ostream& rOStream) const
 
 void ModelPart::PrintData(std::ostream& rOStream) const
 {
+    DataValueContainer::PrintData(rOStream);
+
     if (!IsSubModelPart()) {
         rOStream  << "    Buffer Size : " << mBufferSize << std::endl;
     }

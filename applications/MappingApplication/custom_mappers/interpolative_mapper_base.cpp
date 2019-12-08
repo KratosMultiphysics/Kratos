@@ -231,11 +231,7 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::PrintPairingInfo(const 
             "output_control_type"                : "step",
             "custom_name_prefix"                 : "",
             "save_output_files_in_folder"        : false,
-            "nodal_solution_step_data_variables" : [],
-            "nodal_data_value_variables"         : ["PAIRING_STATUS"],
-            "element_data_value_variables"       : [],
-            "condition_data_value_variables"     : [],
-            "gauss_point_variables"              : []
+            "nodal_data_value_variables"         : ["PAIRING_STATUS"]
         })");
 
         vtk_params["custom_name_prefix"].SetString(prefix);

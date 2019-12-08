@@ -39,7 +39,7 @@ public:
     /// Constructor
     ApplyComponentTableProcess(ModelPart& model_part,
                                 Parameters rParameters
-                                ) : Process(Flags()) , mr_model_part(model_part)
+                                ) : Process(Flags()) , mrModelPart(model_part)
     {
         KRATOS_TRY
 
@@ -62,9 +62,9 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mvariable_name = rParameters["variable_name"].GetString();
-        mis_fixed = rParameters["is_fixed"].GetBool();
-        minitial_value = rParameters["value"].GetDouble();
+        mVariableName = rParameters["variable_name"].GetString();
+        mIsFixed = rParameters["is_fixed"].GetBool();
+        mInitialValue = rParameters["value"].GetDouble();
         
         unsigned int TableId = rParameters["table"].GetInt();
         mpTable = model_part.pGetTable(TableId);
@@ -91,22 +91,22 @@ public:
         KRATOS_TRY;
         
         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-        component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
+        component_type var_component = KratosComponents< component_type >::Get(mVariableName);
         
-        const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
+        const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
 
         if (nnodes != 0) {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
             #pragma omp parallel for
             for(int i = 0; i<nnodes; i++) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                if(mis_fixed) {
+                if(mIsFixed) {
                     it->Fix(var_component);
                 }
 
-                it->FastGetSolutionStepValue(var_component) = minitial_value;
+                it->FastGetSolutionStepValue(var_component) = mInitialValue;
             }
         }
         KRATOS_CATCH("");
@@ -118,20 +118,20 @@ public:
         KRATOS_TRY;
         
         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-        component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
+        component_type var_component = KratosComponents< component_type >::Get(mVariableName);
         
         double time;
         if (mTimeUnitConverter != 0) {
-            time = mr_model_part.GetProcessInfo()[TIME] / mTimeUnitConverter;
+            time = mrModelPart.GetProcessInfo()[TIME] / mTimeUnitConverter;
         } else {
-            time = mr_model_part.GetProcessInfo()[TIME];
+            time = mrModelPart.GetProcessInfo()[TIME];
         }
         double value = mpTable->GetValue(time);
         
-        const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
+        const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
 
         if (nnodes != 0) {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
             #pragma omp parallel for
             for(int i = 0; i < nnodes; i++) {
@@ -165,10 +165,10 @@ protected:
 
     /// Member Variables
 
-    ModelPart& mr_model_part;
-    std::string mvariable_name;
-    bool mis_fixed;
-    double minitial_value;
+    ModelPart& mrModelPart;
+    std::string mVariableName;
+    bool mIsFixed;
+    double mInitialValue;
     TableType::Pointer mpTable;
     double mTimeUnitConverter;
 
