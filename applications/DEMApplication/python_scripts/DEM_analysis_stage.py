@@ -488,9 +488,10 @@ class DEMAnalysisStage(AnalysisStage):
 
         if self.DEM_parameters["Dimension"].GetInt() == 2:
             self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION] = self.DEM_parameters["ImposeZStrainIn2DOption"].GetBool()
-            if self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION]:
-                t = self.time
-                self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, eval(self.DEM_parameters["ZStrainValue"].GetString()))
+            if not self.DEM_parameters["ImposeZStrainIn2DWithControlModule"].GetBool():
+                if self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION]:
+                    t = self.time
+                    self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, eval(self.DEM_parameters["ZStrainValue"].GetString()))
 
 
     def UpdateIsTimeToPrintInModelParts(self, is_time_to_print):
