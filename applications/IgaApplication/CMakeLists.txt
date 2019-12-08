@@ -24,6 +24,7 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_kl_discrete_element.cpp
     # conditions
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/penalty_coupling_condition.cpp
 )
 
 ## generate variables with the testing sources
