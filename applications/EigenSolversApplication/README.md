@@ -46,17 +46,21 @@ The application provides a generalized eigensystem solver for sparse matrices. I
 
 2. Set the required definitions for cmake
 
+    As any other app:
+    
+    ~~~sh
+    add_app ${KRATOS_APP_DIR}/EigenSolversApplication
+    ~~~
+
     **Windows:** in `configure.bat`
 
     ```batch
-    -DEIGEN_SOLVERS_APPLICATION=ON ^
     -DEIGEN_ROOT="<path to eigen>" ^
     ```
 
     **Linux:** in `configure.sh`
 
     ```bash
-    -DEIGEN_SOLVERS_APPLICATION=ON \
     -DEIGEN_ROOT="<path to eigen>" \
     ```
 
