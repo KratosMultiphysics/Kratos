@@ -83,7 +83,7 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
   /* Calculate Nodal Reference Temperature */
   double NodalReferenceTemperature;
   this->CalculateNodalReferenceTemperature(ElasticVariables,NodalReferenceTemperature);
-  
+
   // ReturnMappingVariables
   FlowRule::RadialReturnVariables ReturnMappingVariables;
   ReturnMappingVariables.initialize();
@@ -212,9 +212,9 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
         this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
       }
     }
-    else if(Options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
+    else if(Options.Is(ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY))
     {
-      // USE_ELEMENT_PROVIDED_STRAIN
+      // VOLUMETRIC_TENSOR_ONLY
       if(Options.Is(ConstitutiveLaw::THERMAL_RESPONSE_ONLY))
       {
         // Thermal strain
@@ -256,7 +256,7 @@ void ThermalNonlocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rVa
     /* Calculate Nodal Reference Temperature */
     double NodalReferenceTemperature;
     this->CalculateNodalReferenceTemperature(ElasticVariables,NodalReferenceTemperature);
-    
+
     // Compute Thermal strain
     Vector ThermalStrainVector(VoigtSize);
     this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,NodalReferenceTemperature);

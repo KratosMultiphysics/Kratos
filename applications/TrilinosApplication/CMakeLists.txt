@@ -20,7 +20,7 @@ if(${TRILINOS_EXCLUDE_AMESOS_SOLVER} MATCHES ON)
     message("**** WARNING: Manually disabled Amesos-Solver ****")
 endif(${TRILINOS_EXCLUDE_AMESOS_SOLVER} MATCHES ON)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 # Find trilinos solver package -- this is our own find package!!
 if (NOT TRILINOS_FOUND)
@@ -72,34 +72,35 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosTrilinosApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+# Cotire
 if(USE_COTIRE MATCHES ON)
     cotire(KratosTrilinosCore)
     cotire(KratosTrilinosApplication)
 endif(USE_COTIRE MATCHES ON)
 
-install(TARGETS KratosTrilinosCore DESTINATION libs )
-install(TARGETS KratosTrilinosApplication DESTINATION libs )
+# Add to the KratosMultiphisics Python module
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/TrilinosApplication.py KratosMultiphysics/TrilinosApplication/__init__.py )
 
-# Kratos Testing. Install everything except sources
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
+
+# TODO: Move this to the new system. Not sure how it will work on windows but being trillinos should give no problem.
+message("Trilinos libs to be installed" ${TRILINOS_LIBRARIES})
+install(FILES ${TRILINOS_LIBRARIES} DESTINATION libs )
+
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
 if(${INSTALL_TESTING_FILES} MATCHES ON )
     get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
-    PATTERN "*.git" EXCLUDE
-    PATTERN "*.c" EXCLUDE
-    PATTERN "*.h" EXCLUDE
-    PATTERN "*.cpp" EXCLUDE
-    PATTERN "*.hpp" EXCLUDE
-    )
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
+  )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
-# Install python scripts
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
-
-  message("trilinos libs to be installed" ${TRILINOS_LIBRARIES})
-  install(FILES ${TRILINOS_LIBRARIES} DESTINATION libs )
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
-
-# Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/TrilinosApplication.py" DESTINATION "KratosMultiphysics/TrilinosApplication" RENAME "__init__.py")
+## Install targets
+install(TARGETS KratosTrilinosCore DESTINATION libs )
+install(TARGETS KratosTrilinosApplication DESTINATION libs )
