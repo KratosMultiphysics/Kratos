@@ -1,35 +1,34 @@
-from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# Importing the Kratos Library
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+#importing base classes
 import KratosMultiphysics
-import sys
-import time
-# Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication
 from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
 
+#import processes to vary parameters ( entries of the vector mu)
 from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
 from KratosMultiphysics.ConvectionDiffusionApplication.apply_thermal_face_process import ApplyThermalFaceProcess
 
+#import the SVD packages 
+from scipy import linalg
+from KratosMultiphysics.RomApplication.RSVDT_Library import rsvdt
+
+#import the concurrent package
 import concurrent.futures
 
-# Import packages
-from scipy import linalg
+# Import other packages
 import numpy as np
 import h5py
 import json
+import time
+import sys
 from matplotlib import pyplot as plt
-from RSVDT_Library import rsvdt
 
 # Import cpickle to pickle the serializer
 try:
     import cpickle as pickle  # Use cPickle on Python 2.7
 except ImportError:
     import pickle
-
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
-# from pycompss.api.task import task
-# from pycompss.api.api import compss_wait_on
-# from pycompss.api.parameter import *
 
 
 class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
