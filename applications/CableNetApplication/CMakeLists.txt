@@ -5,11 +5,7 @@ message("**** configuring KratosCableNetApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-if(NOT STRUCTURAL_MECHANICS_APPLICATION )
-    message(FATAL_ERROR
-        "StructuralMechsnicsApplication is not compiled and CableNetApplication depends on it!\n"
-        "  - Add '-DSTRUCTURAL_MECHANICS_APPLICATION=ON' to your build script")
-endif()
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
