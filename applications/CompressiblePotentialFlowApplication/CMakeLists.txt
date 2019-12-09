@@ -5,11 +5,7 @@ message("**** configuring KratosCompressiblePotentialFlowApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-if(NOT FLUID_DYNAMICS_APPLICATION )
-    message(FATAL_ERROR
-        "FluidDynamicsApplication is not compiled and CompressiblePotentialFlowApplication depends on it!\n"
-        "  - Add '-DFLUID_DYNAMICS_APPLICATION=ON' to your build script")
-endif()
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )

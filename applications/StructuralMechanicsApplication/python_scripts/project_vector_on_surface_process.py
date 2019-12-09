@@ -12,7 +12,7 @@ def Factory(settings, Model):
 ## All the processes python should be derived from "Process"
 class ProjectVectorOnSurfaceProcess(KM.Process):
 
-    def __init__(self, Model, settings ):
+    def __init__(self, Model, settings):
         """ The default constructor of the class
 
         Keyword arguments:
@@ -46,7 +46,7 @@ class ProjectVectorOnSurfaceProcess(KM.Process):
                 "save_output_files_in_folder"  : false,
                 "custom_name_prefix"           : "ProjectVectorOnSurface_",
                 "custom_name_postfix"          : "",
-                "element_data_value_variables" : [],
+                "element_data_value_variables" : []
             }""")
 
             variable_name = settings["variable_name"].GetString()

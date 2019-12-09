@@ -167,6 +167,7 @@ void MembraneElement::CalculateRightHandSide(
     InternalForces(internal_forces,GetGeometry().GetDefaultIntegrationMethod());
     rRightHandSideVector = ZeroVector(system_size);
     rRightHandSideVector -= internal_forces;
+    CalculateAndAddBodyForce(rRightHandSideVector);
 }
 
 //***********************************************************************************
@@ -864,9 +865,10 @@ void MembraneElement::GetValueOnIntegrationPoints(
 void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+    auto& r_geom = GetGeometry();
 
     // LUMPED MASS MATRIX
-    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int number_of_nodes = r_geom.size();
     unsigned int mat_size = number_of_nodes * 3;
 
     if (rMassMatrix.size1() != mat_size) {
@@ -875,10 +877,11 @@ void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& 
 
     noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
 
-    const double total_mass = GetGeometry().Area() * GetProperties()[THICKNESS] *
+    const double total_mass = r_geom.Area() * GetProperties()[THICKNESS] *
         StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
-    Vector lump_fact = GetGeometry().LumpingFactors(lump_fact);
+    Vector lump_fact =  ZeroVector(number_of_nodes);
+    r_geom.LumpingFactors(lump_fact);
 
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
         const double temp = lump_fact[i] * total_mass;
@@ -905,9 +908,10 @@ void MembraneElement::CalculateLumpedMassVector(VectorType& rMassVector)
         rMassVector.resize(local_size, false);
     }
 
-    const double total_mass = GetGeometry().Area() * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
+    const double total_mass = r_geom.Area() * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
 
-    Vector lump_fact = GetGeometry().LumpingFactors(lump_fact);
+    Vector lump_fact =  ZeroVector(number_of_nodes);
+    r_geom.LumpingFactors(lump_fact);
 
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
         const double temp = lump_fact[i] * total_mass;
@@ -948,6 +952,16 @@ void MembraneElement::AddExplicitContribution(
     }
 
     KRATOS_CATCH("")
+}
+
+void MembraneElement::CalculateDampingMatrix(
+    MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
+        *this,
+        rDampingMatrix,
+        rCurrentProcessInfo,
+        GetGeometry().WorkingSpaceDimension()*GetGeometry().size());
 }
 
 void MembraneElement::AddExplicitContribution(
@@ -1003,6 +1017,72 @@ void MembraneElement::AddExplicitContribution(
     }
 
     KRATOS_CATCH("")
+}
+
+void MembraneElement::CalculateAndAddBodyForce(VectorType& rRightHandSideVector)
+{
+    KRATOS_TRY
+    auto& r_geom = GetGeometry();
+    const unsigned int number_of_nodes = r_geom.size();
+
+    const double total_mass = r_geom.Area() * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
+
+    Vector lump_fact =  ZeroVector(number_of_nodes);
+    r_geom.LumpingFactors(lump_fact);
+
+    for (unsigned int i = 0; i < number_of_nodes; ++i) {
+        const double temp = lump_fact[i] * total_mass;
+
+        for (unsigned int j = 0; j < 3; ++j)
+        {
+            const unsigned int index = i * 3 + j;
+            rRightHandSideVector[index] += temp * r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION)[j];
+        }
+    }
+    KRATOS_CATCH("")
+}
+
+void MembraneElement::PrincipleVector(Vector& rPrincipleVector, const Vector& rNonPrincipleVector)
+{
+    // make sure to divide rNonPrincipleVector[2]/2 if strains are passed
+    rPrincipleVector = ZeroVector(2);
+    rPrincipleVector[0] = 0.50 * (rNonPrincipleVector[0]+rNonPrincipleVector[1]) + std::sqrt(0.25*(std::pow(rNonPrincipleVector[0]-rNonPrincipleVector[1],2.0)) + std::pow(rNonPrincipleVector[2],2.0));
+    rPrincipleVector[1] = 0.50 * (rNonPrincipleVector[0]+rNonPrincipleVector[1]) - std::sqrt(0.25*(std::pow(rNonPrincipleVector[0]-rNonPrincipleVector[1],2.0)) + std::pow(rNonPrincipleVector[2],2.0));
+}
+
+void MembraneElement::CheckWrinklingState(array_1d<bool,3>& rWrinklingStateArray, const Vector& rStress, const Vector& rStrain)
+{
+    // rWrinklingStateArray (taut,wrinkled,slack)
+    const double numerical_limit = std::numeric_limits<double>::epsilon();
+
+    Vector principle_strains = ZeroVector(2);
+    Vector temp_strains = ZeroVector(3);
+    temp_strains = rStrain;
+    temp_strains[2] /= 2.0; // normalize voigt strain vector to calcualte principle strains
+    PrincipleVector(principle_strains,temp_strains);
+
+
+    Vector principle_stresses = ZeroVector(2);
+    PrincipleVector(principle_stresses,rStress);
+
+    const double min_stress = std::min(principle_stresses[0],principle_stresses[1]);
+    const double max_strain = std::max(principle_strains[0],principle_strains[1]);
+
+    if (min_stress > 0.0){
+        rWrinklingStateArray[0] = true;
+        rWrinklingStateArray[1] = false;
+        rWrinklingStateArray[2] = false;
+    } else if ((max_strain > 0.0) && (min_stress < numerical_limit)){
+        rWrinklingStateArray[0] = false;
+        rWrinklingStateArray[1] = true;
+        rWrinklingStateArray[2] = false;
+    } else if (max_strain<numerical_limit){
+        rWrinklingStateArray[0] = false;
+        rWrinklingStateArray[1] = false;
+        rWrinklingStateArray[2] = true;
+    }
+    else KRATOS_ERROR << "error in principle direction calcualtion of membrane element with id " << Id() << std::endl;
+
 }
 
 //***********************************************************************************
