@@ -23,11 +23,11 @@ def timer(name=None, t=0, n=0, ms=False):
     print(s)
 
 def Create(parameters):
-    return MapperLinear1D(parameters)
+    return MapperLinear2D(parameters)
 
 
-# Class MapperLinear: Linear interpolation in 1D.
-class MapperLinear1D(object):
+# Class MapperLinear: Linear interpolation in 2D.
+class MapperLinear2D(object):
     def __init__(self, parameters):
         """
         This mapper uses the two closest points; this does
@@ -43,7 +43,7 @@ class MapperLinear1D(object):
         super().__init__()
 
         self.settings = parameters['settings']
-
+        self.interpolator = True
         self.balanced_tree = self.settings['balanced_tree'].GetBool()
         self.coord1 = self.settings['direction_1'].GetString().upper()
         self.coord2 = self.settings['direction_2'].GetString().upper()

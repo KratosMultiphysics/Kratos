@@ -208,8 +208,8 @@ class TestMapperLinear(KratosUnittest.TestCase):
         model_part_from = model_from.CreateModelPart('wall_from')
         model_part_from.AddNodalSolutionStepVariable(var_from)
 
-        nx_from = 950
-        ny_from = 1050
+        nx_from = 95
+        ny_from = 105
         n_from = nx_from * ny_from
         x_from = (np.ones((nx_from, ny_from)) * np.linspace(-10, 10, nx_from).reshape(-1, 1)).flatten()
         y_from = (np.ones((nx_from, ny_from)) * np.linspace(-10, 10, ny_from).reshape(1, -1)).flatten()
@@ -224,8 +224,8 @@ class TestMapperLinear(KratosUnittest.TestCase):
         model_part_to = model_to.CreateModelPart('wall_to')
         model_part_to.AddNodalSolutionStepVariable(var_to)
 
-        nx_to = 1050
-        ny_to = 950
+        nx_to = 105
+        ny_to = 95
         n_to = nx_to * ny_to
         x_to = (np.ones((nx_to, ny_to)) * np.linspace(-10, 10, nx_to).reshape(-1, 1)).flatten()
         y_to = (np.ones((nx_to, ny_to)) * np.linspace(-10, 10, ny_to).reshape(1, -1)).flatten()

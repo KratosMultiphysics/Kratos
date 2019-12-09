@@ -31,7 +31,7 @@ class MapperNearest(object):
         super().__init__()
 
         self.settings = parameters['settings']
-
+        self.interpolator = True
         self.balanced_tree = self.settings['balanced_tree'].GetBool()
 
     def Initialize(self, model_part_from, model_part_to):

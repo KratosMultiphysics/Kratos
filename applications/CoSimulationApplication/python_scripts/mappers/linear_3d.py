@@ -23,11 +23,11 @@ def timer(name=None, t=0, n=0, ms=False):
     print(s)
 
 def Create(parameters):
-    return MapperLinear1D(parameters)
+    return MapperLinear3D(parameters)
 
 
-# Class MapperLinear: Linear interpolation in 1D.
-class MapperLinear1D(object):
+# Class MapperLinear: Linear interpolation in 3D.
+class MapperLinear3D(object):
     def __init__(self, parameters):
         """
         This mapper uses the 3 nearest points.
@@ -58,7 +58,7 @@ class MapperLinear1D(object):
         super().__init__()
 
         self.settings = parameters['settings']
-
+        self.interpolator = True
         self.balanced_tree = self.settings['balanced_tree'].GetBool()
         self.parallel = self.settings['parallel'].GetBool()
 

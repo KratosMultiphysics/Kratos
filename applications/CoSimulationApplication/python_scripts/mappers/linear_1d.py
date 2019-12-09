@@ -25,7 +25,7 @@ class MapperLinear1D(object):
         super().__init__()
 
         self.settings = parameters['settings']
-
+        self.interpolator = True
         self.balanced_tree = self.settings['balanced_tree'].GetBool()
         self.coord = self.settings['direction'].GetString().upper()
         if self.coord not in ['X', 'Y', 'Z']:
