@@ -31,7 +31,7 @@ class TestSolverWrapperAbaqus614(KratosUnittest.TestCase):
             par_solver_0['settings'].SetString('working_directory', 'test_614_tube2D/CSM')
             par_solver_0['settings'].SetString('input_file', 'test_614_tube2D/Base.inp')
 
-        #Create hostfile for Abaqus
+        # Create hostfile for Abaqus
         os.system("cd test_614_tube2D/CSM; ./makeHostFile.sh")
 
         par_solver = deepcopy(par_solver_0)
@@ -62,15 +62,15 @@ class TestSolverWrapperAbaqus614(KratosUnittest.TestCase):
 
             AbaqusSolver0.Initialize()
 
-            ## Step 1, Coupling 1
+            # Step 1, Coupling 1
             AbaqusSolver0.InitializeSolutionStep()
-            output1_1 = AbaqusSolver0.SolveSolutionStep(AbaqusSolver0.GetInterfaceInput())
+            output1_1 = AbaqusSolver0.SolveSolutionStep(AbaqusSolver0.GetInterfaceInput())  # TODO: ask Lucas why not deepcopy here
             os.system("cp -r test_614_tube2D/CSM/CSM_Time1.odb test_614_tube2D/CSM/CSM_Time1_Iter1.odb")
-            ## Step 1, Coupling 2
+            # Step 1, Coupling 2
             output1_2 = AbaqusSolver0.SolveSolutionStep(AbaqusSolver0.GetInterfaceInput()).deepcopy()
             AbaqusSolver0.FinalizeSolutionStep()
 
-            #Compare output, as input hasn't changed these should be the same
+            # Compare output, as input hasn't changed these should be the same
             # normalize data and compare
             a1 = output1_1.GetNumpyArray()
             a2 = output1_2.GetNumpyArray()
@@ -84,12 +84,12 @@ class TestSolverWrapperAbaqus614(KratosUnittest.TestCase):
             for i in range(a1.size):
                 self.assertAlmostEqual(a1n[i] - a2n[i], 0., delta=1e-12)
 
-            ## Step 2 and 3
+            # Step 2 and 3
             for i in range(2):
                 AbaqusSolver0.InitializeSolutionStep()
                 AbaqusSolver0.SolveSolutionStep(AbaqusSolver0.GetInterfaceInput())
                 AbaqusSolver0.FinalizeSolutionStep()
-            #Step 4
+            # Step 4
             AbaqusSolver0.InitializeSolutionStep()
             output_single_run = AbaqusSolver0.SolveSolutionStep(AbaqusSolver0.GetInterfaceInput()).deepcopy()
             AbaqusSolver0.FinalizeSolutionStep()
@@ -97,7 +97,7 @@ class TestSolverWrapperAbaqus614(KratosUnittest.TestCase):
 
             os.system("cp test_614_tube2D/CSM/CSM_Time4Surface0Output.dat test_614_tube2D/CSM/CSM_Time4Surface0Output_Single.dat")
 
-            #With restart
+            # With restart
             # create solver which restarts at timestep 2
             par_solver['settings'].SetInt('timestep_start', 2)
             AbaqusSolver1 = cs_tools.CreateInstance(par_solver)
@@ -130,6 +130,34 @@ class TestSolverWrapperAbaqus614(KratosUnittest.TestCase):
             for i in range(a1.size):
                 # print(f"{a1[i]} ?= {a2[i]}")
                 self.assertAlmostEqual(a1n[i] - a2n[i], 0., delta=1e-12)
+
+        if True:
+            # Test whether using 4 cpus gives the same results as using a single one.
+            par_solver = deepcopy(par_solver_0)
+            par_solver["settings"].SetInt("cores", 4)
+            AbaqusSolver2 = cs_tools.CreateInstance(par_solver)
+            mp = AbaqusSolver2.model['BEAMINSIDEMOVING_load_points']
+            for node in mp.Nodes:
+                # Domain extends from Y -0.025 to 0.025, default x-position is 0.005
+                # print(node.Y)
+                node.SetSolutionStepValue(pressure, 0, p)
+                node.SetSolutionStepValue(traction, 0, [shear_x, shear_y, shear_z])
+
+            AbaqusSolver2.Initialize()
+            for i in range(4):
+                AbaqusSolver2.InitializeSolutionStep()
+                output_4cores = AbaqusSolver2.SolveSolutionStep(AbaqusSolver2.GetInterfaceInput()).deepcopy()
+                AbaqusSolver2.FinalizeSolutionStep()
+            AbaqusSolver2.Finalize()
+
+            # Compare output, as input hasn't changed these should be the same
+            # normalize data and compare
+            a3 = output_4cores.GetNumpyArray()
+            a3n = (a3 - mean)/ref
+
+            for i in range(a1.size):
+                self.assertAlmostEqual(a2n[i] - a3n[i], 0., delta=1e-12)
+                self.assertAlmostEqual(a1n[i] - a3n[i], 0., delta=1e-12)
 
     #     #
     #     if True:
