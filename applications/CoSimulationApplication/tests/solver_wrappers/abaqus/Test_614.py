@@ -101,6 +101,13 @@ class TestSolverWrapperAbaqus614(KratosUnittest.TestCase):
             # create solver which restarts at timestep 2
             par_solver['settings'].SetInt('timestep_start', 2)
             AbaqusSolver1 = cs_tools.CreateInstance(par_solver)
+            mp = AbaqusSolver1.model['BEAMINSIDEMOVING_load_points']
+            for node in mp.Nodes:
+                # Domain extends from Y -0.025 to 0.025, default x-position is 0.005
+                # print(node.Y)
+                node.SetSolutionStepValue(pressure, 0, p)
+                node.SetSolutionStepValue(traction, 0, [shear_x, shear_y, shear_z])
+
             AbaqusSolver1.Initialize()
 
             for i in range(2):
@@ -121,7 +128,7 @@ class TestSolverWrapperAbaqus614(KratosUnittest.TestCase):
             a2n = (a2 - mean) / ref
 
             for i in range(a1.size):
-                print(f"{a1[i]} ?= {a2[i]}")
+                # print(f"{a1[i]} ?= {a2[i]}")
                 self.assertAlmostEqual(a1n[i] - a2n[i], 0., delta=1e-12)
 
     #     #
