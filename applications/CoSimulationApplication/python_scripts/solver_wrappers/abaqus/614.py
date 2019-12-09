@@ -333,20 +333,44 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         # write loads (from interface data to a file that will be read by USR.f
         self.write_loads()
 
-        # Run Abaqus
-        if self.timestep==1:
-            cmd1 = f"export PBS_NODEFILE=AbaqusHosts.txt && unset SLURM_GTIDS"
-            cmd2 = f"abaqus job=CSM_Time{self.timestep} input=CSM_Time{self.timestep - 1}" \
-                f" cpus={self.cores} output_precision=full interactive >> AbaqusSolver.log 2>&1"
-            commands = [cmd1, cmd2]
-            self.run_shell(self.dir_csm, commands, name='Abaqus_Calculate')
+        # Run Abaqus and check for (licensing) errors
+        bool_completed = 0
+        attempt = 0
+        while bool_completed==0 and attempt < 10000:
+            attempt+=1
+            if attempt > 1:
+                print(f"Warning attempt {attempt-1} in AbaqusSolver failed, new attempt in one minute")
+                time.sleep(60)
+                print(f"Starting attempt {attempt}")
+            if self.timestep==1:
+                cmd1 = f"export PBS_NODEFILE=AbaqusHosts.txt && unset SLURM_GTIDS"
+                cmd2 = f"abaqus job=CSM_Time{self.timestep} input=CSM_Time{self.timestep - 1}" \
+                    f" cpus={self.cores} output_precision=full interactive >> AbaqusSolver.log 2>&1"
+                commands = [cmd1, cmd2]
+                self.run_shell(self.dir_csm, commands, name='Abaqus_Calculate')
+            else:
+                cmd1 = f"export PBS_NODEFILE=AbaqusHosts.txt && unset SLURM_GTIDS"
+                cmd2 = f"abaqus job=CSM_Time{self.timestep} oldjob=CSM_Time{self.timestep - 1} input=CSM_Restart" \
+                    f" cpus={self.cores} output_precision=full interactive >> AbaqusSolver.log 2>&1"
+                commands = [cmd1, cmd2]
+                self.run_shell(self.dir_csm, commands, name='Abaqus_Calculate')
 
-        else:
-            cmd1 = f"export PBS_NODEFILE=AbaqusHosts.txt && unset SLURM_GTIDS"
-            cmd2 = f"abaqus job=CSM_Time{self.timestep} oldjob=CSM_Time{self.timestep - 1} input=CSM_Restart" \
-                f" cpus={self.cores} output_precision=full interactive >> AbaqusSolver.log 2>&1"
-            commands = [cmd1, cmd2]
-            self.run_shell(self.dir_csm, commands, name='Abaqus_Calculate')
+            #Check log for completion and or errors
+            cmd = "tail -10 AbaqusSolver.log > Temp_log.coco"
+            self.run_shell(self.dir_csm, [cmd], name='Temp_log')
+            templog = os.path.join(self.dir_csm,"Temp_log.coco")
+            bool_lic = 1
+            with open(templog,"r") as fp:
+                for line in fp:
+                    if any(x in line for x in ["Licensing error","license error","Error checking out Abaqus license"]):
+                        bool_lic = 0
+            if bool_lic == 0:
+                print("Abaqus licensing error")
+            elif "COMPLETED" in line: #Check final line for completed
+                bool_completed = 1
+            elif (bool_lic == 1): #Final line did not contain "COMPLETED" but also no licensing erro detected
+                raise RuntimeError("Abaqus did not COMPLETE, unclassified error, see AbaqusSolver.log for extra information")
+
 
         # Write Abaqus output
         cmd = f"abaqus ./GetOutput.exe CSM_Time{self.timestep} 1 >> AbaqusSolver.log 2>&1"
