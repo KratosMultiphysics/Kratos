@@ -4,18 +4,35 @@ message("**** configuring KratosMultilevelMonteCarloApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
-# generate variables with the sources
+## define application core sources (pure C++ parts)
 set( KRATOS_MULTILEVEL_MONTE_CARLO_APPLICATION_SOURCES
+    # application class and variables
     ${CMAKE_CURRENT_SOURCE_DIR}/multilevel_monte_carlo_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/multilevel_monte_carlo_application_variables.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/multilevel_monte_carlo_python_application.cpp
-#    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-#    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+    # statistics
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_statistics/power_sums_statistics.cpp
 )
 
-# define library Kratos which defines the basic python interface
-pybind11_add_module(KratosMultilevelMonteCarloApplication MODULE THIN_LTO ${KRATOS_MULTILEVEL_MONTE_CARLO_APPLICATION_SOURCES})
-target_link_libraries(KratosMultilevelMonteCarloApplication PRIVATE KratosCore )
+## define python interface sources
+set (KRATOS_MULTILEVEL_MONTE_CARLO_PYTHON_INTERFACE_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/multilevel_monte_carlo_python_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_statistics_to_python.cpp
+)
+
+## define multilevel monte carlo test sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_MULTILEVEL_MONTE_CARLO_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
+###############################################################################
+## MultilevelMonteCarloApplication core library (C++ parts)
+add_library(KratosMultilevelMonteCarloCore SHARED ${KRATOS_MULTILEVEL_MONTE_CARLO_APPLICATION_SOURCES} ${KRATOS_MULTILEVEL_MONTE_CARLO_APPLICATION_TESTING_SOURCES})
+target_link_libraries(KratosMultilevelMonteCarloCore PUBLIC KratosCore)
+set_target_properties(KratosMultilevelMonteCarloCore PROPERTIES COMPILE_DEFINITIONS "MULTILEVEL_MONTE_CARLO_APPLICATION=EXPORT,API")
+
+## MultilevelMonteCarloApplication python module
+pybind11_add_module(KratosMultilevelMonteCarloApplication MODULE THIN_LTO ${KRATOS_MULTILEVEL_MONTE_CARLO_PYTHON_INTERFACE_SOURCES})
+target_link_libraries(KratosMultilevelMonteCarloApplication PRIVATE KratosMultilevelMonteCarloCore)
 set_target_properties(KratosMultilevelMonteCarloApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd (Windows)
@@ -30,6 +47,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Cotire
 if(USE_COTIRE MATCHES ON)
+    cotire(KratosMultilevelMonteCarloCore)
     cotire(KratosMultilevelMonteCarloApplication)
 endif(USE_COTIRE MATCHES ON)
 
@@ -53,6 +71,7 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
+install(TARGETS KratosMultilevelMonteCarloCore DESTINATION libs )
 install(TARGETS KratosMultilevelMonteCarloApplication DESTINATION libs )
 
 # Install pycompss mockup lib
