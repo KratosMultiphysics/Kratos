@@ -34,7 +34,6 @@
 // include the eigensolver
 #include "custom_solvers/gen_eigensystem_solver.h"
 
-#include "omp.h"
 
 namespace Kratos
 {
@@ -332,54 +331,35 @@ class MorSecondOrderIRKAStrategy
         }
         )");
 
+        // initialize helper variables for the complex solve
+        auto  tmp_Vr_col_ptr = ComplexDenseSpaceType::CreateEmptyVectorPointer();
+        auto& r_tmp_Vr_col   = *tmp_Vr_col_ptr;
+        ComplexDenseSpaceType::Resize(r_tmp_Vr_col, system_size); // n x 1
+        ComplexDenseSpaceType::Set(r_tmp_Vr_col, 0.0); // set vector to zero
+
+        auto  tmp_Vn_ptr = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
+        auto& r_tmp_Vn   = *tmp_Vn_ptr;
+        ComplexSparseSpaceType::Resize(r_tmp_Vn, system_size, system_size); // n x n
+        TUblasSparseSpace<complex>::SetToZero(r_tmp_Vn);
+
+        // initialize the complex solver
+        typename ComplexLinearSolverType::Pointer compl_solver = LinearSolverFactoryType().Create(compl_solve_params); 
+        compl_solver->Initialize( r_tmp_Vn, r_tmp_Vr_col, r_b);
+
         
-        double start_solve_par_first = OpenMPUtils::GetCurrentTime();
         // build V
-        #pragma omp parallel
+        for(size_t i=0; i < n_sampling_points/2; ++i)
         {
+            // intermediate result
+            r_tmp_Vn = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
 
-            // initialize helper variables for the complex solve
-            // each thread will create its own version, so no conflict arises
-            auto  tmp_Vr_col_ptr_par = ComplexDenseSpaceType::CreateEmptyVectorPointer();
-            auto& r_tmp_Vr_col_par   = *tmp_Vr_col_ptr_par;
-            ComplexDenseSpaceType::Resize(r_tmp_Vr_col_par, system_size); // n x 1
-            ComplexDenseSpaceType::Set(r_tmp_Vr_col_par, 0.0); // set vector to zero
+            // solve 
+            compl_solver->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b); // Ax = b, solve for x
 
-            auto  tmp_Vn_ptr_par = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
-            auto& r_tmp_Vn_par   = *tmp_Vn_ptr_par;
-            ComplexSparseSpaceType::Resize(r_tmp_Vn_par, system_size, system_size); // n x n
-            TUblasSparseSpace<complex>::SetToZero(r_tmp_Vn_par);
-
-            // initialize a separate solver for each thread
-            typename ComplexLinearSolverType::Pointer compl_solver_par = LinearSolverFactoryType().Create(compl_solve_params); 
-            compl_solver_par->Initialize( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b);
-
-
-            // start parallel solve
-            // dynamic behavior such that threads that finish earlier won't be idle for too long
-            #pragma omp for schedule(dynamic)
-            for(size_t i=0; i < n_sampling_points/2; ++i)
-            {
-                int tid = omp_get_thread_num();
-                // intermediate result
-                r_tmp_Vn_par = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
-
-                // solve 
-                double solve_step_first = OpenMPUtils::GetCurrentTime(); // measure solve time for each thread
-                compl_solver_par->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b); // Ax = b, solve for x
-                double end_solve_step_first = OpenMPUtils::GetCurrentTime();
-                #pragma omp critical
-                std::cout<<" --- Thread " <<tid<<" solve step: "<<end_solve_step_first-solve_step_first<<" using sample "<<mSamplingPoints(2*i)<<std::endl;
-
-                // write the result to the correct positions
-                column(r_Vr_dense, 2*i)   = real(r_tmp_Vr_col_par);
-                column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col_par);
-            }
-        } // end of parallel part
-
-        // time for parallel solve
-        double end_solve_par_first = OpenMPUtils::GetCurrentTime();
-            std::cout<<"-- par solve first: "<<end_solve_par_first-start_solve_par_first<<std::endl;
+            // write the result to the correct positions
+            column(r_Vr_dense, 2*i)   = real(r_tmp_Vr_col);
+            column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col);
+        }
 
 
         //orthogonalize V
@@ -496,7 +476,6 @@ class MorSecondOrderIRKAStrategy
 
 
             //store the Eigenvalues in a complex vector
-            #pragma omp parallel for schedule(dynamic)
             for(size_t ii = 0; ii<2*reduced_system_size; ii++)
             {
                 lam_2r(ii) = complex( Eigenvalues(2*ii), Eigenvalues(2*ii+1) );
@@ -511,7 +490,6 @@ class MorSecondOrderIRKAStrategy
 
             // reduce to r Eigenvalues so that the dimension of the reduced system does not increase
             // choose the r Eigenvalues which are closest to the imaginary axis (done by previous sorting)
-            #pragma omp parallel for schedule(dynamic)
             for(size_t ii=0; ii < reduced_system_size; ii++)
             {
                 mSamplingPoints(ii) = lam_2r(ii);
@@ -519,13 +497,11 @@ class MorSecondOrderIRKAStrategy
 
 
             // calculate the error between old and new sampling points
-            #pragma omp parallel for schedule(dynamic)           
             for(size_t ii=0 ; ii < reduced_system_size; ii++)
             {
                 abs_val_old(ii) = abs(samplingPoints_old(ii));
             }
          
-            #pragma omp parallel for schedule(dynamic)
             for(size_t ii=0 ; ii < reduced_system_size; ii++)
             {
                 abs_val_new(ii) = abs(mSamplingPoints(ii));
@@ -541,54 +517,22 @@ class MorSecondOrderIRKAStrategy
             if(err < tol) {break;}
 
 
-            double start_solve_par = OpenMPUtils::GetCurrentTime(); // measure the time for the parallel solve block
-
             // update the old sampling points
             samplingPoints_old = mSamplingPoints;
 
             // update V
-            #pragma omp parallel
+            for(size_t i=0; i < n_sampling_points/2; ++i)
             {
+                // intermediate result
+                r_tmp_Vn = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
 
-                // initialization have to be repeated because of the underlying fork-join model and scope
+                // solve
+                compl_solver->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b); // Ax = b, solve for x
 
-                // initialize helper variables for the complex solve
-                // each thread will create its own version, so no conflict arises
-                auto  tmp_Vr_col_ptr_par = ComplexDenseSpaceType::CreateEmptyVectorPointer();
-                auto& r_tmp_Vr_col_par   = *tmp_Vr_col_ptr_par;
-                ComplexDenseSpaceType::Resize(r_tmp_Vr_col_par, system_size); // n x 1
-                ComplexDenseSpaceType::Set(r_tmp_Vr_col_par, 0.0); // set vector to zero
-
-                auto  tmp_Vn_ptr_par = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
-                auto& r_tmp_Vn_par   = *tmp_Vn_ptr_par;
-                ComplexSparseSpaceType::Resize(r_tmp_Vn_par, system_size, system_size); // n x n
-                TUblasSparseSpace<complex>::SetToZero(r_tmp_Vn_par);
-
-                // initialize a separate solver for each thread
-                typename ComplexLinearSolverType::Pointer compl_solver_par = LinearSolverFactoryType().Create(compl_solve_params);
-                compl_solver_par->Initialize( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b);
-
-                // start parallel solve
-                // dynamic behavior such that threads that finish earlier won't be idle for too long
-                #pragma omp for schedule(dynamic)
-                for(size_t i=0; i < n_sampling_points/2; ++i)
-                {
-                    // intermediate result
-                    r_tmp_Vn_par = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
-
-                    // solve
-                    compl_solver_par->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b); // Ax = b, solve for x
-
-                    // write the result to the correct positions
-                    column(r_Vr_dense, 2*i) = real(r_tmp_Vr_col_par);
-                    column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col_par);
-                }
-            } // end of parallel part
-
-            std::cout<<"parallel part passed - iter "<<iter<<std::endl;
-
-            double end_solve_par = OpenMPUtils::GetCurrentTime();
-            std::cout<<"-- par solve: "<<end_solve_par-start_solve_par<<std::endl;
+                // write the result to the correct positions
+                column(r_Vr_dense, 2*i) = real(r_tmp_Vr_col);
+                column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col);
+            }
 
 
             // orthogonalize V
@@ -604,6 +548,7 @@ class MorSecondOrderIRKAStrategy
                 }
             }
 
+            std::cout<<" - iter "<<iter<<std::endl; // print the current iteration
             iter++;
         } // - end of loop
 
