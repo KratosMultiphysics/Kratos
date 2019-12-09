@@ -3,9 +3,7 @@ from os.path import join
 import subprocess
 import time
 import numpy as np
-import copy
 import re
-
 
 import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.co_simulation_component import CoSimulationComponent
@@ -13,26 +11,38 @@ from KratosMultiphysics.CoSimulationApplication.co_simulation_interface import C
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 cs_data_structure = cs_tools.cs_data_structure
 
+
 def Create(parameters):
     return SolverWrapperAbaqus614(parameters)
+
 
 class SolverWrapperAbaqus614(CoSimulationComponent):
     def __init__(self, parameters):
         super().__init__()
-        #settings
+        # settings
         """
                settings of solver_wrappers.abaqus.614:
 
-                    working_directory       absolute path to working directory
+                    working_directory       Absolute path to working directory
                                             or relative path w.r.t current directory
-                    input_file              Name of the Abaqus input file (Located in the directory where Python is launched)
-                    dimension               dimensionality of the problem 2 or 3 
-                    arraySize               declare a sufficiently large array size for load array in FORTRAN
-                    cpus                    number of cpus to be used for Abaqus 
-                    CSM_dir                 relative path to directory for the files and execution of the structural solver 
-                    ramp                    0 for step load, 1 for ramp load in Abaqus
-                    deltaT                  time step size
-                    timestep_start          time step from which is to be started (initial = 0) 
+                    cores                   Number of cpus to be used by Abaqus
+                    input_file              Name of the Abaqus input file (located in the directory where Python is 
+                                            launched)
+                    dimensions              dimensionality of the problem (2 or 3)
+                    arraysize               declare a sufficiently large array size for load array in FORTRAN
+                    CSM_dir                 relative path to directory for the files and execution of the structural 
+                                            solver 
+                    ramp                    Boolean: 0 for step load, 1 for ramp load in Abaqus
+                    delta_T                 Time step size
+                    timestep_start          Time step from which is to be started (initial = 0)
+                    surface_IDS             List of the names of the surfaces that take part in the FSI, as they are 
+                                            known by Abaqus
+                    interface_input         Interface for the load points and their corresponding variables (pressure,
+                                            traction).
+                    interface_output        Interface for the output nodes and their corresponding variable(s)
+                                            displacements)
+                    mp_mode                 Mode of the parallel computing (currently only THREADS is accepted)
+                    input_file              Name of the file in which the Abaqus case is defined
         """
 
         self.settings = parameters['settings']
@@ -47,12 +57,12 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             print('\x1b[0;30;43m' + "Warning for Axisymmetric cases:\n\tIn Abaqus these have to be constructed around the y-axis. \n\tSwitching of x and y-coordinates might be necessary but should be accomplished by using an appropriate mapper." + '\x1b[0m')
         self.array_size = self.settings["arraysize"].GetInt()
         self.ramp = self.settings["ramp"].GetInt()
-        self.delta_T = self.settings["delta_T"].GetDouble()  #TODO: move to higher-level parameter file?
-        self.timestep_start = self.settings["timestep_start"].GetDouble()  #TODO: move to higher-level parameter file?
+        self.delta_T = self.settings["delta_T"].GetDouble()  # TODO: move to higher-level parameter file?
+        self.timestep_start = self.settings["timestep_start"].GetDouble()  # TODO: move to higher-level parameter file?
         # self.surfaceIDs = self.settings["surfaceIDs"].GetString()
         self.surfaceIDs = [_.GetString() for _ in self.settings['surfaceIDs'].list()]
         self.n_surfaces = len(self.surfaceIDs)
-        self.thread_ids = [i for i in range(0,self.n_surfaces)]
+        self.thread_ids = [i for i in range(0, self.n_surfaces)]
         self.mp_mode = self.settings["mp_mode"].GetString()
         self.input_file = self.settings["input_file"].GetString()
 
@@ -69,7 +79,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     self.hostnames_unique.append(line.rstrip())
         self.hostname_replace = ""
         for hostname in self.hostnames_unique:
-            self.hostname_replace += "[\'" + hostname + "\', " + str(self.hostnames.count(hostname)) +"], "
+            self.hostname_replace += "[\'" + hostname + "\', " + str(self.hostnames.count(hostname)) + "], "
         self.hostname_replace = self.hostname_replace.rstrip(", ")
         with open(join(path_src, "abaqus_v6.env"), "r") as infile:
             with open(join(self.dir_csm, "abaqus_v6.env"), "w") as outfile:
@@ -83,7 +93,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                         raise ValueError(f"The following line in abaqus_v6.env still contains a \"|\" after substitution: \n \t{line} \n Probably a parameter was not subsituted")
                     outfile.write(line)
 
-        #Create start and restart file
+        # Create start and restart file
         self.write_start_and_restart_inp(self.input_file, self.dir_csm+"/CSM_Time0.inp", self.dir_csm+"/CSM_Restart.inp")
 
         # prepare Abaqus USRInit.f
@@ -96,8 +106,8 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     line = line.replace("|cpus|", str(self.cores))
 
                     # if PWD is too long then FORTRAN code can not compile so this needs special treatment
-                    line = self.FORT_replace(line,"|PWD|", os.path.abspath(os.path.join(self.dir_csm, os.pardir)))
-                    line = self.FORT_replace(line,"|CSM_dir|", self.settings["working_directory"].GetString())
+                    line = self.FORT_replace(line, "|PWD|", os.path.abspath(os.path.join(self.dir_csm, os.pardir)))
+                    line = self.FORT_replace(line, "|CSM_dir|", self.settings["working_directory"].GetString())
                     if "|" in line:
                         raise ValueError(f"The following line in USRInit.f still contains a \"|\" after substitution: \n \t{line} \n Probably a parameter was not subsituted")
                     outfile.write(line)
@@ -182,7 +192,6 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     line = self.FORT_replace(line, "|CSM_dir|", self.settings["working_directory"].GetString())
                     if "|" in line:
                         raise ValueError(f"The following line in USR.f still contains a \"|\" after substitution: \n \t{line} \n Probably a parameter was not subsituted")
-
                     outfile.write(line)
 
         # compile Abaqus USR.f
@@ -211,7 +220,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             for i in range(self.n_surfaces):
                 if self.surfaceIDs[i] in key:
                     mp.thread_name = self.surfaceIDs[i]
-                    mp.thread_id = self.thread_ids[i] #This is just a number from 0 to n_surfaces
+                    mp.thread_id = self.thread_ids[i]  # This is just a number from 0 to n_surfaces
                     if 'thread_id' not in dir(mp):
                         raise AttributeError('Could not find thread id corresponding to key')
                 else:
@@ -241,12 +250,12 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             if faces.shape[1] != self.dimensions + 2:
                 raise ValueError(f'given dimension does not match coordinates')
 
-            #get load point coordinates and id's of load points
+            # get load point coordinates and ids of load points
             prev_elem = 0
             prev_lp = 0
-            ids_tmp = np.zeros(n_elem*n_lp).astype(str) #create string ids element_loadpoint
-            coords_tmp = np.zeros((n_elem*n_lp,3)).astype(float) #Framework also requires z-coordinate which is 0.0 for 2D
-            for i in range(0,n_elem*n_lp):
+            ids_tmp = np.zeros(n_elem*n_lp).astype(str)  # create string ids element_loadpoint
+            coords_tmp = np.zeros((n_elem*n_lp, 3)).astype(float)  # Framework also requires z-coordinate which is 0.0 for 2D
+            for i in range(0, n_elem*n_lp):
                 elem = int(faces[i, 0])
                 lp = int(faces[i, 1])
                 if elem < prev_elem:
@@ -259,7 +268,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     raise ValueError(f"lp ({lp}) exceeds the number of load points per element {n_lp}")
 
                 ids_tmp[i] = f"{elem}_{lp}"
-                coords_tmp[i,:self.dimensions]=faces[i,-self.dimensions:] #extract last "dimensions" columns from the file
+                coords_tmp[i, :self.dimensions] = faces[i, -self.dimensions:]  # extract last "dimensions" columns from the file
 
                 prev_elem = elem
                 prev_lp = lp
@@ -271,26 +280,26 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
 
         # add Nodes to output ModelParts (surface_points)
         # first line is a header, remaining lines are x, y (and z) coordinates
-        #abaqus does not use node id's but maintains the output order
+        # Abaqus does not use node ids but maintains the output order
         for key in self.settings['interface_output'].keys():
             mp = self.model[key]
             # read in Nodes file for surface nodes
             tmp = f'CSM_Time{self.timestep_start}Surface{mp.thread_id}Nodes.dat'
             nodes_file = join(self.dir_csm, tmp)
-            nodes = np.loadtxt(nodes_file,skiprows=1)
+            nodes = np.loadtxt(nodes_file, skiprows=1)
 
             if nodes.shape[1] != self.dimensions:
                 raise ValueError(f'given dimension does not match coordinates')
 
-            # get surface node coordinates and id's
+            # get surface node coordinates and ids
             n_nodes = nodes.shape[0]
             ids_tmp = np.zeros(n_nodes).astype(str)
 
             coords_tmp = np.zeros((n_nodes, 3)).astype(float)  # Framework also requires z-coordinate which is 0.0 for 2D
 
-            for i in range(0,n_nodes):
-                ids_tmp[i]=str(i)
-                coords_tmp[i,:self.dimensions]=nodes[i,:]
+            for i in range(0, n_nodes):
+                ids_tmp[i] = str(i)
+                coords_tmp[i, :self.dimensions] = nodes[i, :]
 
             # create Nodes for surface points
             for i in range(ids_tmp.size):
@@ -332,13 +341,13 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         # Run Abaqus and check for (licensing) errors
         bool_completed = 0
         attempt = 0
-        while bool_completed==0 and attempt < 10000:
-            attempt+=1
+        while not bool_completed and attempt < 10000:
+            attempt += 1
             if attempt > 1:
                 print(f"Warning attempt {attempt-1} in AbaqusSolver failed, new attempt in one minute")
                 time.sleep(60)
                 print(f"Starting attempt {attempt}")
-            if self.timestep==1:
+            if self.timestep:
                 cmd1 = f"export PBS_NODEFILE=AbaqusHosts.txt && unset SLURM_GTIDS"
                 cmd2 = f"abaqus job=CSM_Time{self.timestep} input=CSM_Time{self.timestep - 1}" \
                     f" cpus={self.cores} output_precision=full interactive >> AbaqusSolver.log 2>&1"
@@ -351,23 +360,23 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                 commands = [cmd1, cmd2]
                 self.run_shell(self.dir_csm, commands, name='Abaqus_Calculate')
 
-            #Check log for completion and or errors
+            # Check log for completion and or errors
             cmd = "tail -n 10 AbaqusSolver.log > Temp_log.coco"
             self.run_shell(self.dir_csm, [cmd], name='Temp_log')
-            templog = os.path.join(self.dir_csm,"Temp_log.coco")
+            templog = os.path.join(self.dir_csm, "Temp_log.coco")
             bool_lic = 1
-            with open(templog,"r") as fp:
+            with open(templog, "r") as fp:
                 for line in fp:
-                    if any(x in line for x in ["Licensing error","license error","Error checking out Abaqus license"]):
+                    if any(x in line for x in ["Licensing error", "license error", "Error checking out Abaqus license"]):
                         bool_lic = 0
-            if bool_lic == 0:
+            if not bool_lic:
                 print("Abaqus licensing error")
-            elif "COMPLETED" in line: #Check final line for completed
+            elif "COMPLETED" in line:  # Check final line for completed
                 bool_completed = 1
-            elif (bool_lic == 1): #Final line did not contain "COMPLETED" but also no licensing erro detected
+            elif bool_lic:  # Final line did not contain "COMPLETED" but also no licensing error detected
                 raise RuntimeError("Abaqus did not COMPLETE, unclassified error, see AbaqusSolver.log for extra information")
 
-            #Append additional information to log file
+            # Append additional information to log file
             cmd = f"tail -n 23 CSM_Time{self.timestep}.msg | head -n 15 | sed -e \'s/^[ \\t]*//\' >> AbaqusSolver.log 2>&1"
             self.run_shell(self.dir_csm, [cmd], name='Append_log')
 
@@ -381,7 +390,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             # read in Nodes file for surface nodes
             tmp = f'CSM_Time{self.timestep}Surface{mp.thread_id}Output.dat'
             disp_file = join(self.dir_csm, tmp)
-            disp = np.loadtxt(disp_file,skiprows=1)
+            disp = np.loadtxt(disp_file, skiprows=1)
 
             if disp.shape[1] != self.dimensions:
                 raise ValueError(f'given dimension does not match coordinates')
@@ -392,17 +401,16 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                 raise ValueError('number of nodes does not match size of data')
 
             ids_tmp = np.array(range(0, n_nodes)).astype(int).astype(str)
-            disp_tmp = np.zeros((n_nodes,3)) #also require z-input for 2D cases
-            disp_tmp[:,:self.dimensions]=disp
+            disp_tmp = np.zeros((n_nodes, 3))  # also require z-input for 2D cases
+            disp_tmp[:, :self.dimensions] = disp
 
-            index=0
+            index = 0
             for node in mp.Nodes:
                 if ids_tmp[index] != node.Id:
                     raise ValueError(f'node IDs do not match: {ids_tmp[index]}, {node.Id}')
 
                 node.SetSolutionStepValue(self.displacement, 0, disp_tmp[index, :].tolist())
                 index += 1
-
 
         return self.interface_output
 
@@ -454,15 +462,15 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                 file = join(self.dir_csm, file_name)
                 os.remove(file)
 
-    def makeElements(self,face_file, output_file):
+    def makeElements(self, face_file, output_file):
         firstLoop = 1
-        element = 0
+        # element = 0
         element_prev = -1
-        point = 0
-        point_prev =-1
+        # point = 0
+        point_prev = -1
         element_0 = -1
         point_0 = -1
-        count=0
+        count = 0
         element_str = ""
 
         with open(face_file, 'r') as file:
@@ -483,16 +491,15 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                         element_prev = element
                         element_str += str(element) + "\n"
                         count += 1
-                        if firstLoop: #Faces contains all values multiple times, but we only want it once
+                        if firstLoop:  # Faces contains all values multiple times, but we only want it once
                             element_0 = element
                             point_0 = point
                             firstLoop = 0
                     else:
-                        raise ValueError(
-                            f"loadpoint number does not start at 1 for element {element}")
+                        raise ValueError(f"loadpoint number does not start at 1 for element {element}")
 
         element_str = f"{count}\n{point_prev}\n" + element_str
-        with open(output_file,"w") as file:
+        with open(output_file, "w") as file:
             file.write(element_str)
 
     def run_shell(self, work_dir, commands, wait=True, name='script', delete=True):
@@ -512,8 +519,8 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         return p
 
     def FORT_replace(self, line, orig, new):
-        '''The length of a line in FORTRAN 77 is limited, replacing working directories can exceed this limiet
-        This functions splits these strings over multiple lines'''
+        """The length of a line in FORTRAN 77 is limited, replacing working directories can exceed this limiet
+        This functions splits these strings over multiple lines"""
 
         ampersand_location = 6
         char_limit = 72
