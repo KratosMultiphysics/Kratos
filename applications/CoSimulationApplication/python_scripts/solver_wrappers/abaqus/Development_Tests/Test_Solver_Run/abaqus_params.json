@@ -25,7 +25,8 @@
                     "BEAMINSIDEMOVING_nodes": "DISPLACEMENT"
                 },
                 "mp_mode": "THREADS",
-                "input_file": "Base.inp"
+                "input_file": "Base.inp",
+                "save_iterations": 50
             }
         }
     ]

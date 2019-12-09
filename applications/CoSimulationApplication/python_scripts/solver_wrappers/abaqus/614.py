@@ -43,6 +43,8 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                                             displacements)
                     mp_mode                 Mode of the parallel computing (currently only THREADS is accepted)
                     input_file              Name of the file in which the Abaqus case is defined
+                    save_iterations         number of timesteps between consecutive saves of Abaqus-files
+
         """
 
         self.settings = parameters['settings']
@@ -388,17 +390,17 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         for key in self.settings['interface_output'].keys():
             mp = self.model[key]
             # read in Nodes file for surface nodes
-            tmp = f'CSM_Time{self.timestep}Surface{mp.thread_id}Output.dat'
+            tmp = f"CSM_Time{self.timestep}Surface{mp.thread_id}Output.dat"
             disp_file = join(self.dir_csm, tmp)
             disp = np.loadtxt(disp_file, skiprows=1)
 
             if disp.shape[1] != self.dimensions:
-                raise ValueError(f'given dimension does not match coordinates')
+                raise ValueError(f"given dimension does not match coordinates")
 
             # get surface node displacements
             n_nodes = disp.shape[0]
             if n_nodes != mp.NumberOfNodes():
-                raise ValueError('number of nodes does not match size of data')
+                raise ValueError("number of nodes does not match size of data")
 
             ids_tmp = np.array(range(0, n_nodes)).astype(int).astype(str)
             disp_tmp = np.zeros((n_nodes, 3))  # also require z-input for 2D cases
@@ -407,7 +409,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             index = 0
             for node in mp.Nodes:
                 if ids_tmp[index] != node.Id:
-                    raise ValueError(f'node IDs do not match: {ids_tmp[index]}, {node.Id}')
+                    raise ValueError(f"node IDs do not match: {ids_tmp[index]}, {node.Id}")
 
                 node.SetSolutionStepValue(self.displacement, 0, disp_tmp[index, :].tolist())
                 index += 1
@@ -416,12 +418,19 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
-        print("FinalizeSolutionStep: Should still be implemented and should clean up files if necessary")
+        if self.timestep and not (self.timestep-1) % self.settings['save_iterations'].GetInt():
+            to_be_removed_suffix = [".com", ".dat", ".mdl", ".msg", ".odb", ".prt", ".res", ".sim", ".sta", ".stt",
+                                    "Surface0Cpu0Input.dat", "Surface0Output.dat"]
+            cmd = []
+            for suffix in to_be_removed_suffix:
+                cmd.append(f"rm CSM_Time{self.timestep - 1}{suffix}")
+        self.run_shell(self, self.dir_csm, cmd, name="Remove_previous")
+        print("FinalizeSolutionStep")
 
     def Finalize(self):
         super().Finalize()
         self.remove_all_messages()
-        print('Finalize')
+        print("Finalize")
 
     def GetInterfaceInput(self):
         return self.interface_input.deepcopy()
