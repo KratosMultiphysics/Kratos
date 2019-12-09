@@ -47,6 +47,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Cotire
 if(USE_COTIRE MATCHES ON)
+    cotire(KratosMultilevelMonteCarloCore)
     cotire(KratosMultilevelMonteCarloApplication)
 endif(USE_COTIRE MATCHES ON)
 
@@ -70,6 +71,7 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
+install(TARGETS KratosMultilevelMonteCarloCore DESTINATION libs )
 install(TARGETS KratosMultilevelMonteCarloApplication DESTINATION libs )
 
 # Install pycompss mockup lib
