@@ -52,9 +52,9 @@ namespace Kratos
     ///@name Kratos Classes
     ///@{
 
-    /// Statistics to update power sums of a specific variable on the nodes of the model part
+    /// Statistic utilities to update power sums of a specific variable on the nodes of the model part
     /**
-     * This statistic updates the power sums of a given variable on the nodes of a given model part.
+     * This statistic utilities updates the power sums of a given variable on the nodes of a given model part.
      * The power sum S of order a is defined as S_a = sum_{i=1}^M (u_i)^a ,
      * where u is the variable of interest.
      */
@@ -179,7 +179,6 @@ namespace Kratos
         ///@{
 
         const ModelPart& mrModelPart;
-        double mOrder;
         std::string mReferenceVariable;
 
         ///@}
