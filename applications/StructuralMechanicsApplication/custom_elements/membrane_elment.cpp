@@ -1042,6 +1042,49 @@ void MembraneElement::CalculateAndAddBodyForce(VectorType& rRightHandSideVector)
     KRATOS_CATCH("")
 }
 
+void MembraneElement::PrincipleVector(Vector& rPrincipleVector, const Vector& rNonPrincipleVector)
+{
+    // make sure to divide rNonPrincipleVector[2]/2 if strains are passed
+    rPrincipleVector = ZeroVector(2);
+    rPrincipleVector[0] = 0.50 * (rNonPrincipleVector[0]+rNonPrincipleVector[1]) + std::sqrt(0.25*(std::pow(rNonPrincipleVector[0]-rNonPrincipleVector[1],2.0)) + std::pow(rNonPrincipleVector[2],2.0));
+    rPrincipleVector[1] = 0.50 * (rNonPrincipleVector[0]+rNonPrincipleVector[1]) - std::sqrt(0.25*(std::pow(rNonPrincipleVector[0]-rNonPrincipleVector[1],2.0)) + std::pow(rNonPrincipleVector[2],2.0));
+}
+
+void MembraneElement::CheckWrinklingState(array_1d<bool,3>& rWrinklingStateArray, const Vector& rStress, const Vector& rStrain)
+{
+    // rWrinklingStateArray (taut,wrinkled,slack)
+    const double numerical_limit = std::numeric_limits<double>::epsilon();
+
+    Vector principle_strains = ZeroVector(2);
+    Vector temp_strains = ZeroVector(3);
+    temp_strains = rStrain;
+    temp_strains[2] /= 2.0; // normalize voigt strain vector to calcualte principle strains
+    PrincipleVector(principle_strains,temp_strains);
+
+
+    Vector principle_stresses = ZeroVector(2);
+    PrincipleVector(principle_stresses,rStress);
+
+    const double min_stress = std::min(principle_stresses[0],principle_stresses[1]);
+    const double max_strain = std::max(principle_strains[0],principle_strains[1]);
+
+    if (min_stress > 0.0){
+        rWrinklingStateArray[0] = true;
+        rWrinklingStateArray[1] = false;
+        rWrinklingStateArray[2] = false;
+    } else if ((max_strain > 0.0) && (min_stress < numerical_limit)){
+        rWrinklingStateArray[0] = false;
+        rWrinklingStateArray[1] = true;
+        rWrinklingStateArray[2] = false;
+    } else if (max_strain<numerical_limit){
+        rWrinklingStateArray[0] = false;
+        rWrinklingStateArray[1] = false;
+        rWrinklingStateArray[2] = true;
+    }
+    else KRATOS_ERROR << "error in principle direction calcualtion of membrane element with id " << Id() << std::endl;
+
+}
+
 //***********************************************************************************
 //***********************************************************************************
 int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)

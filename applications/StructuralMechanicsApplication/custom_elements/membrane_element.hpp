@@ -203,6 +203,10 @@ namespace Kratos
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
+    void PrincipleVector(Vector& rPrincipleVector, const Vector& rNonPrincipleVector);
+
+    void CheckWrinklingState(array_1d<bool,3>& rWrinklingStateArray, const Vector& rStress, const Vector& rStrain);
+
 protected:
   ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
