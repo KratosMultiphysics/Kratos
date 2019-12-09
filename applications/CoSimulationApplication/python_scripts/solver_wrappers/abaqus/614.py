@@ -419,10 +419,8 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         print("FinalizeSolutionStep: Should still be implemented and should clean up files if necessary")
 
     def Finalize(self):
-        # super().Finalize()
-        # self.send_message('stop')
-        # self.wait_message('stop_ready')
-        # self.fluent_process.wait()
+        super().Finalize()
+        self.remove_all_messages()
         print('Finalize')
 
     def GetInterfaceInput(self):

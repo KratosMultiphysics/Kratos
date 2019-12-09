@@ -38,12 +38,12 @@ with open(parameter_file_name, 'r') as parameter_file:
 
 # Create the solver (__init__)
 print("Creating an AbaqusSolver")
-AbaqusSolver0  = cs_tools.CreateInstance(parameters["solver_wrappers"][0])
-print_colored("AbaqusSolver0 created","green")
+AbaqusSolver0 = cs_tools.CreateInstance(parameters["solver_wrappers"][0])
+print_colored("AbaqusSolver0 created", "green")
 
 # Assign loads to the Input-Nodes
 # give value to DISPLACEMENT variable
-mp = AbaqusSolver0.model['BEAMINSIDEMOVING_load_points'] #interface input modelpart
+mp = AbaqusSolver0.model['BEAMINSIDEMOVING_load_points']  # interface input modelpart
 pressure = vars(KM)['PRESSURE']
 traction = vars(KM)['TRACTION']
 p = 10000
@@ -51,18 +51,18 @@ for node in mp.Nodes:
     # Domain extends from Y -0.025 to 0.025, default x-position is 0.005
     # print(node.Y)
     node.SetSolutionStepValue(pressure, 0, p)
-    node.SetSolutionStepValue(traction, 0, [0,0,0])
+    node.SetSolutionStepValue(traction, 0, [0, 0, 0])
 print(f"Assigned uniform pressure ({p} Pa) and 0 traction at the interface ")
 
 AbaqusSolver0.Initialize()
 
-#Step 1, Coupling 1
+# Step 1, Coupling 1
 AbaqusSolver0.InitializeSolutionStep()
 AbaqusSolver0.SolveSolutionStep(AbaqusSolver0.GetInterfaceInput())
 
 os.system("cp -r CSM/CSM_Time1.odb CSM/CSM_Time1_Iter1.odb")
 
-#Step 1, Coupling 2
+# Step 1, Coupling 2
 AbaqusSolver0.SolveSolutionStep(AbaqusSolver0.GetInterfaceInput())
 AbaqusSolver0.FinalizeSolutionStep()
 
@@ -72,11 +72,11 @@ AbaqusSolver0.SolveSolutionStep(AbaqusSolver0.GetInterfaceInput())
 AbaqusSolver0.FinalizeSolutionStep()
 
 #Iterate until deformation is approximately steady
-mp_out = AbaqusSolver0.model['BEAMINSIDEMOVING_nodes'] #interface input modelpart
+mp_out = AbaqusSolver0.model['BEAMINSIDEMOVING_nodes']  # interface input modelpart
 displacement = vars(KM)['DISPLACEMENT']
 
 n_out = mp_out.NumberOfNodes()
-prev_displacement = np.zeros((n_out,3))*0.
+prev_displacement = np.zeros((n_out, 3))*0.
 diff = np.zeros((n_out,3))*0.
 tol = 1e-06
 diffMax = 1000
@@ -86,8 +86,8 @@ while diffMax > tol:
     AbaqusSolver0.FinalizeSolutionStep()
     diffMax = 0
     for node in mp_out.Nodes:
-        diff = np.linalg.norm(np.array(node.GetSolutionStepValue(displacement))-prev_displacement[int(node.Id),:])
-        prev_displacement[int(node.Id),:] = np.array(node.GetSolutionStepValue(displacement))
+        diff = np.linalg.norm(np.array(node.GetSolutionStepValue(displacement))-prev_displacement[int(node.Id), :])
+        prev_displacement[int(node.Id), :] = np.array(node.GetSolutionStepValue(displacement))
         if diff > diffMax:
             diffMax = diff
     print(diffMax)
