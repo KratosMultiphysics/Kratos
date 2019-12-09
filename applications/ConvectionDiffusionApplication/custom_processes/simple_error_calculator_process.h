@@ -215,29 +215,24 @@ private:
     ///@{
 
     /**
-     * @brief This method computes the Error Ratio and Writes it to the nodes/elements
-     */
-    void ErrorEstimatorImplementation();
-
-    /**
      * @brief This method computes the temperature gradient at nodes using the ShapeFunctions
      */
-    void CalculateNodalTempGradient();
+    void CalculateNodalTempGradient(Vector& nodal_area);
 
     /**
      * @brief This method computes the Nodal Area for the nodes in the Model Part
      */
-    void CalculateNodalArea(BoundedVector<double>& nodal_area);
+    void CalculateNodalArea(Vector& nodal_area);
     
     /**
      * @brief This method computes the Nodal error between the C1 and C0 continuous definitions
      */
-    void CalculateNodalError();
+    void CalculateNodalError(Vector& nodal_area);
 
     /**
      * @brief In this final step the metric is computed for MMGProcess
      */
-    void CalculateMetricScalar();
+    //void CalculateMetricScalar();
 
     ///@}
     ///@name Private  Access
