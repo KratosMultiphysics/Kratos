@@ -1,0 +1,14 @@
+{
+    "settings":
+    {
+        "data_structure" : "pyKratos"
+    },
+    "mapper" :
+    {
+        "type": "mappers.permutation",
+        "settings":
+        {
+            "permutation" : [1, 0, 2]
+        }
+    }
+}
