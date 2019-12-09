@@ -223,6 +223,11 @@ private:
      * @brief This method computes the temperature gradient at nodes using the ShapeFunctions
      */
     void CalculateNodalTempGradient();
+
+    /**
+     * @brief This method computes the Nodal Area for the nodes in the Model Part
+     */
+    void CalculateNodalArea(BoundedVector<double>& nodal_area);
     
     /**
      * @brief This method computes the Nodal error between the C1 and C0 continuous definitions

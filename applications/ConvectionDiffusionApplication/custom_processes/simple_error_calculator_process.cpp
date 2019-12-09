@@ -104,6 +104,9 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalTempGradient()
     const auto it_elem_begin = elements_array.begin();
     const auto it_node_begin = nodes_array.begin();
     BoundedMatrix<double, number_nodes, 3> nodal_grad = ZeroMatrix(number_nodes, 3);
+    BoundedVector<double, number_nodes> nodal_area = ZeroVector(number_nodes);
+
+    CalculateNodalArea(nodal_area);
  
     // Loop over the elements
     for (unsigned int i_elem = 0; i_elem < number_elements; ++i_elem) {
@@ -115,29 +118,14 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalTempGradient()
         Vector DetJ;
         Matrix ShapeFunctions;
         ShapeFunctionDerivativesArrayType ShapeDerivatives;
-
-        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_1);
-        const unsigned int NumGPoints = integration_points.size();
-
-        r_geometry.ShapeFunctionsIntegrationPointsGradients(ShapeDerivatives, DetJ, GeometryData::GI_GAUSS_1);
-        
-        if (ShapeFunctions.size1() != NumGPoints || ShapeFunctions.size2() != n_nodes) {
-            ShapeFunctions.resize(NumGPoints, n_nodes, false);
-        }
-        ShapeFunctions = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
-
-        if (GaussWeights.size() != NumGPoints) {
-            GaussWeights.resize(NumGPoints, false);
-        }
+        CalculateGeomData(r_geometry, ShapeFunctions, ShapeDerivatives, DetJ, GaussWeights);
         
         for (unsigned int g = 0; g < NumGPoints; g++) {
-            GaussWeights[g] = DetJ[g] * integration_points[g].Weight();
             const auto& rDN_DX = ShapeDerivatives[g];
-            //const auto& Ncontainer = ShapeFunctions[g];
             const Vector& Ncontainer = row(ShapeFunctions, g);
 
-            std::vector<double,TDim> GaussPointTGrad;
-            for (unsigned int k = 0; k < TDim; k++) {
+            Vector GaussPointTGrad(3);
+            for (unsigned int k = 0; k < 3; k++) {
                 GaussPointTGrad[k] = 0.0;
             }
 
@@ -149,14 +137,8 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalTempGradient()
             }
 
             for (int i_node = 0; i_node < n_nodes; i_node++) {
-                if (TDim == 2) {
-                    nodal_grad(r_geometry[i_node].Id()-1, 0) += Ncontainer[i_node]*GaussPointTGrad[0]/rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
-                    nodal_grad(r_geometry[i_node].Id()-1, 1) += Ncontainer[i_node]*GaussPointTGrad[1]/rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
-                }
-                else if (TDim == 3) {
-                    nodal_grad(r_geometry[i_node].Id()-1, 0) += Ncontainer[i_node]*GaussPointTGrad[0]/rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
-                    nodal_grad(r_geometry[i_node].Id()-1, 1) += Ncontainer[i_node]*GaussPointTGrad[1]/rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
-                    nodal_grad(r_geometry[i_node].Id()-1, 2) += Ncontainer[i_node]*GaussPointTGrad[2]/rgeometry[i_node].FastGetSolutionStepValue(NODAL_AREA);
+                for (int j = 0; j < TDim; j++) {
+                    nodal_grad(r_geometry[i_node].Id()-1, j) += Ncontainer[i_node]*GaussPointTGrad[j]/nodal_area[r_geometry[i_node].Id()-1];
                 }
             } 
         }                
@@ -164,12 +146,15 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalTempGradient()
 
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-        (it_node_begin + i)->SetValue(NODAL_TEMP_GRADIENT_X, nodal_grad(i,0));
-        (it_node_begin + i)->SetValue(NODAL_TEMP_GRADIENT_Y, nodal_grad(i,1));
-        (it_node_begin + i)->SetValue(NODAL_TEMP_GRADIENT_Z, nodal_grad(i,2));
+        array_1d<double>& nodal_temp_grad = (it_node_begin + i)->FastGetSolutionStepValue(NODAL_TEMP_GRADIENT);
+        nodal_temp_grad = nodal_grad[i];
+        //(it_node_begin + i)->SetValue(NODAL_TEMP_GRADIENT_X, nodal_grad(i,0));
+        //(it_node_begin + i)->SetValue(NODAL_TEMP_GRADIENT_Y, nodal_grad(i,1));
+        //(it_node_begin + i)->SetValue(NODAL_TEMP_GRADIENT_Z, nodal_grad(i,2));
     }
 
 }
+
 template<SizeType TDim>
 void SimpleErrorCalculatorProcess<TDim>::CalculateNodalError()
 {
@@ -203,32 +188,17 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalError()
         Vector DetJ;
         Matrix ShapeFunctions;
         ShapeFunctionDerivativesArrayType ShapeDerivatives;
-
-        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_1);
-        const unsigned int NumGPoints = integration_points.size();
-
-        r_geometry.ShapeFunctionsIntegrationPointsGradients(ShapeDerivatives, DetJ, GeometryData::GI_GAUSS_1);
-        
-        if (ShapeFunctions.size1() != NumGPoints || ShapeFunctions.size2() != n_nodes) {
-            ShapeFunctions.resize(NumGPoints, n_nodes, false);
-        }
-        ShapeFunctions = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
-
-        if (GaussWeights.size() != NumGPoints) {
-            GaussWeights.resize(NumGPoints, false);
-        }    
+        CalculateGeomData(r_geometry, ShapeFunctions, ShapeDerivatives, DetJ, GaussWeights);
         
         for (unsigned int g = 0; g < NumGPoints; g++) {
-            GaussWeights[g] = DetJ[g] * integration_points[g].Weight();
             const auto& rDN_DX = ShapeDerivatives[g];
-            //const auto& Ncontainer = ShapeFunctions[g];
             const Vector& Ncontainer = row(ShapeFunctions, g);
 
             GlobalOmega += GaussWeights[g];
 
-            std::vector<double,TDim> GaussPointTGrad;
-            std::vector<double,TDim> NodalTempGrad;
-            for (unsigned int k = 0; k < TDim; k++) {
+            Vector GaussPointTGrad(3);
+            Vector NodalTempGrad(3);
+            for (unsigned int k = 0; k < 3; k++) {
                 GaussPointTGrad[k] = 0.0;
                 NodalTempGrad[k] = 0.0;
             }
@@ -251,9 +221,6 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalError()
                     NodalTempGrad[0] += Ncontainer[i_node]*tempGrad[0];
                     NodalTempGrad[1] += Ncontainer[i_node]*tempGrad[1];
                     NodalTempGrad[2] += Ncontainer[i_node]*tempGrad[2];
-                    //NodalTempGrad[0] += Ncontainer[i_node]*r_geometry[i_node].GetValue(NODAL_TEMP_GRADIENT_X);
-                    //NodalTempGrad[1] += Ncontainer[i_node]*r_geometry[i_node].GetValue(NODAL_TEMP_GRADIENT_Y);
-                    //NodalTempGrad[2] += Ncontainer[i_node]*r_geometry[i_node].GetValue(NODAL_TEMP_GRADIENT_Z);
                 }
             }
 
@@ -264,9 +231,56 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalError()
         }
 
         for (unsigned int j = 0; j < TDim; j++) {
-            ElementErrorNormSquare[elem_index] += std::pow(ElementError(elem_index, j), 2);
+            ElementErrorNormSquare[elem_index] += ElementError(elem_index, j)*ElementError(elem_index, j);
         }
         GlobalErrorNormSquare += ElementErrorNormSquare[elem_index];
     }
 }
+
+template<SizeType TDim>
+void SimpleErrorCalculatorProcess<TDim>::CalculateNodalArea(BoundedVector<double>& nodal_area)
+{
+    // a) Obtain Nodes and Elements from Model Part
+    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    ElementsArrayType& elements_array = mrThisModelPart.Elements();
+
+    // b) Loop over Elements and calculate nodal area
+    const int number_nodes = static_cast<int>(nodes_array.size());
+    const int number_elements = static_cast<int>(elements_array.size());
+
+    const auto it_elem_begin = elements_array.begin();
+    for (unsigned int i_elem = 0; i_elem < number_elements; ++i_elem) {
+        auto it_elem = it_elem_begin + i_elem;
+        auto r_geometry = it_elem->GetGeometry();
+        const auto n_nodes = r_geometry.size();
+
+        for (unsigned int i_node = 0; i_node < n_nodes; i_node++) {
+            nodal_area[r_geometry[i_node].Id()-1] += + r_geometry.Area()/r_geometry.size();
+        }
+    }
+
+}
+
+template<SizeType TDim>
+void SimpleErrorCalculatorProcess<TDim>::CalculateGeomData(GeometryType& r_geom, Matrix& ShapeFunctions, ShapeFunctionDerivativesArrayType& ShapeDerivatives,Vector& DetJ, Vector& GaussWeights)
+{
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(GeometryData::GI_GAUSS_1);
+    const unsigned int NumGPoints = integration_points.size();
+
+    r_geom.ShapeFunctionsIntegrationPointsGradients(ShapeDerivatives, DetJ, GeometryData::GI_GAUSS_1);
+        
+    if (ShapeFunctions.size1() != NumGPoints || ShapeFunctions.size2() != n_nodes) {
+        ShapeFunctions.resize(NumGPoints, n_nodes, false);
+    }
+    ShapeFunctions = r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+
+    if (GaussWeights.size() != NumGPoints) {
+        GaussWeights.resize(NumGPoints, false);
+    }
+
+    for (unsigned int g = 0; g < NumGPoints; g++) {
+        GaussWeights[g] = DetJ[g] * integration_points[g].Weight();
+    }
+}
+
 }
