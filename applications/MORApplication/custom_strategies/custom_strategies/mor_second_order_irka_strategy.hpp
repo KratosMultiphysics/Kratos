@@ -30,7 +30,8 @@
 // includes for linear solver factory
 #include "factories/linear_solver_factory.h"
 #include "includes/kratos_parameters.h"
-// #include "linear_solvers/iterative_solver.h"
+
+// include the eigensolver
 #include "custom_solvers/gen_eigensystem_solver.h"
 
 #include "omp.h"
@@ -105,8 +106,6 @@ class MorSecondOrderIRKAStrategy
 
     typedef typename BaseType::TSchemeType TSchemeType;
 
-    //typedef typename BaseType::DofSetType DofSetType;
-
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
@@ -121,7 +120,6 @@ class MorSecondOrderIRKAStrategy
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-
     typedef typename ComplexSparseSpaceType::MatrixType TSolutionMatrixType;
 
     typedef typename ComplexSparseSpaceType::MatrixPointerType TSolutionMatrixPointerType;
@@ -135,7 +133,6 @@ class MorSecondOrderIRKAStrategy
     typedef LinearSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexLinearSolverType;
 
     typedef SystemMatrixBuilderAndSolver< ComplexSparseSpaceType, ComplexDenseSpaceType, ComplexLinearSolverType > TComplexBuilderAndSolverType;
-
 
     typedef Preconditioner<SparseSpaceType, DenseSpaceType> PreconditionerType;
     typedef Reorderer<SparseSpaceType, DenseSpaceType> ReordererType;
@@ -161,12 +158,10 @@ class MorSecondOrderIRKAStrategy
     MorSecondOrderIRKAStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
-        Parameters param,
-        //typename ComplexLinearSolverType::Pointer pNewComplexLinearSolver,
-        //typename TLinearSolver::Pointer pNewLinearEigenSolver,
-        vector< double > samplingPoints_real,
-        vector< double > samplingPoints_imag,
+        typename TLinearSolver::Pointer pNewLinearSolver,  // only for the builder and solver for the full sized system
+        Parameters param,                                  // settings for the eigensolver 
+        vector< double > samplingPoints_real,              // real part of initial expansion points
+        vector< double > samplingPoints_imag,              // imaginary part of initial expansion points
         bool MoveMeshFlag = false)
         : BaseType(rModelPart, pScheme, pNewLinearSolver, MoveMeshFlag), mParam(param)
     {
@@ -200,21 +195,17 @@ class MorSecondOrderIRKAStrategy
         this->SetRebuildLevel(0);
 
         // Set members
-        //TODO: let pybind11 do the conversion
+        // store the real and imaginary parts of the initial expansion points into a complex vector
         mSamplingPoints.resize(samplingPoints_real.size());
         for(size_t i=0; i<samplingPoints_real.size(); i++)
         {
             mSamplingPoints(i) = complex( samplingPoints_real(i), samplingPoints_imag(i) );
         }
 
-        //mpComplexLinearSolver = pNewComplexLinearSolver;
-        //mpLinearEigenSolver = pNewLinearEigenSolver;
-
         mpM = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
         mpK = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
         mpD = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
         mpb = ComplexSparseSpaceType::CreateEmptyVectorPointer();
-
 
         KRATOS_CATCH("");
     }
@@ -333,30 +324,14 @@ class MorSecondOrderIRKAStrategy
         TSparseSpace::SetToZero(r_Vr_sparse);
         // sparse version for the orthogonalized form
 
-        // initialize helper variables for V
-        // only in serial version
-        // // auto  tmp_Vn_ptr = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
-        // // auto& r_tmp_Vn   = *tmp_Vn_ptr;
-        // // ComplexSparseSpaceType::Resize(r_tmp_Vn, system_size, system_size); // n x n
-        // // TUblasSparseSpace<complex>::SetToZero(r_tmp_Vn);
-        
-        // only in serial version
-        // // auto  tmp_Vr_col_ptr = ComplexDenseSpaceType::CreateEmptyVectorPointer();
-        // // auto& r_tmp_Vr_col   = *tmp_Vr_col_ptr;
-        // // ComplexDenseSpaceType::Resize(r_tmp_Vr_col, system_size); // n x 1
-        // // ComplexDenseSpaceType::Set(r_tmp_Vr_col, 0.0); // set vector to zero
 
-        // initialize the complex solver
-        //mpComplexLinearSolver->Initialize( r_tmp_Vn, r_tmp_Vr_col, r_b);    //check if init also increases speed in loop
-
-
+        // settings for the complex solver
         Parameters compl_solve_params(R"(
         {
             "solver_type": "skyline_lu_complex"
         }
         )");
 
-        //std::cout<<"max threads: "<<omp_get_max_threads()<<std::endl;
         
         double start_solve_par_first = OpenMPUtils::GetCurrentTime();
         // build V
@@ -386,42 +361,33 @@ class MorSecondOrderIRKAStrategy
             for(size_t i=0; i < n_sampling_points/2; ++i)
             {
                 int tid = omp_get_thread_num();
-                //#pragma omp critical
-                //std::cout<<" --- Thread "<<tid<<" sampling point "<<mSamplingPoints(2*i)<<std::endl;
                 // intermediate result
                 r_tmp_Vn_par = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
 
                 // solve 
-                double solve_step_first = OpenMPUtils::GetCurrentTime();
+                double solve_step_first = OpenMPUtils::GetCurrentTime(); // measure solve time for each thread
                 compl_solver_par->Solve( r_tmp_Vn_par, r_tmp_Vr_col_par, r_b); // Ax = b, solve for x
                 double end_solve_step_first = OpenMPUtils::GetCurrentTime();
                 #pragma omp critical
                 std::cout<<" --- Thread " <<tid<<" solve step: "<<end_solve_step_first-solve_step_first<<" using sample "<<mSamplingPoints(2*i)<<std::endl;
 
                 // write the result to the correct positions
-                //double write_step_first = OpenMPUtils::GetCurrentTime();
                 column(r_Vr_dense, 2*i)   = real(r_tmp_Vr_col_par);
                 column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col_par);
-                //double end_write_step_first = OpenMPUtils::GetCurrentTime();
-                //#pragma omp critical
-                //std::cout<<" --- Thread " <<tid<<" write step: "<<end_write_step_first-write_step_first<<std::endl;
             }
         } // end of parallel part
 
-        //std::cout<<"parallel part passed"<<std::endl;
+        // time for parallel solve
         double end_solve_par_first = OpenMPUtils::GetCurrentTime();
             std::cout<<"-- par solve first: "<<end_solve_par_first-start_solve_par_first<<std::endl;
 
 
         //orthogonalize V
-        // TODO: if time left, replace by some orthogonlization method
         mQR_decomposition.compute( system_size, reduced_system_size, &(r_Vr_dense)(0,0) );
         mQR_decomposition.compute_q();
 
-        //#pragma omp parallel for schedule(dynamic)
         for(size_t i=0; i < system_size; ++i)
         {
-            //#pragma omp critical (otherame)
             for(size_t j=0; j < reduced_system_size; ++j)
             {
                 r_Vr_sparse(i,j) = mQR_decomposition.Q(i,j);
@@ -441,10 +407,6 @@ class MorSecondOrderIRKAStrategy
         SparseSpaceType::Resize(r_D_reduced, reduced_system_size, reduced_system_size); // r x r
         SparseSpaceType::Resize(r_b_reduced, reduced_system_size);                      // r x 1
 
-
-
-        // helper for auxiliary products
-        //TSystemMatrixType T; //TODO: define actual size for first temp prod (rxn)
 
         // initialize linearization matrices
         auto L1_ptr = SparseSpaceType::CreateEmptyMatrixPointer();
@@ -480,11 +442,9 @@ class MorSecondOrderIRKAStrategy
         auto& r_V_col   = *V_col;
         SparseSpaceType::Resize(r_V_col, system_size); // n x 1
 
-
         auto  T_col = SparseSpaceType::CreateEmptyVectorPointer();
         auto& r_T_col   = *T_col;
         SparseSpaceType::Resize(r_T_col, system_size); // n x 1
-
 
         TSystemVectorType tmp_col(reduced_system_size, 0.0); // r x 1
 
@@ -498,9 +458,6 @@ class MorSecondOrderIRKAStrategy
         // start iteration loop
         while(iter < max_iter && err > tol)
         {
-
-            //double start_projections = OpenMPUtils::GetCurrentTime();
-
 
             // projections onto the reduced space
             for(size_t i=0; i<reduced_system_size; i++){
@@ -520,13 +477,6 @@ class MorSecondOrderIRKAStrategy
             }
 
 
-            //double end_projections = OpenMPUtils::GetCurrentTime();
-            //std::cout<<"-- projections: "<<end_projections-start_projections<<std::endl;
-
-
-
-//            double start_ev_setup = OpenMPUtils::GetCurrentTime();
-
             // linearization of the quadratic eigenvalue problem to be solved using a GEP solver
             subrange(r_L1, 0, reduced_system_size, reduced_system_size, 2*reduced_system_size) = id_r;
             subrange(r_L1, reduced_system_size, 2*reduced_system_size, 0, reduced_system_size) = -1.0*r_K_reduced;
@@ -536,14 +486,7 @@ class MorSecondOrderIRKAStrategy
             subrange(r_L2, reduced_system_size, 2*reduced_system_size, reduced_system_size, 2*reduced_system_size) = r_M_reduced;
 
 
-            // double end_ev_setup = OpenMPUtils::GetCurrentTime();
-            // std::cout<<"-- ev setup: "<<end_ev_setup-start_ev_setup<<std::endl;
-
-
-//            double start_ev_solver = OpenMPUtils::GetCurrentTime();
-
             // output of this Solver is real (real parts and imaginary parts alternating)
-            //test_ev_solver_yay->Solve(
             mpLinearEigenSolver->Solve(
                 r_L1,
                 r_L2,
@@ -551,8 +494,6 @@ class MorSecondOrderIRKAStrategy
                 Eigenvectors
             );
 
-            // double end_ev_solver = OpenMPUtils::GetCurrentTime();
-            // std::cout<<"-- ev itself: "<<end_ev_solver-start_ev_solver<<std::endl;
 
             //store the Eigenvalues in a complex vector
             #pragma omp parallel for schedule(dynamic)
@@ -561,18 +502,12 @@ class MorSecondOrderIRKAStrategy
                 lam_2r(ii) = complex( Eigenvalues(2*ii), Eigenvalues(2*ii+1) );
             }
 
-    //        double start_conjug = OpenMPUtils::GetCurrentTime();
 
             // mirror the Eigenvalues and sort them after their real part in increasing order
             // conjugate pairs stay together, with the minus element being the first
             lam_2r *= -1;
             this->sort_conjugate_pairs(lam_2r);
 
-            // double end_conjug = OpenMPUtils::GetCurrentTime();
-            // std::cout<<"-- conjugagte sort: "<<end_conjug-start_conjug<<std::endl;
-
-
-   //         double start_error_calc = OpenMPUtils::GetCurrentTime();
 
             // reduce to r Eigenvalues so that the dimension of the reduced system does not increase
             // choose the r Eigenvalues which are closest to the imaginary axis (done by previous sorting)
@@ -602,15 +537,11 @@ class MorSecondOrderIRKAStrategy
 
             err = norm_2(abs_val_new - abs_val_old) / norm_2(samplingPoints_old);
 
-
-            // double end_error_calc = OpenMPUtils::GetCurrentTime();
-            // std::cout<<"-- error_calc: "<<end_error_calc-start_error_calc<<std::endl;
-
             // if the tolerance is already met, break here to avoid unnecessary computations
             if(err < tol) {break;}
 
 
-            double start_solve_par = OpenMPUtils::GetCurrentTime();
+            double start_solve_par = OpenMPUtils::GetCurrentTime(); // measure the time for the parallel solve block
 
             // update the old sampling points
             samplingPoints_old = mSamplingPoints;
@@ -651,30 +582,19 @@ class MorSecondOrderIRKAStrategy
                     // write the result to the correct positions
                     column(r_Vr_dense, 2*i) = real(r_tmp_Vr_col_par);
                     column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col_par);
-
-    //###################   for serial def
-                    // // r_tmp_Vn = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
-                    // // mpComplexLinearSolver->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b); // Ax = b, solve for x
-
-                    // // column(r_Vr_dense, 2*i) = real(r_tmp_Vr_col);
-                    // // column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col);
-
                 }
             } // end of parallel part
 
-                    std::cout<<"parallel part passed - iter "<<iter<<std::endl;
+            std::cout<<"parallel part passed - iter "<<iter<<std::endl;
 
             double end_solve_par = OpenMPUtils::GetCurrentTime();
             std::cout<<"-- par solve: "<<end_solve_par-start_solve_par<<std::endl;
 
 
-//            double start_qr_orth = OpenMPUtils::GetCurrentTime();
-
             // orthogonalize V
             mQR_decomposition.compute( system_size, reduced_system_size, &(r_Vr_dense)(0,0) );
             mQR_decomposition.compute_q();
 
-            //#pragma omp parallel for schedule(dynamic)
             for(size_t i=0; i < system_size; ++i)
             {
                 for(size_t j=0; j < reduced_system_size; ++j)
@@ -684,14 +604,10 @@ class MorSecondOrderIRKAStrategy
                 }
             }
 
-            // double end_qr_orth = OpenMPUtils::GetCurrentTime();
-            // std::cout<<"-- qr orthog.: "<<end_qr_orth-start_qr_orth<<std::endl;
-
             iter++;
         } // - end of loop
 
         // project the input vector onto the reduced space
-        //r_b_reduced = prod( trans(r_Vr_sparse), r_b_tmp);
         axpy_prod(r_b_tmp, r_Vr_sparse, r_b_reduced);  // br = V' b
 
 
@@ -702,8 +618,6 @@ class MorSecondOrderIRKAStrategy
   
         KRATOS_INFO_IF("IRKA", iter >= max_iter) << "Maximum number of iterations reached!"  << std::endl;
   
-        //KRATOS_WATCH(r_M_reduced)
-
         std::cout << "MOR offline solve finished" << std::endl;
 
 
@@ -744,7 +658,9 @@ class MorSecondOrderIRKAStrategy
         matrix_market_d_full << "D_full" << ".mm";
         TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_d_full.str()).c_str(), r_D_tmp, false);
         
+*/
 
+        // need for post processing
         std::stringstream matrix_market_b_full;
         matrix_market_b_full << "b_full" << ".mm";
         TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_b_full.str()).c_str(), r_b_tmp);
@@ -754,14 +670,13 @@ class MorSecondOrderIRKAStrategy
         std::stringstream matrix_market_vr;
         matrix_market_vr << "Vr" << ".mm";
         TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_vr.str()).c_str(), r_Vr_sparse, false);
-*/
+
    
         // store the time
         std::ofstream time_file;
         time_file.open("times.txt", std::ios::out | std::ios::app);
         time_file << duration << " seconds\n";
         time_file.close();
-
 
 
 
@@ -842,15 +757,12 @@ class MorSecondOrderIRKAStrategy
 
     vector< complex > mSamplingPoints;
     QR<double, row_major> mQR_decomposition;
-    //typename TLinearSolver::Pointer mpLinearEigenSolver;
     EigenSystemSolverType* mpLinearEigenSolver;
-    //ComplexLinearSolverType::Pointer mpComplexLinearSolver;
 
     TSolutionMatrixPointerType mpM; // mass matrix
     TSolutionMatrixPointerType mpK; // stiffness matrix
     TSolutionMatrixPointerType mpD; // damping matrix
     TSolutionVectorPointerType mpb; // RHS vector
-
 
 
     /**
@@ -887,7 +799,7 @@ class MorSecondOrderIRKAStrategy
 
 
         // tentative sort function, immitating cplxpair of Matlab
-        // needs to be optimized, but the size of mSamplingPoints, i.e. the reduced system size, is not so large anyway
+        // maybe needs to be optimized, but the size of mSamplingPoints, i.e. the reduced system size, is not so large anyway
         void sort_conjugate_pairs(vector<complex>& v)
         {
             vector<complex> tmp_v = v;

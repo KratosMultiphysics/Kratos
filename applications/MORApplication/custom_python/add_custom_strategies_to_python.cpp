@@ -13,19 +13,11 @@
 
 
 // System includes
-// #include <complex>
 
 // External includes
 #include <pybind11/pybind11.h>
 #include "boost/numeric/ublas/vector.hpp"
 
-//#include <pybind11/complex.h>
-
-// Trilinos includes
-//#include "/usr/include/trilinos/Epetra_FEVector.h"
-//include "Epetra_FEVector.h"
-//#include "trilinos_space.h"
-//#include "/home/matthias/Kratos/applications/TrilinosApplication/trilinos_space.h"
 
 // Project includes
 #include "includes/define_python.h"
@@ -48,12 +40,6 @@
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
 
-// //Test for manuelly converting complex Python lists to complex C++ vectors
-// std::vector<std::complex<double>> foo_convert(std::vector<std::complex<double>>& v)
-// {
-//     return v;
-// }
-
 
 namespace Kratos {
 namespace Python {
@@ -69,8 +55,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef TUblasSparseSpace<complex> ComplexSpaceType;
     typedef TUblasDenseSpace<complex> ComplexLocalSpaceType;
 
-    //typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-
     // Base types
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef LinearSolverType::Pointer LinearSolverPointer;
@@ -80,10 +64,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
 
-    //typedef LinearSolver<TrilinosSparseSpaceType, LocalSpaceType > TrilinosLinearSolverType;
-    //typedef TrilinosLinearSolverType::Pointer TrilinosLinearSolverPointer;
-
-
     // Custom strategy types
     typedef LinearMorMatrixOutputStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > LinearMorMatrixOutputStrategyType;
     typedef FrequencyResponseAnalysisStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType > FrequencyResponseAnalysisStrategyType;
@@ -91,10 +71,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef MorOfflineSecondOrderStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOfflineSecondOrderStrategyType;
 
     typedef MorSecondOrderKrylovStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorSecondOrderKrylovStrategyType;
-    //typedef MorSecondOrderIRKAStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType, TrilinosLinearSolverType > MorSecondOrderIRKAStrategyType;
     typedef MorSecondOrderIRKAStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorSecondOrderIRKAStrategyType;
-    //typedef MorSecondOrderIRKAStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType, LinearSolverType > MorSecondOrderIRKAStrategyType;
-
+    
     // Custom builder and solver types
     typedef SystemMatrixBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > SystemMatrixBuilderAndSolverType;
 
@@ -124,13 +102,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, vector<double>, bool >())
         ;
 
-    // py::class_< MorSecondOrderIRKAStrategyType, typename MorSecondOrderIRKAStrategyType::Pointer, MorOfflineSecondOrderStrategyType >(m,"MorSecondOrderIRKAStrategy")
-    //     .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, LinearSolverPointer, ComplexLinearSolverPointer, vector<double>, bool >())
-    //     ;
-
-    // py::class_< MorSecondOrderIRKAStrategyType, typename MorSecondOrderIRKAStrategyType::Pointer, MorOfflineSecondOrderStrategyType >(m,"MorSecondOrderIRKAStrategy")
-    //     .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ComplexLinearSolverPointer, LinearSolverPointer, vector<double>, vector<double>, Parameters, bool >())
-    //     ;
     py::class_< MorSecondOrderIRKAStrategyType, typename MorSecondOrderIRKAStrategyType::Pointer, MorOfflineSecondOrderStrategyType >(m,"MorSecondOrderIRKAStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, Parameters, vector<double>, vector<double>, bool >())
         ;

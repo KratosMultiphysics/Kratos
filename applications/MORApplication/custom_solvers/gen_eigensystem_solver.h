@@ -27,14 +27,11 @@
 #include "utilities/openmp_utils.h"
 #include "custom_utilities/ublas_wrapper.h"
 
-//#include "spaces/ublas_space.h"  // needed for TUblasSparseSpace to make it complex
 
 namespace Kratos
 {
-    //using complex = std::complex<double>;
 
 template<
-    //class TSolverType,
     class TSparseSpaceType, // = typename TSolverType::TGlobalSpace,
     class TDenseSpaceType, // = typename TSolverType::TLocalSpace,
     class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
@@ -52,12 +49,6 @@ class GenEigensystemSolver
     typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
 
     typedef typename TSparseSpaceType::VectorType VectorType;
-
-    // typedef TUblasSparseSpace<complex> ComplexSparseSpaceType;
-    // typedef TUblasDenseSpace<complex> ComplexDenseSpaceType;
-
-    // typedef typename ComplexSparseSpaceType::VectorType ComplexVectorType;
-    // typedef typename ComplexSparseSpaceType::VectorType ComplexDenseVectorType;
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
@@ -96,7 +87,7 @@ class GenEigensystemSolver
     {
     //Problem regarding complex output:
     // // // when changing the type to complex, the base function cannot be called
-    // // // als when ommitting the override it does not work
+    // // // also when ommitting the override it does not work
     // // // maybe the linear solver base clase has to be adjusted
     // //     void Solve(
     // //     SparseMatrixType& rK,
@@ -114,7 +105,7 @@ class GenEigensystemSolver
         const int max_iteration = BaseType::GetMaxIterationsNumber();
         const double tolerance = BaseType::GetTolerance();
         const int echo_level = mParam["echo_level"].GetInt();
-        //const int normalization_needed = mParam["normalize_eigenvectors"].GetBool();   //currently not implemented! TODO:
+        //const int normalization_needed = mParam["normalize_eigenvectors"].GetBool();   //currently not implemented!
         const int eigenvectors_needed = mParam["compute_eigenvectors"].GetBool();
 
         // --- wrap ublas matrices
@@ -133,7 +124,6 @@ class GenEigensystemSolver
 
         // --- calculation
 
-        // TODO: check which is best in terms of time/memory
         // constructor which does not allocate the sizes in eig; needs resizing when calling eig.compute()
         Eigen::GeneralizedEigenSolver<matrix_t> eig;
         eig.setMaxIterations(max_iteration);
@@ -145,7 +135,7 @@ class GenEigensystemSolver
 
         // constructor which allocates storage needed in eig
         // however based on the code it gets resized when calling eig.compute anyway
-        // also if calculating eigenvectors is not necessary, resizing part is skipped
+        // also if calculating eigenvectors this is not necessary, resizing part is skipped
         // -> allocating before (at construction time) would just need additional time and memory
         //Eigen::GeneralizedEigenSolver<matrix_t> eig(rK.size1());
 
@@ -160,7 +150,6 @@ class GenEigensystemSolver
         for(int i=0; i<nroot; i++){
             if(std::abs(b_test(i))<tolerance){
                 KRATOS_WARNING("GenEigensystemSolver") << "Some beta value is close to zero! Decrease tolerance or consider left eigenvalues." << std::endl;
-                // TODO: maybe even an error instead of warning
                 // this code only supports right eigenvalues
                 // either extend the code or use another solver
                 break;
@@ -171,7 +160,7 @@ class GenEigensystemSolver
         // resize Eigenvalue vector and Eigenvector matrix
         // store complex result in double notation
         // Eigenvalues      r1 i1 r2 i2 r3 i3 ...      (real part of eigenvalue 1, imaginary part of eigenvalue 1, etc.)
-        // Eigenvectors     same structure, each row corresponds to one Eigenvector //TODO: check, if this is correct
+        // Eigenvectors     same structure, each row corresponds to one Eigenvector
         if (static_cast<int>(rEigenvalues.size()) != nroot*2) {
             rEigenvalues.resize(nroot*2);
         }
@@ -183,7 +172,6 @@ class GenEigensystemSolver
         }
 
  
-        //TODO: consider OMP for size>11; otherwise too much overhead for parallelization
         // store the Eigenvalues
         Eigen::VectorXcd eigvals_tmp = eig.eigenvalues();
         for(int i=0; i<nroot; i++){
@@ -204,30 +192,7 @@ class GenEigensystemSolver
     
 
 
-
- 
-
-
-
-
-
-
-
-
-
-
-
-        
-/* 
-        eigvals = eig.eigenvalues().head(nroot);
-
-        for (int i = 0; i != nroot; ++i) {
-            tmp = r.col(i);
-            eigvecs.row(i) = solver.solve(tmp).normalized();
-        }
-*/
-
-// TODO: could be reused
+// -------  could be reused to implement the normalization ------ //
 /*
 
         // --- normalization
@@ -256,28 +221,6 @@ class GenEigensystemSolver
                       << "                      Eigenvalues = " << eig.eigenvalues().transpose().format(fmt) << std::endl;
         }
     }  // end solve
-
-// ------------------- ADDING ADDITIONAL FUNCTIONS NOT USEFUL, BECAUSE OF BASE POINTER CALL ---------
-    /**
-     * Set/change parameters.
-     * Values for keys given in the new parameter object will be replaced.
-     * Otherwise an error is thrown.
-     */
-    // void SetParams(const Parameters& newParams){
-    //     //KRATOS_ERROR_IF(mpValue->find(rEntry) == mpValue->end()) << "Value must exist to be set." << std::endl;
-
-    // }
-
-    // void SetParams(const std::string& rEntry, const std::string& rValue){
-    //     //KRATOS_ERROR_IF(mParam.find(rEntry) == mParam.end()) << "Value must exist to be set." << std::endl;
-    //     //mParam.SetValue(rEntry, rValue)
-    //     mParam[rEntry].SetString(rValue);
-    // }
-
-    // // void test_fun(){
-    // //     std::cout<<"hello, I'm a test"<<std::endl;
-    // // }
-
 
 
     /**
