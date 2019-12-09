@@ -349,7 +349,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                 print(f"Warning attempt {attempt-1} in AbaqusSolver failed, new attempt in one minute")
                 time.sleep(60)
                 print(f"Starting attempt {attempt}")
-            if self.timestep:
+            if self.timestep == 1:
                 cmd1 = f"export PBS_NODEFILE=AbaqusHosts.txt && unset SLURM_GTIDS"
                 cmd2 = f"abaqus job=CSM_Time{self.timestep} input=CSM_Time{self.timestep - 1}" \
                     f" cpus={self.cores} user=usr.f output_precision=full interactive >> AbaqusSolver.log 2>&1"
@@ -418,13 +418,13 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
-        if self.timestep and not (self.timestep-1) % self.settings['save_iterations'].GetInt():
+        if self.timestep and (self.timestep-1) % self.settings['save_iterations'].GetInt():
             to_be_removed_suffix = [".com", ".dat", ".mdl", ".msg", ".odb", ".prt", ".res", ".sim", ".sta", ".stt",
                                     "Surface0Cpu0Input.dat", "Surface0Output.dat"]
             cmd = []
             for suffix in to_be_removed_suffix:
                 cmd.append(f"rm CSM_Time{self.timestep - 1}{suffix}")
-        self.run_shell(self.dir_csm, cmd, name="Remove_previous")
+            self.run_shell(self.dir_csm, cmd, name="Remove_previous")
         print("FinalizeSolutionStep")
 
     def Finalize(self):
