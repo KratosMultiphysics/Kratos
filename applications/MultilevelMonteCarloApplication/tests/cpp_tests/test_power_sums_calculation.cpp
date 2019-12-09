@@ -51,8 +51,12 @@ namespace Kratos {
                 auto it_node = nodes_begin + (i_node-1);
                 it_node->AddDof(POWER_SUM_1);
                 it_node->AddDof(POWER_SUM_2);
+                it_node->AddDof(POWER_SUM_3);
+                it_node->AddDof(POWER_SUM_4);
                 it_node->SetValue(POWER_SUM_1,1.0 * i_node);
                 it_node->SetValue(POWER_SUM_2,1.0 * i_node);
+                it_node->SetValue(POWER_SUM_3,1.0 * i_node);
+                it_node->SetValue(POWER_SUM_4,1.0 * i_node);
                 it_node->FastGetSolutionStepValue(PRESSURE) = 10.0;
             }
         }
@@ -71,8 +75,15 @@ namespace Kratos {
             // Initialize the element
             p_element->Initialize();
 
+            // Generate parameters
+            Parameters parameters = Parameters(R"(
+            {
+                "reference_variable_name" : "PRESSURE"
+            })"
+            );
+
             // Call the power sums statistics
-            PowerSumsStatistics(model_part).ExecuteFinalizeSolutionStep();
+            PowerSumsStatistics(model_part,parameters).ExecuteFinalizeSolutionStep();
 
             // Check computed values over the nodes
             auto nodes_begin = model_part.NodesBegin();
@@ -80,8 +91,12 @@ namespace Kratos {
                 auto it_node = nodes_begin + (i_node);
                 double S1_value = it_node->GetValue(POWER_SUM_1);
                 double S2_value = it_node->GetValue(POWER_SUM_2);
+                double S3_value = it_node->GetValue(POWER_SUM_3);
+                double S4_value = it_node->GetValue(POWER_SUM_4);
                 KRATOS_CHECK_NEAR(S1_value, (11 + i_node), 1e-10);
                 KRATOS_CHECK_NEAR(S2_value, (101 + i_node), 1e-10);
+                KRATOS_CHECK_NEAR(S3_value, (1001 + i_node), 1e-10);
+                KRATOS_CHECK_NEAR(S4_value, (10001 + i_node), 1e-10);
             }
         }
 
