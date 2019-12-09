@@ -295,10 +295,6 @@ public:
         const SizeType size_x = TSparseSpaceType::Size(rX);
         const SizeType size_b = TSparseSpaceType::Size(rB);
 
-        KRATOS_WARNING_IF("LinearSolver", size !=  size_a) << "WARNING: Your LHS matrix is not square. Sizes: " << size << " vs " << size_a << std::endl ;
-        KRATOS_WARNING_IF("LinearSolver", size !=  size_x) << "WARNING: Your unkowns vector is not properly sized. Sizes: " << size << " vs " << size_x << std::endl ;
-        KRATOS_WARNING_IF("LinearSolver", size !=  size_b) << "WARNING: Your RHS vector is not properly sized. Sizes: " << size << " vs " << size_b << std::endl ;
-        
         return ((size ==  size_a) &&
                 (size ==  size_x) &&
                 (size ==  size_b));
@@ -324,11 +320,6 @@ public:
         const SizeType size_2_x = TDenseSpaceType::Size2(rX);
         const SizeType size_2_b = TDenseSpaceType::Size2(rB);
 
-        KRATOS_WARNING_IF("LinearSolver", size !=  size_a) << "WARNING: Your LHS matrix is not square. Sizes: " << size << " vs " << size_a << std::endl ;
-        KRATOS_WARNING_IF("LinearSolver", size !=  size_1_x) << "WARNING: Your unkowns matrix is not properly sized. Sizes: " << size << " vs " << size_1_x << std::endl ;
-        KRATOS_WARNING_IF("LinearSolver", size !=  size_1_b) << "WARNING: Your RHS matrix is not properly sized. Sizes: " << size << " vs " << size_1_b << std::endl ;
-        KRATOS_WARNING_IF("LinearSolver", (size_2_x != size_2_b)) << "WARNING: Your RHS matrix and unkowns matrix are not consistently sized. The number of systems to solve is not consistent. Sizes: " << size_2_x << " vs " << size_2_b << std::endl ;
-        
         return ((size ==  size_a) &&
                 (size ==  size_1_x) &&
                 (size ==  size_1_b) &&
