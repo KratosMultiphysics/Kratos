@@ -356,7 +356,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                 self.run_shell(self.dir_csm, commands, name='Abaqus_Calculate')
 
             #Check log for completion and or errors
-            cmd = "tail -10 AbaqusSolver.log > Temp_log.coco"
+            cmd = "tail -n 10 AbaqusSolver.log > Temp_log.coco"
             self.run_shell(self.dir_csm, [cmd], name='Temp_log')
             templog = os.path.join(self.dir_csm,"Temp_log.coco")
             bool_lic = 1
@@ -371,6 +371,9 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             elif (bool_lic == 1): #Final line did not contain "COMPLETED" but also no licensing erro detected
                 raise RuntimeError("Abaqus did not COMPLETE, unclassified error, see AbaqusSolver.log for extra information")
 
+            #Append additional information to log file
+            cmd = f"tail -n 23 CSM_Time{self.timestep}.msg | head -n 15 | sed -e \'s/^[ \\t]*//\' >> AbaqusSolver.log 2>&1"
+            self.run_shell(self.dir_csm, [cmd], name='Append_log')
 
         # Write Abaqus output
         cmd = f"abaqus ./GetOutput.exe CSM_Time{self.timestep} 1 >> AbaqusSolver.log 2>&1"
