@@ -64,7 +64,7 @@ public:
     typedef array_1d<double,3>                                 ArrayType;
 
     /// Counted pointer of RigidBodyElement
-    KRATOS_CLASS_POINTER_DEFINITION( RigidBodyElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( RigidBodyElement );
 
     ///@}
 

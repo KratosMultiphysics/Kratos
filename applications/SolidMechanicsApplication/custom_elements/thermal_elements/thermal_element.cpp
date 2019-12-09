@@ -70,7 +70,7 @@ ThermalElement&  ThermalElement::operator=(ThermalElement const& rOther)
 
 Element::Pointer ThermalElement::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared<ThermalElement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+  return Kratos::make_intrusive<ThermalElement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -464,7 +464,7 @@ void ThermalElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
 
       thermo_mechanical = true;
 
-      Element& MechanicalElement = *this->GetValue(MASTER_ELEMENT).lock().get();
+      Element& MechanicalElement = *this->GetValue(MASTER_ELEMENT).get();
 
       MechanicalElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, StressVector, rCurrentProcessInfo);
 

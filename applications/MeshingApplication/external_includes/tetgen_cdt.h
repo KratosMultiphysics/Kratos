@@ -30,7 +30,7 @@
 #include "includes/model_part.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 #include "processes/node_erase_process.h"
 
 #include "utilities/binbased_fast_point_locator.h"
@@ -77,8 +77,8 @@ namespace Kratos
         ///@{
 
         /// Default constructor.
-        TetGenCDT() 
-        {} 
+        TetGenCDT()
+        {}
 
         /// Destructor.
         virtual ~TetGenCDT() = default;
@@ -96,7 +96,7 @@ namespace Kratos
 
         //*******************************************************************************************
         //*******************************************************************************************
-        ///This function performs a Constrained Delaunay Triangulation once given "the skin" of a solid 
+        ///This function performs a Constrained Delaunay Triangulation once given "the skin" of a solid
         ///and eventually the list of internal nodes to be included in the triangulation.
         ///if required this will read the variable NODAL_H and use it to prescribe the output element size.
         ///
@@ -324,7 +324,7 @@ namespace Kratos
 
             //   char tetgen_options[] = "pqYYfnJu0MCC";
             char tetgen_options[] = "pqYYfnJu0MQ";
-            tetrahedralize(tetgen_options, &in, &out); 
+            tetrahedralize(tetgen_options, &in, &out);
             //freeing unnecessary memory
             in.deinitialize();
             in.initialize();
@@ -373,7 +373,7 @@ namespace Kratos
 
             // Remove  auxiliar model part
             ThisModelPart.GetModel().DeleteModelPart("auxiliary");
-            
+
             KRATOS_CATCH("")
         }
 
@@ -697,4 +697,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TETGEN_CDT_H_INCLUDED  defined 
+#endif // KRATOS_TETGEN_CDT_H_INCLUDED  defined

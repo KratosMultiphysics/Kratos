@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
-from json_utilities import read_external_json, write_external_json
+from KratosMultiphysics.json_utilities import read_external_json, write_external_json
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -71,6 +71,9 @@ class JsonOutputProcess(KratosMultiphysics.Process):
             self.sub_model_part = self.model.GetModelPart(model_part_name).GetSubModelPart(sub_model_part_name)
         else:
             self.sub_model_part = self.model.GetModelPart(model_part_name)
+
+        if self.sub_model_part.GetCommunicator().TotalProcesses() > 1: # mpi-execution
+            raise Exception("This process cannot be used for writing output in MPI!")
 
         # If we consider any flag
         flag_name = self.params["check_for_flag"].GetString()

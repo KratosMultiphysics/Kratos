@@ -1711,7 +1711,7 @@ private:
     void CornerDectectionHelper(Geometry< Node < 3 > >& face_geometry,
                                 const array_1d<double, 3 > & face_normal,
                                 const double An,
-                                const WeakPointerVector<Condition>& neighb,
+                                const GlobalPointersVector<Condition>& neighb,
                                 const unsigned int i1,
                                 const unsigned int i2,
                                 const unsigned int neighb_index,
@@ -1801,7 +1801,7 @@ private:
             //slip condition
             if (cond_it->GetValue(IS_STRUCTURE) == 1.0) //this is a slip face --> now look for its neighbours
             {
-                const WeakPointerVector<Condition>& neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
+                const GlobalPointersVector<Condition>& neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
 
                 //check for neighbour zero
                 if (neighb[0].Id() != current_id) //check if the neighbour exists

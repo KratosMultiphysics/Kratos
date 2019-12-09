@@ -25,7 +25,7 @@
 #include "includes/shared_pointers.h"
 #include "includes/exception.h"
 
-
+// Defining the OS
 #if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
     #define KRATOS_COMPILED_IN_LINUX
 
@@ -36,6 +36,21 @@
     #define KRATOS_COMPILED_IN_WINDOWS
 #endif
 
+// Defining the architecture (see https://sourceforge.net/p/predef/wiki/Architectures/)
+// Check Windows
+#if defined(_WIN32) || defined(_WIN64)
+   #if defined(_WIN64)
+     #define KRATOS_ENV64BIT
+   #else
+     #define KRATOS_ENV32BIT
+  #endif
+#else // It is POSIX (Linux, MacOSX, BSD...)
+  #if defined(__x86_64__) || defined(__ppc64__) || defined(__aarch64__)
+    #define KRATOS_ENV64BIT
+  #else // This includes __arm__ and __x86__
+    #define KRATOS_ENV32BIT
+  #endif
+#endif
 
 //-----------------------------------------------------------------
 //

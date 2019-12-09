@@ -21,7 +21,7 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) EPPointRigidContactPenaltywP3DCo
  public:
   typedef Vector VectorType;
 
-  KRATOS_CLASS_POINTER_DEFINITION( EPPointRigidContactPenaltywP3DCondition );
+  KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( EPPointRigidContactPenaltywP3DCondition );
 
   /// Serialization constructor
   EPPointRigidContactPenaltywP3DCondition(){};

@@ -19,8 +19,8 @@
 
 
 // Project includes
+#include "includes/data_communicator.h"
 #include "input_output/logger_table_output.h"
-
 
 namespace Kratos
 {

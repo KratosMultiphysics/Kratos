@@ -99,7 +99,13 @@ public:
     typedef Mesh<TNodeType, TPropertiesType, TElementType, TConditionType> MeshType;
 
     /// Nodes container. Which is a vector set of nodes with their Id's as key.
-    typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
+    typedef PointerVectorSet<NodeType, 
+                            IndexedObject,
+                            std::less<typename IndexedObject::result_type>,
+                            std::equal_to<typename IndexedObject::result_type>,
+                            typename NodeType::Pointer,
+                            std::vector< typename NodeType::Pointer >                         
+                            > NodesContainerType;
 
     /** Iterator over the nodes. This iterator is an indirect
     iterator over Node::Pointer which turn back a reference to
@@ -132,7 +138,13 @@ public:
     /*       typedef PointerVectorMap<GeometryType> GeometriesContainerType; */
 
     /// Element container. A vector set of Elements with their Id's as key.
-    typedef PointerVectorSet<ElementType, IndexedObject> ElementsContainerType;
+    typedef PointerVectorSet<ElementType, 
+                            IndexedObject,
+                            std::less<typename IndexedObject::result_type>,
+                            std::equal_to<typename IndexedObject::result_type>,
+                            typename ElementType::Pointer,
+                            std::vector< typename ElementType::Pointer >                         
+                            > ElementsContainerType;
 
     /** Iterator over the Elements. This iterator is an indirect
     iterator over Elements::Pointer which turn back a reference to
@@ -147,7 +159,13 @@ public:
     typedef typename ElementsContainerType::const_iterator ElementConstantIterator;
 
     /// Conditions container. A vector set of Conditions with their Id's as key.
-    typedef PointerVectorSet<ConditionType, IndexedObject> ConditionsContainerType;
+    typedef PointerVectorSet<ConditionType, 
+                            IndexedObject,
+                            std::less<typename IndexedObject::result_type>,
+                            std::equal_to<typename IndexedObject::result_type>,
+                            typename ConditionType::Pointer,
+                            std::vector< typename ConditionType::Pointer >                         
+                            > ConditionsContainerType;
 
     /** Iterator over the Conditions. This iterator is an indirect
     iterator over Conditions::Pointer which turn back a reference to

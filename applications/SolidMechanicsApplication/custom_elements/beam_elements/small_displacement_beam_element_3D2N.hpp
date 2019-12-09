@@ -54,7 +54,7 @@ public:
     typedef GeometryData::SizeType SizeType;
 
     /// Counted pointer of SmallDisplacementBeamElement3D2N
-    KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementBeamElement3D2N );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SmallDisplacementBeamElement3D2N );
 
     ///@}
 

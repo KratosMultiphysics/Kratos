@@ -103,8 +103,7 @@ class AssignVectorComponentsToNodesProcess(KratosMultiphysics.Process):
                     params.AddEmptyValue("value").SetString(self.settings["value"][counter].GetString())
 
                 params.AddValue("local_axes", self.settings["local_axes"])
-
-                import assign_scalar_to_nodes_process as assign_scalar_process
+                from KratosMultiphysics.SolidMechanicsApplication import assign_scalar_to_nodes_process as assign_scalar_process
 
                 self.AssignValueProcesses.append(assign_scalar_process.AssignScalarToNodesProcess(self.model, params))
 

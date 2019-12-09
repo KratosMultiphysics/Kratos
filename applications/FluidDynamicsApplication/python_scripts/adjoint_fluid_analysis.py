@@ -3,8 +3,10 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KFluid
 
-from analysis_stage import AnalysisStage
-from fluid_dynamics_analysis import FluidDynamicsAnalysis
+from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.process_factory import KratosProcessFactory
+from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_adjoint_fluid
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 class AdjointFluidAnalysis(AnalysisStage):
     '''Main script for adjoint sensitivity optimization in fluid dynamics simulations.'''
@@ -45,7 +47,6 @@ class AdjointFluidAnalysis(AnalysisStage):
         self._GetSolver().main_model_part.CloneTimeStep(self.time)
 
     def _CreateSolver(self):
-        import python_solvers_wrapper_adjoint_fluid
         return python_solvers_wrapper_adjoint_fluid.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
@@ -62,7 +63,6 @@ class AdjointFluidAnalysis(AnalysisStage):
             processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
             if len(list_of_processes) == 0: # Processes are given in the old format
                 Kratos.Logger.PrintWarning(self.__class__.__name__, "Using the old way to create the processes, this will be removed!")
-                from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
                     if (self.project_parameters.Has(process_name) is True):
@@ -84,9 +84,9 @@ class AdjointFluidAnalysis(AnalysisStage):
     def _SetUpGiDOutput(self):
         '''Initialize a GiD output instance'''
         if self.parallel_type == "OpenMP":
-            from gid_output_process import GiDOutputProcess as OutputProcess
+            from KratosMultiphysics.gid_output_process import GiDOutputProcess as OutputProcess
         elif self.parallel_type == "MPI":
-            from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
+            from KratosMultiphysics.mpi.distributed_gid_output_process import DistributedGiDOutputProcess as OutputProcess
 
         output = OutputProcess(self._GetSolver().GetComputingModelPart(),
                                 self.project_parameters["problem_data"]["problem_name"].GetString() ,

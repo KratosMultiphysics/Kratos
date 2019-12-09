@@ -14,7 +14,7 @@ else:
     has_meshing_application = False
 
 # Import base class file
-import contact_structural_mechanics_static_solver
+import KratosMultiphysics.ContactStructuralMechanicsApplication.contact_structural_mechanics_static_solver as contact_structural_mechanics_static_solver
 
 def CreateSolver(model, custom_settings):
     return AdaptativeRemeshingContactStaticMechanicalSolver(model, custom_settings)
@@ -76,5 +76,3 @@ class AdaptativeRemeshingContactStaticMechanicalSolver(contact_structural_mechan
         error_criteria = self.settings["convergence_criterion"].GetString()
         conv_settings = self._get_convergence_criterion_settings()
         return self.adaptative_remeshing_utilities.GetConvergenceCriteria(error_criteria, conv_settings)
-
-

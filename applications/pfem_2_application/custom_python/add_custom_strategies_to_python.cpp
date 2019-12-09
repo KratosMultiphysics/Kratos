@@ -55,27 +55,25 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-//#include <boost/python.hpp>
-//#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-//#include <boost/timer.hpp>
-
 #include <pybind11/pybind11.h>
+
 // Project includes
 #include "includes/define.h"
-#include "custom_python/add_custom_strategies_to_python.h"
-#include "custom_strategies/explicit_strategy.h"
-#include "custom_strategies/pfem_2_monolithic_slip_scheme.h"
-#include "custom_strategies/residualbased_predictorcorrector_velocity_bossak_ale_scheme.h"
-
 #include "spaces/ublas_space.h"
+#include "custom_python/add_custom_strategies_to_python.h"
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_strategies/explicit_strategy.h"
 #include "custom_strategies/fracstep_GLS_strategy.h"
+
+//schemes
+#include "custom_strategies/pfem_2_monolithic_slip_scheme.h"
+#include "custom_strategies/residualbased_predictorcorrector_velocity_bossak_ale_scheme.h"
+#include "custom_strategies/backward_euler_monolithic_ale_scheme.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
-
 
 
 namespace Kratos
@@ -140,6 +138,15 @@ namespace Kratos
             .def(py::init<double, double, unsigned int, Process::Pointer>())
             .def(py::init<double, double, unsigned int>())                        // constructor without a turbulence model
             .def(py::init<double, unsigned int, const Kratos::Variable<int> &>()) // constructor without a turbulence model for periodic boundary conditions
+            ;
+
+            py::class_<
+                BackwardEulerMonolithicAleScheme<SparseSpaceType, LocalSpaceType>,
+                BackwardEulerMonolithicAleScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+                BaseSchemeType>
+                (m, "BackwardEulerMonolithicAleScheme")
+            .def(py::init<unsigned int>())
+            .def(py::init<unsigned int, bool>())
             ;
 
 		}

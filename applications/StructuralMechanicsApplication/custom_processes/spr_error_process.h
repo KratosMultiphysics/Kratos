@@ -82,7 +82,7 @@ public:
     typedef Node <3>                                                                NodeType;
 
     /// Definition of the iterators
-    typedef WeakPointerVector< Element >::iterator                         WeakElementItType;
+    typedef GlobalPointersVector< Element >::iterator                         WeakElementItType;
     typedef NodesArrayType::iterator                                              NodeItType;
     typedef ElementsArrayType::iterator                                        ElementItType;
 
@@ -171,9 +171,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mThisModelPart;                               /// The model part to compute
-    Variable<Vector> mStressVariable = CAUCHY_STRESS_VECTOR; /// The stress variable considered
-    SizeType mEchoLevel;                                     /// The echo level
+    ModelPart& mThisModelPart;                                  /// The model part to compute
+    Variable<Vector>* mpStressVariable = &CAUCHY_STRESS_VECTOR; /// The stress variable considered
+    SizeType mEchoLevel;                                        /// The echo level
 
     ///@}
     ///@name Protected Operators
@@ -209,7 +209,7 @@ protected:
     virtual void CalculatePatch(
         NodeItType itNode,
         NodeItType itPatchNode,
-        SizeType NeighbourSize,
+        const SizeType NeighbourSize,
         Vector& rSigmaRecovered
         );
 

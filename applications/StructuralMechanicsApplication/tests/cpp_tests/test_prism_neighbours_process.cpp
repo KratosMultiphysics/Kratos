@@ -19,6 +19,7 @@
 #include "geometries/prism_3d_6.h"
 #include "testing/testing.h"
 #include "includes/gid_io.h"
+#include "includes/global_pointer_variables.h"
 
 /* Processes */
 #include "custom_processes/prism_neighbours_process.h"

@@ -50,7 +50,7 @@ public:
   ///@name Type Definitions
   ///@{
   /// Counted pointer of LaplacianMeshMovingElement
-  KRATOS_CLASS_POINTER_DEFINITION(LaplacianMeshMovingElement);
+  KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LaplacianMeshMovingElement);
 
   typedef Element BaseType;
   typedef BaseType::GeometryType GeometryType;

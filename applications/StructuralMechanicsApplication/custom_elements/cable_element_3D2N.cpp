@@ -37,7 +37,7 @@ CableElement3D2N::Create(IndexType NewId, NodesArrayType const& rThisNodes,
                          PropertiesType::Pointer pProperties) const
 {
     const GeometryType& rGeom = GetGeometry();
-    return Kratos::make_shared<CableElement3D2N>(NewId, rGeom.Create(rThisNodes),
+    return Kratos::make_intrusive<CableElement3D2N>(NewId, rGeom.Create(rThisNodes),
             pProperties);
 }
 
@@ -45,7 +45,7 @@ Element::Pointer
 CableElement3D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
                          PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<CableElement3D2N>(NewId, pGeom,
+    return Kratos::make_intrusive<CableElement3D2N>(NewId, pGeom,
             pProperties);
 }
 

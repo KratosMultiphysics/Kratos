@@ -442,9 +442,9 @@ public:
                         int n_good_neighbors = 0;
                         double pos_pres = 0.0;
                         double neg_pres = 0.0;
-                        WeakPointerVector< Node < 3 > >& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
+                        GlobalPointersVector< Node < 3 > >& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
                         
-                        for (WeakPointerVector< Node < 3 > >::iterator j = neighours.begin(); j != neighours.end(); j++) {
+                        for (GlobalPointersVector< Node < 3 > >::iterator j = neighours.begin(); j != neighours.end(); j++) {
                             if (j->Is(VISITED)) {
                                 n_good_neighbors++;
                                 pos_pres += j->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
@@ -489,13 +489,13 @@ public:
 		    double pos_pressure=p_structure_node->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
 		    double neg_pressure=p_structure_node->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
                     
-                    WeakPointerVector< Node < 3 > >& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
+                    GlobalPointersVector< Node < 3 > >& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
 			
 	  	    if (neighours.size()>=1.0)
 			{			    
 			    double av_pos_pres=0.0;
 			    double av_neg_pres=0.0;
-			    for( WeakPointerVector< Node<3> >::iterator j = neighours.begin();
+			    for( GlobalPointersVector< Node<3> >::iterator j = neighours.begin();
 				        j != neighours.end(); j++)
 			    {
 				

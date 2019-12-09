@@ -152,7 +152,7 @@
                                      "VELOCITY_Y",
                                      "PRESSURE"],
                 "input_file_name" : "laplacian_fract_step_results.json",
-                "model_part_name"  : "domain",
+                "model_part_name"  : "FluidModelPart.domain",
                 "time_frequency"   : 0.2
             }
         },{

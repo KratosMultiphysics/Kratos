@@ -23,7 +23,9 @@
 #include <algorithm>
 
 // External includes
-
+#ifdef _OPENMP
+#include "omp.h"
+#endif
 
 // Project includes
 #include "includes/define.h"
@@ -34,18 +36,8 @@
 #include "includes/variables.h"
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/timer.h"
-#include "processes/node_erase_process.h"
 #include "utilities/binbased_fast_point_locator.h"
-
-
-#include <boost/timer.hpp>
 #include "utilities/timer.h"
-
-#ifdef _OPENMP
-#include "omp.h"
-#endif
-
-
 
 namespace Kratos
 {

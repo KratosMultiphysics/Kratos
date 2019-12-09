@@ -1,5 +1,4 @@
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.mpi as mpi #TODO remove once the test script accepts a command-line argument.
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
@@ -13,14 +12,7 @@ class TestMPIDataCommunicatorPython(UnitTest.TestCase):
     def tearDown(self):
         pass
 
-    def testDataCommunicatorRetrievalFromParallelEnvironment(self):
-        default_comm = Kratos.ParallelEnvironment.GetDefaultDataCommunicator()
-
-        self.assertTrue(Kratos.ParallelEnvironment.HasDataCommunicator("World"))
-
-        # if we imported mpi, default should be "World" (wrapping MPI_COMM_WORLD)
-        self.assertTrue(default_comm.IsDistributed())
-
+    @UnitTest.skipIf(not Kratos.IsDistributedRun(), "This test is designed for distributed runs only.")
     def testDataCommunicatorRetrievalFromDataCommunicator(self):
         default_comm = Kratos.DataCommunicator.GetDefault()
 

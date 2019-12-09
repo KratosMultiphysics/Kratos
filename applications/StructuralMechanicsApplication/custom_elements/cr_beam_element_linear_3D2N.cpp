@@ -37,7 +37,7 @@ CrBeamElementLinear3D2N::Create(IndexType NewId,
                                 PropertiesType::Pointer pProperties) const
 {
     const GeometryType& rGeom = GetGeometry();
-    return Kratos::make_shared<CrBeamElementLinear3D2N>(
+    return Kratos::make_intrusive<CrBeamElementLinear3D2N>(
                NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
@@ -46,7 +46,7 @@ CrBeamElementLinear3D2N::Create(IndexType NewId,
                                 GeometryType::Pointer pGeom,
                                 PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<CrBeamElementLinear3D2N>(
+    return Kratos::make_intrusive<CrBeamElementLinear3D2N>(
                NewId, pGeom, pProperties);
 }
 
@@ -67,7 +67,6 @@ void CrBeamElementLinear3D2N::CalculateLocalSystem(
 
     // add bodyforces
     rRightHandSideVector += CalculateBodyForces();
-    IncrementIterationCounter();
     KRATOS_CATCH("")
 }
 
@@ -190,6 +189,19 @@ CrBeamElementLinear3D2N::CalculateDeformationStiffness() const
 
     return Kd;
     KRATOS_CATCH("")
+}
+
+void CrBeamElementLinear3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
+        if(rOutput.size1() != msElementSize || rOutput.size2() != msElementSize) {
+            rOutput.resize(msElementSize, msElementSize, false);
+        }
+        noalias(rOutput) = CalculateInitialLocalCS();
+    } else {
+        CrBeamElement3D2N::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    }
+
 }
 
 void CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(

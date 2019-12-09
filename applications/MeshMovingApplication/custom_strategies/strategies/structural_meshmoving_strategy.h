@@ -21,12 +21,11 @@
 /* Project includes */
 #include "custom_elements/structural_meshmoving_element.h"
 #include "custom_utilities/move_mesh_utilities.h"
-#include "includes/model_part.h"
 #include "containers/model.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "utilities/variable_utils.h"
 
 #include "includes/mesh_moving_variables.h"
 
@@ -82,7 +81,8 @@ public:
                                bool ReformDofSetAtEachStep = false,
                                bool ComputeReactions = false,
                                bool CalculateMeshVelocities = true,
-                               int EchoLevel = 0)
+                               int EchoLevel = 0,
+                               const double PoissonRatio = 0.3)
       : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part) {
     KRATOS_TRY
 
@@ -100,6 +100,8 @@ public:
     const std::string element_type = "StructuralMeshMovingElement";
     mpmesh_model_part = MoveMeshUtilities::GenerateMeshPart(
         BaseType::GetModelPart(), element_type);
+
+    mpmesh_model_part->pGetProperties(0)->GetValue(MESH_POISSON_RATIO) = PoissonRatio;
 
     mpbulider_and_solver = typename TBuilderAndSolverType::Pointer(
         new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace,
@@ -130,21 +132,11 @@ public:
   double Solve() override {
     KRATOS_TRY;
 
-    MoveMeshUtilities::SetMeshToInitialConfiguration(
+    VariableUtils().UpdateCurrentToInitialConfiguration(
         mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
     // Solve for the mesh movement
     mstrategy->Solve();
-
-    // Update FEM-base
-    const double delta_time =
-        BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
-
-    if (mcalculate_mesh_velocities == true)
-        MoveMeshUtilities::CalculateMeshVelocities(mpmesh_model_part, mtime_order,
-                                                   delta_time);
-    MoveMeshUtilities::MoveMesh(
-        mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
     // Clearing the system if needed
     if (mreform_dof_set_at_each_step == true)
@@ -153,11 +145,6 @@ public:
     return 0.0;
 
     KRATOS_CATCH("");
-  }
-
-  void UpdateReferenceMesh()
-  {
-  MoveMeshUtilities::UpdateReferenceMesh(BaseType::GetModelPart());
   }
 
   /*@} */

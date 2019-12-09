@@ -43,11 +43,15 @@ proc WriteMdpa { basename dir problemtypedir } {
     # Body_Part
     set Groups [GiD_Info conditions Body_Part groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
-        if {[lindex [lindex $Groups $i] 3] eq "LinearElastic3DLaw"} {
+        if {[lindex [lindex $Groups $i] 3] eq "LinearElasticSolid3DLaw"} {
             incr PropertyId
             dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
             puts $FileVar "Begin Properties $PropertyId"
-            puts $FileVar "  CONSTITUTIVE_LAW_NAME LinearElastic3DLaw"
+            if { ([GiD_AccessValue get gendata Initial_Stresses] eq false) || (([GiD_AccessValue get gendata Initial_Stresses] eq true) && ([GiD_AccessValue get gendata Mode] eq "save")) } {
+                puts $FileVar "  CONSTITUTIVE_LAW_NAME LinearElasticSolid3DLaw"
+            } else {
+                puts $FileVar "  CONSTITUTIVE_LAW_NAME HistoryLinearElastic3DLaw"
+            }
             puts $FileVar "  YOUNG_MODULUS [lindex [lindex $Groups $i] 4]"
             puts $FileVar "  POISSON_RATIO [lindex [lindex $Groups $i] 5]"
             puts $FileVar "  DENSITY_SOLID [lindex [lindex $Groups $i] 6]"
@@ -64,11 +68,19 @@ proc WriteMdpa { basename dir problemtypedir } {
             puts $FileVar "  DYNAMIC_VISCOSITY [lindex [lindex $Groups $i] 17]"
             puts $FileVar "End Properties"
             puts $FileVar ""
-        } elseif { ([lindex [lindex $Groups $i] 3] eq "LinearElasticPlaneStrain2DLaw") || ([lindex [lindex $Groups $i] 3] eq "LinearElasticPlaneStress2DLaw")} {
+        } elseif { ([lindex [lindex $Groups $i] 3] eq "LinearElasticPlaneStrainSolid2DLaw") || ([lindex [lindex $Groups $i] 3] eq "LinearElasticPlaneStressSolid2DLaw")} {
             incr PropertyId
             dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
             puts $FileVar "Begin Properties $PropertyId"
-            puts $FileVar "  CONSTITUTIVE_LAW_NAME [lindex [lindex $Groups $i] 3]"
+            if { ([GiD_AccessValue get gendata Initial_Stresses] eq false) || (([GiD_AccessValue get gendata Initial_Stresses] eq true) && ([GiD_AccessValue get gendata Mode] eq "save")) } {
+                puts $FileVar "  CONSTITUTIVE_LAW_NAME [lindex [lindex $Groups $i] 3]"
+            } else {
+                if {[lindex [lindex $Groups $i] 3] eq "LinearElasticPlaneStrainSolid2DLaw"} {
+                    puts $FileVar "  CONSTITUTIVE_LAW_NAME HistoryLinearElasticPlaneStrain2DLaw"
+                } else {
+                    puts $FileVar "  CONSTITUTIVE_LAW_NAME HistoryLinearElasticPlaneStress2DLaw"
+                }
+            }
             puts $FileVar "  YOUNG_MODULUS [lindex [lindex $Groups $i] 4]"
             puts $FileVar "  POISSON_RATIO [lindex [lindex $Groups $i] 5]"
             puts $FileVar "  DENSITY_SOLID [lindex [lindex $Groups $i] 6]"

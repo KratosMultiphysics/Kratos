@@ -30,6 +30,14 @@
 #include "custom_constitutive/modified_mises_nonlocal_damage_3D_law.hpp"
 #include "custom_constitutive/modified_mises_nonlocal_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/modified_mises_nonlocal_damage_plane_stress_2D_law.hpp"
+#include "custom_constitutive/history_linear_elastic_3D_law.hpp"
+#include "custom_constitutive/history_linear_elastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/history_linear_elastic_plane_stress_2D_law.hpp"
+
+#include "custom_constitutive/hyperelastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 
 namespace Kratos
 {
@@ -52,6 +60,19 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     .def( py::init<>() );
     py::class_< ExponentialCohesive2DLaw, ExponentialCohesive2DLaw::Pointer, ConstitutiveLaw >
     (m, "ExponentialCohesive2DLaw")
+    .def( py::init<>() );
+
+    py::class_< LinearElastic3DLaw, LinearElastic3DLaw::Pointer, ConstitutiveLaw >
+    (m, "LinearElasticSolid3DLaw")
+    .def( py::init<>() );
+    py::class_< LinearElasticPlaneStrain2DLaw, LinearElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+    (m, "LinearElasticPlaneStrainSolid2DLaw")
+    .def(py::init<>() );
+    py::class_< LinearElasticPlaneStress2DLaw, LinearElasticPlaneStress2DLaw::Pointer, ConstitutiveLaw >
+    (m, "LinearElasticPlaneStressSolid2DLaw")
+    .def(py::init<>() );
+    py::class_< HyperElastic3DLaw, HyperElastic3DLaw::Pointer, ConstitutiveLaw >
+    (m, "HyperElasticSolid3DLaw")
     .def( py::init<>() );
 
     py::class_< SimoJuLocalDamage3DLaw, SimoJuLocalDamage3DLaw::Pointer, ConstitutiveLaw >
@@ -82,6 +103,16 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     .def( py::init<>() );
     py::class_< ModifiedMisesNonlocalDamagePlaneStress2DLaw, ModifiedMisesNonlocalDamagePlaneStress2DLaw::Pointer, ConstitutiveLaw >
     (m, "ModifiedMisesNonlocalDamagePlaneStress2DLaw")
+    .def( py::init<>() );
+
+    py::class_< HistoryLinearElastic3DLaw, HistoryLinearElastic3DLaw::Pointer, ConstitutiveLaw >
+    (m, "HistoryLinearElastic3DLaw")
+    .def( py::init<>() );
+    py::class_< HistoryLinearElasticPlaneStrain2DLaw, HistoryLinearElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+    (m, "HistoryLinearElasticPlaneStrain2DLaw")
+    .def( py::init<>() );
+    py::class_< HistoryLinearElasticPlaneStress2DLaw, HistoryLinearElasticPlaneStress2DLaw::Pointer, ConstitutiveLaw >
+    (m, "HistoryLinearElasticPlaneStress2DLaw")
     .def( py::init<>() );
 }
 

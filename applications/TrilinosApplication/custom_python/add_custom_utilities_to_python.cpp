@@ -22,20 +22,14 @@
 #include "trilinos_space.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/trilinos_pointer_wrapper.h"
-#include "custom_utilities/trilinos_deactivation_utility.h"
-#include "custom_utilities/parallel_fill_communicator.h"
 #include "custom_utilities/trilinos_cutting_app.h"
 #include "custom_utilities/trilinos_cutting_iso_app.h"
 #include "custom_utilities/trilinos_refine_mesh.h"
-#include "custom_utilities/trilinos_fractional_step_settings.h"
-#include "custom_utilities/trilinos_fractional_step_settings_periodic.h"
-#include "custom_utilities/gather_modelpart_utility.h"
-#include "custom_utilities/mpi_normal_calculation_utilities.h"
 #include "custom_utilities/trilinos_partitioned_fsi_utilities.h"
 #include "custom_utilities/trilinos_mvqn_recursive_convergence_accelerator.hpp"
 
 // External includes
-#include "../FSIapplication/custom_utilities/aitken_convergence_accelerator.hpp"
+#include "../FSIApplication/custom_utilities/aitken_convergence_accelerator.hpp"
 
 namespace Kratos
 {
@@ -91,23 +85,6 @@ void AuxiliarUpdateSolution(
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    py::class_<TrilinosDeactivationUtility >
-        (m,"TrilinosDeactivationUtility")
-        .def(py::init<>() )
-        .def("Deactivate", &TrilinosDeactivationUtility::Deactivate )
-        .def("Reactivate", &TrilinosDeactivationUtility::Reactivate )
-        .def("ReactivateStressFree", &TrilinosDeactivationUtility::ReactivateStressFree )
-        .def("ReactivateAll", &TrilinosDeactivationUtility::ReactivateAll )
-        .def("Initialize", &TrilinosDeactivationUtility::Initialize )
-        ;
-
-    py::class_<ParallelFillCommunicator >
-        (m,"ParallelFillCommunicator")
-        .def(py::init<ModelPart& >() )
-        .def("Execute", &ParallelFillCommunicator::Execute )
-        .def("PrintDebugInfo", &ParallelFillCommunicator::PrintDebugInfo )
-        ;
-
     py::class_<TrilinosCuttingApplication>(m,"TrilinosCuttingApplication").def(py::init< Epetra_MpiComm& >() )
         .def("FindSmallestEdge", &TrilinosCuttingApplication::FindSmallestEdge )
         .def("GenerateCut", &TrilinosCuttingApplication::GenerateCut )
@@ -127,64 +104,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<TrilinosRefineMesh>(m,"TrilinosRefineMesh").def(py::init<ModelPart& , Epetra_MpiComm& >() )
         .def("Local_Refine_Mesh", &TrilinosRefineMesh::Local_Refine_Mesh )
         .def("PrintDebugInfo", &TrilinosRefineMesh::PrintDebugInfo )
-        ;
-
-    typedef SolverSettings<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseSettingsType;
-    typedef void (BaseSettingsType::*BuildTurbModelType)(BaseSettingsType::TurbulenceModelLabel const&, TrilinosLinearSolverType::Pointer, const double, const unsigned int);
-    typedef void (BaseSettingsType::*PassTurbModelType)(Process::Pointer);
-    BuildTurbModelType SetTurbModel_Build = &SolverSettings<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType>::SetTurbulenceModel;
-    PassTurbModelType SetTurbModel_Pass = &SolverSettings<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType>::SetTurbulenceModel;
-
-    py::class_ < BaseSettingsType >(m,"BaseSettingsType" )
-        .def("SetTurbulenceModel",SetTurbModel_Build)
-        .def("SetTurbulenceModel",SetTurbModel_Pass)
-        ;
-
-    typedef TrilinosFractionalStepSettings<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType> TrilinosFSSettingsType;
-
-    py::enum_<BaseSettingsType::StrategyLabel>(m,"TrilinosStrategyLabel")
-        .value("Velocity",BaseSettingsType::Velocity)
-        .value("Pressure",BaseSettingsType::Pressure)
-        ;
-
-    py::enum_<BaseSettingsType::TurbulenceModelLabel>(m,"TrilinosTurbulenceModelLabel")
-        .value("SpalartAllmaras",BaseSettingsType::SpalartAllmaras)
-        ;
-
-    typedef void (TrilinosFSSettingsType::*SetStrategyByParamsType)(TrilinosFSSettingsType::StrategyLabel const&,TrilinosLinearSolverType::Pointer,const double,const unsigned int);
-    SetStrategyByParamsType ThisSetStrategyOverload = &TrilinosFSSettingsType::SetStrategy;
-
-    py::class_< TrilinosFSSettingsType,BaseSettingsType>(m,"TrilinosFractionalStepSettings")
-        .def(py::init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
-        .def("SetStrategy",ThisSetStrategyOverload)
-        .def("GetStrategy",&TrilinosFSSettingsType::pGetStrategy)
-        .def("SetEchoLevel",&TrilinosFSSettingsType::SetEchoLevel)
-        ;
-
-    typedef TrilinosFractionalStepSettingsPeriodic<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType> TrilinosFSSettingsPeriodicType;
-
-    typedef void (TrilinosFSSettingsPeriodicType::*SetStrategyByParamsPeriodicType)(BaseSettingsType::StrategyLabel const&,TrilinosLinearSolverType::Pointer,const double,const unsigned int);
-    SetStrategyByParamsPeriodicType ThatSetStrategyOverload = &TrilinosFSSettingsPeriodicType::SetStrategy;
-
-    py::class_< TrilinosFSSettingsPeriodicType,BaseSettingsType>
-        (m,"TrilinosFractionalStepSettingsPeriodic").def(py::init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool,const Kratos::Variable<int>&>())
-        .def("SetStrategy",ThatSetStrategyOverload)
-        .def("GetStrategy",&TrilinosFSSettingsPeriodicType::pGetStrategy)
-        .def("SetEchoLevel",&TrilinosFSSettingsPeriodicType::SetEchoLevel)
-        ;
-
-    py::class_<GatherModelPartUtility>(m,"GatherModelPartUtility")
-        .def(py::init<int, ModelPart&, int , ModelPart&>() )
-        .def("GatherOnMaster",&GatherModelPartUtility::GatherOnMaster<double> )
-        .def("GatherOnMaster",&GatherModelPartUtility::GatherOnMaster<array_1d<double,3> > )
-        .def("ScatterFromMaster",&GatherModelPartUtility::ScatterFromMaster<double> )
-        .def("ScatterFromMaster",&GatherModelPartUtility::ScatterFromMaster<array_1d<double,3> > )
-        ;
-
-    py::class_<MPINormalCalculationUtils, MPINormalCalculationUtils::Pointer>(m,"MPINormalCalculationUtils").def(py::init<>())
-        .def("Check",&MPINormalCalculationUtils::Check)
-        .def("OrientFaces",&MPINormalCalculationUtils::OrientFaces)
-        .def("CalculateOnSimplex",&MPINormalCalculationUtils::CalculateOnSimplex)
         ;
 
     typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, double, 2> BasePartitionedFSIUtilitiesDouble2DType;

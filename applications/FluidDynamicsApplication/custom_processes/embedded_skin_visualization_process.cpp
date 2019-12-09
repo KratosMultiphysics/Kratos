@@ -443,7 +443,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
                 Properties::Pointer p_cond_prop = (i_int_geom < n_pos_interface_geom)? p_pos_prop : p_neg_prop;
 
                 // Create the new condition
-                Condition::Pointer p_new_cond = Kratos::make_shared<Condition>(temp_cond_id, p_new_geom, p_cond_prop);
+                Condition::Pointer p_new_cond = Kratos::make_intrusive<Condition>(temp_cond_id, p_new_geom, p_cond_prop);
                 new_conds_vect.push_back(p_new_cond);
                 mrVisualizationModelPart.AddCondition(p_new_cond);
 
@@ -465,21 +465,28 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
 
     // Once all the entities have been created, renumber the ids.
     // Created entities local number partial reduction
+    const DataCommunicator& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
     int n_nodes_local = new_nodes_vect.size();
-    int n_conds_local = new_conds_vect.size();
     int n_elems_local = mNewElementsPointers.size();
-    int n_nodes_local_scansum, n_elems_local_scansum, n_conds_local_scansum;
-    mrModelPart.GetCommunicator().ScanSum(n_nodes_local, n_nodes_local_scansum);
-    mrModelPart.GetCommunicator().ScanSum(n_elems_local, n_elems_local_scansum);
-    mrModelPart.GetCommunicator().ScanSum(n_conds_local, n_conds_local_scansum);
+    int n_conds_local = new_conds_vect.size();
+
+    std::vector<int> local_data{n_nodes_local, n_elems_local, n_conds_local};
+    std::vector<int> reduced_data{0, 0, 0};
+    r_comm.ScanSum(local_data, reduced_data);
+
+    int n_nodes_local_scansum = reduced_data[0];
+    int n_elems_local_scansum = reduced_data[1];
+    int n_conds_local_scansum = reduced_data[2];
 
     // Origin model part number of entities
     int n_nodes_orig = mrModelPart.NumberOfNodes();
     int n_elems_orig = mrModelPart.NumberOfElements();
     int n_conds_orig = mrModelPart.NumberOfConditions();
-    mrModelPart.GetCommunicator().SumAll(n_nodes_orig);
-    mrModelPart.GetCommunicator().SumAll(n_elems_orig);
-    mrModelPart.GetCommunicator().SumAll(n_conds_orig);
+    local_data = {n_nodes_orig, n_elems_orig, n_conds_orig};
+    r_comm.SumAll(local_data, reduced_data);
+    n_nodes_orig = reduced_data[0];
+    n_elems_orig = reduced_data[1];
+    n_conds_orig = reduced_data[2];
 
     // Initialize the new ids. values
     std::size_t new_node_id(n_nodes_orig + n_nodes_local_scansum - n_nodes_local + 1);
@@ -513,7 +520,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
     mrVisualizationModelPart.AddConditions(new_conds_vect.begin(), new_conds_vect.end());
 
     // Wait for all nodes to renumber its nodes
-    mrModelPart.GetCommunicator().Barrier();
+    r_comm.Barrier();
 }
 
 bool EmbeddedSkinVisualizationProcess::ElementIsPositive(

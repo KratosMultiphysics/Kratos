@@ -25,10 +25,10 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "mpi/utilities/parallel_fill_communicator.h"
 
 /* Trilinos includes */
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
-#include "custom_utilities/parallel_fill_communicator.h"
 
 namespace Kratos
 {
@@ -170,12 +170,6 @@ public:
         // Solve for mesh movement
         mstrategy->Solve();
 
-        // Update FEM database
-        if (m_calculate_mesh_velocities == true)
-            CalculateMeshVelocities();
-
-        MoveMesh();
-
         // Clearing the system if needed
         if (m_reform_dof_set_at_each_step == true)
             mstrategy->Clear();
@@ -183,70 +177,6 @@ public:
         return 0.0;
 
         KRATOS_CATCH("")
-    }
-
-    void CalculateMeshVelocities()
-    {
-        KRATOS_TRY;
-
-        double delta_time = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
-
-        KRATOS_ERROR_IF(delta_time <= 0.0)<< "Invalid DELTA_TIME." << std::endl;
-
-        double coeff = 1 / delta_time;
-        if (m_time_order == 1) // mesh velocity calculated as (x(n+1)-x(n))/Dt
-        {
-            for (ModelPart::NodeIterator i = (*mpmesh_model_part).NodesBegin();
-                 i != (*mpmesh_model_part).NodesEnd();
-                 ++i)
-            {
-                array_1d<double, 3>& mesh_v = (i)->FastGetSolutionStepValue(MESH_VELOCITY);
-                array_1d<double, 3>& disp =
-                    (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
-                array_1d<double, 3>& dispold =
-                    (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
-                noalias(mesh_v) = disp - dispold;
-                mesh_v *= coeff;
-            }
-        }
-        else if (m_time_order == 2) // mesh velocity calculated as
-        // (3*x(n+1)-4*x(n)+x(n-1))/(2*Dt)
-        {
-            double c1 = 1.50 * coeff;
-            double c2 = -2.0 * coeff;
-            double c3 = 0.50 * coeff;
-
-            for (ModelPart::NodeIterator i = (*mpmesh_model_part).NodesBegin();
-                 i != (*mpmesh_model_part).NodesEnd();
-                 ++i)
-            {
-                array_1d<double, 3>& mesh_v = (i)->FastGetSolutionStepValue(MESH_VELOCITY);
-                noalias(mesh_v) = c1 * (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
-                noalias(mesh_v) +=
-                    c2 * (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
-                noalias(mesh_v) +=
-                    c3 * (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT, 2);
-            }
-        }
-        else{
-        KRATOS_ERROR << "Wrong TimeOrder: Acceptable values are: 1 and 2"
-                   << std::endl;
-        }
-
-        KRATOS_CATCH("")
-    }
-
-
-    void MoveMesh() override
-    {
-        for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
-             i != BaseType::GetModelPart().NodesEnd();
-             ++i)
-        {
-            (i)->X() = (i)->X0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_X);
-            (i)->Y() = (i)->Y0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_Y);
-            (i)->Z() = (i)->Z0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_Z);
-        }
     }
 
     /*@} */

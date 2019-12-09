@@ -10,7 +10,7 @@
 #include "DEM_D_Hertz_viscous_Coulomb_CL.h"
 
 namespace Kratos {
-    
+
     class SphericParticle;
 
     class KRATOS_API(DEM_APPLICATION) DEM_D_Hertz_viscous_Coulomb2D : public DEM_D_Hertz_viscous_Coulomb {
@@ -20,25 +20,23 @@ namespace Kratos {
 
         DEM_D_Hertz_viscous_Coulomb2D() {
         }
-      
-        void Initialize(const ProcessInfo& r_process_info) override;         
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         ~DEM_D_Hertz_viscous_Coulomb2D() {
         }
 
-        DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;      
-        
-        void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override;  
-        
+        DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
+
+        void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override;
+
         void InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta = 0.0) override;
-                
-                            
+
+
     private:
 
         friend class Serializer;
-        
+
         virtual void save(Serializer& rSerializer) const override {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)
                     //rSerializer.save("MyMemberName",myMember);
