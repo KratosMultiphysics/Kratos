@@ -128,9 +128,10 @@ namespace Kratos
       ///@}
 
       private:
-      ///@name Static Member Variables
+      ///@name Member Variables
       ///@{
 
+        Internals::CartesianMeshColors mCoarseMeshColors;
 
       ///@}
       ///@name Private Operations

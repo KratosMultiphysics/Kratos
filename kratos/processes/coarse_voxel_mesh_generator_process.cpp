@@ -72,10 +72,10 @@ namespace Kratos
 		}
 		Timer::Stop("Voxel Mesh Coloring");
 
-		if(mOutputFilename != "")			
-			mColors.WriteParaViewVTR(mOutputFilename);
-
 		Generate3DCoarseMesh();
+
+		if(mOutputFilename != "")			
+			mCoarseMeshColors.WriteParaViewVTR(mOutputFilename);
 	}
 
 	std::string CoarseVoxelMeshGeneratorProcess::Info() const {
@@ -143,7 +143,6 @@ namespace Kratos
 			}
 		}
 
-		if(mOutput == "rectilinear_coordinates") { 
 			std::vector<double> x_key_planes;
 			std::vector<double> y_key_planes;
 			std::vector<double> z_key_planes;
@@ -167,6 +166,42 @@ namespace Kratos
 			y_key_planes.push_back(mMaxPoint[1]);
 			z_key_planes.push_back(mMaxPoint[2]);
 
+		mCoarseMeshColors.SetCoordinates(x_key_planes, y_key_planes, z_key_planes);
+
+		std::size_t coarse_i = 0;
+		std::size_t coarse_j = 0;
+		std::size_t coarse_k = 0;
+		for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
+			if(z_cell_coarse[k]){
+				coarse_j = 0;
+				for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
+					if(y_cell_coarse[j]){
+						coarse_i = 0;
+						for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
+							if(x_cell_coarse[i]){
+								mCoarseMeshColors.GetElementalColor(coarse_i, coarse_j, coarse_k) = mColors.GetElementalColor(i,j,k);
+								mCoarseMeshColors.GetElementalFaceColor(coarse_i, coarse_j, coarse_k) =  mColors.GetElementalFaceColor(i,j,k);
+								if(coarse_i > 0){
+									mCoarseMeshColors.GetElementalFaceColor(coarse_i - 1, coarse_j, coarse_k)[3] = mColors.GetElementalFaceColor(i-1,j,k)[3];
+								}
+								if(coarse_j > 0){
+									mCoarseMeshColors.GetElementalFaceColor(coarse_i, coarse_j - 1, coarse_k)[4] = mColors.GetElementalFaceColor(i,j-1,k)[4];
+								}
+								if(coarse_k > 0){
+									mCoarseMeshColors.GetElementalFaceColor(coarse_i, coarse_j, coarse_k-1)[5] = mColors.GetElementalFaceColor(i,j,k-1)[5];
+								}
+								coarse_i++;
+							}
+						}
+						coarse_j++;
+					}
+				}
+				coarse_k++;
+			}
+		}
+
+		if(mOutput == "rectilinear_coordinates") { 
+
 			auto& x_coordinates = mrVolumePart.GetValue(RECTILINEAR_X_COORDINATES);
  			auto& y_coordinates = mrVolumePart.GetValue(RECTILINEAR_Y_COORDINATES);
  			auto& z_coordinates = mrVolumePart.GetValue(RECTILINEAR_Z_COORDINATES);
@@ -179,41 +214,18 @@ namespace Kratos
 			std::copy(y_key_planes.begin(), y_key_planes.end(), y_coordinates.begin());
 			std::copy(z_key_planes.begin(), z_key_planes.end(), z_coordinates.begin());
 
+			const std::size_t size = mCoarseMeshColors.GetElementalColors().size();
+
 			auto& colors = mrVolumePart.GetValue(COLORS);
-			colors.resize((x_key_planes.size() - 1)*(y_key_planes.size() - 1) * (z_key_planes.size() - 1), false);
+			colors.resize(size, false);
+			std::copy(mCoarseMeshColors.GetElementalColors().begin(), mCoarseMeshColors.GetElementalColors().end(), colors.begin());
+			
 			auto& face_colors = mrVolumePart.GetValue(VOXEL_FACE_COLORS);
-			face_colors.resize((x_key_planes.size() - 1)*(y_key_planes.size() - 1) * (z_key_planes.size() - 1), 6, false);
-			int index = 0;
-			int previous_index_i = -1;
-			int previous_index_j = -1;
-			int previous_index_k = -1;
-			for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
-				if(z_cell_coarse[k]){
-					for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
-						if(y_cell_coarse[j]){
-							for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
-								if(x_cell_coarse[i]){
-									auto face_color =  mColors.GetElementalFaceColor(i,j,k);
-									for(std::size_t i_face = 0 ; i_face < 6 ; i_face++){
-										face_colors(index, i_face) = face_color[i_face];
-									}
-									if(previous_index_i >= 0){
-										face_colors(previous_index_i, 3) = mColors.GetElementalFaceColor(i-1,j,k)[3];
-									}
-									if(previous_index_j >= 0){
-										face_colors(previous_index_j, 4) = mColors.GetElementalFaceColor(i,j-1,k)[4];
-									}
-									if(previous_index_k >= 0){
-										face_colors(previous_index_k, 5) = mColors.GetElementalFaceColor(i,j,k-1)[5];
-									}
-									colors[index] = mColors.GetElementalColor(i,j,k);
-									previous_index_i = index++;
-								}
-							}
-							previous_index_j = index;
-						}
-					}
-					previous_index_k = index;
+			face_colors.resize(size, 6, false);
+
+			for(std::size_t i_element = 0 ; i_element < size ; i_element++){
+				for(std::size_t j_face = 0 ; j_face < 6 ; j_face++){
+					face_colors(i_element, j_face) = mCoarseMeshColors.GetElementalFaceColors()[i_element][j_face];
 				}
 			}
 
