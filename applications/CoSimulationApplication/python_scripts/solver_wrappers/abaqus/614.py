@@ -108,8 +108,8 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     line = line.replace("|cpus|", str(self.cores))
 
                     # if PWD is too long then FORTRAN code can not compile so this needs special treatment
-                    line = self.FORT_replace(line, "|PWD|", os.path.abspath(os.path.join(self.dir_csm, os.pardir)))
-                    line = self.FORT_replace(line, "|CSM_dir|", self.settings["working_directory"].GetString())
+                    line = self.FORT_replace(line,"|PWD|", os.path.abspath(os.getcwd()))
+                    line = self.FORT_replace(line,"|CSM_dir|", self.settings["working_directory"].GetString())
                     if "|" in line:
                         raise ValueError(f"The following line in USRInit.f still contains a \"|\" after substitution: \n \t{line} \n Probably a parameter was not subsituted")
                     outfile.write(line)
@@ -190,7 +190,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     line = line.replace("|deltaT|", str(self.delta_T))
 
                     # if PWD is too ling then FORTRAN code can not compile so this needs special treatment
-                    line = self.FORT_replace(line, "|PWD|", os.path.abspath(os.path.join(self.dir_csm, os.pardir)))
+                    line = self.FORT_replace(line, "|PWD|", os.path.abspath(os.getcwd()))
                     line = self.FORT_replace(line, "|CSM_dir|", self.settings["working_directory"].GetString())
                     if "|" in line:
                         raise ValueError(f"The following line in USR.f still contains a \"|\" after substitution: \n \t{line} \n Probably a parameter was not subsituted")
@@ -352,13 +352,13 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             if self.timestep:
                 cmd1 = f"export PBS_NODEFILE=AbaqusHosts.txt && unset SLURM_GTIDS"
                 cmd2 = f"abaqus job=CSM_Time{self.timestep} input=CSM_Time{self.timestep - 1}" \
-                    f" cpus={self.cores} output_precision=full interactive >> AbaqusSolver.log 2>&1"
+                    f" cpus={self.cores} user=usr.f output_precision=full interactive >> AbaqusSolver.log 2>&1"
                 commands = [cmd1, cmd2]
                 self.run_shell(self.dir_csm, commands, name='Abaqus_Calculate')
             else:
                 cmd1 = f"export PBS_NODEFILE=AbaqusHosts.txt && unset SLURM_GTIDS"
                 cmd2 = f"abaqus job=CSM_Time{self.timestep} oldjob=CSM_Time{self.timestep - 1} input=CSM_Restart" \
-                    f" cpus={self.cores} output_precision=full interactive >> AbaqusSolver.log 2>&1"
+                    f" cpus={self.cores} user=usr.f output_precision=full interactive >> AbaqusSolver.log 2>&1"
                 commands = [cmd1, cmd2]
                 self.run_shell(self.dir_csm, commands, name='Abaqus_Calculate')
 
