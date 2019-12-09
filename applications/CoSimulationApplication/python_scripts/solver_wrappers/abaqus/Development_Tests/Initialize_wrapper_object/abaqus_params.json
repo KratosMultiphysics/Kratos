@@ -11,7 +11,6 @@
                 "cores": 1,
                 "dimensions": 2,
                 "arraysize": 10e5,
-                "surfaces": 1,
                 "ramp": 1,
                 "delta_T": 1e-3,
                 "timestep_start": 0,
