@@ -15,17 +15,6 @@
 #include <string>
 
 // Project includes
-#include "geometries/tetrahedra_3d_4.h"
-#include "geometries/triangle_2d_3.h"
-#include "includes/cfd_variables.h"
-#include "includes/define.h"
-#include "includes/element.h"
-#include "includes/kratos_flags.h"
-#include "includes/serializer.h"
-#include "includes/ublas_interface.h"
-#include "utilities/adjoint_extensions.h"
-#include "utilities/geometry_utilities.h"
-#include "utilities/indirect_scalar.h"
 
 // Application includes
 #include "custom_elements/vms_adjoint_element.h"

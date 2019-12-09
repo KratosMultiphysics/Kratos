@@ -18,17 +18,9 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
 #include "includes/condition.h"
-#include "includes/define.h"
-#include "includes/process_info.h"
-#include "includes/serializer.h"
 
 // Application includes
-#include "custom_elements/evm_k_epsilon/evm_k_epsilon_adjoint_utilities.h"
-#include "custom_utilities/rans_calculation_utilities.h"
-#include "includes/cfd_variables.h"
-#include "rans_application_variables.h"
 
 namespace Kratos
 {

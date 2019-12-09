@@ -19,8 +19,6 @@
 
 // Project includes
 #include "custom_elements/stabilized_convection_diffusion_reaction_adjoint.h"
-#include "includes/element.h"
-#include "includes/properties.h"
 
 namespace Kratos
 {

@@ -20,18 +20,16 @@
 // External includes
 
 // Project includes
-#include "custom_elements/rans_evm_vms_adjoint.h"
 #include "includes/checks.h"
 #include "includes/element.h"
 #include "includes/properties.h"
-
-// Application includes
-#include "rans_application_variables.h"
 #include "utilities/adjoint_extensions.h"
 
+// Application includes
 #include "custom_elements/evm_k_epsilon/rans_evm_epsilon_adjoint.h"
 #include "custom_elements/evm_k_epsilon/rans_evm_k_adjoint.h"
 #include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_vms_adjoint.h"
+#include "rans_application_variables.h"
 
 namespace Kratos
 {

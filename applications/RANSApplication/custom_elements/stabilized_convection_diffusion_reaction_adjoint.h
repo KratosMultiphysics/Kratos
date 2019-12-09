@@ -19,19 +19,18 @@
 // External includes
 
 // Project includes
+#include "includes/cfd_variables.h"
 #include "includes/element.h"
+#include "utilities/geometrical_sensitivity_utility.h"
+#include "utilities/time_discretization.h"
 
 // Application includes
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/rans_variable_utilities.h"
-#include "includes/cfd_variables.h"
 #include "rans_application_variables.h"
+#include "stabilized_convection_diffusion_reaction.h"
 #include "stabilized_convection_diffusion_reaction_adjoint_utilities.h"
 #include "stabilized_convection_diffusion_reaction_utilities.h"
-#include "utilities/geometrical_sensitivity_utility.h"
-#include "utilities/time_discretization.h"
-
-#include "stabilized_convection_diffusion_reaction.h"
 
 namespace Kratos
 {
