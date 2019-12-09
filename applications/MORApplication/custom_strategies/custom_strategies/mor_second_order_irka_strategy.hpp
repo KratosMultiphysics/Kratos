@@ -660,7 +660,7 @@ class MorSecondOrderIRKAStrategy
         
 */
 
-        // need for post processing
+        // needed for post processing
         std::stringstream matrix_market_b_full;
         matrix_market_b_full << "b_full" << ".mm";
         TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_b_full.str()).c_str(), r_b_tmp);
