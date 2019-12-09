@@ -1105,6 +1105,107 @@ namespace Kratos {
 		}
 	}
 
+	KRATOS_TEST_CASE_IN_SUITE(VoxelMeshGeneratorProcessCubeFaceOfElementsCoarseRectilinearColors, KratosCoreFastSuite)
+	{
+		Parameters mesher_parameters(R"(
+		{
+			"number_of_divisions":   [10,10,10],
+			"element_name":     "Element3D4N",
+			"entities_to_generate": "center_of_elements",
+			"output" : "rectilinear_coordinates",
+				"output_filename" : "TestFace.vtr",
+			"coloring_settings_list": [
+				{
+					"model_part_name": "SkinPart",
+					"inside_color": -1,
+					"outside_color": 1,
+					"apply_outside_color": true,
+					"coloring_entities": "center_of_elements"
+				},
+				{
+					"model_part_name": "SkinPart",
+					"inside_color": -1,
+					"outside_color": 1,
+					"apply_outside_color": false,
+					"coloring_entities": "face_of_elements"
+				}
+			]
+		})");
+
+        Model current_model;
+		ModelPart &volume_part = current_model.CreateModelPart("Volume");
+		volume_part.AddNodalSolutionStepVariable(DISTANCE);
+
+		// Generate the skin
+		ModelPart &skin_model_part = current_model.CreateModelPart("Skin");
+        ModelPart &skin_part = skin_model_part.CreateSubModelPart("SkinPart");
+
+		skin_part.AddNodalSolutionStepVariable(VELOCITY);
+		skin_part.CreateNewNode(901, 2.0, 2.1, 1.9);
+		skin_part.CreateNewNode(902, 5.9, 2.1, 1.9);
+		skin_part.CreateNewNode(903, 5.9, 5.9, 1.9);
+		skin_part.CreateNewNode(904, 2.0, 5.9, 1.9);
+		skin_part.CreateNewNode(905, 2.0, 2.1, 7.3);
+		skin_part.CreateNewNode(906, 5.9, 2.1, 7.3);
+		skin_part.CreateNewNode(907, 5.9, 5.9, 7.3);
+		skin_part.CreateNewNode(908, 2.0, 5.9, 7.3);
+		Properties::Pointer p_properties(new Properties(0));
+		skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 902, { 901,904,903 }, p_properties);
+
+		skin_part.CreateNewElement("Element3D3N", 903, { 901,902,906 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 904, { 901,905,906 }, p_properties);
+
+		skin_part.CreateNewElement("Element3D3N", 905, { 902,903,907 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 906, { 902,907,906 }, p_properties);
+
+		skin_part.CreateNewElement("Element3D3N", 907, { 903,904,908 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 908, { 903,907,908 }, p_properties);
+
+		skin_part.CreateNewElement("Element3D3N", 909, { 904,901,905 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 910, { 904,905,908 }, p_properties);
+
+		skin_part.CreateNewElement("Element3D3N", 911, { 905,906,907 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 912, { 905,908,907 }, p_properties);
+
+		// Generating the mesh
+		CoarseVoxelMeshGeneratorProcess(Point{0.00, 0.00, 0.00}, Point{10.00, 10.00, 10.00}, volume_part, skin_model_part, mesher_parameters).Execute();
+
+		auto& x_coordinates = volume_part.GetValue(RECTILINEAR_X_COORDINATES);
+		auto& y_coordinates = volume_part.GetValue(RECTILINEAR_Y_COORDINATES);
+		auto& z_coordinates = volume_part.GetValue(RECTILINEAR_Z_COORDINATES);
+		auto& colors = volume_part.GetValue(VOXEL_FACE_COLORS);
+
+		KRATOS_CHECK_EQUAL(colors.size1(), 27);
+		KRATOS_CHECK_EQUAL(colors.size2(), 6);
+
+		std::size_t index = 0;
+		for (std::size_t k = 0; k < 3; k++) {
+			for (std::size_t j = 0; j < 3; j++) {
+				for (std::size_t i = 0; i < 3; i++) {
+					if((i == 1) && (j == 1) && (k == 1)){
+						KRATOS_CHECK_NEAR(colors(index, 0), -1.00, 1e-6);
+						KRATOS_CHECK_NEAR(colors(index, 1), -1.00, 1e-6);
+						KRATOS_CHECK_NEAR(colors(index, 2), -1.00, 1e-6);
+						KRATOS_CHECK_NEAR(colors(index, 3), -1.00, 1e-6);
+						KRATOS_CHECK_NEAR(colors(index, 4), -1.00, 1e-6);
+						KRATOS_CHECK_NEAR(colors(index, 5), -1.00, 1e-6);
+					}
+					else{
+						KRATOS_CHECK_NEAR(colors(index, 0), 1.00, 1e-6);
+						KRATOS_CHECK_NEAR(colors(index, 1), 1.00, 1e-6);
+						KRATOS_CHECK_NEAR(colors(index, 2), 1.00, 1e-6);
+						KRATOS_CHECK_NEAR(colors(index, 3), 1.00, 1e-6);
+						KRATOS_CHECK_NEAR(colors(index, 4), 1.00, 1e-6);
+						KRATOS_CHECK_NEAR(colors(index, 5), 1.00, 1e-6);
+					}
+					
+					index++;
+				}
+            }
+		}
+	}
+
 	KRATOS_TEST_CASE_IN_SUITE(VoxelMeshGeneratorProcessCubeCoarseMesh, KratosCoreFastSuite)
 	{
 		Parameters mesher_parameters(R"(
