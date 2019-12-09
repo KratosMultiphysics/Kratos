@@ -1084,12 +1084,10 @@ namespace Kratos {
 				for (std::size_t i = 0; i < 10; i++) {
 					if((i >= 1) && (i < 9) && (y_coordinates[j] > 2.1) && (y_coordinates[j] < 5.9) && (z_coordinates[k] > 1.9) && (z_coordinates[k] < 7.3)){
 						if((x_coordinates[i-1] < 2.00) && (x_coordinates[i] > 2.00)){
-							std::cout << "(" << i << "," << j << "," << k << ")-> index=" << index << " : " << row(colors, index) << std::endl;
 							KRATOS_CHECK_NEAR(colors(index, 0), -1.00, 1e-6);
 							KRATOS_CHECK_NEAR(colors(index, 3), 1.00, 1e-6);
 						}
 						else if((x_coordinates[i] < 5.90) && (x_coordinates[i+1] > 5.90)){
-							std::cout << "(" << i << "," << j << "," << k << ")-> index=" << index << " : " << row(colors, index) << std::endl;
 							KRATOS_CHECK_NEAR(colors(index, 0), 1.00, 1e-6);
 							KRATOS_CHECK_NEAR(colors(index, 3), -1.00, 1e-6);
 						}
