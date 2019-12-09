@@ -69,7 +69,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef FrequencyResponseAnalysisStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType > FrequencyResponseAnalysisStrategyType;
     typedef MorOnlineStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOnlineStrategyType;
     typedef MorOfflineSecondOrderStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOfflineSecondOrderStrategyType;
-    typedef MorOnlineSecondOrderStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType, ComplexSpaceType, ComplexLocalSpaceType, ComplexLinearSolverType > MorOnlineSecondOrderStrategyType;
+    // typedef MorOnlineSecondOrderStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType, ComplexSpaceType, ComplexLocalSpaceType, ComplexLinearSolverType > MorOnlineSecondOrderStrategyType;
 
     typedef MorSecondOrderKrylovStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorSecondOrderKrylovStrategyType;
 

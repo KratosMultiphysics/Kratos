@@ -178,7 +178,7 @@ public:
             unsigned int i = 0;
             for (auto const& dof : it->GetDofs())
             {
-                b(3*k+i) = dof.EquationId();
+                b(3*k+i) = (*dof).EquationId();
                 i++;
             }
         }
@@ -207,9 +207,9 @@ public:
                 {
                     for( auto& dof : node.GetDofs() )
                     {
-                        if( dof.GetVariable().Name() == mOutputVariableNames[i] )
+                        if( (*dof).GetVariable().Name() == mOutputVariableNames[i] )
                         {
-                            b( dof.EquationId() ) = 1;
+                            b( (*dof).EquationId() ) = 1;
                         }
                     }
                 }

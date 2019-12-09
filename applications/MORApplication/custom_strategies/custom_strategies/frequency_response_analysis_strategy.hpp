@@ -490,14 +490,14 @@ class FrequencyResponseAnalysisStrategy
             
             for( auto it_dof = std::begin(rNodeDofs); it_dof != std::end(rNodeDofs); it_dof++ )
             {
-                if( !it_dof->IsFixed() )
+                if( !(*it_dof)->IsFixed() )
                 {
-                    it_dof->GetSolutionStepValue(step) = std::abs(rDisplacement(it_dof->EquationId()));
+                    (*it_dof)->GetSolutionStepValue(step) = std::abs(rDisplacement((*it_dof)->EquationId()));
                     // it_dof->GetSolutionStepReactionValue(step) = std::imag(rDisplacement(it_dof->EquationId()));
                 }
                 else
                 {
-                    it_dof->GetSolutionStepValue(step) = 0.0;
+                    (*it_dof)->GetSolutionStepValue(step) = 0.0;
                 }
             }
         }
