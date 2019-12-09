@@ -24,6 +24,8 @@
 // Project includes
 #include "includes/kratos_application.h"
 
+#include "custom_elements/acoustic_element.h"
+
 
 namespace Kratos {
 
@@ -175,7 +177,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    // const Elem2D   mElem2D;
+    const AcousticElement mAcousticElement3D4N;
     // const Elem3D   mElem3D;
 
     ///@}

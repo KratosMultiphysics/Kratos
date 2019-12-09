@@ -18,14 +18,21 @@
 
 
 // Project includes
+#include "includes/define.h"
+
 #include "mor_application.h"
 #include "mor_application_variables.h"
+
+#include "geometries/tetrahedra_3d_4.h"
 
 
 namespace Kratos {
 
+  typedef Node<3> NodeType;
+
 KratosMORApplication::KratosMORApplication():
-    KratosApplication("MORApplication")
+    KratosApplication("MORApplication"),
+      mAcousticElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4))))
     {}
 
 void KratosMORApplication::Register()
@@ -35,6 +42,9 @@ void KratosMORApplication::Register()
      KRATOS_INFO("") << "Initializing KratosMORApplication..." << std::endl;
 
   KRATOS_REGISTER_VARIABLE( FREQUENCY )
+
+  KRATOS_REGISTER_ELEMENT("AcousticElement3D4N", mAcousticElement3D4N)
+
 
 }
 }  // namespace Kratos.
