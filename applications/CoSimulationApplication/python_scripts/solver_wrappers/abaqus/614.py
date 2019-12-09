@@ -424,7 +424,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             cmd = []
             for suffix in to_be_removed_suffix:
                 cmd.append(f"rm CSM_Time{self.timestep - 1}{suffix}")
-        self.run_shell(self, self.dir_csm, cmd, name="Remove_previous")
+        self.run_shell(self.dir_csm, cmd, name="Remove_previous")
         print("FinalizeSolutionStep")
 
     def Finalize(self):
