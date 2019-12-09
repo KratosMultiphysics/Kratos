@@ -161,6 +161,19 @@ public:
         const IntegrationMethodType IntegrationMethod) override;
 
     /**
+    * Returns the shape function values in the negative split element side for a given quadrature on the contact line.
+    * @return rContactLineNegativeSideShapeFunctionValues: Matrix containing the negative side computed shape function values.
+    * @return rContactLineNegativeSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the negative side.
+    * @return rContactLineNegativeSideWeightsValues: Vector containing the Gauss pts. negative side weights (already multiplied by the Jacobian).
+    * @param IntegrationMethod Desired integration quadrature.
+    */
+    void ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
+        Matrix &rContactLineNegativeSideShapeFunctionsValues,
+        ShapeFunctionsGradientsType &rContactLineNegativeSideShapeFunctionsGradientsValues,
+        Vector &rContactLineNegativeSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod) override;
+
+    /**
     * Given a face id, returns the shape function values in the positive split element exterior face side for a given quadrature.
     * @return rInterfacePositiveSideShapeFunctionValues: Matrix containing the positive side computed shape function values.
     * @return rInterfacePositiveSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the positive side.
@@ -247,6 +260,13 @@ public:
     */
     void ComputeShapeFunctionsOnNegativeEdgeIntersections(
         Matrix &rNegativeEdgeIntersectionsShapeFunctionsValues) override;
+
+    /**
+    * Returns the negative side tangential vector (in the direction of contact line).
+    * @return rNegativeSideContactLineVector: single vector showing the contact line.
+    */
+    bool ComputeNegativeSideContactLineVector(
+        Vector &rNegativeSideContactLineVector) override;
 
     /**
     * Returns true if the element is split and false otherwise.

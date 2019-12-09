@@ -184,6 +184,11 @@ void KratosFluidDynamicsApplication::Register() {
     // Parallel levelset distance calculator needs an AREA_VARIABLE_AUX
     KRATOS_REGISTER_VARIABLE( AREA_VARIABLE_AUX)
 
+    // Contact line calculation
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NORMAL_VECTOR)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TANGENT_VECTOR)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONTACT_VECTOR)
+
     // Register Elements
     KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention
     KRATOS_REGISTER_ELEMENT("VMS3D4N",mVMS3D); //this is the name the element should have according to the naming convention

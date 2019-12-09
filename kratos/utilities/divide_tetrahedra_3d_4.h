@@ -50,6 +50,7 @@ public:
     typedef BaseType::GeometryType                                      GeometryType;
     typedef BaseType::IndexedPointType                                  IndexedPointType;
     typedef BaseType::IndexedPointGeometryType::GeometriesArrayType     IndexedGeometriesArrayType;
+    typedef Line3D2 < IndexedPointType >                                IndexedPointLineType; // Needed to construct the contact line
     typedef Triangle3D3 < IndexedPointType >                            IndexedPointTriangleType;
     typedef Tetrahedra3D4 < IndexedPointType >                          IndexedPointTetrahedraType;
 

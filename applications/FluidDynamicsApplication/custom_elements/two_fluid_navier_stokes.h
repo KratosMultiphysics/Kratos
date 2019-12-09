@@ -25,6 +25,7 @@
 #include "custom_elements/fluid_element.h"
 #include "custom_utilities/fluid_element_utilities.h"
 #include "utilities/geometry_utilities.h"
+#include "includes/deprecated_variables.h"
 
 namespace Kratos
 {
@@ -453,6 +454,49 @@ private:
         std::vector<Vector>& rInterfaceNormalsNeg);
 
     /**
+     * @brief Split shape functions computation auxiliar method
+     * This method computes the standard and enrichment shape functions for a split element and interfaces
+     * @param rData Element data container
+     * @param rShapeFunctionsPos Positive side shape functions values
+     * @param rShapeFunctionsNeg Negative side shape functions values
+     * @param rEnrichedShapeFunctionsPos Positive side enrichment shape functions values
+     * @param rEnrichedShapeFunctionsNeg Negative side enrichment shape functions values
+     * @param rShapeDerivativesPos  Positive side shape functions derivatives values
+     * @param rShapeDerivativesNeg  Negative side shape functions derivatives values
+     * @param rEnrichedShapeDerivativesPos Positive side enrichment shape functions derivatives values
+     * @param rEnrichedShapeDerivativesNeg Negative side enrichment shape functions derivatives values
+     * @param rInterfaceShapeDerivativesNeg Negative side shape functions derivatives at the interface-gauss-points
+     * @param rInterfaceWeightsNeg Negative side weights for the interface-gauss-points
+     * @param rInterfaceNormalsNeg Negative side normal vectors for the interface-gauss-points
+     * @param rContactShapeFunctionsNeg Negative side shape functions at the contact-line gauss-points
+     * @param rContactShapeDerivativesNeg Negative side shape functions derivatives at the contact-line gauss-points
+     * @param rContactWeightsNeg Negative side weights for the contact-line gauss-points
+     * @param rContactTangentialsNeg Negative side tangential vectors for the contact-line gauss-points
+     * @param rHasContactLine Boolean
+     */
+    void ComputeSplitting(
+		TElementData& rData,
+		MatrixType& rShapeFunctionsPos,
+        MatrixType& rShapeFunctionsNeg,
+        MatrixType& rEnrichedShapeFunctionsPos,
+        MatrixType& rEnrichedShapeFunctionsNeg,
+        GeometryType::ShapeFunctionsGradientsType& rShapeDerivativesPos,
+        GeometryType::ShapeFunctionsGradientsType& rShapeDerivativesNeg,
+        GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesPos,
+        GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesNeg,
+        MatrixType& rInterfaceShapeFunctionNeg,
+        MatrixType& rEnrInterfaceShapeFunctionPos,
+        MatrixType& rEnrInterfaceShapeFunctionNeg,
+        GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
+        Kratos::Vector& rInterfaceWeightsNeg,
+        std::vector<Vector>& rInterfaceNormalsNeg,
+        MatrixType& rContactShapeFunctionNeg,
+        GeometryType::ShapeFunctionsGradientsType& rContactShapeDerivativesNeg,
+        Kratos::Vector& rContactWeightsNeg,
+        Vector& rContactTangentialNeg,
+        bool& rHasContactLine);
+
+    /**
      * @brief Calculates curvature at the gauss points of the interface.
      * @param rInterfaceCurvature Vector containing curvature values at the gauss points
      * @param rInterfaceShapeDerivativesNeg Negative side shape functions derivatives at the interface-gauss-points
@@ -540,6 +584,32 @@ private:
         const Matrix& rIntShapeFunctions,
         const std::vector<Vector>& rIntNormalsNeg,
         VectorType& rRHS);  
+
+    /**
+     * @brief Computes the surface tension on the interface and implement its effect on the RHS vector
+     * Added the effect of contact line for an open interface.
+     * @param coefficient surface tension coefficient
+     * @param rCurvature curvature calculated at the interface gauss points
+     * @param rIntWeights Weights associated with interface gauss points
+     * @param rIntShapeFunctions Shape functions calculated at the interface gauss points
+     * @param rIntNormalsNeg Normal vectors (negative side) associated with interface gauss points
+     * @param rCLWeights Weights associated with contact line gauss points
+     * @param rCLShapeFunctions Shape functions calculated at the contact line gauss points
+     * @param rTangential Tangential vectors (according to negative side interfaces) associated with contact line gauss points
+     * @param HasContactLine shows if there is a contact line
+     * @param rRHS The effect of pressure discontinuity is implemented as an interfacial integral on the RHS
+     */
+    void SurfaceTension(
+        const double coefficient,
+        const Kratos::Vector& rCurvature,
+        const Kratos::Vector& rIntWeights,
+        const Matrix& rIntShapeFunctions,
+        const std::vector<Vector>& rIntNormalsNeg,
+        const Kratos::Vector& rCLWeights,
+        const Matrix& rCLShapeFunctions,
+        const Vector& rTangential,
+        bool HasContactLine,
+        VectorType& rRHS);
 
     /**
      * @brief Condense the enrichment

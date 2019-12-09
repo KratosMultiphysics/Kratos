@@ -181,6 +181,40 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFunct
     }
 };
 
+// Returns all the shape function values for the contact line.
+void Tetrahedra3D4ModifiedShapeFunctions::ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
+    Matrix &rContactLineNegativeSideShapeFunctionsValues,
+    ShapeFunctionsGradientsType &rContactLineNegativeSideShapeFunctionsGradientsValues,
+    Vector &rContactLineNegativeSideWeightsValues,
+    const IntegrationMethodType IntegrationMethod){
+
+    const int i_contact_face = mpTetrahedraSplitter->mContactInterface;
+
+    if (i_contact_face > -1) {
+        // Get the interface condensation matrix
+        Matrix p_matrix;
+        this->SetCondensationMatrix(p_matrix,
+                                    mpTetrahedraSplitter->mEdgeNodeI,
+                                    mpTetrahedraSplitter->mEdgeNodeJ,
+                                    mpTetrahedraSplitter->mSplitEdges);
+
+        const unsigned int i_parent = mpTetrahedraSplitter->mNegativeInterfacesParentIds[mpTetrahedraSplitter->mContactInterface];
+        const auto& r_interface_geom = mpTetrahedraSplitter->mContactLine;
+        const auto& r_parent_geom = mpTetrahedraSplitter->mNegativeSubdivisions[i_parent];
+
+        // Compute the positive side interface values
+        this->ComputeFaceValuesOnOneSide(rContactLineNegativeSideShapeFunctionsValues,
+                                        rContactLineNegativeSideShapeFunctionsGradientsValues,
+                                        rContactLineNegativeSideWeightsValues,
+                                        r_interface_geom,
+                                        r_parent_geom,
+                                        p_matrix,
+                                        IntegrationMethod);
+    } else {
+        KRATOS_ERROR << "Using the ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues method for a geometry without contact line.";
+    }
+};
+
 // Given a face id, computes the positive side subdivision shape function values in that face.
 void Tetrahedra3D4ModifiedShapeFunctions::ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
     Matrix &rPositiveExteriorFaceShapeFunctionsValues,
@@ -387,6 +421,28 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeShapeFunctionsOnNegativeEdgeInt
     } else {
         KRATOS_ERROR << "Using the ComputeShapeFunctionsOnNegativeEdgeIntersections method for a non divided geometry.";
     }
+};
+
+bool Tetrahedra3D4ModifiedShapeFunctions::ComputeNegativeSideContactLineVector(
+    Vector &rNegativeSideContactLineVector)
+{
+    const int i_contact_face = mpTetrahedraSplitter->mContactInterface;
+    const int i_contact_edge = mpTetrahedraSplitter->mContactEdge;
+
+    if (i_contact_face > -1){
+        IndexedPointGeometryType edgei = (mpTetrahedraSplitter->mNegativeInterfaces[i_contact_face]->Edges())[i_contact_edge];
+        const array_1d<double, 3> aux_vector = 
+            edgei[1].Coordinates() - edgei[0].Coordinates();
+
+        rNegativeSideContactLineVector = aux_vector;
+        return true;
+    }
+    else
+    {
+        rNegativeSideContactLineVector = ZeroVector(3);
+        return false;
+    }
+    
 };
 
 }; //namespace Kratos

@@ -97,10 +97,18 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
             Kratos::Vector int_gauss_pts_weights;
             std::vector<Vector> int_normals_neg;
             Kratos::Vector gauss_pts_curvature;
+            MatrixType contact_shape_function_neg;
+            GeometryType::ShapeFunctionsGradientsType contact_shape_derivatives_neg;
+            Kratos::Vector contact_gauss_pts_weights;
+            Vector contact_tangential_neg;
+            Vector contact_vector;
+
             //Kratos::Vector surface_tension;
 
-            const double surface_tension_coefficient = 0.1;//0.072; //Surface tension coefficient, TODO: get from properties
+            bool has_contact_line = false;
 
+            const double surface_tension_coefficient = 1.0;//0.072; //Surface tension coefficient, TODO: get from properties
+            
             ComputeSplitting(
                 data,
                 shape_functions_pos,
@@ -116,7 +124,12 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 int_shape_function_enr_neg,
                 int_shape_derivatives_neg,
                 int_gauss_pts_weights,
-                int_normals_neg);
+                int_normals_neg,
+                contact_shape_function_neg,
+                contact_shape_derivatives_neg,
+                contact_gauss_pts_weights,
+                contact_tangential_neg,
+                has_contact_line);
 
             CalculateCurvature(int_shape_derivatives_neg, gauss_pts_curvature);
             //KRATOS_INFO("Curvature") << gauss_pts_curvature << std::endl;
@@ -128,6 +141,10 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 int_gauss_pts_weights,
                 int_shape_function_neg,
                 int_normals_neg,
+                contact_gauss_pts_weights,
+                contact_shape_function_neg,
+                contact_tangential_neg,
+                has_contact_line,
                 rRightHandSideVector);
 
             if (data.NumberOfDivisions == 1){
@@ -2108,6 +2125,140 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
 }
 
 template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
+		TElementData& rData,
+		MatrixType& rShapeFunctionsPos,
+        MatrixType& rShapeFunctionsNeg,
+        MatrixType& rEnrichedShapeFunctionsPos,
+        MatrixType& rEnrichedShapeFunctionsNeg,
+        GeometryType::ShapeFunctionsGradientsType& rShapeDerivativesPos,
+        GeometryType::ShapeFunctionsGradientsType& rShapeDerivativesNeg,
+        GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesPos,
+        GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesNeg,
+        MatrixType& rInterfaceShapeFunctionNeg,
+        MatrixType& rEnrInterfaceShapeFunctionPos,
+        MatrixType& rEnrInterfaceShapeFunctionNeg,
+        GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
+        Kratos::Vector& rInterfaceWeightsNeg,
+        std::vector<Vector>& rInterfaceNormalsNeg,
+        MatrixType& rContactShapeFunctionNeg,
+        GeometryType::ShapeFunctionsGradientsType& rContactShapeDerivativesNeg,
+        Kratos::Vector& rContactWeightsNeg,
+        Vector& rContactTangentialsNeg,
+        bool& rHasContactLine)
+{
+        // Set the positive and negative enrichment interpolation matrices
+    // Note that the enrichment is constructed using the standard shape functions such that:
+    // In the negative distance region, the enrichment functions correspondig to the negative
+    // distance nodes are null and the positive distance nodes are equal to the standard shape
+    // functions. On the contrary, for the positive distance region, the enrichment functions
+    // corresponding to the positive distance nodes are null meanwhile the negative distance
+    // nodes are equal to the standard. This yields a discontinuous enrichment space.
+    Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
+    Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes);
+
+    for (unsigned int i = 0; i < NumNodes; i++){
+        if (rData.Distance[i] > 0.0){
+            enr_neg_interp(i, i) = 1.0;
+        } else{
+            enr_pos_interp(i, i) = 1.0;
+        }
+    }
+
+    // Construct the modified shape fucntions utility
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+    ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
+    if (Dim == 2)
+        p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, rData.Distance);
+    else
+        p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, rData.Distance);
+
+    // Call the positive side modified shape functions calculator
+    p_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(
+        rShapeFunctionsPos,
+        rShapeDerivativesPos,
+        rData.w_gauss_pos_side,
+        GeometryData::GI_GAUSS_2);
+
+    // Call the negative side modified shape functions calculator
+    p_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(
+        rShapeFunctionsNeg,
+        rShapeDerivativesNeg,
+        rData.w_gauss_neg_side,
+        GeometryData::GI_GAUSS_2);
+
+    // Call the Interface negative side shape functions calculator
+    p_modified_sh_func->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
+        rInterfaceShapeFunctionNeg,
+        rInterfaceShapeDerivativesNeg,
+        rInterfaceWeightsNeg,
+        GeometryData::GI_GAUSS_2);
+
+    // Call the Interface negative side normal functions calculator
+    p_modified_sh_func->ComputeNegativeSideInterfaceAreaNormals(
+        rInterfaceNormalsNeg,
+        GeometryData::GI_GAUSS_2);
+
+    for (unsigned int gp = 0; gp < rInterfaceNormalsNeg.size(); gp++){
+
+        double normal_norm = 0.0;
+        for (unsigned int dim = 0; dim < Dim; dim++){
+            normal_norm += (rInterfaceNormalsNeg[gp])[dim]*(rInterfaceNormalsNeg[gp])[dim];
+        }
+
+        normal_norm = std::sqrt(normal_norm);
+
+        for (unsigned int dim = 0; dim < Dim; dim++){
+            (rInterfaceNormalsNeg[gp])[dim] = (rInterfaceNormalsNeg[gp])[dim]/normal_norm;
+        }
+    }
+
+    // Compute the enrichment shape function values using the enrichment interpolation matrices
+    rEnrichedShapeFunctionsPos = prod(rShapeFunctionsPos, enr_pos_interp);
+    rEnrichedShapeFunctionsNeg = prod(rShapeFunctionsNeg, enr_neg_interp);
+
+    // Compute the enrichment shape function values at the interface gauss points using the enrichment interpolation matrices
+    rEnrInterfaceShapeFunctionPos = prod(rInterfaceShapeFunctionNeg, enr_pos_interp);
+    rEnrInterfaceShapeFunctionNeg = prod(rInterfaceShapeFunctionNeg, enr_neg_interp);
+
+    // Compute the enrichment shape function gradient values using the enrichment interpolation matrices
+    rEnrichedShapeDerivativesPos = rShapeDerivativesPos;
+    rEnrichedShapeDerivativesNeg = rShapeDerivativesNeg;
+
+    for (unsigned int i = 0; i < rShapeDerivativesPos.size(); i++){
+        rEnrichedShapeDerivativesPos[i] = prod(enr_pos_interp, rShapeDerivativesPos[i]);
+    }
+
+    for (unsigned int i = 0; i < rShapeDerivativesNeg.size(); i++){
+        rEnrichedShapeDerivativesNeg[i] = prod(enr_neg_interp, rShapeDerivativesNeg[i]);
+    }
+
+    rData.NumberOfDivisions = (p_modified_sh_func->pGetSplittingUtil())->mDivisionsNumber;
+
+    rHasContactLine = p_modified_sh_func->ComputeNegativeSideContactLineVector(rContactTangentialsNeg);
+
+    double tangent_norm = 0.0;
+    for (unsigned int dim = 0; dim < Dim; dim++){
+        tangent_norm += rContactTangentialsNeg[dim]*rContactTangentialsNeg[dim];
+    }
+
+    tangent_norm = std::sqrt(tangent_norm);
+
+    for (unsigned int dim = 0; dim < Dim; dim++){
+        rContactTangentialsNeg[dim] = rContactTangentialsNeg[dim]/tangent_norm;
+    }
+
+    if (rHasContactLine){
+        // Call the Contact Line negative side shape functions calculator
+        p_modified_sh_func->ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
+            rContactShapeFunctionNeg,
+            rContactShapeDerivativesNeg,
+            rContactWeightsNeg,
+            GeometryData::GI_GAUSS_2);
+    }
+}
+
+template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::CalculateCurvature(
     const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
     Kratos::Vector& rInterfaceCurvature)
@@ -2337,6 +2488,100 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
         for (unsigned int j = 0; j < NumNodes; j++){
             for (unsigned int dim = 0; dim < NumDim; dim++){
                 rhs[ j*(NumDim+1) + dim ] -= coefficient*(rIntNormalsNeg[gp])[dim]*rCurvature(gp)*rIntWeights(gp)*rIntShapeFunctions(gp,j);
+            }
+        }
+    }
+
+    noalias(rRHS) += rhs;
+} 
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::SurfaceTension(
+        const double coefficient,
+        const Kratos::Vector& rCurvature,
+        const Kratos::Vector& rIntWeights,
+        const Matrix& rIntShapeFunctions,
+        const std::vector<Vector>& rIntNormalsNeg,
+        const Kratos::Vector& rCLWeights,
+        const Matrix& rCLShapeFunctions,
+        const Vector& rTangential,
+        bool HasContactLine,
+        VectorType& rRHS)
+{
+    const unsigned int NumIntGP = rIntShapeFunctions.size1();
+    const unsigned int NumNodes = rIntShapeFunctions.size2();
+    const unsigned int NumDim = rIntNormalsNeg[0].size();
+
+    VectorType rhs = ZeroVector(NumNodes*(NumDim+1));
+
+    double total_weight = 0.0;
+    Vector normal_avg = ZeroVector(NumDim);
+
+    for (unsigned int intgp = 0; intgp < NumIntGP; intgp++){
+        total_weight += rIntWeights(intgp);
+        normal_avg += rIntWeights(intgp)*rIntNormalsNeg[intgp];
+
+        for (unsigned int j = 0; j < NumNodes; j++){
+            for (unsigned int dim = 0; dim < NumDim; dim++){
+                rhs[ j*(NumDim+1) + dim ] -= coefficient*(rIntNormalsNeg[intgp])[dim]*rCurvature(intgp)*rIntWeights(intgp)*rIntShapeFunctions(intgp,j);
+            }
+        }
+    }
+
+    normal_avg = 1.0/total_weight * normal_avg;
+
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+
+    Vector contact_vector = ZeroVector(NumDim);
+    Vector wall_tangent = ZeroVector(NumDim);
+    std::vector< Vector > wall_normal;
+
+    if (HasContactLine){
+
+        const unsigned int NumCLGP = rCLShapeFunctions.size1();    
+
+        for (unsigned int clgp = 0; clgp < NumCLGP; clgp++){
+
+            Vector wall_normal_gp = ZeroVector(NumDim);
+
+            for (unsigned int j = 0; j < NumNodes; j++){
+                wall_normal_gp += rCLShapeFunctions(clgp,j)*(*p_geom)[j].FastGetSolutionStepValue(NORMAL);
+            }
+
+            wall_normal.push_back( wall_normal_gp );
+        }
+
+        //KRATOS_INFO("Cut Element, has contact line, NumCLGP") << NumCLGP << std::endl;
+
+        MathUtils<double>::UnitCrossProduct(contact_vector, rTangential, normal_avg);
+
+        for (unsigned int clgp = 0; clgp < NumCLGP; clgp++){
+
+            //KRATOS_INFO("Cut Element, has contact line, CLWeight") << rCLWeights(clgp) << std::endl;
+            MathUtils<double>::UnitCrossProduct(wall_tangent, wall_normal[clgp], rTangential);
+
+            for (unsigned int j = 0; j < NumNodes; j++){
+
+                //KRATOS_INFO("Cut Element, has contact line, CLShapeFunction") << rCLShapeFunctions(clgp,j) << std::endl;
+
+                for (unsigned int dim = 0; dim < NumDim; dim++){
+                    rhs[ j*(NumDim+1) + dim ] -= coefficient*contact_vector[dim]*rCLWeights(clgp)*rCLShapeFunctions(clgp,j);
+                    rhs[ j*(NumDim+1) + dim ] -= 0.5*coefficient*wall_tangent[dim]*rCLWeights(clgp)*rCLShapeFunctions(clgp,j);
+                    //KRATOS_INFO("Cut Element, has contact line, CLShapeFunction") << rCLShapeFunctions(clgp,j) << std::endl;
+                    //KRATOS_INFO("Cut Element, has contact line, RHS") << rhs[ j*(NumDim+1) + dim ] << std::endl;               
+                }
+            }
+        }
+    }
+
+    for (unsigned int i=0; i < NumNodes; ++i){
+        
+        (*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = normal_avg;
+
+        if ((*p_geom)[i].GetValue(IS_STRUCTURE) == 1.0){
+            if (HasContactLine){
+                (*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = wall_tangent;
+                (*p_geom)[i].FastGetSolutionStepValue(CONTACT_VECTOR) = contact_vector;
             }
         }
     }

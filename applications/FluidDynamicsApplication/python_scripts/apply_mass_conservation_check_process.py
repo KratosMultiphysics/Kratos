@@ -44,8 +44,6 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
             with open(self._my_log_file, "w") as logFile:
                 logFile.write( first_lines_string )
 
-        KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess","Initialization finished (initial volumes calculated).")
-
 
     def ExecuteBeforeSolutionLoop(self):
         self.mass_conservation_check_process.ExecuteBeforeSolutionLoop()

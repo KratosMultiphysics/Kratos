@@ -116,7 +116,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.DISTANCE_AUX)                   # Auxiliary distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
-        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.AREA_VARIABLE_AUX)              # Auxiliary area_variable for parallel distance calculator        
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.AREA_VARIABLE_AUX)              # Auxiliary area_variable for parallel distance calculator    
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.NORMAL_VECTOR)                  # Auxiliary normal vector at interface
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.TANGENT_VECTOR)                 # Auxiliary tangent vector at contact line
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONTACT_VECTOR)                 # Auxiliary contact vector     
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Fluid solver variables added correctly.")
 
@@ -169,7 +172,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     KratosMultiphysics.DISTANCE, 
                     KratosCFD.AREA_VARIABLE_AUX, 
                     100, 
-                    0.05,
+                    5.0,
                     (self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
         self.variational_distance_process = self._set_variational_distance_process()
@@ -202,6 +205,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         (self.solver).Check()
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["formulation"]["dynamic_tau"].GetDouble())
+
+        for node in (self.main_model_part.GetSubModelPart("NoSlip3D_No_Slip_Auto1")).Nodes:
+            node.SetValue(KratosMultiphysics.IS_STRUCTURE, 1.0)
+            #NodeId = node.Id
+            #KratosMultiphysics.Logger.PrintInfo("Wall", NodeId)
+        #Set IS_STRUCTURE to define contact line.
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Solver initialization finished.")
 
@@ -240,7 +249,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     KratosMultiphysics.DISTANCE, 
                     KratosCFD.AREA_VARIABLE_AUX, 
                     100, 
-                    0.05)#,
+                    5.0)#,
                     #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
             # Compute the DISTANCE_GRADIENT on nodes

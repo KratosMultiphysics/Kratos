@@ -857,7 +857,7 @@ private:
         KRATOS_TRY
 
         //identify the list of elements divided by the original distance distribution and recompute an "exact" distance
-        //attempting to mantain the original position of the free surface
+        //attempting to maintain the original position of the free surface
         //note that the backup value is used in calculating the position of the free surface and the divided elements
         array_1d<double,TDim+1> dist, exact_dist;
         array_1d<double,TDim+1> visited;
