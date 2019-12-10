@@ -111,6 +111,15 @@ public:
         if (mNodalVariablesNames[0] == "DISPLACEMENT")
             mNodalDofs = std::stoi(mNodalVariablesNames[1]);
         mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();
+
+        // //Privisional way of retrieving the number of DOFs. Better alternative to be implemented.
+        // if(KratosComponents<Variable<double>>::HasVariable(mNodalVariablesNames[0])) //it is a sclar variable
+        // else if(KratosComponents<Variable<array_1d<double,3>>/::HasVariable(mNodalVariablesNames[0]))
+        // if (mNodalVariablesNames[0] == "TEMPERATURE")
+        //     mNodalDofs = 1;
+        // if (mNodalVariablesNames[0] == "DISPLACEMENT")
+        //     mNodalDofs = std::stoi(mNodalVariablesNames[1]);
+        // mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();
     }
 
 
@@ -378,17 +387,11 @@ public:
 
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
-        int nthreads;
-        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo)
+        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId)
         {
-
             Matrix tempA = ZeroMatrix(mRomDofs,mRomDofs);
             Vector tempb = ZeroVector(mRomDofs);
-            int id, nthrds;
-            id = omp_get_thread_num();
-            nthrds = omp_get_num_threads();
-            if(id==0) nthreads = nthrds;
-            #pragma omp for 
+            #pragma omp for nowait
             for (int k = 0; k < nelements; k++)
             {
                 auto it_el = el_begin + k;
@@ -428,21 +431,14 @@ public:
                     }
 
                     Matrix aux = prod(LHS_Contribution, Telemental);
-					tempA += prod(trans(Telemental), aux);
-                    tempb += prod(trans(Telemental), RHS_Contribution);
+					noalias(tempA) += prod(trans(Telemental), aux);
+                    noalias(tempb) += prod(trans(Telemental), RHS_Contribution);
                     
-
-
                     pScheme->CleanMemory(*(it_el.base()));                
                 }
                 
             }
-            #pragma omp critical 
-            Arom +=tempA;
-            brom +=tempb;
 
-            tempA = ZeroMatrix(mRomDofs,mRomDofs);
-            tempb = ZeroVector(mRomDofs);
             #pragma omp for
             for (int k = 0; k < nconditions;  k++)
             {
@@ -479,22 +475,21 @@ public:
                         }
                     }
                     Matrix aux = prod(LHS_Contribution, Telemental);
-                    tempA += prod(trans(Telemental), aux);
-                    tempb += prod(trans(Telemental), RHS_Contribution);
+                    noalias(tempA) += prod(trans(Telemental), aux);
+                    noalias(tempb) += prod(trans(Telemental), RHS_Contribution);
                     
-                 
-                 
-
                     // clean local elemental memory
                     pScheme->CleanMemory(*(it.base()));
                 }
             }
             #pragma omp critical 
-            Arom +=tempA;
-            brom +=tempb;
+            {
+                noalias(Arom) +=tempA;
+                noalias(brom) +=tempb;
+            }
         }
         const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << "for a total of "<< nthreads << " treads"<<std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build <<std::endl;
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 

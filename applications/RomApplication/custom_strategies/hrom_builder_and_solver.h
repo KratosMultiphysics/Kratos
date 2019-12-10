@@ -381,11 +381,11 @@ public:
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
 
-        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo)
+        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId)
         {
             Matrix tempA = ZeroMatrix(mRomDofs,mRomDofs);
             Vector tempb = ZeroVector(mRomDofs);
-            #pragma omp for 
+            #pragma omp for nowait
             for (int k = 0; k < nelements; k++)
             {
                 auto it_el = el_begin + k;
@@ -422,21 +422,15 @@ public:
                     double H_ROM_WEIGHT = it_el->GetValue(HROM_WEIGHT);
                     Matrix aux = prod(LHS_Contribution, Telemental);
                     
-                    tempA += prod(trans(Telemental), aux) * H_ROM_WEIGHT;
-                    tempb += prod(trans(Telemental), RHS_Contribution) * H_ROM_WEIGHT;
+                    noalias(tempA) += prod(trans(Telemental), aux) * H_ROM_WEIGHT;
+                    noalias(tempb) += prod(trans(Telemental), RHS_Contribution) * H_ROM_WEIGHT;
 
                     // clean local elemental me overridemory
                     pScheme->CleanMemory(*(it_el.base()));                
                 }
                 
             }
-            #pragma omp critical 
-            Arom +=tempA;
-            brom +=tempb;
-
-            tempA = ZeroMatrix(mRomDofs,mRomDofs);
-            tempb = ZeroVector(mRomDofs);
-
+            
             #pragma omp for
             for (int k = 0; k < nconditions;  k++)
             {
@@ -476,8 +470,8 @@ public:
                     double H_ROM_WEIGHT = it->GetValue(HROM_WEIGHT);
                     Matrix aux = prod(LHS_Contribution, Telemental);
                     
-                    tempA += prod(trans(Telemental), aux) * H_ROM_WEIGHT;
-                    tempb += prod(trans(Telemental), RHS_Contribution) * H_ROM_WEIGHT;
+                    noalias(tempA) += prod(trans(Telemental), aux) * H_ROM_WEIGHT;
+                    noalias(tempb) += prod(trans(Telemental), RHS_Contribution) * H_ROM_WEIGHT;
                     
 
                     // clean local elemental memory
@@ -485,8 +479,10 @@ public:
                 }
             }
             #pragma omp critical 
-            Arom +=tempA;
-            brom +=tempb;            
+            {
+                noalias(Arom) +=tempA;
+                noalias(brom) +=tempb;
+            }            
 
         }
         // Checking the already fully built matrices 
