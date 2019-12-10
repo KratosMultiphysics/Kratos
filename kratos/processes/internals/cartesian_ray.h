@@ -317,32 +317,23 @@ private:
 
 
     bool CheckPassingThroughByExtraRays(typename std::vector<std::pair<double, const TGeometryType*>>::iterator Begin, typename std::vector<std::pair<double, const TGeometryType*>>::iterator End, double Tolerance, double Delta){
-        std::array<double, 8> delta_u{Delta, Delta, 0.00, -Delta, -Delta, -Delta, 0.00, Delta};
-        std::array<double, 8> delta_v{0.00, Delta, Delta, Delta, 0.00, -Delta, -Delta, -Delta};
+        const std::array<double, 8> delta_u{Delta, Delta, 0.00, -Delta, -Delta, -Delta, 0.00, Delta};
+        const std::array<double, 8> delta_v{0.00, Delta, Delta, Delta, 0.00, -Delta, -Delta, -Delta};
+        const std::array<int, 4> axes{1,2,0,1};
+
+        const int i_u = axes[mDirection];
+        const int i_v = axes[mDirection+1];
 
         std::size_t no_hit_cases = 0;
 
         for(int i_ray = 0 ; i_ray < 8 ; i_ray++){
             CartesianRay extra_ray(mDirection, mPoint1, mPoint2);
-            if(mDirection == 0) {
-                extra_ray.mPoint1[1] += delta_u[i_ray];
-                extra_ray.mPoint1[2] += delta_v[i_ray];
-                extra_ray.mPoint2[1] += delta_u[i_ray];
-                extra_ray.mPoint2[2] += delta_v[i_ray];
-            }
-            else if(mDirection == 1) {
-                extra_ray.mPoint1[0] += delta_u[i_ray];
-                extra_ray.mPoint1[2] += delta_v[i_ray];
-                extra_ray.mPoint2[0] += delta_u[i_ray];
-                extra_ray.mPoint2[2] += delta_v[i_ray];
-            }
-            else if(mDirection == 2) {
-                extra_ray.mPoint1[0] += delta_u[i_ray];
-                extra_ray.mPoint1[1] += delta_v[i_ray];
-                extra_ray.mPoint2[0] += delta_u[i_ray];
-                extra_ray.mPoint2[1] += delta_v[i_ray];
-            }
-            for(auto i_intersection = Begin ; i_intersection != End; i_intersection++){
+            extra_ray.mPoint1[i_u] += delta_u[i_ray];
+            extra_ray.mPoint1[i_v] += delta_v[i_ray];
+            extra_ray.mPoint2[i_u] += delta_u[i_ray];
+            extra_ray.mPoint2[i_v] += delta_v[i_ray];
+
+           for(auto i_intersection = Begin ; i_intersection != End; i_intersection++){
                 extra_ray.AddIntersection(*(i_intersection->second), Tolerance);
             }
             if(extra_ray.mIntersections.size() == 0){
