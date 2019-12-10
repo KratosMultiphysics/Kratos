@@ -88,13 +88,6 @@ public:
     void AddIntersection(TGeometryType const& rGeometry, double Tolerance){
 
         array_1d<double,3> intersection_point = ZeroVector(3);
-        std::vector<double> geometry_point_1{rGeometry[0].X(), rGeometry[0].Y(), rGeometry[0].Z()};
-        std::vector<double> geometry_point_2{rGeometry[1].X(), rGeometry[1].Y(), rGeometry[1].Z()};
-        std::vector<double> geometry_point_3{rGeometry[2].X(), rGeometry[2].Y(), rGeometry[2].Z()};
-        
-        std::vector<double> point_1{mPoint1.X(), mPoint1.Y(), mPoint1.Z()};
-        std::vector<double> point_2{mPoint2.X(), mPoint2.Y(), mPoint2.Z()};
-
 		const double relative_tolerance = 1.0e-12*std::sqrt(rGeometry.Length());
         const int is_intersected = IntersectionUtilities::ComputeTriangleRayIntersection(
           rGeometry,
@@ -197,8 +190,9 @@ public:
 
         bool is_inside=false;
 
-        if(ResultingColors.size() != Coordinates.size())
-        ResultingColors.resize(Coordinates.size());
+        if(ResultingColors.size() != Coordinates.size()){
+            ResultingColors.resize(Coordinates.size());
+        }
     
         std::size_t current_index=0;
         const std::size_t size = Coordinates.size();
@@ -229,8 +223,9 @@ public:
 
         const std::size_t size = Coordinates.size() - 1;
 
-        if(ResultingColors.size() != Coordinates.size())
+        if(ResultingColors.size() != Coordinates.size()){
             ResultingColors.resize(size);
+        }
     
         std::size_t current_index=0;
 
