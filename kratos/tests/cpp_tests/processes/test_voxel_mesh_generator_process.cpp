@@ -1025,6 +1025,7 @@ namespace Kratos {
 					"model_part_name": "SkinPart",
 					"inside_color": -1,
 					"outside_color": 1,
+					"interface_color":-2,
 					"apply_outside_color": false,
 					"coloring_entities": "face_of_elements"
 				}
@@ -1084,12 +1085,12 @@ namespace Kratos {
 				for (std::size_t i = 0; i < 10; i++) {
 					if((i >= 1) && (i < 9) && (y_coordinates[j] > 2.1) && (y_coordinates[j] < 5.9) && (z_coordinates[k] > 1.9) && (z_coordinates[k] < 7.3)){
 						if((x_coordinates[i-1] < 2.00) && (x_coordinates[i] > 2.00)){
-							KRATOS_CHECK_NEAR(colors(index, 0), -1.00, 1e-6);
+							KRATOS_CHECK_NEAR(colors(index, 0), -2.00, 1e-6);
 							KRATOS_CHECK_NEAR(colors(index, 3), 1.00, 1e-6);
 						}
 						else if((x_coordinates[i] < 5.90) && (x_coordinates[i+1] > 5.90)){
 							KRATOS_CHECK_NEAR(colors(index, 0), 1.00, 1e-6);
-							KRATOS_CHECK_NEAR(colors(index, 3), -1.00, 1e-6);
+							KRATOS_CHECK_NEAR(colors(index, 3), -2.00, 1e-6);
 						}
 						else{
 							KRATOS_CHECK_NEAR(colors(index, 0), 1.00, 1e-6);
@@ -1124,6 +1125,7 @@ namespace Kratos {
 					"model_part_name": "SkinPart",
 					"inside_color": -1,
 					"outside_color": 1,
+					"interface_color": -2,
 					"apply_outside_color": false,
 					"coloring_entities": "face_of_elements"
 				}
@@ -1169,9 +1171,6 @@ namespace Kratos {
 		// Generating the mesh
 		CoarseVoxelMeshGeneratorProcess(Point{0.00, 0.00, 0.00}, Point{10.00, 10.00, 10.00}, volume_part, skin_model_part, mesher_parameters).Execute();
 
-		auto& x_coordinates = volume_part.GetValue(RECTILINEAR_X_COORDINATES);
-		auto& y_coordinates = volume_part.GetValue(RECTILINEAR_Y_COORDINATES);
-		auto& z_coordinates = volume_part.GetValue(RECTILINEAR_Z_COORDINATES);
 		auto& colors = volume_part.GetValue(VOXEL_FACE_COLORS);
 
 		KRATOS_CHECK_EQUAL(colors.size1(), 27);
@@ -1182,12 +1181,12 @@ namespace Kratos {
 			for (std::size_t j = 0; j < 3; j++) {
 				for (std::size_t i = 0; i < 3; i++) {
 					if((i == 1) && (j == 1) && (k == 1)){
-						KRATOS_CHECK_NEAR(colors(index, 0), -1.00, 1e-6);
-						KRATOS_CHECK_NEAR(colors(index, 1), -1.00, 1e-6);
-						KRATOS_CHECK_NEAR(colors(index, 2), -1.00, 1e-6);
-						KRATOS_CHECK_NEAR(colors(index, 3), -1.00, 1e-6);
-						KRATOS_CHECK_NEAR(colors(index, 4), -1.00, 1e-6);
-						KRATOS_CHECK_NEAR(colors(index, 5), -1.00, 1e-6);
+						KRATOS_CHECK_NEAR(colors(index, 0), -2.00, 1e-6);
+						KRATOS_CHECK_NEAR(colors(index, 1), -2.00, 1e-6);
+						KRATOS_CHECK_NEAR(colors(index, 2), -2.00, 1e-6);
+						KRATOS_CHECK_NEAR(colors(index, 3), -2.00, 1e-6);
+						KRATOS_CHECK_NEAR(colors(index, 4), -2.00, 1e-6);
+						KRATOS_CHECK_NEAR(colors(index, 5), -2.00, 1e-6);
 					}
 					else{
 						KRATOS_CHECK_NEAR(colors(index, 0), 1.00, 1e-6);
