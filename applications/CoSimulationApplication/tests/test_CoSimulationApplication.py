@@ -20,6 +20,7 @@ if numpy_available:
     from test_coupling_operations import TestScalingOperation
     from test_flower_coupling import TestFLOWerCoupling
     from test_sdof_solver import TestSdofSolver
+    from test_sdof_static_solver import TestSdofStaticSolver
 if not using_pykratos:
     from test_cosim_EMPIRE_API import TestCoSim_EMPIRE_API
 
@@ -45,6 +46,7 @@ def AssembleTestSuites():
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestScalingOperation]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSdofSolver]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSdofStaticSolver]))
     if not using_pykratos:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPingPong]))
