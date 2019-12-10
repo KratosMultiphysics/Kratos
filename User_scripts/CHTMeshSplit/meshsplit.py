@@ -107,7 +107,7 @@ class CHTWorkflow():
         self.detect_skin.Execute()
 
         self.skin_model_part = self.model_solid.GetSubModelPart(self.name_auxiliar_model_part)
-        #print(self.skin_model_part)
+        print(self.skin_model_part)
         KratosMultiphysics.CalculateDistanceToSkinProcess3D(self.model_fluid, self.skin_model_part).Execute()
 
         self.EmbeddedSkinVisualizationProcess.ExecuteInitialize()
@@ -212,7 +212,6 @@ class CHTWorkflow():
         }""")
         MmgProcess = KratosMesh.MmgProcess3D(self.model_fluid, remesh_param)
         MmgProcess.Execute()
-        #KratosMultiphysics.ModelPartIO("vis_model_fluid", KratosMultiphysics.IO.WRITE).WriteModelPart(self.model_fluid)
 
     def SubtractModels(self, min_size, max_size, hausdorff_value):
 
