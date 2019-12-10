@@ -33,7 +33,7 @@ namespace Kratos
         ModelPart& rVolumePart,
         ModelPart& rSkinPart, Parameters& TheParameters)
 		: VoxelMeshGeneratorProcess(MinPoint, MaxPoint, rVolumePart, rSkinPart, TheParameters) {
-
+			
 		}
 
     CoarseVoxelMeshGeneratorProcess::CoarseVoxelMeshGeneratorProcess(std::vector<double> const& XCoordinates, std::vector<double> const& YCoordinates, std::vector<double> const& ZCoordinates,
@@ -43,7 +43,7 @@ namespace Kratos
     }
 
 	CoarseVoxelMeshGeneratorProcess::~CoarseVoxelMeshGeneratorProcess() {
-
+		
 	}
 
 	void CoarseVoxelMeshGeneratorProcess::Execute() {
@@ -59,6 +59,7 @@ namespace Kratos
 					"model_part_name": "PLEASE SPECIFY IT",
 					"inside_color": -1,
 					"outside_color": 1,
+					"interface_color": 0,
 					"apply_outside_color": true,
 					"coloring_entities" : "nodes"
 				}  )");
