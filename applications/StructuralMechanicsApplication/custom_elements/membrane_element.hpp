@@ -92,62 +92,217 @@ namespace Kratos
       VectorType& rRightHandSideVector,
       ProcessInfo& rCurrentProcessInfo) override;
 
+
+
+     /**
+     * @brief Calculates the covariant base vectors
+     * @param rBaseVectors The base vectors to be calculated
+     * @param rShapeFunctionGradientValues Current shapefunction gradients
+     * @param Configuration Reference/Current
+     */
     void CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
      const Matrix& rShapeFunctionGradientValues,const std::string Configuration);
 
+      /**
+     * @brief Calculates the covariant metric
+     * @param rMetric The metric to be calculated
+     * @param rBaseVectorCovariant Covariant base vectors
+     */
     void CovariantMetric(Matrix& rMetric,const array_1d<Vector,2>& rBaseVectorCovariant);
 
+     /**
+     * @brief Calculates the contra variant base vectors
+     * @param rBaseVectors The base vectors to be calculated
+     * @param rContraVariantMetric Contra variant metric
+     * @param rCovariantBaseVectors Covariant base vectors
+     */
     void ContraVariantBaseVectors(array_1d<Vector,2>& rBaseVectors,const Matrix& rContraVariantMetric,
       const array_1d<Vector,2> rCovariantBaseVectors);
 
+      /**
+     * @brief Calculates the contra variant metric
+     * @param rMetric The metric to be calculated
+     * @param rCovariantMetric Covariant metric
+     */
     void ContravariantMetric(Matrix& rMetric,const Matrix& rCovariantMetric);
 
+
+      /**
+     * @brief Calculates 1st derivative of the current covariant base vectors
+     * @param rBaseVectors The derived base bectors
+     * @param rShapeFunctionGradientValues Current shapefunction gradients
+     * @param DofR current degree of freedom 1
+     */
     void DeriveCurrentCovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
      const Matrix& rShapeFunctionGradientValues, const SizeType DofR);
 
+
+      /**
+     * @brief Calculates 2nd derivative of the current covariant metric
+     * @param rMetric The derived metric
+     * @param rShapeFunctionGradientValues Current shapefunction gradients
+     * @param DofR current degree of freedom 1
+     * @param DofS current degree of freedom 2
+     */
     void Derivative2CurrentCovariantMetric(Matrix& rMetric,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS);
 
+
+      /**
+     * @brief Calculates the determinant of the Jacobian
+     * @param rDetJacobi The determinant of the Jacobian
+     * @param rReferenceBaseVectors Reference base vectors
+     */
     void JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors);
 
+
+      /**
+     * @brief Calculates 2nd derivative of the green lagrange strain
+     * @param rStrain The derived strain
+     * @param rShapeFunctionGradientValues Current shapefunction gradients
+     * @param DofR current degree of freedom 1
+     * @param DofS current degree of freedom 2
+     * @param rTransformationMatrix local coordinate system transformation
+     */
     void Derivative2StrainGreenLagrange(Vector& rStrain,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS,
       const Matrix& rTransformationMatrix);
 
+
+
+      /**
+     * @brief Calculates 1st derivative of the green lagrange strain
+     * @param rStrain The derived strain
+     * @param rShapeFunctionGradientValues Current shapefunction gradients
+     * @param DofR current degree of freedom 1
+     * @param rCurrentCovariantBaseVectors current covariant base vectors
+     * @param rTransformationMatrix local coordinate system transformation
+     */
     void DerivativeStrainGreenLagrange(Vector& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
       const array_1d<Vector,2> rCurrentCovariantBaseVectors, const Matrix& rTransformationMatrix);
 
+
+      /**
+     * @brief Calculates green lagrange strain
+     * @param rStrain The strain
+     * @param rReferenceCoVariantMetric reference covariant metric
+     * @param rCurrentCoVariantMetric current covariant metric
+     * @param rTransformationMatrix local coordinate system transformation
+     */
     void StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
        const Matrix& rTransformationMatrix);
 
+
+      /**
+     * @brief Calculates the material tangent modulus
+     * @param rTangentModulus The modulus
+     * @param rReferenceContraVariantMetric reference contra variant metric
+     * @param rReferenceCoVariantMetric reference covariant metric
+     * @param rCurrentCoVariantMetric current covariant metric
+     * @param rTransformationMatrix local coordinate system transformation
+     */
     void MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric,
     const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric, const Matrix& rTransformationMatrix);
 
+
+      /**
+     * @brief Calculates the piola-kirchhoff-2 stress
+     * @param rStress The stress
+     * @param rReferenceContraVariantMetric reference contra variant metric
+     * @param rReferenceCoVariantMetric reference covariant metric
+     * @param rCurrentCoVariantMetric current covariant metric
+     * @param rTransformedBaseVectors local coordinate system
+     * @param rTransformationMatrix local coordinate system transformation
+     */
     void StressPk2(Vector& rStress,
       const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
       const array_1d<Vector,2>& rTransformedBaseVectors, const Matrix& rTransformationMatrix);
 
+
+      /**
+     * @brief Adds pre-stress to a given stress vector
+     * @param rStress The stress
+     * @param rTransformedBaseVectors local coordinate system
+     */
     void AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>& rTransformedBaseVectors);
 
+
+      /**
+     * @brief Re-writes a tensor 2nd order into voigt notation (n11,n22,n12)
+     * @param rMetric The tensor 2nd order
+     * @param rOutputVector The voigt vector
+     * @param StrainStressCheck if strain: voigtvector[2]*2
+     */
     void VoigtNotation(const Matrix& rMetric, Vector& rOutputVector, const std::string StrainStressCheck);
 
+
+
+      /**
+     * @brief Calculates 1st derivative of the current covariant metric
+     * @param rMetric The derived metric
+     * @param rShapeFunctionGradientValues Current shapefunction gradients
+     * @param DofR current degree of freedom 1
+     * @param rCurrentCovariantBaseVectors current covariant base vectors
+     */
     void DerivativeCurrentCovariantMetric(Matrix& rMetric,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const array_1d<Vector,2> rCurrentCovariantBaseVectors);
 
+
+      /**
+     * @brief Calculates the internal forces
+     * @param rInternalForces The internal forces
+     * @param ThisMethod numerical integration method
+     */
     void InternalForces(Vector& rInternalForces,const IntegrationMethod& ThisMethod);
 
+
+      /**
+     * @brief Calculates the stiffness matrix
+     * @param rStiffnessMatrix The stiffness matrix
+     * @param ThisMethod numerical integration method
+     */
     void TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod& ThisMethod);
 
+
+      /**
+     * @brief Calculates initial stress part of the total stiffness matrix
+     * @param rEntryIJ the matrix entry to be calculated
+     * @param rStressVector Current stress
+     * @param rPositionI current degree of freedom 1
+     * @param rPositionJ current degree of freedom 2
+     * @param rShapeFunctionGradientValues Current shapefunction gradients
+     * @param rTransformationMatrix local coordinate system transformation
+     */
     void InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
       const Vector& rStressVector,
       const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
       const Matrix& rTransformationMatrix);
 
+
+
+      /**
+     * @brief Calculates material part of the total stiffness matrix
+     * @param rEntryIJ the matrix entry to be calculated
+     * @param rMaterialTangentModulus material tangent modulus
+     * @param rPositionI current degree of freedom 1
+     * @param rPositionJ current degree of freedom 2
+     * @param rShapeFunctionGradientValues Current shapefunction gradients
+     * @param rCurrentCovariantBaseVectors current covariant base vectors
+     * @param rTransformationMatrix local coordinate system transformation
+     */
     void MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
       const Matrix& rMaterialTangentModulus,
       const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
       const array_1d<Vector,2>& rCurrentCovariantBaseVectors,const Matrix& rTransformationMatrix);
 
+
+
+      /**
+     * @brief Transform strains to a given local coordinate system
+     * @param rStrains the strains in the given local coordinate system
+     * @param rReferenceStrains the strains in the reference coordinate system
+     * @param rTransformationMatrix local coordinate system transformation
+     */
     void TransformStrains(Vector& rStrains, Vector& rReferenceStrains, const Matrix& rTransformationMatrix);
 
     void GetValuesVector(
@@ -174,9 +329,22 @@ namespace Kratos
       std::vector<array_1d<double, 3>>& rOutput,
       const ProcessInfo& rCurrentProcessInfo) override;
 
+
+      /**
+     * @brief Creates a given local coordinate system
+     * @param rBaseVectors the new local coordinate system
+     * @param rLocalBaseVectors the base coordinate system
+     */
     void TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
      const array_1d<Vector,2>& rLocalBaseVectors);
 
+
+      /**
+     * @brief Creates the transformation matrix for a given local coordinate system
+     * @param rTransformationMatrix the transformation matrix
+     * @param rTransformedBaseVectors local coordinate system
+     * @param rLocalReferenceBaseVectors the base coordinate system
+     */
     template <class T>
     void InPlaneTransformationMatrix(Matrix& rTransformationMatrix, const array_1d<Vector,2>& rTransformedBaseVectors,
       const T& rLocalReferenceBaseVectors);
@@ -203,8 +371,21 @@ namespace Kratos
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
+
+      /**
+     * @brief Calculates the principle vectors
+     * @param rPrincipleVector the principle vectors
+     * @param rNonPrincipleVector reference state
+     */
     void PrincipleVector(Vector& rPrincipleVector, const Vector& rNonPrincipleVector);
 
+
+      /**
+     * @brief Checks for taunt/slack/wrinkles
+     * @param rWrinklingStateArray the current wrinkling state
+     * @param rStress the stress
+     * @param rStrain the strain
+     */
     void CheckWrinklingState(array_1d<bool,3>& rWrinklingStateArray, const Vector& rStress, const Vector& rStrain);
 
 protected:
