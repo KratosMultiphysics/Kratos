@@ -4,7 +4,7 @@
 //					 license: ../../license.txt
 //
 //  Main authors:
-//                   
+//
 //
 
 // System includes
@@ -13,16 +13,14 @@
 
 
 // Project includes
-#include "utilities/math_utils.h"
 
 // Application includes
 #include "custom_elements/acoustic_element.h"
-#include "mor_application_variables.h"
 
 namespace Kratos
 {
 AcousticElement::AcousticElement( IndexType NewId, GeometryType::Pointer pGeometry )
-    : BaseSolidElement( NewId, pGeometry )
+    : Element( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -31,7 +29,7 @@ AcousticElement::AcousticElement( IndexType NewId, GeometryType::Pointer pGeomet
 /***********************************************************************************/
 
 AcousticElement::AcousticElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-        : BaseSolidElement( NewId, pGeometry, pProperties )
+        : Element( NewId, pGeometry, pProperties )
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -73,11 +71,11 @@ Element::Pointer AcousticElement::Clone (
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
 
-    // Currently selected integration methods
-    p_new_elem->SetIntegrationMethod(BaseType::mThisIntegrationMethod);
+    // // Currently selected integration methods
+    // p_new_elem->SetIntegrationMethod(BaseType::mThisIntegrationMethod);
 
-    // The vector containing the constitutive laws
-    p_new_elem->SetConstitutiveLawVector(BaseType::mConstitutiveLawVector);
+    // // The vector containing the constitutive laws
+    // p_new_elem->SetConstitutiveLawVector(BaseType::mConstitutiveLawVector);
 
     return p_new_elem;
 
@@ -91,7 +89,7 @@ int  AcousticElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
-    int ier = BaseSolidElement::Check(rCurrentProcessInfo);
+    int ier = Element::Check(rCurrentProcessInfo);
 
     return ier;
 
@@ -101,18 +99,18 @@ int  AcousticElement::Check( const ProcessInfo& rCurrentProcessInfo )
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AcousticElement::save( Serializer& rSerializer ) const
-{
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseSolidElement );
-}
+// void AcousticElement::save( Serializer& rSerializer ) const
+// {
+//     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseSolidElement );
+// }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AcousticElement::load( Serializer& rSerializer )
-{
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseSolidElement );
-}
+// void AcousticElement::load( Serializer& rSerializer )
+// {
+//     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseSolidElement );
+// }
 
 } // Namespace Kratos
 

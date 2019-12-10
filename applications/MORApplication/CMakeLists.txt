@@ -21,9 +21,11 @@ set( KRATOS_MOR_APPLICATION_SOURCES
     ## MAIN FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/mor_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mor_application_variables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/acoustic_element.cpp
 
     ## PYTHON
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/mor_python_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 
 )

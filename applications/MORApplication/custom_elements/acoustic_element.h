@@ -18,7 +18,8 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/variables.h"
+#include "includes/element.h"
+#include "mor_application_variables.h"
 
 namespace Kratos
 {
@@ -238,9 +239,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    void save(Serializer& rSerializer) const override;
+    // void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override;
+    // void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{
