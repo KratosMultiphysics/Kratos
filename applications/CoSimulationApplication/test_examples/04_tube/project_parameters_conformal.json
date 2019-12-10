@@ -11,8 +11,7 @@
         "type" : "coupled_solvers.gauss_seidel",
         "settings" :
         {
-            "echo_level" : 1,
-            "master_solver_index" : 0
+            "echo_level" : 1
         },
         "predictor" :
         {

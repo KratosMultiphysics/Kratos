@@ -1,0 +1,15 @@
+{
+    "settings":
+    {
+        "data_structure" : "pyKratos"
+    },
+    "mapper" :
+    {
+        "type": "mappers.linear_1d",
+        "settings":
+        {
+            "direction" : "Z",
+            "balanced_tree" : false
+        }
+    }
+}

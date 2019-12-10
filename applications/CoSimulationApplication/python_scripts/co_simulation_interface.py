@@ -83,6 +83,21 @@ class CoSimulationInterface(object):
     def SetNumpyArray(self, data):
         self.SetPythonList(data.tolist())
 
+    def CopyDataFrom(self, other):
+        """
+        This should be used as a 'protection'
+        against overwriting referenced values, but
+        with less overhead than self.deepcopy().
+
+        How to protect data?
+            Normally just protect incoming data from
+            corrupting anything using this function.
+            If outgoing data must be protected, the
+            self.deepcopy() must be used.
+        """
+        data = other.GetPythonList()
+        self.SetPythonList(data.copy())
+
     def deepcopy(self):
         """
         WARNING: current implementation of this method works only for

@@ -3,7 +3,7 @@
     {
         "echo_level" : 1,
         "start_step" : 1,
-        "stop_step" : 101,
+        "stop_step" : 11,
         "data_structure" : "pyKratos"
     },
     "coupled_solver" :
@@ -11,8 +11,7 @@
         "type" : "coupled_solvers.gauss_seidel",
         "settings" :
         {
-            "echo_level" : 1,
-            "master_solver_index" : 0
+            "echo_level" : 1
         },
         "predictor" :
         {
@@ -73,9 +72,9 @@
             {
                 "type": "solver_wrappers.mapped",
                 "settings": {
-                    "solver" :
+                    "solver_wrapper" :
                     {
-                        "type" : "solver_interfaces.pipe.structure_solver",
+                        "type" : "solver_wrappers.pipe.structure_solver",
                         "settings" :
                         {
                             "working_directory" : "CSD",
@@ -90,13 +89,29 @@
                             }
                         }
                     },
-                    "mapper_input":
+                    "mapper_interface_input":
                     {
-                        "type" : "mappers.linear"
+						"type" : "mappers.interface",
+						"settings" :
+						{
+	                        "type": "mappers.linear_1d",
+                            "settings":
+                            {
+                                "direction" : "Z"
+                            }
+						}
                     },
-                    "mapper_output":
+                    "mapper_interface_output":
                     {
-                        "type" : "mappers.linear"
+						"type" : "mappers.interface",
+						"settings" :
+						{
+	                        "type": "mappers.linear_1d",
+                            "settings":
+                            {
+                                "direction" : "Z"
+                            }
+						}
                     }
                 }
             }

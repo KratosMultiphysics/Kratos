@@ -43,9 +43,7 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
 
         # Initialization
         self.p = np.ones(self.m) * 2.0 * self.cmk2  # Pressure
-        self.a = np.ones(self.m) * m.pi * self.d ** 2 / 4.0  # Area of cross section
-        self.p0 = 0.0  # Reference pressure
-        self.a0 = m.pi * self.d ** 2 / 4.0  # Reference area of cross section
+
         self.c02 = self.cmk2 - self.p0 / 2.0  # Wave speed squared with reference pressure
 
         # ModelParts
