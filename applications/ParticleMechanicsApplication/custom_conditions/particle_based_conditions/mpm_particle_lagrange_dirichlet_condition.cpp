@@ -38,10 +38,10 @@ MPMParticleLagrangeDirichletCondition::MPMParticleLagrangeDirichletCondition( In
 //************************************************************************************
 //************************************************************************************
 
-MPMParticleLagrangeDirichletCondition::MPMParticleLagrangeDirichletCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties , Node<3>* p_new_node)
+
+MPMParticleLagrangeDirichletCondition::MPMParticleLagrangeDirichletCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
     : MPMParticleBaseDirichletCondition( NewId, pGeometry, pProperties )
 {
-    pBoundaryParticle = p_new_node;
 }
 
 //********************************* CREATE *******************************************
@@ -49,7 +49,7 @@ MPMParticleLagrangeDirichletCondition::MPMParticleLagrangeDirichletCondition( In
 
 Condition::Pointer MPMParticleLagrangeDirichletCondition::Create(IndexType NewId,GeometryType::Pointer pGeometry,PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<MPMParticleLagrangeDirichletCondition>(NewId, pGeometry, pProperties, nullptr);
+    return Kratos::make_intrusive<MPMParticleLagrangeDirichletCondition>(NewId, pGeometry, pProperties);
 }
 
 //************************************************************************************
@@ -57,7 +57,7 @@ Condition::Pointer MPMParticleLagrangeDirichletCondition::Create(IndexType NewId
 
 Condition::Pointer MPMParticleLagrangeDirichletCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties  ) const
 {
-    return Kratos::make_intrusive<MPMParticleLagrangeDirichletCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties, nullptr);
+    return Kratos::make_intrusive<MPMParticleLagrangeDirichletCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties);
 }
 
 //******************************* DESTRUCTOR *****************************************
@@ -78,6 +78,7 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( ProcessInfo&
 
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
 
     array_1d<double, 3 > & r_lagrange_multiplier  = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
 
@@ -130,7 +131,6 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     // Prepare variables
     GeneralVariables Variables;
-    KRATOS_WATCH(xg_c)
 
     // Calculating shape function
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
@@ -180,6 +180,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
                 for (unsigned int k = 0; k < dimension; k++)
                 {
+                    lagrange_matrix(i* dimension+k, i* dimension+k) = 0.001/this->GetIntegrationWeight();
                     lagrange_matrix(i* dimension+k, ibase+k) = Variables.N[i];
                     lagrange_matrix(ibase+k, i*dimension + k) = Variables.N[i];
                 }
@@ -191,7 +192,6 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
         if ( CalculateStiffnessMatrixFlag == true )
         {
             rLeftHandSideMatrix = lagrange_matrix;
-            KRATOS_WATCH(rLeftHandSideMatrix)
         }
 
         if ( CalculateResidualVectorFlag == true )
@@ -206,14 +206,13 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
                     gap_function[index+j]          = r_displacement[j] - r_imposed_displacement[j];
 
             }
+            auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
             const array_1d<double, 3>& r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-            KRATOS_WATCH(r_lagrange_multiplier)
             for (unsigned int j = 0; j < dimension; j++)
                     gap_function[dimension * number_of_nodes+j] = r_lagrange_multiplier[j];
 
 
             noalias(rRightHandSideVector) -= prod(lagrange_matrix, gap_function);
-            KRATOS_WATCH(gap_function)
         }
 
     }
@@ -259,11 +258,15 @@ void MPMParticleLagrangeDirichletCondition::EquationIdVector(
     }
 
     unsigned int index = number_of_nodes * dimension;
+    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
 
-    rResult[index    ] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
+    if(!Is(SLIP))
+        rResult[index    ] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
+
     rResult[index + 1] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
     if(dimension == 3)
         rResult[index + 2] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_Z).EquationId();
+
 
     KRATOS_CATCH("")
 }
@@ -289,11 +292,15 @@ void MPMParticleLagrangeDirichletCondition::GetDofList(
             rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Z));
 
     }
+    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
 
-    rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+    if(!Is(SLIP))
+        rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+
     rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
     if(dimension == 3)
-        rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+        rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
+
 
 
     KRATOS_CATCH("")
@@ -327,6 +334,7 @@ void MPMParticleLagrangeDirichletCondition::GetValuesVector(
             rValues[index + k] = r_displacement[k];
         }
     }
+    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
     const array_1d<double, 3 > & r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, Step);
     const unsigned int lagrange_index = number_of_nodes * dimension;
     for(unsigned int k = 0; k < dimension; ++k)

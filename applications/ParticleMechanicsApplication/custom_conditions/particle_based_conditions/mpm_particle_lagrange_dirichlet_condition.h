@@ -83,8 +83,7 @@ public:
     MPMParticleLagrangeDirichletCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties,
-        Node<3>* p_new_node
+        PropertiesType::Pointer pProperties
         );
 
     /// Destructor.
