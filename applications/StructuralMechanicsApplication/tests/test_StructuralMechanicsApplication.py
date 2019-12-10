@@ -252,144 +252,144 @@ def AssembleTestSuites():
 
     ### Adding the self-contained tests
     # Constitutive Law tests
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestConstitutiveLaw]))
-    nightSuite.addTest(TSimpleSmallDeformationPlasticityMCTest('test_execution'))
-    smallSuite.addTest(TSimpleSmallDeformationPlasticityVMTest('test_execution'))
-    nightSuite.addTest(TSerialParallelRuleOfMixturesCubeDamageTest('test_execution'))
-    smallSuite.addTest(TSimpleSmallDeformationPlasticityDPTest('test_execution'))
-    smallSuite.addTest(TSimpleSmallDeformationPlasticityTTest('test_execution'))
-    nightSuite.addTest(TBigCubeSmallDeformationPlasticityMCTest('test_execution'))
-    nightSuite.addTest(TBigCubeSmallDeformationPlasticityVMTest('test_execution'))
-    nightSuite.addTest(TBigCubeSmallDeformationPlasticityDPTest('test_execution'))
-    nightSuite.addTest(TBigCubeSmallDeformationPlasticityTTest('test_execution'))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPerfectPlasticityImplementationVerification]))
-    # Mass calculation tests
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeCenterOfGravity]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeMassMomentOfInertia]))
-    # Solids
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrain]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrainBbar]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestLargeStrain]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestQuadraticElements]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallDisplacementMixedVolumetricStrain]))
-    # Shells
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShells]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsStressRec])) # TODO should be in smallSuite but is too slow
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsOrthotropic])) # TODO should be in smallSuite but is too slow
-    # Membranes
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestFormfinding]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TStaticPatchTestMembrane]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicPatchTestMembrane]))
-    # Trusses
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTruss3D2N]))
-    # Beams
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TStaticPatchTestBeam3D2N]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TStaticPatchTestBeam2D2N]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicPatchTestBeam3D2N]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicPatchTestBeam2D2N]))
-    # Loading Conditions
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsPoint]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsLine]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsSurface]))
-    # Dynamic Eigenvalue Analysis
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestDynamicEigenvalueAnalysis]))
-    # Nodal Damping
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests])) # TODO should be in smallSuite but is too slow
-    # Dynamic basic tests
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TFastDynamicSchemesTests]))
-    # Eigenvalues Postprocessing Process test
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithConstraints]))
-    # local-axis visualization tests
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLocalAxisVisualization]))
-    # Adjoint Elements
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeamAdjointElement]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestShellThinAdjointElement3D3N]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussAdjointElement]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussLinearAdjointElement]))
-    # RVE tests
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestRVESimplestTest]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestConstitutiveLaw]))
+    # nightSuite.addTest(TSimpleSmallDeformationPlasticityMCTest('test_execution'))
+    # smallSuite.addTest(TSimpleSmallDeformationPlasticityVMTest('test_execution'))
+    # nightSuite.addTest(TSerialParallelRuleOfMixturesCubeDamageTest('test_execution'))
+    # smallSuite.addTest(TSimpleSmallDeformationPlasticityDPTest('test_execution'))
+    # smallSuite.addTest(TSimpleSmallDeformationPlasticityTTest('test_execution'))
+    # nightSuite.addTest(TBigCubeSmallDeformationPlasticityMCTest('test_execution'))
+    # nightSuite.addTest(TBigCubeSmallDeformationPlasticityVMTest('test_execution'))
+    # nightSuite.addTest(TBigCubeSmallDeformationPlasticityDPTest('test_execution'))
+    # nightSuite.addTest(TBigCubeSmallDeformationPlasticityTTest('test_execution'))
+    # nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPerfectPlasticityImplementationVerification]))
+    # # Mass calculation tests
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeCenterOfGravity]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeMassMomentOfInertia]))
+    # # Solids
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrain]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrainBbar]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestLargeStrain]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestQuadraticElements]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallDisplacementMixedVolumetricStrain]))
+    # # Shells
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShells]))
+    # nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsStressRec])) # TODO should be in smallSuite but is too slow
+    # nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsOrthotropic])) # TODO should be in smallSuite but is too slow
+    # # Membranes
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestFormfinding]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TStaticPatchTestMembrane]))
+    # nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicPatchTestMembrane]))
+    # # Trusses
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTruss3D2N]))
+    # # Beams
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TStaticPatchTestBeam3D2N]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TStaticPatchTestBeam2D2N]))
+    # nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicPatchTestBeam3D2N]))
+    # nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicPatchTestBeam2D2N]))
+    # # Loading Conditions
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsPoint]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsLine]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsSurface]))
+    # # Dynamic Eigenvalue Analysis
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestDynamicEigenvalueAnalysis]))
+    # # Nodal Damping
+    # nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests])) # TODO should be in smallSuite but is too slow
+    # # Dynamic basic tests
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TFastDynamicSchemesTests]))
+    # # Eigenvalues Postprocessing Process test
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithConstraints]))
+    # # local-axis visualization tests
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLocalAxisVisualization]))
+    # # Adjoint Elements
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeamAdjointElement]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestShellThinAdjointElement3D3N]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussAdjointElement]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussLinearAdjointElement]))
+    # # RVE tests
+    # nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestRVESimplestTest]))
 
-    ### Adding Small Tests
-    # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
-    smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
-    # Basic restart test (leave these in the smallSuite to have the Exection script tested)
-    smallSuite.addTest(TTestSmallDisplacement2D4N('test_execution'))
-    smallSuite.addTest(TTestTotalLagrangian2D3N('test_execution'))
-    smallSuite.addTest(TTestUpdatedLagrangian3D8N('test_execution'))
+    # ### Adding Small Tests
+    # # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
+    # smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
+    # # Basic restart test (leave these in the smallSuite to have the Exection script tested)
+    # smallSuite.addTest(TTestSmallDisplacement2D4N('test_execution'))
+    # smallSuite.addTest(TTestTotalLagrangian2D3N('test_execution'))
+    # smallSuite.addTest(TTestUpdatedLagrangian3D8N('test_execution'))
 
-    ### Adding Nightly Tests
-    # Patch test Small Displacements
-    nightSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))
-    nightSuite.addTest(TSDTwoDShearTriPatchTest('test_execution'))
-    nightSuite.addTest(TSDTwoDTensionQuaPatchTest('test_execution'))
-    nightSuite.addTest(TSDTwoDTensionTriPatchTest('test_execution'))
-    nightSuite.addTest(TSDThreeDShearHexaPatchTest('test_execution'))
-    nightSuite.addTest(TSDThreeDShearTetraPatchTest('test_execution'))
-    nightSuite.addTest(TSDThreeDTensionHexaPatchTest('test_execution'))
-    nightSuite.addTest(TSDThreeDTensionTetraPatchTest('test_execution'))
-    # Patch test Total Lagrangian
-    nightSuite.addTest(TTLTwoDShearQuaPatchTest('test_execution'))
-    nightSuite.addTest(TTLTwoDShearTriPatchTest('test_execution'))
-    nightSuite.addTest(TTLTwoDTensionQuaPatchTest('test_execution'))
-    nightSuite.addTest(TTLTwoDTensionTriPatchTest('test_execution'))
-    nightSuite.addTest(TTLThreeDShearHexaPatchTest('test_execution'))
-    nightSuite.addTest(TTLThreeDShearTetraPatchTest('test_execution'))
-    nightSuite.addTest(TTLThreeDTensionHexaPatchTest('test_execution'))
-    nightSuite.addTest(TTLThreeDTensionTetraPatchTest('test_execution'))
-    # Patch test Updated Lagrangian
-    nightSuite.addTest(TULTwoDShearQuaPatchTest('test_execution'))
-    nightSuite.addTest(TULTwoDShearTriPatchTest('test_execution'))
-    nightSuite.addTest(TULTwoDTensionQuaPatchTest('test_execution'))
-    nightSuite.addTest(TULTwoDTensionTriPatchTest('test_execution'))
-    nightSuite.addTest(TULThreeDShearHexaPatchTest('test_execution'))
-    nightSuite.addTest(TULThreeDShearTetraPatchTest('test_execution'))
-    nightSuite.addTest(TULThreeDTensionHexaPatchTest('test_execution'))
-    nightSuite.addTest(TULThreeDTensionTetraPatchTest('test_execution'))
-    # SPRISM tests
-    nightSuite.addTest(TSprismMembranePatchTests('test_execution'))
-    nightSuite.addTest(TSprismBendingPatchTests('test_execution'))
-    # Mixed displacement - volumetric strain tests
-    nightSuite.addTest(TTestCookMembrane('test_cook_membrane_2d'))
-    nightSuite.addTest(TTestCookMembrane('test_cook_membrane_incompressible_2d'))
-    # Membrane tests
-    nightSuite.addTest(TFofi4PointTentnoCableTests('test_execution'))
-    nightSuite.addTest(TFofi4PointTentCableTests('test_execution'))
-    nightSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
-    nightSuite.addTest(TMembraneQ4TrussPointLoadTests('test_execution'))
+    # ### Adding Nightly Tests
+    # # Patch test Small Displacements
+    # nightSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))
+    # nightSuite.addTest(TSDTwoDShearTriPatchTest('test_execution'))
+    # nightSuite.addTest(TSDTwoDTensionQuaPatchTest('test_execution'))
+    # nightSuite.addTest(TSDTwoDTensionTriPatchTest('test_execution'))
+    # nightSuite.addTest(TSDThreeDShearHexaPatchTest('test_execution'))
+    # nightSuite.addTest(TSDThreeDShearTetraPatchTest('test_execution'))
+    # nightSuite.addTest(TSDThreeDTensionHexaPatchTest('test_execution'))
+    # nightSuite.addTest(TSDThreeDTensionTetraPatchTest('test_execution'))
+    # # Patch test Total Lagrangian
+    # nightSuite.addTest(TTLTwoDShearQuaPatchTest('test_execution'))
+    # nightSuite.addTest(TTLTwoDShearTriPatchTest('test_execution'))
+    # nightSuite.addTest(TTLTwoDTensionQuaPatchTest('test_execution'))
+    # nightSuite.addTest(TTLTwoDTensionTriPatchTest('test_execution'))
+    # nightSuite.addTest(TTLThreeDShearHexaPatchTest('test_execution'))
+    # nightSuite.addTest(TTLThreeDShearTetraPatchTest('test_execution'))
+    # nightSuite.addTest(TTLThreeDTensionHexaPatchTest('test_execution'))
+    # nightSuite.addTest(TTLThreeDTensionTetraPatchTest('test_execution'))
+    # # Patch test Updated Lagrangian
+    # nightSuite.addTest(TULTwoDShearQuaPatchTest('test_execution'))
+    # nightSuite.addTest(TULTwoDShearTriPatchTest('test_execution'))
+    # nightSuite.addTest(TULTwoDTensionQuaPatchTest('test_execution'))
+    # nightSuite.addTest(TULTwoDTensionTriPatchTest('test_execution'))
+    # nightSuite.addTest(TULThreeDShearHexaPatchTest('test_execution'))
+    # nightSuite.addTest(TULThreeDShearTetraPatchTest('test_execution'))
+    # nightSuite.addTest(TULThreeDTensionHexaPatchTest('test_execution'))
+    # nightSuite.addTest(TULThreeDTensionTetraPatchTest('test_execution'))
+    # # SPRISM tests
+    # nightSuite.addTest(TSprismMembranePatchTests('test_execution'))
+    # nightSuite.addTest(TSprismBendingPatchTests('test_execution'))
+    # # Mixed displacement - volumetric strain tests
+    # nightSuite.addTest(TTestCookMembrane('test_cook_membrane_2d'))
+    # nightSuite.addTest(TTestCookMembrane('test_cook_membrane_incompressible_2d'))
+    # # Membrane tests
+    # nightSuite.addTest(TFofi4PointTentnoCableTests('test_execution'))
+    # nightSuite.addTest(TFofi4PointTentCableTests('test_execution'))
+    # nightSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
+    # nightSuite.addTest(TMembraneQ4TrussPointLoadTests('test_execution'))
     nightSuite.addTest(THemisphereMembraneTest('test_execution'))
-    # 2Node Element tests
-    nightSuite.addTest(T3D2NTrussDynamicTest('test_execution'))
-    nightSuite.addTest(T3D2NTrussLinearTest('test_execution'))
-    nightSuite.addTest(T3D2NTrussTest('test_execution'))
-    nightSuite.addTest(T3D2NTrussLinearCompressionPlasticTest('test_execution'))
-    nightSuite.addTest(T3D2NTrussLinearTensionPlasticTest('test_execution'))
-    nightSuite.addTest(T3D2NTrussNonLinearSnapthroughPlasticTest('test_execution'))
-    nightSuite.addTest(T3D2NTrussNonLinearTensionPlasticTest('test_execution'))
-    nightSuite.addTest(T3D2NBeamCrTest('test_execution'))
-    nightSuite.addTest(T3D2NBeamCrNonLinearTest('test_execution'))
-    nightSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))
-    nightSuite.addTest(T3D2NBeamCrDynamicTest('test_execution'))
-    nightSuite.addTest(T3D2NNLDispCtrlTest('test_execution'))
-    # Shell tests
-    nightSuite.addTest(TShellT3IsotropicLinearStaticStructScordelisLoRoofTests('test_execution'))
-    nightSuite.addTest(TShellT3AndQ4LinearStaticStructScordelisLoRoofTests('test_execution'))
-    nightSuite.addTest(TShellT3AndQ4LinearStaticStructPinchedCylinderTests('test_execution'))
-    nightSuite.addTest(TShellT3AndQ4LinearStaticStructPinchedHemisphereTests('test_execution'))
-    # nightSuite.addTest(TShellT3AndQ4LinearStaticStructClampedCylinderOrthotropicTests('test_execution'))
-    nightSuite.addTest(TShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughTests('test_execution'))
-    # nightSuite.addTest(TShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughOrthotropicTests('test_execution'))
-    # nightSuite.addTest(TShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests('test_execution'))
-    # nightSuite.addTest(TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests('test_execution'))
-    # Constitutive Law tests
-    nightSuite.addTest(TSmallDeformationPlasticityTest('test_execution'))
-    nightSuite.addTest(TSimpleJ2PlasticityTest('test_execution'))
-    nightSuite.addTest(TRigidFaceTestWithImposeRigidMovementProcess('test_execution'))
-    nightSuite.addTest(TRigidBlockTest('test_execution'))
-    nightSuite.addTest(TRigidEliminationTest('test_execution'))
-    nightSuite.addTest(TRigidSphereFailing('test_execution'))
-    nightSuite.addTest(TRigidSphereFailingExplicit('test_execution'))
+    # # 2Node Element tests
+    # nightSuite.addTest(T3D2NTrussDynamicTest('test_execution'))
+    # nightSuite.addTest(T3D2NTrussLinearTest('test_execution'))
+    # nightSuite.addTest(T3D2NTrussTest('test_execution'))
+    # nightSuite.addTest(T3D2NTrussLinearCompressionPlasticTest('test_execution'))
+    # nightSuite.addTest(T3D2NTrussLinearTensionPlasticTest('test_execution'))
+    # nightSuite.addTest(T3D2NTrussNonLinearSnapthroughPlasticTest('test_execution'))
+    # nightSuite.addTest(T3D2NTrussNonLinearTensionPlasticTest('test_execution'))
+    # nightSuite.addTest(T3D2NBeamCrTest('test_execution'))
+    # nightSuite.addTest(T3D2NBeamCrNonLinearTest('test_execution'))
+    # nightSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))
+    # nightSuite.addTest(T3D2NBeamCrDynamicTest('test_execution'))
+    # nightSuite.addTest(T3D2NNLDispCtrlTest('test_execution'))
+    # # Shell tests
+    # nightSuite.addTest(TShellT3IsotropicLinearStaticStructScordelisLoRoofTests('test_execution'))
+    # nightSuite.addTest(TShellT3AndQ4LinearStaticStructScordelisLoRoofTests('test_execution'))
+    # nightSuite.addTest(TShellT3AndQ4LinearStaticStructPinchedCylinderTests('test_execution'))
+    # nightSuite.addTest(TShellT3AndQ4LinearStaticStructPinchedHemisphereTests('test_execution'))
+    # # nightSuite.addTest(TShellT3AndQ4LinearStaticStructClampedCylinderOrthotropicTests('test_execution'))
+    # nightSuite.addTest(TShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughTests('test_execution'))
+    # # nightSuite.addTest(TShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughOrthotropicTests('test_execution'))
+    # # nightSuite.addTest(TShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests('test_execution'))
+    # # nightSuite.addTest(TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests('test_execution'))
+    # # Constitutive Law tests
+    # nightSuite.addTest(TSmallDeformationPlasticityTest('test_execution'))
+    # nightSuite.addTest(TSimpleJ2PlasticityTest('test_execution'))
+    # nightSuite.addTest(TRigidFaceTestWithImposeRigidMovementProcess('test_execution'))
+    # nightSuite.addTest(TRigidBlockTest('test_execution'))
+    # nightSuite.addTest(TRigidEliminationTest('test_execution'))
+    # nightSuite.addTest(TRigidSphereFailing('test_execution'))
+    # nightSuite.addTest(TRigidSphereFailingExplicit('test_execution'))
 
     if has_external_solvers_application:
         import KratosMultiphysics.ExternalSolversApplication
@@ -408,75 +408,75 @@ def AssembleTestSuites():
         else:
             print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
 
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisBeamStructure]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisShell3D3NStructure]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisLinearTrussStructure]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisNonLinearTrussStructure]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisSpringDamperStructure]))
-    nightSuite.addTest(TTestMassResponseFunction('test_execution'))
-    nightSuite.addTest(TTestStrainEnergyResponseFunction('test_execution'))
-    nightSuite.addTest(TTestEigenfrequencyResponseFunction('test_execution'))
-    nightSuite.addTest(TTestAdjointStrainEnergyResponseFunction('test_execution'))
-    nightSuite.addTest(TTestAdjointDisplacementResponseFunction('test_execution'))
-    nightSuite.addTest(TTestAdjointStressResponseFunction('test_execution'))
-    nightSuite.addTest(TTestAdjointMaxStressResponseFunction('test_execution'))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisBeamStructure]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisShell3D3NStructure]))
+    # nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisLinearTrussStructure]))
+    # nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisNonLinearTrussStructure]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisSpringDamperStructure]))
+    # nightSuite.addTest(TTestMassResponseFunction('test_execution'))
+    # nightSuite.addTest(TTestStrainEnergyResponseFunction('test_execution'))
+    # nightSuite.addTest(TTestEigenfrequencyResponseFunction('test_execution'))
+    # nightSuite.addTest(TTestAdjointStrainEnergyResponseFunction('test_execution'))
+    # nightSuite.addTest(TTestAdjointDisplacementResponseFunction('test_execution'))
+    # nightSuite.addTest(TTestAdjointStressResponseFunction('test_execution'))
+    # nightSuite.addTest(TTestAdjointMaxStressResponseFunction('test_execution'))
 
-    # Dynamic basic tests
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))
+    # # Dynamic basic tests
+    # nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))
 
-    nightSuite.addTests(smallSuite)
+    # nightSuite.addTests(smallSuite)
 
     ### Adding Validation Tests
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     # SPRISM tests
-    # validationSuite.addTest(TSprismPanTests('test_execution')) # FIXME: Needs get up to date
-    validationSuite.addTest(T2D2NBeamCrTest('test_execution')) # TODO should be in nightSuite but is too slow
-    # Pendulus tests with Solid Elements
-    validationSuite.addTest(TPendulusTLTest('test_execution'))
-    validationSuite.addTest(TPendulusULTest('test_execution'))
-    # Pendulus Tests with Shell Elements
-    # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicStructPendulusTests('test_execution'))
-    # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests('test_execution'))
-    # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructPendulusTests('test_execution'))
+    # # validationSuite.addTest(TSprismPanTests('test_execution')) # FIXME: Needs get up to date
+    # validationSuite.addTest(T2D2NBeamCrTest('test_execution')) # TODO should be in nightSuite but is too slow
+    # # Pendulus tests with Solid Elements
+    # validationSuite.addTest(TPendulusTLTest('test_execution'))
+    # validationSuite.addTest(TPendulusULTest('test_execution'))
+    # # Pendulus Tests with Shell Elements
+    # # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicStructPendulusTests('test_execution'))
+    # # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests('test_execution'))
+    # # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructPendulusTests('test_execution'))
     # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests('test_execution'))
     #Membrane tests
     validationSuite.addTest(THemisphereMembraneTest('test_execution'))
-    # Shell tests
-    validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructScordelisLoRoofTests('test_execution'))
-    validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructUnstructPinchedCylinderTests('test_execution'))
-    validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructPinchedHemisphereTests('test_execution'))
-    # validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructClampedCylinderOrthotropicTests('test_execution'))
-    validationSuite.addTest(TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughTests('test_execution'))
-    # validationSuite.addTest(TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests('test_execution'))
-    # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests('test_execution'))
-    # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests('test_execution'))
+    # # Shell tests
+    # validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructScordelisLoRoofTests('test_execution'))
+    # validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructUnstructPinchedCylinderTests('test_execution'))
+    # validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructPinchedHemisphereTests('test_execution'))
+    # # validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructClampedCylinderOrthotropicTests('test_execution'))
+    # validationSuite.addTest(TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughTests('test_execution'))
+    # # validationSuite.addTest(TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests('test_execution'))
+    # # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests('test_execution'))
+    # # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests('test_execution'))
 
-    # CL tests
-    validationSuite.addTest(TTensileTestStructuralTest('test_execution'))
+    # # CL tests
+    # validationSuite.addTest(TTensileTestStructuralTest('test_execution'))
 
-    # Explicit solid beam
-    validationSuite.addTest(TExplicitSolidBeam('test_execution'))
+    # # Explicit solid beam
+    # validationSuite.addTest(TExplicitSolidBeam('test_execution'))
 
-    ### OLD Shell Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
-    # They have been moved to validation temporarily until they will be removed
-    validationSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
-    validationSuite.addTest(TShellT3IsotropicScordelisTests('test_execution'))
-    validationSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
-    # validationSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
-    validationSuite.addTest(TShellQ4ThickOrthotropicLaminateLinearStaticTests('test_execution'))
-    validationSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
-    validationSuite.addTest(TShellT3ThinOrthotropicLaminateLinearStaticTests('test_execution'))
-    validationSuite.addTest(TShellT3ThickLinearStaticTests('test_execution'))
-    validationSuite.addTest(TShellT3ThickNonLinearStaticTests('test_execution'))
-    validationSuite.addTest(TShellT3ThickLinearDynamicTests('test_execution'))
-    validationSuite.addTest(TShellT3ThickNonLinearDynamicTests('test_execution'))
-    validationSuite.addTest(TShellT3ThickOrthotropicLaminateLinearStaticTests('test_execution'))
-    validationSuite.addTest(TShellQ4ThinLinearStaticTests('test_execution'))
-    validationSuite.addTest(TShellQ4ThinNonLinearStaticTests('test_execution'))
-    validationSuite.addTest(TShellQ4ThinLinearDynamicTests('test_execution'))
-    validationSuite.addTest(TShellQ4ThinNonLinearDynamicTests('test_execution'))
-    validationSuite.addTest(TShellQ4ThinOrthotropicLaminateLinearStaticTests('test_execution'))
+    # ### OLD Shell Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
+    # # They have been moved to validation temporarily until they will be removed
+    # validationSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
+    # validationSuite.addTest(TShellT3IsotropicScordelisTests('test_execution'))
+    # validationSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
+    # # validationSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
+    # validationSuite.addTest(TShellQ4ThickOrthotropicLaminateLinearStaticTests('test_execution'))
+    # validationSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
+    # validationSuite.addTest(TShellT3ThinOrthotropicLaminateLinearStaticTests('test_execution'))
+    # validationSuite.addTest(TShellT3ThickLinearStaticTests('test_execution'))
+    # validationSuite.addTest(TShellT3ThickNonLinearStaticTests('test_execution'))
+    # validationSuite.addTest(TShellT3ThickLinearDynamicTests('test_execution'))
+    # validationSuite.addTest(TShellT3ThickNonLinearDynamicTests('test_execution'))
+    # validationSuite.addTest(TShellT3ThickOrthotropicLaminateLinearStaticTests('test_execution'))
+    # validationSuite.addTest(TShellQ4ThinLinearStaticTests('test_execution'))
+    # validationSuite.addTest(TShellQ4ThinNonLinearStaticTests('test_execution'))
+    # validationSuite.addTest(TShellQ4ThinLinearDynamicTests('test_execution'))
+    # validationSuite.addTest(TShellQ4ThinNonLinearDynamicTests('test_execution'))
+    # validationSuite.addTest(TShellQ4ThinOrthotropicLaminateLinearStaticTests('test_execution'))
     ### ---| OLD Shell Tests End
 
     # Create a test suit that contains all the tests:
