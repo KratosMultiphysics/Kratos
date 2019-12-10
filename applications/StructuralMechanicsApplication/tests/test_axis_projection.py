@@ -7,9 +7,7 @@ import math
 
 class TestAxisProjection(KratosUnittest.TestCase):
 
-    def _set_up_test_case(self):
-        current_model = KratosMultiphysics.Model()
-        mp = current_model.CreateModelPart("solid_part")
+    def _set_up_test_case(self,mp,element_name):
         #create cube
         mp.CreateNewNode(1,0.0,0.0,0.0)
         mp.CreateNewNode(2,2.0,0.0,0.0)
@@ -21,18 +19,24 @@ class TestAxisProjection(KratosUnittest.TestCase):
         mp.CreateNewNode(7,2.0,2.0,3.0)
         mp.CreateNewNode(8,0.0,2.0,3.0)
 
-        element_name = "ShellThinElementCorotational3D4N"
         mp.CreateNewElement(element_name, 1, [1,2,6,5], mp.GetProperties()[0])
         mp.CreateNewElement(element_name, 2, [2,3,7,6], mp.GetProperties()[0])
         mp.CreateNewElement(element_name, 3, [4,8,7,3], mp.GetProperties()[0])
         mp.CreateNewElement(element_name, 4, [4,1,5,8], mp.GetProperties()[0])
 
-        return mp
 
 
+    def test_RadialProjection_Shell(self):
+        self.execute_test_radial_projection("ShellThinElementCorotational3D4N")
 
-    def test_RadialProjection(self):
-        model_part = self._set_up_test_case()
+    def test_PlanarProjection_Shell(self):
+        self.execute_test_planar_projection("ShellThinElementCorotational3D4N")
+
+    def execute_test_radial_projection(self, element_name):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("solid_part")
+
+        self._set_up_test_case(model_part,element_name)
         projection_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name"  : "Structure",
@@ -47,12 +51,15 @@ class TestAxisProjection(KratosUnittest.TestCase):
 
         expected_results = [[1.0,0.0,0.0],[0.0,1.0,0.0],[-1.0,0.0,0.0],[0.0,-1.0,0.0]]
 
+
         for i,element_i in enumerate(model_part.Elements):
             result_i = element_i.GetValue(StructuralMechanicsApplication.LOCAL_PRESTRESS_AXIS_1)
             for j in range(3): self.assertAlmostEqual(result_i[j],expected_results[i][j])
 
-    def test_PlanarProjection(self):
-        model_part = self._set_up_test_case()
+    def execute_test_planar_projection(self, element_name):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("solid_part")
+        self._set_up_test_case(model_part, element_name)
         projection_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name"  : "Structure",
