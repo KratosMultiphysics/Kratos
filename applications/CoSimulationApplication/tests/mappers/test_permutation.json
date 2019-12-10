@@ -8,7 +8,7 @@
         "type": "mappers.permutation",
         "settings":
         {
-            "permutation" : [1, 0, 2]
+            "permutation" : [2, 0, 1]
         }
     }
 }

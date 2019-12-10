@@ -30,59 +30,46 @@ class TestMapperPermutation(KratosUnittest.TestCase):
         with open(parameter_file_name, 'r') as parameter_file:
             parameters = cs_data_structure.Parameters(parameter_file.read())
 
+        # check if method Initialize works
+        if True:
+            var = vars(KM)["TEMPERATURE"]
+            model = cs_data_structure.Model()
+            model_part_from = model.CreateModelPart('wall_from')
+            model_part_from.AddNodalSolutionStepVariable(var)
 
-        """
-        What to test??
-        --------------
-        
-        - initialize from both sides, check output of both methods
-        - 
-        
-        """
+            model_part_from.CreateNewNode(0, 0., 1., 2.)
 
-        var_from = vars(KM)["TEMPERATURE"]
-        model_from = cs_data_structure.Model()
-        model_part_from = model_from.CreateModelPart('wall_from')
-        model_part_from.AddNodalSolutionStepVariable(var_from)
+            # model_part_from given
+            mapper = cs_tools.CreateInstance(parameters['mapper'])
+            model_part_to = mapper.Initialize(model_part_from, forward=True)
+            node = model_part_to.Nodes[0]
+            self.assertListEqual([node.X, node.Y, node.Z], [2., 0., 1.])
 
-        for i in range(11):
-            model_part_from.CreateNewNode(i, i, 2 * i, 3 * i)
+            # model_part_to given
+            mapper = cs_tools.CreateInstance(parameters['mapper'])
+            model_part_from = mapper.Initialize(model_part_to, forward=False)
+            node = model_part_from.Nodes[0]
+            self.assertListEqual([node.X, node.Y, node.Z], [0., 1., 2.])
 
-        mapper = cs_tools.CreateInstance(parameters['mapper'])
+        # check if method __call__ works
+        if True:
+            var = vars(KM)["TEMPERATURE"]
+            model = cs_data_structure.Model()
+            model_part_from = model.CreateModelPart('wall_from')
+            model_part_from.AddNodalSolutionStepVariable(var)
 
-        model_part_to = mapper.Initialize(model_part_from, None)
+            for i in range(10):
+                node = model_part_from.CreateNewNode(i, i * 1., i * 2., i * 3.)
+                node.SetSolutionStepValue(var, 0, np.random.rand())
 
+            mapper = cs_tools.CreateInstance(parameters['mapper'])
+            model_part_to = mapper.Initialize(model_part_from, forward=True)
+            mapper((model_part_from, var), (model_part_to, var))
 
-        print(model_part_to)
-
-
-        # mapper((model_part_from, var_from), (model_part_to, var_to))
-
-        # var_to = vars(KM)["PRESSURE"]
-        # model_to = cs_data_structure.Model()
-        # model_part_to = model_to.CreateModelPart('wall_to')
-        # model_part_to.AddNodalSolutionStepVariable(var_to)
-        #
-        # for i in range(4):
-        #     model_part_to.CreateNewNode(i, 0.0, 0.0, i / 3)
-        #
-        #
-        #
-
-
-
-
-
-        # mapper.Initialize(None, model_part_to)
-
-
-
-        #
-        # values = []
-        # for i_to, node in enumerate(model_part_to.Nodes):
-        #     values.append(node.GetSolutionStepValue(var_to))
-        #
-        # self.assertListEqual(values, [0., 9., 49., 100.])
+            for node_from, node_to in zip(model_part_from.Nodes, model_part_to.Nodes):
+                val_from = node_from.GetSolutionStepValue(var)
+                val_to = node_to.GetSolutionStepValue(var)
+                self.assertEqual(val_from, val_to)
 
 
 if __name__ == '__main__':

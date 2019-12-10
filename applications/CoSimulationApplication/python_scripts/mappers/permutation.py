@@ -13,7 +13,26 @@ def Create(parameters):
 class MapperPermutation(object):
     def __init__(self, parameters):
         """
-        TODO: description
+        This is not an interpolator, but a transformer.
+        This is denoted by settings the self.interpolator
+        attribute to False in the __init__.
+
+        The difference is that a transformer is
+        initialized from only one side (from or to)
+        and returns the ModelPart corresponding
+        to the forward or backward transformation.
+
+        It can be initialized from both sides,
+        based on the forward parameter.
+        If forward == True, then the model_part_from
+        is expected as input.
+        Else, the model_part_to is expected.
+
+        The historical variables are not changed,
+        simply copied from input to output ModelPart.
+        The coordinates are permutated according to the
+        permutation parameter (list of ints) in the
+        JSON file.
         """
         super().__init__()
 
@@ -24,17 +43,10 @@ class MapperPermutation(object):
         for par in self.settings['permutation']:
             self.permutation.append(par.GetInt())
 
-    def Initialize(self, model_part_from, model_part_to):
-        # *** idea: make it more elegant by asking model_part_in and bool 'forward' as input
-
+    def Initialize(self, model_part_in, forward):
         permutation = self.permutation
-        if model_part_to is None and model_part_from is not None:
-            model_part_in = model_part_from
-        elif model_part_to is not None and model_part_from is None:
-            model_part_in = model_part_to
-            permutation = np.argsort(self.permutation)
-        else:
-            raise ValueError('exactly one ModelPart must be None')
+        if not forward:
+            permutation = np.argsort(permutation)
 
         model = cs_data_structure.Model()
         model_part_out = model.CreateModelPart('no_name')
@@ -54,4 +66,4 @@ class MapperPermutation(object):
 
         for node_from, node_to in zip(model_part_from.Nodes, model_part_to.Nodes):
             value = node_from.GetSolutionStepValue(var_from)
-            node_to.node.SetSolutionStepValue(var_to, 0, value)
+            node_to.SetSolutionStepValue(var_to, 0, value)
