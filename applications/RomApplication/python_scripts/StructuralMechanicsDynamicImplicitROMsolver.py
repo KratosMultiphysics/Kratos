@@ -32,12 +32,13 @@ class ROMSolver(ImplicitMechanicalSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "rom_settings": {
-            "nodal_unknowns": [ "DISPLACEMENT", "3"],
+            "nodal_unknowns": [ "DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z"],
             "number_of_rom_dofs": 10
             }
         }
         """)
         default_settings.AddMissingParameters(super(ROMSolver,cls).GetDefaultSettings())
+        print( "\n\n\n\n\n\n\n\n\n\n\n\n\n\n", default_settings, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
         return default_settings
 
     def AddVariables(self):

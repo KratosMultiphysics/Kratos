@@ -105,12 +105,12 @@ public:
 
         mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();
         
-        //Privisional way of retrieving the number of DOFs. Better alternative to be implemented.
-        if (mNodalVariablesNames[0] == "TEMPERATURE")
-            mNodalDofs = 1;
-        if (mNodalVariablesNames[0] == "DISPLACEMENT")
-            mNodalDofs = std::stoi(mNodalVariablesNames[1]);
-        mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();
+        // //Privisional way of retrieving the number of DOFs. Better alternative to be implemented.
+        // if (mNodalVariablesNames[0] == "TEMPERATURE")
+        //     mNodalDofs = 1;
+        // if (mNodalVariablesNames[0] == "DISPLACEMENT")
+        //     mNodalDofs = std::stoi(mNodalVariablesNames[1]);
+        // mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();
 
         // //Privisional way of retrieving the number of DOFs. Better alternative to be implemented.
         // if(KratosComponents<Variable<double>>::HasVariable(mNodalVariablesNames[0])) //it is a sclar variable
@@ -120,6 +120,9 @@ public:
         // if (mNodalVariablesNames[0] == "DISPLACEMENT")
         //     mNodalDofs = std::stoi(mNodalVariablesNames[1]);
         // mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();
+
+        mNodalDofs = mNodalVariablesNames.size();
+        mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();
     }
 
 
