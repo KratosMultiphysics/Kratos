@@ -158,6 +158,8 @@ from structural_mechanics_test_factory import ShellQ4ThinLinearDynamicTests as T
 from structural_mechanics_test_factory import ShellQ4ThinNonLinearDynamicTests as TShellQ4ThinNonLinearDynamicTests
 from structural_mechanics_test_factory import ShellQ4ThinOrthotropicLaminateLinearStaticTests as TShellQ4ThinOrthotropicLaminateLinearStaticTests
 ### ---| OLD Tests End
+#Membrane tests
+from structural_mechanics_test_factory import HemsphereMembraneTest as THemisphereMembraneTest
 # Shell tests
 from structural_mechanics_test_factory import ShellT3IsotropicLinearStaticStructScordelisLoRoofTests as TShellT3IsotropicLinearStaticStructScordelisLoRoofTests
 from structural_mechanics_test_factory import ShellT3AndQ4LinearStaticStructScordelisLoRoofTests as TShellT3AndQ4LinearStaticStructScordelisLoRoofTests
@@ -356,6 +358,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TFofi4PointTentCableTests('test_execution'))
     nightSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
     nightSuite.addTest(TMembraneQ4TrussPointLoadTests('test_execution'))
+    nightSuite.addTest(THemisphereMembraneTest('test_execution'))
     # 2Node Element tests
     nightSuite.addTest(T3D2NTrussDynamicTest('test_execution'))
     nightSuite.addTest(T3D2NTrussLinearTest('test_execution'))
@@ -437,6 +440,8 @@ def AssembleTestSuites():
     # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests('test_execution'))
     # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructPendulusTests('test_execution'))
     # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests('test_execution'))
+    #Membrane tests
+    validationSuite.addTest(THemisphereMembraneTest('test_execution'))
     # Shell tests
     validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructScordelisLoRoofTests('test_execution'))
     validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructUnstructPinchedCylinderTests('test_execution'))
