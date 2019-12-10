@@ -181,6 +181,7 @@ namespace Kratos
 					"model_part_name": "PLEASE SPECIFY IT",
 					"inside_color": -1,
 					"outside_color": 1,
+					"interface_color": 0,
 					"apply_outside_color": true,
 					"coloring_entities" : "nodes"
 				}  )");
@@ -226,6 +227,7 @@ namespace Kratos
 
 		double inside_color = parameters["inside_color"].GetDouble();
 		double outside_color = parameters["outside_color"].GetDouble();
+		double interface_color = parameters["interface_color"].GetDouble();
 		bool apply_outside_color = parameters["apply_outside_color"].GetBool();
 
 		if(apply_outside_color)
@@ -257,7 +259,7 @@ namespace Kratos
 			mColors.CalculateElementalRayColors(min_ray_position, max_ray_position, inside_color, outside_color);
 		}
 		else if(coloring_entities == "face_of_elements") {
-			mColors.CalculateElementalFaceColors(min_ray_position, max_ray_position, inside_color, outside_color, inside_color);
+			mColors.CalculateElementalFaceColors(min_ray_position, max_ray_position, interface_color, outside_color, inside_color);
 		}
 	}
 
