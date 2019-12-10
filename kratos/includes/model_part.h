@@ -1519,7 +1519,7 @@ public:
     ///@{
     
     /**
-     * @brief This method returns the full name of the model part (including the parents model parts) (constant version)
+     * @brief This method returns the full name of the model part (including the parents model parts)
      * @details This is evaluated in a recursive way
      * @return The full name of the model part
      */
