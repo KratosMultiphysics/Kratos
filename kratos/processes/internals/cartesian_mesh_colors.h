@@ -369,7 +369,7 @@ namespace Kratos
 
         }
 
-        void CalculateElementalFaceColors(array_1d< std::size_t, 3 > const& MinRayPosition, array_1d< std::size_t, 3 > const& MaxRayPosition, int InsideColor, int OutsideColor, int VolumeColor){
+        void CalculateElementalFaceColors(array_1d< std::size_t, 3 > const& MinRayPosition, array_1d< std::size_t, 3 > const& MaxRayPosition, int FaceColor, int OutsideColor, int VolumeColor){
             std::vector<double> colors;
             const std::size_t size_x = mElementCenterCoordinates[0].size();
             const std::size_t size_y = mElementCenterCoordinates[1].size();
@@ -404,17 +404,17 @@ namespace Kratos
                 for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                     auto& ray = mXYRays(i,j);
                     ray.CollapseIntersectionPoints(mTolerance);
-                    ray.MarkIntersectedIntervals(z_coordinates, InsideColor, OutsideColor, colors, mTolerance);
+                    ray.MarkIntersectedIntervals(z_coordinates, FaceColor, OutsideColor, colors, mTolerance);
                     double previous_center_color = OutsideColor;
                     for(std::size_t k = 0 ; k < size_z; k++){
                         auto next_center_color = GetElementalColor(i,j,k);
                         auto interval_color = colors[k];
-                        if(interval_color == InsideColor){
+                        if(interval_color == FaceColor){
                             if((previous_center_color == VolumeColor) && (next_center_color != VolumeColor)){
-                                GetElementalFaceColor(i,j,k-1)[5] = InsideColor;   // [-x,-y,-z,x,y,z]
+                                GetElementalFaceColor(i,j,k-1)[5] = FaceColor;   // [-x,-y,-z,x,y,z]
                             }
                             else if((previous_center_color != VolumeColor) && (next_center_color == VolumeColor)){ 
-                                GetElementalFaceColor(i,j,k)[2] = InsideColor;   // [-x,-y,-z,x,y,z]
+                                GetElementalFaceColor(i,j,k)[2] = FaceColor;   // [-x,-y,-z,x,y,z]
                             }
                             else{
                                 KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << i << "," << j << "," << k << "]" << std::endl;
@@ -422,9 +422,9 @@ namespace Kratos
                         }
                         previous_center_color = next_center_color;
                     }
-                    if(colors.back() == InsideColor){
+                    if(colors.back() == FaceColor){
                         if(previous_center_color == VolumeColor){
-                            GetElementalFaceColor(i,j,size_z-1)[5] = InsideColor;   // [-x,-y,-z,x,y,z]
+                            GetElementalFaceColor(i,j,size_z-1)[5] = FaceColor;   // [-x,-y,-z,x,y,z]
                         }
                         else{
                             KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << i << "," << j << "," << size_z-1 << "]" << std::endl;
@@ -438,17 +438,17 @@ namespace Kratos
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                     auto& ray = mXZRays(i,k);
                     ray.CollapseIntersectionPoints(mTolerance);
-                    ray.MarkIntersectedIntervals(y_coordinates, InsideColor, OutsideColor, colors, mTolerance);
+                    ray.MarkIntersectedIntervals(y_coordinates, FaceColor, OutsideColor, colors, mTolerance);
                     double previous_center_color = OutsideColor;
                     for(std::size_t j = 0 ; j < size_y ; j++){
                         auto next_center_color = GetElementalColor(i,j,k);
                         auto interval_color = colors[j];
-                        if(interval_color == InsideColor){
+                        if(interval_color == FaceColor){
                             if((previous_center_color == VolumeColor) && (next_center_color != VolumeColor)){
-                                GetElementalFaceColor(i,j-1,k)[4] = InsideColor;   // [-x,-y,-z,x,y,z]
+                                GetElementalFaceColor(i,j-1,k)[4] = FaceColor;   // [-x,-y,-z,x,y,z]
                             }
                             else if((previous_center_color != VolumeColor) && (next_center_color == VolumeColor)){ 
-                                GetElementalFaceColor(i,j,k)[1] = InsideColor;   // [-x,-y,-z,x,y,z]
+                                GetElementalFaceColor(i,j,k)[1] = FaceColor;   // [-x,-y,-z,x,y,z]
                             }
                             else{
                                 KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << i << "," << j << "," << k << "]" << std::endl;
@@ -456,9 +456,9 @@ namespace Kratos
                         }
                         previous_center_color = next_center_color;
                     }
-                    if(colors.back() == InsideColor){
+                    if(colors.back() == FaceColor){
                         if(previous_center_color == VolumeColor){
-                            GetElementalFaceColor(i, size_y-1,k)[4] = InsideColor;   // [-x,-y,-z,x,y,z]
+                            GetElementalFaceColor(i, size_y-1,k)[4] = FaceColor;   // [-x,-y,-z,x,y,z]
                         }
                         else{
                             KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << i << "," << size_y-1 << "," << k << "]" << std::endl;
@@ -472,17 +472,17 @@ namespace Kratos
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                     auto& ray= mYZRays(j,k);
                     ray.CollapseIntersectionPoints(mTolerance);
-                    ray.MarkIntersectedIntervals(x_coordinates, InsideColor, OutsideColor, colors, mTolerance);
+                    ray.MarkIntersectedIntervals(x_coordinates, FaceColor, OutsideColor, colors, mTolerance);
                     double previous_center_color = OutsideColor;
                     for(std::size_t i = 0 ; i < size_x ; i++){
                         auto next_center_color = GetElementalColor(i,j,k);
                         auto interval_color = colors[i];
-                        if(interval_color == InsideColor){
+                        if(interval_color == FaceColor){
                             if((previous_center_color == VolumeColor) && (next_center_color != VolumeColor)){
-                                GetElementalFaceColor(i-1,j,k)[3] = InsideColor;   // [-x,-y,-z,x,y,z]
+                                GetElementalFaceColor(i-1,j,k)[3] = FaceColor;   // [-x,-y,-z,x,y,z]
                             }
                             else if((previous_center_color != VolumeColor) && (next_center_color == VolumeColor)){ 
-                                GetElementalFaceColor(i,j,k)[0] = InsideColor;   // [-x,-y,-z,x,y,z]
+                                GetElementalFaceColor(i,j,k)[0] = FaceColor;   // [-x,-y,-z,x,y,z]
                             }
                             else{
                                 KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << i << "," << j << "," << k << "]" << std::endl;
@@ -490,9 +490,9 @@ namespace Kratos
                         }
                         previous_center_color = next_center_color;
                     }
-                    if(colors.back() == InsideColor){
+                    if(colors.back() == FaceColor){
                         if(previous_center_color == VolumeColor){
-                            GetElementalFaceColor(size_x-1,j,k)[3] = InsideColor;   // [-x,-y,-z,x,y,z]
+                            GetElementalFaceColor(size_x-1,j,k)[3] = FaceColor;   // [-x,-y,-z,x,y,z]
                         }
                         else{
                             KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << size_x-1 << "," << j << "," << k << "]" << std::endl;
