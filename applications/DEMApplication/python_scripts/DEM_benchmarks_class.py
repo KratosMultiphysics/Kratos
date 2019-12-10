@@ -4893,7 +4893,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                 fem_error1/=summation_of_analytics_data              # relative error of the above against sum of reference data
 
             if fem_error1>0.05:
-                print("Error in total force at the reference FEM subpart =", 100*fem_error1,"%"+" at index: ",index)
+                print("Error in total force at the reference FEM subpart =", 100*fem_error1,"%"+" at stage: ",index)
 
 
 
@@ -4921,7 +4921,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
             fem_error2/=summation_of_analytics_data
 
             if fem_error2>0.05:
-                print("Error in delta displacement at the reference FEM subpart =", 100*fem_error2,"%"+" at index: ",index)
+                print("Error in delta displacement at the reference FEM subpart =", 100*fem_error2,"%"+" at stage: ",index)
 
             error4.append(fem_error1)
             error5.append(fem_error2)
