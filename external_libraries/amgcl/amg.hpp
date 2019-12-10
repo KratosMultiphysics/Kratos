@@ -351,10 +351,11 @@ class amg {
             {
                 AMGCL_TIC("transfer operators");
                 std::shared_ptr<build_matrix> P, R;
-                std::tie(P, R) = C.transfer_operators(*A);
 
-                if(backend::cols(*P) == 0) {
-                    // Zero-sized coarse level in amgcl (diagonal matrix?)
+                try {
+                    std::tie(P, R) = C.transfer_operators(*A);
+                } catch(error::empty_level) {
+                    AMGCL_TOC("transfer operators");
                     return std::shared_ptr<build_matrix>();
                 }
 

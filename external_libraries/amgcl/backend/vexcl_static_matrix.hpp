@@ -155,7 +155,7 @@ class ell<amgcl::static_matrix<T, N, N>, Col, Ptr> {
             if (ell_width == 0) {
                 assert(csr_nnz == nnz);
 
-                csr_ptr = backend::device_vector<Col>(q[0], n + 1,   &ptr[0]);
+                csr_ptr = backend::device_vector<Ptr>(q[0], n + 1,   &ptr[0]);
                 csr_col = backend::device_vector<Col>(q[0], csr_nnz, &col[0]);
                 csr_val = create_device_vector       (q[0], csr_nnz, &val[0], false);
 
