@@ -1517,20 +1517,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-     * @brief This method returns the full name of the model part (including the parents model parts)
-     * @details This is evaluated in a recursive way
-     * @return The full name of the model part
-     */
-    std::string FullName()
-    {
-        std::string full_name = this->Name();
-        if (this->IsSubModelPart()) {
-            full_name = this->GetParentModelPart()->FullName() + "." + full_name;
-        }
-        return full_name;
-    }
     
     /**
      * @brief This method returns the full name of the model part (including the parents model parts) (constant version)
