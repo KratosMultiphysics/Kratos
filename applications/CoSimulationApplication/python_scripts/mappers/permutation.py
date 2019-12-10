@@ -14,13 +14,15 @@ class MapperPermutation(object):
     def __init__(self, parameters):
         """
         This is not an interpolator, but a transformer.
-        This is denoted by settings the self.interpolator
+        This is denoted by setting the self.interpolator
         attribute to False in the __init__.
 
         The difference is that a transformer is
         initialized from only one side (from or to)
         and returns the ModelPart corresponding
         to the forward or backward transformation.
+        An interpolator is initialized from both
+        sides and returns nothing.
 
         It can be initialized from both sides,
         based on the forward parameter.
