@@ -80,4 +80,3 @@ class Node(DataValueContainer):
 
     def __str__(self):
         return  "Node #{0} with {1}".format(self.Id, self.__hist_variables)
-

@@ -1,0 +1,14 @@
+{
+    "settings": {
+        "data_structure": "pyKratos"
+    },
+    "solver_wrappers":
+    [
+        {
+            "type": "solver_wrappers.abaqus.614",
+            "settings": {
+                "working_directory" : "."
+            }
+        }
+    ]
+}
