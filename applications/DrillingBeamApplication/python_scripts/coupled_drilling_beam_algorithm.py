@@ -32,7 +32,7 @@ class CoupledDrillingBeamAlgorithm(dem_fem_coupling_algorithm.Algorithm):
 
         self.sandwich_simulation = False
 
-        self.curvatures_utility = DBA.CurvaturesUtility(self.structural_main_model_part)       
+        self.beam_solids_utility = DBA.BeamSolidsUtility(self.structural_main_model_part)       
 
         mixed_mp = self.model.CreateModelPart('MixedPart')
         filename = os.path.join(self.dem_solution.post_path, self.dem_solution.DEM_parameters["problem_name"].GetString())
@@ -52,11 +52,11 @@ class CoupledDrillingBeamAlgorithm(dem_fem_coupling_algorithm.Algorithm):
                             )
 
         structures_nodal_results = ["DEM_SURFACE_LOAD", "REACTION"]
-        dem_nodal_results = []
+        dem_nodal_results = ["TOTAL_FORCES"]
         clusters_nodal_results = []
         rigid_faces_nodal_results = []
         contact_model_part_results = []
-        mixed_nodal_results = ["DISPLACEMENT", "VELOCITY"]
+        mixed_nodal_results = ["DISPLACEMENT"]
         gauss_points_results = []
         self.gid_output.initialize_dem_fem_results(structures_nodal_results,
                                                    dem_nodal_results,
@@ -172,7 +172,8 @@ class CoupledDrillingBeamAlgorithm(dem_fem_coupling_algorithm.Algorithm):
 
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
 
-            self.curvatures_utility.ComputeCurvatureOfBeamSolids(self.structural_main_model_part)
+            self.beam_solids_utility.ComputeDirectiveLineOfBeamSolids(self.structural_main_model_part)
+            self.beam_solids_utility.ComputeReactionsOfBeamSolids(self.structural_main_model_part)
 
 if __name__ == "__main__":
     CoupledDrillingBeamAlgorithm().Run()

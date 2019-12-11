@@ -1,0 +1,33 @@
+{ 
+    // Use IntelliSense to learn about possible attributes. 
+    // Hover to view descriptions of existing attributes. 
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387 
+    "version": "0.2.0", 
+    "configurations": [ 
+        { 
+            "name": "Python launch", 
+            "type": "python", 
+            "request": "launch", 
+            "stopOnEntry": true, 
+            "pythonPath": "E:/KRATOS/python/python", 
+            "program": "E:/KRATOS/Workspace_DRILLSENSE/RUN/drillingbeam_SOLIDS_launcher.py", 
+            //"program" :"${file}", 
+            "cwd": "", 
+            "env": {"LD_LIBRARY_PATH":"E:/KRATOS/libraries","PYTHONPATH":"E:/KRATOS/python","OMP_NUM_THREADS":"1"}, 
+            "envFile": "${workspaceRoot}/.env", 
+            "debugOptions": [ 
+                "WaitOnAbnormalExit", 
+                "WaitOnNormalExit", 
+                "RedirectOutput" 
+            ] 
+        }, 
+        { 
+            "name": "GDB Attach proc 0", 
+            "type": "cppdbg", 
+            "request": "attach", 
+            "program": "E:/KRATOS/python/python", 
+            "processId": "${command:pickProcess}", 
+            "MIMode": "gdb" 
+        } 
+    ] 
+} 
