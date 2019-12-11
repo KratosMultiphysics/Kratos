@@ -53,14 +53,14 @@ void UniaxialFiberBeamColumnSteelMaterialLaw::CalculateMaterialResponse()
     double E_inf = b * E;
     double epsy  = fy / E;
 
-    mStrainMax     = mConvergedStrainMax;
-    mStrainMin     = mConvergedStrainMin;
-    mStrainPlastic = mConvergedStrainPlastic;
-    mStrain0       = mConvergedStrain0;
-    mStress0       = mConvergedStress0;
-    mStrainR       = mConvergedStrainR;
-    mStressR       = mConvergedStressR;
-    mLoadingIndex  = mConvergedLoadingIndex;
+    mStrainMax      =      mConvergedStrainMax;
+    mStrainMin      =      mConvergedStrainMin;
+    mStrainPlastic  =  mConvergedStrainPlastic;
+    mStrain0        =        mConvergedStrain0;
+    mStress0        =        mConvergedStress0;
+    mStrainR        =        mConvergedStrainR;
+    mStressR        =        mConvergedStressR;
+    mLoadingIndex   =   mConvergedLoadingIndex;
 
     double deps = mStrain - mConvergedStrain;
 
@@ -85,7 +85,6 @@ void UniaxialFiberBeamColumnSteelMaterialLaw::CalculateMaterialResponse()
                 mStress0 = fy;
                 mStrainPlastic = mStrainMax;
             }
-
         }
     }
 
@@ -133,7 +132,6 @@ void UniaxialFiberBeamColumnSteelMaterialLaw::FinalizeMaterialResponse()
 {
     KRATOS_TRY
     mConvergedLoadingIndex  = mLoadingIndex;
-    // mTangentModulus
     mConvergedStrain0       = mStrain0;
     mConvergedStress0       = mStress0;
     mConvergedStrainR       = mStrainR;

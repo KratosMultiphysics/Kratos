@@ -51,7 +51,7 @@ namespace Kratos
  * @class FiberBeamColumnSection
  *
  * @brief A 3D section for fiber beam-column element
- * @details If a properties pointer is given to the constructor, it generates the fibers
+ * @details
  *
  * @author Mahmoud Zidan
  */
@@ -92,24 +92,15 @@ public:
     // FiberBeamColumnSection(FiberBeamColumnSection const& rOther);
 
     // /// Destructor
-    // ~FiberBeamColumnSection()
-    // {
-    //     delete mFibers;
-    // }
+    // ~FiberBeamColumnSection(){}
 
-    // void CalculateLocalStiffnessMatrix(Matrix& rLocalStiffnessMatrix);
     void CalculateLocalFlexibilityMatrix();
-    void CalculateBMatrix(Matrix& rBMatrix);
+    void CalculateBMatrix();
     Matrix GetGlobalFlexibilityMatrix();
     Vector GetGlobalDeformationResiduals();
 
-    bool StateDetermination(Vector ChangeElementForceIncrements);
+    bool StateDetermination(const Vector& rElementForceIncrements);
     void ResetResidual();
-    // void SetSectionForces(Vector ChangeElementForceIncrements);
-    // void CalculateDeformationIncrements();
-    // void CalculateFiberState();
-    // void CalculateResiduals();
-    // bool CheckConvergence();
 
     void FinalizeSolutionStep();
 
@@ -132,11 +123,9 @@ public:
 
     /// number of fibers
     SizeType Size() { return mFibers.size(); }
-
     double GetWeight() { return mWeight; }
-    Vector GetResiduals() { return mDeformationResiduals; }
-
-    void SetFibers (std::vector<FiberBeamColumnUniaxialFiber> Fibers) { mFibers = Fibers; }
+    void SetFibers (std::vector<FiberBeamColumnUniaxialFiber> Fibers) { mFibers = std::move(Fibers); }
+    std::vector<FiberBeamColumnUniaxialFiber> const& GetFibers() const { return mFibers; }
 
     ///@}
     ///@name Inquiry
@@ -208,19 +197,12 @@ private:
     double mPosition;
     double mWeight;
     std::vector<FiberBeamColumnUniaxialFiber> mFibers;
+    double mTolerance;
 
     Matrix mBMatrix = ZeroMatrix(3, 5);
     Matrix mLocalFlexibilityMatrix = ZeroMatrix(3, 3);
-
-    double mTolerance;
-
-    Vector mChangeForceIncrements = ZeroVector(3);
-    Vector mForceIncrements = ZeroVector(3);
     Vector mForces = ZeroVector(3);
-    Vector mConvergedForces = ZeroVector(3);
     Vector mUnbalanceForces = ZeroVector(3);
-
-    Vector mChangeDeformationIncrements = ZeroVector(3);
     Vector mDeformationResiduals = ZeroVector(3);
 
     ///@}

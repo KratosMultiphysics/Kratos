@@ -136,10 +136,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    double mStress;
-    double mStrain;
-    double mTangentModulus;
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -172,6 +168,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    double mTangentModulus = 0.0;
+
     unsigned int mLoadingIndex = 0;
     double mStrain0 = 0.0;
     double mStress0 = 0.0;
@@ -180,6 +178,8 @@ private:
     double mStrainPlastic = 0.0;
     double mStrainMax = 0.0;
     double mStrainMin = 0.0;
+    double mStrain = 0.0;
+    double mStress = 0.0;
 
     unsigned int mConvergedLoadingIndex = 0;
     double mConvergedStrain0 = 0.0;

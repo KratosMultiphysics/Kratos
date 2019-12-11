@@ -208,7 +208,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    // int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -245,8 +245,8 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-    static constexpr int msNumberOfNodes = 2;
-    static constexpr int msDimension = 3;
+    static constexpr unsigned int msNumberOfNodes = 2;
+    static constexpr unsigned int msDimension = 3;
     static constexpr unsigned int msLocalSize = 5;
     static constexpr unsigned int msGlobalSize = 12;
 
@@ -259,18 +259,10 @@ protected:
     Matrix mTransformationMatrix = ZeroMatrix(msGlobalSize, msLocalSize);
     Matrix mLocalStiffnessMatrix = ZeroMatrix(msLocalSize, msLocalSize);
 
-    Vector mDeformationPreviousIteration   = ZeroVector(msLocalSize);
-    Vector mDeformationCurrentIteration    = ZeroVector(msLocalSize);
-    Vector mDeformationPreviousIncerements = ZeroVector(msLocalSize);
-    Vector mDeformationCurrentIncerements  = ZeroVector(msLocalSize);
-    // Vector mChangeDeformationIncerements   = ZeroVector(msLocalSize);
-    Vector mConvergedDeformations          = ZeroVector(msLocalSize);
-    Vector mDeformationResiduals           = ZeroVector(msLocalSize);
-
-    // Vector mChangeForceIncerements         = ZeroVector(msLocalSize);
-    Vector mForceIncerements               = ZeroVector(msLocalSize);
-    Vector mForces                         = ZeroVector(msLocalSize);
-    Vector mConvergedForces                = ZeroVector(msLocalSize);
+    Vector mDeformationI   = ZeroVector(msLocalSize);
+    Vector mDeformationIM1 = ZeroVector(msLocalSize);
+    Vector mInternalForces = ZeroVector(msLocalSize);
+    Vector mDeformationResiduals = ZeroVector(msLocalSize);
 
     ///@}
     ///@name Protected Operators

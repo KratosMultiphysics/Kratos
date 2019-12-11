@@ -33,20 +33,10 @@ UniaxialFiberBeamColumnConcreteMaterialLaw::UniaxialFiberBeamColumnConcreteMater
     mStrain0 = -std::abs(GetProperties()[CONCRETE_YIELD_STRAIN]);
     mFc = -std::abs(GetProperties()[CONCRETE_YIELD_STRENGTH]);
     mStrainUltimate = -std::abs(GetProperties()[CONCRETE_CRUSHING_STRAIN]);
-    mInitialTangentModulus = 2.0 * mFc / mStrain0;
+    double E0 = 2.0 * mFc / mStrain0;
     // initialize material history variables
-    mUnloadSlope             = mInitialTangentModulus;
-    mTangentModulus          = mInitialTangentModulus;
-    mConvergedUnloadSlope    = mInitialTangentModulus;
-    mConvergedTangentModulus = mInitialTangentModulus;
-    KRATOS_CATCH("")
-}
-
-void UniaxialFiberBeamColumnConcreteMaterialLaw::Confine()
-{
-    KRATOS_TRY
-    // mFc *= GetProperties()[CONCRETE_CONFINEMENT_FACTOR];
-    mStrainUltimate *= GetProperties()[CONCRETE_CONFINEMENT_FACTOR];
+    mUnloadSlope    = E0;
+    mTangentModulus = E0;
     KRATOS_CATCH("")
 }
 
@@ -61,42 +51,25 @@ void UniaxialFiberBeamColumnConcreteMaterialLaw::CalculateMaterialResponse()
 {
     KRATOS_TRY
 
-    mStrainMin      = mConvergedStrainMin;
-    mStrainEnd      = mConvergedStrainEnd;
-    mUnloadSlope    = mConvergedUnloadSlope;
-    mStress         = mConvergedStress;
-    mTangentModulus = mConvergedTangentModulus;
+    mStrainR = mConvergedStrainR;
+    mStrainP = mConvergedStrainP;
+    mStress  = mConvergedStress;
 
     double deps = mStrain - mConvergedStrain;
+
+    // quick return if the strain has not changed
     if (std::abs(deps) < std::numeric_limits<double>::epsilon()){
         return;
     }
 
-    if (mStrain >= 0.0){
+    // quick return if the strain is positive
+    if (mStrain > 0.0){
         mTangentModulus = 0.0;
         mStress = 0.0;
         return;
     }
-    /************************************************/
-    // else if (mStrain >= mStrain0) {
-    //     mTangentModulus = mFc / mStrain0;
-    //     mStress = mTangentModulus * mStrain;
-    // }
-    // else if (mStrain >= mStrainUltimate) {
-    //     // mTangentModulus = -0.8*mFc / (mStrainUltimate-mStrain0);
-    //     mTangentModulus = 0.2*mFc / mStrainUltimate;
-    //     mStress = mTangentModulus * mStrain;
-    // }
-    // else {
-    //     mTangentModulus = 0.0;
-    //     mStress = 0.2*mFc;
-    // }
-    // return;
-    /************************************************/
 
-    double sgr_tmp = mConvergedStress + mUnloadSlope*mStrain - mUnloadSlope*mConvergedStrain;
-
-    // KRATOS_WATCH(sgr_tmp)
+    double sgr_tmp = mConvergedStress + mUnloadSlope*(mStrain - mConvergedStrain);
 
     // further into compression
     if (mStrain < mConvergedStrain) {
@@ -106,15 +79,12 @@ void UniaxialFiberBeamColumnConcreteMaterialLaw::CalculateMaterialResponse()
             mTangentModulus = mUnloadSlope;
         }
     }
-
-    // towards tension
-    else if (sgr_tmp <= 0.0) {
-        // if (mConvergedStrain == mStrainMin) reversal = True;
+    // towards tension unloading path
+    else if (mStrain < mStrainP) {
         mStress = sgr_tmp;
         mTangentModulus = mUnloadSlope;
     }
-
-    // further into tension
+    // further into tension (open crack)
     else {
         mStress = 0.0;
         mTangentModulus = 0.0;
@@ -126,13 +96,16 @@ void UniaxialFiberBeamColumnConcreteMaterialLaw::CalculateMaterialResponse()
 void UniaxialFiberBeamColumnConcreteMaterialLaw::Reload()
 {
     KRATOS_TRY
-    if (mStrain < mStrainMin) {
-        mStrainMin = mStrain;
+    // loading
+    if (mStrain < mStrainR) {
+        mStrainR = mStrain;
         Envelope();
         Unload();
-    } else if (mStrain < mStrainEnd) {
+    // towards compression on the reloading path
+    } else if (mStrain < mStrainP) {
         mTangentModulus = mUnloadSlope;
-        mStress = mTangentModulus * (mStrain-mStrainEnd);
+        mStress = mTangentModulus * (mStrain-mStrainP);
+    // towards compression but open crack
     } else {
         mStress = 0.0;
         mTangentModulus = 0.0;
@@ -143,13 +116,17 @@ void UniaxialFiberBeamColumnConcreteMaterialLaw::Reload()
 void UniaxialFiberBeamColumnConcreteMaterialLaw::Envelope()
 {
     KRATOS_TRY
+    // pre yielding
     if (mStrain > mStrain0) {
         double eta = mStrain / mStrain0;
         mStress = mFc * (2.0*eta - eta*eta);
-        mTangentModulus = mInitialTangentModulus * (1.0 - eta);
+        double E0 = 2.0 * mFc / mStrain0;
+        mTangentModulus = E0 * (1.0 - eta);
+    // softening
     } else if (mStrain >= mStrainUltimate) {
-        mTangentModulus = (mFc - 0.2*mFc) / (mStrain0-mStrainUltimate);
+        mTangentModulus = 0.8*mFc / (mStrain0-mStrainUltimate);
         mStress = mFc + mTangentModulus*(mStrain-mStrain0);
+    // past ultimate strain
     } else {
         mStress = 0.2*mFc;
         mTangentModulus = 0.0;
@@ -160,31 +137,28 @@ void UniaxialFiberBeamColumnConcreteMaterialLaw::Envelope()
 void UniaxialFiberBeamColumnConcreteMaterialLaw::Unload()
 {
     KRATOS_TRY
-    double eps_tmp = mStrainMin;
-    // KRATOS_WATCH(eps_tmp)
+    double eps_tmp = mStrainR;
     if (eps_tmp < mStrainUltimate) {
         eps_tmp = mStrainUltimate;
     }
-    // KRATOS_WATCH(eps_tmp)
     double eta = eps_tmp / mStrain0;
     double ratio = 0.707 * (eta-2.0) + 0.834;
     if (eta < 2.0) {
         ratio = 0.145*eta*eta + 0.13*eta;
     }
-    mStrainEnd = ratio * mStrain0;
+    mStrainP = ratio * mStrain0;
 
-    mUnloadSlope = mStress / (mStrainMin - mStrainEnd);
-
-    double tmp1 = mStrainMin - mStrainEnd;
-    double tmp2 = mStress / mInitialTangentModulus;
+    double E0 = 2.0 * mFc / mStrain0;
+    double tmp1 = mStrainR - mStrainP;
+    double tmp2 = mStress / E0;
     if (tmp1 > -std::numeric_limits<double>::epsilon()) {
-        mUnloadSlope = mInitialTangentModulus;
+        mUnloadSlope = E0;
     } else if (tmp1 <= tmp2) {
-        mStrainEnd = mStrainMin - tmp1;
+        mStrainP = mStrainR - tmp1;
         mUnloadSlope = mStress / tmp1;
     } else {
-        mStrainEnd = mStrainMin - tmp2;
-        mUnloadSlope = mInitialTangentModulus;
+        mStrainP = mStrainR - tmp2;
+        mUnloadSlope = E0;
     }
     KRATOS_CATCH("")
 }
@@ -192,12 +166,10 @@ void UniaxialFiberBeamColumnConcreteMaterialLaw::Unload()
 void UniaxialFiberBeamColumnConcreteMaterialLaw::FinalizeMaterialResponse()
 {
     KRATOS_TRY
-    mConvergedStress         = mStress;
-    mConvergedStrain         = mStrain;
-    mConvergedStrainMin      = mStrainMin;
-    mConvergedStrainEnd      = mStrainEnd;
-    mConvergedUnloadSlope    = mUnloadSlope;
-    mConvergedTangentModulus = mTangentModulus;
+    mConvergedStress  = mStress;
+    mConvergedStrain  = mStrain;
+    mConvergedStrainR = mStrainR;
+    mConvergedStrainP = mStrainP;
     KRATOS_CATCH("")
 }
 

@@ -94,9 +94,8 @@ public:
 
     Matrix CreateGlobalFiberStiffnessMatrix();
 
-    void StateDetermination(Vector ChangeSectionDeformationIncrements);
-    // void SetStrainIncrements(Vector ChangeSectionDeformationIncrements);
-    Vector CreateGlobalFiberResistingForces();
+    void StateDetermination(const Vector& rSectionDeformationIncrements);
+    Vector CreateGlobalFiberInternalForces();
     void FinalizeSolutionStep();
 
     ///@}
@@ -112,6 +111,9 @@ public:
     ///@}
     ///@name Access
     ///@{
+
+    double const& GetStress() const {return mStress;}
+    double const& GetStrain() const {return mStrain;}
 
     ///@}
     ///@name Inquiry
@@ -149,15 +151,10 @@ protected:
     IndexType mId;
     Vector mTransformationVector = ZeroVector(3);
     double mArea = 0;
-    UniaxialFiberBeamColumnMaterialLaw::Pointer mpMaterial;
-
-    // double mChangeStrainIncrement;
-    double mStrainIncrement;
-    double mStrain;
-    double mConvergedStrain;
-
-    double mStress;
-    double mConvergedStress;
+    UniaxialFiberBeamColumnMaterialLaw::Pointer mpMaterial = nullptr;
+    PropertiesType::Pointer mpProperties = nullptr;
+    double mStrain = 0.0;
+    double mStress = 0.0;
 
     ///@}
     ///@name Protected Operators
