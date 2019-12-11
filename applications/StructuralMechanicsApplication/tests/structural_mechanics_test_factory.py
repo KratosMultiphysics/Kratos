@@ -173,6 +173,9 @@ class MembraneQ4PointLoadTests(StructuralMechanicsTestFactory):
 class MembraneQ4TrussPointLoadTests(StructuralMechanicsTestFactory):
     file_name = "membrane_test/Membrane_Q4_Truss_PointLoad_test"
 
+class MembraneHemisphereTests(StructuralMechanicsTestFactory):
+    file_name = "membrane_test/Membrane_hemisphere_test"
+
 class Simple3D2NTrussTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/nonlinear_3D2NTruss_test"
 
