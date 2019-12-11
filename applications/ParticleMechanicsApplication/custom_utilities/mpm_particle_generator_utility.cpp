@@ -519,8 +519,8 @@ namespace MPMParticleGeneratorUtility
                         const double area = r_geometry.Area();
                         mpc_area = area / (integration_point_per_conditions);
                         const double mpc_nodal_area = mpc_area ;
-                        //mpc_area = area / (1 + integration_point_per_conditions);
-                        //const double mpc_nodal_area = mpc_area / r_geometry.size();
+                        // mpc_area = area / (1 + integration_point_per_conditions);
+                        // const double mpc_nodal_area = mpc_area / r_geometry.size();
 
                         // Check condition variables
                         if (i->Has(DISPLACEMENT))
@@ -624,30 +624,7 @@ namespace MPMParticleGeneratorUtility
                                 }
                             }
 
-                            Condition::Pointer p_condition;
-
-                            if (boundary_condition_type==2)
-                            {
-                                auto p_new_node = rBackgroundGridModelPart.CreateNewNode(rBackgroundGridModelPart.Nodes().size() + 1, mpc_xg[0], mpc_xg[1], mpc_xg[2]);
-                                p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_X,WEIGHTED_VECTOR_RESIDUAL_X);
-                                p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Y,WEIGHTED_VECTOR_RESIDUAL_Y);
-                                p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Z,WEIGHTED_VECTOR_RESIDUAL_Z);
-                                p_new_node->AddDof(DISPLACEMENT_X,REACTION_X);
-                                p_new_node->AddDof(DISPLACEMENT_Y,REACTION_Y);
-                                p_new_node->AddDof(DISPLACEMENT_Z,REACTION_Z);
-
-
-                                p_condition = Kratos::make_intrusive<MPMParticleLagrangeDirichletCondition>(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->pGetGeometry(), properties, p_new_node.get());
-
-                            }
-                            else
-                                p_condition = new_condition.Create(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
-
-
-
-
-
-
+                            Condition::Pointer p_condition = new_condition.Create(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
 
                             // Check Normal direction
                             if (flip_normal_direction) mpc_normal *= -1.0;
@@ -664,6 +641,22 @@ namespace MPMParticleGeneratorUtility
                             p_condition->SetValue(MPC_IMPOSED_VELOCITY, mpc_imposed_velocity);
                             p_condition->SetValue(MPC_ACCELERATION, mpc_acceleration);
                             p_condition->SetValue(MPC_IMPOSED_ACCELERATION, mpc_imposed_acceleration);
+
+
+                            if (boundary_condition_type==2)
+                            {
+                                auto p_new_node = rBackgroundGridModelPart.CreateNewNode(rBackgroundGridModelPart.Nodes().size() + 1, mpc_xg[0], mpc_xg[1], mpc_xg[2]);
+                                p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_X,WEIGHTED_VECTOR_RESIDUAL_X);
+                                p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Y,WEIGHTED_VECTOR_RESIDUAL_Y);
+                                p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Z,WEIGHTED_VECTOR_RESIDUAL_Z);
+                                p_new_node->AddDof(DISPLACEMENT_X,REACTION_X);
+                                p_new_node->AddDof(DISPLACEMENT_Y,REACTION_Y);
+                                p_new_node->AddDof(DISPLACEMENT_Z,REACTION_Z);
+
+
+                                p_condition->SetValue(MPC_LAGRANGE_NODE, p_new_node);
+
+                            }
 
                             if (is_neumann_condition)
                                 p_condition->SetValue(POINT_LOAD, point_load);
