@@ -43,7 +43,7 @@ namespace Kratos
     }
 
 	CoarseVoxelMeshGeneratorProcess::~CoarseVoxelMeshGeneratorProcess() {
-		
+
 	}
 
 	void CoarseVoxelMeshGeneratorProcess::Execute() {
@@ -169,6 +169,10 @@ namespace Kratos
 
 		mCoarseMeshColors.SetCoordinates(x_key_planes, y_key_planes, z_key_planes);
 
+		const std::size_t coarse_last_x = x_key_planes.size() - 2;
+		const std::size_t coarse_last_y = y_key_planes.size() - 2;
+		const std::size_t coarse_last_z = z_key_planes.size() - 2;
+
 		std::size_t coarse_i = 0;
 		std::size_t coarse_j = 0;
 		std::size_t coarse_k = 0;
@@ -190,6 +194,15 @@ namespace Kratos
 								}
 								if(coarse_k > 0){
 									mCoarseMeshColors.GetElementalFaceColor(coarse_i, coarse_j, coarse_k-1)[5] = mColors.GetElementalFaceColor(i,j,k-1)[5];
+								}
+								if(coarse_i == coarse_last_x){
+									mCoarseMeshColors.GetElementalFaceColor(coarse_i, coarse_j, coarse_k)[3] = mColors.GetElementalFaceColor(mNumberOfDivisions[0]-1,j,k)[3];
+								}
+								if(coarse_j == coarse_last_y){
+									mCoarseMeshColors.GetElementalFaceColor(coarse_i, coarse_j, coarse_k)[4] = mColors.GetElementalFaceColor(i,mNumberOfDivisions[1]-1,k)[4];
+								}
+								if(coarse_k == coarse_last_z){
+									mCoarseMeshColors.GetElementalFaceColor(coarse_i, coarse_j, coarse_k)[5] = mColors.GetElementalFaceColor(i,j,mNumberOfDivisions[2]-1)[5];
 								}
 								coarse_i++;
 							}
