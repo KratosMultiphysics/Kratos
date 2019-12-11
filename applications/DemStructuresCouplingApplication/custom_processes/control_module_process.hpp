@@ -52,12 +52,15 @@ public:
                 "target_stress_variable_name": "TARGET_STRESS_VARIABLE_NAME",
                 "reaction_stress_variable_name": "REACTION_STRESS_VARIABLE_NAME",
                 "loading_velocity_variable_name": "LOADING_VELOCITY_VARIABLE_NAME",
-                "target_stress_table_id" : 1,
+                "radial_displacement" : false,
+                "target_stress_table_id" : 0,
                 "initial_velocity" : 0.0,
-                "limit_velocity" : 1.0e3,
+                "limit_velocity" : 1.0,
                 "velocity_factor" : 1.0,
                 "compression_length" : 0.0,
                 "young_modulus" : 1.0e7,
+                "stress_increment_tolerance": 1000.0,
+                "update_stiffness": true,
                 "start_time" : 0.0
             }  )" );
 
@@ -76,6 +79,24 @@ public:
         mCompressionLength = rParameters["compression_length"].GetDouble();
         mYoungModulus = rParameters["young_modulus"].GetDouble();
         mStartTime = rParameters["start_time"].GetDouble();
+        mStressIncrementTolerance = rParameters["stress_increment_tolerance"].GetDouble();
+        mUpdateStiffness = rParameters["update_stiffness"].GetBool();
+        mReactionStressOld = 0.0;
+        mStiffness = mYoungModulus/mCompressionLength;
+
+        mRadialDisplacement = rParameters["radial_displacement"].GetBool();
+        if(mRadialDisplacement == true) {
+            mVariableNameX = rParameters["variable_name"].GetString() + std::string("_X");
+            mReactionVariableNameX = rParameters["reaction_variable_name"].GetString() + std::string("_X");
+            mTargetStressVariableNameX = rParameters["target_stress_variable_name"].GetString() + std::string("_X");
+            mReactionStressVariableNameX = rParameters["reaction_stress_variable_name"].GetString() + std::string("_X");
+            mLoadingVelocityVariableNameX = rParameters["loading_velocity_variable_name"].GetString() + std::string("_X");
+            mVariableNameY = rParameters["variable_name"].GetString() + std::string("_Y");
+            mReactionVariableNameY = rParameters["reaction_variable_name"].GetString() + std::string("_Y");
+            mTargetStressVariableNameY = rParameters["target_stress_variable_name"].GetString() + std::string("_Y");
+            mReactionStressVariableNameY = rParameters["reaction_stress_variable_name"].GetString() + std::string("_Y");
+            mLoadingVelocityVariableNameY = rParameters["loading_velocity_variable_name"].GetString() + std::string("_Y");
+        }
 
         KRATOS_CATCH("");
     }
@@ -101,15 +122,30 @@ public:
         const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
         ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
-        ComponentType VarComponent = KratosComponents< ComponentType >::Get(mVariableName);
 
-        #pragma omp parallel for
-        for(int i = 0; i<NNodes; i++)
-        {
-            ModelPart::NodesContainerType::iterator it = it_begin + i;
+        if(mRadialDisplacement == true) {
+            ComponentType VarComponentX = KratosComponents< ComponentType >::Get(mVariableNameX);
+            ComponentType VarComponentY = KratosComponents< ComponentType >::Get(mVariableNameY);
 
-            it->Fix(VarComponent);
-            it->FastGetSolutionStepValue(VarComponent) = 0.0;
+            #pragma omp parallel for
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                it->Fix(VarComponentX);
+                it->FastGetSolutionStepValue(VarComponentX) = 0.0;
+                it->Fix(VarComponentY);
+                it->FastGetSolutionStepValue(VarComponentY) = 0.0;
+            }
+        } else {
+            ComponentType VarComponent = KratosComponents< ComponentType >::Get(mVariableName);
+
+            #pragma omp parallel for
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                it->Fix(VarComponent);
+                it->FastGetSolutionStepValue(VarComponent) = 0.0;
+            }
         }
 
         KRATOS_CATCH("");
@@ -123,15 +159,32 @@ public:
         const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
         ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
-        ComponentType VarComponent = KratosComponents< ComponentType >::Get(mVariableName);
         const double DeltaTime = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
-        #pragma omp parallel for
-        for(int i = 0; i<NNodes; i++)
-        {
-            ModelPart::NodesContainerType::iterator it = it_begin + i;
+        if(mRadialDisplacement == true) {
+            ComponentType VarComponentX = KratosComponents< ComponentType >::Get(mVariableNameX);
+            ComponentType VarComponentY = KratosComponents< ComponentType >::Get(mVariableNameY);
 
-            it->FastGetSolutionStepValue(VarComponent) += mVelocity * DeltaTime;
+            #pragma omp parallel for
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                double external_radius = std::sqrt(it->X()*it->X() + it->Y()*it->Y());
+                double cos_theta = it->X()/external_radius;
+                double sin_theta = it->Y()/external_radius;
+
+                it->FastGetSolutionStepValue(VarComponentX) += mVelocity * cos_theta * DeltaTime;
+                it->FastGetSolutionStepValue(VarComponentY) += mVelocity * sin_theta * DeltaTime;
+            }
+        } else {
+            ComponentType VarComponent = KratosComponents< ComponentType >::Get(mVariableName);
+
+            #pragma omp parallel for
+            for(int i = 0; i<NNodes; i++) {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                it->FastGetSolutionStepValue(VarComponent) += mVelocity * DeltaTime;
+            }
         }
 
         KRATOS_CATCH("");
@@ -146,6 +199,7 @@ public:
 
         if(CurrentTime >= mStartTime && mTargetStressTableId > 0)
         {
+            // Calculate ReactionStress
             const int NCons = static_cast<int>(mrModelPart.Conditions().size());
             ModelPart::ConditionsContainerType::iterator con_begin = mrModelPart.ConditionsBegin();
             double FaceArea = 0.0;
@@ -159,26 +213,73 @@ public:
             }
 
             typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
-            ComponentType ReactionVarComponent = KratosComponents< ComponentType >::Get(mReactionVariableName);
             const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
             double FaceReaction = 0.0;
 
-            #pragma omp parallel for reduction(+:FaceReaction)
-            for(int i = 0; i<NNodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
+            if(mRadialDisplacement == true) {
+                ComponentType ReactionVarComponentX = KratosComponents< ComponentType >::Get(mReactionVariableNameX);
+                ComponentType ReactionVarComponentY = KratosComponents< ComponentType >::Get(mReactionVariableNameY);
 
-                FaceReaction += it->FastGetSolutionStepValue(ReactionVarComponent);
+                #pragma omp parallel for reduction(+:FaceReaction)
+                for(int i = 0; i<NNodes; i++)
+                {
+                    ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                    // Unit normal vector pointing outwards
+                    array_1d<double,2> n;
+                    n[0] = it->X();
+                    n[1] = it->Y();
+                    double inv_norm = 1.0/norm_2(n);
+                    n[0] *= inv_norm;
+                    n[1] *= inv_norm;
+
+                    // Scalar product between reaction and normal
+                    double n_dot_r = n[0] * it->FastGetSolutionStepValue(ReactionVarComponentX) +
+                                     n[1] * it->FastGetSolutionStepValue(ReactionVarComponentY);
+
+                    FaceReaction += n_dot_r;
+                }
+            } else {
+                ComponentType ReactionVarComponent = KratosComponents< ComponentType >::Get(mReactionVariableName);
+
+                #pragma omp parallel for reduction(+:FaceReaction)
+                for(int i = 0; i<NNodes; i++)
+                {
+                    ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                    FaceReaction += it->FastGetSolutionStepValue(ReactionVarComponent);
+                }
             }
 
             const double ReactionStress = FaceReaction/FaceArea;
-            TableType::Pointer pTargetStressTable = mrModelPart.pGetTable(mTargetStressTableId);
-            const double DeltaTime = mrModelPart.GetProcessInfo()[DELTA_TIME];
-            const double NextTargetStress = pTargetStressTable->GetValue(CurrentTime+DeltaTime);
 
-            const double DeltaVelocity = (NextTargetStress - ReactionStress)*mCompressionLength/(mYoungModulus*DeltaTime) - mVelocity;
-            mVelocity += mVelocityFactor * DeltaVelocity;
+            // Update K if required
+            const double DeltaTime = mrModelPart.GetProcessInfo()[DELTA_TIME];
+            double K_estimated = mStiffness;
+            if(mUpdateStiffness == true) {
+                if(std::abs(mVelocity) > 1.0e-4*std::abs(mLimitVelocity) &&
+                   std::abs(ReactionStress-mReactionStressOld) > mStressIncrementTolerance) {
+
+                    K_estimated = std::abs((ReactionStress-mReactionStressOld)/(mVelocity * DeltaTime));
+                }
+                mReactionStressOld = ReactionStress;
+                mStiffness = K_estimated;
+            }
+
+            // Update velocity
+            TableType::Pointer pTargetStressTable = mrModelPart.pGetTable(mTargetStressTableId);
+            const double NextTargetStress = pTargetStressTable->GetValue(CurrentTime+DeltaTime);
+            const double df_target = NextTargetStress - ReactionStress;
+
+            double delta_velocity = df_target/(K_estimated * DeltaTime) - mVelocity;
+
+            if(std::abs(df_target) < mStressIncrementTolerance) {
+
+                delta_velocity = -mVelocity;
+            }
+
+            mVelocity += mVelocityFactor * delta_velocity;
 
             if(std::abs(mVelocity) > std::abs(mLimitVelocity))
             {
@@ -188,21 +289,47 @@ public:
                 }
                 else
                 {
-                    mVelocity = -1.0*std::abs(mLimitVelocity);
+                    mVelocity = - std::abs(mLimitVelocity);
                 }
             }
 
-            ComponentType TargetStressVarComponent = KratosComponents< ComponentType >::Get(mTargetStressVariableName);
-            ComponentType ReactionStressVarComponent = KratosComponents< ComponentType >::Get(mReactionStressVariableName);
-            ComponentType LoadingVelocityVarComponent = KratosComponents< ComponentType >::Get(mLoadingVelocityVariableName);
-            #pragma omp parallel for
-            for(int i = 0; i<NNodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
+            if (mRadialDisplacement == true) {
+                ComponentType TargetStressVarComponentX = KratosComponents< ComponentType >::Get(mTargetStressVariableNameX);
+                ComponentType TargetStressVarComponentY = KratosComponents< ComponentType >::Get(mTargetStressVariableNameY);
+                ComponentType ReactionStressVarComponentX = KratosComponents< ComponentType >::Get(mReactionStressVariableNameX);
+                ComponentType ReactionStressVarComponentY = KratosComponents< ComponentType >::Get(mReactionStressVariableNameY);
+                ComponentType LoadingVelocityVarComponentX = KratosComponents< ComponentType >::Get(mLoadingVelocityVariableNameX);
+                ComponentType LoadingVelocityVarComponentY = KratosComponents< ComponentType >::Get(mLoadingVelocityVariableNameY);
 
-                it->FastGetSolutionStepValue(TargetStressVarComponent) = pTargetStressTable->GetValue(CurrentTime);
-                it->FastGetSolutionStepValue(ReactionStressVarComponent) = ReactionStress;
-                it->FastGetSolutionStepValue(LoadingVelocityVarComponent) = mVelocity;
+                #pragma omp parallel for
+                for(int i = 0; i<NNodes; i++) {
+                    ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                    double external_radius = std::sqrt(it->X()*it->X() + it->Y()*it->Y());
+                    double cos_theta = it->X()/external_radius;
+                    double sin_theta = it->Y()/external_radius;
+
+                    it->FastGetSolutionStepValue(TargetStressVarComponentX) = pTargetStressTable->GetValue(CurrentTime) * cos_theta;
+                    it->FastGetSolutionStepValue(TargetStressVarComponentY) = pTargetStressTable->GetValue(CurrentTime) * sin_theta;
+                    it->FastGetSolutionStepValue(ReactionStressVarComponentX) = ReactionStress * cos_theta;
+                    it->FastGetSolutionStepValue(ReactionStressVarComponentY) = ReactionStress * sin_theta;
+                    it->FastGetSolutionStepValue(LoadingVelocityVarComponentX) = mVelocity * cos_theta;
+                    it->FastGetSolutionStepValue(LoadingVelocityVarComponentY) = mVelocity * sin_theta;
+                }
+            } else {
+                ComponentType TargetStressVarComponent = KratosComponents< ComponentType >::Get(mTargetStressVariableName);
+                ComponentType ReactionStressVarComponent = KratosComponents< ComponentType >::Get(mReactionStressVariableName);
+                ComponentType LoadingVelocityVarComponent = KratosComponents< ComponentType >::Get(mLoadingVelocityVariableName);
+                #pragma omp parallel for
+                for(int i = 0; i<NNodes; i++)
+                {
+                    ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                    it->FastGetSolutionStepValue(TargetStressVarComponent) = pTargetStressTable->GetValue(CurrentTime);
+                    it->FastGetSolutionStepValue(ReactionStressVarComponent) = ReactionStress;
+                    // it->FastGetSolutionStepValue(ReactionStressVarComponent) = pTargetStressTable->GetValue(CurrentTime)-ReactionStress;
+                    it->FastGetSolutionStepValue(LoadingVelocityVarComponent) = mVelocity;
+                }
             }
         }
 
@@ -246,6 +373,22 @@ protected:
     double mCompressionLength;
     double mYoungModulus;
     double mStartTime;
+    double mReactionStressOld;
+    double mStressIncrementTolerance;
+    double mStiffness;
+    bool mUpdateStiffness;
+
+    bool mRadialDisplacement;
+    std::string mVariableNameX;
+    std::string mVariableNameY;
+    std::string mReactionVariableNameX;
+    std::string mReactionVariableNameY;
+    std::string mTargetStressVariableNameX;
+    std::string mTargetStressVariableNameY;
+    std::string mReactionStressVariableNameX;
+    std::string mReactionStressVariableNameY;
+    std::string mLoadingVelocityVariableNameX;
+    std::string mLoadingVelocityVariableNameY;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

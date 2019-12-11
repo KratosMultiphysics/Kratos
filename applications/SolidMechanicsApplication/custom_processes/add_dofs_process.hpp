@@ -312,7 +312,7 @@ public:
 	*/
 
 	//2nd way:  (faster)
-        #pragma omp parallel for
+        // #pragma omp parallel for
 	for (int k=0; k<number_of_nodes; k++)
 	  {
 	    ModelPart::NodeConstantIterator it = nodes_begin + k;

@@ -20,7 +20,7 @@ namespace Kratos {
 		DEM_sintering_continuum() {
 		}
 
-		void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+		void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
 		~DEM_sintering_continuum() {
 		}

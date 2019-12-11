@@ -18,8 +18,8 @@
         "objectives" : [{
             "identifier" : "mass",
             "type"       : "minimization",
-            "use_kratos" : true,
-            "kratos_response_settings":{
+            "analyzer"   : "kratos",
+            "response_settings" :{
                 "response_type"          : "mass",
                 "material_import_settings" :{
                     "materials_filename": "materials.json"
@@ -38,7 +38,7 @@
             "type"            : "=",
             "reference"       : "specified_value",
             "reference_value" : 0,
-            "use_kratos"      : false,
+            "analyzer"        : "external",
             "project_gradient_on_surface_normals" : true
         }],
         "design_variables" : {

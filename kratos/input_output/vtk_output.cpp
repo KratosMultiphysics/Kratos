@@ -425,6 +425,7 @@ void VtkOutput::WriteNodalResultsToFile(const ModelPart& rModelPart, std::ofstre
     Parameters nodal_solution_step_results = mOutputSettings["nodal_solution_step_data_variables"];
     Parameters nodal_variable_data_results = mOutputSettings["nodal_data_value_variables"];
     Parameters nodal_flags = mOutputSettings["nodal_flags"];
+    const bool write_ids = mOutputSettings["write_ids"].GetBool();
 
     // Checking nodal_solution_step_results
     std::size_t counter_nodal_solution_step_results = 0;
@@ -443,7 +444,7 @@ void VtkOutput::WriteNodalResultsToFile(const ModelPart& rModelPart, std::ofstre
     }
 
     rFileStream << "POINT_DATA " << rModelPart.NumberOfNodes() << "\n";
-    rFileStream << "FIELD FieldData " << counter_nodal_solution_step_results + counter_nodal_variable_data_results + nodal_flags.size() << "\n";
+    rFileStream << "FIELD FieldData " << counter_nodal_solution_step_results + counter_nodal_variable_data_results + nodal_flags.size() + (write_ids ? 1 : 0)  << "\n";
 
     // Writing nodal_solution_step_results
     for (IndexType entry = 0; entry < nodal_solution_step_results.size(); ++entry) {
@@ -468,6 +469,11 @@ void VtkOutput::WriteNodalResultsToFile(const ModelPart& rModelPart, std::ofstre
         const std::string& r_nodal_result_name = nodal_flags[entry].GetString();
         const Flags flag = KratosComponents<Flags>::Get(r_nodal_result_name);
         WriteFlagContainerVariable(rModelPart.Nodes(), flag, r_nodal_result_name, rFileStream);
+    }
+
+    // If we write ids
+    if (write_ids) {
+        WriteIdsToFile(rModelPart.Nodes(), "KRATOS_NODE_ID", rFileStream);
     }
 }
 
@@ -502,8 +508,8 @@ void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofst
     if (num_elements > 0) {
         // write cells header
         rFileStream << "CELL_DATA " << r_local_mesh.NumberOfElements() << "\n";
-        const bool write_properties_id = mOutputSettings["write_properties_id"].GetBool();
-        rFileStream << "FIELD FieldData " << counter_element_data_value_variables + element_flags.size() + (write_properties_id ? 1 : 0) + counter_gauss_point_variables_in_elements << "\n";
+        const bool write_ids = mOutputSettings["write_ids"].GetBool();
+        rFileStream << "FIELD FieldData " << counter_element_data_value_variables + element_flags.size() + (write_ids ? 2 : 0) + counter_gauss_point_variables_in_elements << "\n";
         for (IndexType entry = 0; entry < element_data_value_variables.size(); ++entry) {
             const std::string& r_element_result_name = element_data_value_variables[entry].GetString();
             WriteGeometricalContainerResults(r_element_result_name,r_local_mesh.Elements(),rFileStream);
@@ -520,9 +526,10 @@ void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofst
             WriteFlagContainerVariable(r_local_mesh.Elements(), flag, r_element_result_name, rFileStream);
         }
 
-        // If we write properties_id
-        if (write_properties_id) {
+        // If we write ids
+        if (write_ids) {
             WritePropertiesIdsToFile(r_local_mesh.Elements(), rFileStream);
+            WriteIdsToFile(r_local_mesh.Elements(), "KRATOS_ELEMENT_ID", rFileStream);
         }
 
         // Direct write GP values
@@ -565,8 +572,8 @@ void VtkOutput::WriteConditionResultsToFile(const ModelPart& rModelPart, std::of
     if (num_elements == 0 && num_conditions > 0) { // TODO: Can we have conditions and elements at the same time?
         // Write cells header
         rFileStream << "CELL_DATA " << r_local_mesh.NumberOfConditions() << "\n";
-        const bool write_properties_id = mOutputSettings["write_properties_id"].GetBool();
-        rFileStream << "FIELD FieldData " << counter_condition_results + condition_flags.size() + (write_properties_id ? 1 : 0) + counter_gauss_point_variables_in_elements << "\n";
+        const bool write_ids = mOutputSettings["write_ids"].GetBool();
+        rFileStream << "FIELD FieldData " << counter_condition_results + condition_flags.size() + (write_ids ? 2 : 0) + counter_gauss_point_variables_in_elements << "\n";
         for (IndexType entry = 0; entry < condition_results.size(); ++entry) {
             const std::string& r_condition_result_name = condition_results[entry].GetString();
             WriteGeometricalContainerResults(r_condition_result_name,r_local_mesh.Conditions(),rFileStream);
@@ -584,8 +591,9 @@ void VtkOutput::WriteConditionResultsToFile(const ModelPart& rModelPart, std::of
         }
 
         // If we write properties_id
-        if (write_properties_id) {
+        if (write_ids) {
             WritePropertiesIdsToFile(r_local_mesh.Conditions(), rFileStream);
+            WriteIdsToFile(r_local_mesh.Conditions(), "KRATOS_CONDITION_ID", rFileStream);
         }
 
         // Direct write GP values
@@ -932,40 +940,6 @@ void VtkOutput::WriteIntegrationVectorContainerVariable(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TData>
-void VtkOutput::WriteScalarDataToFile(const TData& rData, std::ofstream& rFileStream) const
-{
-    if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
-        rFileStream << rData;
-    } else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) {
-        TData data = rData;
-        ForceBigEndian(reinterpret_cast<unsigned char *>(&data));
-        rFileStream.write(reinterpret_cast<char *>(&data), sizeof(TData));
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TData>
-void VtkOutput::WriteVectorDataToFile(const TData& rData, std::ofstream& rFileStream) const
-{
-    if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
-        for (const auto& r_data_comp : rData) {
-            rFileStream << r_data_comp << " ";
-        }
-    } else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) {
-        for (const auto& r_data_comp : rData ) {
-            float data_comp_local = (float)r_data_comp; // should not be const or a reference for enforcing big endian
-            ForceBigEndian(reinterpret_cast<unsigned char *>(&data_comp_local));
-            rFileStream.write(reinterpret_cast<char *>(&data_comp_local), sizeof(float));
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void VtkOutput::ForceBigEndian(unsigned char* pBytes) const
 {
     if (mShouldSwap) {
@@ -987,14 +961,32 @@ void VtkOutput::WritePropertiesIdsToFile(
     std::ofstream& rFileStream) const
 {
     rFileStream << "PROPERTIES_ID" << " 1 "
-                << rContainer.size() << "  float\n";
+                << rContainer.size() << "  int\n";
 
     for (const auto& r_entity : rContainer) {
-        const float properties_id = static_cast<float>(r_entity.GetProperties().Id());
-        WriteScalarDataToFile(properties_id, rFileStream);
+        WriteScalarDataToFile((int)r_entity.GetProperties().Id(), rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<typename TContainerType>
+void VtkOutput::WriteIdsToFile(
+    const TContainerType& rContainer,
+    const std::string DataName,
+    std::ofstream& rFileStream) const
+{
+    rFileStream << DataName << " 1 "
+                << rContainer.size() << "  int\n";
+
+    for (const auto& r_entity : rContainer) {
+        WriteScalarDataToFile((int)r_entity.Id(), rFileStream);
+        if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
+    }
+}
+
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -1062,7 +1054,7 @@ Parameters VtkOutput::GetDefaultParameters()
         "custom_name_postfix"                         : "",
         "save_output_files_in_folder"                 : true,
         "write_deformed_configuration"                : false,
-        "write_properties_id"                         : false,
+        "write_ids"                                   : false,
         "nodal_solution_step_data_variables"          : [],
         "nodal_data_value_variables"                  : [],
         "nodal_flags"                                 : [],
