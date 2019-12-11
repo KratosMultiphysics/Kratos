@@ -24,7 +24,7 @@ proc WriteMaterials { basename dir problemtypedir TableDict} {
         incr PropertyId
         puts $FileVar "    prop_id = $PropertyId"
         puts $FileVar "    prop = Properties\[prop_id\]"
-        puts $FileVar "    mat = LinearElastic3DLaw()"
+        puts $FileVar "    mat = ElasticIsotropic3D()"
         puts $FileVar "    prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())"
         puts $FileVar ""
 

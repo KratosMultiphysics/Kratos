@@ -28,14 +28,7 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_truss","Parts_membrane"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_supports","PointLoad3D_pointload", "Structure"],
-        "rotation_dofs"                      : false,
-        "linear_solver_settings"             : {
-            "solver_type" : "ExternalSolversApplication.super_lu",
-            "scaling"     : false
-        }
+        "max_iteration"                      : 10
     },
     "processes" : {
     "constraints_process_list" : [{
@@ -45,7 +38,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_supports",
+            "model_part_name" : "Structure.DISPLACEMENT_supports",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0, 0.0,0.0],
             "constrained"     : [true,true,true],
@@ -60,7 +53,7 @@
         "process_name"          : "ApplyConstantVectorValueProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "PointLoad3D_pointload",
+            "model_part_name" : "Structure.PointLoad3D_pointload",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : 1.0,
             "direction"       : [0.0,0.0,-1]

@@ -146,7 +146,6 @@ namespace Kratos
                     // We set the geometrical values
                     r_computing_contact_model_part.AddCondition(p_auxiliar_condition);
                     p_auxiliar_condition->SetValue(NORMAL, p_slave_cond->GetValue(NORMAL));
-                    p_auxiliar_condition->SetValue(PAIRED_NORMAL, p_master_cond->GetValue(NORMAL));
                     // We activate the condition and initialize it
                     p_auxiliar_condition->Set(ACTIVE, true);
                     p_auxiliar_condition->Set(SLAVE, true);
@@ -302,7 +301,6 @@ namespace Kratos
                     // We set the geometrical values
                     r_computing_contact_model_part.AddCondition(p_auxiliar_condition);
                     p_auxiliar_condition->SetValue(NORMAL, p_slave_cond->GetValue(NORMAL));
-                    p_auxiliar_condition->SetValue(PAIRED_NORMAL, p_master_cond->GetValue(NORMAL));
                     // We activate the condition and initialize it
                     p_auxiliar_condition->Set(ACTIVE, true);
                     p_auxiliar_condition->Set(SLAVE, true);
@@ -526,7 +524,6 @@ namespace Kratos
                     // We set the geometrical values
                     r_computing_contact_model_part.AddCondition(p_auxiliar_condition);
                     p_auxiliar_condition->SetValue(NORMAL, p_slave_cond->GetValue(NORMAL));
-                    p_auxiliar_condition->SetValue(PAIRED_NORMAL, p_master_cond->GetValue(NORMAL));
                     // We activate the condition and initialize it
                     p_auxiliar_condition->Set(ACTIVE, true);
                     p_auxiliar_condition->Set(SLAVE, true);
@@ -717,7 +714,6 @@ namespace Kratos
                     // We set the geometrical values
                     r_computing_contact_model_part.AddCondition(p_auxiliar_condition);
                     p_auxiliar_condition->SetValue(NORMAL, p_slave_cond->GetValue(NORMAL));
-                    p_auxiliar_condition->SetValue(PAIRED_NORMAL, p_master_cond->GetValue(NORMAL));
                     // We activate the condition and initialize it
                     p_auxiliar_condition->Set(SLAVE, true);
                     p_auxiliar_condition->Set(ACTIVE, true);

@@ -3,8 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.MeshingApplication import *
-CheckForPreviousImport()
-
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY)

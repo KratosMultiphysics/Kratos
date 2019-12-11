@@ -33,7 +33,6 @@ THE SOFTWARE.
 \ingroup adapters
 */
 
-#include <boost/range/iterator_range.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <amgcl/backend/builtin.hpp>
@@ -51,20 +50,20 @@ struct is_builtin_vector< boost::numeric::ublas::vector<T> >
 template <typename T>
 std::tuple<
     size_t,
-    boost::iterator_range<const size_t*>,
-    boost::iterator_range<const size_t*>,
-    boost::iterator_range<const T*>
+    iterator_range<const size_t*>,
+    iterator_range<const size_t*>,
+    iterator_range<const T*>
     >
 map(const boost::numeric::ublas::compressed_matrix<T, boost::numeric::ublas::row_major> &A) {
     return std::make_tuple(
             A.size1(),
-            boost::make_iterator_range(
+            make_iterator_range(
                 A.index1_data().begin(), A.index1_data().end()
                 ),
-            boost::make_iterator_range(
+            make_iterator_range(
                 A.index2_data().begin(), A.index2_data().end()
                 ),
-            boost::make_iterator_range(
+            make_iterator_range(
                 A.value_data().begin(), A.value_data().end()
                 )
             );
