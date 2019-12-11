@@ -217,6 +217,7 @@ class AnalyzerWithDependencies(Analyzer):
                 communicator.reportValue(response_id, value)
             else:
                 value = communicator.getStandardizedValue(response_id)
+
             value = weight*value
 
             if combined_value is None:
@@ -244,29 +245,27 @@ class AnalyzerWithDependencies(Analyzer):
         combined_gradient = None
 
         for response_id, sub_dependencies, weight, _ in dependencies:
-            if communicator.isRequestingGradientOf(response_id) == False:
-                continue
+            if communicator.isRequestingGradientOf(response_id):
+                if len(sub_dependencies) > 0:
+                    gradient = self.__ComputeCombinedGradientsRecursively(sub_dependencies, communicator)
+                    communicator.reportGradient(response_id, gradient)
+                else:
+                    gradient = communicator.getStandardizedGradient(response_id)
 
-            if len(sub_dependencies) > 0:
-                gradient = self.__ComputeCombinedGradientsRecursively(sub_dependencies, communicator)
-                communicator.reportGradient(response_id, gradient)
-            else:
-                gradient = communicator.getStandardizedGradient(response_id)
+                for vector in gradient.values():
+                    vector[0] *= weight
+                    vector[1] *= weight
+                    vector[2] *= weight
 
-            for vector in gradient.values():
-                vector[0] *= weight
-                vector[1] *= weight
-                vector[2] *= weight
-
-            if combined_gradient is None:
-                combined_gradient = gradient
-            else:
-                # Perform nodal sum
-                for key_a, vector_a in combined_gradient.items():
-                    vector_b = gradient[key_a]
-                    vector_a[0] += vector_b[0]
-                    vector_a[1] += vector_b[1]
-                    vector_a[2] += vector_b[2]
+                if combined_gradient is None:
+                    combined_gradient = gradient
+                else:
+                    # Perform nodal sum
+                    for key_a, vector_a in combined_gradient.items():
+                        vector_b = gradient[key_a]
+                        vector_a[0] += vector_b[0]
+                        vector_a[1] += vector_b[1]
+                        vector_a[2] += vector_b[2]
 
         return combined_gradient
 
@@ -275,11 +274,12 @@ class AnalyzerWithDependencies(Analyzer):
         response_ids = self.__GetIdentifiersRecursively(self.dependency_graph)
 
         for response_id in response_ids:
-            gradient = communicator.getStandardizedGradient(response_id)
+            if communicator.isRequestingGradientOf(response_id):
+                gradient = communicator.getStandardizedGradient(response_id)
 
-            nodal_norms = [ entry[0]**2 + entry[1]**2 + entry[2]**2 for entry in gradient.values() ]
-            max_norm = math.sqrt(max(nodal_norms))
-            self.gradient_max_norms[response_id] = max_norm
+                nodal_norms = [ entry[0]**2 + entry[1]**2 + entry[2]**2 for entry in gradient.values() ]
+                max_norm = math.sqrt(max(nodal_norms))
+                self.gradient_max_norms[response_id] = max_norm
 
     # --------------------------------------------------------------------------
     def __WriteResultsOfCombinedResponses(self, iteration, communicator):
@@ -296,7 +296,10 @@ class AnalyzerWithDependencies(Analyzer):
             for identifier, value in zip(identifiers, values):
                 row.append(" {:> .5E}".format(value))
             for identifier, value in zip(identifiers, values):
-                row.append(" {:> .5E}".format(self.gradient_max_norms[identifier]))
+                if communicator.isRequestingGradientOf(identifier):
+                    row.append(" {:> .5E}".format(self.gradient_max_norms[identifier]))
+                else:
+                    row.append("            -")
 
             writer.writerow(row)
 
