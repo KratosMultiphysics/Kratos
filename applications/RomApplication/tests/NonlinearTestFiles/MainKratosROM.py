@@ -7,32 +7,22 @@ import KratosMultiphysics.RomApplication as romapp
 from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
 from KratosMultiphysics.ConvectionDiffusionApplication.apply_thermal_face_process import ApplyThermalFaceProcess
 from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
+from KratosMultiphysics.RomApplication import ConvectionDiffusionROMsolver
 
-import h5py
 import json
 import sys
-import time
 
-class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
+class ConvDiffROM(ConvectionDiffusionAnalysis):
 
-    def __init__(self,model,project_parameters,flush_frequency=10.0):
-        super(ConvectionDiffusionAnalysisWithFlush,self).__init__(model,project_parameters)
-        self.flush_frequency = flush_frequency
-        self.last_flush = time.time()
+    def __init__(self,model,project_parameters):
+        super(ConvDiffROM,self).__init__(model,project_parameters)
 
     def _CreateSolver(self):
-        print(sys.path, file=sys.stderr)
-        print(self.parallel_type)
-        if self.parallel_type == "OpenMP":
-            from KratosMultiphysics.RomApplication import ConvectionDiffusionROMsolver
-            return ConvectionDiffusionROMsolver.ROMSolver(self.model, self.project_parameters["solver_settings"])
-        else:
-            import trilinos_static_solver
-            return trilinos_static_solver.TrilinosStaticThermalSolver(self.model, self.project_parameters["solver_settings"])
+        return ConvectionDiffusionROMsolver.ROMSolver(self.model, self.project_parameters["solver_settings"])
 
     def ModifyInitialGeometry(self):
         """Here is the place where the BASIS_ROM and the AUX_ID are imposed to each node"""
-        super(ConvectionDiffusionAnalysisWithFlush,self).ModifyInitialGeometry()
+        super(ConvDiffROM,self).ModifyInitialGeometry()
 
         computing_model_part = self.model["ThermalModelPart"]
 
@@ -48,14 +38,6 @@ class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
                 node.SetValue(romapp.ROM_BASIS, aux ) # Aux ID
                 node.SetValue(romapp.AUX_ID, counter)
                 counter+=1
-
-        if self.parallel_type == "OpenMP":
-            now = time.time()
-            if now - self.last_flush > self.flush_frequency:
-                sys.stdout.flush()
-                self.last_flush = now
-
-
 
     def ModifyInitialProperties(self):
         # ################################################################
@@ -92,7 +74,6 @@ class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
         ################################################################
         #                     TEMPERATURE PROPERTY                     #
         ################################################################
-        #time = 1.0
         ImposedTemperature = 90
         TemperatureSettings = KratosMultiphysics.Parameters("""
             {
@@ -147,15 +128,7 @@ class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
             ArrayOfAreas.append(node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
         return ArrayOfAreas
 
-    def FinalizeSolutionStep(self):
-        super(ConvectionDiffusionAnalysisWithFlush,self).FinalizeSolutionStep()
-        if self.parallel_type == "OpenMP":
-            now = time.time()
-            if now - self.last_flush > self.flush_frequency:
-                sys.stdout.flush()
-                self.last_flush = now
-
-        ##############################################################################################
+############################################################################################################
 
 if __name__ == "__main__":
 
@@ -163,22 +136,5 @@ if __name__ == "__main__":
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    simulation = ConvectionDiffusionAnalysisWithFlush(model,parameters)
+    simulation = ConvDiffROM(model,parameters)
     simulation.Run()
-
-    QoI2 = simulation.EvaluateQuantityOfInterest2()
-    print(QoI2)
-    print( "------------------------------------------" )
-    print("Area list saved in hdf5 format")
-
-    with h5py.File('./AREA.h5','w') as hdf:
-        hdf.create_dataset('Area',data=QoI2)
-    print( "------------------------------------------" )
-
-    QoI = simulation.EvaluateQuantityOfInterest()
-    print(QoI)
-    print( "------------------------------------------" )
-    print("Temperature list saved in hdf5 format")
-
-    with h5py.File('./FINE.h5','w') as hdf:
-        hdf.create_dataset('Temperature',data=QoI)
