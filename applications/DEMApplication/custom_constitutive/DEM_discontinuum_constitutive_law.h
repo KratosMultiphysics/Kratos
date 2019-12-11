@@ -34,7 +34,7 @@ namespace Kratos {
 
         virtual void Initialize(const ProcessInfo& r_process_info);
 
-        virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const;
+        virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true);
 
         virtual void Check(Properties::Pointer pProp) const;
 

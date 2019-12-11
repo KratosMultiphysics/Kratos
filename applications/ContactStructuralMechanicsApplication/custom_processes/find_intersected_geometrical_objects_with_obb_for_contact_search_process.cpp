@@ -53,10 +53,10 @@ FindIntersectedGeometricalObjectsWithOBBContactSearchProcess::FindIntersectedGeo
     const bool intersected_conditions = ThisParameters["intersected_conditions"].GetBool();
     const bool intersected_elements = ThisParameters["intersected_elements"].GetBool();
 
-    BaseProcessType::mOptions.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS, intersecting_conditions);
-    BaseProcessType::mOptions.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS, intersecting_elements);
-    BaseProcessType::mOptions.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS, intersected_conditions);
-    BaseProcessType::mOptions.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS, intersected_elements);
+    BaseProcessType::mOptions.Set(BaseProcessType::INTERSECTING_CONDITIONS, intersecting_conditions);
+    BaseProcessType::mOptions.Set(BaseProcessType::INTERSECTING_ELEMENTS, intersecting_elements);
+    BaseProcessType::mOptions.Set(BaseProcessType::INTERSECTED_CONDITIONS, intersected_conditions);
+    BaseProcessType::mOptions.Set(BaseProcessType::INTERSECTED_ELEMENTS, intersected_elements);
 
     // Setting the bounding box factor
     mBoundingBoxFactor = BaseType::mThisParameters["bounding_box_factor"].GetDouble();
@@ -68,7 +68,10 @@ FindIntersectedGeometricalObjectsWithOBBContactSearchProcess::FindIntersectedGeo
         this->Set(BOUNDARY, false);
 
     // If we debug OBB
-    BaseProcessType::mOptions.Set(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB, mThisParameters["debug_obb"].GetBool());
+    BaseProcessType::mOptions.Set(BaseType::DEBUG_OBB, mThisParameters["debug_obb"].GetBool());
+
+    // If we build the OBB from the geometry BB
+    BaseType::mOptions.Set(BaseType::BUILD_OBB_FROM_BB, mThisParameters["build_from_bounding_box"].GetBool());
 
     // The intersection type
     ConvertIntersection(mThisParameters["OBB_intersection_type"].GetString());
@@ -202,6 +205,7 @@ Parameters FindIntersectedGeometricalObjectsWithOBBContactSearchProcess::GetDefa
         "bounding_box_factor"             : -1.0,
         "debug_obb"                       : false,
         "OBB_intersection_type"           : "SeparatingAxisTheorem",
+        "build_from_bounding_box"         : true,
         "lower_bounding_box_coefficient"  : 0.0,
         "higher_bounding_box_coefficient" : 1.0,
         "intersecting_conditions"         : true,

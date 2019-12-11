@@ -381,8 +381,8 @@ class ContactRemeshMmgProcess(MmgProcess):
         self.computing_model_part.RemoveSubModelPart("Contact")
         self.computing_model_part.RemoveSubModelPart("ComputingContact")
 
-        MeshingApplication.MeshingUtilities.EnsureModelPartOwnsProperties(self.computing_model_part)
-        MeshingApplication.MeshingUtilities.EnsureModelPartOwnsProperties(self.computing_model_part.GetRootModelPart())
+        # Ensure properties defined
+        MeshingApplication.MeshingUtilities.RecursiveEnsureModelPartOwnsProperties(self.computing_model_part.GetRootModelPart())
 
         # We create the contact submodelparts
         self.computing_model_part.CreateSubModelPart("Contact")

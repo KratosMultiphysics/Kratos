@@ -29,7 +29,7 @@
         "oss_switch"                   : 0,
         "echo_level"                   : 0,
         "model_part_name"              : "MainModelPart",
-        "volume_model_part_name"       : "Parts_fluid",
+        "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["NoSlip2D_cylinder"],
         "no_skin_parts"                : ["VelocityConstraints2D_inlet","VelocityConstraints2D_walls"],
         "linear_solver_settings"       : {
@@ -41,6 +41,9 @@
         "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "cylinder_2d"
+        },
+        "material_import_settings": {
+            "materials_filename": "cylinder_fluid_materials.json"
         },
         "time_stepping"               : {
             "automatic_time_step" : false,
@@ -87,7 +90,7 @@
             "process_name"  : "AssignVectorByDirectionProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "Parts_fluid",
+                "model_part_name" : "Parts_Fluid",
                 "variable_name"   : "BODY_FORCE",
                 "modulus"         : 0.0,
                 "constrained"     : false,
@@ -115,7 +118,7 @@
             "process_name"    : "PointOutputProcess",
             "Parameters" : {
                 "position"         : [4.0, 4.709493, 0.0],
-                "model_part_name"  : "Parts_fluid",
+                "model_part_name"  : "Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "cylinder_adjoint_test_probe1.dat"
                 },
@@ -128,7 +131,7 @@
             "process_name"    : "PointOutputProcess",
             "Parameters" : {
                 "position"         : [3.150768, 4.043068, 0.0],
-                "model_part_name"  : "Parts_fluid",
+                "model_part_name"  : "Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "cylinder_adjoint_test_probe2.dat"
                 },
@@ -141,7 +144,7 @@
             "process_name"    : "PointOutputProcess",
             "Parameters" : {
                 "position"         : [4.3256862406, 3.6206209380, 0.0],
-                "model_part_name"  : "Parts_fluid",
+                "model_part_name"  : "Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "cylinder_adjoint_test_probe3.dat"
                 },

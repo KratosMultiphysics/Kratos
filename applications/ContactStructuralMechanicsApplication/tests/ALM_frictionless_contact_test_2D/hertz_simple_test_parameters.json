@@ -38,10 +38,7 @@
         "max_iteration"                      : 20,
         "linear_solver_settings"             : {
             "solver_type" : "skyline_lu_factorization"
-        },
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_parts_hemisphere","Parts_parts_plate"],
-        "processes_sub_model_part_list"      : ["Structure","Contact_Part","DISPLACEMENT_bc_fix","LineLoad2D_bc_pressure", "Parts_parts_hemisphere","Parts_parts_plate"],
-        "rotation_dofs"                      : false
+        }
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -51,7 +48,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "Parts_parts_plate",
+                "model_part_name" : "Structure.Parts_parts_plate",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0]
@@ -63,7 +60,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "LineLoad2D_bc_pressure",
+                "model_part_name" : "Structure.LineLoad2D_bc_pressure",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,true],
                 "value"           : [0.0,0.0,0.0]
@@ -77,7 +74,7 @@
             "process_name"          : "AssignScalarVariableToConditionsProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "LineLoad2D_bc_pressure",
+                "model_part_name" : "Structure.LineLoad2D_bc_pressure",
                 "variable_name"   : "NEGATIVE_FACE_PRESSURE",
                 "value"           : "0.2*t"
             }
@@ -105,7 +102,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
                 "input_file_name"      : "ALM_frictionless_contact_test_2D/hertz_simple_test_results.json",
-                "model_part_name"      : "Contact_Part",
+                "model_part_name"      : "Structure.Contact_Part",
                 "time_frequency"       : 1.0
             }
         },{
@@ -116,7 +113,7 @@
             "Parameters"            : {
                 "check_variables"     : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
                 "input_file_name"     : "ALM_frictionless_contact_test_2D/hertz_simple_test_results_LM.json",
-                "model_part_name"     : "Contact_Part",
+                "model_part_name"     : "Structure.Contact_Part",
                 "check_for_flag"      : "ACTIVE",
                 "historical_value"    : false,
                 "time_frequency"      : 1.0
@@ -163,7 +160,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/hertz_simple_test_results.json",
-            "model_part_name"      : "Contact_Part",
+            "model_part_name"      : "Structure.Contact_Part",
             "time_frequency"       : 1.0
         }
     },{
@@ -174,7 +171,7 @@
         "Parameters"            : {
             "output_variables"     : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/hertz_simple_test_results_LM.json",
-            "model_part_name"      : "Contact_Part",
+            "model_part_name"      : "Structure.Contact_Part",
             "check_for_flag"       : "ACTIVE",
             "historical_value"     : false,
             "time_frequency"       : 1.00
