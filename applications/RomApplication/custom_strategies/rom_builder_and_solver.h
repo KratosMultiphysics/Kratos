@@ -215,15 +215,15 @@ public:
 
 		KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
 
-		DofsArrayType Doftemp;
-		BaseType::mDofSet = DofsArrayType();
+        DofsArrayType Doftemp;
+        BaseType::mDofSet = DofsArrayType();
 
-		Doftemp.reserve(dof_global_set.size());
-		for (auto it = dof_global_set.begin(); it != dof_global_set.end(); it++)
-		{
-			Doftemp.push_back(it->get());
-		}
-		Doftemp.Sort();
+        Doftemp.reserve(dof_global_set.size());
+        for (auto it = dof_global_set.begin(); it != dof_global_set.end(); it++)
+        {
+            Doftemp.push_back(*it);
+        }
+        Doftemp.Sort();
 
 		BaseType::mDofSet = Doftemp;
 
