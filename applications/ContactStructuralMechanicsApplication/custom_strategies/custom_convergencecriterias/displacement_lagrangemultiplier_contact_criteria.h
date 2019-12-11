@@ -213,26 +213,32 @@ public:
             std::size_t dof_id = 0;
             TDataType dof_value = 0.0, dof_incr = 0.0;
 
+            // The number of active dofs
+            const std::size_t number_active_dofs = rb.size();
+
             // Loop over Dofs
-            #pragma omp parallel for reduction(+:disp_solution_norm,lm_solution_norm,disp_increase_norm,lm_increase_norm,disp_dof_num,lm_dof_num,dof_id,dof_value,dof_incr)
+            #pragma omp parallel for firstprivate(dof_id, dof_value ,dof_incr) reduction(+:disp_solution_norm, lm_solution_norm, disp_increase_norm, lm_increase_norm, disp_dof_num, lm_dof_num)
             for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
                 auto it_dof = it_dof_begin + i;
 
                 dof_id = it_dof->EquationId();
 
-                if (mActiveDofs[dof_id]) {
-                    dof_value = it_dof->GetSolutionStepValue(0);
-                    dof_incr = rDx[dof_id];
+                // Check dof id is solved
+                if (dof_id < number_active_dofs) {
+                    if (mActiveDofs[dof_id]) {
+                        dof_value = it_dof->GetSolutionStepValue(0);
+                        dof_incr = rDx[dof_id];
 
-                    const auto curr_var = it_dof->GetVariable();
-                    if ((curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
-                        lm_solution_norm += dof_value * dof_value;
-                        lm_increase_norm += dof_incr * dof_incr;
-                        lm_dof_num++;
-                    } else {
-                        disp_solution_norm += dof_value * dof_value;
-                        disp_increase_norm += dof_incr * dof_incr;
-                        disp_dof_num++;
+                        const auto& r_curr_var = it_dof->GetVariable();
+                        if ((r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (r_curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
+                            lm_solution_norm += dof_value * dof_value;
+                            lm_increase_norm += dof_incr * dof_incr;
+                            lm_dof_num++;
+                        } else {
+                            disp_solution_norm += dof_value * dof_value;
+                            disp_increase_norm += dof_incr * dof_incr;
+                            disp_dof_num++;
+                        }
                     }
                 }
             }
