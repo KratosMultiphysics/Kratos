@@ -7,9 +7,9 @@ import KratosMultiphysics.ShapeOptimizationApplication as KSO
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory
 from KratosMultiphysics.ShapeOptimizationApplication.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 import time
 from decimal import Decimal
-from gid_output_process import GiDOutputProcess
 
 # ==============================================================================
 # User defined parameters
@@ -26,9 +26,9 @@ kratos_response_settings = KM.Parameters("""
     "adjoint_settings"  : "auto",
     "sensitivity_settings" : {
         "sensitivity_model_part_name"     : "Parts_structure",
-        "nodal_sensitivity_variables"     : ["SHAPE_SENSITIVITY"],
-        "element_sensitivity_variables"   : [],
-        "condition_sensitivity_variables" : [],
+        "nodal_solution_step_sensitivity_variables"     : ["SHAPE_SENSITIVITY"],
+        "element_data_value_sensitivity_variables"   : [],
+        "condition_data_value_sensitivity_variables" : [],
         "build_mode": "static"
     }
 }""")

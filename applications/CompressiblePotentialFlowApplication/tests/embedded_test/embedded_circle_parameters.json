@@ -67,10 +67,29 @@
                 "python_module" : "compute_embedded_lift_process",
                 "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
                 "Parameters"    : {
-                    "model_part_name" : "MainModelPart.Parts_Parts_Auto1"
+                    "model_part_name" : "MainModelPart.Parts_Parts_Auto1",
+                    "far_field_model_part_name" : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1"
                 }
             }],
         "list_other_processes" :[{
+            "kratos_module" : "KratosMultiphysics.HDF5Application",
+            "python_module" : "single_mesh_primal_output_process",
+            "help"          : "",
+            "process_name"  : "",
+            "Parameters" : {
+                "model_part_name" : "MainModelPart",
+                "file_settings" : {
+                    "file_access_mode" : "truncate"
+                },
+
+                "nodal_solution_step_data_settings" : {
+                    "list_of_variables": ["VELOCITY_POTENTIAL", "AUXILIARY_VELOCITY_POTENTIAL"]
+                },
+                "output_time_settings" :{
+                    "step_frequency": 1
+                }
+            }
+        },{
             "python_module"   : "from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics",
             "help"                  : "",

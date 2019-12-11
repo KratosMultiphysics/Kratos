@@ -610,7 +610,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         if (r_sub_model_part_with_parameters[RANDOM_ORIENTATION]) {
 
-            Orientation = Quaternion<double>(((double) rand() / (RAND_MAX)), ((double) rand() / (RAND_MAX)), ((double) rand() / (RAND_MAX)), ((double) rand() / (RAND_MAX)));
+            Orientation = Quaternion<double>(2.0 * (double) rand() / (RAND_MAX) - 1.0, 2.0 * (double) rand() / (RAND_MAX) - 1.0, 2.0 * (double) rand() / (RAND_MAX) - 1.0, 2.0 * (double) rand() / (RAND_MAX) - 1.0);
         }
         else {
 
