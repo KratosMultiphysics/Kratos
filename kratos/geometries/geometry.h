@@ -594,7 +594,7 @@ public:
         auto id = string_hash_generator(name);
 
         // Sets first bit to one.
-        SetGeometryIdName(id);
+        SetGeometryIdString(id);
 
         return id;
     }
