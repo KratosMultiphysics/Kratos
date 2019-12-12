@@ -92,13 +92,13 @@ void VtkOutput::PrepareGaussPointResults()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void VtkOutput::PrintOutput()
+void VtkOutput::PrintOutput(const std::string& rOutputFilename)
 {
     // For Gauss point results
     PrepareGaussPointResults();
 
     // For whole model part
-    WriteModelPartToFile(mrModelPart, false);
+    WriteModelPartToFile(mrModelPart, false, rOutputFilename);
 
     // For sub model parts
     const bool print_sub_model_parts = mOutputSettings["output_sub_model_parts"].GetBool();
@@ -113,9 +113,9 @@ void VtkOutput::PrintOutput()
             const int num_conditions = r_data_comm.SumAll(static_cast<int>(r_local_mesh.NumberOfConditions()));
 
             if (num_nodes == 0 && (num_elements != 0 || num_conditions != 0)) {
-                WriteModelPartWithoutNodesToFile(r_sub_model_part);
+                WriteModelPartWithoutNodesToFile(r_sub_model_part, rOutputFilename);
             } else if (num_nodes != 0) {
-                WriteModelPartToFile(r_sub_model_part, true);
+                WriteModelPartToFile(r_sub_model_part, true, rOutputFilename);
             }
         }
     }
@@ -124,12 +124,12 @@ void VtkOutput::PrintOutput()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void VtkOutput::WriteModelPartToFile(const ModelPart& rModelPart, const bool IsSubModelPart)
+void VtkOutput::WriteModelPartToFile(const ModelPart& rModelPart, const bool IsSubModelPart, const std::string& rOutputFilename)
 {
     Initialize(rModelPart);
 
     // Make the file stream object
-    const std::string output_file_name = GetOutputFileName(rModelPart, IsSubModelPart);
+    const std::string output_file_name = (rOutputFilename == "") ? GetOutputFileName(rModelPart, IsSubModelPart) : rOutputFilename;
     std::ofstream output_file;
     if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
         output_file.open(output_file_name, std::ios::out | std::ios::trunc);
@@ -174,21 +174,9 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
            << rModelPart.GetProcessInfo()[TIME];
         label = ss.str();
     } else {
-        if (KratosComponents<Variable<std::string>>::Has(output_control))
-        {
-            const Variable<std::string>& output_variable =
-                KratosComponents<Variable<std::string>>::Get(output_control);
-            KRATOS_ERROR_IF(!rModelPart.GetProcessInfo().Has(output_variable))
-                << "Output control variable \"" << output_control
-                << "\" not found in " << rModelPart.Name() << " process info.\n";
-            label = rModelPart.GetProcessInfo()[output_variable];
-        }
-        else
-        {
-            KRATOS_ERROR << "Option for   \"output_control_type\": "
-                         << output_control << " not recognised!\nPossible output_control_type options "
-                         << "are: \"step\", \"time\" or a valid string variable" << std::endl;
-        }
+        KRATOS_ERROR << "Option for \"output_control_type\": " << output_control
+            <<" not recognised!\nPossible output_control_type options "
+            << "are: \"step\", \"time\"" << std::endl;
     }
 
     // Putting everything together
@@ -1003,7 +991,7 @@ void VtkOutput::WriteIdsToFile(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void VtkOutput::WriteModelPartWithoutNodesToFile(ModelPart& rModelPart)
+void VtkOutput::WriteModelPartWithoutNodesToFile(ModelPart& rModelPart, const std::string& rOutputFilename)
 {
     // Getting model and creating auxiliar model part
     auto& r_model = mrModelPart.GetModel();
@@ -1041,7 +1029,7 @@ void VtkOutput::WriteModelPartWithoutNodesToFile(ModelPart& rModelPart)
     r_auxiliar_model_part.RemoveNodes(TO_ERASE);
 
     // Actually writing the
-    WriteModelPartToFile(r_auxiliar_model_part, true);
+    WriteModelPartToFile(r_auxiliar_model_part, true, rOutputFilename);
 
     // Deletin auxiliar modek part
     r_model.DeleteModelPart("AUXILIAR_" + r_name_model_part);
