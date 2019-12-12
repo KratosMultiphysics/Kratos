@@ -1,8 +1,19 @@
 name: CI
 
 on: [pull_request]
+  paths-ignore:
+  - 'applications/**' # excluding all applications
+  paths: # re-adding the applications that are in the CI
+  - 'applications/FluidDynamicsApplication/**'
+  - 'applications/StructuralMechanicsApplication/**'
+  - 'applications/DEMApplication/**'
+  - 'applications/MeshMovingApplication/**'
+  - 'applications/CSharpWrapperApplication/**'
+  - 'applications/MetisApplication/**'
+  - 'applications/TrilinosApplication/**'
+  - 'applications/ExternalSolversApplication/**'
 
-jobs:
+  jobs:
   ubuntu:
     runs-on: ubuntu-latest
 
