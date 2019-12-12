@@ -33,5 +33,7 @@ jobs:
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         cp scripts/build/travis/configure_travis_bionic.sh configure.sh
         bash configure.sh
-        python3 kratos/python_scripts/run_tests.py -l small -c python3
         ccache -s
+    - name: Test
+      run: |
+        python3 kratos/python_scripts/run_tests.py -l small -c python3
