@@ -14,7 +14,7 @@ on:
     - 'applications/TrilinosApplication/**'
     - 'applications/ExternalSolversApplication/**'
 
-  jobs:
+jobs:
   ubuntu:
     runs-on: ubuntu-latest
 
