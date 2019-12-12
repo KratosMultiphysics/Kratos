@@ -48,6 +48,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         self.hybrid_initialization = self.settings['hybrid_initialization'].GetBool()
         self.flow_iterations = self.settings['flow_iterations'].GetInt()
         self.timestep_start = self.settings['timestep_start'].GetInt()
+        self.timestep = self.timestep_start
 
         self.thread_names = [_.GetString() for _ in self.settings['thread_names'].list()]
         self.n_threads = len(self.thread_names)
@@ -77,7 +78,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                     outfile.write(line)
 
         # prepare Fluent UDF
-        if not self.timestep_start:
+        if self.timestep_start == 0:
             udf = '2019R1.c'
             with open(join(path_src, udf), 'r') as infile:
                 with open(join(self.dir_cfd, udf), 'w') as outfile:
@@ -143,7 +144,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                 file.write(line + '\n')
         self.send_message('thread_ids_written_to_file')
 
-        # import node and face information
+        # import node and face information (use old files on restart!)
         self.wait_message('nodes_and_faces_stored')
 
         # create Model
@@ -174,11 +175,11 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
             mp = self.model[key]
 
             # read in datafile
-            tmp = 'nodes_thread' + str(mp.thread_id) + '.dat'
+            tmp = f'nodes_timestep0_thread{mp.thread_id}.dat'
             file_name = join(self.dir_cfd, tmp)
             data = np.loadtxt(file_name, skiprows=1)
             if data.shape[1] != self.dimensions + 1:
-                raise ValueError(f'given dimension does not match coordinates')
+                raise ValueError('given dimension does not match coordinates')
 
             # get node coordinates and ids
             coords_tmp = np.zeros((data.shape[0], 3)) * 0.
@@ -200,7 +201,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
             mp = self.model[key]
 
             # read in datafile
-            tmp = 'faces_thread' + str(mp.thread_id) + '.dat'
+            tmp = f'faces_timestep0_thread{mp.thread_id}.dat'
             file_name = join(self.dir_cfd, tmp)
             data = np.loadtxt(file_name, skiprows=1)
             if data.shape[1] != self.dimensions + self.mnpf:
@@ -221,6 +222,10 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                 mp.CreateNewNode(ids_tmp[i],
                     coords_tmp[i, 0], coords_tmp[i, 1], coords_tmp[i, 2])
 
+        # update coordinates of Nodes if necessary
+        if self.timestep_start != 0:
+            self.update_coordinates()
+
         # create CoSimulationInterfaces
         self.interface_input = CoSimulationInterface(self.model, self.settings['interface_input'])
         self.interface_output = CoSimulationInterface(self.model, self.settings['interface_output'])
@@ -233,7 +238,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
     def Initialize(self):
         super().Initialize()
         print('\nInitialize')
-        self.timestep = self.timestep_start
+        # self.timestep = self.timestep_start
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
@@ -294,7 +299,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
             if ids_tmp.size != mp.NumberOfNodes():
                 raise ValueError('number of nodes does not match size of data')
             index = 0
-            for node in mp.Nodes:
+            for node in mp.Nodes:  # *** todo: enumerate
                 if ids_tmp[index] != node.Id:
                     raise ValueError(f'node IDs do not match: {ids_tmp[index]}, {node.Id}')
                 node.SetSolutionStepValue(self.traction, 0, traction_tmp[index, :].tolist())
@@ -368,6 +373,68 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                         file.write(f'{node.X:27.17e} {node.Y:27.17e} {node.Id:>27}\n')
                     else:
                         file.write(f'{node.X:27.17e} {node.Y:27.17e} {node.Z:27.17e} {node.Id:>27}\n')
+
+    def update_coordinates(self):
+        # make Fluent store coordinates and ids
+        self.send_message('store_grid')
+        self.wait_message('store_grid_ready')
+
+        # update coordinates for input ModelParts (nodes)
+        for key in self.settings['interface_input'].keys():
+            mp = self.model[key]
+
+            # read in datafile
+            tmp = f'nodes_timestep{self.timestep}_thread{mp.thread_id}.dat'
+            data = np.loadtxt(join(self.dir_cfd, tmp), skiprows=1)
+            if data.shape[1] != self.dimensions + 1:
+                raise ValueError('given dimension does not match coordinates')
+
+            # get node coordinates and ids
+            coords_tmp = np.zeros((data.shape[0], 3)) * 0.
+            coords_tmp[:, :self.dimensions] = data[:, :-1]  # add column z if 2D
+            ids_tmp = data[:, -1].astype(int).astype(str)  # array is flattened
+
+            # sort and remove doubles
+            args = np.unique(ids_tmp, return_index=True)[1].tolist()
+            coords_tmp = coords_tmp[args, :]
+            ids_tmp = ids_tmp[args]
+
+            # update Node coordinates
+            for i, node in enumerate(mp.Nodes):
+                if ids_tmp[i] != node.Id:
+                    raise ValueError(f'node IDs do not match: {ids_tmp[i]}, {node.Id}')
+                node.X = coords_tmp[i, 0]
+                node.Y = coords_tmp[i, 1]
+                node.Z = coords_tmp[i, 2]
+
+        # update coordinates for output ModelParts (faces)
+        # *** todo: put this read in a function: arg = timestep (default 0), output = ids_tmp, coords_tmp
+        for key in self.settings['interface_output'].keys():
+            mp = self.model[key]
+
+            # read in datafile
+            tmp = f'faces_timestep{self.timestep}_thread{mp.thread_id}.dat'
+            data = np.loadtxt(join(self.dir_cfd, tmp), skiprows=1)
+            if data.shape[1] != self.dimensions + self.mnpf:
+                raise ValueError(f'given dimension does not match coordinates')
+
+            # get face coordinates and ids
+            coords_tmp = np.zeros((data.shape[0], 3)) * 0.
+            coords_tmp[:, :self.dimensions] = data[:, :-self.mnpf]  # add column z if 2D
+            ids_tmp = self.get_unique_face_ids(data[:, -self.mnpf:])
+
+            # sort and remove doubles
+            args = np.unique(ids_tmp, return_index=True)[1].tolist()
+            coords_tmp = coords_tmp[args, :]
+            ids_tmp = ids_tmp[args]
+
+            # update Node coordinates
+            for i, node in enumerate(mp.Nodes):
+                if ids_tmp[i] != node.Id:
+                    raise ValueError(f'node IDs do not match: {ids_tmp[i]}, {node.Id}')
+                node.X = coords_tmp[i, 0]
+                node.Y = coords_tmp[i, 1]
+                node.Z = coords_tmp[i, 2]
 
     def send_message(self, message):
         file = join(self.dir_cfd, message + ".coco")

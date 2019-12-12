@@ -80,7 +80,13 @@ define user-defined execute-on-demand "get_thread_ids::2019R1"
     )
 )
 ;
-;   STORE COORDINATES AND ID
+;   STORE COORDINATES AND IDS
+;(if (= timestep_start 0)
+;    (begin
+;        (ti-menu-load-string "define user-defined execute-on-demand \"store_coordinates_id::2019R1\"")
+;        (send_message "nodes_and_faces_stored")
+;    )
+;)
 define user-defined execute-on-demand "store_coordinates_id::2019R1"
 (send_message "nodes_and_faces_stored")
 ;
@@ -134,6 +140,12 @@ define user-defined execute-on-demand "store_coordinates_id::2019R1"
             )
             (ti-menu-load-string "define user-defined execute-on-demand \"store_pressure_traction::2019R1\"")
             (send_message "continue_ready")
+        )
+    )
+    (if (check_message "store_grid")
+        (begin
+            (ti-menu-load-string "define user-defined execute-on-demand \"store_coordinates_id::2019R1\"")
+            (send_message "store_grid_ready")
         )
     )
     (if (check_message "stop")

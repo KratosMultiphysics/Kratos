@@ -122,7 +122,10 @@ DEFINE_ON_DEMAND(store_coordinates_id) {
 	char file_faces_name[256];
 	FILE *file_nodes = NULL;
 	FILE *file_faces = NULL;
+    timestep = RP_Get_Integer("udf/timestep");
 #endif /* !RP_NODE */
+
+	host_to_node_int_1(timestep);
 
 #if PARALLEL
 	int compute_node;
@@ -131,8 +134,8 @@ DEFINE_ON_DEMAND(store_coordinates_id) {
     for (thread=0; thread<n_threads; thread++) {
 
 #if !RP_NODE
-        sprintf(file_nodes_name, "nodes_thread%i.dat", thread_ids[thread]);
-        sprintf(file_faces_name, "faces_thread%i.dat", thread_ids[thread]);
+        sprintf(file_nodes_name, "nodes_timestep%i_thread%i.dat", timestep, thread_ids[thread]);
+        sprintf(file_faces_name, "faces_timestep%i_thread%i.dat", timestep, thread_ids[thread]);
 
         if (NULLP(file_nodes = fopen(file_nodes_name, "w"))) {
 			Error("\nUDF-error: Unable to open %s for writing\n", file_nodes_name);
