@@ -204,6 +204,11 @@ bool TimeAveragingProcess::IsIntegrationStep() const
     {
         const Variable<int>& r_variable =
             KratosComponents<Variable<int>>::Get(mIntegrationControlVariableName);
+
+        KRATOS_ERROR_IF(!r_process_info.Has(r_variable))
+            << "\"" << mIntegrationControlVariableName
+            << "\" not found in process info of " << mModelPartName << ".\n";
+
         return (r_process_info[r_variable] >=
                 mrParameters["integration_start_point_control_value"].GetInt());
     }
@@ -211,6 +216,11 @@ bool TimeAveragingProcess::IsIntegrationStep() const
     {
         const Variable<double>& r_variable =
             KratosComponents<Variable<double>>::Get(mIntegrationControlVariableName);
+
+        KRATOS_ERROR_IF(!r_process_info.Has(r_variable))
+            << "\"" << mIntegrationControlVariableName
+            << "\" not found in process info of " << mModelPartName << ".\n";
+
         return (r_process_info[r_variable] >=
                 mrParameters["integration_start_point_control_value"].GetDouble());
     }
