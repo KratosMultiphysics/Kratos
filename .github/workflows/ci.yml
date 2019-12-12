@@ -2,9 +2,13 @@ name: CI
 
 on:
   pull_request:
-    paths-ignore:
-    - 'applications/**' # excluding all applications
-    paths: # re-adding the applications that are in the CI
+    paths:
+    - '.github/**'
+    - 'cmake_modules/**'
+    - 'scripts/**'
+    - 'CMakeLists.txt'
+    - 'external_libraries/**'
+    - 'kratos/**'
     - 'applications/FluidDynamicsApplication/**'
     - 'applications/StructuralMechanicsApplication/**'
     - 'applications/DEMApplication/**'
