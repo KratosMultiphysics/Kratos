@@ -21,12 +21,18 @@
 #include "geometries/quadrilateral_2d_4.h"
 
 #include "tests/cpp_tests/geometries/test_geometry.h"
-#include "tests/cpp_tests/geometries/test_triangle_2d_3.cpp"
 
 #include "containers/pointer_vector.h"
 
 namespace Kratos {
 namespace Testing {
+
+    Line3D2<Point>::Pointer GenerateGeometry() {
+        return Kratos::make_shared<Line3D2<Point>>(
+            Kratos::make_shared<Point>(0.0, 0.0, 0.0),
+            Kratos::make_shared<Point>(1.0, 1.0, 1.0)
+            );
+    }
 
     ///// Test Geometry Id with string
     KRATOS_TEST_CASE_IN_SUITE(TestNameHash, KratosCoreGeometriesFastSuite) {
@@ -37,7 +43,7 @@ namespace Testing {
 
     ///// Test Geometry Id
     KRATOS_TEST_CASE_IN_SUITE(TestGeometryId, KratosCoreGeometriesFastSuite) {
-        auto p_quad = GeneratePointsRightTriangle2D3();
+        auto p_quad = GenerateGeometry();
 
         p_quad->SetId(1);
 
@@ -46,7 +52,7 @@ namespace Testing {
 
     ///// Test Geometry Id with name
     KRATOS_TEST_CASE_IN_SUITE(TestGeometryName, KratosCoreGeometriesFastSuite) {
-        auto p_quad = GeneratePointsRightTriangle2D3();
+        auto p_quad = GenerateGeometry();
 
         p_quad->SetId("Geometry1");
 
