@@ -32,7 +32,6 @@
 #include "custom_processes/auxiliary_processes/rans_vector_align_process.h"
 #include "custom_processes/auxiliary_processes/rans_vector_cell_center_averaging_process.h"
 #include "custom_processes/auxiliary_processes/rans_wall_distance_calculation_process.h"
-#include "custom_processes/auxiliary_processes/rans_time_averaging_process.h"
 
 namespace Kratos
 {
@@ -136,10 +135,6 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
         m, "RansLineOutputProcess")
         .def(py::init<Model&, Parameters&>());
 
-    using RansTimeAveragingProcessType = RansTimeAveragingProcess;
-    py::class_<RansTimeAveragingProcessType, RansTimeAveragingProcessType::Pointer, Process>(
-        m, "RansTimeAveragingProcess")
-        .def(py::init<Model&, Parameters&>());
 }
 
 } // namespace Python.
