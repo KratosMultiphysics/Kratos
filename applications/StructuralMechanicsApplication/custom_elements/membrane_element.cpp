@@ -80,18 +80,18 @@ void MembraneElement::EquationIdVector(
 {
   KRATOS_TRY;
 
-  unsigned int num_nodes, local_size;
-  unsigned int local_index = 0;
+  SizeType num_nodes, local_size;
+  SizeType local_index = 0;
 
   num_nodes = GetGeometry().size();
   local_size = num_nodes * 3;
 
-  const unsigned int d_pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
+  const SizeType d_pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
 
   if (rResult.size() != local_size)
       rResult.resize(local_size, false);
 
-  for (unsigned int i_node = 0; i_node < num_nodes; ++i_node)
+  for (SizeType i_node = 0; i_node < num_nodes; ++i_node)
   {
       rResult[local_index++] = this->GetGeometry()[i_node].GetDof(DISPLACEMENT_X, d_pos).EquationId();
       rResult[local_index++] = this->GetGeometry()[i_node].GetDof(DISPLACEMENT_Y, d_pos + 1).EquationId();
@@ -109,16 +109,16 @@ void MembraneElement::GetDofList(
     ProcessInfo& rCurrentProcessInfo)
 
 {
-    unsigned int num_nodes, local_size;
+    SizeType num_nodes, local_size;
     num_nodes = GetGeometry().size();
     local_size = num_nodes * 3;
 
     if (rElementalDofList.size() != local_size)
         rElementalDofList.resize(local_size);
 
-    unsigned int local_index = 0;
+    SizeType local_index = 0;
 
-    for (unsigned int i_node = 0; i_node < num_nodes; ++i_node)
+    for (SizeType i_node = 0; i_node < num_nodes; ++i_node)
     {
         rElementalDofList[local_index++] = this->GetGeometry()[i_node].pGetDof(DISPLACEMENT_X);
         rElementalDofList[local_index++] = this->GetGeometry()[i_node].pGetDof(DISPLACEMENT_Y);
@@ -159,9 +159,9 @@ void MembraneElement::CalculateRightHandSide(
     ProcessInfo& rCurrentProcessInfo)
 
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int system_size = number_of_nodes * dimension;
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType system_size = number_of_nodes * dimension;
 
     Vector internal_forces = ZeroVector(system_size);
     InternalForces(internal_forces,GetGeometry().GetDefaultIntegrationMethod());
@@ -192,17 +192,17 @@ void MembraneElement::GetValuesVector(
     int Step)
 
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int mat_size = number_of_nodes * dimension;
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType mat_size = number_of_nodes * dimension;
 
     if (rValues.size() != mat_size)
         rValues.resize(mat_size, false);
 
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+    for (SizeType i = 0; i < number_of_nodes; i++)
     {
         const array_1d<double, 3>& disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-        const unsigned int index = i * 3;
+        const SizeType index = i * 3;
         rValues[index] = disp[0];
         rValues[index + 1] = disp[1];
         rValues[index + 2] = disp[2];
@@ -217,16 +217,16 @@ void MembraneElement::GetFirstDerivativesVector(
     int Step)
 
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int mat_size = number_of_nodes * 3;
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType mat_size = number_of_nodes * 3;
 
     if (rValues.size() != mat_size)
         rValues.resize(mat_size, false);
 
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+    for (SizeType i = 0; i < number_of_nodes; i++)
     {
         const array_1d<double, 3>& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
-        const unsigned int index = i * 3;
+        const SizeType index = i * 3;
         rValues[index] = vel[0];
         rValues[index + 1] = vel[1];
         rValues[index + 2] = vel[2];
@@ -242,29 +242,29 @@ void MembraneElement::GetSecondDerivativesVector(
     int Step)
 
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int mat_size = number_of_nodes * 3;
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType mat_size = number_of_nodes * 3;
 
     if (rValues.size() != mat_size)
         rValues.resize(mat_size, false);
 
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+    for (SizeType i = 0; i < number_of_nodes; i++)
     {
         const array_1d<double, 3>& acc = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
-        const unsigned int index = i * 3;
+        const SizeType index = i * 3;
         rValues[index] = acc[0];
         rValues[index + 1] = acc[1];
         rValues[index + 2] = acc[2];
     }
 }
 
-void MembraneElement::VoigtNotation(const Matrix& rMetric, Vector& rOutputVector, const std::string StrainStressCheck)
+void MembraneElement::VoigtNotation(const Matrix& rInputMatrix, Vector& rOutputVector, const std::string StrainStressCheck)
 {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     rOutputVector = ZeroVector(dimension);
-    rOutputVector[0] = rMetric(0,0);
-    rOutputVector[1] = rMetric(1,1);
-    rOutputVector[2] = rMetric(0,1);
+    rOutputVector[0] = rInputMatrix(0,0);
+    rOutputVector[1] = rInputMatrix(1,1);
+    rOutputVector[2] = rInputMatrix(0,1);
     if (StrainStressCheck=="strain"){
         rOutputVector[2]*=2.0;
     }
@@ -454,8 +454,8 @@ void MembraneElement::Derivative2CurrentCovariantMetric(Matrix& rMetric,
 void MembraneElement::DeriveCurrentCovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
      const Matrix& rShapeFunctionGradientValues, const SizeType DofR)
 {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().size();
     Vector dg1 = ZeroVector(dimension);
     Vector dg2 = ZeroVector(dimension);
     Vector dudur = ZeroVector(dimension*number_of_nodes);
@@ -478,8 +478,8 @@ void MembraneElement::CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
      const Matrix& rShapeFunctionGradientValues, const std::string Configuration)
 {
     // pass/call this ShapeFunctionsLocalGradients[pnt]
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().size();
     Vector g1 = ZeroVector(dimension);
     Vector g2 = ZeroVector(dimension);
 
@@ -524,7 +524,7 @@ void MembraneElement::ContravariantMetric(Matrix& rMetric,const Matrix& rCovaria
 void MembraneElement::ContraVariantBaseVectors(array_1d<Vector,2>& rBaseVectors,const Matrix& rContraVariantMetric,
     const array_1d<Vector,2> rCovariantBaseVectors)
 {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     rBaseVectors[0] = ZeroVector(dimension);
     rBaseVectors[1] = ZeroVector(dimension);
 
@@ -731,7 +731,7 @@ void MembraneElement::CalculateOnIntegrationPoints(
     KRATOS_TRY
     // element with two nodes can only represent results at one node
     const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
-    const unsigned int& write_points_number =
+    const SizeType& write_points_number =
         GetGeometry().IntegrationPointsNumber(integration_method);
     if (rOutput.size() != write_points_number) {
         rOutput.resize(write_points_number);
@@ -868,8 +868,8 @@ void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& 
     auto& r_geom = GetGeometry();
 
     // LUMPED MASS MATRIX
-    unsigned int number_of_nodes = r_geom.size();
-    unsigned int mat_size = number_of_nodes * 3;
+    SizeType number_of_nodes = r_geom.size();
+    SizeType mat_size = number_of_nodes * 3;
 
     if (rMassMatrix.size1() != mat_size) {
         rMassMatrix.resize(mat_size, mat_size, false);
@@ -883,12 +883,12 @@ void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& 
     Vector lump_fact =  ZeroVector(number_of_nodes);
     r_geom.LumpingFactors(lump_fact);
 
-    for (unsigned int i = 0; i < number_of_nodes; ++i) {
+    for (SizeType i = 0; i < number_of_nodes; ++i) {
         const double temp = lump_fact[i] * total_mass;
 
-        for (unsigned int j = 0; j < 3; ++j)
+        for (SizeType j = 0; j < 3; ++j)
         {
-            const unsigned int index = i * 3 + j;
+            const SizeType index = i * 3 + j;
             rMassMatrix(index, index) = temp;
         }
     }
@@ -900,9 +900,9 @@ void MembraneElement::CalculateLumpedMassVector(VectorType& rMassVector)
 {
     KRATOS_TRY
     auto& r_geom = GetGeometry();
-    const unsigned int dimension = r_geom.WorkingSpaceDimension();
-    const unsigned int number_of_nodes = r_geom.size();
-    const unsigned int local_size = dimension*number_of_nodes;
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType local_size = dimension*number_of_nodes;
 
     if (rMassVector.size() != local_size) {
         rMassVector.resize(local_size, false);
@@ -913,12 +913,12 @@ void MembraneElement::CalculateLumpedMassVector(VectorType& rMassVector)
     Vector lump_fact =  ZeroVector(number_of_nodes);
     r_geom.LumpingFactors(lump_fact);
 
-    for (unsigned int i = 0; i < number_of_nodes; ++i) {
+    for (SizeType i = 0; i < number_of_nodes; ++i) {
         const double temp = lump_fact[i] * total_mass;
 
-        for (unsigned int j = 0; j < 3; ++j)
+        for (SizeType j = 0; j < 3; ++j)
         {
-            const unsigned int index = i * 3 + j;
+            const SizeType index = i * 3 + j;
             rMassVector[index] = temp;
         }
     }
@@ -934,9 +934,9 @@ void MembraneElement::AddExplicitContribution(
     KRATOS_TRY;
 
     auto& r_geom = GetGeometry();
-    const unsigned int dimension = r_geom.WorkingSpaceDimension();
-    const unsigned int number_of_nodes = r_geom.size();
-    const unsigned int local_size = dimension*number_of_nodes;
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType local_size = dimension*number_of_nodes;
 
     if (rDestinationVariable == NODAL_MASS) {
         VectorType element_mass_vector(local_size);
@@ -972,9 +972,9 @@ void MembraneElement::AddExplicitContribution(
     KRATOS_TRY;
 
     auto& r_geom = GetGeometry();
-    const unsigned int dimension = r_geom.WorkingSpaceDimension();
-    const unsigned int number_of_nodes = r_geom.size();
-    const unsigned int local_size = dimension*number_of_nodes;
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType local_size = dimension*number_of_nodes;
 
     if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
 
@@ -1023,19 +1023,19 @@ void MembraneElement::CalculateAndAddBodyForce(VectorType& rRightHandSideVector)
 {
     KRATOS_TRY
     auto& r_geom = GetGeometry();
-    const unsigned int number_of_nodes = r_geom.size();
+    const SizeType number_of_nodes = r_geom.size();
 
     const double total_mass = r_geom.Area() * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
 
     Vector lump_fact =  ZeroVector(number_of_nodes);
     r_geom.LumpingFactors(lump_fact);
 
-    for (unsigned int i = 0; i < number_of_nodes; ++i) {
+    for (SizeType i = 0; i < number_of_nodes; ++i) {
         const double temp = lump_fact[i] * total_mass;
 
-        for (unsigned int j = 0; j < 3; ++j)
+        for (SizeType j = 0; j < 3; ++j)
         {
-            const unsigned int index = i * 3 + j;
+            const SizeType index = i * 3 + j;
             rRightHandSideVector[index] += temp * r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION)[j];
         }
     }
@@ -1090,8 +1090,8 @@ void MembraneElement::CheckWrinklingState(array_1d<bool,3>& rWrinklingStateArray
 int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    const unsigned int number_of_nodes = this->GetGeometry().size();
-    // const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = this->GetGeometry().size();
+    // const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
 
     // Verify that the variables are correctly initialized
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
@@ -1102,7 +1102,7 @@ int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for ( unsigned int i = 0; i < number_of_nodes; i++ ) {
+    for ( SizeType i = 0; i < number_of_nodes; i++ ) {
         const Node<3> &r_node = this->GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)
 
@@ -1116,7 +1116,7 @@ int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
         << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
 
     // Verify that the constitutive law has the correct dimension
-    const unsigned int strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+    const SizeType strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
     KRATOS_ERROR_IF( strain_size != 3) << "Wrong constitutive law used. This is a membrane element! "
         << "Expected strain size is 3 (el id = " << this->Id() << ")" << std::endl;
     return 0;

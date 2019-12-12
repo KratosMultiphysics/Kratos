@@ -14,7 +14,7 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "membrane_test/Membrane_orthotropic_horizontal_test"
+            "input_filename" : "membrane_test/Membrane_material_and_prestress_test"
         },
         "material_import_settings"           : {
             "materials_filename" : "membrane_test/Membrane_orthotropic_horizontal_test_materials.json"

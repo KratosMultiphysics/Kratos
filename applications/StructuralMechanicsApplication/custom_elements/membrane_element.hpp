@@ -229,11 +229,11 @@ namespace Kratos
 
       /**
      * @brief Re-writes a tensor 2nd order into voigt notation (n11,n22,n12)
-     * @param rMetric The tensor 2nd order
+     * @param rInputMatrix The tensor 2nd order
      * @param rOutputVector The voigt vector
      * @param StrainStressCheck if strain: voigtvector[2]*2
      */
-    void VoigtNotation(const Matrix& rMetric, Vector& rOutputVector, const std::string StrainStressCheck);
+    void VoigtNotation(const Matrix& rInputMatrix, Vector& rOutputVector, const std::string StrainStressCheck);
 
 
 
