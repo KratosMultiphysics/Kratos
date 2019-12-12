@@ -185,7 +185,7 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
         }
         else
         {
-            KRATOS_ERROR << "Option for \"output_control_type\": "
+            KRATOS_ERROR << "Option for   \"output_control_type\": "
                          << output_control << " not recognised!\nPossible output_control_type options "
                          << "are: \"step\", \"time\" or a valid string variable" << std::endl;
         }
