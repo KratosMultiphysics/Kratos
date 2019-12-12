@@ -250,27 +250,27 @@ public:
 			}
 		}
 #endif
-		{
-			mDofList.clear();
-			for (auto& node : rModelPart.Nodes())
-			{
-				for (const std::string& var_name : mNodalVariablesNames)
-				{
-					if (KratosComponents< Variable<double> >::Has(var_name)) //case of double variable
-					{
-						auto pdof = node.pGetDof(KratosComponents< Variable<double> >::Get(var_name));
-						mDofList.push_back(pdof);
-					}
-					else if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(var_name)) //case of component variable
-					{
-						typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-						component_type var_component = KratosComponents< component_type >::Get(var_name);
-						auto pdof = node.pGetDof(var_component.GetSourceVariable());
-						mDofList.push_back(pdof);
-					}
-				}
-			}
-		}
+		// {
+		// 	mDofList.clear();
+		// 	for (auto& node : rModelPart.Nodes())
+		// 	{
+		// 		for (const std::string& var_name : mNodalVariablesNames)
+		// 		{
+		// 			if (KratosComponents< Variable<double> >::Has(var_name)) //case of double variable
+		// 			{
+		// 				auto pdof = node.pGetDof(KratosComponents< Variable<double> >::Get(var_name));
+		// 				mDofList.push_back(pdof);
+		// 			}
+		// 			else if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(var_name)) //case of component variable
+		// 			{
+		// 				typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+		// 				component_type var_component = KratosComponents< component_type >::Get(var_name);
+		// 				auto pdof = node.pGetDof(var_component.GetSourceVariable());
+		// 				mDofList.push_back(pdof);
+		// 			}
+		// 		}
+		// 	}
+		// }
 
 
 		KRATOS_CATCH("");
@@ -333,12 +333,12 @@ public:
 
 
 
-    void GetDofValues(const std::vector<DofPointerType>& rDofList, TSystemVectorType& rX)
-    {
-        unsigned int i=0;
-        for(auto& dof : rDofList)
-            rX[i++] = dof->GetSolutionStepValue();
-    }
+    // void GetDofValues(const std::vector<DofPointerType>& rDofList, TSystemVectorType& rX)
+    // {
+    //     unsigned int i=0;
+    //     for(auto& dof : rDofList)
+    //         rX[i++] = dof->GetSolutionStepValue();
+    // }
 
     /*@{ */
 
@@ -359,7 +359,7 @@ public:
         TSystemVectorType x(Dx.size());
 
         //find the rom basis
-        this->GetDofValues(mDofList,x);
+        //this->GetDofValues(mDofList,x);
 
 		double start_build4 = OpenMPUtils::GetCurrentTime();
 		Vector xrom = this->ProjectToReducedBasis(x, rModelPart.Nodes());
@@ -611,7 +611,7 @@ protected:
     typename TLinearSolver::Pointer mpLinearSystemSolver;
 
     DofsArrayType mDofSet;
-    std::vector<DofPointerType> mDofList;
+    //std::vector<DofPointerType> mDofList;
 
     bool mReshapeMatrixFlag = false;
 
