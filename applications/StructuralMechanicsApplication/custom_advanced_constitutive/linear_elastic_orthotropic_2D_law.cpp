@@ -169,24 +169,24 @@ namespace Kratos
 		//double G13 = G12;	// currently handled through "shell_cross_section.cpp"
 		//double G23 = G12;	// currently handled through "shell_cross_section.cpp"
 
-        double youngs_modulus_x, youngs_modulus_y, poisson_ration_xy, shear_modulus_xy;
+        double youngs_modulus_x, youngs_modulus_y, poisson_ratio_xy, shear_modulus_xy;
         if (rMaterialProperties.Has(SHELL_ORTHOTROPIC_LAYERS))
         {
             // Using the Values directly from the ply-definition
             youngs_modulus_x  = rMaterialProperties[SHELL_ORTHOTROPIC_LAYERS](0,1);
             youngs_modulus_y  = rMaterialProperties[SHELL_ORTHOTROPIC_LAYERS](0,2);
-            poisson_ration_xy = rMaterialProperties[SHELL_ORTHOTROPIC_LAYERS](0,3);
+            poisson_ratio_xy = rMaterialProperties[SHELL_ORTHOTROPIC_LAYERS](0,3);
             shear_modulus_xy  = rMaterialProperties[SHELL_ORTHOTROPIC_LAYERS](0,4);
         }
         else
         {
             youngs_modulus_x  = rMaterialProperties[YOUNG_MODULUS_X];
             youngs_modulus_y  = rMaterialProperties[YOUNG_MODULUS_Y];
-            poisson_ration_xy = rMaterialProperties[SHEAR_MODULUS_XY];
+            poisson_ratio_xy = rMaterialProperties[POISSON_RATIO];
             shear_modulus_xy  = rMaterialProperties[SHEAR_MODULUS_XY];
         }
 
-		const double v12 = poisson_ration_xy;
+		const double v12 = poisson_ratio_xy;
 
 		const double v21 = v12*youngs_modulus_y / youngs_modulus_x;
 
