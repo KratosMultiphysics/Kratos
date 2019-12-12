@@ -852,11 +852,9 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
         MathUtils<double>::CrossProduct(base_3, base_1, base_2);
         base_3 /= MathUtils<double>::Norm(base_3);
 
-        for (SizeType i =0; i<3; ++i) {
-            rOutput(i,0) = base_1[i];
-            rOutput(i,1) = base_2[i];
-            rOutput(i,2) = base_3[i];
-        }
+        column(rOutput,0) = base_1;
+        column(rOutput,1) = base_2;
+        column(rOutput,2) = base_3;
     }
 }
 
