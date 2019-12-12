@@ -566,6 +566,16 @@ public:
     /// Id of this Geometry
     IndexType Id() const
     {
+        KRATOS_ERROR_IF(HasGeometryIdString())
+            << "Assigned geometry id is name of type string."
+            << std::endl;
+
+        return mId;
+    }
+
+    /// Id of this Geometry
+    IndexType GetHashId() const
+    {
         return mId;
     }
 
