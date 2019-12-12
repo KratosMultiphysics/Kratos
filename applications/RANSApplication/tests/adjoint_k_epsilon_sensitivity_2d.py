@@ -82,6 +82,7 @@ class AdjointKEpsilonSensitivity2D(KratosUnittest.TestCase):
             "./finite_difference_drag_sensitivities.dat")
         kratos_utils.DeleteFileIfExisting("./one_element.post.bin")
         kratos_utils.DeleteFileIfExisting("./tests.post.lst")
+        kratos_utils.DeleteFileIfExisting("./interface_test.post.bin")
 
     def tearDown(self):
         pass
