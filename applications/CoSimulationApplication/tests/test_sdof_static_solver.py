@@ -67,28 +67,5 @@ class TestSdofStaticSolver(KratosUnittest.TestCase):
         results_reference = np.loadtxt('reference_files/ref_sdof_static_final_displacement.dat', skiprows=1)
         self.assertEqual(results_reference.all(), results_obtained.all())
 
-    def test_wrapper_variables_check(self):
-        # resusing the sdof fsi parameters
-        wrapper_settings = KM.Parameters("""{
-            "type" : "solver_wrappers.sdof.static_sdof_solver_wrapper",
-            "solver_wrapper_settings" : {
-                "input_file"  : "fsi_sdof_static/ProjectParametersSDoF"
-            },
-            "data" : {
-                "disp" : {
-                    "model_part_name" : "Sdof_Static",
-                    "variable_name" : "DISPLACEMENT",
-                    "location"      : "model_part",
-                    "dimension"     : 1
-                }
-            }
-        }""")
-        sdof_static_solver_wrapper = CreateSDofStaticSolverWrapper(wrapper_settings, "custom_sdof_solver_wrapper")
-
-        sdof_static_solver_wrapper.Initialize()
-        sdof_static_solver_wrapper.InitializeCouplingInterfaceData()
-        with self.assertRaisesRegex(Exception, 'Variable "DISPLACEMENT" of interface data "disp" of solver "custom_sdof_solver_wrapper" cannot be used for the SDof Solver!'):
-            sdof_static_solver_wrapper.Check()
-
 if __name__ == '__main__':
     KratosUnittest.main()
