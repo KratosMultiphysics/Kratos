@@ -480,6 +480,7 @@ class ResidualBasedNewtonRaphsonStrategy
     void Predict() override
     {
         KRATOS_TRY
+        const DataCommunicator &r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         //if the operations needed were already performed this does nothing
         if (mInitializeWasPerformed == false)
@@ -499,18 +500,19 @@ class ResidualBasedNewtonRaphsonStrategy
 
         // Applying constraints if needed
         auto& r_constraints_array = BaseType::GetModelPart().MasterSlaveConstraints();
-        const std::size_t number_of_constraints = r_constraints_array.size();
-        if(number_of_constraints != 0) {
+        const int local_number_of_constraints = r_constraints_array.size();
+        const int global_number_of_constraints = r_comm.SumAll(local_number_of_constraints);
+        if(global_number_of_constraints != 0) {
             const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
 
             const auto it_const_begin = r_constraints_array.begin();
 
             #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(number_of_constraints); ++i)
+            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
                 (it_const_begin + i)->ResetSlaveDofs(r_process_info);
 
             #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(number_of_constraints); ++i)
+            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
                  (it_const_begin + i)->Apply(r_process_info);
 
             // The following is needed since we need to eventually compute time derivatives after applying
@@ -602,7 +604,10 @@ class ResidualBasedNewtonRaphsonStrategy
         TSystemVectorType& rb = *mpb;
 
         if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
+        {
+            TSparseSpace::SetToZero(rb);
             GetBuilderAndSolver()->BuildRHS(GetScheme(), BaseType::GetModelPart(), rb);
+        }
 
         return mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), GetBuilderAndSolver()->GetDofSet(), rA, rDx, rb);
 

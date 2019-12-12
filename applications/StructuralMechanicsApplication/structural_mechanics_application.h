@@ -69,6 +69,9 @@
 #include "custom_elements/axisym_updated_lagrangian.h"
 #include "custom_elements/small_displacement_bbar.h"
 
+/* Adding the mixed solid elements */
+#include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
+
 /* CONDITIONS */
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
@@ -91,6 +94,7 @@
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/user_provided_linear_elastic_law.h"
 
 #ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
 // Advanced Constitutive laws
@@ -372,6 +376,11 @@ private:
     const SmallDisplacementBbar mSmallDisplacementBbar2D4N;
     const SmallDisplacementBbar mSmallDisplacementBbar3D8N;
 
+    const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement2D3N;
+    const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement2D4N;
+    const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D4N;
+    const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D8N;
+
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D3N;
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D4N;
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D6N;
@@ -479,6 +488,8 @@ private:
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
     const LinearPlaneStrain  mLinearPlaneStrain;
     const LinearPlaneStress  mLinearPlaneStress;
+    const UserProvidedLinearElasticLaw<2> mUserProvidedLinearElastic2DLaw;
+    const UserProvidedLinearElasticLaw<3> mUserProvidedLinearElastic3DLaw;
 
 #ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
     // Damage and plasticity laws
@@ -933,5 +944,3 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED  defined
-
-

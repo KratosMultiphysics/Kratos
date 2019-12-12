@@ -12,8 +12,8 @@ MAIL_TO=${MAIL_TO_ADDRESS}
 # Indicate that we want the stacktraces of crashes.
 export LIBC_FATAL_STDERR_=1
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/ubuntu/Kratos/libs:/home/ubuntu/CompiledLibs/clang-3.8.0-16.04-prebuilt/lib
-export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Kratos
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/ubuntu/Kratos/bin/Linux/Custom/libs:/home/ubuntu/CompiledLibs/clang-3.8.0-16.04-prebuilt/lib
+export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Kratos/bin/Linux/Custom
 
 ## Step0: Prevent apt-get from triggering before the unasisted updates have finished
 while fuser /var/lib/dpkg/lock >/dev/null 2>&1 ; do
@@ -52,23 +52,18 @@ mkdir -p cmake_gcc
 mkdir -p cmake_clang
 
 ## Copy the already prepared configure files
-cp ${HOME}/Kratos/scripts/build/nightly/configure_gcc.sh ${HOME}/Kratos/cmake_gcc/configure.sh
-cp ${HOME}/Kratos/scripts/build/nightly/configure_clang.sh ${HOME}/Kratos/cmake_clang/configure.sh
+cp ${HOME}/Kratos/scripts/build/nightly/configure_gcc.sh ${HOME}/Kratos/configure_gcc.sh
+cp ${HOME}/Kratos/scripts/build/nightly/configure_clang.sh ${HOME}/Kratos/configure_clang.sh
 
 ## Step2: Gcc
 
 # Build
-cd ${HOME}/Kratos/cmake_gcc
-sh configure.sh > ${LOG_DIR}/configure_gcc.log 2>&1
-make install -j2 -k > ${LOG_DIR}/compile_gcc.log 2>&1
+cd ${HOME}/Kratos
+sh configure_gcc.sh > ${LOG_DIR}/configure_gcc.log 2>&1
 
 # UnitTesting
-cd ${HOME}/Kratos/kratos/python_scripts
+cd ${HOME}/Kratos/bin/Release/KratosMultiphysics
 python3 run_tests.py -l nightly -c python3 > ${LOG_DIR}/unittest_gcc.log 2>&1
-
-# # Benchmarking
-# cd ${HOME}/Kratos/benchmarking
-# python3 run_all_benchmarks.py > ${LOG_DIR}/benchmarking_gcc.log 2> ${LOG_DIR}/benchmarking_gcc.log
 
 echo "This is the Kratos Nightly report for GCC" > ${MAIL_GCC}
 echo "=========================================" >> ${MAIL_GCC}
@@ -91,10 +86,6 @@ echo "\n" >> ${MAIL_GCC}
 echo "UnitTests:    \n" >> ${MAIL_GCC}
 echo "============= \n" >> ${MAIL_GCC}
 cat ${LOG_DIR}/unittest_gcc.log >> ${MAIL_GCC};
-# echo "\n" >> ${MAIL_GCC}
-# echo "Benchmarking: \n" >> ${MAIL_GCC}
-# echo "============= \n" >> ${MAIL_GCC}
-# cat ${LOG_DIR}/benchmarking_gcc.log >> ${MAIL_GCC};
 
 cd ${HOME}
 tar -zcvf /tmp/logs_gcc.tar.gz ${LOG_DIR}/*
@@ -115,17 +106,12 @@ rm -rf libs
 
 ## Step3: Clang
 
-cd ${HOME}/Kratos/cmake_clang
-sh configure.sh > ${LOG_DIR}/configure_clang.log 2>&1
-make install -j2 -k > ${LOG_DIR}/compile_clang.log 2>&1
+cd ${HOME}/Kratos
+sh configure_clang.sh > ${LOG_DIR}/configure_clang.log 2>&1
 
 # UnitTesting
-cd ${HOME}/Kratos/kratos/python_scripts
+cd ${HOME}/Kratos/bin/Release/KratosMultiphysics
 python3 run_tests.py -l nightly -c python3 > ${LOG_DIR}/unittest_clang.log 2>&1
-
-# # Benchmarking
-# cd ${HOME}/Kratos/benchmarking
-# python3 run_all_benchmarks.py > ${LOG_DIR}/benchmarking_clang.log 2> ${LOG_DIR}/benchmarking_clang.log
 
 echo "This is the Kratos Nightly report for CLANG" > ${MAIL_CLANG}
 echo "===========================================" >> ${MAIL_CLANG}
@@ -148,10 +134,6 @@ echo "\n" >> ${MAIL_CLANG}
 echo "UnitTests:    \n" >> ${MAIL_CLANG}
 echo "============= \n" >> ${MAIL_CLANG}
 cat ${LOG_DIR}/unittest_clang.log >> ${MAIL_CLANG};
-# echo "\n" >> ${MAIL_CLANG}
-# echo "Benchmarking: \n" >> ${MAIL_CLANG}
-# echo "============= \n" >> ${MAIL_CLANG}
-# cat ${LOG_DIR}/benchmarking_clang.log >> ${MAIL_CLANG};
 
 cd ${HOME}
 tar -zcvf /tmp/logs_clang.tar.gz ${LOG_DIR}/*

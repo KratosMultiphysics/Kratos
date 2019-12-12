@@ -911,6 +911,13 @@ public:
      */
     virtual void CalculateMaterialResponseCauchy (Parameters& rValues);
 
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    virtual bool RequiresInitializeMaterialResponse()
+    {
+        return true;
+    }
 
     /**
      * Computes the material response in terms of Cauchy stresses and constitutive tensor, returns internal variables.
@@ -918,15 +925,12 @@ public:
      */
     virtual void CalculateStressResponse (Parameters& rValues, Vector& rInternalVariables);
 
-
-
     /**
-     * Initialize the material response,  called by the element in FinalizeSolutionStep.
+     * @brief Initialize the material response,  called by the element in InitializeSolutionStep.
      * @see Parameters
      * @see StressMeasures
      */
     void InitializeMaterialResponse (Parameters& rValues,const StressMeasure& rStressMeasure);
-
 
     /**
      * Initialize the material response in terms of 1st Piola-Kirchhoff stresses
@@ -956,10 +960,16 @@ public:
 
     virtual void InitializeMaterialResponseCauchy (Parameters& rValues);
 
-
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    virtual bool RequiresFinalizeMaterialResponse()
+    {
+        return true;
+    }
 
     /**
-     * Finalize the material response,  called by the element in FinalizeSolutionStep.
+     * @brief Finalize the material response,  called by the element in FinalizeSolutionStep.
      * @see Parameters
      * @see StressMeasures
      */
