@@ -7,31 +7,31 @@
 
 #define DECLARE_MEMORY_N(name, type, dim) type *name[dim] = {NULL}
 
-#define RELEASE_MEMORY(name)										\
-if (NNULLP(name)) {													\
-    free(name); 													\
-    name = NULL;													\
+#define RELEASE_MEMORY(name)                                        \
+if (NNULLP(name)) {                                                 \
+    free(name);                                                     \
+    name = NULL;                                                    \
 }
 
-#define RELEASE_MEMORY_N(name, dim)							        \
+#define RELEASE_MEMORY_N(name, dim)                                 \
 for (_d = 0; _d < dim; _d++) {                                      \
     RELEASE_MEMORY(name[_d]);                                       \
 }
 
-#define ASSIGN_MEMORY(name, size, type) 							\
-if (size) {															\
-    if (NNULLP(name)) { 											\
-        name = (type *)realloc(name, size * sizeof(type));			\
-    } else {														\
-        name = (type *)malloc(size * sizeof(type));					\
-    } 																\
-    if (NULLP(name)) {												\
-        Error("\nUDF-error: Memory assignment failed for name."); 	\
-        exit(1);													\
-    }																\
+#define ASSIGN_MEMORY(name, size, type)                             \
+if (size) {                                                         \
+    if (NNULLP(name)) {                                             \
+        name = (type *)realloc(name, size * sizeof(type));          \
+    } else {                                                        \
+        name = (type *)malloc(size * sizeof(type));                 \
+    }                                                               \
+    if (NULLP(name)) {                                              \
+        Error("\nUDF-error: Memory assignment failed for name.");   \
+        exit(1);                                                    \
+    }                                                               \
 }
 
-#define ASSIGN_MEMORY_N(name, size, type, dim)						\
+#define ASSIGN_MEMORY_N(name, size, type, dim)                      \
 for (_d = 0; _d < dim; _d++) {                                      \
     ASSIGN_MEMORY(name[_d], size, type);                            \
 }

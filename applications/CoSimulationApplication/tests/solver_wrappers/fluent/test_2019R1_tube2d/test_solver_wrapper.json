@@ -11,6 +11,7 @@
                 "case_file": "case_tube2d.cas",
                 "dimensions": 2,
                 "unsteady": true,
+                "delta_t": 0.0001,
                 "timestep_start": 0,
                 "thread_names": ["beamoutside"],
                 "interface_input":

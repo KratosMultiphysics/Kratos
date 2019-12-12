@@ -5,6 +5,7 @@ file start-transcript "transcript.txt"
 ;file binary-files n
 (define unsteady |UNSTEADY|)
 (define flow_iterations |FLOW_ITERATIONS|)
+(define delta_t |DELTA_T|)
 (define timestep_start |TIMESTEP_START|)
 ;
 ;   FUNCTION DEFINITIONS
@@ -96,6 +97,11 @@ define user-defined execute-on-demand "store_coordinates_id::2019R1"
         (ti-menu-load-string "solve initialize hyb-initialization y")
         (ti-menu-load-string "solve initialize initialize-flow y")
     )
+)
+;
+;   SET DELTA_T
+(if unsteady
+    (ti-menu-load-string (format #f "solve set time-step ~a" delta_t))
 )
 ;
 ;   FSI LOOP

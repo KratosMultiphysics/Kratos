@@ -11,6 +11,7 @@
                 "case_file": "case.cas",
                 "dimensions": 2,
                 "unsteady": true,
+                "delta_t": 0.1,
                 "timestep_start": 0,
                 "thread_names": ["wall_top", "wall_bottom"],
                 "interface_input":
