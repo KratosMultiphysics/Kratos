@@ -37,7 +37,8 @@ RansNutLowReCalculationProcess::RansNutLowReCalculationProcess(Model& rModel, Pa
         {
             "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "echo_level"      : 0,
-            "c_mu"            : 0.09
+            "c_mu"            : 0.09,
+            "min_value"       : 1e-15
         })");
 
     mrParameters.ValidateAndAssignDefaults(default_parameters);
@@ -45,6 +46,7 @@ RansNutLowReCalculationProcess::RansNutLowReCalculationProcess(Model& rModel, Pa
     mEchoLevel = mrParameters["echo_level"].GetInt();
     mModelPartName = mrParameters["model_part_name"].GetString();
     mCmu = mrParameters["c_mu"].GetDouble();
+    mMinValue = mrParameters["min_value"].GetDouble();
 
     KRATOS_CATCH("");
 }
@@ -56,7 +58,6 @@ RansNutLowReCalculationProcess::~RansNutLowReCalculationProcess()
 int RansNutLowReCalculationProcess::Check()
 {
     KRATOS_TRY
-
 
     RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
@@ -82,21 +83,28 @@ void RansNutLowReCalculationProcess::Execute()
     const double c_mu = r_process_info[TURBULENCE_RANS_C_MU];
 
     NodesContainerType& r_nodes = r_model_part.Nodes();
-    const int number_of_nodes = r_nodes.size();
+    int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
         NodeType& r_node = *(r_nodes.begin() + i_node);
-        const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
         const double epsilon =
             r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
-        const double y_plus = r_node.FastGetSolutionStepValue(RANS_Y_PLUS);
-        const double f_mu = EvmKepsilonModelUtilities::CalculateFmu(y_plus);
-        const double nu_t = EvmKepsilonModelUtilities::CalculateTurbulentViscosity(
-            c_mu, tke, epsilon, f_mu);
+        if (epsilon > 0.0)
+        {
+            const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
+            const double y_plus = r_node.FastGetSolutionStepValue(RANS_Y_PLUS);
+            const double f_mu = EvmKepsilonModelUtilities::CalculateFmu(y_plus);
+            const double nu_t = EvmKepsilonModelUtilities::CalculateTurbulentViscosity(
+                c_mu, tke, epsilon, f_mu);
 
-        r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = nu_t;
+            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = nu_t;
+        }
+        else
+        {
+            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = mMinValue;
+        }
     }
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
