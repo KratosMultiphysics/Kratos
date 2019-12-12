@@ -588,9 +588,10 @@ public:
     }
 
     /// Gets the corresponding hash-Id to a string name
-    inline IndexType GetNameHash(std::string name) const
+    static inline IndexType GetNameHash(std::string name)
     {
-        IndexType id = std::hash(name);
+        std::hash<std::string> string_hash_generator;
+        auto id = string_hash_generator(name);
 
         // Sets first bit to one.
         SetGeometryIdName(id);
