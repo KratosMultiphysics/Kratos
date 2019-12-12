@@ -9,30 +9,27 @@
 # ==============================================================================
 
 class Shape:
-    def __init__(self):
-        self.name = None
-        self.nodes = []
-        self.triangles = []
+    def __init__(self, name, nodes, triangles):
+        self.name = name
+        self.nodes = nodes
+        self.triangles = triangles
 
 
 def read_nodes(line, file):
     nodes = []
-    while True:
-        if "[" in line:
-            break
+    while not "[" in line:
+        line = next(file)
 
     line = next(file)
 
-    while True:
-        if "]" in line:
-            break
-        elif line == "\n":
+    while not "]" in line:
+        if line == "\n":
             line = next(file)
 
         try:
             entries = line.split(",")[0].split()
             if len(entries) != 3:
-                raise RuntimeError("Did not find 3 coordinate components!", line)
+                raise RuntimeError("wrl_reader: Did not find 3 coordinate components!", line)
             nodes.append([float(x) for x in entries])
         except IOError:
             pass
@@ -44,22 +41,19 @@ def read_nodes(line, file):
 
 def read_triangles(line, file):
     triangles = []
-    while True:
-        if "[" in line:
-            break
+    while not "[" in line:
+        line = next(file)
 
     line = next(file)
 
-    while True:
-        if "]" in line:
-            break
-        elif line == "\n":
+    while not "]" in line:
+        if line == "\n":
             line = next(file)
 
         try:
             entries = line.split(",")[:3]
             if len(entries) != 3:
-                raise RuntimeError("Did not find 3 triangle node indices!", line)
+                raise RuntimeError("wrl_reader: Did not find 3 triangle node indices!", line)
             triangles.append([int(x) for x in entries])
         except IOError:
             pass
@@ -70,14 +64,17 @@ def read_triangles(line, file):
 
 
 def read_shape(line, file):
-    shape = Shape()
-    shape.name = line.split("#")[1].strip()
-    while not shape.nodes or not shape.triangles:
+    name = line.split("#")[1].strip()
+    nodes = []
+    triangles = []
+    while not nodes or not triangles:
         if line.strip().startswith("coord Coordinate"):
-            shape.nodes = read_nodes(line, file)
+            nodes = read_nodes(line, file)
         elif line.strip().startswith("coordIndex"):
-            shape.triangles = read_triangles(line, file)
+            triangles = read_triangles(line, file)
         line = next(file)
+
+    shape = Shape(name, nodes, triangles)
 
     return shape
 
@@ -88,7 +85,7 @@ def read_shapes(file_name):
 
         first_line = file.readline()
         if not first_line.startswith("#VRML V2.0"):
-            raise RuntimeError("Can not read '{}' format!"\
+            raise RuntimeError("wrl_reader: Can not read '{}' format!"\
                 " Only '#VRML V2.0' is supported.".format(first_line.strip()))
 
         for line in file:

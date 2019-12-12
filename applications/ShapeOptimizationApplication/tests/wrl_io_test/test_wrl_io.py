@@ -130,7 +130,7 @@ class WrlIOTest(TestCase):
                 j += 1
             i+=1
 
-        sub_model_part_2 = model.GetModelPart("wrl_model_part.triangle mesh_0")
+        sub_model_part_2 = model.GetModelPart("wrl_model_part.triangle mesh_2")
 
         self.assertEqual(sub_model_part_2.NumberOfNodes(), 9)
         self.assertEqual(sub_model_part_2.NumberOfConditions(), 8)

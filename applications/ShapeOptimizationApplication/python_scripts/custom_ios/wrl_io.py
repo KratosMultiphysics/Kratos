@@ -16,7 +16,7 @@ def _rename_to_valid_name(model_part, shape):
     name = shape.name
 
     ref_name = name
-    i = 0
+    i = 2
     while model_part.HasSubModelPart(name):
         name = ref_name +"_{}".format(i)
         i += 1
@@ -32,14 +32,6 @@ class WrlIO:
     def __init__(self, file_name):
 
         self.file_name = file_name + ".wrl"
-
-        self.triangle_type = "SurfaceCondition3D3N"
-        if "Element" in self.triangle_type:
-            self.create_element = True
-        elif "Condition" in self.triangle_type:
-            self.create_element = False
-        else:
-            raise RuntimeError("Can only create Element or Condition from triangles!")
 
     def ReadModelPart(self, model_part):
         KM.Logger.PrintInfo("ShapeOpt", "Start reading model part from '{}'.".format(self.file_name))
@@ -62,12 +54,9 @@ class WrlIO:
             for i, triangle in enumerate(shape.triangles):
                 triangle_id = i + triangles_shift
                 node_ids = [x + nodes_shift for x in triangle]
-                if self.create_element:
-                    new_element = model_part.CreateNewElement(self.triangle_type, triangle_id, node_ids, new_property)
-                    sub_model_part.AddElement(new_element, 0)
-                else:
-                    new_condition = model_part.CreateNewCondition(self.triangle_type, triangle_id, node_ids, new_property)
-                    sub_model_part.AddCondition(new_condition)
+
+                new_condition = model_part.CreateNewCondition("SurfaceCondition3D3N", triangle_id, node_ids, new_property)
+                sub_model_part.AddCondition(new_condition)
 
             nodes_shift += len(shape.nodes)
             triangles_shift += len(shape.triangles)
