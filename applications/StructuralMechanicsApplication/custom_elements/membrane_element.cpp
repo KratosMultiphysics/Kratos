@@ -424,6 +424,7 @@ void MembraneElement::JacobiDeterminante(double& rDetJacobi, const array_1d<Vect
     Vector3 g3 = ZeroVector(3);
     MathUtils<double>::CrossProduct(g3, rReferenceBaseVectors[0], rReferenceBaseVectors[1]);
     rDetJacobi = MathUtils<double>::Norm(g3);
+    KRATOS_ERROR_IF(rDetJacobi<std::numeric_limits<double>::epsilon()) << "det of Jacobi smaller 0 for element with id" << Id() << std::endl;
 }
 
 void MembraneElement::DerivativeCurrentCovariantMetric(Matrix& rMetric,
@@ -656,6 +657,7 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
     Matrix contravariant_metric_reference = ZeroMatrix(3);
     Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
     double detJ = 0.0;
+    double temp_stiffness_entry = 0.0;
     Vector stress = ZeroVector(3);
     Vector derivative_strain = ZeroVector(3);
 
@@ -693,13 +695,14 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
                     if (point_number==(r_integration_points.size()-1)) rStiffnessMatrix(dof_s,dof_r) = rStiffnessMatrix(dof_r,dof_s);
                 }
                 else{
-                    MaterialStiffnessMatrixEntryIJ(rStiffnessMatrix(dof_s,dof_r),
+                    temp_stiffness_entry = 0.0;
+                    MaterialStiffnessMatrixEntryIJ(temp_stiffness_entry,
                         material_tangent_modulus,dof_s,dof_r,shape_functions_gradients_i,
                         current_covariant_base_vectors,inplane_transformation_matrix_material);
-                    InitialStressStiffnessMatrixEntryIJ(rStiffnessMatrix(dof_s,dof_r),
+                    InitialStressStiffnessMatrixEntryIJ(temp_stiffness_entry,
                         stress,dof_s,dof_r,shape_functions_gradients_i,
                         inplane_transformation_matrix_material);
-                    rStiffnessMatrix(dof_s,dof_r) *= detJ*integration_weight_i*thickness;
+                    rStiffnessMatrix(dof_s,dof_r) += temp_stiffness_entry*detJ*integration_weight_i*thickness;
                 }
             }
         }
