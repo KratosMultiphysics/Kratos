@@ -6,12 +6,8 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Inigo López
+//  Main authors:    Klaus B. Sautter and Inigo Lopez
 //
-
-// System includes
-
-// External includes
 
 // Project includes
 #include "containers/model.h"
@@ -23,44 +19,6 @@ namespace Kratos
 {
 namespace Testing
 {
-    void PrintMatrix(Matrix& rMatrix)
-    {
-        std::cout.precision(5);
-        std::cout << std::scientific;
-        std::cout << std::showpos;
-        std::cout << std::endl;
-        std::cout << std::endl;
-        for(unsigned int row = 0; row < rMatrix.size1(); ++row){
-            for(unsigned int column = 0; column < rMatrix.size2(); column++){
-                if(column == 2 || column == 5){
-                    std::cout << " " << rMatrix(row, column) << " |";
-                }
-                else{
-                    std::cout << " " << rMatrix(row, column) << " ";
-                }
-            }
-
-            std::cout << std::endl;
-
-            if(row ==2|| row == 5){
-                for(unsigned int j = 0; j < 14*rMatrix.size1(); j++){
-                std::cout << "_" ;
-                }
-                std::cout << " " << std::endl;
-            }
-            else{
-                for(unsigned int i = 0; i < 3; i++){
-                    for(unsigned int j = 0; j < 14*4; j++){
-                        std::cout << " " ;
-                    }
-                }
-            }
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
-        std::cout << std::endl;
-    }
-
     void AssignPredifinedDisplacement(Element::Pointer pElement)
     {
         const unsigned int number_of_nodes = pElement->GetGeometry().size();
@@ -76,6 +34,50 @@ namespace Testing
         }
     }
 
+    void ComputeRelativeError(Vector& rRelativeError, Element::Pointer pElement, ModelPart& rModelPart)
+    {
+        const unsigned int number_of_nodes = pElement->GetGeometry().size();
+        const unsigned int dimension = pElement->GetGeometry().WorkingSpaceDimension();
+        const unsigned int number_of_dofs = number_of_nodes * dimension;
+        // Set a predifined displacement field to compute the residual
+        AssignPredifinedDisplacement(pElement);
+
+        // Compute RHS and LHS
+        Vector RHS_original = ZeroVector(number_of_dofs);
+        Matrix LHS_original = ZeroMatrix(number_of_dofs,number_of_dofs);
+
+        pElement->Initialize(); // Initialize the element to initialize the constitutive law
+        pElement->CalculateLocalSystem(LHS_original, RHS_original, rModelPart.GetProcessInfo());
+
+        const double delta = 1e-4;
+
+        for(unsigned int i = 0; i < number_of_nodes; i++){
+            for(unsigned int j = 0; j < dimension; j++){
+                // Pinging
+                array_1d<double, 3>& disp = pElement->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+                disp[j] += delta;
+
+                Vector RHS_pinged = ZeroVector(number_of_dofs);
+                Matrix LHS_pinged = ZeroMatrix(number_of_dofs, number_of_dofs);
+                // Compute pinged LHS and RHS
+                pElement->CalculateLocalSystem(LHS_pinged, RHS_pinged, rModelPart.GetProcessInfo());
+
+                for(unsigned int k = 0; k < number_of_dofs; k++){
+                    // Compute the finite difference estimate of the sensitivity
+                    double sensitivity_fd = -(RHS_pinged(k)-RHS_original(k)) / delta;
+                    // Compute the average of the original and pinged analytic sensitivities
+                    double sensitivity_an = 0.5 * (LHS_original(i*dimension + j,k) + LHS_pinged(i*dimension + j,k));
+                    // Compute the relative error between sensitivities
+                    rRelativeError((i*dimension + j)*number_of_dofs + k) =  std::abs(sensitivity_fd - sensitivity_an)/std::abs(sensitivity_an)*100.0;
+                }
+
+                // Unpinging
+                disp[j] -= delta;
+            }
+        }
+    }
+
+    // Tests the stiffness matrix of the MembraneElement3D3N comparing analytical and numerical elemental sensitivities
     KRATOS_TEST_CASE_IN_SUITE(MembraneElement3D3N, KratosStructuralMechanicsFastSuite)
     {
         Model current_model;
@@ -101,41 +103,8 @@ namespace Testing
         const unsigned int dimension = p_element->GetGeometry().WorkingSpaceDimension();
         const unsigned int number_of_dofs = number_of_nodes * dimension;
 
-        // Set a fake displacement field to compute the residual
-        AssignPredifinedDisplacement(p_element);
-
-        // Compute RHS and LHS
-        Vector RHS_original = ZeroVector(number_of_dofs);
-        Matrix LHS_original = ZeroMatrix(number_of_dofs,number_of_dofs);
-
-        p_element->Initialize(); // Initialize the element to initialize the constitutive law
-        p_element->CalculateLocalSystem(LHS_original, RHS_original, r_model_part.GetProcessInfo());
-
-        const double delta = 1e-4;
-
         Vector relative_error = ZeroVector(number_of_dofs*number_of_dofs);
-        for(unsigned int i = 0; i < number_of_nodes; i++){
-            for(unsigned int j = 0; j < dimension; j++){
-                // Pinging
-                array_1d<double, 3>& disp = p_element->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-                disp[j] += delta;
-
-                Vector RHS_pinged = ZeroVector(number_of_dofs);
-                Matrix LHS_pinged = ZeroMatrix(number_of_dofs, number_of_dofs);
-                // Compute pinged LHS and RHS
-                p_element->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_model_part.GetProcessInfo());
-
-                // Compute the relative error
-                for(unsigned int k = 0; k < number_of_dofs; k++){
-                    double sensitivity_fd = -(RHS_pinged(k)-RHS_original(k)) / delta;
-                    double sensitivity_an = 0.5 * (LHS_original(i*dimension + j,k) + LHS_pinged(i*dimension + j,k));
-                    relative_error((i*dimension + j)*number_of_dofs + k) =  std::abs(sensitivity_fd - sensitivity_an)/std::abs(sensitivity_an)*100.0;
-                }
-
-                // Unpinging
-                disp[j] -= delta;
-            }
-        }
+        ComputeRelativeError(relative_error, p_element, r_model_part);
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-5;
@@ -143,6 +112,7 @@ namespace Testing
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(relative_error, expected_relative_error, tolerance)
     }
 
+    // Tests the stiffness matrix of the MembraneElement3D4N comparing analytical and numerical elemental sensitivities
     KRATOS_TEST_CASE_IN_SUITE(MembraneElement3D4N, KratosStructuralMechanicsFastSuite)
     {
         Model current_model;
@@ -170,41 +140,8 @@ namespace Testing
         const unsigned int dimension = p_element->GetGeometry().WorkingSpaceDimension();
         const unsigned int number_of_dofs = number_of_nodes * dimension;
 
-        // Set a fake displacement field to compute the residual
-        AssignPredifinedDisplacement(p_element);
-
-        // Compute RHS and LHS
-        Vector RHS_original = ZeroVector(number_of_dofs);
-        Matrix LHS_original = ZeroMatrix(number_of_dofs,number_of_dofs);
-
-        p_element->Initialize(); // Initialize the element to initialize the constitutive law
-        p_element->CalculateLocalSystem(LHS_original, RHS_original, r_model_part.GetProcessInfo());
-
-        const double delta = 1e-4;
-
         Vector relative_error = ZeroVector(number_of_dofs*number_of_dofs);
-        for(unsigned int i = 0; i < number_of_nodes; i++){
-            for(unsigned int j = 0; j < dimension; j++){
-                // Pinging
-                array_1d<double, 3>& disp = p_element->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-                disp[j] += delta;
-
-                Vector RHS_pinged = ZeroVector(number_of_dofs);
-                Matrix LHS_pinged = ZeroMatrix(number_of_dofs, number_of_dofs);
-                // Compute pinged LHS and RHS
-                p_element->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_model_part.GetProcessInfo());
-
-                // Compute the relative error
-                for(unsigned int k = 0; k < number_of_dofs; k++){
-                    double sensitivity_fd = -(RHS_pinged(k)-RHS_original(k)) / delta;
-                    double sensitivity_an = 0.5 * (LHS_original(i*dimension + j,k) + LHS_pinged(i*dimension + j,k));
-                    relative_error((i*dimension + j)*number_of_dofs + k) =  std::abs(sensitivity_fd - sensitivity_an)/std::abs(sensitivity_an)*100.0;
-                }
-
-                // Unpinging
-                disp[j] -= delta;
-            }
-        }
+        ComputeRelativeError(relative_error, p_element, r_model_part);
 
         //Check RHS and LHS results
         const double tolerance = 1.0e-5;
