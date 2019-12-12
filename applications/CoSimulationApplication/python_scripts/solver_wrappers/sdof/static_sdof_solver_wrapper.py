@@ -25,3 +25,23 @@ class SdofStaticSolverWrapper(SdofSolverWrapper):
         self.mp = self.model.CreateModelPart("Sdof_Static")
         self.mp.ProcessInfo[KM.DOMAIN_SIZE] = 1
         self._sdof_solver = SDoFStaticSolver(input_file_name)
+
+    def SolveSolutionStep(self):
+        self._sdof_solver.SetSolutionStepValue("ROOT_POINT_DISPLACEMENT", self.mp[KMC.SCALAR_ROOT_POINT_DISPLACEMENT], 0)
+        self._sdof_solver.SetSolutionStepValue("LOAD",                    self.mp[KMC.SCALAR_FORCE], 0)
+
+        self._sdof_solver.SolveSolutionStep()
+
+        self.mp[KMC.SCALAR_DISPLACEMENT]        = self._sdof_solver.GetSolutionStepValue("DISPLACEMENT", 0)
+        self.mp[KMC.SCALAR_REACTION]            = self._sdof_solver.GetSolutionStepValue("REACTION", 0)
+
+    def Check(self):
+        # making sure only a set of vaiables can be used
+        admissible_variables = [
+            "SCALAR_FORCE",
+            "SCALAR_DISPLACEMENT",
+            "SCALAR_REACTION",
+        ]
+        for data in self.data_dict.values():
+            if data.variable.Name() not in admissible_variables:
+                raise Exception('Variable "{}" of interface data "{}" of solver "{}" cannot be used for the SDof Solver!\nOnly the following variables are allowed: {}'.format(data.variable.Name(), data.name, data.solver_name, admissible_variables))

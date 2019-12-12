@@ -109,6 +109,9 @@ class SDoFStaticSolver(object):
         elif identifier == "LOAD":
             self.force = 0.0
             self.force = value
+        elif identifier == "ROOT_POINT_DISPLACEMENT":
+            self.root_point_displacement = 0.0
+            self.root_point_displacement = value
         else:
             raise Exception("Identifier is unknown!")
 

@@ -3,13 +3,15 @@
     {
         "start_time" : 0.0,
         "end_time" : 1.0,
-        "echo_level" : 3,
-        "print_colors" : true
+        "echo_level" : 1,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
     },
     "solver_settings" :
     {
-        "solver_type" : "coupled_solvers.simple_steady_coupling",
-        "echo_level" : 2,
+        "type" : "coupled_solvers.gauss_seidel_strong",
+        "echo_level" : 1,
+        "num_coupling_iterations" : 10,
         "data_transfer_operators" : {
             "transfer_forces" : {
                 "type" : "sum_distributed_to_single"
@@ -18,16 +20,36 @@
                 "type" : "copy_single_to_distributed"
             }
         },
+        "convergence_accelerators" : [
+            {
+                "type"      : "aitken",
+                "solver"    : "fluid",
+                "data_name" : "disp_y"
+            }
+        ],
+        "convergence_criteria" :[
+        {
+            "type" : "relative_norm_initial_residual",
+            "solver"   : "fluid",
+            "data_name"     : "disp_y",
+            "abs_tolerance" : 1e-9,
+            "rel_tolerance" : 1e-2
+        }],
         "coupling_sequence":
         [
             {
+                "name": "fluid",
+                "output_data_list": [],
+                "input_data_list": []
+            },{
                 "name": "structure",
                 "input_data_list"  : [{
                     "data"              : "force_y",
                     "from_solver"       : "fluid",
                     "from_solver_data"  : "force_y",
                     "data_transfer_operator" : "transfer_forces",
-                    "data_transfer_operator_options" : ["swap_sign"]}],
+                    "data_transfer_operator_options" : []
+                }],
                 "output_data_list" : [
                     {
                         "data"           : "disp_y",
@@ -36,10 +58,6 @@
                         "data_transfer_operator" : "transfer_disp"
                     }
                 ]
-            },{
-                "name": "fluid",
-                "output_data_list": [],
-                "input_data_list": []
             }
 
         ],
