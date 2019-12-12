@@ -174,9 +174,21 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
            << rModelPart.GetProcessInfo()[TIME];
         label = ss.str();
     } else {
-        KRATOS_ERROR << "Option for \"output_control_type\": " << output_control
-            <<" not recognised!\nPossible output_control_type options "
-            << "are: \"step\", \"time\"" << std::endl;
+        if (KratosComponents<Variable<std::string>>::Has(output_control))
+        {
+            const Variable<std::string>& output_variable =
+                KratosComponents<Variable<std::string>>::Get(output_control);
+            KRATOS_ERROR_IF(!rModelPart.GetProcessInfo().Has(output_variable))
+                << "Output control variable \"" << output_control
+                << "\" not found in " << rModelPart.Name() << " process info.\n";
+            label = rModelPart.GetProcessInfo()[output_variable];
+        }
+        else
+        {
+            KRATOS_ERROR << "Option for \"output_control_type\": "
+                         << output_control << " not recognised!\nPossible output_control_type options "
+                         << "are: \"step\", \"time\" or a valid string variable" << std::endl;
+        }
     }
 
     // Putting everything together
