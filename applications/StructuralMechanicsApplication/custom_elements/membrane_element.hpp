@@ -200,9 +200,11 @@ namespace Kratos
      * @param rReferenceCoVariantMetric reference covariant metric
      * @param rCurrentCoVariantMetric current covariant metric
      * @param rTransformationMatrix local coordinate system transformation
+     * @param rIntegrationPointNumber current integration point number
      */
     void MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric,
-    const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric, const Matrix& rTransformationMatrix);
+      const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric, const Matrix& rTransformationMatrix,
+      const SizeType& rIntegrationPointNumber);
 
 
       /**
@@ -213,10 +215,11 @@ namespace Kratos
      * @param rCurrentCoVariantMetric current covariant metric
      * @param rTransformedBaseVectors local coordinate system
      * @param rTransformationMatrix local coordinate system transformation
+     * @param rIntegrationPointNumber current integration point number
      */
     void StressPk2(Vector& rStress,
       const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
-      const array_1d<Vector,2>& rTransformedBaseVectors, const Matrix& rTransformationMatrix);
+      const array_1d<Vector,2>& rTransformedBaseVectors, const Matrix& rTransformationMatrix, const SizeType& rIntegrationPointNumber);
 
 
       /**
@@ -389,7 +392,7 @@ namespace Kratos
     void CheckWrinklingState(array_1d<bool,3>& rWrinklingStateArray, const Vector& rStress, const Vector& rStrain);
 
 protected:
-  ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
+  std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
 private:
 

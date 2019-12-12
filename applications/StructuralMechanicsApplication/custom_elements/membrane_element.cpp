@@ -132,11 +132,24 @@ void MembraneElement::GetDofList(
 void MembraneElement::Initialize()
 {
     KRATOS_TRY;
-    if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
-        mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-    } else {
-        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << Id() << std::endl;
-    }
+
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
+
+    //Constitutive Law initialisation
+    if ( mConstitutiveLawVector.size() != integration_points.size() )
+        mConstitutiveLawVector.resize( integration_points.size() );
+
+    if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
+        const GeometryType& r_geometry = GetGeometry();
+        const Properties& r_properties = GetProperties();
+        const auto& N_values = r_geometry.ShapeFunctionsValues(GetIntegrationMethod());
+        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+            mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+            mConstitutiveLawVector[point_number]->InitializeMaterial( r_properties, r_geometry, row(N_values , point_number ));
+        }
+    } else
+        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
+
     KRATOS_CATCH( "" )
 }
 
@@ -340,7 +353,7 @@ void MembraneElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>&
 
 void MembraneElement::StressPk2(Vector& rStress,
     const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
-    const array_1d<Vector,2>& rTransformedBaseVectors,const Matrix& rTransformationMatrix)
+    const array_1d<Vector,2>& rTransformedBaseVectors,const Matrix& rTransformationMatrix,const SizeType& rIntegrationPointNumber)
 {
     Vector strain_vector = ZeroVector(3);
     rStress = ZeroVector(3);
@@ -353,13 +366,14 @@ void MembraneElement::StressPk2(Vector& rStress,
     element_parameters.SetStressVector(rStress);
     element_parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    mpConstitutiveLaw->CalculateMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
+    mConstitutiveLawVector[rIntegrationPointNumber]->CalculateMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
 
     AddPreStressPk2(rStress,rTransformedBaseVectors);
 }
 
 void MembraneElement::MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric,
-    const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric, const Matrix& rTransformationMatrix)
+    const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric, const Matrix& rTransformationMatrix,
+    const SizeType& rIntegrationPointNumber)
 {
     rTangentModulus = ZeroMatrix(3);
     Vector strain_vector = ZeroVector(3);
@@ -372,7 +386,7 @@ void MembraneElement::MaterialTangentModulus(Matrix& rTangentModulus,const Matri
     element_parameters.SetConstitutiveMatrix(rTangentModulus);
     element_parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    mpConstitutiveLaw->CalculateMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
+    mConstitutiveLawVector[rIntegrationPointNumber]->CalculateMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
 
 }
 
@@ -580,7 +594,8 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
 
         JacobiDeterminante(detJ,reference_covariant_base_vectors);
         StressPk2(stress,contravariant_metric_reference,covariant_metric_reference,
-            covariant_metric_current,transformed_base_vectors,inplane_transformation_matrix_material);
+            covariant_metric_current,transformed_base_vectors,inplane_transformation_matrix_material,
+            point_number);
 
         for (SizeType dof_r=0;dof_r<number_dofs;++dof_r)
         {
@@ -671,11 +686,11 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
 
         JacobiDeterminante(detJ,reference_covariant_base_vectors);
         StressPk2(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
-            transformed_base_vectors,inplane_transformation_matrix_material);
+            transformed_base_vectors,inplane_transformation_matrix_material,point_number);
 
         Matrix material_tangent_modulus = ZeroMatrix(dimension);
         MaterialTangentModulus(material_tangent_modulus,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
-            inplane_transformation_matrix_material);
+            inplane_transformation_matrix_material,point_number);
 
         for (SizeType dof_s=0;dof_s<number_dofs;++dof_s){
             for (SizeType dof_r=0;dof_r<number_dofs;++dof_r){
@@ -1127,13 +1142,13 @@ int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
 void MembraneElement::save(Serializer& rSerializer) const
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-      rSerializer.save("mpConstitutiveLaw", mpConstitutiveLaw);
+      rSerializer.save("mConstitutiveLawVector", mConstitutiveLawVector);
     }
 
     void MembraneElement::load(Serializer& rSerializer)
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-      rSerializer.save("mpConstitutiveLaw", mpConstitutiveLaw);
+      rSerializer.save("mConstitutiveLawVector", mConstitutiveLawVector);
     }
 
 
