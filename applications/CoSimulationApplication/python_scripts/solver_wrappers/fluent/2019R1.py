@@ -35,7 +35,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                                     saves of the Fluent case and data files
         """
         self.settings = parameters['settings']
-        self.dir_cfd = join(os.getcwd(), self.settings['working_directory'].GetString())  # *** alternative for getcwd?
+        self.dir_cfd = join(os.getcwd(), self.settings['working_directory'].GetString())
         path_src = os.path.realpath(os.path.dirname(__file__))
 
         self.remove_all_messages()
@@ -256,9 +256,9 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         for key in [_[0] for _ in self.interface_input.model_parts_variables]:
             for node in self.model[key].Nodes:
                 disp = node.GetSolutionStepValue(self.displacement)
-                node.X += disp[0]
-                node.Y += disp[1]
-                node.Z += disp[2]
+                node.X = node.X0 + disp[0]
+                node.Y = node.Y0 + disp[1]
+                node.Z = node.Z0 + disp[2]
 
         # write interface data
         self.write_node_positions()
