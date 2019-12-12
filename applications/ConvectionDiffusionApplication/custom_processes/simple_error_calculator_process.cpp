@@ -20,6 +20,7 @@
 
 namespace Kratos
 {
+    
 template<SizeType TDim>
 SimpleErrorCalculatorProcess<TDim>::SimpleErrorCalculatorProcess(ModelPart& rThisModelPart, Parameters ThisParameters):mrThisModelPart(rThisModelPart)
 {
@@ -306,4 +307,10 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateGeomData(GeometryType& r_geom,
     }
 }
 
-}
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class SimpleErrorCalculatorProcess<2>;
+template class SimpleErrorCalculatorProcess<3>;
+
+}; // namespace Kratos
