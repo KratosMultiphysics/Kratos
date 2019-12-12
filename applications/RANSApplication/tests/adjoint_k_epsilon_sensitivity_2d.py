@@ -11,7 +11,6 @@ have_required_applications = CheckIfApplicationsAvailable("HDF5Application")
 if not have_required_applications:
     missing_applications_message.append("HDF5Application")
 
-from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 if CheckIfApplicationsAvailable("FluidDynamicsApplication"):
     from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_analysis import AdjointFluidAnalysis
 else:
