@@ -1,6 +1,13 @@
+import os, math
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
-import os
+
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+if CheckIfApplicationsAvailable("FluidDynamicsApplication"):
+    from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
+else:
+    msg = "RANSApplication requires FluidDynamicsApplication which is not found."
+    msg += " Please install/compile it and try again."
+    raise Exception(msg)
 
 
 def _is_different(line1, line2, tol=1e-10):
@@ -50,7 +57,8 @@ class MDPAUtilities():
     def WritePerturbedMdpaFile(self, node_id, perturbation, output_file_name):
         i = _get_position(node_id, self.mdpa_lines)
         coords = self.GetNodalCoordinates(node_id)
-        new_coords = [(coords[i] + perturbation[i]) for i in range(3)]
+        new_coords = [(coords[i_dim] + perturbation[i_dim])
+                      for i_dim in range(3)]
 
         new_line = '{} {:19.10f} {:19.10f} {:19.10f}\n'.format(
             str(node_id), new_coords[0], new_coords[1], new_coords[2])
@@ -146,6 +154,8 @@ class FiniteDifferenceDragSensitivities():
 
         os.chdir(current_path)
 
+        fd_sensitivities = []
+
         with open(self.sensitivities_file_name, "w") as file_output:
             file_output.write("# Finite difference drag sensitivities\n")
             file_output.write(
@@ -153,6 +163,9 @@ class FiniteDifferenceDragSensitivities():
             for node_id, sensitivity in zip(node_ids, perturbed_sensitivities):
                 file_output.write("{0:4d},{1:1.16e},{2:1.16e}\n".format(
                     node_id, sensitivity[0], sensitivity[1]))
+                fd_sensitivities.append([sensitivity[0], sensitivity[1]])
+
+        return fd_sensitivities
 
     def _CreateFluidTest(self):
         with open(self.project_parameters_file_name, 'r') as parameter_file:

@@ -1,11 +1,8 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSApplication as KratosRANS
-import math
 
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
-
 if CheckIfApplicationsAvailable("FluidDynamicsApplication"):
-    import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
     from KratosMultiphysics.FluidDynamicsApplication.adjoint_turbulence_model_solver import AdjointTurbulenceModelSolver
 else:
     msg = "RANSApplication requires FluidDynamicsApplication which is not found."

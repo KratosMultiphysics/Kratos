@@ -14,7 +14,7 @@ def Factory(settings, Model):
     turbulence_models_list = ["k_epsilon"]
 
     model_type = settings["model_type"].GetString()
-    if not model_type in turbulence_models_list:
+    if model_type not in turbulence_models_list:
         msg = "Uknown adjoint turbulence \"model_type\" name : \"" + model_type
         msg += "\".\nSupported \"model_type\" names: " + turbulence_models_list.__str__(
         )

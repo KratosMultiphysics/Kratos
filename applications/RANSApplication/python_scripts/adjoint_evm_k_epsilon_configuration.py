@@ -4,15 +4,6 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics.RANSApplication.adjoint_turbulence_eddy_viscosity_model_configuration import AdjointTurbulenceEddyViscosityModelConfiguration
 
-from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
-if CheckIfApplicationsAvailable("FluidDynamicsApplication"):
-    import KratosMultiphysics.FluidDynamicsApplication
-else:
-    msg = "k-epsilon turbulence model depends on the FluidDynamicsApplication which is not found."
-    msg += " Please re-install/compile with FluidDynamicsApplication"
-    raise Exception(msg)
-
-
 class AdjointTurbulenceKEpsilonConfiguration(
         AdjointTurbulenceEddyViscosityModelConfiguration):
     def __init__(self, model, parameters):

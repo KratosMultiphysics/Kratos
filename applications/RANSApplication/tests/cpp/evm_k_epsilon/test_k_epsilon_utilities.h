@@ -50,7 +50,7 @@ void InitializeProcessInfo(ModelPart& rModelPart);
 
 void CreateModelPartNodes(ModelPart& rModelPart);
 
-void CreateModelPartElements(ModelPart& rModelPart, std::string ElementName);
+void CreateModelPartElements(ModelPart& rModelPart, const std::string& ElementName);
 
 void CreateEquationIds(ModelPart& rModelPart);
 
@@ -58,15 +58,15 @@ void InitializeNodalVariables(ModelPart& rModelPart);
 
 template <typename TContainerType>
 void GenerateRansEvmKEpsilonTestModelPart(ModelPart& rModelPart,
-                                          std::string TContainerDataTypeName);
+                                          const std::string& TContainerDataTypeName);
 
 void UpdateVariablesInModelPart(ModelPart& rModelPart);
 
 void InitializeYPlus(ModelPart& rModelPart);
 
 template <typename TDataType, typename TContainer>
-void RunRansEvmKEpsilonTest(const std::string PrimalName,
-                            const std::string AdjointName,
+void RunRansEvmKEpsilonTest(const std::string& PrimalName,
+                            const std::string& AdjointName,
                             const Variable<TDataType>& rPerturbationVariable,
                             std::function<void(Matrix&, typename TContainer::data_type&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
                             const double Delta,

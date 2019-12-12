@@ -69,7 +69,7 @@
         },
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "AdjointKEpsilonSensitivity2DTest/one_element_steady_test"
+            "input_filename": "AdjointKEpsilonSensitivity2DTest/one_element_steady_test_fd"
         },
         "material_import_settings": {
             "materials_filename": "AdjointKEpsilonSensitivity2DTest/one_element_test_materials.json"

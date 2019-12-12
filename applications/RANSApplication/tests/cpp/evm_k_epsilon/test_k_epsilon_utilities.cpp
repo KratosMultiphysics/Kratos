@@ -143,7 +143,7 @@ void CreateModelPartNodes(ModelPart& rModelPart)
         ADJOINT_FLUID_VECTOR_1_Z, rModelPart);
 }
 
-void CreateModelPartElements(ModelPart& rModelPart, std::string ElementName)
+void CreateModelPartElements(ModelPart& rModelPart, const std::string& ElementName)
 {
     Properties::Pointer p_elem_prop = rModelPart.pGetProperties(0);
 
@@ -153,7 +153,7 @@ void CreateModelPartElements(ModelPart& rModelPart, std::string ElementName)
                                 elem_nodes, p_elem_prop);
 }
 
-void CreateModelPartConditions(ModelPart& rModelPart, std::string ConditionName)
+void CreateModelPartConditions(ModelPart& rModelPart, const std::string& ConditionName)
 {
     Properties::Pointer p_cond_prop = rModelPart.pGetProperties(0);
 
@@ -256,8 +256,8 @@ void CreateEquationIds(ModelPart& rModelPart)
 }
 
 template <>
-void GenerateRansEvmKEpsilonTestModelPart<ModelPart::ElementsContainerType>(ModelPart& rModelPart,
-                                                                            std::string ElementName)
+void GenerateRansEvmKEpsilonTestModelPart<ModelPart::ElementsContainerType>(
+    ModelPart& rModelPart, const std::string& ElementName)
 {
     AddVariablesToModelPart(rModelPart);
     InitializeProcessInfo(rModelPart);
@@ -269,7 +269,7 @@ void GenerateRansEvmKEpsilonTestModelPart<ModelPart::ElementsContainerType>(Mode
 
 template <>
 void GenerateRansEvmKEpsilonTestModelPart<ModelPart::ConditionsContainerType>(
-    ModelPart& rModelPart, std::string ConditionName)
+    ModelPart& rModelPart, const std::string& ConditionName)
 {
     AddVariablesToModelPart(rModelPart);
     InitializeProcessInfo(rModelPart);
@@ -317,8 +317,8 @@ void UpdateVariablesInModelPart(ModelPart& rModelPart)
 }
 
 template <typename TDataType, typename TContainer>
-void RunRansEvmKEpsilonTest(const std::string PrimalName,
-                            const std::string AdjointName,
+void RunRansEvmKEpsilonTest(const std::string& PrimalName,
+                            const std::string& AdjointName,
                             const Variable<TDataType>& rPerturbVariable,
                             std::function<void(Matrix&, typename TContainer::data_type&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
                             const double Delta,
@@ -365,8 +365,8 @@ void RunRansEvmKEpsilonTest(const std::string PrimalName,
 // templated method instantiation
 
 template void RunRansEvmKEpsilonTest<double, ModelPart::ElementsContainerType>(
-    const std::string,
-    const std::string,
+    const std::string&,
+    const std::string&,
     const Variable<double>&,
     std::function<void(Matrix&, ElementType&, ProcessInfo&)>,
     const double,
@@ -374,8 +374,8 @@ template void RunRansEvmKEpsilonTest<double, ModelPart::ElementsContainerType>(
     const int,
     const int);
 template void RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ElementsContainerType>(
-    const std::string,
-    const std::string,
+    const std::string&,
+    const std::string&,
     const Variable<array_1d<double, 3>>&,
     std::function<void(Matrix&, ElementType&, ProcessInfo&)>,
     const double,
@@ -383,8 +383,8 @@ template void RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ElementsCon
     const int,
     const int);
 template void RunRansEvmKEpsilonTest<double, ModelPart::ConditionsContainerType>(
-    const std::string,
-    const std::string,
+    const std::string&,
+    const std::string&,
     const Variable<double>&,
     std::function<void(Matrix&, ConditionType&, ProcessInfo&)>,
     const double,
@@ -392,8 +392,8 @@ template void RunRansEvmKEpsilonTest<double, ModelPart::ConditionsContainerType>
     const int,
     const int);
 template void RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ConditionsContainerType>(
-    const std::string,
-    const std::string,
+    const std::string&,
+    const std::string&,
     const Variable<array_1d<double, 3>>&,
     std::function<void(Matrix&, ConditionType&, ProcessInfo&)>,
     const double,
