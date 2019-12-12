@@ -81,7 +81,8 @@ public:
             "relaxation_factor"                 : 1.0,
             "number_of_parent_solve_iterations" : 0,
             "vtk_output_settings"               : {},
-            "vtk_output_frequency"              : 1
+            "vtk_output_frequency"              : 1,
+            "vtk_output_prefix"                 : ""
         })");
 
         rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -93,6 +94,7 @@ public:
         mMaxIterations = rParameters["max_iterations"].GetInt();
         mSkipIterations = rParameters["number_of_parent_solve_iterations"].GetInt();
         mVtkOutputFrequency = rParameters["vtk_output_frequency"].GetInt();
+        mVtkOutputPrefix = rParameters["vtk_output_prefix"].GetString();
 
         Parameters empty_parameters(R"({})");
         if (!rParameters["vtk_output_settings"].IsEquivalentTo(empty_parameters))
@@ -301,12 +303,13 @@ protected:
                 {
                     mVtkOutputStep = 0;
                     std::stringstream s_label;
-                    s_label << std::fixed << "Step_" << r_current_process_info[STEP]
+                    s_label << mVtkOutputPrefix << "_Rank_"
+                            << mrModelPart.GetCommunicator().MyPID() << std::fixed
+                            << "_Step_" << r_current_process_info[STEP]
                             << "_ParentItr_" << parent_solve_iteration
-                            << std::setw(iteration_format_length)
-                            << "_CoupleItr_" << std::setfill('0') << iteration;
-                    r_current_process_info[RANS_OUTPUT_LABEL] = s_label.str();
-                    mpVtkOutput->PrintOutput();
+                            << std::setw(iteration_format_length) << "_CoupleItr_"
+                            << std::setfill('0') << iteration << ".vtk";
+                    mpVtkOutput->PrintOutput(s_label.str());
                 }
 
                 this->UpdateConvergenceVariable();
@@ -409,6 +412,7 @@ private:
     std::vector<typename SolvingStrategyType::Pointer> mSolvingStrategiesList;
     std::vector<std::string> mSolvingVariableNamesList;
     std::vector<Process::Pointer> mAuxiliaryProcessList;
+    std::string mVtkOutputPrefix;
     Variable<double>& mrConvergenceVariable;
 
     VtkOutput::UniquePointer mpVtkOutput;
