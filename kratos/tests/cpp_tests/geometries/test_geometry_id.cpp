@@ -21,30 +21,38 @@
 #include "geometries/quadrilateral_2d_4.h"
 
 #include "tests/cpp_tests/geometries/test_geometry.h"
+#include "tests/cpp_tests/geometries/test_triangle_2d_3.cpp"
 
 #include "containers/pointer_vector.h"
 
 namespace Kratos {
 namespace Testing {
 
-    Quadrilateral2D4<Point> GenerateQuadrilateralWithIdPointer(IndexType GeometryId)
-    {
-        Quadrilateral2D4<Point> quad(
-            Point::Pointer(new Point(0.0, 0.0, 0.0)),
-            Point::Pointer(new Point(1.0, 0.0, 0.0)),
-            Point::Pointer(new Point(1.0, 1.0, 0.0)),
-            Point::Pointer(new Point(0.0, 1.0, 0.0))
-                );
-        quad.SetId(GeometryId);
-        return quad;
+    ///// Test Geometry Id with string
+    KRATOS_TEST_CASE_IN_SUITE(TestNameHash, KratosCoreGeometriesFastSuite) {
+        auto test_id =Geometry<Point>::GetNameHash("GeometryTestName");
+
+        KRATOS_WATCH(test_id)
     }
 
     ///// Test Geometry Id
     KRATOS_TEST_CASE_IN_SUITE(TestGeometryId, KratosCoreGeometriesFastSuite) {
-        auto quad = GenerateQuadrilateralWithIdPointer(1);
+        auto p_quad = GeneratePointsRightTriangle2D3();
 
-        //// Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(quad.Id(), 1);
+        p_quad->SetId(1);
+
+        KRATOS_CHECK_EQUAL(p_quad->Id(), 1);
+    }
+
+    ///// Test Geometry Id with name
+    KRATOS_TEST_CASE_IN_SUITE(TestGeometryId, KratosCoreGeometriesFastSuite) {
+        auto p_quad = GeneratePointsRightTriangle2D3();
+
+        p_quad->SetId("Geometry1");
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(p_quad->Id(), "Assigned geometry id is name of type string.")
+
+        KRATOS_CHECK_EQUAL(p_quad->GetHashId(), Geometry<Point>::GetNameHash("Geometry1"));
     }
 } // namespace Testing.
 } // namespace Kratos.
