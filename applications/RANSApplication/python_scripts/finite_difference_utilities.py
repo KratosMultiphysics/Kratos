@@ -147,8 +147,8 @@ class FiniteDifferenceDragSensitivities():
         self._Solve()
         drag_ref = self._GetTimeAveraged()
 
-        for i in range(len(perturbed_sensitivities)):
-            for j in range(len(perturbed_sensitivities[i])):
+        for i, _ in enumerate(perturbed_sensitivities):
+            for j in range(2):
                 perturbed_sensitivities[i][j] = (
                     perturbed_sensitivities[i][j] - drag_ref) / step_size
 

@@ -3,11 +3,11 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 
 
 def Factory(settings, Model):
-    if (type(settings) != Kratos.Parameters):
+    if (not isinstance(settings, Kratos.Parameters)):
         raise Exception(
             "expected input shall be a Parameters object, encapsulating a json string"
         )
-    if (type(Model) != Kratos.Model):
+    if (not isinstance(Model, Kratos.Model)):
         raise Exception("expected input shall be a Model object")
 
     allowed_processes_list = [

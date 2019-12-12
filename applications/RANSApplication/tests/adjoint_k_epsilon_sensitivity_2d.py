@@ -21,23 +21,24 @@ else:
 from KratosMultiphysics.RANSApplication.finite_difference_utilities import FiniteDifferenceDragSensitivities
 
 
+def _removeH5Files(model_part_name):
+    for name in os.listdir():
+        if name.find(model_part_name) == 0:
+            kratos_utils.DeleteFileIfExisting(name)
+
+
+def _readParameters(parameter_file_name):
+    with open(parameter_file_name + '_parameters.json', 'r') as parameter_file:
+        project_parameters = Kratos.Parameters(parameter_file.read())
+        parameter_file.close()
+    return project_parameters
+
+
 @KratosUnittest.skipUnless(have_required_applications,
                            " ".join(missing_applications_message))
 class AdjointKEpsilonSensitivity2D(KratosUnittest.TestCase):
     def setUp(self):
         pass
-
-    def _removeH5Files(self, model_part_name):
-        for name in os.listdir():
-            if name.find(model_part_name) == 0:
-                kratos_utils.DeleteFileIfExisting(name)
-
-    def _readParameters(self, parameter_file_name):
-        with open(parameter_file_name + '_parameters.json',
-                  'r') as parameter_file:
-            project_parameters = Kratos.Parameters(parameter_file.read())
-            parameter_file.close()
-        return project_parameters
 
     def testOneElementSteady(self):
         step_size = 0.00000001
@@ -56,7 +57,7 @@ class AdjointKEpsilonSensitivity2D(KratosUnittest.TestCase):
         # solve adjoint
         test = AdjointFluidAnalysis(
             Kratos.Model(),
-            self._readParameters(
+            _readParameters(
                 'AdjointKEpsilonSensitivity2DTest/one_element_steady_test_adjoint'
             ))
         test.Run()
@@ -70,7 +71,7 @@ class AdjointKEpsilonSensitivity2D(KratosUnittest.TestCase):
 
         self.assertAlmostEqual(Sensitivity[0][0], fd_sensitivity[0][0], 4)
         self.assertAlmostEqual(Sensitivity[0][1], fd_sensitivity[0][1], 4)
-        self._removeH5Files("MainModelPart")
+        _removeH5Files("MainModelPart")
         kratos_utils.DeleteFileIfExisting(
             "./AdjointKEpsilonSensitivity2DTest/one_element_test.time")
         kratos_utils.DeleteFileIfExisting(
