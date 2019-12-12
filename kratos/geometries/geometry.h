@@ -3198,33 +3198,33 @@ private:
     ///@{
 
     /// Checks first bit in mId. 0 -> id; 1 -> name
-    bool IsGeometryIdString()
-    {
-        return mId & (IndexType(1) << 63);
-    }
-
-    inline bool IsGeometryIdString(IndexType Id) const
+    bool HasGeometryIdString(IndexType Id) const
     {
         return Id & (IndexType(1) << 63);
     }
 
-    void SetGeometryIdString(IndexType& Id)
+    static inline bool IsGeometryIdString(IndexType Id)
+    {
+        return Id & (IndexType(1) << 63);
+    }
+
+    static inline void SetGeometryIdString(IndexType& Id)
     {
         Id |= (IndexType(1) << 63);
     }
 
     /// Checks second bit in mId. 0 -> foreign id; 1 -> self assigned
-    bool IsSelfAssignedId()
+    bool HasSelfAssignedId() const
     {
         return mId & (IndexType(1) << 62);
     }
 
-    inline bool IsSelfAssignedId(IndexType Id) const
+    static inline bool IsSelfAssignedId(IndexType Id)
     {
-        return mId & (IndexType(1) << 62);
+        return Id & (IndexType(1) << 62);
     }
 
-    void SetSelfAssignedId(IndexType& Id) const
+    static inline void SetSelfAssignedId(IndexType& Id)
     {
         Id |= (IndexType(1) << 62);
     }
