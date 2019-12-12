@@ -27,27 +27,24 @@
 namespace Kratos {
 namespace Testing {
 
-    template<class TPointType>
-    Quadrilateral2D4<TPointType>::Pointer
-        GenerateQuadrilateralPointer(IndexType GeometryId)
+    Quadrilateral2D4<Point> GenerateQuadrilateralWithIdPointer(IndexType GeometryId)
     {
-        Quadrilateral2D4<3, PointerVector<NodeType>>::Pointer p_quad =
-            new Quadrilateral2D4<TPointType>(
-                GeneratePoint<TPointType>(0.0, 0.0, 0.0),
-                GeneratePoint<TPointType>(1.0, 0.0, 0.0),
-                GeneratePoint<TPointType>(1.0, 1.0, 0.0),
-                GeneratePoint<TPointType>(0.0, 1.0, 0.0)
+        Quadrilateral2D4<Point> quad(
+            Point::Pointer(new Point(0.0, 0.0, 0.0)),
+            Point::Pointer(new Point(1.0, 0.0, 0.0)),
+            Point::Pointer(new Point(1.0, 1.0, 0.0)),
+            Point::Pointer(new Point(0.0, 1.0, 0.0))
                 );
-        p_quad.SetId(GeometryId);
-        return p_quad;
+        quad.SetId(GeometryId);
+        return quad;
     }
 
     ///// Test Geometry Id
     KRATOS_TEST_CASE_IN_SUITE(TestGeometryId, KratosCoreGeometriesFastSuite) {
-        auto p_quad = GenerateQuadrilateralPointer<Point>(1);
+        auto quad = GenerateQuadrilateralWithIdPointer(1);
 
         //// Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(p_quad->Id(), 1);
+        KRATOS_CHECK_EQUAL(quad.Id(), 1);
     }
 } // namespace Testing.
 } // namespace Kratos.
