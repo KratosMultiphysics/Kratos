@@ -16,14 +16,6 @@ scripts/configure.bat
 build/*
 bin/*
 
-# Compile and install directories
-KratosMultiphysics/*
-libpython*
-libs/*
-runkratos
-runkratos.exe
-script.py
-
 # Times files
 *.time
 
