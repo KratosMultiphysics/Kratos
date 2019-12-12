@@ -564,7 +564,7 @@ public:
     ///@{
 
     /// Id of this Geometry
-    IndexType Id()
+    IndexType Id() const
     {
         return mId;
     }
@@ -572,11 +572,10 @@ public:
     /// Sets Id of this Geometry
     void SetId(IndexType Id)
     {
-        // The first two bits of the Id are used to detect if Id
-        // or hash of name.
-        KRATOS_ERROR_IF((Id & (IndexType(1) << 63)) && (Id & (IndexType(1) << 62)))
-            << "Id out of range. The first bits of the "
-            << "Geometry Ids are used to detect if Id is int or hash of name."
+        KRATOS_ERROR_IF(IsSelfAssignedId(Id) && IsGeometryIdString(Id))
+            << "Id out of range. The first bit of the Id is used to "
+            << "detect if Id is int or hash of name. Second bit defines"
+            << "if Id is self assigned or not."
             << std::endl;
 
         mId = Id;
@@ -585,11 +584,19 @@ public:
     /// Sets Id with the use of the name of this geometry
     void SetId(std::string name)
     {
-        SetGeometryIdName();
-
-        mId = std::hash(name);
+        mId = GetNameHash(name);
     }
 
+    /// Gets the corresponding hash-Id to a string name
+    inline IndexType GetNameHash(std::string name) const
+    {
+        IndexType id = std::hash(name);
+
+        // Sets first bit to one.
+        SetGeometryIdName(id);
+
+        return id;
+    }
 
     ///@}
     ///@name Parent
@@ -3190,25 +3197,35 @@ private:
     ///@{
 
     /// Checks first bit in mId. 0 -> id; 1 -> name
-    bool IsGeometryIdName()
+    bool IsGeometryIdString()
     {
-        return mId & (IndexType(1) << 63) :
+        return mId & (IndexType(1) << 63);
     }
 
-    void SetGeometryIdName()
+    inline bool IsGeometryIdString(IndexType Id) const
     {
-        mId |= (IndexType(1) << 63);
+        return Id & (IndexType(1) << 63);
+    }
+
+    void SetGeometryIdString(IndexType& Id)
+    {
+        Id |= (IndexType(1) << 63);
     }
 
     /// Checks second bit in mId. 0 -> foreign id; 1 -> self assigned
-    void IsSelfAssignedId()
+    bool IsSelfAssignedId()
     {
-        mId& (IndexType(1) << 62);
+        return mId & (IndexType(1) << 62);
     }
 
-    void SetSelfAssignedId()
+    inline bool IsSelfAssignedId(IndexType Id) const
     {
-        mId |= (IndexType(1) << 62);
+        return mId & (IndexType(1) << 62);
+    }
+
+    void SetSelfAssignedId(IndexType& Id) const
+    {
+        Id |= (IndexType(1) << 62);
     }
 
     ///@}
