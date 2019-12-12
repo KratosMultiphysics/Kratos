@@ -14,7 +14,6 @@
 #define KRATOS_RANS_APPLICATION_VARIABLES_H_INCLUDED
 
 // System includes
-#include <string>
 
 // External includes
 
