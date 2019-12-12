@@ -38,7 +38,7 @@ namespace Kratos
     MembraneElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     // Destructor
-    ~MembraneElement() override;
+    ~MembraneElement() = default;
 
 
     // Name Operations
@@ -403,7 +403,7 @@ private:
   friend class Serializer;
 
   // A private default constructor necessary for serialization
-  MembraneElement() {}
+  MembraneElement() = default;
 
   void save(Serializer& rSerializer) const override;
 
