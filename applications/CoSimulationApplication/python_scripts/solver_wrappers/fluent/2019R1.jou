@@ -13,15 +13,15 @@ file start-transcript "transcript.txt"
 )
 (define (wait_message message)
     (do ((j 0 j)) ((= j 1))
-		(if
-		    (file-exists? (string-append message ".coco"))
-		    (begin
-		        (set! j 1)
-		        (system (string-append "rm " message ".coco"))
-		    )
+        (if
+            (file-exists? (string-append message ".coco"))
+            (begin
+                (set! j 1)
+                (system (string-append "rm " message ".coco"))
+            )
             (system "sleep 0.1")
-		)
-	)
+        )
+    )
 )
 (define (check_message message)
     (if
@@ -32,7 +32,7 @@ file start-transcript "transcript.txt"
             (= 0 0)
         )
         (= 0 1)
-	)
+    )
 )
 (define (print-iter-info)
     (begin
