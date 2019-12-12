@@ -29,6 +29,7 @@
 // Project includes
 #include "includes/define.h"
 #include "input_output/logger_message.h"
+#include "containers/flags.h"
 
 namespace Kratos
 {
@@ -49,6 +50,11 @@ public:
   ///@name Type Definitions
   ///@{
 
+  KRATOS_DEFINE_LOCAL_FLAG(WARNING_PREFIX);
+  KRATOS_DEFINE_LOCAL_FLAG(INFO_PREFIX);
+  KRATOS_DEFINE_LOCAL_FLAG(DETAIL_PREFIX);
+  KRATOS_DEFINE_LOCAL_FLAG(DEBUG_PREFIX);
+  KRATOS_DEFINE_LOCAL_FLAG(TRACE_PREFIX);
 
   /// Pointer definition of LoggerOutput
   KRATOS_CLASS_POINTER_DEFINITION(LoggerOutput);
@@ -62,7 +68,17 @@ public:
   ///@{
 
   explicit LoggerOutput(std::ostream& rOutputStream)
-    : mrStream(rOutputStream), mMaxLevel(1), mSeverity(LoggerMessage::Severity::INFO), mCategory(LoggerMessage::Category::STATUS) {}
+    : mrStream(rOutputStream),
+      mMaxLevel(1),
+      mSeverity(LoggerMessage::Severity::INFO),
+      mCategory(LoggerMessage::Category::STATUS)
+  {
+    mOptions.Set(WARNING_PREFIX, true);
+    mOptions.Set(INFO_PREFIX, false);
+    mOptions.Set(DETAIL_PREFIX, false);
+    mOptions.Set(DEBUG_PREFIX, false);
+    mOptions.Set(TRACE_PREFIX, false);
+  }
 
   LoggerOutput(LoggerOutput const& Other)
     : mrStream(Other.mrStream), mMaxLevel(Other.mMaxLevel), mSeverity(Other.mSeverity), mCategory(Other.mCategory) {}
@@ -114,6 +130,14 @@ public:
 
   LoggerMessage::Category GetCategory() const {
     return mCategory;
+  }
+
+  void SetOption(Kratos::Flags ThisFlag, bool Value) {
+    mOptions.Set(ThisFlag, Value);
+  }
+
+  bool GetOption(Kratos::Flags ThisFlag) {
+    return mOptions.Is(ThisFlag);
   }
 
   ///@}
@@ -171,6 +195,7 @@ private:
   std::size_t mMaxLevel;
   LoggerMessage::Severity mSeverity;
   LoggerMessage::Category mCategory;
+  Kratos::Flags mOptions;
 
   ///@}
 }; // Class LoggerOutput

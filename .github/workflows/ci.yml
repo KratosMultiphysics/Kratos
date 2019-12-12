@@ -1,0 +1,39 @@
+name: CI
+
+on: [pull_request]
+
+jobs:
+  ubuntu:
+    runs-on: ubuntu-latest
+
+    container:
+      image: oberbichler/kratos-dev:latest
+      env:
+        CCACHE_SLOPPINESS: pch_defines,time_macros
+        CCACHE_COMPILERCHECK: content
+        CCACHE_COMPRESS: true
+        CCACHE_NODISABLE: true
+        CCACHE_MAXSIZE: 500M
+        FC: gfortran-7
+        CC: /usr/lib/ccache/gcc
+        CXX: /usr/lib/ccache/g++
+
+    steps:
+    - uses: actions/checkout@v2-beta
+    - name: Cache Build
+      id: cache-build
+      uses: actions/cache@v1
+      with:
+        path: ~/.ccache
+        key: ${{ runner.os }}-ccache-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-ccache-
+    - name: Build
+      run: |
+        cp scripts/build/travis/configure_travis_bionic.sh configure.sh
+        bash configure.sh
+        ccache -s
+    - name: Test
+      run: |
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3 kratos/python_scripts/run_tests.py -l small -c python3
