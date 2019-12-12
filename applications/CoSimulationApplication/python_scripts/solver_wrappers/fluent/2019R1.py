@@ -4,6 +4,8 @@ import subprocess
 import time
 import numpy as np
 import copy
+import sys
+import shutil
 
 import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.co_simulation_component import CoSimulationComponent
@@ -34,12 +36,14 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
             save_iterations         number of timesteps between consecutive
                                     saves of the Fluent case and data files
         """
-        self.settings = parameters['settings']
-        self.dir_cfd = join(os.getcwd(), self.settings['working_directory'].GetString())
-        path_src = os.path.realpath(os.path.dirname(__file__))
+        # *** add info about more parameters here
 
+        self.settings = parameters['settings']
+        self.check_software()
+        self.dir_cfd = join(os.getcwd(), self.settings['working_directory'].GetString())
         self.remove_all_messages()
 
+        path_src = os.path.realpath(os.path.dirname(__file__))
         self.cores = self.settings['cores'].GetInt()
         self.case_file = self.settings['case_file'].GetString()  # file must be in self.dir_cfd
         self.mnpf = self.settings['max_nodes_per_face'].GetInt()
@@ -88,7 +92,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
         # start Fluent with journal
         log = join(self.dir_cfd, 'fluent.log')
-        cmd1 = f'fluent {self.dimensions}ddp '
+        cmd1 = f'fluent 19.3.0 {self.dimensions}ddp '
         cmd2 = f'-t{self.cores} -i {journal}'
 
         if self.settings['fluent_gui'].GetBool():
@@ -334,6 +338,19 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
     def SetInterfaceOutput(self):
         Exception("This solver interface provides no mapping.")
+
+    def check_software(self):
+        # Python version: 3.6 or higher
+        if sys.version_info < (3, 6):
+            raise RuntimeError('Python version 3.6 or higher required.')
+
+        # Fluent version: 2019R1 (19.3.0)
+        if shutil.which('fluent') is None:
+            raise RuntimeError('ANSYS Fluent must be available.')
+
+        result = subprocess.run(['fluent', '-r'], stdout=subprocess.PIPE)
+        if '19.3.0' not in str(result.stdout):
+            raise RuntimeError('ANSYS Fluent version 2019R1 (19.3.0) is required.')
 
     def get_unique_face_ids(self, data):
         """
