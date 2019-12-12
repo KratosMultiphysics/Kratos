@@ -45,7 +45,7 @@ namespace Testing {
     }
 
     ///// Test Geometry Id with name
-    KRATOS_TEST_CASE_IN_SUITE(TestGeometryId, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(TestGeometryName, KratosCoreGeometriesFastSuite) {
         auto p_quad = GeneratePointsRightTriangle2D3();
 
         p_quad->SetId("Geometry1");
