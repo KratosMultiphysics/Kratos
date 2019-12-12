@@ -154,11 +154,22 @@ public:
     typename GeometryType::Pointer pGetGeometry(IndexType GeometryId)
     {
         auto i = mpGeometries->find(GeometryId);
-        KRATOS_ERROR_IF(i == mpGeometries->end()) << " geometry index not found: " << GeometryId << ".";
+        KRATOS_ERROR_IF(i == mpGeometries->end())
+            << " geometry index not found: " << GeometryId << ".";
         return *i.base();
     }
 
-    /// Returns a reference geometry corresponding to it's identifier
+    /// Returns the Geometry::Pointer corresponding to it's identifier
+    typename GeometryType::Pointer pGetGeometry(std::string GeometryName)
+    {
+        auto hash_index = GeometryType::GetNameHash(GeometryName);
+        auto i = mpGeometries->find(hash_index);
+        KRATOS_ERROR_IF(i == mpGeometries->end())
+            << " geometry index not found: " << GeometryName << ".";
+        return *i.base();
+    }
+
+    /// Returns a reference geometry corresponding to the id
     GeometryType& GetGeometry(IndexType GeometryId)
     {
         auto i = mpGeometries->find(GeometryId);
@@ -166,11 +177,13 @@ public:
         return *i;
     }
 
-    /// Returns a const reference geometry corresponding to it's identifier
-    const GeometryType& GetGeometry(IndexType GeometryId) const
+    /// Returns a const reference geometry corresponding to the name
+    const GeometryType& GetGeometry(std::string GeometryName) const
     {
-        auto i = mpGeometries->find(GeometryId);
-        KRATOS_ERROR_IF(i == mpGeometries->end()) << " geometry index not found: " << GeometryId << ".";
+        auto hash_index = GeometryType::GetNameHash(GeometryName);
+        auto i = mpGeometries->find(hash_index);
+        KRATOS_ERROR_IF(i == mpGeometries->end())
+            << " geometry index not found: " << GeometryName << ".";
         return *i;
     }
 
@@ -182,6 +195,13 @@ public:
     void RemoveGeometry(IndexType GeometryId)
     {
         mpGeometries->erase(GeometryId);
+    }
+    /// Remove the geometry with given name from geometry container
+    void RemoveGeometry(std::string GeometryName)
+    {
+        auto index = GeometryType::GetNameHash(GeometryName);
+
+        mpGeometries->erase(index);
     }
 
     /// Remove given element from geometry container
@@ -203,6 +223,13 @@ public:
     bool HasGeometry(IndexType GeometryId) const
     {
         return (mpGeometries->find(GeometryId) != mpGeometries->end());
+    }
+
+    bool HasGeometry(std::string GeometryName) const
+    {
+        auto hash_index = GeometryType::GetNameHash(GeometryName);
+
+        return (mpGeometries->find(hash_index) != mpGeometries->end());
     }
 
     ///@}
