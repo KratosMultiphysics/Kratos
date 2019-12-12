@@ -421,23 +421,25 @@ class ell<amgcl::static_matrix<T, N, N>, Col, Ptr> {
         {
             backend::device_vector<T> val(q, nnz * N * N);
 
-            if (fast) {
-                backend::device_vector<T> tmp(q, nnz * N * N, reinterpret_cast<const T*>(host_data));
+            if (nnz) {
+                if (fast) {
+                    backend::device_vector<T> tmp(q, nnz * N * N, reinterpret_cast<const T*>(host_data));
 
-                VEX_FUNCTION(T, transpose, (int,k)(int,m)(int,nnz)(T*, v),
-                        int i = k / nnz;
-                        int j = k % nnz;
-                        return v[j * m + i];
-                        );
+                    VEX_FUNCTION(T, transpose, (int,k)(int,m)(int,nnz)(T*, v),
+                            int i = k / nnz;
+                            int j = k % nnz;
+                            return v[j * m + i];
+                            );
 
-                vex::vector<T>(q,val) = transpose(vex::element_index(), N*N, nnz, raw_pointer(vex::vector<T>(q, tmp)));
-            } else {
-                auto v = val.map(q);
+                    vex::vector<T>(q,val) = transpose(vex::element_index(), N*N, nnz, raw_pointer(vex::vector<T>(q, tmp)));
+                } else {
+                    auto v = val.map(q);
 
-                for(int k = 0, i = 0; i < N; ++i)
-                    for(int j = 0; j < N; ++j, ++k)
-                        for(size_t m = 0; m < nnz; ++m)
-                            v[k * nnz + m] = host_data[m](i,j);
+                    for(int k = 0, i = 0; i < N; ++i)
+                        for(int j = 0; j < N; ++j, ++k)
+                            for(size_t m = 0; m < nnz; ++m)
+                                v[k * nnz + m] = host_data[m](i,j);
+                }
             }
 
             return val;
@@ -506,8 +508,8 @@ class ell<amgcl::static_matrix<T, N, N>, Col, Ptr> {
             size_t nnz = host_ptr[n];
 
             backend::device_vector<Ptr> Aptr(q, n + 1, &host_ptr[0]);
-            backend::device_vector<Col> Acol(q, nnz, &host_col[0]);
-            backend::device_vector<T>   Aval = create_device_vector(q, nnz, &host_val[0]);
+            backend::device_vector<Col> Acol(q, nnz, nnz ? &host_col[0] : nullptr);
+            backend::device_vector<T>   Aval = create_device_vector(q, nnz, nnz ? &host_val[0] : nullptr);
 
             /* 1. Get optimal ELL widths for local and remote parts. */
             // Speed of ELL relative to CSR:
@@ -747,6 +749,53 @@ struct spmv_impl<Alpha,
             y = vex_add<T,B>().apply(vex_scale<T,B>().apply(alpha, A * x), vex_scale<T,B>().apply(beta, y));
         else
             y = vex_scale<T,B>().apply(alpha, A * x);
+    }
+};
+
+template <typename Alpha, typename Beta, typename TA, typename TX, typename TY>
+struct spmv_impl<Alpha,
+    vex::sparse::distributed<vex::sparse::matrix<TA, ptrdiff_t, ptrdiff_t>>,
+    vex::vector<TX>, Beta, vex::vector<TY>,
+    typename std::enable_if<
+        (math::static_rows<TA>::value == 1) && (
+                math::static_rows<TA>::value != math::static_rows<TX>::value ||
+                math::static_rows<TA>::value != math::static_rows<TY>::value
+                )
+        >::type>
+{
+    typedef vex::sparse::distributed<vex::sparse::matrix<TA, ptrdiff_t, ptrdiff_t>> matrix;
+    typedef vex::vector<TX> vectorx;
+    typedef vex::vector<TY> vectory;
+
+    static void apply(Alpha alpha, const matrix &A, const vectorx &x, Beta beta, vectory &y)
+    {
+        auto _x = x.template reinterpret<typename math::scalar_of<TX>::type>();
+        auto _y = y.template reinterpret<typename math::scalar_of<TY>::type>();
+        spmv(alpha, A, _x, beta, _y);
+    }
+};
+
+template <typename Alpha, typename Beta, typename TA, typename TX, typename TY>
+struct spmv_impl<Alpha,
+    vex::sparse::distributed<vex::sparse::matrix<TA, ptrdiff_t, ptrdiff_t>>,
+    vex::vector<TX>, Beta, vex::vector<TY>,
+    typename std::enable_if<
+        (math::static_rows<TA>::value > 1) && (
+                math::static_rows<TA>::value != math::static_rows<TX>::value ||
+                math::static_rows<TA>::value != math::static_rows<TY>::value
+                )
+        >::type>
+{
+    typedef vex::sparse::distributed<vex::sparse::matrix<TA, ptrdiff_t, ptrdiff_t>> matrix;
+    typedef vex::vector<TX> vectorx;
+    typedef vex::vector<TY> vectory;
+
+    static void apply(Alpha alpha, const matrix &A, const vectorx &x, Beta beta, vectory &y)
+    {
+        const int B = math::static_rows<TA>::value;
+        auto _x = x.template reinterpret<static_matrix<typename math::scalar_of<TX>::type, B, 1>>();
+        auto _y = y.template reinterpret<static_matrix<typename math::scalar_of<TY>::type, B, 1>>();
+        spmv(alpha, A, _x, beta, _y);
     }
 };
 

@@ -102,6 +102,8 @@ KRATOS_CREATE_VARIABLE(double, STRAIN_ENERGY)
 KRATOS_CREATE_VARIABLE(double, EXTERNAL_ENERGY)
 KRATOS_CREATE_VARIABLE(double, TOTAL_ENERGY)
 
+KRATOS_CREATE_VARIABLE(double, VOLUMETRIC_STRAIN)
+
 KRATOS_CREATE_VARIABLE(double, THERMAL_EXPANSION_COEFFICIENT)
 KRATOS_CREATE_VARIABLE(double, STABILIZATION_FACTOR)
 KRATOS_CREATE_VARIABLE(double, DETERMINANT_F)
@@ -453,6 +455,7 @@ void KratosApplication::RegisterVariables() {
     KratosApplication::RegisterFSIVariables();      //TODO: move to application
     KratosApplication::RegisterMATVariables();      //TODO: move to application
     KratosApplication::RegisterLegacyStructuralAppVariables();  //TODO: move to application
+    KratosApplication::RegisterGlobalPointerVariables();
 
     // Variables that should be moved to applications (but have too many dependencies)
     KRATOS_REGISTER_VARIABLE(FRACTIONAL_STEP)
@@ -595,6 +598,7 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_VARIABLE(GRADIENT_PENALTY_COEFFICIENT)
 
     //STRAIN MEASURES
+    KRATOS_REGISTER_VARIABLE(VOLUMETRIC_STRAIN)
     KRATOS_REGISTER_VARIABLE(GREEN_LAGRANGE_STRAIN_TENSOR)
 
     //STRESS MEASURES

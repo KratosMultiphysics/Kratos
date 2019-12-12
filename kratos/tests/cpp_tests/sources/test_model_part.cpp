@@ -133,6 +133,17 @@ namespace Kratos {
         KRATOS_CHECK_IS_FALSE(r_model_part.HasNodalSolutionStepVariable(PRESSURE));
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartFullName, KratosCoreFastSuite)
+    {
+        Model current_model;
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
+        ModelPart& r_sub_model_part = r_model_part.CreateSubModelPart("SubModelPart");
+        ModelPart& r_sub_sub_model_part = r_sub_model_part.CreateSubModelPart("SubSubModelPart");
+
+        KRATOS_CHECK_STRING_EQUAL(r_model_part.FullName(), "Main");
+        KRATOS_CHECK_STRING_EQUAL(r_sub_model_part.FullName(), "Main.SubModelPart");
+        KRATOS_CHECK_STRING_EQUAL(r_sub_sub_model_part.FullName(), "Main.SubModelPart.SubSubModelPart");
+    }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartEmptyName, KratosCoreFastSuite)
     {
@@ -140,10 +151,6 @@ namespace Kratos {
 
         // Constructor with name
         KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart(""),
-            "Error: Please don't use empty names (\"\") when creating a ModelPart");
-
-        // Constructor with name and bufferSize
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart("", 2),
             "Error: Please don't use empty names (\"\") when creating a ModelPart");
     }
 
@@ -153,11 +160,7 @@ namespace Kratos {
 
         // Constructor with name
         KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart("name.other"),
-            "Error: Please don't use names containing (\".\") when creating a ModelPart");
-
-        // Constructor with name and bufferSize
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart("name.other", 2),
-            "Error: Please don't use names containing (\".\") when creating a ModelPart");
+            "Error: Please don't use names containing (\".\") when creating a ModelPart (used in \"name.other\")");
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveElements, KratosCoreFastSuite)

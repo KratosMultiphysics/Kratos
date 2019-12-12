@@ -25,6 +25,8 @@
 #include "containers/variable_component.h"
 #include "containers/vector_component_adaptor.h"
 #include "includes/process_info.h"
+#include "utilities/indexed_object.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -54,7 +56,7 @@ namespace Kratos
  *
  * This class allows to add a master-slave constraint which is of the form
  *
- * SlaveDofVector = T * MasterDofVector + ConstantVector. (Processing of this is currently not implemented.)
+ * SlaveDofVector = T * MasterDofVector + rConstantVector. (Processing of this is currently not implemented.)
  *
  * or
  *
@@ -161,18 +163,18 @@ public:
     /**
      * @brief Creates a new constraint pointer
      * @param Id the ID of the new constraint
-     * @param MasterDofsVector the vector of master degree of freedoms.
-     * @param SlaveDofsVector the vector of slave degree of freedoms.
-     * @param RelationMatrix The matrix of weights relating the master DOFs and Slave DOFs
-     * @param ConstantVector The vector of the constants, one entry for each of the slave.
+     * @param rMasterDofsVector the vector of master degree of freedoms.
+     * @param rSlaveDofsVector the vector of slave degree of freedoms.
+     * @param rRelationMatrix The matrix of weights relating the master DOFs and Slave DOFs
+     * @param rConstantVector The vector of the constants, one entry for each of the slave.
      * @return A Pointer to the new constraint
      */
     virtual MasterSlaveConstraint::Pointer Create(
         IndexType Id,
-        DofPointerVectorType& MasterDofsVector,
-        DofPointerVectorType& SlaveDofsVector,
-        const MatrixType& RelationMatrix,
-        const VectorType& ConstantVector
+        DofPointerVectorType& rMasterDofsVector,
+        DofPointerVectorType& rSlaveDofsVector,
+        const MatrixType& rRelationMatrix,
+        const VectorType& rConstantVector
         ) const
     {
         KRATOS_TRY
@@ -246,8 +248,14 @@ public:
     virtual Pointer Clone (IndexType NewId) const
     {
         KRATOS_TRY
-        KRATOS_ERROR << "Clone not implemented in MasterSlaveConstraintBaseClass" << std::endl;
-        return nullptr;
+
+        KRATOS_WARNING("MasterSlaveConstraint") << " Call base class constraint Clone " << std::endl;
+        MasterSlaveConstraint::Pointer p_new_const = Kratos::make_shared<MasterSlaveConstraint>(*this);
+        p_new_const->SetId(NewId);
+        p_new_const->SetData(this->GetData());
+        p_new_const->Set(Flags(*this));
+        return p_new_const;
+
         KRATOS_CATCH("");
     }
 
@@ -261,6 +269,7 @@ public:
     /**
      * @brief It is called to initialize the constraint
      * @details If the constraint needs to perform any operation before any calculation is done
+     * @param rCurrentProcessInfo The current process info instance
      */
     virtual void Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
@@ -269,6 +278,7 @@ public:
     /**
      * @brief It is called to finalize the constraint
      * @details If the constraint needs to perform any operation before any calculation is done
+     * @param rCurrentProcessInfo The current process info instance
      */
     virtual void Finalize(const ProcessInfo& rCurrentProcessInfo)
     {
@@ -277,6 +287,7 @@ public:
 
     /**
      * @brief This is called in the beginning of each solution step
+     * @param rCurrentProcessInfo The current process info instance
      */
     virtual void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
@@ -284,6 +295,7 @@ public:
 
     /**
      * @brief This is called for non-linear analysis at the beginning of the iteration process
+     * @param rCurrentProcessInfo The current process info instance
      */
     virtual void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
     {
@@ -291,6 +303,7 @@ public:
 
     /**
      * @brief This is called for non-linear analysis at the end of the iteration process
+     * @param rCurrentProcessInfo The current process info instance
      */
     virtual void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
     {
@@ -305,17 +318,32 @@ public:
 
     /**
      * @brief Determines the constrant's slave and master list of DOFs
-     * @param rSlaveDofList The list of slave DOFs
-     * @param rMasterDofList The list of slave DOFs
+     * @param rSlaveDofsVector The list of slave DOFs
+     * @param rMasterDofsVector The list of slave DOFs
      * @param rCurrentProcessInfo The current process info instance
      */
     virtual void GetDofList(
-        DofPointerVectorType& rSlaveDofList,
-        DofPointerVectorType& rMasterDofList,
+        DofPointerVectorType& rSlaveDofsVector,
+        DofPointerVectorType& rMasterDofsVector,
         const ProcessInfo& rCurrentProcessInfo
         ) const
     {
-        KRATOS_ERROR << "Create not implemented in MasterSlaveConstraintBaseClass" << std::endl;
+        KRATOS_ERROR << "GetDofList not implemented in MasterSlaveConstraintBaseClass" << std::endl;
+    }
+
+    /**
+     * @brief Determines the constrant's slave and master list of DOFs
+     * @param rSlaveDofsVector The list of slave DOFs
+     * @param rMasterDofsVector The list of slave DOFs
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    virtual void SetDofList(
+        const DofPointerVectorType& rSlaveDofsVector,
+        const DofPointerVectorType& rMasterDofsVector,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        KRATOS_ERROR << "SetDofList not implemented in MasterSlaveConstraintBaseClass" << std::endl;
     }
 
     /**
@@ -350,9 +378,27 @@ public:
      * @brief This method returns the slave dof vector
      * @return The vector containing the slave dofs
      */
+    virtual void SetSlaveDofsVector(const DofPointerVectorType& rSlaveDofsVector)
+    {
+        KRATOS_ERROR << "SetSlaveDofsVector not implemented in MasterSlaveConstraintBaseClass" << std::endl;
+    }
+
+    /**
+     * @brief This method returns the slave dof vector
+     * @return The vector containing the slave dofs
+     */
     virtual const DofPointerVectorType& GetMasterDofsVector() const
     {
         KRATOS_ERROR << "GetMasterDofsVector not implemented in MasterSlaveConstraintBaseClass" << std::endl;
+    }
+
+    /**
+     * @brief This method returns the slave dof vector
+     * @return The vector containing the slave dofs
+     */
+    virtual void SetMasterDofsVector(const DofPointerVectorType& rMasterDofsVector)
+    {
+        KRATOS_ERROR << "SetMasterDofsVector not implemented in MasterSlaveConstraintBaseClass" << std::endl;
     }
 
     /**
@@ -374,20 +420,58 @@ public:
     }
 
     /**
+     * @brief This method allows to set the Local System in case is not computed on tunning time (internal variable)
+     * @param rRelationMatrix the matrix which relates the master and slave degree of freedom
+     * @param rConstant The constant vector (one entry for each slave)
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    virtual void SetLocalSystem(
+        const MatrixType& rRelationMatrix,
+        const VectorType& rConstantVector,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "SetLocalSystem not implemented in MasterSlaveConstraintBaseClass" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method allows to get the Local System in case is not computed on tunning time (internal variable)
+     * @param rRelationMatrix the matrix which relates the master and slave degree of freedom
+     * @param rConstant The constant vector (one entry for each slave)
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    virtual void GetLocalSystem(
+        MatrixType& rRelationMatrix,
+        VectorType& rConstantVector,
+        const ProcessInfo& rCurrentProcessInfo
+        ) const
+    {
+        KRATOS_TRY
+
+        this->CalculateLocalSystem(rRelationMatrix, rConstantVector, rCurrentProcessInfo);
+
+        KRATOS_CATCH("");
+    }
+
+    /**
      * @brief This is called during the assembling process in order
      * @details To calculate the relation between the master and slave.
-     * @param rTransformationMatrix the matrix which relates the master and slave degree of freedom
+     * @param rRelationMatrix the matrix which relates the master and slave degree of freedom
      * @param rConstant The constant vector (one entry for each slave)
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateLocalSystem(
-        MatrixType& rTransformationMatrix,
+        MatrixType& rRelationMatrix,
         VectorType& rConstantVector,
         const ProcessInfo& rCurrentProcessInfo
-        )
+        ) const
     {
-        if (rTransformationMatrix.size1() != 0) {
-            rTransformationMatrix.resize(0, 0, false);
+        if (rRelationMatrix.size1() != 0) {
+            rRelationMatrix.resize(0, 0, false);
         }
 
         if (rConstantVector.size() != 0) {

@@ -27,7 +27,6 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "speed_of_sound": 340,
                 "heat_capacity_ratio": 1.4,
                 "inlet_potential": 1.0,
-                "free_stream_velocity": [1.0,0.0,0],
                 "initialize_flow_field": true
             }  """ )
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -58,7 +57,10 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.HEAT_CAPACITY_RATIO,self.heat_capacity_ratio)
 
     def ExecuteInitializeSolutionStep(self):
-        self.Execute()
+        far_field_process=CPFApp.ApplyFarFieldProcess(self.far_field_model_part, self.inlet_potential_0, self.initialize_flow_field)
+        far_field_process.Execute()
+
+        # self.Execute()
 
     def Execute(self):
         reference_inlet_node = self._FindFarthestUpstreamBoundaryNode()

@@ -284,6 +284,7 @@ private:
     ///@name Private Operations
     ///@{
 
+    using UpdatedLagrangian::CalculateDeformationMatrix;
 
     ///@}
     ///@name Private  Access

@@ -25,25 +25,31 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
-		ModelPart& rVolumePart, 
-		ModelPart& rSkinPart) : mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)), mIsSearchStructureAllocated(true), mCharacteristicLength(1.00)
+		ModelPart& rVolumePart,
+		ModelPart& rSkinPart)
+		: mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)),
+		  mIsSearchStructureAllocated(true)
 	{
 	}
 
-	template<std::size_t TDim>
+	template <std::size_t TDim>
 	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
-		ModelPart& rVolumePart, 
-		ModelPart& rSkinPart,
-		const double ExtraRaysEpsilon)
-		: mExtraRaysEpsilon(ExtraRaysEpsilon), mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)), mIsSearchStructureAllocated(true), mCharacteristicLength(1.00)
+		ModelPart &rVolumePart,
+		ModelPart &rSkinPart,
+		const double RelativeTolerance)
+		: mRelativeTolerance(RelativeTolerance),
+		  mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)),
+		  mIsSearchStructureAllocated(true)
 	{
 	}
 
-	template<std::size_t TDim>
+	template <std::size_t TDim>
 	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
-		FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
-		const double ExtraRaysEpsilon)
-		: mExtraRaysEpsilon(ExtraRaysEpsilon), mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess), mIsSearchStructureAllocated(false), mCharacteristicLength(1.00)
+		FindIntersectedGeometricalObjectsProcess &TheFindIntersectedObjectsProcess,
+		const double RelativeTolerance)
+		: mRelativeTolerance(RelativeTolerance),
+		  mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess),
+		  mIsSearchStructureAllocated(false)
 	{
 	}
 
@@ -60,7 +66,7 @@ namespace Kratos
         if(mIsSearchStructureAllocated) // we have not initialized it yet
             mpFindIntersectedObjectsProcess->Initialize();
 
-        CalculateCharacteristicLength();
+		this->SetRayCastingTolerances();
 
 		ModelPart& ModelPart1 = mpFindIntersectedObjectsProcess->GetModelPart1();
 
@@ -78,7 +84,6 @@ namespace Kratos
 	template<std::size_t TDim>
 	double ApplyRayCastingProcess<TDim>::DistancePositionInSpace(const Node<3> &rNode)
 	{
-        const double epsilon = 1e-12;
 		array_1d<double,TDim> distances;
 		unsigned int n_ray_pos(0), n_ray_neg(0);
         IntersectionsContainerType intersections;
@@ -91,9 +96,9 @@ namespace Kratos
 
             // Creating the ray
             double ray[3] = {r_coords[0], r_coords[1], r_coords[2]};
-			auto pOctree = mpFindIntersectedObjectsProcess->GetOctreePointer();
-            pOctree->NormalizeCoordinates(ray);
-            ray[i_direction] = 0; // Starting from the lower extreme
+			auto &rp_octree = mpFindIntersectedObjectsProcess->GetOctreePointer();
+			rp_octree->NormalizeCoordinates(ray);
+			ray[i_direction] = 0; // Starting from the lower extreme
 
             this->GetRayIntersections(ray, i_direction, intersections);
 
@@ -101,10 +106,10 @@ namespace Kratos
             auto i_intersection = intersections.begin();
             while (i_intersection != intersections.end()) {
                 double int_d = r_coords[i_direction] - i_intersection->first; // Octree ray intersection distance
-                if (int_d > epsilon) {
+                if (int_d > mEpsilon) {
                     ray_color = -ray_color;
                     distances[i_direction] = int_d;
-                } else if (int_d > -epsilon) {
+                } else if (int_d > -mEpsilon) {
                     distances[i_direction] = 0.0;
                     break;
                 } else {
@@ -128,7 +133,7 @@ namespace Kratos
 		// Check the obtained cartesian ray colors
 		// If this situation happens, do the "evolved Predator" raycasting to vote
 		if (n_ray_neg != 0 && n_ray_pos != 0) {
-			this->ComputeExtraRayColors(epsilon, mExtraRaysEpsilon, r_coords, distances);
+			this->ComputeExtraRayColors(r_coords, distances);
 		}
 
         double distance = (std::abs(distances[0]) > std::abs(distances[1])) ? distances[1] : distances[0];
@@ -141,17 +146,15 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	void ApplyRayCastingProcess<TDim>::ComputeExtraRayColors(
-		const double Epsilon,
-		const double RayPerturbation,
 		const array_1d<double,3> &rCoords,
         array_1d<double,TDim> &rDistances)
 	{
 		// Set the extra ray origins
 		array_1d<array_1d<double,3>, (TDim == 3) ? 9 : 5> extra_ray_origs;
-		this->GetExtraRayOrigins(RayPerturbation, rCoords, extra_ray_origs);
+		this->GetExtraRayOrigins(rCoords, extra_ray_origs);
 
 		// Get the pointer to the base Octree binary
-		auto p_octree = mpFindIntersectedObjectsProcess->GetOctreePointer();
+		auto &rp_octree = mpFindIntersectedObjectsProcess->GetOctreePointer();
 
 		// Loop the extra rays to compute its color
 		unsigned int n_ray_pos = 0; // Positive rays counter
@@ -161,8 +164,8 @@ namespace Kratos
 			for (unsigned int i_ray = 0; i_ray < extra_ray_origs.size(); ++i_ray) {
 				// Creating the ray
 				const auto aux_ray = extra_ray_origs[i_ray];
-				double ray[3] = {aux_ray[0], aux_ray[1], aux_ray[2]};				
-				p_octree->NormalizeCoordinates(ray);
+				double ray[3] = {aux_ray[0], aux_ray[1], aux_ray[2]};
+				rp_octree->NormalizeCoordinates(ray);
 				ray[i_direction] = 0; // Starting from the lower extreme
 				this->CorrectExtraRayOrigin(ray); // Avoid extra ray normalized coordinates to be larger than 1 or 0
 				this->GetRayIntersections(ray, i_direction, intersections);
@@ -172,9 +175,9 @@ namespace Kratos
 				auto i_intersection = intersections.begin();
 				while (i_intersection != intersections.end()) {
 					const double int_d = extra_ray_origs[i_ray][i_direction] - i_intersection->first; // Octree ray intersection distance
-					if (int_d > Epsilon) {
+					if (int_d > mEpsilon) {
 						ray_color = -ray_color;
-					} else if (int_d > -Epsilon) {
+					} else if (int_d > - mEpsilon) {
 						break;
 					} else {
 						break;
@@ -201,7 +204,6 @@ namespace Kratos
 
 	template<>
 	void ApplyRayCastingProcess<2>::GetExtraRayOrigins(
-        const double RayEpsilon,
         const array_1d<double,3> &rCoords,
 		array_1d<array_1d<double,3>, 5> &rExtraRayOrigs)
 	{
@@ -210,10 +212,10 @@ namespace Kratos
 		}
 
 		array_1d<double,3> aux_1; aux_1[0] = rCoords[0]; aux_1[1] = rCoords[1]; aux_1[2] = rCoords[2];
-		array_1d<double,3> aux_2; aux_2[0] = rCoords[0] + 2*RayEpsilon; aux_2[1] = rCoords[1] + RayEpsilon; aux_2[2] = rCoords[2];
-		array_1d<double,3> aux_3; aux_3[0] = rCoords[0] + RayEpsilon; aux_3[1] = rCoords[1] + 2*RayEpsilon; aux_3[2] = rCoords[2];
-		array_1d<double,3> aux_4; aux_4[0] = rCoords[0] - 2*RayEpsilon; aux_4[1] = rCoords[1] - RayEpsilon; aux_4[2] = rCoords[2];
-		array_1d<double,3> aux_5; aux_5[0] = rCoords[0] - RayEpsilon; aux_5[1] = rCoords[1] - 2*RayEpsilon; aux_5[2] = rCoords[2];
+		array_1d<double,3> aux_2; aux_2[0] = rCoords[0] + 2*mExtraRayOffset; aux_2[1] = rCoords[1] + mExtraRayOffset; aux_2[2] = rCoords[2];
+		array_1d<double,3> aux_3; aux_3[0] = rCoords[0] + mExtraRayOffset; aux_3[1] = rCoords[1] + 2*mExtraRayOffset; aux_3[2] = rCoords[2];
+		array_1d<double,3> aux_4; aux_4[0] = rCoords[0] - 2*mExtraRayOffset; aux_4[1] = rCoords[1] - mExtraRayOffset; aux_4[2] = rCoords[2];
+		array_1d<double,3> aux_5; aux_5[0] = rCoords[0] - mExtraRayOffset; aux_5[1] = rCoords[1] - 2*mExtraRayOffset; aux_5[2] = rCoords[2];
 
 		rExtraRayOrigs[0] = aux_1;
 		rExtraRayOrigs[1] = aux_2;
@@ -224,7 +226,6 @@ namespace Kratos
 
 	template<>
 	void ApplyRayCastingProcess<3>::GetExtraRayOrigins(
-        const double RayEpsilon,
         const array_1d<double,3> &rCoords,
 		array_1d<array_1d<double,3>,9> &rExtraRayOrigs)
 	{
@@ -233,14 +234,14 @@ namespace Kratos
 		}
 
 		array_1d<double,3> aux_1; aux_1[0] = rCoords[0]; aux_1[1] = rCoords[1]; aux_1[2] = rCoords[2];
-		array_1d<double,3> aux_2; aux_2[0] = rCoords[0] + 2*RayEpsilon; aux_2[1] = rCoords[1] + RayEpsilon; aux_2[2] = rCoords[2] - RayEpsilon;
-		array_1d<double,3> aux_3; aux_3[0] = rCoords[0] + RayEpsilon; aux_3[1] = rCoords[1] + 2*RayEpsilon; aux_3[2] = rCoords[2] - RayEpsilon;
-		array_1d<double,3> aux_4; aux_4[0] = rCoords[0] - 2*RayEpsilon; aux_4[1] = rCoords[1] - RayEpsilon; aux_4[2] = rCoords[2] - RayEpsilon;
-		array_1d<double,3> aux_5; aux_5[0] = rCoords[0] - RayEpsilon; aux_5[1] = rCoords[1] - 2*RayEpsilon; aux_5[2] = rCoords[2] - RayEpsilon;
-		array_1d<double,3> aux_6; aux_6[0] = rCoords[0] + 2*RayEpsilon; aux_6[1] = rCoords[1] + RayEpsilon; aux_6[2] = rCoords[2] + RayEpsilon;
-		array_1d<double,3> aux_7; aux_7[0] = rCoords[0] + RayEpsilon; aux_7[1] = rCoords[1] + 2*RayEpsilon; aux_7[2] = rCoords[2] + RayEpsilon;
-		array_1d<double,3> aux_8; aux_8[0] = rCoords[0] - 2*RayEpsilon; aux_8[1] = rCoords[1] - RayEpsilon; aux_8[2] = rCoords[2] + RayEpsilon;
-		array_1d<double,3> aux_9; aux_9[0] = rCoords[0] - RayEpsilon; aux_9[1] = rCoords[1] - 2*RayEpsilon; aux_9[2] = rCoords[2] + RayEpsilon;
+		array_1d<double,3> aux_2; aux_2[0] = rCoords[0] + 2*mExtraRayOffset; aux_2[1] = rCoords[1] + mExtraRayOffset; aux_2[2] = rCoords[2] - mExtraRayOffset;
+		array_1d<double,3> aux_3; aux_3[0] = rCoords[0] + mExtraRayOffset; aux_3[1] = rCoords[1] + 2*mExtraRayOffset; aux_3[2] = rCoords[2] - mExtraRayOffset;
+		array_1d<double,3> aux_4; aux_4[0] = rCoords[0] - 2*mExtraRayOffset; aux_4[1] = rCoords[1] - mExtraRayOffset; aux_4[2] = rCoords[2] - mExtraRayOffset;
+		array_1d<double,3> aux_5; aux_5[0] = rCoords[0] - mExtraRayOffset; aux_5[1] = rCoords[1] - 2*mExtraRayOffset; aux_5[2] = rCoords[2] - mExtraRayOffset;
+		array_1d<double,3> aux_6; aux_6[0] = rCoords[0] + 2*mExtraRayOffset; aux_6[1] = rCoords[1] + mExtraRayOffset; aux_6[2] = rCoords[2] + mExtraRayOffset;
+		array_1d<double,3> aux_7; aux_7[0] = rCoords[0] + mExtraRayOffset; aux_7[1] = rCoords[1] + 2*mExtraRayOffset; aux_7[2] = rCoords[2] + mExtraRayOffset;
+		array_1d<double,3> aux_8; aux_8[0] = rCoords[0] - 2*mExtraRayOffset; aux_8[1] = rCoords[1] - mExtraRayOffset; aux_8[2] = rCoords[2] + mExtraRayOffset;
+		array_1d<double,3> aux_9; aux_9[0] = rCoords[0] - mExtraRayOffset; aux_9[1] = rCoords[1] - 2*mExtraRayOffset; aux_9[2] = rCoords[2] + mExtraRayOffset;
 
 		rExtraRayOrigs[0] = aux_1;
 		rExtraRayOrigs[1] = aux_2;
@@ -275,20 +276,18 @@ namespace Kratos
         // Ray is of dimension (3) normalized in (0,1)^3 space
         // Direction can be 0,1,2 which are x,y and z respectively
 
-        const double epsilon = 1.00e-12;
-
         // First clearing the intersections points vector
         rIntersections.clear();
 
 		// Get the octree from the parent discontinuous distance process
-        auto pOctree = mpFindIntersectedObjectsProcess->GetOctreePointer();
+        auto &rp_octree = mpFindIntersectedObjectsProcess->GetOctreePointer();
 
 		// Compute the normalized ray key
-        OctreeType::key_type ray_key[3] = {pOctree->CalcKeyNormalized(ray[0]), pOctree->CalcKeyNormalized(ray[1]), pOctree->CalcKeyNormalized(ray[2])};
+		OctreeType::key_type ray_key[3] = {rp_octree->CalcKeyNormalized(ray[0]), rp_octree->CalcKeyNormalized(ray[1]), rp_octree->CalcKeyNormalized(ray[2])};
 
-        // Getting the entrance cell from lower extreme
+		// Getting the entrance cell from lower extreme
         OctreeType::key_type cell_key[3];
-        auto cell = pOctree->pGetCell(ray_key);
+        auto cell = rp_octree->pGetCell(ray_key);
         while (cell) {
 			// Get the current cell intersections
             const int cell_int = this->GetCellIntersections(cell, ray, ray_key, direction, rIntersections);
@@ -297,7 +296,7 @@ namespace Kratos
 			// And if it exists, go to the next cell
             if (cell->GetNeighbourKey(1 + direction * 2, cell_key)) {
                 ray_key[direction] = cell_key[direction];
-                cell = pOctree->pGetCell(ray_key);
+                cell = rp_octree->pGetCell(ray_key);
                 ray_key[direction] -= 1 ; // The key returned by GetNeighbourKey is inside the cell (minkey +1), to ensure that the corresponding cell get in pGetCell is the right one.
             } else {
                 cell = NULL;
@@ -313,7 +312,7 @@ namespace Kratos
             auto i_intersection = rIntersections.begin();
             while (++i_begin != rIntersections.end()) {
                 // considering the very near points as the same points
-                if (std::abs(i_begin->first - i_intersection->first) > epsilon) // if the hit points are far enough they are not the same
+                if (std::abs(i_begin->first - i_intersection->first) > mEpsilon) // if the hit points are far enough they are not the same
                     *(++i_intersection) = *i_begin;
             }
             rIntersections.resize((++i_intersection) - rIntersections.begin());
@@ -344,12 +343,12 @@ namespace Kratos
 		double ray_point2[3] = {ray[0], ray[1], ray[2]};
 		double normalized_coordinate;
 
-		auto pOctree = mpFindIntersectedObjectsProcess->GetOctreePointer();
-		pOctree->CalculateCoordinateNormalized(ray_key[direction], normalized_coordinate);
+		auto &rp_octree = mpFindIntersectedObjectsProcess->GetOctreePointer();
+		rp_octree->CalculateCoordinateNormalized(ray_key[direction], normalized_coordinate);
 		ray_point1[direction] = normalized_coordinate;
-		ray_point2[direction] = ray_point1[direction] + pOctree->CalcSizeNormalized(cell);
-		pOctree->ScaleBackToOriginalCoordinate(ray_point1);
-		pOctree->ScaleBackToOriginalCoordinate(ray_point2);
+		ray_point2[direction] = ray_point1[direction] + rp_octree->CalcSizeNormalized(cell);
+		rp_octree->ScaleBackToOriginalCoordinate(ray_point1);
+		rp_octree->ScaleBackToOriginalCoordinate(ray_point2);
 
 		// This is a workaround to avoid the z-component in 2D
 		if (TDim == 2){
@@ -375,7 +374,7 @@ namespace Kratos
         const double* pRayPoint2,
         double* pIntersectionPoint)
 	{
-		// Auxiliar arrays 
+		// Auxiliar arrays
 		array_1d<double,3> ray_pt_1;
 		array_1d<double,3> ray_pt_2;
 		for (unsigned int i = 0; i < 3; ++i){
@@ -385,7 +384,7 @@ namespace Kratos
 
 		// Call the line - line intersection util
 		array_1d<double,3> int_pt = ZeroVector(3);
-		const double tolerance = 1.0e-6*rGeometry.Length();
+		const double tolerance = mEpsilon;
 		const int is_intersected =  IntersectionUtilities::ComputeLineLineIntersection(
 			rGeometry,
 			ray_pt_1,
@@ -408,7 +407,7 @@ namespace Kratos
         const double* pRayPoint2,
         double* pIntersectionPoint)
 	{
-		// Auxiliar arrays 
+		// Auxiliar arrays
 		array_1d<double,3> ray_pt_1;
 		array_1d<double,3> ray_pt_2;
 		for (unsigned int i = 0; i < 3; ++i){
@@ -418,7 +417,7 @@ namespace Kratos
 
 		// Call the line - triangle intersection util
 		array_1d<double,3> int_pt = ZeroVector(3);
-		const double tolerance = 1.0e-6*std::sqrt(rGeometry.Length());
+		const double tolerance = mEpsilon;
 		const int is_intersected = IntersectionUtilities::ComputeTriangleLineIntersection(
 			rGeometry,
 			ray_pt_1,
@@ -455,29 +454,32 @@ namespace Kratos
 	}
 
 	template<std::size_t TDim>
-	void ApplyRayCastingProcess<TDim>::CalculateCharacteristicLength() 
+	void ApplyRayCastingProcess<TDim>::CalculateCharacteristicLength()
 	{
-
 		ModelPart& model_part1 = mpFindIntersectedObjectsProcess->GetModelPart1();
         Point min_point(0.00, 0.00, 0.00);
         Point max_point(0.00, 0.00, 0.00);
 
-        for(auto& node : model_part1.Nodes()){
-            for(std::size_t i = 0; i<3; i++)
-            {
+        for(auto& node : model_part1.Nodes()) {
+            for(std::size_t i = 0; i<3; i++) {
                 min_point[i]  =  (min_point[i]  >  node[i] ) ?  node[i] : min_point[i];
                 max_point[i] =  (max_point[i] <  node[i] ) ?  node[i] : max_point[i];
-            }            
+            }
         }
 
-        double distance = norm_2(max_point - min_point);
-        if (distance > std::numeric_limits<double>::epsilon())
-            mCharacteristicLength = distance;
-
-        KRATOS_WATCH(mCharacteristicLength);
+		mCharacteristicLength = norm_2(max_point - min_point);
+		KRATOS_ERROR_IF(mCharacteristicLength < std::numeric_limits<double>::epsilon()) << "Domain characteristic length is close to zero. Check if there is any node in the model part." << std::endl;
 	}
 
-    
+	template <std::size_t TDim>
+	void ApplyRayCastingProcess<TDim>::SetRayCastingTolerances()
+	{
+		this->CalculateCharacteristicLength();
+		mEpsilon = mRelativeTolerance * mCharacteristicLength;
+		mExtraRayOffset = 2.0 * mRelativeTolerance * mCharacteristicLength;
+	}
+
+
 
 	template class Kratos::ApplyRayCastingProcess<2>;
 	template class Kratos::ApplyRayCastingProcess<3>;

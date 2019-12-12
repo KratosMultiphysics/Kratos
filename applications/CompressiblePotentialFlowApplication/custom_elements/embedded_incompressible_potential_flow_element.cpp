@@ -11,6 +11,7 @@
 //
 #include "embedded_incompressible_potential_flow_element.h"
 #include "compressible_potential_flow_application_variables.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
 {
@@ -55,8 +56,13 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSy
     const int wake = r_this.GetValue(WAKE);
     const int kutta = r_this.GetValue(KUTTA);
 
+    BoundedVector<double,NumNodes> distances;
+    for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
+        distances[i_node] = this->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+    }
+    const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(distances);
 
-    if (this->Is(BOUNDARY) && wake == 0 && kutta == 0)
+    if (is_embedded && wake == 0 && kutta == 0)
         CalculateEmbeddedLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
     else
         BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
@@ -78,7 +84,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
     for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
         distances(i_node) = this->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
 
-    potential = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*this);
+    potential = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(*this);
 
     ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(distances);
     Matrix positive_side_sh_func;
@@ -88,16 +94,15 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
         positive_side_sh_func,
         positive_side_sh_func_gradients,
         positive_side_weights,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::GI_GAUSS_1);
 
-        BoundedMatrix<double,NumNodes,NumNodes> aux_matrix;
-        BoundedMatrix<double,NumNodes,Dim> DN_DX;
-        for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
-            DN_DX=positive_side_sh_func_gradients(i_gauss);
-            aux_matrix=prod(DN_DX,trans(DN_DX))*positive_side_weights(i_gauss);
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
-            noalias(rLeftHandSideMatrix) += aux_matrix;
-        }
+    BoundedMatrix<double,NumNodes,Dim> DN_DX;
+    for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
+        DN_DX=positive_side_sh_func_gradients(i_gauss);
+        noalias(rLeftHandSideMatrix) += free_stream_density*prod(DN_DX,trans(DN_DX))*positive_side_weights(i_gauss);;
+    }
 
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, potential);
 }
@@ -105,6 +110,11 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
 template <>
 ModifiedShapeFunctions::Pointer EmbeddedIncompressiblePotentialFlowElement<2,3>::pGetModifiedShapeFunctions(Vector& rDistances) {
     return Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(this->pGetGeometry(), rDistances);
+}
+
+template <>
+ModifiedShapeFunctions::Pointer EmbeddedIncompressiblePotentialFlowElement<3,4>::pGetModifiedShapeFunctions(Vector& rDistances) {
+    return Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(this->pGetGeometry(), rDistances);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -178,5 +188,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::load(Serializer&
 // Template class instantiation
 
 template class EmbeddedIncompressiblePotentialFlowElement<2, 3>;
+template class EmbeddedIncompressiblePotentialFlowElement<3, 4>;
+
 
 } // namespace Kratos

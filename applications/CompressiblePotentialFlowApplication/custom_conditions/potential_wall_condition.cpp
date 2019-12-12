@@ -94,7 +94,7 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType&
     else
         CalculateNormal3D(An);
 
-    const double free_stream_density = 1.0; //TODO: Read from rCurrentProcessInfo[FREE_STREAM_DENSITY] once available
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
     const PotentialWallCondition& r_this = *this;
     const array_1d<double, 3>& v = r_this.GetValue(FREE_STREAM_VELOCITY);
@@ -174,12 +174,25 @@ void PotentialWallCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& Conditi
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PotentialWallCondition<TDim, TNumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void PotentialWallCondition<TDim, TNumNodes>::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    std::vector<double> rValues;
+    // Get parent element
     GlobalPointer<Element> pElem = pGetElement();
-    pElem->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT, rValues, rCurrentProcessInfo);
-    this->SetValue(PRESSURE_COEFFICIENT, rValues[0]);
+
+    // Get pressure coefficient
+    std::vector<double> pressure;
+    pElem->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT, pressure, rCurrentProcessInfo);
+    this->SetValue(PRESSURE_COEFFICIENT, pressure[0]);
+
+    // Get velocity
+    std::vector<array_1d<double, 3>> velocity;
+    pElem->GetValueOnIntegrationPoints(VELOCITY, velocity, rCurrentProcessInfo);
+    this->SetValue(VELOCITY, velocity[0]);
+
+    // Get density
+    std::vector<double> density;
+    pElem->GetValueOnIntegrationPoints(DENSITY, density, rCurrentProcessInfo);
+    this->SetValue(DENSITY, density[0]);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

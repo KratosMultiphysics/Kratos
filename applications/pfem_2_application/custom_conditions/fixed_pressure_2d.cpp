@@ -1,7 +1,7 @@
 // Project includes 
 #include "includes/define.h"
 #include "custom_conditions/fixed_pressure_2d.h"
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos

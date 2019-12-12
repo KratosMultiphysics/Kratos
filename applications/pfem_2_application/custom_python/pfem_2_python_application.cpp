@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "includes/define.h"
 #include "includes/define_python.h"
 #include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
@@ -99,7 +100,6 @@ namespace Python
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,SOLID_PRESSURE)
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,SOLID_YP)
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,WATER_DISTANCE)
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,VOLUMETRIC_STRAIN)
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,ELASTIC_PRESSURE)
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,USE_PRESS_PROJ)
       KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,WATER_VELOCITY)

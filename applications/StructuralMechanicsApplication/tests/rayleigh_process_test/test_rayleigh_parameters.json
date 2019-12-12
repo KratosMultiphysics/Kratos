@@ -31,8 +31,6 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","SelfWeight2D_Self_weight_Auto1", "Structure"],
         "rotation_dofs"                      : false
     },
     "processes"        : {
@@ -78,7 +76,7 @@
                 "value"            : 1.61473e-08
             }
         },{
-            "kratos_module" : "KratosMultiphysics",
+            "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
             "python_module" : "automatic_rayleigh_parameters_computation_process",
             "process_name"  : "AutomaticRayleighComputationProcess",
             "Parameters"    : {

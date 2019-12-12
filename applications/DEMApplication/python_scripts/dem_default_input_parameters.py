@@ -39,11 +39,7 @@ def GetDefaultInputParameters():
             "RotationOption"                   : true,
             "CleanIndentationsOption"          : false,
             "RemoveBallsInEmbeddedOption"      : false,
-            "solver_settings" :{
-                "strategy"                 : "deprecated_key.invalid_strategy",
-                "RemoveBallsInitiallyTouchingWalls": false,
-                "do_search_neighbours": true
-            },
+            "solver_settings" : {},
             "echo_level"                  : 1,
             "problem_data"     : {
                 "problem_name"  : "dummy_name.Provide_a_real_one",
@@ -84,6 +80,9 @@ def GetDefaultInputParameters():
             "VirtualMassCoefficient"           : 1.0,
             "RollingFrictionOption"            : false,
             "ComputeStressTensorOption"        : false,
+            "ImposeZStrainIn2DOption"          : false,
+            "ZStrainValue"                     : "0.0*t",
+            "ImposeZStrainIn2DWithControlModule" : false,
             "GlobalDamping"                    : 0.0,
             "PoissonEffectOption"              : true,
             "ShearStrainParallelToBondOption"  : true,
@@ -92,7 +91,6 @@ def GetDefaultInputParameters():
             "MaxNumberOfIntactBondsToConsiderASphereBroken" : 0,
             "OutputFileType"                   : "Binary",
             "Multifile"                        : "multiple_files",
-            "TestType"                         : "None",
             "ElementType"                      : "SphericPartDEMElement3D",
 
             "TranslationalIntegrationScheme"   : "Symplectic_Euler",
@@ -116,14 +114,16 @@ def GetDefaultInputParameters():
             },
             "output_processes"                 :{},
 
-            "ConfinementPressure"              : 0.0,
-            "LoadingVelocity"                  : -0.10,
-            "MeshType"                         : "1",
-            "MeshPath"                         : "0",
-            "SpecimenLength"                   : 0.3,
-            "SpecimenDiameter"                 : 0.15,
-            "MeasuringSurface"                 : 0.01767145867644375,
-
+            "material_test_settings" : {
+                "TestType"                         : "None",
+                "ConfinementPressure"              : 0.0,
+                "LoadingVelocity"                  : -0.10,
+                "MeshType"                         : "1",
+                "MeshPath"                         : "0",
+                "SpecimenLength"                   : 0.3,
+                "SpecimenDiameter"                 : 0.15,
+                "MeasuringSurface"                 : 0.01767145867644375
+            },
             "GraphExportFreq"                  : 1e-3,
             "VelTrapGraphExportFreq"           : 1e-3,
             "OutputTimeStep"                   : 1e-2,
@@ -165,6 +165,7 @@ def GetDefaultInputParameters():
             "PostTangentialImpactVelocity"     : false,
             "PostFaceNormalImpactVelocity"     : false,
             "PostFaceTangentialImpactVelocity" : false,
+            "PostControlModule"                : false,
             "post_vtk_option"                  : false,
 
             "IntegrationScheme"                : "deprecated_key_since_6_december_2017",

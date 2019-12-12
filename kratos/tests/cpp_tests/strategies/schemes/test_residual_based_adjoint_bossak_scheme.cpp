@@ -164,7 +164,6 @@ class PrimalElement : public Element
 {
 public:
     typedef Kratos::intrusive_ptr<PrimalElement> Pointer;
-    typedef Kratos::intrusive_weak_ptr<PrimalElement> WeakPointer;
     typedef Kratos::unique_ptr<PrimalElement> UniquePointer;
 
     static Pointer Create(Node<3>::Pointer pNode1, Node<3>::Pointer pNode2)
@@ -348,7 +347,6 @@ class AdjointElement : public Element
 
 public:
     typedef Kratos::intrusive_ptr<AdjointElement> Pointer;
-    typedef Kratos::intrusive_weak_ptr<AdjointElement> WeakPointer;
     typedef Kratos::unique_ptr<AdjointElement> UniquePointer;
 
 

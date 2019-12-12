@@ -70,7 +70,7 @@ class KRATOS_API(KRATOS_CORE) Kernel {
         @see KratosApplication
 
     */
-    Kernel();
+    Kernel(bool IsDistributedRun = false);
 
     /// Copy constructor.
     /** This constructor is empty
@@ -111,6 +111,8 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     bool IsImported(std::string ApplicationName) const;
 
+    static bool IsDistributedRun();
+
     ///@}
     ///@name Input and output
     ///@{
@@ -131,6 +133,8 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     static std::string BuildType();
 
+    void PrintParallelismSupportInfo() const;
+
     ///@}
    protected:
    private:
@@ -138,6 +142,8 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     ///@{
 
         KratosApplication::Pointer mpKratosCoreApplication;
+
+    static bool mIsDistributedRun;
 
     ///@}
     ///@name Member Variables
