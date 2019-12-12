@@ -59,11 +59,11 @@ public:
     typedef Geometry<NodeType> GeometryType;
 
     /// Geometry container. A vector set of Elements with their Id's as key.
-    typedef std::unordered_set<
-        typename GeometryType::Pointer,
-        std::less<typename IndexedObject::result_type>,
-        std::equal_to<typename IndexedObject::result_type>,
-        std::allocator<typename GeometryType::Pointer>
+    typedef PointerHashMapSet<
+        GeometryType,
+        std::hash<tystd::size_t>,
+        GetGeometryHashId,
+        typename GeometryType::Pointer
     > GeometriesContainerType;
 
     /// Geometry Iterator
@@ -244,10 +244,10 @@ public:
         mpGeometries = pOtherGeometries;
     }
 
-    typename GeometriesContainerType::ContainerType& GeometriesArray()
-    {
-        return mpGeometries->GetContainer();
-    }
+    //typename GeometriesContainerType::ContainerType& GeometriesArray()
+    //{
+    //    return mpGeometries->GetContainer();
+    //}
 
     ///@}
     ///@name Container Functions
