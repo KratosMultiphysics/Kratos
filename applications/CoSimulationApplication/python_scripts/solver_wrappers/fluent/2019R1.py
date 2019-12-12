@@ -370,19 +370,19 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                         file.write(f'{node.X:27.17e} {node.Y:27.17e} {node.Z:27.17e} {node.Id:>27}\n')
 
     def send_message(self, message):
-        file = join(self.dir_cfd, message + ".msg")
+        file = join(self.dir_cfd, message + ".coco")
         open(file, 'w').close()
         return
 
     def wait_message(self, message):
-        file = join(self.dir_cfd, message + ".msg")
+        file = join(self.dir_cfd, message + ".coco")
         while not os.path.isfile(file):
             time.sleep(0.01)
         os.remove(file)
         return
 
     def check_message(self, message):
-        file = join(self.dir_cfd, message + ".msg")
+        file = join(self.dir_cfd, message + ".coco")
         if os.path.isfile(file):
             os.remove(file)
             return True
@@ -390,6 +390,6 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
     def remove_all_messages(self):
         for file_name in os.listdir(self.dir_cfd):
-            if file_name.endswith('.msg'):
+            if file_name.endswith('.coco'):
                 file = join(self.dir_cfd, file_name)
                 os.remove(file)

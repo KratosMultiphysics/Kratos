@@ -24,7 +24,7 @@
                     "wall_bottom_faces": ["PRESSURE", "TRACTION"]
                 },
                 "cores": 2,
-                "fluent_gui": true,
+                "fluent_gui": false,
                 "max_nodes_per_face": 4,
                 "hybrid_initialization": true,
                 "flow_iterations": 10,

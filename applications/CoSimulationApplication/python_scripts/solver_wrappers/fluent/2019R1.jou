@@ -9,15 +9,15 @@ file start-transcript "transcript.txt"
 ;
 ;   FUNCTION DEFINITIONS
 (define (send_message message)
-    (system (string-append "touch " message ".msg"))
+    (system (string-append "touch " message ".coco"))
 )
 (define (wait_message message)
     (do ((j 0 j)) ((= j 1))
 		(if
-		    (file-exists? (string-append message ".msg"))
+		    (file-exists? (string-append message ".coco"))
 		    (begin
 		        (set! j 1)
-		        (system (string-append "rm " message ".msg"))
+		        (system (string-append "rm " message ".coco"))
 		    )
             (system "sleep 0.1")
 		)
@@ -25,10 +25,10 @@ file start-transcript "transcript.txt"
 )
 (define (check_message message)
     (if
-        (file-exists? (string-append message ".msg"))
+        (file-exists? (string-append message ".coco"))
         (begin
             (newline)(display (string-append "RECEIVED MESSAGE " message))(newline)
-            (system (string-append "rm " message ".msg"))
+            (system (string-append "rm " message ".coco"))
             (= 0 0)
         )
         (= 0 1)
@@ -118,23 +118,17 @@ define user-defined execute-on-demand "store_coordinates_id::2019R1"
                 (if (= (%rpgetvar 'udf/iteration) 1)
                     (begin
                         (ti-menu-load-string "solve dual-time-iterate 1 0")
-                        (ti-menu-load-string "disp setw 2")
-                        (ti-menu-load-string "disp mesh")
                         (ti-menu-load-string (format #f "solve iterate ~d" flow_iterations))
                     )
                     (begin
                         (ti-menu-load-string "solve dual-time-iterate 0 1")
                         (ti-menu-load-string "solve iterate 1")
-                        (ti-menu-load-string "disp setw 2")
-                        (ti-menu-load-string "disp mesh")
                         (ti-menu-load-string "solve dual-time-iterate 0 0")
                         (ti-menu-load-string (format #f "solve iterate ~d" (- flow_iterations 1)))
                     )
                 )
                 (begin
                     (ti-menu-load-string "solve mesh-motion y")
-                    (ti-menu-load-string "disp setw 2")
-                    (ti-menu-load-string "disp mesh")
                     (ti-menu-load-string "solve iterate flow_iterations")
                 )
             )
