@@ -39,7 +39,6 @@ define dynamic-mesh zones create out deforming faceted n y n n 0 0 1 n
 solve monitors residual check-convergence y y y y
 solve monitors residual convergence-criteria 1.0E-12 1.0E-12 1.0E-12 1.0E-12
 solve monitors force monitor-unsteady-iters y
-solve set time-step 0.0001
 
 solve set discretization-scheme mom 1
 solve set discretization-scheme pressure 10

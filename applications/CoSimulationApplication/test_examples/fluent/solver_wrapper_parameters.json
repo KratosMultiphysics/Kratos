@@ -11,7 +11,8 @@
                 "case_file": "case.cas",
                 "dimensions": 2,
                 "unsteady": true,
-                "timestep_start": 2,
+                "delta_t": 0.1,
+                "timestep_start": 0,
                 "thread_names": ["wall_top", "wall_bottom"],
                 "interface_input":
                 {
@@ -24,7 +25,7 @@
                     "wall_bottom_faces": ["PRESSURE", "TRACTION"]
                 },
                 "cores": 2,
-                "fluent_gui": true,
+                "fluent_gui": false,
                 "max_nodes_per_face": 4,
                 "hybrid_initialization": true,
                 "flow_iterations": 10,

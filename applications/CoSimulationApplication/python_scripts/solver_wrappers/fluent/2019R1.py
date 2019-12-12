@@ -4,6 +4,8 @@ import subprocess
 import time
 import numpy as np
 import copy
+import sys
+import shutil
 
 import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.co_simulation_component import CoSimulationComponent
@@ -23,23 +25,43 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
         # settings
         """
-        settings of solver_wrappers.fluent.2019R1:
+        JSON settings of solver_wrappers.fluent.2019R1:
         
-            working_directory       absolute path to working directory
-                                    or relative path w.r.t current directory
-            case_file               name of the case file; it must be present
-                                    in the above defined working_directory
-            flow_iterations         number of Fluent iterations per coupling 
-                                    iteration
-            save_iterations         number of timesteps between consecutive
-                                    saves of the Fluent case and data files
+            working_directory       string      absolute path to working directory
+                                                or relative path w.r.t current directory
+            case_file               string      name of the case file; it must be present
+                                                in the above defined working_directory
+            dimensions              int         2 for 2D and axisymmetric, 3 for 3D
+            unsteady                bool        true for transient FSI        
+            delta_t                 double      fixed timestep size in flow solver
+            timestep_start          int         index of timestep to start transient FSI;
+                                                0 to start from case_file;
+            thread_names            list        list with Fluent names of the interface threads
+            interface_input         dict        keys are names of ModelParts for nodes, they must
+                                                consist of an entry from thread_names + '_nodes';
+                                                value are (lists of) names of Variables
+            interace_output         dict        idem, but for faces
+            cores                   int         number of processor cores to use
+                                                (tested only on single node!)
+            fluent_gui              bool        true will run Fluent with graphical interface
+            max_nodes_per_face      int         used to get unique ID for faces, based on
+                                                unique IDs of nodes; e.g. 4 for rectangular
+                                                faces, 3 for triangular faces
+            hybrid_initialization   bool        true will run the hybrid initialization in 
+                                                Fluent before the first time-step;
+                                                false requires that adequate reference 
+                                                values have been set in the case_file
+            flow_iterations         int         number of Fluent iterations per coupling 
+                                                iteration
+            save_iterations         int         number of timesteps between consecutive
+                                                saves of the Fluent case and data files
         """
         self.settings = parameters['settings']
-        self.dir_cfd = join(os.getcwd(), self.settings['working_directory'].GetString())  # *** alternative for getcwd?
-        path_src = os.path.realpath(os.path.dirname(__file__))
-
+        self.check_software()
+        self.dir_cfd = join(os.getcwd(), self.settings['working_directory'].GetString())
         self.remove_all_messages()
 
+        path_src = os.path.realpath(os.path.dirname(__file__))
         self.cores = self.settings['cores'].GetInt()
         self.case_file = self.settings['case_file'].GetString()  # file must be in self.dir_cfd
         self.mnpf = self.settings['max_nodes_per_face'].GetInt()
@@ -47,7 +69,9 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         self.unsteady = self.settings['unsteady'].GetBool()
         self.hybrid_initialization = self.settings['hybrid_initialization'].GetBool()
         self.flow_iterations = self.settings['flow_iterations'].GetInt()
+        self.delta_t = self.settings['delta_t'].GetDouble()
         self.timestep_start = self.settings['timestep_start'].GetInt()
+        self.timestep = self.timestep_start
 
         self.thread_names = [_.GetString() for _ in self.settings['thread_names'].list()]
         self.n_threads = len(self.thread_names)
@@ -73,11 +97,12 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                     line = line.replace('|UNSTEADY|', unsteady)
                     line = line.replace('|HYBRID_INITIALIZATION|', hybrid_initialization)
                     line = line.replace('|FLOW_ITERATIONS|', str(self.flow_iterations))
+                    line = line.replace('|DELTA_T|', str(self.delta_t))
                     line = line.replace('|TIMESTEP_START|', str(self.timestep_start))
                     outfile.write(line)
 
         # prepare Fluent UDF
-        if not self.timestep_start:
+        if self.timestep_start == 0:
             udf = '2019R1.c'
             with open(join(path_src, udf), 'r') as infile:
                 with open(join(self.dir_cfd, udf), 'w') as outfile:
@@ -87,7 +112,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
         # start Fluent with journal
         log = join(self.dir_cfd, 'fluent.log')
-        cmd1 = f'fluent {self.dimensions}ddp '
+        cmd1 = f'fluent 19.3.0 {self.dimensions}ddp '
         cmd2 = f'-t{self.cores} -i {journal}'
 
         if self.settings['fluent_gui'].GetBool():
@@ -143,7 +168,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                 file.write(line + '\n')
         self.send_message('thread_ids_written_to_file')
 
-        # import node and face information
+        # import node and face information (use old files on restart!)
         self.wait_message('nodes_and_faces_stored')
 
         # create Model
@@ -174,11 +199,11 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
             mp = self.model[key]
 
             # read in datafile
-            tmp = 'nodes_thread' + str(mp.thread_id) + '.dat'
+            tmp = f'nodes_timestep0_thread{mp.thread_id}.dat'
             file_name = join(self.dir_cfd, tmp)
             data = np.loadtxt(file_name, skiprows=1)
             if data.shape[1] != self.dimensions + 1:
-                raise ValueError(f'given dimension does not match coordinates')
+                raise ValueError('given dimension does not match coordinates')
 
             # get node coordinates and ids
             coords_tmp = np.zeros((data.shape[0], 3)) * 0.
@@ -200,7 +225,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
             mp = self.model[key]
 
             # read in datafile
-            tmp = 'faces_thread' + str(mp.thread_id) + '.dat'
+            tmp = f'faces_timestep0_thread{mp.thread_id}.dat'
             file_name = join(self.dir_cfd, tmp)
             data = np.loadtxt(file_name, skiprows=1)
             if data.shape[1] != self.dimensions + self.mnpf:
@@ -221,6 +246,10 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                 mp.CreateNewNode(ids_tmp[i],
                     coords_tmp[i, 0], coords_tmp[i, 1], coords_tmp[i, 2])
 
+        # update coordinates of Nodes if necessary
+        if self.timestep_start != 0:
+            self.update_coordinates()
+
         # create CoSimulationInterfaces
         self.interface_input = CoSimulationInterface(self.model, self.settings['interface_input'])
         self.interface_output = CoSimulationInterface(self.model, self.settings['interface_output'])
@@ -233,7 +262,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
     def Initialize(self):
         super().Initialize()
         print('\nInitialize')
-        self.timestep = self.timestep_start
+        # self.timestep = self.timestep_start
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
@@ -256,9 +285,9 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         for key in [_[0] for _ in self.interface_input.model_parts_variables]:
             for node in self.model[key].Nodes:
                 disp = node.GetSolutionStepValue(self.displacement)
-                node.X += disp[0]
-                node.Y += disp[1]
-                node.Z += disp[2]
+                node.X = node.X0 + disp[0]
+                node.Y = node.Y0 + disp[1]
+                node.Z = node.Z0 + disp[2]
 
         # write interface data
         self.write_node_positions()
@@ -294,7 +323,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
             if ids_tmp.size != mp.NumberOfNodes():
                 raise ValueError('number of nodes does not match size of data')
             index = 0
-            for node in mp.Nodes:
+            for node in mp.Nodes:  # *** todo: enumerate
                 if ids_tmp[index] != node.Id:
                     raise ValueError(f'node IDs do not match: {ids_tmp[index]}, {node.Id}')
                 node.SetSolutionStepValue(self.traction, 0, traction_tmp[index, :].tolist())
@@ -329,6 +358,19 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
     def SetInterfaceOutput(self):
         Exception("This solver interface provides no mapping.")
+
+    def check_software(self):
+        # Python version: 3.6 or higher
+        if sys.version_info < (3, 6):
+            raise RuntimeError('Python version 3.6 or higher required.')
+
+        # Fluent version: 2019R1 (19.3.0)
+        if shutil.which('fluent') is None:
+            raise RuntimeError('ANSYS Fluent must be available.')
+
+        result = subprocess.run(['fluent', '-r'], stdout=subprocess.PIPE)
+        if '19.3.0' not in str(result.stdout):
+            raise RuntimeError('ANSYS Fluent version 2019R1 (19.3.0) is required.')
 
     def get_unique_face_ids(self, data):
         """
@@ -369,20 +411,82 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                     else:
                         file.write(f'{node.X:27.17e} {node.Y:27.17e} {node.Z:27.17e} {node.Id:>27}\n')
 
+    def update_coordinates(self):
+        # make Fluent store coordinates and ids
+        self.send_message('store_grid')
+        self.wait_message('store_grid_ready')
+
+        # update coordinates for input ModelParts (nodes)
+        for key in self.settings['interface_input'].keys():
+            mp = self.model[key]
+
+            # read in datafile
+            tmp = f'nodes_timestep{self.timestep}_thread{mp.thread_id}.dat'
+            data = np.loadtxt(join(self.dir_cfd, tmp), skiprows=1)
+            if data.shape[1] != self.dimensions + 1:
+                raise ValueError('given dimension does not match coordinates')
+
+            # get node coordinates and ids
+            coords_tmp = np.zeros((data.shape[0], 3)) * 0.
+            coords_tmp[:, :self.dimensions] = data[:, :-1]  # add column z if 2D
+            ids_tmp = data[:, -1].astype(int).astype(str)  # array is flattened
+
+            # sort and remove doubles
+            args = np.unique(ids_tmp, return_index=True)[1].tolist()
+            coords_tmp = coords_tmp[args, :]
+            ids_tmp = ids_tmp[args]
+
+            # update Node coordinates
+            for i, node in enumerate(mp.Nodes):
+                if ids_tmp[i] != node.Id:
+                    raise ValueError(f'node IDs do not match: {ids_tmp[i]}, {node.Id}')
+                node.X = coords_tmp[i, 0]
+                node.Y = coords_tmp[i, 1]
+                node.Z = coords_tmp[i, 2]
+
+        # update coordinates for output ModelParts (faces)
+        # *** todo: put this read in a function: arg = timestep (default 0), output = ids_tmp, coords_tmp
+        for key in self.settings['interface_output'].keys():
+            mp = self.model[key]
+
+            # read in datafile
+            tmp = f'faces_timestep{self.timestep}_thread{mp.thread_id}.dat'
+            data = np.loadtxt(join(self.dir_cfd, tmp), skiprows=1)
+            if data.shape[1] != self.dimensions + self.mnpf:
+                raise ValueError(f'given dimension does not match coordinates')
+
+            # get face coordinates and ids
+            coords_tmp = np.zeros((data.shape[0], 3)) * 0.
+            coords_tmp[:, :self.dimensions] = data[:, :-self.mnpf]  # add column z if 2D
+            ids_tmp = self.get_unique_face_ids(data[:, -self.mnpf:])
+
+            # sort and remove doubles
+            args = np.unique(ids_tmp, return_index=True)[1].tolist()
+            coords_tmp = coords_tmp[args, :]
+            ids_tmp = ids_tmp[args]
+
+            # update Node coordinates
+            for i, node in enumerate(mp.Nodes):
+                if ids_tmp[i] != node.Id:
+                    raise ValueError(f'node IDs do not match: {ids_tmp[i]}, {node.Id}')
+                node.X = coords_tmp[i, 0]
+                node.Y = coords_tmp[i, 1]
+                node.Z = coords_tmp[i, 2]
+
     def send_message(self, message):
-        file = join(self.dir_cfd, message + ".msg")
+        file = join(self.dir_cfd, message + ".coco")
         open(file, 'w').close()
         return
 
     def wait_message(self, message):
-        file = join(self.dir_cfd, message + ".msg")
+        file = join(self.dir_cfd, message + ".coco")
         while not os.path.isfile(file):
             time.sleep(0.01)
         os.remove(file)
         return
 
     def check_message(self, message):
-        file = join(self.dir_cfd, message + ".msg")
+        file = join(self.dir_cfd, message + ".coco")
         if os.path.isfile(file):
             os.remove(file)
             return True
@@ -390,6 +494,6 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
     def remove_all_messages(self):
         for file_name in os.listdir(self.dir_cfd):
-            if file_name.endswith('.msg'):
+            if file_name.endswith('.coco'):
                 file = join(self.dir_cfd, file_name)
                 os.remove(file)

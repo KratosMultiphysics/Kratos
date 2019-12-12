@@ -7,31 +7,31 @@
 
 #define DECLARE_MEMORY_N(name, type, dim) type *name[dim] = {NULL}
 
-#define RELEASE_MEMORY(name)										\
-if (NNULLP(name)) {													\
-	free(name); 													\
-	name = NULL;													\
+#define RELEASE_MEMORY(name)                                        \
+if (NNULLP(name)) {                                                 \
+    free(name);                                                     \
+    name = NULL;                                                    \
 }
 
-#define RELEASE_MEMORY_N(name, dim)							        \
+#define RELEASE_MEMORY_N(name, dim)                                 \
 for (_d = 0; _d < dim; _d++) {                                      \
     RELEASE_MEMORY(name[_d]);                                       \
 }
 
-#define ASSIGN_MEMORY(name, size, type) 							\
-if (size) {															\
-	if (NNULLP(name)) { 											\
-		name = (type *)realloc(name, size * sizeof(type));			\
-	} else {														\
-		name = (type *)malloc(size * sizeof(type));					\
-	} 																\
-	if (NULLP(name)) {												\
-		Error("\nUDF-error: Memory assignment failed for name."); 	\
-		exit(1);													\
-	}																\
+#define ASSIGN_MEMORY(name, size, type)                             \
+if (size) {                                                         \
+    if (NNULLP(name)) {                                             \
+        name = (type *)realloc(name, size * sizeof(type));          \
+    } else {                                                        \
+        name = (type *)malloc(size * sizeof(type));                 \
+    }                                                               \
+    if (NULLP(name)) {                                              \
+        Error("\nUDF-error: Memory assignment failed for name.");   \
+        exit(1);                                                    \
+    }                                                               \
 }
 
-#define ASSIGN_MEMORY_N(name, size, type, dim)						\
+#define ASSIGN_MEMORY_N(name, size, type, dim)                      \
 for (_d = 0; _d < dim; _d++) {                                      \
     ASSIGN_MEMORY(name[_d], size, type);                            \
 }
@@ -78,20 +78,20 @@ DEFINE_ON_DEMAND(get_thread_ids) {
     int k;
     FILE *file;
     file = fopen("bcs.txt", "r");
-	fscanf(file, "%i", &n_threads);
+    fscanf(file, "%i", &n_threads);
 #endif /* !RP_NODE */
 
-	host_to_node_int_1(n_threads);
-	ASSIGN_MEMORY(thread_ids, n_threads, int);
+    host_to_node_int_1(n_threads);
+    ASSIGN_MEMORY(thread_ids, n_threads, int);
 
 #if !RP_NODE
-	for (k = 0; k < n_threads; k++) {
-		fscanf(file, "%s %i", &tmp, &thread_ids[k]);
-	}
-	fclose(file);
+    for (k = 0; k < n_threads; k++) {
+        fscanf(file, "%s %i", &tmp, &thread_ids[k]);
+    }
+    fclose(file);
 #endif /* !RP_NODE */
 
-	host_to_node_int(thread_ids, n_threads);
+    host_to_node_int(thread_ids, n_threads);
 }
 
 
@@ -109,58 +109,61 @@ DEFINE_ON_DEMAND(store_coordinates_id) {
     DECLARE_MEMORY_N(face_ids, int, mnpf);
 
 #if !RP_HOST
-	Domain *domain;
-	Thread *face_thread;
-	face_t face;
-	Node *node;
-	int node_number, j;
-	real centroid[ND_ND];
+    Domain *domain;
+    Thread *face_thread;
+    face_t face;
+    Node *node;
+    int node_number, j;
+    real centroid[ND_ND];
 #endif /* !RP_HOST */
 
 #if !RP_NODE
-	char file_nodes_name[256];
-	char file_faces_name[256];
-	FILE *file_nodes = NULL;
-	FILE *file_faces = NULL;
+    char file_nodes_name[256];
+    char file_faces_name[256];
+    FILE *file_nodes = NULL;
+    FILE *file_faces = NULL;
+    timestep = RP_Get_Integer("udf/timestep");
 #endif /* !RP_NODE */
 
+    host_to_node_int_1(timestep);
+
 #if PARALLEL
-	int compute_node;
+    int compute_node;
 #endif /* PARALLEL */
 
     for (thread=0; thread<n_threads; thread++) {
 
 #if !RP_NODE
-        sprintf(file_nodes_name, "nodes_thread%i.dat", thread_ids[thread]);
-        sprintf(file_faces_name, "faces_thread%i.dat", thread_ids[thread]);
+        sprintf(file_nodes_name, "nodes_timestep%i_thread%i.dat", timestep, thread_ids[thread]);
+        sprintf(file_faces_name, "faces_timestep%i_thread%i.dat", timestep, thread_ids[thread]);
 
         if (NULLP(file_nodes = fopen(file_nodes_name, "w"))) {
-			Error("\nUDF-error: Unable to open %s for writing\n", file_nodes_name);
-			exit(1);
-		}
+            Error("\nUDF-error: Unable to open %s for writing\n", file_nodes_name);
+            exit(1);
+        }
         if (NULLP(file_faces = fopen(file_faces_name, "w"))) {
-			Error("\nUDF-error: Unable to open %s for writing\n", file_faces_name);
-			exit(1);
-		}
+            Error("\nUDF-error: Unable to open %s for writing\n", file_faces_name);
+            exit(1);
+        }
 
 #if RP_2D
-		fprintf(file_nodes, "%27s %27s %10s\n", "x-coordinate", "y-coordinate", "unique-id");
+        fprintf(file_nodes, "%27s %27s %10s\n", "x-coordinate", "y-coordinate", "unique-id");
         fprintf(file_faces, "%27s %27s  %10s\n", "x-coordinate", "y-coordinate", "unique-ids");
 #else /* RP_2D */
-		fprintf(file_nodes, "%27s %27s %27s %10s\n", "x-coordinate", "y-coordinate", "z-coordinate", "unique-id");
-		fprintf(file_faces, "%27s %27s %27s  %10s\n", "x-coordinate", "y-coordinate", "z-coordinate", "unique-ids");
+        fprintf(file_nodes, "%27s %27s %27s %10s\n", "x-coordinate", "y-coordinate", "z-coordinate", "unique-id");
+        fprintf(file_faces, "%27s %27s %27s  %10s\n", "x-coordinate", "y-coordinate", "z-coordinate", "unique-ids");
 #endif /* RP_2D */
 #endif /* !RP_NODE */
 
 #if !RP_HOST
         domain = Get_Domain(1);
-		face_thread = Lookup_Thread(domain, thread_ids[thread]);
+        face_thread = Lookup_Thread(domain, thread_ids[thread]);
 
-		n_nodes = 0;
-		begin_f_loop(face, face_thread) {
-			n_nodes += F_NNODES(face, face_thread);
-		} end_f_loop(face, face_thread)
-		n_faces = THREAD_N_ELEMENTS_INT(face_thread);
+        n_nodes = 0;
+        begin_f_loop(face, face_thread) {
+            n_nodes += F_NNODES(face, face_thread);
+        } end_f_loop(face, face_thread)
+        n_faces = THREAD_N_ELEMENTS_INT(face_thread);
 
         ASSIGN_MEMORY_N(node_coords, n_nodes, real, ND_ND);
         ASSIGN_MEMORY(node_ids, n_nodes, int);
@@ -315,26 +318,26 @@ DEFINE_ON_DEMAND(store_pressure_traction) {
     DECLARE_MEMORY_N(ids, int, mnpf);
 
 #if !RP_HOST
-	Domain *domain;
-	Thread *face_thread;
-	face_t face;
-	Node *node;
-	int node_number, j;
-	real traction[ND_ND], area[ND_ND];
+    Domain *domain;
+    Thread *face_thread;
+    face_t face;
+    Node *node;
+    int node_number, j;
+    real traction[ND_ND], area[ND_ND];
 #endif /* !RP_HOST */
 
 #if !RP_NODE
-	char file_name[256];
-	FILE *file = NULL;
-	iteration = RP_Get_Integer("udf/iteration");
-	timestep = RP_Get_Integer("udf/timestep");
+    char file_name[256];
+    FILE *file = NULL;
+    iteration = RP_Get_Integer("udf/iteration");
+    timestep = RP_Get_Integer("udf/timestep");
 #endif /* !RP_NODE */
 
     host_to_node_int_1(iteration);
-	host_to_node_int_1(timestep);
+    host_to_node_int_1(timestep);
 
 #if PARALLEL
-	int compute_node;
+    int compute_node;
 #endif /* PARALLEL */
 
     for (thread=0; thread<n_threads; thread++) {
@@ -344,13 +347,13 @@ DEFINE_ON_DEMAND(store_pressure_traction) {
                 timestep, thread_ids[thread]);
 
         if (NULLP(file = fopen(file_name, "w"))) {
-			Error("\nUDF-error: Unable to open %s for writing\n", file_name);
-			exit(1);
-		}
+            Error("\nUDF-error: Unable to open %s for writing\n", file_name);
+            exit(1);
+        }
 
 #if RP_2D
-		fprintf(file, "%27s %27s %27s  %10s\n",
-		    "x-shear", "y-shear", "pressure", "unique-ids");
+        fprintf(file, "%27s %27s %27s  %10s\n",
+            "x-shear", "y-shear", "pressure", "unique-ids");
 #else /* RP_2D */
         fprintf(file, "%27s %27s %27s %27s  %10s\n",
             "x-shear", "y-shear", "z-shear", "pressure", "unique-ids");
@@ -360,9 +363,9 @@ DEFINE_ON_DEMAND(store_pressure_traction) {
 
 #if !RP_HOST
         domain = Get_Domain(1);
-		face_thread = Lookup_Thread(domain, thread_ids[thread]);
+        face_thread = Lookup_Thread(domain, thread_ids[thread]);
 
-		n = THREAD_N_ELEMENTS_INT(face_thread);
+        n = THREAD_N_ELEMENTS_INT(face_thread);
 
         ASSIGN_MEMORY_N(array, n, real, ND_ND + 1);
         ASSIGN_MEMORY_N(ids, n, int, mnpf);
@@ -372,7 +375,7 @@ DEFINE_ON_DEMAND(store_pressure_traction) {
             if (i >= n) {Error("\nIndex %i >= array size %i.", i, n);}
 
             F_AREA(area, face, face_thread);
-		    NV_VS(traction, =, F_STORAGE_R_N3V(face, face_thread, SV_WALL_SHEAR), *, -1.0 / NV_MAG(area));
+            NV_VS(traction, =, F_STORAGE_R_N3V(face, face_thread, SV_WALL_SHEAR), *, -1.0 / NV_MAG(area));
             for (d = 0; d < ND_ND; d++) {
                 array[d][i] = traction[d];
             }
@@ -476,27 +479,27 @@ DEFINE_GRID_MOTION(move_nodes, domain, dynamic_thread, time, dtime) {
     int thread_id = THREAD_ID(face_thread);
 
 #if !RP_HOST
-	face_t face;
-	Node *node;
+    face_t face;
+    Node *node;
     int i, d, n, node_number;
-	DECLARE_MEMORY_N(coords, real, ND_ND);
+    DECLARE_MEMORY_N(coords, real, ND_ND);
     DECLARE_MEMORY(ids, int);
     FILE *file = NULL;
 #endif /* !RP_HOST */
 
 #if !RP_NODE
-	iteration = RP_Get_Integer("udf/iteration");
-	timestep = RP_Get_Integer("udf/timestep");
+    iteration = RP_Get_Integer("udf/iteration");
+    timestep = RP_Get_Integer("udf/timestep");
 #endif /* !RP_NODE */
 
-	host_to_node_int_1(iteration);
-	host_to_node_int_1(timestep);
+    host_to_node_int_1(iteration);
+    host_to_node_int_1(timestep);
 
 #if !RP_NODE
     sprintf(file_name, "nodes_update_timestep%i_thread%i.dat",
             timestep, thread_id);
 #else
-    sprintf(file_name, "nodes_update_timestep%i_thread%i.dat",
+    sprintf(file_name, "/tmp/nodes_update_timestep%i_thread%i.dat",
             timestep, thread_id);
     host_to_node_sync_file("/tmp");
 #endif /* !RP_NODE */
@@ -546,6 +549,9 @@ DEFINE_GRID_MOTION(move_nodes, domain, dynamic_thread, time, dtime) {
             }
         }
     } end_f_loop(face, face_thread);
+
+    RELEASE_MEMORY_N(coords, ND_ND);
+    RELEASE_MEMORY(ids);
 #endif /* !RP_HOST */
 
     if (myid == 0) {printf("\nFinished UDF move_nodes.\n"); fflush(stdout);}

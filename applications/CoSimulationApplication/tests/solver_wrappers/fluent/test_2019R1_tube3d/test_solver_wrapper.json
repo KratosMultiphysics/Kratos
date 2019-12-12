@@ -11,6 +11,7 @@
                 "case_file": "case_tube3d.cas",
                 "dimensions": 3,
                 "unsteady": true,
+                "delta_t": 0.0001,
                 "timestep_start": 0,
                 "thread_names": ["wall"],
                 "interface_input":
