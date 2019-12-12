@@ -41,6 +41,23 @@ namespace Kratos
     ~MembraneElement() = default;
 
 
+
+    enum class VoigtType {
+      Strain,
+      Stress
+    };
+
+    enum class ConfigurationType {
+      Current,
+      Reference
+    };
+
+    enum class WrinklingType {
+      Taut,
+      Slack,
+      Wrinkle
+    };
+
     // Name Operations
 
     /**
@@ -101,7 +118,7 @@ namespace Kratos
      * @param Configuration Reference/Current
      */
     void CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
-     const Matrix& rShapeFunctionGradientValues,const std::string Configuration);
+     const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration);
 
       /**
      * @brief Calculates the covariant metric
@@ -236,7 +253,7 @@ namespace Kratos
      * @param rOutputVector The voigt vector
      * @param StrainStressCheck if strain: voigtvector[2]*2
      */
-    void VoigtNotation(const Matrix& rInputMatrix, Vector& rOutputVector, const std::string StrainStressCheck);
+    void VoigtNotation(const Matrix& rInputMatrix, Vector& rOutputVector, const VoigtType& rStrainStressCheck);
 
 
 
@@ -385,11 +402,11 @@ namespace Kratos
 
       /**
      * @brief Checks for taunt/slack/wrinkles
-     * @param rWrinklingStateArray the current wrinkling state
+     * @param rWrinklingState the current wrinkling state
      * @param rStress the stress
      * @param rStrain the strain
      */
-    void CheckWrinklingState(array_1d<bool,3>& rWrinklingStateArray, const Vector& rStress, const Vector& rStrain);
+    void CheckWrinklingState(WrinklingType& rWrinklingState, const Vector& rStress, const Vector& rStrain);
 
 protected:
   std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws

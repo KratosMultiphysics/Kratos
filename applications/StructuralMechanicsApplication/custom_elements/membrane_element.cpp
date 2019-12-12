@@ -265,14 +265,14 @@ void MembraneElement::GetSecondDerivativesVector(
     }
 }
 
-void MembraneElement::VoigtNotation(const Matrix& rInputMatrix, Vector& rOutputVector, const std::string StrainStressCheck)
+void MembraneElement::VoigtNotation(const Matrix& rInputMatrix, Vector& rOutputVector, const VoigtType& rStrainStressCheck)
 {
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     rOutputVector = ZeroVector(dimension);
     rOutputVector[0] = rInputMatrix(0,0);
     rOutputVector[1] = rInputMatrix(1,1);
     rOutputVector[2] = rInputMatrix(0,1);
-    if (StrainStressCheck=="strain"){
+    if (rStrainStressCheck==VoigtType::Strain){
         rOutputVector[2]*=2.0;
     }
 }
@@ -389,7 +389,7 @@ void MembraneElement::StrainGreenLagrange(Vector& rStrain, const Matrix& rRefere
 {
     Matrix strain_matrix = 0.50 * (rCurrentCoVariantMetric-rReferenceCoVariantMetric);
     Vector reference_strain = ZeroVector(3);
-    VoigtNotation(strain_matrix,reference_strain,"strain");
+    VoigtNotation(strain_matrix,reference_strain,VoigtType::Strain);
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
@@ -401,7 +401,7 @@ void MembraneElement::DerivativeStrainGreenLagrange(Vector& rStrain, const Matri
     Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
 
     Vector reference_strain = ZeroVector(3);
-    VoigtNotation(strain_matrix_derivative,reference_strain,"strain");
+    VoigtNotation(strain_matrix_derivative,reference_strain,VoigtType::Strain);
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
@@ -415,7 +415,7 @@ void MembraneElement::Derivative2StrainGreenLagrange(Vector& rStrain,
     Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
 
     Vector reference_strain = ZeroVector(3);
-    VoigtNotation(strain_matrix_derivative,reference_strain,"strain");
+    VoigtNotation(strain_matrix_derivative,reference_strain,VoigtType::Strain);
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
@@ -483,7 +483,7 @@ void MembraneElement::DeriveCurrentCovariantBaseVectors(array_1d<Vector,2>& rBas
 }
 
 void MembraneElement::CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
-     const Matrix& rShapeFunctionGradientValues, const std::string Configuration)
+     const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration)
 {
     // pass/call this ShapeFunctionsLocalGradients[pnt]
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -492,9 +492,8 @@ void MembraneElement::CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
     Vector g2 = ZeroVector(dimension);
 
     Vector current_displacement = ZeroVector(dimension*number_of_nodes);
-    if (Configuration=="current") GetValuesVector(current_displacement);
-    else if (Configuration=="reference");
-    else KRATOS_ERROR << "configuration " << Configuration << " not known" << std::endl;
+    if (rConfiguration==ConfigurationType::Current) GetValuesVector(current_displacement);
+
 
     for (SizeType i=0;i<number_of_nodes;++i){
         g1[0] += (GetGeometry().GetPoint( i ).X0()+current_displacement[i*dimension]) * rShapeFunctionGradientValues(i, 0);
@@ -572,8 +571,8 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
         const double integration_weight_i = r_integration_points[point_number].Weight();
         const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
 
-        CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,"current");
-        CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,"reference");
+        CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Current);
+        CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
 
         CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
         CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
@@ -665,8 +664,8 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
         const double integration_weight_i = r_integration_points[point_number].Weight();
         const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
 
-        CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,"current");
-        CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,"reference");
+        CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Current);
+        CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
 
         CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
         CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
@@ -756,7 +755,7 @@ void MembraneElement::CalculateOnIntegrationPoints(
         for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
             const double integration_weight_i = r_integration_points[point_number].Weight();
             const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-            CovariantBaseVectors(base_vectors_current_cov,shape_functions_gradients_i,"reference");
+            CovariantBaseVectors(base_vectors_current_cov,shape_functions_gradients_i,ConfigurationType::Reference);
             base_1 += base_vectors_current_cov[0]*integration_weight_i;
             base_2 += base_vectors_current_cov[1]*integration_weight_i;
         }
@@ -783,7 +782,7 @@ void MembraneElement::CalculateOnIntegrationPoints(
         for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
             const double integration_weight_i = r_integration_points[point_number].Weight();
             const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-            CovariantBaseVectors(base_vectors_current_cov,shape_functions_gradients_i,"reference");
+            CovariantBaseVectors(base_vectors_current_cov,shape_functions_gradients_i,ConfigurationType::Reference);
             base_1 += base_vectors_current_cov[0]*integration_weight_i;
             base_2 += base_vectors_current_cov[1]*integration_weight_i;
         }
@@ -811,7 +810,7 @@ void MembraneElement::CalculateOnIntegrationPoints(
         for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
             const double integration_weight_i = r_integration_points[point_number].Weight();
             const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-            CovariantBaseVectors(base_vectors_current_cov,shape_functions_gradients_i,"reference");
+            CovariantBaseVectors(base_vectors_current_cov,shape_functions_gradients_i,ConfigurationType::Reference);
             base_1 += base_vectors_current_cov[0]*integration_weight_i;
             base_2 += base_vectors_current_cov[1]*integration_weight_i;
         }
@@ -845,7 +844,7 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
         for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
             const double integration_weight_i = r_integration_points[point_number].Weight();
             const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-            CovariantBaseVectors(base_vectors_current_cov,shape_functions_gradients_i,"reference");
+            CovariantBaseVectors(base_vectors_current_cov,shape_functions_gradients_i,ConfigurationType::Reference);
             base_1 += base_vectors_current_cov[0]*integration_weight_i;
             base_2 += base_vectors_current_cov[1]*integration_weight_i;
         }
@@ -1059,9 +1058,8 @@ void MembraneElement::PrincipleVector(Vector& rPrincipleVector, const Vector& rN
     rPrincipleVector[1] = 0.50 * (rNonPrincipleVector[0]+rNonPrincipleVector[1]) - std::sqrt(0.25*(std::pow(rNonPrincipleVector[0]-rNonPrincipleVector[1],2.0)) + std::pow(rNonPrincipleVector[2],2.0));
 }
 
-void MembraneElement::CheckWrinklingState(array_1d<bool,3>& rWrinklingStateArray, const Vector& rStress, const Vector& rStrain)
+void MembraneElement::CheckWrinklingState(WrinklingType& rWrinklingState, const Vector& rStress, const Vector& rStrain)
 {
-    // rWrinklingStateArray (taut,wrinkled,slack)
     const double numerical_limit = std::numeric_limits<double>::epsilon();
 
     Vector principle_strains = ZeroVector(2);
@@ -1078,19 +1076,13 @@ void MembraneElement::CheckWrinklingState(array_1d<bool,3>& rWrinklingStateArray
     const double max_strain = std::max(principle_strains[0],principle_strains[1]);
 
     if (min_stress > 0.0){
-        rWrinklingStateArray[0] = true;
-        rWrinklingStateArray[1] = false;
-        rWrinklingStateArray[2] = false;
+        rWrinklingState = WrinklingType::Taut;
     } else if ((max_strain > 0.0) && (min_stress < numerical_limit)){
-        rWrinklingStateArray[0] = false;
-        rWrinklingStateArray[1] = true;
-        rWrinklingStateArray[2] = false;
+        rWrinklingState = WrinklingType::Wrinkle;
     } else if (max_strain<numerical_limit){
-        rWrinklingStateArray[0] = false;
-        rWrinklingStateArray[1] = false;
-        rWrinklingStateArray[2] = true;
+        rWrinklingState = WrinklingType::Slack;
     }
-    else KRATOS_ERROR << "error in principle direction calcualtion of membrane element with id " << Id() << std::endl;
+    else KRATOS_ERROR << "error in principle direction calculation of membrane element with id " << Id() << std::endl;
 
 }
 
