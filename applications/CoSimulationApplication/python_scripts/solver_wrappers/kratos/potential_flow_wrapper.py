@@ -25,10 +25,10 @@ class PotentialFlowWrapper(kratos_base_wrapper.KratosBaseWrapper):
         return PotentialFlowAnalysis(self.model, self.project_parameters)
 
     def AdvanceInTime(self, current_time):
-        self.time = 1.0
-        return self.time
+        return 0.0
+
     def Predict(self):
-        return
+        pass
 
     def Initialize(self):
 
@@ -49,11 +49,13 @@ class PotentialFlowWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
     def SolveSolutionStep(self):
         self.wake_process.ExecuteInitialize()
+
+        ## the next two lines are needed in order to add Wake DoFs to the new Wake Elements Nodes
+        ## and delete the ones that are no longer in the Wake Region.
         self._analysis_stage._GetSolver().fluid_solver.solver.Clear()
         self._analysis_stage._GetSolver().fluid_solver.solver.InitializeSolutionStep()
+
         super(PotentialFlowWrapper, self).SolveSolutionStep()
-        self.model["FluidModelPart"].CloneTimeStep(self.time)
-        self.model["FluidModelPart"].ProcessInfo[KratosMultiphysics.STEP] += 1
 
         self.lift_process.ExecuteFinalizeSolutionStep()
         self.conversion_process.ExecuteFinalizeSolutionStep()
