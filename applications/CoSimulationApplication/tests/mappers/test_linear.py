@@ -28,6 +28,11 @@ def timer(name=None, t=0, n=0, ms=False):
 
 
 class TestMapperLinear(KratosUnittest.TestCase):
+    def test_mapper_linear(self):
+        self.test_mapper_linear_1d()
+        self.test_mapper_linear_2d()
+        self.test_mapper_linear_3d()
+
     def test_mapper_linear_1d(self):
         parameter_file_name = os.path.join(os.path.dirname(__file__), 'test_linear_1d.json')
         cs_data_structure = ImportDataStructure(parameter_file_name)
