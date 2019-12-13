@@ -24,6 +24,13 @@
 
 namespace Kratos
 {
+
+    KRATOS_CREATE_LOCAL_FLAG( LoggerOutput, WARNING_PREFIX,  0 );
+    KRATOS_CREATE_LOCAL_FLAG( LoggerOutput, INFO_PREFIX,     1 );
+    KRATOS_CREATE_LOCAL_FLAG( LoggerOutput, DETAIL_PREFIX,   2 );
+    KRATOS_CREATE_LOCAL_FLAG( LoggerOutput, DEBUG_PREFIX,    3 );
+    KRATOS_CREATE_LOCAL_FLAG( LoggerOutput, TRACE_PREFIX,    4 );
+
     std::string LoggerOutput::Info() const
     {
         return "LoggerOutput";
@@ -43,6 +50,27 @@ namespace Kratos
         auto message_severity = TheMessage.GetSeverity();
         if (TheMessage.WriteInThisRank() && message_severity <= mSeverity)
         {
+            switch (message_severity)
+            {
+            case LoggerMessage::Severity::WARNING:
+                if (mOptions.Is(WARNING_PREFIX)) mrStream << "[WARNING] ";
+                break;
+            case LoggerMessage::Severity::INFO:
+                if (mOptions.Is(INFO_PREFIX)) mrStream << "[INFO] ";
+                break;
+            case LoggerMessage::Severity::DETAIL:
+                if (mOptions.Is(DETAIL_PREFIX)) mrStream << "[DETAIL] ";
+                break;
+            case LoggerMessage::Severity::DEBUG:
+                if (mOptions.Is(DEBUG_PREFIX)) mrStream << "[DEBUG] ";
+                break;
+            case LoggerMessage::Severity::TRACE:
+                if (mOptions.Is(TRACE_PREFIX)) mrStream << "[TRACE] ";
+                break;
+            default:
+                break;
+            }
+
             if(TheMessage.IsDistributed())
                 mrStream << "Rank " << TheMessage.GetSourceRank() << ": ";
 
