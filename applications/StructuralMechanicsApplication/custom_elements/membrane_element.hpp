@@ -408,6 +408,15 @@ namespace Kratos
      */
     void CheckWrinklingState(WrinklingType& rWrinklingState, const Vector& rStress, const Vector& rStrain);
 
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
+        std::vector< Vector >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void DeformationGradient(Matrix& rDeformationGradient, double& rDetDeformationGradient,
+       const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase);
+
 protected:
   std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 

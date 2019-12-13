@@ -732,6 +732,142 @@ void MembraneElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
     }
 }
 
+
+
+
+
+void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
+                        std::vector< Vector >& rOutput,
+                        const ProcessInfo& rCurrentProcessInfo)
+{
+    // element with two nodes can only represent results at one node
+    const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
+    const SizeType& write_points_number =
+        GetGeometry().IntegrationPointsNumber(integration_method);
+    if (rOutput.size() != write_points_number) {
+        rOutput.resize(write_points_number);
+    }
+
+    const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(integration_method);
+
+    if (rVariable==PK2_STRESS_VECTOR || rVariable==PRINCIPLE_PK2_STRESS_VECTOR){
+        Vector stress = ZeroVector(3);
+        array_1d<Vector,2> current_covariant_base_vectors;
+        array_1d<Vector,2> reference_covariant_base_vectors;
+        array_1d<Vector,2> reference_contravariant_base_vectors;
+
+        array_1d<Vector,2> transformed_base_vectors;
+
+        Matrix covariant_metric_current = ZeroMatrix(3);
+        Matrix covariant_metric_reference = ZeroMatrix(3);
+        Matrix contravariant_metric_reference = ZeroMatrix(3);
+        Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
+
+        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
+            // getting information for integration
+            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+
+            CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Current);
+            CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
+
+            CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
+            CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
+            ContravariantMetric(contravariant_metric_reference,covariant_metric_reference);
+
+            ContraVariantBaseVectors(reference_contravariant_base_vectors,contravariant_metric_reference,reference_covariant_base_vectors);
+
+            TransformBaseVectors(transformed_base_vectors,reference_contravariant_base_vectors);
+
+            InPlaneTransformationMatrix(inplane_transformation_matrix_material,transformed_base_vectors,reference_contravariant_base_vectors);
+
+            StressPk2(stress,contravariant_metric_reference,covariant_metric_reference,
+                covariant_metric_current,transformed_base_vectors,inplane_transformation_matrix_material,
+                point_number);
+
+            if (rVariable==PRINCIPLE_PK2_STRESS_VECTOR){
+                Vector principle_stresses = ZeroVector(2);
+                PrincipleVector(principle_stresses,stress);
+                rOutput[point_number] = principle_stresses;
+            }  else {
+                rOutput[point_number] = stress;
+            }
+        }
+
+    }  else if (rVariable==CAUCHY_STRESS_VECTOR || rVariable==PRINCIPLE_CAUCHY_STRESS_VECTOR){
+
+        Vector stress = ZeroVector(3);
+        array_1d<Vector,2> current_covariant_base_vectors;
+        array_1d<Vector,2> reference_covariant_base_vectors;
+        array_1d<Vector,2> reference_contravariant_base_vectors;
+
+        array_1d<Vector,2> transformed_base_vectors;
+
+        Matrix covariant_metric_current = ZeroMatrix(3);
+        Matrix covariant_metric_reference = ZeroMatrix(3);
+        Matrix contravariant_metric_reference = ZeroMatrix(3);
+        Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
+
+        Matrix stress_matrix = ZeroMatrix(2);
+        Matrix deformation_gradient = ZeroMatrix(2);
+        double det_deformation_gradient = 0.0;
+
+        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
+            // getting information for integration
+            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+
+            CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Current);
+            CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
+
+            CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
+            CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
+            ContravariantMetric(contravariant_metric_reference,covariant_metric_reference);
+
+            ContraVariantBaseVectors(reference_contravariant_base_vectors,contravariant_metric_reference,reference_covariant_base_vectors);
+
+            TransformBaseVectors(transformed_base_vectors,reference_contravariant_base_vectors);
+
+            InPlaneTransformationMatrix(inplane_transformation_matrix_material,transformed_base_vectors,reference_contravariant_base_vectors);
+
+            StressPk2(stress,contravariant_metric_reference,covariant_metric_reference,
+                covariant_metric_current,transformed_base_vectors,inplane_transformation_matrix_material,
+                point_number);
+
+            DeformationGradient(deformation_gradient,det_deformation_gradient,current_covariant_base_vectors,reference_contravariant_base_vectors);
+
+            stress_matrix(0,0) = stress[0];
+            stress_matrix(1,1) = stress[1];
+            stress_matrix(0,1) = stress[2];
+            stress_matrix(1,0) = stress[2];
+
+            stress_matrix = prod(deformation_gradient,stress_matrix);
+            stress_matrix = prod(stress_matrix,trans(deformation_gradient));
+            stress_matrix = stress_matrix / det_deformation_gradient;
+
+            VoigtNotation(stress_matrix,stress,VoigtType::Stress);
+
+            if (rVariable==PRINCIPLE_CAUCHY_STRESS_VECTOR){
+                Vector principle_stresses = ZeroVector(2);
+                PrincipleVector(principle_stresses,stress);
+                rOutput[point_number] = principle_stresses;
+            }  else {
+                rOutput[point_number] = stress;
+            }
+        }
+    }
+}
+
+
+void MembraneElement::DeformationGradient(Matrix& rDeformationGradient, double& rDetDeformationGradient,
+     const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase)
+{
+    rDeformationGradient = ZeroMatrix(2);
+    for (SizeType i=0;i<2;++i){
+        rDeformationGradient += outer_prod(rCurrentCovariantBase[i],rReferenceContraVariantBase[i]);
+    }
+    rDetDeformationGradient = (rDeformationGradient(0,0)*rDeformationGradient(1,1)) - (rDeformationGradient(0,1)*rDeformationGradient(1,0));
+}
+
 void MembraneElement::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rOutput,
@@ -867,6 +1003,15 @@ void MembraneElement::GetValueOnIntegrationPoints(
 {
     KRATOS_TRY;
     CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    KRATOS_CATCH("")
+}
+
+void MembraneElement::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+                        std::vector<Vector>& rValues,
+                        const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     KRATOS_CATCH("")
 }
 
@@ -1092,7 +1237,10 @@ int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     const SizeType number_of_nodes = this->GetGeometry().size();
-    // const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo[DOMAIN_SIZE]==3) << "DOMAIN_SIZE in element " << Id() << " is not 3" << std::endl;
+    KRATOS_ERROR_IF_NOT(dimension==3) << "dimension in element " << Id() << " is not 3" << std::endl;
 
     // Verify that the variables are correctly initialized
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
