@@ -45,11 +45,11 @@ class MapperLinear2D(object):
         self.settings = parameters['settings']
         self.interpolator = True
         self.balanced_tree = self.settings['balanced_tree'].GetBool()
-        self.coord1 = self.settings['direction_1'].GetString().upper()
-        self.coord2 = self.settings['direction_2'].GetString().upper()
+        self.coord1 = self.settings['direction_1'].GetString().upper() + '0'
+        self.coord2 = self.settings['direction_2'].GetString().upper() + '0'
         for coord in [self.coord1, self.coord2]:
-            if coord not in ['X', 'Y', 'Z']:
-                raise ValueError(f'{coord} is not a valid direction.')
+            if coord not in ['X0', 'Y0', 'Z0']:
+                raise ValueError(f'{coord[:-1]} is not a valid direction.')
 
     def Initialize(self, model_part_from, model_part_to):
 

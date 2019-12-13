@@ -37,11 +37,11 @@ class MapperNearest(object):
     def Initialize(self, model_part_from, model_part_to):
         coords_from = np.zeros((model_part_from.NumberOfNodes(), 3))
         for i, node in enumerate(model_part_from.Nodes):
-            coords_from[i, :] = [node.X, node.Y, node.Z]
+            coords_from[i, :] = [node.X0, node.Y0, node.Z0]
 
         coords_to = np.zeros((model_part_to.NumberOfNodes(), 3))
         for i, node in enumerate(model_part_to.Nodes):
-            coords_to[i, :] = [node.X, node.Y, node.Z]
+            coords_to[i, :] = [node.X0, node.Y0, node.Z0]
 
         # build and query tree
         if self.balanced_tree:  # time-intensive

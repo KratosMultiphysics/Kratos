@@ -54,7 +54,7 @@ class MapperPermutation(object):
         model_part_out = model.CreateModelPart('no_name')
         model_part_out._ModelPart__hist_variables = model_part_in._ModelPart__hist_variables
         for node in model_part_in.Nodes:
-            coords = np.array([node.X, node.Y, node.Z])
+            coords = np.array([node.X0, node.Y0, node.Z0])
             model_part_out.CreateNewNode(node.Id, *tuple(coords[permutation]))
 
         return model_part_out

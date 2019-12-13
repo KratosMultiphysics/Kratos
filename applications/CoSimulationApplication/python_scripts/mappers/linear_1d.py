@@ -27,9 +27,9 @@ class MapperLinear1D(object):
         self.settings = parameters['settings']
         self.interpolator = True
         self.balanced_tree = self.settings['balanced_tree'].GetBool()
-        self.coord = self.settings['direction'].GetString().upper()
-        if self.coord not in ['X', 'Y', 'Z']:
-            raise ValueError(f'{self.coord} is not a valid direction.')
+        self.coord = self.settings['direction'].GetString().upper() + '0'
+        if self.coord not in ['X0', 'Y0', 'Z0']:
+            raise ValueError(f'{self.coord[:-1]} is not a valid direction.')
 
     def Initialize(self, model_part_from, model_part_to):
         self.n_from = model_part_from.NumberOfNodes()

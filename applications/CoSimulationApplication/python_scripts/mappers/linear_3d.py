@@ -66,12 +66,12 @@ class MapperLinear3D(object):
         self.n_from = model_part_from.NumberOfNodes()
         self.coords_from = np.zeros((self.n_from, 3))
         for i, node in enumerate(model_part_from.Nodes):
-            self.coords_from[i, :] = [node.X, node.Y, node.Z]
+            self.coords_from[i, :] = [node.X0, node.Y0, node.Z0]
 
         self.n_to = model_part_to.NumberOfNodes()
         self.coords_to = np.zeros((self.n_to, 3))
         for i, node in enumerate(model_part_to.Nodes):
-            self.coords_to[i, :] = [node.X, node.Y, node.Z]
+            self.coords_to[i, :] = [node.X0, node.Y0, node.Z0]
 
         # build and query tree
         if self.balanced_tree:  # time-intensive
