@@ -71,6 +71,8 @@ namespace Kratos
         // Initialize variable
         VariableUtils().SetNonHistoricalVariableToZero(PRESSURE_WEIGHTED, r_nodes_array);
 
+        mIsStartingAverageTimeSet = false;
+
         KRATOS_CATCH("");
     }
 
@@ -91,6 +93,12 @@ namespace Kratos
             KRATOS_ERROR_IF(mrModelPart.NumberOfNodes() == 0) << "the number of nodes in the domain is zero. weighted pressure calculation cannot be applied"<< std::endl;
             const unsigned int number_nodes = mrModelPart.NumberOfNodes();
 
+            // Set InitialTimeAverage if not done before
+            if (!mIsStartingAverageTimeSet) {
+                mStartingAverageTime = time_step_previous;
+                mIsStartingAverageTimeSet = true;
+            }
+
             // Iterate over the nodes
             #pragma omp parallel for
             for(int i_node = 0; i_node < static_cast<int>(number_nodes); ++i_node) {
@@ -105,7 +113,6 @@ namespace Kratos
                 // Compute weighted time average
                 auto pressure_current_avg = ComputeWeightedTimeAverage(pressure_old, pressure_current);
                 it_node->SetValue(PRESSURE_WEIGHTED,pressure_current_avg);
-
             }
         }
 
@@ -123,7 +130,7 @@ namespace Kratos
         const double& final_time = r_current_process_info[END_TIME];
 
         // const double new_average = std::sqrt(((time_step_previous-mTimeCoefficient*final_time) * std::pow(old_average,2) + (time_step_current - time_step_previous) * current_value) / (time_step_current - mTimeCoefficient*final_time));
-        const double new_average = ((time_step_previous-mTimeCoefficient*final_time) * old_average + (time_step_current - time_step_previous) * current_value) / (time_step_current - mTimeCoefficient*final_time);
+        const double new_average = ((time_step_previous-mStartingAverageTime) * old_average + (time_step_current - time_step_previous) * current_value) / (time_step_current - mStartingAverageTime);
         return new_average;
     }
 
