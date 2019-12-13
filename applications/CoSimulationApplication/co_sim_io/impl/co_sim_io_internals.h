@@ -21,6 +21,7 @@
 
 // Project includes
 #include "co_sim_io_define.h"
+#include "co_sim_io_macros.h"
 
 namespace CoSimIO {
 namespace Internals {
