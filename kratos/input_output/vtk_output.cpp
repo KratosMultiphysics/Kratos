@@ -928,7 +928,7 @@ void VtkOutput::WriteIntegrationVectorContainerVariable(
 
     TVarType aux_value;
     for (auto& r_entity : rContainer) { // TODO: CalculateOnIntegrationPoints should be const methods
-        aux_value = rVariable.ZeroVector(res_size);
+        aux_value = ZeroVector(res_size);
         std::vector<TVarType> aux_result(integration_points_number);
         r_entity.CalculateOnIntegrationPoints(rVariable, aux_result, r_process_info);
         for (const TVarType& r_value : aux_result) {
