@@ -3,6 +3,7 @@ from scipy.spatial import cKDTree
 import numpy as np
 
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication.mappers.nearest import MapperNearest
 cs_data_structure = cs_tools.cs_data_structure
 
 import time
@@ -27,7 +28,7 @@ def Create(parameters):
 
 
 # Class MapperLinear: Linear interpolation in 2D.
-class MapperLinear2D(object):
+class MapperLinear2D(MapperNearest):
     def __init__(self, parameters):
         """
         This mapper uses the two closest points; this does
@@ -39,8 +40,10 @@ class MapperLinear2D(object):
 
         At the boundaries of the domain, linear
         extrapolation is used.
+
+        The __call__ and Finalize methods are
+        inherited from MapperNearest.
         """
-        super().__init__()
 
         self.settings = parameters['settings']
         self.interpolator = True
@@ -98,43 +101,3 @@ class MapperLinear2D(object):
             error = np.abs(1 - (c_1 + c_2))
             if error > 1e-8:
                 raise ValueError(f'sum of coefficients is not 1 (error = {error:.1e})')
-
-    def Finalize(self):
-        pass
-
-    def __call__(self, args_from, args_to):
-        # exactly the same as linear_1d
-
-        model_part_from, var_from = args_from
-        model_part_to, var_to = args_to
-
-        # check if both Variables have same Type
-        if var_from.Type() != var_to.Type():
-            raise TypeError('Variables to be mapped have different Type.')
-
-        # scalar interpolation
-        if var_from.Type() == 'Double':
-            hist_var_from = np.zeros(self.n_from)
-            for i, node in enumerate(model_part_from.Nodes):
-                hist_var_from[i] = node.GetSolutionStepValue(var_from)
-
-            for i, node in enumerate(model_part_to.Nodes):
-                hist_var_to = np.dot(self.coeffs[i], hist_var_from[self.nearest[i, :]])
-                node.SetSolutionStepValue(var_to, 0, hist_var_to)
-
-        # vector interpolation
-        elif var_from.Type() == 'Array':
-            hist_var_from = np.zeros((self.n_from, 3))
-            for i, node in enumerate(model_part_from.Nodes):
-                hist_var_from[i] = node.GetSolutionStepValue(var_from)
-
-            for i, node in enumerate(model_part_to.Nodes):
-                hist_var_to = [0., 0., 0.]
-                for j in range(3):
-                    hist_var_to[j] = np.dot(self.coeffs[i],
-                                            hist_var_from[self.nearest[i, :], j])
-                node.SetSolutionStepValue(var_to, 0, hist_var_to)
-
-        # other types of Variables
-        else:
-            raise NotImplementedError(f'Mapping not yet implemented for Variable of Type {var_from.Type()}.')

@@ -3,6 +3,7 @@ import numpy as np
 from multiprocessing import Pool
 
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication.mappers.nearest import MapperNearest
 cs_data_structure = cs_tools.cs_data_structure
 
 import time
@@ -27,7 +28,7 @@ def Create(parameters):
 
 
 # Class MapperLinear: Linear interpolation in 3D.
-class MapperLinear3D(object):
+class MapperLinear3D(MapperNearest):
     def __init__(self, parameters):
         """
         This mapper uses the 3 nearest points.
@@ -54,8 +55,10 @@ class MapperLinear3D(object):
         On 36 cores, 1e6 points took around
         70s to Initialize, and 10s to do the
         mapping with __call__.
+
+        The __call__ and Finalize methods are
+        inherited from MapperNearest.
         """
-        super().__init__()
 
         self.settings = parameters['settings']
         self.interpolator = True
@@ -92,46 +95,6 @@ class MapperLinear3D(object):
                 self.coeffs = np.zeros((self.n_to, 3))
                 for i in range(self.n_to):
                     self.coeffs[i, :] = self.fun(i)[0]
-
-    def Finalize(self):
-        pass
-
-    def __call__(self, args_from, args_to):
-        # exactly the same as linear_1d
-
-        model_part_from, var_from = args_from
-        model_part_to, var_to = args_to
-
-        # check if both Variables have same Type
-        if var_from.Type() != var_to.Type():
-            raise TypeError('Variables to be mapped have different Type.')
-
-        # scalar interpolation
-        if var_from.Type() == 'Double':
-            hist_var_from = np.zeros(self.n_from)
-            for i, node in enumerate(model_part_from.Nodes):
-                hist_var_from[i] = node.GetSolutionStepValue(var_from)
-
-            for i, node in enumerate(model_part_to.Nodes):
-                hist_var_to = np.dot(self.coeffs[i], hist_var_from[self.nearest[i, :]])
-                node.SetSolutionStepValue(var_to, 0, hist_var_to)
-
-        # vector interpolation
-        elif var_from.Type() == 'Array':
-            hist_var_from = np.zeros((self.n_from, 3))
-            for i, node in enumerate(model_part_from.Nodes):
-                hist_var_from[i] = node.GetSolutionStepValue(var_from)
-
-            for i, node in enumerate(model_part_to.Nodes):
-                hist_var_to = [0., 0., 0.]
-                for j in range(3):
-                    hist_var_to[j] = np.dot(self.coeffs[i],
-                                            hist_var_from[self.nearest[i, :], j])
-                node.SetSolutionStepValue(var_to, 0, hist_var_to)
-
-        # other types of Variables
-        else:
-            raise NotImplementedError(f'Mapping not yet implemented for Variable of Type {var_from.Type()}.')
 
     def __getstate__(self):
         # necessary for multiprocessing

@@ -35,11 +35,13 @@ class MapperNearest(object):
         self.balanced_tree = self.settings['balanced_tree'].GetBool()
 
     def Initialize(self, model_part_from, model_part_to):
-        coords_from = np.zeros((model_part_from.NumberOfNodes(), 3))
+        self.n_from = model_part_from.NumberOfNodes()
+        coords_from = np.zeros((self.n_from, 3))
         for i, node in enumerate(model_part_from.Nodes):
             coords_from[i, :] = [node.X0, node.Y0, node.Z0]
 
-        coords_to = np.zeros((model_part_to.NumberOfNodes(), 3))
+        self.n_to = model_part_to.NumberOfNodes()
+        coords_to = np.zeros((self.n_to, 3))
         for i, node in enumerate(model_part_to.Nodes):
             coords_to[i, :] = [node.X0, node.Y0, node.Z0]
 
@@ -49,11 +51,15 @@ class MapperNearest(object):
         else:  # less stable
             tree = cKDTree(coords_from, balanced_tree=False)
         _, self.nearest = tree.query(coords_to)
+        self.nearest = self.nearest.reshape(-1, 1)
+        self.coeffs = np.ones((self.n_to, 1))
 
     def Finalize(self):
         pass
 
     def __call__(self, args_from, args_to):
+        # general function: works for nearest, linear etc...
+
         model_part_from, var_from = args_from
         model_part_to, var_to = args_to
 
@@ -63,24 +69,60 @@ class MapperNearest(object):
 
         # scalar interpolation
         if var_from.Type() == 'Double':
-            hist_var_from = np.zeros(model_part_from.NumberOfNodes())
+            hist_var_from = np.zeros(self.n_from)
             for i, node in enumerate(model_part_from.Nodes):
                 hist_var_from[i] = node.GetSolutionStepValue(var_from)
 
-            hist_var_to = hist_var_from[self.nearest]  # nearest-neighbour interpolation
             for i, node in enumerate(model_part_to.Nodes):
-                node.SetSolutionStepValue(var_to, 0, hist_var_to[i])
+                hist_var_to = np.dot(self.coeffs[i], hist_var_from[self.nearest[i, :]])
+                node.SetSolutionStepValue(var_to, 0, hist_var_to)
 
         # vector interpolation
         elif var_from.Type() == 'Array':
-            hist_var_from = np.zeros((model_part_from.NumberOfNodes(), 3))
+            hist_var_from = np.zeros((self.n_from, 3))
             for i, node in enumerate(model_part_from.Nodes):
                 hist_var_from[i] = node.GetSolutionStepValue(var_from)
 
-            hist_var_to = hist_var_from[self.nearest, :]  # nearest-neighbour interpolation
             for i, node in enumerate(model_part_to.Nodes):
-                node.SetSolutionStepValue(var_to, 0, hist_var_to[i, :].tolist())
+                hist_var_to = [0., 0., 0.]
+                for j in range(3):
+                    hist_var_to[j] = np.dot(self.coeffs[i],
+                                            hist_var_from[self.nearest[i, :], j])
+                node.SetSolutionStepValue(var_to, 0, hist_var_to)
 
         # other types of Variables
         else:
             raise NotImplementedError(f'Mapping not yet implemented for Variable of Type {var_from.Type()}.')
+
+
+    # def __call__(self, args_from, args_to):
+    #     model_part_from, var_from = args_from
+    #     model_part_to, var_to = args_to
+    #
+    #     # check if both Variables have same Type
+    #     if var_from.Type() != var_to.Type():
+    #         raise TypeError('Variables to be mapped have different Type.')
+    #
+    #     # scalar interpolation
+    #     if var_from.Type() == 'Double':
+    #         hist_var_from = np.zeros(model_part_from.NumberOfNodes())
+    #         for i, node in enumerate(model_part_from.Nodes):
+    #             hist_var_from[i] = node.GetSolutionStepValue(var_from)
+    #
+    #         hist_var_to = hist_var_from[self.nearest]  # nearest-neighbour interpolation
+    #         for i, node in enumerate(model_part_to.Nodes):
+    #             node.SetSolutionStepValue(var_to, 0, hist_var_to[i])
+    #
+    #     # vector interpolation
+    #     elif var_from.Type() == 'Array':
+    #         hist_var_from = np.zeros((model_part_from.NumberOfNodes(), 3))
+    #         for i, node in enumerate(model_part_from.Nodes):
+    #             hist_var_from[i] = node.GetSolutionStepValue(var_from)
+    #
+    #         hist_var_to = hist_var_from[self.nearest, :]  # nearest-neighbour interpolation
+    #         for i, node in enumerate(model_part_to.Nodes):
+    #             node.SetSolutionStepValue(var_to, 0, hist_var_to[i, :].tolist())
+    #
+    #     # other types of Variables
+    #     else:
+    #         raise NotImplementedError(f'Mapping not yet implemented for Variable of Type {var_from.Type()}.')
