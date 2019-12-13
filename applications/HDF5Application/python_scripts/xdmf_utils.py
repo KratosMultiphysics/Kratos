@@ -227,12 +227,15 @@ def TimeLabel(file_path):
 
     Returns empty string if not found.
     """
+    # Is there a better way to do this?
     temp_file_path = file_path.replace("E-", "E*")
     temp_file_path = temp_file_path.replace("e-", "e*")
+
     dash_split = temp_file_path[:temp_file_path.rfind(".")].split("-")
-    float_regex = re.compile(r'^[-+]?([0-9]+|[0-9]*\.[0-9]+)([eE][-+]?[0-9]+)?$')
     dash_split[-1] = dash_split[-1].replace("E*", "E-")
     dash_split[-1] = dash_split[-1].replace("e*", "e-")
+
+    float_regex = re.compile(r'^[-+]?([0-9]+|[0-9]*\.[0-9]+)([eE][-+]?[0-9]+)?$')
     if (float_regex.match(dash_split[-1])):
         return dash_split[-1]
     else:
