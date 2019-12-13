@@ -37,6 +37,8 @@
 #include "includes/ublas_interface.h"
 #include "spaces/ublas_space.h"
 
+#include <amgcl/coarsening/rigid_body_modes.hpp>
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -381,78 +383,17 @@ public:
         if(mUseAMGPreconditioning)
             mAMGCLParameters.put("precond.coarse_enough",mCoarseEnough/mBlockSize);
 
-        Matrix B;
         if(mUseAMGPreconditioning && mProvideCoordinates && (mBlockSize == 2 || mBlockSize == 3)) {
-            double sn = 1 / sqrt(TSparseSpaceType::Size1(rA));
+            std::vector<double> B;
+            int nmodes = amgcl::coarsening::rigid_body_modes(mBlockSize,
+                    boost::make_iterator_range(
+                        &mCoordinates[0][0],
+                        &mCoordinates[0][0] + TSparseSpaceType::Size1(rA)),
+                    B);
 
-            if (mBlockSize == 2) {
-                B = ZeroMatrix(  TSparseSpaceType::Size1(rA), 3);
-                for(IndexType i = 0; i<TSparseSpaceType::Size1(rA); ++i) {
-                    IndexType inode = i / mBlockSize;
-                    IndexType coord = i % mBlockSize;
-
-                    // Translation
-                    B(i,coord) = sn;
-
-                    // Rotation
-                    switch(coord) {
-                        case 0:
-                            B(i,2) = -mCoordinates[inode][1];
-                            break;
-                        case 1:
-                            B(i,2) = mCoordinates[inode][0];
-                            break;
-                    }
-                }
-            } else if (mBlockSize == 3) {
-                B = ZeroMatrix(  TSparseSpaceType::Size1(rA), 6);
-                for(IndexType i = 0; i<TSparseSpaceType::Size1(rA); ++i) {
-                    IndexType inode = i / mBlockSize;
-                    IndexType coord = i % mBlockSize;
-
-                    // Translation
-                    B(i,coord) = sn;
-
-                    // Rotation
-                    switch(coord) {
-                        case 0:
-                            B(i,3) = mCoordinates[inode][1];
-                            B(i,5) = mCoordinates[inode][2];
-                            break;
-                        case 1:
-                            B(i,3) = -mCoordinates[inode][0];
-                            B(i,4) = -mCoordinates[inode][2];
-                            break;
-                        case 2:
-                            B(i,4) = mCoordinates[inode][1];
-                            B(i,5) = -mCoordinates[inode][0];
-                            break;
-                    }
-                }
-            }
-
-            // Orthonormalization
-            std::vector<double> dot(B.size2());
-            for(IndexType i = mBlockSize; i < B.size2(); ++i) {
-                std::fill(dot.begin(), dot.end(), 0.0);
-                for(IndexType j = 0; j < TSparseSpaceType::Size1(rA); ++j) {
-                    for(IndexType k = 0; k < i; ++k)
-                        dot[k] += B(j,k) * B(j,i);
-                }
-                double nrm = 0.0;
-                for(IndexType j = 0; j < TSparseSpaceType::Size1(rA); ++j) {
-                    for(IndexType k = 0; k < i; ++k)
-                        B(j,i) -= dot[k] * B(j,k);
-                    nrm += B(j,i) * B(j,i);
-                }
-                nrm = sqrt(nrm);
-                for(IndexType j = 0; j < TSparseSpaceType::Size1(rA); ++j)
-                    B(j,i) /= nrm;
-            }
-
-            mAMGCLParameters.put("precond.coarsening.nullspace.cols", B.size2());
-            mAMGCLParameters.put("precond.coarsening.nullspace.rows", B.size1());
-            mAMGCLParameters.put("precond.coarsening.nullspace.B",    &(B.data()[0]));
+            mAMGCLParameters.put("precond.coarsening.nullspace.cols", nmodes);
+            mAMGCLParameters.put("precond.coarsening.nullspace.rows", TSparseSpaceType::Size1(rA));
+            mAMGCLParameters.put("precond.coarsening.nullspace.B",    &B[0]);
         }
 
         if(mVerbosity > 1)
