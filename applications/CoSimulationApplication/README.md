@@ -16,18 +16,7 @@ The CoSimulation Application contains the core developments in coupling black-bo
 - Coupling of Kratos <=> Kratos without overhead
 
 ### IO with external solvers
-- includes are header-only (in simple cases even only one file)
-- IO is done Asynchronous, hence less chances for deadlocking
-
-- Currently available:
-    - IO through the legacy-Interface of EMPIRE
-        - Carat++
-        - OpenFOAM++
-        - FASTEST
-
-- Future:
-    - PythonIO
-    - VTKFileIO
-    - VTUFileIO
-    - SocketIO
-    - MPIIO
+Different ways of IO with external solvers are possible
+- directly in python (see SDof solvers)
+- using the CoSimIO. This is the preferred way for C++, C or Fortran based solvers
+- using the legacy EMPIRE-API
