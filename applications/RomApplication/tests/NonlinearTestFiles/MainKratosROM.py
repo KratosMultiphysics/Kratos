@@ -123,6 +123,11 @@ class ConvDiffROM(ConvectionDiffusionAnalysis):
         return ArrayOfTemperatures
 
     def EvaluateQuantityOfInterest2(self):
+        computing_model_part = self.model["ThermalModelPart"]
+        dimension = self._GetSolver().settings["domain_size"].GetInt()
+        area_calculator = KratosMultiphysics.CalculateNodalAreaProcess(computing_model_part , dimension)
+        area_calculator.Execute()        
+
         ArrayOfAreas = []
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             ArrayOfAreas.append(node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))

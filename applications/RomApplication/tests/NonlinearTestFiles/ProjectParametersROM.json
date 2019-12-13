@@ -66,16 +66,6 @@
                     "value": 0.0,
                     "constrained": false
                 }
-            },
-            {
-                "python_module": "calculate_nodal_area_process",
-                "kratos_module": "KratosMultiphysics.RomApplication",
-                "process_name": "CalculateNodalAreaProcess",
-                "Parameters": {
-                    "model_part_name": "ThermalModelPart",
-                    "domain_size": 2,
-                    "fixed_mesh": true
-                }
             }
         ]
     },
