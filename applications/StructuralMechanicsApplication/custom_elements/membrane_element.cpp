@@ -657,9 +657,8 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
     Matrix contravariant_metric_reference = ZeroMatrix(3);
     Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
     double detJ = 0.0;
-    double temp_stiffness_entry = 0.0;
+    double temp_stiffness_entry;
     Vector stress = ZeroVector(3);
-    Vector derivative_strain = ZeroVector(3);
 
     for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
         // getting information for integration
