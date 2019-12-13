@@ -257,27 +257,47 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             tmp = f'CSM_Time{self.timestep_start}Surface{mp.thread_id}Elements.dat'
             elem_file = join(self.dir_csm, tmp)
             elements = np.loadtxt(elem_file)
+
+            if self.timestep_start > 0:
+                tmp0 = f'CSM_Time0Surface{mp.thread_id}Elements.dat'
+                elem0_file = join(self.dir_csm, tmp0)
+                elements0 = np.loadtxt(elem0_file)
+            elif self.timestep_start == 0:
+                elements0 = elements
+
             n_elem = int(elements[0])
             n_lp = int(elements[1])
             if elements.shape[0]-2 != int(n_elem):
                 raise ValueError(f"Number of lines ({elements.shape[0]}) in {elem_file} does not correspond with the number of elements ({n_elem})")
 
-            # read in Faces file for load points
+            if int(elements0[0]) != n_elem or int(elements0[1]) !=n_lp:
+                raise ValueError(f"Number of load points has changed for {key}")
+
+            # read in Faces file for load points and also file at time 0 for original positions for the mappers
             tmp = f'CSM_Time{self.timestep_start}Surface{mp.thread_id}Cpu0Faces.dat'
             faces_file = join(self.dir_csm, tmp)
             faces = np.loadtxt(faces_file)
 
+            if self.timestep_start > 0:
+                tmp0 = f'CSM_Time0Surface{mp.thread_id}Cpu0Faces.dat'
+                faces0_file = join(self.dir_csm, tmp0)
+                faces0 = np.loadtxt(faces0_file)
+            elif self.timestep_start == 0:
+                faces0 = faces
+
             if faces.shape[1] != self.dimensions + 2:
                 raise ValueError(f'given dimension does not match coordinates')
+
 
             # get load point coordinates and ids of load points
             prev_elem = 0
             prev_lp = 0
             ids_tmp = np.zeros(n_elem*n_lp).astype(str)  # create string ids element_loadpoint
             coords_tmp = np.zeros((n_elem*n_lp, 3)).astype(float)  # Framework also requires z-coordinate which is 0.0 for 2D
+            coords0_tmp = np.zeros((n_elem * n_lp, 3)).astype(float)
             for i in range(0, n_elem*n_lp):
-                elem = int(faces[i, 0])
-                lp = int(faces[i, 1])
+                elem = int(faces0[i, 0])
+                lp = int(faces0[i, 1])
                 if elem < prev_elem:
                     raise ValueError(f"Element sequence is wrong ({elem}<{prev_elem})")
                 elif elem == prev_elem and lp != prev_lp+1:
@@ -288,7 +308,8 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     raise ValueError(f"lp ({lp}) exceeds the number of load points per element {n_lp}")
 
                 ids_tmp[i] = f"{elem}_{lp}"
-                coords_tmp[i, :self.dimensions] = faces[i, -self.dimensions:]  # extract last "dimensions" columns from the file
+                coords0_tmp[i, :self.dimensions] = faces0[i, -self.dimensions:]  # extract last "dimensions" columns from the file
+                coords_tmp[i, :self.dimensions] = faces[i, -self.dimensions:]
 
                 prev_elem = elem
                 prev_lp = lp
@@ -298,15 +319,19 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             mp.min = np.array([np.Inf, np.Inf, np.Inf])
             mp.max = np.array([np.NINF, np.NINF, np.NINF])
             for i in range(ids_tmp.size):
-                mp.CreateNewNode(ids_tmp[i],
-                                 coords_tmp[i, 0], coords_tmp[i, 1], coords_tmp[i, 2])
+                node = mp.CreateNewNode(ids_tmp[i],
+                                 coords0_tmp[i, 0], coords0_tmp[i, 1], coords0_tmp[i, 2]) #Stores node.X0, node.Y0 and node.Z0 for mappers
+                #Set the node coordinates to the correct values at the current timestep_start
+                node.X = coords_tmp[i, 0]
+                node.Y = coords_tmp[i, 1]
+                node.Z = coords_tmp[i, 2]
 
-                if coords_tmp[i, 0] < mp.min[0]: mp.min[0] = coords_tmp[i,0]
-                if coords_tmp[i, 1] < mp.min[1]: mp.min[1] = coords_tmp[i, 1]
-                if coords_tmp[i, 2] < mp.min[2]: mp.min[2] = coords_tmp[i, 2]
-                if coords_tmp[i, 0] > mp.max[0]: mp.max[0] = coords_tmp[i,0]
-                if coords_tmp[i, 1] > mp.max[1]: mp.max[1] = coords_tmp[i, 1]
-                if coords_tmp[i, 2] > mp.max[2]: mp.max[2] = coords_tmp[i, 2]
+                if coords0_tmp[i, 0] < mp.min[0]: mp.min[0] = coords0_tmp[i,0]
+                if coords0_tmp[i, 1] < mp.min[1]: mp.min[1] = coords0_tmp[i, 1]
+                if coords0_tmp[i, 2] < mp.min[2]: mp.min[2] = coords0_tmp[i, 2]
+                if coords0_tmp[i, 0] > mp.max[0]: mp.max[0] = coords0_tmp[i,0]
+                if coords0_tmp[i, 1] > mp.max[1]: mp.max[1] = coords0_tmp[i, 1]
+                if coords0_tmp[i, 2] > mp.max[2]: mp.max[2] = coords0_tmp[i, 2]
 
             #Find the bounding box of the complete structure based on the interface_input
             if mp.min[0] < geom_min[0]: geom_min[0] = mp.min[0]
@@ -321,40 +346,56 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         # Abaqus does not use node ids but maintains the output order
         for key in self.settings['interface_output'].keys():
             mp = self.model[key]
-            # read in Nodes file for surface nodes
+            # read in Nodes0 file for mapper and Nodes file for surface node positions
             tmp = f'CSM_Time{self.timestep_start}Surface{mp.thread_id}Nodes.dat'
             nodes_file = join(self.dir_csm, tmp)
             nodes = np.loadtxt(nodes_file, skiprows=1)
+            if self.timestep_start > 0:
+                tmp0 = f'CSM_Time0Surface{mp.thread_id}Nodes.dat'
+                nodes0_file = join(self.dir_csm, tmp0)
+                nodes0 = np.loadtxt(nodes0_file, skiprows=1)
+            elif self.timestep_start == 0:
+                nodes0 = nodes
 
             if nodes.shape[1] != self.dimensions:
                 raise ValueError(f'given dimension does not match coordinates')
 
             # get surface node coordinates and ids
             n_nodes = nodes.shape[0]
+            n_nodes0 = nodes0.shape[0]
+            if n_nodes != n_nodes0:
+                raise ValueError(f"Number of interface nodes has changed for {key}")
+
             ids_tmp = np.zeros(n_nodes).astype(str)
 
             coords_tmp = np.zeros((n_nodes, 3)).astype(float)  # Framework also requires z-coordinate which is 0.0 for 2D
+            coords0_tmp = np.zeros((n_nodes, 3)).astype(float)
 
             for i in range(0, n_nodes):
                 ids_tmp[i] = str(i)
                 coords_tmp[i, :self.dimensions] = nodes[i, :]
+                coords0_tmp[i, :self.dimensions] = nodes0[i, :]
 
             # create Nodes for surface points
             # Also keep track of min and max of the nodes to verify that surfaces are consistent
             mp.min = np.array([np.Inf, np.Inf, np.Inf])
             mp.max = np.array([np.NINF, np.NINF, np.NINF])
             for i in range(ids_tmp.size):
-                mp.CreateNewNode(ids_tmp[i], coords_tmp[i, 0], coords_tmp[i, 1], coords_tmp[i, 2])
+                node = mp.CreateNewNode(ids_tmp[i], coords0_tmp[i, 0], coords0_tmp[i, 1], coords0_tmp[i, 2])
+                node.X = coords_tmp[i, 0]
+                node.Y = coords_tmp[i, 1]
+                node.Z = coords_tmp[i, 2]
 
-                if coords_tmp[i, 0] < mp.min[0]: mp.min[0] = coords_tmp[i,0]
-                if coords_tmp[i, 1] < mp.min[1]: mp.min[1] = coords_tmp[i, 1]
-                if coords_tmp[i, 2] < mp.min[2]: mp.min[2] = coords_tmp[i, 2]
-                if coords_tmp[i, 0] > mp.max[0]: mp.max[0] = coords_tmp[i,0]
-                if coords_tmp[i, 1] > mp.max[1]: mp.max[1] = coords_tmp[i, 1]
-                if coords_tmp[i, 2] > mp.max[2]: mp.max[2] = coords_tmp[i, 2]
+                if coords0_tmp[i, 0] < mp.min[0]: mp.min[0] = coords0_tmp[i,0]
+                if coords0_tmp[i, 1] < mp.min[1]: mp.min[1] = coords0_tmp[i, 1]
+                if coords0_tmp[i, 2] < mp.min[2]: mp.min[2] = coords0_tmp[i, 2]
+                if coords0_tmp[i, 0] > mp.max[0]: mp.max[0] = coords0_tmp[i,0]
+                if coords0_tmp[i, 1] > mp.max[1]: mp.max[1] = coords0_tmp[i, 1]
+                if coords0_tmp[i, 2] > mp.max[2]: mp.max[2] = coords0_tmp[i, 2]
 
 
             ##Check the bounding boxes for input interface versus output interface
+            #This will be based on the original coordinates at time 0
             tol_center = 0.02
             tol_BB = 0.1
             tol_geom = 0.01
