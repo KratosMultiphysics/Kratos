@@ -19,6 +19,15 @@ cs_data_structure = cs_tools.cs_data_structure
 def Create(parameters):
     return SolverWrapperAbaqus614(parameters)
 
+def print_colored(string, color):
+    if color=='green':
+        print('\x1b[0;30;42m'+string+'\x1b[0m')
+    elif color=='orange':
+        print('\x1b[0;30;43m' + string + '\x1b[0m')
+    elif color=='red':
+        print('\x1b[0;30;41m' + string + '\x1b[0m')
+    else:
+        print(string+f'(color {color} not implemented)')
 
 class SolverWrapperAbaqus614(CoSimulationComponent):
     def __init__(self, parameters):
@@ -61,6 +70,7 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         self.dimensions = self.settings['dimensions'].GetInt()
         if self.dimensions == 2:
             print('\x1b[0;30;43m' + "Warning for Axisymmetric cases:\n\tIn Abaqus these have to be constructed around the y-axis. \n\tSwitching of x and y-coordinates might be necessary but should be accomplished by using an appropriate mapper." + '\x1b[0m')
+            print('\n')
         self.array_size = self.settings["arraysize"].GetInt()
         self.ramp = self.settings["ramp"].GetInt()
         self.delta_T = self.settings["delta_T"].GetDouble()  # TODO: move to higher-level parameter file?
@@ -230,12 +240,16 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     if 'thread_id' not in dir(mp):
                         raise AttributeError('Could not find thread id corresponding to key')
                 else:
-                    raise AttributeError(f'Could not find interface_input object for {self.surfaceIDs[i]}. Check parameter file.')
+                    raise AttributeError(f'Could not identify surfaceID corresponding to key {key}. Check parameter file.')
 
         # add Nodes to input ModelParts (load_points)
         # elements line 1 contains number of elements
         # elements line 2 contains number of load points per element
         # elements remainder contains element numbers involved in interface
+
+        geom_min = np.array([np.Inf, np.Inf, np.Inf])
+        geom_max = np.array([np.NINF, np.NINF, np.NINF])
+
         for key in self.settings['interface_input'].keys():
             mp = self.model[key]
 
@@ -280,9 +294,27 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                 prev_lp = lp
 
             # create Nodes for load points
+            # Also keep track of min and max of the nodes to verify that surfaces are consistent
+            mp.min = np.array([np.Inf, np.Inf, np.Inf])
+            mp.max = np.array([np.NINF, np.NINF, np.NINF])
             for i in range(ids_tmp.size):
                 mp.CreateNewNode(ids_tmp[i],
                                  coords_tmp[i, 0], coords_tmp[i, 1], coords_tmp[i, 2])
+
+                if coords_tmp[i, 0] < mp.min[0]: mp.min[0] = coords_tmp[i,0]
+                if coords_tmp[i, 1] < mp.min[1]: mp.min[1] = coords_tmp[i, 1]
+                if coords_tmp[i, 2] < mp.min[2]: mp.min[2] = coords_tmp[i, 2]
+                if coords_tmp[i, 0] > mp.max[0]: mp.max[0] = coords_tmp[i,0]
+                if coords_tmp[i, 1] > mp.max[1]: mp.max[1] = coords_tmp[i, 1]
+                if coords_tmp[i, 2] > mp.max[2]: mp.max[2] = coords_tmp[i, 2]
+
+            #Find the bounding box of the complete structure based on the interface_input
+            if mp.min[0] < geom_min[0]: geom_min[0] = mp.min[0]
+            if mp.min[1] < geom_min[1]: geom_min[1] = mp.min[1]
+            if mp.min[2] < geom_min[2]: geom_min[2] = mp.min[2]
+            if mp.max[0] > geom_max[0]: geom_max[0] = mp.max[0]
+            if mp.max[1] > geom_max[1]: geom_max[1] = mp.max[1]
+            if mp.max[2] > geom_max[2]: geom_max[2] = mp.max[2]
 
         # add Nodes to output ModelParts (surface_points)
         # first line is a header, remaining lines are x, y (and z) coordinates
@@ -308,10 +340,86 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                 coords_tmp[i, :self.dimensions] = nodes[i, :]
 
             # create Nodes for surface points
+            # Also keep track of min and max of the nodes to verify that surfaces are consistent
+            mp.min = np.array([np.Inf, np.Inf, np.Inf])
+            mp.max = np.array([np.NINF, np.NINF, np.NINF])
             for i in range(ids_tmp.size):
                 mp.CreateNewNode(ids_tmp[i], coords_tmp[i, 0], coords_tmp[i, 1], coords_tmp[i, 2])
 
-            self.write_Nodes_test()  # This should be commented out in the final code
+                if coords_tmp[i, 0] < mp.min[0]: mp.min[0] = coords_tmp[i,0]
+                if coords_tmp[i, 1] < mp.min[1]: mp.min[1] = coords_tmp[i, 1]
+                if coords_tmp[i, 2] < mp.min[2]: mp.min[2] = coords_tmp[i, 2]
+                if coords_tmp[i, 0] > mp.max[0]: mp.max[0] = coords_tmp[i,0]
+                if coords_tmp[i, 1] > mp.max[1]: mp.max[1] = coords_tmp[i, 1]
+                if coords_tmp[i, 2] > mp.max[2]: mp.max[2] = coords_tmp[i, 2]
+
+
+            ##Check the bounding boxes for input interface versus output interface
+            tol_center = 0.02
+            tol_BB = 0.1
+            tol_geom = 0.01
+            AR_plane = 1e-08
+            abs_tol_plane = 1e-06
+
+            #Find corresponding Input modelpart based on thread_id
+            bool_corresponds=0
+            for key_temp in self.settings['interface_input'].keys():
+                mp_temp = self.model[key_temp]
+                if mp_temp.thread_id == mp.thread_id:
+                    mp_input = mp_temp
+                    bool_corresponds = 1
+                    break
+            if bool_corresponds == 0:
+                raise ValueError(f"Found no interface_input object corresponding to the interface_output object ({key})")
+            else:
+                diff_Out = mp.max - mp.min
+                diff_In = mp_input.max - mp_input.min
+                ref = np.array([max(diff_Out[0],diff_In[0]),max(diff_Out[1],diff_In[1]),max(diff_Out[2],diff_In[2])])
+                geom_diff=geom_max-geom_min
+                for i in range(0,self.dimensions):
+                    if self.dimensions==3:
+                        bool_A = ref[i] < AR_plane*ref[i-1] and ref[i] < AR_plane*ref[i-2] #Identifies as plane perpendicular to coordinate direction
+                        bool_B = (geom_diff[i] < AR_plane*geom_diff[i-1] and geom_diff[i] < AR_plane*geom_diff[i-2])
+                    elif self.dimensions==2:
+                        bool_A = ref[i] < AR_plane*ref[(i+1)%2] #Identifies as plane perpendicular to coordinate direction
+                        bool_B = geom_diff[i] < AR_plane*geom_diff[(i+1)%2]
+
+                    if bool_A:
+                        if not bool_B:
+                            if np.abs((mp.max[i]+mp.min[i])/2.0-(mp_input.max[i]+mp_input.min[i])/2.0)>tol_geom*geom_diff[i]:
+                                print_colored(f"Warning: The bounding box center of the input and output for the face {mp.thread_name} "
+                                              f"differ by more than {tol_geom*100}% of the bounding box for the complete interface geometry in the {i}-direction","orange")
+                                print(f"Input interface center: {(mp_input.max+mp_input.min)/2.0}")
+                                print(f"Output interface center: {(mp.max + mp.min) / 2.0}")
+                        else:
+                            if np.abs((mp.max[i]+mp.min[i])/2.0-(mp_input.max[i]+mp_input.min[i])/2.0)>abs_tol_plane:
+                                print_colored(f"Warning: The bounding box center of the input and output for the face {mp.thread_name} "
+                                              f"differ by more than {abs_tol_plane}m in the {i}-direction","orange")
+                                print(f"Input interface center: {(mp_input.max+mp_input.min)/2.0}")
+                                print(f"Output interface center: {(mp.max + mp.min) / 2.0}")
+                    else:
+                        if np.abs(mp.min[i]-mp_input.min[i])>tol_BB*ref[i]:
+                            print_colored(
+                                f"Warning: The minima of the bounding boxes of the input and output for {mp.thread_name} "
+                                f"differ by more than {tol_BB*100}% of the corresponding bounding box in the {i}-direction","orange")
+                            print(f"Input interface bounding box: {mp_input.min} to {mp_input.max}")
+                            print(f"Output interface bounding box: {mp.min} to {mp.max}")
+                        if np.abs(mp.max[i] - mp_input.max[i]) > tol_BB * ref[i]:
+                            print_colored(
+                                f"Warning: The maxima of the bounding boxes of the input and output for {mp.thread_name} "
+                                f"differ by more than {tol_BB*100}% of the corresponding bounding box in the {i}-direction","orange")
+                            print(f"Input interface bounding box: {mp_input.min} to {mp_input.max}")
+                            print(f"Output interface bounding box: {mp.min} to {mp.max}")
+                        if np.abs((mp.max[i]+mp.min[i])/2.0 - (mp_input.max[i]+mp_input.min[i])/2.0) > tol_center * ref[i]:
+                            print_colored(
+                                f"Warning: The geometric centers of the input and output for {mp.thread_name} "
+                                f"differ by more than {tol_center*100}% of the corresponding bounding box in the {i}-direction","orange")
+                            print(f"Input interface center: {(mp_input.max + mp_input.min) / 2.0}")
+                            print(f"Output interface center: {(mp.max + mp.min) / 2.0}")
+                            print(f"Input interface bounding box: {mp_input.min} to {mp_input.max}")
+                            print(f"Output interface bounding box: {mp.min} to {mp.max}")
+
+            # self.write_Nodes_test()  # This should be commented out in the final code
 
         # create CoSimulationInterfaces
         self.interface_input = CoSimulationInterface(self.model, self.settings['interface_input'])
