@@ -16,7 +16,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "co_simulation_io/impl/co_sim_io_internals.h"
+#include "co_sim_io/impl/co_sim_io_internals.h"
 
 namespace Kratos {
 namespace Testing {

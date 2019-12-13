@@ -1,6 +1,6 @@
 project( DummySolverC C)
 
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../../co_simulation_io/c )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../../co_sim_io/c )
 link_directories(${CMAKE_SOURCE_DIR}/libs)
 
 add_executable (dummy_solver_c dummy_solver.c dummy_includes.c)

@@ -58,12 +58,13 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
         install(TARGETS ping DESTINATION libs )
         install(TARGETS pong DESTINATION libs )
 
+        # add_definitions(-DKRATOS_CO_SIM_IO_ENABLE_SOCKETS)
 
         ### CoSimIO - C-interface (also used for fortran)
-        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/co_simulation_io/c)
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/c)
 
         install(
-            FILES ${CMAKE_CURRENT_BINARY_DIR}/co_simulation_io/c/libco_sim_c_io.so # find a way to do this without specifying the ending
+            FILES ${CMAKE_CURRENT_BINARY_DIR}/co_sim_io/c/libco_sim_c_io.so # find a way to do this without specifying the ending
             DESTINATION libs
             PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ) # required to preseve execute-permissions
 
