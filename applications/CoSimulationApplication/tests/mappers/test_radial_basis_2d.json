@@ -1,0 +1,16 @@
+{
+    "settings":
+    {
+        "data_structure" : "pyKratos"
+    },
+    "mapper" :
+    {
+        "type": "mappers.radial_basis_2d",
+        "settings":
+        {
+            "direction_1" : "X",
+            "direction_2" : "Y",
+            "balanced_tree" : false
+        }
+    }
+}
