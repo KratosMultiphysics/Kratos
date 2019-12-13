@@ -91,6 +91,8 @@ jobs:
         
         cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all_unity || goto :error
         
+        goto :EOF
+        
         :error
         echo Failed with error #%errorlevel%.
         exit /b %errorlevel%
