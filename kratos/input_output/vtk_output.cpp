@@ -128,8 +128,21 @@ void VtkOutput::WriteModelPartToFile(const ModelPart& rModelPart, const bool IsS
 {
     Initialize(rModelPart);
 
+    std::string output_file_name = "";
+    if (rOutputFilename == "")
+    {
+        output_file_name = GetOutputFileName(rModelPart, IsSubModelPart);
+    }
+    else
+    {
+        if (mOutputSettings["save_output_files_in_folder"].GetBool())
+        {
+            output_file_name = mOutputSettings["folder_name"].GetString() + "/";
+        }
+        output_file_name += rOutputFilename + ".vtk";
+    }
+
     // Make the file stream object
-    const std::string output_file_name = (rOutputFilename == "") ? GetOutputFileName(rModelPart, IsSubModelPart) : rOutputFilename;
     std::ofstream output_file;
     if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
         output_file.open(output_file_name, std::ios::out | std::ios::trunc);
