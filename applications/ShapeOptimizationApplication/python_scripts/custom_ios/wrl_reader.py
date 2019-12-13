@@ -64,11 +64,14 @@ def read_triangles(line, file):
 
 
 def read_shape(line, file):
-    name = line.split("#")[1].strip()
+    try:
+        name = line.split("#")[1].strip()
+    except IndexError:
+        name = "geometry"
     nodes = []
     triangles = []
     while not nodes or not triangles:
-        if line.strip().startswith("coord Coordinate"):
+        if line.strip().startswith("coord "):
             nodes = read_nodes(line, file)
         elif line.strip().startswith("coordIndex"):
             triangles = read_triangles(line, file)
@@ -89,7 +92,7 @@ def read_shapes(file_name):
                 " Only '#VRML V2.0' is supported.".format(first_line.strip()))
 
         for line in file:
-            if line.startswith("Shape"):
+            if line.strip().startswith("Shape"):
                 shapes.append(read_shape(line, file))
                 line = next(file)
     return shapes
