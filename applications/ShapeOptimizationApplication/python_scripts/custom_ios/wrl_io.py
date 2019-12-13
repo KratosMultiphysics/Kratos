@@ -30,7 +30,6 @@ def _rename_to_valid_name(model_part, shape):
 class WrlIO:
 
     def __init__(self, file_name):
-
         self.file_name = file_name + ".wrl"
 
     def ReadModelPart(self, model_part):

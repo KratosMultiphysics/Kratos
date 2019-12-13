@@ -77,9 +77,7 @@ def read_shape(line, file):
             triangles = read_triangles(line, file)
         line = next(file)
 
-    shape = Shape(name, nodes, triangles)
-
-    return shape
+    return Shape(name, nodes, triangles)
 
 
 def read_shapes(file_name):
