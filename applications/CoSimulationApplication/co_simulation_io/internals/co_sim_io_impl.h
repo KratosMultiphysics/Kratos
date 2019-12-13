@@ -13,22 +13,15 @@
 #define KRATOS_CO_SIM_IO_IMPL_H_INCLUDED
 
 /*
-This file defines the IO of Kratos-CoSimulation for the exchange of data
-with external solvers.
-By default the communication is done through files,
-support for sockets and MPI can optionally be enabled
+This file contains the implementation of the functions defined in "co_sim_io.h"
 */
-
-// #define KRATOS_CO_SIM_IO_ENABLE_SOCKETS // uncomment for Sockets support
-// #define KRATOS_CO_SIM_IO_ENABLE_MPI // uncomment for MPI support
 
 // System includes
 #include <string>
 #include <memory>
 
 // Project includes
-#include "../co_sim_io_define.h"
-#include "../co_sim_connection.h"
+#include "co_sim_connection.h"
 
 namespace CoSimIO {
 
@@ -200,4 +193,4 @@ inline void Register(
 
 } // namespace CoSimIO
 
-#endif /* KRATOS_CO_SIM_IO_IMPL_H_INCLUDED */
+#endif // KRATOS_CO_SIM_IO_IMPL_H_INCLUDED
