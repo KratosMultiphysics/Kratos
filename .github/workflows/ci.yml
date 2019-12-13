@@ -1,6 +1,22 @@
 name: CI
 
-on: [pull_request]
+on:
+  pull_request:
+    paths:
+    - '.github/**'
+    - 'cmake_modules/**'
+    - 'scripts/**'
+    - 'CMakeLists.txt'
+    - 'external_libraries/**'
+    - 'kratos/**'
+    - 'applications/FluidDynamicsApplication/**'
+    - 'applications/StructuralMechanicsApplication/**'
+    - 'applications/DEMApplication/**'
+    - 'applications/MeshMovingApplication/**'
+    - 'applications/CSharpWrapperApplication/**'
+    - 'applications/MetisApplication/**'
+    - 'applications/TrilinosApplication/**'
+    - 'applications/ExternalSolversApplication/**'
 
 jobs:
   ubuntu:
