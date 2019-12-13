@@ -16,6 +16,7 @@
 
 // Project includes
 #include "custom_processes/simple_error_calculator_process.h"
+#include "convection_diffusion_application_variables.h"
 #include "utilities/variable_utils.h"
 
 namespace Kratos

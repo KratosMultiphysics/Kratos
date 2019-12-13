@@ -68,9 +68,9 @@ public:
     typedef Geometry<Node<3>>                                                   GeometryType;
 
     /// Definition of the iterators
-    typedef WeakPointerVector< Element >::iterator                         WeakElementItType;
-    typedef NodesArrayType::iterator                                              NodeItType;
-    typedef ElementsArrayType::iterator                                        ElementItType;
+    //typedef WeakPointerVector< Element >::iterator                         WeakElementItType;
+    //typedef NodesArrayType::iterator                                              NodeItType;
+    //typedef ElementsArrayType::iterator                                        ElementItType;
 
     /// Definition of the indextype
     typedef std::size_t                                                            IndexType;
