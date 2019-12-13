@@ -54,7 +54,7 @@ template<typename TDataType>
 inline std::ostream& operator << (std::ostream& rOStream,
                                   const DataContainer<TDataType>& rThis)
 {
-    std::size_t size = rThis.size();
+    const std::size_t size = rThis.size();
 
     rOStream << "[";
     if(size>0) rOStream << rThis[0];
@@ -63,8 +63,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
             rOStream<<", "<<rThis[i];
     }
     rOStream << "]";
-
-    return rOStream;
 
     return rOStream;
 }
