@@ -375,7 +375,7 @@ public:
 
                 if (numinlet > 0)
                 {
-                    Alpha *= 2.0;
+                    Alpha *= 1.25;
                 }
 
                 bool accepted = false;
