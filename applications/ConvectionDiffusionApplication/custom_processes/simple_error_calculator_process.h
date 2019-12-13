@@ -232,7 +232,7 @@ private:
     /**
      * @brief In this final step the metric is computed for MMGProcess
      */
-    //void CalculateMetricScalar();
+    void CalculateGeomData(GeometryType& r_geom, Matrix& ShapeFunctions, ShapeFunctionDerivativesArrayType& ShapeDerivatives,Vector& DetJ, Vector& GaussWeights, unsigned int& NumGPoints);
 
     ///@}
     ///@name Private  Access
