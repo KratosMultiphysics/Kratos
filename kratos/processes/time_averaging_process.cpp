@@ -145,7 +145,7 @@ void TimeAveragingProcess::ExecuteInitialize()
     KRATOS_CATCH("");
 }
 
-void TimeAveragingProcess::Execute()
+void TimeAveragingProcess::ExecuteFinalizeSolutionStep()
 {
     KRATOS_TRY
 
@@ -185,11 +185,6 @@ void TimeAveragingProcess::Execute()
     }
 
     KRATOS_CATCH("");
-}
-
-void TimeAveragingProcess::ExecuteFinalizeSolutionStep()
-{
-    Execute();
 }
 
 bool TimeAveragingProcess::IsIntegrationStep() const

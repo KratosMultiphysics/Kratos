@@ -25,7 +25,7 @@
 
 namespace Kratos
 {
-///@addtogroup RANSApplication
+///@addtogroup Kratos Core
 ///@{
 
 ///@name Kratos Globals
@@ -80,8 +80,6 @@ public:
     int Check() override;
 
     void ExecuteInitialize() override;
-
-    void Execute() override;
 
     void ExecuteFinalizeSolutionStep() override;
 
