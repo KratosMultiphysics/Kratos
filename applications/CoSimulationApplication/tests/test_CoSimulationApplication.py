@@ -82,6 +82,7 @@ def AssembleTestSuites():
     return suites
 
 
+
 if __name__ == '__main__':
     if not using_pykratos:
         KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
