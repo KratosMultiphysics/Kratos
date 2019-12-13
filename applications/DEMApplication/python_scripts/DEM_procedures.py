@@ -1533,10 +1533,9 @@ class DEMIo(object):
             self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY, self.global_variables)
         if self.DEM_parameters["PostParticleMoment"].GetBool():
             self.PushPrintVar(self.PostParticleMoment, PARTICLE_MOMENT, self.global_variables)
-        if self.DEM_parameters["PostControlModule"].GetBool():
-            self.PushPrintVar(self.PostControlModule, TARGET_STRESS, self.global_variables)
-            self.PushPrintVar(self.PostControlModule, REACTION_STRESS, self.global_variables)
-            self.PushPrintVar(self.PostControlModule, LOADING_VELOCITY, self.global_variables)
+        self.PushPrintVar(self.PostControlModule, TARGET_STRESS, self.global_variables)
+        self.PushPrintVar(self.PostControlModule, REACTION_STRESS, self.global_variables)
+        self.PushPrintVar(self.PostControlModule, LOADING_VELOCITY, self.global_variables)
 
     def AddSpheresAndClustersVariables(self):  # variables common to spheres and clusters
         self.PushPrintVar(self.PostRigidElementForces,  RIGID_ELEMENT_FORCE,     self.spheres_and_clusters_variables)
