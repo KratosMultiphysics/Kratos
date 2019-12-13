@@ -147,7 +147,7 @@ namespace Kratos
             }
 
             // This is something special for normal stress response
-            if (rAdjointElement.Has(RESPONSE_PREFACTOR_MOMENT_DERIVED) || rAdjointElement.Has(RESPONSE_PREFACTOR_FORCE_DERIVED))
+            /*if (rAdjointElement.Has(RESPONSE_PREFACTOR_MOMENT_DERIVED) || rAdjointElement.Has(RESPONSE_PREFACTOR_FORCE_DERIVED))
             {
                 const auto prefactor_moment = rAdjointElement.GetValue(RESPONSE_PREFACTOR_MOMENT_DERIVED);
                 const auto prefactor_force = rAdjointElement.GetValue(RESPONSE_PREFACTOR_FORCE_DERIVED);
@@ -186,7 +186,7 @@ namespace Kratos
                                 + force[i][2] * adjoint_particular_strain[i][2] * prefactor_force[2])
                                 * variable_value / response_value;
                 }
-            }
+            }*/
         }
         else if(primal_element_name == "TrussLinearElement3D2N")
         {
@@ -203,9 +203,12 @@ namespace Kratos
                              pseudo_force[i][1] * adjoint_strain[i][1] +
                              pseudo_force[i][2] * adjoint_strain[i][2];
             }
+        } else {
+            for(IndexType i = 0; i < write_points_number; ++i) {
+                rOutput[i] = 0.0;
+            }
+            //KRATOS_ERROR << "CalculateSensitivityOnIntegrationPoints not available for " << primal_element_name << "!" << std::endl;
         }
-        else
-            KRATOS_ERROR << "CalculateSensitivityOnIntegrationPoints not available for " << primal_element_name << "!" << std::endl;
 
         KRATOS_CATCH("");
     }

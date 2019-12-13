@@ -102,15 +102,15 @@ public:
 
             // Perturb the design variable
             const double current_property_value = rElement.GetProperties()[rDesignVariable];
-            const double delta = current_property_value * rPertubationSize;
-            p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
+            //const double delta = current_property_value * rPertubationSize; --> this should be done 'outside'
+            p_local_property->SetValue(rDesignVariable, (current_property_value + rPertubationSize));
 
             // Compute quantity of interest after disturbance of design variable
             rElement.CalculateOnIntegrationPoints(rQuantityOfInterestVariable, rOutput, rCurrentProcessInfo);
 
             // Compute derivative of stress w.r.t. design variable with finite differences
             for(IndexType i = 0; i < rOutput.size(); ++i)
-                ElementFiniteDifferenceUtility::ComputeFiniteDifferences(undisturbed_values[i], rOutput[i], delta);
+                ElementFiniteDifferenceUtility::ComputeFiniteDifferences(undisturbed_values[i], rOutput[i], rPertubationSize);
 
             // Give element original properties back
             rElement.SetProperties(p_global_properties);
