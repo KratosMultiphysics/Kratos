@@ -55,13 +55,19 @@ namespace Kratos {
             std::vector<ModelPart::IndexType> elem_nodes {1, 2, 3};
             Properties::Pointer p_properties = rModelPart.CreateNewProperties(0);
             rModelPart.CreateNewElement("Element2D3N", 1, elem_nodes, p_properties);
+        }
+
+        /**
+	     * Auxiliar function to add pressure nodal data to be tested.
+	     */
+        void AddNodalDataToTestPressure(
+            ModelPart& rModelPart) {
 
             // Add nodal data
             auto nodes_begin = rModelPart.NodesBegin();
             for (unsigned int i_node = 1; i_node <= rModelPart.NumberOfNodes(); ++i_node){
                 auto it_node = nodes_begin + (i_node-1);
-                it_node->AddDof(PRESSURE_WEIGHTED);
-                it_node->SetValue(PRESSURE_WEIGHTED,1.0 * i_node);
+                it_node->GetSolutionStepValue(PRESSURE) = 1.0 * i_node;
             }
         }
 
@@ -80,14 +86,17 @@ namespace Kratos {
             p_element->Initialize();
 
             // Call the pressure time average process
-            WeightedPressureCalculationProcess(model_part).ExecuteFinalizeSolutionStep();
+            WeightedPressureCalculationProcess weighted_pressure_process = WeightedPressureCalculationProcess(model_part);
+            weighted_pressure_process.ExecuteInitialize();
+            AddNodalDataToTestPressure(model_part);
+            weighted_pressure_process.ExecuteFinalizeSolutionStep();
 
             // Check computed values over the nodes
             auto nodes_begin = model_part.NodesBegin();
             for (unsigned int i_node = 0; i_node < model_part.NumberOfNodes(); ++i_node){
                 auto it_node = nodes_begin + (i_node);
                 double pressure_value = it_node->GetValue(PRESSURE_WEIGHTED);
-                KRATOS_CHECK_NEAR(pressure_value, 0.8*(i_node+1), 1e-10);
+                KRATOS_CHECK_NEAR(pressure_value, 1.0*(i_node+1), 1e-10);
             }
         }
 

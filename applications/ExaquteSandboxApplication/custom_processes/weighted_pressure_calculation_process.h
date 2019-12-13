@@ -81,11 +81,11 @@ namespace Kratos
         Parameters ThisParameters = Parameters(R"({})")
         );
 
+        /// Copy constructor
+        WeightedPressureCalculationProcess(WeightedPressureCalculationProcess const& rOther);
+
         /// Destructor.
         ~WeightedPressureCalculationProcess() override = default;
-
-        /// Assignment operator.
-        WeightedPressureCalculationProcess& operator=(WeightedPressureCalculationProcess const& rOther) = delete;
 
         ///@}
         ///@name Operators
@@ -180,6 +180,8 @@ namespace Kratos
 
         const ModelPart& mrModelPart;
         double mTimeCoefficient;
+        double mStartingAverageTime;
+        bool mIsStartingAverageTimeSet;
 
         ///@}
         ///@name Private Operations
@@ -189,8 +191,8 @@ namespace Kratos
         ///@name Un accessible methods
         ///@{
 
-        /// Copy constructor.
-        WeightedPressureCalculationProcess(WeightedPressureCalculationProcess const& rOther);
+        /// Assignment operator
+        WeightedPressureCalculationProcess& operator=(WeightedPressureCalculationProcess const& rOther);
 
         ///@}
 
