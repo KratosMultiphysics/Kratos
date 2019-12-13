@@ -912,12 +912,15 @@ void VtkOutput::WriteIntegrationVectorContainerVariable(
         return;
     }
 
-    const int res_size = static_cast<int>((rContainer.begin()->GetValue(rVariable)).size());
+
+    const auto& r_process_info = mrModelPart.GetProcessInfo();
+    std::vector<TVarType> aux_result_1;
+    rContainer.begin()->CalculateOnIntegrationPoints(rVariable, aux_result_1, r_process_info);
+    const int res_size = aux_result_1[0].size();
 
     rFileStream << rVariable.Name() << " " << res_size << " " << rContainer.size() << "  float\n";
 
     // Auxiliar values
-    const auto& r_process_info = mrModelPart.GetProcessInfo();
     auto& r_this_geometry_begin = (rContainer.begin())->GetGeometry();
     const GeometryData::IntegrationMethod this_integration_method = (rContainer.begin())->GetIntegrationMethod();
     const auto& r_integration_points = r_this_geometry_begin.IntegrationPoints(this_integration_method);
@@ -928,6 +931,9 @@ void VtkOutput::WriteIntegrationVectorContainerVariable(
         aux_value = rVariable.Zero();
         std::vector<TVarType> aux_result(integration_points_number);
         r_entity.CalculateOnIntegrationPoints(rVariable, aux_result, r_process_info);
+        if (aux_value.size() != aux_result[0].size()) {
+            aux_value.resize(aux_result[0].size());
+        }
         for (const TVarType& r_value : aux_result) {
             noalias(aux_value) += r_value;
         }
