@@ -1,8 +1,18 @@
+! KRATOS  / ___|___/ ___|(_)_ __ ___  _   _| | __ _| |_(_) ___  _ ___
+!        | |   / _ \___ \| | '_ ` _ \| | | | |/ _` | __| |/ _ \| '_  |
+!        | |__| (_) |__) | | | | | | | |_| | | (_| | |_| | (_) | | | |
+!         \____\___/____/|_|_| |_| |_|\__,_|_|\__,_|\__|_|\___/|_| |_|
+!
+!  License:		 BSD License
+!                   license: CoSimulationApplication/license.txt
+!
+!  Main authors:    Philipp Bucher
+!
+
 MODULE co_sim_io
     USE, INTRINSIC :: ISO_C_BINDING
     IMPLICIT NONE
 
-    ! Define interface of C function.
     INTERFACE
 
         SUBROUTINE CoSimIO_Connect (ConnectionName, SettingsFileName) BIND(C, NAME="CoSimIO_Connect")
@@ -63,14 +73,14 @@ MODULE co_sim_io
         END SUBROUTINE CoSimIO_ExportMesh
 
 
-        SUBROUTINE CoSimIO_IsConverged (ConnectionName, ConvergenceSignal) BIND(C, NAME="CoSimIO_IsConverged")
+        SUBROUTINE CoSimIO_IsConverged(ConnectionName, ConvergenceSignal) BIND(C, NAME="CoSimIO_IsConverged")
             USE, INTRINSIC :: ISO_C_BINDING
             CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: ConnectionName
             INTEGER(C_INT), INTENT(INOUT) :: ConvergenceSignal
         END SUBROUTINE CoSimIO_IsConverged
 
 
-        SUBROUTINE CoSimIO_Run (ConnectionName) BIND(C, NAME="CoSimIO_Run")
+        SUBROUTINE CoSimIO_Run(ConnectionName) BIND(C, NAME="CoSimIO_Run")
             USE, INTRINSIC :: ISO_C_BINDING
             CHARACTER(C_CHAR), DIMENSION(*), INTENT(IN) :: ConnectionName
         END SUBROUTINE CoSimIO_Run
@@ -98,6 +108,7 @@ MODULE co_sim_io
             CHARACTER(KIND=C_CHAR), DIMENSION(*), INTENT(IN) :: FunctionName
             TYPE(C_FUNPTR), INTENT(IN), VALUE :: FunctionPointer
         END SUBROUTINE CoSimIO_RegisterDataExchangeFunction
+
 
         SUBROUTINE AllocateCMemoryInt(size, c_pointer) BIND (C,NAME='_AllocateMemoryInt')
             USE, INTRINSIC :: ISO_C_BINDING
