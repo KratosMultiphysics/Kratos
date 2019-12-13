@@ -36,7 +36,7 @@ class ValueAndGradient(object):
 
 class ScalarDistancePow(ValueAndGradient):
 
-    exponent = 1
+    exponent = 2
 
     def _GetValue(self, distance, normal):
         return pow(distance, self.exponent)
@@ -100,7 +100,7 @@ class PackagingResponseBase(ResponseFunctionBase):
             self.model_part = self.model.CreateModelPart(model_part_name, 2)
             domain_size = response_settings["domain_size"].GetInt()
             if domain_size not in [2, 3]:
-                raise Exception("MassResponseFunction: Invalid 'domain_size': {}".format(domain_size))
+                raise Exception("PackagingResponseBase: Invalid 'domain_size': {}".format(domain_size))
             self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
             self.model_part_needs_to_be_imported = True
         elif input_type == "use_input_model_part":
