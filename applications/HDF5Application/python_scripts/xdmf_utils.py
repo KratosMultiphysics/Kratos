@@ -227,11 +227,14 @@ def TimeLabel(file_path):
 
     Returns empty string if not found.
     """
-    timepat = re.compile(r"\d+(\.\d+)?\Z((e|E)(\+|-)\d+)?")
-    file_path = ".".join(file_path.split(".")[:-1]) # Strip any suffixes.
-    m = timepat.search(file_path)
-    if m:
-        return m.string[m.start():m.end()]
+    temp_file_path = file_path.replace("E-", "E*")
+    temp_file_path = temp_file_path.replace("e-", "e*")
+    dash_split = temp_file_path[:temp_file_path.rfind(".")].split("-")
+    float_regex = re.compile(r'^[-+]?([0-9]+|[0-9]*\.[0-9]+)([eE][-+]?[0-9]+)?$')
+    dash_split[-1] = dash_split[-1].replace("E*", "E-")
+    dash_split[-1] = dash_split[-1].replace("e*", "e-")
+    if (float_regex.match(dash_split[-1])):
+        return dash_split[-1]
     else:
         return ""
 
