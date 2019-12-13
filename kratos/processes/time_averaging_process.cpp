@@ -17,6 +17,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "utilities/variable_utils.h"
 
 // Include base h
 #include "time_averaging_process.h"
@@ -127,18 +128,16 @@ void TimeAveragingProcess::ExecuteInitialize()
         {
             const Variable<double>& r_variable =
                 KratosComponents<Variable<double>>::Get(variable_name);
-            this->InitializeTimeAveragedQuantity(r_nodes, r_variable);
+            VariableUtils().SetNonHistoricalVariableToZero(r_variable, r_nodes);
         }
         else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name))
         {
             const Variable<array_1d<double, 3>>& r_variable =
                 KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
-            this->InitializeTimeAveragedQuantity(r_nodes, r_variable);
+            VariableUtils().SetNonHistoricalVariableToZero(r_variable, r_nodes);
         }
-        msg << " " << variable_name << ",";
+        msg << " " << variable_name;
     }
-
-    msg.seekp(-1, msg.cur);
     msg << " variable(s) in " << mModelPartName << " to store time averaged quantities.\n";
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << msg.str();
@@ -176,14 +175,12 @@ void TimeAveragingProcess::Execute()
                 this->CalculateTimeIntegratedQuantity(r_nodes, r_variable, delta_time);
             }
 
-            msg << " " << variable_name << ",";
+            msg << " " << variable_name;
         }
 
         mCurrentTime += delta_time;
 
-        msg.seekp(-1, msg.cur);
         msg << " variable(s) in " << mModelPartName << ".\n";
-
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 1) << msg.str();
     }
 
@@ -245,19 +242,6 @@ void TimeAveragingProcess::PrintData(std::ostream& rOStream) const
 }
 
 template <typename TDataType>
-void TimeAveragingProcess::InitializeTimeAveragedQuantity(ModelPart::NodesContainerType& rNodes,
-                                                          const Variable<TDataType>& rVariable) const
-{
-    const int number_of_nodes = rNodes.size();
-#pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        NodeType& r_node = *(rNodes.begin() + i_node);
-        r_node.SetValue(rVariable, rVariable.Zero());
-    }
-}
-
-template <typename TDataType>
 void TimeAveragingProcess::CalculateTimeIntegratedQuantity(ModelPart::NodesContainerType& rNodes,
                                                            const Variable<TDataType>& rVariable,
                                                            const double DeltaTime) const
@@ -276,12 +260,6 @@ void TimeAveragingProcess::CalculateTimeIntegratedQuantity(ModelPart::NodesConta
 }
 
 // template instantiations
-
-template void TimeAveragingProcess::InitializeTimeAveragedQuantity<double>(
-    ModelPart::NodesContainerType&, const Variable<double>&) const;
-
-template void TimeAveragingProcess::InitializeTimeAveragedQuantity<array_1d<double, 3>>(
-    ModelPart::NodesContainerType&, const Variable<array_1d<double, 3>>&) const;
 
 template void TimeAveragingProcess::CalculateTimeIntegratedQuantity<double>(
     ModelPart::NodesContainerType&, const Variable<double>&, const double) const;

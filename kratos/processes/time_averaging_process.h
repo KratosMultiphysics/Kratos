@@ -172,10 +172,6 @@ private:
     bool IsIntegrationStep() const;
 
     template <typename TDataType>
-    void InitializeTimeAveragedQuantity(ModelPart::NodesContainerType& rNodes,
-                                        const Variable<TDataType>& rVariable) const;
-
-    template <typename TDataType>
     void CalculateTimeIntegratedQuantity(ModelPart::NodesContainerType& rNodes,
                                          const Variable<TDataType>& rVariable,
                                          const double DeltaTime) const;
