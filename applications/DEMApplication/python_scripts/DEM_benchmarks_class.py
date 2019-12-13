@@ -4500,7 +4500,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
 
 
             for node in modelpart.Nodes:
-                if node.Id == 663:           ### stage 8 - gravity on sphere of spheres
+                if node.Id == 663:           ### stage 7 - gravity on sphere of spheres
 
                     force_node = GetVectorNorm(node, TOTAL_FORCES)
                     angular_node = GetVectorNorm(node, ANGULAR_VELOCITY)
@@ -4512,7 +4512,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     data.flush()
 
             for node in modelpart.Nodes:
-                if node.Id == 758:           ### stage 9 - dem with reduced degrees of freedom
+                if node.Id == 758:           ### stage 8 - dem with reduced degrees of freedom
 
                     force_node = GetVectorNorm(node, TOTAL_FORCES)
                     angular_node = GetVectorNorm(node, ANGULAR_VELOCITY)
@@ -4524,7 +4524,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     data.flush()
 
             for node in modelpart.Nodes:
-                if node.Id == 789:           ### stage 10 - dem falling pink
+                if node.Id == 789:           ### stage 9 - dem falling pink
 
                     force_node = GetVectorNorm(node, TOTAL_FORCES)
                     angular_node = GetVectorNorm(node, ANGULAR_VELOCITY)
@@ -4536,7 +4536,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     data.flush()
 
             for node in modelpart.Nodes:
-                if node.Id == 913:           ### stage 13 - dem falling green fem
+                if node.Id == 913:           ### stage 10 - dem falling green fem
 
                     force_node = GetVectorNorm(node, TOTAL_FORCES)
                     angular_node = GetVectorNorm(node, ANGULAR_VELOCITY)
@@ -4549,7 +4549,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
 
 
             for node in modelpart.Nodes:
-                if node.Id == 974:           ### stage 14 - dem falling  orange
+                if node.Id == 974:           ### stage 11 - dem falling  orange
 
                     force_node = GetVectorNorm(node, TOTAL_FORCES)
                     angular_node = GetVectorNorm(node, ANGULAR_VELOCITY)
@@ -4561,7 +4561,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     data.flush()
 
             for node in modelpart.Nodes:
-                if node.Id == 1061:           ### stage 15 - dem imposed period
+                if node.Id == 1061:           ### stage 12 - dem imposed period
 
                     force_node = GetVectorNorm(node, TOTAL_FORCES)
                     angular_node = GetVectorNorm(node, ANGULAR_VELOCITY)
@@ -4575,7 +4575,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
 
 
             for node in modelpart.Nodes:
-                if node.Id == 1180:           ### stage 16 - dem initial
+                if node.Id == 1180:           ### stage 13 - dem initial
 
                     force_node = GetVectorNorm(node, TOTAL_FORCES)
                     angular_node = GetVectorNorm(node, ANGULAR_VELOCITY)
@@ -4588,7 +4588,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
 
 
             for node in modelpart.Nodes:
-                if node.Id == 1290:           ### stage 17 - dem contra fem rotatori force
+                if node.Id == 1290:           ### stage 14 - dem contra fem rotatori force
 
                     force_node = GetVectorNorm(node, TOTAL_FORCES)
                     angular_node = GetVectorNorm(node, ANGULAR_VELOCITY)
