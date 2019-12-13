@@ -45,10 +45,10 @@ FiberBeamColumnSection::FiberBeamColumnSection(
 void FiberBeamColumnSection::Initialize()
 {
     CalculateBMatrix();
-    CalculateLocalFlexibilityMatrix();
     for (FiberBeamColumnUniaxialFiber& r_fiber : mFibers) {
         r_fiber.Initialize();
     }
+    CalculateLocalFlexibilityMatrix();
 }
 
 Matrix FiberBeamColumnSection::GetGlobalFlexibilityMatrix()
@@ -104,6 +104,8 @@ bool FiberBeamColumnSection::StateDetermination(const Vector& rElementForceIncre
     }
 
     CalculateLocalFlexibilityMatrix();
+
+    KRATOS_WATCH(mLocalFlexibilityMatrix)
 
     Vector internal_forces = ZeroVector(3);
     for (FiberBeamColumnUniaxialFiber& r_fiber : mFibers) {

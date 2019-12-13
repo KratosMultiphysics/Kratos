@@ -9,8 +9,8 @@
 //  Main authors: Mahmoud Zidan
 //
 
-#if !defined(KRATOS_UNIAXIAL_FIBER_ELASTIC_MATERIAL_LAW_H_INCLUDED )
-#define  KRATOS_UNIAXIAL_ELASTIC_STEEL_MATERIAL_LAW_H_INCLUDED
+#if !defined(KRATOS_UNIAXIAL_ELASTIC_MATERIAL_LAW_H_INCLUDED )
+#define  KRATOS_UNIAXIAL_ELASTIC_MATERIAL_LAW_H_INCLUDED
 
 // System includes
 
@@ -49,7 +49,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class UniaxialFiberElasticMaterialLaw
+ * @class UniaxialElasticMaterialLaw
  *
  * @brief A constitutive model for the steel uniaxial fibers of the beam-column element.
  * @details The constitutive law is a Menegotto-Pinto material law
@@ -57,7 +57,7 @@ namespace Kratos
  * @author Mahmoud Zidan
  */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) UniaxialFiberElasticMaterialLaw
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) UniaxialElasticMaterialLaw
     : public ConstitutiveLaw
 {
 
@@ -74,16 +74,16 @@ public:
     ///@name Pointer Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(UniaxialFiberElasticMaterialLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(UniaxialElasticMaterialLaw);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    UniaxialFiberElasticMaterialLaw();
+    UniaxialElasticMaterialLaw();
     ConstitutiveLaw::Pointer Clone() const override;
-    UniaxialFiberElasticMaterialLaw(const UniaxialFiberElasticMaterialLaw& rOther);
-    ~UniaxialFiberElasticMaterialLaw() override;
+    UniaxialElasticMaterialLaw(const UniaxialElasticMaterialLaw& rOther);
+    ~UniaxialElasticMaterialLaw() override;
 
     ///@}
     ///@name Operators
@@ -247,10 +247,10 @@ private:
 
     ///@}
 
-};  // class UniaxialFiberElasticMaterialLaw
+};  // class UniaxialElasticMaterialLaw
 
 /// output stream
-inline std::ostream & operator <<(std::ostream& rOStream, const UniaxialFiberElasticMaterialLaw& rThis)
+inline std::ostream & operator <<(std::ostream& rOStream, const UniaxialElasticMaterialLaw& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;

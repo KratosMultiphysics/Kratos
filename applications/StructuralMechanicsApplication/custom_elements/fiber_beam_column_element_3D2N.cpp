@@ -23,8 +23,8 @@
 
 
 #include "custom_constitutive/uniaxial_fiber_beam_column_steel_material_law.hpp"
-#include "custom_constitutive/uniaxial_fiber_elastic_material_law.hpp"
 #include "custom_constitutive/uniaxial_fiber_beam_column_concrete_material_law.hpp"
+#include "custom_constitutive/uniaxial_elastic_material_law.hpp"
 
 namespace Kratos {
 
@@ -181,22 +181,24 @@ void FiberBeamColumnElement3D2N::Initialize()
 
         // concrete fibers
         for (unsigned int i = 0; i < concrete_fibers_data.size1(); ++i) {
-            auto p_material = Kratos::make_shared<UniaxialFiberBeamColumnConcreteMaterialLaw>(pGetProperties());
+            // auto p_material = Kratos::make_shared<UniaxialFiberBeamColumnConcreteMaterialLaw>(pGetProperties());
+            auto p_material = Kratos::make_shared<UniaxialElasticMaterialLaw>();
             fibers.push_back( FiberBeamColumnUniaxialFiber( 0,
                 concrete_fibers_data(i, 0),
                 concrete_fibers_data(i, 1),
                 concrete_fibers_data(i, 2),
-                p_material) );
+                p_material, pGetProperties()) );
         }
 
         // steel fibers
         for (unsigned int i = 0; i < steel_fibers_data.size1(); ++i) {
-            auto p_material = Kratos::make_shared<UniaxialFiberBeamColumnSteelMaterialLaw>(pGetProperties());
+            // auto p_material = Kratos::make_shared<UniaxialFiberBeamColumnSteelMaterialLaw>(pGetProperties());
+            auto p_material = Kratos::make_shared<UniaxialElasticMaterialLaw>();
             fibers.push_back( FiberBeamColumnUniaxialFiber( 0,
                 steel_fibers_data(i, 0),
                 steel_fibers_data(i, 1),
                 steel_fibers_data(i, 2),
-                p_material) );
+                p_material, pGetProperties()) );
         }
 
         r_section.SetFibers(fibers);
@@ -239,6 +241,8 @@ void FiberBeamColumnElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurren
     GetValuesVector(disp, 0);
     mDeformationI = prod(Matrix(trans(mTransformationMatrix)), disp);
     Vector def_incr = mDeformationI -  mDeformationIM1;
+
+    KRATOS_WATCH(def_incr)
 
     unsigned int max_iterations = GetProperties()[MAX_EQUILIBRIUM_ITERATIONS];
     if (max_iterations == 0) {

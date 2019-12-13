@@ -27,9 +27,10 @@ FiberBeamColumnUniaxialFiber::FiberBeamColumnUniaxialFiber(
     double Y,
     double Z,
     double Area,
-    UniaxialFiberBeamColumnMaterialLaw::Pointer pMaterial
+    ConstitutiveLaw::Pointer pMaterial,
+    PropertiesType::Pointer pProperties
 )
-    : mId(NewId), mArea(Area), mpMaterial(pMaterial)
+    : mId(NewId), mArea(Area), mpMaterial(pMaterial), mpProperties(pProperties)
 {
     mTransformationVector[0] =  -Y;
     mTransformationVector[1] =   Z;
@@ -39,40 +40,75 @@ FiberBeamColumnUniaxialFiber::FiberBeamColumnUniaxialFiber(
 void FiberBeamColumnUniaxialFiber::Initialize()
 {
     KRATOS_TRY
+    // ProcessInfo temp_proc;
+    // GeometryType temp_geo;
+    // ConstitutiveLaw::Parameters params = ConstitutiveLaw::Parameters(temp_geo, *mpProperties, temp_proc);
+    // params.SetStrainVector(mStrain);
+    // Matrix constitutive_materix = ZeroMatrix(1);
+    // params.SetConstitutiveMatrix(constitutive_materix);
+    // params.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    // params.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    // mpMaterial->CalculateMaterialResponse(params, ConstitutiveLaw::StressMeasure_PK2);
     KRATOS_CATCH("")
 }
 
 Matrix FiberBeamColumnUniaxialFiber::CreateGlobalFiberStiffnessMatrix(){
     KRATOS_TRY
-    double ea = mpMaterial->GetTangentModulus() * mArea;
+
+    ProcessInfo temp_proc;
+    GeometryType temp_geo;
+    ConstitutiveLaw::Parameters params = ConstitutiveLaw::Parameters(temp_geo, *mpProperties, temp_proc);
+    params.SetStrainVector(mStrain);
+    Matrix constitutive_materix = ZeroMatrix(1);
+    params.SetConstitutiveMatrix(constitutive_materix);
+    params.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    params.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    mpMaterial->CalculateMaterialResponse(params, ConstitutiveLaw::StressMeasure_PK2);
+
+    double ea = constitutive_materix(0,0) * mArea;
     Matrix global_stiffness = ZeroMatrix(3, 3);
     noalias(global_stiffness) = ea * outer_prod(mTransformationVector, mTransformationVector);
     return global_stiffness;
+
     KRATOS_CATCH("")
 }
 
 void FiberBeamColumnUniaxialFiber::StateDetermination(const Vector& rSectionDeformationIncrements)
 {
     KRATOS_TRY
+    // increment strain
     double strain_incr = inner_prod(mTransformationVector, rSectionDeformationIncrements);
-    mStrain += strain_incr;
-    mpMaterial->SetStrain(mStrain);
-    mpMaterial->CalculateMaterialResponse();
-    mStress = mpMaterial->GetStress();
+    mStrain[0] += strain_incr;
+
+    // calculate stress and tangent modulus from the constitutive law
+    ProcessInfo temp_proc;
+    GeometryType temp_geo;
+    ConstitutiveLaw::Parameters params = ConstitutiveLaw::Parameters(temp_geo, *mpProperties, temp_proc);
+    params.SetStrainVector(mStrain);
+    params.SetStressVector(mStress);
+    Matrix constitutive_materix = ZeroMatrix(1);
+    params.SetConstitutiveMatrix(constitutive_materix);
+    params.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    params.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    params.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    mpMaterial->CalculateMaterialResponse(params, ConstitutiveLaw::StressMeasure_PK2);
     KRATOS_CATCH("")
 }
 
 Vector FiberBeamColumnUniaxialFiber::CreateGlobalFiberInternalForces()
 {
     KRATOS_TRY
-    return mTransformationVector * mArea * mStress;
+    return mTransformationVector * mArea * mStress[0];
     KRATOS_CATCH("")
 }
 
 void FiberBeamColumnUniaxialFiber::FinalizeSolutionStep()
 {
     KRATOS_TRY
-    mpMaterial->FinalizeMaterialResponse();
+    ProcessInfo temp_proc;
+    GeometryType temp_geo;
+    ConstitutiveLaw::Parameters params = ConstitutiveLaw::Parameters(temp_geo, *mpProperties, temp_proc);;
+    mpMaterial->FinalizeMaterialResponse(params, ConstitutiveLaw::StressMeasure_PK2);
     KRATOS_CATCH("")
 }
 
@@ -93,6 +129,7 @@ void FiberBeamColumnUniaxialFiber::save(Serializer& rSerializer) const
     rSerializer.save("mTransformationVector", mTransformationVector);
     rSerializer.save("mArea", mArea);
     rSerializer.save("mpMaterial", mpMaterial);
+    rSerializer.save("mpProperties", mpProperties);
     rSerializer.save("mStrain", mStrain);
     rSerializer.save("mStress", mStress);
 }
@@ -102,6 +139,7 @@ void FiberBeamColumnUniaxialFiber::load(Serializer& rSerializer)
     rSerializer.load("mTransformationVector", mTransformationVector);
     rSerializer.load("mArea", mArea);
     rSerializer.load("mpMaterial", mpMaterial);
+    rSerializer.load("mpProperties", mpProperties);
     rSerializer.load("mStrain", mStrain);
     rSerializer.load("mStress", mStress);
 }

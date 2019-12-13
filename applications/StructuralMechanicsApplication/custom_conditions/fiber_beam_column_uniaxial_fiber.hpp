@@ -23,7 +23,7 @@
 #include "includes/variables.h"
 #include "includes/element.h"
 
-#include "custom_constitutive/uniaxial_fiber_beam_column_material_law.hpp"
+// #include "custom_constitutive/uniaxial_fiber_beam_column_material_law.hpp"
 
 namespace Kratos
 {
@@ -90,7 +90,7 @@ public:
 
     /// Constructor using an array of nodes
     FiberBeamColumnUniaxialFiber(
-        IndexType NewId, double Y, double Z, double Area, UniaxialFiberBeamColumnMaterialLaw::Pointer pMaterial);
+        IndexType NewId, double Y, double Z, double Area, ConstitutiveLaw::Pointer pMaterial, PropertiesType::Pointer pProperties);
 
     Matrix CreateGlobalFiberStiffnessMatrix();
 
@@ -112,8 +112,8 @@ public:
     ///@name Access
     ///@{
 
-    double const& GetStress() const {return mStress;}
-    double const& GetStrain() const {return mStrain;}
+    double const& GetStress() const {return mStress[0];}
+    double const& GetStrain() const {return mStrain[0];}
 
     ///@}
     ///@name Inquiry
@@ -151,10 +151,10 @@ protected:
     IndexType mId;
     Vector mTransformationVector = ZeroVector(3);
     double mArea = 0;
-    UniaxialFiberBeamColumnMaterialLaw::Pointer mpMaterial = nullptr;
+    ConstitutiveLaw::Pointer mpMaterial = nullptr;
     PropertiesType::Pointer mpProperties = nullptr;
-    double mStrain = 0.0;
-    double mStress = 0.0;
+    Vector mStrain = ZeroVector(1);
+    Vector mStress = ZeroVector(1);
 
     ///@}
     ///@name Protected Operators
