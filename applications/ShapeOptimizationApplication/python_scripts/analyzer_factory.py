@@ -231,6 +231,10 @@ class AnalyzerWithDependencies(Analyzer):
                     if value > combined_value:
                         relevant_responses[0] = response_id
                         combined_value = value
+                elif combination_type == "min":
+                    if value < combined_value:
+                        relevant_responses[0] = response_id
+                        combined_value = value
                 else:
                     raise NameError("The following combination_type is not supported:" + combination_type)
 
