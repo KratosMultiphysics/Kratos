@@ -121,7 +121,16 @@ def CreateXdmfSpatialGrid(h5_model_part):
     sgrid = SpatialGrid()
     geom = Geometry(HDF5UniformDataItem(
         h5_model_part["Nodes/Local/Coordinates"]))
-    for name, value in h5_model_part["Xdmf/Elements"].items():
+    if ("Xdmf/Elements" in h5_model_part and "Xdmf/Conditions" in h5_model_part):
+        KratosMultiphysics.Logger.PrintInfo("CreateXdmfSpatialGrid", "Element and Condition blocks found. Spacial grid is made from Elements block only.")
+        spatial_grid_block_name = "Xdmf/Elements"
+    elif "Xdmf/Elements" in h5_model_part:
+        KratosMultiphysics.Logger.PrintInfo("CreateXdmfSpatialGrid","Spacial grid is made from Elements.")
+        spatial_grid_block_name = "Xdmf/Elements"
+    elif "Xdmf/Conditions" in h5_model_part:
+        KratosMultiphysics.Logger.PrintInfo("CreateXdmfSpatialGrid","Spacial grid is made from Conditions.")
+        spatial_grid_block_name = "Xdmf/Conditions"
+    for name, value in h5_model_part[spatial_grid_block_name].items():
         cell_type = TopologyCellType(
             value.attrs["Dimension"], value.attrs["NumberOfNodes"])
         connectivities = HDF5UniformDataItem(value["Connectivities"])
@@ -218,7 +227,7 @@ def TimeLabel(file_path):
 
     Returns empty string if not found.
     """
-    timepat = re.compile(r"\d+(\.\d+)?((e|E)(\+|-)\d+)?")
+    timepat = re.compile(r"\d+(\.\d+)?\Z((e|E)(\+|-)\d+)?")
     file_path = ".".join(file_path.split(".")[:-1]) # Strip any suffixes.
     m = timepat.search(file_path)
     if m:
