@@ -34,7 +34,7 @@ Note that this introduces dependencies such as e.g. boost (header-only version) 
 #include <string>
 
 // Project includes
-#include "internals/co_sim_io_define.h"
+#include "impl/co_sim_io_define.h"
 
 namespace CoSimIO {
 
@@ -91,6 +91,6 @@ inline void Register(
 
 } // namespace CoSimIO
 
-#include "internals/co_sim_io_impl.h"
+#include "impl/co_sim_io_impl.h"
 
 #endif // KRATOS_CO_SIM_IO_H_INCLUDED
