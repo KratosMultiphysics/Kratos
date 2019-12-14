@@ -63,7 +63,7 @@ class MeshSolverBase(PythonSolver):
                 "input_type"     : "mdpa",
                 "input_filename" : "unknown_name"
             },
-            "mesh_motion_linear_solver_settings" : {
+            "linear_solver_settings" : {
                 "solver_type" : "amgcl",
                 "smoother_type":"ilu0",
                 "krylov_type": "gmres",
@@ -174,7 +174,7 @@ class MeshSolverBase(PythonSolver):
 
     def _create_linear_solver(self):
         from KratosMultiphysics.python_linear_solver_factory import ConstructSolver
-        return ConstructSolver(self.settings["mesh_motion_linear_solver_settings"])
+        return ConstructSolver(self.settings["linear_solver_settings"])
 
     def _create_mesh_motion_solving_strategy(self):
         """Create the mesh motion solving strategy.

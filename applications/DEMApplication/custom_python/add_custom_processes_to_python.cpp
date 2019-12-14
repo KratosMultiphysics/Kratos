@@ -14,9 +14,9 @@
 // External includes
 
 // Project includes
+#include "custom_python/add_custom_processes_to_python.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
-#include "custom_python/add_custom_processes_to_python.h"
 #include "includes/kratos_parameters.h"
 
 // Processes

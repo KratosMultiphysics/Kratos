@@ -1,4 +1,4 @@
-from ExaquteTask import *
+from exaqute.ExaquteTask import *
 
 
 class ExaquteTask(object):
