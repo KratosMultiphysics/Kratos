@@ -124,6 +124,11 @@ public:
     /// Destructor.
     ~FindIntersectedGeometricalObjectsWithOBBProcess() override {}
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    Parameters GetDefaultParameters() override;
+
     ///@name Member Variables
     ///@{
 
@@ -303,11 +308,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Un accessible methods
