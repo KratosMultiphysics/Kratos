@@ -16,7 +16,8 @@ env:
     - CCACHE_NODISABLE=true
     - CCACHE_MAXSIZE=500M
     - FC=gfortran-7
-
+    - CC=gcc
+    - CXX=g++
 addons:
   apt:
     packages:

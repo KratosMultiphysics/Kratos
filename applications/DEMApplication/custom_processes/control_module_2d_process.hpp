@@ -57,6 +57,7 @@ public:
                 "limit_velocity" : 0.1,
                 "velocity_factor" : 1.0,
                 "compression_length" : 1.0,
+                "face_area": 1.0,
                 "young_modulus" : 1.0e9,
                 "stress_increment_tolerance": 100.0,
                 "update_stiffness": true,
@@ -72,12 +73,11 @@ public:
         mLimitVelocity = rParameters["limit_velocity"].GetDouble();
         mVelocityFactor = rParameters["velocity_factor"].GetDouble();
         mCompressionLength = rParameters["compression_length"].GetDouble();
-        mYoungModulus = rParameters["young_modulus"].GetDouble();
         mStartTime = rParameters["start_time"].GetDouble();
         mStressIncrementTolerance = rParameters["stress_increment_tolerance"].GetDouble();
         mUpdateStiffness = rParameters["update_stiffness"].GetBool();
         mReactionStressOld = 0.0;
-        mStiffness = mYoungModulus/mCompressionLength;
+        mStiffness = rParameters["young_modulus"].GetDouble()*rParameters["face_area"].GetDouble()/mCompressionLength;
 
         KRATOS_CATCH("");
     }
@@ -426,7 +426,6 @@ protected:
     double mLimitVelocity;
     double mVelocityFactor;
     double mCompressionLength;
-    double mYoungModulus;
     double mStartTime;
     double mReactionStressOld;
     double mStressIncrementTolerance;
