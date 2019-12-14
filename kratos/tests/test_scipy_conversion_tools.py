@@ -16,9 +16,6 @@ class TestScipyConversionTools(KratosUnittest.TestCase):
         pass
 
     def test_scipy_conversion_tools(self):
-
-
-
         if not missing_scipy:
             # Create a kratos matrix
             A = KratosMultiphysics.CompressedMatrix(3,3)
