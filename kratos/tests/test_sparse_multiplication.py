@@ -20,8 +20,7 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
         except ImportError as e:
             missing_scipy = True
 
-        if (missing_scipy == False):
-
+        if not missing_scipy:
             # Read the matrices
             A = KratosMultiphysics.CompressedMatrix()
             B = KratosMultiphysics.CompressedMatrix()
@@ -111,9 +110,9 @@ class TestSparseMatrixMultiplication(KratosUnittest.TestCase):
             A2_python = np.dot(A_python, A_python)
 
             # Solve
-            if (problem == "saad"):
+            if problem == "saad":
                 KratosMultiphysics.SparseMatrixMultiplicationUtility.MatrixMultiplicationSaad(A, A, A2)
-            elif (problem == "rmerge"):
+            elif problem == "rmerge":
                 KratosMultiphysics.SparseMatrixMultiplicationUtility.MatrixMultiplicationRMerge(A, A, A2)
 
             for i, j in np.nditer(A2_python.nonzero()):
