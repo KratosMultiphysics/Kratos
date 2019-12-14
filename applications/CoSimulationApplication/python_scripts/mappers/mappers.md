@@ -44,10 +44,47 @@ JSON setting|type|description
 
 #### MapperRadialBasis2D
 
+With φ(r) a radial basis function defined as  
+
+> φ(r) = (1 − r)<sup>4</sup> (1 + 4r) for 0 ≤ r < 1  
+> φ(r) = 0 for 1 ≤ r
+
+a function _f_(**x**) can be approximated as the weighted sum of _n_ shifted radial basis functions:
+
+> _f_(**x**) = Σ<sub>j</sub> α<sub>j</sub> φ(||**x** − **x**<sub>j</sub>||)
+
+To determine the coefficients, we require that the exact function value is returned at the _n_ test points.
+This gives us _n_ equations
+
+> _f_(**x**<sub>i</sub>) = **f**<sub>i</sub> 
+= Σ<sub>j</sub> α<sub>j</sub> φ(||**x**<sub>i</sub> − **x**<sub>j</sub>||)
+
+which can be written in matrix form as
+
+> **f** = **Φ** · **α**
+
+with **f**, **α** ∈ R<sup>n×1</sup> and **Φ** ∈ R<sup>n×n</sup>. 
+The weights-vector **α** can be extracted by solving this system:
+
+> **α** =  **Φ**<sup>-1</sup> · **f**
+
+
+
+
+
 ![\boldsymbol{\Phi} \cdot \boldsymbol{c} = \boldsymbol{\Phi}_{to}](https://render.githubusercontent.com/render/math?math=%5Cboldsymbol%7B%5CPhi%7D%20%5Ccdot%20%5Cboldsymbol%7Bc%7D%20%3D%20%5Cboldsymbol%7B%5CPhi%7D_%7Bto%7D)
 
 
 
 [//]: # (MarkDown cheat sheet: https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#tables)
 
-[//]: # (generate LaTeX with https://alexanderrodin.com/github-latex-markdown/)
+[//]: # (generate LaTeX eqns: https://alexanderrodin.com/github-latex-markdown/)
+
+[//]: # (HTML math symbols: http://www.unics.uni-hannover.de/nhtcapri/mathematics.html)
+[//]: # (more: http://www.alanflavell.org.uk/unicode/unidata22.html)
+
+[//]: # (Greek lower: αβγδεζηϑθικλμνξοπρστυφϕχψω)
+[//]: # (Greek upper: ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ)
+[//]: # (super, sub: <sup></sup>, <sub></sub> )
+[//]: # (operators: + - − · / × √ ∘ ∗)
+[//]: # (other: ∂ Δ	∑ ≤ ≥ ∈ )
