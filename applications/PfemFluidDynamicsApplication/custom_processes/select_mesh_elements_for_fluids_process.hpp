@@ -155,6 +155,8 @@ public:
             int el = 0;
             int number = 0;
 
+            double MeanMeshSize = mrRemesh.Refine->CriticalRadius;
+
             //#pragma omp parallel for reduction(+:number) private(el)
             for (el = 0; el < OutNumberOfElements; el++)
             {
@@ -173,7 +175,6 @@ public:
                 unsigned int checkedNodes = 0;
                 box_side_element = false;
                 unsigned int countIsolatedWallNodes = 0;
-                double MeanMeshSize = mrRemesh.Refine->CriticalRadius;
                 bool increaseAlfa = false;
 
                 for (unsigned int pn = 0; pn < nds; pn++)
@@ -370,6 +371,11 @@ public:
                 if (firstMesh == true)
                 {
                     Alpha *= 1.15;
+                }
+
+                if (numinlet > 0)
+                {
+                    Alpha *= 1.25;
                 }
 
                 bool accepted = false;
