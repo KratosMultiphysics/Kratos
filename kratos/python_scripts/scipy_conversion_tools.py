@@ -1,4 +1,9 @@
-from KratosMultiphysics import *
+from __future__ import print_function, absolute_import, division
+
+# Import Kratos
+import KratosMultiphysics
+
+# Import scipy
 import scipy
 import scipy.sparse
 
