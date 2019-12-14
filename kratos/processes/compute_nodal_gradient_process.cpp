@@ -474,7 +474,7 @@ void ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonH
 /***********************************************************************************/
 
 template<bool THistorical>
-Parameters ComputeNodalGradientProcess<THistorical>::GetDefaultParameters() const
+Parameters ComputeNodalGradientProcess<THistorical>::GetDefaultParameters()
 {
     Parameters default_parameters = Parameters(R"(
     {
