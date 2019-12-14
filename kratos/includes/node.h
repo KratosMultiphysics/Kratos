@@ -778,13 +778,13 @@ public:
     {
         typename DofsContainerType::const_iterator it_begin = mDofs.begin();
         typename DofsContainerType::const_iterator it_end = mDofs.end();
-        typename DofsContainerType::const_iterator it;
+        typename DofsContainerType::const_iterator it_dof;
         // If the guess is exact return the guess
         const IndexType distance = it_end - it_begin;
         if(Position < distance) {
-            it = it_begin + Position;
-            if( (*it)->GetVariable() == rDofVariable) {
-                return **it;
+            it_dof = it_begin + Position;
+            if( (*it_dof)->GetVariable() == rDofVariable) {
+                return **it_dof;
             }
         }
 
@@ -813,12 +813,16 @@ public:
     #ifdef KRATOS_DEBUG
         return GetDof(rDofVariable, Position);
     #else
-        typename DofsContainerType::const_iterator it = mDofs.begin() + Position;
-        return *it;
+        auto it_dof = mDofs.begin() + Position;
+        return **it_dof;
     #endif
     }
 
-    /** returns the Dof asociated with variable  */
+    /**
+     * @brief Gets the dof for a given variable
+     * @param rDofVariable Name of the variable
+     * @tparam TVariableType The variable type template argument
+     */
     template<class TVariableType>
     inline const DofType& GetDof(TVariableType const& rDofVariable) const
     {

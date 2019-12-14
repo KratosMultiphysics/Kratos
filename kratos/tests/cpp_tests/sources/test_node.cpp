@@ -139,12 +139,6 @@ namespace Kratos {
         KRATOS_CHECK(p_node_to_be_loaded->GetDof(DISPLACEMENT_X).IsFree());
         KRATOS_CHECK(p_node_to_be_loaded->GetDof(DISPLACEMENT_X).HasReaction());
         KRATOS_CHECK_EQUAL(p_node_to_be_loaded->GetDof(DISPLACEMENT_X).GetReaction(), REACTION_X);
-
-        KRATOS_CHECK_EQUAL(p_node_to_be_saved->Id(), p_node_to_be_loaded->Id());
-        KRATOS_CHECK(p_node_to_be_loaded->IsFixed(DISTANCE));
-        Dof<double>& dof = p_node_to_be_loaded->AddDof(DISTANCE);
-        dof.GetSolutionStepValue() = 2.345;
-        KRATOS_CHECK_EQUAL(p_node_to_be_loaded->GetSolutionStepValue(DISTANCE), 2.345);
     }
 }  // namespace Testing.
 }  // namespace Kratos.
