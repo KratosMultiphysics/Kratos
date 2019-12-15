@@ -8,7 +8,7 @@
         "type": "mappers.radial_basis",
         "settings":
         {
-            "directions" : ["X"],
+            "directions" : ["Z"],
             "balanced_tree" : false
         }
     },

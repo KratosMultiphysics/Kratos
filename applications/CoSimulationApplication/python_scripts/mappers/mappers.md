@@ -7,7 +7,14 @@
 
 #### Interpolators and Transformers
 
+For interpolators, `Initialize` gets the from and to `ModelPart` objects, and returns nothing. 
+For transformers, `Initialize` gets only one `ModelPart` (from either the from or to side, depending on the transformation), and returns the corresponding `ModelPart`.
+
+
 #### Calling the mapper
+
+The mapping method does not have to be called explicitly, as it is programmed in `__call__`. 
+To interpolate values, the two `ModelPart` objects and the two `Variable` objects are given to the mapper object, nothing is returned. The interpolation is done in-place in the to-side `ModelPart`.
 
 
 ## Overview of available mappers
@@ -50,6 +57,7 @@ JSON setting|type|description
 `balanced_tree`|bool|if `true`, create balanced `cKDTree`, which is more stable, but takes longer to build
 
 
+TO DO: write this for only 1 point, because nearest neighbours differ!
 
 With φ(r) a radial basis function defined as  
 
@@ -81,20 +89,34 @@ which can be written in matrix form as
 ![\boldsymbol{f}=\boldsymbol{\Phi}\cdot\boldsymbol{\alpha}](https://render.githubusercontent.com/render/math?math=%5Cboldsymbol%7Bf%7D%3D%5Cboldsymbol%7B%5CPhi%7D%5Ccdot%5Cboldsymbol%7B%5Calpha%7D)
 
 
-with **f**, **α** ∈ R<sup>n×1</sup> and **Φ** ∈ R<sup>n×n</sup>. 
-The weights-vector **α** can be extracted by solving this system:
+with **f**, **α** ∈ R<sup>n×1</sup>, 
+![\boldsymbol{f},\boldsymbol{\alpha}\in\mathbb{R}^{n\times1}](https://render.githubusercontent.com/render/math?math=%5Cboldsymbol%7Bf%7D%2C%5Cboldsymbol%7B%5Calpha%7D%5Cin%5Cmathbb%7BR%7D%5E%7Bn%5Ctimes1%7D)
+and **Φ** ∈ R<sup>n×n</sup>
+![\boldsymbol{\Phi}\in\mathbb{R}^{n\times n}](https://render.githubusercontent.com/render/math?math=%5Cboldsymbol%7B%5CPhi%7D%5Cin%5Cmathbb%7BR%7D%5E%7Bn%5Ctimes%20n%7D)
+. The weights-vector **α** can be extracted by solving this system:
 
 > **α** =  **Φ**<sup>-1</sup> · **f**
 
 ![\boldsymbol{\alpha}=\boldsymbol{\Phi}^{-1}\cdot\boldsymbol{f}](https://render.githubusercontent.com/render/math?math=%5Cboldsymbol%7B%5Calpha%7D%3D%5Cboldsymbol%7B%5CPhi%7D%5E%7B-1%7D%5Ccdot%5Cboldsymbol%7Bf%7D)
 
 However, the function value vector **f** is not known in advance: it contains the values of the `Variable` that will be interpolated. 
-What we do want, is the weights (coefficients) with which every value in the _n_ nearest from-points must be multiplied, to get the value in the to-point. 
+What we do want, is the weights (coefficients) with which every value in the _n_ 
+![n](https://render.githubusercontent.com/render/math?math=n) 
+nearest from-points must be multiplied, to get the value in the to-point. 
+The target value _f_<sub>to</sub> would be calculated as
 
-...
+![f(\boldsymbol{x}_{to})=\sum_j^n\alpha_j\,\phi(||\boldsymbol{x}_{to}-\boldsymbol{x}_j||)=\boldsymbol{\Phi}^T_{to}\cdot\boldsymbol{\alpha}=\boldsymbol{\Phi}^T_{to}\cdot\boldsymbol{\Phi}^{-1}\cdot\boldsymbol{f}=\boldsymbol{c}^T\cdot\boldsymbol{f}](https://render.githubusercontent.com/render/math?math=f(%5Cboldsymbol%7Bx%7D_%7Bto%7D)%3D%5Csum_j%5En%5Calpha_j%5C%2C%5Cphi(%7C%7C%5Cboldsymbol%7Bx%7D_%7Bto%7D-%5Cboldsymbol%7Bx%7D_j%7C%7C)%3D%5Cboldsymbol%7B%5CPhi%7D%5ET_%7Bto%7D%5Ccdot%5Cboldsymbol%7B%5Calpha%7D%3D%5Cboldsymbol%7B%5CPhi%7D%5ET_%7Bto%7D%5Ccdot%5Cboldsymbol%7B%5CPhi%7D%5E%7B-1%7D%5Ccdot%5Cboldsymbol%7Bf%7D%3D%5Cboldsymbol%7Bc%7D%5ET%5Ccdot%5Cboldsymbol%7Bf%7D)
 
+where **c** is calculated by solving the system
 
-![\boldsymbol{\Phi} \cdot \boldsymbol{c} = \boldsymbol{\Phi}_{to}](https://render.githubusercontent.com/render/math?math=%5Cboldsymbol%7B%5CPhi%7D%20%5Ccdot%20%5Cboldsymbol%7Bc%7D%20%3D%20%5Cboldsymbol%7B%5CPhi%7D_%7Bto%7D)
+![\boldsymbol{\Phi}\cdot\boldsymbol{c}=\boldsymbol{\Phi}_{to}](https://render.githubusercontent.com/render/math?math=%5Cboldsymbol%7B%5CPhi%7D%5Ccdot%5Cboldsymbol%7Bc%7D%3D%5Cboldsymbol%7B%5CPhi%7D_%7Bto%7D).
+
+As every to-point has different nearest neighbours in the from-points, the coefficient vector **c** must be calculated for each to-point independently. The matrices 
+![\boldsymbol{\Phi}](https://render.githubusercontent.com/render/math?math=%5Cboldsymbol%7B%5CPhi%7D) 
+and 
+![\boldsymbol{\Phi}_{to}](https://render.githubusercontent.com/render/math?math=%5Cboldsymbol%7B%5CPhi%7D_%7Bto%7D) 
+must also be recalculated for every to-point.
+
 
 
 

@@ -114,7 +114,7 @@ class MapperRadialBasis(MapperNearest):
             # store c in coeffs
             self.coeffs[i_to, :] = c.flatten().copy()
 
-            print(f'sum of coeffs = {np.sum(c)}')  # *** check if coeffs add up to 1
+            # print(f'sum of coeffs = {np.sum(c)}')  # *** check if coeffs add up to 1
 
     def phi(self, r):
         return (1 - r) ** 4 * (1 + 4 * r) * np.heaviside(1 - r, 0)
