@@ -151,14 +151,21 @@ void printWarningOnAllRanks(pybind11::args args, pybind11::kwargs kwargs) {
 
 void  AddLoggerToPython(pybind11::module& m) {
 
-    py::class_<LoggerOutput, Kratos::shared_ptr<LoggerOutput>>(m,"LoggerOutput")
+    auto logger_output = py::class_<LoggerOutput, Kratos::shared_ptr<LoggerOutput>>(m,"LoggerOutput")
     .def("SetMaxLevel", &LoggerOutput::SetMaxLevel)
     .def("GetMaxLevel", &LoggerOutput::GetMaxLevel)
     .def("SetSeverity", &LoggerOutput::SetSeverity)
     .def("GetSeverity", &LoggerOutput::GetSeverity)
     .def("SetCategory", &LoggerOutput::SetCategory)
     .def("GetCategory", &LoggerOutput::GetCategory)
+    .def("SetOption", &LoggerOutput::SetOption)
+    .def("GetOption", &LoggerOutput::GetOption)
     ;
+    logger_output.attr("WARNING_PREFIX") = LoggerOutput::WARNING_PREFIX;
+    logger_output.attr("INFO_PREFIX") = LoggerOutput::INFO_PREFIX;
+    logger_output.attr("DETAIL_PREFIX") = LoggerOutput::DETAIL_PREFIX;
+    logger_output.attr("DEBUG_PREFIX") = LoggerOutput::DEBUG_PREFIX;
+    logger_output.attr("TRACE_PREFIX") = LoggerOutput::TRACE_PREFIX;
 
     py::class_<Logger, Kratos::shared_ptr<Logger>> logger_scope(m,"Logger");
     logger_scope.def(py::init<std::string const &>());

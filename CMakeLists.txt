@@ -301,16 +301,6 @@ if(${INSTALL_RUNKRATOS} MATCHES ON )
 endif(${INSTALL_RUNKRATOS} MATCHES ON )
 
 ##*****************************
-# Finding blas and lapack if needed
-if(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON )
-
-  # If prescribed set the fortran mangling
-  if(DEFINED ${KRATOS_SUPERLU_FORTRAN_MANGLING})
-    add_definitions(${KRATOS_SUPERLU_FORTRAN_MANGLING})
-  else(DEFINED ${KRATOS_SUPERLU_FORTRAN_MANGLING})
-    add_definitions(-DADD_)
-  endif(DEFINED ${KRATOS_SUPERLU_FORTRAN_MANGLING})
-endif(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON )
 
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
   find_package(Tetgen REQUIRED)
