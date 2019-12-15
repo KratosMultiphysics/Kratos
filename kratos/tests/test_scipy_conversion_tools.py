@@ -12,23 +12,20 @@ except ImportError as e:
 
 class TestScipyConversionTools(KratosUnittest.TestCase):
 
-    def setUp(self):
-        pass
-
+    @KratosUnittest.skipIf(missing_scipy,"Missing python libraries (scipy)")
     def test_scipy_conversion_tools(self):
-        if not missing_scipy:
-            # Create a kratos matrix
-            A = KratosMultiphysics.CompressedMatrix(3,3)
-            A[0,0] = 1.0
-            A[1,1] = 2.0
-            A[2,2] = 3.0
-            A[0,2] = 4.0
+        # Create a kratos matrix
+        A = KratosMultiphysics.CompressedMatrix(3,3)
+        A[0,0] = 1.0
+        A[1,1] = 2.0
+        A[2,2] = 3.0
+        A[0,2] = 4.0
 
-            # Convert it to scipy. Note that Ascipy is A COPY of A
-            Ascipy = KratosMultiphysics.scipy_conversion_tools.to_csr(A)
+        # Convert it to scipy. Note that Ascipy is A COPY of A
+        Ascipy = KratosMultiphysics.scipy_conversion_tools.to_csr(A)
 
-            for i, j in np.nditer(Ascipy.nonzero()):
-                self.assertAlmostEqual(A[int(i), int(j)], Ascipy[int(i), int(j)], 1e-12)
+        for i, j in np.nditer(Ascipy.nonzero()):
+            self.assertAlmostEqual(A[int(i), int(j)], Ascipy[int(i), int(j)], 1e-12)
 
 if __name__ == '__main__':
     KratosUnittest.main()
