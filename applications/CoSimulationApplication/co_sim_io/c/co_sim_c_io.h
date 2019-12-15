@@ -12,6 +12,9 @@
 #ifndef KRATOS_CO_SIM_C_IO_H_INCLUDED
 #define KRATOS_CO_SIM_C_IO_H_INCLUDED
 
+// C Interface for CoSimulation
+// see "co_sim_io.h"
+
 #ifdef __cplusplus
 extern "C" { // Define extern C if C++ compiler is used
 #endif
