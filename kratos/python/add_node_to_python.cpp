@@ -141,6 +141,15 @@ void  AddNodeToPython(pybind11::module& m)
     ;
 
     py::class_<Dof<double>>(m,"Dof")
+    .def("GetVariable", &Dof<double>::GetVariable, py::return_value_policy::reference_internal)
+    .def("GetReaction", &Dof<double>::GetReaction, py::return_value_policy::reference_internal)
+    .def("Id", &Dof<double>::Id)
+    .def("GetSolutionStepValue", [](const Dof<double>& self){return self.GetSolutionStepValue();} )
+    .def_property("EquationId", &Dof<double>::EquationId, &Dof<double>::SetEquationId)
+    .def("Fix", &Dof<double>::FixDof)
+    .def("Free", &Dof<double>::FreeDof)
+    .def("IsFixed", &Dof<double>::IsFixed)
+    .def("__str__", PrintObject<Dof<double>>)
     ;
 
     typedef  py::class_<NodeType, NodeType::Pointer, NodeType::BaseType, Flags > NodeBinderType;
@@ -173,6 +182,14 @@ void  AddNodeToPython(pybind11::module& m)
     node_binder.def("AddDof", NodeAddDofwithReaction<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >);
     node_binder.def("AddDof", NodeAddDofwithReaction<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >);
     node_binder.def("AddDof", NodeAddDofwithReaction<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >);
+    node_binder.def("GetDof", 
+        [](const NodeType& rNode, const Variable<double>& rVar) -> NodeType::DofType& {return *rNode.pGetDof(rVar); }
+        ,py::return_value_policy::reference_internal
+    );
+    node_binder.def("GetDof", 
+        [](const NodeType& rNode, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rVar) -> NodeType::DofType& {return *rNode.pGetDof(rVar); }
+        ,py::return_value_policy::reference_internal
+    );
     node_binder.def("Fix", NodeFix<Variable<double> >);
     node_binder.def("Fix", NodeFix<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
     node_binder.def("Fix", NodeFix<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >);
