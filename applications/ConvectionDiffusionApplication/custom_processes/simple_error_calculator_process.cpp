@@ -197,7 +197,7 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalError(Vector& nodal_area)
     // c) Loop over the elements to calculate Element Error
     for (int i_elem = 0; i_elem < number_elements; i_elem++) {
         auto it_elem = it_elem_begin + i_elem;
-        auto r_geometry = it_elem->GetGeometry();
+        auto& r_geometry = it_elem->GetGeometry();
         const auto n_nodes = r_geometry.size();
         unsigned int elem_index = i_elem;
 
@@ -264,7 +264,7 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalError(Vector& nodal_area)
     // d) Loop over the elements to calculate Nodal Error Projections
     for (int i_elem = 0; i_elem < number_elements; i_elem++) {
         auto it_elem = it_elem_begin + i_elem;
-        auto r_geometry = it_elem->GetGeometry();
+        auto& r_geometry = it_elem->GetGeometry();
         const auto n_nodes = r_geometry.size();
         const auto elem_index = i_elem;
 
@@ -297,7 +297,7 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalArea(Vector& nodal_area)
     const auto it_elem_begin = elements_array.begin();
     for (unsigned int i_elem = 0; i_elem < number_elements; i_elem++) {
         auto it_elem = it_elem_begin + i_elem;
-        auto r_geometry = it_elem->GetGeometry();
+        auto& r_geometry = it_elem->GetGeometry();
         const auto n_nodes = r_geometry.size();
 
         for (unsigned int i_node = 0; i_node < n_nodes; i_node++) {

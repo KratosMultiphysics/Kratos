@@ -4,7 +4,7 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as KratosMesh
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-import KratosMultiphysics.GeodataProcessingApplication as KratosGeo
+import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 class CHTWorkflow():
