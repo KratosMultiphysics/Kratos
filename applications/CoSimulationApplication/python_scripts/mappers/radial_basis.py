@@ -25,16 +25,14 @@ def timer(name=None, t=0, n=0, ms=False):
     print(s)
 
 def Create(parameters):
-    return MapperRadialBasis2D(parameters)
+    return MapperRadialBasis(parameters)
 
 
-# Class MapperLinear: Radial basis function interpolation in 2D.
-class MapperRadialBasis2D(MapperNearest):
+# Class MapperRadialBasis: Radial basis function interpolation in 2D.
+class MapperRadialBasis(MapperNearest):
     def __init__(self, parameters):
         """
         TODO
-        interpolation is done on lines
-
         The __call__ and Finalize methods are
         inherited from MapperNearest.
 
@@ -49,70 +47,74 @@ class MapperRadialBasis2D(MapperNearest):
             draw interpolated function
             - now calculate the other way, get coeffs for fixed to-points,
             then add function value and see if it's the same
-
-            ..
-
-
-
-        at the end: write jupyter notebook
-
+            - ...
+        - ...
+        - at the end: make generalized function for n-dimensions,
+        because most of the code would overlap anyways
 
         """
-
+        # store settings
         self.settings = parameters['settings']
         self.interpolator = True
         self.balanced_tree = self.settings['balanced_tree'].GetBool()
-        self.coord1 = self.settings['direction_1'].GetString().upper() + '0'
-        self.coord2 = self.settings['direction_2'].GetString().upper() + '0'
-        for coord in [self.coord1, self.coord2]:
-            if coord not in ['X0', 'Y0', 'Z0']:
-                raise ValueError(f'{coord[:-1]} is not a valid direction.')
-        self.ref_distance = None
+
+        # get list with directions
+        self.directions = []
+        for direction in self.settings['directions'].list():
+            tmp = direction.GetString().upper()
+            if tmp not in ['X', 'Y', 'Z']:
+                raise ValueError(f'"{tmp}" is not a valid direction.')
+            self.directions.append(tmp + '0')
+
+        # determine number of nearest neighbours
+        if len(self.directions) == 3:
+            self.n_nearest = 81
+        else:
+            self.n_nearest = 9
 
     def Initialize(self, model_part_from, model_part_to):
-        # *** check if there are enough nodes on from-side
-
         self.n_from = model_part_from.NumberOfNodes()
-        coords_from = np.zeros((self.n_from, 2))
+        if self.n_from < self.n_nearest:
+            raise ValueError('not enough from-points for radial basis interpolation')
+        coords_from = np.zeros((self.n_from, len(self.directions)))
         for i, node in enumerate(model_part_from.Nodes):
-            coords_from[i, 0] = getattr(node, self.coord1)
-            coords_from[i, 1] = getattr(node, self.coord2)
+            for j, direction in enumerate(self.directions):
+                coords_from[i, j] = getattr(node, direction)
 
         self.n_to = model_part_to.NumberOfNodes()
-        coords_to = np.zeros((self.n_to, 2))
+        coords_to = np.zeros((self.n_to, len(self.directions)))
         for i, node in enumerate(model_part_to.Nodes):
-            coords_to[i, 0] = getattr(node, self.coord1)
-            coords_to[i, 1] = getattr(node, self.coord2)
+            for j, direction in enumerate(self.directions):
+                coords_to[i, j] = getattr(node, direction)
 
         # build and query tree
         if self.balanced_tree:  # time-intensive
             tree = cKDTree(coords_from)
         else:  # less stable
             tree = cKDTree(coords_from, balanced_tree=False)
-        distances, self.nearest = tree.query(coords_to, k=9)
+        distances, self.nearest = tree.query(coords_to, k=self.n_nearest)
 
-        self.coeffs = np.zeros_like(self.nearest)
+        self.coeffs = np.zeros(self.nearest.shape)  #*** problem was here: zeros_like made ndarray of ints...
         # loop over all to-points
-        for index in range(self.n_to):
-            d_ref = distances[index, -1]
-            nearest = self.nearest[index, :]
+        for i_to in range(self.n_to):
+            d_ref = distances[i_to, -1] * 2
+            nearest = self.nearest[i_to, :]
 
             # create vector Phi_to, based on distances to from-points
-            d_to = distances[index, :].reshape(-1, 1)
-            Phi_to = self.phi(d_to, d_ref)
+            d_to = distances[i_to, :].reshape(-1, 1)
+            Phi_to = self.phi(d_to/ d_ref)
 
             # create matrix Phi, based on distances between from-points
             d = distance.squareform(distance.pdist(coords_from[nearest, :]))
-            Phi = self.phi(d, d_ref)
+            Phi = self.phi(d / d_ref)
 
             # solve system Phi^T c = Phi_t for c (Phi is symmetric)
             c = solve(Phi, Phi_to, sym_pos=True)  # , sym_pos=True
 
             # store c in coeffs
-            self.coeffs[index] = c.flatten()
+            self.coeffs[i_to, :] = c.flatten().copy()
 
             print(f'sum of coeffs = {np.sum(c)}')  # *** check if coeffs add up to 1
 
-    def phi(self, d, d_ref):
-        r = d / d_ref
+    def phi(self, r):
         return (1 - r) ** 4 * (1 + 4 * r) * np.heaviside(1 - r, 0)

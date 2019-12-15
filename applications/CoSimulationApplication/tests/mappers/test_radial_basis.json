@@ -1,0 +1,33 @@
+{
+    "settings":
+    {
+        "data_structure" : "pyKratos"
+    },
+    "mapper_1d" :
+    {
+        "type": "mappers.radial_basis",
+        "settings":
+        {
+            "directions" : ["X"],
+            "balanced_tree" : false
+        }
+    },
+    "mapper_2d" :
+    {
+        "type": "mappers.radial_basis",
+        "settings":
+        {
+            "directions" : ["X", "Y"],
+            "balanced_tree" : false
+        }
+    },
+    "mapper_3d" :
+    {
+        "type": "mappers.radial_basis",
+        "settings":
+        {
+            "directions" : ["X", "Y", "Z"],
+            "balanced_tree" : false
+        }
+    }
+}

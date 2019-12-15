@@ -22,7 +22,7 @@ and maps the `ModelPart` objects to each other in order of appearance.
 
 JSON setting|type|description
 ------:|:----:|-----------
-`direction`|str|coordinate direction, options: `'X'`, `'Y'`, `'Z'`
+`direction`|str|coordinate direction, options: `"X"`, `"Y"`, `"Z"`
 `balanced_tree`|bool|if `true`, create balanced `cKDTree`, which is more stable, but takes longer to build
 
 
@@ -30,19 +30,26 @@ JSON setting|type|description
 
 JSON setting|type|description
 ------:|:----:|-----------
-`direction_1`|str|first coordinate direction, options: `'X'`, `'Y'`, `'Z'`
-`direction_2`|str|second coordinate direction, options: `'X'`, `'Y'`, `'Z'`
+`direction_1`|str|first coordinate direction, options: `"X"`, `"Y"`, `"Z"`
+`direction_2`|str|second coordinate direction, options: `"X"`, `"Y"`, `"Z"`
 `balanced_tree`|bool|if `true`, create balanced `cKDTree`, which is more stable, but takes longer to build
 
 #### MapperLinear3D
 
 JSON setting|type|description
-------:|:----:|-----------
+----------:|:---:|-----------
 `balanced_tree`|bool|if `true`, create balanced `cKDTree`, which is more stable, but takes longer to build
 `parallel`|bool|if `true`, use `multiprocessing` module to distribute calculation of coefficients over all cores of current node
 
 
-#### MapperRadialBasis2D
+#### MapperRadialBasis
+
+JSON setting|type|description
+----------:|:---:|-----------
+`directions`|str/list|one or more directions to interpolate, given as a list consisting of `"X"`, `"Y"`, `"Z"`; for 1D, a string is also accepted
+`balanced_tree`|bool|if `true`, create balanced `cKDTree`, which is more stable, but takes longer to build
+
+
 
 With φ(r) a radial basis function defined as  
 
@@ -80,7 +87,6 @@ The weights-vector **α** can be extracted by solving this system:
 > **α** =  **Φ**<sup>-1</sup> · **f**
 
 ![\boldsymbol{\alpha}=\boldsymbol{\Phi}^{-1}\cdot\boldsymbol{f}](https://render.githubusercontent.com/render/math?math=%5Cboldsymbol%7B%5Calpha%7D%3D%5Cboldsymbol%7B%5CPhi%7D%5E%7B-1%7D%5Ccdot%5Cboldsymbol%7Bf%7D)
-
 
 However, the function value vector **f** is not known in advance: it contains the values of the `Variable` that will be interpolated. 
 What we do want, is the weights (coefficients) with which every value in the _n_ nearest from-points must be multiplied, to get the value in the to-point. 

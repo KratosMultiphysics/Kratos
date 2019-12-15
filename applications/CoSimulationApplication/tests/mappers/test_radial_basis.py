@@ -29,8 +29,8 @@ def timer(name=None, t=0, n=0, ms=False):
 
 class TestMapperRadialBasis(KratosUnittest.TestCase):
 
-    def test_mapper_radial_basis_2d(self):
-        parameter_file_name = os.path.join(os.path.dirname(__file__), 'test_radial_basis_2d.json')
+    def test_mapper_radial_basis(self):
+        parameter_file_name = os.path.join(os.path.dirname(__file__), 'test_radial_basis.json')
         cs_data_structure = ImportDataStructure(parameter_file_name)
         with open(parameter_file_name, 'r') as parameter_file:
             parameters = cs_data_structure.Parameters(parameter_file.read())
@@ -41,7 +41,7 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
         model_part_from = model_from.CreateModelPart('wall_from')
         model_part_from.AddNodalSolutionStepVariable(var_from)
 
-        n_from = 9
+        n_from = 15
         x_from = np.sqrt(np.linspace(.1, .9, n_from))
         y_from = 7.2 + 3.3 * x_from
         v_from = 1.2 - 1.7 * x_from + 2.5 * y_from
