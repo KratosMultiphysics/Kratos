@@ -104,7 +104,7 @@ class TestCoSimIODummySolvers(KratosUnittest.TestCase):
 
 
     def __ModifyExternalSolverCoSimSettings(self):
-        self.external_solver_start_command = "../../../libs/" + self.name_executable
+        self.external_solver_start_command = "../../../install/libs/" + self.name_executable # TODO find better solution, this can be different btw different installations
 
         ext_solver_params = self.cosim_parameters["solver_settings"]["solvers"]["external_dummy_solver"]["solver_wrapper_settings"]
 
