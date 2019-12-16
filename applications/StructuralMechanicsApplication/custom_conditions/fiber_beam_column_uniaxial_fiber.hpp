@@ -23,8 +23,6 @@
 #include "includes/variables.h"
 #include "includes/element.h"
 
-// #include "custom_constitutive/uniaxial_fiber_beam_column_material_law.hpp"
-
 namespace Kratos
 {
 
@@ -52,6 +50,7 @@ namespace Kratos
  * @class FiberBeamColumnUniaxialFiber
  *
  * @brief A 3D unaxial fiber for the beam-column element for reinforced concrete modeling
+ * @details it is stored in the section, in a container of fibers
  *
  * @author Mahmoud Zidan
  */
@@ -64,16 +63,13 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Element                                     BaseType;
-    typedef BaseType::GeometryType                  GeometryType;
-    typedef BaseType::NodesArrayType              NodesArrayType;
-    typedef BaseType::PropertiesType              PropertiesType;
-    typedef BaseType::IndexType                        IndexType;
-    typedef BaseType::SizeType                          SizeType;
-    typedef BaseType::MatrixType                      MatrixType;
-    typedef BaseType::VectorType                      VectorType;
-    typedef BaseType::EquationIdVectorType  EquationIdVectorType;
-    typedef BaseType::DofsVectorType              DofsVectorType;
+    typedef Element::GeometryType      GeometryType;
+    typedef Element::NodesArrayType  NodesArrayType;
+    typedef Element::PropertiesType  PropertiesType;
+    typedef Element::IndexType            IndexType;
+    typedef Element::SizeType              SizeType;
+    typedef Element::MatrixType          MatrixType;
+    typedef Element::VectorType          VectorType;
 
     ///@}
     ///@name Pointer Definitions
@@ -85,28 +81,79 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default Constructor
+    /**
+     * Default Constructor
+     */
     FiberBeamColumnUniaxialFiber(IndexType NewId = 0);
 
-    /// Constructor using an array of nodes
+    /**
+     * Constructor
+     * @param NewId: id of the fiber
+     * @param Y: y coordinate
+     * @param Z: z coordinate
+     * @param pMaterial: pointer to the constitutive law
+     * @param pProperties: pointer to the properties
+     */
     FiberBeamColumnUniaxialFiber(
-        IndexType NewId, double Y, double Z, double Area, ConstitutiveLaw::Pointer pMaterial, PropertiesType::Pointer pProperties);
+        IndexType NewId,
+        double Y,
+        double Z,
+        double Area,
+        ConstitutiveLaw::Pointer pMaterial,
+        PropertiesType::Pointer pProperties
+    );
 
-    Matrix CreateGlobalFiberStiffnessMatrix();
+    /**
+     * Destructor
+     */
+    ~FiberBeamColumnUniaxialFiber() = default;
 
-    void StateDetermination(const Vector& rSectionDeformationIncrements);
-    Vector CreateGlobalFiberInternalForces();
-    void FinalizeSolutionStep();
+    /**
+     * Copy Constructor
+     */
+    FiberBeamColumnUniaxialFiber(const FiberBeamColumnUniaxialFiber& rOther) = default;
 
     ///@}
     ///@name Operators
     ///@{
 
+    /**
+     * Assignement operator
+     */
+    FiberBeamColumnUniaxialFiber& operator=(const FiberBeamColumnUniaxialFiber& rOther) = default;
+
     ///@}
     ///@name Operations
     ///@{
 
+    /**
+     * Initializes the material law
+     */
     void Initialize();
+
+    /**
+     * This method updates the strain in the fiber, calculates the material response,
+     * and stores the stress value.
+     * @param rSectionDeformationIncrements: the deformation increments of the section
+     */
+    void StateDetermination(const Vector& rSectionDeformationIncrements);
+
+    /**
+     * returns the global stiffness matrix of the fiber.
+     * @param rGlobalStiffnessMatrix
+     */
+    void CreateGlobalFiberStiffnessMatrix(Matrix& rGlobalStiffnessMatrix);
+
+    /**
+     * returns the global internal forces of the fiber.
+     * @param rGlobalStiffnessMatrix
+     */
+    void CreateGlobalFiberInternalForces(Vector& rGlobalFiberInternalForces);
+
+    /**
+     * Called when the non linear iterations have converged
+     */
+    void FinalizeSolutionStep();
 
     ///@}
     ///@name Access
@@ -148,14 +195,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    IndexType mId;
-    Vector mTransformationVector = ZeroVector(3);
-    double mArea = 0;
-    ConstitutiveLaw::Pointer mpMaterial = nullptr;
-    PropertiesType::Pointer mpProperties = nullptr;
-    Vector mStrain = ZeroVector(1);
-    Vector mStress = ZeroVector(1);
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -188,6 +227,14 @@ private:
     ///@name Member Variables
     ///@{
 
+    IndexType mId;       // id of the fiber
+    double mArea = 0;    // area of the fiber
+    Vector mTransformationVector = ZeroVector(3);   // coordinates [-y z 1]
+    ConstitutiveLaw::Pointer mpMaterial = nullptr;  // pointer to the constitutive law
+    PropertiesType::Pointer mpProperties = nullptr; // pointer to the properties
+    Vector mStrain = ZeroVector(1);  // strain in the fiber
+    Vector mStress = ZeroVector(1);  // stress in the fiber
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -195,8 +242,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    IndexType Id() const { return mId; }
 
     ///@}
     ///@name Serialization

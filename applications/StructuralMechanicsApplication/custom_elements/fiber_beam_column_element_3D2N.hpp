@@ -87,29 +87,43 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor
+    /**
+     * Constructor
+     */
     FiberBeamColumnElement3D2N(IndexType NewId = 0);
 
-    /// Constructor using an array of nodes
+    /**
+     * Constructor using an array of nodes
+     */
     FiberBeamColumnElement3D2N(IndexType NewId, const NodesArrayType& rThisNodes);
 
-    /// Constructor using Geometry
+    /**
+     * Constructor using Geometry
+     */
     FiberBeamColumnElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    /// Constructor using Properties
+    /**
+     * Constructor using Properties
+     */
     FiberBeamColumnElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    /// Copy Constructor
+    /**
+     * Copy Constructor
+     */
     FiberBeamColumnElement3D2N(FiberBeamColumnElement3D2N const& rOther);
 
-    /// Destructor
+    /**
+     * Destructor
+     */
     ~FiberBeamColumnElement3D2N() override;
 
     ///@}
     ///@name Operators
     ///@{
 
-    /// Assignment Operator
+    /**
+     * Assignment Operator
+     */
     FiberBeamColumnElement3D2N & operator=(FiberBeamColumnElement3D2N const& rOther);
 
     ///@}
@@ -159,13 +173,20 @@ public:
     void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override;
 
     /**
-     * constructs the sections and the fibers from the properties
+     * constructs the sections and the fibers from the properties,
+     * initializes the sections and the fibers, calculates the
+     * transformation matrix, and initializes the local stiffness matrix.
      */
     void Initialize() override;
 
+    /**
+     * called after the non linear iteration so that the equilibrium loop is performed
+     */
     void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-    // void ElementLoop(ProcessInfo& rCurrentProcessInfo);
-    // void CalculateDeformationResiduals();
+
+    /**
+     * called when the non linear iterations have converged
+     */
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -197,7 +218,11 @@ public:
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-
+    /**
+     * Gets the vector of displacements and rotations
+     * @param rValues: the vector of the displacements and rotations
+     * @param Step: solution step index
+     */
     void GetValuesVector(Vector& rValues, int Step = 0) override;
 
     /**
@@ -254,16 +279,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    std::vector<FiberBeamColumnSection> mSections;  // vector of the sections
-
-    Matrix mTransformationMatrix = ZeroMatrix(msGlobalSize, msLocalSize);
-    Matrix mLocalStiffnessMatrix = ZeroMatrix(msLocalSize, msLocalSize);
-
-    Vector mDeformationI   = ZeroVector(msLocalSize);
-    Vector mDeformationIM1 = ZeroVector(msLocalSize);
-    Vector mInternalForces = ZeroVector(msLocalSize);
-    Vector mDeformationResiduals = ZeroVector(msLocalSize);
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -296,6 +311,16 @@ private:
     ///@name Member Variables
     ///@{
 
+    std::vector<FiberBeamColumnSection> mSections;  // vector of the sections
+
+    Matrix mTransformationMatrix = ZeroMatrix(msGlobalSize, msLocalSize);
+    Matrix mLocalStiffnessMatrix = ZeroMatrix(msLocalSize, msLocalSize);
+
+    Vector mDeformationI   = ZeroVector(msLocalSize);  // deformations of the current iteration
+    Vector mDeformationIM1 = ZeroVector(msLocalSize);  // deformations of the previous iteration
+    Vector mInternalForces = ZeroVector(msLocalSize);  // internal forces from the sections
+    Vector mDeformationResiduals = ZeroVector(msLocalSize);
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -327,6 +352,9 @@ private:
      */
     void CalculateTransformationMatrix();
 
+    /**
+     * @return matrix of the unit vector for the beam local coord sys
+     */
     Matrix CreateInitialLocalCoordSys() const;
 
     ///@}

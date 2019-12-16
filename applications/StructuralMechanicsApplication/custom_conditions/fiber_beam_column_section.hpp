@@ -64,15 +64,14 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Element                                     BaseType;
-    typedef BaseType::PropertiesType              PropertiesType;
-    typedef BaseType::IndexType                        IndexType;
-    typedef BaseType::SizeType                          SizeType;
-    typedef BaseType::MatrixType                      MatrixType;
-    typedef BaseType::VectorType                      VectorType;
+    typedef Element::PropertiesType  PropertiesType;
+    typedef Element::IndexType            IndexType;
+    typedef Element::SizeType              SizeType;
+    typedef Element::MatrixType          MatrixType;
+    typedef Element::VectorType          VectorType;
 
     // by default: integration point is 3-dimensional
-    typedef IntegrationPoint<3>             IntegrationPointType;
+    typedef IntegrationPoint<3> IntegrationPointType;
 
     ///@}
     ///@name Pointer Definitions
@@ -82,40 +81,77 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default Constructor
+    /**
+     * Default Constructor
+     */
     FiberBeamColumnSection(IndexType NewId = 0);
 
-    /// Constructor using an array of nodes
+    /**
+     * Constructor
+     * @param NewId: id of the section
+     * @param integrationPoint: 1D integrationPoint that holds the position and the weight
+     * @param pProperties: pointer to properties
+     */
     FiberBeamColumnSection(IndexType NewId, IntegrationPointType integrationPoint, PropertiesType::Pointer pProperties);
 
-    // /// Copy Constructor
-    // FiberBeamColumnSection(FiberBeamColumnSection const& rOther);
+    /**
+     * Copy Constructor
+     */
+    FiberBeamColumnSection(FiberBeamColumnSection const& rOther) = default;
 
-    // /// Destructor
-    // ~FiberBeamColumnSection(){}
+    /**
+     * Destructor
+     */
+    ~FiberBeamColumnSection() = default;
 
-    void CalculateLocalFlexibilityMatrix();
-    void CalculateBMatrix();
-    Matrix GetGlobalFlexibilityMatrix();
-    Vector GetGlobalDeformationResiduals();
+    ///@}
+    ///@name Operators
+    ///@{
 
-    bool StateDetermination(const Vector& rElementForceIncrements);
-    void ResetResidual();
-
-    void FinalizeSolutionStep();
-
-    // ///@}
-    // ///@name Operators
-    // ///@{
-
-    // /// Assignment Operator
-    // FiberBeamColumnSection & operator=(FiberBeamColumnSection const& rOther);
+    /**
+     * Assignment Operator
+     */
+    FiberBeamColumnSection& operator=(FiberBeamColumnSection const& rOther) = default;
 
     ///@}
     ///@name Operations
     ///@{
 
+    /**
+     * Initializes all the fibers and initializes the local flexibility matrix.
+     */
     void Initialize();
+
+    /**
+     * This method is to get the global flexibility matrix
+     * @return The global flexibility matrix
+     */
+    Matrix GetGlobalFlexibilityMatrix();
+
+    /**
+     * This method is to get the global deformation residuals
+     * @return The global deformation residuals
+     */
+    Vector GetGlobalDeformationResiduals();
+
+    /**
+     * This method updates the forces, deformations (and fiber strains).
+     * Then, updates the local flexibililty matrix, calculates the unbalance forces,
+     * and checks for convergence.
+     * @param rElementForceIncrements: the force increments of the element
+     * @return True if norm of the unbalance force is below the tolerance
+     */
+    bool StateDetermination(const Vector& rElementForceIncrements);
+
+    /**
+     * This method resets the deformation residuals to zero.
+     */
+    void ResetResidual();
+
+    /**
+     * Called when the non linear iterations have converged.
+     */
+    void FinalizeSolutionStep();
 
     ///@}
     ///@name Access
@@ -123,9 +159,12 @@ public:
 
     /// number of fibers
     SizeType Size() { return mFibers.size(); }
+
+    /// numerical integration weight
     double GetWeight() { return mWeight; }
+
+    /// set the fibers of the section
     void SetFibers (std::vector<FiberBeamColumnUniaxialFiber> Fibers) { mFibers = std::move(Fibers); }
-    std::vector<FiberBeamColumnUniaxialFiber> const& GetFibers() const { return mFibers; }
 
     ///@}
     ///@name Inquiry
@@ -193,17 +232,16 @@ private:
     ///@name Member Variables
     ///@{
 
-    IndexType mId;
-    double mPosition;
-    double mWeight;
-    std::vector<FiberBeamColumnUniaxialFiber> mFibers;
-    double mTolerance;
+    IndexType mId;       // id of the section
+    double mPosition;    // position of the integration point
+    double mWeight;      // weight of the integration point
+    double mTolerance;   // tolerance of the section equilibrium
+    std::vector<FiberBeamColumnUniaxialFiber> mFibers;  // the vector the section's fibers
 
-    Matrix mBMatrix = ZeroMatrix(3, 5);
-    Matrix mLocalFlexibilityMatrix = ZeroMatrix(3, 3);
-    Vector mForces = ZeroVector(3);
-    Vector mUnbalanceForces = ZeroVector(3);
-    Vector mDeformationResiduals = ZeroVector(3);
+    Matrix mLocalFlexibilityMatrix = ZeroMatrix(3, 3);  // local flexibility matrix
+    Vector mForces = ZeroVector(3);                     // forces calculated from the element
+    Vector mUnbalanceForces = ZeroVector(3);            // unbalance forces of the section
+    Vector mDeformationResiduals = ZeroVector(3);       // deformation residuals
 
     ///@}
     ///@name Private Operators
@@ -213,15 +251,25 @@ private:
     ///@name Private Operations
     ///@{
 
-    IndexType Id() const { return mId; }
+    /**
+     * This method updates the local flexibility matrix
+     * of the section and stores it.
+     */
+    void UpdateLocalFlexibilityMatrix();
+
+    /**
+     * This method calculates the B matrix of the section.
+     * @param rBMatrix B matrix
+     */
+    void CalculateBMatrix(Matrix& rBMatrix);
 
     ///@}
     ///@name Serialization
     ///@{
 
     friend Serializer;
-    void save(Serializer& rSerializer) const ;//override;
-    void load(Serializer& rSerializer) ;//override;
+    void save(Serializer& rSerializer) const;
+    void load(Serializer& rSerializer);
 
     ///@}
     ///@name Private  Access

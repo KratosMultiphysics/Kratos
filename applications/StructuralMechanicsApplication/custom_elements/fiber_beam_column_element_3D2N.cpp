@@ -21,10 +21,8 @@
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "includes/checks.h"
 
-
-#include "custom_constitutive/uniaxial_fiber_beam_column_steel_material_law.hpp"
-#include "custom_constitutive/uniaxial_fiber_beam_column_concrete_material_law.hpp"
-#include "custom_constitutive/uniaxial_elastic_material_law.hpp"
+#include "custom_constitutive/uniaxial_menegotto_pinto.hpp"
+#include "custom_constitutive/uniaxial_kent_park.hpp"
 
 namespace Kratos {
 
@@ -181,8 +179,7 @@ void FiberBeamColumnElement3D2N::Initialize()
 
         // concrete fibers
         for (unsigned int i = 0; i < concrete_fibers_data.size1(); ++i) {
-            // auto p_material = Kratos::make_shared<UniaxialFiberBeamColumnConcreteMaterialLaw>(pGetProperties());
-            auto p_material = Kratos::make_shared<UniaxialElasticMaterialLaw>();
+            auto p_material = Kratos::make_shared<UniaxialKentParkMaterialLaw>();
             fibers.push_back( FiberBeamColumnUniaxialFiber( 0,
                 concrete_fibers_data(i, 0),
                 concrete_fibers_data(i, 1),
@@ -192,8 +189,7 @@ void FiberBeamColumnElement3D2N::Initialize()
 
         // steel fibers
         for (unsigned int i = 0; i < steel_fibers_data.size1(); ++i) {
-            // auto p_material = Kratos::make_shared<UniaxialFiberBeamColumnSteelMaterialLaw>(pGetProperties());
-            auto p_material = Kratos::make_shared<UniaxialElasticMaterialLaw>();
+            auto p_material = Kratos::make_shared<UniaxialMenegottoPintoMaterialLaw>();
             fibers.push_back( FiberBeamColumnUniaxialFiber( 0,
                 steel_fibers_data(i, 0),
                 steel_fibers_data(i, 1),
@@ -218,12 +214,12 @@ GeometryData::IntegrationMethod FiberBeamColumnElement3D2N::GetIntegrationMethod
         case 2: return GeometryData::GI_GAUSS_2;
         case 3: return GeometryData::GI_GAUSS_3;
         case 4: return GeometryData::GI_GAUSS_4;
-        // case 5: return GeometryData::GI_GAUSS_5;
-        // case 6: return GeometryData::GI_EXTENDED_GAUSS_1;
-        // case 7: return GeometryData::GI_EXTENDED_GAUSS_2;
-        // case 8: return GeometryData::GI_EXTENDED_GAUSS_3;
-        // case 9: return GeometryData::GI_EXTENDED_GAUSS_4;
-        // case 10:return GeometryData::GI_EXTENDED_GAUSS_5;
+        case 5: return GeometryData::GI_GAUSS_5;
+        case 6: return GeometryData::GI_EXTENDED_GAUSS_1;
+        case 7: return GeometryData::GI_EXTENDED_GAUSS_2;
+        case 8: return GeometryData::GI_EXTENDED_GAUSS_3;
+        case 9: return GeometryData::GI_EXTENDED_GAUSS_4;
+        case 10:return GeometryData::GI_EXTENDED_GAUSS_5;
         default:
         {
             KRATOS_ERROR << "NUMBER_OF_SECTIONS can only be in range [2, 10]."
@@ -238,11 +234,9 @@ void FiberBeamColumnElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurren
     KRATOS_TRY
     mDeformationIM1 = mDeformationI;
     Vector disp = ZeroVector(msGlobalSize);
-    GetValuesVector(disp, 0);
+    GetValuesVector(disp);
     mDeformationI = prod(Matrix(trans(mTransformationMatrix)), disp);
     Vector def_incr = mDeformationI -  mDeformationIM1;
-
-    KRATOS_WATCH(def_incr)
 
     unsigned int max_iterations = GetProperties()[MAX_EQUILIBRIUM_ITERATIONS];
     if (max_iterations == 0) {
@@ -301,8 +295,8 @@ void FiberBeamColumnElement3D2N::GetValuesVector(Vector& rValues, int Step)
     for (unsigned int i = 0; i < msNumberOfNodes; ++i)
     {
         int index = i * global_size_per_node;
-        const auto& disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-        const auto& rot = GetGeometry()[i].FastGetSolutionStepValue(ROTATION);
+        const auto& disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+        const auto& rot = GetGeometry()[i].FastGetSolutionStepValue(ROTATION, Step);
         rValues[index] = disp[0];
         rValues[index + 1] = disp[1];
         rValues[index + 2] = disp[2];

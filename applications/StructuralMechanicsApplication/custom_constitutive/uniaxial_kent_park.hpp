@@ -9,8 +9,8 @@
 //  Main authors: Mahmoud Zidan
 //
 
-#if !defined(KRATOS_UNIAXIAL_FIBER_BEAM_COLUMN_CONCRETE_MATERIAL_LAW_H_INCLUDED )
-#define  KRATOS_UNIAXIAL_FIBER_BEAM_COLUMN_CONCRETE_MATERIAL_LAW_H_INCLUDED
+#if !defined(KRATOS_UNIAXIAL_KENT_PARK_H_INCLUDED)
+#define  KRATOS_UNIAXIAL_KENT_PARK_H_INCLUDED
 
 // System includes
 
@@ -19,10 +19,7 @@
 
 
 // Project includes
-#include "includes/define.h"
-#include "includes/variables.h"
-#include "structural_mechanics_application_variables.h"
-#include "custom_constitutive/uniaxial_fiber_beam_column_material_law.hpp"
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
@@ -48,15 +45,18 @@ namespace Kratos
 ///@{
 
 /**
- * @class FiberBeamColumnElement3D2N
+ * @class UniaxialKentParkMaterialLaw
  *
- * @brief A 3D-2node fiber beam-column element for reinforced concrete modeling
+ * @brief A constitutive model for the concrete uniaxial fibers of the beam-column element.
+ * @details The constitutive law is a Kent-Park material law
+ *          [D. C. Kent. Inelastic Behavior of Reinforced Concrete Members with Cyclic Loading.
+ *           PhD thesis, University of Canterbury, 1969.]
  *
  * @author Mahmoud Zidan
  */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) UniaxialFiberBeamColumnConcreteMaterialLaw
-    : public UniaxialFiberBeamColumnMaterialLaw
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) UniaxialKentParkMaterialLaw
+    : public ConstitutiveLaw
 {
 
 public:
@@ -64,48 +64,78 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef UniaxialFiberBeamColumnMaterialLaw          BaseType;
-    typedef BaseType::PropertiesType              PropertiesType;
-    typedef std::size_t                                 SizeType;
+    typedef ConstitutiveLaw    BaseType;
+    typedef ProcessInfo ProcessInfoType;
+    typedef std::size_t        SizeType;
 
     ///@}
     ///@name Pointer Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(UniaxialFiberBeamColumnConcreteMaterialLaw); //FIXME: This gives an error
+    KRATOS_CLASS_POINTER_DEFINITION(UniaxialKentParkMaterialLaw);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    UniaxialFiberBeamColumnConcreteMaterialLaw();
-    UniaxialFiberBeamColumnConcreteMaterialLaw(PropertiesType::Pointer pProperties);
+    /**
+     * Default constructor
+     */
+    UniaxialKentParkMaterialLaw() = default;
+
+    /**
+     * @return pointer to the constitutive law
+     */
+    ConstitutiveLaw::Pointer Clone() const override;
+
+    /**
+     * Copy constructor
+     */
+    UniaxialKentParkMaterialLaw(const UniaxialKentParkMaterialLaw& rOther) = default;
+
+    /**
+     * Destructor
+     */
+    ~UniaxialKentParkMaterialLaw() override = default;
 
     ///@}
     ///@name Operators
     ///@{
 
+    /**
+     * Assignment Operator
+     */
+    UniaxialKentParkMaterialLaw& operator=(const UniaxialKentParkMaterialLaw& rOther) = default;
+
     ///@}
     ///@name Operations
     ///@{
 
-    void Initialize() override;
-    void CalculateMaterialResponse() override;
-    void FinalizeMaterialResponse() override;
+    /**
+     * This function is designed to be called once to check compatibility with element
+     * @param rFeatures
+     */
+    void GetLawFeatures(Features& rFeatures) override;
+
+    /**
+     * @return Voigt tensor size
+     */
+    SizeType GetStrainSize() override
+    {
+        return 1;
+    }
+
+    void InitializeMaterialResponsePK2 (Parameters& rValues) override;
+    void CalculateMaterialResponsePK2 (Parameters& rValues) override;
+    void FinalizeMaterialResponsePK2 (Parameters& rValues) override;
 
     ///@}
     ///@name Access
     ///@{
 
-    void SetStrain(const double Strain) override { mStrain = Strain; }
-
-    double& GetStress() override         { return mStress; }
-    double& GetTangentModulus() override { return mTangentModulus; }
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -168,18 +198,13 @@ private:
     ///@name Member Variables
     ///@{
 
-    // material parameters
-    double mFc             = 0.0;
-    double mStrain0        = 0.0;
-    double mStrainUltimate = 0.0;
+    // == history variables
 
     // material history variables
-    double mStress         = 0.0;
-    double mStrain         = 0.0;
-    double mStrainR        = 0.0;
-    double mStrainP        = 0.0;
-    double mUnloadSlope    = 0.0;
-    double mTangentModulus = 0.0;
+    double mStrainR        = 0.0;  // strain reversal
+    double mStrainP        = 0.0;  // plastic strain
+    double mUnloadSlope    = 0.0;  // unload slope
+    double mTangentModulus = 0.0;  // tangent modulus
 
     // material converged history variables
     double mConvergedStress         = 0.0;
@@ -195,9 +220,11 @@ private:
     ///@name Private Operations
     ///@{
 
-    void Reload();
-    void Envelope();
-    void Unload();
+    void CalculateStressResponsePK2 (Parameters& rValues, Vector& rStrainVector, Vector& rStressVector);
+    void CalculateConstitutiveMatrixPK2 (Parameters& rValues, Matrix& rConstitutiveMatrix);
+    void Reload(Parameters& rValues, Vector& rStrainVector, Vector& rStressVector);
+    void Envelope(Parameters& rValues, Vector& rStrainVector, Vector& rStressVector);
+    void Unload(Parameters& rValues, Vector& rStrainVector, Vector& rStressVector);
 
     ///@}
     ///@name Serialization
@@ -221,10 +248,10 @@ private:
 
     ///@}
 
-};  // class UniaxialFiberBeamColumnConcreteMaterialLaw
+};  // class UniaxialKentParkMaterialLaw
 
 /// output stream
-inline std::ostream & operator <<(std::ostream& rOStream, const UniaxialFiberBeamColumnConcreteMaterialLaw& rThis)
+inline std::ostream & operator <<(std::ostream& rOStream, const UniaxialKentParkMaterialLaw& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;
@@ -234,4 +261,4 @@ inline std::ostream & operator <<(std::ostream& rOStream, const UniaxialFiberBea
 
 } // namespace Kratos
 
-#endif
+#endif  // #if !defined(KRATOS_UNIAXIAL_KENT_PARK_H_INCLUDED)

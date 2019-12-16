@@ -9,8 +9,8 @@
 //  Main authors: Mahmoud Zidan
 //
 
-#if !defined(KRATOS_UNIAXIAL_ELASTIC_MATERIAL_LAW_H_INCLUDED )
-#define  KRATOS_UNIAXIAL_ELASTIC_MATERIAL_LAW_H_INCLUDED
+#if !defined(KRATOS_UNIAXIAL_MENGOTTO_PINTO_H_INCLUDED)
+#define  KRATOS_UNIAXIAL_MENGOTTO_PINTO_H_INCLUDED
 
 // System includes
 
@@ -19,10 +19,6 @@
 
 
 // Project includes
-// #include "includes/define.h"
-// #include "includes/variables.h"
-// #include "structural_mechanics_application_variables.h"
-// #include "custom_constitutive/uniaxial_fiber_beam_column_material_law.hpp"
 #include "includes/constitutive_law.h"
 
 namespace Kratos
@@ -49,15 +45,18 @@ namespace Kratos
 ///@{
 
 /**
- * @class UniaxialElasticMaterialLaw
+ * @class UniaxialMenegottoPintoMaterialLaw
  *
  * @brief A constitutive model for the steel uniaxial fibers of the beam-column element.
  * @details The constitutive law is a Menegotto-Pinto material law
+ *          [M. Menegotto and P. E. Pinto. Method of Analysis for Cyclic Loaded R. C. Plane Frame
+             Including Changes in Geometry and Non-Elastic Behaviour of Elements under Combined
+             Normal Force and Bending, volume 11, pages 15–22. 1973.]
  *
  * @author Mahmoud Zidan
  */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) UniaxialElasticMaterialLaw
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) UniaxialMenegottoPintoMaterialLaw
     : public ConstitutiveLaw
 {
 
@@ -74,20 +73,40 @@ public:
     ///@name Pointer Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(UniaxialElasticMaterialLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(UniaxialMenegottoPintoMaterialLaw);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    UniaxialElasticMaterialLaw();
+    /**
+     * Default constructor
+     */
+    UniaxialMenegottoPintoMaterialLaw() = default;
+
+    /**
+     * @return pointer to the constitutive law
+     */
     ConstitutiveLaw::Pointer Clone() const override;
-    UniaxialElasticMaterialLaw(const UniaxialElasticMaterialLaw& rOther);
-    ~UniaxialElasticMaterialLaw() override;
+
+    /**
+     * Copy constructor
+     */
+    UniaxialMenegottoPintoMaterialLaw(const UniaxialMenegottoPintoMaterialLaw& rOther) = default;
+
+    /**
+     * Destructor
+     */
+    ~UniaxialMenegottoPintoMaterialLaw() override = default;
 
     ///@}
     ///@name Operators
     ///@{
+
+    /**
+     * Assignment operator
+     */
+    UniaxialMenegottoPintoMaterialLaw& operator=(const UniaxialMenegottoPintoMaterialLaw& rOther) = default;
 
     ///@}
     ///@name Operations
@@ -100,53 +119,16 @@ public:
     void GetLawFeatures(Features& rFeatures) override;
 
     /**
-     * Voigt tensor size:
+     * @return Voigt tensor size
      */
     SizeType GetStrainSize() override
     {
         return 1;
     }
 
-    // /**
-    //  * This function provides the place to perform checks on the completeness of the input.
-    //  * It is designed to be called only once (or anyway, not often) typically at the beginning
-    //  * of the calculations, so to verify that nothing is missing from the input
-    //  * or that no common error is found.
-    //  * @param rMaterialProperties: The properties of the material
-    //  * @param rElementGeometry: The geometry of the element
-    //  * @param rCurrentProcessInfo: The current process info instance
-    //  */
-    // int Check(
-    //     const Properties& rMaterialProperties,
-    //     const GeometryType& rElementGeometry,
-    //     const ProcessInfo& rCurrentProcessInfo
-    // ) override;
-
-    // array_1d<double, 3 > & GetValue(const Variable<array_1d<double, 3 > >& rThisVariable,
-    //     array_1d<double, 3 > & rValue) override;
-
-    // double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-    //     const Variable<double>& rThisVariable,double& rValue) override;
-
-    // Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-    //     const Variable<Vector>& rThisVariable,
-    //     Vector& rValue) override;
-
-    // array_1d<double, 3 > & CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-    //     const Variable<array_1d<double, 3 > >& rVariable,
-    //     array_1d<double, 3 > & rValue) override;
-
-    // /**
-    //  * @brief Returns the value of a specified variable (double)
-    //  * @param rThisVariable the variable to be returned
-    //  * @param rValue a reference to the returned value
-    //  * @return rValue output: the value of the specified variable
-    //  */
-    // double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
-
-    void CalculateMaterialResponsePK2(Parameters& rValues) override;
-
-    void FinalizeMaterialResponsePK2(Parameters& rValues) override;
+    void InitializeMaterialResponsePK2 (Parameters& rValues) override;
+    void CalculateMaterialResponsePK2 (Parameters& rValues) override;
+    void FinalizeMaterialResponsePK2 (Parameters& rValues) override;
 
     ///@}
     ///@name Access
@@ -217,6 +199,30 @@ private:
     ///@name Member Variables
     ///@{
 
+    // == history variables
+
+    double mTangentModulus = 0.0;    // tangent modulus
+
+    unsigned int mLoadingIndex = 0;  // loading index (0->initial 1->increasing 2->decreasing 3->unchanged)
+    double mStrain0 = 0.0;           // strain 0
+    double mStress0 = 0.0;           // stress 0
+    double mStrainR = 0.0;           // strain reversal
+    double mStressR = 0.0;           // stress reversal
+    double mStrainPlastic = 0.0;     // plastic strain
+    double mStrainMax = 0.0;         // max strain
+    double mStrainMin = 0.0;         // min strain
+
+    unsigned int mConvergedLoadingIndex = 0;
+    double mConvergedStrain0 = 0.0;
+    double mConvergedStress0 = 0.0;
+    double mConvergedStrainR = 0.0;
+    double mConvergedStressR = 0.0;
+    double mConvergedStrainPlastic = 0.0;
+    double mConvergedStrainMax = 0.0;
+    double mConvergedStrainMin = 0.0;
+    double mConvergedStrain = 0.0;
+    double mConvergedStress = 0.0;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -224,6 +230,9 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void CalculateStressResponsePK2 (Parameters& rValues, Vector& rStrainVector, Vector& rStressVector);
+    void CalculateConstitutiveMatrix (Parameters& rValues, Matrix& rConstitutiveMatrix);
 
     ///@}
     ///@name Serialization
@@ -247,10 +256,10 @@ private:
 
     ///@}
 
-};  // class UniaxialElasticMaterialLaw
+};  // class UniaxialMenegottoPintoMaterialLaw
 
 /// output stream
-inline std::ostream & operator <<(std::ostream& rOStream, const UniaxialElasticMaterialLaw& rThis)
+inline std::ostream & operator <<(std::ostream& rOStream, const UniaxialMenegottoPintoMaterialLaw& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;
@@ -260,4 +269,4 @@ inline std::ostream & operator <<(std::ostream& rOStream, const UniaxialElasticM
 
 } // namespace Kratos
 
-#endif
+#endif  // #if !defined(KRATOS_UNIAXIAL_MENGOTTO_PINTO_H_INCLUDED)

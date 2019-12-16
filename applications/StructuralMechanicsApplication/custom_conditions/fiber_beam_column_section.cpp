@@ -17,8 +17,6 @@
 // Project includes
 #include "structural_mechanics_application_variables.h"
 #include "custom_conditions/fiber_beam_column_section.hpp"
-#include "custom_constitutive/uniaxial_fiber_beam_column_concrete_material_law.hpp"
-#include "custom_constitutive/uniaxial_fiber_beam_column_steel_material_law.hpp"
 
 namespace Kratos {
 
@@ -44,11 +42,10 @@ FiberBeamColumnSection::FiberBeamColumnSection(
 
 void FiberBeamColumnSection::Initialize()
 {
-    CalculateBMatrix();
     for (FiberBeamColumnUniaxialFiber& r_fiber : mFibers) {
         r_fiber.Initialize();
     }
-    CalculateLocalFlexibilityMatrix();
+    UpdateLocalFlexibilityMatrix();
 }
 
 Matrix FiberBeamColumnSection::GetGlobalFlexibilityMatrix()
@@ -56,20 +53,24 @@ Matrix FiberBeamColumnSection::GetGlobalFlexibilityMatrix()
     KRATOS_TRY
     Matrix aux_matrix  = ZeroMatrix(5, 3);
     Matrix global_flex = ZeroMatrix(5, 5);
-    (aux_matrix) += prod(Matrix(trans(mBMatrix)), mLocalFlexibilityMatrix);
-    (global_flex) += prod(aux_matrix, mBMatrix);
+    Matrix b_matrix;
+    CalculateBMatrix(b_matrix);
+    (aux_matrix) += prod(Matrix(trans(b_matrix)), mLocalFlexibilityMatrix);
+    (global_flex) += prod(aux_matrix, b_matrix);
     return global_flex;
     KRATOS_CATCH("")
 }
 
-void FiberBeamColumnSection::CalculateLocalFlexibilityMatrix()
+void FiberBeamColumnSection::UpdateLocalFlexibilityMatrix()
 {
     KRATOS_TRY
     // allocate memory
     Matrix local_stiffness = ZeroMatrix(3, 3);
     // get local 3x3 stiffness from fibers' tangential stiffness
     for (FiberBeamColumnUniaxialFiber& r_fiber : mFibers) {
-        (local_stiffness) += r_fiber.CreateGlobalFiberStiffnessMatrix();
+        Matrix fiber_global_stiffness;
+        r_fiber.CreateGlobalFiberStiffnessMatrix(fiber_global_stiffness);
+        (local_stiffness) += fiber_global_stiffness;
     }
     // invert stiffness to get 3x3 flexibility
     double det_stiffness = MathUtils<double>::Det(local_stiffness);
@@ -77,14 +78,15 @@ void FiberBeamColumnSection::CalculateLocalFlexibilityMatrix()
     KRATOS_CATCH("")
 }
 
-void FiberBeamColumnSection::CalculateBMatrix()
+void FiberBeamColumnSection::CalculateBMatrix(Matrix& rBMatrix)
 {
     KRATOS_TRY
-    mBMatrix(0, 0) = mPosition/2.0 - 0.5;
-    mBMatrix(0, 1) = mPosition/2.0 + 0.5;
-    mBMatrix(1, 2) = mPosition/2.0 - 0.5;
-    mBMatrix(1, 3) = mPosition/2.0 + 0.5;
-    mBMatrix(2, 4) = 1.0;
+    rBMatrix = ZeroMatrix(3, 5);
+    rBMatrix(0, 0) = mPosition/2.0 - 0.5;
+    rBMatrix(0, 1) = mPosition/2.0 + 0.5;
+    rBMatrix(1, 2) = mPosition/2.0 - 0.5;
+    rBMatrix(1, 3) = mPosition/2.0 + 0.5;
+    rBMatrix(2, 4) = 1.0;
     KRATOS_CATCH("")
 }
 
@@ -94,7 +96,9 @@ bool FiberBeamColumnSection::StateDetermination(const Vector& rElementForceIncre
     Vector force_incr = ZeroVector(3);
     Vector def_incr   = ZeroVector(3);
 
-    force_incr = prod(mBMatrix, rElementForceIncrements);
+    Matrix b_matrix;
+    CalculateBMatrix(b_matrix);
+    force_incr = prod(b_matrix, rElementForceIncrements);
     mForces += force_incr;
 
     def_incr = mDeformationResiduals + prod(mLocalFlexibilityMatrix, force_incr);
@@ -103,18 +107,18 @@ bool FiberBeamColumnSection::StateDetermination(const Vector& rElementForceIncre
         r_fiber.StateDetermination(def_incr);
     }
 
-    CalculateLocalFlexibilityMatrix();
-
-    KRATOS_WATCH(mLocalFlexibilityMatrix)
+    UpdateLocalFlexibilityMatrix();
 
     Vector internal_forces = ZeroVector(3);
     for (FiberBeamColumnUniaxialFiber& r_fiber : mFibers) {
-        (internal_forces) += r_fiber.CreateGlobalFiberInternalForces();
+        Vector fiber_global_forces;
+        r_fiber.CreateGlobalFiberInternalForces(fiber_global_forces);
+        (internal_forces) += fiber_global_forces;
     }
 
     mUnbalanceForces = mForces - internal_forces;
     (mDeformationResiduals) = prod(mLocalFlexibilityMatrix, mUnbalanceForces);
-    double residual = std::abs(MathUtils<double>::Norm3(mUnbalanceForces));
+    double residual = std::abs(MathUtils<double>::Norm(mUnbalanceForces));
     return residual < mTolerance;
 
     KRATOS_CATCH("")
@@ -130,7 +134,9 @@ void FiberBeamColumnSection::ResetResidual()
 Vector FiberBeamColumnSection::GetGlobalDeformationResiduals()
 {
     KRATOS_TRY
-    return prod(Matrix(trans(mBMatrix)), mDeformationResiduals);
+    Matrix b_matrix;
+    CalculateBMatrix(b_matrix);
+    return prod(Matrix(trans(b_matrix)), mDeformationResiduals);
     KRATOS_CATCH("")
 }
 
@@ -145,7 +151,7 @@ void FiberBeamColumnSection::FinalizeSolutionStep()
 
 std::string FiberBeamColumnSection::Info() const {
     std::stringstream buffer;
-    buffer << "FiberBeamColumnSection #" << Id();
+    buffer << "FiberBeamColumnSection #" << mId;
     return buffer.str();
 }
 
@@ -163,7 +169,6 @@ void FiberBeamColumnSection::save(Serializer& rSerializer) const
     rSerializer.save("mId", mId);
     rSerializer.save("mPosition", mPosition);
     rSerializer.save("mWeight", mWeight);
-    rSerializer.save("mBMatrix", mBMatrix);
     rSerializer.save("mLocalFlexibilityMatrix", mLocalFlexibilityMatrix);
     rSerializer.save("mTolerance", mTolerance);
     rSerializer.save("mForces", mForces);
@@ -175,7 +180,6 @@ void FiberBeamColumnSection::load(Serializer& rSerializer)
     rSerializer.load("mId", mId);
     rSerializer.load("mPosition", mPosition);
     rSerializer.load("mWeight", mWeight);
-    rSerializer.load("mBMatrix", mBMatrix);
     rSerializer.load("mLocalFlexibilityMatrix", mLocalFlexibilityMatrix);
     rSerializer.load("mTolerance", mTolerance);
     rSerializer.load("mForces", mForces);
