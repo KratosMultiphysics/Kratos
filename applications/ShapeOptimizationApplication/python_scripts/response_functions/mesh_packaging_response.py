@@ -28,14 +28,14 @@ class MeshPackagingResponse(PackagingResponseBase):
         self.packaging_model_part_needs_to_be_imported = False
 
         packaging_model_part_name = response_settings["packaging_model_part_name"].GetString()
-        self.input_type = response_settings["packaging_model_import_settings"]["input_type"].GetString()
-        if input_type in ["mdpa", "vrml", "wrl"]:
+        self.packaging_input_type = response_settings["packaging_model_import_settings"]["input_type"].GetString()
+        if self.packaging_input_type in ["mdpa", "vrml", "wrl"]:
             self.packaging_model_part = self.model.CreateModelPart(packaging_model_part_name)
             domain_size = response_settings["domain_size"].GetInt()
             if domain_size not in [2, 3]:
                 raise Exception("PlanePackagingResponse: Invalid 'domain_size': {}".format(domain_size))
             self.packaging_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, domain_size)
-        elif input_type == "use_input_model_part":
+        elif self.packaging_input_type == "use_input_model_part":
             self.packaging_model_part = self.model.GetModelPart(packaging_model_part_name)
         else:
             raise Exception("Other model part input options are not yet implemented.")
@@ -47,10 +47,10 @@ class MeshPackagingResponse(PackagingResponseBase):
     def Initialize(self):
         super().Initialize()
 
-        if self.input_type == "mdpa":
+        if self.packaging_input_type == "mdpa":
             model_part_io = KM.ModelPartIO(self.response_settings["packaging_model_import_settings"]["input_filename"].GetString())
             model_part_io.ReadModelPart(self.packaging_model_part)
-        elif self.input_type in ["vrml", "wrl"]:
+        elif self.packaging_input_type in ["vrml", "wrl"]:
             model_part_io = WrlIO(self.response_settings["packaging_model_import_settings"]["input_filename"].GetString())
             model_part_io.ReadModelPart(self.packaging_model_part)
 

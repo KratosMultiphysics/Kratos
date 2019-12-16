@@ -78,10 +78,7 @@ class PackagingResponseBase(ResponseFunctionBase):
 
         value = 0.0
         for i in range(len(self.signed_distances)):
-
-            _direction = np.array(self.directions[i*3:i*3+3])
-
-            value += self._CalculateValueForNode(self.signed_distances[i], _direction)
+            value += self._CalculateValueForNode(self.signed_distances[i], self.directions[i*3:i*3+3])
 
         self.value = value
 
@@ -95,16 +92,9 @@ class PackagingResponseBase(ResponseFunctionBase):
         if not self.directions or not self.signed_distances:
             self._CalculateProjectedDistances()
 
-        i = 0
-        for node in self.model_part.Nodes:
-
-            _direction = np.array(self.directions[i*3:i*3+3])
-
-            gradient = self._CalculateGradientForNode(self.signed_distances[i], _direction)
-
+        for i, node in enumerate(self.model_part.Nodes):
+            gradient = self._CalculateGradientForNode(self.signed_distances[i], self.directions[i*3:i*3+3])
             self.gradient[node.Id] = gradient
-
-            i+=1
 
         Logger.PrintInfo("> Time needed for calculating gradients = ", round(timer.time() - startTime,2), "s")
 
