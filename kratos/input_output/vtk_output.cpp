@@ -912,11 +912,11 @@ void VtkOutput::WriteIntegrationVectorContainerVariable(
         return;
     }
 
-
+    // determining size of results
     const auto& r_process_info = mrModelPart.GetProcessInfo();
-    std::vector<TVarType> aux_result_1;
-    rContainer.begin()->CalculateOnIntegrationPoints(rVariable, aux_result_1, r_process_info);
-    const int res_size = aux_result_1[0].size();
+    std::vector<TVarType> aux_results;
+    rContainer.begin()->CalculateOnIntegrationPoints(rVariable, aux_results, r_process_info);
+    const int res_size = aux_results[0].size();
 
     rFileStream << rVariable.Name() << " " << res_size << " " << rContainer.size() << "  float\n";
 
