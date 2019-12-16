@@ -213,14 +213,14 @@ private:
     ///@{
 
     /**
-     * @brief This method computes the temperature gradient at nodes using the ShapeFunctions
-     */
-    void CalculateNodalTempGradient(const Vector& nodal_area);
-
-    /**
      * @brief This method computes the Nodal Area for the nodes in the Model Part
      */
     void CalculateNodalArea(Vector& nodal_area) const;
+
+    /**
+     * @brief This method computes the temperature gradient at nodes using the ShapeFunctions
+     */
+    void CalculateNodalTempGradient(Vector& nodal_area);
     
     /**
      * @brief This method computes the Nodal error between the C1 and C0 continuous definitions

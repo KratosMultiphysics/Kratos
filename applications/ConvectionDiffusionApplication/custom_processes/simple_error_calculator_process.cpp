@@ -76,63 +76,64 @@ void SimpleErrorCalculatorProcess<TDim>::Execute()
 }
 
 template <std::size_t TDim>
-void SimpleErrorCalculatorProcess<TDim>::CalculateNodalTempGradient(const Vector &nodal_area)
+void SimpleErrorCalculatorProcess<TDim>::CalculateNodalTempGradient(Vector& nodal_area)
 {
     //b) Loop over Elements and calculate RHS
     const int number_nodes = mrThisModelPart.NumberOfNodes();
     const int number_elements = mrThisModelPart.NumberOfElements();
 
     KRATOS_INFO(this->Info()) << "Calculating nodal temp gradient for " << number_nodes << " nodes in " << mrThisModelPart.Name() << "\n";
-    // Matrix nodal_grad(number_nodes, 3);
-    // nodal_grad.clear();
+    KRATOS_WATCH(number_nodes);
+    Matrix nodal_grad(number_nodes, 3);
+    nodal_grad.clear();
 
-    // // Loop over the elements
-    // for (unsigned int i_elem = 0; i_elem < number_elements; i_elem++)
-    // {
-    //     ModelPart::ElementType &r_element = *(mrThisModelPart.ElementsBegin() + i_elem);
-    //     ModelPart::ElementType::GeometryType &r_geometry = r_element.GetGeometry();
-    //     const auto n_nodes = r_geometry.PointsNumber();
+    // Loop over the elements
+    for (unsigned int i_elem = 0; i_elem < number_elements; i_elem++)
+    {
+        ModelPart::ElementType &r_element = *(mrThisModelPart.ElementsBegin() + i_elem);
+        ModelPart::ElementType::GeometryType &r_geometry = r_element.GetGeometry();
+        const auto n_nodes = r_geometry.PointsNumber();
 
-    //     Vector GaussWeights;
-    //     Vector DetJ;
-    //     Matrix ShapeFunctions;
-    //     ShapeFunctionDerivativesArrayType ShapeDerivatives;
-    //     unsigned int NumGPoints = 0;
-    //     CalculateGeomData(r_geometry, ShapeFunctions, ShapeDerivatives, DetJ, GaussWeights, NumGPoints);
+        Vector GaussWeights;
+        Vector DetJ;
+        Matrix ShapeFunctions;
+        ShapeFunctionDerivativesArrayType ShapeDerivatives;
+        unsigned int NumGPoints = 0;
+        CalculateGeomData(r_geometry, ShapeFunctions, ShapeDerivatives, DetJ, GaussWeights, NumGPoints);
 
-    //     for (unsigned int g = 0; g < NumGPoints; g++)
-    //     {
-    //         const Matrix &rDN_DX = ShapeDerivatives[g];
-    //         const Vector &Ncontainer = row(ShapeFunctions, g);
+        for (unsigned int g = 0; g < NumGPoints; g++)
+        {
+            const Matrix &rDN_DX = ShapeDerivatives[g];
+            const Vector &Ncontainer = row(ShapeFunctions, g);
 
-    //         Vector GaussPointTGrad(3, 0.0);
+            Vector GaussPointTGrad(3, 0.0);
 
-    //         for (unsigned int j = 0; j < TDim; j++)
-    //         {
-    //             for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
-    //             {
-    //                 GaussPointTGrad[j] += rDN_DX(i_node, j) * r_geometry[i_node].FastGetSolutionStepValue(TEMPERATURE);
-    //             }
-    //             GaussPointTGrad[j] *= GaussWeights[g];
-    //         }
+            for (unsigned int j = 0; j < TDim; j++)
+            {
+                for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
+                {
+                    GaussPointTGrad[j] += rDN_DX(i_node, j) * r_geometry[i_node].FastGetSolutionStepValue(TEMPERATURE);
+                }
+                GaussPointTGrad[j] *= GaussWeights[g];
+            }
 
-    //         for (int i_node = 0; i_node < n_nodes; i_node++)
-    //         {
-    //             for (int j = 0; j < TDim; j++)
-    //             {
-    //                 nodal_grad(r_geometry[i_node].Id() - 1, j) += Ncontainer[i_node] * GaussPointTGrad[j] / nodal_area[r_geometry[i_node].Id() - 1];
-    //             }
-    //         }
-    //     }
-//     }
+            for (int i_node = 0; i_node < n_nodes; i_node++)
+            {
+                for (int j = 0; j < TDim; j++)
+                {
+                    nodal_grad(r_geometry[i_node].Id() - 1, j) += Ncontainer[i_node] * GaussPointTGrad[j] / nodal_area[r_geometry[i_node].Id() - 1];
+                }
+            }
+        }
+    }
 
-// #pragma omp parallel for
-//     for (int i = 0; i < number_nodes; i++)
-//     {
-//         ModelPart::NodeType &r_node = *(mrThisModelPart.NodesBegin() + i);
-//         const Vector &nodal_grad_row = row(nodal_grad, i);
-//         r_node.SetValue(NODAL_TEMP_GRADIENT, nodal_grad_row);
-//     }
+    #pragma omp parallel for
+    for (int i = 0; i < number_nodes; i++)
+    {
+        ModelPart::NodeType &r_node = *(mrThisModelPart.NodesBegin() + i);
+        const Vector &nodal_grad_row = row(nodal_grad, i);
+        r_node.SetValue(NODAL_TEMP_GRADIENT, nodal_grad_row);
+    }
 }
 
 template <std::size_t TDim>
@@ -141,6 +142,7 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalError(Vector &nodal_area)
     // a) Obtain Nodes and Elements from Model Part
     const int number_nodes = mrThisModelPart.NumberOfNodes();
     const int number_elements = mrThisModelPart.NumberOfElements();
+	KRATOS_INFO(this->Info()) << "Calculating nodal error for " << number_nodes << " nodes in " << mrThisModelPart.Name() << "\n";
 
     double global_gw = 0.0;
     double global_del_sigma = 0.0;
