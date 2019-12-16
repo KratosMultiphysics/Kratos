@@ -31,6 +31,9 @@ add_app ${KRATOS_APP_DIR}/DEMApplication;
 add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
 add_app ${KRATOS_APP_DIR}/MetisApplication;
 add_app ${KRATOS_APP_DIR}/TrilinosApplication;
+add_app ${KRATOS_APP_DIR}/PfemApplication;
+add_app ${KRATOS_APP_DIR}/PfemFluidDynamicsApplication;
+add_app ${KRATOS_APP_DIR}/TrilinosApplication;
 
 # Clean
 clear
