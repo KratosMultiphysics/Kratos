@@ -5,7 +5,7 @@ message("**** configuring KratosFemToDemApplication ****")
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/SolidMechanicsApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/PfemFluidDynamicsApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
-kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MeshingsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MeshingApplication)
 
 ################### PYBIND11
 include(pybind11Tools)
