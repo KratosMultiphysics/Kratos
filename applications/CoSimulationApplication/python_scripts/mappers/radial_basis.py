@@ -36,22 +36,6 @@ class MapperRadialBasis(MapperNearest):
         The __call__ and Finalize methods are
         inherited from MapperNearest.
 
-
-        HOW TO GET THIS THINGS TO WORK?
-        --> do much more tests first, in crap.py file
-
-        - 1D interpolation:
-            - low, fixed number of from-points, start with uniform spacing
-            - draw simple function through points, e.g. linear
-            - get radial basis coeffs for given function values,
-            draw interpolated function
-            - now calculate the other way, get coeffs for fixed to-points,
-            then add function value and see if it's the same
-            - ...
-        - ...
-        - at the end: make generalized function for n-dimensions,
-        because most of the code would overlap anyways
-
         """
         # store settings
         self.settings = parameters['settings']
@@ -73,6 +57,8 @@ class MapperRadialBasis(MapperNearest):
             self.n_nearest = 9
 
     def Initialize(self, model_part_from, model_part_to):
+        # *** TODO: improve speed by parallelizing
+
         self.n_from = model_part_from.NumberOfNodes()
         if self.n_from < self.n_nearest:
             raise ValueError('not enough from-points for radial basis interpolation')
@@ -94,7 +80,7 @@ class MapperRadialBasis(MapperNearest):
             tree = cKDTree(coords_from, balanced_tree=False)
         distances, self.nearest = tree.query(coords_to, k=self.n_nearest)
 
-        self.coeffs = np.zeros(self.nearest.shape)  #*** problem was here: zeros_like made ndarray of ints...
+        self.coeffs = np.zeros(self.nearest.shape)
         # loop over all to-points
         for i_to in range(self.n_to):
             d_ref = distances[i_to, -1] * 2
@@ -114,7 +100,7 @@ class MapperRadialBasis(MapperNearest):
             # store c in coeffs
             self.coeffs[i_to, :] = c.flatten().copy()
 
-            # print(f'sum of coeffs = {np.sum(c)}')  # *** check if coeffs add up to 1
+            # print(f'sum of coeffs = {np.sum(c)}')  # *** coeffs don't add up to 1 exactly!
 
     def phi(self, r):
         return (1 - r) ** 4 * (1 + 4 * r) * np.heaviside(1 - r, 0)
