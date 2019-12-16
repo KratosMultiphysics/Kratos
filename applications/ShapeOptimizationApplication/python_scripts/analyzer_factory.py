@@ -240,7 +240,7 @@ class AnalyzerWithDependencies(Analyzer):
 
         for response_id, _, _, _ in dependencies:
             if response_id not in relevant_responses:
-                communicator.initializeRequest(response_id, value_request=False)
+                communicator.updateRequest(response_id, request_value=True, request_gradient=False)
 
         return combined_value
 
