@@ -7,16 +7,11 @@
 #  Main authors:    Geiser Armin, https://github.com/armingeiser
 #
 # ==============================================================================
-
-import time as timer
-
 import KratosMultiphysics as KM
-from KratosMultiphysics import Logger
 
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 from .packaging_response_base import PackagingResponseBase
-from .. import custom_math as cm
 from ..custom_ios.wrl_io import WrlIO
 
 class MeshPackagingResponse(PackagingResponseBase):

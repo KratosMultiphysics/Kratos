@@ -7,12 +7,6 @@
 #  Main authors:    Geiser Armin, https://github.com/armingeiser
 #
 # ==============================================================================
-
-import time as timer
-
-import KratosMultiphysics
-from KratosMultiphysics import Logger
-
 from .packaging_response_base import PackagingResponseBase
 from .. import custom_math as cm
 
