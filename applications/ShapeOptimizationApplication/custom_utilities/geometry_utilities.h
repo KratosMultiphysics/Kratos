@@ -110,7 +110,7 @@ public:
         KRATOS_ERROR_IF((domain_size == 3 && mrModelPart.ConditionsBegin()->GetGeometry().size() == 2)) <<
             "> Normal calculation of 2-noded conditions in 3D domains is not possible!" << std::endl;
         CalculateAreaNormals(mrModelPart.Conditions(),domain_size);
-        CalculateUnitNormals(mrModelPart);
+        CalculateUnitNormals();
 
         KRATOS_CATCH("");
     }
@@ -470,9 +470,9 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    void CalculateUnitNormals(ModelPart& rModelPart)
+    void CalculateUnitNormals()
     {
-        for (auto& node_i : rModelPart.Nodes())
+        for (auto& node_i : mrModelPart.Nodes())
         {
             const array_1d<double,3>& area_normal = node_i.FastGetSolutionStepValue(NORMAL);
             array_3d& normalized_normal = node_i.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
