@@ -301,16 +301,6 @@ if(${INSTALL_RUNKRATOS} MATCHES ON )
 endif(${INSTALL_RUNKRATOS} MATCHES ON )
 
 ##*****************************
-# Finding blas and lapack if needed
-if(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON )
-
-  # If prescribed set the fortran mangling
-  if(DEFINED ${KRATOS_SUPERLU_FORTRAN_MANGLING})
-    add_definitions(${KRATOS_SUPERLU_FORTRAN_MANGLING})
-  else(DEFINED ${KRATOS_SUPERLU_FORTRAN_MANGLING})
-    add_definitions(-DADD_)
-  endif(DEFINED ${KRATOS_SUPERLU_FORTRAN_MANGLING})
-endif(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON )
 
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
   find_package(Tetgen REQUIRED)
@@ -372,18 +362,39 @@ add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 
 # Configure kratos applications
-message("-- Configuring external applications (ENV):")
+message("-- Configuring applications (ENV):")
+set_property(GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THOUGH_DEPENDENCIES)
 if(DEFINED ENV{KRATOS_APPLICATIONS})
     foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
         get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
         if(NOT TARGET Kratos${APPLICATION_NAME})
             message("Adding application '${APPLICATION_PATH}'")
             add_subdirectory(${APPLICATION_PATH} ${CMAKE_CURRENT_BINARY_DIR}/applications/${APPLICATION_NAME})
+            list(APPEND LIST_OF_APPLICATIONS_TO_BE_COMPILED ${APPLICATION_NAME})
         else(NOT TARGET Kratos${APPLICATION_NAME})
             message("[Warning] Application '${APPLICATION_PATH}' was already added")
         endif(NOT TARGET Kratos${APPLICATION_NAME})
     endforeach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
 endif(DEFINED ENV{KRATOS_APPLICATIONS})
+
+message("")
+message("***********************************************************************")
+message("")
+message("        LIST OF APPLICATIONS THAT ARE GOING TO BE COMPILED:")
+message("")
+foreach(individual_app_name ${LIST_OF_APPLICATIONS_TO_BE_COMPILED})
+  message("        ${individual_app_name}")
+endforeach()
+message("")
+message("        APPLICATIONS ADDED TO COMPILATION THROUGH DEPENDENCIES:")
+message("")
+get_property(local_list GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THOUGH_DEPENDENCIES)
+foreach(individual_app_name ${local_list})
+  message("        ${individual_app_name}")
+endforeach()
+message("")
+message("***********************************************************************")
+message("")
 
 #compiling the triangle library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
