@@ -132,5 +132,3 @@ class PackagingResponseBase(ResponseFunctionBase):
         elif not self.infeasible_side and signed_distance < 0:
             return True
         return False
-
-

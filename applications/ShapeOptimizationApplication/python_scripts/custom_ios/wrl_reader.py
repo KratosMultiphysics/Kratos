@@ -28,7 +28,7 @@ def detect_file(file_name):
     elif os.path.isfile(vrml_name):
         return vrml_name
     else:
-        raise Exception("Wrl reader: file {} not found with '.wrl' and '.vrml' ending!".format(file_name))
+        raise Exception("Wrl reader: file {} not found with '.wrl' or '.vrml' ending!".format(file_name))
 
 
 def read_nodes(line, file):
