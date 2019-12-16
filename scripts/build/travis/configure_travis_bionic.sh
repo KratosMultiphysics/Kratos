@@ -33,7 +33,7 @@ add_app ${KRATOS_APP_DIR}/MetisApplication;
 add_app ${KRATOS_APP_DIR}/TrilinosApplication;
 add_app ${KRATOS_APP_DIR}/PfemApplication;
 add_app ${KRATOS_APP_DIR}/PfemFluidDynamicsApplication;
-add_app ${KRATOS_APP_DIR}/TrilinosApplication;
+add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
 
 # Clean
 clear
@@ -60,4 +60,3 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity    -- -j1
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install/fast -- -j1
-
