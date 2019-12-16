@@ -31,6 +31,7 @@ from shape_optimization_test_factory import opt_process_stress_test
 from shape_optimization_test_factory import sensitivity_verification_semi_analytic_process_test
 from shape_optimization_test_factory import sensitivity_verification_in_design_space_process_test
 from shape_optimization_test_factory import sensitivity_verification_in_geometry_space_process_test
+from wrl_io_test.test_wrl_io import WrlIOTest
 
 # Niglty tests
 
@@ -69,6 +70,7 @@ def AssembleTestSuites():
     smallSuite.addTest(opt_process_step_adaption_test('test_execution'))
     smallSuite.addTest(opt_process_multiobjective_test('test_execution'))
     smallSuite.addTest(opt_process_stress_test('test_execution'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([WrlIOTest]))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
