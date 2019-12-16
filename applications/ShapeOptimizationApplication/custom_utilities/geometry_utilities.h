@@ -219,7 +219,7 @@ public:
 
         // check if there are elements
         KRATOS_ERROR_IF(rBoundingModelPart.NumberOfElements() != 0) <<
-            "ComputeProjectedDistancesToBoundingModelPart: Model part should only contain conditions!" << std::endl;
+            "ComputeProjectedDistancesToBoundingModelPart: Model part must only contain conditions!" << std::endl;
 
         // create node search of rBoundingModelPart
         NodeVector all_bounding_nodes;
