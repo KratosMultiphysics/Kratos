@@ -1,23 +1,41 @@
 # Mappers
 
 
-
 ## General concepts
 
 
-#### Interpolators and Transformers
+#### Hierarchy of mapping-related objects
 
-For interpolators, `Initialize` gets the from and to `ModelPart` objects, and returns nothing. 
-For transformers, `Initialize` gets only one `ModelPart` (from either the from or to side, depending on the transformation), and returns the corresponding `ModelPart`.
+CoCoNuT interacts with the mappers through the `SolverWrapperMapped` object: this wrapper behaves like every other `SolverWrapper` as far as the other components are concerned. 
+It contains 3 main components: a `Mapper` for the input, a real `SolverWrapper` and a `Mapper` for the output. The mappers are initialized through the `SetInterfaceInput` and `SetInterfaceOutput` methods respectively, by providing them with the `CoSimulationInterface` objects that will be respectively the input and output of the `SolverWrapperMapped` object.
+
+The two mappers in the `SolverWrapperMapped` object are also of a special type: they work on the level of `CoSimulationInterface` objects. They are some sort of mapper-wrapper around the actual mappers which work on `ModelPart` level.
+Currently only one such mapper is available, aptly called `MapperInterface`.
+
+At the lowest level, mappers interpolate historical variables between two `ModelPart` objects, based on the coordinates of the nodes.
+They can be chained together in a `MapperCombined` object, creating in fact another layer of mapping. So many layers! Like an onion!
 
 
-#### Calling the mapper
+#### Interpolators and transformers
 
-The mapping method does not have to be called explicitly, as it is programmed in `__call__`. 
-To interpolate values, the two `ModelPart` objects and the two `Variable` objects are given to the mapper object, nothing is returned. The interpolation is done in-place in the to-side `ModelPart`.
+The `ModelPart`-level mappers have two important methods.
+
+First, an `Initialize` method in which one-time expensive operations are performed, mostly nearest-neighbour searches and calculation of interpolation coefficients. This initialization is done based on the original coordinates `X0`, `Y0` and `Z0`. 
+
+Second, a `__call__` method which is used for the actual mapping. It takes two tuples as arguments, containing the `ModelPart` and `Variable` which are used in the interpolation. This method returns nothing: the interpolation is done in-place in the `ModelPart` objects.
+
+There are two types of `ModelPart`-level mappers: interpolators and transformers. They can be distinguished by their boolean `interpolator` attribute (see `__init__`). 
+
+For interpolators, `Initialize` gets two `ModelPart` objects (dubbed _from_ and _to_), and returns nothing. These mappers do real interpolation, examples are `MapperNearest` and `MapperRadialBasis`.
+
+For transformers, `Initialize` gets only one `ModelPart` (from either the _from_ or _to_ side, depending on the transformation), and returns the other `ModelPart`. An example is the `MapperPermutation` transformer, which exchanges the coordinates as specified. 
+
+A transformer can never be used by itself, it must always be combined with an interpolator: the reason is that interpolators use information coming from two sides, which is exactly what the `SolverWrapperMapped` and `MapperInterface` objects want. To chain together multiple mappers, the `MapperCombined` is used: it contains always 1 interpolator and 0 or more transformers, on either side of the interpolator.
 
 
 ## Overview of available mappers
+
+> TODO: give some details/explanation about every implemented mapper. Shorten comments in the actual Python code.
 
 #### MapperInterface
 
