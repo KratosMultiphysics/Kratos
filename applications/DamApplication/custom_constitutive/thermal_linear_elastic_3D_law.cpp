@@ -63,7 +63,7 @@ void ThermalLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     /* Calculate Nodal Reference Temperature */
     double NodalReferenceTemperature;
     this->CalculateNodalReferenceTemperature(ElasticVariables, NodalReferenceTemperature);
-    
+
     ElasticVariables.ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION];
 
     if(Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )){
@@ -169,9 +169,11 @@ double&  ThermalLinearElastic3DLaw::CalculateNodalReferenceTemperature (const Ma
 
     rNodalReferenceTemperature = 0.0;
 
-    for ( unsigned int j = 0; j < number_of_nodes; j++ )
-    {
-      rNodalReferenceTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(REFERENCE_TEMPERATURE);
+    if( DomainGeometry[0].SolutionStepsDataHas(REFERENCE_TEMPERATURE) ){
+        for ( unsigned int j = 0; j < number_of_nodes; j++ )
+        {
+            rNodalReferenceTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].FastGetSolutionStepValue(REFERENCE_TEMPERATURE);
+        }
     }
 
     return rNodalReferenceTemperature;
