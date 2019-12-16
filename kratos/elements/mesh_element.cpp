@@ -167,6 +167,29 @@ void MeshElement::AddExplicitContribution(
 /***********************************************************************************/
 /***********************************************************************************/
 
+const Parameters MeshElement::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({        
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "required_variables"         : [],
+        "required_dofs"              : [],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Line2D2", "Triangle2D3", "Quadrilateral2D4", "Line3D2", "Triangle3D3","Tetrahedra3D4", "Prism3D6", "Hexahedra3D8", "Tetrahedra3D10"],
+        "is_implicit"                : true,
+        "element_integrates_in_time" : true,
+        "compatible_constitutive_laws": {
+            "type"        : [],
+            "dimension"   : [],
+            "strain_size" : []
+        }})");
+    return specifications;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void MeshElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
