@@ -101,8 +101,7 @@ public:
         {
             KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
                 << "Adding VtkOutput.\n";
-            mpVtkOutput = Kratos::make_unique<VtkOutput>(
-                new VtkOutput(rModelPart, rParameters["vtk_output_settings"]));
+            mpVtkOutput = Kratos::make_unique<VtkOutput>(rModelPart, rParameters["vtk_output_settings"]);
         }
 
         mCurrentParentIteration = 0;
