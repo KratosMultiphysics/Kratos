@@ -26,8 +26,8 @@ template<SizeType TDim>
 SimpleErrorCalculatorProcess<TDim>::SimpleErrorCalculatorProcess(ModelPart& rThisModelPart, Parameters ThisParameters):mrThisModelPart(rThisModelPart)
 {
     //WIP
-	mrThisModelPart.AddNodalSolutionStepVariable(NODAL_TEMP_GRADIENT);
-	mrThisModelPart.AddNodalSolutionStepVariable(NODAL_ERROR_PROJ);
+	//mrThisModelPart.AddNodalSolutionStepVariable(NODAL_TEMP_GRADIENT);
+	//mrThisModelPart.AddNodalSolutionStepVariable(NODAL_ERROR_PROJ);
             
     Parameters default_parameters = Parameters(R"(
     {

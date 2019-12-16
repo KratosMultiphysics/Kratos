@@ -9,22 +9,41 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 def Factory(settings, Model): 
     if(type(settings) != KratosMultiphysics.Parameters): 
         raise Exception("expected input shall be a Parameters object, encapsulating a json string") 
-    return SimpleErrorCalculatorProcess(Model, settings["Parameters"])
+    return ApplyErrorCalculatorProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process" 
-class SimpleErrorCalculatorProcess(KratosMultiphysics.Process):
+class ApplyErrorCalculatorProcess(KratosMultiphysics.Process):
 
     def __init__(self, Model, settings):
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters(""" 
             {
+                "model_part_name"                       : "MainModelPart",
+                "minimal_size"                        : 0.01,
+                "maximal_size"                        : 10.0,
+                "refinement_strategy"                 : "Simple_Error_Calculator",
+                "reference_variable_name"             : "ERROR_RATIO",
+                "echo_level"                          : 0
             }
             """
         )
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.model_part = Model[settings["model_part_name"].GetString()]
+
+        """ KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(
+                KratosMultiphysics.ConvectionDiffusionApplication.NODAL_TEMP_GRADIENT,
+                0.0,
+                self.model_part.Nodes)
+        
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(
+                KratosMultiphysics.ConvectionDiffusionApplication.NODAL_ERROR_PROJ,
+                0.0,
+                self.model_part.Nodes) """
+        
+        self.model_part.AddNodalSolutionStepVariable(KratosConvDiff.NODAL_TEMP_GRADIENT)
+        self.model_part.AddNodalSolutionStepVariable(KratosConvDiff.NODAL_ERROR_PROJ)
 
         #Process Parameters
         error_calc_params = KratosMultiphysics.Parameters("""{}""")

@@ -31,33 +31,11 @@
                         "node_output"         : false,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results"       : ["VELOCITY","PRESSURE","TEMPERATURE"],
+                        "nodal_results"       : ["VELOCITY","PRESSURE","TEMPERATURE", "NODAL_ERROR_PROJ"],
                         "gauss_point_results" : []
                     },
                     "point_data_configuration"  : []
                 }
-            }
-        }],
-        "vtk_output" : [{
-            "python_module" : "vtk_output_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "VtkOutputProcess",
-            "help"          : "This process writes postprocessing files for Paraview",
-            "Parameters"    : {
-                "model_part_name"                    : "FluidModelPart.fluid_computational_model_part",
-                "output_control_type"                : "step",
-                "output_frequency"                   : 1,
-                "file_format"                        : "ascii",
-                "output_precision"                   : 7,
-                "output_sub_model_parts"             : false,
-                "folder_name"                        : "vtk_output",
-                "save_output_files_in_folder"        : true,
-                "nodal_solution_step_data_variables" : ["VELOCITY","PRESSURE","TEMPERATURE"],
-                "nodal_data_value_variables"         : [],
-                "element_data_value_variables"       : [],
-                "condition_data_value_variables"     : [],
-                "gauss_point_variables_extrapolated_to_nodes": [],
-    		"gauss_point_variables_in_elements": []
             }
         }]
     },
@@ -140,6 +118,12 @@
             "process_name"  : "ApplySlipProcess",
             "Parameters"    : {
                 "model_part_name" : "FluidModelPart.Slip3D"
+            }
+        },{
+            "python_module" : "apply_error_calculator_process",
+            "kratos_module" : "KratosMultiphysics.ConvectionDiffusionApplication",
+            "Parameters"    : {
+                "model_part_name" : "ThermalModelPart.TEMPERATURE_fluid"
             }
         },{
             "python_module" : "assign_scalar_variable_process",
