@@ -9,6 +9,7 @@ from .response_function import ResponseFunctionBase
 
 import numpy as np
 
+
 class ValueAndGradient(object):
 
     def __init__(self, infeasible_side):
@@ -34,6 +35,7 @@ class ValueAndGradient(object):
     def _GetGradient(self, distance, normal):
         raise NotImplementedError()
 
+
 class ScalarDistancePow(ValueAndGradient):
 
     exponent = 2
@@ -50,19 +52,6 @@ class ScalarDistancePow(ValueAndGradient):
         ]
         return gradient
 
-class ComponentDistance(ValueAndGradient):
-    '''Is the same as ScalarDistancePow with exponent 1'''
-
-    def _GetValue(self, distance, normal):
-        return distance
-
-    def _GetGradient(self, distance, normal):
-        gradient = [
-            normal[0],
-            normal[1],
-            normal[2]
-        ]
-        return gradient
 
 class Exponential(object):
 
@@ -77,6 +66,7 @@ class Exponential(object):
             normal[2] * factor
         ]
         return gradient
+
 
 class PackagingResponseBase(ResponseFunctionBase):
     """
@@ -120,8 +110,8 @@ class PackagingResponseBase(ResponseFunctionBase):
 
     def Initialize(self):
         if self.model_part_needs_to_be_imported:
-            # import model part
-            model_part_io = KratosMultiphysics.ModelPartIO(self.response_settings["model_import_settings"]["input_filename"].GetString())
+            file_name = self.response_settings["model_import_settings"]["input_filename"].GetString()
+            model_part_io = KratosMultiphysics.ModelPartIO(file_name)
             model_part_io.ReadModelPart(self.model_part)
 
     def InitializeSolutionStep(self):
