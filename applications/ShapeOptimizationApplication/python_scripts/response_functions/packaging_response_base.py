@@ -7,66 +7,6 @@ from KratosMultiphysics import Logger
 
 from .response_function import ResponseFunctionBase
 
-import numpy as np
-
-
-class ValueAndGradient(object):
-
-    def __init__(self, infeasible_side):
-        self.infeasible_side = infeasible_side
-
-    def GetValue(self, distance, normal):
-        if self.infeasible_side and distance > 0:
-            return self._GetValue(distance, normal)
-        elif not self.infeasible_side and distance < 0:
-            return self._GetValue(distance, normal)
-        return 0.0
-
-    def GetGradient(self, distance, normal):
-        if self.infeasible_side and distance > 0:
-            return self._GetGradient(distance, normal)
-        elif not self.infeasible_side and distance < 0:
-            return self._GetGradient(distance, normal)
-        return [0.0, 0.0, 0.0]
-
-    def _GetValue(self, distance, normal):
-        raise NotImplementedError()
-
-    def _GetGradient(self, distance, normal):
-        raise NotImplementedError()
-
-
-class ScalarDistancePow(ValueAndGradient):
-
-    exponent = 2
-
-    def _GetValue(self, distance, normal):
-        return pow(distance, self.exponent)
-
-    def _GetGradient(self, distance, normal):
-        factor = self.exponent * pow(distance, self.exponent-1)
-        gradient = [
-            normal[0] * factor,
-            normal[1] * factor,
-            normal[2] * factor
-        ]
-        return gradient
-
-
-class Exponential(object):
-
-    def _GetValue(self, distance, normal):
-        return np.exp(distance)
-
-    def _GetGradient(self, distance, normal):
-        factor = np.exp(distance)
-        gradient = [
-            normal[0] * factor,
-            normal[1] * factor,
-            normal[2] * factor
-        ]
-        return gradient
-
 
 class PackagingResponseBase(ResponseFunctionBase):
     """
@@ -105,8 +45,8 @@ class PackagingResponseBase(ResponseFunctionBase):
 
         self.gradient = {}
 
-        method_class = globals()[self.response_settings["method"].GetString()]
-        self.method = method_class(self.response_settings["infeasible_side"].GetBool())
+        self.infeasible_side = self.response_settings["infeasible_side"].GetBool()
+        self.exponent = 2
 
     def Initialize(self):
         if self.model_part_needs_to_be_imported:
@@ -133,13 +73,11 @@ class PackagingResponseBase(ResponseFunctionBase):
 
             _direction = np.array(self.directions[i*3:i*3+3])
 
-            value += self.method.GetValue(self.signed_distances[i], _direction)
+            value += self._CalculateValueForNode(self.signed_distances[i], _direction)
 
         self.value = value
 
-        print(value)
-        print("#"*80)
-        Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo("> Time needed for calculating the response value = ", round(timer.time() - startTime,2), "s")
 
     def CalculateGradient(self):
         Logger.PrintInfo("\n> Starting gradient calculation for response", self.identifier)
@@ -154,13 +92,13 @@ class PackagingResponseBase(ResponseFunctionBase):
 
             _direction = np.array(self.directions[i*3:i*3+3])
 
-            gradient = self.method.GetGradient(self.signed_distances[i], _direction)
+            gradient = self._CalculateGradientForNode(self.signed_distances[i], _direction)
 
             self.gradient[node.Id] = gradient
 
             i+=1
 
-        Logger.PrintInfo("> Time needed for calculating gradients",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo("> Time needed for calculating gradients = ", round(timer.time() - startTime,2), "s")
 
     def GetValue(self):
         return self.value
@@ -172,4 +110,29 @@ class PackagingResponseBase(ResponseFunctionBase):
 
     def _CalculateProjectedDistances(self):
         raise NotImplementedError("_CalculateProjectedDistances needs to be implemented by the derived class!")
+
+    def _CalculateValueForNode(self, signed_distance, direction):
+        if not self._HasContribution(signed_distance):
+            return 0.0
+        return pow(signed_distance, self.exponent)
+
+    def _CalculateGradientForNode(self, signed_distance, direction):
+        if not self._HasContribution(signed_distance):
+            return [0.0, 0.0, 0.0]
+
+        factor = self.exponent * pow(signed_distance, self.exponent-1)
+        gradient = [
+            direction[0] * factor,
+            direction[1] * factor,
+            direction[2] * factor
+        ]
+        return gradient
+
+    def _HasContribution(self, signed_distance):
+        if self.infeasible_side and signed_distance > 0:
+            return True
+        elif not self.infeasible_side and signed_distance < 0:
+            return True
+        return False
+
 
