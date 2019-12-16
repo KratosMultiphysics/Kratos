@@ -39,18 +39,14 @@
                 "reference_value" : 0,
                 "analyzer"   : "kratos",
                 "response_settings":{
-                    "response_type" : "mesh_packaging",
-                    "model_part_name"       : "structure",
-                    "model_import_settings" : {
-                        "input_type" : "use_input_model_part"
-                    },
+                    "response_type"   : "mesh_packaging",
+                    "model_part_name" : "structure",
                     "packaging_model_part_name"       : "packaging_plate",
                     "packaging_model_import_settings" : {
-                        "input_type" : "mdpa",
+                        "input_type"     : "mdpa",
                         "input_filename" : "packaging_plate"
                     },
-                    "domain_size"         : 3,
-                    "infeasible_side"     : true
+                    "infeasible_side"    : true
                 }
             }
         ],

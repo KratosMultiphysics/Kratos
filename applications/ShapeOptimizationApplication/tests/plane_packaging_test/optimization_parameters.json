@@ -39,14 +39,11 @@
                 "reference_value" : 0,
                 "analyzer"   : "kratos",
                 "response_settings":{
-                    "response_type" : "plane_packaging",
-                    "model_part_name"       : "structure",
-                    "model_import_settings" : {
-                        "input_type" : "use_input_model_part"
-                    },
-                    "plane_origin" : [0.0, 0.0, 0.2],
-                    "plane_normal" : [0.0, 0.0, -1.0],
-                    "infeasible_side"     : false
+                    "response_type"   : "plane_packaging",
+                    "model_part_name" : "structure",
+                    "plane_origin"    : [0.0, 0.0, 0.2],
+                    "plane_normal"    : [0.0, 0.0, -1.0],
+                    "infeasible_side" : false
                 }
             }
         ],
