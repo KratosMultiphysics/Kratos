@@ -235,19 +235,18 @@ public:
         GeometryUtilities(rBoundingModelPart).ComputeUnitSurfaceNormals();
 
         // loop mrModelPart
-        size_t i = 0;
         for (auto& r_node : mrModelPart.Nodes()){
 
             // find nearest neighbor on rBoundingModelPart
             double distance;
             NodeTypePointer p_neighbor = search_tree.SearchNearestPoint(r_node, distance);
 
-            array_3d delta = r_node.Coordinates() - p_neighbor->Coordinates();
+            const array_3d delta = r_node.Coordinates() - p_neighbor->Coordinates();
 
             // calculate projection on bounding normal
-            array_3d& bounding_normal = p_neighbor->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
+            const array_3d& bounding_normal = p_neighbor->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
 
-            double projected_length = inner_prod(delta, bounding_normal);
+            const double projected_length = inner_prod(delta, bounding_normal);
 
             // store in list
             rSignedDistances.append(projected_length);
@@ -255,9 +254,6 @@ public:
             rDirections.append(bounding_normal[0]);
             rDirections.append(bounding_normal[1]);
             rDirections.append(bounding_normal[2]);
-
-            // increment counter
-            ++i;
         }
 
         KRATOS_CATCH("");
