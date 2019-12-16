@@ -167,6 +167,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<ModelPart&>())
         .def("ComputeUnitSurfaceNormals", &GeometryUtilities::ComputeUnitSurfaceNormals)
         .def("ProjectNodalVariableOnUnitSurfaceNormals", &GeometryUtilities::ProjectNodalVariableOnUnitSurfaceNormals)
+        .def("ProjectNodalVariableToDirection", &GeometryUtilities::ProjectNodalVariableToDirection)
+        .def("ProjectNodalVariableToTangentOfDirection", &GeometryUtilities::ProjectNodalVariableToTangentOfDirection)
         .def("ExtractBoundaryNodes", &GeometryUtilities::ExtractBoundaryNodes)
         ;
 
@@ -176,10 +178,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<MeshControllerUtilities >(m, "MeshControllerUtilities")
         .def(py::init<ModelPart&>())
         .def("UpdateMeshAccordingInputVariable", &MeshControllerUtilities::UpdateMeshAccordingInputVariable)
+        .def("RevertMeshUpdateAccordingInputVariable", &MeshControllerUtilities::RevertMeshUpdateAccordingInputVariable)
         .def("LogMeshChangeAccordingInputVariable", &MeshControllerUtilities::LogMeshChangeAccordingInputVariable)
         .def("SetMeshToReferenceMesh", &MeshControllerUtilities::SetMeshToReferenceMesh)
         .def("SetReferenceMeshToMesh", &MeshControllerUtilities::SetReferenceMeshToMesh)
         .def("SetDeformationVariablesToZero", &MeshControllerUtilities::SetDeformationVariablesToZero)
+        .def("WriteCoordinatesToVariable", &MeshControllerUtilities::WriteCoordinatesToVariable)
+        .def("CalculateDistanceToVariable", &MeshControllerUtilities::CalculateDistanceToVariable)
+        .def("AddFirstVariableToSecondVariable", &MeshControllerUtilities::AddFirstVariableToSecondVariable)
         ;
 
     // ========================================================================
