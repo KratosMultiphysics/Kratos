@@ -341,8 +341,6 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(NUMBER_OF_SECTIONS)
     KRATOS_REGISTER_VARIABLE(CONCRETE_FIBERS_DATA)
     KRATOS_REGISTER_VARIABLE(STEEL_FIBERS_DATA)
-    // KRATOS_REGISTER_VARIABLE(NUMBER_FIBERS_Y)
-    // KRATOS_REGISTER_VARIABLE(NUMBER_FIBERS_Z)
     KRATOS_REGISTER_VARIABLE(BEAM_WIDTH)
     KRATOS_REGISTER_VARIABLE(BEAM_HEIGHT)
 
@@ -713,10 +711,6 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ViscousGeneralizedMaxwell3D", mViscousGeneralizedMaxwell3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GenericSmallStrainViscoplasticity3D", mGenericSmallStrainViscoplasticity3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("PlasticityIsotropicKinematicJ2Law", mPlasticityIsotropicKinematicJ2);
-
-    // // Uniaxial Fiber Beam-Column constitutives
-    // KRATOS_REGISTER_CONSTITUTIVE_LAW("UniaxialFiberBeamColumnConcreteMaterialLaw", mUniaxialFiberBeamColumnConcreteMaterialLaw)
-    // KRATOS_REGISTER_CONSTITUTIVE_LAW("UniaxialFiberBeamColumnSteelMaterialLaw", mUniaxialFiberBeamColumnSteelMaterialLaw)
 
     // Custom Constitutive laws
     // Serial-Parallel Rule Of Mixtures
