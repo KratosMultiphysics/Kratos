@@ -51,7 +51,6 @@ void SimpleErrorCalculatorProcess<TDim>::Execute()
     // Initialize the metric
     // a) Check for Metric Scalar in Meshing Application
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has("METRIC_SCALAR")) << "Import Meshing Application" << std::endl;
-
     const Variable<double> &scalar_variable = KratosComponents<Variable<double>>::Get("METRIC_SCALAR");
 
     // c) Initialize Metric Scalar and Nodal Temperature Gradient for all nodes to 0
@@ -61,6 +60,7 @@ void SimpleErrorCalculatorProcess<TDim>::Execute()
     VariableUtils()
         .SetNonHistoricalVariableToZero(NODAL_ERROR_PROJ, mrThisModelPart.Nodes());
 
+    Matrix nodal_grad_temp = ZeroMatrix(mrThisModelPart.NumberOfNodes(), 3);
     Vector nodal_area;
     KRATOS_INFO(this->Info()) << "Calculating Execute for " << mrThisModelPart.NumberOfNodes() << " nodes in " << mrThisModelPart.Name() << "\n";
     this->CalculateNodalArea(nodal_area);
@@ -82,10 +82,15 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalTempGradient(Vector& noda
     const int number_nodes = mrThisModelPart.NumberOfNodes();
     const int number_elements = mrThisModelPart.NumberOfElements();
 
-    KRATOS_INFO(this->Info()) << "Calculating nodal temp gradient for " << number_nodes << " nodes in " << mrThisModelPart.Name() << "\n";
     KRATOS_WATCH(number_nodes);
-    Matrix nodal_grad(number_nodes, 3);
-    nodal_grad.clear();
+    KRATOS_INFO(this->Info()) << "Calculating nodal temp gradient for " << number_nodes << " nodes in " << mrThisModelPart.Name() << "\n";
+    // Matrix nodal_grad = ZeroMatrix(number_nodes, 3);
+    Matrix nodal_grad = ZeroMatrix(5444, 3);
+
+    // Matrix nodal_grad;
+    // nodal_grad.resize(number_nodes, 3);
+    // nodal_grad.clear();
+    KRATOS_WATCH(nodal_grad);
 
     // Loop over the elements
     for (unsigned int i_elem = 0; i_elem < number_elements; i_elem++)
@@ -256,7 +261,7 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalArea(Vector &nodal_area) 
 
         for (int i_node = 0; i_node < n_nodes; i_node++)
         {
-            nodal_area[r_geometry[i_node].Id() - 1] += +r_geometry.Area() / n_nodes;
+            nodal_area[r_geometry[i_node].Id() - 1] += r_geometry.Area() / n_nodes;
         }
     }
 }
