@@ -229,11 +229,11 @@ class AnalyzerWithDependencies(Analyzer):
                     relevant_responses.append(response_id)
                 elif combination_type == "max":
                     if value > combined_value:
-                        relevant_responses[0] = response_id
+                        relevant_responses = [response_id]
                         combined_value = value
                 elif combination_type == "min":
                     if value < combined_value:
-                        relevant_responses[0] = response_id
+                        relevant_responses = [response_id]
                         combined_value = value
                 else:
                     raise NameError("The following combination_type is not supported:" + combination_type)
