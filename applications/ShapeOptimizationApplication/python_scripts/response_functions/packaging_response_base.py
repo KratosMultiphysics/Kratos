@@ -10,7 +10,7 @@
 
 import time as timer
 
-import KratosMultiphysics
+import KratosMultiphysics as KM
 from KratosMultiphysics import Logger
 
 from .response_function import ResponseFunctionBase
@@ -18,15 +18,24 @@ from .response_function import ResponseFunctionBase
 
 class PackagingResponseBase(ResponseFunctionBase):
     """
+    A base class for packaging response functions that agglomerate the nodal violations
+    into a single response function.
+    The agglomeration happens by summing up the square of each nodal violation.
+    Nodes that are feasible do NOT contribute to the response value/gradient.
+    This is why a prediction of the violation using the gradients is not possible,
+    only correction of violations (e.g. from the last step) will happen.
 
-    Attributes
-    ----------
-    model_part : Model part object of the response function
-    # TODO
+    Derived classes need to implement the calculation of the nodal violations
+
+    Important settings:
+    infeasible_side : boolean flag that indicates if the normal of bounding instance
+        points to the infeasible side. False by default
     """
 
     def __init__(self, identifier, response_settings, model):
         self.identifier = identifier
+
+        response_settings.ValidateAndAssignDefaults(self.GetDefaultSettings())
 
         self.response_settings = response_settings
         self.model = model
@@ -55,6 +64,20 @@ class PackagingResponseBase(ResponseFunctionBase):
 
         self.infeasible_side = self.response_settings["infeasible_side"].GetBool()
         self.exponent = 2
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KM.Parameters("""{
+            "response_type"         : "plane_packaging",
+            "model_part_name"       : "UNKNOWN_NAME",
+            "domain_size"           : 3,
+            "model_import_settings" : {
+                "input_type"        : "use_input_model_part",
+                "input_filename"    : "UNKNOWN_NAME"
+            },
+            "infeasible_side"       : false
+        }""")
+        return this_defaults
 
     def Initialize(self):
         if self.model_part_needs_to_be_imported:
