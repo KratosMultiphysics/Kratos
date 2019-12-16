@@ -36,11 +36,11 @@ def CreateAnalyzer(optimization_settings, model_part_controller, external_analyz
         internal_analyzer = EmptyAnalyzer()
 
     dependency_graph, exist_dependencies = _CreateDependencyGraphRecursively(objectives)
-    # dependency_graph = [ (response_id_1, weight_1, []),
-    #                      (response_id_2, weight_2, []),
-    #                      (response_id_3, [ (response_id_3a, weight_3a, []),
-    #                                        (response_id_3b, weight_3b, []),
-    #                                        (response_id_3c, weight_3c, [...]) ], weight_3),
+    # dependency_graph = [ (response_id_1, weight_1, [], combination_type),
+    #                      (response_id_2, weight_2, [], combination_type),
+    #                      (response_id_3, [ (response_id_3a, weight_3a, [], combination_type),
+    #                                        (response_id_3b, weight_3b, [], combination_type),
+    #                                        (response_id_3c, weight_3c, [...]) ], weight_3, combination_type),
     #                      ... ]
 
     if exist_dependencies:
