@@ -102,21 +102,15 @@ public:
     // --------------------------------------------------------------------------
     void ComputeUnitSurfaceNormals()
     {
-        _ComputeUnitSurfaceNormals(mrModelPart);
-    }
-
-    // --------------------------------------------------------------------------
-    void _ComputeUnitSurfaceNormals(ModelPart& rModelPart)
-    {
         KRATOS_TRY;
 
-        const unsigned int domain_size = rModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
-        KRATOS_ERROR_IF(rModelPart.NumberOfConditions() == 0) <<
+        const unsigned int domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
+        KRATOS_ERROR_IF(mrModelPart.NumberOfConditions() == 0) <<
             "> Normal calculation requires surface or line conditions to be defined!" << std::endl;
-        KRATOS_ERROR_IF((domain_size == 3 && rModelPart.ConditionsBegin()->GetGeometry().size() == 2)) <<
+        KRATOS_ERROR_IF((domain_size == 3 && mrModelPart.ConditionsBegin()->GetGeometry().size() == 2)) <<
             "> Normal calculation of 2-noded conditions in 3D domains is not possible!" << std::endl;
-        CalculateAreaNormals(rModelPart.Conditions(),domain_size);
-        CalculateUnitNormals(rModelPart);
+        CalculateAreaNormals(mrModelPart.Conditions(),domain_size);
+        CalculateUnitNormals(mrModelPart);
 
         KRATOS_CATCH("");
     }
@@ -223,21 +217,22 @@ public:
         typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
         typedef Tree< KDTreePartition<BucketType> > KDTree;
 
-        size_t bucket_size = 1000;
+        // check if there are elements
+        KRATOS_ERROR_IF(rBoundingModelPart.NumberOfElements() != 0) <<
+            "ComputeProjectedDistancesToBoundingModelPart: Model part should only contain conditions!" << std::endl;
 
+        // create node search of rBoundingModelPart
         NodeVector all_bounding_nodes;
         all_bounding_nodes.reserve(rBoundingModelPart.Nodes().size());
-
         for (ModelPart::NodesContainerType::iterator node_it = rBoundingModelPart.NodesBegin(); node_it != rBoundingModelPart.NodesEnd(); ++node_it)
         {
             all_bounding_nodes.push_back(*(node_it.base()));
         }
-
-        // create node search of rBoundingModelPart
+        const size_t bucket_size = 100;
         KDTree search_tree(all_bounding_nodes.begin(), all_bounding_nodes.end(), bucket_size);
 
         // compute normals of rBoundingModelPart
-        _ComputeUnitSurfaceNormals(rBoundingModelPart);
+        GeometryUtilities(rBoundingModelPart).ComputeUnitSurfaceNormals();
 
         // loop mrModelPart
         size_t i = 0;

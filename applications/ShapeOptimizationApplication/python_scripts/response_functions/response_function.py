@@ -1,5 +1,15 @@
 
 # ==============================================================================
+#  KratosShapeOptimizationApplication
+#
+#  License:         BSD License
+#                   license: ShapeOptimizationApplication/license.txt
+#
+#  Main authors:    Geiser Armin, https://github.com/armingeiser
+#
+# ==============================================================================
+
+
 class ResponseFunctionBase(object):
     """The base class for response functions. Each response function
     is able to calculate its response value and gradient.

@@ -34,6 +34,10 @@ class WrlIO:
 
     def ReadModelPart(self, model_part):
         KM.Logger.PrintInfo("ShapeOpt", "Start reading model part from '{}'.".format(self.file_name))
+
+        if model_part.ProcessInfo.GetValue(KM.DOMAIN_SIZE) != 3:
+            raise Exception("WrlIO: Domain size has to be 3!")
+
         shapes = read_shapes(self.file_name)
 
         nodes_shift = 0

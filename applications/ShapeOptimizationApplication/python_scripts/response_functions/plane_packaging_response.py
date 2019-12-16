@@ -1,4 +1,12 @@
-from __future__ import print_function, absolute_import, division
+# ==============================================================================
+#  KratosShapeOptimizationApplication
+#
+#  License:         BSD License
+#                   license: ShapeOptimizationApplication/license.txt
+#
+#  Main authors:    Geiser Armin, https://github.com/armingeiser
+#
+# ==============================================================================
 
 import time as timer
 
@@ -8,7 +16,6 @@ from KratosMultiphysics import Logger
 from .packaging_response_base import PackagingResponseBase
 from .. import custom_math as cm
 
-import numpy as np
 
 class PlanePackagingResponse(PackagingResponseBase):
 

@@ -1,4 +1,12 @@
-from __future__ import print_function, absolute_import, division
+# ==============================================================================
+#  KratosShapeOptimizationApplication
+#
+#  License:         BSD License
+#                   license: ShapeOptimizationApplication/license.txt
+#
+#  Main authors:    Geiser Armin, https://github.com/armingeiser
+#
+# ==============================================================================
 
 import time as timer
 
@@ -27,7 +35,7 @@ class PackagingResponseBase(ResponseFunctionBase):
         model_part_name = response_settings["model_part_name"].GetString()
         input_type = response_settings["model_import_settings"]["input_type"].GetString()
         if input_type == "mdpa":
-            self.model_part = self.model.CreateModelPart(model_part_name, 2)
+            self.model_part = self.model.CreateModelPart(model_part_name)
             domain_size = response_settings["domain_size"].GetInt()
             if domain_size not in [2, 3]:
                 raise Exception("PackagingResponseBase: Invalid 'domain_size': {}".format(domain_size))
@@ -36,7 +44,7 @@ class PackagingResponseBase(ResponseFunctionBase):
         elif input_type == "use_input_model_part":
             self.model_part = self.model.GetModelPart(model_part_name)
         else:
-            raise Exception("Other model part input options are not yet implemented.")
+            raise Exception("PackagingResponseBase: '{}' model part input type not implemented.".format(input_type))
 
         self.signed_distances = None
         self.directions = None
