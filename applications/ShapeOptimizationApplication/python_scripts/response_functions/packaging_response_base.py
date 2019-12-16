@@ -96,7 +96,7 @@ class PackagingResponseBase(ResponseFunctionBase):
 
         value = 0.0
         for i in range(len(self.signed_distances)):
-            value += self._CalculateNodalValue(self.signed_distances[i], self.directions[i*3:i*3+3])
+            value += self._CalculateNodalValue(self.signed_distances[i])
 
         self.value = value
 
@@ -127,7 +127,7 @@ class PackagingResponseBase(ResponseFunctionBase):
     def _CalculateDistances(self):
         raise NotImplementedError("_CalculateDistances needs to be implemented by the derived class!")
 
-    def _CalculateNodalValue(self, signed_distance, direction):
+    def _CalculateNodalValue(self, signed_distance):
         if not self._HasContribution(signed_distance):
             return 0.0
         return pow(signed_distance, self.exponent)
