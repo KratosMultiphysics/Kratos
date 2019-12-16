@@ -18,6 +18,7 @@
 #include "includes/model_part.h"
 #include "includes/element.h"
 #include "processes/process.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos{
 ///@name Kratos Globals
@@ -26,9 +27,6 @@ namespace Kratos{
 ///@}
 ///@name Type Definitions
 ///@{
-
-    /// The size type definition
-    typedef std::size_t SizeType;
 
 ///@}
 ///@name  Enum's
@@ -50,7 +48,7 @@ namespace Kratos{
  * @author Saransh Saxena
  */
 
-template<SizeType TDim>
+template<std::size_t TDim>
 class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) SimpleErrorCalculatorProcess
     : public Process
 {
@@ -203,7 +201,7 @@ private:
     double mMinSize;                 /// The minimal size of the elements
     double mMaxSize;                 /// The maximal size of the elements
 
-    SizeType mEchoLevel;             /// The echo level
+    std::size_t mEchoLevel;             /// The echo level
     std::string mReferenceVariable;
 
     ///@}
@@ -217,12 +215,12 @@ private:
     /**
      * @brief This method computes the temperature gradient at nodes using the ShapeFunctions
      */
-    void CalculateNodalTempGradient(Vector& nodal_area);
+    void CalculateNodalTempGradient(const Vector& nodal_area);
 
     /**
      * @brief This method computes the Nodal Area for the nodes in the Model Part
      */
-    void CalculateNodalArea(Vector& nodal_area);
+    void CalculateNodalArea(Vector& nodal_area) const;
     
     /**
      * @brief This method computes the Nodal error between the C1 and C0 continuous definitions

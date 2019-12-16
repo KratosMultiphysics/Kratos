@@ -38,12 +38,10 @@ void AddCustomProcessesToPython(pybind11::module& m)
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     py::class_<SimpleErrorCalculatorProcess<2>, SimpleErrorCalculatorProcess<2>::Pointer, Process>(m, "SimpleErrorCalculatorProcess2D")
-    .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
     ;
 
     py::class_<SimpleErrorCalculatorProcess<3>, SimpleErrorCalculatorProcess<3>::Pointer, Process>(m, "SimpleErrorCalculatorProcess3D")
-    .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
 ;
 

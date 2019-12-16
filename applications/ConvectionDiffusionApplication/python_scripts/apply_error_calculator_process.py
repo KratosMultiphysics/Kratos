@@ -42,8 +42,8 @@ class ApplyErrorCalculatorProcess(KratosMultiphysics.Process):
                 0.0,
                 self.model_part.Nodes) """
         
-        self.model_part.AddNodalSolutionStepVariable(KratosConvDiff.NODAL_TEMP_GRADIENT)
-        self.model_part.AddNodalSolutionStepVariable(KratosConvDiff.NODAL_ERROR_PROJ)
+        #self.model_part.AddNodalSolutionStepVariable(KratosConvDiff.NODAL_TEMP_GRADIENT)
+        #self.model_part.AddNodalSolutionStepVariable(KratosConvDiff.NODAL_ERROR_PROJ)
 
         #Process Parameters
         error_calc_params = KratosMultiphysics.Parameters("""{}""")
