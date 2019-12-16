@@ -7,12 +7,9 @@
 #  Main authors:    Geiser Armin, https://github.com/armingeiser
 #
 # ==============================================================================
-
 import time as timer
-
 import KratosMultiphysics as KM
 from KratosMultiphysics import Logger
-
 from .response_function import ResponseFunctionBase
 
 
@@ -28,8 +25,8 @@ class PackagingResponseBase(ResponseFunctionBase):
     Derived classes need to implement the calculation of the nodal violations
 
     Important settings:
-    infeasible_side : boolean flag that indicates if the normal of bounding instance
-        points to the infeasible side. False by default
+    feasible_in_normal_direction : boolean flag that indicates if the normal of bounding instance
+        points to the feasible side. True by default
     """
 
     def __init__(self, identifier, response_settings, model):
@@ -39,7 +36,6 @@ class PackagingResponseBase(ResponseFunctionBase):
 
         self.response_settings = response_settings
         self.model = model
-        self.model_part_needs_to_be_imported = False
 
         model_part_name = response_settings["model_part_name"].GetString()
         input_type = response_settings["model_import_settings"]["input_type"].GetString()
@@ -49,7 +45,6 @@ class PackagingResponseBase(ResponseFunctionBase):
             if domain_size not in [2, 3]:
                 raise Exception("PackagingResponseBase: Invalid 'domain_size': {}".format(domain_size))
             self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-            self.model_part_needs_to_be_imported = True
         elif input_type == "use_input_model_part":
             self.model_part = self.model.GetModelPart(model_part_name)
         else:
@@ -62,25 +57,25 @@ class PackagingResponseBase(ResponseFunctionBase):
 
         self.gradient = {}
 
-        self.infeasible_side = self.response_settings["infeasible_side"].GetBool()
+        self.feasible_in_normal_direction = self.response_settings["feasible_in_normal_direction"].GetBool()
         self.exponent = 2
 
     @classmethod
     def GetDefaultSettings(cls):
         this_defaults = KM.Parameters("""{
-            "response_type"         : "plane_packaging",
+            "response_type"         : "UNKNOWN_TYPE",
             "model_part_name"       : "UNKNOWN_NAME",
             "domain_size"           : 3,
             "model_import_settings" : {
                 "input_type"        : "use_input_model_part",
                 "input_filename"    : "UNKNOWN_NAME"
             },
-            "infeasible_side"       : false
+            "feasible_in_normal_direction" : true
         }""")
         return this_defaults
 
     def Initialize(self):
-        if self.model_part_needs_to_be_imported:
+        if self.response_settings["model_import_settings"]["input_type"].GetString() == "mdpa":
             file_name = self.response_settings["model_import_settings"]["input_filename"].GetString()
             model_part_io = KratosMultiphysics.ModelPartIO(file_name)
             model_part_io.ReadModelPart(self.model_part)
@@ -97,11 +92,11 @@ class PackagingResponseBase(ResponseFunctionBase):
         startTime = timer.time()
 
         if not self.directions or not self.signed_distances:
-            self._CalculateProjectedDistances()
+            self._CalculateDistances()
 
         value = 0.0
         for i in range(len(self.signed_distances)):
-            value += self._CalculateValueForNode(self.signed_distances[i], self.directions[i*3:i*3+3])
+            value += self._CalculateNodalValue(self.signed_distances[i], self.directions[i*3:i*3+3])
 
         self.value = value
 
@@ -113,10 +108,10 @@ class PackagingResponseBase(ResponseFunctionBase):
         startTime = timer.time()
 
         if not self.directions or not self.signed_distances:
-            self._CalculateProjectedDistances()
+            self._CalculateDistances()
 
         for i, node in enumerate(self.model_part.Nodes):
-            gradient = self._CalculateGradientForNode(self.signed_distances[i], self.directions[i*3:i*3+3])
+            gradient = self._CalculateNodalGradient(self.signed_distances[i], self.directions[i*3:i*3+3])
             self.gradient[node.Id] = gradient
 
         Logger.PrintInfo("> Time needed for calculating gradients = ", round(timer.time() - startTime,2), "s")
@@ -129,15 +124,15 @@ class PackagingResponseBase(ResponseFunctionBase):
             raise RuntimeError("Gradient was not calculated")
         return self.gradient
 
-    def _CalculateProjectedDistances(self):
-        raise NotImplementedError("_CalculateProjectedDistances needs to be implemented by the derived class!")
+    def _CalculateDistances(self):
+        raise NotImplementedError("_CalculateDistances needs to be implemented by the derived class!")
 
-    def _CalculateValueForNode(self, signed_distance, direction):
+    def _CalculateNodalValue(self, signed_distance, direction):
         if not self._HasContribution(signed_distance):
             return 0.0
         return pow(signed_distance, self.exponent)
 
-    def _CalculateGradientForNode(self, signed_distance, direction):
+    def _CalculateNodalGradient(self, signed_distance, direction):
         if not self._HasContribution(signed_distance):
             return [0.0, 0.0, 0.0]
 
@@ -150,8 +145,8 @@ class PackagingResponseBase(ResponseFunctionBase):
         return gradient
 
     def _HasContribution(self, signed_distance):
-        if self.infeasible_side and signed_distance > 0:
+        if not self.feasible_in_normal_direction and signed_distance > 0:
             return True
-        elif not self.infeasible_side and signed_distance < 0:
+        elif self.feasible_in_normal_direction and signed_distance < 0:
             return True
         return False

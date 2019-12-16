@@ -201,14 +201,13 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void ComputeProjectedDistancesToBoundingModelPart(
+    void ComputeDistancesToBoundingModelPart(
         ModelPart& rBoundingModelPart,
         pybind11::list& rSignedDistances,
         pybind11::list& rDirections )
     {
         KRATOS_TRY;
 
-        // Type definitions for tree-search
         typedef Node < 3 > NodeType;
         typedef NodeType::Pointer NodeTypePointer;
         typedef std::vector<NodeType::Pointer> NodeVector;
@@ -217,11 +216,9 @@ public:
         typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
         typedef Tree< KDTreePartition<BucketType> > KDTree;
 
-        // check if there are elements
         KRATOS_ERROR_IF(rBoundingModelPart.NumberOfElements() != 0) <<
-            "ComputeProjectedDistancesToBoundingModelPart: Model part must only contain conditions!" << std::endl;
+            "ComputeDistancesToBoundingModelPart: Model part must only contain conditions!" << std::endl;
 
-        // create node search of rBoundingModelPart
         NodeVector all_bounding_nodes;
         all_bounding_nodes.reserve(rBoundingModelPart.Nodes().size());
         for (ModelPart::NodesContainerType::iterator node_it = rBoundingModelPart.NodesBegin(); node_it != rBoundingModelPart.NodesEnd(); ++node_it)
@@ -231,24 +228,17 @@ public:
         const size_t bucket_size = 100;
         KDTree search_tree(all_bounding_nodes.begin(), all_bounding_nodes.end(), bucket_size);
 
-        // compute normals of rBoundingModelPart
         GeometryUtilities(rBoundingModelPart).ComputeUnitSurfaceNormals();
 
-        // loop mrModelPart
         for (auto& r_node : mrModelPart.Nodes()){
 
-            // find nearest neighbor on rBoundingModelPart
             double distance;
             NodeTypePointer p_neighbor = search_tree.SearchNearestPoint(r_node, distance);
 
             const array_3d delta = r_node.Coordinates() - p_neighbor->Coordinates();
-
-            // calculate projection on bounding normal
             const array_3d& bounding_normal = p_neighbor->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
-
             const double projected_length = inner_prod(delta, bounding_normal);
 
-            // store in list
             rSignedDistances.append(projected_length);
 
             rDirections.append(bounding_normal[0]);

@@ -80,7 +80,7 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
     def __CreateResponseFunctions( specified_responses, model ):
         response_functions = {}
 
-        available_sho_response_functions = ["plane_packaging", "mesh_packaging"]
+        available_sho_response_functions = ["plane_based_packaging", "mesh_based_packaging"]
         available_csm_response_functions = ["strain_energy", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress"]
 
         for (response_id, response_settings) in specified_responses:

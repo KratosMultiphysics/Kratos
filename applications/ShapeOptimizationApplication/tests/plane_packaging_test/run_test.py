@@ -19,8 +19,6 @@ model = KM.Model()
 
 class CustomAnalyzer(AnalyzerBaseClass):
     def AnalyzeDesignAndReportToCommunicator(self, current_design, optimization_iteration, communicator):
-
-        # Constraint 1
         node_id = 9
         target = 0.5
         if communicator.isRequestingValueOf("z_distance"):
@@ -37,7 +35,6 @@ class CustomAnalyzer(AnalyzerBaseClass):
                     gradient[node.Id] = [0.0, 0.0, 0.0]
 
             communicator.reportGradient("z_distance", gradient)
-
 
 # Create optimizer and perform optimization
 optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], model, CustomAnalyzer())
@@ -87,7 +84,6 @@ with open(os.path.join(output_directory, optimization_log_filename), 'r') as csv
 # output_process.ExecuteFinalizeSolutionStep()
 # output_process.ExecuteFinalize()
 
-
 check_process = FromJsonCheckResultProcess(model, KM.Parameters(
     """{
         "check_variables"  : ["SHAPE_CHANGE_X","SHAPE_CHANGE_Y","SHAPE_CHANGE_Z"],
@@ -100,7 +96,6 @@ check_process.ExecuteBeforeSolutionLoop()
 check_process.ExecuteInitializeSolutionStep()
 check_process.ExecuteFinalizeSolutionStep()
 check_process.ExecuteFinalize()
-
 
 # Cleaning
 kratos_utilities.DeleteDirectoryIfExisting("__pycache__")

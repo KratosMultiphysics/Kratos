@@ -33,20 +33,20 @@
         }],
         "constraints" : [
             {
-                "identifier" : "mesh_packaging",
+                "identifier" : "mesh_based_packaging",
                 "type"       : "<=",
                 "reference"  : "specified_value",
                 "reference_value" : 0,
                 "analyzer"   : "kratos",
                 "response_settings":{
-                    "response_type"   : "mesh_packaging",
+                    "response_type"   : "mesh_based_packaging",
                     "model_part_name" : "structure",
                     "packaging_model_part_name"       : "packaging_plate",
                     "packaging_model_import_settings" : {
                         "input_type"     : "mdpa",
                         "input_filename" : "packaging_plate"
                     },
-                    "infeasible_side"    : true
+                    "feasible_in_normal_direction"    : false
                 }
             }
         ],

@@ -8,16 +8,14 @@
 #
 # ==============================================================================
 import KratosMultiphysics as KM
-
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
-
 from .packaging_response_base import PackagingResponseBase
 from ..custom_ios.wrl_io import WrlIO
 
-class MeshPackagingResponse(PackagingResponseBase):
+class MeshBasedPackaging(PackagingResponseBase):
     """
     A class for mesh packaging response function. The mesh should contain surface conditions only.
-    By default the normals of the conditions indicate the feasible side of the mesh (see setting 'infeasible_side')
+    By default the normals of the conditions indicate the feasible side of the mesh (see setting 'feasible_in_normal_direction')
     """
 
     def __init__(self, identifier, response_settings, model):
@@ -32,7 +30,7 @@ class MeshPackagingResponse(PackagingResponseBase):
             self.packaging_model_part = self.model.CreateModelPart(packaging_model_part_name)
             domain_size = response_settings["packaging_domain_size"].GetInt()
             if domain_size not in [2, 3]:
-                raise Exception("PlanePackagingResponse: Invalid 'domain_size': {}".format(domain_size))
+                raise Exception("PlaneBasedPackaging: Invalid 'domain_size': {}".format(domain_size))
             self.packaging_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, domain_size)
         elif self.packaging_input_type == "use_input_model_part":
             self.packaging_model_part = self.model.GetModelPart(packaging_model_part_name)
@@ -65,13 +63,13 @@ class MeshPackagingResponse(PackagingResponseBase):
             model_part_io = WrlIO(self.response_settings["packaging_model_import_settings"]["input_filename"].GetString())
             model_part_io.ReadModelPart(self.packaging_model_part)
 
-    def _CalculateProjectedDistances(self):
+    def _CalculateDistances(self):
         geometry_tools = KSO.GeometryUtilities(self.model_part)
 
         self.signed_distances = []
         self.directions = []
 
-        geometry_tools.ComputeProjectedDistancesToBoundingModelPart(
+        geometry_tools.ComputeDistancesToBoundingModelPart(
             self.packaging_model_part,
             self.signed_distances,
             self.directions
