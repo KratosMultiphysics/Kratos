@@ -59,6 +59,7 @@
 #include "utilities/auxiliar_model_part_utilities.h"
 #include "utilities/time_discretization.h"
 #include "utilities/geometrical_transformation_utilities.h"
+#include "utilities/specifications_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -1099,6 +1100,11 @@ void AddUtilitiesToPython(pybind11::module &m)
     auto mod_geom_trans_utils = m.def_submodule("GeometricalTransformationUtilities");
     mod_geom_trans_utils.def("CalculateTranslationMatrix", &GeometricalTransformationUtilities::CalculateTranslationMatrix );
     mod_geom_trans_utils.def("CalculateRotationMatrix", &GeometricalTransformationUtilities::CalculateRotationMatrix );
+    
+    // SpecificationsUtilities
+    auto mod_spec_utils = m.def_submodule("SpecificationsUtilities");
+    mod_spec_utils.def("AddMissingVariables", &SpecificationsUtilities::AddMissingVariables );
+    mod_spec_utils.def("AddMissingDofs", &SpecificationsUtilities::AddMissingDofs );
 }
 
 } // namespace Python.
