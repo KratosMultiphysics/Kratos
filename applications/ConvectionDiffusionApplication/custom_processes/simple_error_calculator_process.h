@@ -220,17 +220,17 @@ private:
     /**
      * @brief This method computes the temperature gradient at nodes using the ShapeFunctions
      */
-    void CalculateNodalTempGradient(Vector& nodal_area);
+    //void CalculateNodalTempGradient(Vector& nodal_area);
     
     /**
      * @brief This method computes the Nodal error between the C1 and C0 continuous definitions
      */
-    void CalculateNodalError(Vector& nodal_area);
+    //void CalculateNodalError(Vector& nodal_area);
 
     /**
      * @brief In this final step the metric is computed for MMGProcess
      */
-    void CalculateGeomData(GeometryType& r_geom, Matrix& ShapeFunctions, ShapeFunctionDerivativesArrayType& ShapeDerivatives,Vector& DetJ, Vector& GaussWeights, unsigned int& NumGPoints);
+    //void CalculateGeomData(GeometryType& r_geom, Matrix& ShapeFunctions, ShapeFunctionDerivativesArrayType& ShapeDerivatives,Vector& DetJ, Vector& GaussWeights, unsigned int& NumGPoints);
 
     ///@}
     ///@name Private  Access

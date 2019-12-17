@@ -60,36 +60,18 @@ void SimpleErrorCalculatorProcess<TDim>::Execute()
     VariableUtils()
         .SetNonHistoricalVariableToZero(NODAL_ERROR_PROJ, mrThisModelPart.Nodes());
 
-    Matrix nodal_grad_temp = ZeroMatrix(mrThisModelPart.NumberOfNodes(), 3);
     Vector nodal_area;
-    KRATOS_INFO(this->Info()) << "Calculating Execute for " << mrThisModelPart.NumberOfNodes() << " nodes in " << mrThisModelPart.Name() << "\n";
+    KRATOS_INFO(this->Info()) << "Calculating Nodal Area for " << mrThisModelPart.NumberOfNodes() << " nodes in " << mrThisModelPart.Name() << "\n";
     this->CalculateNodalArea(nodal_area);
 
+    KRATOS_INFO(this->Info()) << "Calculating Nodal Temperature Gradient for " << mrThisModelPart.NumberOfNodes() << " nodes in " << mrThisModelPart.Name() << "\n";
+
     // d) Call the Nodal Temperature Gradient Calculator Function
-    this->CalculateNodalTempGradient(nodal_area);
-
-    // e) Call the Nodal Error Function
-    this->CalculateNodalError(nodal_area);
-
-    // e) Call the Metric Scalar Function
-    //CalculateMetricScalar();
-}
-
-template <std::size_t TDim>
-void SimpleErrorCalculatorProcess<TDim>::CalculateNodalTempGradient(Vector& nodal_area)
-{
-    //b) Loop over Elements and calculate RHS
     const int number_nodes = mrThisModelPart.NumberOfNodes();
     const int number_elements = mrThisModelPart.NumberOfElements();
 
     KRATOS_WATCH(number_nodes);
-    KRATOS_INFO(this->Info()) << "Calculating nodal temp gradient for " << number_nodes << " nodes in " << mrThisModelPart.Name() << "\n";
-    // Matrix nodal_grad = ZeroMatrix(number_nodes, 3);
-    Matrix nodal_grad = ZeroMatrix(5444, 3);
-
-    // Matrix nodal_grad;
-    // nodal_grad.resize(number_nodes, 3);
-    // nodal_grad.clear();
+    Matrix nodal_grad = ZeroMatrix(number_nodes, 3);
     KRATOS_WATCH(nodal_grad);
 
     // Loop over the elements
@@ -104,7 +86,28 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalTempGradient(Vector& noda
         Matrix ShapeFunctions;
         ShapeFunctionDerivativesArrayType ShapeDerivatives;
         unsigned int NumGPoints = 0;
-        CalculateGeomData(r_geometry, ShapeFunctions, ShapeDerivatives, DetJ, GaussWeights, NumGPoints);
+        
+        const GeometryType::IntegrationPointsArrayType &integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_1);
+        NumGPoints = integration_points.size();
+        const auto n_nodes = r_geometry.size();
+
+        r_geometry.ShapeFunctionsIntegrationPointsGradients(ShapeDerivatives, DetJ, GeometryData::GI_GAUSS_1);
+
+        if (ShapeFunctions.size1() != NumGPoints || ShapeFunctions.size2() != n_nodes)
+        {
+            ShapeFunctions.resize(NumGPoints, n_nodes, false);
+        }
+        ShapeFunctions = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+
+        if (GaussWeights.size() != NumGPoints)
+        {
+            GaussWeights.resize(NumGPoints, false);
+        }
+
+        for (unsigned int g = 0; g < NumGPoints; g++)
+        {
+            GaussWeights[g] = DetJ[g] * integration_points[g].Weight();
+        }
 
         for (unsigned int g = 0; g < NumGPoints; g++)
         {
@@ -139,16 +142,9 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalTempGradient(Vector& noda
         const Vector &nodal_grad_row = row(nodal_grad, i);
         r_node.SetValue(NODAL_TEMP_GRADIENT, nodal_grad_row);
     }
-}
 
-template <std::size_t TDim>
-void SimpleErrorCalculatorProcess<TDim>::CalculateNodalError(Vector &nodal_area)
-{
-    // a) Obtain Nodes and Elements from Model Part
-    const int number_nodes = mrThisModelPart.NumberOfNodes();
-    const int number_elements = mrThisModelPart.NumberOfElements();
-	KRATOS_INFO(this->Info()) << "Calculating nodal error for " << number_nodes << " nodes in " << mrThisModelPart.Name() << "\n";
-
+    // e) Call the Nodal Error Function
+    KRATOS_INFO(this->Info()) << "Calculating Nodal Error for " << number_nodes << " nodes in " << mrThisModelPart.Name() << "\n";
     double global_gw = 0.0;
     double global_del_sigma = 0.0;
 
@@ -170,7 +166,27 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalError(Vector &nodal_area)
         Matrix ShapeFunctions;
         ShapeFunctionDerivativesArrayType ShapeDerivatives;
         unsigned int NumGPoints = 0;
-        CalculateGeomData(r_geometry, ShapeFunctions, ShapeDerivatives, DetJ, GaussWeights, NumGPoints);
+        const GeometryType::IntegrationPointsArrayType &integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_1);
+        NumGPoints = integration_points.size();
+        const auto n_nodes = r_geometry.size();
+
+        r_geometry.ShapeFunctionsIntegrationPointsGradients(ShapeDerivatives, DetJ, GeometryData::GI_GAUSS_1);
+
+        if (ShapeFunctions.size1() != NumGPoints || ShapeFunctions.size2() != n_nodes)
+        {
+            ShapeFunctions.resize(NumGPoints, n_nodes, false);
+        }
+        ShapeFunctions = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+
+        if (GaussWeights.size() != NumGPoints)
+        {
+            GaussWeights.resize(NumGPoints, false);
+        }
+
+        for (unsigned int g = 0; g < NumGPoints; g++)
+        {
+            GaussWeights[g] = DetJ[g] * integration_points[g].Weight();
+        }
 
         for (unsigned int g = 0; g < NumGPoints; g++)
         {
@@ -229,7 +245,27 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalError(Vector &nodal_area)
         Matrix ShapeFunctions;
         ShapeFunctionDerivativesArrayType ShapeDerivatives;
         unsigned int NumGPoints = 0;
-        CalculateGeomData(r_geometry, ShapeFunctions, ShapeDerivatives, DetJ, GaussWeights, NumGPoints);
+        const GeometryType::IntegrationPointsArrayType &integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_1);
+        NumGPoints = integration_points.size();
+        const auto n_nodes = r_geometry.size();
+
+        r_geometry.ShapeFunctionsIntegrationPointsGradients(ShapeDerivatives, DetJ, GeometryData::GI_GAUSS_1);
+
+        if (ShapeFunctions.size1() != NumGPoints || ShapeFunctions.size2() != n_nodes)
+        {
+            ShapeFunctions.resize(NumGPoints, n_nodes, false);
+        }
+        ShapeFunctions = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+
+        if (GaussWeights.size() != NumGPoints)
+        {
+            GaussWeights.resize(NumGPoints, false);
+        }
+
+        for (unsigned int g = 0; g < NumGPoints; g++)
+        {
+            GaussWeights[g] = DetJ[g] * integration_points[g].Weight();
+        }
 
         const Vector &Ncontainer = row(ShapeFunctions, 0);
 
@@ -238,6 +274,9 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalError(Vector &nodal_area)
             r_geometry[i_node].GetValue(NODAL_ERROR_PROJ) += Ncontainer[i_node] * element_del_sigma[i_elem] / (global_del_sigma * nodal_area[r_geometry[i_node].Id() - 1]);
         }
     }
+
+    // e) Call the Metric Scalar Function
+    //CalculateMetricScalar();
 }
 
 template <std::size_t TDim>
@@ -263,32 +302,6 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalArea(Vector &nodal_area) 
         {
             nodal_area[r_geometry[i_node].Id() - 1] += r_geometry.Area() / n_nodes;
         }
-    }
-}
-
-template <std::size_t TDim>
-void SimpleErrorCalculatorProcess<TDim>::CalculateGeomData(GeometryType &r_geom, Matrix &ShapeFunctions, ShapeFunctionDerivativesArrayType &ShapeDerivatives, Vector &DetJ, Vector &GaussWeights, unsigned int &NumGPoints)
-{
-    const GeometryType::IntegrationPointsArrayType &integration_points = r_geom.IntegrationPoints(GeometryData::GI_GAUSS_1);
-    NumGPoints = integration_points.size();
-    const auto n_nodes = r_geom.size();
-
-    r_geom.ShapeFunctionsIntegrationPointsGradients(ShapeDerivatives, DetJ, GeometryData::GI_GAUSS_1);
-
-    if (ShapeFunctions.size1() != NumGPoints || ShapeFunctions.size2() != n_nodes)
-    {
-        ShapeFunctions.resize(NumGPoints, n_nodes, false);
-    }
-    ShapeFunctions = r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
-
-    if (GaussWeights.size() != NumGPoints)
-    {
-        GaussWeights.resize(NumGPoints, false);
-    }
-
-    for (unsigned int g = 0; g < NumGPoints; g++)
-    {
-        GaussWeights[g] = DetJ[g] * integration_points[g].Weight();
     }
 }
 
