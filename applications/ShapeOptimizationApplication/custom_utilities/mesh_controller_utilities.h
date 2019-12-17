@@ -150,7 +150,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void CalculateDistanceToVariable( const Variable<array_1d<double,3>> &rInputVariable,
+    void SubtractCoordinatesFromVariable( const Variable<array_1d<double,3>> &rInputVariable,
         const Variable<array_1d<double,3>> &rDistanceVariable )
     {
         for(auto & node_i: mrModelPart.Nodes()){

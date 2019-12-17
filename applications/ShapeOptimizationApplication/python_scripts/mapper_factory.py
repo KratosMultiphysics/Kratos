@@ -28,16 +28,16 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         "improved_integration"       : false,
         "integration_method"         : "gauss_integration",
         "number_of_gauss_points"     : 5,
-        "in_plane"                   : false,
-        "in_plane_settings"          : {}
+        "in_plane_morphing"                   : false,
+        "in_plane_morphing_settings"          : {}
     }""")
 
     mapper_settings.ValidateAndAssignDefaults(default_settings)
 
-    if mapper_settings["in_plane"].GetBool():
+    if mapper_settings["in_plane_morphing"].GetBool():
         extracted_vm_settings = mapper_settings.Clone()
-        extracted_vm_settings["in_plane"].SetBool(False)
-        extracted_vm_settings.RemoveValue("in_plane_settings")
+        extracted_vm_settings["in_plane_morphing"].SetBool(False)
+        extracted_vm_settings.RemoveValue("in_plane_morphing_settings")
         vm_mapper = CreateMapper(origin_model_part, destination_model_part, extracted_vm_settings)
         return in_plane_vertex_morphing_mapper.InPlaneVertexMorphingMapper(origin_model_part, destination_model_part, mapper_settings, vm_mapper)
     elif mapper_settings["matrix_free_filtering"].GetBool():

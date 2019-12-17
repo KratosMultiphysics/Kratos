@@ -120,12 +120,12 @@ public:
     {
         KRATOS_TRY;
 
-        ProjectNodalVariableToDirection(rNodalVariable, NORMALIZED_SURFACE_NORMAL);
+        ProjectNodalVariableOnDirection(rNodalVariable, NORMALIZED_SURFACE_NORMAL);
 
         KRATOS_CATCH("");
     }
 
-    void ProjectNodalVariableToDirection( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNormalVariable)
+    void ProjectNodalVariableOnDirection( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNormalVariable)
     {
         KRATOS_TRY;
 
@@ -141,7 +141,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    void ProjectNodalVariableToTangentOfDirection( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNormalVariable)
+    void ProjectNodalVariableOnTangentPlane( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNormalVariable)
     {
         KRATOS_TRY;
 

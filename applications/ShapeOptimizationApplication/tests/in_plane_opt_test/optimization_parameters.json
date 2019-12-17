@@ -36,8 +36,8 @@
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 4.0,
                 "max_nodes_in_filter_radius" : 10000,
-                "in_plane" : true,
-                "in_plane_settings" : {
+                "in_plane_morphing" : true,
+                "in_plane_morphing_settings" : {
                     "model_import_settings" : {
                         "input_type"     : "mdpa",
                         "input_filename" : "3D_shell_102n"

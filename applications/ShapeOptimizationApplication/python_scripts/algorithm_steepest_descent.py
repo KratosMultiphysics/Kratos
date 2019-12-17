@@ -75,10 +75,9 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
 
         #TODO find the right place to add variables to the mesh for in plane mapping
-        from .mapping import in_plane_vertex_morphing_mapper
-        self.optimization_model_part.AddNodalSolutionStepVariable(in_plane_vertex_morphing_mapper._MAPPED_BACKGROUND_COORDINATE)
-        self.optimization_model_part.AddNodalSolutionStepVariable(in_plane_vertex_morphing_mapper._MAPPED_BACKGROUND_NORMAL)
-        self.optimization_model_part.AddNodalSolutionStepVariable(in_plane_vertex_morphing_mapper._OUT_OF_PLANE_DELTA)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_COORDINATE)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
