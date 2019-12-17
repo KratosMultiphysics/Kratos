@@ -55,7 +55,13 @@ public:
     ///@{
 
     /// Default constructor deleted.
-    BoundingBox() = delete;
+    BoundingBox(){
+        for (int i = 0; i < Dimension; i++)
+        {
+            mMinPoint[i] = 0.00;
+            mMaxPoint[i] = 0.00;
+        }
+    };
 
 	BoundingBox(TPointType const& MinPoint, TPointType const& MaxPoint) :
 		mMinPoint(MinPoint), mMaxPoint(MaxPoint) {}
@@ -68,27 +74,7 @@ public:
     /// Construction with container of points.
 	template<typename TIteratorType>
 	BoundingBox(TIteratorType const& PointsBegin, TIteratorType const& PointsEnd) {
-		if (PointsBegin == PointsEnd) {
-			for (int i = 0; i < Dimension; i++)
-			{
-				mMinPoint[i] = 0.00;
-				mMaxPoint[i] = 0.00;
-			}
-			return;
-		}
-
-		for (int i = 0; i < Dimension; i++)
-		{
-			mMinPoint[i] = (*PointsBegin)[i];
-			mMaxPoint[i] = (*PointsBegin)[i];
-		}
-
-		for (TIteratorType Point = PointsBegin; Point != PointsEnd; Point++)
-			for (int i = 0; i < Dimension; i++)
-			{
-				if ((*Point)[i] < mMinPoint[i]) mMinPoint[i] = (*Point)[i];
-				if ((*Point)[i] > mMaxPoint[i]) mMaxPoint[i] = (*Point)[i];
-			}
+        Set(PointsBegin, PointsEnd);
 	}
 
     /// Destructor.
@@ -110,6 +96,32 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    template<typename TIteratorType>
+    void Set(TIteratorType const& PointsBegin, TIteratorType const& PointsEnd){
+        if (PointsBegin == PointsEnd) {
+            for (int i = 0; i < Dimension; i++)
+            {
+                mMinPoint[i] = 0.00;
+                mMaxPoint[i] = 0.00;
+            }
+            return;
+        }
+
+        for (int i = 0; i < Dimension; i++)
+        {
+            mMinPoint[i] = (*PointsBegin)[i];
+            mMaxPoint[i] = (*PointsBegin)[i];
+        }
+
+        for (TIteratorType Point = PointsBegin; Point != PointsEnd; Point++){
+            for (int i = 0; i < Dimension; i++)
+            {
+                if ((*Point)[i] < mMinPoint[i]) mMinPoint[i] = (*Point)[i];
+                if ((*Point)[i] > mMaxPoint[i]) mMaxPoint[i] = (*Point)[i];
+            }
+        }
+    }
 
 
     ///@}
