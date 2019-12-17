@@ -1,12 +1,14 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//  KRATOS  ____       _               _
+//         / ___|  ___(_)___ _ __ ___ (_) ___
+//         \___ \ / _ \ / __| '_ ` _ \| |/ __|
+//          ___) |  __/ \__ \ | | | | | | (__
+//         |____/ \___|_|___/_| |_| |_|_|\___|
 //
 //  License:     BSD License
 //           license: structural_mechanics_application/license.txt
 //
 //  Main authors: Mahmoud Zidan
+//    Co authors: Long Chen
 //
 
 // System includes
@@ -17,8 +19,8 @@
 // Project includes
 #include "custom_elements/fiber_beam_column_element_3D2N.hpp"
 #include "includes/define.h"
-#include "structural_mechanics_application_variables.h"
-#include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "seismic_application_variables.h"
+// #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "includes/checks.h"
 
 #include "custom_constitutive/uniaxial_menegotto_pinto.hpp"
@@ -268,7 +270,7 @@ void FiberBeamColumnElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurren
         } else {
             mDeformationResiduals = ZeroVector(msLocalSize);
             // integrate over sections
-            const double jacobian = 0.5 * StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+            double jacobian = GetGeometry().DeterminantOfJacobian(0, GetIntegrationMethod());
             for (FiberBeamColumnSection& r_section : mSections) {
                 mDeformationResiduals += r_section.GetGlobalDeformationResiduals() * jacobian * r_section.GetWeight();
             }
@@ -347,9 +349,9 @@ void FiberBeamColumnElement3D2N::CalculateElementLocalStiffnessMatrix()
     // allocate memory
     Matrix local_flexibility = ZeroMatrix(msLocalSize, msLocalSize);
     // integrate over sections to get flexibility matrix
-    const double reference_length = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    double jacobian = GetGeometry().DeterminantOfJacobian(0, GetIntegrationMethod());
     for (FiberBeamColumnSection& r_section : mSections) {
-        local_flexibility += r_section.GetGlobalFlexibilityMatrix() * reference_length/2.0 * r_section.GetWeight();
+        local_flexibility += r_section.GetGlobalFlexibilityMatrix() * jacobian * r_section.GetWeight();
     }
     // invert to get stiffness matrix
     double det_flexibility = MathUtils<double>::Det(local_flexibility);
@@ -371,7 +373,7 @@ void FiberBeamColumnElement3D2N::CalculateTransformationMatrix()
 {
     KRATOS_TRY
     Matrix local_cs = CreateInitialLocalCoordSys();
-    double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double L0 = CalculateReferenceLength();
 
     // forces 1st node
     for (int i = 0; i < 3; ++i ) {
@@ -464,6 +466,20 @@ Matrix FiberBeamColumnElement3D2N::CreateInitialLocalCoordSys() const
     }
 
     return local_cs;
+    KRATOS_CATCH("")
+}
+
+double FiberBeamColumnElement3D2N::CalculateReferenceLength() const
+{
+    KRATOS_TRY
+
+    const array_1d<double, 3> delta_pos =
+        GetGeometry()[1].GetInitialPosition().Coordinates() -
+        GetGeometry()[0].GetInitialPosition().Coordinates();
+
+    return std::sqrt((delta_pos[0] * delta_pos[0]) +
+                     (delta_pos[1] * delta_pos[1]));
+
     KRATOS_CATCH("")
 }
 

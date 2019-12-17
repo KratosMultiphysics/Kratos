@@ -1,7 +1,8 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//  KRATOS  ____       _               _
+//         / ___|  ___(_)___ _ __ ___ (_) ___
+//         \___ \ / _ \ / __| '_ ` _ \| |/ __|
+//          ___) |  __/ \__ \ | | | | | | (__
+//         |____/ \___|_|___/_| |_| |_|_|\___|
 //
 //  License:     BSD License
 //  license:     structural_mechanics_application/license.txt
@@ -9,8 +10,8 @@
 //  Main authors: Mahmoud Zidan
 //
 
-#if !defined(KRATOS_UNIAXIAL_KENT_PARK_H_INCLUDED)
-#define  KRATOS_UNIAXIAL_KENT_PARK_H_INCLUDED
+#if !defined(KRATOS_UNIAXIAL_MENGOTTO_PINTO_H_INCLUDED)
+#define  KRATOS_UNIAXIAL_MENGOTTO_PINTO_H_INCLUDED
 
 // System includes
 
@@ -45,17 +46,18 @@ namespace Kratos
 ///@{
 
 /**
- * @class UniaxialKentParkMaterialLaw
+ * @class UniaxialMenegottoPintoMaterialLaw
  *
- * @brief A constitutive model for the concrete uniaxial fibers of the beam-column element.
- * @details The constitutive law is a Kent-Park material law
- *          [D. C. Kent. Inelastic Behavior of Reinforced Concrete Members with Cyclic Loading.
- *           PhD thesis, University of Canterbury, 1969.]
+ * @brief A constitutive model for the steel uniaxial fibers of the beam-column element.
+ * @details The constitutive law is a Menegotto-Pinto material law
+ *          [M. Menegotto and P. E. Pinto. Method of Analysis for Cyclic Loaded R. C. Plane Frame
+             Including Changes in Geometry and Non-Elastic Behaviour of Elements under Combined
+             Normal Force and Bending, volume 11, pages 15–22. 1973.]
  *
  * @author Mahmoud Zidan
  */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) UniaxialKentParkMaterialLaw
+class KRATOS_API(SEISMIC_APPLICATION) UniaxialMenegottoPintoMaterialLaw
     : public ConstitutiveLaw
 {
 
@@ -72,7 +74,7 @@ public:
     ///@name Pointer Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(UniaxialKentParkMaterialLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(UniaxialMenegottoPintoMaterialLaw);
 
     ///@}
     ///@name Life Cycle
@@ -81,7 +83,7 @@ public:
     /**
      * Default constructor
      */
-    UniaxialKentParkMaterialLaw() = default;
+    UniaxialMenegottoPintoMaterialLaw() = default;
 
     /**
      * @return pointer to the constitutive law
@@ -91,21 +93,21 @@ public:
     /**
      * Copy constructor
      */
-    UniaxialKentParkMaterialLaw(const UniaxialKentParkMaterialLaw& rOther) = default;
+    UniaxialMenegottoPintoMaterialLaw(const UniaxialMenegottoPintoMaterialLaw& rOther) = default;
 
     /**
      * Destructor
      */
-    ~UniaxialKentParkMaterialLaw() override = default;
+    ~UniaxialMenegottoPintoMaterialLaw() override = default;
 
     ///@}
     ///@name Operators
     ///@{
 
     /**
-     * Assignment Operator
+     * Assignment operator
      */
-    UniaxialKentParkMaterialLaw& operator=(const UniaxialKentParkMaterialLaw& rOther) = default;
+    UniaxialMenegottoPintoMaterialLaw& operator=(const UniaxialMenegottoPintoMaterialLaw& rOther) = default;
 
     ///@}
     ///@name Operations
@@ -200,17 +202,27 @@ private:
 
     // == history variables
 
-    // material history variables
-    double mStrainR        = 0.0;  // strain reversal
-    double mStrainP        = 0.0;  // plastic strain
-    double mUnloadSlope    = 0.0;  // unload slope
-    double mTangentModulus = 0.0;  // tangent modulus
+    double mTangentModulus = 0.0;    // tangent modulus
 
-    // material converged history variables
-    double mConvergedStress         = 0.0;
-    double mConvergedStrain         = 0.0;
-    double mConvergedStrainR        = 0.0;
-    double mConvergedStrainP        = 0.0;
+    unsigned int mLoadingIndex = 0;  // loading index (0->initial 1->increasing 2->decreasing 3->unchanged)
+    double mStrain0 = 0.0;           // strain 0
+    double mStress0 = 0.0;           // stress 0
+    double mStrainR = 0.0;           // strain reversal
+    double mStressR = 0.0;           // stress reversal
+    double mStrainPlastic = 0.0;     // plastic strain
+    double mStrainMax = 0.0;         // max strain
+    double mStrainMin = 0.0;         // min strain
+
+    unsigned int mConvergedLoadingIndex = 0;
+    double mConvergedStrain0 = 0.0;
+    double mConvergedStress0 = 0.0;
+    double mConvergedStrainR = 0.0;
+    double mConvergedStressR = 0.0;
+    double mConvergedStrainPlastic = 0.0;
+    double mConvergedStrainMax = 0.0;
+    double mConvergedStrainMin = 0.0;
+    double mConvergedStrain = 0.0;
+    double mConvergedStress = 0.0;
 
     ///@}
     ///@name Private Operators
@@ -221,10 +233,7 @@ private:
     ///@{
 
     void CalculateStressResponsePK2 (Parameters& rValues, Vector& rStrainVector, Vector& rStressVector);
-    void CalculateConstitutiveMatrixPK2 (Parameters& rValues, Matrix& rConstitutiveMatrix);
-    void Reload(Parameters& rValues, Vector& rStrainVector, Vector& rStressVector);
-    void Envelope(Parameters& rValues, Vector& rStrainVector, Vector& rStressVector);
-    void Unload(Parameters& rValues, Vector& rStrainVector, Vector& rStressVector);
+    void CalculateConstitutiveMatrix (Parameters& rValues, Matrix& rConstitutiveMatrix);
 
     ///@}
     ///@name Serialization
@@ -248,10 +257,10 @@ private:
 
     ///@}
 
-};  // class UniaxialKentParkMaterialLaw
+};  // class UniaxialMenegottoPintoMaterialLaw
 
 /// output stream
-inline std::ostream & operator <<(std::ostream& rOStream, const UniaxialKentParkMaterialLaw& rThis)
+inline std::ostream & operator <<(std::ostream& rOStream, const UniaxialMenegottoPintoMaterialLaw& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;
@@ -261,4 +270,4 @@ inline std::ostream & operator <<(std::ostream& rOStream, const UniaxialKentPark
 
 } // namespace Kratos
 
-#endif  // #if !defined(KRATOS_UNIAXIAL_KENT_PARK_H_INCLUDED)
+#endif  // #if !defined(KRATOS_UNIAXIAL_MENGOTTO_PINTO_H_INCLUDED)

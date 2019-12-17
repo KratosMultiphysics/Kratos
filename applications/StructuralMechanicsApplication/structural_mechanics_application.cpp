@@ -163,8 +163,6 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mAdjointFiniteDifferencingSmallDisplacementElement3D6N(0, Element::GeometryType::Pointer(new Prism3D6<NodeType >(Element::GeometryType::PointsArrayType(6)))),
       mAdjointFiniteDifferencingSmallDisplacementElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
       mAdjointFiniteDifferenceSpringDamperElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
-      // Adding the fiber beam-column element
-      mFiberBeamColumnElement3D2N(0, Element::GeometryType::Pointer(new LineGaussLobatto3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
 
       /* CONDITIONS */
       // Adding point load conditions
@@ -335,15 +333,6 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(NODAL_DISPLACEMENT_DAMPING)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NODAL_ROTATION_DAMPING)
 
-    // Fiber Beam-Column Element Variables
-    KRATOS_REGISTER_VARIABLE(ELEMENT_LOOP_TOLERANCE)
-    KRATOS_REGISTER_VARIABLE(MAX_EQUILIBRIUM_ITERATIONS)
-    KRATOS_REGISTER_VARIABLE(NUMBER_OF_SECTIONS)
-    KRATOS_REGISTER_VARIABLE(CONCRETE_FIBERS_DATA)
-    KRATOS_REGISTER_VARIABLE(STEEL_FIBERS_DATA)
-    KRATOS_REGISTER_VARIABLE(BEAM_WIDTH)
-    KRATOS_REGISTER_VARIABLE(BEAM_HEIGHT)
-
     // CONDITIONS
     /* Moment condition */
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_MOMENT)
@@ -443,17 +432,6 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // Some variables related with SP
     KRATOS_REGISTER_VARIABLE(SERIAL_PARALLEL_EQUILIBRIUM_TOLERANCE)
-
-    // Fiber Beam-Column Constitutive parameters
-    KRATOS_REGISTER_VARIABLE(CONCRETE_YIELD_STRENGTH)
-    KRATOS_REGISTER_VARIABLE(CONCRETE_YIELD_STRAIN)
-    KRATOS_REGISTER_VARIABLE(CONCRETE_CRUSHING_STRAIN)
-    KRATOS_REGISTER_VARIABLE(STEEL_YOUNGS_MODULUS)
-    KRATOS_REGISTER_VARIABLE(STEEL_HARDENING_RATIO)
-    KRATOS_REGISTER_VARIABLE(STEEL_TRANSITION_VARIABLE)
-    KRATOS_REGISTER_VARIABLE(STEEL_YIELD_STRENGTH)
-    KRATOS_REGISTER_VARIABLE(STEEL_A1_COEFFICIENT)
-    KRATOS_REGISTER_VARIABLE(STEEL_A2_COEFFICIENT)
 
     // D+D- Damage Constitutive laws variables
     KRATOS_REGISTER_VARIABLE(DAMAGE_TENSION)
@@ -637,9 +615,6 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingSmallDisplacementElement3D6N", mAdjointFiniteDifferencingSmallDisplacementElement3D6N)
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingSmallDisplacementElement3D8N", mAdjointFiniteDifferencingSmallDisplacementElement3D8N)
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceSpringDamperElement3D2N", mAdjointFiniteDifferenceSpringDamperElement3D2N)
-
-    // Register the fiber beam-column element
-    KRATOS_REGISTER_ELEMENT("FiberBeamColumnElement3D2N", mFiberBeamColumnElement3D2N)
 
     // Register the conditions
     // Point loads

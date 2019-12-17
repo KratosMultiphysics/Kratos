@@ -1,7 +1,8 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//  KRATOS  ____       _               _
+//         / ___|  ___(_)___ _ __ ___ (_) ___
+//         \___ \ / _ \ / __| '_ ` _ \| |/ __|
+//          ___) |  __/ \__ \ | | | | | | (__
+//         |____/ \___|_|___/_| |_| |_|_|\___|
 //
 //  License:     BSD License
 //  license:     structural_mechanics_application/license.txt
@@ -17,7 +18,7 @@
 // Project includes
 #include "includes/properties.h"
 #include "custom_constitutive/uniaxial_kent_park.hpp"
-#include "structural_mechanics_application_variables.h"
+#include "seismic_application_variables.h"
 
 namespace Kratos {
 
