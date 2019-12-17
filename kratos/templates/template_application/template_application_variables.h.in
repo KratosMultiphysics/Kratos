@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/variable.h" //FIXME: rename to "containers/variable.h" ??
+#include "includes/variable.h"
 
 namespace Kratos
 {
