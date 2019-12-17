@@ -15,6 +15,7 @@ try:
     SpacialMapperFactory = KMA.MapperFactory
 except ImportError:
     SpacialMapperFactory = None
+from ..custom_ios.wrl_io import WrlIO
 
 # TODO temporary aliases for some variables specific for in plane mapping
 # on background mesh
@@ -94,6 +95,7 @@ class InPlaneVertexMorphingMapper():
         background_geometry_utilities.ComputeUnitSurfaceNormals()
         self.spacial_mapper = SpacialMapperFactory.CreateMapper(
             self.background_mesh, self.destination_model_part, in_plane_settings["spacial_mapper_settings"])
+
         KSO.MeshControllerUtilities(self.background_mesh).WriteCoordinatesToVariable(_BACKGROUND_COORDINATE)
 
     def Update(self):
