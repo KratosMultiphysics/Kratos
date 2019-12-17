@@ -100,25 +100,29 @@ public:
     template<typename TIteratorType>
     void Set(TIteratorType const& PointsBegin, TIteratorType const& PointsEnd){
         if (PointsBegin == PointsEnd) {
-            for (int i = 0; i < Dimension; i++)
-            {
+            for (int i = 0; i < Dimension; i++) {
                 mMinPoint[i] = 0.00;
                 mMaxPoint[i] = 0.00;
             }
             return;
         }
 
-        for (int i = 0; i < Dimension; i++)
-        {
+        for (int i = 0; i < Dimension; i++) {
             mMinPoint[i] = (*PointsBegin)[i];
             mMaxPoint[i] = (*PointsBegin)[i];
         }
 
-        for (TIteratorType Point = PointsBegin; Point != PointsEnd; Point++){
+        Extend(PointsBegin, PointsEnd);
+    }
+
+    template<typename TIteratorType>
+    void Extend(TIteratorType const& PointsBegin, TIteratorType const& PointsEnd){
+
+        for (TIteratorType i_point = PointsBegin; i_point != PointsEnd; i_point++){
             for (int i = 0; i < Dimension; i++)
             {
-                if ((*Point)[i] < mMinPoint[i]) mMinPoint[i] = (*Point)[i];
-                if ((*Point)[i] > mMaxPoint[i]) mMaxPoint[i] = (*Point)[i];
+                if ((*i_point)[i] < mMinPoint[i]) mMinPoint[i] = (*i_point)[i];
+                if ((*i_point)[i] > mMaxPoint[i]) mMaxPoint[i] = (*i_point)[i];
             }
         }
     }
