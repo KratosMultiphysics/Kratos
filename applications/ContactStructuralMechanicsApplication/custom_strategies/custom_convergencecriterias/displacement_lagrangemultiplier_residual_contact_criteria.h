@@ -215,23 +215,29 @@ public:
             std::size_t dof_id = 0;
             TDataType residual_dof_value = 0.0;
 
+            // The number of active dofs
+            const std::size_t number_active_dofs = rb.size();
+
             // Loop over Dofs
-            #pragma omp parallel for reduction(+:disp_residual_solution_norm,lm_residual_solution_norm,disp_dof_num,lm_dof_num,dof_id,residual_dof_value)
+            #pragma omp parallel for firstprivate(dof_id, residual_dof_value) reduction(+:disp_residual_solution_norm,lm_residual_solution_norm,disp_dof_num,lm_dof_num)
             for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
                 auto it_dof = it_dof_begin + i;
 
                 dof_id = it_dof->EquationId();
 
-                if (mActiveDofs[dof_id]) {
-                    residual_dof_value = rb[dof_id];
+                // Check dof id is solved
+                if (dof_id < number_active_dofs) {
+                    if (mActiveDofs[dof_id]) {
+                        residual_dof_value = rb[dof_id];
 
-                    const auto curr_var = it_dof->GetVariable();
-                    if ((curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
-                        lm_residual_solution_norm += residual_dof_value * residual_dof_value;
-                        lm_dof_num++;
-                    } else {
-                        disp_residual_solution_norm += residual_dof_value * residual_dof_value;
-                        disp_dof_num++;
+                        const auto& r_curr_var = it_dof->GetVariable();
+                        if ((r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (r_curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
+                            lm_residual_solution_norm += residual_dof_value * residual_dof_value;
+                            ++lm_dof_num;
+                        } else {
+                            disp_residual_solution_norm += residual_dof_value * residual_dof_value;
+                            ++disp_dof_num;
+                        }
                     }
                 }
             }

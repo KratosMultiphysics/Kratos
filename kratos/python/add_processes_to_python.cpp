@@ -56,10 +56,12 @@
 #include "processes/simple_mortar_mapper_process.h"
 #include "processes/simple_mortar_mapper_wrapper_process.h"
 #include "processes/skin_detection_process.h"
+#include "processes/sub_model_part_skin_detection_process.h"
 #include "processes/apply_periodic_boundary_condition_process.h"
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
 #include "processes/voxel_mesh_generator_process.h"
 #include "processes/coarse_voxel_mesh_generator_process.h"
+#include "processes/time_averaging_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -122,6 +124,7 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<Process, Process::Pointer>(m,"Process")
     .def(py::init<>())
+    .def("Create",&Process::Create)
     .def("Execute",&Process::Execute)
     .def("ExecuteInitialize",&Process::ExecuteInitialize)
     .def("ExecuteBeforeSolutionLoop",&Process::ExecuteBeforeSolutionLoop)
@@ -585,6 +588,16 @@ void  AddProcessesToPython(pybind11::module& m)
         .def(py::init< ModelPart&, Parameters >())
         ;
 
+    py::class_<SubModelPartSkinDetectionProcess<2>, SubModelPartSkinDetectionProcess<2>::Pointer, SkinDetectionProcess<2>>
+    (m, "SubModelPartSkinDetectionProcess2D")
+    .def(py::init< ModelPart&, Parameters >())
+    ;
+
+    py::class_<SubModelPartSkinDetectionProcess<3>, SubModelPartSkinDetectionProcess<3>::Pointer, SkinDetectionProcess<3>>
+    (m, "SubModelPartSkinDetectionProcess3D")
+    .def(py::init< ModelPart&, Parameters >())
+    ;
+
     py::class_<ApplyPeriodicConditionProcess, ApplyPeriodicConditionProcess::Pointer, Process>(m,"ApplyPeriodicConditionProcess")
             .def(py::init<ModelPart&,ModelPart&, Parameters>())
     ;
@@ -605,6 +618,9 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<std::vector<double> const&, std::vector<double> const&, std::vector<double> const&, ModelPart&, ModelPart&, Parameters&>()) 
     ;
 
+    py::class_<TimeAveragingProcess, TimeAveragingProcess::Pointer, Process>(m, "TimeAveragingProcess")
+    .def(py::init<Model&, Parameters>())
+    ;
 }
 
 }  // namespace Python.

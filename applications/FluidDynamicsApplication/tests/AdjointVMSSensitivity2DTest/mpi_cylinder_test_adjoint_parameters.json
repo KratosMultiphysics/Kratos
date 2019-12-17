@@ -49,6 +49,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "AdjointVMSSensitivity2DTest/cylinder_test"
         },
+        "material_import_settings": {
+            "materials_filename": "AdjointVMSSensitivity2DTest/cylinder_test_materials.json"
+        },
         "linear_solver_settings" : {
             "solver_type" : "multi_level"
         },

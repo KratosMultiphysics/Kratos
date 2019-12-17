@@ -140,7 +140,7 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
     dt = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
     #if(mpi.rank == 0 ):
-    self.strain += -100*self.length_correction_factor*1.0*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenLength
+    self.strain += -100.0*self.length_correction_factor*1.0*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenLength
 
     if( self.parameters.TestType =="BTS"):
 
@@ -156,7 +156,7 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
         total_force_bts = reduce(lambda x, y: x + y, total_force_bts_gather)
 
         self.total_stress_bts = 2.0*total_force_bts/(3.14159*self.parameters.SpecimenLength*self.parameters.SpecimenDiameter*1e6)
-        self.strain_bts += -100*2*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenDiameter
+        self.strain_bts += -100.0*2*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenDiameter
 
     else:
 

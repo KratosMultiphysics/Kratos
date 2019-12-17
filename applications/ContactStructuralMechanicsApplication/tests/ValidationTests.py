@@ -18,6 +18,9 @@ class ALMIroningDieTestContact(TestFactory):
 class LargeDisplacementPatchTestHexa(TestFactory):
     file_name = "mesh_tying_test/3D_contact_patch_test_large_disp_hexa"
 
+class MeshTyingValidationTest(TestFactory):
+    file_name = "mesh_tying_test/mesh_tying_validation_test"
+
 class ALMLargeDisplacementPatchTestTetra(TestFactory):
     file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_test_large_disp_tetra"
 
@@ -69,6 +72,9 @@ class ALMMeshMovingNotMatchingTestFrictionalPureSlipContact(TestFactory):
 
 class ALMHertzTestFrictionalContact(TestFactory):
     file_name = "ALM_frictional_contact_test_2D/hertz_complete_test"
+
+class ALMBlockTestFrictionalContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_3D/friction_block_test"
 
 class MultiLayerContactTest(TestFactory):
     file_name = "mpc_contact_tests/3D_multi_contact_test"

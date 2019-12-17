@@ -257,7 +257,10 @@ namespace Kratos
 
     /**
      * @brief This is a hasher for indexed objects (pointer)
+     * @param TpIndexedObject Pointer type to indexed object
+     * @note Must be tenmplated to take into account the shared, intrussive,etc... pointers
      */
+    template<class TpIndexedObject>
     struct IndexedObjecPointertHasher
     {
         /**
@@ -265,7 +268,7 @@ namespace Kratos
          * @param pIndexedObject The indexed object pointer to be hashed
          * @return The corresponding hash
          */
-        HashType operator()(const IndexedObject::Pointer pIndexedObject) const
+        HashType operator()(const TpIndexedObject pIndexedObject) const
         {
             return pIndexedObject->Id();
         }
@@ -273,7 +276,10 @@ namespace Kratos
 
     /**
      * @brief This is a key comparer between two indexed objects (pointer)
+     * @param TpIndexedObject Pointer type to indexed object
+     * @note Must be tenmplated to take into account the shared, intrussive,etc... pointers
      */
+    template<class TpIndexedObject>
     struct IndexedObjectPointerComparator
     {
         /**
@@ -282,8 +288,8 @@ namespace Kratos
          * @param pSecond The second class to be compared
          */
         bool operator()(
-            const IndexedObject::Pointer pFirst,
-            const IndexedObject::Pointer pSecond
+            const TpIndexedObject pFirst,
+            const TpIndexedObject pSecond
             ) const
         {
             return pFirst->Id() == pSecond->Id();

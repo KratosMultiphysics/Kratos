@@ -101,6 +101,16 @@ void AdjointPotentialWallCondition<TPrimalCondition>::CalculateLeftHandSide(Matr
 }
 
 template <class TPrimalCondition>
+void AdjointPotentialWallCondition<TPrimalCondition>::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
+                                        Matrix& rOutput,
+                                        const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rOutput.size1() != TNumNodes)
+        rOutput.resize(TNumNodes, TNumNodes, false);
+    rOutput.clear();
+}
+
+template <class TPrimalCondition>
 void AdjointPotentialWallCondition<TPrimalCondition>::CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
                                         Matrix& rOutput,
                                         const ProcessInfo& rCurrentProcessInfo)

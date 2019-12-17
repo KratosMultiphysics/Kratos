@@ -58,7 +58,7 @@ public:
 
     virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const override;
 
-    virtual void Initialize() override;
+    virtual void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info ) override;
     virtual void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& r_process_info) override;
 

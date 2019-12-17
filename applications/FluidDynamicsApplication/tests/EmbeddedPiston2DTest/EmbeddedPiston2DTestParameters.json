@@ -46,6 +46,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "embedded_piston_2d_test"
         },
+        "material_import_settings": {
+            "materials_filename": "EmbeddedPiston2DTestMaterials.json"
+        },
         "echo_level"                  : 0,
         "compute_reactions"           : false,
         "maximum_iterations"          : 10,

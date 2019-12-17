@@ -172,7 +172,8 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     const bool AxisymmetricCase,
     const bool ComputeNodalArea,
     const bool ComputeDualLM,
-    Variable<double>& rAreaVariable
+    Variable<double>& rAreaVariable,
+    const bool ConsiderObjetiveFormulation
     )
 {
     KRATOS_TRY;
@@ -286,7 +287,8 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
         // The estimation of the slip time derivative
         BoundedMatrix<double, TNumNodes, TDim> slip_time_derivative;
-        const bool objective_formulation = pCondition->IsDefined(MODIFIED) ? pCondition->IsNot(MODIFIED) : true;
+        const bool objective_formulation = ConsiderObjetiveFormulation ? true : pCondition->IsDefined(MODIFIED) ? pCondition->IsNot(MODIFIED) : true;
+
         if (objective_formulation) {
             // Delta mortar condition matrices - DOperator and MOperator
             const BoundedMatrix<double, TNumNodes, TNumNodes> DeltaDOperator = DOperator - rPreviousMortarOperators.DOperator;

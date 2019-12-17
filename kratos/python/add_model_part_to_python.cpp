@@ -209,44 +209,64 @@ void ModelPartAddProperties2(ModelPart& rModelPart, Properties::Pointer pNewProp
     rModelPart.AddProperties(pNewProperties, ThisIndex);
 }
 
-bool ModelPartHasPropertiesById1(const ModelPart& rModelPart, const unsigned int PropertiesId, const unsigned int MeshId)
+bool ModelPartHasProperties1(const ModelPart& rModelPart, const unsigned int PropertiesId, const unsigned int MeshId)
 {
     return rModelPart.HasProperties(PropertiesId, MeshId);
 }
 
-bool ModelPartHasPropertiesById2(const ModelPart& rModelPart, const unsigned int PropertiesId)
+bool ModelPartHasProperties2(const ModelPart& rModelPart, const unsigned int PropertiesId)
 {
     return rModelPart.HasProperties(PropertiesId, 0);
 }
 
-bool ModelPartRecursivelyHasPropertiesById1(const ModelPart& rModelPart, const unsigned int PropertiesId, const unsigned int MeshId)
+bool ModelPartHasSubProperties1(const ModelPart& rModelPart, const std::string& rAdress, const unsigned int MeshId)
+{
+    return rModelPart.HasProperties(rAdress, MeshId);
+}
+
+bool ModelPartHasSubProperties2(const ModelPart& rModelPart, const std::string& rAdress)
+{
+    return rModelPart.HasProperties(rAdress, 0);
+}
+
+bool ModelPartRecursivelyHasProperties1(const ModelPart& rModelPart, const unsigned int PropertiesId, const unsigned int MeshId)
 {
     return rModelPart.RecursivelyHasProperties(PropertiesId, MeshId);
 }
 
-bool ModelPartRecursivelyHasPropertiesById2(const ModelPart& rModelPart, const unsigned int PropertiesId)
+bool ModelPartRecursivelyHasProperties2(const ModelPart& rModelPart, const unsigned int PropertiesId)
 {
     return rModelPart.RecursivelyHasProperties(PropertiesId, 0);
 }
 
-Properties::Pointer ModelPartCreateNewPropertiesById1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
+Properties::Pointer ModelPartCreateNewProperties1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
 {
     return rModelPart.CreateNewProperties(PropertiesId, MeshId);
 }
 
-Properties::Pointer ModelPartCreateNewPropertiesById2(ModelPart& rModelPart, unsigned int PropertiesId)
+Properties::Pointer ModelPartCreateNewProperties2(ModelPart& rModelPart, unsigned int PropertiesId)
 {
     return rModelPart.CreateNewProperties(PropertiesId, 0);
 }
 
-Properties::Pointer ModelPartGetPropertiesById1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
+Properties::Pointer ModelPartGetPropertiesDirect1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
 {
     return rModelPart.pGetProperties(PropertiesId, MeshId);
 }
 
-Properties::Pointer ModelPartGetPropertiesById2(ModelPart& rModelPart, unsigned int PropertiesId)
+Properties::Pointer ModelPartGetPropertiesDirect2(ModelPart& rModelPart, unsigned int PropertiesId)
 {
     return rModelPart.pGetProperties(PropertiesId);
+}
+
+Properties::Pointer ModelPartGetSubProperties1(ModelPart& rModelPart, const std::string& rAdress, unsigned int MeshId)
+{
+    return rModelPart.pGetProperties(rAdress, MeshId);
+}
+
+Properties::Pointer ModelPartSubProperties2(ModelPart& rModelPart, const std::string& rAdress)
+{
+    return rModelPart.pGetProperties(rAdress);
 }
 
 ModelPart::PropertiesContainerType::Pointer ModelPartGetProperties1(ModelPart& rModelPart)
@@ -800,6 +820,7 @@ void AddModelPartToPython(pybind11::module& m)
 
     py::class_<ModelPart, Kratos::shared_ptr<ModelPart>, DataValueContainer, Flags >(m,"ModelPart")
         .def_property("Name", GetModelPartName, SetModelPartName)
+        .def("FullName", &ModelPart::FullName)
         //  .def_property("ProcessInfo", GetProcessInfo, SetProcessInfo)
         .def_property("ProcessInfo", pointer_to_get_process_info, pointer_to_set_process_info)
         .def("CreateSolutionStep", &ModelPart::CreateSolutionStep)
@@ -845,14 +866,16 @@ void AddModelPartToPython(pybind11::module& m)
         .def("NumberOfTables", &ModelPart::NumberOfTables)
         .def("AddTable", &ModelPart::AddTable)
         .def("GetTable", &ModelPart::pGetTable)
-        .def("HasProperties", ModelPartHasPropertiesById1)
-        .def("HasProperties", ModelPartHasPropertiesById2)
-        .def("RecursivelyHasProperties", ModelPartRecursivelyHasPropertiesById1)
-        .def("RecursivelyHasProperties", ModelPartRecursivelyHasPropertiesById2)
-        .def("CreateNewProperties", ModelPartCreateNewPropertiesById1)
-        .def("CreateNewProperties", ModelPartCreateNewPropertiesById2)
-        .def("GetProperties", ModelPartGetPropertiesById1)
-//         .def("GetProperties", ModelPartGetPropertiesById2) // NOTE: This method conflicts with the other GetProperties methods
+        .def("HasProperties", ModelPartHasProperties1)
+        .def("HasProperties", ModelPartHasProperties2)
+        .def("HasProperties", ModelPartHasSubProperties1)
+        .def("HasProperties", ModelPartHasSubProperties2)
+        .def("RecursivelyHasProperties", ModelPartRecursivelyHasProperties1)
+        .def("RecursivelyHasProperties", ModelPartRecursivelyHasProperties2)
+        .def("CreateNewProperties", ModelPartCreateNewProperties1)
+        .def("CreateNewProperties", ModelPartCreateNewProperties2)
+        .def("GetProperties", ModelPartGetPropertiesDirect1)
+        .def("GetProperties", ModelPartGetSubProperties1)
         .def_property("Properties", ModelPartGetProperties1, ModelPartSetProperties1)
         .def("AddProperties", ModelPartAddProperties1)
         .def("AddProperties", ModelPartAddProperties2)
