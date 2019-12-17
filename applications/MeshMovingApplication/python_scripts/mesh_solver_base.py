@@ -43,12 +43,17 @@ class MeshSolverBase(PythonSolver):
 
         self.mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
-        # Doing this after the solver-settings have been validated in the base Python solver
-        self._SelectMeshVelocityCalculationSettings()
-
         # If required, create the time discretization helper
         if self.settings["calculate_mesh_velocity"].GetBool():
-            self._CreateTimeIntegratorHelper()
+            # BDF2 was the default in the MeshSolver-Strategies
+            default_settings = KratosMultiphysics.Parameters("""{
+                "time_scheme" : "bdf2",
+                "alpha_m": 0.0,
+                "alpha_f": 0.0
+            }""")
+
+            self.settings["mesh_velocity_calculation"].ValidateAndAssignDefaults(default_settings)
+            self.__CreateTimeIntegratorHelper()
 
         KratosMultiphysics.Logger.PrintInfo("::[MeshSolverBase]:: Construction finished")
 
@@ -170,7 +175,7 @@ class MeshSolverBase(PythonSolver):
         self.mesh_model_part.GetCommunicator().SynchronizeVariable(KratosMultiphysics.MESH_DISPLACEMENT)
         KMM.MoveMesh(self.mesh_model_part.Nodes)
 
-        # If required, calculate the MESH_VELOCITY. Deactivated by default.
+        # If required, calculate the MESH_VELOCITY.
         if self.settings["calculate_mesh_velocity"].GetBool():
             KMM.CalculateMeshVelocities(self.mesh_model_part, self.time_int_helper)
 
@@ -230,21 +235,7 @@ class MeshSolverBase(PythonSolver):
             self.mesh_model_part.CloneTimeStep(time)
         self.mesh_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
-    def _SelectMeshVelocityCalculationSettings(self):
-        '''Specifying the time-scheme used to calculate the mesh-velocity
-        It can be overridden in derived classes
-        '''
-
-        # BDF2 was the default in the MeshSolver-Strategies
-        default_settings = KratosMultiphysics.Parameters("""{
-            "time_scheme" : "bdf2",
-            "alpha_m": 0.0,
-            "alpha_f": 0.0
-        }""")
-
-        self.settings["mesh_velocity_calculation"].ValidateAndAssignDefaults(default_settings)
-
-    def _CreateTimeIntegratorHelper(self):
+    def __CreateTimeIntegratorHelper(self):
         '''Initializing the helper-class for the time-integration
         '''
         time_int_settings = self.settings["mesh_velocity_calculation"]
