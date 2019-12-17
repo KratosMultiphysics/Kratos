@@ -140,7 +140,7 @@ protected:
      * @brief Get the output file name based on the provided settings and the MPI rank
      * @param rModelPart modelpart which is beging output
      */
-    std::string GetOutputFileName(const ModelPart& rModelPart, const bool IsSubModelPart);
+    std::string GetOutputFileName(const ModelPart& rModelPart, const bool IsSubModelPart, const std::string& rOutputFilename);
 
     /**
      * @brief Initialize function for the class

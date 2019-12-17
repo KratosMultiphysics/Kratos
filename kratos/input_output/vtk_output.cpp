@@ -128,21 +128,8 @@ void VtkOutput::WriteModelPartToFile(const ModelPart& rModelPart, const bool IsS
 {
     Initialize(rModelPart);
 
-    std::string output_file_name = "";
-    if (rOutputFilename == "")
-    {
-        output_file_name = GetOutputFileName(rModelPart, IsSubModelPart);
-    }
-    else
-    {
-        if (mOutputSettings["save_output_files_in_folder"].GetBool())
-        {
-            output_file_name = mOutputSettings["folder_name"].GetString() + "/";
-        }
-        output_file_name += rOutputFilename + ".vtk";
-    }
-
     // Make the file stream object
+    const std::string output_file_name = GetOutputFileName(rModelPart, IsSubModelPart, rOutputFilename);
     std::ofstream output_file;
     if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
         output_file.open(output_file_name, std::ios::out | std::ios::trunc);
@@ -164,42 +151,51 @@ void VtkOutput::WriteModelPartToFile(const ModelPart& rModelPart, const bool IsS
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool IsSubModelPart)
+std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool IsSubModelPart, const std::string& rOutputFilename)
 {
-    const int rank = rModelPart.GetCommunicator().MyPID();
-    std::string model_part_name;
-
-    if (IsSubModelPart) {
-        model_part_name = rModelPart.GetParentModelPart()->Name() + "_" + rModelPart.Name();
-    } else {
-        model_part_name = rModelPart.Name();
-    }
-
-    std::string label;
-    std::stringstream ss;
-    const std::string output_control = mOutputSettings["output_control_type"].GetString();
-    if (output_control == "step") {
-        ss << std::fixed << std::setprecision(mDefaultPrecision)<< std::setfill('0')
-           << rModelPart.GetProcessInfo()[STEP];
-        label = ss.str();
-    } else if(output_control == "time") {
-        ss << std::fixed << std::setprecision(mDefaultPrecision) << std::setfill('0')
-           << rModelPart.GetProcessInfo()[TIME];
-        label = ss.str();
-    } else {
-        KRATOS_ERROR << "Option for \"output_control_type\": " << output_control
-            <<" not recognised!\nPossible output_control_type options "
-            << "are: \"step\", \"time\"" << std::endl;
-    }
-
     // Putting everything together
-    std::string output_file_name;
+    std::string output_file_name = "";
     if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
-        output_file_name += mOutputSettings["folder_name"].GetString() + "/";
+        output_file_name = mOutputSettings["folder_name"].GetString() + "/";
     }
-    const std::string& r_custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
-    const std::string& r_custom_name_postfix = mOutputSettings["custom_name_postfix"].GetString();
-    output_file_name += r_custom_name_prefix + model_part_name + r_custom_name_postfix + "_" + std::to_string(rank) + "_" + label + ".vtk";
+
+    if (rOutputFilename != "")
+    {
+        output_file_name += rOutputFilename + ".vtk";
+    }
+    else
+    {
+        const int rank = rModelPart.GetCommunicator().MyPID();
+        std::string model_part_name;
+
+        if (IsSubModelPart) {
+            model_part_name = rModelPart.GetParentModelPart()->Name() + "_" + rModelPart.Name();
+        } else {
+            model_part_name = rModelPart.Name();
+        }
+
+        std::string label;
+        std::stringstream ss;
+        const std::string output_control = mOutputSettings["output_control_type"].GetString();
+        if (output_control == "step") {
+            ss << std::fixed << std::setprecision(mDefaultPrecision)<< std::setfill('0')
+            << rModelPart.GetProcessInfo()[STEP];
+            label = ss.str();
+        } else if(output_control == "time") {
+            ss << std::fixed << std::setprecision(mDefaultPrecision) << std::setfill('0')
+            << rModelPart.GetProcessInfo()[TIME];
+            label = ss.str();
+        } else {
+            KRATOS_ERROR << "Option for \"output_control_type\": " << output_control
+                <<" not recognised!\nPossible output_control_type options "
+                << "are: \"step\", \"time\"" << std::endl;
+        }
+
+
+        const std::string& r_custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
+        const std::string& r_custom_name_postfix = mOutputSettings["custom_name_postfix"].GetString();
+        output_file_name += r_custom_name_prefix + model_part_name + r_custom_name_postfix + "_" + std::to_string(rank) + "_" + label + ".vtk";
+    }
 
     return output_file_name;
 }
