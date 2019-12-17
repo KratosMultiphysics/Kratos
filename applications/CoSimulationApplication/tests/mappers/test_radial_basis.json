@@ -9,7 +9,8 @@
         "settings":
         {
             "directions" : ["Z"],
-            "balanced_tree" : false
+            "balanced_tree" : false,
+            "parallel" : true
         }
     },
     "mapper_2d" :
@@ -18,7 +19,8 @@
         "settings":
         {
             "directions" : ["X", "Y"],
-            "balanced_tree" : false
+            "balanced_tree" : false,
+            "parallel" : true
         }
     },
     "mapper_3d" :
@@ -27,7 +29,8 @@
         "settings":
         {
             "directions" : ["X", "Y", "Z"],
-            "balanced_tree" : false
+            "balanced_tree" : false,
+            "parallel" : true
         }
     }
 }

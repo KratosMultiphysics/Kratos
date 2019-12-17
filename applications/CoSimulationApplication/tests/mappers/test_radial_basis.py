@@ -150,8 +150,8 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
         model_part_from = model_from.CreateModelPart('wall_from')
         model_part_from.AddNodalSolutionStepVariable(var_from)
 
-        n_theta = 40
-        n_phi = 20
+        n_theta = 200
+        n_phi = 100
         dtheta = np.pi / n_theta
         dphi = np.pi / (n_phi - 1)
         theta = np.ones((n_theta, n_phi)) * np.linspace(0, 2 * np.pi - dtheta, n_theta).reshape(-1, 1)
@@ -172,8 +172,9 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
         model_part_to = model_to.CreateModelPart('wall_to')
         model_part_to.AddNodalSolutionStepVariable(var_to)
 
-        n_theta = 200
-        n_phi = 100
+
+        n_theta = 400
+        n_phi = 250  # 100k points: Initialize = 4.3s, __call__ = 0.7s
         dtheta = np.pi / n_theta
         dphi = np.pi / (n_phi - 1)
         theta = np.ones((n_theta, n_phi)) * np.linspace(0, 2 * np.pi - dtheta, n_theta).reshape(-1, 1)
@@ -189,7 +190,7 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
 
         # map values
         mapper = cs_tools.CreateInstance(parameters['mapper_3d'])
-        with timer('init', ms=True):
+        with timer('init', ms=True, n=1):
             mapper.Initialize(model_part_from, model_part_to)
         with timer('map', ms=True):
             mapper((model_part_from, var_from), (model_part_to, var_to))
@@ -200,37 +201,38 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
         v_to = v_to.reshape(n_theta, n_phi)
 
         # plot results
-        c_from = cm.jet((v_from - v_from.min()) / (v_from.max() - v_from.min()))
-        c_to = cm.jet((v_to - v_from.min()) / (v_from.max() - v_from.min()))
-        error = np.abs(v_to - v_to_ref)
-        c_error = cm.jet(error / error.max())
+        if False:
+            c_from = cm.jet((v_from - v_from.min()) / (v_from.max() - v_from.min()))
+            c_to = cm.jet((v_to - v_from.min()) / (v_from.max() - v_from.min()))
+            error = np.abs(v_to - v_to_ref)
+            c_error = cm.jet(error / error.max())
 
-        fig = plt.figure(figsize=(18, 6))
-        plt.suptitle(f'max error = {error.max():.2g}     ({v_from.min():.1f} < v_from < {v_from.max():.1f})')
+            fig = plt.figure(figsize=(18, 6))
+            plt.suptitle(f'max error = {error.max():.2g}     ({v_from.min():.1f} < v_from < {v_from.max():.1f})')
 
-        ax_from = fig.add_subplot(131, projection='3d')
-        ax_from.set_title('from')
-        ax_from.plot_surface(x_from, y_from, z_from, facecolors=c_from,
-                             rstride=1, cstride=1, linewidth=0, antialiased=False, shade=False)
+            ax_from = fig.add_subplot(131, projection='3d')
+            ax_from.set_title('from')
+            ax_from.plot_surface(x_from, y_from, z_from, facecolors=c_from,
+                                 rstride=1, cstride=1, linewidth=0, antialiased=False, shade=False)
 
-        ax_to = fig.add_subplot(132, projection='3d')
-        ax_to.set_title('to')
-        ax_to.plot_surface(x_to, y_to, z_to, facecolors=c_to,
-                           rstride=1, cstride=1, linewidth=0, antialiased=False, shade=False)
+            ax_to = fig.add_subplot(132, projection='3d')
+            ax_to.set_title('to')
+            ax_to.plot_surface(x_to, y_to, z_to, facecolors=c_to,
+                               rstride=1, cstride=1, linewidth=0, antialiased=False, shade=False)
 
-        ax_error = fig.add_subplot(133, projection='3d')
-        ax_error.set_title('to (error)')
-        ax_error.plot_surface(x_to, y_to, z_to, facecolors=c_error,
-                           rstride=1, cstride=1, antialiased=False, shade=False)
+            ax_error = fig.add_subplot(133, projection='3d')
+            ax_error.set_title('to (error)')
+            ax_error.plot_surface(x_to, y_to, z_to, facecolors=c_error,
+                               rstride=1, cstride=1, antialiased=False, shade=False)
 
-        for ax in [ax_from, ax_to, ax_error]:
-            ax.set_xlabel('x')
-            ax.set_ylabel('y')
-            ax.set_zlabel('z')
+            for ax in [ax_from, ax_to, ax_error]:
+                ax.set_xlabel('x')
+                ax.set_ylabel('y')
+                ax.set_zlabel('z')
 
-        plt.tight_layout()
-        plt.show()
-        plt.close('all')
+            plt.tight_layout()
+            plt.show()
+            plt.close('all')
 
 
 

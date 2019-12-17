@@ -249,7 +249,7 @@ class TestMapperLinear(KratosUnittest.TestCase):
         for i, node in enumerate(model_part_to.Nodes):
             v_to[i] = node.GetSolutionStepValue(var_to)
 
-        if False:
+        if 0:
             vmin, vmax = v_from.min(), v_from.max()
 
             fig = plt.figure()
@@ -336,37 +336,38 @@ class TestMapperLinear(KratosUnittest.TestCase):
         v_to = v_to.reshape(n_theta, n_phi)
 
         # plot results
-        c_from = cm.jet((v_from - v_from.min()) / (v_from.max() - v_from.min()))
-        c_to = cm.jet((v_to - v_from.min()) / (v_from.max() - v_from.min()))
-        error = np.abs(v_to - v_to_ref)
-        c_error = cm.jet(error / error.max())
+        if False:
+            c_from = cm.jet((v_from - v_from.min()) / (v_from.max() - v_from.min()))
+            c_to = cm.jet((v_to - v_from.min()) / (v_from.max() - v_from.min()))
+            error = np.abs(v_to - v_to_ref)
+            c_error = cm.jet(error / error.max())
 
-        fig = plt.figure(figsize=(18, 6))
-        plt.suptitle(f'max error = {error.max():.2g}     ({v_from.min():.1f} < v_from < {v_from.max():.1f})')
+            fig = plt.figure(figsize=(18, 6))
+            plt.suptitle(f'max error = {error.max():.2g}     ({v_from.min():.1f} < v_from < {v_from.max():.1f})')
 
-        ax_from = fig.add_subplot(131, projection='3d')
-        ax_from.set_title('from')
-        ax_from.plot_surface(x_from, y_from, z_from, facecolors=c_from,
-                             rstride=1, cstride=1, linewidth=0, antialiased=False, shade=False)
+            ax_from = fig.add_subplot(131, projection='3d')
+            ax_from.set_title('from')
+            ax_from.plot_surface(x_from, y_from, z_from, facecolors=c_from,
+                                 rstride=1, cstride=1, linewidth=0, antialiased=False, shade=False)
 
-        ax_to = fig.add_subplot(132, projection='3d')
-        ax_to.set_title('to')
-        ax_to.plot_surface(x_to, y_to, z_to, facecolors=c_to,
-                           rstride=1, cstride=1, linewidth=0, antialiased=False, shade=False)
+            ax_to = fig.add_subplot(132, projection='3d')
+            ax_to.set_title('to')
+            ax_to.plot_surface(x_to, y_to, z_to, facecolors=c_to,
+                               rstride=1, cstride=1, linewidth=0, antialiased=False, shade=False)
 
-        ax_error = fig.add_subplot(133, projection='3d')
-        ax_error.set_title('to (error)')
-        ax_error.plot_surface(x_to, y_to, z_to, facecolors=c_error,
-                              rstride=1, cstride=1, antialiased=False, shade=False)
+            ax_error = fig.add_subplot(133, projection='3d')
+            ax_error.set_title('to (error)')
+            ax_error.plot_surface(x_to, y_to, z_to, facecolors=c_error,
+                                  rstride=1, cstride=1, antialiased=False, shade=False)
 
-        for ax in [ax_from, ax_to, ax_error]:
-            ax.set_xlabel('x')
-            ax.set_ylabel('y')
-            ax.set_zlabel('z')
+            for ax in [ax_from, ax_to, ax_error]:
+                ax.set_xlabel('x')
+                ax.set_ylabel('y')
+                ax.set_zlabel('z')
 
-        plt.tight_layout()
-        plt.show()
-        plt.close('all')
+            plt.tight_layout()
+            plt.show()
+            plt.close('all')
 
 
 if __name__ == '__main__':
