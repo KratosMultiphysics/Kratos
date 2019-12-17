@@ -232,12 +232,10 @@ public:
         for(auto& i_intersection : mIntersections){
             while(current_index < size){
                 if((i_intersection.first - Coordinates[current_index+1]) > NearEnough){
-                    ResultingColors[current_index] = OutsideColor;
-                    current_index++;
+                    ResultingColors[current_index++] = OutsideColor;
                 }
                 else{
-                    ResultingColors[current_index] = InsideColor;
-                    current_index++;
+                    ResultingColors[current_index++] = InsideColor;
                     break;
                 } 
             }
