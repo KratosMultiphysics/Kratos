@@ -41,31 +41,59 @@ class InPlaneVertexMorphingMapper():
 
         self.vm_mapper = vm_mapper
 
+        in_plane_settings = self.settings["in_plane_settings"]
+        in_plane_settings.RecursivelyValidateAndAssignDefaults(self.GetDefaultInPlaneSettings())
+
         self._background_model = KM.Model()
-        if self.settings["in_plane_settings"]["model_import_settings"]["input_type"].GetString() in ["mdpa", "vrml", "wrl"]:
-            self.background_mesh = self._background_model.CreateModelPart("background_mesh")
-            self.background_mesh.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
-            self.background_mesh.AddNodalSolutionStepVariable(KM.NORMAL)
-            self.background_mesh.AddNodalSolutionStepVariable(KSO.NORMALIZED_SURFACE_NORMAL)
-            self.background_mesh.AddNodalSolutionStepVariable(_BACKGROUND_COORDINATE)
+        if in_plane_settings["model_import_settings"]["input_type"].GetString() in ["mdpa", "vrml", "wrl"]:
+            background_main_mesh = self._background_model.CreateModelPart("background_mesh")
+            background_main_mesh.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
+            background_main_mesh.AddNodalSolutionStepVariable(KM.NORMAL)
+            background_main_mesh.AddNodalSolutionStepVariable(KSO.NORMALIZED_SURFACE_NORMAL)
+            background_main_mesh.AddNodalSolutionStepVariable(_BACKGROUND_COORDINATE)
         else:
             raise Exception("Other model part input options are not yet implemented.")
-        self.spacial_mapper = None
+
+        self.background_mesh = None  # created in Initialize
+        self.spacial_mapper = None  # created in Initialize
+
+    @classmethod
+    def GetDefaultInPlaneSettings(cls):
+        return KM.Parameters("""{
+            "model_import_settings" : {
+                "input_type" : "mdpa",
+                "input_filename" : "UNKNOWN_NAME"
+            },
+            "background_sub_model_part_name" : "",
+            "spacial_mapper_settings" : {
+                "mapper_type": "nearest_element",
+                "echo_level" : 0
+            }
+        }""")
 
     def Initialize(self):
         self.vm_mapper.Initialize()
 
-        if self.settings["in_plane_settings"]["model_import_settings"]["input_type"].GetString() == "mdpa":
-            model_part_io = KM.ModelPartIO(self.settings["in_plane_settings"]["model_import_settings"]["input_filename"].GetString())
-            model_part_io.ReadModelPart(self.background_mesh)
-        elif self.settings["in_plane_settings"]["model_import_settings"]["input_type"].GetString() in ["vrml", "wrl"]:
-            model_part_io = WrlIO(self.settings["in_plane_settings"]["model_import_settings"]["input_filename"].GetString())
-            model_part_io.ReadModelPart(self.background_mesh)
+        in_plane_settings = self.settings["in_plane_settings"]
+
+        background_main_mesh = self._background_model.GetModelPart("background_mesh")
+        if in_plane_settings["model_import_settings"]["input_type"].GetString() == "mdpa":
+            model_part_io = KM.ModelPartIO(in_plane_settings["model_import_settings"]["input_filename"].GetString())
+            model_part_io.ReadModelPart(background_main_mesh)
+        elif in_plane_settings["model_import_settings"]["input_type"].GetString() in ["vrml", "wrl"]:
+            model_part_io = WrlIO(in_plane_settings["model_import_settings"]["input_filename"].GetString())
+            model_part_io.ReadModelPart(background_main_mesh)
+
+        background_sub_model_part_name = in_plane_settings["background_sub_model_part_name"].GetString()
+        if background_sub_model_part_name == "":
+            self.background_mesh = background_main_mesh
+        else:
+            self.background_mesh = background_main_mesh.GetSubModelPart(background_sub_model_part_name)
 
         background_geometry_utilities = KSO.GeometryUtilities(self.background_mesh)
         background_geometry_utilities.ComputeUnitSurfaceNormals()
         self.spacial_mapper = SpacialMapperFactory.CreateMapper(
-            self.background_mesh, self.destination_model_part, self.settings["in_plane_settings"]["spacial_mapper_settings"])
+            self.background_mesh, self.destination_model_part, in_plane_settings["spacial_mapper_settings"])
         KSO.MeshControllerUtilities(self.background_mesh).WriteCoordinatesToVariable(_BACKGROUND_COORDINATE)
 
     def Update(self):
