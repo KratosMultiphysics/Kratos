@@ -16,6 +16,7 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as km
 
 # Additional imports
+from .response_functions import response_function_factory as sho_response_factory
 from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory as csm_response_factory
 from .analyzer_base import AnalyzerBaseClass
 import time as timer
@@ -79,15 +80,20 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
     def __CreateResponseFunctions( specified_responses, model ):
         response_functions = {}
 
+        available_sho_response_functions = ["plane_based_packaging", "mesh_based_packaging"]
         available_csm_response_functions = ["strain_energy", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress"]
 
         for (response_id, response_settings) in specified_responses:
             if response_id in response_functions.keys():
                 raise NameError("There are multiple response functions with the following identifier: " + response_id)
 
-            if response_settings["response_type"].GetString() in available_csm_response_functions:
+            response_type = response_settings["response_type"].GetString()
+
+            if response_type in available_csm_response_functions:
                 response_functions[response_id] = csm_response_factory.CreateResponseFunction(response_id, response_settings, model)
+            elif response_type in available_sho_response_functions:
+                response_functions[response_id] = sho_response_factory.CreateResponseFunction(response_id, response_settings, model)
             else:
-                raise NameError("The following structural response function is not available: " + response_id)
+                raise NameError("The response function '{}' of type '{}' is not available.".format(response_id, response_type))
 
         return response_functions
