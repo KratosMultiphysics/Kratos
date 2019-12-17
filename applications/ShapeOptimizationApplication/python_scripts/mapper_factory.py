@@ -35,11 +35,7 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
     mapper_settings.ValidateAndAssignDefaults(default_settings)
 
     if mapper_settings["in_plane_morphing"].GetBool():
-        extracted_vm_settings = mapper_settings.Clone()
-        extracted_vm_settings["in_plane_morphing"].SetBool(False)
-        extracted_vm_settings.RemoveValue("in_plane_morphing_settings")
-        vm_mapper = CreateMapper(origin_model_part, destination_model_part, extracted_vm_settings)
-        return in_plane_vertex_morphing_mapper.InPlaneVertexMorphingMapper(origin_model_part, destination_model_part, mapper_settings, vm_mapper)
+        return in_plane_vertex_morphing_mapper.InPlaneVertexMorphingMapper(origin_model_part, destination_model_part, mapper_settings)
     elif mapper_settings["matrix_free_filtering"].GetBool():
         if mapper_settings["consistent_mapping"].GetBool():
              raise ValueError ("Matrix free mapper has no option to map consistently yet!")
