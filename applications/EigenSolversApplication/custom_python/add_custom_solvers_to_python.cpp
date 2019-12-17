@@ -160,6 +160,32 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
 
     KRATOS_REGISTER_LINEAR_SOLVER("pardiso_llt", PardisoLLTFactory);
 
+    // Complex Pardiso LU Solver
+
+    using ComplexPardisoLUType = EigenDirectSolver<EigenPardisoLUSolver<complex>>;
+
+    static auto ComplexPardisoLUFactory = ComplexPardisoLUType::Factory();
+
+    KRATOS_REGISTER_LINEAR_SOLVER("pardiso_lu_complex", ComplexPardisoLUFactory);
+
+
+    // Complex Pardiso LDLT Solver
+
+    using ComplexPardisoLDLTType = EigenDirectSolver<EigenPardisoLDLTSolver<complex>>;
+
+    static auto ComplexPardisoLDLTFactory = ComplexPardisoLDLTType::Factory();
+
+    KRATOS_REGISTER_LINEAR_SOLVER("pardiso_ldlt_complex", ComplexPardisoLDLTFactory);
+
+
+    // Complex Pardiso LLT Solver
+
+    using ComplexPardisoLLTType = EigenDirectSolver<EigenPardisoLLTSolver<complex>>;
+
+    static auto ComplexPardisoLLTFactory = ComplexPardisoLLTType::Factory();
+
+    KRATOS_REGISTER_LINEAR_SOLVER("pardiso_llt_complex", ComplexPardisoLLTFactory);
+
     #endif // defined USE_EIGEN_MKL
 }
 
