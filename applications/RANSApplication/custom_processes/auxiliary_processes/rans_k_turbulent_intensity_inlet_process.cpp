@@ -16,8 +16,8 @@
 // External includes
 
 // Project includes
-#include "includes/variables.h"
 #include "includes/define.h"
+#include "includes/variables.h"
 #include "rans_application_variables.h"
 
 #include "custom_utilities/rans_check_utilities.h"
@@ -27,8 +27,7 @@
 
 namespace Kratos
 {
-RansKTurbulentIntensityInletProcess::RansKTurbulentIntensityInletProcess(Model& rModel,
-                                                                         Parameters rParameters)
+RansKTurbulentIntensityInletProcess::RansKTurbulentIntensityInletProcess(Model& rModel, Parameters rParameters)
     : mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY
@@ -39,7 +38,7 @@ RansKTurbulentIntensityInletProcess::RansKTurbulentIntensityInletProcess(Model& 
             "turbulent_intensity" : 0.05,
             "echo_level"          : 0,
             "is_fixed"            : true,
-            "min_k_value"         : 1e-18
+            "min_value"           : 1e-14
         })");
 
     mrParameters.ValidateAndAssignDefaults(default_parameters);
@@ -48,7 +47,7 @@ RansKTurbulentIntensityInletProcess::RansKTurbulentIntensityInletProcess(Model& 
     mIsConstrained = mrParameters["is_fixed"].GetBool();
     mEchoLevel = mrParameters["echo_level"].GetInt();
     mModelPartName = mrParameters["model_part_name"].GetString();
-    mMinValue = mrParameters["min_k_value"].GetDouble();
+    mMinValue = mrParameters["min_value"].GetDouble();
 
     KRATOS_ERROR_IF(mTurbulentIntensity < 0.0)
         << "Turbulent intensity needs to be positive in the modelpart "
@@ -71,7 +70,7 @@ void RansKTurbulentIntensityInletProcess::ExecuteInitialize()
     {
         ModelPart::NodesContainerType& r_nodes =
             mrModel.GetModelPart(mModelPartName).Nodes();
-        int number_of_nodes = r_nodes.size();
+        const int number_of_nodes = r_nodes.size();
 #pragma omp parallel for
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
         {
@@ -95,7 +94,7 @@ void RansKTurbulentIntensityInletProcess::Execute()
 
     ModelPart::NodesContainerType& r_nodes =
         mrModel.GetModelPart(mModelPartName).Nodes();
-    int number_of_nodes = r_nodes.size();
+    const int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
@@ -113,7 +112,6 @@ void RansKTurbulentIntensityInletProcess::Execute()
 int RansKTurbulentIntensityInletProcess::Check()
 {
     KRATOS_TRY
-
 
     RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
@@ -146,8 +144,8 @@ void RansKTurbulentIntensityInletProcess::CalculateTurbulentValues(NodeType& rNo
     const array_1d<double, 3>& r_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
     double velocity_magnitude = norm_2(r_velocity);
 
-    rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) =
-        1.5 * std::pow(mTurbulentIntensity * velocity_magnitude, 2);
+    rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) = std::max(
+        1.5 * std::pow(mTurbulentIntensity * velocity_magnitude, 2), mMinValue);
 }
 
 } // namespace Kratos.

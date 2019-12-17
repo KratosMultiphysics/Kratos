@@ -170,6 +170,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ProjectNodalVariableToDirection", &GeometryUtilities::ProjectNodalVariableToDirection)
         .def("ProjectNodalVariableToTangentOfDirection", &GeometryUtilities::ProjectNodalVariableToTangentOfDirection)
         .def("ExtractBoundaryNodes", &GeometryUtilities::ExtractBoundaryNodes)
+        .def("ComputeDistancesToBoundingModelPart", &GeometryUtilities::ComputeDistancesToBoundingModelPart)
         ;
 
     // ========================================================================

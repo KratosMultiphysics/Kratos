@@ -119,4 +119,13 @@ class in_plane_opt_test(ShapeOptimizationTestFactory):
     execution_directory = "in_plane_opt_test"
     execution_file = "run_test"
 
+class mesh_based_packaging_test(ShapeOptimizationTestFactory):
+    execution_directory = "mesh_based_packaging_test"
+    execution_file = "run_test"
+
+class plane_based_packaging_test(ShapeOptimizationTestFactory):
+    execution_directory = "plane_based_packaging_test"
+    execution_file = "run_test"
+
+
 # ==============================================================================
