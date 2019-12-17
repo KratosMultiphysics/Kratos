@@ -134,6 +134,7 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
     py::class_<RansLineOutputProcessType, RansLineOutputProcessType::Pointer, Process>(
         m, "RansLineOutputProcess")
         .def(py::init<Model&, Parameters&>());
+
 }
 
 } // namespace Python.

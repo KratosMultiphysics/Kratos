@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <unordered_map>
 
+#include <pybind11/pybind11.h>
+
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
@@ -26,6 +28,8 @@
 #include "includes/model_part.h"
 #include "includes/key_hash.h"
 #include "shape_optimization_application.h"
+
+#include "spatial_containers/spatial_containers.h"
 
 // ==============================================================================
 
@@ -194,6 +198,55 @@ public:
     	r_boundary_model_part.AddNodes(temp_boundary_node_ids);
 
     	KRATOS_CATCH("");
+    }
+
+    // --------------------------------------------------------------------------
+    void ComputeDistancesToBoundingModelPart(
+        ModelPart& rBoundingModelPart,
+        pybind11::list& rSignedDistances,
+        pybind11::list& rDirections )
+    {
+        KRATOS_TRY;
+
+        typedef Node < 3 > NodeType;
+        typedef NodeType::Pointer NodeTypePointer;
+        typedef std::vector<NodeType::Pointer> NodeVector;
+        typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
+        typedef std::vector<double>::iterator DoubleVectorIterator;
+        typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
+        typedef Tree< KDTreePartition<BucketType> > KDTree;
+
+        KRATOS_ERROR_IF(rBoundingModelPart.NumberOfElements() != 0) <<
+            "ComputeDistancesToBoundingModelPart: Model part must only contain conditions!" << std::endl;
+
+        NodeVector all_bounding_nodes;
+        all_bounding_nodes.reserve(rBoundingModelPart.Nodes().size());
+        for (ModelPart::NodesContainerType::iterator node_it = rBoundingModelPart.NodesBegin(); node_it != rBoundingModelPart.NodesEnd(); ++node_it)
+        {
+            all_bounding_nodes.push_back(*(node_it.base()));
+        }
+        const size_t bucket_size = 100;
+        KDTree search_tree(all_bounding_nodes.begin(), all_bounding_nodes.end(), bucket_size);
+
+        GeometryUtilities(rBoundingModelPart).ComputeUnitSurfaceNormals();
+
+        for (auto& r_node : mrModelPart.Nodes()){
+
+            double distance;
+            NodeTypePointer p_neighbor = search_tree.SearchNearestPoint(r_node, distance);
+
+            const array_3d delta = r_node.Coordinates() - p_neighbor->Coordinates();
+            const array_3d& bounding_normal = p_neighbor->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
+            const double projected_length = inner_prod(delta, bounding_normal);
+
+            rSignedDistances.append(projected_length);
+
+            rDirections.append(bounding_normal[0]);
+            rDirections.append(bounding_normal[1]);
+            rDirections.append(bounding_normal[2]);
+        }
+
+        KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------
