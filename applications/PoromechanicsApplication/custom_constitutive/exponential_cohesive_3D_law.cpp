@@ -50,6 +50,9 @@ int ExponentialCohesive3DLaw::Check(const Properties& rMaterialProperties,const 
 void ExponentialCohesive3DLaw::InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues )
 {
     mStateVariable = 1.0e-12;
+
+    //TODO: add possibility to change statevariable
+
 }
 
 //----------------------------------------------------------------------------------------
