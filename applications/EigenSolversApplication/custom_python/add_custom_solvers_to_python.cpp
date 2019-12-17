@@ -71,16 +71,24 @@ void register_eigensystem_solver(pybind11::module& m, const std::string& name)
 
 void AddCustomSolversToPython(pybind11::module& m)
 {
+    using complex = std::complex<double>;
+
     // --- direct solvers
 
     register_solver<EigenSparseLUSolver<double>>(m, "SparseLUSolver");
     register_solver<EigenSparseCGSolver<double>>(m, "SparseCGSolver");
     register_solver<EigenSparseQRSolver<double>>(m, "SparseQRSolver");
 
+    register_solver<EigenSparseLUSolver<complex>>(m, "ComplexSparseLUSolver");
+
 #if defined USE_EIGEN_MKL
     register_solver<EigenPardisoLUSolver<double>>(m, "PardisoLUSolver");
     register_solver<EigenPardisoLDLTSolver<double>>(m, "PardisoLDLTSolver");
     register_solver<EigenPardisoLLTSolver<double>>(m, "PardisoLLTSolver");
+
+    register_solver<EigenPardisoLUSolver<complex>>(m, "ComplexPardisoLUSolver");
+    register_solver<EigenPardisoLDLTSolver<complex>>(m, "ComplexPardisoLDLTSolver");
+    register_solver<EigenPardisoLLTSolver<complex>>(m, "ComplexPardisoLLTSolver");
 #endif // defined USE_EIGEN_MKL
 
     // --- eigensystem solver
