@@ -13,12 +13,15 @@
 #if !defined(KRATOS_SIMPLE_ERROR_CALCULATOR_PROCESS)
 #define KRATOS_SIMPLE_ERROR_CALCULATOR_PROCESS
 
+// System includes
+#include <map>
+
 // Project includes
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
-#include "includes/element.h"
 #include "processes/process.h"
 #include "includes/ublas_interface.h"
+
 
 namespace Kratos{
 ///@name Kratos Globals
@@ -96,8 +99,7 @@ public:
      */
     SimpleErrorCalculatorProcess(
         ModelPart& rThisModelPart,
-        Parameters ThisParameters = Parameters(R"({})")
-        );
+        Parameters ThisParameters);
 
     /// Destructor.
     ~SimpleErrorCalculatorProcess() override = default;
@@ -198,6 +200,9 @@ private:
 
     ModelPart& mrThisModelPart; /// The model part to compute
 
+    std::map<int,int> mNodeMap;      /// Map of local indexing to global node index
+    std::map<int,int> mElemMap;      /// Map of local indexing to global element index
+
     double mMinSize;                 /// The minimal size of the elements
     double mMaxSize;                 /// The maximal size of the elements
 
@@ -211,6 +216,8 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    
+    void CreateMap();
 
     /**
      * @brief This method computes the Nodal Area for the nodes in the Model Part
@@ -220,17 +227,17 @@ private:
     /**
      * @brief This method computes the temperature gradient at nodes using the ShapeFunctions
      */
-    //void CalculateNodalTempGradient(Vector& nodal_area);
+    void CalculateNodalTempGradient(Vector& nodal_area);
     
     /**
      * @brief This method computes the Nodal error between the C1 and C0 continuous definitions
      */
-    //void CalculateNodalError(Vector& nodal_area);
+    void CalculateNodalError(Vector& nodal_area);
 
     /**
      * @brief In this final step the metric is computed for MMGProcess
      */
-    //void CalculateGeomData(GeometryType& r_geom, Matrix& ShapeFunctions, ShapeFunctionDerivativesArrayType& ShapeDerivatives,Vector& DetJ, Vector& GaussWeights, unsigned int& NumGPoints);
+    void CalculateGeomData(GeometryType& r_geom, Matrix& ShapeFunctions, ShapeFunctionDerivativesArrayType& ShapeDerivatives,Vector& DetJ, Vector& GaussWeights, unsigned int& NumGPoints);
 
     ///@}
     ///@name Private  Access
