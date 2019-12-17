@@ -35,9 +35,13 @@ def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyze
     communicator = communicator_factory.CreateCommunicator(optimization_settings)
 
     if optimization_settings["design_variables"]["type"].GetString() == "vertex_morphing":
-        return VertexMorphingMethod(optimization_settings, model_part_controller, analyzer, communicator)
+        optimizer =  VertexMorphingMethod(optimization_settings, model_part_controller, analyzer, communicator)
     else:
         raise NameError("The following type of design variables is not supported by the optimizer: " + variable_type)
+
+    _ValidateCombinationOfSettings(optimization_settings)
+
+    return optimizer
 
 # ------------------------------------------------------------------------------
 def _ValidateSettings(optimization_settings):
@@ -99,6 +103,29 @@ def _ValidateConstraintSettings(constraint_settings):
     }""")
     for itr in range(constraint_settings.size()):
         constraint_settings[itr].ValidateAndAssignDefaults(default_settings)
+
+def _ValidateCombinationOfSettings(optimization_settings):
+    def _HasInPlaneMorphing(design_variables):
+        if design_variables["type"].GetString() == "vertex_morphing":
+            return design_variables["filter"].Has("in_plane_morphing") and \
+                design_variables["filter"]["in_plane_morphing"].GetBool()
+        return False
+
+    def _HasDampingNotInAllCartesianDirections(damping_settings):
+        if not damping_settings["apply_damping"].GetBool():
+            return False
+
+        for damping_region in damping_settings["damping_regions"]:
+            if damping_region["damp_X"].GetBool() == damping_region["damp_Y"].GetBool() and \
+                damping_region["damp_X"].GetBool() == damping_region["damp_Z"].GetBool():
+                    continue
+            else:
+                return False
+        return True
+
+    if _HasInPlaneMorphing(optimization_settings["design_variables"]) and \
+        not _HasDampingNotInAllCartesianDirections(optimization_settings["model_settings"]["damping"]):
+            raise RuntimeError("_ValidateCombinationOfSettings: In plane morphing can only be combined with damping if all directions are damped!")
 
 # ==============================================================================
 class VertexMorphingMethod:
