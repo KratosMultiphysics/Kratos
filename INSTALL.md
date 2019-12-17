@@ -1,6 +1,7 @@
 # Contents
 * [Basic Configuration](#basic-configuration)
 * [Adding Applications](#basic-configuration)
+* [Adding Kratos to Path](#adding-kratos-to-path)
 * [Examples](#examples)
   * [Linux](#linux)
   * [Windows](#windows)
@@ -64,6 +65,22 @@ Windows:
 CALL :add_app %KRATOS_APP_DIR%/ExternalSolversApplication    
 CALL :add_app %KRATOS_APP_DIR%/FluidDynamicApplication
 CALL :add_app C:/users/username/development/ExternalApplication  # Example of external Application
+```
+
+## Adding Kratos to Path
+
+As Kratos is not an executable but a set of modules and libraries, you will need to add them to the path. In order to do that please add the Kratos install folder (If you didn't touch anything should be `$KRATOS_SOURCE/bin/Release`)
+
+```bash
+export PYTHONPATH=$PYTHONPATH:$HOME/Kratos/bin/Release
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/Kratos/bin/Release/libs
+```
+
+If you are in windows instead do:
+
+```cmd
+set PYTHONPATH=%PYTHONPATH%;C:/Kratos/bin/Release
+set PATH=%PATH%;C:/Kratos/bin/Release/libs
 ```
 
 ## Examples
