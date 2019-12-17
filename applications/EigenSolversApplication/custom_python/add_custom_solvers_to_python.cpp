@@ -166,7 +166,7 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
 
     static auto ComplexPardisoLUFactory = ComplexPardisoLUType::Factory();
 
-    KRATOS_REGISTER_LINEAR_SOLVER("pardiso_lu_complex", ComplexPardisoLUFactory);
+    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_lu_complex", ComplexPardisoLUFactory);
 
 
     // Complex Pardiso LDLT Solver
@@ -175,7 +175,7 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
 
     static auto ComplexPardisoLDLTFactory = ComplexPardisoLDLTType::Factory();
 
-    KRATOS_REGISTER_LINEAR_SOLVER("pardiso_ldlt_complex", ComplexPardisoLDLTFactory);
+    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_ldlt_complex", ComplexPardisoLDLTFactory);
 
 
     // Complex Pardiso LLT Solver
@@ -184,7 +184,7 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
 
     static auto ComplexPardisoLLTFactory = ComplexPardisoLLTType::Factory();
 
-    KRATOS_REGISTER_LINEAR_SOLVER("pardiso_llt_complex", ComplexPardisoLLTFactory);
+    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_llt_complex", ComplexPardisoLLTFactory);
 
     #endif // defined USE_EIGEN_MKL
 }
