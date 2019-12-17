@@ -19,6 +19,11 @@ Build [Kratos](https://github.com/KratosMultiphysics/Kratos/wiki) and make sure 
 
 in the compilation configuration, in order to compile the MultilevelMonteCarloApplication along with other required auxiliary Kratos applications.
 
+Additionally, you need to add
+``` cmake
+export PYTHONPATH=$PYTHONPATH:/path/to/Kratos/bin/Release/KratosMultiphysics/MultilevelMonteCarloApplication
+```
+to use the local (empty) PyCOMPSs libraries.
 
 ## Algorithms
 
@@ -150,15 +155,23 @@ Informations for installing MMG can be found in the [Kratos wiki](https://github
 ### PyCOMPSs
 
 PyCOMPSs is the python library required in order to use [COMPSs](https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar) in a python environment.
-By default PyCOMPSs is not required in order to run the application. On the other hand, in case you want to run using this library, it is enough to put
-
+By default PyCOMPSs is not required in order to run the application.
+In case you want to run using this library, you will need to remove
 ``` cmake
--DUSING_PYCOMPSS=ON
+export PYTHONPATH=$PYTHONPATH:/path/to/Kratos/bin/Release/KratosMultiphysics/MultilevelMonteCarloApplication
 ```
+since you need to use the path given by the installation.
 
-in the compilation configuration.
 The instructions for the installation can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-run-multiple-cases-using-PyCOMPSs). The current version is able to run several thousands of samples at once exploiting PyCOMPSs.
 
+Finally, in the files [mc_utilities.py](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MultilevelMonteCarloApplication/python_scripts/mc_utilities.py), [mlmc_utilities.py](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MultilevelMonteCarloApplication/python_scripts/mlmc_utilities.py) and [statistical_variable_utilities.py](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MultilevelMonteCarloApplication/python_scripts/statistical_variable_utilities.py) you need to switch to:
+``` cmake
+# Import PyCOMPSs
+from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
+# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
+# from exaqute.ExaquteTaskLocal import *      # to execute with python3
+```
+to use the distributed computing capabilities.
 
 ## License
 
