@@ -53,9 +53,9 @@ The application provides a generalized eigensystem solver for sparse matrices. I
 
     As any other app:
     
-    ~~~sh
+    ```bash
     add_app ${KRATOS_APP_DIR}/EigenSolversApplication
-    ~~~
+    ```
 
     **Windows:** in `configure.bat`
 
