@@ -100,10 +100,7 @@ class InPlaneVertexMorphingMapper():
 
         self._CorrectOutOfPlanePart(destination_variable)
 
-        # TODO possible improvement if backgroundmesh too small: damp based on distance from background mesh?
-
     def InverseMap(self, destination_variable, origin_variable):
-        # TODO possible improvement if backgroundmesh too small: damp based on distance from background mesh?
         geometry_utilities = KSO.GeometryUtilities(self.destination_model_part)
         geometry_utilities.ProjectNodalVariableOnTangentPlane(
             destination_variable, KSO.BACKGROUND_NORMAL)
@@ -126,5 +123,3 @@ class InPlaneVertexMorphingMapper():
         mesh_utilities.SetReferenceMeshToMesh()
 
         mesh_utilities.AddFirstVariableToSecondVariable(KSO.OUT_OF_PLANE_DELTA, destination_variable)
-
-        #TODO damping should only be used if activated for x, y, z - where to check??!!

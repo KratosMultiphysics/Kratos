@@ -137,6 +137,7 @@ class VertexMorphingMethod:
         self.communicator = communicator
 
         self.__AddVariablesToBeUsedByAllAglorithms()
+        self.__AddVariablesToBeUsedByDesignVariables()
 
     # --------------------------------------------------------------------------
     def __AddVariablesToBeUsedByAllAglorithms(self):
@@ -162,6 +163,14 @@ class VertexMorphingMethod:
         model_part.AddNodalSolutionStepVariable(KSO.MESH_CHANGE)
         model_part.AddNodalSolutionStepVariable(KM.NORMAL)
         model_part.AddNodalSolutionStepVariable(KSO.NORMALIZED_SURFACE_NORMAL)
+
+    def __AddVariablesToBeUsedByDesignVariables(self):
+        if self.optimization_settings["design_variables"]["filter"].Has("in_plane_morphing") and \
+            self.optimization_settings["design_variables"]["filter"]["in_plane_morphing"].GetBool():
+                model_part = self.model_part_controller.GetOptimizationModelPart()
+                model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_COORDINATE)
+                model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
+                model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
 
     # --------------------------------------------------------------------------
     def Optimize(self):

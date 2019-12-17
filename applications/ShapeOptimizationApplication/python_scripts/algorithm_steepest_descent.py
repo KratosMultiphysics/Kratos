@@ -74,11 +74,6 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
 
-        #TODO find the right place to add variables to the mesh for in plane mapping
-        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_COORDINATE)
-        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
-        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
-
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
         if self.objectives.size() > 1:
