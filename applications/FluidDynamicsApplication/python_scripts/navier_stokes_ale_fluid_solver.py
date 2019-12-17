@@ -28,7 +28,11 @@ class NavierStokesAleFluidSolver(AleFluidSolver):
         By now the parameters of the FluidSolver have been validated, which means
         that the time-integration method used by the fluid can be queried
         '''
-        mesh_vel_calc_settings = self.settings["mesh_motion_solver_settings"]["mesh_velocity_calculation"] # TODO fix this
+        if not self.settings["mesh_motion_solver_settings"].Has("mesh_velocity_calculation"):
+            # add empty settings in case the user did not specify anything
+            self.settings["mesh_motion_solver_settings"].AddEmptyValue("mesh_velocity_calculation")
+
+        mesh_vel_calc_settings = self.settings["mesh_motion_solver_settings"]["mesh_velocity_calculation"]
         fluid_settings = self.settings["fluid_solver_settings"]
 
         fluid_solver_type = fluid_settings["solver_type"].GetString()
