@@ -50,16 +50,15 @@ void FiberBeamColumnSection::Initialize()
     UpdateLocalFlexibilityMatrix();
 }
 
-Matrix FiberBeamColumnSection::GetGlobalFlexibilityMatrix()
+void FiberBeamColumnSection::GetGlobalFlexibilityMatrix(Matrix& rGlobalFlexibilityMatrix)
 {
     KRATOS_TRY
+    rGlobalFlexibilityMatrix = ZeroMatrix(5, 5);
     Matrix aux_matrix  = ZeroMatrix(5, 3);
-    Matrix global_flex = ZeroMatrix(5, 5);
     Matrix b_matrix;
     CalculateBMatrix(b_matrix);
     (aux_matrix) += prod(Matrix(trans(b_matrix)), mLocalFlexibilityMatrix);
-    (global_flex) += prod(aux_matrix, b_matrix);
-    return global_flex;
+    (rGlobalFlexibilityMatrix) += prod(aux_matrix, b_matrix);
     KRATOS_CATCH("")
 }
 
@@ -133,12 +132,13 @@ void FiberBeamColumnSection::ResetResidual()
     KRATOS_CATCH("")
 }
 
-Vector FiberBeamColumnSection::GetGlobalDeformationResiduals()
+void FiberBeamColumnSection::GetGlobalDeformationResiduals(Vector& rGlobalResiduals)
 {
     KRATOS_TRY
     Matrix b_matrix;
     CalculateBMatrix(b_matrix);
-    return prod(Matrix(trans(b_matrix)), mDeformationResiduals);
+    rGlobalResiduals = ZeroVector(5);
+    rGlobalResiduals += prod(Matrix(trans(b_matrix)), mDeformationResiduals);
     KRATOS_CATCH("")
 }
 

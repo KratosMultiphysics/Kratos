@@ -272,7 +272,9 @@ void FiberBeamColumnElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurren
             // integrate over sections
             double jacobian = GetGeometry().DeterminantOfJacobian(0, GetIntegrationMethod());
             for (FiberBeamColumnSection& r_section : mSections) {
-                mDeformationResiduals += r_section.GetGlobalDeformationResiduals() * jacobian * r_section.GetWeight();
+                Vector section_global_residuals;
+                r_section.GetGlobalDeformationResiduals(section_global_residuals);
+                mDeformationResiduals += section_global_residuals * jacobian * r_section.GetWeight();
             }
         }
 
@@ -351,7 +353,9 @@ void FiberBeamColumnElement3D2N::CalculateElementLocalStiffnessMatrix()
     // integrate over sections to get flexibility matrix
     double jacobian = GetGeometry().DeterminantOfJacobian(0, GetIntegrationMethod());
     for (FiberBeamColumnSection& r_section : mSections) {
-        local_flexibility += r_section.GetGlobalFlexibilityMatrix() * jacobian * r_section.GetWeight();
+        Matrix section_global_flexibility;
+        r_section.GetGlobalFlexibilityMatrix(section_global_flexibility);
+        local_flexibility += section_global_flexibility * jacobian * r_section.GetWeight();
     }
     // invert to get stiffness matrix
     double det_flexibility = MathUtils<double>::Det(local_flexibility);

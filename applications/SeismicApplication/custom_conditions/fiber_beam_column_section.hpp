@@ -126,15 +126,15 @@ public:
 
     /**
      * This method is to get the global flexibility matrix
-     * @return The global flexibility matrix
+     * @param rGlobalFlexibilityMatrix: The global flexibility matrix
      */
-    Matrix GetGlobalFlexibilityMatrix();
+    void GetGlobalFlexibilityMatrix(Matrix& rGlobalFlexibilityMatrix);
 
     /**
      * This method is to get the global deformation residuals
-     * @return The global deformation residuals
+     * @param rGlobalResiduals: The global deformation residuals
      */
-    Vector GetGlobalDeformationResiduals();
+    void GetGlobalDeformationResiduals(Vector& rGlobalResiduals);
 
     /**
      * This method updates the forces, deformations (and fiber strains).
