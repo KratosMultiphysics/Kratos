@@ -39,7 +39,6 @@
 #include "geometries/line_2d_3.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
-#include "geometries/line_gauss_lobatto_3d_2.h"
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
 #include "geometries/triangle_2d_3.h"
