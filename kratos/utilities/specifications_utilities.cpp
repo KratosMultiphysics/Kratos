@@ -70,7 +70,7 @@ void AddMissingVariables(ModelPart& rModelPart)
             
             if(!GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
                 specifications = it_cond_current->GetSpecifications();
-                CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
                 AddMissingVariablesFromSpecifications(rModelPart, specifications, condition_name);
             }
         }
@@ -187,7 +187,7 @@ void AddMissingDofs(ModelPart& rModelPart)
             
             if(!GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
                 specifications = it_elem_current->GetSpecifications();
-                CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
                 AddMissingDofsFromSpecifications(rModelPart, specifications, element_name);
             }
         }
@@ -210,7 +210,7 @@ void AddMissingDofs(ModelPart& rModelPart)
             
             if(!GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
                 specifications = it_cond_current->GetSpecifications();
-                CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
                 AddMissingDofsFromSpecifications(rModelPart, specifications, condition_name);
             }
         }
@@ -320,7 +320,7 @@ void DetermineFlagsUsed(ModelPart& rModelPart)
             
             if(!GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
                 specifications = it_elem_current->GetSpecifications();
-                CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
                 if (specifications.Has("flags_used")) {
                     const std::vector<std::string>& r_flags_used = specifications["flags_used"].GetStringArray();
                     for (auto& r_flag_name : r_flags_used) {
@@ -353,7 +353,7 @@ void DetermineFlagsUsed(ModelPart& rModelPart)
             
             if(!GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
                 specifications = it_cond_current->GetSpecifications();
-                CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
                 if (specifications.Has("flags_used")) {
                     const std::vector<std::string>& r_flags_used = specifications["flags_used"].GetStringArray();
                     for (auto& r_flag_name : r_flags_used) {
@@ -364,7 +364,6 @@ void DetermineFlagsUsed(ModelPart& rModelPart)
         }
     }
 
-    
     KRATOS_CATCH("")
 }
 
