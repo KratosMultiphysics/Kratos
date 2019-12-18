@@ -72,7 +72,6 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             print('\x1b[0;30;43m' + "Warning for Axisymmetric cases:\n\tIn Abaqus these have to be constructed around the y-axis. \n\tSwitching of x and y-coordinates might be necessary but should be accomplished by using an appropriate mapper." + '\x1b[0m')
             print('\n')
         self.array_size = self.settings["arraysize"].GetInt()
-        self.ramp = self.settings["ramp"].GetInt()
         self.delta_T = self.settings["delta_T"].GetDouble()  # TODO: move to higher-level parameter file?
         self.timestep_start = self.settings["timestep_start"].GetDouble()  # TODO: move to higher-level parameter file?
         # self.surfaceIDs = self.settings["surfaceIDs"].GetString()
@@ -81,6 +80,24 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         self.thread_ids = [i for i in range(0, self.n_surfaces)]
         self.mp_mode = self.settings["mp_mode"].GetString()
         self.input_file = self.settings["input_file"].GetString()
+
+        if "subcycling" in self.settings.keys():
+            self.subcycling = self.settings["subcycling"].GetInt()
+            if self.subcycling:
+                self.minInc = self.settings["minInc"].GetDouble()
+                self.initialInc = self.settings["initialInc"].GetDouble()
+                self.maxNumInc = self.settings["maxNumInc"].GetInt()
+                self.maxInc = self.settings["maxInc"].GetInt()
+                self.ramp = self.settings["ramp"].GetInt()
+            else:
+                self.maxNumInc = 1
+                self.maxInc = self.delta_T
+                self.ramp = 0
+        else:
+            self.subcycling = 0
+            self.maxNumInc = 1
+            self.ramp = 0
+
 
         # Upon (re)starting Abaqus needs to run USRInit.f
         # A restart requires Abaqus to be booted with a restart file
@@ -233,13 +250,15 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                 mp.AddNodalSolutionStepVariable(var)
 
             # add information to ModelPart
+            bool_found = 0
             for i in range(self.n_surfaces):
                 if self.surfaceIDs[i] in key:
                     mp.thread_name = self.surfaceIDs[i]
                     mp.thread_id = self.thread_ids[i]  # This is just a number from 0 to n_surfaces
                     if 'thread_id' not in dir(mp):
-                        raise AttributeError('Could not find thread id corresponding to key')
-                else:
+                        raise AttributeError(f'Could not find thread id corresponding to {key}')
+                    bool_found=1
+            if bool_found==0:
                     raise AttributeError(f'Could not identify surfaceID corresponding to key {key}. Check parameter file.')
 
         # add Nodes to input ModelParts (load_points)
@@ -721,30 +740,43 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             while line:
                 if "*step" in line.lower():
                     contents = line.split(",")  # Split string on commas
+                    line_new=''
                     for s in contents:
                         if s.strip().startswith("inc="):
                             numbers = re.findall("\d+", s)
-                            if int(numbers[0]) != 1:
-                                raise NotImplementedError(f"inc={numbers[0]}: currently only single increment steps are implemented for the Abaqus wrapper")
-                    of.write(line)
+                            if (not self.subcycling) and int(numbers[0]) != 1:
+                                raise NotImplementedError(f"inc={numbers[0]}: subcycling was not requested but maxNumInc > 1.")
+                            else:
+                                line_new+=f" inc={self.maxNumInc},"
+                        else:
+                            line_new+=s+","
+                    line_new = line_new[:-1]+"\n" #Remove the last added comma and add a newline
+
+                    of.write(line_new)
                     if bool_restart:
-                        rf.write(line)
+                        rf.write(line_new)
                     line = f.readline()
                 elif "*dynamic" in line.lower():
                     contents = line.split(",")
                     for s in contents:
                         if "application" in s.lower():
                             contents_B = s.split("=")
-                            if contents_B[1].lower().strip() != "quasi-static":
+                            app = contents_B[1].lower().strip()
+                            if app == "quasi-static" or app == "moderate dissipation" :
+                                if not self.subcycling:
+                                    line_2 = f"{self.delta_T}, {self.delta_T},\n"
+                                else:
+                                    line_2 = f"{self.initialInc}, {self.delta_T}, {self.minInc}, {self.maxInc}\n"
+                            else:
                                 raise NotImplementedError(
-                                    f"{contents_B[1]} not available: Currently only quasi-static is implemented for the Abaqus wrapper")
+                                    f"{contents_B[1]} not available: Currently only quasi-static and moderate dissipation are implemented for the Abaqus wrapper")
                     of.write(line)
                     if bool_restart:
                         rf.write(line)
                     line = f.readline()  # need to skip the next line
-                    of.write(f"{self.delta_T}, {self.delta_T},\n")  # Change the time step in the Abaqus step
+                    of.write(line_2)  # Change the time step in the Abaqus step
                     if bool_restart:
-                        rf.write(f"{self.delta_T}, {self.delta_T},\n")  # Change the time step in the Abaqus step (restart-file)
+                        rf.write(line_2)  # Change the time step in the Abaqus step (restart-file)
                     line = f.readline()
                 else:
                     of.write(line)
