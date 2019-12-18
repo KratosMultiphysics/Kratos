@@ -60,11 +60,13 @@ namespace Kratos
  */
 template <class TSparseSpace,
           class TDenseSpace,  // = DenseSpace<double>,
-          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
+          class TLinearSolver, //= LinearSolver<TSparseSpace,TDenseSpace>
+          class TReducedSparseSpace,
+          class TReducedDenseSpace
           >
 class MorSecondOrderKrylovStrategy
     // : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
-    : public MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver >
+    : public MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver, TReducedSparseSpace, TReducedDenseSpace >
 {
   public:
     ///@name Type Definitions
@@ -73,7 +75,7 @@ class MorSecondOrderKrylovStrategy
     KRATOS_CLASS_POINTER_DEFINITION(MorSecondOrderKrylovStrategy);
 
     // typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-    typedef MorOfflineSecondOrderStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver, TReducedSparseSpace, TReducedDenseSpace > BaseType;
 
     typedef SystemMatrixBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > TBuilderAndSolverType;
 
@@ -105,6 +107,11 @@ class MorSecondOrderKrylovStrategy
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
+    typedef typename TReducedSparseSpace::MatrixType TReducedSparseMatrixType;
+
+    typedef typename TReducedDenseSpace::MatrixType TReducedDenseMatrixType;
+
+
     ///@}
     ///@name Life Cycle
 
@@ -119,40 +126,42 @@ class MorSecondOrderKrylovStrategy
     MorSecondOrderKrylovStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
+        typename TBuilderAndSolverType::Pointer pBuilderAndSolver,
+        typename LinearSolver< TReducedSparseSpace, TReducedDenseSpace >::Pointer pNewLinearSolver,
         vector< double > samplingPoints,
-        bool MoveMeshFlag = false)
-        : BaseType(rModelPart, pScheme, pNewLinearSolver, MoveMeshFlag)
+        bool MoveMeshFlag = false,
+        bool UseComplexFlag = false)
+        : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, MoveMeshFlag)
     {
         KRATOS_TRY;
 
         // Saving the scheme
-        this->SetScheme(pScheme);
+        // this->SetScheme(pScheme);
 
+        // this->mpBuilderAndSolver = pBuilderAndSolver;
+        // // Setting up the default builder and solver
+        // // this->SetBuilderAndSolver(typename TBuilderAndSolverType::Pointer(
+        // //     new TBuilderAndSolverType(pNewLinearSolver)));
 
-        // Setting up the default builder and solver
-        this->SetBuilderAndSolver(typename TBuilderAndSolverType::Pointer(
-            new TBuilderAndSolverType(pNewLinearSolver)));
+        // // Saving the linear solver
+        // this->SetLinearSolver(pNewLinearSolver);
 
-        // Saving the linear solver        
-        this->SetLinearSolver(pNewLinearSolver);
+        // // Set flags to start correcty the calculations
+        // mSolutionStepIsInitialized = false;
+        // mInitializeWasPerformed = false;
 
-        // Set flags to start correcty the calculations
-        mSolutionStepIsInitialized = false;
-        mInitializeWasPerformed = false;
+        // // Tells to the builder and solver if the reactions have to be Calculated or not
+        // this->GetBuilderAndSolver()->SetCalculateReactionsFlag(false);
 
-        // Tells to the builder and solver if the reactions have to be Calculated or not
-        this->GetBuilderAndSolver()->SetCalculateReactionsFlag(false);
+        // // Tells to the Builder And Solver if the system matrix and vectors need to
+        // // be reshaped at each step or not
+        // this->GetBuilderAndSolver()->SetReshapeMatrixFlag(false);
 
-        // Tells to the Builder And Solver if the system matrix and vectors need to
-        // be reshaped at each step or not
-        this->GetBuilderAndSolver()->SetReshapeMatrixFlag(false);
+        // // Set EchoLevel to the default value (only time is displayed)
+        // this->SetEchoLevel(1);
 
-        // Set EchoLevel to the default value (only time is displayed)
-        this->SetEchoLevel(1);
-
-        // By default the matrices are rebuilt at each iteration
-        this->SetRebuildLevel(0);
+        // // By default the matrices are rebuilt at each iteration
+        // this->SetRebuildLevel(0);
 
         mSamplingPoints = samplingPoints;
 
@@ -168,7 +177,7 @@ class MorSecondOrderKrylovStrategy
         this->Clear();
     }
 
-    
+
 
     //*********************************************************************************
     /**OPERATIONS ACCESSIBLE FROM THE INPUT: **/
@@ -182,7 +191,7 @@ class MorSecondOrderKrylovStrategy
         std::cout << "hello! this is where the second order krylov MOR magic happens" << std::endl;
         typename TSchemeType::Pointer p_scheme = this->GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
-        
+
         TSystemMatrixType& r_K = this->GetSystemMatrix();
         TSystemMatrixType& r_M = this->GetMassMatrix();
         TSystemMatrixType& r_D = this->GetDampingMatrix();
@@ -193,7 +202,7 @@ class MorSecondOrderKrylovStrategy
         p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), r_RHS);
 
         p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), r_K, tmp);
-        p_builder_and_solver->ApplyDirichletConditions(p_scheme, BaseType::GetModelPart(), r_K, tmp, r_RHS);  
+        p_builder_and_solver->ApplyDirichletConditions(p_scheme, BaseType::GetModelPart(), r_K, tmp, r_RHS);
 
         p_builder_and_solver->BuildMassMatrix(p_scheme, BaseType::GetModelPart(), r_M, tmp);
         p_builder_and_solver->ApplyDirichletConditionsForMassMatrix(p_scheme, BaseType::GetModelPart(), r_M);
@@ -207,7 +216,7 @@ class MorSecondOrderKrylovStrategy
         KRATOS_WATCH(mSamplingPoints)
         const std::size_t n_sampling_points = mSamplingPoints.size();
         const std::size_t reduced_system_size = 3 * n_sampling_points;
-        
+
         //initialize sb, As, AAs vectors
         auto s = SparseSpaceType::CreateEmptyVectorPointer();
         auto& rs = *s;
@@ -230,17 +239,19 @@ class MorSecondOrderKrylovStrategy
         auto& r_tmp_basis = *tmp_basis;
         DenseSpaceType::Resize(r_tmp_basis, system_size, reduced_system_size);
 
-        auto& r_basis = this->GetBasis(); 
-        SparseSpaceType::Resize(r_basis, system_size, reduced_system_size);
+        auto& r_basis = this->GetBasis();
+        // SparseSpaceType::Resize(r_basis, system_size, reduced_system_size);
+        r_basis.resize(system_size,reduced_system_size,false);
+
 
         TSystemVectorType aux;
-        
+
         for( size_t i = 0; i < n_sampling_points; ++i )
         {
             KRATOS_WATCH( mSamplingPoints(i) )
-            r_kdyn = r_K - ( std::pow( mSamplingPoints(i), 2.0 ) * r_M );    // Without Damping  
+            r_kdyn = r_K - ( std::pow( mSamplingPoints(i), 2.0 ) * r_M );    // Without Damping
             //r_kdyn = r_K - ( std::pow( mSamplingPoints(i), 2.0 ) * r_M )-r_D;  With Damping
-            
+
             p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rs, r_RHS );
             aux = prod( r_M, rs );
             p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rAs, aux );
@@ -256,25 +267,27 @@ class MorSecondOrderKrylovStrategy
         // mQR_decomposition.compute( system_size, 3*n_sampling_points, &(r_basis)(0,0) );
         mQR_decomposition.compute( system_size, 3*n_sampling_points, &(r_tmp_basis)(0,0) );
         mQR_decomposition.compute_q();
-        
+
         for( size_t i = 0; i < system_size; ++i )
         {
             for( size_t j = 0; j < (3*n_sampling_points); ++j )
             {
                 r_basis(i,j) = mQR_decomposition.Q(i,j);
-                
+
             }
         }
 
         // project the system matrices onto the Krylov subspace
+        KRATOS_WATCH(this->GetRHSr())
         auto& r_force_vector_reduced = this->GetRHSr();
         auto& r_stiffness_matrix_reduced = this->GetKr();
         auto& r_mass_matrix_reduced = this->GetMr();
         auto& r_damping_matrix_reduced = this->GetDr();
+        r_force_vector_reduced.resize( reduced_system_size, false);
 
         r_force_vector_reduced = prod( r_RHS, r_basis );
 
-        TSystemMatrixType T = prod( trans( r_basis ), r_K );
+        TReducedDenseMatrixType T = prod( trans( r_basis ), r_K );
         r_stiffness_matrix_reduced = prod( T, r_basis );
 
         T = prod( trans( r_basis ), r_M );
@@ -282,11 +295,11 @@ class MorSecondOrderKrylovStrategy
 
         T = prod( trans( r_basis ), r_D );
         r_damping_matrix_reduced = prod( T, r_basis );
-        
+
         KRATOS_WATCH(r_mass_matrix_reduced)
 
         std::cout << "MOR offline solve finished" << std::endl;
-        
+
 		return true;
 
         KRATOS_CATCH("");
@@ -324,7 +337,7 @@ class MorSecondOrderKrylovStrategy
 
     ///@}
 
-  private:
+  protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -354,7 +367,7 @@ class MorSecondOrderKrylovStrategy
 
     ///@}
 
-  protected:
+  private:
     ///@name Static Member Variables
     ///@{
 
@@ -362,6 +375,7 @@ class MorSecondOrderKrylovStrategy
     ///@name Member Variables
     ///@{
 
+    bool mUseComplexFlag;
     vector< double > mSamplingPoints;
     QR<double, row_major> mQR_decomposition;
 

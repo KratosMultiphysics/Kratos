@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "linear_solvers/linear_solver.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/builtin_timer.h"
@@ -59,7 +60,9 @@ namespace Kratos
  */
 template <class TSparseSpace,
           class TDenseSpace,  // = DenseSpace<double>,
-          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
+          class TLinearSolver, //= LinearSolver<TSparseSpace,TDenseSpace>
+          class TReducedSparseSpace,
+          class TReducedDenseSpace
           >
 class MorOfflineSecondOrderStrategy
     : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
@@ -104,6 +107,20 @@ class MorOfflineSecondOrderStrategy
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
+    typedef typename TReducedSparseSpace::MatrixType TReducedSparseMatrixType;
+
+    typedef typename TReducedDenseSpace::MatrixType TReducedDenseMatrixType;
+
+    typedef typename TReducedDenseSpace::VectorType TReducedDenseVectorType;
+
+    typedef typename TReducedSparseSpace::MatrixPointerType TReducedSparseMatrixPointerType;
+
+    typedef typename TReducedDenseSpace::MatrixPointerType TReducedDenseMatrixPointerType;
+
+    typedef typename TReducedDenseSpace::VectorPointerType TReducedDenseVectorPointerType;
+
+
+
     ///@}
     ///@name Life Cycle
 
@@ -119,23 +136,24 @@ class MorOfflineSecondOrderStrategy
     MorOfflineSecondOrderStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
+        typename TBuilderAndSolverType::Pointer pBuilderAndSolver,
+        typename LinearSolver< TReducedSparseSpace, TReducedDenseSpace >::Pointer pNewLinearSolver,
         bool MoveMeshFlag = false)//,
         // bool UseDefinedOutputFlag = false)
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY;
-        
+
         // Saving the scheme
         mpScheme = pScheme;
-
+        mpBuilderAndSolver = pBuilderAndSolver;
 
         // Setting up the default builder and solver
-         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
-            new TBuilderAndSolverType(pNewLinearSolver)); 
+        //  mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
+            // new TBuilderAndSolverType(pNewLinearSolver));
 
-        // Saving the linear solver
-        mpLinearSolver = pNewLinearSolver;            
+        // Saving the linear solver -> better put this in the builder and solver?
+        mpLinearSolver = pNewLinearSolver;
 
         // Set flags to start correcty the calculations
         mSolutionStepIsInitialized = false;
@@ -206,7 +224,7 @@ class MorOfflineSecondOrderStrategy
      * @brief Set method for the builder and solver
      * @param pNewBuilderAndSolver The pointer to the builder and solver considered
      */
-    void SetLinearSolver(typename TLinearSolverType::Pointer pNewLinearSolver)
+    void SetLinearSolver(typename LinearSolver< TReducedSparseSpace, TReducedDenseSpace >::Pointer pNewLinearSolver)
     {
         mpLinearSolver = pNewLinearSolver;
     };
@@ -215,7 +233,7 @@ class MorOfflineSecondOrderStrategy
      * @brief Get method for the builder and solver
      * @return mpBuilderAndSolver: The pointer to the builder and solver considered
      */
-    typename TLinearSolverType::Pointer GetLinearSolver()
+    typename LinearSolver< TReducedSparseSpace, TReducedDenseSpace >::Pointer GetLinearSolver()
     {
         return mpLinearSolver;
     };
@@ -291,12 +309,12 @@ class MorOfflineSecondOrderStrategy
             mpRHS = TSparseSpace::CreateEmptyVectorPointer();
             mpOV = TSparseSpace::CreateEmptyVectorPointer();
 
-            mpAr = TSparseSpace::CreateEmptyMatrixPointer();
-            mpMr = TSparseSpace::CreateEmptyMatrixPointer();
-            mpRHSr = TSparseSpace::CreateEmptyVectorPointer();
-            mpOVr = TSparseSpace::CreateEmptyVectorPointer();
-            mpBasis = TSparseSpace::CreateEmptyMatrixPointer();
-            mpSr = TSparseSpace::CreateEmptyMatrixPointer();
+            mpAr = TReducedDenseSpace::CreateEmptyMatrixPointer();
+            mpMr = TReducedDenseSpace::CreateEmptyMatrixPointer();
+            mpRHSr = TReducedDenseSpace::CreateEmptyVectorPointer();
+            // mpOVr = TReducedDenseSpace::CreateEmptyVectorPointer();
+            mpBasis = TReducedSparseSpace::CreateEmptyMatrixPointer();
+            mpSr = TReducedDenseSpace::CreateEmptyMatrixPointer();
 
             //pointers needed in the solution
             typename TSchemeType::Pointer p_scheme = GetScheme();
@@ -391,9 +409,9 @@ class MorOfflineSecondOrderStrategy
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpOV, mpRHS,
                                                                  BaseType::GetModelPart());
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpM, mpOV, mpRHS,
-                                                                 BaseType::GetModelPart()); 
+                                                                 BaseType::GetModelPart());
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpS, mpOV, mpRHS,
-                                                                 BaseType::GetModelPart()); 
+                                                                 BaseType::GetModelPart());
 
                 KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
@@ -551,63 +569,63 @@ class MorOfflineSecondOrderStrategy
         return mb;
     }
 
-    virtual TSystemMatrixType& GetMr()
+    virtual TReducedDenseMatrixType& GetMr()
     {
-        TSystemMatrixType &mMr = *mpMr;
+        TReducedDenseMatrixType &mMr = *mpMr;
 
         return mMr;
     }
 
-    virtual TSystemMatrixPointerType& pGetMr()
+    virtual TReducedDenseMatrixPointerType& pGetMr()
     {
         return mpMr;
     }
 
-    virtual TSystemMatrixType& GetKr()
+    virtual TReducedDenseMatrixType& GetKr()
     {
-        TSystemMatrixType &mAr = *mpAr;
+        TReducedDenseMatrixType &mAr = *mpAr;
 
         return mAr;
     }
 
-    virtual TSystemMatrixPointerType& pGetKr()
+    virtual TReducedDenseMatrixPointerType& pGetKr()
     {
         return mpAr;
     }
 
-    virtual TSystemMatrixType& GetDr()
+    virtual TReducedDenseMatrixType& GetDr()
     {
-        TSystemMatrixType &mSr = *mpSr;
+        TReducedDenseMatrixType &mSr = *mpSr;
 
         return mSr;
     };
 
-    virtual TSystemMatrixPointerType& pGetDr()
+    virtual TReducedDenseMatrixPointerType& pGetDr()
     {
         return mpSr;
     }
 
-    virtual TSystemVectorType& GetRHSr()
+    virtual TReducedDenseVectorType& GetRHSr()
     {
-        
-        TSystemVectorType& mb = *mpRHSr;
+
+        TReducedDenseVectorType& mb = *mpRHSr;
 
         return mb;
     };
 
-    virtual TSystemVectorPointerType& pGetRHSr()
+    virtual TReducedDenseVectorPointerType& pGetRHSr()
     {
         return mpRHSr;
     }
 
-    virtual TSystemMatrixType& GetBasis()
+    virtual TReducedSparseMatrixType& GetBasis()
     {
-        TSystemMatrixType &mBasis = *mpBasis;
+        TReducedSparseMatrixType &mBasis = *mpBasis;
 
         return mBasis;
     }
 
-    virtual TSystemMatrixPointerType& pGetBasis()
+    virtual TReducedSparseMatrixPointerType& pGetBasis()
     {
         return mpBasis;
     }
@@ -659,7 +677,7 @@ class MorOfflineSecondOrderStrategy
     ///@}
     ///@name Member Variables
     ///@{
-    typename TLinearSolver::Pointer mpLinearSolver; /// The pointer to the linear solver considered
+    typename LinearSolver< TReducedSparseSpace, TReducedDenseSpace >::Pointer mpLinearSolver; /// The pointer to the linear solver considered
     typename TSchemeType::Pointer mpScheme; /// The pointer to the time scheme employed
     typename TBuilderAndSolverType::Pointer mpBuilderAndSolver; /// The pointer to the builder and solver employe
 
@@ -671,13 +689,13 @@ class MorOfflineSecondOrderStrategy
 
 
     // reduced matrices
-    TSystemVectorPointerType mpRHSr; //reduced RHS
-    TSystemMatrixPointerType mpAr;
-    TSystemMatrixPointerType mpMr;
+    TReducedDenseVectorPointerType mpRHSr; //reduced RHS
+    TReducedDenseMatrixPointerType mpAr;
+    TReducedDenseMatrixPointerType mpMr;
     // TDenseMatrixPointerType mpBasis;
-    TSystemMatrixPointerType mpBasis;
-    TSystemMatrixPointerType mpSr;
-    TSystemVectorPointerType mpOVr;
+    TReducedSparseMatrixPointerType mpBasis;
+    TReducedDenseMatrixPointerType mpSr;
+    TReducedDenseVectorPointerType mpOVr;
 
     int myTestInteger = 42;
 
@@ -723,21 +741,21 @@ class MorOfflineSecondOrderStrategy
             KRATOS_INFO("Sx")  << "Damping Matrix = " << mpS << std::endl;
             KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
         }
-        std::stringstream matrix_market_name;
-        matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rA, false);
+        // std::stringstream matrix_market_name;
+        // matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
+        // TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rA, false);
 
-        std::stringstream matrix_market_mass_name;
-        matrix_market_mass_name << "M_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mass_name.str()).c_str(), rM, false);   
+        // std::stringstream matrix_market_mass_name;
+        // matrix_market_mass_name << "M_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
+        // TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mass_name.str()).c_str(), rM, false);
 
-        std::stringstream matrix_market_damping_name;
-        matrix_market_name << "S_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_damping_name.str()).c_str(), rS, false);        
+        // std::stringstream matrix_market_damping_name;
+        // matrix_market_name << "S_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
+        // TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_damping_name.str()).c_str(), rS, false);
 
-        std::stringstream matrix_market_vectname;
-        matrix_market_vectname << "RHS_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
-        TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), rRHS);
+        // std::stringstream matrix_market_vectname;
+        // matrix_market_vectname << "RHS_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
+        // TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), rRHS);
     }
 
     /**
