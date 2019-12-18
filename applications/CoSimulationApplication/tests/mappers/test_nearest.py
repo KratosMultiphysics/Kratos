@@ -48,7 +48,7 @@ class TestMapperNearest(KratosUnittest.TestCase):
         for i in range(4):
             model_part_to.CreateNewNode(i, 0.0, 0.0, i / 3)
 
-        mapper = cs_tools.CreateInstance(parameters['mapper'])
+        mapper = cs_tools.CreateInstance(parameters['mapper_1d'])
         mapper.Initialize(model_part_from, model_part_to)
         mapper((model_part_from, var_from), (model_part_to, var_to))
 
@@ -57,6 +57,7 @@ class TestMapperNearest(KratosUnittest.TestCase):
             values.append(node.GetSolutionStepValue(var_to))
 
         self.assertListEqual(values, [0., 9., 49., 100.])
+
 
         # test 3D problem with perturbed grid, for scalar and vector variables
         var1_from = vars(KM)["TEMPERATURE"]
@@ -95,11 +96,11 @@ class TestMapperNearest(KratosUnittest.TestCase):
         for i in range(Xb.size):
             model_part_to.CreateNewNode(i, Xb[i], Yb[i], Zb[i])
 
-        mapper1 = cs_tools.CreateInstance(parameters['mapper'])
+        mapper1 = cs_tools.CreateInstance(parameters['mapper_3d'])
         mapper1.Initialize(model_part_from, model_part_to)
         mapper1((model_part_from, var1_from), (model_part_to, var1_to))
 
-        mapper3 = cs_tools.CreateInstance(parameters['mapper'])
+        mapper3 = cs_tools.CreateInstance(parameters['mapper_3d'])
         mapper3.Initialize(model_part_from, model_part_to)
         mapper3((model_part_from, var3_from), (model_part_to, var3_to))
 

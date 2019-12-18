@@ -1,4 +1,4 @@
-from scipy.spatial import cKDTree, distance
+from scipy.spatial import distance
 from scipy.linalg import solve
 import numpy as np
 from multiprocessing import Pool, cpu_count
