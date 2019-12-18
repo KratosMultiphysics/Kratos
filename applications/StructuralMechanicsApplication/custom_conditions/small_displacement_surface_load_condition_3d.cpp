@@ -201,7 +201,6 @@ void SmallDisplacementSurfaceLoadCondition3D::CalculateAll(
     // Reading integration points and local gradients
     IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geometry);
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(integration_method);
-    const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = r_geometry.ShapeFunctionsLocalGradients(integration_method);
     const Matrix& Ncontainer = r_geometry.ShapeFunctionsValues(integration_method);
 
     // Vector with a loading applied to the elemnt
