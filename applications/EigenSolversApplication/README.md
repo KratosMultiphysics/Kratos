@@ -6,18 +6,18 @@ The *EigenSolversApplication* is a thin wrapper for the [Eigen linear algebra li
 
 The application provides the following direct sparse solvers:
 
-| Python class             | solver_type            | Matrix kind | Dependencies |
-|--------------------------|------------------------|:-----------:|:------------:|
-| SparseLUSolver           | `sparse_lu`            | Square      | None         |
-| SparseQRSolver           | `sparse_qr`            | Rectangular | None         |
-| SparseCGSolver           | `sparse_cg`            | SPD*        | None         |
-| PardisoLLTSolver         | `pardiso_llt`          | SPD*        | Intel® MKL   |
-| PardisoLDLTSolver        | `pardiso_ldlt`         | SPD*        | Intel® MKL   |
-| PardisoLUSolver          | `pardiso_lu`           | Square      | Intel® MKL   |
-| ComplexSparseLUSolver    | `sparse_lu_complex`    | Square      | None         |
-| ComplexPardisoLLTSolver  | `pardiso_llt_complex`  | SPD*        | Intel® MKL   |
-| ComplexPardisoLDLTSolver | `pardiso_ldlt_complex` | SPD*        | Intel® MKL   |
-| ComplexPardisoLUSolver   | `pardiso_lu_complex`   | Square      | Intel® MKL   |
+| Python class             | solver_type            | Matrix kind | Domain   | Dependencies |
+|--------------------------|------------------------|:-----------:|:--------:|:------------:|
+| SparseLUSolver           | `sparse_lu`            | Square      | Reals    | None         |
+| SparseQRSolver           | `sparse_qr`            | Rectangular | Reals    | None         |
+| SparseCGSolver           | `sparse_cg`            | SPD*        | Reals    | None         |
+| PardisoLLTSolver         | `pardiso_llt`          | SPD*        | Reals    | Intel® MKL   |
+| PardisoLDLTSolver        | `pardiso_ldlt`         | SPD*        | Reals    | Intel® MKL   |
+| PardisoLUSolver          | `pardiso_lu`           | Square      | Reals    | Intel® MKL   |
+| ComplexSparseLUSolver    | `sparse_lu_complex`    | Square      | Complex  | None         |
+| ComplexPardisoLLTSolver  | `pardiso_llt_complex`  | SPD*        | Complex  | Intel® MKL   |
+| ComplexPardisoLDLTSolver | `pardiso_ldlt_complex` | SPD*        | Complex  | Intel® MKL   |
+| ComplexPardisoLUSolver   | `pardiso_lu_complex`   | Square      | Complex  | Intel® MKL   |
 
 *SPD = Symmetric Positive Definite
 
