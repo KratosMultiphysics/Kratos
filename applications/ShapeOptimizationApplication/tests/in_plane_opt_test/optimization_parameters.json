@@ -41,7 +41,8 @@
                     "model_import_settings" : {
                         "input_type"     : "mdpa",
                         "input_filename" : "3D_shell_102n"
-                    }
+                    },
+                    "background_sub_model_part_name" : ""
                 }
             }
         },

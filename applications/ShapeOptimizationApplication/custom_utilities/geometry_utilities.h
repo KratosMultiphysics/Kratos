@@ -125,14 +125,14 @@ public:
         KRATOS_CATCH("");
     }
 
-    void ProjectNodalVariableOnDirection( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNormalVariable)
+    void ProjectNodalVariableOnDirection( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rDirectionVariable)
     {
         KRATOS_TRY;
 
         for (ModelPart::NodeIterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); ++node_i)
         {
             array_3d &nodal_variable = node_i->FastGetSolutionStepValue(rNodalVariable);
-            array_3d &node_normal = node_i->FastGetSolutionStepValue(rNormalVariable);
+            array_3d &node_normal = node_i->FastGetSolutionStepValue(rDirectionVariable);
 
             const double magnitude = inner_prod(nodal_variable, node_normal);
             noalias(nodal_variable) = magnitude * node_normal;
@@ -141,14 +141,14 @@ public:
         KRATOS_CATCH("");
     }
 
-    void ProjectNodalVariableOnTangentPlane( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNormalVariable)
+    void ProjectNodalVariableOnTangentPlane( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rPlaneNormalVariable)
     {
         KRATOS_TRY;
 
         for (ModelPart::NodeIterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); ++node_i)
         {
             array_3d &nodal_variable = node_i->FastGetSolutionStepValue(rNodalVariable);
-            array_3d &node_normal = node_i->FastGetSolutionStepValue(rNormalVariable);
+            array_3d &node_normal = node_i->FastGetSolutionStepValue(rPlaneNormalVariable);
 
             const double magnitude = inner_prod(nodal_variable, node_normal);
             nodal_variable -= magnitude * node_normal;
