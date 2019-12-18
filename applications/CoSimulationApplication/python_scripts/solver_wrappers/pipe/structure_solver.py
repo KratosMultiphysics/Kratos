@@ -28,7 +28,7 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
 
         # Settings
         l = self.settings["l"].GetDouble()  # Length
-        self.d = self.settings["d"].GetDouble() # Diameter
+        self.d = self.settings["d"].GetDouble()  # Diameter
         self.rhof = self.settings["rhof"].GetDouble()  # Density
 
         e = self.settings["e"].GetDouble()  # Young"s modulus of structure
@@ -43,7 +43,9 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
 
         # Initialization
         self.p = np.ones(self.m) * 2.0 * self.cmk2  # Pressure
-
+        self.a = np.ones(self.m) * m.pi * self.d ** 2 / 4.0  # Area of cross section
+        self.p0 = 0.0  # Reference pressure
+        self.a0 = m.pi * self.d ** 2 / 4.0  # Reference area of cross section
         self.c02 = self.cmk2 - self.p0 / 2.0  # Wave speed squared with reference pressure
 
         # ModelParts
@@ -73,7 +75,7 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         self.n += 1
 
     def SolveSolutionStep(self, interface_input):
-        self.interface_input = interface_input
+        self.interface_input = interface_input.deepcopy()
         self.p = self.interface_input.GetNumpyArray()
 
         # Independent rings model
@@ -84,7 +86,7 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
             self.a[i] = self.a0 * (2.0 / (2.0 + (self.p0 - self.p[i]) / self.c02)) ** 2
 
         self.interface_output.SetNumpyArray(self.a)
-        return self.interface_output
+        return self.interface_output.deepcopy()
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -93,13 +95,13 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         super().Finalize()
 
     def GetInterfaceInput(self):
-        return self.interface_input
+        return self.interface_input.deepcopy()
 
     def SetInterfaceInput(self):
         Exception("This solver wrapper provides no mapping.")
 
     def GetInterfaceOutput(self):
-        return self.interface_output
+        return self.interface_output.deepcopy()
 
     def SetInterfaceOutput(self):
         Exception("This solver wrapper provides no mapping.")

@@ -29,11 +29,11 @@ class SolverWrapperMapped(CoSimulationComponent):
         self.solver_wrapper.InitializeSolutionStep()
 
     def SolveSolutionStep(self, interface_input_from):
-        self.interface_input_from = interface_input_from
+        self.interface_input_from = interface_input_from.deepcopy()
         self.mapper_interface_input(self.interface_input_from, self.interface_input_to)
         self.interface_output_from = self.solver_wrapper.SolveSolutionStep(self.interface_input_to)
         self.mapper_interface_output(self.interface_output_from, self.interface_output_to)
-        return self.interface_output_to
+        return self.interface_output_to.deepcopy()
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -49,11 +49,11 @@ class SolverWrapperMapped(CoSimulationComponent):
 
     def GetInterfaceInput(self):
         # Does not contain most recent data
-        return self.interface_input_from
+        return self.interface_input_from.deepcopy()
 
     def SetInterfaceInput(self, interface_input_from):
         # Create input mapper
-        self.interface_input_from = interface_input_from
+        self.interface_input_from = interface_input_from.deepcopy()
         self.interface_input_to = self.solver_wrapper.GetInterfaceInput()
 
         self.mapper_interface_input = cs_tools.CreateInstance(self.settings["mapper_interface_input"])
@@ -62,11 +62,11 @@ class SolverWrapperMapped(CoSimulationComponent):
     def GetInterfaceOutput(self):
         self.interface_output_from = self.solver_wrapper.GetInterfaceOutput()
         self.mapper_interface_output(self.interface_output_from, self.interface_output_to)
-        return self.interface_output_to
+        return self.interface_output_to.deepcopy()
 
     def SetInterfaceOutput(self, interface_output_to):
         # Create output mapper
-        self.interface_output_to = interface_output_to
+        self.interface_output_to = interface_output_to.deepcopy()
         self.interface_output_from = self.solver_wrapper.GetInterfaceOutput()
 
         self.mapper_interface_output = cs_tools.CreateInstance(self.settings["mapper_interface_output"])

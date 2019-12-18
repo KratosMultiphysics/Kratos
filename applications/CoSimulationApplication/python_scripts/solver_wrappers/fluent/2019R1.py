@@ -331,7 +331,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                 index += 1
 
         # return interface_output object
-        return self.interface_output
+        return self.interface_output.deepcopy()
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()

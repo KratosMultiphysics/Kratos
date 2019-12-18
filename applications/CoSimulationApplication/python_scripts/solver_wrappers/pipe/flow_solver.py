@@ -93,8 +93,9 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
 
     def SolveSolutionStep(self, interface_input):
         # Input does not contain boundary conditions
-        self.interface_input.CopyDataFrom(interface_input)
-        a = self.interface_input.GetNumpyArray()
+        a = interface_input.GetNumpyArray()
+        self.interface_input.SetNumpyArray(a)
+
         self.a[1:self.m + 1] = a
         self.a[0] = self.a[1]
         self.a[self.m + 1] = self.a[self.m]
@@ -122,7 +123,7 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         # Output does not contain boundary conditions
         p = self.p[1:self.m + 1]
         self.interface_output.SetNumpyArray(p)
-        return self.interface_output
+        return self.interface_output.deepcopy()
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -131,13 +132,13 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         super().Finalize()
 
     def GetInterfaceInput(self):
-        return self.interface_input
+        return self.interface_input.deepcopy()
 
     def SetInterfaceInput(self):
         Exception("This solver interface provides no mapping.")
 
     def GetInterfaceOutput(self):
-        return self.interface_output
+        return self.interface_output.deepcopy()
 
     def SetInterfaceOutput(self):
         Exception("This solver interface provides no mapping.")
