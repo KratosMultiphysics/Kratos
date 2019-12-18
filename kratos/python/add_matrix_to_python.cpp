@@ -95,6 +95,22 @@ namespace Python
         auto compressed_matrix_binder = CreateMatrixInterface< CompressedMatrix >(m,"CompressedMatrix");
         compressed_matrix_binder.def(py::init<const CompressedMatrix::size_type, const CompressedMatrix::size_type>());
         compressed_matrix_binder.def(py::init<const CompressedMatrix& >());
+        compressed_matrix_binder.def("value_data", [](const CompressedMatrix& rA) ->  std::vector<double> 
+                                                    {return std::vector<double>(
+                                                        rA.value_data().begin(),
+                                                        rA.value_data().end()
+                                                        ) ;});
+        compressed_matrix_binder.def("index1_data", [](const CompressedMatrix& rA) -> std::vector<std::size_t> 
+                                                    {return std::vector<std::size_t>(
+                                                        rA.index1_data().begin(),
+                                                        rA.index1_data().end()
+                                                        ) ;});
+        compressed_matrix_binder.def("index2_data", [](const CompressedMatrix& rA) -> std::vector<std::size_t> 
+                                                    {return std::vector<std::size_t>(
+                                                        rA.index2_data().begin(),
+                                                        rA.index2_data().end()
+                                                        ) ;});
+
     }
 
 }  // namespace Python.

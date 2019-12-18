@@ -173,6 +173,11 @@ class AnalysisStage(object):
         for process in self._GetListOfProcesses():
             process.Check()
 
+    def Clear(self):
+        """This function clears the AnalysisStage
+        """
+        self._GetSolver().Clear()
+
     def ModifyInitialProperties(self):
         """this is the place to eventually modify material properties in the stage """
         pass
