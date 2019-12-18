@@ -5,8 +5,14 @@ import KratosMultiphysics.SeismicApplication
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+# == Python unittests == #
 # Import the tests o test_classes to create the suits
 from generalTests import KratosSeismicGeneralTests
+
+
+# == Test cases == #
+from seismic_test_factory import FiberBeamElementTest
+
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -24,27 +30,21 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     # Create a test suit with the selected tests (Small tests):
-    # smallSuite will contain the following tests:
-    # - testSmallExample
-    smallSuite = suites['small']
-    smallSuite.addTest(KratosSeismicGeneralTests('testSmallExample'))
+    # These tests are executed by the continuous integration tool, so they have to be very fast!
+    # Execution time << 1 sec on a regular PC !!!
+    # If the tests in the smallSuite take too long then merging to master will not be possible!
+    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
+    nightSuite = suites['nightly'] # These tests are executed in the nightly build
 
-    # Create a test suit with the selected tests
-    # nightSuite will contain the following tests:
-    # - testSmallExample
-    # - testNightlyFirstExample
-    # - testNightlySecondExample
-    nightSuite = suites['nightly']
+    # smallSuite.addTest(KratosSeismicGeneralTests('testSmallExample'))
+    smallSuite.addTest(FiberBeamElementTest('test_execution'))
+
     nightSuite.addTests(smallSuite)
-
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']
-    allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            KratosSeismicGeneralTests
-        ])
-    )
+    allSuite.addTests(nightSuite) # Already contains the smallSuite
+    # allSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosSeismicGeneralTests]))
 
     return suites
 
