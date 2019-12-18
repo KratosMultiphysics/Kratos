@@ -5,7 +5,7 @@ from multiprocessing import Pool, cpu_count
 
 
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-from KratosMultiphysics.CoSimulationApplication.mappers.nearest import MapperNearest
+from KratosMultiphysics.CoSimulationApplication.mappers.interpolator import MapperInterpolator
 cs_data_structure = cs_tools.cs_data_structure
 
 import time
@@ -30,27 +30,12 @@ def Create(parameters):
 
 
 # Class MapperRadialBasis: Radial basis function interpolation in 2D.
-class MapperRadialBasis(MapperNearest):
+class MapperRadialBasis(MapperInterpolator):
     def __init__(self, parameters):
-        """
-        TODO
-        The __call__ and Finalize methods are
-        inherited from MapperNearest.
+        super().__init__(parameters)
 
-        """
         # store settings
-        self.settings = parameters['settings']
-        self.interpolator = True
-        self.balanced_tree = self.settings['balanced_tree'].GetBool()
         self.parallel = self.settings['parallel'].GetBool()
-
-        # get list with directions
-        self.directions = []
-        for direction in self.settings['directions'].list():
-            tmp = direction.GetString().upper()
-            if tmp not in ['X', 'Y', 'Z']:
-                raise ValueError(f'"{tmp}" is not a valid direction.')
-            self.directions.append(tmp + '0')
 
         # determine number of nearest neighbours
         if len(self.directions) == 3:
@@ -59,29 +44,9 @@ class MapperRadialBasis(MapperNearest):
             self.n_nearest = 9
 
     def Initialize(self, model_part_from, model_part_to):
-        self.n_from = model_part_from.NumberOfNodes()
-        self.coords_from = np.zeros((self.n_from, len(self.directions)))
-        for i, node in enumerate(model_part_from.Nodes):
-            for j, direction in enumerate(self.directions):
-                self.coords_from[i, j] = getattr(node, direction)
+        super().Initialize(model_part_from, model_part_to)
 
-        self.n_to = model_part_to.NumberOfNodes()
-        self.coords_to = np.zeros((self.n_to, len(self.directions)))
-        for i, node in enumerate(model_part_to.Nodes):
-            for j, direction in enumerate(self.directions):
-                self.coords_to[i, j] = getattr(node, direction)
-
-        if self.n_from < self.n_nearest:
-            raise ValueError('not enough from-points for radial basis interpolation')
-
-        # build and query tree
-        with timer('tree', ms=True, t=1):
-            if self.balanced_tree:  # time-intensive
-                tree = cKDTree(self.coords_from)
-            else:  # less stable
-                tree = cKDTree(self.coords_from, balanced_tree=False)
-            self.distances, self.nearest = tree.query(self.coords_to, k=self.n_nearest)
-
+        # calculate coefficients
         with timer('coeffs', ms=True):
             iterable = []
             for i_to in range(self.n_to):
@@ -99,13 +64,11 @@ class MapperRadialBasis(MapperNearest):
                 for tup in iterable:
                     self.coeffs[i_to, :] = get_coeffs(*tup).flatten()
 
-        # *** warning: coeffs don't always add up to 1!
-
 def get_coeffs(distances, coords_from):
     def phi(r):
         return (1 - r) ** 4 * (1 + 4 * r) * np.heaviside(1 - r, 0)
 
-    d_ref = distances[-1] * 2
+    d_ref = distances[-1] * 2  # *** add parameter for this?
 
     # create column Phi_to, based on distances to from-points
     d_to = distances.reshape(-1, 1)

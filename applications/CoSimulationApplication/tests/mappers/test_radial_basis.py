@@ -150,8 +150,8 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
         model_part_from = model_from.CreateModelPart('wall_from')
         model_part_from.AddNodalSolutionStepVariable(var_from)
 
-        n_theta = 200
-        n_phi = 100
+        n_theta = 100
+        n_phi = 50
         dtheta = np.pi / n_theta
         dphi = np.pi / (n_phi - 1)
         theta = np.ones((n_theta, n_phi)) * np.linspace(0, 2 * np.pi - dtheta, n_theta).reshape(-1, 1)
@@ -173,8 +173,8 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
         model_part_to.AddNodalSolutionStepVariable(var_to)
 
 
-        n_theta = 400
-        n_phi = 250  # 100k points: Initialize = 4.3s, __call__ = 0.7s
+        n_theta = 150
+        n_phi = 75  # 100k points: tree = 1.1s, coeffs = 4.3s, __call__ = 0.7s
         dtheta = np.pi / n_theta
         dphi = np.pi / (n_phi - 1)
         theta = np.ones((n_theta, n_phi)) * np.linspace(0, 2 * np.pi - dtheta, n_theta).reshape(-1, 1)
@@ -201,7 +201,7 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
         v_to = v_to.reshape(n_theta, n_phi)
 
         # plot results
-        if False:
+        if True:
             c_from = cm.jet((v_from - v_from.min()) / (v_from.max() - v_from.min()))
             c_to = cm.jet((v_to - v_from.min()) / (v_from.max() - v_from.min()))
             error = np.abs(v_to - v_to_ref)
