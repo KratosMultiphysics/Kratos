@@ -1,18 +1,18 @@
 import numpy as np
 from scipy.linalg import qr, solve_triangular
 
-from KratosMultiphysics.CoSimulationApplication.co_simulation_component import CoSimulationComponent
+from KratosMultiphysics.CoSimulationApplication.coupled_solvers.gauss_seidel import CoupledSolverGaussSeidel
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 cs_data_structure = cs_tools.cs_data_structure
 
 
 def Create(parameters):
-    return ConvergenceAcceleratorAITKEN(parameters)
+    return CoupledSolverAITKEN(parameters)
 
 
-class ConvergenceAcceleratorAITKEN(CoSimulationComponent):
+class CoupledSolverAITKEN(CoupledSolverGaussSeidel):
     def __init__(self, parameters):
-        super().__init__()
+        super().__init__(parameters)
 
         self.settings = parameters["settings"]
         self.omega_max = self.settings["omega_max"].GetDouble()
@@ -45,6 +45,25 @@ class ConvergenceAcceleratorAITKEN(CoSimulationComponent):
             # Set first value of omega in a timestep
             self.omega = np.sign(self.omega) * min(abs(self.omega), self.omega_max)
             self.added = True
+
+    def SolveSolutionStep(self):
+        # Initial values
+        self.x = self.predictor.Predict(self.x)
+        y = self.solver_wrappers[0].SolveSolutionStep(self.x)
+        xt = self.solver_wrappers[1].SolveSolutionStep(y)
+        r = xt - self.x
+        self.Update(self.x, xt)
+        self.convergence_criterion.Update(r)
+        self.iteration_curr += 1
+        # Coupling iteration loop
+        while not self.convergence_criterion.IsSatisfied():
+            self.x += self.Predict(r)
+            y = self.solver_wrappers[0].SolveSolutionStep(self.x)
+            xt = self.solver_wrappers[1].SolveSolutionStep(y)
+            r = xt - self.x
+            self.Update(self.x, xt)
+            self.convergence_criterion.Update(r)
+            self.iteration_curr += 1
 
     def IsReady(self):
         return self.added
