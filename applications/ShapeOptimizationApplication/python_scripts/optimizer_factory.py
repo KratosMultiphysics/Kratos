@@ -73,6 +73,7 @@ def _ValidateObjectiveSettingsRecursively(objective_settings):
         "analyzer"                            : "external",
         "response_settings"                   : {},
         "is_combined"                         : false,
+        "combination_type"                    : "sum",
         "combined_responses"                  : [],
         "weight"                              : 1.0,
         "project_gradient_on_surface_normals" : false
