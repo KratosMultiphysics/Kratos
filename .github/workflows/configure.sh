@@ -27,7 +27,7 @@ add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
 add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
 add_app ${KRATOS_APP_DIR}/DEMApplication;
-# add_app ${KRATOS_APP_DIR}/EigenSolversApplication;
+add_app ${KRATOS_APP_DIR}/EigenSolversApplication;
 add_app ${KRATOS_APP_DIR}/ExternalSolversApplication;
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
 add_app ${KRATOS_APP_DIR}/FSIApplication;
@@ -59,6 +59,7 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -Werror=misleading-indentation -Werror=return-type \
 -Werror=sign-compare -Werror=unused-but-set-variable \
 -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized" \
+-DEIGEN_ROOT="/usr/include/eigen3" \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
