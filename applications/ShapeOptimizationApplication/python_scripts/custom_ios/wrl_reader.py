@@ -7,12 +7,28 @@
 #  Main authors:    Geiser Armin, https://github.com/armingeiser
 #
 # ==============================================================================
+import os
+
 
 class Shape:
     def __init__(self, name, nodes, triangles):
         self.name = name
         self.nodes = nodes
         self.triangles = triangles
+
+
+def detect_file(file_name):
+    wrl_name = file_name + ".wrl"
+    vrml_name = file_name + ".vrml"
+
+    if os.path.isfile(wrl_name) and os.path.isfile(vrml_name):
+        raise Exception("Wrl reader: file {} found with '.wrl' and '.vrml' ending! Please remove one of them!".format(file_name))
+    elif os.path.isfile(wrl_name):
+        return wrl_name
+    elif os.path.isfile(vrml_name):
+        return vrml_name
+    else:
+        raise Exception("Wrl reader: file {} not found with '.wrl' or '.vrml' ending!".format(file_name))
 
 
 def read_nodes(line, file):

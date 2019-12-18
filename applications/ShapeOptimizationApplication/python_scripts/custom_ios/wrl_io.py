@@ -9,7 +9,7 @@
 # ==============================================================================
 
 import KratosMultiphysics as KM
-from .wrl_reader import read_shapes
+from .wrl_reader import read_shapes, detect_file
 
 
 def _rename_to_valid_name(model_part, shape):
@@ -30,10 +30,14 @@ def _rename_to_valid_name(model_part, shape):
 class WrlIO:
 
     def __init__(self, file_name):
-        self.file_name = file_name + ".wrl"
+        self.file_name = detect_file(file_name)
 
     def ReadModelPart(self, model_part):
         KM.Logger.PrintInfo("ShapeOpt", "Start reading model part from '{}'.".format(self.file_name))
+
+        if model_part.ProcessInfo.GetValue(KM.DOMAIN_SIZE) != 3:
+            raise Exception("WrlIO: Domain size has to be 3!")
+
         shapes = read_shapes(self.file_name)
 
         nodes_shift = 0
