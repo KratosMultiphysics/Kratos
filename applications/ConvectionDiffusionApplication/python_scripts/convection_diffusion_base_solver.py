@@ -78,6 +78,10 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: SPECIFIC HEAT VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["specific_heat_variable"].GetString())
             if not custom_settings["convection_diffusion_variables"].Has("reaction_variable"):
                 KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: REACTION VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["reaction_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("temperature_gradient_variable"):
+                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: TEMPERATURE GRADIENT VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["temperature_gradient_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("nodal_error_variable"):
+                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: NODAL ERROR VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["nodal_error_variable"].GetString())
 
         model_part_name = self.settings["model_part_name"].GetString()
 
@@ -130,7 +134,9 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 "transfer_coefficient_variable" : "TRANSFER_COEFFICIENT",
                 "velocity_variable"             : "VELOCITY",
                 "specific_heat_variable"        : "SPECIFIC_HEAT",
-                "reaction_variable"             : "REACTION_FLUX"
+                "reaction_variable"             : "REACTION_FLUX",
+                "temperature_gradient_variable" : "NODAL_TEMP_GRADIENT",
+                "nodal_error_variable"          : "NODAL_ERROR_PROJ"
             },
             "time_stepping" : {
                 "time_step": 1.0
@@ -213,6 +219,12 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         reaction_variable = self.settings["convection_diffusion_variables"]["reaction_variable"].GetString()
         if (reaction_variable is not ""):
             convention_diffusion_settings.SetReactionVariable(KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable))
+        temperature_gradient_variable = self.settings["convection_diffusion_variables"]["temperature_gradient_variable"].GetString()
+        if (temperature_gradient_variable is not ""):
+            convention_diffusion_settings.SetTemperatureGradientVariable(KratosMultiphysics.KratosGlobals.GetVariable(temperature_gradient_variable))
+        nodal_error_variable = self.settings["convection_diffusion_variables"]["nodal_error_variable"].GetString()
+        if (nodal_error_variable is not ""):
+            convention_diffusion_settings.SetNodalErrorVariable(KratosMultiphysics.KratosGlobals.GetVariable(nodal_error_variable))
 
         target_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convention_diffusion_settings)
 
@@ -241,6 +253,10 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetSpecificHeatVariable())
             if convention_diffusion_settings.IsDefinedReactionVariable():
                 target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetReactionVariable())
+            if convention_diffusion_settings.IsDefinedTemperatureGradientVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetTemperatureGradientVariable())
+            if convention_diffusion_settings.IsDefinedNodalErrorVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetNodalErrorVariable())
         else:
             raise Exception("The provided target_model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
 

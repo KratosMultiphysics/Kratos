@@ -24,6 +24,7 @@ class ApplyErrorCalculatorProcess(KratosMultiphysics.Process):
                 "maximal_size"                        : 10.0,
                 "refinement_strategy"                 : "Simple_Error_Calculator",
                 "reference_variable_name"             : "ERROR_RATIO",
+                "historical_results"                  : true,
                 "echo_level"                          : 0
             }
             """
@@ -31,19 +32,10 @@ class ApplyErrorCalculatorProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.model_part = Model[settings["model_part_name"].GetString()]
+        self.historical_results = settings["historical_results"].GetBool()
+        print(self.model_part.NumberOfNodes())
+        print(self.model_part.NumberOfElements())
 
-        """ KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(
-                KratosMultiphysics.ConvectionDiffusionApplication.NODAL_TEMP_GRADIENT,
-                0.0,
-                self.model_part.Nodes)
-        
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(
-                KratosMultiphysics.ConvectionDiffusionApplication.NODAL_ERROR_PROJ,
-                0.0,
-                self.model_part.Nodes) """
-        
-        #self.model_part.AddNodalSolutionStepVariable(KratosConvDiff.NODAL_TEMP_GRADIENT)
-        #self.model_part.AddNodalSolutionStepVariable(KratosConvDiff.NODAL_ERROR_PROJ)
 
         #Process Parameters
         error_calc_params = KratosMultiphysics.Parameters("""{}""")
@@ -52,6 +44,7 @@ class ApplyErrorCalculatorProcess(KratosMultiphysics.Process):
         error_calc_params.AddValue("refinement_strategy", settings["refinement_strategy"])
         error_calc_params.AddValue("reference_variable_name", settings["reference_variable_name"])
         error_calc_params.AddValue("echo_level", settings["echo_level"])
+        error_calc_params.AddValue("historical_results", settings["historical_results"])
 
         if (self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             self.error_calc = KratosConvDiff.SimpleErrorCalculatorProcess2D(self.model_part, error_calc_params)
@@ -68,7 +61,9 @@ class ApplyErrorCalculatorProcess(KratosMultiphysics.Process):
         pass
 
     def ExecuteFinalizeSolutionStep(self):
-        pass
+        if self.historical_results:
+            # We execute our process
+            self.error_calc.Execute()
 
     def ExecuteBeforeOutputStep(self):
         pass
@@ -77,8 +72,9 @@ class ApplyErrorCalculatorProcess(KratosMultiphysics.Process):
         pass
 
     def ExecuteFinalize(self):
-        # We execute our process
-        self.error_calc.Execute()
+        if not self.historical_results:
+            # We execute our process
+            self.error_calc.Execute()
 
     def Clear(self):
         pass

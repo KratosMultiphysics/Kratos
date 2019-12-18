@@ -28,6 +28,10 @@ def AddVariables(model_part):
             model_part.AddNodalSolutionStepVariable(settings.GetSurfaceSourceVariable())
         if settings.IsDefinedReactionVariable():
             model_part.AddNodalSolutionStepVariable(settings.GetReactionVariable())
+        if settings.IsDefinedTemperatureGradientVariable():
+            model_part.AddNodalSolutionStepVariable(settings.GetTemperatureGradientVariable())
+        if settings.IsDefinedNodalErrorVariable():
+            model_part.AddNodalSolutionStepVariable(settings.GetNodalErrorVariable())
     else:
         raise Exception("the provided model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
 
@@ -198,3 +202,19 @@ class ConvectionDiffusionSolver(object):
         else:
             if verbose:
                 print("Specific heat variable not defined in CONVECTION_DIFFUSION_SETTINGS. Assuming unit specific heat.")
+        
+        # Temperature Gradient variable
+        if settings.IsDefinedTemperatureGradientVariable():
+            if not ref_node.SolutionStepsDataHas( settings.GetTemperatureGradientVariable() ):
+                raise Exception("Temperature Gradient variable defined in CONVECTION_DIFFUSION_SETTINGS but not added to the nodes.")
+        else:
+            if verbose:
+                print("Temperature Gradient variable not defined in CONVECTION_DIFFUSION_SETTINGS. Assuming zero Temperature Gradient.")
+        
+        # Nodal Error variable
+        if settings.IsDefinedNodalErrorVariable():
+            if not ref_node.SolutionStepsDataHas( settings.GetNodalErrorVariable() ):
+                raise Exception("Nodal Error variable defined in CONVECTION_DIFFUSION_SETTINGS but not added to the nodes.")
+        else:
+            if verbose:
+                print("Nodal Error variable not defined in CONVECTION_DIFFUSION_SETTINGS. Assuming zero Nodal Error.")

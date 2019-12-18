@@ -205,6 +205,7 @@ private:
 
     double mMinSize;                 /// The minimal size of the elements
     double mMaxSize;                 /// The maximal size of the elements
+    bool mHistoricalResults;
 
     std::size_t mEchoLevel;             /// The echo level
     std::string mReferenceVariable;

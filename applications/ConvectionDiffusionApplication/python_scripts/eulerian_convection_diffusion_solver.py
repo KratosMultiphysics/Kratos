@@ -23,6 +23,10 @@ def AddVariables(model_part, py_settings=None):
             thermal_settings.SetSpecificHeatVariable(eval(py_settings.specific_heat_variable))
         if hasattr(py_settings, "density_variable"):
             thermal_settings.SetDensityVariable(eval(py_settings.density_variable))
+        if hasattr(py_settings, "temperature_gradient_variable"):
+            thermal_settings.SetTemperatureGradientVariable(eval(py_settings.temperature_gradient_variable))
+        if hasattr(py_settings, "nodal_error_variable"):
+            thermal_settings.SetNodalErrorVariable(eval(py_settings.nodal_error_variable))
         #and now we save it in the model part.
         (model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS, thermal_settings)
     #now we can add the variable, as the name suggest
@@ -42,6 +46,10 @@ def AddVariables(model_part, py_settings=None):
             model_part.AddNodalSolutionStepVariable(thermal_settings.GetDensityVariable())
         if thermal_settings.IsDefinedVolumeSourceVariable():
             model_part.AddNodalSolutionStepVariable(thermal_settings.GetVolumeSourceVariable())
+        if thermal_settings.IsDefinedTemperatureGradientVariable():
+            model_part.AddNodalSolutionStepVariable(thermal_settings.GetTemperatureGradientVariable())
+        if thermal_settings.IsDefinedNodalErrorVariable():
+            model_part.AddNodalSolutionStepVariable(thermal_settings.GetNodalErrorVariable())
     else:
         raise ValueError('CONVECTION_DIFFUSION_SETTINGS not defined in the model part!')
 

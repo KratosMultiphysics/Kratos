@@ -87,6 +87,8 @@ public:
 		mis_defined_VelocityVar=false;
 		mis_defined_SpecificHeatVar=false;
         mis_defined_ReactionVar=false;
+        mis_defined_TemperatureGradientVar=false;
+        mis_defined_NodalErrorVar=false;
 	 };
     ConvectionDiffusionSettings(const ConvectionDiffusionSettings& rOther):
         mpDensityVar(rOther.mpDensityVar),
@@ -112,7 +114,9 @@ public:
 		mis_defined_TransferCoefficientVar(rOther.mis_defined_TransferCoefficientVar),
 		mis_defined_VelocityVar(rOther.mis_defined_VelocityVar),
 		mis_defined_SpecificHeatVar(rOther.mis_defined_SpecificHeatVar),
-        mis_defined_ReactionVar(rOther.mis_defined_ReactionVar)
+        mis_defined_ReactionVar(rOther.mis_defined_ReactionVar),
+        mis_defined_TemperatureGradientVar(rOther.mis_defined_TemperatureGradientVar),
+        mis_defined_NodalErrorVar(rOther.mis_defined_NodalErrorVar)
     {
     }
 
@@ -290,6 +294,34 @@ public:
 		return mis_defined_ReactionVar;
 	}
 
+    void SetTemperatureGradientVariable(const Variable<array_1d<double,3> >& rvar)
+    {
+        mpTemperatureGradientVar = &rvar;
+		mis_defined_TemperatureGradientVar=true;
+    }
+    const Variable<array_1d<double,3> >& GetTemperatureGradientVariable()
+    {
+        return *mpTemperatureGradientVar;
+    }
+    bool IsDefinedTemperatureGradientVariable()
+    {
+		return mis_defined_TemperatureGradientVar;
+	}
+
+    void SetNodalErrorVariable(const Variable<double>& rvar)
+    {
+        mpNodalErrorVar = &rvar;
+		mis_defined_NodalErrorVar=true;
+    }
+    const Variable<double>& GetNodalErrorVariable()
+    {
+        return *mpNodalErrorVar;
+    }
+    bool IsDefinedNodalErrorVariable()
+    {
+		return mis_defined_NodalErrorVar;
+	}
+
     ///@}
     ///@name Operations
     ///@{
@@ -313,6 +345,8 @@ public:
         mpVelocityVar = rOther.mpVelocityVar;
 		mpSpecificHeatVar = rOther.mpSpecificHeatVar;
         mpReactionVar = rOther.mpReactionVar;
+        mpTemperatureGradientVar = rOther.mpTemperatureGradientVar;
+        mpNodalErrorVar = rOther.mpNodalErrorVar;
         //now the is_defined
         mis_defined_DensityVar = rOther.mis_defined_DensityVar;
 		mis_defined_DiffusionVar = rOther.mis_defined_DiffusionVar;
@@ -326,6 +360,8 @@ public:
 		mis_defined_VelocityVar = rOther.mis_defined_VelocityVar;
 		mis_defined_SpecificHeatVar = rOther.mis_defined_SpecificHeatVar;
         mis_defined_ReactionVar = rOther.mis_defined_ReactionVar;
+        mis_defined_TemperatureGradientVar = rOther.mis_defined_TemperatureGradientVar;
+        mis_defined_NodalErrorVar = rOther.mis_defined_NodalErrorVar;
 
         return *this;
     }
@@ -387,6 +423,8 @@ protected:
     const Variable<array_1d<double,3> >* mpVelocityVar;
     const Variable<double>* mpSpecificHeatVar;
     const Variable<double>* mpReactionVar;
+    const Variable<array_1d<double,3> >* mpTemperatureGradientVar;
+    const Variable<double>* mpNodalErrorVar;
     bool mis_defined_DensityVar;
     bool mis_defined_DiffusionVar;
     bool mis_defined_UnknownVar;
@@ -399,6 +437,8 @@ protected:
     bool mis_defined_VelocityVar;
     bool mis_defined_SpecificHeatVar;
     bool mis_defined_ReactionVar;
+    bool mis_defined_TemperatureGradientVar;
+    bool mis_defined_NodalErrorVar;
 
     ///@}
     ///@name Protected Operators
@@ -462,6 +502,8 @@ private:
 		rSerializer.save("VelocityVar",mpVelocityVar);
  		rSerializer.save("SpecificHeatVar",mpSpecificHeatVar);
         rSerializer.save("ReactionVar",mpReactionVar);
+        rSerializer.save("TemperatureGradientVar",mpTemperatureGradientVar);
+        rSerializer.save("NodalErrorVar",mpNodalErrorVar);
 
 // 	  rSerializer.save("",);
     }
@@ -480,6 +522,8 @@ private:
         rSerializer.load("VelocityVar",mpVelocityVar);
 		rSerializer.load("SpecificHeatVar",mpSpecificHeatVar);
         rSerializer.load("ReactionVar",mpReactionVar);
+        rSerializer.load("TemperatureGradientVar",mpTemperatureGradientVar);
+        rSerializer.load("NodalErrorVar",mpNodalErrorVar);
     }
 
 
