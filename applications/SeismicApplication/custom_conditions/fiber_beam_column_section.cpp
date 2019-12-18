@@ -18,7 +18,7 @@
 
 // Project includes
 #include "seismic_application_variables.h"
-#include "custom_conditions/fiber_beam_column_section.hpp"
+#include "custom_conditions/fiber_beam_column_section.h"
 
 namespace Kratos {
 

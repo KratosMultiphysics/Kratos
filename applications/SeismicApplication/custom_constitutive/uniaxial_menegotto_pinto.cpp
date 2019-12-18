@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_constitutive/uniaxial_menegotto_pinto.hpp"
+#include "custom_constitutive/uniaxial_menegotto_pinto.h"
 #include "seismic_application_variables.h"
 
 namespace Kratos {
@@ -69,16 +69,8 @@ void UniaxialMenegottoPintoMaterialLaw::CalculateMaterialResponsePK2(Parameters&
 void UniaxialMenegottoPintoMaterialLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     KRATOS_TRY
-    mConvergedLoadingIndex  =                mLoadingIndex;
-    mConvergedStrain0       =                     mStrain0;
-    mConvergedStress0       =                     mStress0;
-    mConvergedStrainR       =                     mStrainR;
-    mConvergedStressR       =                     mStressR;
-    mConvergedStrainPlastic =               mStrainPlastic;
-    mConvergedStrainMax     =                   mStrainMax;
-    mConvergedStrainMin     =                   mStrainMin;
-    mConvergedStrain        = rValues.GetStrainVector()[0];
-    mConvergedStress        = rValues.GetStressVector()[0];
+    mConvergedStrain = rValues.GetStrainVector()[0];
+    mConvergedStress = rValues.GetStressVector()[0];
     KRATOS_CATCH("")
 }
 
@@ -94,15 +86,6 @@ void UniaxialMenegottoPintoMaterialLaw::CalculateStressResponsePK2(
     double a2 = rValues.GetMaterialProperties()[STEEL_A2_COEFFICIENT];
     double E_inf = b * E;
     double epsy  = fy / E;
-
-    mStrainMax      =      mConvergedStrainMax;
-    mStrainMin      =      mConvergedStrainMin;
-    mStrainPlastic  =  mConvergedStrainPlastic;
-    mStrain0        =        mConvergedStrain0;
-    mStress0        =        mConvergedStress0;
-    mStrainR        =        mConvergedStrainR;
-    mStressR        =        mConvergedStressR;
-    mLoadingIndex   =   mConvergedLoadingIndex;
 
     double deps = rStrainVector[0] - mConvergedStrain;
 
@@ -204,14 +187,6 @@ void UniaxialMenegottoPintoMaterialLaw::save(Serializer& rSerializer) const
     rSerializer.save("mStrainPlastic", mStrainPlastic);
     rSerializer.save("mStrainMax", mStrainMax);
     rSerializer.save("mStrainMin", mStrainMin);
-    rSerializer.save("mConvergedLoadingIndex", mConvergedLoadingIndex);
-    rSerializer.save("mConvergedStrain0", mConvergedStrain0);
-    rSerializer.save("mConvergedStress0", mConvergedStress0);
-    rSerializer.save("mConvergedStrainR", mConvergedStrainR);
-    rSerializer.save("mConvergedStressR", mConvergedStressR);
-    rSerializer.save("mConvergedStrainPlastic", mConvergedStrainPlastic);
-    rSerializer.save("mConvergedStrainMax", mConvergedStrainMax);
-    rSerializer.save("mConvergedStrainMin", mConvergedStrainMin);
     rSerializer.save("mConvergedStrain", mConvergedStrain);
     rSerializer.save("mConvergedStress", mConvergedStress);
 }
@@ -227,14 +202,6 @@ void UniaxialMenegottoPintoMaterialLaw::load(Serializer& rSerializer)
     rSerializer.load("mStrainPlastic", mStrainPlastic);
     rSerializer.load("mStrainMax", mStrainMax);
     rSerializer.load("mStrainMin", mStrainMin);
-    rSerializer.load("mConvergedLoadingIndex", mConvergedLoadingIndex);
-    rSerializer.load("mConvergedStrain0", mConvergedStrain0);
-    rSerializer.load("mConvergedStress0", mConvergedStress0);
-    rSerializer.load("mConvergedStrainR", mConvergedStrainR);
-    rSerializer.load("mConvergedStressR", mConvergedStressR);
-    rSerializer.load("mConvergedStrainPlastic", mConvergedStrainPlastic);
-    rSerializer.load("mConvergedStrainMax", mConvergedStrainMax);
-    rSerializer.load("mConvergedStrainMin", mConvergedStrainMin);
     rSerializer.load("mConvergedStrain", mConvergedStrain);
     rSerializer.load("mConvergedStress", mConvergedStress);
 }

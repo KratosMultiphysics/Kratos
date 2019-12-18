@@ -17,14 +17,14 @@
 // External includes
 
 // Project includes
-#include "custom_elements/fiber_beam_column_element_3D2N.hpp"
+#include "custom_elements/fiber_beam_column_element_3D2N.h"
 #include "includes/define.h"
 #include "seismic_application_variables.h"
 // #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "includes/checks.h"
 
-#include "custom_constitutive/uniaxial_menegotto_pinto.hpp"
-#include "custom_constitutive/uniaxial_kent_park.hpp"
+#include "custom_constitutive/uniaxial_menegotto_pinto.h"
+#include "custom_constitutive/uniaxial_kent_park.h"
 
 namespace Kratos {
 

@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/fiber_beam_column_uniaxial_fiber.hpp"
+#include "custom_conditions/fiber_beam_column_uniaxial_fiber.h"
 
 namespace Kratos {
 

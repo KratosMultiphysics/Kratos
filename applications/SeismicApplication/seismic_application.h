@@ -28,7 +28,7 @@
 /* ELEMENTS */
 
 /* Adding Fiber Beam-Column element */
-#include "custom_elements/fiber_beam_column_element_3D2N.hpp"
+#include "custom_elements/fiber_beam_column_element_3D2N.h"
 
 /* CONDITIONS */
 
