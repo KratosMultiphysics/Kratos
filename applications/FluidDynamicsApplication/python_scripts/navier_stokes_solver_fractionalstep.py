@@ -79,7 +79,11 @@ class NavierStokesSolverFractionalStep(FluidSolver):
                 "maximum_delta_time"  : 0.01
             },
             "move_mesh_flag": false,
-            "use_slip_conditions": true
+            "use_slip_conditions": true,
+            "formulation": {
+                "element_type": "FractionalStep",
+                "condition_type": "WallCondition"
+            }
         }""")
 
         default_settings.AddMissingParameters(super(NavierStokesSolverFractionalStep, cls).GetDefaultSettings())
@@ -89,8 +93,11 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         self._validate_settings_in_baseclass=True # To be removed eventually
         super(NavierStokesSolverFractionalStep,self).__init__(model,custom_settings)
 
-        self.element_name = "FractionalStep"
-        self.condition_name = "WallCondition"
+        if custom_settings["formulation"]["element_type"].GetString() != "FractionalStep":
+            raise Exception("NavierStokesFractionalStepSolver only accepts FractionalStep as the \"element_type\" in \"formulation\"")
+
+        self.element_name = custom_settings["formulation"]["element_type"].GetString()
+        self.condition_name = custom_settings["formulation"]["condition_type"].GetString()
         self.min_buffer_size = 3
         self.element_has_nodal_properties = True
 
