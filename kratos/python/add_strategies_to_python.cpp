@@ -380,7 +380,7 @@ namespace Kratos
                 .def("GetValues", [](BuilderAndSolverType::DofsArrayType &self) {
                     Vector values(self.size());
                     int counter = 0;
-                    for (auto &dof : self)
+                    for (auto &r_dof : self)
                     {
                         values[counter++] = r_dof.GetSolutionStepValue();
                     }
