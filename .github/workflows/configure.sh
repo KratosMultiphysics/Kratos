@@ -36,7 +36,6 @@ add_app ${KRATOS_APP_DIR}/MetisApplication;
 add_app ${KRATOS_APP_DIR}/RANSApplication;
 add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
-add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
 add_app ${KRATOS_APP_DIR}/TrilinosApplication;
 
 # Clean
