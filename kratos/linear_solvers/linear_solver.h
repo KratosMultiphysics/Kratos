@@ -214,6 +214,12 @@ public:
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
     }
 
+    virtual bool Solve(DenseMatrixType& rA, DenseVectorType& rX, DenseVectorType& rB)
+    {
+        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
+        return false;
+    }
+
     /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
      * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
      * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
@@ -408,7 +414,7 @@ private:
 
     ///@}
 
-}; 
+};
 
 ///@}
 
