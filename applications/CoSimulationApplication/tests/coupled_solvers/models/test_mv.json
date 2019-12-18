@@ -1,0 +1,7 @@
+{
+    "type" : "coupled_solvers.models.mv",
+    "settings" :
+    {
+        "min_significant": 1
+    }
+}

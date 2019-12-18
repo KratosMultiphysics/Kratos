@@ -1,0 +1,71 @@
+{
+    "type" : "coupled_solvers.gauss_seidel",
+    "settings" :
+    {
+        "echo_level" : 1
+    },
+    "predictor" :
+    {
+        "type" : "predictors.linear"
+    },
+    "convergence_criterion" :
+    {
+        "type" : "convergence_criteria.or",
+        "settings" :
+        {
+            "convergence_criterion0" :
+            {
+                "type": "convergence_criteria.iteration_limit",
+                "settings":
+                {
+                    "maximum": 20
+                }
+            },
+            "convergence_criterion1" :
+            {
+                "type" : "convergence_criteria.relative_norm",
+                "settings" :
+                {
+                    "tolerance" : 1e-6,
+                    "order" : 2
+                }
+            }
+        }
+    },
+    "solver_wrappers" :
+    [
+        {
+            "type" : "solver_wrappers.pipe.flow_solver",
+            "settings" :
+            {
+                "working_directory" : "coupled_solvers/CFD",
+                "input_file"  : "solver_parameters.json",
+                "interface_input" :
+                {
+                    "wall": "AREA"
+                },
+                "interface_output" :
+                {
+                    "wall" : "PRESSURE"
+                }
+            }
+        },
+        {
+            "type" : "solver_wrappers.pipe.structure_solver",
+            "settings" :
+            {
+                "working_directory" : "coupled_solvers/CSD",
+                "input_file"  : "solver_parameters.json",
+                "interface_input" :
+                {
+                    "wall" : "PRESSURE"
+                },
+                "interface_output" :
+                {
+                    "wall": "AREA"
+                }
+            }
+        }
+    ]
+}
+
