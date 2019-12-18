@@ -389,7 +389,7 @@ namespace Kratos
                 .def("GetEquationIds", [](BuilderAndSolverType::DofsArrayType &self) {
                     std::vector<std::size_t> values(self.size());
                     int counter = 0;
-                    for (auto &dof : self)
+                    for (auto &r_dof : self)
                     {
                         values[counter++] = dof.EquationId();
                     }
