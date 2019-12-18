@@ -64,7 +64,7 @@ namespace Kratos {
 	    /**
 	     * Checks the time average pressure utility.
 	     */
-	    KRATOS_TEST_CASE_IN_SUITE(CalculationPowerSums, MultilevelMonteCarloApplicationFastSuite)
+	    KRATOS_TEST_CASE_IN_SUITE(CalculationPowerSums, KratosMultilevelMonteCarloApplicationFastSuite)
 		{
             // Create a test element inside a modelpart
             Model model;
