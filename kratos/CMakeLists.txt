@@ -83,7 +83,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/line_sensitivity_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/brute_force_point_locator.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/variable_utils.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/utilities/specifications_utilities.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/specifications_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/assign_unique_model_part_collection_tag_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/read_materials_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/variable_redistribution_utility.cpp;
