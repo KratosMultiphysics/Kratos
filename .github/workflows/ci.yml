@@ -41,6 +41,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2-beta
+
     - name: Cache Build
       id: cache-build
       uses: actions/cache@v1
@@ -48,6 +49,7 @@ jobs:
         path: ~/.ccache
         key: ${{ runner.os }}-ccache-${{ github.sha }}
         restore-keys: ${{ runner.os }}-ccache-
+
     - name: Build
       run: |
         cp scripts/build/travis/configure_travis_bionic.sh configure.sh
@@ -55,13 +57,20 @@ jobs:
         ccache -s
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+
     - name: Running small tests
       if: github.event_name == 'pull_request'
-      run: python3 kratos/python_scripts/run_tests.py -l small -c python3
+      run: |
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3 kratos/python_scripts/run_tests.py -l small -c python3
 
     - name: Running nightly tests
       if: github.event_name == 'schedule' # this is the nightly build
-      run: python3 kratos/python_scripts/run_tests.py -l nightly -c python3
+      run: |
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3 kratos/python_scripts/run_tests.py -l nightly -c python3
 
   windows:
     runs-on: windows-latest
