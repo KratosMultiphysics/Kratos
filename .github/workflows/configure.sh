@@ -27,7 +27,7 @@ add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
 add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
 add_app ${KRATOS_APP_DIR}/DEMApplication;
-add_app ${KRATOS_APP_DIR}/EigenSolversApplication;
+# add_app ${KRATOS_APP_DIR}/EigenSolversApplication;
 add_app ${KRATOS_APP_DIR}/ExternalSolversApplication;
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
 add_app ${KRATOS_APP_DIR}/FSIApplication;
