@@ -397,7 +397,7 @@ namespace Kratos
                 })
                 .def("SetValues", [](BuilderAndSolverType::DofsArrayType &self,
                                     const Vector& values)
-                                    ) {
+                                {
                     int counter = 0;
                     for (auto &r_dof : self)
                     {
