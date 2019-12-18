@@ -21,6 +21,9 @@
 #include "input_output/logger_output.h"
 #include "includes/kratos_version.h"
 
+#if defined(KRATOS_COLORED_LOGGING)
+#include "utilities/color_utilities.h"
+#endif
 
 namespace Kratos
 {
@@ -53,7 +56,12 @@ namespace Kratos
             switch (message_severity)
             {
             case LoggerMessage::Severity::WARNING:
-                if (mOptions.Is(WARNING_PREFIX)) mrStream << "[WARNING] ";
+                if (mOptions.Is(WARNING_PREFIX)) {
+                    #if defined(KRATOS_COLORED_LOGGING)
+                    mrStream << KYEL;
+                    #endif
+                    mrStream << "[WARNING] ";
+                }
                 break;
             case LoggerMessage::Severity::INFO:
                 if (mOptions.Is(INFO_PREFIX)) mrStream << "[INFO] ";
@@ -78,6 +86,10 @@ namespace Kratos
                 mrStream << TheMessage.GetLabel() << ": " << TheMessage.GetMessage();
             else
                 mrStream << TheMessage.GetMessage();
+
+            #if defined(KRATOS_COLORED_LOGGING)
+            mrStream << RST;
+            #endif
         }
     }
 
