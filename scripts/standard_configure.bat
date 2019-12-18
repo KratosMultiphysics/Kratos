@@ -1,3 +1,4 @@
+@echo off
 rem Please do not modify this script
 
 rem For any question please contact with us in:
@@ -8,7 +9,6 @@ rem You can find a list will all the compiation options in INSTALL.md or here:
 rem  - https://github.com/KratosMultiphysics/Kratos/wiki/Compilation-options
 
 rem Set compiler
-@echo off
 set CC=cl.exe
 set CXX=cl.exe
 
