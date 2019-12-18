@@ -70,6 +70,16 @@ namespace SpecificationsUtilities
      * @param rModelPart Reference to the ModelPart containing the problem
      */
     void KRATOS_API(KRATOS_CORE) AddMissingDofs(ModelPart& rModelPart);
+    
+    /**
+     * @brief This method adds to the model part the missing dofs from a given set of specifications
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @param SpecificationsParameters The specification parameters
+     */
+    void KRATOS_API(KRATOS_CORE) AddMissingDofsFromSpecifications(
+        ModelPart& rModelPart,
+        const Parameters SpecificationsParameters 
+        );
 
 }; // namespace SpecificationsUtilities
 }  // namespace Kratos
