@@ -141,9 +141,10 @@ public:
      * Then, updates the local flexibililty matrix, calculates the unbalance forces,
      * and checks for convergence.
      * @param rElementForceIncrements: the force increments of the element
+     * @param Tolerance: tolerance for element equilibrium
      * @return True if norm of the unbalance force is below the tolerance
      */
-    bool StateDetermination(const Vector& rElementForceIncrements);
+    bool StateDetermination(const Vector& rElementForceIncrements, double Tolerance);
 
     /**
      * This method resets the deformation residuals to zero.
@@ -237,7 +238,6 @@ private:
     IndexType mId;       // id of the section
     double mPosition;    // position of the integration point
     double mWeight;      // weight of the integration point
-    double mTolerance;   // tolerance of the section equilibrium
     std::vector<FiberBeamColumnUniaxialFiber> mFibers;  // the vector the section's fibers
 
     Matrix mLocalFlexibilityMatrix = ZeroMatrix(3, 3);  // local flexibility matrix

@@ -161,6 +161,18 @@ void FiberBeamColumnElement3D2N::Initialize()
 {
     KRATOS_TRY
 
+    // check the element equilibrium variables
+    if (GetProperties()[MAX_EQUILIBRIUM_ITERATIONS] == 0) {
+        KRATOS_WARNING("FiberBeamColumnElement3D2N")
+        << "MAX_EQUILIBRIUM_ITERATIONS is not given. Using 100 as a default value.";
+        GetProperties()[MAX_EQUILIBRIUM_ITERATIONS] = 100;
+    }
+    if (GetProperties()[ELEMENT_LOOP_TOLERANCE] == 0) {
+        KRATOS_WARNING("FiberBeamColumnElement3D2N")
+        << "ELEMENT_LOOP_TOLERANCE is not given. Using 1e-6 as a default value.";
+        GetProperties()[ELEMENT_LOOP_TOLERANCE] = 1e-6;
+    }
+
     // reserve memory without using a default constructor
     const unsigned int number_of_sections = GetProperties()[NUMBER_OF_SECTIONS];
     mSections.reserve(number_of_sections);
@@ -234,19 +246,17 @@ GeometryData::IntegrationMethod FiberBeamColumnElement3D2N::GetIntegrationMethod
 void FiberBeamColumnElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
     mDeformationIM1 = mDeformationI;
     Vector disp = ZeroVector(msGlobalSize);
     GetValuesVector(disp);
-    mDeformationI = prod(Matrix(trans(mTransformationMatrix)), disp);
+    noalias(mDeformationI) = prod(Matrix(trans(mTransformationMatrix)), disp);
     Vector def_incr = mDeformationI -  mDeformationIM1;
 
+    double equilibrium_tolerance = GetProperties()[ELEMENT_LOOP_TOLERANCE];
     unsigned int max_iterations = GetProperties()[MAX_EQUILIBRIUM_ITERATIONS];
-    if (max_iterations == 0) {
-        KRATOS_WARNING("FiberBeamColumnElement3D2N")
-        << "MAX_EQUILIBRIUM_ITERATIONS is not given. Using 100 as a default value.";
-        max_iterations = 100;
-    }
     Vector force_increment = ZeroVector(msLocalSize);
+
     for (unsigned int j = 1; j < max_iterations; ++j)
     {
         if (j == 1){
@@ -259,7 +269,7 @@ void FiberBeamColumnElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurren
 
         bool converged = true;
         for (FiberBeamColumnSection& r_section : mSections){
-            converged *= r_section.StateDetermination(force_increment);
+            converged *= r_section.StateDetermination(force_increment, equilibrium_tolerance);
         }
         CalculateElementLocalStiffnessMatrix();
 
@@ -268,7 +278,7 @@ void FiberBeamColumnElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurren
             << "Element equilibrium achieved in " << j << " iterations." << std::endl;
             break;
         } else {
-            mDeformationResiduals = ZeroVector(msLocalSize);
+            noalias(mDeformationResiduals) = ZeroVector(msLocalSize);
             // integrate over sections
             double jacobian = GetGeometry().DeterminantOfJacobian(0, GetIntegrationMethod());
             for (FiberBeamColumnSection& r_section : mSections) {

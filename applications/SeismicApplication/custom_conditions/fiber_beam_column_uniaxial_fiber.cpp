@@ -63,7 +63,10 @@ void FiberBeamColumnUniaxialFiber::CreateGlobalFiberStiffnessMatrix(Matrix& rGlo
     mpMaterial->CalculateMaterialResponse(params, ConstitutiveLaw::StressMeasure_PK2);
 
     double ea = constitutive_materix(0,0) * mArea;
-    rGlobalStiffnessMatrix = ZeroMatrix(3, 3);
+
+    if (rGlobalStiffnessMatrix.size1()!=3 || rGlobalStiffnessMatrix.size2()!=3) {
+        rGlobalStiffnessMatrix.resize(3, 3, false);
+    }
     noalias(rGlobalStiffnessMatrix) = ea * outer_prod(mTransformationVector, mTransformationVector);
 
     KRATOS_CATCH("")
@@ -94,8 +97,10 @@ void FiberBeamColumnUniaxialFiber::StateDetermination(const Vector& rSectionDefo
 void FiberBeamColumnUniaxialFiber::CreateGlobalFiberInternalForces(Vector& rGlobalFiberInternalForces)
 {
     KRATOS_TRY
-    rGlobalFiberInternalForces = ZeroVector(3);
-    rGlobalFiberInternalForces += mTransformationVector * mArea * mStress[0];
+    if (rGlobalFiberInternalForces.size() != 3) {
+        rGlobalFiberInternalForces.resize(3, false);
+    }
+    rGlobalFiberInternalForces = mTransformationVector * mArea * mStress[0];
     KRATOS_CATCH("")
 }
 
