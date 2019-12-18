@@ -30,7 +30,6 @@ add_app ${KRATOS_APP_DIR}/DEMApplication;
 add_app ${KRATOS_APP_DIR}/ExternalSolversApplication;
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
 add_app ${KRATOS_APP_DIR}/FSIApplication;
-add_app ${KRATOS_APP_DIR}/MappingApplication;
 add_app ${KRATOS_APP_DIR}/MeshingApplication;
 add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
 add_app ${KRATOS_APP_DIR}/MetisApplication;

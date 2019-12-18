@@ -16,7 +16,6 @@ on:
     - 'applications/ExternalSolversApplication/**'
     - 'applications/FluidDynamicsApplication/**'
     - 'applications/FSIApplication/**'
-    - 'applications/MappingApplication/**'
     - 'applications/MeshingApplication/**'
     - 'applications/MeshMovingApplication/**'
     - 'applications/MetisApplication/**'
@@ -111,7 +110,6 @@ jobs:
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\DEMApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\FluidDynamicsApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\FSIApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MappingApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MeshingApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MeshMovingApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\RANSApplication;
