@@ -55,8 +55,6 @@ jobs:
         cp scripts/build/travis/configure_travis_bionic.sh configure.sh
         bash configure.sh
         ccache -s
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
 
     - name: Running small tests
       if: github.event_name == 'pull_request'
