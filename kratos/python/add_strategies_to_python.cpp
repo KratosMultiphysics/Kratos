@@ -399,7 +399,7 @@ namespace Kratos
                                     const Vector& values
                                     ) {
                     int counter = 0;
-                    for (auto &dof : self)
+                    for (auto &r_dof : self)
                     {
                         dof.GetSolutionStepValue() = values[counter++];
                     }
