@@ -401,7 +401,7 @@ namespace Kratos
                     int counter = 0;
                     for (auto &r_dof : self)
                     {
-                        dof.GetSolutionStepValue() = values[counter++];
+                        r_dof.GetSolutionStepValue() = values[counter++];
                     }
                 })
                 ;
