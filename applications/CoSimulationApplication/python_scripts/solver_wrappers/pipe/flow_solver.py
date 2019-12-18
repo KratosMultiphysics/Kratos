@@ -228,7 +228,7 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         j[self.Au + (2 * self.m + 3) - (2 * self.m + 2), 2 * self.m + 2] = (-(m.sqrt(self.cmk2
                                                                                          - self.pn[self.m + 1] / 2.0)
                                                                                   - (self.u[self.m + 1]
-                                                                                     - self.un[self.n + 1])
+                                                                                     - self.un[self.m + 1])
                                                                                   / 4.0))  # [2*m+3, 2*m+2]
         j[self.Au + (2 * self.m + 3) - (2 * self.m + 3), 2 * self.m + 3] = 1.0  # [2*m+3, 2*m+3]
 
