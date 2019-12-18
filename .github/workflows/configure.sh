@@ -23,7 +23,6 @@ export PYTHON_EXECUTABLE="/usr/bin/python3.6"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set applications to compile
-add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
 add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
 add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
@@ -53,6 +52,7 @@ echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 # Configure
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DUSE_MPI=ON \
+-DCMAKE_INSTALL_MESSAGE=NEVER \
 -DPYBIND11_PYTHON_VERSION="3.6" \
 -DCMAKE_CXX_FLAGS="-O0 -fopenmp -Wall \
 -Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable \

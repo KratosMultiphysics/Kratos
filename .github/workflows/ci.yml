@@ -9,7 +9,6 @@ on:
     - 'CMakeLists.txt'
     - 'external_libraries/**'
     - 'kratos/**'
-    - 'applications/CompressiblePotentialFlowApplication/**'
     - 'applications/ContactStructuralMechanicsApplication/**'
     - 'applications/ConvectionDiffusionApplication/**'
     - 'applications/CoSimulationApplication/**'
@@ -107,7 +106,6 @@ jobs:
         set KRATOS_APP_DIR=applications
 
         set KRATOS_APPLICATIONS=
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\CompressiblePotentialFlowApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ContactStructuralMechanicsApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ConvectionDiffusionApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\CoSimulationApplication;
