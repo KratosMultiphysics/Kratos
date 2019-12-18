@@ -35,10 +35,10 @@ class TestFileLogger(KratosUnittest.TestCase):
 
         expected_output = "TestFileLogger This is printed by 'Print'. \n"
         expected_output += "TestFileLogger: This is printed by 'PrintInfo'. \n"
-        expected_output += "TestFileLogger: This is printed by 'PrintWarning'. \n"
+        expected_output += "[WARNING] TestFileLogger: This is printed by 'PrintWarning'. \n"
         expected_output += "Rank 0: TestFileLogger This is printed by 'PrintOnAllRanks'. \n"
         expected_output += "Rank 0: TestFileLogger: This is printed by 'PrintInfoOnAllRanks'. \n"
-        expected_output += "Rank 0: TestFileLogger: This is printed by 'PrintWarningOnAllRanks'. \n"
+        expected_output += "[WARNING] Rank 0: TestFileLogger: This is printed by 'PrintWarningOnAllRanks'. \n"
 
         self.assertMultiLineEqual(file_output, expected_output)
 
@@ -46,8 +46,8 @@ class TestFileLogger(KratosUnittest.TestCase):
         with open("KratosWarning.log", "r") as f:
             file_output = f.read()
 
-        expected_output = "TestFileLogger: This is printed by 'PrintWarning'. \n"
-        expected_output += "Rank 0: TestFileLogger: This is printed by 'PrintWarningOnAllRanks'. \n"
+        expected_output = "[WARNING] TestFileLogger: This is printed by 'PrintWarning'. \n"
+        expected_output += "[WARNING] Rank 0: TestFileLogger: This is printed by 'PrintWarningOnAllRanks'. \n"
 
         self.assertMultiLineEqual(file_output, expected_output)
 
