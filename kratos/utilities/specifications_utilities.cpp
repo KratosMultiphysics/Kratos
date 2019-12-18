@@ -405,7 +405,7 @@ std::string DetermineFramework(ModelPart& rModelPart)
             if(!GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
                 specifications = it_elem_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
-                if (specifications.Has("flags_used")) {
+                if (specifications.Has("framework")) {
                     const std::string& r_framework = specifications["framework"].GetString();
                     if (framework == "NONE") {
                         framework = r_framework;
@@ -444,7 +444,7 @@ std::string DetermineFramework(ModelPart& rModelPart)
             if(!GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
                 specifications = it_cond_current->GetSpecifications();
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
-                if (specifications.Has("flags_used")) {
+                if (specifications.Has("framework")) {
                     const std::string& r_framework = specifications["framework"].GetString();
                     if (framework == "NONE") {
                         framework = r_framework;
