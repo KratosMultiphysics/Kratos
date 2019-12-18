@@ -137,6 +137,7 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_mesh_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_modeler_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_properties_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_dofs_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_node_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_linear_solvers_to_python.cpp
