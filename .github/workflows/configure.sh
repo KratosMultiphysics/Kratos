@@ -23,7 +23,6 @@ export PYTHON_EXECUTABLE="/usr/bin/python3.6"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set applications to compile
-add_app ${KRATOS_APP_DIR}/CableNetApplication;
 add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
 add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
