@@ -8,24 +8,25 @@
     },
     "coupled_solver" :
     {
-        "type" : "coupled_solvers.gauss_seidel",
+        "type" : "coupled_solvers.iqni",
         "settings" :
         {
-            "echo_level" : 1
+            "echo_level" : 1,
+            "omega" : 0.05,
+            "relative_tolerance_GMRES": 1e-15,
+            "model" :
+            {
+                "type": "coupled_solvers.models.ls",
+                "settings":
+                {
+                    "min_significant": 1e-12,
+                    "q": 10
+                }
+            }
         },
         "predictor" :
         {
             "type" : "predictors.linear"
-        },
-        "convergence_accelerator" :
-        {
-            "type" : "convergence_accelerators.iqni",
-            "settings" :
-            {
-                "min_significant" : 1e-12,
-                "model" : "ls",
-                "omega" : 0.05
-            }
         },
         "convergence_criterion" :
         {
