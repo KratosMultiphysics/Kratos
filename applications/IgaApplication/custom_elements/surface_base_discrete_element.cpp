@@ -68,31 +68,6 @@ namespace Kratos
     {
         KRATOS_TRY
         noalias(rLeftHandSideMatrix) += IntegrationWeight * prod(trans(B), Matrix(prod(D, B)));
-        //const int number_of_control_points = GetGeometry().size();
-        //const int mat_size = number_of_control_points * 3;
-
-        //for (int r = 0; r < mat_size; r++)
-        //{
-        //    Vector zu = ZeroVector(3);
-
-        //        // dN_ca = Dm*S_dE_ca(:,r);
-        //    zu[0] = D(0, 0)*B(0, r) + D(0, 1)*B(1, r) + D(0, 2)*B(2, r);
-        //    zu[1] = D(1, 0)*B(0, r) + D(1, 1)*B(1, r) + D(1, 2)*B(2, r);
-        //    zu[2] = D(2, 0)*B(0, r) + D(2, 1)*B(1, r) + D(2, 2)*B(2, r);
-
-
-        //    for (int s = 0; s <= r; s++)
-        //    {
-        //        // membrane stiffness
-        //        double x = (zu[0] * B(0, s) + zu[1] * B(1, s) + zu[2] * B(2, s))*IntegrationWeight;
-        //        rLeftHandSideMatrix(r, s) += x;
-        //        rLeftHandSideMatrix(s, r) += x;
-        //        //// bending stiffness
-        //        //S_keb(r, s) = dM_ca[0] * S_dK_ca(0, s) + dM_ca[1] * S_dK_ca(1, s) + dM_ca[2] * S_dK_ca(2, s)
-        //        //    + M_ca[0] * S_ddK_ca_1(r, s) + M_ca[1] * S_ddK_ca_2(r, s) + M_ca[2] * S_ddK_ca_3(r, s);
-        //        //S_keb(s, r) = S_keb(r, s);
-        //    }
-        //}
         KRATOS_CATCH("")
     }
 
@@ -116,9 +91,10 @@ namespace Kratos
                 double nm = (SD[0] * SecondVariationsStrain.B11(n, m)
                     + SD[1] * SecondVariationsStrain.B22(n, m)
                     + SD[2] * SecondVariationsStrain.B12(n, m))*rIntegrationWeight;
-                //KRATOS_ERROR_IF(nm > 1e-5) << "Problem" << std::endl;
+
                 rLeftHandSideMatrix(n, m) += nm;
-                rLeftHandSideMatrix(m, n) += nm;
+                if(n!=m)
+                    rLeftHandSideMatrix(m, n) += nm;
             }
         }
         KRATOS_CATCH("")
@@ -175,8 +151,8 @@ namespace Kratos
         const unsigned int number_of_control_points = GetGeometry().size();
         const unsigned int mat_size = number_of_control_points * 3;
 
-        if (rB.size1() != mat_size || rB.size2() != mat_size)
-            rB.resize(mat_size, mat_size);
+        if (rB.size1() != 3 || rB.size2() != mat_size)
+            rB.resize(3, mat_size);
         rB = ZeroMatrix(3, mat_size);
 
         for (int r = 0; r<static_cast<int>(mat_size); r++)
@@ -395,7 +371,9 @@ namespace Kratos
                     ddE_curvilinear[2] = 0.5*(DN_De(kr, 0)*DN_De(ks, 1) + DN_De(kr, 1)*DN_De(ks, 0));
                 }
 
-                rSecondVariationsStrain.B11(r, s) = mInitialMetric.Q(0, 0)*ddE_curvilinear[0] + mInitialMetric.Q(0, 1)*ddE_curvilinear[1] + mInitialMetric.Q(0, 2)*ddE_curvilinear[2];
+                rSecondVariationsStrain.B11(r, s) = mInitialMetric.Q(0, 0)*ddE_curvilinear[0]
+                    + mInitialMetric.Q(0, 1)*ddE_curvilinear[1]
+                    + mInitialMetric.Q(0, 2)*ddE_curvilinear[2];
                 rSecondVariationsStrain.B22(r, s) = mInitialMetric.Q(1, 0)*ddE_curvilinear[0] + mInitialMetric.Q(1, 1)*ddE_curvilinear[1] + mInitialMetric.Q(1, 2)*ddE_curvilinear[2];
                 rSecondVariationsStrain.B12(r, s) = mInitialMetric.Q(2, 0)*ddE_curvilinear[0] + mInitialMetric.Q(2, 1)*ddE_curvilinear[1] + mInitialMetric.Q(2, 2)*ddE_curvilinear[2];
             }

@@ -1,252 +1,342 @@
-/*
-//  KRATOS  _____________
-//         /  _/ ____/   |
-//         / // / __/ /| |
-//       _/ // /_/ / ___ |
-//      /___/\____/_/  |_| Application
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  Main authors:   Thomas Oberbichler
-*/
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Tobias Teschemacher
+//
 
-#if !defined(KRATOS_IGA_BASE_ELEMENT_H_INCLUDED)
-#define KRATOS_IGA_BASE_ELEMENT_H_INCLUDED
+
+#if !defined(KRATOS_IGA_BASE_ELEMENT_H_INCLUDED )
+#define  KRATOS_IGA_BASE_ELEMENT_H_INCLUDED
+
 
 // System includes
-#include "includes/define.h"
-#include "includes/element.h"
 
 // External includes
 
 // Project includes
+#include "iga_application_variables.h"
+#include "custom_utilities/geometry_utilities/iga_geometry_utilities.h"
+
+#include "includes/condition.h"
+
+#include "includes/checks.h"
+#include "includes/define.h"
+#include "includes/variables.h"
 
 namespace Kratos
 {
-
-/** Base element for isogeometric elements.
- */
-template <std::size_t TDofsPerNode>
+/**
+* @class IgaBaseElement
+* @ingroup IgaApplication
+* @brief This is base clase used to define discrete elements
+*/
 class IgaBaseElement
     : public Element
 {
 public:
-    using IgaBaseElementType = IgaBaseElement<TDofsPerNode>;
+    ///@name Type Definitions
+    ///@{
+    /// Counted pointer of IgaBaseElement
+    KRATOS_CLASS_POINTER_DEFINITION( IgaBaseElement );
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-    // Alias for a three-dimensional vector - used a lot.
-    using Vector3 = BoundedVector<double, 3>;
+    // Constructor void
+    IgaBaseElement()
+    {};
 
-    // Inherit constructors of the Kratos element.
-    using Element::Element;
+    // Constructor using an array of nodes
+    IgaBaseElement(IndexType NewId, GeometryType::Pointer pGeometry) :Element(NewId, pGeometry)
+    {};
 
-    /** Gets the number of dofs per node.
-     *
-     * @return Number of dofs per node.
-     */
-    static constexpr inline std::size_t DofsPerNode()
+    // Constructor using an array of nodes with properties
+    IgaBaseElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+        :Element(NewId, pGeometry, pProperties)
+    {};
+
+    // Destructor
+    ~IgaBaseElement() override
+    {};
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const override
     {
-        return TDofsPerNode;
+        KRATOS_ERROR << "Trying to create a \"IgaBaseElement\"" << std::endl;
     }
 
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+    ) const override
+    {
+        KRATOS_ERROR << "Trying to create a \"IgaBaseElement\"" << std::endl;
+    };
+
+    /**
+    * @brief This function provides a more general interface to the element.
+    * @details It is designed so that rLHSvariables and rRHSvariables are passed to the element thus telling what is the desired output
+    * @param rLeftHandSideMatrix container with the output Left Hand Side matrix
+    * @param rRightHandSideVector container for the desired RHS output
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
+    * @brief This is called during the assembling process in order to calculate the elemental right hand side vector only
+    * @param rRightHandSideVector the elemental right hand side vector
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
+    * @brief This is called during the assembling process in order to calculate the elemental left hand side matrix only
+    * @param rLeftHandSideMatrix the elemental left hand side matrix
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
+    * @brief Sets on rValues the nodal displacements
+    * @param rValues The values of displacements
+    * @param Step The step to be computed
+    */
+    void GetValuesVector(
+        Vector& rValues,
+        int Step = 0
+    ) override;
+
+    /**
+    * @brief Sets on rValues the nodal velocities
+    * @param rValues The values of velocities
+    * @param Step The step to be computed
+    */
+    void GetFirstDerivativesVector(
+        Vector& rValues,
+        int Step = 0
+    ) override;
+
+    /**
+    * @brief Sets on rValues the nodal accelerations
+    * @param rValues The values of accelerations
+    * @param Step The step to be computed
+    */
+    void GetSecondDerivativesVector(
+        Vector& rValues,
+        int Step = 0
+    ) override;
+
+    /**
+    * @brief This is called during the assembling process in order to calculate the elemental damping matrix
+    * @param rDampingMatrix The elemental damping matrix
+    * @param rCurrentProcessInfo The current process info instance
+    */
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+
+    void AddExplicitContribution(const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        Variable<array_1d<double, 3> >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /********************************************************************/
+    /*    Calculate                                                     */
+    /********************************************************************/
+    /**
+    * @brief Calculate a double array_1d on the Element
+    * @param rVariable The variable we want to get
+    * @param rOutput The values obtained int the integration points
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
+    * @brief Calculate a Vector Variable on the Element
+    * @param rVariable The variable we want to get
+    * @param rOutput The values obtained int the integration points
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+
+    /********************************************************************/
+    /*    SetValuesOnIntegrationPoints                                   */
+    /********************************************************************/
+    /**
+    * @brief Set a Constitutive Law Value on the Element
+    * @param rVariable The variable we want to set
+    * @param rValues The values to set in the integration points
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void SetValueOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "\"IgaBaseElement\" #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "\"IgaBaseElement\" #" << Id();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const {
+        pGetGeometry()->PrintData(rOStream);
+    }
+
+    /**
+    * This method provides the place to perform checks on the completeness of the input
+    * and the compatibility with the problem options as well as the contitutive laws selected
+    * It is designed to be called only once (or anyway, not often) typically at the beginning
+    * of the calculations, so to verify that nothing is missing from the input
+    * or that no common error is found.
+    * @param rCurrentProcessInfo
+    * this method is: MANDATORY
+    */
+
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        const SizeType number_of_nodes = this->GetGeometry().size();
+        const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+
+        // Verify that the variables are correctly initialized
+        KRATOS_CHECK_VARIABLE_KEY(SHAPE_FUNCTION_VALUES)
+
+        // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+        for (IndexType i = 0; i < number_of_nodes; i++) {
+            NodeType &rnode = this->GetGeometry()[i];
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, rnode)
+
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
+        }
+
+        return 0;
+
+        KRATOS_CATCH("");
+    }
+protected:
+
+    ///@name Protected member Variables
+    ///@{
+    //const values
+    static constexpr int msDimension = 3;
+    static constexpr int msNumberOfDofsPerNode = 3;
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    /**
+    * This functions calculates both the RHS and the LHS
+    * @param rLeftHandSideMatrix: The LHS
+    * @param rRightHandSideVector: The RHS
+    * @param rCurrentProcessInfo: The current process info instance
+    * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
+    * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
+    */
+    virtual void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag);
+
     /** Gets the number of nodes.
-     *
-     * @return Number of nodes.
-     */
+    *
+    * @return Number of nodes.
+    */
     std::size_t inline NumberOfNodes() const
     {
         return GetGeometry().size();
     }
 
+    /** Gets the number of nodes.
+    *
+    * @return Number of nodes.
+    */
+    std::size_t inline LocalSize() const
+    {
+        return NumberOfNodes()*msDimension;
+    }
+
     /** Gets the number of degrees of freedom.
-     *
-     * @return Number of degrees of freedom.
-     */
+    *
+    * @return Number of degrees of freedom.
+    */
     std::size_t inline NumberOfDofs() const
     {
-        return NumberOfNodes() * DofsPerNode();
+        return NumberOfNodes() * msNumberOfDofsPerNode;
     }
 
-    /** Calculates the elemental left- and right-hand-side
-     *
-     * @param rLeftHandSideMatrix Elemental left-hand-side matrix
-     * @param rRightHandSideVector Elemental right-hand-side
-     * @param rCurrentProcessInfo Current process info
-     *
-     * @note Child-classes should implement CalculateAll.
-     */
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override
+    ///@}
+private:
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const override
     {
-        const std::size_t number_of_dofs = NumberOfDofs();
-
-        if (rLeftHandSideMatrix.size1() != number_of_dofs
-            || rLeftHandSideMatrix.size2() != number_of_dofs) {
-            rLeftHandSideMatrix.resize(number_of_dofs, number_of_dofs);
-        }
-
-        if (rRightHandSideVector.size() != number_of_dofs) {
-            rRightHandSideVector.resize(number_of_dofs);
-        }
-
-        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
-            rCurrentProcessInfo, true, true);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     }
 
-    /** Calculates the elemental left-hand-side
-     *
-     * @param rLeftHandSideMatrix Elemental left-hand-side matrix
-     * @param rCurrentProcessInfo Current process info
-     *
-     * @note Child-classes should implement CalculateAll.
-     */
-    void CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo) override
+    virtual void load(Serializer& rSerializer) override
     {
-        const std::size_t number_of_dofs = NumberOfDofs();
-
-        if (rLeftHandSideMatrix.size1() != number_of_dofs
-            || rLeftHandSideMatrix.size2() != number_of_dofs) {
-            rLeftHandSideMatrix.resize(number_of_dofs, number_of_dofs);
-        }
-
-        VectorType right_hand_side_vector = Vector(0);
-
-        CalculateAll(rLeftHandSideMatrix, right_hand_side_vector,
-            rCurrentProcessInfo, true, false);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
+    ///@}
+}; // Class IgaBaseElement
 
-    /** Calculates the elemental right-hand-side
-     *
-     * @param rRightHandSideVector Elemental right-hand-side vector
-     * @param rCurrentProcessInfo Current process info
-     *
-     * @note Child-classes should implement CalculateAll.
-     */
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override
-    {
-        const std::size_t number_of_dofs = NumberOfDofs();
+}  // namespace Kratos.
 
-        MatrixType left_hand_side_matrix = Matrix(0, 0);
+#endif // KRATOS_IGA_BASE_CONDITION_H_INCLUDED  defined
 
-        if (rRightHandSideVector.size() != number_of_dofs) {
-            rRightHandSideVector.resize(number_of_dofs);
-        }
 
-        CalculateAll(left_hand_side_matrix, rRightHandSideVector,
-            rCurrentProcessInfo, false, true);
-    }
-
-    /** Calculates the elemental left- and right-hand-side
-     *
-     * @note This function should be implemented by the child-classes to
-     *       calculate left- and right-hand-side
-     *
-     * @param rLeftHandSideMatrix Elemental left-hand-side matrix.
-     * @param rRightHandSideVector Elemental right-hand-side vector.
-     * @param rCurrentProcessInfo Current process info.
-     * @param ComputeLeftHandSide True whether the left-hand-side matrix
-     *                            should be calculated.
-     * @param ComputeRightHandSide True whether the right-hand-side vector
-     *                             should be calculated.
-     */
-    virtual void CalculateAll(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        const bool ComputeLeftHandSide,
-        const bool ComputeRightHandSide) = 0;
-
-    /** Get the geometry information as a string.
-     *
-     * @return The geometry information as a string.
-     */
-    std::string Info() const override
-    {
-        std::stringstream buffer;
-        PrintInfo(buffer);
-        return buffer.str();
-    }
-
-    /** Write the geometry info to a stream.
-     *
-     * @param rOStream Output stream.
-     */
-    void PrintData(
-        std::ostream& rOStream) const override
-    {
-        pGetGeometry()->PrintData(rOStream);
-    }
-
-protected:
-
-    /** Helper method for setting-up the elemental list of degrees of freedom.
-     *
-     * @param rElementalDofList Elemental list of degrees of freedom.
-     * @param NodeIndex Index of the node.
-     * @param DofTypeIndex Index of the degree of freedom type.
-     * @param Variable Variable of the degree of freedom.
-     */
-    template <typename TVariable>
-    void inline SetElementDof(
-        DofsVectorType& rElementalDofList,
-        const std::size_t NodeIndex,
-        const std::size_t DofTypeIndex,
-        const TVariable& Variable)
-    {
-        Node<3>& node = GetGeometry()[NodeIndex];
-
-        rElementalDofList[NodeIndex * DofsPerNode() + DofTypeIndex] =
-            node.pGetDof(Variable);
-    }
-
-    /** Helper method for setting-up the elemental list of equation ids.
-     *
-     * @param rResult Elemental list of equation ids.
-     * @param NodeIndex Index of the node.
-     * @param DofTypeIndex Index of the degree of freedom type.
-     * @param Variable Variable of the degree of freedom.
-     */
-    template <typename TVariable>
-    void inline SetElementEquationId(
-        EquationIdVectorType& rResult,
-        const std::size_t NodeIndex,
-        const std::size_t DofTypeIndex,
-        const TVariable& Variable)
-    {
-        Node<3>& node = GetGeometry()[NodeIndex];
-
-        rResult[NodeIndex * DofsPerNode() + DofTypeIndex] =
-            node.GetDof(Variable).EquationId();
-    }
-
-    /** Helper method for getting the index of the degree of freedom type.
-     *
-     * @param DofIndex Index of the degree of freedom.
-     *
-     * @return The index of the degree of freedom type.
-     */
-    static inline std::size_t GetDofTypeIndex(
-        std::size_t DofIndex)
-    {
-        return DofIndex % DofsPerNode();
-    }
-
-    /** Helper method for getting the index of the shape function.
-     *
-     * @param DofIndex Index of the degree of freedom.
-     *
-     * @return The index of the shape function.
-     */
-    static inline std::size_t GetShapeIndex(
-        std::size_t DofIndex)
-    {
-        return DofIndex / DofsPerNode();
-    }
-};
-
-} // namespace Kratos
-
-#endif // !defined(KRATOS_IGA_BASE_ELEMENT_H_INCLUDED)

@@ -245,10 +245,22 @@ namespace Kratos
         array_1d<double, 3>& rOutput,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        if (rOutput.size() != 1)
-            rOutput.resize(1);
+        if (rVariable == COORDINATES) {
+            const int& number_of_control_points = GetGeometry().size();
+            const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
+            Vector condition_coords = ZeroVector(3);
+            for (int i = 0; i < N.size(); i++)
+            {
+                const NodeType & iNode = GetGeometry()[i];
+                const array_1d<double, 3>& coords = iNode.Coordinates();
 
-        if (rVariable == VELOCITY) {
+                condition_coords[0] += N[i] * coords[0];
+                condition_coords[1] += N[i] * coords[1];
+                condition_coords[2] += N[i] * coords[2];
+            }
+            rOutput = condition_coords;
+        }
+        else if (rVariable == VELOCITY) {
             const int& number_of_control_points = GetGeometry().size();
             const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
 
@@ -277,22 +289,7 @@ namespace Kratos
         Vector& rOutput,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        if (rVariable == COORDINATES) {
-            const int& number_of_control_points = GetGeometry().size();
-            const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
-            Vector condition_coords = ZeroVector(3);
-            for (int i = 0; i < number_of_control_points; i++)
-            {
-                const NodeType & iNode = GetGeometry()[i];
-                const array_1d<double, 3>& coords = iNode.Coordinates();
-
-                condition_coords[0] += N[i] * coords[0];
-                condition_coords[1] += N[i] * coords[1];
-                condition_coords[2] += N[i] * coords[2];
-            }
-            rOutput = condition_coords;
-        }
-        else if (rVariable == EXTERNAL_FORCES_VECTOR) {
+        if (rVariable == EXTERNAL_FORCES_VECTOR) {
             const int& number_of_control_points = GetGeometry().size();
             const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
             Vector condition_coords = ZeroVector(3);

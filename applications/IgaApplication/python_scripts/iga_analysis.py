@@ -10,12 +10,15 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 class IgaAnalysis(AnalysisStage):
     """
     This class is the main-script of the IgaApplication put in a class
+
     It can be imported and used as "black-box"
     """
 
     #### Internal functions ####
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
+        ## Solver construction
+        print('Create Solver')
         return solvers_wrapper.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):

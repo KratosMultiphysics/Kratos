@@ -9,8 +9,6 @@ import KratosMultiphysics.IgaApplication as IgaApplication
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
 
-# Other imports
-from KratosMultiphysics import auxiliary_solver_utilities
 
 def CreateSolver(model, custom_settings):
     return IgaSolver(model, custom_settings)
@@ -56,6 +54,7 @@ class IgaSolver(PythonSolver):
                 "input_type": "json",
                 "input_filename": "geometry"
             },
+            "computing_model_part_name" : "computing_domain",
             "material_import_settings" :{
                 "materials_filename": "materials.json"
             },
@@ -74,7 +73,15 @@ class IgaSolver(PythonSolver):
             "residual_absolute_tolerance": 1.0e-9,
             "max_iteration": 10,
             "solver_type": "static",
-            "linear_solver_settings":{ },
+            "linear_solver_settings":{
+                "solver_type": "SuperLUSolver",
+                "max_iteration": 500,
+                "tolerance": 1e-9,
+                "scaling": false,
+                "verbosity": 1
+            },
+            "problem_domain_sub_model_part_list": [ "StructuralAnalysis" ],
+            "processes_sub_model_part_list": [ "IgaModelPart" ],
             "auxiliary_variables_list" : [],
             "auxiliary_dofs_list" : [],
             "auxiliary_reaction_list" : []
@@ -95,7 +102,7 @@ class IgaSolver(PythonSolver):
             self.main_model_part = self.model.CreateModelPart(model_part_name)
             domain_size = self.settings["domain_size"].GetInt()
             if domain_size < 0:
-                raise Exception('Please specify a "domain_size" > 0!')
+                raise Exception('Please specify a "domain_size" >= 0!')
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
         KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]:: ", "Construction finished")
@@ -110,7 +117,10 @@ class IgaSolver(PythonSolver):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
         # Add variables that the user defined in the ProjectParameters
-        auxiliary_solver_utilities.AddVariables(self.main_model_part, self.settings["auxiliary_variables_list"])
+        for i in range(self.settings["auxiliary_variables_list"].size()):
+            variable_name = self.settings["auxiliary_variables_list"][i].GetString()
+            variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
+            self.main_model_part.AddNodalSolutionStepVariable(variable)
         KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]:: ", "Variables ADDED")
 
     def GetMinimumBufferSize(self):
@@ -127,7 +137,27 @@ class IgaSolver(PythonSolver):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,self.main_model_part)
 
         # Add dofs that the user defined in the ProjectParameters
-        auxiliary_solver_utilities.AddDofs(self.main_model_part, self.settings["auxiliary_dofs_list"], self.settings["auxiliary_reaction_list"])
+        if (self.settings["auxiliary_dofs_list"].size() != self.settings["auxiliary_reaction_list"].size()):
+                raise Exception("DoFs list and reaction list should be the same long")
+        for i in range(self.settings["auxiliary_dofs_list"].size()):
+            dof_variable_name = self.settings["auxiliary_dofs_list"][i].GetString()
+            reaction_variable_name = self.settings["auxiliary_reaction_list"][i].GetString()
+            if (KratosMultiphysics.KratosGlobals.HasDoubleVariable(dof_variable_name)): # Double variable
+                dof_variable = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name)
+                reaction_variable = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name)
+                KratosMultiphysics.VariableUtils().AddDof(dof_variable, reaction_variable,self.main_model_part)
+            elif (KratosMultiphysics.KratosGlobals.HasArrayVariable(dof_variable_name)): # Components variable
+                dof_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_X")
+                reaction_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_X")
+                KratosMultiphysics.VariableUtils().AddDof(dof_variable_x, reaction_variable_x, self.main_model_part)
+                dof_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_Y")
+                reaction_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_Y")
+                KratosMultiphysics.VariableUtils().AddDof(dof_variable_y, reaction_variable_y, self.main_model_part)
+                dof_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_Z")
+                reaction_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_Z")
+                KratosMultiphysics.VariableUtils().AddDof(dof_variable_z, reaction_variable_z, self.main_model_part)
+            else:
+                KratosMultiphysics.Logger.PrintWarning("auxiliary_reaction_list list", "The variable " + dof_variable_name + "is not a compatible type")
         KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]:: ", "DOF's ADDED")
 
     def ImportModelPart(self):
@@ -140,6 +170,7 @@ class IgaSolver(PythonSolver):
         physics_file = open(self.settings["model_import_settings"]["physics_filename"].GetString(),'r')
         physics_parameters = KratosMultiphysics.Parameters( physics_file.read())
         self.nurbs_brep_modeler.ImportModelPart(self.main_model_part, physics_parameters)
+
 
     def PrepareModelPart(self):
         # Check and prepare computing model part and import constitutive laws.
@@ -191,7 +222,9 @@ class IgaSolver(PythonSolver):
         return self.settings["time_stepping"]["time_step"].GetDouble()
 
     def GetComputingModelPart(self):
-        return self.main_model_part
+        # if not self.main_model_part.HasSubModelPart(self.settings["computing_model_part_name"].GetString()):
+        #     raise Exception("The ComputingModelPart was not created yet!")
+        return self.main_model_part#.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
@@ -241,9 +274,9 @@ class IgaSolver(PythonSolver):
             # Add constitutive laws and material properties from json file to model parts.
             material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
             material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
-            import read_materials_process # TODO update this, it is deprecated!!!
-            read_materials_process.Factory(material_settings,self.model)
-            #KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
+            #import read_materials_process
+            #read_materials_process.Factory(material_settings,self.model)
+            KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
             materials_imported = True
         else:
             materials_imported = False
@@ -338,7 +371,7 @@ class IgaSolver(PythonSolver):
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
-    def _create_linear_solver(self):
+    def _create_linear_solver(self):        
         linear_solver_configuration = self.settings["linear_solver_settings"]
         if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
             from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
@@ -346,17 +379,17 @@ class IgaSolver(PythonSolver):
         else:
             # using a default linear solver (selecting the fastest one available)
             import KratosMultiphysics.kratos_utilities as kratos_utils
-            if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
+            if kratos_utils.IsApplicationAvailable("EigenSolversApplication"):
                 from KratosMultiphysics import EigenSolversApplication
-            elif kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
+            elif kratos_utils.IsApplicationAvailable("ExternalSolversApplication"):
                 from KratosMultiphysics import ExternalSolversApplication
 
             linear_solvers_by_speed = [
-                "pardiso_lu", # EigenSolversApplication (if compiled with Intel-support)
-                "sparse_lu",  # EigenSolversApplication
-                "pastix",     # ExternalSolversApplication (if Pastix is included in compilation)
-                "super_lu",   # ExternalSolversApplication
-                "skyline_lu_factorization" # in Core, always available, but slow
+                "PardisoLUSolver", # EigenSolversApplication (if compiled with Intel-support)
+                "SparseLUSolver",  # EigenSolversApplication
+                "PastixSolver",    # ExternalSolversApplication (if Pastix is included in compilation)
+                "SuperLUSolver",   # ExternalSolversApplication
+                "SkylineLUFactorizationSolver" # in Core, always available, but slow
             ]
 
             for solver_name in linear_solvers_by_speed:

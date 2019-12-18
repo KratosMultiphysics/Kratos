@@ -19,18 +19,21 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "iga_flags.h"
 
 
 namespace Kratos
 {
-    KRATOS_CREATE_LOCAL_FLAG(IGAFlags, FIX_DISPLACEMENT_X,        0 );
-    KRATOS_CREATE_LOCAL_FLAG(IGAFlags, FIX_DISPLACEMENT_Y,        1 );
-    KRATOS_CREATE_LOCAL_FLAG(IGAFlags, FIX_DISPLACEMENT_Z,        2 );
-    KRATOS_CREATE_LOCAL_FLAG(IGAFlags, FIX_ROTATION_X,            3 );
-    KRATOS_CREATE_LOCAL_FLAG(IGAFlags, FIX_ROTATION_Y,            4 );
-    KRATOS_CREATE_LOCAL_FLAG(IGAFlags, FIX_ROTATION_Z,            5 );
+    KRATOS_CREATE_LOCAL_FLAG(IgaFlags, FIX_DISPLACEMENT_X,        0 );
+    KRATOS_CREATE_LOCAL_FLAG(IgaFlags, FIX_DISPLACEMENT_Y,        1 );
+    KRATOS_CREATE_LOCAL_FLAG(IgaFlags, FIX_DISPLACEMENT_Z,        2 );
+    KRATOS_CREATE_LOCAL_FLAG(IgaFlags, FIX_ROTATION_X,            3 );
+    KRATOS_CREATE_LOCAL_FLAG(IgaFlags, FIX_ROTATION_Y,            4 );
+    KRATOS_CREATE_LOCAL_FLAG(IgaFlags, FIX_ROTATION_Z,            5 );
+
+    KRATOS_CREATE_LOCAL_FLAG(IgaFlags, IS_TRIMMED, 6);
+    KRATOS_CREATE_LOCAL_FLAG(IgaFlags, IS_RATIONAL, 7);
+    KRATOS_CREATE_LOCAL_FLAG(IgaFlags, IS_REVERSED, 8);
 }  // namespace Kratos.
 
 #endif // KRATOS_IGA_FLAGS_CPP_INCLUDED  defined
