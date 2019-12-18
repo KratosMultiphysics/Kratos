@@ -20,7 +20,7 @@
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "mor_application.h"
 #include "mor_application_variables.h"
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -42,7 +42,7 @@ PYBIND11_MODULE(KratosMORApplication,m)
     AddCustomStrategiesToPython(m);
 
     //registering variables in python
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FREQUENCY )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FREQUENCY )
 
 }
 
