@@ -19,6 +19,18 @@ from ..custom_ios.wrl_io import WrlIO
 from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 
 class InPlaneVertexMorphingMapper():
+    """
+    The InPlaneVertexMorphingMapper extends the standard Vertex Morphing approach
+    by restricting the shape update of nodes to an in-plane motion only. The nodes
+    are only allowed to float on a predefined background mesh.
+    The background mesh can be the initial mesh of the design surface, or another mesh
+    describing the same geometry (ideally also filling holes in the surface).
+    This is especially important if the design surface extends during the optimization.
+
+    Limitations:
+    - Damping can only be used if all cartesian directions (x,y,z) are damped.
+    - The projection of gradients on the surface normals has to be deactivated.
+    """
 
     def __init__(self, origin_model_part, destination_model_part, settings):
         if not SpacialMapperFactory:
@@ -120,7 +132,7 @@ class InPlaneVertexMorphingMapper():
         self.spacial_mapper.UpdateInterface()
         self.spacial_mapper.Map(KSO.BACKGROUND_COORDINATE, KSO.BACKGROUND_COORDINATE)
         mesh_utilities.SubtractCoordinatesFromVariable(KSO.BACKGROUND_COORDINATE, KSO.OUT_OF_PLANE_DELTA)
-        geometry_utilities.ProjectNodalVariableOnDirection(KSO.OUT_OF_PLANE_DELTA, KSO.BACKGROUND_NORMAL) #TODO???
+        geometry_utilities.ProjectNodalVariableOnDirection(KSO.OUT_OF_PLANE_DELTA, KSO.BACKGROUND_NORMAL)
 
         mesh_utilities.RevertMeshUpdateAccordingInputVariable(destination_variable)
         mesh_utilities.SetReferenceMeshToMesh()
