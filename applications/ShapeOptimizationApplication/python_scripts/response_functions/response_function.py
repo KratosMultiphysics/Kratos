@@ -9,7 +9,6 @@
 #
 # ==============================================================================
 
-
 class ResponseFunctionBase(object):
     """The base class for response functions. Each response function
     is able to calculate its response value and gradient.

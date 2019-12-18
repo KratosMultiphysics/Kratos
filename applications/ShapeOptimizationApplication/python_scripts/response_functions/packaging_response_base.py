@@ -7,11 +7,11 @@
 #  Main authors:    Geiser Armin, https://github.com/armingeiser
 #
 # ==============================================================================
+
 import time as timer
 import KratosMultiphysics as KM
 from KratosMultiphysics import Logger
 from .response_function import ResponseFunctionBase
-
 
 class PackagingResponseBase(ResponseFunctionBase):
     """

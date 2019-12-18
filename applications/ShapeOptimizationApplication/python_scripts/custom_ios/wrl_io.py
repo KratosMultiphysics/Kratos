@@ -11,7 +11,6 @@
 import KratosMultiphysics as KM
 from .wrl_reader import read_shapes, detect_file
 
-
 def _rename_to_valid_name(model_part, shape):
     name = shape.name
 
@@ -25,7 +24,6 @@ def _rename_to_valid_name(model_part, shape):
         KM.Logger.PrintWarning("ShapeOpt", "WrlIO: Name of the sub model part has been changed from '{}' to '{}' in order "\
             "to avoid name clashes!".format(shape.name, name))
         shape.name = name
-
 
 class WrlIO:
 
