@@ -113,4 +113,13 @@ class sensitivity_verification_in_geometry_space_process_test(ShapeOptimizationT
     execution_directory = "sensitivity_verification_process_test"
     execution_file = "run_sensitivity_verification_in_geometry_space"
 
+class mesh_based_packaging_test(ShapeOptimizationTestFactory):
+    execution_directory = "mesh_based_packaging_test"
+    execution_file = "run_test"
+
+class plane_based_packaging_test(ShapeOptimizationTestFactory):
+    execution_directory = "plane_based_packaging_test"
+    execution_file = "run_test"
+
+
 # ==============================================================================

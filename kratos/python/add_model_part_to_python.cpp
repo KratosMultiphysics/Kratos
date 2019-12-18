@@ -820,6 +820,7 @@ void AddModelPartToPython(pybind11::module& m)
 
     py::class_<ModelPart, Kratos::shared_ptr<ModelPart>, DataValueContainer, Flags >(m,"ModelPart")
         .def_property("Name", GetModelPartName, SetModelPartName)
+        .def("FullName", &ModelPart::FullName)
         //  .def_property("ProcessInfo", GetProcessInfo, SetProcessInfo)
         .def_property("ProcessInfo", pointer_to_get_process_info, pointer_to_set_process_info)
         .def("CreateSolutionStep", &ModelPart::CreateSolutionStep)

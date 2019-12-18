@@ -40,7 +40,7 @@
             "input_type"     : "mdpa",
             "input_filename" : "01_Mesh_Test_2D3N"
         },
-        "mesh_motion_linear_solver_settings"        : {
+        "linear_solver_settings"        : {
         "solver_type" : "SuperLUSolver"
         },
         "computing_model_part_name"       : "Parts_Fluid",

@@ -27,6 +27,7 @@
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
+#include "input_output/vtk_output.h"
 #include "processes/process.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 
@@ -78,7 +79,10 @@ public:
             "max_iterations"                    : 10,
             "echo_level"                        : 0,
             "relaxation_factor"                 : 1.0,
-            "number_of_parent_solve_iterations" : 0
+            "number_of_parent_solve_iterations" : 0,
+            "vtk_output_settings"               : {},
+            "vtk_output_frequency"              : 1,
+            "vtk_output_prefix"                 : ""
         })");
 
         rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -89,6 +93,16 @@ public:
         mRelaxationFactor = rParameters["relaxation_factor"].GetDouble();
         mMaxIterations = rParameters["max_iterations"].GetInt();
         mSkipIterations = rParameters["number_of_parent_solve_iterations"].GetInt();
+        mVtkOutputFrequency = rParameters["vtk_output_frequency"].GetInt();
+        mVtkOutputPrefix = rParameters["vtk_output_prefix"].GetString();
+
+        Parameters empty_parameters(R"({})");
+        if (!rParameters["vtk_output_settings"].IsEquivalentTo(empty_parameters))
+        {
+            KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
+                << "Adding VtkOutput.\n";
+            mpVtkOutput = Kratos::make_unique<VtkOutput>(rModelPart, rParameters["vtk_output_settings"]);
+        }
 
         mCurrentParentIteration = 0;
     }
@@ -109,8 +123,8 @@ public:
     void AddStrategy(typename SolvingStrategyType::Pointer pStrategy,
                      const Variable<double>& rScalarVariable)
     {
-        mrSolvingStrategiesList.push_back(pStrategy);
-        mrSolvingVariableNamesList.push_back(rScalarVariable.Name());
+        mSolvingStrategiesList.push_back(pStrategy);
+        mSolvingVariableNamesList.push_back(rScalarVariable.Name());
     }
 
     void AddAuxiliaryProcess(Process::Pointer pAuxiliaryProcess)
@@ -134,13 +148,13 @@ public:
     {
         KRATOS_CHECK_IS_FALSE(!mrModelPart.HasNodalSolutionStepVariable(this->mrConvergenceVariable));
 
-        for (auto strategy : mrSolvingStrategiesList)
+        for (auto strategy : mSolvingStrategiesList)
             strategy->Check();
 
         for (Process::Pointer auxiliary_process : mAuxiliaryProcessList)
             auxiliary_process->Check();
 
-        KRATOS_ERROR_IF(mrSolvingStrategiesList.size() == 0)
+        KRATOS_ERROR_IF(mSolvingStrategiesList.size() == 0)
             << "No strategies are found for ScalarCoSolvingProcess.";
 
         return 0;
@@ -242,7 +256,7 @@ protected:
             mCurrentParentIteration = 0;
             this->UpdateBeforeSolveEquations();
 
-            for (auto p_solving_strategy : this->mrSolvingStrategiesList)
+            for (auto p_solving_strategy : this->mSolvingStrategiesList)
             {
                 p_solving_strategy->InitializeSolutionStep();
                 p_solving_strategy->Predict();
@@ -254,7 +268,8 @@ protected:
             Communicator& r_communicator = mrModelPart.GetCommunicator();
 
             ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
-            const ProcessInfo& r_current_process_info = mrModelPart.GetProcessInfo();
+            ProcessInfo& r_current_process_info = mrModelPart.GetProcessInfo();
+            const int parent_solve_iteration = r_current_process_info[NL_ITERATION_NUMBER];
 
             Vector old_values(r_nodes.size());
             Vector new_values(r_nodes.size());
@@ -269,10 +284,10 @@ protected:
                     old_values, r_nodes, this->mrConvergenceVariable);
 
                 for (int i = 0;
-                     i < static_cast<int>(this->mrSolvingStrategiesList.size()); ++i)
+                     i < static_cast<int>(this->mSolvingStrategiesList.size()); ++i)
                 {
-                    auto p_solving_strategy = this->mrSolvingStrategiesList[i];
-                    auto scalar_variable_name = this->mrSolvingVariableNamesList[i];
+                    auto p_solving_strategy = this->mSolvingStrategiesList[i];
+                    auto scalar_variable_name = this->mSolvingVariableNamesList[i];
 
                     p_solving_strategy->SolveSolutionStep();
                     const unsigned int iterations =
@@ -280,6 +295,20 @@ protected:
                     KRATOS_INFO_IF(this->Info(), this->mEchoLevel > 0)
                         << "Solving " << scalar_variable_name << " used "
                         << iterations << " iterations.\n";
+                }
+
+                ++mVtkOutputStep;
+                if (mpVtkOutput && mVtkOutputStep >= mVtkOutputFrequency)
+                {
+                    mVtkOutputStep = 0;
+                    std::stringstream s_label;
+                    s_label << mVtkOutputPrefix << "_Rank_"
+                            << mrModelPart.GetCommunicator().MyPID() << std::fixed
+                            << "_Step_" << r_current_process_info[STEP]
+                            << "_ParentItr_" << parent_solve_iteration
+                            << std::setw(iteration_format_length) << "_CoupleItr_"
+                            << std::setfill('0') << iteration << ".vtk";
+                    mpVtkOutput->PrintOutput(s_label.str());
                 }
 
                 this->UpdateConvergenceVariable();
@@ -356,7 +385,7 @@ protected:
                 << "\n-------------------------------------------------------"
                 << "\n";
 
-            for (auto p_solving_strategy : this->mrSolvingStrategiesList)
+            for (auto p_solving_strategy : this->mSolvingStrategiesList)
                 p_solving_strategy->FinalizeSolutionStep();
         }
         else
@@ -379,16 +408,21 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::vector<typename SolvingStrategyType::Pointer> mrSolvingStrategiesList;
-    std::vector<std::string> mrSolvingVariableNamesList;
+    std::vector<typename SolvingStrategyType::Pointer> mSolvingStrategiesList;
+    std::vector<std::string> mSolvingVariableNamesList;
     std::vector<Process::Pointer> mAuxiliaryProcessList;
+    std::string mVtkOutputPrefix;
     Variable<double>& mrConvergenceVariable;
+
+    VtkOutput::UniquePointer mpVtkOutput;
 
     typename SolvingStrategyType::Pointer mpParentSolvingStrategy;
 
     int mMaxIterations;
     int mSkipIterations;
     int mCurrentParentIteration;
+    int mVtkOutputStep = 0;
+    int mVtkOutputFrequency;
     double mConvergenceAbsoluteTolerance;
     double mConvergenceRelativeTolerance;
     double mRelaxationFactor;
