@@ -24,7 +24,6 @@ export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set applications to compile
 add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
-add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
 add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
 add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
 add_app ${KRATOS_APP_DIR}/DEMApplication;

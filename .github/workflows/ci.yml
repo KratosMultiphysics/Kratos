@@ -10,7 +10,6 @@ on:
     - 'external_libraries/**'
     - 'kratos/**'
     - 'applications/ContactStructuralMechanicsApplication/**'
-    - 'applications/ConvectionDiffusionApplication/**'
     - 'applications/CoSimulationApplication/**'
     - 'applications/CSharpWrapperApplication/**'
     - 'applications/DEMApplication/**'
@@ -107,7 +106,6 @@ jobs:
 
         set KRATOS_APPLICATIONS=
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ContactStructuralMechanicsApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ConvectionDiffusionApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\CoSimulationApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\CSharpWrapperApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\DEMApplication;
