@@ -17,6 +17,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/variables.h"
 #include "rans_application_variables.h"
 
 #include "custom_utilities/rans_check_utilities.h"
@@ -37,7 +38,7 @@ RansKTurbulentIntensityInletProcess::RansKTurbulentIntensityInletProcess(Model& 
             "turbulent_intensity" : 0.05,
             "echo_level"          : 0,
             "is_fixed"            : true,
-            "min_value"           : 1e-18
+            "min_value"           : 1e-14
         })");
 
     mrParameters.ValidateAndAssignDefaults(default_parameters);
@@ -69,7 +70,7 @@ void RansKTurbulentIntensityInletProcess::ExecuteInitialize()
     {
         ModelPart::NodesContainerType& r_nodes =
             mrModel.GetModelPart(mModelPartName).Nodes();
-        int number_of_nodes = r_nodes.size();
+        const int number_of_nodes = r_nodes.size();
 #pragma omp parallel for
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
         {
@@ -93,7 +94,7 @@ void RansKTurbulentIntensityInletProcess::Execute()
 
     ModelPart::NodesContainerType& r_nodes =
         mrModel.GetModelPart(mModelPartName).Nodes();
-    int number_of_nodes = r_nodes.size();
+    const int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
@@ -111,7 +112,6 @@ void RansKTurbulentIntensityInletProcess::Execute()
 int RansKTurbulentIntensityInletProcess::Check()
 {
     KRATOS_TRY
-
 
     RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 

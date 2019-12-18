@@ -41,7 +41,7 @@ RansEpsilonTurbulentMixingLengthInletProcess::RansEpsilonTurbulentMixingLengthIn
             "c_mu"                    : 0.09,
             "echo_level"              : 0,
             "is_fixed"                : true,
-            "min_value"               : 1e-18
+            "min_value"               : 1e-14
         })");
 
     mrParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
@@ -55,6 +55,11 @@ RansEpsilonTurbulentMixingLengthInletProcess::RansEpsilonTurbulentMixingLengthIn
 
     KRATOS_ERROR_IF(mTurbulentMixingLength < std::numeric_limits<double>::epsilon())
         << "turbulent_mixing_length should be greater than zero.\n";
+
+    KRATOS_ERROR_IF(mMinValue < 0.0) << "Minimum turbulent energy dissipation "
+                                        "rate needs to be positive in the "
+                                        "modelpart "
+                                     << mModelPartName << "\n.";
 
     KRATOS_CATCH("");
 }
@@ -94,7 +99,7 @@ void RansEpsilonTurbulentMixingLengthInletProcess::Execute()
 
     ModelPart::NodesContainerType& r_nodes =
         mrModel.GetModelPart(mModelPartName).Nodes();
-    int number_of_nodes = r_nodes.size();
+    const int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
