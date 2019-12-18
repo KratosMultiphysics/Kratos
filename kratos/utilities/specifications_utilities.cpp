@@ -17,6 +17,7 @@
 // Project includes
 #include "utilities/specifications_utilities.h"
 #include "utilities/variable_utils.h"
+#include "utilities/compare_elements_and_conditions_utility.h"
 
 namespace Kratos
 {
@@ -32,11 +33,12 @@ void AddMissingVariables(ModelPart& rModelPart)
     // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
     const auto& r_elements_array = rModelPart.Elements();
     if (r_elements_array.size() > 0) {
+        std::string element_name;
         const auto it_elem_begin = r_elements_array.begin();
-        const auto elements_components = KratosComponents<Element>::GetComponents();
         
         specifications = it_elem_begin->GetSpecifications();
-        AddMissingVariablesFromSpecifications(rModelPart, specifications);
+        CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
+        AddMissingVariablesFromSpecifications(rModelPart, specifications, element_name);
             
         // Now we iterate over all the elements
         for(std::size_t i = 1; i < r_elements_array.size(); i++) {
@@ -45,7 +47,8 @@ void AddMissingVariables(ModelPart& rModelPart)
             
             if(!GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
                 specifications = it_elem_current->GetSpecifications();
-                AddMissingVariablesFromSpecifications(rModelPart, specifications);
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
+                AddMissingVariablesFromSpecifications(rModelPart, specifications, element_name);
             }
         }
     }
@@ -53,11 +56,12 @@ void AddMissingVariables(ModelPart& rModelPart)
     // We are going to procede like the following, we are going to iterate over all the conditions and compare with the components, we will save the type and we will compare until we get that the type of condent has changed
     const auto& r_conditions_array = rModelPart.Conditions();
     if (r_conditions_array.size() > 0) {
+        std::string condition_name;
         const auto it_cond_begin = r_conditions_array.begin();
-        const auto conditions_components = KratosComponents<Condition>::GetComponents();
         
         specifications = it_cond_begin->GetSpecifications();
-        AddMissingVariablesFromSpecifications(rModelPart, specifications);
+        CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
+        AddMissingVariablesFromSpecifications(rModelPart, specifications, condition_name);
             
         // Now we iterate over all the conditions
         for(std::size_t i = 1; i < r_conditions_array.size(); i++) {
@@ -66,7 +70,8 @@ void AddMissingVariables(ModelPart& rModelPart)
             
             if(!GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
                 specifications = it_cond_current->GetSpecifications();
-                AddMissingVariablesFromSpecifications(rModelPart, specifications);
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
+                AddMissingVariablesFromSpecifications(rModelPart, specifications, condition_name);
             }
         }
     }
@@ -79,7 +84,8 @@ void AddMissingVariables(ModelPart& rModelPart)
 
 void AddMissingVariablesFromSpecifications(
     ModelPart& rModelPart,
-    const Parameters SpecificationsParameters 
+    const Parameters SpecificationsParameters,
+    const std::string EntityName
     )
 {
     KRATOS_TRY
@@ -147,6 +153,7 @@ void AddMissingVariablesFromSpecifications(
             } else {
                 KRATOS_ERROR << "Value type for \"" << r_variable_name << "\" not defined";
             }
+            KRATOS_WARNING_IF("SpecificationsUtilities", variable_is_missing) << "Variable:" << r_variable_name << " is not in the model part. Required by entity: " << EntityName << "Added to the model part" << std::endl; 
         }
     }
     
@@ -166,11 +173,12 @@ void AddMissingDofs(ModelPart& rModelPart)
     // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
     const auto& r_elements_array = rModelPart.Elements();
     if (r_elements_array.size() > 0) {
+        std::string element_name;
         const auto it_elem_begin = r_elements_array.begin();
-        const auto elements_components = KratosComponents<Element>::GetComponents();
         
         specifications = it_elem_begin->GetSpecifications();
-        AddMissingDofsFromSpecifications(rModelPart, specifications);
+        CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
+        AddMissingDofsFromSpecifications(rModelPart, specifications, element_name);
             
         // Now we iterate over all the elements
         for(std::size_t i = 1; i < r_elements_array.size(); i++) {
@@ -179,7 +187,8 @@ void AddMissingDofs(ModelPart& rModelPart)
             
             if(!GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
                 specifications = it_elem_current->GetSpecifications();
-                AddMissingDofsFromSpecifications(rModelPart, specifications);
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
+                AddMissingDofsFromSpecifications(rModelPart, specifications, element_name);
             }
         }
     }
@@ -187,11 +196,12 @@ void AddMissingDofs(ModelPart& rModelPart)
     // We are going to procede like the following, we are going to iterate over all the conditions and compare with the components, we will save the type and we will compare until we get that the type of condent has changed
     const auto& r_conditions_array = rModelPart.Conditions();
     if (r_conditions_array.size() > 0) {
+        std::string condition_name;
         const auto it_cond_begin = r_conditions_array.begin();
-        const auto conditions_components = KratosComponents<Condition>::GetComponents();
         
         specifications = it_cond_begin->GetSpecifications();
-        AddMissingDofsFromSpecifications(rModelPart, specifications);
+        CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
+        AddMissingDofsFromSpecifications(rModelPart, specifications, condition_name);
             
         // Now we iterate over all the conditions
         for(std::size_t i = 1; i < r_conditions_array.size(); i++) {
@@ -200,7 +210,8 @@ void AddMissingDofs(ModelPart& rModelPart)
             
             if(!GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
                 specifications = it_cond_current->GetSpecifications();
-                AddMissingDofsFromSpecifications(rModelPart, specifications);
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
+                AddMissingDofsFromSpecifications(rModelPart, specifications, condition_name);
             }
         }
     }
@@ -214,7 +225,8 @@ void AddMissingDofs(ModelPart& rModelPart)
 
 void AddMissingDofsFromSpecifications(
     ModelPart& rModelPart,
-    const Parameters SpecificationsParameters 
+    const Parameters SpecificationsParameters,
+    const std::string EntityName
     )
 {
     KRATOS_TRY
@@ -269,9 +281,118 @@ void AddMissingDofsFromSpecifications(
             } else {
                 KRATOS_ERROR << "Value type for \"" << r_variable_name << "\" not defined";
             }
+            KRATOS_WARNING_IF("SpecificationsUtilities", dof_is_missing) << "Variable:" << r_variable_name << " is not in the model part nodes. Required by entity: " << EntityName << "Added to the model part nodes" << std::endl; 
         }
     }
 
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void DetermineFlagsUsed(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+    
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::string DetermineFramework(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+    
+    std::string framework = "";
+    
+    return framework;
+    
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool DetermineSymmetricLHS(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+    
+    bool symmetric = false;
+    
+    return symmetric;
+    
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool DeterminePositiveDefiniteLHS(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+    
+    bool positive_definite = false;
+    
+    return positive_definite;
+    
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool DetermineIfCompatibleGeometries(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+    
+    bool compatible_geometries = false;
+    
+    return compatible_geometries;
+    
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool DetermineIfImplicitSimulation(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+    
+    bool implicit_simulation = true;
+    
+    return implicit_simulation;
+    
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool DetermineIfRequiresTimeIntegration(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+    
+    bool requires_time_integration = true;
+    
+    return requires_time_integration;
+    
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+    
+    bool compatible_cl = false;
+    
+    return compatible_cl;
+    
     KRATOS_CATCH("")
 }
 

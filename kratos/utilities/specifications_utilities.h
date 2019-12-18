@@ -65,10 +65,12 @@ namespace SpecificationsUtilities
      * @brief This method adds to the model part the missing variables from a given set of specifications
      * @param rModelPart Reference to the ModelPart containing the problem
      * @param SpecificationsParameters The specification parameters
+     * @param EntityName The name of the entity considered
      */
     void KRATOS_API(KRATOS_CORE) AddMissingVariablesFromSpecifications(
         ModelPart& rModelPart,
-        const Parameters SpecificationsParameters 
+        const Parameters SpecificationsParameters,
+        const std::string EntityName = "NOT_DEFINED"
         );
 
     /**
@@ -81,12 +83,69 @@ namespace SpecificationsUtilities
      * @brief This method adds to the model part the missing dofs from a given set of specifications
      * @param rModelPart Reference to the ModelPart containing the problem
      * @param SpecificationsParameters The specification parameters
+     * @param EntityName The name of the entity considered
      */
     void KRATOS_API(KRATOS_CORE) AddMissingDofsFromSpecifications(
         ModelPart& rModelPart,
-        const Parameters SpecificationsParameters 
+        const Parameters SpecificationsParameters,
+        const std::string EntityName = "NOT_DEFINED"
         );
+    
+    /**
+     * @brief This method determine the flags used on the simulation
+     * @param rModelPart Reference to the ModelPart containing the problem
+     */
+    void KRATOS_API(KRATOS_CORE) DetermineFlagsUsed(ModelPart& rModelPart);
+    
+    /**
+     * @brief This method detects the framework considered. It throws a warning if incompatible framework
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @return The framework of the problem
+     */
+    std::string KRATOS_API(KRATOS_CORE) DetermineFramework(ModelPart& rModelPart);
+    
+    /**
+     * @brief This method detects if the LHS is symmetric. It throws a warning if incompatible
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @return True if all the LHS are symmetric, false otherwise
+     */
+    bool KRATOS_API(KRATOS_CORE) DetermineSymmetricLHS(ModelPart& rModelPart);
+    
+    /**
+     * @brief This method detects if the LHS is positive definite. It throws a warning if incompatible 
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @return True if all the LHS are positive definite, false otherwise
+     */
+    bool KRATOS_API(KRATOS_CORE) DeterminePositiveDefiniteLHS(ModelPart& rModelPart);
+    
+    /**
+     * @brief This method detects if the elements/conditions are compatible with its geometry
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @return True if all geometries are compatible, false otherwise
+     */
+    bool KRATOS_API(KRATOS_CORE) DetermineIfCompatibleGeometries(ModelPart& rModelPart);
+    
+    /**
+     * @brief This method detects if all elements/conditions are implicit. It throws a warning if incompatible
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @return True if all the elements/conditions are implicit, false otherwise
+     */
+    bool KRATOS_API(KRATOS_CORE) DetermineIfImplicitSimulation(ModelPart& rModelPart);
+    
+    /**
+     * @brief This method detects if all elements/conditions require time integration. It throws a warning if incompatible
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @return True if all the elements/conditions require time integration, false otherwise
+     */
+    bool KRATOS_API(KRATOS_CORE) DetermineIfRequiresTimeIntegration(ModelPart& rModelPart);
 
+    /**
+     * @brief This method detects if all elements/conditions are considering the proper CL
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @return True if all the elements/conditions are considering the adequate CL, false otherwise
+     */
+    bool KRATOS_API(KRATOS_CORE) CheckCompatibleConstitutiveLaws(ModelPart& rModelPart);
+    
 }; // namespace SpecificationsUtilities
 }  // namespace Kratos
 #endif /* KRATOS_SPECIFICATIONS_UTILITIES defined */
