@@ -391,7 +391,7 @@ namespace Kratos
                     int counter = 0;
                     for (auto &r_dof : self)
                     {
-                        values[counter++] = dof.EquationId();
+                        values[counter++] = r_dof.EquationId();
                     }
                     return values;
                 })
