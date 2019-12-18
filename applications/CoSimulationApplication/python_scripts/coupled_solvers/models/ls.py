@@ -72,6 +72,7 @@ class ModelLS(CoSimulationComponent):
                 while self.vprev[i].shape[1] == 0:
                     i -= 1
                 self.vprev[i] = np.delete(self.vprev[i], -1, 1)
+                self.wprev[i] = np.delete(self.wprev[i], -1, 1)
             v = np.hstack((self.vcurr, np.hstack(self.vprev)))
 
     def Predict(self, r_in):
