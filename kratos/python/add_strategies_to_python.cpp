@@ -371,41 +371,6 @@ namespace Kratos
             typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
 
 
-            py::class_<BuilderAndSolverType::DofsArrayType, BuilderAndSolverType::DofsArrayType::Pointer>(m, "DofsArrayType")
-                .def(py::init<>())
-                .def("__len__", [](BuilderAndSolverType::DofsArrayType &self) { return self.size(); })
-                .def("__iter__", [](BuilderAndSolverType::DofsArrayType &self) { return py::make_iterator(self.begin(), self.end()); }, py::keep_alive<0, 1>())
-                .def("append", [](BuilderAndSolverType::DofsArrayType &self,
-                                Dof<double> &value) { self.push_back(&value); })
-                .def("GetValues", [](BuilderAndSolverType::DofsArrayType &self) {
-                    Vector values(self.size());
-                    int counter = 0;
-                    for (auto &r_dof : self)
-                    {
-                        values[counter++] = r_dof.GetSolutionStepValue();
-                    }
-                    return values;
-                })
-                .def("GetEquationIds", [](BuilderAndSolverType::DofsArrayType &self) {
-                    std::vector<std::size_t> values(self.size());
-                    int counter = 0;
-                    for (auto &r_dof : self)
-                    {
-                        values[counter++] = r_dof.EquationId();
-                    }
-                    return values;
-                })
-                .def("SetValues", [](BuilderAndSolverType::DofsArrayType &self,
-                                    const Vector& values)
-                                {
-                    int counter = 0;
-                    for (auto &r_dof : self)
-                    {
-                        r_dof.GetSolutionStepValue() = values[counter++];
-                    }
-                })
-                ;
-
             py::class_< BuilderAndSolverType, typename BuilderAndSolverType::Pointer>(m,"BuilderAndSolver")
             .def(py::init<LinearSolverType::Pointer > ())
                 .def("SetCalculateReactionsFlag", &BuilderAndSolverType::SetCalculateReactionsFlag)

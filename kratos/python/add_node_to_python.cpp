@@ -140,18 +140,6 @@ void  AddNodeToPython(pybind11::module& m)
     .def("__str__", PrintObject<IndexedObject>)
     ;
 
-    py::class_<Dof<double>>(m,"Dof")
-    .def("GetVariable", &Dof<double>::GetVariable, py::return_value_policy::reference_internal)
-    .def("GetReaction", &Dof<double>::GetReaction, py::return_value_policy::reference_internal)
-    .def("Id", &Dof<double>::Id)
-    .def("GetSolutionStepValue", [](const Dof<double>& self){return self.GetSolutionStepValue();} )
-    .def("SetSolutionStepValue", [](Dof<double>& self, const double value){return self.GetSolutionStepValue() = value;} )
-    .def_property("EquationId", &Dof<double>::EquationId, &Dof<double>::SetEquationId)
-    .def("Fix", &Dof<double>::FixDof)
-    .def("Free", &Dof<double>::FreeDof)
-    .def("IsFixed", &Dof<double>::IsFixed)
-    .def("__str__", PrintObject<Dof<double>>)
-    ;
 
     typedef  py::class_<NodeType, NodeType::Pointer, NodeType::BaseType, Flags > NodeBinderType;
     NodeBinderType node_binder(m,"Node");
