@@ -73,6 +73,8 @@ public:
   ///@name Access
   ///@{
 
+  void WriteMessage(LoggerMessage const& TheMessage) override;
+
   ///@}
   ///@name Inquiry
   ///@{

@@ -40,6 +40,42 @@ namespace Kratos
         delete &GetStream();
     }
 
+    void FileLoggerOutput::WriteMessage(LoggerMessage const& TheMessage)
+    {
+        auto message_severity = TheMessage.GetSeverity();
+        if (TheMessage.WriteInThisRank() && message_severity <= GetSeverity())
+        {
+            switch (message_severity)
+            {
+            case LoggerMessage::Severity::WARNING:
+                if (GetOption(WARNING_PREFIX)) GetStream() << "[WARNING] ";
+                break;
+            case LoggerMessage::Severity::INFO:
+                if (GetOption(INFO_PREFIX)) GetStream() << "[INFO] ";
+                break;
+            case LoggerMessage::Severity::DETAIL:
+                if (GetOption(DETAIL_PREFIX)) GetStream() << "[DETAIL] ";
+                break;
+            case LoggerMessage::Severity::DEBUG:
+                if (GetOption(DEBUG_PREFIX)) GetStream() << "[DEBUG] ";
+                break;
+            case LoggerMessage::Severity::TRACE:
+                if (GetOption(TRACE_PREFIX)) GetStream() << "[TRACE] ";
+                break;
+            default:
+                break;
+            }
+
+            if(TheMessage.IsDistributed())
+                GetStream() << "Rank " << TheMessage.GetSourceRank() << ": ";
+
+            if(TheMessage.GetLabel().size())
+                GetStream() << TheMessage.GetLabel() << ": " << TheMessage.GetMessage();
+            else
+                GetStream() << TheMessage.GetMessage();
+        }
+    }
+
     std::string FileLoggerOutput::Info() const
     {
         return "FileLoggerOutput";
