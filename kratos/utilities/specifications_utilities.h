@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -53,6 +54,16 @@ namespace SpecificationsUtilities
      * @param rModelPart Reference to the ModelPart containing the problem
      */
     void KRATOS_API(KRATOS_CORE) AddMissingVariables(ModelPart& rModelPart);
+    
+    /**
+     * @brief This method adds to the model part the missing variables from a given set of specifications
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @param SpecificationsParameters The specification parameters
+     */
+    void KRATOS_API(KRATOS_CORE) AddMissingVariablesFromSpecifications(
+        ModelPart& rModelPart,
+        const Parameters SpecificationsParameters 
+        );
 
     /**
      * @brief This method adds to the model part the missing dofs
