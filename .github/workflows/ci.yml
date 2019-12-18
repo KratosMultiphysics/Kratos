@@ -61,6 +61,7 @@ jobs:
 
     - name: Build
       run: |
+        cp .github/workflows/configure.sh configure.sh
         bash configure.sh
         ccache -s
 
