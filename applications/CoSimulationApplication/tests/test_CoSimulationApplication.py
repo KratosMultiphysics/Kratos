@@ -1,7 +1,11 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-from convergence_accelerators.test_iqni import TestConvergenceAcceleratorIQNI
-from convergence_accelerators.test_aitken import TestConvergenceAcceleratorAITKEN
+from coupled_solvers.test_gauss_seidel import TestCoupledSolverGAUSSSEIDEL
+from coupled_solvers.test_aitken import TestCoupledSolverAITKEN
+from coupled_solvers.test_iqni import TestCoupledSolverIQNI
+from coupled_solvers.test_ibqn import TestCoupledSolverIBQN
+from coupled_solvers.models.test_ls import TestModelLS
+from coupled_solvers.models.test_mv import TestModelMV
 from convergence_criteria.test_absolute_norm import TestConvergenceCriterionAbsoluteNorm
 from convergence_criteria.test_and import TestConvergenceCriterionAnd
 from convergence_criteria.test_iteration_limit import TestConvergenceCriterionIterationLimit
@@ -34,8 +38,12 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     smallSuite = suites['small']  # These tests are executed by the continuous integration tool
-    smallSuite.addTest(TestConvergenceAcceleratorIQNI("test_convergence_accelerator_iqni"))
-    smallSuite.addTest(TestConvergenceAcceleratorAITKEN("test_convergence_accelerator_aitken"))
+    smallSuite.addTest(TestCoupledSolverGAUSSSEIDEL("test_coupled_solver_gauss_seidel"))
+    smallSuite.addTest(TestCoupledSolverAITKEN("test_coupled_solver_aitken"))
+    smallSuite.addTest(TestCoupledSolverIQNI("test_coupled_solver_iqni"))
+    smallSuite.addTest(TestCoupledSolverIBQN("test_coupled_solver_ibqn"))
+    smallSuite.addTest(TestModelLS("test_model_ls"))
+    smallSuite.addTest(TestModelMV("test_model_mv"))
     smallSuite.addTest(TestConvergenceCriterionAbsoluteNorm("test_convergence_criterion_absolute_norm"))
     smallSuite.addTest(TestConvergenceCriterionAnd("test_convergence_criterion_and"))
     smallSuite.addTest(TestConvergenceCriterionIterationLimit("test_convergence_criterion_iteration_limit"))
