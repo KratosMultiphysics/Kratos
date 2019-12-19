@@ -240,17 +240,13 @@ class MechanicalSolver(PythonSolver):
     def ComputeDeltaTime(self):
         if self.settings["time_stepping"].Has("time_step"):
             return self.settings["time_stepping"]["time_step"].GetDouble()
-        elif self.settings["time_stepping"].Has("time_step_intervals"):
+        elif self.settings["time_stepping"].Has("time_step_table"):
             current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-            for key in self.settings["time_stepping"]["time_step_intervals"].keys():
-                interval_settings = self.settings["time_stepping"]["time_step_intervals"][key]
-                interval = KratosMultiphysics.IntervalUtility(interval_settings)
-
-                # Getting the time step of the interval
-                if interval.IsInInterval(current_time):
-                    return interval_settings["time_step"].GetDouble()
-            # If we arrive here we raise an error because the intervals are not well defined
-            raise Exception("::[MechanicalSolver]:: Time stepping not well defined!")
+            time_step_table = self.settings["time_stepping"]["time_step_table"].GetMatrix()
+            for interval in range(time_step_table.Size1()-1):
+                if current_time > time_step_table[interval, 0] and current_time <= time_step_table[interval+1, 0]:
+                    return time_step_table[interval, 1]
+            return time_step_table[time_step_table.Size1()-1, 1]
         else:
             raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
 
