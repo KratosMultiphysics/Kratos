@@ -207,14 +207,14 @@ public:
     bool Has(const Variable<Matrix> &rThisVariable) override;
 
     /**
-     * @brief Sets the value of a specified variable (double)
+     * @brief Sets the value of a specified variable (Vector)
      * @param rVariable the variable to be returned
      * @param rValue new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */
     void SetValue(
-        const Variable<double> &rThisVariable,
-        const double& rValue,
+        const Variable<Vector> &rThisVariable,
+        const Vector& rValue,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -250,6 +250,14 @@ public:
         const Variable<Matrix>& rThisVariable,
         Matrix& rValue
         ) override;
+
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return true;
+    }
 
     /**
      * @brief Returns the value of a specified variable (double)
