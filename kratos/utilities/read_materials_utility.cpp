@@ -222,8 +222,36 @@ void ReadMaterialsUtility::AssingVariablesToProperty(
     // Add / override the values of material parameters in the p_properties
     if (MaterialData.Has("Variables")) {
         Parameters variables = MaterialData["Variables"];
+        
+        Parameters auxiliar_variables;
         for (auto iter = variables.begin(); iter != variables.end(); ++iter) {
             const Parameters value = variables.GetValue(iter.name());
+            std::string variable_name = iter.name();
+            TrimComponentName(variable_name);
+            // We create an axiliar parameters for adding the variables
+            if (KratosComponents<Variable<double> >::Has(variable_name)) {
+                auxiliar_variables.AddValue(variable_name, value);
+            } else if(KratosComponents<Variable<bool> >::Has(variable_name)) {
+                auxiliar_variables.AddValue(variable_name, value);
+            } else if(KratosComponents<Variable<int> >::Has(variable_name)) {
+                auxiliar_variables.AddValue(variable_name, value);
+            } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
+                auxiliar_variables.AddValue(variable_name, value);
+            } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(variable_name)) {
+                auxiliar_variables.AddValue(variable_name, value);
+            } else if(KratosComponents<Variable<Vector > >::Has(variable_name)) {
+                auxiliar_variables.AddValue(variable_name, value);
+            } else if(KratosComponents<Variable<Matrix> >::Has(variable_name)) {
+                auxiliar_variables.AddValue(variable_name, value);
+            } else if(KratosComponents<Variable<std::string> >::Has(variable_name)) {
+                auxiliar_variables.AddValue(variable_name, value);
+            } else {
+                KRATOS_WARNING("Read materials") << "The variable property: " << variable_name << " for material ID: " << rProperty.Id() << " is not a registered variable. It will be skipped, and assumed that this value will be processed later" << std::endl;
+            }
+        }
+        
+        for (auto iter = auxiliar_variables.begin(); iter != auxiliar_variables.end(); ++iter) {
+            const Parameters value = auxiliar_variables.GetValue(iter.name());
 
             std::string variable_name = iter.name();
             TrimComponentName(variable_name);
