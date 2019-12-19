@@ -1,8 +1,0 @@
-{
-    "type" : "convergence_accelerators.aitken",
-    "settings" :
-    {
-        "omega_max" : 0.8
-    }
-}
-
