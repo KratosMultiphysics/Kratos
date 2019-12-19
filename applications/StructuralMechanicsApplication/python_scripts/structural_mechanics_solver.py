@@ -243,10 +243,10 @@ class MechanicalSolver(PythonSolver):
         elif self.settings["time_stepping"].Has("time_step_table"):
             current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
             time_step_table = self.settings["time_stepping"]["time_step_table"].GetMatrix()
-            for interval in range(time_step_table.Size1()-1):
-                if current_time > time_step_table[interval, 0] and current_time <= time_step_table[interval+1, 0]:
-                    return time_step_table[interval, 1]
-            return time_step_table[time_step_table.Size1()-1, 1]
+            tb = KratosMultiphysics.PiecewiseLinearTable()
+            for interval in range(time_step_table.Size1()):
+                tb.AddRow(time_step_table[interval, 0], time_step_table[interval, 1])
+            return tb.GetValue(current_time)
         else:
             raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
 
