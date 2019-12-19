@@ -67,12 +67,12 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
         file_read = KratosMultiphysics.ReadMatrixMarketMatrix(matrix_file_path, a) # symmetric test matrix
         self.assertTrue(file_read, msg="The MatrixFile could not be read")
 
-        a = KratosMultiphysics.ComplexCompressedMatrix(a) #* (1+2j)
+        a = KratosMultiphysics.ComplexCompressedMatrix(a)
         dimension = a.Size1()
 
         self.assertEqual(dimension, 900)
 
-        b_exp = KratosMultiphysics.ComplexVector(dimension) # [1, 2, ..., dimension-1, dimension]
+        b_exp = KratosMultiphysics.ComplexVector(dimension)
 
         for i in range(dimension):
             b_exp[i] = complex(i+1,i-1)
