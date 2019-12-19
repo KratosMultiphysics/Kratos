@@ -18,9 +18,6 @@
 #include <iostream>
 
 // Project includes
-#include "includes/define.h"
-
-// Project includes
 #include "includes/memory_info.h"
 
 // to be included after define.h which defines the KRATOS_COMPILED_IN Macros
