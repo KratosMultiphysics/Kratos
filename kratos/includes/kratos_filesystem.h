@@ -14,6 +14,9 @@
 #define  KRATOS_FILESYSTEM
 
 // System / External includes
+// std::filesystem is part of C++17.
+// Until Kratos moves C++17, we use the ghc-filesystem library, which is a C++11 version of std::filesystem
+// In the next line we dect automatically if Kratos is compiled with C++17 and if std::filesystem is available and use it in this case
 #if defined(__cplusplus) && __cplusplus >= 201703L && defined(__has_include) && __has_include(<filesystem>)
     #include <filesystem>
     #define KRATOS_FILESYSTEM_AVAILABLE
