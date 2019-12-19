@@ -21,7 +21,6 @@
 PYBIND11_DECLARE_HOLDER_TYPE(T, Kratos::intrusive_ptr<T>);
 
 #include <pybind11/stl.h>
-#include <pybind11/complex.h>
 
 #include "includes/define.h"
 
