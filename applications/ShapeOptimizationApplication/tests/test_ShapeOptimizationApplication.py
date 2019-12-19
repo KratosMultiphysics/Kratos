@@ -64,9 +64,9 @@ def AssembleTestSuites():
     smallSuite.addTest(opt_process_solid_test('test_execution'))
     smallSuite.addTest(algorithm_bead_optimization_test('test_execution'))
     smallSuite.addTest(opt_process_step_adaption_test('test_execution'))
-    smallSuite.addTest(mesh_based_packaging_test('test_execution'))
-    smallSuite.addTest(plane_based_packaging_test('test_execution'))
     smallSuite.addTest(in_plane_opt_test('test_execution'))
+    smallSuite.addTest(packaging_mesh_based_test('test_execution'))
+    smallSuite.addTest(packaging_plane_based_test('test_execution'))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([WrlIOTest]))
 
     # Adding nightly tests (tests that take < 10min)
