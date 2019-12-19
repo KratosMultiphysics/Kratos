@@ -19,6 +19,15 @@ cs_data_structure = cs_tools.cs_data_structure
 def Create(parameters):
     return SolverWrapperAbaqus614(parameters)
 
+def print_colored(string, color):
+    if color=='green':
+        print('\x1b[0;30;42m'+string+'\x1b[0m')
+    elif color=='orange':
+        print('\x1b[0;30;43m' + string + '\x1b[0m')
+    elif color=='red':
+        print('\x1b[0;30;41m' + string + '\x1b[0m')
+    else:
+        print(string+f'(color {color} not implemented)')
 
 class SolverWrapperAbaqus614(CoSimulationComponent):
     def __init__(self, parameters):
@@ -61,8 +70,8 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         self.dimensions = self.settings['dimensions'].GetInt()
         if self.dimensions == 2:
             print('\x1b[0;30;43m' + "Warning for Axisymmetric cases:\n\tIn Abaqus these have to be constructed around the y-axis. \n\tSwitching of x and y-coordinates might be necessary but should be accomplished by using an appropriate mapper." + '\x1b[0m')
+            print('\n')
         self.array_size = self.settings["arraysize"].GetInt()
-        self.ramp = self.settings["ramp"].GetInt()
         self.delta_T = self.settings["delta_T"].GetDouble()  # TODO: move to higher-level parameter file?
         self.timestep_start = self.settings["timestep_start"].GetDouble()  # TODO: move to higher-level parameter file?
         # self.surfaceIDs = self.settings["surfaceIDs"].GetString()
@@ -71,6 +80,24 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
         self.thread_ids = [i for i in range(0, self.n_surfaces)]
         self.mp_mode = self.settings["mp_mode"].GetString()
         self.input_file = self.settings["input_file"].GetString()
+
+        if "subcycling" in self.settings.keys():
+            self.subcycling = self.settings["subcycling"].GetInt()
+            if self.subcycling:
+                self.minInc = self.settings["minInc"].GetDouble()
+                self.initialInc = self.settings["initialInc"].GetDouble()
+                self.maxNumInc = self.settings["maxNumInc"].GetInt()
+                self.maxInc = self.settings["maxInc"].GetInt()
+                self.ramp = self.settings["ramp"].GetInt()
+            else:
+                self.maxNumInc = 1
+                self.maxInc = self.delta_T
+                self.ramp = 0
+        else:
+            self.subcycling = 0
+            self.maxNumInc = 1
+            self.ramp = 0
+
 
         # Upon (re)starting Abaqus needs to run USRInit.f
         # A restart requires Abaqus to be booted with a restart file
@@ -223,19 +250,25 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                 mp.AddNodalSolutionStepVariable(var)
 
             # add information to ModelPart
+            bool_found = 0
             for i in range(self.n_surfaces):
                 if self.surfaceIDs[i] in key:
                     mp.thread_name = self.surfaceIDs[i]
                     mp.thread_id = self.thread_ids[i]  # This is just a number from 0 to n_surfaces
                     if 'thread_id' not in dir(mp):
-                        raise AttributeError('Could not find thread id corresponding to key')
-                else:
-                    raise AttributeError(f'Could not find interface_input object for {self.surfaceIDs[i]}. Check parameter file.')
+                        raise AttributeError(f'Could not find thread id corresponding to {key}')
+                    bool_found=1
+            if bool_found==0:
+                    raise AttributeError(f'Could not identify surfaceID corresponding to key {key}. Check parameter file.')
 
         # add Nodes to input ModelParts (load_points)
         # elements line 1 contains number of elements
         # elements line 2 contains number of load points per element
         # elements remainder contains element numbers involved in interface
+
+        geom_min = np.array([np.Inf, np.Inf, np.Inf])
+        geom_max = np.array([np.NINF, np.NINF, np.NINF])
+
         for key in self.settings['interface_input'].keys():
             mp = self.model[key]
 
@@ -243,27 +276,47 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             tmp = f'CSM_Time{self.timestep_start}Surface{mp.thread_id}Elements.dat'
             elem_file = join(self.dir_csm, tmp)
             elements = np.loadtxt(elem_file)
+
+            if self.timestep_start > 0:
+                tmp0 = f'CSM_Time0Surface{mp.thread_id}Elements.dat'
+                elem0_file = join(self.dir_csm, tmp0)
+                elements0 = np.loadtxt(elem0_file)
+            elif self.timestep_start == 0:
+                elements0 = elements
+
             n_elem = int(elements[0])
             n_lp = int(elements[1])
             if elements.shape[0]-2 != int(n_elem):
                 raise ValueError(f"Number of lines ({elements.shape[0]}) in {elem_file} does not correspond with the number of elements ({n_elem})")
 
-            # read in Faces file for load points
+            if int(elements0[0]) != n_elem or int(elements0[1]) !=n_lp:
+                raise ValueError(f"Number of load points has changed for {key}")
+
+            # read in Faces file for load points and also file at time 0 for original positions for the mappers
             tmp = f'CSM_Time{self.timestep_start}Surface{mp.thread_id}Cpu0Faces.dat'
             faces_file = join(self.dir_csm, tmp)
             faces = np.loadtxt(faces_file)
 
+            if self.timestep_start > 0:
+                tmp0 = f'CSM_Time0Surface{mp.thread_id}Cpu0Faces.dat'
+                faces0_file = join(self.dir_csm, tmp0)
+                faces0 = np.loadtxt(faces0_file)
+            elif self.timestep_start == 0:
+                faces0 = faces
+
             if faces.shape[1] != self.dimensions + 2:
                 raise ValueError(f'given dimension does not match coordinates')
+
 
             # get load point coordinates and ids of load points
             prev_elem = 0
             prev_lp = 0
             ids_tmp = np.zeros(n_elem*n_lp).astype(str)  # create string ids element_loadpoint
             coords_tmp = np.zeros((n_elem*n_lp, 3)).astype(float)  # Framework also requires z-coordinate which is 0.0 for 2D
+            coords0_tmp = np.zeros((n_elem * n_lp, 3)).astype(float)
             for i in range(0, n_elem*n_lp):
-                elem = int(faces[i, 0])
-                lp = int(faces[i, 1])
+                elem = int(faces0[i, 0])
+                lp = int(faces0[i, 1])
                 if elem < prev_elem:
                     raise ValueError(f"Element sequence is wrong ({elem}<{prev_elem})")
                 elif elem == prev_elem and lp != prev_lp+1:
@@ -274,44 +327,159 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
                     raise ValueError(f"lp ({lp}) exceeds the number of load points per element {n_lp}")
 
                 ids_tmp[i] = f"{elem}_{lp}"
-                coords_tmp[i, :self.dimensions] = faces[i, -self.dimensions:]  # extract last "dimensions" columns from the file
+                coords0_tmp[i, :self.dimensions] = faces0[i, -self.dimensions:]  # extract last "dimensions" columns from the file
+                coords_tmp[i, :self.dimensions] = faces[i, -self.dimensions:]
 
                 prev_elem = elem
                 prev_lp = lp
 
             # create Nodes for load points
+            # Also keep track of min and max of the nodes to verify that surfaces are consistent
+            mp.min = np.array([np.Inf, np.Inf, np.Inf])
+            mp.max = np.array([np.NINF, np.NINF, np.NINF])
             for i in range(ids_tmp.size):
-                mp.CreateNewNode(ids_tmp[i],
-                                 coords_tmp[i, 0], coords_tmp[i, 1], coords_tmp[i, 2])
+                node = mp.CreateNewNode(ids_tmp[i],
+                                 coords0_tmp[i, 0], coords0_tmp[i, 1], coords0_tmp[i, 2]) #Stores node.X0, node.Y0 and node.Z0 for mappers
+                #Set the node coordinates to the correct values at the current timestep_start
+                node.X = coords_tmp[i, 0]
+                node.Y = coords_tmp[i, 1]
+                node.Z = coords_tmp[i, 2]
+
+                if coords0_tmp[i, 0] < mp.min[0]: mp.min[0] = coords0_tmp[i,0]
+                if coords0_tmp[i, 1] < mp.min[1]: mp.min[1] = coords0_tmp[i, 1]
+                if coords0_tmp[i, 2] < mp.min[2]: mp.min[2] = coords0_tmp[i, 2]
+                if coords0_tmp[i, 0] > mp.max[0]: mp.max[0] = coords0_tmp[i,0]
+                if coords0_tmp[i, 1] > mp.max[1]: mp.max[1] = coords0_tmp[i, 1]
+                if coords0_tmp[i, 2] > mp.max[2]: mp.max[2] = coords0_tmp[i, 2]
+
+            #Find the bounding box of the complete structure based on the interface_input
+            if mp.min[0] < geom_min[0]: geom_min[0] = mp.min[0]
+            if mp.min[1] < geom_min[1]: geom_min[1] = mp.min[1]
+            if mp.min[2] < geom_min[2]: geom_min[2] = mp.min[2]
+            if mp.max[0] > geom_max[0]: geom_max[0] = mp.max[0]
+            if mp.max[1] > geom_max[1]: geom_max[1] = mp.max[1]
+            if mp.max[2] > geom_max[2]: geom_max[2] = mp.max[2]
 
         # add Nodes to output ModelParts (surface_points)
         # first line is a header, remaining lines are x, y (and z) coordinates
         # Abaqus does not use node ids but maintains the output order
         for key in self.settings['interface_output'].keys():
             mp = self.model[key]
-            # read in Nodes file for surface nodes
+            # read in Nodes0 file for mapper and Nodes file for surface node positions
             tmp = f'CSM_Time{self.timestep_start}Surface{mp.thread_id}Nodes.dat'
             nodes_file = join(self.dir_csm, tmp)
             nodes = np.loadtxt(nodes_file, skiprows=1)
+            if self.timestep_start > 0:
+                tmp0 = f'CSM_Time0Surface{mp.thread_id}Nodes.dat'
+                nodes0_file = join(self.dir_csm, tmp0)
+                nodes0 = np.loadtxt(nodes0_file, skiprows=1)
+            elif self.timestep_start == 0:
+                nodes0 = nodes
 
             if nodes.shape[1] != self.dimensions:
                 raise ValueError(f'given dimension does not match coordinates')
 
             # get surface node coordinates and ids
             n_nodes = nodes.shape[0]
+            n_nodes0 = nodes0.shape[0]
+            if n_nodes != n_nodes0:
+                raise ValueError(f"Number of interface nodes has changed for {key}")
+
             ids_tmp = np.zeros(n_nodes).astype(str)
 
             coords_tmp = np.zeros((n_nodes, 3)).astype(float)  # Framework also requires z-coordinate which is 0.0 for 2D
+            coords0_tmp = np.zeros((n_nodes, 3)).astype(float)
 
             for i in range(0, n_nodes):
                 ids_tmp[i] = str(i)
                 coords_tmp[i, :self.dimensions] = nodes[i, :]
+                coords0_tmp[i, :self.dimensions] = nodes0[i, :]
 
             # create Nodes for surface points
+            # Also keep track of min and max of the nodes to verify that surfaces are consistent
+            mp.min = np.array([np.Inf, np.Inf, np.Inf])
+            mp.max = np.array([np.NINF, np.NINF, np.NINF])
             for i in range(ids_tmp.size):
-                mp.CreateNewNode(ids_tmp[i], coords_tmp[i, 0], coords_tmp[i, 1], coords_tmp[i, 2])
+                node = mp.CreateNewNode(ids_tmp[i], coords0_tmp[i, 0], coords0_tmp[i, 1], coords0_tmp[i, 2])
+                node.X = coords_tmp[i, 0]
+                node.Y = coords_tmp[i, 1]
+                node.Z = coords_tmp[i, 2]
 
-            self.write_Nodes_test()  # This should be commented out in the final code
+                if coords0_tmp[i, 0] < mp.min[0]: mp.min[0] = coords0_tmp[i,0]
+                if coords0_tmp[i, 1] < mp.min[1]: mp.min[1] = coords0_tmp[i, 1]
+                if coords0_tmp[i, 2] < mp.min[2]: mp.min[2] = coords0_tmp[i, 2]
+                if coords0_tmp[i, 0] > mp.max[0]: mp.max[0] = coords0_tmp[i,0]
+                if coords0_tmp[i, 1] > mp.max[1]: mp.max[1] = coords0_tmp[i, 1]
+                if coords0_tmp[i, 2] > mp.max[2]: mp.max[2] = coords0_tmp[i, 2]
+
+
+            ##Check the bounding boxes for input interface versus output interface
+            #This will be based on the original coordinates at time 0
+            tol_center = 0.02
+            tol_BB = 0.1
+            tol_geom = 0.01
+            AR_plane = 1e-08
+            abs_tol_plane = 1e-06
+
+            #Find corresponding Input modelpart based on thread_id
+            bool_corresponds=0
+            for key_temp in self.settings['interface_input'].keys():
+                mp_temp = self.model[key_temp]
+                if mp_temp.thread_id == mp.thread_id:
+                    mp_input = mp_temp
+                    bool_corresponds = 1
+                    break
+            if bool_corresponds == 0:
+                raise ValueError(f"Found no interface_input object corresponding to the interface_output object ({key})")
+            else:
+                diff_Out = mp.max - mp.min
+                diff_In = mp_input.max - mp_input.min
+                ref = np.array([max(diff_Out[0],diff_In[0]),max(diff_Out[1],diff_In[1]),max(diff_Out[2],diff_In[2])])
+                geom_diff=geom_max-geom_min
+                for i in range(0,self.dimensions):
+                    if self.dimensions==3:
+                        bool_A = ref[i] < AR_plane*ref[i-1] and ref[i] < AR_plane*ref[i-2] #Identifies as plane perpendicular to coordinate direction
+                        bool_B = (geom_diff[i] < AR_plane*geom_diff[i-1] and geom_diff[i] < AR_plane*geom_diff[i-2])
+                    elif self.dimensions==2:
+                        bool_A = ref[i] < AR_plane*ref[(i+1)%2] #Identifies as plane perpendicular to coordinate direction
+                        bool_B = geom_diff[i] < AR_plane*geom_diff[(i+1)%2]
+
+                    if bool_A:
+                        if not bool_B:
+                            if np.abs((mp.max[i]+mp.min[i])/2.0-(mp_input.max[i]+mp_input.min[i])/2.0)>tol_geom*geom_diff[i]:
+                                print_colored(f"Warning: The bounding box center of the input and output for the face {mp.thread_name} "
+                                              f"differ by more than {tol_geom*100}% of the bounding box for the complete interface geometry in the {i}-direction","orange")
+                                print(f"Input interface center: {(mp_input.max+mp_input.min)/2.0}")
+                                print(f"Output interface center: {(mp.max + mp.min) / 2.0}")
+                        else:
+                            if np.abs((mp.max[i]+mp.min[i])/2.0-(mp_input.max[i]+mp_input.min[i])/2.0)>abs_tol_plane:
+                                print_colored(f"Warning: The bounding box center of the input and output for the face {mp.thread_name} "
+                                              f"differ by more than {abs_tol_plane}m in the {i}-direction","orange")
+                                print(f"Input interface center: {(mp_input.max+mp_input.min)/2.0}")
+                                print(f"Output interface center: {(mp.max + mp.min) / 2.0}")
+                    else:
+                        if np.abs(mp.min[i]-mp_input.min[i])>tol_BB*ref[i]:
+                            print_colored(
+                                f"Warning: The minima of the bounding boxes of the input and output for {mp.thread_name} "
+                                f"differ by more than {tol_BB*100}% of the corresponding bounding box in the {i}-direction","orange")
+                            print(f"Input interface bounding box: {mp_input.min} to {mp_input.max}")
+                            print(f"Output interface bounding box: {mp.min} to {mp.max}")
+                        if np.abs(mp.max[i] - mp_input.max[i]) > tol_BB * ref[i]:
+                            print_colored(
+                                f"Warning: The maxima of the bounding boxes of the input and output for {mp.thread_name} "
+                                f"differ by more than {tol_BB*100}% of the corresponding bounding box in the {i}-direction","orange")
+                            print(f"Input interface bounding box: {mp_input.min} to {mp_input.max}")
+                            print(f"Output interface bounding box: {mp.min} to {mp.max}")
+                        if np.abs((mp.max[i]+mp.min[i])/2.0 - (mp_input.max[i]+mp_input.min[i])/2.0) > tol_center * ref[i]:
+                            print_colored(
+                                f"Warning: The geometric centers of the input and output for {mp.thread_name} "
+                                f"differ by more than {tol_center*100}% of the corresponding bounding box in the {i}-direction","orange")
+                            print(f"Input interface center: {(mp_input.max + mp_input.min) / 2.0}")
+                            print(f"Output interface center: {(mp.max + mp.min) / 2.0}")
+                            print(f"Input interface bounding box: {mp_input.min} to {mp_input.max}")
+                            print(f"Output interface bounding box: {mp.min} to {mp.max}")
+
+            # self.write_Nodes_test()  # This should be commented out in the final code
 
         # create CoSimulationInterfaces
         self.interface_input = CoSimulationInterface(self.model, self.settings['interface_input'])
@@ -572,30 +740,43 @@ class SolverWrapperAbaqus614(CoSimulationComponent):
             while line:
                 if "*step" in line.lower():
                     contents = line.split(",")  # Split string on commas
+                    line_new=''
                     for s in contents:
                         if s.strip().startswith("inc="):
                             numbers = re.findall("\d+", s)
-                            if int(numbers[0]) != 1:
-                                raise NotImplementedError(f"inc={numbers[0]}: currently only single increment steps are implemented for the Abaqus wrapper")
-                    of.write(line)
+                            if (not self.subcycling) and int(numbers[0]) != 1:
+                                raise NotImplementedError(f"inc={numbers[0]}: subcycling was not requested but maxNumInc > 1.")
+                            else:
+                                line_new+=f" inc={self.maxNumInc},"
+                        else:
+                            line_new+=s+","
+                    line_new = line_new[:-1]+"\n" #Remove the last added comma and add a newline
+
+                    of.write(line_new)
                     if bool_restart:
-                        rf.write(line)
+                        rf.write(line_new)
                     line = f.readline()
                 elif "*dynamic" in line.lower():
                     contents = line.split(",")
                     for s in contents:
                         if "application" in s.lower():
                             contents_B = s.split("=")
-                            if contents_B[1].lower().strip() != "quasi-static":
+                            app = contents_B[1].lower().strip()
+                            if app == "quasi-static" or app == "moderate dissipation" :
+                                if not self.subcycling:
+                                    line_2 = f"{self.delta_T}, {self.delta_T},\n"
+                                else:
+                                    line_2 = f"{self.initialInc}, {self.delta_T}, {self.minInc}, {self.maxInc}\n"
+                            else:
                                 raise NotImplementedError(
-                                    f"{contents_B[1]} not available: Currently only quasi-static is implemented for the Abaqus wrapper")
+                                    f"{contents_B[1]} not available: Currently only quasi-static and moderate dissipation are implemented for the Abaqus wrapper")
                     of.write(line)
                     if bool_restart:
                         rf.write(line)
                     line = f.readline()  # need to skip the next line
-                    of.write(f"{self.delta_T}, {self.delta_T},\n")  # Change the time step in the Abaqus step
+                    of.write(line_2)  # Change the time step in the Abaqus step
                     if bool_restart:
-                        rf.write(f"{self.delta_T}, {self.delta_T},\n")  # Change the time step in the Abaqus step (restart-file)
+                        rf.write(line_2)  # Change the time step in the Abaqus step (restart-file)
                     line = f.readline()
                 else:
                     of.write(line)

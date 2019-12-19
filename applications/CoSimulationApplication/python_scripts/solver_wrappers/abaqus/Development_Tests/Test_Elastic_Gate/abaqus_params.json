@@ -1,0 +1,43 @@
+{
+    "settings": {
+        "data_structure": "pyKratos"
+    },
+    "solver_wrappers":
+    [
+        {
+            "type": "solver_wrappers.abaqus.614",
+            "settings": {
+                "working_directory" : "CSM",
+                "cores": 1,
+                "dimensions": 2,
+                "timestep_start": 0,
+                "delta_T": 1e-03,
+                "arraysize": 10e5,
+                "surfaces": 3,
+                "surfaceIDs": ["BEAMINSIDEMOVING0","BEAMINSIDEMOVING1","BEAMINSIDEMOVING2"],
+                "interface_input":
+                {
+                    "BEAMINSIDEMOVING0_load_points": ["PRESSURE", "TRACTION"],
+                    "BEAMINSIDEMOVING1_load_points": ["PRESSURE", "TRACTION"],
+                    "BEAMINSIDEMOVING2_load_points": ["PRESSURE", "TRACTION"]
+                },
+                "interface_output":
+                {
+                    "BEAMINSIDEMOVING0_nodes": "DISPLACEMENT",
+                    "BEAMINSIDEMOVING1_nodes": "DISPLACEMENT",
+                    "BEAMINSIDEMOVING2_nodes": "DISPLACEMENT"
+                },
+                "mp_mode": "THREADS",
+                "input_file": "Base.inp",
+                "save_iterations": 1,
+
+                "subcycling": 1,
+                "initialInc": 1e-6,
+                "minInc": 1e-12,
+                "maxInc": 1e-03,
+                "maxNumInc": 10000,
+                "ramp": 0
+            }
+        }
+    ]
+}

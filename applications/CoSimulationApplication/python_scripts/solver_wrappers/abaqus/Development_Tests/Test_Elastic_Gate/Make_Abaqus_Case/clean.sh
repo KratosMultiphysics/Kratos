@@ -1,0 +1,1 @@
+rm *.inp *.pyc *.rpy
