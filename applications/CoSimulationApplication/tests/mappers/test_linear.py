@@ -73,7 +73,7 @@ class TestMapperLinear(KratosUnittest.TestCase):
         # for i in range(n_to):
         #     self.assertAlmostEqual(v_to[i] / (1.2 - 1.7 * z_to[i]), 1., delta=1e-8)
 
-        if 1:
+        if 0:
             # visualization of results
             plt.plot(z_from, v_from, 'b', label='from', linewidth=2.5)
             plt.scatter(z_from, v_from, s=20, color='b')
@@ -125,7 +125,7 @@ class TestMapperLinear(KratosUnittest.TestCase):
         # for i in range(n_to):
         #     self.assertAlmostEqual(v_to[i] / (1.2 - 1.7 * x_to[i] + 2.5 * y_to[i]), 1., delta=1e-8)
 
-        if 1:
+        if 0:
             # visualization of results
             _, ax = plt.subplots(ncols=2)
 
@@ -145,7 +145,7 @@ class TestMapperLinear(KratosUnittest.TestCase):
             plt.close()
 
     def test_mapper_linear_3d(self):
-        parameter_file_name = os.path.join(os.path.dirname(__file__), 'test_linear_3d.json')
+        parameter_file_name = os.path.join(os.path.dirname(__file__), 'test_linear.json')
         cs_data_structure = ImportDataStructure(parameter_file_name)
         with open(parameter_file_name, 'r') as parameter_file:
             parameters = cs_data_structure.Parameters(parameter_file.read())
@@ -181,7 +181,7 @@ class TestMapperLinear(KratosUnittest.TestCase):
         for i in range(n_to):
             model_part_to.CreateNewNode(i, x_to[i], y_to[i], z_to[i])
 
-        mapper = cs_tools.CreateInstance(parameters['mapper'])
+        mapper = cs_tools.CreateInstance(parameters['mapper_3d'])
         with timer('init'):
             mapper.Initialize(model_part_from, model_part_to)
         with timer('map'):
@@ -191,7 +191,7 @@ class TestMapperLinear(KratosUnittest.TestCase):
         for i, node in enumerate(model_part_to.Nodes):
             v_to[i] = node.GetSolutionStepValue(var_to)
 
-        if False:
+        if 0:
             vmin, vmax = v_to.min(), v_to.max()
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
@@ -204,8 +204,8 @@ class TestMapperLinear(KratosUnittest.TestCase):
             plt.show()
             plt.close('all')
 
-        for i in range(n_to):
-            self.assertAlmostEqual(v_to[i] / (1.2 - 1.7 * x_to[i] + 2.5 * y_to[i] + 0.5 * z_to[i]), 1., delta=1e-8)
+        # for i in range(n_to):
+        #     self.assertAlmostEqual(v_to[i] / (1.2 - 1.7 * x_to[i] + 2.5 * y_to[i] + 0.5 * z_to[i]), 1., delta=1e-8)
 
 
         # interpolation on 3D sinc function
@@ -239,7 +239,7 @@ class TestMapperLinear(KratosUnittest.TestCase):
         for i in range(n_to):
             model_part_to.CreateNewNode(i, x_to[i], y_to[i], z_to[i])
 
-        mapper = cs_tools.CreateInstance(parameters['mapper'])
+        mapper = cs_tools.CreateInstance(parameters['mapper_3d'])
         with timer('init'):
             mapper.Initialize(model_part_from, model_part_to)
         with timer('map'):
@@ -286,8 +286,8 @@ class TestMapperLinear(KratosUnittest.TestCase):
         model_part_from = model_from.CreateModelPart('wall_from')
         model_part_from.AddNodalSolutionStepVariable(var_from)
 
-        n_theta = 40
-        n_phi = 20
+        n_theta = 95
+        n_phi = 105
         dtheta = np.pi / n_theta
         dphi = np.pi / (n_phi - 1)
         theta = np.ones((n_theta, n_phi)) * np.linspace(0, 2 * np.pi - dtheta, n_theta).reshape(-1, 1)
@@ -308,8 +308,8 @@ class TestMapperLinear(KratosUnittest.TestCase):
         model_part_to = model_to.CreateModelPart('wall_to')
         model_part_to.AddNodalSolutionStepVariable(var_to)
 
-        n_theta = 200
-        n_phi = 100
+        n_theta = 105
+        n_phi = 95
         dtheta = np.pi / n_theta
         dphi = np.pi / (n_phi - 1)
         theta = np.ones((n_theta, n_phi)) * np.linspace(0, 2 * np.pi - dtheta, n_theta).reshape(-1, 1)
@@ -324,7 +324,7 @@ class TestMapperLinear(KratosUnittest.TestCase):
             model_part_to.CreateNewNode(i, x_to.flatten()[i], y_to.flatten()[i], z_to.flatten()[i])
 
         # map values
-        mapper = cs_tools.CreateInstance(parameters['mapper'])
+        mapper = cs_tools.CreateInstance(parameters['mapper_3d'])
         with timer('init', ms=True):
             mapper.Initialize(model_part_from, model_part_to)
         with timer('map', ms=True):
@@ -336,7 +336,7 @@ class TestMapperLinear(KratosUnittest.TestCase):
         v_to = v_to.reshape(n_theta, n_phi)
 
         # plot results
-        if False:
+        if 1:
             c_from = cm.jet((v_from - v_from.min()) / (v_from.max() - v_from.min()))
             c_to = cm.jet((v_to - v_from.min()) / (v_from.max() - v_from.min()))
             error = np.abs(v_to - v_to_ref)

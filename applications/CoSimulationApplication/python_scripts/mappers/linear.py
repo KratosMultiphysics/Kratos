@@ -42,13 +42,26 @@ class MapperLinear(MapperInterpolator):
         mapping with __call__.
 
         # *** TO DO: update this, put part in mappers.md
+
+        geometrical calculations:
+            P_a = point a
+            v_ab = vector from a to b
+
+            subscripts:
+                0 = to-point
+                1 = 1st from-point
+                2 = 2nd from-point
+                2 = 3rd from-point
+                p = to-point projected on line/triangle
+                n = normal unit vector
+                t = tangential unit vector
         """
         super().__init__(parameters)
 
         # store settings
         self.parallel = self.settings['parallel'].GetBool()
 
-        # determine number of nearest neighbours *** ADAPT:1D, 2D, 3D
+        # determine number of nearest neighbours
         if len(self.directions) == 3:
             self.n_nearest = 3
         else:
@@ -57,13 +70,10 @@ class MapperLinear(MapperInterpolator):
     def Initialize(self, model_part_from, model_part_to):
         super().Initialize(model_part_from, model_part_to)
 
-        n_directions = len(self.directions)
-        if n_directions == 1:
-            get_coeffs = get_coeffs_1d
-        elif n_directions == 2:
-            get_coeffs = get_coeffs_2d
-        else:
+        if len(self.directions) == 3:
             get_coeffs = get_coeffs_3d
+        else:
+            get_coeffs = get_coeffs_1d_2d
 
         # calculate coefficients  *** new
         with cs_tools.quicktimer('coeffs', ms=True):
@@ -83,69 +93,88 @@ class MapperLinear(MapperInterpolator):
                     self.coeffs[i_to, :] = get_coeffs(*tup).flatten()
 
 
-def get_coeffs_1d(coords_from, coord_to):
-    """
-    conventions:
-        P_a = point a
-
-    subscripts:
-        0 = to-point
-        1 = from-point 1
-        2 = from-point 2
-    """
-    P_0 = coord_to[0]
-    P_1 = coords_from[0, 0]
-    P_2 = coords_from[1, 0]
-
-    # check if to-point lies between from-points
+def get_coeffs_1d_2d(coords_from, coord_to):
     coeffs = np.zeros(2)
-    if (P_1 - P_0) * (P_2 - P_0) <= 0:
-        coeffs[0] = np.abs((P_2 - P_0) / (P_2 - P_1))
-    else:
-        # nearest neighbour
-        coeffs[0] = 1.
-    coeffs[1] = 1. - coeffs[0]
-
-    return coeffs.reshape(1, -1)
-
-def get_coeffs_2d(coords_from, coord_to):
-    """
-    conventions:
-        P_a = point a
-        v_ab = vector from a to b
-
-    subscripts:
-        0 = to-point
-        1 = from-point 1
-        2 = from-point 2
-        p = to-point projected line through from-points
-        n = normalized vector
-    """
     P_0 = coord_to
     P_1 = coords_from[0, :]
     P_2 = coords_from[1, :]
 
+    coeffs[0] = line_interpolation_coeff(P_0, P_1, P_2)
+    coeffs[1] = 1. - coeffs[0]
+    return coeffs.reshape(1, -1)
+
+def get_coeffs_3d(coords_from, coord_to):
+    coeffs = np.zeros(3)
+    P_0 = coord_to
+    P_1 = coords_from[0, :]
+    P_2 = coords_from[1, :]
+    P_3 = coords_from[2, :]
+
+    # check if triangle is degenerate (e.g. co-linear points)
+    if degenerate_triangle(P_1, P_2, P_3):
+        coeffs[0] = line_interpolation_coeff(P_0, P_1, P_2)
+        coeffs[1] = 1. - coeffs[0]
+    else:
+        P_p = project_on_triangle(P_0, P_1, P_2, P_3)
+        if point_on_triangle(P_p, P_1, P_2, P_3):
+            # barycentric interpolation
+            a_ref = triangle_area(P_1, P_2, P_3)
+            coeffs[0] = triangle_area(P_p, P_2, P_3) / a_ref
+            coeffs[1] = triangle_area(P_p, P_1, P_3) / a_ref
+            coeffs[2] = 1. - coeffs[0] - coeffs[1]
+        else:
+            coeffs[0] = line_interpolation_coeff(P_0, P_1, P_2)
+            coeffs[1] = 1. - coeffs[0]
+
+    return coeffs.reshape(1, -1)
+
+def line_interpolation_coeff(P_0, P_1, P_2):
+    # project P_0 on line
     v_01 = P_1 - P_0
-    v_12n = normalize(P_2 - P_1)
+    v_t = (P_2 - P_1) / np.linalg.norm(P_2 - P_1)
+    P_p = P_0 + (v_01 - v_t * np.dot(v_01, v_t))
 
-    P_p = P_0 + (v_01 - v_12n * np.dot(v_01, v_12n))
-
-    # check if to-point lies between from-points
-    coeffs = np.zeros(2)
+    # check if point lies on line
     if np.dot(P_2 - P_1, P_p - P_1) >= 0:
         # linear interpolation
-        coeffs[0] = np.linalg.norm(P_2 - P_p) / np.linalg.norm(P_2 - P_1)
+        c = np.linalg.norm(P_2 - P_p) / np.linalg.norm(P_2 - P_1)
     else:
-        # nearest neighbour
-        coeffs[0] = 1.
-    coeffs[1] = 1. - coeffs[0]
+        # nearest neighbour interpolation
+        c = 1.
+    return c
 
-    return coeffs.reshape(1, -1)
+def degenerate_triangle(P_1, P_2, P_3):
+    v_12 = P_2 - P_1
+    v_13 = P_3 - P_1
+    v_23 = P_3 - P_2
 
-def get_coeffs_3d():
-    coeffs = np.zeros(3)  # *** TO DO
-    return coeffs.reshape(1, -1)
+    # check if area of triangle is 0
+    area_rect = np.linalg.norm(np.cross(v_12, v_13))
+    if area_rect == 0.:
+        return True
 
-def normalize(v):
-    n = v / np.linalg.norm(v)
-    return n
+    # check if aspect ratio of bounding box is too high
+    length = max([np.linalg.norm(v_12), np.linalg.norm(v_13), np.linalg.norm(v_23)])
+    aspect_ratio = length ** 2 / area_rect
+    if aspect_ratio > 30:
+        return True
+    return False
+
+def project_on_triangle(P_0, P_1, P_2, P_3):
+    v_n = np.cross(P_2 - P_1, P_3 - P_1)
+    v_n /= np.linalg.norm(v_n)
+    P_p = P_0 + v_n * np.dot(P_1 - P_0, v_n)
+    return P_p
+
+def point_on_triangle(P_p, P_1, P_2, P_3):
+    a = np.cross(P_p - P_1, P_2 - P_1)
+    b = np.cross(P_p - P_2, P_3 - P_2)
+    c = np.cross(P_p - P_3, P_1 - P_3)
+    # check if three vectors point in same direction
+    if np.dot(a, b) >= 0 and np.dot(a, c) >= 0:
+        return True
+    return False
+
+def triangle_area(P_1, P_2, P_3):
+    return np.linalg.norm(np.cross(P_2 - P_1, P_3 - P_1) / 2)
+

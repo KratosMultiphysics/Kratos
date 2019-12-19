@@ -20,7 +20,7 @@
         {
             "directions" : ["X", "Y"],
             "balanced_tree" : false,
-            "parallel" : false
+            "parallel" : true
         }
     },
     "mapper_3d" :
@@ -30,7 +30,7 @@
         {
             "directions" : ["X", "Y", "Z"],
             "balanced_tree" : false,
-            "parallel" : false
+            "parallel" : true
         }
     }
 }
