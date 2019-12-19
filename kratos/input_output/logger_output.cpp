@@ -21,7 +21,7 @@
 #include "input_output/logger_output.h"
 #include "includes/kratos_version.h"
 
-#if defined(KRATOS_COLORED_LOGGING)
+#if defined(KRATOS_COLORED_OUTPUT)
 #include "utilities/color_utilities.h"
 #endif
 
@@ -53,10 +53,8 @@ namespace Kratos
         auto message_severity = TheMessage.GetSeverity();
         if (TheMessage.WriteInThisRank() && message_severity <= mSeverity)
         {
-            #if defined(KRATOS_COLORED_LOGGING)
-            if (message_severity == LoggerMessage::Severity::WARNING) mrStream << KYEL;
-            #endif
-            
+            SetMessageColor(message_severity);
+
             switch (message_severity)
             {
             case LoggerMessage::Severity::WARNING:
@@ -86,9 +84,7 @@ namespace Kratos
             else
                 mrStream << TheMessage.GetMessage();
 
-            #if defined(KRATOS_COLORED_LOGGING)
-            mrStream << RST;
-            #endif
+            ResetMessageColor(message_severity);
         }
     }
 
@@ -127,6 +123,19 @@ namespace Kratos
         return *this;
     }
 
+    void LoggerOutput::SetMessageColor(LoggerMessage::Severity MessageSeverity)
+    {
+        #if defined(KRATOS_COLORED_OUTPUT)
+        if (MessageSeverity == LoggerMessage::Severity::WARNING) mrStream << KYEL;
+        #endif
+    }
+
+    void LoggerOutput::ResetMessageColor(LoggerMessage::Severity MessageSeverity)
+    {
+        #if defined(KRATOS_COLORED_OUTPUT)
+        mrStream << RST;
+        #endif
+    }
 
     /// output stream function
     std::ostream& operator << (std::ostream& rOStream,

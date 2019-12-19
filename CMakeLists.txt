@@ -212,9 +212,9 @@ include(install_function)
 include(KratosDependencies)
 
 # Logger configuration
-if(KRATOS_COLORED_LOGGING MATCHES ON)
-  add_definitions(-DKRATOS_COLORED_LOGGING)
-endif(KRATOS_COLORED_LOGGING MATCHES ON)
+if(KRATOS_COLORED_OUTPUT MATCHES ON)
+  add_definitions(-DKRATOS_COLORED_OUTPUT)
+endif(KRATOS_COLORED_OUTPUT MATCHES ON)
 
 ################### PYBIND11
 
