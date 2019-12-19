@@ -183,6 +183,8 @@ protected:
 
   std::ostream& GetStream() {return mrStream;}
 
+  virtual void WriteSeverityPrefix(LoggerMessage::Severity MessageSeverity);
+
 private:
   ///@name Life Cycle
   ///@{

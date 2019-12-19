@@ -50,26 +50,7 @@ namespace Kratos
         auto message_severity = TheMessage.GetSeverity();
         if (TheMessage.WriteInThisRank() && message_severity <= mSeverity)
         {
-            switch (message_severity)
-            {
-            case LoggerMessage::Severity::WARNING:
-                if (mOptions.Is(WARNING_PREFIX)) mrStream << "[WARNING] ";
-                break;
-            case LoggerMessage::Severity::INFO:
-                if (mOptions.Is(INFO_PREFIX)) mrStream << "[INFO] ";
-                break;
-            case LoggerMessage::Severity::DETAIL:
-                if (mOptions.Is(DETAIL_PREFIX)) mrStream << "[DETAIL] ";
-                break;
-            case LoggerMessage::Severity::DEBUG:
-                if (mOptions.Is(DEBUG_PREFIX)) mrStream << "[DEBUG] ";
-                break;
-            case LoggerMessage::Severity::TRACE:
-                if (mOptions.Is(TRACE_PREFIX)) mrStream << "[TRACE] ";
-                break;
-            default:
-                break;
-            }
+            WriteSeverityPrefix(message_severity);
 
             if(TheMessage.IsDistributed())
                 mrStream << "Rank " << TheMessage.GetSourceRank() << ": ";
@@ -114,6 +95,30 @@ namespace Kratos
         mrStream << buffer.str();
 
         return *this;
+    }
+
+    void LoggerOutput::WriteSeverityPrefix(LoggerMessage::Severity MessageSeverity)
+    {
+        switch (MessageSeverity)
+        {
+        case LoggerMessage::Severity::WARNING:
+            if (mOptions.Is(WARNING_PREFIX)) mrStream << "[WARNING] ";
+            break;
+        case LoggerMessage::Severity::INFO:
+            if (mOptions.Is(INFO_PREFIX)) mrStream << "[INFO] ";
+            break;
+        case LoggerMessage::Severity::DETAIL:
+            if (mOptions.Is(DETAIL_PREFIX)) mrStream << "[DETAIL] ";
+            break;
+        case LoggerMessage::Severity::DEBUG:
+            if (mOptions.Is(DEBUG_PREFIX)) mrStream << "[DEBUG] ";
+            break;
+        case LoggerMessage::Severity::TRACE:
+            if (mOptions.Is(TRACE_PREFIX)) mrStream << "[TRACE] ";
+            break;
+        default:
+            break;
+        }
     }
 
 
