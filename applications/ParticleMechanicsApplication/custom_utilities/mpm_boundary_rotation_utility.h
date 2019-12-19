@@ -219,7 +219,7 @@ public:
 	{
 		// If it is not a penalty element, do as standard
 		// Otherwise, if it is a penalty element, dont do anything
-		if (!this->IsPenalty(rGeometry))
+		if (!this->IsPenalty(rGeometry) && !this->IsLagrange(rGeometry))
 		{
 			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
 		}
@@ -231,7 +231,7 @@ public:
 	{
 		// If it is not a penalty element, do as standard
 		// Otherwise, if it is a penalty element, dont do anything
-		if (!this->IsPenalty(rGeometry))
+		if (!this->IsPenalty(rGeometry) && !this->IsLagrange(rGeometry))
 		{
 			this->ApplySlipCondition(rLocalVector, rGeometry);
 		}
@@ -243,9 +243,40 @@ public:
 			GeometryType& rGeometry) const
 	{
 		// If it is not a penalty condition, do as standard
-		if (!this->IsPenalty(rGeometry))
+		if (!this->IsPenalty(rGeometry) && !this->IsLagrange(rGeometry))
 		{
 			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
+		}
+		else if (this->IsLagrange(rGeometry))
+		{
+			const unsigned int LocalSize = rLocalVector.size();
+
+			if (LocalSize > 0)
+			{
+				const unsigned int block_size = this->GetBlockSize();
+				for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+				{
+					if(this->IsSlip(rGeometry[itNode]) )
+					{
+						// We fix the first displacement dof (normal component) for each rotated block
+						unsigned int j = rGeometry.PointsNumber() * block_size;
+
+						for(unsigned int i = 0; i < rGeometry.PointsNumber()* block_size; ++i)
+						{
+							rLocalMatrix(i,j) = 0.0;
+							rLocalMatrix(j,i) = 0.0;
+						}
+
+						rLocalMatrix(j,j) = 1.0;
+
+						// Remove all other value in RHS than the normal component
+
+						rLocalVector[j] = 0.0;
+
+					}
+				}
+			}
+			KRATOS_WATCH(rLocalMatrix)
 		}
 		// Otherwise, do the following modification
 		else
@@ -287,9 +318,28 @@ public:
 			GeometryType& rGeometry) const
 	{
 		// If it is not a penalty condition, do as standard
-		if (!this->IsPenalty(rGeometry))
+		if (!this->IsPenalty(rGeometry) && !this->IsLagrange(rGeometry))
 		{
 			this->ApplySlipCondition(rLocalVector, rGeometry);
+		}
+		else if (this->IsLagrange(rGeometry))
+		{
+			if (rLocalVector.size() > 0)
+			{
+				const unsigned int block_size = this->GetBlockSize();
+				for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+				{
+					if( this->IsSlip(rGeometry[itNode]) )
+					{
+						// We fix the first momentum dof (normal component) for each rotated block
+						unsigned int j = rGeometry.PointsNumber() * block_size;
+
+
+						rLocalVector[j] = 0.0;
+
+					}
+				}
+			}
 		}
 		// Otherwise, if it is a penalty element, dont do anything
 		else
@@ -326,7 +376,7 @@ public:
 			{
 				const double identifier = rGeometry[itNode].FastGetSolutionStepValue(mrFlagVariable);
 				const double tolerance  = 1.e-6;
-				if (identifier > 1.00 + tolerance)
+				if (identifier > 1.00 + tolerance && identifier < 2.00 + tolerance)
 				{
 					is_penalty = true;
 					break;
@@ -336,6 +386,28 @@ public:
 
 		return is_penalty;
 	}
+
+	// Checking whether it is normal element or penalty element
+	bool IsLagrange(GeometryType& rGeometry) const
+	{
+		bool is_lagrange = false;
+		for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+		{
+			if(this->IsSlip(rGeometry[itNode]) )
+			{
+				const double identifier = rGeometry[itNode].FastGetSolutionStepValue(mrFlagVariable);
+				const double tolerance  = 1.e-6;
+				if (identifier > 2.00 + tolerance)
+				{
+					is_lagrange = true;
+					break;
+				}
+			}
+		}
+
+		return is_lagrange;
+	}
+
 
 	/// Same functionalities as RotateVelocities, just to have a clear function naming
 	virtual	void RotateDisplacements(ModelPart& rModelPart) const

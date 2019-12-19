@@ -106,7 +106,7 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( ProcessInfo&
         {
             r_geometry[i].SetLock();
             r_geometry[i].Set(SLIP);
-            //r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0;
+            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 3.0;
             r_geometry[i].FastGetSolutionStepValue(NORMAL) = unit_normal_vector;
             r_geometry[i].UnSetLock();
         }
@@ -317,7 +317,7 @@ void MPMParticleLagrangeDirichletCondition::EquationIdVector(
     unsigned int index = number_of_nodes * dimension;
     auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
 
-    if(!Is(SLIP))
+    //if(!Is(SLIP))
     rResult[index    ] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
 
     rResult[index + 1] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
@@ -351,7 +351,7 @@ void MPMParticleLagrangeDirichletCondition::GetDofList(
     }
     auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
 
-    if(!Is(SLIP))
+    //if(!Is(SLIP))
     rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
 
     rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
