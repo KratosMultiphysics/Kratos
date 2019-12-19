@@ -44,7 +44,7 @@ namespace Kratos{
 ///@{
 
 /**
- * @class SimpleErrorCalculatorProcess
+ * @class MetricsTemperatureGradientProcess
  * @ingroup ConvectionDiffusionApplication
  * @brief This is an error estimator based on comparison of smoothed gauss-point gradiant integration on nodal quantities and 
  * the fe based nodal quantities.
@@ -52,7 +52,7 @@ namespace Kratos{
  */
 
 template<std::size_t TDim>
-class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) SimpleErrorCalculatorProcess
+class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) MetricsTemperatureGradientProcess
     : public Process
 {
 public:
@@ -68,11 +68,6 @@ public:
     typedef Node <3>                                                                NodeType;
     typedef Geometry<Node<3>>                                                   GeometryType;
 
-    /// Definition of the iterators
-    //typedef WeakPointerVector< Element >::iterator                         WeakElementItType;
-    //typedef NodesArrayType::iterator                                              NodeItType;
-    //typedef ElementsArrayType::iterator                                        ElementItType;
-
     /// Definition of the indextype
     typedef std::size_t                                                            IndexType;
 
@@ -83,8 +78,8 @@ public:
     /// The type of array considered for the tensor
     typedef typename std::conditional<TDim == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
 
-    /// Pointer definition of SimpleErrorCalculatorProcess
-    KRATOS_CLASS_POINTER_DEFINITION(SimpleErrorCalculatorProcess);
+    /// Pointer definition of MetricsTemperatureGradientProcess
+    KRATOS_CLASS_POINTER_DEFINITION(MetricsTemperatureGradientProcess);
 
     ///@}
     ///@name Life Cycle
@@ -97,12 +92,12 @@ public:
      * @param rThisModelPart The model part to be computed
      * @param ThisParameters The input parameters
      */
-    SimpleErrorCalculatorProcess(
+    MetricsTemperatureGradientProcess(
         ModelPart& rThisModelPart,
         Parameters ThisParameters);
 
     /// Destructor.
-    ~SimpleErrorCalculatorProcess() override = default;
+    ~MetricsTemperatureGradientProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -139,13 +134,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "SimpleErrorCalculatorProcess";
+        return "MetricsTemperatureGradientProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "SimpleErrorCalculatorProcess";
+        rOStream << "MetricsTemperatureGradientProcess";
     }
 
     /// Print object"s data.
@@ -205,10 +200,12 @@ private:
 
     double mMinSize;                 /// The minimal size of the elements
     double mMaxSize;                 /// The maximal size of the elements
+    Vector mNodalArea;               /// Vector to store Nodal Area
+    Vector mElementError;            /// Vector to store Element Error
     bool mHistoricalResults;
 
     std::size_t mEchoLevel;             /// The echo level
-    std::string mReferenceVariable;
+    bool mNodalAveragingH;
 
     ///@}
     ///@name Private Operators
@@ -226,6 +223,11 @@ private:
     void CalculateNodalArea(Vector& nodal_area) const;
 
     /**
+     * @brief This method computes the Geometry Data such as Shape Functions, Gauss Weights and Shape Function Derivatives
+     */
+    void CalculateGeomData(GeometryType& r_geom, Matrix& ShapeFunctions, ShapeFunctionDerivativesArrayType& ShapeDerivatives,Vector& DetJ, Vector& GaussWeights, unsigned int& NumGPoints);
+
+    /**
      * @brief This method computes the temperature gradient at nodes using the ShapeFunctions
      */
     void CalculateNodalTempGradient(Vector& nodal_area);
@@ -238,7 +240,7 @@ private:
     /**
      * @brief In this final step the metric is computed for MMGProcess
      */
-    void CalculateGeomData(GeometryType& r_geom, Matrix& ShapeFunctions, ShapeFunctionDerivativesArrayType& ShapeDerivatives,Vector& DetJ, Vector& GaussWeights, unsigned int& NumGPoints);
+    void CalculateMetric();
 
     ///@}
     ///@name Private  Access
@@ -257,13 +259,13 @@ private:
     ///@{
 
     /// Assignment operator.
-    SimpleErrorCalculatorProcess& operator=(SimpleErrorCalculatorProcess const& rOther);
+    MetricsTemperatureGradientProcess& operator=(MetricsTemperatureGradientProcess const& rOther);
 
     /// Copy constructor.
-    //SimpleErrorCalculatorProcess(SimpleErrorCalculatorProcess const& rOther);
+    //MetricsTemperatureGradientProcess(MetricsTemperatureGradientProcess const& rOther);
 
     ///@}
-};// class SimpleErrorCalculatorProcess
+};// class MetricsTemperatureGradientProcess
 ///@}
 
 ///@name Type Definitions
@@ -276,12 +278,12 @@ private:
 /// input stream function
 template<unsigned int TDim, class TVarType>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  SimpleErrorCalculatorProcess<TDim>& rThis);
+                                  MetricsTemperatureGradientProcess<TDim>& rThis);
 
 /// output stream function
 template<unsigned int TDim, class TVarType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const SimpleErrorCalculatorProcess<TDim>& rThis)
+                                  const MetricsTemperatureGradientProcess<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

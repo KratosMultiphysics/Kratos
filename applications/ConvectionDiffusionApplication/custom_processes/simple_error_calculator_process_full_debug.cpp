@@ -24,13 +24,13 @@
 #include "convection_diffusion_application_variables.h"
 
 // Include base h
-#include "custom_processes/simple_error_calculator_process.h"
+#include "custom_processes/metrics_temperature_gradient_process.h"
 
 namespace Kratos
 {
 
 template <std::size_t TDim>
-SimpleErrorCalculatorProcess<TDim>::SimpleErrorCalculatorProcess(ModelPart &rThisModelPart, Parameters ThisParameters) : mrThisModelPart(rThisModelPart)
+MetricsTemperatureGradientProcess<TDim>::MetricsTemperatureGradientProcess(ModelPart &rThisModelPart, Parameters ThisParameters) : mrThisModelPart(rThisModelPart)
 {
     Parameters default_parameters = Parameters(R"(
     {
@@ -51,7 +51,7 @@ SimpleErrorCalculatorProcess<TDim>::SimpleErrorCalculatorProcess(ModelPart &rThi
 }
 
 template <std::size_t TDim>
-void SimpleErrorCalculatorProcess<TDim>::Execute()
+void MetricsTemperatureGradientProcess<TDim>::Execute()
 {
     KRATOS_TRY
 
@@ -94,7 +94,7 @@ void SimpleErrorCalculatorProcess<TDim>::Execute()
 }
 
 template <std::size_t TDim>
-void SimpleErrorCalculatorProcess<TDim>::CalculateNodalTempGradient(Vector &nodal_area)
+void MetricsTemperatureGradientProcess<TDim>::CalculateNodalTempGradient(Vector &nodal_area)
 {
     //b) Loop over Elements and calculate RHS
     const int number_nodes = mrThisModelPart.NumberOfNodes();
@@ -201,7 +201,7 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalTempGradient(Vector &noda
 }
 
 template <std::size_t TDim>
-void SimpleErrorCalculatorProcess<TDim>::CalculateNodalError(Vector &nodal_area)
+void MetricsTemperatureGradientProcess<TDim>::CalculateNodalError(Vector &nodal_area)
 {
     // a) Obtain Nodes and Elements from Model Part
     const int number_nodes = mrThisModelPart.NumberOfNodes();
@@ -325,7 +325,7 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalError(Vector &nodal_area)
 }
 
 template <std::size_t TDim>
-void SimpleErrorCalculatorProcess<TDim>::CreateMap()
+void MetricsTemperatureGradientProcess<TDim>::CreateMap()
 {
     int node_index = 0;
     int elem_index = 0;
@@ -351,7 +351,7 @@ void SimpleErrorCalculatorProcess<TDim>::CreateMap()
 }
 
 template <std::size_t TDim>
-void SimpleErrorCalculatorProcess<TDim>::CalculateNodalArea(Vector &rNodalArea) const
+void MetricsTemperatureGradientProcess<TDim>::CalculateNodalArea(Vector &rNodalArea) const
 {
     std::fstream OutFile("Nodal_Area.txt", std::ios::out);
     OutFile << "r_node.Id()"
@@ -410,7 +410,7 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateNodalArea(Vector &rNodalArea) 
 }
 
 template <std::size_t TDim>
-void SimpleErrorCalculatorProcess<TDim>::CalculateGeomData(GeometryType &r_geom, Matrix &ShapeFunctions, ShapeFunctionDerivativesArrayType &ShapeDerivatives, Vector &DetJ, Vector &GaussWeights, unsigned int &NumGPoints)
+void MetricsTemperatureGradientProcess<TDim>::CalculateGeomData(GeometryType &r_geom, Matrix &ShapeFunctions, ShapeFunctionDerivativesArrayType &ShapeDerivatives, Vector &DetJ, Vector &GaussWeights, unsigned int &NumGPoints)
 {
     const GeometryType::IntegrationPointsArrayType &integration_points = r_geom.IntegrationPoints(GeometryData::GI_GAUSS_1);
     NumGPoints = integration_points.size();
@@ -438,7 +438,7 @@ void SimpleErrorCalculatorProcess<TDim>::CalculateGeomData(GeometryType &r_geom,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class SimpleErrorCalculatorProcess<2>;
-template class SimpleErrorCalculatorProcess<3>;
+template class MetricsTemperatureGradientProcess<2>;
+template class MetricsTemperatureGradientProcess<3>;
 
 }; // namespace Kratos

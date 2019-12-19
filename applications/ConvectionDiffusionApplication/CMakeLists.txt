@@ -3,6 +3,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosConvectionDiffusionApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
 
 ## generate variables with the sources
 set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES
@@ -21,7 +22,7 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/flux_condition.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/adjoint_thermal_face.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/simple_error_calculator_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_temperature_gradient_process.cpp
 )
 
 ## define python interface sources
@@ -41,7 +42,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ###############################################################
 ## ConvectionDiffusionApplication core library (C++ parts)
 add_library( KratosConvectionDiffusionCore SHARED ${KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES} ${KRATOS_CONVECTION_DIFFUSION_TESTING_SOURCES} )
-target_link_libraries( KratosConvectionDiffusionCore PUBLIC KratosCore)
+target_link_libraries( KratosConvectionDiffusionCore PUBLIC KratosCore KratosMeshingCore)
 set_target_properties( KratosConvectionDiffusionCore PROPERTIES COMPILE_DEFINITIONS "CONVECTION_DIFFUSION_APPLICATION=EXPORT,API")
 
 ## FluidDynamicsApplication python module

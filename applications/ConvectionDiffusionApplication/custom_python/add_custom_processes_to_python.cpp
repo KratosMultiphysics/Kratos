@@ -23,7 +23,7 @@
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
-#include "custom_processes/simple_error_calculator_process.h"
+#include "custom_processes/metrics_temperature_gradient_process.h"
 
 
 namespace Kratos {
@@ -37,11 +37,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;*/
 
-    py::class_<SimpleErrorCalculatorProcess<2>, SimpleErrorCalculatorProcess<2>::Pointer, Process>(m, "SimpleErrorCalculatorProcess2D")
+    py::class_<MetricsTemperatureGradientProcess<2>, MetricsTemperatureGradientProcess<2>::Pointer, Process>(m, "MetricsTemperatureGradientProcess2D")
     .def(py::init<ModelPart&, Parameters>())
     ;
 
-    py::class_<SimpleErrorCalculatorProcess<3>, SimpleErrorCalculatorProcess<3>::Pointer, Process>(m, "SimpleErrorCalculatorProcess3D")
+    py::class_<MetricsTemperatureGradientProcess<3>, MetricsTemperatureGradientProcess<3>::Pointer, Process>(m, "MetricsTemperatureGradientProcess3D")
     .def(py::init<ModelPart&, Parameters>())
 ;
 
