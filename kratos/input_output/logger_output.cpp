@@ -53,15 +53,14 @@ namespace Kratos
         auto message_severity = TheMessage.GetSeverity();
         if (TheMessage.WriteInThisRank() && message_severity <= mSeverity)
         {
+            #if defined(KRATOS_COLORED_LOGGING)
+            if (message_severity == LoggerMessage::Severity::WARNING) mrStream << KYEL;
+            #endif
+            
             switch (message_severity)
             {
             case LoggerMessage::Severity::WARNING:
-                if (mOptions.Is(WARNING_PREFIX)) {
-                    #if defined(KRATOS_COLORED_LOGGING)
-                    mrStream << KYEL;
-                    #endif
-                    mrStream << "[WARNING] ";
-                }
+                if (mOptions.Is(WARNING_PREFIX)) mrStream << "[WARNING] ";
                 break;
             case LoggerMessage::Severity::INFO:
                 if (mOptions.Is(INFO_PREFIX)) mrStream << "[INFO] ";
