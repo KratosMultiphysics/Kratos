@@ -506,12 +506,12 @@ protected:
 		std::vector< BoundedMatrix<double,TDim,TDim> > rRot(NumBlocks);
 		for(unsigned int j = 0; j < NumBlocks; ++j)
 		{
-			if( this->IsSlip(rGeometry[j]) )
+			if( this->IsSlip(rGeometry[0]) )
 			{
 				NeedRotation[j] = true;
 				rotations_needed++;
 
-				LocalRotationOperatorPure(rRot[j],rGeometry[j]);
+				LocalRotationOperatorPure(rRot[j],rGeometry[0]);
 			}
 
 			Index += mBlockSize;

@@ -99,6 +99,12 @@ public:
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
+     /**
+     * Called at the end of each solution step
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
 
     ///@}
     ///@name Operations

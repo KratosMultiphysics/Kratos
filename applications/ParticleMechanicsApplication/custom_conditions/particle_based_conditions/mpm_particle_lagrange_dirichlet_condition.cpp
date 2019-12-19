@@ -87,6 +87,35 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( ProcessInfo&
         r_lagrange_multiplier[0] *= 0.0;
     }
 
+    // Additional treatment for slip conditions
+    if (Is(SLIP))
+    {
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int number_of_nodes = r_geometry.PointsNumber();
+        const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
+        GeneralVariables Variables;
+
+        // Calculating shape function
+        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
+
+        // Normal Vector
+        const array_1d<double,3> & unit_normal_vector = this->GetValue(MPC_NORMAL);
+
+        // Here MPC contribution of normal vector are added
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            r_geometry[i].SetLock();
+            r_geometry[i].Set(SLIP);
+            //r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0;
+            r_geometry[i].FastGetSolutionStepValue(NORMAL) = unit_normal_vector;
+            r_geometry[i].UnSetLock();
+        }
+
+    //pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X)->FixDof();
+    //     //pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y)->FixDof();
+
+    }
+
 }
 
 void MPMParticleLagrangeDirichletCondition::CalculateAll(
@@ -227,6 +256,34 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
     KRATOS_CATCH( "" )
 }
 
+void MPMParticleLagrangeDirichletCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    MPMParticleBaseDirichletCondition::FinalizeSolutionStep(rCurrentProcessInfo);
+
+    // Additional treatment for slip conditions
+    if (Is(SLIP))
+    {
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int number_of_nodes = r_geometry.PointsNumber();
+
+        // Here MPC normal vector and IS_STRUCTURE are reset
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            r_geometry[i].SetLock();
+            r_geometry[i].Reset(SLIP);
+            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 0.0;
+            r_geometry[i].FastGetSolutionStepValue(NORMAL).clear();
+            r_geometry[i].UnSetLock();
+        }
+
+        //pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X)->FreeDof();
+    }
+
+    KRATOS_CATCH( "" )
+}
+
 //************************************************************************************
 //************************************************************************************
 
@@ -261,7 +318,7 @@ void MPMParticleLagrangeDirichletCondition::EquationIdVector(
     auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
 
     if(!Is(SLIP))
-        rResult[index    ] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
+    rResult[index    ] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
 
     rResult[index + 1] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
     if(dimension == 3)
@@ -295,7 +352,7 @@ void MPMParticleLagrangeDirichletCondition::GetDofList(
     auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
 
     if(!Is(SLIP))
-        rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+    rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
 
     rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
     if(dimension == 3)
