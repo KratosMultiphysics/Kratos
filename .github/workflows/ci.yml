@@ -59,7 +59,7 @@ jobs:
 
     - name: Build
       run: |
-        cp .github/workflows/configure.sh configure.sh
+        cp scripts/build/travis/configure_travis_bionic.sh configure.sh
         bash configure.sh
         ccache -s
 
