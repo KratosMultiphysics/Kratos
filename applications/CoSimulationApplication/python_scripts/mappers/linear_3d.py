@@ -6,26 +6,11 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 from KratosMultiphysics.CoSimulationApplication.mappers.nearest import MapperNearest
 cs_data_structure = cs_tools.cs_data_structure
 
-import time
-from contextlib import contextmanager
-@contextmanager
-def timer(name=None, t=0, n=0, ms=False):
-    startTime = time.time()
-    yield
-    elapsedTime = time.time() - startTime
-    if ms:
-        s = '\n' * n + '\t' * t + f'{elapsedTime * 1000:.2f}ms'
-        s.replace(',', ' ')
-    else:
-        s = '\n' * n + '\t' * t + f'{elapsedTime:.1f}s'
-    if name is not None:
-        s += f' - {name}'
-    s += '\n' * n
-    print(s)
 
 def Create(parameters):
     return MapperLinear3D(parameters)
 
+# *** should be adapted! doesn't work right now
 
 # Class MapperLinear: Linear interpolation in 3D.
 class MapperLinear3D(MapperNearest):
@@ -85,7 +70,7 @@ class MapperLinear3D(MapperNearest):
         self.nearest = self.nearest_bis[:, :3].copy()
 
         # calculate coefficients
-        with timer('coeffs', ms=True):
+        with cs_tools.quicktimer('coeffs', ms=True):
             if self.parallel:
                 with Pool() as self.pool:
                     out = self.pool.map(self.fun, range(self.n_to))

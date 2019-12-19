@@ -8,28 +8,12 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 from KratosMultiphysics.CoSimulationApplication.mappers.interpolator import MapperInterpolator
 cs_data_structure = cs_tools.cs_data_structure
 
-import time
-from contextlib import contextmanager
-@contextmanager
-def timer(name=None, t=0, n=0, ms=False):
-    startTime = time.time()
-    yield
-    elapsedTime = time.time() - startTime
-    if ms:
-        s = '\n' * n + '\t' * t + f'{elapsedTime * 1000:.2f}ms'
-        s.replace(',', ' ')
-    else:
-        s = '\n' * n + '\t' * t + f'{elapsedTime:.1f}s'
-    if name is not None:
-        s += f' - {name}'
-    s += '\n' * n
-    print(s)
 
 def Create(parameters):
     return MapperRadialBasis(parameters)
 
 
-# Class MapperRadialBasis: Radial basis function interpolation in 2D.
+# Class MapperRadialBasis: radial basis function interpolation.
 class MapperRadialBasis(MapperInterpolator):
     def __init__(self, parameters):
         super().__init__(parameters)
@@ -47,7 +31,7 @@ class MapperRadialBasis(MapperInterpolator):
         super().Initialize(model_part_from, model_part_to)
 
         # calculate coefficients
-        with timer('coeffs', ms=True):
+        with cs_tools.quicktimer('coeffs', ms=True):
             iterable = []
             for i_to in range(self.n_to):
                 nearest = self.nearest[i_to, :]

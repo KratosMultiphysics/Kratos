@@ -1,6 +1,7 @@
 import sys
 import os.path
-
+import time
+from contextlib import contextmanager
 
 cs_data_structure = None
 
@@ -102,3 +103,38 @@ def PrintInfo(label, *args):
 #  @param args          The arguments to be printed
 def PrintWarning(label, *args):
     print(label, " ".join(map(str, args)))
+
+
+
+# Timer-function
+@contextmanager
+def quicktimer(name=None, t=0, n=0, ms=False):
+    """
+    Contextmanager that prints the time to execute a piece of code.
+
+    Nothing is recorded/saved, this is meant mainly
+    as a quick tool to check how long specific
+    (parts of) calculations take during development.
+
+    name: printed to identify the timer
+    t, n: integers to specify number of tabs and new
+          lines respectively
+    ms:   print time in ms (default is s)
+
+
+    example:
+        with cs_tools.quicktimer('test', ms=True):
+            a = 1 / 3
+    """
+    startTime = time.time()
+    yield
+    elapsedTime = time.time() - startTime
+    if ms:
+        s = '\n' * n + '\t' * t + f'{elapsedTime * 1000:.2f}ms'
+        s.replace(',', ' ')
+    else:
+        s = '\n' * n + '\t' * t + f'{elapsedTime:.1f}s'
+    if name is not None:
+        s += f' - {name}'
+    s += '\n' * n
+    print(s)

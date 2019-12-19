@@ -6,22 +6,6 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 import numpy as np
 import os
 
-import time
-from contextlib import contextmanager
-@contextmanager
-def timer(name=None, t=0, n=0, ms=False):
-    startTime = time.time()
-    yield
-    elapsedTime = time.time() - startTime
-    if ms:
-        s = '\n' * n + '\t' * t + f'{elapsedTime * 1000:.2f}ms'
-        s.replace(',', ' ')
-    else:
-        s = '\n' * n + '\t' * t + f'{elapsedTime:.1f}s'
-    if name is not None:
-        s += f' - {name}'
-    s += '\n' * n
-    print(s)
 
 class TestMapperNearest(KratosUnittest.TestCase):
     def test_mapper_nearest(self):
