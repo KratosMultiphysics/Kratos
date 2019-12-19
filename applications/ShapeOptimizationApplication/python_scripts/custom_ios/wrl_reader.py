@@ -7,15 +7,14 @@
 #  Main authors:    Geiser Armin, https://github.com/armingeiser
 #
 # ==============================================================================
-import os
 
+import os
 
 class Shape:
     def __init__(self, name, nodes, triangles):
         self.name = name
         self.nodes = nodes
         self.triangles = triangles
-
 
 def detect_file(file_name):
     wrl_name = file_name + ".wrl"
@@ -29,7 +28,6 @@ def detect_file(file_name):
         return vrml_name
     else:
         raise Exception("Wrl reader: file {} not found with '.wrl' or '.vrml' ending!".format(file_name))
-
 
 def read_nodes(line, file):
     nodes = []
@@ -54,7 +52,6 @@ def read_nodes(line, file):
 
     return nodes
 
-
 def read_triangles(line, file):
     triangles = []
     while not "[" in line:
@@ -78,7 +75,6 @@ def read_triangles(line, file):
 
     return triangles
 
-
 def read_shape(line, file):
     try:
         name = line.split("#")[1].strip()
@@ -94,7 +90,6 @@ def read_shape(line, file):
         line = next(file)
 
     return Shape(name, nodes, triangles)
-
 
 def read_shapes(file_name):
     shapes = []
