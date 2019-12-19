@@ -223,6 +223,7 @@ if(USE_COTIRE MATCHES ON)
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram
     SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j2")
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/memory_info.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/mortar_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     cotire(KratosVersion)
     cotire(KratosCore)
