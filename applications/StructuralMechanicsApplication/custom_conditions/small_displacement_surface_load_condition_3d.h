@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/base_load_condition.h"
+#include "custom_conditions/surface_load_condition_3d.h"
 
 namespace Kratos
 {
@@ -48,8 +48,8 @@ namespace Kratos
  * @details It allows to consider different types of pressure and surface loads
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  SmallDisplacementSurfaceLoadCondition3D
-    : public BaseLoadCondition
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementSurfaceLoadCondition3D
+    : public SurfaceLoadCondition3D
 {
 public:
 
@@ -128,30 +128,6 @@ public:
         NodesArrayType const& ThisNodes
         ) const override;
 
-    /**
-     * @brief Get on rVariable a array_1d Value
-     * @param rVariable Internal values
-     * @param rCurrentProcessInfo The current process information
-     * @param rOutput The values of interest (array_1d)
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Calculate a array_1d Variable
-     * @param rVariable Internal values
-     * @param rCurrentProcessInfo The current process information
-     * @param rOutput The values of interest (array_1d)
-     */
-    void CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector< array_1d<double, 3 > >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
     ///@}
     ///@name Access
     ///@{
@@ -170,7 +146,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Surface load Condition #" << Id();
+        buffer << "Small displacement surface load Condition #" << Id();
         return buffer.str();
     }
 
@@ -178,7 +154,7 @@ public:
 
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Surface load Condition #" << Id();
+        rOStream << "SmallDisplacementSurfaceLoadCondition3D #" << Id();
     }
 
     /// Print object's data.
@@ -223,24 +199,6 @@ protected:
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
-
-    /**
-     * @brief This method adds the pressure contribution to the RHS
-     * @param rResidualVector The local contribution to the RHS
-     * @param rN The corresponding shape function
-     * @param rNormal The normal to the geometry surface
-     * @param Pressure The pressure to be applied
-     * @param Weight The integration contribution
-     * @param rCurrentProcessInfo The current instance of process info
-     */
-    void CalculateAndAddPressureForce(
-        VectorType& rResidualVector,
-        const Vector& rN,
-        const array_1d<double, 3 >& rNormal,
-        const double Pressure,
-        const double Weight,
-        const ProcessInfo& rCurrentProcessInfo
-        ) const;
 
     ///@}
     ///@name Protected  Access
@@ -294,12 +252,12 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseLoadCondition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SurfaceLoadCondition3D );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseLoadCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SurfaceLoadCondition3D );
     }
 
 

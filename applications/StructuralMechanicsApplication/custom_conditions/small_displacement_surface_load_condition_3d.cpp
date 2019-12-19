@@ -35,7 +35,7 @@ SmallDisplacementSurfaceLoadCondition3D::SmallDisplacementSurfaceLoadCondition3D
     IndexType NewId,
     GeometryType::Pointer pGeometry
     )
-    : BaseLoadCondition(NewId, pGeometry)
+    : SurfaceLoadCondition3D(NewId, pGeometry)
 {
 }
 
@@ -47,7 +47,7 @@ SmallDisplacementSurfaceLoadCondition3D::SmallDisplacementSurfaceLoadCondition3D
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
     )
-    : BaseLoadCondition(NewId, pGeometry, pProperties)
+    : SurfaceLoadCondition3D(NewId, pGeometry, pProperties)
 {
 }
 
@@ -98,79 +98,6 @@ Condition::Pointer SmallDisplacementSurfaceLoadCondition3D::Clone (
 
 SmallDisplacementSurfaceLoadCondition3D::~SmallDisplacementSurfaceLoadCondition3D()
 {
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SmallDisplacementSurfaceLoadCondition3D::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector< array_1d<double, 3 > >& rOutput,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    KRATOS_TRY;
-
-    this->CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo );
-
-    KRATOS_CATCH( "" );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SmallDisplacementSurfaceLoadCondition3D::CalculateOnIntegrationPoints(
-    const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector< array_1d<double, 3 > >& rOutput,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    KRATOS_TRY;
-
-    const auto& r_geometry = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
-
-    if ( rOutput.size() != r_integration_points.size() )
-        rOutput.resize( r_integration_points.size() );
-
-    if (rVariable == NORMAL) {
-        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-            rOutput[point_number] = r_geometry.UnitNormal(r_integration_points[point_number].Coordinates());
-        }
-    } else {
-        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-            rOutput[point_number] = ZeroVector(3);
-        }
-    }
-
-    KRATOS_CATCH( "" );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SmallDisplacementSurfaceLoadCondition3D::CalculateAndAddPressureForce(
-    VectorType& rResidualVector,
-    const Vector& rN,
-    const array_1d<double, 3 >& rNormal,
-    const double Pressure,
-    const double Weight,
-    const ProcessInfo& rCurrentProcessInfo
-    ) const
-{
-    KRATOS_TRY;
-
-    const std::size_t number_of_nodes = GetGeometry().size();
-
-    for (std::size_t i = 0; i < number_of_nodes; i++) {
-        const int index = 3 * i;
-        const double coeff = Pressure * rN[i] * Weight;
-        rResidualVector[index    ] -= coeff * rNormal[0];
-        rResidualVector[index + 1] -= coeff * rNormal[1];
-        rResidualVector[index + 2] -= coeff * rNormal[2];
-    }
-
-    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
