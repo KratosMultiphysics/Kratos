@@ -62,10 +62,13 @@ void MetricsTemperatureGradientProcess<TDim>::Execute()
     // Initialize the metric
     // a) Check for Metric Scalar in Meshing Application
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has("METRIC_SCALAR")) << "Import Meshing Application" << std::endl;
+    KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has("NODAL_AREA")) << "Import Meshing Application" << std::endl;
     const Variable<double> &scalar_variable = KratosComponents<Variable<double>>::Get("METRIC_SCALAR");
+    const Variable<double> &nodal_area = KratosComponents<Variable<double>>::Get("NODAL_AREA");
 
     // c) Initialize Metric Scalar and Nodal Temperature Gradient for all nodes to 0
     VariableUtils().SetNonHistoricalVariableToZero(scalar_variable, mrThisModelPart.Nodes());
+    VariableUtils().SetNonHistoricalVariableToZero(nodal_area, mrThisModelPart.Nodes());
     if (mHistoricalResults)
     {
         VariableUtils()
@@ -468,6 +471,8 @@ void MetricsTemperatureGradientProcess<TDim>::CalculateNodalArea(Vector &rNodalA
     for (int i_node = 0; i_node < number_nodes; i_node++)
     {
         const ModelPart::NodeType &r_node = *(mrThisModelPart.NodesBegin() + i_node);
+        r_node.SetValue(nodal_area, rNodalArea[i_node]);
+        
         if (rNodalArea[i_node] == 0.0)
         {
             rNodalArea[i_node] = 1.0;
