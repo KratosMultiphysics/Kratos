@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/base_load_condition.h"
+#include "custom_conditions/line_load_condition.h"
 
 namespace Kratos
 {
@@ -52,32 +52,38 @@ namespace Kratos
  */
 template<std::size_t TDim>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementLineLoadCondition
-    : public BaseLoadCondition
+    : public LineLoadCondition<TDim>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// We define the base class BaseLoadCondition
-    typedef BaseLoadCondition BaseType;
+    /// We define the base class Base LoadCondition
+    typedef LineLoadCondition<TDim> BaseType;
 
-    /// Dfinition of the index type
-    typedef BaseType::IndexType IndexType;
+    /// Definition of the vector type
+    typedef typename BaseLoadCondition::VectorType VectorType;
+    
+    /// Definition of the matrix type
+    typedef typename BaseLoadCondition::MatrixType MatrixType;
+    
+    /// Definition of the index type
+    typedef typename BaseLoadCondition::IndexType IndexType;
 
     /// Definition of the size type
-    typedef BaseType::SizeType SizeType;
+    typedef typename BaseLoadCondition::SizeType SizeType;
 
     /// Definition of the node type
-    typedef BaseType::NodeType NodeType;
+    typedef typename BaseLoadCondition::NodeType NodeType;
 
     /// Definition of the properties type
-    typedef BaseType::PropertiesType PropertiesType;
+    typedef typename BaseLoadCondition::PropertiesType PropertiesType;
 
     /// Definition of the geometry type with given NodeType
-    typedef BaseType::GeometryType GeometryType;
+    typedef typename BaseLoadCondition::GeometryType GeometryType;
 
     /// Definition of nodes container type, redefined from GeometryType
-    typedef BaseType::NodesArrayType NodesArrayType;
+    typedef typename BaseLoadCondition::NodesArrayType NodesArrayType;
 
     /// Counted pointer of SmallDisplacementLineLoadCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SmallDisplacementLineLoadCondition );
@@ -148,30 +154,6 @@ public:
         NodesArrayType const& ThisNodes
         ) const override;
 
-    /**
-     * @brief Get on rVariable a array_1d Value
-     * @param rVariable Internal values
-     * @param rCurrentProcessInfo The current process information
-     * @param rOutput The values of interest (array_1d)
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<array_1d<double, 3>>& rVariable,
-        std::vector<array_1d<double, 3>>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Calculate a array_1d Variable
-     * @param rVariable Internal values
-     * @param rCurrentProcessInfo The current process information
-     * @param rOutput The values of interest (array_1d)
-     */
-    void CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3>>& rVariable,
-        std::vector< array_1d<double, 3>>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
     ///@}
     ///@name Access
     ///@{
@@ -190,7 +172,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "SmallDisplacementLineLoadCondition #" << Id();
+        buffer << "Small displacement line load condition #" << this->Id();
         return buffer.str();
     }
 
@@ -198,13 +180,13 @@ public:
 
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "SmallDisplacementLineLoadCondition #" << Id();
+        rOStream << "SmallDisplacementLineLoadCondition #" << this->Id();
     }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        pGetGeometry()->PrintData(rOStream);
+        this->pGetGeometry()->PrintData(rOStream);
     }
 
     ///@}
@@ -248,39 +230,6 @@ protected:
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
-
-    /**
-     * @brief This method adds the pressure contribution to the RHS
-     * @param rResidualVector The local contribution to the RHS
-     * @param rN The corresponding shape function
-     * @param rNormal The normal to the geometry surface
-     * @param Pressure The pressure to be applied
-     * @param Weight The integration contribution
-     * @param rCurrentProcessInfo The current instance of process info
-     */
-    void CalculateAndAddPressureForce(
-        VectorType& rRightHandSideVector,
-        const Vector& rN,
-        const array_1d<double, 3>& rNormal,
-        const double Pressure,
-        const double IntegrationWeight
-        ) const;
-
-    /**
-     * @brief This method provides the local axis
-     * @param rLocalAxis The local axis
-     * @param rJacobian The jacobian matrix
-     */
-    void GetLocalAxis1(
-        array_1d<double, 3>& rLocalAxis,
-        const Matrix& rJacobian
-        ) const;
-
-    /**
-     * @brief This method provides the local axis
-     * @param rLocalAxis The local axis
-     */
-    void GetLocalAxis2(array_1d<double, 3>& rLocalAxis) const;
 
     ///@}
     ///@name Protected  Access
@@ -333,24 +282,17 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseLoadCondition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseLoadCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }
 
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    //SmallDisplacementLineLoadCondition& operator=(const SmallDisplacementLineLoadCondition& rOther);
-
-    /// Copy constructor.
-    //SmallDisplacementLineLoadCondition(const SmallDisplacementLineLoadCondition& rOther);
-
 
     ///@}
 

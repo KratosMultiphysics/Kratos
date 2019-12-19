@@ -28,7 +28,7 @@ namespace Kratos
 
 template<std::size_t TDim>
 SmallDisplacementLineLoadCondition<TDim>::SmallDisplacementLineLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry )
-    : BaseLoadCondition( NewId, pGeometry )
+    : BaseType( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -38,7 +38,7 @@ SmallDisplacementLineLoadCondition<TDim>::SmallDisplacementLineLoadCondition( In
 
 template<std::size_t TDim>
 SmallDisplacementLineLoadCondition<TDim>::SmallDisplacementLineLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
-    : BaseLoadCondition( NewId, pGeometry, pProperties )
+    : BaseType( NewId, pGeometry, pProperties )
 {
 }
 
@@ -65,7 +65,7 @@ Condition::Pointer SmallDisplacementLineLoadCondition<TDim>::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_intrusive<SmallDisplacementLineLoadCondition<TDim>>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<SmallDisplacementLineLoadCondition<TDim>>( NewId, this->GetGeometry().Create(ThisNodes), pProperties );
 }
 
 /***********************************************************************************/
@@ -79,7 +79,7 @@ Condition::Pointer SmallDisplacementLineLoadCondition<TDim>::Clone (
 {
     KRATOS_TRY
 
-    Condition::Pointer p_new_cond = Kratos::make_intrusive<SmallDisplacementLineLoadCondition<TDim>>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    Condition::Pointer p_new_cond = this->Create(NewId, ThisNodes, this->pGetProperties());
     p_new_cond->SetData(this->GetData());
     p_new_cond->Set(Flags(*this));
     return p_new_cond;
@@ -100,69 +100,6 @@ SmallDisplacementLineLoadCondition<TDim>::~SmallDisplacementLineLoadCondition()
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void SmallDisplacementLineLoadCondition<TDim>::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector< array_1d<double, 3>>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    KRATOS_TRY;
-
-    this->CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo );
-
-    KRATOS_CATCH( "" );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<std::size_t TDim>
-void SmallDisplacementLineLoadCondition<TDim>::CalculateOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector< array_1d<double, 3>>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    KRATOS_TRY;
-
-    const auto& r_geometry = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
-    const IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geometry);
-
-    if ( rOutput.size() != r_integration_points.size() )
-        rOutput.resize( r_integration_points.size() );
-
-    if (rVariable == NORMAL) {
-        // Declaring tangent and Jacobian
-        array_1d<double, 3> tangent_xi, tangent_eta;
-        Matrix J0(TDim, 1);
-
-        // Getting LOCAL_AXIS_2
-        GetLocalAxis2(tangent_eta);
-
-        // Iterate over the Gauss points
-        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-            r_geometry.Jacobian(J0, point_number, integration_method);
-
-            // Definition of the tangent
-            GetLocalAxis1(tangent_xi, J0);
-
-            // Computing normal
-            MathUtils<double>::UnitCrossProduct(rOutput[point_number], tangent_xi, tangent_eta);
-        }
-    } else {
-        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-            rOutput[point_number] = ZeroVector(3);
-        }
-    }
-
-    KRATOS_CATCH( "" );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<std::size_t TDim>
 void SmallDisplacementLineLoadCondition<TDim>::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
@@ -173,7 +110,7 @@ void SmallDisplacementLineLoadCondition<TDim>::CalculateAll(
 {
     KRATOS_TRY;
 
-    const auto& r_geometry = GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType block_size = this->GetBlockSize();
 
@@ -190,7 +127,7 @@ void SmallDisplacementLineLoadCondition<TDim>::CalculateAll(
 
 
     // Reading integration points and local gradients
-    const IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geometry);
+    const auto integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geometry);
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(integration_method);
     const Matrix& rNcontainer = r_geometry.ShapeFunctionsValues(integration_method);
 
@@ -235,7 +172,7 @@ void SmallDisplacementLineLoadCondition<TDim>::CalculateAll(
     for ( IndexType point_number = 0; point_number < integration_points.size(); point_number++ ) {
         GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], J0);
         const double detJ0 = MathUtils<double>::GeneralizedDet(J0);
-        const double integration_weight = GetIntegrationWeight(integration_points, point_number, detJ0);
+        const double integration_weight = this->GetIntegrationWeight(integration_points, point_number, detJ0);
 
         // Calculating the pressure on the gauss point
         double gauss_pressure = 0.0;
@@ -246,7 +183,7 @@ void SmallDisplacementLineLoadCondition<TDim>::CalculateAll(
         // Definition of the tangent
         if ( gauss_pressure != 0.0 ) {
             // Definition of the tangent
-            GetLocalAxis1(tangent_xi, J0);
+            this->GetLocalAxis1(tangent_xi, J0);
         }
 
         // Adding contributions to the residual vector
@@ -255,12 +192,12 @@ void SmallDisplacementLineLoadCondition<TDim>::CalculateAll(
                 array_1d<double, 3> normal;
 
                 // Getting LOCAL_AXIS_2
-                GetLocalAxis2(tangent_eta);
+                this->GetLocalAxis2(tangent_eta);
 
                 // Computing normal
                 MathUtils<double>::UnitCrossProduct(normal, tangent_xi, tangent_eta);
 
-                CalculateAndAddPressureForce( rRightHandSideVector, row( rNcontainer, point_number ), normal, gauss_pressure, integration_weight );
+                this->CalculateAndAddPressureForce( rRightHandSideVector, row( rNcontainer, point_number ), normal, gauss_pressure, integration_weight );
             }
         }
 
@@ -288,84 +225,7 @@ void SmallDisplacementLineLoadCondition<TDim>::CalculateAll(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<std::size_t TDim>
-void SmallDisplacementLineLoadCondition<TDim>::CalculateAndAddPressureForce(
-    Vector& rRightHandSideVector,
-    const Vector& rN,
-    const array_1d<double, 3>& rNormal,
-    double Pressure,
-    double IntegrationWeight
-    ) const
-{
-    const SizeType number_of_nodes = this->GetGeometry().size();
-    const SizeType block_size = this->GetBlockSize();
-
-    for ( IndexType i = 0; i < number_of_nodes; ++i ) {
-        const IndexType index = block_size * i;
-
-        const double coeff = Pressure * rN[i] * IntegrationWeight;
-
-        for ( IndexType j = 0; j < TDim; ++j ) {
-            rRightHandSideVector[index + j] -= coeff * rNormal[j];
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void SmallDisplacementLineLoadCondition<2>::GetLocalAxis1(
-    array_1d<double, 3>& rLocalAxis,
-    const Matrix& rJacobian
-    ) const
-{
-    rLocalAxis[0] = rJacobian(0, 0);
-    rLocalAxis[1] = rJacobian(1, 0);
-    rLocalAxis[2] = 0.0;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void SmallDisplacementLineLoadCondition<3>::GetLocalAxis1(
-    array_1d<double, 3>& rLocalAxis,
-    const Matrix& rJacobian
-    ) const
-{
-    rLocalAxis[0] = rJacobian(0, 0);
-    rLocalAxis[1] = rJacobian(1, 0);
-    rLocalAxis[2] = rJacobian(2, 0);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void SmallDisplacementLineLoadCondition<2>::GetLocalAxis2(array_1d<double, 3>& rLocalAxis) const
-{
-    rLocalAxis[0] = 0.0;
-    rLocalAxis[1] = 0.0;
-    rLocalAxis[2] = 1.0;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void SmallDisplacementLineLoadCondition<3>::GetLocalAxis2(array_1d<double, 3>& rLocalAxis) const
-{
-    KRATOS_ERROR_IF(!Has(LOCAL_AXIS_2)) << "The variable LOCAL_AXIS_2 is needed to compute the normal" << std::endl;
-    noalias(rLocalAxis) = this->GetValue(LOCAL_AXIS_2);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 template class SmallDisplacementLineLoadCondition<2>;
 template class SmallDisplacementLineLoadCondition<3>;
 
 } // Namespace Kratos
-
-
