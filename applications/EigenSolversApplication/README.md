@@ -8,12 +8,12 @@ The application provides the following direct sparse solvers:
 
 | Python class             | solver_type            | Matrix kind | Domain   | Dependencies |
 |--------------------------|------------------------|:-----------:|:--------:|:------------:|
-| SparseLUSolver           | `sparse_lu`            | Square      | Reals    | None         |
-| SparseQRSolver           | `sparse_qr`            | Rectangular | Reals    | None         |
-| SparseCGSolver           | `sparse_cg`            | SPD*        | Reals    | None         |
-| PardisoLLTSolver         | `pardiso_llt`          | SPD*        | Reals    | Intel® MKL   |
-| PardisoLDLTSolver        | `pardiso_ldlt`         | SPD*        | Reals    | Intel® MKL   |
-| PardisoLUSolver          | `pardiso_lu`           | Square      | Reals    | Intel® MKL   |
+| SparseLUSolver           | `sparse_lu`            | Square      | Real     | None         |
+| SparseQRSolver           | `sparse_qr`            | Rectangular | Real     | None         |
+| SparseCGSolver           | `sparse_cg`            | SPD*        | Real     | None         |
+| PardisoLLTSolver         | `pardiso_llt`          | SPD*        | Real     | Intel® MKL   |
+| PardisoLDLTSolver        | `pardiso_ldlt`         | SPD*        | Real     | Intel® MKL   |
+| PardisoLUSolver          | `pardiso_lu`           | Square      | Real     | Intel® MKL   |
 | ComplexSparseLUSolver    | `sparse_lu_complex`    | Square      | Complex  | None         |
 | ComplexPardisoLLTSolver  | `pardiso_llt_complex`  | SPD*        | Complex  | Intel® MKL   |
 | ComplexPardisoLDLTSolver | `pardiso_ldlt_complex` | SPD*        | Complex  | Intel® MKL   |
