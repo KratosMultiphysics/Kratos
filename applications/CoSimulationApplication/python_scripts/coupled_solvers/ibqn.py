@@ -12,12 +12,14 @@ def Create(parameters):
 
 class CoupledSolverIBQN(CoupledSolverGaussSeidel):
     def __init__(self, parameters):
+        """This coupled solver is not working properly yet!"""
+
         super().__init__(parameters)
 
         self.model_f = cs_tools.CreateInstance(self.parameters["settings"]["model"])
         self.model_s = cs_tools.CreateInstance(self.parameters["settings"]["model"])
         self.omega = self.settings["omega"].GetDouble()
-        self.rtol = self.settings["relative_tolerance_GMRES"].GetDouble()
+        self.rtol = self.settings["relative_tolerance_gmres"].GetDouble()
 
         self.y = None
         self.xtemp = None

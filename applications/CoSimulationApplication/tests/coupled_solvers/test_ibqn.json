@@ -4,7 +4,7 @@
     {
         "echo_level": 1,
         "omega": 0.05,
-        "relative_tolerance_GMRES": 1e-12,
+        "relative_tolerance_gmres": 1e-12,
         "model":
         {
             "type": "coupled_solvers.models.ls",
