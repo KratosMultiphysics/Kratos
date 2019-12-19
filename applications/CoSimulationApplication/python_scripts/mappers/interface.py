@@ -31,7 +31,7 @@ class MapperInterface(object):
             mapper.Finalize()
 
     def __call__(self, interface_from, interface_to):
-        # Loop over modelparts and variables to interpolate
+        # Loop over ModelParts and Variables to interpolate
         for i, mapper in enumerate(self.mappers):
             key_from, variables_from = interface_from.model_parts_variables[i]
             key_to, variables_to = interface_to.model_parts_variables[i]
