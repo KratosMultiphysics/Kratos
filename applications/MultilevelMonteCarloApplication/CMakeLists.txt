@@ -73,8 +73,3 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 ## install targets
 install(TARGETS KratosMultilevelMonteCarloCore DESTINATION libs )
 install(TARGETS KratosMultilevelMonteCarloApplication DESTINATION libs )
-
-## install pycompss mockup library
-if(NOT DEFINED USING_PYCOMPSS)
-    kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/exaqute KratosMultiphysics/${CURRENT_DIR_NAME} )
-endif(NOT DEFINED USING_PYCOMPSS)
