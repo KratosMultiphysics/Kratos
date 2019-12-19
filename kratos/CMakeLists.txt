@@ -25,6 +25,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/constitutive_law.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_components.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/memory_info.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/process_info.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/oriented_bounding_box.cpp;
