@@ -20,7 +20,6 @@
 #include "custom_elements/fiber_beam_column_element_3D2N.h"
 #include "includes/define.h"
 #include "seismic_application_variables.h"
-// #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "includes/checks.h"
 
 #include "custom_constitutive/uniaxial_menegotto_pinto.h"
@@ -180,12 +179,13 @@ void FiberBeamColumnElement3D2N::Initialize()
     const GeometryData::IntegrationPointsArrayType integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
 
     for (unsigned int i = 0; i < number_of_sections; ++i) {
-        mSections.push_back( FiberBeamColumnSection( i+1, integration_points[i], pGetProperties() ));
+        mSections.push_back( FiberBeamColumnSection( i+1, integration_points[i] ));
     }
 
     Matrix concrete_fibers_data = GetProperties()[CONCRETE_FIBERS_DATA];//check
     Matrix steel_fibers_data = GetProperties()[STEEL_FIBERS_DATA];
 
+    IndexType counter = 1;
     for (FiberBeamColumnSection& r_section : mSections) {
 
         std::vector<FiberBeamColumnUniaxialFiber> fibers;
@@ -194,7 +194,7 @@ void FiberBeamColumnElement3D2N::Initialize()
         // concrete fibers
         for (unsigned int i = 0; i < concrete_fibers_data.size1(); ++i) {
             auto p_material = Kratos::make_shared<UniaxialKentParkMaterialLaw>();
-            fibers.push_back( FiberBeamColumnUniaxialFiber( 0,
+            fibers.push_back( FiberBeamColumnUniaxialFiber( counter++,
                 concrete_fibers_data(i, 0),
                 concrete_fibers_data(i, 1),
                 concrete_fibers_data(i, 2),
@@ -204,7 +204,7 @@ void FiberBeamColumnElement3D2N::Initialize()
         // steel fibers
         for (unsigned int i = 0; i < steel_fibers_data.size1(); ++i) {
             auto p_material = Kratos::make_shared<UniaxialMenegottoPintoMaterialLaw>();
-            fibers.push_back( FiberBeamColumnUniaxialFiber( 0,
+            fibers.push_back( FiberBeamColumnUniaxialFiber( counter++,
                 steel_fibers_data(i, 0),
                 steel_fibers_data(i, 1),
                 steel_fibers_data(i, 2),

@@ -17,12 +17,12 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/fiber_beam_column_uniaxial_fiber.h"
+#include "custom_classes/fiber_beam_column_uniaxial_fiber.h"
 
 namespace Kratos {
 
 FiberBeamColumnUniaxialFiber::FiberBeamColumnUniaxialFiber(IndexType NewId)
-    : mId(NewId) {}
+    : BaseType(NewId) {}
 
 FiberBeamColumnUniaxialFiber::FiberBeamColumnUniaxialFiber(
     IndexType NewId,
@@ -32,7 +32,7 @@ FiberBeamColumnUniaxialFiber::FiberBeamColumnUniaxialFiber(
     ConstitutiveLaw::Pointer pMaterial,
     PropertiesType::Pointer pProperties
 )
-    : mId(NewId), mArea(Area), mpMaterial(pMaterial), mpProperties(pProperties)
+    : BaseType(NewId), mArea(Area), mpMaterial(pMaterial), mpProperties(pProperties)
 {
     mTransformationVector[0] =  -Y;
     mTransformationVector[1] =   Z;
@@ -49,7 +49,7 @@ void FiberBeamColumnUniaxialFiber::Initialize()
     KRATOS_CATCH("")
 }
 
-void FiberBeamColumnUniaxialFiber::CreateGlobalFiberStiffnessMatrix(Matrix& rGlobalStiffnessMatrix){
+void FiberBeamColumnUniaxialFiber::GetGlobalStiffnessMatrix(Matrix& rGlobalStiffnessMatrix){
     KRATOS_TRY
 
     ProcessInfo temp_proc;
@@ -72,7 +72,7 @@ void FiberBeamColumnUniaxialFiber::CreateGlobalFiberStiffnessMatrix(Matrix& rGlo
     KRATOS_CATCH("")
 }
 
-void FiberBeamColumnUniaxialFiber::StateDetermination(const Vector& rSectionDeformationIncrements)
+bool FiberBeamColumnUniaxialFiber::StateDetermination(const Vector& rSectionDeformationIncrements)
 {
     KRATOS_TRY
     // increment strain
@@ -91,10 +91,12 @@ void FiberBeamColumnUniaxialFiber::StateDetermination(const Vector& rSectionDefo
     params.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     params.Set(ConstitutiveLaw::COMPUTE_STRESS);
     mpMaterial->CalculateMaterialResponse(params, ConstitutiveLaw::StressMeasure_PK2);
+    return true;
+
     KRATOS_CATCH("")
 }
 
-void FiberBeamColumnUniaxialFiber::CreateGlobalFiberInternalForces(Vector& rGlobalFiberInternalForces)
+void FiberBeamColumnUniaxialFiber::GetGlobalInternalForces(Vector& rGlobalFiberInternalForces)
 {
     KRATOS_TRY
     if (rGlobalFiberInternalForces.size() != 3) {
@@ -117,7 +119,7 @@ void FiberBeamColumnUniaxialFiber::FinalizeSolutionStep()
 }
 
 void FiberBeamColumnUniaxialFiber::PrintInfo(std::ostream& rOStream) const {
-    rOStream << "FiberBeamColumnUniaxialFiber #" << mId;
+    rOStream << "FiberBeamColumnUniaxialFiber #" << Id();
 }
 
 void FiberBeamColumnUniaxialFiber::PrintData(std::ostream& rOStream) const {
@@ -129,7 +131,7 @@ void FiberBeamColumnUniaxialFiber::PrintData(std::ostream& rOStream) const {
 
 void FiberBeamColumnUniaxialFiber::save(Serializer& rSerializer) const
 {
-    rSerializer.save("mId", mId);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
     rSerializer.save("mTransformationVector", mTransformationVector);
     rSerializer.save("mArea", mArea);
     rSerializer.save("mpMaterial", mpMaterial);
@@ -139,7 +141,7 @@ void FiberBeamColumnUniaxialFiber::save(Serializer& rSerializer) const
 }
 void FiberBeamColumnUniaxialFiber::load(Serializer& rSerializer)
 {
-    rSerializer.load("mId", mId);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
     rSerializer.load("mTransformationVector", mTransformationVector);
     rSerializer.load("mArea", mArea);
     rSerializer.load("mpMaterial", mpMaterial);

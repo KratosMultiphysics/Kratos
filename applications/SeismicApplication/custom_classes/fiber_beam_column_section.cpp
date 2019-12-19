@@ -18,18 +18,17 @@
 
 // Project includes
 #include "seismic_application_variables.h"
-#include "custom_conditions/fiber_beam_column_section.h"
+#include "custom_classes/fiber_beam_column_section.h"
 
 namespace Kratos {
 
 FiberBeamColumnSection::FiberBeamColumnSection(IndexType NewId)
-    : mId(NewId) {}
+    : BaseType(NewId) {}
 
 FiberBeamColumnSection::FiberBeamColumnSection(
     IndexType NewId,
-    IntegrationPointType integrationPoint,
-    PropertiesType::Pointer pProperties)
-        : mId(NewId),
+    IntegrationPointType integrationPoint)
+        : BaseType(NewId),
           mPosition(integrationPoint(0)),
           mWeight(integrationPoint.Weight())
 {
@@ -69,7 +68,7 @@ void FiberBeamColumnSection::UpdateLocalFlexibilityMatrix()
     // get local 3x3 stiffness from fibers' tangential stiffness
     for (FiberBeamColumnUniaxialFiber& r_fiber : mFibers) {
         Matrix fiber_global_stiffness;
-        r_fiber.CreateGlobalFiberStiffnessMatrix(fiber_global_stiffness);
+        r_fiber.GetGlobalStiffnessMatrix(fiber_global_stiffness);
         local_stiffness += fiber_global_stiffness;
     }
     // invert stiffness to get 3x3 flexibility
@@ -118,7 +117,7 @@ bool FiberBeamColumnSection::StateDetermination(const Vector& rElementForceIncre
     Vector internal_forces = ZeroVector(3);
     for (FiberBeamColumnUniaxialFiber& r_fiber : mFibers) {
         Vector fiber_global_forces;
-        r_fiber.CreateGlobalFiberInternalForces(fiber_global_forces);
+        r_fiber.GetGlobalInternalForces(fiber_global_forces);
         internal_forces += fiber_global_forces;
     }
 
@@ -162,7 +161,7 @@ void FiberBeamColumnSection::FinalizeSolutionStep()
 
 std::string FiberBeamColumnSection::Info() const {
     std::stringstream buffer;
-    buffer << "FiberBeamColumnSection #" << mId;
+    buffer << "FiberBeamColumnSection #" << Id();
     return buffer.str();
 }
 
@@ -177,7 +176,7 @@ void FiberBeamColumnSection::PrintData(std::ostream& rOStream) const {
 
 void FiberBeamColumnSection::save(Serializer& rSerializer) const
 {
-    rSerializer.save("mId", mId);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
     rSerializer.save("mPosition", mPosition);
     rSerializer.save("mWeight", mWeight);
     rSerializer.save("mLocalFlexibilityMatrix", mLocalFlexibilityMatrix);
@@ -187,7 +186,7 @@ void FiberBeamColumnSection::save(Serializer& rSerializer) const
 }
 void FiberBeamColumnSection::load(Serializer& rSerializer)
 {
-    rSerializer.load("mId", mId);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
     rSerializer.load("mPosition", mPosition);
     rSerializer.load("mWeight", mWeight);
     rSerializer.load("mLocalFlexibilityMatrix", mLocalFlexibilityMatrix);

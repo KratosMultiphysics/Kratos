@@ -24,7 +24,7 @@
 #include "includes/element.h"
 #include "includes/define.h"
 #include "includes/variables.h"
-#include "custom_conditions/fiber_beam_column_section.h"
+#include "custom_classes/fiber_beam_column_section.h"
 
 namespace Kratos
 {

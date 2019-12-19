@@ -25,6 +25,8 @@
 #include "includes/variables.h"
 #include "includes/element.h"
 
+#include "custom_classes/fiber_beam_column_component.h"
+
 namespace Kratos
 {
 
@@ -57,7 +59,7 @@ namespace Kratos
  * @author Mahmoud Zidan
  */
 
-class KRATOS_API(SEISMIC_APPLICATION) FiberBeamColumnUniaxialFiber
+class KRATOS_API(SEISMIC_APPLICATION) FiberBeamColumnUniaxialFiber : public FiberBeamColumnComponent
 {
 
 public:
@@ -65,13 +67,13 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Element::GeometryType      GeometryType;
-    typedef Element::NodesArrayType  NodesArrayType;
-    typedef Element::PropertiesType  PropertiesType;
-    typedef Element::IndexType            IndexType;
-    typedef Element::SizeType              SizeType;
-    typedef Element::MatrixType          MatrixType;
-    typedef Element::VectorType          VectorType;
+    typedef FiberBeamColumnComponent       BaseType;
+    typedef BaseType::GeometryType     GeometryType;
+    typedef BaseType::PropertiesType PropertiesType;
+    typedef BaseType::IndexType           IndexType;
+    typedef BaseType::SizeType             SizeType;
+    typedef BaseType::MatrixType         MatrixType;
+    typedef BaseType::VectorType         VectorType;
 
     ///@}
     ///@name Pointer Definitions
@@ -131,31 +133,31 @@ public:
     /**
      * Initializes the material law
      */
-    void Initialize();
+    void Initialize() override;
 
     /**
      * This method updates the strain in the fiber, calculates the material response,
      * and stores the stress value.
      * @param rSectionDeformationIncrements: the deformation increments of the section
      */
-    void StateDetermination(const Vector& rSectionDeformationIncrements);
+    bool StateDetermination(const Vector& rSectionDeformationIncrements) override;
 
     /**
      * returns the global stiffness matrix of the fiber.
      * @param rGlobalStiffnessMatrix
      */
-    void CreateGlobalFiberStiffnessMatrix(Matrix& rGlobalStiffnessMatrix);
+    void GetGlobalStiffnessMatrix(Matrix& rGlobalStiffnessMatrix) override;
 
     /**
      * returns the global internal forces of the fiber.
      * @param rGlobalStiffnessMatrix
      */
-    void CreateGlobalFiberInternalForces(Vector& rGlobalFiberInternalForces);
+    void GetGlobalInternalForces(Vector& rGlobalFiberInternalForces) override;
 
     /**
      * Called when the non linear iterations have converged
      */
-    void FinalizeSolutionStep();
+    void FinalizeSolutionStep() override;
 
     ///@}
     ///@name Access
@@ -229,7 +231,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    IndexType mId;       // id of the fiber
     double mArea = 0;    // area of the fiber
     Vector mTransformationVector = ZeroVector(3);   // coordinates [-y z 1]
     ConstitutiveLaw::Pointer mpMaterial = nullptr;  // pointer to the constitutive law

@@ -24,7 +24,9 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/element.h"
-#include "custom_conditions/fiber_beam_column_uniaxial_fiber.h"
+
+#include "custom_classes/fiber_beam_column_component.h"
+#include "custom_classes/fiber_beam_column_uniaxial_fiber.h"
 
 namespace Kratos
 {
@@ -58,7 +60,7 @@ namespace Kratos
  * @author Mahmoud Zidan
  */
 
-class KRATOS_API(SEISMIC_APPLICATION) FiberBeamColumnSection
+class KRATOS_API(SEISMIC_APPLICATION) FiberBeamColumnSection : public FiberBeamColumnComponent
 {
 
 public:
@@ -66,11 +68,11 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Element::PropertiesType  PropertiesType;
-    typedef Element::IndexType            IndexType;
-    typedef Element::SizeType              SizeType;
-    typedef Element::MatrixType          MatrixType;
-    typedef Element::VectorType          VectorType;
+    typedef FiberBeamColumnComponent  BaseType;
+    typedef BaseType::IndexType      IndexType;
+    typedef BaseType::SizeType        SizeType;
+    typedef BaseType::MatrixType    MatrixType;
+    typedef BaseType::VectorType    VectorType;
 
     // by default: integration point is 3-dimensional
     typedef IntegrationPoint<3> IntegrationPointType;
@@ -92,9 +94,8 @@ public:
      * Constructor
      * @param NewId: id of the section
      * @param integrationPoint: 1D integrationPoint that holds the position and the weight
-     * @param pProperties: pointer to properties
      */
-    FiberBeamColumnSection(IndexType NewId, IntegrationPointType integrationPoint, PropertiesType::Pointer pProperties);
+    FiberBeamColumnSection(IndexType NewId, IntegrationPointType integrationPoint);
 
     /**
      * Copy Constructor
@@ -122,13 +123,13 @@ public:
     /**
      * Initializes all the fibers and initializes the local flexibility matrix.
      */
-    void Initialize();
+    void Initialize() override;
 
     /**
      * This method is to get the global flexibility matrix
      * @param rGlobalFlexibilityMatrix: The global flexibility matrix
      */
-    void GetGlobalFlexibilityMatrix(Matrix& rGlobalFlexibilityMatrix);
+    void GetGlobalFlexibilityMatrix(Matrix& rGlobalFlexibilityMatrix) override;
 
     /**
      * This method is to get the global deformation residuals
@@ -144,7 +145,7 @@ public:
      * @param Tolerance: tolerance for element equilibrium
      * @return True if norm of the unbalance force is below the tolerance
      */
-    bool StateDetermination(const Vector& rElementForceIncrements, double Tolerance);
+    bool StateDetermination(const Vector& rElementForceIncrements, double Tolerance) override;
 
     /**
      * This method resets the deformation residuals to zero.
@@ -154,7 +155,7 @@ public:
     /**
      * Called when the non linear iterations have converged.
      */
-    void FinalizeSolutionStep();
+    void FinalizeSolutionStep() override;
 
     ///@}
     ///@name Access
@@ -235,7 +236,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    IndexType mId;       // id of the section
     double mPosition;    // position of the integration point
     double mWeight;      // weight of the integration point
     std::vector<FiberBeamColumnUniaxialFiber> mFibers;  // the vector the section's fibers
