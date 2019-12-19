@@ -25,6 +25,8 @@ class MapperInterpolator():
             if tmp not in ['X', 'Y', 'Z']:
                 raise ValueError(f'"{tmp}" is not a valid direction.')
             self.directions.append(tmp + '0')
+            if len(self.directions) > 3:
+                raise ValueError(f'too many directions given')
 
     def Initialize(self, model_part_from, model_part_to):
         # get coords_from

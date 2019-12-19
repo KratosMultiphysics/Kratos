@@ -45,7 +45,7 @@ class MapperRadialBasis(MapperInterpolator):
                 self.coeffs = np.vstack(tuple(out))
             else:
                 self.coeffs = np.zeros(self.nearest.shape)
-                for tup in iterable:
+                for i_to, tup in enumerate(iterable):
                     self.coeffs[i_to, :] = get_coeffs(*tup).flatten()
 
 def get_coeffs(distances, coords_from):
