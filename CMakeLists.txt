@@ -211,6 +211,11 @@ SET(INSTALL_PYTHON_FILES ON)        # To be removed when all applications are po
 include(install_function)
 include(KratosDependencies)
 
+# Logger configuration
+if(KRATOS_COLORED_OUTPUT MATCHES ON)
+  add_definitions(-DKRATOS_COLORED_OUTPUT)
+endif(KRATOS_COLORED_OUTPUT MATCHES ON)
+
 ################### PYBIND11
 
 # Try to use python executable from env variable

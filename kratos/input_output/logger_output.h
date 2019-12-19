@@ -183,6 +183,9 @@ protected:
 
   std::ostream& GetStream() {return mrStream;}
 
+  virtual void SetMessageColor(LoggerMessage::Severity MessageSeverity);
+  virtual void ResetMessageColor(LoggerMessage::Severity MessageSeverity);
+
 private:
   ///@name Life Cycle
   ///@{
