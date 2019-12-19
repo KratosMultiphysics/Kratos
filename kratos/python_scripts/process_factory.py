@@ -55,5 +55,7 @@ def Factory(settings, Model):
     elif(settings["process_name"].GetString() == "ApplyConstantVectorValueProcess"):
         model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
         return KM.ApplyConstantVectorValueProcess(model_part, settings["Parameters"])
+    elif(settings["process_name"].GetString() == "TimeAveragingProcess"):
+        return KM.TimeAveragingProcess(Model, settings["Parameters"])
 
     raise Exception("Process name not found ",)
