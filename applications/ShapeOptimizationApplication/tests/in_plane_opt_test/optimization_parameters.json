@@ -1,0 +1,67 @@
+{
+    "optimization_settings" : {
+        "model_settings" : {
+            "domain_size"           : 3,
+            "model_part_name"       : "3D_Shell",
+            "model_import_settings" : {
+                "input_type"        : "mdpa",
+                "input_filename"    : "3D_shell_102n"
+            },
+            "design_surface_sub_model_part_name" : "GENERIC_design_surface",
+            "damping" : {
+                "apply_damping" : true,
+                "damping_regions" : [{
+                        "sub_model_part_name"   : "GENERIC_side_front",
+                        "damp_X"                : true,
+                        "damp_Y"                : true,
+                        "damp_Z"                : true,
+                        "damping_function_type" : "cosine",
+                        "damping_radius"        : 4.0
+                }]
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : false
+            }
+        },
+        "objectives" : [{
+            "identifier" : "x_squared_sum",
+            "type"       : "minimization",
+            "analyzer"   : "external",
+            "project_gradient_on_surface_normals" : false
+        }],
+        "constraints" : [],
+        "design_variables" : {
+            "type"   : "vertex_morphing",
+            "filter" : {
+                "filter_function_type"       : "linear",
+                "filter_radius"              : 4.0,
+                "max_nodes_in_filter_radius" : 10000,
+                "in_plane_morphing" : true,
+                "in_plane_morphing_settings" : {
+                    "model_import_settings" : {
+                        "input_type"     : "mdpa",
+                        "input_filename" : "3D_shell_102n"
+                    },
+                    "background_sub_model_part_name" : ""
+                }
+            }
+        },
+        "optimization_algorithm" : {
+            "name"               : "steepest_descent",
+            "max_iterations"     : 5,
+            "relative_tolerance" : 1e-10,
+            "line_search" : {
+                "line_search_type"           : "manual_stepping",
+                "normalize_search_direction" : true,
+                "step_size"                  : 2.0
+            }
+        },
+        "output" : {
+            "design_output_mode" : "WriteDesignSurface",
+            "nodal_results"      : [ "SHAPE_CHANGE" ],
+            "output_format" : {
+                "name" : "gid"
+            }
+        }
+    }
+}

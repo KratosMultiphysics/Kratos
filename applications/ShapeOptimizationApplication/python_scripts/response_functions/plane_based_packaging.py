@@ -7,10 +7,10 @@
 #  Main authors:    Geiser Armin, https://github.com/armingeiser
 #
 # ==============================================================================
+
 import KratosMultiphysics as KM
 from .packaging_response_base import PackagingResponseBase
 from .. import custom_math as cm
-
 
 class PlaneBasedPackaging(PackagingResponseBase):
     """
@@ -31,7 +31,6 @@ class PlaneBasedPackaging(PackagingResponseBase):
             self.plane_normal.append(self.response_settings["plane_normal"][i].GetDouble())
 
         self.plane_normal = cm.ScalarVectorProduct(1.0/cm.Norm2(self.plane_normal), self.plane_normal)
-
 
     @classmethod
     def GetDefaultSettings(cls):

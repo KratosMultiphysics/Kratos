@@ -73,8 +73,6 @@ public:
   ///@name Access
   ///@{
 
-  void WriteMessage(LoggerMessage const& TheMessage) override;
-
   ///@}
   ///@name Inquiry
   ///@{
@@ -88,6 +86,9 @@ public:
 
   ///@}
 protected:
+
+  void SetMessageColor(LoggerMessage::Severity MessageSeverity) override {};
+  void ResetMessageColor(LoggerMessage::Severity MessageSeverity) override {};
 
 private:
   ///@name Life Cycle
