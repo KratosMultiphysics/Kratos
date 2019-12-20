@@ -41,8 +41,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// A bins container for 3 dimensional geometries.
-/** Detail class definition.
+/// A bins container for 3 dimensional GeometricalObject entities.
+/** It provides efficent search in radius and search nearest methods.
+ * All of the geometries should be given at construction time. After 
+ * constructing the bins the geometries cannot be modified. In case of
+ * any modification, the bins should be reconstructed.  
+ * Please note that the current implementation is only for triangles.
+ * Addapt it to other geometries is postponed to after adding distance
+ * method to the geometry.
 */
 class GeometricalObjectsBins
 {
@@ -65,6 +71,7 @@ public:
     /// Default constructor deleted.
     GeometricalObjectsBins() = delete;
 
+    /// The constructor with all geometries to be stored. Please note that all of them should be available at construction time and cannot be modified after.
     template<typename TIteratorType>
 	GeometricalObjectsBins(TIteratorType GeometricalObjectsBegin, TIteratorType GeometricalObjectsEnd) {
         std::size_t number_of_objects = std::distance(GeometricalObjectsBegin, GeometricalObjectsEnd);
@@ -98,28 +105,42 @@ public:
     ///@name Access
     ///@{
 
+    /// Getting the bins bounding box
     const BoundingBox<Point>& GetBoundingBox() const {
         return mBoundingBox;
     }
 
+    /// return an array with the x,y and z size of the cube
     const array_1d<double, 3>& GetCellSizes(){
         return mCellSizes;
     }
 
+    /// returns a 3D array having the number of cells in direction x,y and z
     const array_1d<std::size_t, 3>& GetNumberOfCells(){
         return mNumberOfCells;
     }
 
+    /// The total number of cells in the container
     const std::size_t GetTotalNumberOfCells(){
         return mNumberOfCells[0] * mNumberOfCells[1] * mNumberOfCells[2];
     }
 
+    /// Accessing cell_ijk giving the 3 indices 
     CellType& GetCell(std::size_t I, std::size_t J, std::size_t K){
+        KRATOS_DEBUG_ERROR_IF(I > mNumberOfCells[0]) << "Index " << I << " is larger than number of cells in x direction : " << mNumberOfCells[0] << std::endl;
+        KRATOS_DEBUG_ERROR_IF(J > mNumberOfCells[1]) << "Index " << J << " is larger than number of cells in y direction : " << mNumberOfCells[1] << std::endl;
+        KRATOS_DEBUG_ERROR_IF(K > mNumberOfCells[2]) << "Index " << K << " is larger than number of cells in z direction : " << mNumberOfCells[2] << std::endl;
+
         const std::size_t index = I + J * mNumberOfCells[0] + K * mNumberOfCells[1] * mNumberOfCells[0];
         return mCells[index];
     }
 
+    /// Calculating the cell_ijk bounding box
     BoundingBox<Point> GetCellBoundingBox(std::size_t I, std::size_t J, std::size_t K){
+        KRATOS_DEBUG_ERROR_IF(I > mNumberOfCells[0]) << "Index " << I << " is larger than number of cells in x direction : " << mNumberOfCells[0] << std::endl;
+        KRATOS_DEBUG_ERROR_IF(J > mNumberOfCells[1]) << "Index " << J << " is larger than number of cells in y direction : " << mNumberOfCells[1] << std::endl;
+        KRATOS_DEBUG_ERROR_IF(K > mNumberOfCells[2]) << "Index " << K << " is larger than number of cells in z direction : " << mNumberOfCells[2] << std::endl;
+
         BoundingBox<Point> result;
         
         result.GetMinPoint()[0] = mBoundingBox.GetMinPoint()[0] + I * mCellSizes[0];
@@ -133,6 +154,9 @@ public:
         return result;
     }
 
+    /** This method takes a point and finds all of the objects in the given radius to it.
+     * The result contains the object and also its distance to the point.
+    */
     template<typename TPointType>
     void SearchInRadius(TPointType const& ThePoint, double Radius, std::vector<ResultType>& rResults) {
         std::unordered_set<GeometricalObject*> results;
@@ -159,7 +183,11 @@ public:
         }
     }
 
-    template<typename TPointType>
+    /** This method takes a point and finds the nearest object to it.
+     * If there are more than one object in the same minimum distance only one is returned
+     * Result contains a flag is the object has been found or not. 
+    */
+     template<typename TPointType>
     ResultType SearchNearest(TPointType const& ThePoint) {
 		ResultType current_result;
 
@@ -257,8 +285,9 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateCellSize(std::size_t NumberOfPoints) {
-		std::size_t avarage_number_of_cells = static_cast<std::size_t>(std::pow(static_cast<double>(NumberOfPoints), 1.00 / Dimension));
+    /// Caclculate the cell sizes to be as equilateral as possible and tries to approximate (roughly) the given number of cells
+    void CalculateCellSize(std::size_t NumberOfCells) {
+		std::size_t avarage_number_of_cells = static_cast<std::size_t>(std::pow(static_cast<double>(NumberOfCells), 1.00 / Dimension));
 		std::array<double, 3> lengths;
 		double avarage_length = 0.00;
 		for (int i = 0; i < Dimension; i++) {
@@ -284,7 +313,7 @@ private:
 
 	}
 
-
+    /// Adding objects to the cells that intersecting with it.
     template<typename TIteratorType>
 	void AddObjectsToCells(TIteratorType GeometricalObjectsBegin, TIteratorType GeometricalObjectsEnd) {
         for(auto i_geometrical_object = GeometricalObjectsBegin ; i_geometrical_object != GeometricalObjectsEnd ; i_geometrical_object++){
@@ -304,7 +333,7 @@ private:
         }        
     }
 
-
+    /// Giving the min and max position of cells intersecting with the bounding box of the geometry.
     template<typename TGeometryType>
     void CalculateMinMaxPositions(TGeometryType const& TheGeometry, array_1d< std::size_t, 3 >& MinPosition, array_1d< std::size_t, 3 >& MaxPosition){
         if(TheGeometry.empty())
@@ -318,14 +347,7 @@ private:
         }
     }
 
-
-    void CalculateMinMaxPositions(BoundingBox<Point> TheBox, array_1d< std::size_t, 3 >& MinPosition, array_1d< std::size_t, 3 >& MaxPosition){
-        for(int i = 0; i < 3; i++ ) {
-            MinPosition[ i ] = CalculatePosition( TheBox.GetMinPoint()[i], i );
-            MaxPosition[ i ] = CalculatePosition( TheBox.GetMaxPoint()[i], i ) + 1;
-        }
-    }
-
+    /// calculating the cell position of a given coordinate in respective axis given by dimension
     std::size_t CalculatePosition( double Coordinate, int ThisDimension ) const {
         auto distance = Coordinate - mBoundingBox.GetMinPoint()[ ThisDimension ];
         distance = ( distance < 0.00 ) ? 0.00 : distance;
@@ -337,6 +359,7 @@ private:
         return result;
     }
     
+    /// Expands by the tolerance the geometry bounding box and checks the intersection
     template<typename TGeometryType>
     static inline bool IsIntersected(TGeometryType& TheGeometry, BoundingBox<Point> Box, const double tolerance)
     {
@@ -352,6 +375,7 @@ private:
         return  TheGeometry.HasIntersection(rLowPointTolerance,rHighPointTolerance);
     }
 
+    /// Searchs in objects in the given cell for the ones with distance less than given radius + tolerance.
     template<typename TPointType>
     void SearchInRadiusInCell(CellType const& TheCell, TPointType const& ThePoint, double Radius, std::unordered_set<GeometricalObject*>& rResults) {
         for(auto p_geometrical_object : TheCell){  
@@ -368,6 +392,7 @@ private:
         }
     }
 
+   /// Searchs in objects in the given cell for the nearest one.
     template<typename TPointType>
     void SearchNearestInCell(CellType const& TheCell, TPointType const& ThePoint, ResultType& rResult) {
         for(auto p_geometrical_object : TheCell){  
