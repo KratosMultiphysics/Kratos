@@ -11,6 +11,7 @@ on:
     - 'kratos/**'
     - 'applications/CableNetApplication/**'
     - 'applications/ContactStructuralMechanicsApplication/**'
+    - 'applications/ConvectionDiffusionApplication/**'
     - 'applications/CoSimulationApplication/**'
     - 'applications/CSharpWrapperApplication/**'
     - 'applications/DEMApplication/**'

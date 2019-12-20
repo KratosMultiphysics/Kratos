@@ -36,6 +36,10 @@ add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
 add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
 add_app ${KRATOS_APP_DIR}/CableNetApplication;
 add_app ${KRATOS_APP_DIR}/RANSApplication;
+add_app ${KRATOS_APP_DIR}/MappingApplication;
+add_app ${KRATOS_APP_DIR}/FSIApplication;
+add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
+add_app ${KRATOS_APP_DIR}/MeshingApplication;
 
 # Clean
 clear
