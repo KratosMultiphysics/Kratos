@@ -1,7 +1,8 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector
-import swimming_DEM_solver
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_solver as swimming_DEM_solver
 import candelier_parameters as candelier_pp
+import KratosMultiphysics.SwimmingDEMApplication.parameters_tools as PT
 
 BaseSolver = swimming_DEM_solver.SwimmingDEMSolver
 
@@ -16,7 +17,9 @@ class CandelierDEMSolver(BaseSolver):
         super(CandelierDEMSolver, self).__init__(model, project_parameters, field_utility, fluid_solver, dem_solver, variables_manager)
         self.frame_angular_vel = Vector([0, 0, self.project_parameters['frame_of_reference']["angular_velocity_of_frame_Z"].GetDouble()])
         self.omega = self.project_parameters['frame_of_reference']["angular_velocity_of_frame_Z"].GetDouble()
-
+        candelier_pp.include_lift = PT.RecursiveFindParametersWithCondition(self.project_parameters["properties"],
+                                                                            'vorticity_induced_lift_parameters',
+                                                                            condition=lambda value: not (value['name'].GetString()=='default'))
     def SolveDEMSolutionStep(self):
         super(CandelierDEMSolver, self).SolveDEMSolutionStep()
 

@@ -2,10 +2,10 @@
 from __future__ import print_function, absolute_import, division
 
 # Application dependent names and paths
-import KratosMultiphysics
-import KratosMultilevelMonteCarloApplication
-application = KratosMultilevelMonteCarloApplication.KratosMultilevelMonteCarloApplication()
+import KratosMultiphysics as KM
+from KratosMultilevelMonteCarloApplication import *
+application = KratosMultilevelMonteCarloApplication()
 application_name = "KratosMultilevelMonteCarloApplication"
 application_folder = "MultilevelMonteCarloApplication"
 
-KratosMultiphysics._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)

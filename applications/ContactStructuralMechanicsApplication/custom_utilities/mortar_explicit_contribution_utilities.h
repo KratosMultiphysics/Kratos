@@ -160,6 +160,7 @@ public:
      * @param ComputeNodalArea If the contribution of the nodal are must be computed
      * @param ComputeDualLM If condider dual LM to begin with
      * @param rAreaVariable The nodal area variable
+     * @param ConsiderObjetiveFormulation If the objetive formulation is considered always
      * @return The mortar operators
      */
     static MortarConditionMatrices AddExplicitContributionOfMortarFrictionalCondition(
@@ -170,7 +171,8 @@ public:
         const bool AxisymmetricCase = false,
         const bool ComputeNodalArea = false,
         const bool ComputeDualLM = true,
-        Variable<double>& rAreaVariable = NODAL_AREA
+        Variable<double>& rAreaVariable = NODAL_AREA,
+        const bool ConsiderObjetiveFormulation = false
         );
 
     /**

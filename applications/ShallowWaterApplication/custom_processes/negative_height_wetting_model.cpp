@@ -35,6 +35,7 @@ NegativeHeightWettingModel::NegativeHeightWettingModel(ModelPart& rModelPart, Pa
     })");
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
     mBeta = ThisParameters["beta"].GetDouble();
+    mDryHeight = mrModelPart.GetProcessInfo()[DRY_HEIGHT];
 }
 
 NegativeHeightWettingModel::NegativeHeightWettingModel(ModelPart& rModelPart, double Beta)
@@ -56,12 +57,15 @@ void NegativeHeightWettingModel::ExecuteInitializeSolutionStep()
         const double height = it_node->FastGetSolutionStepValue(HEIGHT);
         const double manning = it_node->FastGetSolutionStepValue(MANNING);
         double& equivalent_manning = it_node->FastGetSolutionStepValue(EQUIVALENT_MANNING);
+        double& porosity = it_node->FastGetSolutionStepValue(POROSITY);
 
-        if (height > 0) {
+        if (height > mDryHeight) {
             equivalent_manning = manning;
+            porosity = 1.0;
         }
         else {
-            equivalent_manning = manning * (1 - mBeta * height);
+            equivalent_manning = manning * (1 - mBeta * (height - mDryHeight));
+            porosity = 0.0;
         }
     }
 }

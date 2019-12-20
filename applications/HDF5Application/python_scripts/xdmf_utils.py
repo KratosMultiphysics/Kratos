@@ -121,7 +121,16 @@ def CreateXdmfSpatialGrid(h5_model_part):
     sgrid = SpatialGrid()
     geom = Geometry(HDF5UniformDataItem(
         h5_model_part["Nodes/Local/Coordinates"]))
-    for name, value in h5_model_part["Xdmf/Elements"].items():
+    if ("Xdmf/Elements" in h5_model_part and "Xdmf/Conditions" in h5_model_part):
+        KratosMultiphysics.Logger.PrintInfo("CreateXdmfSpatialGrid", "Element and Condition blocks found. Spacial grid is made from Elements block only.")
+        spatial_grid_block_name = "Xdmf/Elements"
+    elif "Xdmf/Elements" in h5_model_part:
+        KratosMultiphysics.Logger.PrintInfo("CreateXdmfSpatialGrid","Spacial grid is made from Elements.")
+        spatial_grid_block_name = "Xdmf/Elements"
+    elif "Xdmf/Conditions" in h5_model_part:
+        KratosMultiphysics.Logger.PrintInfo("CreateXdmfSpatialGrid","Spacial grid is made from Conditions.")
+        spatial_grid_block_name = "Xdmf/Conditions"
+    for name, value in h5_model_part[spatial_grid_block_name].items():
         cell_type = TopologyCellType(
             value.attrs["Dimension"], value.attrs["NumberOfNodes"])
         connectivities = HDF5UniformDataItem(value["Connectivities"])
@@ -218,13 +227,32 @@ def TimeLabel(file_path):
 
     Returns empty string if not found.
     """
-    timepat = re.compile(r"\d+(\.\d+)?((e|E)(\+|-)\d+)?")
-    file_path = ".".join(file_path.split(".")[:-1]) # Strip any suffixes.
-    m = timepat.search(file_path)
-    if m:
-        return m.string[m.start():m.end()]
+    # Is there a better way to do this?
+    temp_file_path = file_path.replace("E-", "E*")
+    temp_file_path = temp_file_path.replace("e-", "e*")
+
+    dash_split = temp_file_path[:temp_file_path.rfind(".")].split("-")
+    dash_split[-1] = dash_split[-1].replace("E*", "E-")
+    dash_split[-1] = dash_split[-1].replace("e*", "e-")
+
+    float_regex = re.compile(r'^[-+]?([0-9]+|[0-9]*\.[0-9]+)([eE][-+]?[0-9]+)?$')
+    if (float_regex.match(dash_split[-1])):
+        return dash_split[-1]
     else:
         return ""
+
+
+def TimeFromFileName(file_path):
+    """Return the time value for the file name.
+
+    If the file name contains no time value, zero time value is assumed.
+
+    """
+    label = TimeLabel(file_path)
+    if label == "":
+        return 0.0
+    else:
+        return float(label)
 
 
 def FindMatchingFiles(pattern):
@@ -241,6 +269,16 @@ def FindMatchingFiles(pattern):
         path = "."  # os.listdir fails with empty path
     def match(s): return s.startswith(pattern) and s.endswith(".h5")
     return list(filter(match, os.listdir(path)))
+
+
+def GetSortedListOfFiles(pattern):
+    """Return sorted file list based on the time stamp
+
+    see @FindMatchingFiles
+    """
+    list_of_files = FindMatchingFiles(pattern)
+    list_of_files.sort(key=TimeFromFileName)
+    return list_of_files
 
 
 def CreateXdmfTemporalGridFromMultifile(list_of_h5_files, h5path_to_mesh, h5path_to_results):
@@ -301,7 +339,7 @@ def WriteMultifileTemporalAnalysisToXdmf(ospath, h5path_to_mesh, h5path_to_resul
     if time_label:
         pat = pat.rstrip(time_label).rstrip("-")
     # Generate the temporal grid.
-    list_of_files = FindMatchingFiles(pat)
+    list_of_files = GetSortedListOfFiles(pat)
     RenumberConnectivitiesForXdmf(list_of_files, h5path_to_mesh)
     temporal_grid = CreateXdmfTemporalGridFromMultifile(
         list_of_files, h5path_to_mesh, h5path_to_results)

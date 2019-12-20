@@ -84,6 +84,42 @@ struct vexcl_skyline_lu : solver::skyline_lu<value_type> {
 
 namespace backend {
 
+/// The VexCL backend parameters.
+struct vexcl_params {
+
+    std::vector< vex::backend::command_queue > q; ///< Command queues that identify compute devices to use with VexCL.
+
+    /// Do CSR to ELL conversion on the GPU side.
+    /** This will result in faster setup, but will require more GPU memory. */
+    bool fast_matrix_setup;
+
+    vexcl_params() : fast_matrix_setup(true) {}
+
+#ifndef AMGCL_NO_BOOST
+    vexcl_params(const boost::property_tree::ptree &p)
+        : fast_matrix_setup(p.get("fast_matrix_setup", vexcl_params().fast_matrix_setup))
+    {
+        std::vector<vex::backend::command_queue> *ptr = 0;
+        ptr = p.get("q", ptr);
+        if (ptr) q = *ptr;
+        check_params(p, {"q", "fast_matrix_setup"});
+    }
+
+    void get(boost::property_tree::ptree &p, const std::string &path) const {
+        p.put(path + "q", &q);
+        p.put(path + "fast_matrix_setup", fast_matrix_setup);
+    }
+#endif
+
+    const std::vector<vex::backend::command_queue>& context() const {
+        if (q.empty())
+            return vex::current_context().queue();
+        else
+            return q;
+    }
+};
+
+
 /**
  * The backend uses the <a href="https://github.com/ddemidov/vexcl">VexCL</a>
  * library for accelerating solution on the modern GPUs and multicore
@@ -107,41 +143,7 @@ struct vexcl {
 
     struct provides_row_iterator : std::false_type {};
 
-    /// The VexCL backend parameters.
-    struct params {
-
-        std::vector< vex::backend::command_queue > q; ///< Command queues that identify compute devices to use with VexCL.
-
-        /// Do CSR to ELL conversion on the GPU side.
-        /** This will result in faster setup, but will require more GPU memory. */
-        bool fast_matrix_setup;
-
-        params() : fast_matrix_setup(true) {}
-
-#ifndef AMGCL_NO_BOOST
-        params(const boost::property_tree::ptree &p)
-            : AMGCL_PARAMS_IMPORT_VALUE(p, fast_matrix_setup)
-        {
-            std::vector<vex::backend::command_queue> *ptr = 0;
-            ptr = p.get("q", ptr);
-            if (ptr) q = *ptr;
-            check_params(p, {"q", "fast_matrix_setup"});
-        }
-
-        void get(boost::property_tree::ptree &p, const std::string &path) const {
-            p.put(path + "q", &q);
-            AMGCL_PARAMS_EXPORT_VALUE(p, path, fast_matrix_setup);
-        }
-#endif
-
-        const std::vector<vex::backend::command_queue>& context() const {
-            if (q.empty())
-                return vex::current_context().queue();
-            else
-                return q;
-
-        }
-    };
+    typedef vexcl_params params;
 
     static std::string name() { return "vexcl"; }
 
@@ -261,6 +263,9 @@ struct vexcl {
 //---------------------------------------------------------------------------
 // Backend interface implementation
 //---------------------------------------------------------------------------
+template <typename T1, typename T2>
+struct backends_compatible< vexcl<T1>, vexcl<T2> > : std::true_type {};
+
 template < typename V, typename C, typename P >
 struct bytes_impl< vex::sparse::distributed<vex::sparse::matrix<V,C,P> > > {
     static size_t get(const vex::sparse::distributed<vex::sparse::matrix<V,C,P> > &A) {
@@ -281,7 +286,12 @@ struct bytes_impl< vex::vector<V> > {
 template < typename Alpha, typename Beta, typename Va, typename Vx, typename Vy, typename C, typename P >
 struct spmv_impl<
     Alpha, vex::sparse::distributed<vex::sparse::matrix<Va,C,P>>, vex::vector<Vx>,
-    Beta,  vex::vector<Vy>
+    Beta,  vex::vector<Vy>,
+    typename std::enable_if<
+        math::static_rows<Va>::value == 1 &&
+        math::static_rows<Vx>::value == 1 &&
+        math::static_rows<Vy>::value == 1
+        >::type
     >
 {
     typedef vex::sparse::distributed<vex::sparse::matrix<Va,C,P>> matrix;

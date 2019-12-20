@@ -22,6 +22,7 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
 namespace Kratos
 {
@@ -39,6 +40,7 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
 
     AddCustomResponseFunctionUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
+    AddCustomUtilitiesToPython(m);
 
     //registering variables in python
     // Degrees of freedom
@@ -47,10 +49,12 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
 
     //Embedded variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, GEOMETRY_DISTANCE)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ROTATION_ANGLE);
 
     //Wake variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, WAKE_DISTANCE)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, WAKE_ELEMENTAL_DISTANCES)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, WAKE_ORIGIN)
 
     // Adjoint potential
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ADJOINT_VELOCITY_POTENTIAL);

@@ -46,7 +46,6 @@ import os
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication       as KratosSolid
 import KratosMultiphysics.ExternalSolversApplication      as KratosSolvers
 import KratosMultiphysics.DelaunayMeshingApplication      as KratosDelaunay
 import KratosMultiphysics.PfemFluidDynamicsApplication    as KratosPfemFluid
@@ -102,8 +101,7 @@ solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_s
 # Add variables (always before importing the model part)
 solver.AddVariables()
 
-# Add PfemSolidMechanicsApplication Variables
-import pfem_variables
+from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_variables
 pfem_variables.AddVariables(main_model_part)
 
 #thermal thing:
@@ -164,7 +162,7 @@ if(echo_level>1):
 
 #obtain the list of the processes to be applied
 
-from KratosMultiphysics.SolidMechanicsApplication.process_handler import ProcessHandler
+from KratosMultiphysics.PfemFluidDynamicsApplication.process_handler import ProcessHandler
 
 process_parameters = KratosMultiphysics.Parameters("{}")
 process_parameters.AddValue("echo_level", ProjectParameters["problem_data"]["echo_level"])
