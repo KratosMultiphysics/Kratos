@@ -23,21 +23,13 @@ export PYTHON_EXECUTABLE="/usr/bin/python3.6"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set applications to compile
-# add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
-# add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
-add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
-add_app ${KRATOS_APP_DIR}/DEMApplication;
-# add_app ${KRATOS_APP_DIR}/EigenSolversApplication;
 add_app ${KRATOS_APP_DIR}/ExternalSolversApplication;
-add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
-# add_app ${KRATOS_APP_DIR}/FSIApplication;
-# add_app ${KRATOS_APP_DIR}/MappingApplication;
-# add_app ${KRATOS_APP_DIR}/MeshingApplication;
-add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
-add_app ${KRATOS_APP_DIR}/MetisApplication;
-# add_app ${KRATOS_APP_DIR}/RANSApplication;
-# add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
+add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
+add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
+add_app ${KRATOS_APP_DIR}/DEMApplication;
+add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
+add_app ${KRATOS_APP_DIR}/MetisApplication;
 add_app ${KRATOS_APP_DIR}/TrilinosApplication;
 
 # Clean
@@ -51,7 +43,6 @@ echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 # Configure
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DUSE_MPI=ON \
--DCMAKE_INSTALL_MESSAGE=NEVER \
 -DPYBIND11_PYTHON_VERSION="3.6" \
 -DCMAKE_CXX_FLAGS="-O0 -fopenmp -Wall \
 -Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable \
