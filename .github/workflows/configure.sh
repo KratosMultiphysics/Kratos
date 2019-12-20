@@ -48,7 +48,7 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable \
 -Werror=misleading-indentation -Werror=return-type \
 -Werror=sign-compare -Werror=unused-but-set-variable \
--Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized" \
+-Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized -Wno-deprecated-declarations" \
 -DEIGEN_ROOT="/usr/include/eigen3" \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
