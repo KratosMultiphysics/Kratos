@@ -49,10 +49,15 @@ class MapperInterpolator():
 
         # build and query tree
         if self.balanced_tree:  # time-intensive
-            tree = cKDTree(self.coords_from)
+            self.tree = cKDTree(self.coords_from)
         else:  # less stable
-            tree = cKDTree(self.coords_from, balanced_tree=False)
-        self.distances, self.nearest = tree.query(self.coords_to, k=self.n_nearest)
+            self.tree = cKDTree(self.coords_from, balanced_tree=False)
+        self.distances, self.nearest = self.tree.query(self.coords_to, k=self.n_nearest)
+        self.nearest = self.nearest.reshape(-1, self.n_nearest)
+
+        # check for duplicate points
+        self.check_duplicate_points()
+
 
     def Finalize(self):
         pass
@@ -91,3 +96,31 @@ class MapperInterpolator():
         # other types of Variables
         else:
             raise NotImplementedError(f'Mapping not yet implemented for Variable of Type {var_from.Type()}.')
+
+    def check_bounding_box(self):
+        # *** test this function
+
+        # *** implement function
+
+
+        # *** call in Initialize
+        pass
+
+    def check_duplicate_points(self):
+        # checks only from-points  *** because tree is available, to-points are checked in interpolation in other direction anyway
+        # *** test this function
+
+        # calculate reference distance (diagonal of bounding box)
+        diagonal = np.zeros(len(self.directions))
+        for i in range(diagonal.size):
+            diagonal[i] = self.coords_from[:, i].max() - self.coords_from[:, i].min()
+        d_ref = np.linalg.norm(diagonal)
+        if d_ref == 0.:
+            raise ValueError('all from-points coincide')
+
+        # check for duplicate points
+        dist, _ = self.tree.query(self.coords_from, k=2)
+        duplicate = (dist[:, 1] / d_ref < 1e-15)
+        if duplicate.any():
+            raise ValueError(f'{np.sum(duplicate)} duplicate points found in from-points, ' +
+                             f'first duplicate = {self.coords_from[np.argmax(duplicate)]}')

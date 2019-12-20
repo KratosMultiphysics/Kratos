@@ -19,5 +19,5 @@ class MapperNearest(MapperInterpolator):
     def Initialize(self, model_part_from, model_part_to):
         super().Initialize(model_part_from, model_part_to)
 
-        self.nearest = self.nearest.reshape(-1, 1)
+        # self.nearest = self.nearest.reshape(-1, 1)
         self.coeffs = np.ones((self.n_to, 1))
