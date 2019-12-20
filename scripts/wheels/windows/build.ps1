@@ -5,6 +5,8 @@ $kratosRoot = "c:\kratos\kratos"
 $env:kratos_root = $kratosRoot
 $wheelRoot = "c:\wheel"
 $wheelOutDir = "c:\out"
+param([System.String]$cotire="OFF")
+$env:cotire = $cotire
 
 function build ($python, $pythonPath) {
     cd $kratosRoot
