@@ -45,6 +45,7 @@ jobs:
         FC: gfortran-7
         CC: /usr/lib/ccache/gcc
         CXX: /usr/lib/ccache/g++
+        GCC_COLORS: error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01
 
     steps:
     - uses: actions/checkout@v2-beta
