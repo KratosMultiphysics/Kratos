@@ -45,13 +45,13 @@ template <typename TObjectType>
 class SpatialSearchResult {
 	using TPointerType = GlobalPointer<TObjectType>;
 	TPointerType mpObject;
-	double mDistance2;
+	double mDistance;
 	bool mIsObjectFound;
 	bool mIsDistanceCalculated;
 
 public:
-	SpatialSearchResult() : mpObject(nullptr), mDistance2(0.00), mIsObjectFound(false), mIsDistanceCalculated(false) {}
-	SpatialSearchResult(TObjectType* pObject) : mpObject(pObject), mDistance2(0.00), mIsObjectFound(false), mIsDistanceCalculated(false) {
+	SpatialSearchResult() : mpObject(nullptr), mDistance(0.00), mIsObjectFound(false), mIsDistanceCalculated(false) {}
+	SpatialSearchResult(TObjectType* pObject) : mpObject(pObject), mDistance(0.00), mIsObjectFound(false), mIsDistanceCalculated(false) {
 		if (mpObject.get() != nullptr)
 			mIsObjectFound = true;
 	}
@@ -68,16 +68,16 @@ public:
 	}
 	bool IsObjectFound() const { return mIsObjectFound; }
 
-	double GetDistance2() const { return mDistance2; }
-	void SetDistance2(double TheDistance2) {
-		mDistance2 = TheDistance2;
+	double GetDistance() const { return mDistance; }
+	void SetDistance(double TheDistance) {
+		mDistance = TheDistance;
 		mIsDistanceCalculated = true;
 	}
 	bool IsDistanceCalculated() const { return mIsDistanceCalculated; }
 
 	void Reset() {
 		mpObject = mpObject(nullptr);
-		mDistance2 = 0.00;
+		mDistance = 0.00;
 		mIsObjectFound = false;
 		mIsDistanceCalculated = false;
 	}
@@ -186,8 +186,8 @@ public:
         array_1d< std::size_t, 3 > max_position;
 
         for(int i = 0; i < 3; i++ ) {
-            min_position[ i ] = CalculatePosition( ThePoint[i] - Radius, i );
-            max_position[ i ] = CalculatePosition( ThePoint[i] + Radius, i ) + 1;
+            min_position[i] = CalculatePosition(ThePoint[i] - Radius, i);
+            max_position[i] = CalculatePosition(ThePoint[i] + Radius, i) + 1;
         }
         for(std::size_t k = min_position[2] ; k < max_position[2] ; k++){
             for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
@@ -203,6 +203,49 @@ public:
             rResults.push_back(ResultType(p_object));
         }
     }
+
+    template<typename TPointType>
+    ResultType SearchNearest(TPointType const& ThePoint) {
+		ResultType current_result;
+
+        array_1d< std::size_t, 3 > min_position;
+        array_1d< std::size_t, 3 > max_position;
+
+        for(int i = 0; i < 3; i++ ) {
+            min_position[i] = CalculatePosition(ThePoint[i], i);
+            max_position[i] = CalculatePosition(ThePoint[i], i) + 1;
+        }
+
+        current_result.SetDistance(std::numeric_limits<double>::max());
+
+        while (!current_result.IsObjectFound() ) {
+            for(std::size_t k = min_position[2] ; k < max_position[2] ; k++){
+                for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
+                    for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
+                        auto& cell = GetCell(i,j,k);
+                        SearchNearestInCell(cell, ThePoint, current_result);
+                    }
+                }
+            }
+            bool all_cells_are_covered = (min_position[0] == 0) && (min_position[1] == 0) && (min_position[2] == 0);
+            all_cells_are_covered &= (max_position[0] == mNumberOfCells[0] - 1) && (max_position[1] == mNumberOfCells[1] - 1) && (max_position[2] == mNumberOfCells[2] - 1);
+
+            if(all_cells_are_covered){
+                break;
+            }
+
+            for(int i = 0; i < 3; i++ ) {
+                const std::size_t min_i = min_position[i];
+                const std::size_t max_i = max_position[i];
+                const std::size_t max = mNumberOfCells[i] - 1;
+
+                min_position[i] = (min_i > 0) ? min_i - 1 : 0;
+                max_position[i] = (max_i < max) ? max_i + 1 : max;
+            }
+        }
+
+		return current_result;
+	}
 
     ///@}
     ///@name Inquiry
@@ -366,6 +409,23 @@ private:
 			ThePoint);
             if((Radius + Tolerance) > distance){
                 rResults.insert(p_geometrical_object);
+            }
+        }
+    }
+
+    template<typename TPointType>
+    void SearchNearestInCell(CellType const& TheCell, TPointType const& ThePoint, ResultType& rResult) {
+        for(auto p_geometrical_object : TheCell){  
+            auto& geometry = p_geometrical_object->GetGeometry();
+            // TODO: Change this to new Distance method of the geometry to be more general
+            double distance = GeometryUtils::PointDistanceToTriangle3D(
+			geometry[0],
+			geometry[1],
+			geometry[2],
+			ThePoint);
+            if (distance < rResult.GetDistance()) {
+                rResult.Set(p_geometrical_object);
+                rResult.SetDistance(distance);
             }
         }
     }
