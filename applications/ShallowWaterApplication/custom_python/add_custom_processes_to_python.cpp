@@ -103,6 +103,11 @@ namespace Python
         .def("RestoreConditions", &IdRenumberingProcess::RestoreConditions)
         ;
 
+        py::class_<ComputeVelocityProcess, ComputeVelocityProcess::Pointer, Process>
+        (m, "ComputeVelocityProcess")
+        .def(py::init<ModelPart&, double>())
+        ;
+
     }
 
 }  // namespace Python.
