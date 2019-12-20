@@ -69,11 +69,11 @@ class ComputeWssStatisticsProcess(KratosMultiphysics.Process):
         skin_model_part = self.model.GetModelPart(self.settings["skin_model_part"].GetString())   
 
         if (self.settings["normals_calculation"].GetBool()):
-            # print ("Computing NORMAL ---------------------------------------------------------------------->")
+            print ("Computing NORMAL ---------------------------------------------------------------------->")
             self.ExecuteInitialize()
 
         if (self.settings["calculate_wss"].GetBool()):
-            #print ("Computing WSS ----------------------------------------------------------------------->")
+            print ("Computing WSS ----------------------------------------------------------------------->")
             FluidDynamicsBiomedicalApplication.WssStatisticsUtilities.CalculateWSS(skin_model_part)
             #,skin_model_part)
             

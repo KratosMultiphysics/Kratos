@@ -122,7 +122,7 @@ void WssStatisticsUtilities::CalculateTWSS(ModelPart &rModelPart)
         for (int i_node = 0; i_node < n_nodes; ++i_node)
         {
             auto it_node = rModelPart.NodesBegin() + i_node;
-            //Calculate the sum of the vector components of WSS for all times step
+            //Calculate the sum of the vector components of WSS for all times step (TWSS)
             previous_tangential=it_node->GetValue(TEMPORAL_OSI);
             //KRATOS_WATCH(previous_tangential)
             tangential=it_node->GetValue(WSS_TANGENTIAL_STRESS);
@@ -131,19 +131,16 @@ void WssStatisticsUtilities::CalculateTWSS(ModelPart &rModelPart)
             previous_tangential[1]=previous_tangential[1]+((tangential[1]-previous_tangential[1])/step);
             previous_tangential[2]=previous_tangential[2]+((tangential[2]-previous_tangential[2])/step);
             it_node->GetValue(TEMPORAL_OSI)=previous_tangential;
-            //KRATOS_WATCH(previous_tangential)
+            KRATOS_WATCH(previous_tangential)
             //Calculates the sum of the WSS magnitudes for all time steps
-            twss= it_node->GetValue(TAWSS,0) + (norm_2(tangential) - (it_node->GetValue(TAWSS,0)/(step)) );
+            twss= it_node->GetValue(TAWSS,0) + ((norm_2(tangential) - it_node->GetValue(TAWSS,0))/step);
             it_node->GetValue(TWSS)=twss;
-            sum_WSS=it_node->GetValue(TEMPORAL_OSI);
-            //KRATOS_WATCH(sum_WSS)
-            //KRATOS_WATCH(step)            
+            //Calculate OSI
             factor = 1.0/static_cast<double>(step);
-            // KRATOS_WATCH(factor)
+            sum_WSS=it_node->GetValue(TEMPORAL_OSI);
             sum_WSS *= factor;
-            // KRATOS_WATCH(sum_WSS)  
             aux_WSS=norm_2(sum_WSS);
-            // KRATOS_WATCH(aux_WSS)
+            KRATOS_WATCH(aux_WSS)
             //Calculates the magnitude of the time-averaged WSS vector
             aux_TWSS=(it_node->GetValue(TWSS,0)/step);
             // KRATOS_WATCH(aux_WSS)
@@ -151,7 +148,7 @@ void WssStatisticsUtilities::CalculateTWSS(ModelPart &rModelPart)
                 aux_OSI = 0.0;
             }
             else {
-            aux_OSI=(0.5* (1.0-(aux_WSS/aux_TWSS)));
+                aux_OSI=(0.5* (1.0-(aux_WSS/aux_TWSS)));
             }
             if (aux_WSS > 1.0e-12) {
                 if (aux_OSI==0.5){
