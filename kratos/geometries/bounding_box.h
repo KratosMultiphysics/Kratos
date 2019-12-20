@@ -127,6 +127,14 @@ public:
         }
     }
 
+    void Extend(double Margin){
+        for (int i = 0; i < Dimension; i++){
+            mMinPoint[i] -= Margin;
+            mMaxPoint[i] += Margin;
+        }
+
+    }
+
 
     ///@}
     ///@name Access
