@@ -31,6 +31,7 @@
 #include "includes/geometrical_object.h"
 #include "includes/global_pointer.h"
 #include "utilities/geometry_utilities.h"
+#include "spatial_containers/spatial_search_result.h"
 
 namespace Kratos
 {
@@ -39,52 +40,6 @@ namespace Kratos
 
 ///@name Kratos Classes
 ///@{
-
-
-template <typename TObjectType>
-class SpatialSearchResult {
-	using TPointerType = GlobalPointer<TObjectType>;
-	TPointerType mpObject;
-	double mDistance;
-	bool mIsObjectFound;
-	bool mIsDistanceCalculated;
-
-public:
-	SpatialSearchResult() : mpObject(nullptr), mDistance(0.00), mIsObjectFound(false), mIsDistanceCalculated(false) {}
-	SpatialSearchResult(TObjectType* pObject) : mpObject(pObject), mDistance(0.00), mIsObjectFound(false), mIsDistanceCalculated(false) {
-		if (mpObject.get() != nullptr)
-			mIsObjectFound = true;
-	}
-
-	SpatialSearchResult(SpatialSearchResult const& /* Other */) = default;
-
-	SpatialSearchResult(SpatialSearchResult&& /* Other */) = default;
-
-	TPointerType Get() { return mpObject; }
-	TPointerType const Get() const { return mpObject; }
-	void Set(TObjectType* pObject) {
-		mpObject = pObject;
-		mIsObjectFound = true;
-	}
-	bool IsObjectFound() const { return mIsObjectFound; }
-
-	double GetDistance() const { return mDistance; }
-	void SetDistance(double TheDistance) {
-		mDistance = TheDistance;
-		mIsDistanceCalculated = true;
-	}
-	bool IsDistanceCalculated() const { return mIsDistanceCalculated; }
-
-	void Reset() {
-		mpObject = mpObject(nullptr);
-		mDistance = 0.00;
-		mIsObjectFound = false;
-		mIsDistanceCalculated = false;
-	}
-
-        SpatialSearchResult& operator=(SpatialSearchResult const& /*Other*/) = default;
-
-};
 
 /// A bins container for 3 dimensional geometries.
 /** Detail class definition.
