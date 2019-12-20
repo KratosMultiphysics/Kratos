@@ -10,6 +10,7 @@ on:
     - 'external_libraries/**'
     - 'kratos/**'
     - 'applications/CableNetApplication/**'
+    - 'applications/CompressiblePotentialFlowApplication/**'
     - 'applications/ContactStructuralMechanicsApplication/**'
     - 'applications/CoSimulationApplication/**'
     - 'applications/CSharpWrapperApplication/**'
