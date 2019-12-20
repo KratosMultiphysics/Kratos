@@ -32,27 +32,14 @@ namespace Kratos
 ///@addtogroup ApplicationNameApplication
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// This class is the result of the spatial searches.
+/** It provides:
+ *  - A global pointer to the object found.
+ *  - Distance to the object if IsDistanceCalculated() is true
+ *  - IsObjectFound if for example search nearest fails or not
 */
 template <typename TObjectType>
 class SpatialSearchResult
@@ -72,7 +59,8 @@ public:
 
     /// Default constructor.
    	SpatialSearchResult() : mpObject(nullptr), mDistance(0.00), mIsObjectFound(false), mIsDistanceCalculated(false) {}
-       
+
+    /// Constructor with the resulted object   
 	SpatialSearchResult(TObjectType* pObject) : mpObject(pObject), mDistance(0.00), mIsObjectFound(false), mIsDistanceCalculated(false) {
 		if (mpObject.get() != nullptr)
 			mIsObjectFound = true;
@@ -107,13 +95,28 @@ public:
     ///@name Access
     ///@{
 
-	TPointerType Get() { return mpObject; }
-	TPointerType const Get() const { return mpObject; }
+    /// Returns the global pointer to the object
+	TPointerType Get() { 
+        return mpObject; 
+    }
+    
+    /// Returns a const global pointer to the object
+	TPointerType const Get() const { 
+        return mpObject; 
+    }
+
+    /// Set the object to be pointed
 	void Set(TObjectType* pObject) {
 		mpObject = pObject;
 		mIsObjectFound = true;
 	}
-	double GetDistance() const { return mDistance; }
+
+    /// Getting the result distance
+	double GetDistance() const { 
+        return mDistance; 
+    }
+
+    /// Setting the result distance
 	void SetDistance(double TheDistance) {
 		mDistance = TheDistance;
 		mIsDistanceCalculated = true;
@@ -123,9 +126,15 @@ public:
     ///@name Inquiry
     ///@{
 
-	bool IsObjectFound() const { return mIsObjectFound; }
+    /// Returns true if the object is set 
+	bool IsObjectFound() const { 
+        return mIsObjectFound; 
+    }
 
-	bool IsDistanceCalculated() const { return mIsDistanceCalculated; }
+    /// Returns true if the distance is set
+	bool IsDistanceCalculated() const { 
+        return mIsDistanceCalculated; 
+    }
 
     ///@}
     ///@name Input and output
@@ -157,28 +166,9 @@ private:
 	bool mIsDistanceCalculated;
 
     ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
     ///@name Private Operations
     ///@{
 
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
 
     ///@}
 
