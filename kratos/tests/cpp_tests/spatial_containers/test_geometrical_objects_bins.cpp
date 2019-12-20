@@ -25,29 +25,17 @@
 namespace Kratos {
 namespace Testing {
 
-
-    /** Checks bins bounding box
-    */
-    KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsBoundingBox, KratosFastSuite) {
-        constexpr double tolerance = 1e-12;
-
-        Model current_model;
-
-        const double cube_x = 0.6;
-        const double cube_y = 0.9;
-        const double cube_z = 0.3;
-
+    ModelPart& CreateCubeSkinModelPart(Model& CurrentModel, double HalfX, double HalfY, double HalfZ){
         // Generate the cube skin
-        ModelPart& skin_part = current_model.CreateModelPart("Skin");
-        skin_part.AddNodalSolutionStepVariable(VELOCITY);
-        skin_part.CreateNewNode(1, -cube_x, -cube_y, -cube_z);
-        skin_part.CreateNewNode(2,  cube_x, -cube_y, -cube_z);
-        skin_part.CreateNewNode(3,  cube_x,  cube_y, -cube_z);
-        skin_part.CreateNewNode(4, -cube_x,  cube_y, -cube_z);
-        skin_part.CreateNewNode(5, -cube_x, -cube_y,  cube_z);
-        skin_part.CreateNewNode(6,  cube_x, -cube_y,  cube_z);
-        skin_part.CreateNewNode(7,  cube_x,  cube_y,  cube_z);
-        skin_part.CreateNewNode(8, -cube_x,  cube_y,  cube_z);
+        ModelPart& skin_part = CurrentModel.CreateModelPart("Skin");
+        skin_part.CreateNewNode(1, -HalfX, -HalfY, -HalfZ);
+        skin_part.CreateNewNode(2,  HalfX, -HalfY, -HalfZ);
+        skin_part.CreateNewNode(3,  HalfX,  HalfY, -HalfZ);
+        skin_part.CreateNewNode(4, -HalfX,  HalfY, -HalfZ);
+        skin_part.CreateNewNode(5, -HalfX, -HalfY,  HalfZ);
+        skin_part.CreateNewNode(6,  HalfX, -HalfY,  HalfZ);
+        skin_part.CreateNewNode(7,  HalfX,  HalfY,  HalfZ);
+        skin_part.CreateNewNode(8, -HalfX,  HalfY,  HalfZ);
         Properties::Pointer p_properties(new Properties(0));
         skin_part.CreateNewElement("Element3D3N",  1, { 1,2,3 }, p_properties);
         skin_part.CreateNewElement("Element3D3N",  2, { 1,3,4 }, p_properties);
@@ -61,6 +49,23 @@ namespace Testing {
         skin_part.CreateNewElement("Element3D3N", 10, { 3,8,7 }, p_properties);
         skin_part.CreateNewElement("Element3D3N", 11, { 2,1,5 }, p_properties);
         skin_part.CreateNewElement("Element3D3N", 12, { 2,5,6 }, p_properties);
+
+        return skin_part;
+    }
+
+    /** Checks bins bounding box
+    */
+    KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsBoundingBox, KratosFastSuite) {
+        constexpr double tolerance = 1e-12;
+
+        Model current_model;
+
+        const double cube_x = 0.6;
+        const double cube_y = 0.9;
+        const double cube_z = 0.3;
+
+        // Generate the cube skin
+        ModelPart& skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
 
         GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd());
 
@@ -86,29 +91,7 @@ namespace Testing {
         const double cube_z = 0.3;
 
         // Generate the cube skin
-        ModelPart& skin_part = current_model.CreateModelPart("Skin");
-        skin_part.AddNodalSolutionStepVariable(VELOCITY);
-        skin_part.CreateNewNode(1, -cube_x, -cube_y, -cube_z);
-        skin_part.CreateNewNode(2,  cube_x, -cube_y, -cube_z);
-        skin_part.CreateNewNode(3,  cube_x,  cube_y, -cube_z);
-        skin_part.CreateNewNode(4, -cube_x,  cube_y, -cube_z);
-        skin_part.CreateNewNode(5, -cube_x, -cube_y,  cube_z);
-        skin_part.CreateNewNode(6,  cube_x, -cube_y,  cube_z);
-        skin_part.CreateNewNode(7,  cube_x,  cube_y,  cube_z);
-        skin_part.CreateNewNode(8, -cube_x,  cube_y,  cube_z);
-        Properties::Pointer p_properties(new Properties(0));
-        skin_part.CreateNewElement("Element3D3N",  1, { 1,2,3 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  2, { 1,3,4 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  3, { 5,6,7 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  4, { 5,7,8 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  5, { 3,6,2 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  6, { 3,7,6 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  7, { 4,5,1 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  8, { 4,8,5 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  9, { 3,4,8 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N", 10, { 3,8,7 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N", 11, { 2,1,5 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N", 12, { 2,5,6 }, p_properties);
+        ModelPart& skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
 
         GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd());
 
@@ -134,29 +117,7 @@ namespace Testing {
         const double cube_z = 0.3;
 
         // Generate the cube skin
-        ModelPart& skin_part = current_model.CreateModelPart("Skin");
-        skin_part.AddNodalSolutionStepVariable(VELOCITY);
-        skin_part.CreateNewNode(1, -cube_x, -cube_y, -cube_z);
-        skin_part.CreateNewNode(2,  cube_x, -cube_y, -cube_z);
-        skin_part.CreateNewNode(3,  cube_x,  cube_y, -cube_z);
-        skin_part.CreateNewNode(4, -cube_x,  cube_y, -cube_z);
-        skin_part.CreateNewNode(5, -cube_x, -cube_y,  cube_z);
-        skin_part.CreateNewNode(6,  cube_x, -cube_y,  cube_z);
-        skin_part.CreateNewNode(7,  cube_x,  cube_y,  cube_z);
-        skin_part.CreateNewNode(8, -cube_x,  cube_y,  cube_z);
-        Properties::Pointer p_properties(new Properties(0));
-        skin_part.CreateNewElement("Element3D3N",  1, { 1,2,3 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  2, { 1,3,4 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  3, { 5,6,7 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  4, { 5,7,8 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  5, { 3,6,2 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  6, { 3,7,6 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  7, { 4,5,1 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  8, { 4,8,5 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  9, { 3,4,8 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N", 10, { 3,8,7 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N", 11, { 2,1,5 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N", 12, { 2,5,6 }, p_properties);
+        ModelPart& skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
 
         GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd());
 
@@ -185,29 +146,7 @@ namespace Testing {
         const double cube_z = 0.3;
 
         // Generate the cube skin
-        ModelPart& skin_part = current_model.CreateModelPart("Skin");
-        skin_part.AddNodalSolutionStepVariable(VELOCITY);
-        skin_part.CreateNewNode(1, -cube_x, -cube_y, -cube_z);
-        skin_part.CreateNewNode(2,  cube_x, -cube_y, -cube_z);
-        skin_part.CreateNewNode(3,  cube_x,  cube_y, -cube_z);
-        skin_part.CreateNewNode(4, -cube_x,  cube_y, -cube_z);
-        skin_part.CreateNewNode(5, -cube_x, -cube_y,  cube_z);
-        skin_part.CreateNewNode(6,  cube_x, -cube_y,  cube_z);
-        skin_part.CreateNewNode(7,  cube_x,  cube_y,  cube_z);
-        skin_part.CreateNewNode(8, -cube_x,  cube_y,  cube_z);
-        Properties::Pointer p_properties(new Properties(0));
-        skin_part.CreateNewElement("Element3D3N",  1, { 1,2,3 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  2, { 1,3,4 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  3, { 5,6,7 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  4, { 5,7,8 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  5, { 3,6,2 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  6, { 3,7,6 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  7, { 4,5,1 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  8, { 4,8,5 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N",  9, { 3,4,8 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N", 10, { 3,8,7 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N", 11, { 2,1,5 }, p_properties);
-        skin_part.CreateNewElement("Element3D3N", 12, { 2,5,6 }, p_properties);
+        ModelPart& skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
 
         GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd());
 
@@ -233,5 +172,46 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(results.size(), 12);
     }
  
+    /** Checks bins search nearest
+    */
+    KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearest, KratosFastSuite) {
+        constexpr double tolerance = 1e-12;
+
+        Model current_model;
+
+        const double cube_x = 0.6;
+        const double cube_y = 0.9;
+        const double cube_z = 0.3;
+
+        // Generate the cube skin
+        ModelPart& skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
+
+        GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd());
+
+        Point center_point{0.00,0.00,0.00};
+        auto result = bins.SearchNearest(center_point);
+
+        KRATOS_CHECK_NEAR(result.GetDistance(), cube_z, tolerance);
+        
+        std::size_t id = result.Get()->Id();
+        KRATOS_CHECK((id == 1) ||(id == 2) ||(id == 3) ||(id == 4)); 
+   }
+
+    /** Checks bins empty search nearest 
+    */
+    KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsEmptySearchNearest, KratosFastSuite) {
+        Model current_model;
+
+        // Generate the cube skin
+        ModelPart& skin_part = current_model.CreateModelPart("Skin");
+
+        GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd());
+
+        Point center_point{0.00,0.00,0.00};
+        auto result = bins.SearchNearest(center_point);
+
+        KRATOS_CHECK_IS_FALSE(result.IsObjectFound());
+    }
+
 } // namespace Testing.
 } // namespace Kratos.
