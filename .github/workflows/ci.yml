@@ -9,17 +9,26 @@ on:
     - 'CMakeLists.txt'
     - 'external_libraries/**'
     - 'kratos/**'
-    - 'applications/FluidDynamicsApplication/**'
-    - 'applications/StructuralMechanicsApplication/**'
-    - 'applications/DEMApplication/**'
-    - 'applications/MeshMovingApplication/**'
-    - 'applications/CSharpWrapperApplication/**'
-    - 'applications/MetisApplication/**'
-    - 'applications/TrilinosApplication/**'
-    - 'applications/ExternalSolversApplication/**'
+    - 'applications/CableNetApplication/**'
+    - 'applications/CompressiblePotentialFlowApplication/**'
     - 'applications/ContactStructuralMechanicsApplication/**'
+    - 'applications/CoSimulationApplication/**'
+    - 'applications/CSharpWrapperApplication/**'
+    - 'applications/DEMApplication/**'
+    - 'applications/EigenSolversApplication/**'
+    - 'applications/ExternalSolversApplication/**'
+    - 'applications/FluidDynamicsApplication/**'
+    - 'applications/FSIApplication/**'
+    - 'applications/MappingApplication/**'
     - 'applications/MeshingApplication/**'
+    - 'applications/MeshMovingApplication/**'
+    - 'applications/MetisApplication/**'
+    - 'applications/RANSApplication/**'
+    - 'applications/ShapeOptimizationApplication/**'
+    - 'applications/StructuralMechanicsApplication/**'
     - 'applications/SwimmingDEMApplication/**'
+    - 'applications/TrilinosApplication/**'
+
   schedule:
     - cron:  '0 1 * * *'
 
@@ -41,6 +50,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2-beta
+
     - name: Cache Build
       id: cache-build
       uses: actions/cache@v1
@@ -48,16 +58,26 @@ jobs:
         path: ~/.ccache
         key: ${{ runner.os }}-ccache-${{ github.sha }}
         restore-keys: ${{ runner.os }}-ccache-
+
     - name: Build
       run: |
-        cp scripts/build/travis/configure_travis_bionic.sh configure.sh
+        cp .github/workflows/configure.sh configure.sh
         bash configure.sh
         ccache -s
-    - name: Test
+
+    - name: Running small tests
+      if: github.event_name == 'pull_request'
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/run_tests.py -l small -c python3
+
+    - name: Running nightly tests
+      if: github.event_name == 'schedule' # this is the nightly build
+      run: |
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3 kratos/python_scripts/run_tests.py -l nightly -c python3
 
   windows:
     runs-on: windows-latest
