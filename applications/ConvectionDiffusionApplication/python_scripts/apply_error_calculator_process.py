@@ -51,11 +51,11 @@ class ApplyErrorCalculatorProcess(KratosMultiphysics.Process):
         else:
             self.error_calc = KratosConvDiff.MetricsTemperatureGradientProcess3D(self.model_part, error_calc_params)
         
-        remesh_params = KratosMultiphysics.Parameters("""{}""")
-        if (self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            self.remesh_process = KratosMesh.MmgProcess2D(self.model_part, remesh_params)
-        else:
-            self.remesh_process = KratosMesh.MmgProcess3D(self.model_part, remesh_params)
+        # remesh_params = KratosMultiphysics.Parameters("""{}""")
+        # if (self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+        #     self.remesh_process = KratosMesh.MmgProcess2D(self.model_part, remesh_params)
+        # else:
+        #     self.remesh_process = KratosMesh.MmgProcess3D(self.model_part, remesh_params)
     
     def ExecuteInitialize(self):
         pass
@@ -81,7 +81,7 @@ class ApplyErrorCalculatorProcess(KratosMultiphysics.Process):
         if not self.historical_results:
             # We execute our process
             self.error_calc.Execute()
-        self.remesh_process.Execute()
+        #self.remesh_process.Execute()
 
     def Clear(self):
         pass
