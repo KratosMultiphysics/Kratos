@@ -39,6 +39,7 @@ add_app ${KRATOS_APP_DIR}/RANSApplication;
 add_app ${KRATOS_APP_DIR}/MappingApplication;
 add_app ${KRATOS_APP_DIR}/FSIApplication;
 add_app ${KRATOS_APP_DIR}/MeshingApplication;
+add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
 
 # Clean
 clear
