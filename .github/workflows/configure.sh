@@ -34,6 +34,7 @@ add_app ${KRATOS_APP_DIR}/MetisApplication;
 add_app ${KRATOS_APP_DIR}/TrilinosApplication;
 add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
 add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
+add_app ${KRATOS_APP_DIR}/CableNetApplication;
 
 # Clean
 clear
