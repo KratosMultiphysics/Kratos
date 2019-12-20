@@ -144,7 +144,7 @@ void ConservedElement<TNumNodes>::CalculateLocalSystem(
         this->BuildAuxiliaryMatrices(N, DN_DX, variables);
 
         this->AddInertiaTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
-        this->AddConvectiveTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
+        // this->AddConvectiveTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
         this->AddWaveTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
         this->AddFrictionTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
         this->AddStabilizationTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
@@ -250,6 +250,7 @@ void ConservedElement<TNumNodes>::CalculateElementValues(
     rVariables.velocity = ZeroVector(3);
     rVariables.momentum_div = 0.0;
     rVariables.velocity_div = 0.0;
+    rVariables.height_grad = ZeroVector(2);
 
     GeometryType& geom = GetGeometry();
 
@@ -267,8 +268,12 @@ void ConservedElement<TNumNodes>::CalculateElementValues(
 
         for (size_t g = 0; g < TNumNodes; ++g)
         {
+            rVariables.momentum_div += rDN_DXContainer[g](i,0) * geom[i].FastGetSolutionStepValue(MOMENTUM_X);
+            rVariables.momentum_div += rDN_DXContainer[g](i,1) * geom[i].FastGetSolutionStepValue(MOMENTUM_Y);
             rVariables.velocity_div += rDN_DXContainer[g](i,0) * geom[i].FastGetSolutionStepValue(VELOCITY_X);
             rVariables.velocity_div += rDN_DXContainer[g](i,1) * geom[i].FastGetSolutionStepValue(VELOCITY_Y);
+            rVariables.height_grad[0] += rDN_DXContainer[g](i,0) * geom[i].FastGetSolutionStepValue(HEIGHT);
+            rVariables.height_grad[1] += rDN_DXContainer[g](i,1) * geom[i].FastGetSolutionStepValue(HEIGHT);
         }
     }
 
@@ -276,8 +281,11 @@ void ConservedElement<TNumNodes>::CalculateElementValues(
     rVariables.height *= rVariables.lumping_factor;
     rVariables.height = std::max(rVariables.height, 0.0);
     rVariables.momentum *= rVariables.lumping_factor;
+    rVariables.momentum_div *= rVariables.lumping_factor;
     rVariables.velocity_div *= rVariables.lumping_factor;
+    rVariables.height_grad *= rVariables.lumping_factor;
     rVariables.wave_vel_2 = rVariables.gravity * rVariables.height;
+    if (rVariables.height < rVariables.epsilon) rVariables.velocity *= 0.0;
 }
 
 
@@ -292,8 +300,16 @@ void ConservedElement<TNumNodes>::ComputeStabilizationParameters(
     const double CTau = rVariables.dyn_tau;
 
     // Wave mixed form stabilization
-    rTauQ = CTau * elem_size * std::sqrt(rVariables.wave_vel_2);
-    rTauH = CTau * elem_size / (std::sqrt(rVariables.wave_vel_2) + rVariables.epsilon);
+    double vel = norm_2(rVariables.velocity)*0;
+    double c = std::sqrt(rVariables.wave_vel_2);
+    rTauQ = CTau * elem_size * (c + vel);
+    rTauH = CTau * elem_size / (c + rVariables.epsilon);
+
+    // Discontinuity capturing
+    const double mom_div_norm = std::abs(rVariables.momentum_div);
+    const double surface_grad_norm = norm_2(rVariables.height_grad);
+    rTauQ += 0.5 * 0.1 * elem_size * mom_div_norm;
+    rTauH += 0.5 * 0.1 * elem_size * surface_grad_norm;
 }
 
 
@@ -342,8 +358,10 @@ void ConservedElement<TNumNodes>::AddInertiaTerms(
     LocalMatrixType mass_matrix;
     mass_matrix = prod(trans(rVariables.N_v), rVariables.N_v); // <v, v>
     mass_matrix += outer_prod(rVariables.N_f, rVariables.N_f); // <f, f>
-    rLeftHandSideMatrix += rVariables.dt_inv * mass_matrix;
-    rRightHandSideVector += rVariables.dt_inv * prod(mass_matrix, rVariables.prev_unk);
+    if (rVariables.height > rVariables.epsilon) {
+        rLeftHandSideMatrix += rVariables.dt_inv * mass_matrix;
+        rRightHandSideVector += rVariables.dt_inv * prod(mass_matrix, rVariables.prev_unk);
+    }
 }
 
 
@@ -383,7 +401,9 @@ void ConservedElement<TNumNodes>::AddFrictionTerms(
     const double q = norm_2(rVariables.momentum) + rVariables.epsilon;
     const double h73 = std::pow(rVariables.height, 2.333333333333333) + rVariables.epsilon;
     LocalMatrixType vector_mass_matrix = prod(trans(rVariables.N_v), rVariables.N_v); // <v, v>
-    rLeftHandSideMatrix += rVariables.gravity * rVariables.manning2 * q / h73 * vector_mass_matrix;
+    double friction_factor = rVariables.gravity * rVariables.manning2 * q / h73;
+    if (rVariables.height < rVariables.epsilon) friction_factor = 1.0e6;
+    rLeftHandSideMatrix += friction_factor * vector_mass_matrix;
 }
 
 
@@ -411,20 +431,28 @@ void ConservedElement<TNumNodes>::AddStabilizationTerms(
     rLeftHandSideMatrix += tau_q * rVariables.gravity * rVariables.manning2 * q / h73 * friction_stab;
 
     // Dynamic stabilization
-    const double dt_inv = rVariables.dt_inv;
-    LocalMatrixType v_mass_subscale = prod(trans(rVariables.Grad_f), rVariables.N_v);
-    LocalMatrixType f_mass_subscale = outer_prod(rVariables.Div_v, rVariables.N_f);
-    rLeftHandSideMatrix += tau_q * dt_inv * v_mass_subscale;
-    rLeftHandSideMatrix += tau_h * dt_inv * f_mass_subscale;
-    rRightHandSideVector += tau_q * dt_inv * prod(v_mass_subscale, rVariables.prev_unk);
-    rRightHandSideVector += tau_h * dt_inv * prod(f_mass_subscale, rVariables.prev_unk);
+    if (rVariables.height > rVariables.epsilon)
+    {
+        const double dt_inv = rVariables.dt_inv;
+        LocalMatrixType v_mass_subscale = prod(trans(rVariables.Grad_f), rVariables.N_v);
+        LocalMatrixType f_mass_subscale = outer_prod(rVariables.Div_v, rVariables.N_f);
+        rLeftHandSideMatrix += tau_q * dt_inv * v_mass_subscale;
+        rLeftHandSideMatrix += tau_h * dt_inv * f_mass_subscale;
+        rRightHandSideVector += tau_q * dt_inv * prod(v_mass_subscale, rVariables.prev_unk);
+        rRightHandSideVector += tau_h * dt_inv * prod(f_mass_subscale, rVariables.prev_unk);
+    }
+    else {
+        // Stationary stabilization
+        rLeftHandSideMatrix += 1.0e6 * f_grad_subscale;
+        rLeftHandSideMatrix += 1.0e6 * v_div_subscale;
+    }
 
-    // Convection stabilization
-    BoundedMatrix<double,2, rVariables.LocalSize> convection_operator;
-    convection_operator = rVariables.velocity[0] * rVariables.Grad_v1;
-    convection_operator += rVariables.velocity[1] * rVariables.Grad_v2;
-    rLeftHandSideMatrix += tau_q * prod(trans(rVariables.Grad_f), convection_operator);
-    rLeftHandSideMatrix += tau_q * rVariables.velocity_div * prod(trans(rVariables.Grad_f), rVariables.N_v);
+    // // Convection stabilization
+    // BoundedMatrix<double,2, rVariables.LocalSize> convection_operator;
+    // convection_operator = rVariables.velocity[0] * rVariables.Grad_v1;
+    // convection_operator += rVariables.velocity[1] * rVariables.Grad_v2;
+    // rLeftHandSideMatrix += tau_q * prod(trans(rVariables.Grad_f), convection_operator);
+    // rLeftHandSideMatrix += tau_q * rVariables.velocity_div * prod(trans(rVariables.Grad_f), rVariables.N_v);
 }
 
 
