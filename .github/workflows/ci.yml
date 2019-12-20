@@ -45,6 +45,7 @@ jobs:
         FC: gfortran-7
         CC: /usr/lib/ccache/gcc
         CXX: /usr/lib/ccache/g++
+        GCC_COLORS: always
 
     steps:
     - uses: actions/checkout@v2-beta
