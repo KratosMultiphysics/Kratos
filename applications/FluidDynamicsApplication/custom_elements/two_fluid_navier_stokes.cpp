@@ -107,7 +107,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 
             bool has_contact_line = false;
 
-            const double surface_tension_coefficient = 1.0;//0.072; //Surface tension coefficient, TODO: get from properties
+            const double surface_tension_coefficient = 0.1;//0.072; //Surface tension coefficient, TODO: get from properties
             
             ComputeSplitting(
                 data,
@@ -133,19 +133,6 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 
             CalculateCurvature(int_shape_derivatives_neg, gauss_pts_curvature);
             //KRATOS_INFO("Curvature") << gauss_pts_curvature << std::endl;
-
-            //SurfaceTension(surface_tension_coefficient,gauss_pts_curvature,int_gauss_pts_weights,int_normals_neg,surface_tension);
-            SurfaceTension(
-                surface_tension_coefficient,
-                gauss_pts_curvature,
-                int_gauss_pts_weights,
-                int_shape_function_neg,
-                int_normals_neg,
-                contact_gauss_pts_weights,
-                contact_shape_function_neg,
-                contact_tangential_neg,
-                has_contact_line,
-                rRightHandSideVector);
 
             if (data.NumberOfDivisions == 1){
                 // Cases exist when the element is not subdivided due to the characteristics of the provided distance
@@ -197,6 +184,34 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
                     ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
                 }
+
+                //SurfaceTension(surface_tension_coefficient,gauss_pts_curvature,int_gauss_pts_weights,int_normals_neg,surface_tension);
+                /* SurfaceTension(
+                surface_tension_coefficient,
+                gauss_pts_curvature,
+                int_gauss_pts_weights,
+                int_shape_function_neg,
+                int_normals_neg,
+                contact_gauss_pts_weights,
+                contact_shape_function_neg,
+                contact_tangential_neg,
+                has_contact_line,
+                rRightHandSideVector); */
+
+                /* SurfaceTension(
+                    surface_tension_coefficient,
+                    int_gauss_pts_weights,
+                    int_shape_function_neg,
+                    int_shape_derivatives_neg,
+                    int_normals_neg,
+                    rRightHandSideVector); */
+
+                SurfaceTension(
+                    surface_tension_coefficient,
+                    int_gauss_pts_weights,
+                    int_shape_function_neg,
+                    int_shape_derivatives_neg,
+                    rRightHandSideVector);
 
                 PressureDiscontinuity(
                     surface_tension_coefficient,
@@ -2295,7 +2310,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateCurvature(
 
         const double curvature = DGradPhiX_DX + DGradPhiY_DY + DGradPhiY_DZ;
 
-        rInterfaceCurvature[gpt] = curvature;//4.0;
+        rInterfaceCurvature[gpt] = curvature;//937.500146484;
     }
 }
 
@@ -2493,7 +2508,105 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
     }
 
     noalias(rRHS) += rhs;
-} 
+}
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::SurfaceTension(
+        const double coefficient,
+        const Kratos::Vector& rIntWeights,
+        const Matrix& rIntShapeFunctions,
+        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
+        const std::vector<Vector>& rIntNormalsNeg,
+        VectorType& rRHS)
+{
+    const unsigned int NumGP = rIntShapeFunctions.size1();
+    const unsigned int NumNodes = rIntShapeFunctions.size2();
+    const unsigned int NumDim = rIntNormalsNeg[0].size();
+
+    VectorType rhs = ZeroVector(NumNodes*(NumDim+1));
+
+    for (unsigned int gp = 0; gp < NumGP; gp++){
+
+        MatrixType P_gp = ZeroMatrix(NumDim, NumDim);
+
+        for (unsigned int dimi = 0; dimi < NumDim; dimi++){
+            for (unsigned int dimj = 0; dimj < NumDim; dimj++){
+                P_gp(dimi, dimj) = -(rIntNormalsNeg[gp])(dimi)*(rIntNormalsNeg[gp])(dimj);
+            }
+            P_gp(dimi, dimi) += 1;
+        }
+        //KRATOS_INFO("P Matrix") << P_gp << std::endl;
+
+        for (unsigned int i = 0; i < NumNodes; i++){           
+            for (unsigned int dimi = 0; dimi < NumDim; dimi++){
+                for (unsigned int dimj = 0; dimj < NumDim; dimj++){                    
+                    rhs[ i*(NumDim+1) + dimi ] -= coefficient*P_gp(dimi, dimj)*(rInterfaceShapeDerivativesNeg[gp])(i,dimj)*rIntWeights(gp);
+                }
+            }
+        }
+    }
+
+    noalias(rRHS) += rhs;
+}
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::SurfaceTension(
+        const double coefficient,
+        const Kratos::Vector& rIntWeights,
+        const Matrix& rIntShapeFunctions,
+        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
+        VectorType& rRHS)
+{
+
+    const unsigned int NumGP = rIntShapeFunctions.size1();
+    const unsigned int NumNodes = rIntShapeFunctions.size2();
+    const unsigned int NumDim = rInterfaceShapeDerivativesNeg[0].size2();
+
+    VectorType rhs = ZeroVector(NumNodes*(NumDim+1));
+
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+
+    for (unsigned int gp = 0; gp < NumGP; gp++){
+
+        MatrixType P_gp = ZeroMatrix(NumDim, NumDim);
+
+        VectorType normal_gp = ZeroVector(NumDim);
+
+        for (unsigned int i=0; i < NumNodes; ++i){
+            for (unsigned int dim = 0; dim < NumDim; dim++){
+                normal_gp(dim) += (*p_geom)[i].FastGetSolutionStepValue(DISTANCE)*(rInterfaceShapeDerivativesNeg[gp])(i,dim);
+            }
+        }
+
+        double norm = 0.0;
+
+        for (unsigned int dim = 0; dim < NumDim; dim++){
+           norm += normal_gp(dim)*normal_gp(dim);
+        }
+
+        norm = std::sqrt(norm);
+        normal_gp = (1.0/norm)*normal_gp;
+
+        for (unsigned int dimi = 0; dimi < NumDim; dimi++){
+            for (unsigned int dimj = 0; dimj < NumDim; dimj++){
+                P_gp(dimi, dimj) = -normal_gp(dimi)*normal_gp(dimj);
+            }
+            P_gp(dimi, dimi) += 1;
+        }
+        //KRATOS_INFO("P Matrix") << P_gp << std::endl;
+
+        for (unsigned int i = 0; i < NumNodes; i++){           
+            for (unsigned int dimi = 0; dimi < NumDim; dimi++){
+                for (unsigned int dimj = 0; dimj < NumDim; dimj++){                    
+                    rhs[ i*(NumDim+1) + dimi ] -= coefficient*P_gp(dimi, dimj)*(rInterfaceShapeDerivativesNeg[gp])(i,dimj)*rIntWeights(gp);
+                }
+            }
+        }
+    }
+
+    noalias(rRHS) += rhs;
+
+}
 
 template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::SurfaceTension(
@@ -2566,7 +2679,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 
                 for (unsigned int dim = 0; dim < NumDim; dim++){
                     rhs[ j*(NumDim+1) + dim ] -= coefficient*contact_vector[dim]*rCLWeights(clgp)*rCLShapeFunctions(clgp,j);
-                    rhs[ j*(NumDim+1) + dim ] -= 0.5*coefficient*wall_tangent[dim]*rCLWeights(clgp)*rCLShapeFunctions(clgp,j);
+                    rhs[ j*(NumDim+1) + dim ] -= 0.0*coefficient*wall_tangent[dim]*rCLWeights(clgp)*rCLShapeFunctions(clgp,j);
                     //KRATOS_INFO("Cut Element, has contact line, CLShapeFunction") << rCLShapeFunctions(clgp,j) << std::endl;
                     //KRATOS_INFO("Cut Element, has contact line, RHS") << rhs[ j*(NumDim+1) + dim ] << std::endl;               
                 }
@@ -2652,6 +2765,8 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
         double det;
         MatrixType inverse_diag(NumNodes, NumNodes);
         MathUtils<double>::InvertMatrix(rKeeTot, inverse_diag, det);
+
+        //KRATOS_INFO("Condensation, InvertMatrix") << prod(inverse_diag, rKeeTot) << std::endl;
 
         const Matrix tmp = prod(inverse_diag, rHtot);
         noalias(rLeftHandSideMatrix) -= prod(rVtot, tmp);

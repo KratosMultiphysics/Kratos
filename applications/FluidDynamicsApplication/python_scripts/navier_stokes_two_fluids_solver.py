@@ -171,8 +171,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     self.main_model_part, 
                     KratosMultiphysics.DISTANCE, 
                     KratosCFD.AREA_VARIABLE_AUX, 
-                    100, 
-                    5.0,
+                    500, 
+                    0.01,
                     (self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
         self.variational_distance_process = self._set_variational_distance_process()
@@ -206,8 +206,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["formulation"]["dynamic_tau"].GetDouble())
 
-        for node in (self.main_model_part.GetSubModelPart("NoSlip3D_No_Slip_Auto1")).Nodes:
-            node.SetValue(KratosMultiphysics.IS_STRUCTURE, 1.0)
+        #for node in (self.main_model_part.GetSubModelPart("NoSlip3D_No_Slip_Auto1")).Nodes:
+        #    node.SetValue(KratosMultiphysics.IS_STRUCTURE, 1.0)
             #NodeId = node.Id
             #KratosMultiphysics.Logger.PrintInfo("Wall", NodeId)
         #Set IS_STRUCTURE to define contact line.
@@ -249,7 +249,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     KratosMultiphysics.DISTANCE, 
                     KratosCFD.AREA_VARIABLE_AUX, 
                     100, 
-                    5.0)#,
+                    0.01)#,
                     #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
             # Compute the DISTANCE_GRADIENT on nodes
@@ -409,7 +409,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #Calculate DISTANCE_GRADIENT at nodes using ComputeNodalGradientProcess
         distance_gradient_process = KratosMultiphysics.ComputeNodalGradientProcess(
                 self.main_model_part, 
-                KratosMultiphysics.DISTANCE, #KratosCFD.DISTANCE_AUX,
+                KratosMultiphysics.DISTANCE,  #KratosCFD.DISTANCE_AUX,
                 KratosMultiphysics.DISTANCE_GRADIENT, 
                 KratosMultiphysics.NODAL_AREA)
 

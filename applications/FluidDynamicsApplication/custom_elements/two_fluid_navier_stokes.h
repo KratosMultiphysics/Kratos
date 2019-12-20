@@ -612,6 +612,40 @@ private:
         VectorType& rRHS);
 
     /**
+     * @brief Computes the surface tension on the interface and implement its effect on the RHS vector
+     * Curvature is implicit in the formulation
+     * @param coefficient surface tension coefficient
+     * @param rIntWeights Weights associated with interface gauss points
+     * @param rIntShapeFunctions Shape functions calculated at the interface gauss points
+     * @param rInterfaceShapeDerivativesNeg Negative side shape functions derivatives at the interface-gauss-points
+     * @param rIntNormalsNeg Normal vectors (negative side) associated with interface gauss points
+     * @param rRHS The effect of pressure discontinuity is implemented as an interfacial integral on the RHS
+     */
+	void SurfaceTension(
+        const double coefficient,
+        const Kratos::Vector& rIntWeights,
+        const Matrix& rIntShapeFunctions,
+        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
+        const std::vector<Vector>& rIntNormalsNeg,
+        VectorType& rRHS); 
+
+    /**
+     * @brief Computes the surface tension on the interface and implement its effect on the RHS vector
+     * Curvature is implicit in the formulation and normal vector is calculated from distance
+     * @param coefficient surface tension coefficient
+     * @param rIntWeights Weights associated with interface gauss points
+     * @param rIntShapeFunctions Shape functions calculated at the interface gauss points
+     * @param rInterfaceShapeDerivativesNeg Negative side shape functions derivatives at the interface-gauss-points
+     * @param rRHS The effect of pressure discontinuity is implemented as an interfacial integral on the RHS
+     */
+	void SurfaceTension(
+        const double coefficient,
+        const Kratos::Vector& rIntWeights,
+        const Matrix& rIntShapeFunctions,
+        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
+        VectorType& rRHS); 
+
+    /**
      * @brief Condense the enrichment
      * This method performs the static condensation of the enrichment terms, by adding
      * its local contributions to both the LHS and RHS elemental matrices.
