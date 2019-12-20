@@ -78,7 +78,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "Structure.Structure.ROTATION_XZ_sym",
+            "model_part_name" : "Structure.ROTATION_XZ_sym",
             "variable_name"   : "ROTATION",
             "constrained"     : [true,false,true],
             "value"           : [0.0,0.0,0.0],
@@ -91,7 +91,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "Structure.Structure.ROTATION_YZ_sym",
+            "model_part_name" : "Structure.ROTATION_YZ_sym",
             "variable_name"   : "ROTATION",
             "constrained"     : [false,true,true],
             "value"           : [0.0,0.0,0.0],
