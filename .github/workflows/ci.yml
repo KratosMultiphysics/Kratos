@@ -9,6 +9,7 @@ on:
     - 'CMakeLists.txt'
     - 'external_libraries/**'
     - 'kratos/**'
+    - 'applications/CableNetApplication/**'
     - 'applications/ContactStructuralMechanicsApplication/**'
     - 'applications/CoSimulationApplication/**'
     - 'applications/CSharpWrapperApplication/**'
