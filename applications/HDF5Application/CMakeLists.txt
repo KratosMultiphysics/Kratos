@@ -108,10 +108,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Cotire
-if(USE_COTIRE MATCHES ON)
+# if(USE_COTIRE MATCHES ON)
 # Cotire does not play nice with anonymous namespaces, which is part of the C++ standard, hence disabling it
 #   cotire(KratosHDF5Application)
-endif(USE_COTIRE MATCHES ON)
+# endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/HDF5Application.py KratosMultiphysics/HDF5Application/__init__.py )
