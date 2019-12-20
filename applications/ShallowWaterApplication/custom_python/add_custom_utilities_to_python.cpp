@@ -70,6 +70,8 @@ namespace Python
         .def("ComputeVisualizationWaterHeight", &ShallowWaterUtilities::ComputeVisualizationWaterHeight)
         .def("ComputeVisualizationWaterSurface", &ShallowWaterUtilities::ComputeVisualizationWaterSurface)
         .def("NormalizeVector", &ShallowWaterUtilities::NormalizeVector)
+        .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<double>&>)
+        .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>&>)
         ;
 
     py::class_< EstimateDtShallow > (m, "EstimateDtShallow")

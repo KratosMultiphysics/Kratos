@@ -114,6 +114,17 @@ public:
 
     void NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable);
 
+    template<class TVarType>
+    void CopyVariableToPreviousTimeStep(ModelPart& rModelPart, TVarType& rVariable)
+    {
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+        {
+            auto const it_node = rModelPart.NodesBegin() + i;
+            it_node->FastGetSolutionStepValue(rVariable,1) = it_node->FastGetSolutionStepValue(rVariable);
+        }
+    }
+
     ///@}
     ///@name Access
     ///@{

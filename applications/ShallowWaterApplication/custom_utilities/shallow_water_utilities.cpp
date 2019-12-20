@@ -46,11 +46,13 @@ void ShallowWaterUtilities::ComputeHeightFromFreeSurface(ModelPart& rModelPart)
 
 void ShallowWaterUtilities::ComputeVelocity(ModelPart& rModelPart)
 {
+    const double epsilon = rModelPart.GetProcessInfo()[DRY_HEIGHT];
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
     {
         auto it_node = rModelPart.NodesBegin() + i;
-        it_node->FastGetSolutionStepValue(VELOCITY) = it_node->FastGetSolutionStepValue(MOMENTUM) / it_node->FastGetSolutionStepValue(HEIGHT);
+        const double height = it_node->FastGetSolutionStepValue(HEIGHT);
+        it_node->FastGetSolutionStepValue(VELOCITY) = it_node->FastGetSolutionStepValue(MOMENTUM) / (std::abs(height) + epsilon);
     }
 }
 
