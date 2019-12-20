@@ -153,7 +153,7 @@ void MetricsTemperatureGradientProcess<TDim>::CalculateNodalTempGradient(Vector 
         }
     }
 
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for (int i = 0; i < number_nodes; i++)
     {
         ModelPart::NodeType &r_node = *(mrThisModelPart.NodesBegin() + i);
@@ -285,39 +285,39 @@ void MetricsTemperatureGradientProcess<TDim>::CalculateNodalError(Vector &nodal_
 
     KRATOS_WATCH(max_mElementError);
 
-    // d) Loop over the elements to calculate Nodal Error Projections
-    // for (int i_elem = 0; i_elem < number_elements; i_elem++)
-    // {
-    //     ModelPart::ElementType &r_element = *(mrThisModelPart.ElementsBegin() + i_elem);
-    //     ModelPart::ElementType::GeometryType &r_geometry = r_element.GetGeometry();
-    //     const auto n_nodes = r_geometry.PointsNumber();
+    //d) Loop over the elements to calculate Nodal Error Projections
+    for (int i_elem = 0; i_elem < number_elements; i_elem++)
+    {
+        ModelPart::ElementType &r_element = *(mrThisModelPart.ElementsBegin() + i_elem);
+        ModelPart::ElementType::GeometryType &r_geometry = r_element.GetGeometry();
+        const auto n_nodes = r_geometry.PointsNumber();
 
-    //     Vector GaussWeights;
-    //     Vector DetJ;
-    //     Matrix ShapeFunctions;
-    //     ShapeFunctionDerivativesArrayType ShapeDerivatives;
-    //     unsigned int NumGPoints = 0;
-    //     CalculateGeomData(r_geometry, ShapeFunctions, ShapeDerivatives, DetJ, GaussWeights, NumGPoints);
+        Vector GaussWeights;
+        Vector DetJ;
+        Matrix ShapeFunctions;
+        ShapeFunctionDerivativesArrayType ShapeDerivatives;
+        unsigned int NumGPoints = 0;
+        CalculateGeomData(r_geometry, ShapeFunctions, ShapeDerivatives, DetJ, GaussWeights, NumGPoints);
 
-    //     const Vector &Ncontainer = row(ShapeFunctions, 0);
+        const Vector &Ncontainer = row(ShapeFunctions, 0);
 
-    //     for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
-    //     {
-    //         const int n_id = r_geometry[i_node].Id();
-    //         auto& rNodalArea = nodal_area[mNodeMap.find(n_id)->second];
-    //         if ( rNodalArea != 0.0 || rNodalArea != 1.0)
-    //         {
-    //             if (mHistoricalResults)
-    //             {
-    //                 r_geometry[i_node].FastGetSolutionStepValue(NODAL_ERROR_PROJ) += Ncontainer[i_node] * element_del_sigma[i_elem] / (global_del_sigma * rNodalArea);
-    //             }
-    //             else
-    //             {
-    //                 r_geometry[i_node].GetValue(NODAL_ERROR_PROJ) += Ncontainer[i_node] * element_del_sigma[i_elem] / (global_del_sigma * rNodalArea);
-    //             }
-    //         }
-    //     }
-    // }
+        for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
+        {
+            const int n_id = r_geometry[i_node].Id();
+            auto& rNodalArea = nodal_area[mNodeMap.find(n_id)->second];
+            if ( rNodalArea != 0.0 || rNodalArea != 1.0)
+            {
+                if (mHistoricalResults)
+                {
+                    r_geometry[i_node].FastGetSolutionStepValue(NODAL_ERROR_PROJ) += Ncontainer[i_node] * element_del_sigma[i_elem] / (global_del_sigma * rNodalArea);
+                }
+                else
+                {
+                    r_geometry[i_node].GetValue(NODAL_ERROR_PROJ) += Ncontainer[i_node] * element_del_sigma[i_elem] / (global_del_sigma * rNodalArea);
+                }
+            }
+        }
+    }
 }
 
 template <std::size_t TDim>
@@ -402,7 +402,7 @@ void MetricsTemperatureGradientProcess<TDim>::CalculateMetric()
         it_node->SetValue(METRIC_SCALAR, h_min);
 
         //KRATOS_INFO_IF("MetricErrorProcess", mEchoLevel > 2) << "Node " << it_node->Id() << " has metric: "<< h_min << std::endl;
-        KRATOS_INFO("MetricTemperatureGradientProcess") << "Node " << it_node->Id() << " has metric: " << h_min << std::endl;
+        //KRATOS_INFO("MetricTemperatureGradientProcess") << "Node " << it_node->Id() << " has metric: " << h_min << std::endl;
         OutFile << it_node->Id() << "\t\t" << h_min << "\n";
     }
     OutFile.close();
