@@ -47,6 +47,7 @@ def AssembleTestSuites():
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSdofSolver]))
     if not using_pykratos:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))
+    if not using_pykratos and numpy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPingPong]))
 
 
@@ -70,7 +71,6 @@ def AssembleTestSuites():
     allSuite.addTests(validationSuite)
 
     return suites
-
 
 
 if __name__ == '__main__':

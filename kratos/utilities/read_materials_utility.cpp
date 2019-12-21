@@ -163,7 +163,7 @@ void ReadMaterialsUtility::TrimComponentName(std::string& rLine)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ReadMaterialsUtility::AssingMaterialToProperty(
+void ReadMaterialsUtility::AssignMaterialToProperty(
     const Parameters MaterialData,
     Properties& rProperty
     )
@@ -171,13 +171,13 @@ void ReadMaterialsUtility::AssingMaterialToProperty(
     KRATOS_TRY;
     
     // Assign CL
-    AssingConstitutiveLawToProperty(MaterialData, rProperty);
+    AssignConstitutiveLawToProperty(MaterialData, rProperty);
 
     // Assign variables
-    AssingVariablesToProperty(MaterialData, rProperty);
+    AssignVariablesToProperty(MaterialData, rProperty);
     
     // Assign tables
-    AssingTablesToProperty(MaterialData, rProperty);
+    AssignTablesToProperty(MaterialData, rProperty);
 
     KRATOS_CATCH("");
 }
@@ -185,7 +185,7 @@ void ReadMaterialsUtility::AssingMaterialToProperty(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ReadMaterialsUtility::AssingConstitutiveLawToProperty(
+void ReadMaterialsUtility::AssignConstitutiveLawToProperty(
     const Parameters MaterialData,
     Properties& rProperty
     )
@@ -200,7 +200,7 @@ void ReadMaterialsUtility::AssingConstitutiveLawToProperty(
         cl_parameters["name"].SetString(constitutive_law_name);
 
         KRATOS_ERROR_IF_NOT(KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name)) << "Kratos components missing \"" << constitutive_law_name << "\"" << std::endl;
-        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name).Create(cl_parameters);
+        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name).Create(cl_parameters, rProperty);
         rProperty.SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
     } else {
         KRATOS_INFO("Read materials") << "No constitutive law defined for material ID: " << rProperty.Id() << std::endl;
@@ -212,7 +212,7 @@ void ReadMaterialsUtility::AssingConstitutiveLawToProperty(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ReadMaterialsUtility::AssingVariablesToProperty(
+void ReadMaterialsUtility::AssignVariablesToProperty(
     const Parameters MaterialData,
     Properties& rProperty
     )
@@ -285,7 +285,7 @@ void ReadMaterialsUtility::AssingVariablesToProperty(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ReadMaterialsUtility::AssingTablesToProperty(
+void ReadMaterialsUtility::AssignTablesToProperty(
     const Parameters MaterialData,
     Properties& rProperty
     )
@@ -379,7 +379,7 @@ void ReadMaterialsUtility::CreateSubProperties(
 
             // If existing, assigning the materials
             if (sub_prop.Has("Material")) {
-                AssingMaterialToProperty(sub_prop["Material"], *p_new_sub_prop);
+                AssignMaterialToProperty(sub_prop["Material"], *p_new_sub_prop);
             }
 
             // If existing, recursively creating SubProperties
@@ -449,7 +449,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     }
 
     // Assigning the materials
-    AssingMaterialToProperty(material_data, *p_prop);
+    AssignMaterialToProperty(material_data, *p_prop);
 
     // If existing, creating SubProperties
     if (Data.Has("sub_properties")) {
