@@ -170,7 +170,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * @param MaterialData The parameters containing all the configurations of the materials
      * @param rProperty The reference to the property for which the materials are to be assigned
      */
-    virtual void AssingMaterialToProperty(
+    virtual void AssignMaterialToProperty(
         const Parameters MaterialData,
         Properties& rProperty
         );
@@ -180,7 +180,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * @param MaterialData The parameters containing all the configurations of the materials
      * @param rProperty The reference to the property for which the materials are to be assigned
      */
-    virtual void AssingConstitutiveLawToProperty(
+    virtual void AssignConstitutiveLawToProperty(
         const Parameters MaterialData,
         Properties& rProperty
         );
@@ -190,7 +190,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * @param MaterialData The parameters containing all the configurations of the materials
      * @param rProperty The reference to the property for which the materials are to be assigned
      */
-    virtual void AssingVariablesToProperty(
+    virtual void AssignVariablesToProperty(
         const Parameters MaterialData,
         Properties& rProperty
         );
@@ -200,7 +200,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * @param MaterialData The parameters containing all the configurations of the materials
      * @param rProperty The reference to the property for which the materials are to be assigned
      */
-    virtual void AssingTablesToProperty(
+    virtual void AssignTablesToProperty(
         const Parameters MaterialData,
         Properties& rProperty
         );
