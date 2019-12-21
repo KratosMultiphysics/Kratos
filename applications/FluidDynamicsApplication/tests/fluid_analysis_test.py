@@ -1,3 +1,5 @@
+import sys
+
 import KratosMultiphysics as km
 import KratosMultiphysics.FluidDynamicsApplication as kfd
 
@@ -12,6 +14,7 @@ class FluidAnalysisTest(UnitTest.TestCase):
         # Set to true to get post-process files for the test
         self.print_output = False
 
+    @UnitTest.skipIf(sys.version_info < (3,0), "this test only runs in Python 3")
     def testFluidDynamicsAnalysis(self):
         work_folder = "CylinderTest"
         settings_file_name = "cylinder_fluid_parameters.json"
