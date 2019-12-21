@@ -145,7 +145,7 @@ void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
             .def("UpdateInterface",  &MapperType::UpdateInterface) // with options & search-radius
 
             .def("Map",              MapWithoutOptionsScalar<TSparseSpace, TDenseSpace>)
-            .def("Map",              MapWithoutOptionsScalar<TSparseSpace, TDenseSpace>)
+            .def("Map",              MapWithoutOptionsVector<TSparseSpace, TDenseSpace>)
             .def("Map",              MapWithOptionsScalar<TSparseSpace, TDenseSpace>)
             .def("Map",              MapWithOptionsVector<TSparseSpace, TDenseSpace>)
 
