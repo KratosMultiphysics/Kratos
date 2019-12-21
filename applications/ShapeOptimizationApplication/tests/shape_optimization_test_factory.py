@@ -13,6 +13,7 @@ import os
 has_eigen_app =  kratos_utilities.CheckIfApplicationsAvailable("EigenSolversApplication")
 has_csm_app = kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication")
 has_mesh_moving_app = kratos_utilities.CheckIfApplicationsAvailable("MeshMovingApplication")
+has_mapping_app = kratos_utilities.CheckIfApplicationsAvailable("MappingApplication")
 
 # ==============================================================================
 class ShapeOptimizationTestFactory(kratos_unittest.TestCase):
@@ -113,12 +114,17 @@ class sensitivity_verification_in_geometry_space_process_test(ShapeOptimizationT
     execution_directory = "sensitivity_verification_process_test"
     execution_file = "run_sensitivity_verification_in_geometry_space"
 
-class mesh_based_packaging_test(ShapeOptimizationTestFactory):
-    execution_directory = "mesh_based_packaging_test"
+@kratos_unittest.skipUnless(has_mapping_app,"Missing required application: MappingApplication")
+class in_plane_opt_test(ShapeOptimizationTestFactory):
+    execution_directory = "in_plane_opt_test"
     execution_file = "run_test"
 
-class plane_based_packaging_test(ShapeOptimizationTestFactory):
-    execution_directory = "plane_based_packaging_test"
+class packaging_mesh_based_test(ShapeOptimizationTestFactory):
+    execution_directory = "packaging_mesh_based_test"
+    execution_file = "run_test"
+
+class packaging_plane_based_test(ShapeOptimizationTestFactory):
+    execution_directory = "packaging_plane_based_test"
     execution_file = "run_test"
 
 
