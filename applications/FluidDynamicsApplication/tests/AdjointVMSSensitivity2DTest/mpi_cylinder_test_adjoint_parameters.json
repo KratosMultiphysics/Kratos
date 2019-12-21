@@ -115,8 +115,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorByDirectionProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Parts_Fluid",
+                "model_part_name" : "MainModelPart.Parts_Fluid",
                 "variable_name"   : "BODY_FORCE",
                 "modulus"         : 0.0,
                 "constrained"     : false,
@@ -145,7 +144,7 @@
             "process_name"    : "PointOutputProcess",
             "Parameters" : {
                 "position"         : [0.020957, 0.0055272, 0.0],
-                "model_part_name"  : "Parts_Fluid",
+                "model_part_name"  : "MainModelPart.Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "mpi_cylinder_test_adjoint_probe1.dat",
                     "folder_name": "AdjointVMSSensitivity2DTest",
@@ -160,7 +159,7 @@
             "process_name"    : "PointOutputProcess",
             "Parameters" : {
                 "position"         : [0.014931,-0.0034173, 0.0],
-                "model_part_name"  : "Parts_Fluid",
+                "model_part_name"  : "MainModelPart.Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "mpi_cylinder_test_adjoint_probe2.dat",
                     "folder_name": "AdjointVMSSensitivity2DTest",
@@ -175,7 +174,7 @@
             "process_name"    : "PointOutputProcess",
             "Parameters" : {
                 "position"         : [0.023303,-0.0037623, 0.0],
-                "model_part_name"  : "Parts_Fluid",
+                "model_part_name"  : "MainModelPart.Parts_Fluid",
                 "output_file_settings": {
                     "file_name"  : "mpi_cylinder_test_adjoint_probe3.dat",
                     "folder_name": "AdjointVMSSensitivity2DTest",

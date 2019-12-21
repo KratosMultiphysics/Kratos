@@ -197,6 +197,11 @@ class FluidSolver(PythonSolver):
         prepare_model_part_settings = KratosMultiphysics.Parameters("{}")
         prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
         prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
+        if (self.settings.Has("assign_neighbour_elements_to_conditions")):
+            prepare_model_part_settings.AddValue("assign_neighbour_elements_to_conditions",self.settings["assign_neighbour_elements_to_conditions"])
+        else:
+            warn_msg = "\"assign_neighbour_elements_to_conditions\" should be added to defaults of " + self.__class__.__name__
+            KratosMultiphysics.Logger.PrintWarning('\n\x1b[1;31mDEPRECATION-WARNING\x1b[0m', warn_msg)
 
         check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
 
