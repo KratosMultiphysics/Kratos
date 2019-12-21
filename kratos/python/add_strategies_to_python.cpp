@@ -14,7 +14,7 @@
 
 
 // External includes
-#ifdef KRATOS_USE_AMATRIX   // This macro defpy::inition is for the migration period and to be removed afterward please do not use it
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
 #include "boost/numeric/ublas/matrix.hpp" // for the sparse space dense vector
 #else
 #endif // KRATOS_USE_AMATRIX
@@ -70,8 +70,6 @@ namespace Kratos
     namespace Python
     {
         namespace py = pybind11;
-
-
 
         typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -371,9 +369,6 @@ namespace Kratos
             //********************************************************************
             //Builder and Solver
             typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-
-            py::class_< BuilderAndSolverType::DofsArrayType, BuilderAndSolverType::DofsArrayType::Pointer>(m,"DofsArrayType")
-            .def(py::init<>());
 
             py::class_< BuilderAndSolverType, typename BuilderAndSolverType::Pointer>(m,"BuilderAndSolver")
                     .def(py::init<LinearSolverType::Pointer, Parameters >() )
