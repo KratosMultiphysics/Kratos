@@ -194,6 +194,15 @@ class Parameters(object):
             raise TypeError("Argument must be a {}!".format(exp_type_str))
         return self.param
 
+    def GetArray(self):
+        if not self.IsArray():
+            raise TypeError("Argument must be a list!")
+        out = []
+        for i in range(self.size()):
+            out.append(self[i].param)
+        return out
+        # *** test this
+
 
     ##########################
     ##### SetXXX Methods #####
@@ -210,6 +219,10 @@ class Parameters(object):
 
     def SetString(self, key, val):
         self.__Set(key, val, str)
+
+    def SetArray(self, key, val):
+        self.__Set(key, val, list)
+        # *** test this
 
     def __Set(self, key, val, val_type):
         if type(val) is not val_type:
