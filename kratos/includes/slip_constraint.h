@@ -147,8 +147,8 @@ public:
         v[1] = all_dofs[1]->GetSolutionStepValue(rVarY);
         v[2] = all_dofs[2]->GetSolutionStepValue(rVarZ);
 
-        int max_n_component_index = 0;
-        int max_abs_n_component = std::abs(n[0]);
+        unsigned int max_n_component_index = 0;
+        double max_abs_n_component = std::abs(n[0]);
         for(unsigned int i=1; i<3; ++i)
         {
             if(std::abs(n[i]) > max_abs_n_component)

@@ -10,7 +10,7 @@ def inner_prod(a,b):
         tmp += a[i]*b[i]
     return tmp
 
-class TestPatchTestLargeStrain(KratosUnittest.TestCase):
+class TestLinearConstraints(KratosUnittest.TestCase):
     def setUp(self):
         pass
     
