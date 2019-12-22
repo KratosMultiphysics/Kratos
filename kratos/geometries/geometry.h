@@ -572,8 +572,8 @@ public:
         // The first bit of the Id is used to detect if Id
         // is int or hash of name. Second bit defines if Id
         // is self assigned or not.
-        KRATOS_ERROR_IF(IsSelfAssignedId(Id)
-            && IsGeometryIdString(Id))
+        KRATOS_ERROR_IF(IsIdGeneratedFromString(Id)
+            || IsIdSelfAssigned(Id))
             << "Id out of range. The Id must me lower than 2^62 = 4.61e+18"
             << std::endl;
 
@@ -581,19 +581,20 @@ public:
     }
 
     /// Sets Id with the use of the name of this geometry
-    void SetId(std::string name)
+    void SetId(std::string Name)
     {
-        mId = GetNameHash(name);
+        mId = GenerateId(Name);
     }
 
     /// Gets the corresponding hash-Id to a string name
-    static inline IndexType GenerateId(std::string name)
+    static inline IndexType GenerateId(std::string Name)
     {
+        // Create id hash from provided name.
         std::hash<std::string> string_hash_generator;
-        auto id = string_hash_generator(name);
+        auto id = string_hash_generator(Name);
 
         // Sets first bit to one.
-        SetGeometryIdString(id);
+        SetIdGeneratedFromString(id);
 
         return id;
     }
@@ -2867,7 +2868,7 @@ public:
     {
         std::stringstream buffer;
         buffer << "Geometry # "
-            << mId << ": "
+            << std::to_string(mId) << ": "
             << Dimension() << " dimensional geometry in "
             << WorkingSpaceDimension() << "D space";
 
@@ -3196,34 +3197,26 @@ private:
     ///@name Id Bit-Change Operations
     ///@{
 
-    /// Checks first bit in mId. 0 -> id; 1 -> name
-    bool HasGeometryIdString() const
-    {
-        return mId & (IndexType(1) << 63);
-    }
-
-    static inline bool IsGeometryIdString(IndexType Id)
+    /// Checks first bit in Id. 0 -> id; 1 -> name/ string
+    static inline bool IsIdGeneratedFromString(IndexType Id)
     {
         return Id & (IndexType(1) << 63);
     }
 
-    static inline void SetGeometryIdString(IndexType& Id)
+    /// Sets first bit in Id to 1 -> name/ string
+    static inline void SetIdGeneratedFromString(IndexType& Id)
     {
         Id |= (IndexType(1) << 63);
     }
 
-    /// Checks second bit in mId. 0 -> foreign id; 1 -> self assigned
-    bool HasSelfAssignedId() const
-    {
-        return mId & (IndexType(1) << 62);
-    }
-
-    static inline bool IsSelfAssignedId(IndexType Id)
+    /// Checks second bit in Id. 0 -> defined id; 1 -> self assigned
+    static inline bool IsIdSelfAssigned(IndexType Id)
     {
         return Id & (IndexType(1) << 62);
     }
 
-    static inline void SetSelfAssignedId(IndexType& Id)
+    /// Sets second bit in Id to 1 -> self assigned
+    static inline void SetIdSelfAssigned(IndexType& Id)
     {
         Id |= (IndexType(1) << 62);
     }
