@@ -2867,7 +2867,7 @@ public:
     {
         std::stringstream buffer;
         buffer << "Geometry # "
-            << mId << ": "
+            << std::to_string(mId) << ": "
             << Dimension() << " dimensional geometry in "
             << WorkingSpaceDimension() << "D space";
 
