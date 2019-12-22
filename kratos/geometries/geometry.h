@@ -143,10 +143,6 @@ public:
     */
     typedef std::size_t SizeType;
 
-    /** Geometry shall behave similiar as indexed objects.
-    *   To allow query within data bases this type def is required.
-    */
-    typedef std::size_t result_type;
 
     typedef typename PointType::CoordinatesArrayType CoordinatesArrayType;
 
@@ -301,40 +297,41 @@ public:
     {
     }
 
-    /** Copy constructor.
-    Construct this geometry as a copy of given geometry.
-
-    @note This copy constructor don't copy the points and new
-    geometry shares points with given source geometry. It's
-    obvious that any change to this new geometry's point affect
-    source geometry's points too.
+    /**
+    * @brief Copy constructor
+    *
+    * @note Does not copy the points but shares same points with
+    *       the original geometry. Any change to the points of the
+    *       copied geometry affect point of original geometry, too.
+    * @note Copied geometry shares the same Id as the
+    *       original geometry.
     */
-    Geometry( 
-        const Geometry& rOther,
-        IndexType Id = 0)
-        : mId(Id),
-          mpGeometryData( rOther.mpGeometryData ),
-          mPoints( rOther.mPoints)
+    Geometry(
+        const Geometry& rOther)
+        : mId(rOther.mId)
+        , mpGeometryData(rOther.mpGeometryData)
+        , mPoints(rOther.mPoints)
     {
     }
 
-
-    /** Copy constructor from a geometry with other point type.
-    Construct this geometry as a copy of given geometry which
-    has different type of points. The given goemetry's
-    TOtherPointType* must be implicity convertible to this
-    geometry PointType.
-
-    @note This copy constructor don't copy the points and new
-    geometry shares points with given source geometry. It's
-    obvious that any change to this new geometry's point affect
-    source geometry's points too.
+    /**
+    * @brief Copy constructor with TOtherPointType
+    *
+    *        Copies geometry with a different type of points.
+    *        TOtherPointType* must be implicity convertible
+    *        to TPointType of the original geometry.
+    *
+    * @note Does not copy the points but shares same points with
+    *       the original geometry. Any change to the points of the
+    *       copied geometry affect point of original geometry, too.
+    * @note Copied geometry shares the same Id as the
+    *       original geometry.
     */
-    template<class TOtherPointType> Geometry(
-        Geometry<TOtherPointType> const & rOther,
-        IndexType Id = 0)
-        : mId(Id),
-          mpGeometryData(rOther.mpGeometryData)
+    template<class TOtherPointType>
+    Geometry(
+        Geometry<TOtherPointType> const & rOther)
+        : mId(rOther.mId)
+        , mpGeometryData(rOther.mpGeometryData)
     {
         mPoints = new PointsArrayType(rOther.begin(), rOther.end());
     }
@@ -566,26 +563,18 @@ public:
     /// Id of this Geometry
     IndexType Id() const
     {
-        KRATOS_ERROR_IF(HasGeometryIdString())
-            << "Assigned geometry id is name of type string."
-            << std::endl;
-
-        return mId;
-    }
-
-    /// Id of this Geometry
-    IndexType GetHashId() const
-    {
         return mId;
     }
 
     /// Sets Id of this Geometry
     void SetId(IndexType Id)
     {
-        KRATOS_ERROR_IF(IsSelfAssignedId(Id) && IsGeometryIdString(Id))
-            << "Id out of range. The first bit of the Id is used to "
-            << "detect if Id is int or hash of name. Second bit defines"
-            << "if Id is self assigned or not."
+        // The first bit of the Id is used to detect if Id
+        // is int or hash of name. Second bit defines if Id
+        // is self assigned or not.
+        KRATOS_ERROR_IF(IsSelfAssignedId(Id)
+            && IsGeometryIdString(Id))
+            << "Id out of range. The Id must me lower than 2^62 = 4.61e+18"
             << std::endl;
 
         mId = Id;
@@ -598,7 +587,7 @@ public:
     }
 
     /// Gets the corresponding hash-Id to a string name
-    static inline IndexType GetNameHash(std::string name)
+    static inline IndexType GenerateId(std::string name)
     {
         std::hash<std::string> string_hash_generator;
         auto id = string_hash_generator(name);
@@ -3208,9 +3197,9 @@ private:
     ///@{
 
     /// Checks first bit in mId. 0 -> id; 1 -> name
-    bool HasGeometryIdString(IndexType Id) const
+    bool HasGeometryIdString() const
     {
-        return Id & (IndexType(1) << 63);
+        return mId & (IndexType(1) << 63);
     }
 
     static inline bool IsGeometryIdString(IndexType Id)
