@@ -3185,7 +3185,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    IndexType mId;
+    std::uint64_t mId;
 
     GeometryData const* mpGeometryData;
 
