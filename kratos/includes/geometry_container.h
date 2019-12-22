@@ -344,9 +344,6 @@ private:
     /// Geometry Container
     typename GeometriesContainerType::Pointer mpGeometries;
 
-    /// Model Tolerance
-    double mModelTolerance;
-
     ///@}
     ///@name Serialization
     ///@{
@@ -358,7 +355,6 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DataValueContainer );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
         rSerializer.save("pGeometries", mpGeometries);
-        rSerializer.save("ModelTolerance", mModelTolerance);
     }
 
     void load(Serializer& rSerializer) override
@@ -366,7 +362,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DataValueContainer );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
         rSerializer.load("pGeometries", mpGeometries);
-        rSerializer.load("ModelTolerance", mModelTolerance);
     }
 
     ///@}
