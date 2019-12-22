@@ -42,6 +42,7 @@ from test_patch_test_shells_orthotropic import TestPatchTestShellsOrthotropic as
 from test_patch_test_formfinding import TestPatchTestFormfinding as TTestPatchTestFormfinding
 from test_patch_test_membrane import StaticPatchTestMembrane as TStaticPatchTestMembrane
 from test_patch_test_membrane import DynamicPatchTestMembrane as TDynamicPatchTestMembrane
+from test_linear_constraints import TestLinearConstraints as TTestLinearConstraints
 # Test loading conditions
 from test_loading_conditions_point import TestLoadingConditionsPoint as TTestLoadingConditionsPoint
 from test_loading_conditions_line import TestLoadingConditionsLine as TTestLoadingConditionsLine
@@ -268,6 +269,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeMassMomentOfInertia]))
     # Axis projection tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAxisProjection]))
+    # Linear Constraints
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLinearConstraints]))
     # Solids
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrainBbar]))
