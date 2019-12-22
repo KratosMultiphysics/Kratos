@@ -20,7 +20,7 @@
 #include "testing/testing.h"
 #include "geometries/line_3d_2.h"
 
-#include "containers/geometry_container.h"
+#include "includes/geometry_container.h"
 
 namespace Kratos {
 namespace Testing {
