@@ -400,7 +400,6 @@
     "MaxTimeStep" : 2.5e-6,
     "FinalTime" : 1.0,
     "NeighbourSearchFrequency" : 1,
-    "TestType" : "None",
     "ElementType" : "SwimmingDEMElement",
     "problem_name" : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test",
     "GraphExportFreq" : 1e-3,

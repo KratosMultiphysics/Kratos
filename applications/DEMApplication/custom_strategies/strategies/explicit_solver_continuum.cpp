@@ -595,7 +595,7 @@ namespace Kratos {
         //KRATOS_WARNING("DEM") << "Mesh repair complete. In MPI node " <<GetModelPart().GetCommunicator().MyPID()<<". "<< particle_counter << " particles were removed. " << "\n" << std::endl;
         int total_spheres_removed = GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(particle_counter);
 
-        if(GetModelPart().GetCommunicator().MyPID() == 0) {
+        if(GetModelPart().GetCommunicator().MyPID() == 0 && total_spheres_removed) {
             KRATOS_WARNING("DEM") << "A total of "<<total_spheres_removed<<" spheres were removed due to excessive overlapping." << std::endl;
         }
 

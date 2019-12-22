@@ -196,7 +196,9 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(PARTITION_INDEX)) << "\"PARTITION_INDEX\" missing as solution step variable in ModelPart \"" << rModelPart.Name() << "\"!" << std::endl;
+    if (rModelPart.NumberOfNodes() > 0) {
+        KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) << "\"PARTITION_INDEX\" missing as solution step variable for nodes of ModelPart \"" << rModelPart.Name() << "\"!" << std::endl;
+    }
 
     constexpr unsigned root_id = 0;
 
@@ -215,7 +217,7 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
         }
     }
 
-    pnew_comm->SumAll(non_zero_partition_index_found);
+    r_data_communicator.SumAll(non_zero_partition_index_found);
 
     KRATOS_WARNING_IF("ParallelFillCommunicator", non_zero_partition_index_found == 0) << "All nodes have a PARTITION_INDEX index of 0! This could mean that PARTITION_INDEX was not assigned" << std::endl;
 
