@@ -1969,9 +1969,12 @@ public:
     *        projection in local coordinates.
     *        The variable is as initial guess!
     * @param Tolerance accepted of orthogonal error to projection.
-    * @return if projection was successfull (converge)
+    * @return It is chosen to take an int as output parameter to
+    *         keep more possibilities within the interface.
+    *         0 -> failed
+    *         1 -> converged
     */
-    virtual bool ProjectionPoint(
+    virtual int ProjectionPoint(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointLocalCoordinates,
@@ -2012,7 +2015,7 @@ public:
         if (ProjectionPoint(rPointGlobalCoordinates,
             rClosestPointGlobalCoordinates,
             rClosestPointLocalCoordinates,
-            Tolerance))
+            Tolerance) == 1)
         {
             // 2. If projection converged check if solution lays
             // within the boundaries of this geometry.
