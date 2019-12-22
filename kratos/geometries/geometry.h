@@ -2000,9 +2000,10 @@ public:
     *        closest point in local coordinates.
     *        IMPORTANT: The variable can also be used as initial guess.
     * @param Tolerance accepted orthogonal error.
-    * @return 0 -> outside/ failed
-    *         1 -> inside
-    *         2 -> on the boundary
+    * @return -1 -> failed
+    *          0 -> outside
+    *          1 -> inside
+    *          2 -> on the boundary
     */
     virtual int ClosestPoint(
         const CoordinatesArrayType& rPointGlobalCoordinates,
@@ -2018,13 +2019,18 @@ public:
             Tolerance) == 1)
         {
             // 2. If projection converged check if solution lays
-            // within the boundaries of this geometry.
+            // within the boundaries of this geometry
+            // Returns either 0, 1 or 2
+            // Or -1 if IsInsideLocalSpace failed
             return IsInsideLocalSpace(
                 rClosestPointLocalCoordinates,
                 Tolerance);
         }
-
-        return 0;
+        else
+        {
+            // Projection failed
+            return -1;
+        }
     }
 
     /**
