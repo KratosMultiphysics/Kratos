@@ -32,9 +32,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         if not solver_settings.Has("domain_size"):
             raise Exception("StructuralMechanicsAnalysis: Using the old way to pass the domain_size, this was removed!")
 
-        if not solver_settings.Has("model_part_name"):
-            raise Exception("StructuralMechanicsAnalysis: Using the old way to pass the model_part_name, this was removed!")
-
         # Detect is a contact problem
         # NOTE: We have a special treatment for contact problems due to the way the convergence info is printed (in a table). Not doing this will provoque that the table is discontinous (and not fancy and eye-candy)
         solver_settings = project_parameters["solver_settings"]
@@ -163,16 +160,13 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process",
                 "json_check_process", "check_analytic_results_process", "contact_process_list"]
             if len(list_of_processes) == 0: # Processes are given in the old format (or no processes are specified)
-                from KratosMultiphysics.process_factory import KratosProcessFactory
-                factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
                     if self.project_parameters.Has(process_name):
-                        if not deprecation_warning_issued:
-                            info_msg  = "Using the old way to create the processes, this was removed!\n"
-                            info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
-                            info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
-                            info_msg += "for a description of the new format"
-                            raise Exception("StructuralMechanicsAnalysis: " + info_msg)
+                        info_msg  = "Using the old way to create the processes, this was removed!\n"
+                        info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
+                        info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
+                        info_msg += "for a description of the new format"
+                        raise Exception("StructuralMechanicsAnalysis: " + info_msg)
 
             else: # Processes are given in the new format
                 for process_name in processes_block_names:

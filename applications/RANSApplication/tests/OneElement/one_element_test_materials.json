@@ -1,0 +1,16 @@
+{
+    "properties" : [{
+        "model_part_name" : "MainModelPart.Parts_Fluid",
+        "properties_id"   : 2,
+        "Material"        : {
+            "Variables"        : {
+                "DENSITY": 1.0E+00,
+                "VISCOSITY": 1.0E-03,
+                "DYNAMIC_VISCOSITY": 1.0E-03,
+                "KINEMATIC_VISCOSITY": 1.0E-03,
+                "TURBULENT_VISCOSITY": 1e-3
+            },
+            "Tables"           : {}
+        }
+    }]
+}

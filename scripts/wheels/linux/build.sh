@@ -1,5 +1,5 @@
 #!/bin/bash
-PYTHONS=("35" "36" "37")
+PYTHONS=("35" "36" "37" "38")
 export KRATOS_VERSION="7.0.3"
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
@@ -20,7 +20,7 @@ build_core_wheel () {
     setup_wheel_dir
     cd $KRATOS_ROOT
     
-    cp KratosMultiphysics/* ${WHEEL_ROOT}/KratosMultiphysics
+    cp bin/Release/KratosMultiphysics/* ${WHEEL_ROOT}/KratosMultiphysics
     cp scripts/wheels/linux/KratosMultiphysics.json ${WHEEL_ROOT}/wheel.json
     cp scripts/wheels/__init__.py ${WHEEL_ROOT}/KratosMultiphysics/__init__.py
     
@@ -91,28 +91,26 @@ build () {
 
 	PYTHON_LOCATION=$1
 
-	cd cmake_build
 	cp /workspace/kratos/Kratos/scripts/wheels/linux/configure.sh ./configure.sh
 	chmod +x configure.sh
 	./configure.sh $PYTHON_LOCATION
 
-	make -j$2
-	make install
-
+	cmake --build "${KRATOS_ROOT}/build/Release" --target install -- -j$2
 }
 
 
-for PYTHON in  "${PYTHONS[@]}"
+for PYTHON_VERSION in  "${PYTHONS[@]}"
 do
-    export PYTHON=$PYTHON
+    PYTHON_TMP=$(ls /opt/python | grep $PYTHON_VERSION | cut -d "-" -f 2)
+    export PYTHON=${PYTHON_TMP#cp}
     echo starting build for python${PYTHON}
-	PYTHON_LOCATION=/opt/python/cp${PYTHON}-cp${PYTHON}m/bin/python
+	PYTHON_LOCATION=/opt/python/$(ls /opt/python | grep $PYTHON_VERSION)/bin/python
     build $PYTHON_LOCATION $1
 	
 	
 	cd $KRATOS_ROOT
 	export HASH=$(git show -s --format=%h) #used in version number
-	export LD_LIBRARY_PATH=$(pwd)/libs:$BASE_LD_LIBRARY_PATH
+	export LD_LIBRARY_PATH=${KRATOS_ROOT}/bin/Release/libs:$BASE_LD_LIBRARY_PATH
 	echo $LD_LIBRARY_PATH
 
     build_core_wheel
@@ -124,7 +122,7 @@ do
 
     build_kratos_all_wheel
 
-	echo finished build for python${PYTHON}
+	echo finished build for python${PYTHON_VERSION}
 
 	export LD_LIBRARY_PATH=$BASE_LD_LIBRARY_PATH
 
