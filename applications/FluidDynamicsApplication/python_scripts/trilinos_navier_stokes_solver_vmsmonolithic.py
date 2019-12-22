@@ -109,7 +109,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
 
         ## Construct the turbulence model solver
         if not self.settings["turbulence_model_solver_settings"].IsEquivalentTo(KratosMultiphysics.Parameters("{}")):
-            self._turbulence_model_solver = CreateTurbulenceModel(model, self.settings["turbulence_model_solver_settings"], True)
+            self._turbulence_model_solver = CreateTurbulenceModel(model, self.settings["turbulence_model_solver_settings"])
             self.condition_name = self._turbulence_model_solver.GetFluidVelocityPressureConditionName()
             KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverMonolithic", "Using " + self.condition_name + " as wall condition")
 
@@ -263,6 +263,9 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         self.formulation.SetProcessInfo(self.computing_model_part)
 
         (self.solver).Initialize()
+
+        if hasattr(self, "_turbulence_model_solver"):
+            self._turbulence_model_solver.SetParentSolvingStrategy(self.solver)
 
         KratosMultiphysics.Logger.Print("Monolithic MPI solver initialization finished.")
 

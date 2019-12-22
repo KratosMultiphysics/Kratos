@@ -134,6 +134,7 @@
             "input_type" : "mdpa",
             "input_filename" : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test"
         },
+        "move_mesh_flag": false,
         "maximum_pressure_iterations" : 7,
         "velocity_tolerance" : 1e-5,
         "pressure_tolerance" : 1e-5,
@@ -183,16 +184,14 @@
         }],
     "loads_process_list" : [],
     "constraints_process_list" : [{
-        "python_module" : "assign_vector_components_to_nodes_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
-        "help" : "This process fixes the selected components of a given vector variable",
-        "process_name" : "AssignVectorComponentsToNodesProcess",
-        "Parameters" : {
-            "model_part_name" : "PfemFluidModelPart.VELOCITY_Velocity_Auto1",
-            "variable_name" : "VELOCITY",
-            "value" : [0.0,0.0,0.0],
-            "compound_assignment" : "direct",
-            "interval" : [0.0,"End"]
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "PfemFluidModelPart.VELOCITY_Velocity_Auto1",
+                "variable_name"   : "VELOCITY",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
         }
     }]
     },
@@ -351,7 +350,7 @@
     "do_search_neighbours" : true,
     "type_of_dem_inlet" : "VelocityImposed",
     "type_of_dem_inlet_comment" : "VelocityImposed or ForceImposed",
-    "translational_integration_scheme" : "Hybrid_Bashforth"
+    "translational_integration_scheme" : "Symplectic_Euler"
 },
 
 "dem_parameters" : {
@@ -401,7 +400,6 @@
     "MaxTimeStep" : 2.5e-6,
     "FinalTime" : 1.0,
     "NeighbourSearchFrequency" : 1,
-    "TestType" : "None",
     "ElementType" : "SwimmingDEMElement",
     "problem_name" : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test",
     "GraphExportFreq" : 1e-3,

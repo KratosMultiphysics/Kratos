@@ -169,6 +169,24 @@ private:
     double mT1;
 
     ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const
+    {
+        rSerializer.save("T0", mT0);
+        rSerializer.save("T1", mT1);
+    }
+
+    void load(Serializer& rSerializer)
+    {
+        rSerializer.load("T0", mT0);
+        rSerializer.load("T1", mT1);
+    }
+
+    ///@}
 }; // NurbsInterval
 
 } // namespace Kratos

@@ -18,6 +18,7 @@ import test_linear_solvers
 import test_eigen_solvers
 import test_condition_number
 import test_processes
+import test_properties
 import test_importing
 import test_connectivity_preserve_modeler
 import test_model
@@ -45,6 +46,9 @@ import test_flags
 import test_time_discretization
 import test_python_generic_function_utility
 import test_serializer
+import test_dofs
+import test_time_averaging
+import test_scipy_conversion_tools
 
 
 def AssembleTestSuites():
@@ -75,6 +79,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_eigen_solvers.TestEigenSolvers]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_condition_number.TestConditionNumber]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_processes.TestProcesses]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_properties.TestProperties]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_importing.TestImporting]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_connectivity_preserve_modeler.TestConnectivityPreserveModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model.TestModel]))
@@ -107,6 +112,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_time_discretization.TestTimeDiscretization]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_python_generic_function_utility.TestPythonGenericFunctionUtility]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_serializer.TestSerializer]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_dofs.TestDofs]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_time_averaging.TimeAveragingProcessTests]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_scipy_conversion_tools.TestScipyConversionTools]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']

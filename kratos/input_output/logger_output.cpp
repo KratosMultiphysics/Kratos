@@ -21,9 +21,19 @@
 #include "input_output/logger_output.h"
 #include "includes/kratos_version.h"
 
+#if defined(KRATOS_COLORED_OUTPUT)
+#include "utilities/color_utilities.h"
+#endif
 
 namespace Kratos
 {
+
+    KRATOS_CREATE_LOCAL_FLAG( LoggerOutput, WARNING_PREFIX,  0 );
+    KRATOS_CREATE_LOCAL_FLAG( LoggerOutput, INFO_PREFIX,     1 );
+    KRATOS_CREATE_LOCAL_FLAG( LoggerOutput, DETAIL_PREFIX,   2 );
+    KRATOS_CREATE_LOCAL_FLAG( LoggerOutput, DEBUG_PREFIX,    3 );
+    KRATOS_CREATE_LOCAL_FLAG( LoggerOutput, TRACE_PREFIX,    4 );
+
     std::string LoggerOutput::Info() const
     {
         return "LoggerOutput";
@@ -43,6 +53,29 @@ namespace Kratos
         auto message_severity = TheMessage.GetSeverity();
         if (TheMessage.WriteInThisRank() && message_severity <= mSeverity)
         {
+            SetMessageColor(message_severity);
+
+            switch (message_severity)
+            {
+            case LoggerMessage::Severity::WARNING:
+                if (mOptions.Is(WARNING_PREFIX)) mrStream << "[WARNING] ";
+                break;
+            case LoggerMessage::Severity::INFO:
+                if (mOptions.Is(INFO_PREFIX)) mrStream << "[INFO] ";
+                break;
+            case LoggerMessage::Severity::DETAIL:
+                if (mOptions.Is(DETAIL_PREFIX)) mrStream << "[DETAIL] ";
+                break;
+            case LoggerMessage::Severity::DEBUG:
+                if (mOptions.Is(DEBUG_PREFIX)) mrStream << "[DEBUG] ";
+                break;
+            case LoggerMessage::Severity::TRACE:
+                if (mOptions.Is(TRACE_PREFIX)) mrStream << "[TRACE] ";
+                break;
+            default:
+                break;
+            }
+
             if(TheMessage.IsDistributed())
                 mrStream << "Rank " << TheMessage.GetSourceRank() << ": ";
 
@@ -50,6 +83,8 @@ namespace Kratos
                 mrStream << TheMessage.GetLabel() << ": " << TheMessage.GetMessage();
             else
                 mrStream << TheMessage.GetMessage();
+
+            ResetMessageColor(message_severity);
         }
     }
 
@@ -88,6 +123,19 @@ namespace Kratos
         return *this;
     }
 
+    void LoggerOutput::SetMessageColor(LoggerMessage::Severity MessageSeverity)
+    {
+        #if defined(KRATOS_COLORED_OUTPUT)
+        if (MessageSeverity == LoggerMessage::Severity::WARNING) mrStream << KYEL;
+        #endif
+    }
+
+    void LoggerOutput::ResetMessageColor(LoggerMessage::Severity MessageSeverity)
+    {
+        #if defined(KRATOS_COLORED_OUTPUT)
+        mrStream << RST;
+        #endif
+    }
 
     /// output stream function
     std::ostream& operator << (std::ostream& rOStream,

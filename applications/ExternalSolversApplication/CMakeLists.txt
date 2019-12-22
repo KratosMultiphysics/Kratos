@@ -2,12 +2,50 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** Configuring KratosExternalSolversApplication ****")
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/SuperLU_4.3 )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
 
 ################### PYBIND11
 include(pybind11Tools)
+
+########### Add Libblas and lapack to compilation
+# Linux needs Fortran
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	  enable_language( Fortran )
+  include(FortranCInterface)
+	  FortranCInterface_HEADER(FC.h MACRO_NAMESPACE "FC_")
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+
+# Linking to the absolute value of the blas
+find_package(BLAS REQUIRED)
+include_directories(${BLAS_INCLUDE_DIRS})
+
+foreach( l ${BLAS_LIBRARIES})
+  GET_FILENAME_COMPONENT(aaa ${l} REALPATH)
+	set(BLAS_LIBRARIES_REALPATH ${BLAS_LIBRARIES_REALPATH} ${aaa})
+endforeach(l)
+
+set(BLAS_LIBRARIES ${BLAS_LIBRARIES_REALPATH} CACHE STRING "exact file of the blas library" FORCE)
+link_directories(${BLAS_LIBRARIES})
+
+set( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${BLAS_LINKER_FLAGS}" CACHE STRING "Linker flags for shared libs" FORCE)
+message("linker flags with blas =" ${BLAS_LINKER_FLAGS})
+message("BLA_VENDOR = " ${BLA_VENDOR})
+
+# Linking to the absolute value of the lapack
+find_package(LAPACK REQUIRED)
+message("LAPACK = " ${LAPACK_LIBRARIES})
+foreach( l ${LAPACK_LIBRARIES})
+  GET_FILENAME_COMPONENT(aux ${l} REALPATH)
+  set(LAPACK_LIBRARIES_REALPATH ${LAPACK_LIBRARIES_REALPATH} ${aux})
+endforeach(l)
+
+set(LAPACK_LIBRARIES ${LAPACK_LIBRARIES_REALPATH} CACHE STRING "exact file of the lapack library" FORCE)
+message("LAPACK modified = " ${LAPACK_LIBRARIES})
+
+include_directories(${LAPACK_INCLUDE_DIRS})
+link_directories(${LAPACK_LIBRARIES})
 
 ## Add subdirectories for compilation of dependent libraries
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/SuperLU_4.3)
@@ -73,17 +111,34 @@ set_target_properties(KratosExternalSolversApplication PROPERTIES PREFIX "")
 #     set_target_properties(KratosExternalSolversApplication PROPERTIES SUFFIX .so)
 # endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
-
 # Add Cotire
 if(USE_COTIRE MATCHES ON)
     cotire(KratosExternalSolversApplication)
 endif(USE_COTIRE MATCHES ON)
 
+# Add to the KratosMultiphisics Python module
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/ExternalSolversApplication.py KratosMultiphysics/ExternalSolversApplication/__init__.py )
+
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
+
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
+  )
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
+
+# Install targets
 install(TARGETS KratosExternalSolversApplication DESTINATION libs )
 
-# Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ExternalSolversApplication.py" DESTINATION "KratosMultiphysics/ExternalSolversApplication" RENAME "__init__.py")
+# Install blas and lapack
+install(FILES ${BLAS_LIBRARIES} DESTINATION libs)
+install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
+

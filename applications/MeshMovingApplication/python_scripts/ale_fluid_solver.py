@@ -90,7 +90,8 @@ class AleFluidSolver(PythonSolver):
             "mesh_motion_parts"           : [ ],
             "fluid_solver_settings"       : { },
             "mesh_motion_solver_settings" : { },
-            "mesh_velocity_calculation"   : { }
+            "mesh_velocity_calculation"   : { },
+            "superimpose_mesh_velocity_with" : [ ]
         }""")
         this_defaults.AddMissingParameters(super(AleFluidSolver, cls).GetDefaultSettings())
         return this_defaults
@@ -194,6 +195,9 @@ class AleFluidSolver(PythonSolver):
             KMM.CalculateMeshVelocities(
                 mesh_solver.GetComputingModelPart(),
                 self.time_int_helper)
+
+        for variable in KM.kratos_utilities.GenerateVariableListFromInput(self.settings["superimpose_mesh_velocity_with"]):
+            KMM.SuperImposeMeshVelocity(variable)
 
         if self.fluid_solver.GetComputingModelPart().ProcessInfo[KM.TIME] >= self.start_fluid_solution_time:
             self.__ApplyALEBoundaryCondition()

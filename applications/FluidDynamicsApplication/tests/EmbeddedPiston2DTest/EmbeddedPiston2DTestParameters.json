@@ -49,6 +49,13 @@
         "material_import_settings": {
             "materials_filename": "EmbeddedPiston2DTestMaterials.json"
         },
+        "distance_modification_settings": {
+            "distance_threshold": 0.001,
+            "continuous_distance": true,
+            "check_at_each_time_step": true,
+            "avoid_almost_empty_elements": true,
+            "deactivate_full_negative_elements": true
+        },
         "echo_level"                  : 0,
         "compute_reactions"           : false,
         "maximum_iterations"          : 10,
@@ -202,17 +209,6 @@
                 "direction"       : [0.0,-1.0,0.0]
             }
         }],
-        "auxiliar_process_list"            : [{
-            "python_module": "apply_distance_modification_process",
-            "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
-            "Parameters": {
-                "model_part_name": "FluidModelPart.Parts_Fluid",
-                "distance_threshold": 0.001,
-                "continuous_distance": true,
-                "check_at_each_time_step": true,
-                "avoid_almost_empty_elements": true,
-                "deactivate_full_negative_elements": true
-            }
-        }]
+        "auxiliar_process_list"            : []
     }
 }

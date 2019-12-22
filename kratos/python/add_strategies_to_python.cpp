@@ -371,9 +371,6 @@ namespace Kratos
             typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
 
 
-            py::class_< BuilderAndSolverType::DofsArrayType, BuilderAndSolverType::DofsArrayType::Pointer>(m,"DofsArrayType")
-                .def(py::init<>());
-
             py::class_< BuilderAndSolverType, typename BuilderAndSolverType::Pointer>(m,"BuilderAndSolver")
             .def(py::init<LinearSolverType::Pointer > ())
                 .def("SetCalculateReactionsFlag", &BuilderAndSolverType::SetCalculateReactionsFlag)
