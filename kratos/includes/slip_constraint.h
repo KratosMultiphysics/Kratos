@@ -154,7 +154,7 @@ public:
             if(std::abs(n[i]) > max_abs_n_component)
             {
                 max_abs_n_component=std::abs(n[i]);
-                max_n_component_index = i;
+                max_n_component_index = i; 
             }
         }
 
