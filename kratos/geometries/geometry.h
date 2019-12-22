@@ -3197,11 +3197,6 @@ private:
     ///@{
 
     /// Checks first bit in mId. 0 -> id; 1 -> name
-    bool HasGeometryIdString() const
-    {
-        return mId & (IndexType(1) << 63);
-    }
-
     static inline bool IsGeometryIdString(IndexType Id)
     {
         return Id & (IndexType(1) << 63);
