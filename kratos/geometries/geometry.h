@@ -2112,7 +2112,7 @@ public:
     *        closest point has to be found.
     * @param Tolerance accepted orthogonal error.
     * @return Distance to geometry.
-    *         positive -> outside of to the geometry (for 2D solids.
+    *         positive -> outside of to the geometry (for 2D and solids)
     *         0        -> on/ in the geometry.
     */
     virtual double CalculateDistance(
@@ -2125,7 +2125,7 @@ public:
         if (ClosestPoint(
             rPointGlobalCoordinates,
             global_coordinates,
-            Tolerance) == 0)
+            Tolerance) < 1)
         {
             // If projection fails, double::max will be returned
             return std::numeric_limits<double>::max();
