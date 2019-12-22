@@ -3244,7 +3244,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         const IndexType color = r_color.first;
         if (color != 0 && r_color.second.size() == 1) { // Not including main model part, and adding only simple model parts
             for (auto& r_sub_model_part_name : r_color.second) {
-                ModelPart& r_sub_model_part = r_model.GetModelPart(rModelPart.Name() + "." + r_sub_model_part_name);
+                ModelPart& r_sub_model_part = r_model.GetModelPart(rModelPart.FullName() + "." + r_sub_model_part_name);
                 if ((rColorMapCondition.find(color) == rColorMapCondition.end())) {
                     if (r_sub_model_part.NumberOfConditions() > 0) {
                         const IndexType cond_id = r_sub_model_part.Conditions().begin()->Id();
