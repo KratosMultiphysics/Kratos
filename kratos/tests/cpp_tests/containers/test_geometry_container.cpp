@@ -33,7 +33,7 @@ namespace Testing {
     }
 
     ///// Test Geometry Container
-    KRATOS_TEST_CASE_IN_SUITE(TestNameHash, KratosCoreGeometryContainerFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(TestgeometryContainer, KratosCoreGeometryContainerFastSuite) {
         auto geometry_container = GeometryContainer<Point>();
 
         auto p_line_1 = GenerateLineGeometry();
