@@ -302,15 +302,15 @@ public:
     }
 
     /**
-    * @brief Copy constructor.
+    * @brief Copy constructor
     *
     * @note Does not copy the points but shares same points with
-    *       the original geometry. Any change to the copied geometry's
-    *       point affect source geometry's points too.
-    * @note Copied geometry shares the same geometry as the
+    *       the original geometry. Any change to the points of the
+    *       copied geometry affect point of original geometry, too.
+    * @note Copied geometry shares the same Id as the
     *       original geometry.
     */
-    Geometry( 
+    Geometry(
         const Geometry& rOther)
         : mId(rOther.mId)
         , mpGeometryData(rOther.mpGeometryData)
@@ -318,23 +318,24 @@ public:
     {
     }
 
-
-    /** Copy constructor from a geometry with other point type.
-    Construct this geometry as a copy of given geometry which
-    has different type of points. The given goemetry's
-    TOtherPointType* must be implicity convertible to this
-    geometry PointType.
-
-    @note This copy constructor don't copy the points and new
-    geometry shares points with given source geometry. It's
-    obvious that any change to this new geometry's point affect
-    source geometry's points too.
+    /**
+    * @brief Copy constructor with TOtherPointType
+    *
+    *        Copies geometry with a different type of points.
+    *        TOtherPointType* must be implicity convertible
+    *        to TPointType of the original geometry.
+    *
+    * @note Does not copy the points but shares same points with
+    *       the original geometry. Any change to the points of the
+    *       copied geometry affect point of original geometry, too.
+    * @note Copied geometry shares the same Id as the
+    *       original geometry.
     */
-    template<class TOtherPointType> Geometry(
-        Geometry<TOtherPointType> const & rOther,
-        IndexType Id = 0)
-        : mId(Id),
-          mpGeometryData(rOther.mpGeometryData)
+    template<class TOtherPointType>
+    Geometry(
+        Geometry<TOtherPointType> const & rOther)
+        : mId(rOther.mId)
+        , mpGeometryData(rOther.mpGeometryData)
     {
         mPoints = new PointsArrayType(rOther.begin(), rOther.end());
     }
