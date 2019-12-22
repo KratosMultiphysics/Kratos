@@ -2037,8 +2037,10 @@ public:
     *        closest point has to be found.
     * @param rClosestPointGlobalCoordinates the location of the
     *        closest point in global coordinates.
+    *
     *        WARNING: This function does not provide the possibility
     *        to use an initial guess!!
+    *
     * @param Tolerance accepted orthogonal error.
     * @return 0 -> outside/ dailed
     *         1 -> inside
@@ -2069,7 +2071,9 @@ public:
     *        closest point has to be found.
     * @param rClosestPointLocalCoordinates the location of the
     *        closest point in local coordinates.
+    *
     *        IMPORTANT: The variable can also be used as initial guess.
+    *
     * @param Tolerance accepted orthogonal error.
     * @return 0 -> outside/ failed
     *         1 -> inside
