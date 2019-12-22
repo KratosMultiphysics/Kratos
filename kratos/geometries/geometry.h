@@ -583,7 +583,7 @@ public:
     /// Sets Id with the use of the name of this geometry
     void SetId(std::string name)
     {
-        mId = GetNameHash(name);
+        mId = GenerateId(name);
     }
 
     /// Gets the corresponding hash-Id to a string name
