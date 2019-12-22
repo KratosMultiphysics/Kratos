@@ -54,27 +54,6 @@ class ALMSimplePatchNotMatchingBTestContact(TestFactory):
 class ALMThreeDSimplestPatchMatchingTestContact(TestFactory):
     file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test"
 
-class ALMThreeDSimplestPatchTestTriQuadContact(TestFactory):
-    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_triquad_test"
-
-class ALMThreeDSimplestPatchTestQuadTriContact(TestFactory):
-    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_quadtri_test"
-
-class ALMThreeDSimplestPatchMatchingAdaptativeTestContact(TestFactory):
-    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_adaptative_test"
-
-class ALMThreeDPatchComplexGeomTestContact(TestFactory):
-    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test"
-
-class ALMThreeDSimplestPatchMatchingSlopeTestContact(TestFactory):
-    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_slope_test"
-
-class ALMThreeDPatchMatchingTestContact(TestFactory):
-    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_matching_test"
-
-class ALMThreeDPatchNotMatchingTestContact(TestFactory):
-    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_nonmatching_test"
-
 class PenaltyThreeDSimplestPatchMatchingTestContact(TestFactory):
     file_name = "penalty_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test"
 
@@ -126,26 +105,6 @@ class ComponentsALMThreeDSimplestPatchMatchingTestContact(TestFactory):
     frictionless_by_components = True
     file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test"
 
-class ComponentsALMThreeDSimplestPatchMatchingAdaptativeTestContact(TestFactory):
-    frictionless_by_components = True
-    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_adaptative_test"
-
-class ComponentsALMThreeDPatchComplexGeomTestContact(TestFactory):
-    frictionless_by_components = True
-    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test"
-
-class ComponentsALMThreeDSimplestPatchMatchingSlopeTestContact(TestFactory):
-    frictionless_by_components = True
-    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_slope_test"
-
-class ComponentsALMThreeDPatchMatchingTestContact(TestFactory):
-    frictionless_by_components = True
-    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_matching_test"
-
-class ComponentsALMThreeDPatchNotMatchingTestContact(TestFactory):
-    frictionless_by_components = True
-    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_nonmatching_test"
-
 class ALMHyperSimplePatchFrictionalTestContact(TestFactory):
     file_name = "ALM_frictional_contact_test_2D/hyper_simple_patch_test"
 
@@ -193,12 +152,3 @@ class ThreeDSimplestPatchMatchingTestContact(TestFactory):
 
 class ThreeDSimplestWithFrictionPatchMatchingTestContact(TestFactory):
     file_name = "mpc_contact_tests/3D_contact_simplest_with_friction_patch_matching_test"
-
-class ThreeDSimplestPatchMatchingSlopeTestContact(TestFactory):
-    file_name = "mpc_contact_tests/3D_contact_simplest_patch_matching_slope_test"
-
-class ThreeDPatchMatchingTestContact(TestFactory):
-    file_name = "mpc_contact_tests/3D_contact_patch_matching_test"
-
-class ThreeDPatchNotMatchingTestContact(TestFactory):
-    file_name = "mpc_contact_tests/3D_contact_patch_nonmatching_test"

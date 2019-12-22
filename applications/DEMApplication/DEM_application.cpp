@@ -411,6 +411,11 @@ KRATOS_CREATE_VARIABLE(double, SPRAYED_MATERIAL)
 KRATOS_CREATE_VARIABLE(double, BOUNDING_BOX_START_TIME)
 KRATOS_CREATE_VARIABLE(double, BOUNDING_BOX_STOP_TIME)
 
+//CONTROL MODULE
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TARGET_STRESS)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(REACTION_STRESS)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(LOADING_VELOCITY)
+
 //FLAGS
 KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_ROTATION, 0);
 KRATOS_CREATE_LOCAL_FLAG(DEMFlags, IS_SINTERING, 1);
@@ -430,6 +435,7 @@ KRATOS_CREATE_LOCAL_FLAG(DEMFlags, COPIED_STRESS_TENSOR2, 14);
 KRATOS_CREATE_LOCAL_FLAG(DEMFlags, PRINT_STRESS_TENSOR, 15);
 KRATOS_CREATE_LOCAL_FLAG(DEMFlags, CUMULATIVE_ZONE, 16);
 KRATOS_CREATE_LOCAL_FLAG(DEMFlags, IS_SAND_PRODUCTION, 17);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, POLYHEDRON_SKIN, 18);
 
 //ELEMENTS
 
@@ -440,6 +446,7 @@ KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication
       mNanoParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mAnalyticSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+      mPolyhedronSkinSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mIceContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mThermalSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mThermalSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
@@ -837,6 +844,12 @@ void KratosDEMApplication::Register() {
     //FOR RECAREY FORMULAE
     KRATOS_REGISTER_VARIABLE(TOTAL_CONTACT_DISTANCES)
 
+    //CONTROL MODULE
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TARGET_STRESS)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(REACTION_STRESS)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(LOADING_VELOCITY)
+
+
     // ELEMENTS
     KRATOS_REGISTER_ELEMENT("CylinderParticle2D", mCylinderParticle2D)
     KRATOS_REGISTER_ELEMENT("CylinderContinuumParticle2D", mCylinderContinuumParticle2D)
@@ -844,6 +857,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_ELEMENT("NanoParticle3D", mNanoParticle3D)
     KRATOS_REGISTER_ELEMENT("AnalyticSphericParticle3D", mAnalyticSphericParticle3D)
     KRATOS_REGISTER_ELEMENT("SphericContinuumParticle3D", mSphericContinuumParticle3D)
+    KRATOS_REGISTER_ELEMENT("PolyhedronSkinSphericParticle3D", mPolyhedronSkinSphericParticle3D)
     KRATOS_REGISTER_ELEMENT("IceContinuumParticle3D", mIceContinuumParticle3D)
     KRATOS_REGISTER_ELEMENT("ThermalSphericContinuumParticle3D", mThermalSphericContinuumParticle3D)
     KRATOS_REGISTER_ELEMENT("ThermalSphericParticle3D", mThermalSphericParticle3D)
