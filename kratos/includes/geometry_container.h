@@ -44,12 +44,12 @@ namespace Kratos
 template<class TNodeType>
 class GeometryContainer : public DataValueContainer, public Flags
 {
-    class GetGeometryHashId : public std::unary_function<const Geometry<TNodeType>* const, std::size_t>
+    class GetGeometryId : public std::unary_function<const Geometry<TNodeType>* const, std::size_t>
     {
     public:
         std::size_t const& operator()(const Geometry<TNodeType>& rGeometry) const
         {
-            return rGeometry.GetHashId();
+            return rGeometry.Id();
         }
     };
 
@@ -71,7 +71,7 @@ public:
     typedef PointerHashMapSet<
         GeometryType,
         std::hash<tystd::size_t>,
-        GetGeometryHashId,
+        GetGeometryId,
         typename GeometryType::Pointer
     > GeometriesContainerType;
 
