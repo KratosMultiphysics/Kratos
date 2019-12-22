@@ -134,14 +134,21 @@ public:
     /// Adds a geometry to the geometry container.
     GeometryIterator AddGeometry(typename GeometryType::Pointer pNewGeometry)
     {
-        return mpGeometries->insert(pNewGeometry);
+        auto i = mpGeometries->find(pNewGeometry->Id());
+        if(i == mpGeometries->end())
+            return mpGeometries->insert(pNewGeometry);
+        else
+        {
+            KRATOS_ERROR << "Geometry with Id: " << pNewGeometry->Id()
+                << " exists already.";
+        }
     }
 
     ///@}
     ///@name Get Functions
     ///@{
 
-    /// Returns the Geometry::Pointer corresponding to it's identifier
+    /// Returns the Geometry::Pointer corresponding to its Id
     typename GeometryType::Pointer pGetGeometry(IndexType GeometryId)
     {
         auto i = mpGeometries->find(GeometryId);
@@ -150,7 +157,7 @@ public:
         return *i.base();
     }
 
-    /// Returns the Geometry::Pointer corresponding to it's identifier
+    /// Returns the Geometry::Pointer corresponding to its name
     typename GeometryType::Pointer pGetGeometry(std::string GeometryName)
     {
         auto hash_index = GeometryType::GenerateId(GeometryName);
