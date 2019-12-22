@@ -18,21 +18,12 @@
 
 
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-#include "containers/pointer_vector_set.h"
-#include "containers/pointer_vector_map.h"
-#include "utilities/indexed_object.h"
-#include "geometries/geometry.h"
-#include "containers/flags.h"
-#include "containers/data_value_container.h"
+#include "containers/pointer_hash_map_set.h"
 
 
 namespace Kratos
@@ -70,7 +61,7 @@ public:
     /// Geometry container. A vector set of Elements with their Id's as key.
     typedef PointerHashMapSet<
         GeometryType,
-        std::hash<tystd::size_t>,
+        std::hash<std::size_t>,
         GetGeometryId,
         typename GeometryType::Pointer
     > GeometriesContainerType;
