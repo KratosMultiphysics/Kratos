@@ -206,7 +206,7 @@ def  AuxiliarComputeDeltaTime(main_model_part, computing_model_part, settings, c
             tb.AddRow(time_step_table[interval, 0], time_step_table[interval, 1])
         return tb.GetValue(current_time)
     elif settings["time_stepping"].Has("time_step_intervals"):
-        KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Legacy way to consider time stepping by intervals. Use time_step_table instead")
+        KM.Logger.PrintWarning("::[Contact Mechanical Static Solver]:: ", "Legacy way to consider time stepping by intervals. Use time_step_table instead")
         current_time = main_model_part.ProcessInfo[KM.TIME]
         for key in settings["time_stepping"]["time_step_intervals"].keys():
             interval_settings = settings["time_stepping"]["time_step_intervals"][key]
