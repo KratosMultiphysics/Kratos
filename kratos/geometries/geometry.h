@@ -3196,24 +3196,26 @@ private:
     ///@name Id Bit-Change Operations
     ///@{
 
-    /// Checks first bit in mId. 0 -> id; 1 -> name
-    static inline bool IsGeometryIdString(IndexType Id)
+    /// Checks first bit in Id. 0 -> id; 1 -> name/ string
+    static inline bool IsIdGeneratedFromString(IndexType Id) const
     {
         return Id & (IndexType(1) << 63);
     }
 
-    static inline void SetGeometryIdString(IndexType& Id)
+    /// Sets first bit in Id to 1 -> name/ string
+    static inline void SetIdGeneratedFromString(IndexType& Id) const
     {
         Id |= (IndexType(1) << 63);
     }
 
-    /// Checks second bit in mId. 0 -> foreign id; 1 -> self assigned
-    static inline bool IsSelfAssignedId(IndexType Id)
+    /// Checks second bit in Id. 0 -> defined id; 1 -> self assigned
+    static inline bool IsIdSelfAssigned(IndexType Id) const
     {
         return Id & (IndexType(1) << 62);
     }
 
-    static inline void SetSelfAssignedId(IndexType& Id)
+    /// Sets second bit in Id to 1 -> self assigned
+    static inline void SetIdSelfAssigned(IndexType& Id) const
     {
         Id |= (IndexType(1) << 62);
     }
