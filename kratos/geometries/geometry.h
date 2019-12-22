@@ -143,10 +143,6 @@ public:
     */
     typedef std::size_t SizeType;
 
-    /** Geometry shall behave similiar as indexed objects.
-    *   To allow query within data bases this type def is required.
-    */
-    typedef std::size_t result_type;
 
     typedef typename PointType::CoordinatesArrayType CoordinatesArrayType;
 
