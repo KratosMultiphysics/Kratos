@@ -589,11 +589,12 @@ public:
     /// Gets the corresponding hash-Id to a string name
     static inline IndexType GenerateId(std::string name)
     {
+        // Create id hash from provided name.
         std::hash<std::string> string_hash_generator;
         auto id = string_hash_generator(name);
 
         // Sets first bit to one.
-        SetGeometryIdString(id);
+        SetIdGeneratedFromString(id);
 
         return id;
     }
@@ -3197,25 +3198,25 @@ private:
     ///@{
 
     /// Checks first bit in Id. 0 -> id; 1 -> name/ string
-    static inline bool IsIdGeneratedFromString(IndexType Id) const
+    static inline bool IsIdGeneratedFromString(IndexType Id)
     {
         return Id & (IndexType(1) << 63);
     }
 
     /// Sets first bit in Id to 1 -> name/ string
-    static inline void SetIdGeneratedFromString(IndexType& Id) const
+    static inline void SetIdGeneratedFromString(IndexType& Id)
     {
         Id |= (IndexType(1) << 63);
     }
 
     /// Checks second bit in Id. 0 -> defined id; 1 -> self assigned
-    static inline bool IsIdSelfAssigned(IndexType Id) const
+    static inline bool IsIdSelfAssigned(IndexType Id)
     {
         return Id & (IndexType(1) << 62);
     }
 
     /// Sets second bit in Id to 1 -> self assigned
-    static inline void SetIdSelfAssigned(IndexType& Id) const
+    static inline void SetIdSelfAssigned(IndexType& Id)
     {
         Id |= (IndexType(1) << 62);
     }
