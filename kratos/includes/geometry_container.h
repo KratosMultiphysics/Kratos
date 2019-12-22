@@ -204,7 +204,7 @@ public:
     /// Remove given element from geometry container
     void RemoveGeometry(typename GeometryType::Pointer pThisGeometry)
     {
-        mpGeometries->erase(ThisGeometry->Id());
+        mpGeometries->erase(pThisGeometry->Id());
     }
 
     ///@}
