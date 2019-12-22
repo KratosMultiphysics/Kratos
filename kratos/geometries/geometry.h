@@ -301,20 +301,20 @@ public:
     {
     }
 
-    /** Copy constructor.
-    Construct this geometry as a copy of given geometry.
-
-    @note This copy constructor don't copy the points and new
-    geometry shares points with given source geometry. It's
-    obvious that any change to this new geometry's point affect
-    source geometry's points too.
+    /**
+    * @brief Copy constructor.
+    *
+    * @note Does not copy the points but shares same points with
+    *       the original geometry. Any change to the copied geometry's
+    *       point affect source geometry's points too.
+    * @note Copied geometry shares the same geometry as the
+    *       original geometry.
     */
     Geometry( 
-        const Geometry& rOther,
-        IndexType Id = 0)
-        : mId(Id),
-          mpGeometryData( rOther.mpGeometryData ),
-          mPoints( rOther.mPoints)
+        const Geometry& rOther)
+        : mId(rOther.mId)
+        , mpGeometryData(rOther.mpGeometryData)
+        , mPoints(rOther.mPoints)
     {
     }
 
