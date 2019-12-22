@@ -581,17 +581,17 @@ public:
     }
 
     /// Sets Id with the use of the name of this geometry
-    void SetId(std::string name)
+    void SetId(std::string Name)
     {
-        mId = GenerateId(name);
+        mId = GenerateId(Name);
     }
 
     /// Gets the corresponding hash-Id to a string name
-    static inline IndexType GenerateId(std::string name)
+    static inline IndexType GenerateId(std::string Name)
     {
         // Create id hash from provided name.
         std::hash<std::string> string_hash_generator;
-        auto id = string_hash_generator(name);
+        auto id = string_hash_generator(Name);
 
         // Sets first bit to one.
         SetIdGeneratedFromString(id);
