@@ -105,7 +105,7 @@ public:
 
     GeometryContainer Clone()
     {
-        typename GeometryContainerType::Pointer p_geometries(new GeometryContainerType(*mpGeometries));
+        typename GeometriesContainerType::Pointer p_geometries(new GeometriesContainerType(*mpGeometries));
 
         return GeometryContainer(p_geometries);
     }
@@ -335,7 +335,7 @@ private:
     ///@{
 
     /// Geometry Container
-    typename GeometryContainerType::Pointer mpGeometries;
+    typename GeometriesContainerType::Pointer mpGeometries;
 
     /// Model Tolerance
     double mModelTolerance;
