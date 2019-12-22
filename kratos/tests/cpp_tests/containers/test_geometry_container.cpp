@@ -64,11 +64,13 @@ namespace Testing {
 
         // check if correct element is returned
         KRATOS_CHECK_EQUAL(geometry_container.GetGeometry(1).Id(), 1);
+        KRATOS_CHECK_EQUAL(geometry_container.pGetGeometry(1)->Id(), 1);
 
         // check remove functions
         geometry_container.RemoveGeometry("GeometryLine1");
         geometry_container.RemoveGeometry(1);
         KRATOS_CHECK_EQUAL(geometry_container.NumberOfGeometries(), 1);
+        KRATOS_CHECK_IS_FALSE(geometry_container.HasGeometry("GeometryLine1"));
     }
 } // namespace Testing.
 } // namespace Kratos.
