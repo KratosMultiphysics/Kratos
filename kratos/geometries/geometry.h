@@ -590,7 +590,7 @@ public:
     }
 
     /// Gets the corresponding hash-Id to a string name
-    static inline IndexType GetNameHash(std::string name)
+    static inline IndexType GenerateId(std::string name)
     {
         std::hash<std::string> string_hash_generator;
         auto id = string_hash_generator(name);
