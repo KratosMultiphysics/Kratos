@@ -1410,9 +1410,10 @@ public:
     *        which shall be checked if it lays within
     *        the boundaries.
     * @param Tolerance the tolerance to the boundary.
-    * @return 0 -> outside
-    *         1 -> inside
-    *         2 -> on the boundary
+    * @return -1 -> failed
+    *          0 -> outside
+    *          1 -> inside
+    *          2 -> on the boundary
     */
     virtual int IsInsideLocalSpace(
         const CoordinatesArrayType& rPointLocalCoordinates,
