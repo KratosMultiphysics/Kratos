@@ -1,7 +1,25 @@
 from contact_structural_mechanics_test_factory import ContactStructuralMechanicsTestFactory as TestFactory
 
-class ExplicitPenaltyThreeDSimplestPatchMatchingTestContact(TestFactory):
-    file_name = "penalty_frictionless_contact_test_3D/explicit_3D_contact_simplest_patch_matching_test"
+class ALMThreeDSimplestPatchTestTriQuadContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_triquad_test"
+
+class ALMThreeDSimplestPatchTestQuadTriContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_quadtri_test"
+
+class ALMThreeDSimplestPatchMatchingAdaptativeTestContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_adaptative_test"
+
+class ALMThreeDPatchComplexGeomTestContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test"
+
+class ALMThreeDSimplestPatchMatchingSlopeTestContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_slope_test"
+
+class ALMThreeDPatchMatchingTestContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_matching_test"
+
+class ALMThreeDPatchNotMatchingTestContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_nonmatching_test"
 
 class ALMTaylorPatchTestContact(TestFactory):
     file_name = "ALM_frictionless_contact_test_2D/taylor_patch_test"
@@ -17,6 +35,34 @@ class ALMHertzSphereTestContact(TestFactory):
 
 class ALMHertzCompleteTestContact(TestFactory):
     file_name = "ALM_frictionless_contact_test_2D/hertz_complete_test"
+
+class ComponentsALMThreeDSimplestPatchTestTriQuadContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_triquad_test"
+
+class ComponentsALMThreeDSimplestPatchTestQuadTriContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_quadtri_test"
+
+class ComponentsALMThreeDSimplestPatchMatchingAdaptativeTestContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_adaptative_test"
+
+class ComponentsALMThreeDPatchComplexGeomTestContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test"
+
+class ComponentsALMThreeDSimplestPatchMatchingSlopeTestContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_slope_test"
+
+class ComponentsALMThreeDPatchMatchingTestContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_matching_test"
+
+class ComponentsALMThreeDPatchNotMatchingTestContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_nonmatching_test"
 
 class ComponentsALMTaylorPatchTestContact(TestFactory):
     frictionless_by_components = True
@@ -49,6 +95,15 @@ class ALMStaticEvolutionLoadFrictionTestContact(TestFactory):
 
 class ALMEvolutionLoadFrictionTestContact(TestFactory):
     file_name = "ALM_frictional_contact_test_2D/evolution_load_test"
+
+class ThreeDSimplestPatchMatchingSlopeTestContact(TestFactory):
+    file_name = "mpc_contact_tests/3D_contact_simplest_patch_matching_slope_test"
+
+class ThreeDPatchMatchingTestContact(TestFactory):
+    file_name = "mpc_contact_tests/3D_contact_patch_matching_test"
+
+class ThreeDPatchNotMatchingTestContact(TestFactory):
+    file_name = "mpc_contact_tests/3D_contact_patch_nonmatching_test"
 
 class BeamAxilSimpleContactTest(TestFactory):
     file_name = "mpc_contact_tests/contact_beams_axil_hexa_simple_test"
