@@ -202,13 +202,13 @@ public:
         mpGeometries->erase(index);
     }
 
-    /// Remove given element from geometry container
+    /// Remove given geometry from geometry container
     void RemoveGeometry(GeometryType& ThisGeometry)
     {
         mpGeometries->erase(ThisGeometry.Id());
     }
 
-    /// Remove given element from geometry container
+    /// Remove given geometry from geometry container
     void RemoveGeometry(typename GeometryType::Pointer pThisGeometry)
     {
         mpGeometries->erase(pThisGeometry->Id());
