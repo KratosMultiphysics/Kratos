@@ -18,7 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "geometries/quadrilateral_2d_4.h"
+#include "geometries/line_3d_2.h"
 
 #include "tests/cpp_tests/geometries/test_geometry.h"
 
@@ -36,7 +36,7 @@ namespace Testing {
 
     ///// Test Geometry Id with string
     KRATOS_TEST_CASE_IN_SUITE(TestNameHash, KratosCoreGeometriesFastSuite) {
-        auto test_id =Geometry<Point>::GetNameHash("GeometryTestName");
+        auto test_id =Geometry<Point>::GenerateId("GeometryTestName");
 
         KRATOS_WATCH(test_id)
     }
@@ -58,7 +58,7 @@ namespace Testing {
 
         KRATOS_CHECK_EXCEPTION_IS_THROWN(p_quad->Id(), "Assigned geometry id is name of type string.")
 
-        KRATOS_CHECK_EQUAL(p_quad->GetHashId(), Geometry<Point>::GetNameHash("Geometry1"));
+        KRATOS_CHECK_EQUAL(p_quad->Id(), Geometry<Point>::GenerateId("Geometry1"));
     }
 } // namespace Testing.
 } // namespace Kratos.
