@@ -2045,12 +2045,13 @@ public:
     *        closest point in global coordinates.
     *
     *        WARNING: This function does not provide the possibility
-    *        to use an initial guess!!
+    *                 to use an initial guess!!
     *
     * @param Tolerance accepted orthogonal error.
-    * @return 0 -> outside/ dailed
-    *         1 -> inside
-    *         2 -> on the boundary
+    * @return -1 -> failed
+    *          0 -> outside
+    *          1 -> inside
+    *          2 -> on the boundary
     */
     virtual int ClosestPoint(
         const CoordinatesArrayType& rPointGlobalCoordinates,
@@ -2078,12 +2079,14 @@ public:
     * @param rClosestPointLocalCoordinates the location of the
     *        closest point in local coordinates.
     *
-    *        IMPORTANT: The variable can also be used as initial guess.
+    *        IMPORTANT: The rClosestPointLocalCoordinates can
+    *                   also be used as initial guess.
     *
     * @param Tolerance accepted orthogonal error.
-    * @return 0 -> outside/ failed
-    *         1 -> inside
-    *         2 -> on the boundary
+    * @return -1 -> failed
+    *          0 -> outside
+    *          1 -> inside
+    *          2 -> on the boundary
     */
     virtual int ClosestPointLocalCoordinates(
         const CoordinatesArrayType& rPointGlobalCoordinates,
