@@ -8,7 +8,7 @@
         "type": "mappers.linear",
         "settings":
         {
-            "directions" : "Z",
+            "directions" : ["Z"],
             "balanced_tree" : false,
             "parallel" : true
         }

@@ -201,7 +201,6 @@ class Parameters(object):
         for i in range(self.size()):
             out.append(self[i].param)
         return out
-        # *** test this
 
 
     ##########################
@@ -222,7 +221,6 @@ class Parameters(object):
 
     def SetArray(self, key, val):
         self.__Set(key, val, list)
-        # *** test this
 
     def __Set(self, key, val, val_type):
         if type(val) is not val_type:
