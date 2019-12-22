@@ -572,8 +572,8 @@ public:
         // The first bit of the Id is used to detect if Id
         // is int or hash of name. Second bit defines if Id
         // is self assigned or not.
-        KRATOS_ERROR_IF(IsSelfAssignedId(Id)
-            || IsGeometryIdString(Id))
+        KRATOS_ERROR_IF(IsIdGeneratedFromString(Id)
+            || IsIdSelfAssigned(Id))
             << "Id out of range. The Id must me lower than 2^62 = 4.61e+18"
             << std::endl;
 
