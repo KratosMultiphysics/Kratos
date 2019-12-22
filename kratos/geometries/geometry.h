@@ -3213,11 +3213,6 @@ private:
     }
 
     /// Checks second bit in mId. 0 -> foreign id; 1 -> self assigned
-    bool HasSelfAssignedId() const
-    {
-        return mId & (IndexType(1) << 62);
-    }
-
     static inline bool IsSelfAssignedId(IndexType Id)
     {
         return Id & (IndexType(1) << 62);
