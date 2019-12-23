@@ -345,9 +345,9 @@ private:
     std::vector<array_1d<double, 3>> m_B_ab_covariant_vector;
     // Determinant of the geometrical Jacobian.
     Vector m_dA_vector;
-    // Transformation the strain tensor from the curvilinear system
-    // to the local cartesian in voigt notation including a 2 in the 
-    // shear part.
+    /* Transformation the strain tensor from the curvilinear system
+    *  to the local cartesian in voigt notation including a 2 in the
+    *  shear part. */
     std::vector<Matrix> m_T_vector;
 
     /// The vector containing the constitutive laws
@@ -357,14 +357,7 @@ private:
     ///@name Operations
     ///@{
 
-    /**
-    * This functions calculates both the RHS and the LHS
-    * @param rLeftHandSideMatrix: The LHS
-    * @param rRightHandSideVector: The RHS
-    * @param rCurrentProcessInfo: The current process info instance
-    * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
-    * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
-    */
+    /// Calculates LHS and RHS dependent on flags
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -380,19 +373,20 @@ private:
         IndexType IntegrationPointIndex,
         KinematicVariables& rKinematicVariables);
 
+    // Computes transformation
     void CalculateTransformation(
         const KinematicVariables& rKinematicVariables,
-        Matrix& T);
+        Matrix& rT);
 
     void CalculateBMembrane(
         IndexType IntegrationPointIndex,
         Matrix& rB,
-        KinematicVariables& rActualKinematic);
+        const KinematicVariables& rActualKinematic);
 
     void CalculateBCurvature(
         IndexType IntegrationPointIndex,
         Matrix& rB,
-        KinematicVariables& rActualKinematic);
+        const KinematicVariables& rActualKinematic);
 
     void CalculateSecondVariationStrainCurvature(
         IndexType IntegrationPointIndex,

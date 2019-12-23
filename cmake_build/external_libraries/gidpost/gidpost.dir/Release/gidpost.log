@@ -1,0 +1,10 @@
+﻿  Building Custom Rule C:/Users/s4618455/Documents/KRATOS/kratos_peter/Kratos/external_libraries/gidpost/CMakeLists.txt
+  gidpost.c
+  gidpostInt.c
+  gidpostHash.c
+  hashtab.c
+  recycle.c
+  lookupa.c
+  Generating Code...
+cl : command line warning D9025: overriding '/W1' with '/w'
+  gidpost.vcxproj -> C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\cmake_build\external_libraries\gidpost\Release\gidpost.lib

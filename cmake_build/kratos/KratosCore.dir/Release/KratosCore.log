@@ -1,0 +1,130 @@
+﻿  Building Custom Rule C:/Users/s4618455/Documents/KRATOS/kratos_peter/Kratos/kratos/CMakeLists.txt
+  flags.cpp
+  global_variables.cpp
+  deprecated_variables.cpp
+  c2c_variables.cpp
+  cfd_variables.cpp
+  mesh_moving_variables.cpp
+  mapping_variables.cpp
+  dem_variables.cpp
+  fsi_variables.cpp
+  mat_variables.cpp
+  legacy_structural_app_vars.cpp
+  global_pointer_variables.cpp
+  variables.cpp
+  kratos_application.cpp
+  integration_rules.cpp
+  communicator.cpp
+  serializer.cpp
+  kernel.cpp
+  periodic_condition.cpp
+  constitutive_law.cpp
+  Generating Code...
+  Compiling...
+  kratos_components.cpp
+  model_part_io.cpp
+  memory_info.cpp
+  reorder_consecutive_model_part_io.cpp
+  process_info.cpp
+  oriented_bounding_box.cpp
+  simple_mortar_mapper_process.cpp
+  io.cpp
+  gid_io.cpp
+  model_part.cpp
+  nodal_data.cpp
+  kratos_parameters.cpp
+  model.cpp
+  standard_linear_solver_factory.cpp
+  standard_preconditioner_factory.cpp
+  variable_data.cpp
+  data_value_container.cpp
+  fast_transfer_between_model_parts_process.cpp
+  mesh_local_smoothing_process.cpp
+  tetrahedra_mesh_worst_element_smoothing_process.cpp
+  Generating Code...
+  Compiling...
+  tetrahedra_mesh_quality_weighted_smoothing_process.cpp
+  measure_mesh_quality_process.cpp
+  structured_mesh_generator_process.cpp
+  mesh_coarsening_process.cpp
+  mesh_node_collapsing_process.cpp
+  tetrahedra_mesh_edge_swapping_process.cpp
+  find_intersected_geometrical_objects_process.cpp
+  find_intersected_geometrical_objects_with_obb_process.cpp
+  calculate_discontinuous_distance_to_skin_process.cpp
+  calculate_distance_to_skin_process.cpp
+  reorder_and_optimize_modelpart_process.cpp
+  compute_nodal_gradient_process.cpp
+  find_nodal_h_process.cpp
+  calculate_nodal_area_process.cpp
+  skin_detection_process.cpp
+  sub_model_part_skin_detection_process.cpp
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\sub_model_part_skin_detection_process.cpp(113): warning C4661: 'const Kratos::Flags Kratos::SubModelPartSkinDetectionProcess<2>::NOT_NODE_SELECTED': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\sub_model_part_skin_detection_process.h(38): message : see declaration of 'Kratos::SubModelPartSkinDetectionProcess<2>::NOT_NODE_SELECTED'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\sub_model_part_skin_detection_process.cpp(114): warning C4661: 'const Kratos::Flags Kratos::SubModelPartSkinDetectionProcess<3>::NOT_NODE_SELECTED': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\sub_model_part_skin_detection_process.h(38): message : see declaration of 'Kratos::SubModelPartSkinDetectionProcess<3>::NOT_NODE_SELECTED'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\sub_model_part_skin_detection_process.cpp(23): warning C4661: 'const Kratos::Flags Kratos::SubModelPartSkinDetectionProcess<2>::NOT_NODE_SELECTED': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\sub_model_part_skin_detection_process.h(38): message : see declaration of 'Kratos::SubModelPartSkinDetectionProcess<2>::NOT_NODE_SELECTED'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\sub_model_part_skin_detection_process.cpp(23): warning C4661: 'const Kratos::Flags Kratos::SubModelPartSkinDetectionProcess<3>::NOT_NODE_SELECTED': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\sub_model_part_skin_detection_process.h(38): message : see declaration of 'Kratos::SubModelPartSkinDetectionProcess<3>::NOT_NODE_SELECTED'
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.23.28105\include\xmemory(322): warning C4661: 'const Kratos::Flags Kratos::SubModelPartSkinDetectionProcess<2>::NOT_NODE_SELECTED': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\sub_model_part_skin_detection_process.h(38): message : see declaration of 'Kratos::SubModelPartSkinDetectionProcess<2>::NOT_NODE_SELECTED'
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.23.28105\include\xmemory(322): warning C4661: 'const Kratos::Flags Kratos::SubModelPartSkinDetectionProcess<3>::NOT_NODE_SELECTED': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\sub_model_part_skin_detection_process.h(38): message : see declaration of 'Kratos::SubModelPartSkinDetectionProcess<3>::NOT_NODE_SELECTED'
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.23.28105\include\xmemory(200): warning C4661: 'const Kratos::Flags Kratos::SubModelPartSkinDetectionProcess<2>::NOT_NODE_SELECTED': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\sub_model_part_skin_detection_process.h(38): message : see declaration of 'Kratos::SubModelPartSkinDetectionProcess<2>::NOT_NODE_SELECTED'
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.23.28105\include\xmemory(200): warning C4661: 'const Kratos::Flags Kratos::SubModelPartSkinDetectionProcess<3>::NOT_NODE_SELECTED': no suitable definition provided for explicit template instantiation request
+  replace_elements_and_condition_process.cpp
+  entity_erase_process.cpp
+  assign_scalar_variable_to_entities_process.cpp
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\sub_model_part_skin_detection_process.h(38): message : see declaration of 'Kratos::SubModelPartSkinDetectionProcess<3>::NOT_NODE_SELECTED'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(260): warning C4661: 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Node<3,Kratos::Dof<double>>>::AssignScalarVariableToEntitiesProcess(const Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Node<3,Kratos::Dof<double>>> &)': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(154): message : see declaration of 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Node<3,Kratos::Dof<double>>>::AssignScalarVariableToEntitiesProcess'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(260): warning C4661: 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Condition>::AssignScalarVariableToEntitiesProcess(const Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Condition> &)': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(154): message : see declaration of 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Condition>::AssignScalarVariableToEntitiesProcess'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(260): warning C4661: 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Element>::AssignScalarVariableToEntitiesProcess(const Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Element> &)': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(154): message : see declaration of 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Element>::AssignScalarVariableToEntitiesProcess'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(260): warning C4661: 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::MasterSlaveConstraint>::AssignScalarVariableToEntitiesProcess(const Kratos::AssignScalarVariableToEntitiesProcess<Kratos::MasterSlaveConstraint> &)': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(154): message : see declaration of 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::MasterSlaveConstraint>::AssignScalarVariableToEntitiesProcess'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_variable_to_entities_process.cpp(31): warning C4661: 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Node<3,Kratos::Dof<double>>>::AssignScalarVariableToEntitiesProcess(const Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Node<3,Kratos::Dof<double>>> &)': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(154): message : see declaration of 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Node<3,Kratos::Dof<double>>>::AssignScalarVariableToEntitiesProcess'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_variable_to_entities_process.cpp(31): warning C4661: 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Condition>::AssignScalarVariableToEntitiesProcess(const Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Condition> &)': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(154): message : see declaration of 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Condition>::AssignScalarVariableToEntitiesProcess'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_variable_to_entities_process.cpp(31): warning C4661: 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Element>::AssignScalarVariableToEntitiesProcess(const Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Element> &)': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(154): message : see declaration of 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Element>::AssignScalarVariableToEntitiesProcess'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_variable_to_entities_process.cpp(31): warning C4661: 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::MasterSlaveConstraint>::AssignScalarVariableToEntitiesProcess(const Kratos::AssignScalarVariableToEntitiesProcess<Kratos::MasterSlaveConstraint> &)': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(154): message : see declaration of 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::MasterSlaveConstraint>::AssignScalarVariableToEntitiesProcess'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(196): warning C4661: 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Node<3,Kratos::Dof<double>>>::AssignScalarVariableToEntitiesProcess(const Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Node<3,Kratos::Dof<double>>> &)': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(154): message : see declaration of 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Node<3,Kratos::Dof<double>>>::AssignScalarVariableToEntitiesProcess'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(196): warning C4661: 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Condition>::AssignScalarVariableToEntitiesProcess(const Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Condition> &)': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(154): message : see declaration of 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Condition>::AssignScalarVariableToEntitiesProcess'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(196): warning C4661: 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Element>::AssignScalarVariableToEntitiesProcess(const Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Element> &)': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(154): message : see declaration of 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::Element>::AssignScalarVariableToEntitiesProcess'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(196): warning C4661: 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::MasterSlaveConstraint>::AssignScalarVariableToEntitiesProcess(const Kratos::AssignScalarVariableToEntitiesProcess<Kratos::MasterSlaveConstraint> &)': no suitable definition provided for explicit template instantiation request
+  tetrahedral_mesh_orientation_check.cpp
+  Generating Code...
+  Compiling...
+  integration_values_extrapolation_to_nodes_process.cpp
+  apply_ray_casting_process.cpp
+  find_global_nodal_elemental_neighbours_process.cpp
+  time_averaging_process.cpp
+  bounding_volume_tree.cpp
+  exception.cpp
+  code_location.cpp
+  prime_numbers.cpp
+  connectivity_preserve_modeler.cpp
+  parallel_environment.cpp
+  data_communicator.cpp
+  divide_geometry.cpp
+  divide_triangle_2d_3.cpp
+  divide_tetrahedra_3d_4.cpp
+  element_size_calculator.cpp
+  embedded_skin_utility.cpp
+  geometrical_sensitivity_utility.cpp
+  line_sensitivity_utility.cpp
+  brute_force_point_locator.cpp
+  variable_utils.cpp
+  Generating Code...
+  Compiling...
+  assign_unique_model_part_collection_tag_utility.cpp
+  read_materials_utility.cpp

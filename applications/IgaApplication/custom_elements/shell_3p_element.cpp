@@ -251,7 +251,7 @@ namespace Kratos
     */
     void Shell3pElement::CalculateTransformation(
         const KinematicVariables& rKinematicVariables,
-        Matrix& T
+        Matrix& rT
     )
     {
         //Contravariant metric g_ab_con
@@ -260,8 +260,8 @@ namespace Kratos
                 - rKinematicVariables.a_ab_covariant[2] * rKinematicVariables.a_ab_covariant[2]);
 
         array_1d<double, 3> a_ab_contravariant = ZeroVector(3);
-        a_ab_contravariant[0] = inv_det_g_ab * rKinematicVariables.a_ab_covariant[1];
-        a_ab_contravariant[1] = inv_det_g_ab * rKinematicVariables.a_ab_covariant[0];
+        a_ab_contravariant[0] =  inv_det_g_ab * rKinematicVariables.a_ab_covariant[1];
+        a_ab_contravariant[1] =  inv_det_g_ab * rKinematicVariables.a_ab_covariant[0];
         a_ab_contravariant[2] = -inv_det_g_ab * rKinematicVariables.a_ab_covariant[2];
 
         //Contravariant base vectors
@@ -283,20 +283,21 @@ namespace Kratos
         G(1, 1) = inner_prod(e2, a_contravariant_2);
 
         //Transformation matrix T
-        T = ZeroMatrix(3, 3);
-        T(0, 0) = pow(G(0, 0), 2);
-        T(0, 1) = pow(G(0, 1), 2);
-        T(0, 2) = 2 * G(0, 0) * G(0, 1);
+        if (rT.size1() != 3 && rT.size2() != 3)
+            rT.resize(3, 3);
 
-        T(1, 0) = pow(G(1, 0), 2);
-        T(1, 1) = pow(G(1, 1), 2);
-        T(1, 2) = 2 * G(1, 0) * G(1, 1);
+        rT = ZeroMatrix(3, 3);
+        rT(0, 0) = pow(G(0, 0), 2);
+        rT(0, 1) = pow(G(0, 1), 2);
+        rT(0, 2) = 2 * G(0, 0) * G(0, 1);
 
-        T(2, 0) = 2 * G(0, 0) * G(1, 0);
-        T(2, 1) = 2 * G(0, 1) * G(1, 1);
-        T(2, 2) = 2 * (G(0, 0) * G(1, 1) + G(0, 1) * G(1, 0));
+        rT(1, 0) = pow(G(1, 0), 2);
+        rT(1, 1) = pow(G(1, 1), 2);
+        rT(1, 2) = 2 * G(1, 0) * G(1, 1);
 
-        KRATOS_WATCH(T)
+        rT(2, 0) = 2 * G(0, 0) * G(1, 0);
+        rT(2, 1) = 2 * G(0, 1) * G(1, 1);
+        rT(2, 2) = 2 * (G(0, 0) * G(1, 1) + G(0, 1) * G(1, 0));
     }
 
     void Shell3pElement::CalculateConstitutiveVariables(
@@ -341,7 +342,7 @@ namespace Kratos
     void Shell3pElement::CalculateBMembrane(
         IndexType IntegrationPointIndex,
         Matrix& rB,
-        KinematicVariables& rActualKinematic)
+        const KinematicVariables& rActualKinematic)
     {
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;
@@ -373,7 +374,7 @@ namespace Kratos
     void Shell3pElement::CalculateBCurvature(
         IndexType IntegrationPointIndex,
         Matrix& rB,
-        KinematicVariables& rActualKinematic)
+        const KinematicVariables& rActualKinematic)
     {
         KRATOS_TRY
 
@@ -527,9 +528,9 @@ namespace Kratos
                 array_1d<double, 3> dda3 = ZeroVector(3);
                 int dirt = 4 - dirr - dirs;
                 int ddir = dirr - dirs;
-                if (ddir == -1)      dda3(dirt - 1) =  r_DN_De(0, kr) * r_DN_De(1, ks) - r_DN_De(0, ks) * r_DN_De(1, kr);
-                else if (ddir == 2)  dda3(dirt - 1) =  r_DN_De(0, kr) * r_DN_De(1, ks) - r_DN_De(0, ks) * r_DN_De(1, kr);
-                else if (ddir == 1)  dda3(dirt - 1) = -r_DN_De(0, kr) * r_DN_De(1, ks) + r_DN_De(0, ks) * r_DN_De(1, kr);
+                     if (ddir == -1) dda3(dirt - 1) =  r_DN_De(0, kr) * r_DN_De(1, ks) - r_DN_De(0, ks) * r_DN_De(1, kr);
+                else if (ddir ==  2) dda3(dirt - 1) =  r_DN_De(0, kr) * r_DN_De(1, ks) - r_DN_De(0, ks) * r_DN_De(1, kr);
+                else if (ddir ==  1) dda3(dirt - 1) = -r_DN_De(0, kr) * r_DN_De(1, ks) + r_DN_De(0, ks) * r_DN_De(1, kr);
                 else if (ddir == -2) dda3(dirt - 1) = -r_DN_De(0, kr) * r_DN_De(1, ks) + r_DN_De(0, ks) * r_DN_De(1, kr);
 
                 double c = -(dda3[0] * rActualKinematic.a3_tilde[0] + dda3[1] * rActualKinematic.a3_tilde[1] + dda3[2] * rActualKinematic.a3_tilde[2]
