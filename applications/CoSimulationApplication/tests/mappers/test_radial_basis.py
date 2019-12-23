@@ -2,15 +2,11 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import ImportDataStructure
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-from test_nearest import Case1D, Case3DSphere
-
-
-import numpy as np
 import os
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
-from copy import deepcopy
+try:
+    from mappers.test_nearest import Case1D, Case2D, Case3DSphere, Case3DSinc
+except:
+    from test_nearest import Case1D, Case2D, Case3DSphere, Case3DSinc
 
 
 class TestMapperRadialBasis(KratosUnittest.TestCase):
@@ -20,12 +16,11 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
         cs_data_structure = ImportDataStructure(parameter_file_name)
         with open(parameter_file_name, 'r') as parameter_file:
             parameters = cs_data_structure.Parameters(parameter_file.read())
+        par_mapper = parameters['mapper']
 
-        par_mapper_0 = parameters['mapper']
+        gui = 1  # *** gui gives problems when running all tests?
 
-        gui = 1
-
-        # 1D: square-root grid + linear function
+        # 1D case: square-root grid + linear function
         """
         n_from = 14, n_to = 5 
             => max error = 5.8e-5
@@ -33,7 +28,6 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
         n_from, n_to = 14, 5
         case = Case1D(cs_data_structure, n_from, n_to)
 
-        par_mapper = deepcopy(par_mapper_0)
         par_mapper['settings'].SetArray('directions', ['Z'])
         mapper = cs_tools.CreateInstance(par_mapper)
         mapper.Initialize(case.model_part_from, case.model_part_to)
@@ -45,7 +39,26 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
         if gui:
             case.plot()
 
-        # 3D: sphere + sine function
+        # 2D case: circle + linear function
+        """
+        n_from = 33, n_to = 22 
+            => max error = 0.003
+        """
+        n_from, n_to = 33, 22
+        case = Case2D(cs_data_structure, n_from, n_to)
+
+        par_mapper['settings'].SetArray('directions', ['X', 'Y'])
+        mapper = cs_tools.CreateInstance(par_mapper)
+        mapper.Initialize(case.model_part_from, case.model_part_to)
+        mapper((case.model_part_from, case.var_from),
+               (case.model_part_to, case.var_to))
+
+        self.assertTrue(case.check(tolerance=0.005))
+
+        if gui:
+            case.plot()
+
+        # 3D case: sphere + sine function
         """
         n_theta_from, n_phi_from = 50, 30
         n_theta_to, n_phi_to = 22, 11
@@ -55,7 +68,6 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
         n_theta_to, n_phi_to = 22, 11
         case = Case3DSphere(cs_data_structure, n_theta_from, n_phi_from, n_theta_to, n_phi_to)
 
-        par_mapper = deepcopy(par_mapper_0)
         par_mapper['settings'].SetArray('directions', ['X', 'Y', 'Z'])
         mapper = cs_tools.CreateInstance(par_mapper)
         mapper.Initialize(case.model_part_from, case.model_part_to)
@@ -67,210 +79,31 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
         if gui:
             case.plot()
 
+        # 3D case: sinc + linear vector function
+        """
+        n_x_from, n_y_from = 20, 20
+        n_x_to, n_y_to = 13, 13
+            => max error = 0.05
+            
+        n_x_from, n_y_from = 50, 50
+        n_x_to, n_y_to = 60, 60
+            => max error = 0.0024
+        """
+        n_x_from, n_y_from = 20, 20
+        n_x_to, n_y_to = 13, 13
+        case = Case3DSinc(cs_data_structure, n_x_from, n_y_from, n_x_to, n_y_to)
 
-        print('\nNEW CODE ENDS HERE\n')
-        # *** OLD CODE
+        par_mapper['settings'].SetArray('directions', ['X', 'Y', 'Z'])
+        mapper = cs_tools.CreateInstance(par_mapper)
+        mapper.Initialize(case.model_part_from, case.model_part_to)
+        mapper((case.model_part_from, case.var_from),
+               (case.model_part_to, case.var_to))
 
+        for tmp in case.check(tolerance=0.1):
+            self.assertTrue(tmp)
 
-
-        # 1D: values on straight line, irregular grid spacing
-        var_from = vars(KM)["TEMPERATURE"]
-        model_from = cs_data_structure.Model()
-        model_part_from = model_from.CreateModelPart('wall_from')
-        model_part_from.AddNodalSolutionStepVariable(var_from)
-
-        n_from = 66
-        z_from = np.sqrt(np.linspace(.1, .9, n_from))
-        v_from = 1.2 - 1.7 * z_from
-        for i in range(n_from):
-            node = model_part_from.CreateNewNode(i, 0., 0., z_from[i])
-            node.SetSolutionStepValue(var_from, 0, v_from[i])
-
-        var_to = vars(KM)["PRESSURE"]
-        model_to = cs_data_structure.Model()
-        model_part_to = model_to.CreateModelPart('wall_to')
-        model_part_to.AddNodalSolutionStepVariable(var_to)
-
-        n_to = 99
-        z_to = np.sqrt(np.linspace(0, 1, n_to))
-        for i in range(n_to):
-            model_part_to.CreateNewNode(i, 0., 0., z_to[i])
-
-        mapper = cs_tools.CreateInstance(parameters['mapper_1d'])
-        mapper.Initialize(model_part_from, model_part_to)
-        mapper((model_part_from, var_from), (model_part_to, var_to))
-
-        v_to = np.zeros(n_to)
-        for i, node in enumerate(model_part_to.Nodes):
-            v_to[i] = node.GetSolutionStepValue(var_to)
-
-        # for i in range(n_to):
-        #     self.assertAlmostEqual(v_to[i] / (1.2 - 1.7 * z_to[i]), 1., delta=1e-8)
-
-        if 0:
-            # visualization of results
-            plt.plot(z_from, v_from, 'b', label='from', linewidth=2.5)
-            plt.scatter(z_from, v_from, s=20, color='b')
-            plt.plot(z_to, v_to, 'r', label='to', linewidth=1.5)
-            plt.scatter(z_to, v_to, s=15, color='r')
-            plt.legend()
-            plt.show()
-            plt.close()
-
-
-        # 2D: values on straight line, irregular grid spacing
-        var_from = vars(KM)["TEMPERATURE"]
-        model_from = cs_data_structure.Model()
-        model_part_from = model_from.CreateModelPart('wall_from')
-        model_part_from.AddNodalSolutionStepVariable(var_from)
-
-        n_from = 15
-        x_from = np.sqrt(np.linspace(.1, .9, n_from))
-        y_from = 7.2 + 3.3 * x_from
-        v_from = 1.2 - 1.7 * x_from + 2.5 * y_from
-        for i in range(n_from):
-            node = model_part_from.CreateNewNode(i, x_from[i], y_from[i], 0.)
-            node.SetSolutionStepValue(var_from, 0, v_from[i])
-
-        var_to = vars(KM)["PRESSURE"]
-        model_to = cs_data_structure.Model()
-        model_part_to = model_to.CreateModelPart('wall_to')
-        model_part_to.AddNodalSolutionStepVariable(var_to)
-
-        n_to = 30
-        x_to = np.sqrt(np.linspace(.2, .8, n_to))
-        y_to = 7.2 + 3.3 * x_to
-        for i in range(n_to):
-            model_part_to.CreateNewNode(i, x_to[i], y_to[i], 0.)
-
-        mapper = cs_tools.CreateInstance(parameters['mapper_2d'])
-        mapper.Initialize(model_part_from, model_part_to)
-        mapper((model_part_from, var_from), (model_part_to, var_to))
-
-        v_to = np.zeros(n_to)
-        for i, node in enumerate(model_part_to.Nodes):
-            v_to[i] = node.GetSolutionStepValue(var_to)
-
-        # for i in range(n_to):
-        #     self.assertAlmostEqual(v_to[i] / (1.2 - 1.7 * x_to[i] + 2.5 * y_to[i]), 1., delta=1e-8)
-
-        if 0:
-            # visualization of results
-            _, ax = plt.subplots(ncols=2)
-
-            ax[0].plot(x_from, v_from, 'b', label='from', linewidth=2.5)
-            ax[0].scatter(x_from, v_from, s=20, color='b')
-            ax[0].plot(x_to, v_to, 'r', label='to', linewidth=1.5)
-            ax[0].scatter(x_to, v_to, s=15, color='r')
-
-            ax[1].plot(y_from, v_from, 'b', label='from', linewidth=2.5)
-            ax[1].scatter(y_from, v_from, s=20, color='b')
-            ax[1].plot(y_to, v_to, 'r', label='to', linewidth=1.5)
-            ax[1].scatter(y_to, v_to, s=15, color='r')
-
-            for a in ax:
-                a.legend()
-            plt.show()
-            plt.close()
-
-
-        # 3D: points on spheres
-        def f(x, y, z):
-            # out = 1.5 * x + 2 * y + 2.5 * z
-            out = np.sin(x) * np.sin(y) * np.sin(z)
-            return out
-
-        r = np.pi
-
-        # ModelPart to
-        var_from = vars(KM)["TEMPERATURE"]
-        model_from = cs_data_structure.Model()
-        model_part_from = model_from.CreateModelPart('wall_from')
-        model_part_from.AddNodalSolutionStepVariable(var_from)
-
-        n_theta = 100
-        n_phi = 50
-        dtheta = np.pi / n_theta
-        dphi = np.pi / (n_phi - 1)
-        theta = np.ones((n_theta, n_phi)) * np.linspace(0, 2 * np.pi - dtheta, n_theta).reshape(-1, 1)
-        phi = np.ones((n_theta, n_phi)) * np.linspace(dphi, np.pi - dphi, n_phi).reshape(1, -1)
-
-        n_from = n_theta * n_phi
-        x_from = r * np.cos(theta) * np.sin(phi)
-        y_from = r * np.sin(theta) * np.sin(phi)
-        z_from = r * np.cos(phi)
-        v_from = f(x_from, y_from, z_from)
-        for i in range(n_from):
-            node = model_part_from.CreateNewNode(i, x_from.flatten()[i], y_from.flatten()[i], z_from.flatten()[i])
-            node.SetSolutionStepValue(var_from, 0, v_from.flatten()[i])
-
-        # ModelPart from
-        var_to = vars(KM)["PRESSURE"]
-        model_to = cs_data_structure.Model()
-        model_part_to = model_to.CreateModelPart('wall_to')
-        model_part_to.AddNodalSolutionStepVariable(var_to)
-
-
-        n_theta = 150
-        n_phi = 75  # 100k points: tree = 1.1s, coeffs = 4.3s, __call__ = 0.7s
-        dtheta = np.pi / n_theta
-        dphi = np.pi / (n_phi - 1)
-        theta = np.ones((n_theta, n_phi)) * np.linspace(0, 2 * np.pi - dtheta, n_theta).reshape(-1, 1)
-        phi = np.ones((n_theta, n_phi)) * np.linspace(dphi, np.pi - dphi, n_phi).reshape(1, -1)
-
-        n_to = n_theta * n_phi
-        x_to = r * np.cos(theta) * np.sin(phi)
-        y_to = r * np.sin(theta) * np.sin(phi)
-        z_to = r * np.cos(phi)
-        v_to_ref = f(x_to, y_to, z_to)
-        for i in range(n_to):
-            model_part_to.CreateNewNode(i, x_to.flatten()[i], y_to.flatten()[i], z_to.flatten()[i])
-
-        # map values
-        mapper = cs_tools.CreateInstance(parameters['mapper_3d'])
-        with cs_tools.quicktimer('init', ms=True, n=1):
-            mapper.Initialize(model_part_from, model_part_to)
-        with cs_tools.quicktimer('map', ms=True):
-            mapper((model_part_from, var_from), (model_part_to, var_to))
-
-        v_to = np.zeros(n_to)
-        for i, node in enumerate(model_part_to.Nodes):
-            v_to[i] = node.GetSolutionStepValue(var_to)
-        v_to = v_to.reshape(n_theta, n_phi)
-
-        # plot results
-        if True:
-            c_from = cm.jet((v_from - v_from.min()) / (v_from.max() - v_from.min()))
-            c_to = cm.jet((v_to - v_from.min()) / (v_from.max() - v_from.min()))
-            error = np.abs(v_to - v_to_ref)
-            c_error = cm.jet(error / error.max())
-
-            fig = plt.figure(figsize=(18, 6))
-            plt.suptitle(f'max error = {error.max():.2g}     ({v_from.min():.1f} < v_from < {v_from.max():.1f})')
-
-            ax_from = fig.add_subplot(131, projection='3d')
-            ax_from.set_title('from')
-            ax_from.plot_surface(x_from, y_from, z_from, facecolors=c_from,
-                                 rstride=1, cstride=1, linewidth=0, antialiased=False, shade=False)
-
-            ax_to = fig.add_subplot(132, projection='3d')
-            ax_to.set_title('to')
-            ax_to.plot_surface(x_to, y_to, z_to, facecolors=c_to,
-                               rstride=1, cstride=1, linewidth=0, antialiased=False, shade=False)
-
-            ax_error = fig.add_subplot(133, projection='3d')
-            ax_error.set_title('to (error)')
-            ax_error.plot_surface(x_to, y_to, z_to, facecolors=c_error,
-                               rstride=1, cstride=1, antialiased=False, shade=False)
-
-            for ax in [ax_from, ax_to, ax_error]:
-                ax.set_xlabel('x')
-                ax.set_ylabel('y')
-                ax.set_zlabel('z')
-
-            plt.tight_layout()
-            plt.show()
-            plt.close('all')
+        if gui:
+            case.plot()
 
 
 if __name__ == '__main__':
