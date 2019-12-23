@@ -19,7 +19,7 @@
 #include "add_constraint_to_python.h"
 #include "includes/master_slave_constraint.h"
 #include "includes/linear_master_slave_constraint.h"
-#include "includes/slip_constraint.h"
+#include "constraints/slip_constraint.h"
 
 namespace Kratos
 {
@@ -138,8 +138,8 @@ void AddConstraintToPython(pybind11::module &m)
     pybind11::class_<SlipConstraint, SlipConstraint::Pointer, LinearMasterSlaveConstraint, Flags>
             (m, "SlipConstraint")
     .def(pybind11::init<
-        SlipConstraint::IndexType, 
-        Node<3>&, 
+        SlipConstraint::IndexType,
+        Node<3>&,
         const SlipConstraint::VariableComponentType& ,
         const SlipConstraint::VariableComponentType& ,
         const SlipConstraint::VariableComponentType& ,
