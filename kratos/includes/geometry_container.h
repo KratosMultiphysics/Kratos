@@ -155,7 +155,7 @@ public:
         auto i = mpGeometries->find(GeometryId);
         KRATOS_ERROR_IF(i == mpGeometries->end())
             << " geometry index not found: " << GeometryId << ".";
-        return *(i.base()->second);
+        return (i.base()->second).get();
     }
 
     /// Returns the Geometry::Pointer corresponding to its name
@@ -165,7 +165,7 @@ public:
         auto i = mpGeometries->find(hash_index);
         KRATOS_ERROR_IF(i == mpGeometries->end())
             << " geometry index not found: " << GeometryName << ".";
-        return *(i.base()->second);
+        return (i.base()->second).get();
     }
 
     /// Returns a reference geometry corresponding to the id
