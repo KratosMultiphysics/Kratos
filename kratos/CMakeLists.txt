@@ -25,6 +25,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/constitutive_law.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_components.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/memory_info.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/process_info.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/oriented_bounding_box.cpp;
@@ -222,6 +223,7 @@ if(USE_COTIRE MATCHES ON)
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram
     SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j2")
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/memory_info.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/mortar_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     cotire(KratosVersion)
     cotire(KratosCore)

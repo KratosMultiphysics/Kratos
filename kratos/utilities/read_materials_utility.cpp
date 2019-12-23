@@ -173,11 +173,11 @@ void ReadMaterialsUtility::AssignMaterialToProperty(
     // Assign variables
     AssignVariablesToProperty(MaterialData, rProperty);
     
-    // Assign CL
-    AssignConstitutiveLawToProperty(MaterialData, rProperty);
-    
     // Assign tables
     AssignTablesToProperty(MaterialData, rProperty);
+    
+    // Assign CL
+    AssignConstitutiveLawToProperty(MaterialData, rProperty);
 
     KRATOS_CATCH("");
 }
