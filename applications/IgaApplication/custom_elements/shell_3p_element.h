@@ -277,11 +277,6 @@ public:
 
     void Initialize() override;
 
-    void CalculateBMembrane(
-        IndexType IntegrationPointIndex,
-        Matrix& rB,
-        KinematicVariables& rActualKinematic);
-
     void GetValuesVector(
         Vector& rValues,
         int Step);
@@ -381,7 +376,6 @@ private:
     /// Initialize Operations
     void InitializeMaterial();
 
-
     void CalculateKinematics(
         IndexType IntegrationPointIndex,
         KinematicVariables& rKinematicVariables);
@@ -389,6 +383,22 @@ private:
     void CalculateTransformation(
         const KinematicVariables& rKinematicVariables,
         Matrix& T);
+
+    void CalculateBMembrane(
+        IndexType IntegrationPointIndex,
+        Matrix& rB,
+        KinematicVariables& rActualKinematic);
+
+    void CalculateBCurvature(
+        IndexType IntegrationPointIndex,
+        Matrix& rB,
+        KinematicVariables& rActualKinematic);
+
+    void CalculateSecondVariationStrainCurvature(
+        IndexType IntegrationPointIndex,
+        SecondVariations& rSecondVariationsStrain,
+        SecondVariations& rSecondVariationsCurvature,
+        const KinematicVariables& rActualKinematic);
 
     /**
     * This functions updates the constitutive variables
@@ -405,6 +415,18 @@ private:
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     );
+
+    inline void CalculateAndAddKm(
+        MatrixType& rLeftHandSideMatrix,
+        const Matrix& B,
+        const Matrix& D,
+        const double IntegrationWeight);
+
+    inline void CalculateAndAddNonlinearKm(
+        Matrix& rLeftHandSideMatrix,
+        const SecondVariations& rSecondVariationsStrain,
+        const Vector& rSD,
+        const double IntegrationWeight);
 
     ///@}
     ///@name Serialization
