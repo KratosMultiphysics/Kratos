@@ -161,7 +161,7 @@ class Case2D:  # *** TO DO
         self.model_part_from = model.CreateModelPart('wall_from')
         self.model_part_from.AddNodalSolutionStepVariable(self.var_from)
 
-        dtheta = np.pi / self.n_from
+        dtheta = 2 * np.pi / self.n_from
         self.theta_from = np.linspace(0, 2 * np.pi - dtheta, self.n_from)
 
         self.x_from, self.y_from = self.get_cartesian(self.theta_from)
@@ -175,7 +175,7 @@ class Case2D:  # *** TO DO
         self.model_part_to = model.CreateModelPart('wall_to')
         self.model_part_to.AddNodalSolutionStepVariable(self.var_to)
 
-        dtheta = np.pi / self.n_to
+        dtheta = 2 * np.pi / self.n_to
         self.theta_to = np.linspace(0, 2 * np.pi - dtheta, self.n_to)
 
         self.x_to, self.y_to = self.get_cartesian(self.theta_to)
@@ -243,7 +243,7 @@ class Case3DSphere:
         self.model_part_from.AddNodalSolutionStepVariable(self.var_from)
 
         shape = (self.n_theta_from, self.n_phi_from)
-        dtheta = np.pi / self.n_theta_from
+        dtheta = 2 * np.pi / self.n_theta_from
         dphi = np.pi / (self.n_phi_from - 1)
         theta = np.ones(shape) * np.linspace(0, 2 * np.pi - dtheta, self.n_theta_from).reshape(-1, 1)
         phi = np.ones(shape) * np.linspace(dphi, np.pi - dphi, self.n_phi_from).reshape(1, -1)
@@ -261,7 +261,7 @@ class Case3DSphere:
         self.model_part_to.AddNodalSolutionStepVariable(self.var_to)
 
         shape = (self.n_theta_to, self.n_phi_to)
-        dtheta = np.pi / self.n_theta_to
+        dtheta = 2 * np.pi / self.n_theta_to
         dphi = np.pi / (self.n_phi_to - 1)
         theta = np.ones(shape) * np.linspace(0, 2 * np.pi - dtheta, self.n_theta_to).reshape(-1, 1)
         phi = np.ones(shape) * np.linspace(dphi, np.pi - dphi, self.n_phi_to).reshape(1, -1)

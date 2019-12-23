@@ -1,16 +1,14 @@
-from scipy.spatial import cKDTree
 import numpy as np
 from multiprocessing import Pool, cpu_count
 
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 from KratosMultiphysics.CoSimulationApplication.mappers.interpolator import MapperInterpolator
 cs_data_structure = cs_tools.cs_data_structure
-
+import matplotlib.pyplot as plt
 
 def Create(parameters):
     return MapperLinear(parameters)
 
-# *** should be adapted! doesn't work right now
 
 # Class MapperLinear: linear interpolation.
 class MapperLinear(MapperInterpolator):
@@ -75,7 +73,7 @@ class MapperLinear(MapperInterpolator):
         else:
             get_coeffs = get_coeffs_1d_2d
 
-        # calculate coefficients  *** new
+        # calculate coefficients
         with cs_tools.quicktimer('coeffs', ms=True):
             iterable = []
             for i_to in range(self.n_to):
@@ -85,7 +83,8 @@ class MapperLinear(MapperInterpolator):
             if self.parallel:
                 processes = cpu_count()
                 with Pool(processes=processes) as pool:
-                    out = pool.starmap(get_coeffs, iterable)  # optimal chunksize automatically calculated
+                    # optimal chunksize automatically calculated
+                    out = pool.starmap(get_coeffs, iterable)
                 self.coeffs = np.vstack(tuple(out))
             else:
                 self.coeffs = np.zeros(self.nearest.shape)
@@ -130,12 +129,16 @@ def get_coeffs_3d(coords_from, coord_to):
 
 def line_interpolation_coeff(P_0, P_1, P_2):
     # project P_0 on line
-    v_01 = P_1 - P_0
-    v_t = (P_2 - P_1) / np.linalg.norm(P_2 - P_1)
-    P_p = P_0 + (v_01 - v_t * np.dot(v_01, v_t))
+    # *** only necessary if 2D??
+    if P_0.size == 1:
+        P_p = P_0
+    else:
+        v_01 = P_1 - P_0
+        v_t = (P_2 - P_1) / np.linalg.norm(P_2 - P_1)
+        P_p = P_0 + (v_01 - v_t * np.dot(v_01, v_t))
 
     # check if point lies on line
-    if np.dot(P_2 - P_1, P_p - P_1) >= 0:
+    if np.dot(P_1 - P_p, P_2 - P_p) <= 0:
         # linear interpolation
         c = np.linalg.norm(P_2 - P_p) / np.linalg.norm(P_2 - P_1)
     else:
