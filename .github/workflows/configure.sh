@@ -8,11 +8,6 @@
 # You can find a list will all the compiation options in INSTALL.md or here:
 #   - https://github.com/KratosMultiphysics/Kratos/wiki/Compilation-options
 
-# External libraries
-# # mmg library
-# wget https://drive.google.com/uc\?export\=download\&id\=1RM-SpxbynS6_zby8TjaJvIEC9NA-IxRZ -O mmg.zip
-# unzip mmg.zip
-
 add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
 }
