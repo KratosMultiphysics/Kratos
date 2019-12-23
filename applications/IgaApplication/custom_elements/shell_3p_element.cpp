@@ -37,7 +37,6 @@ namespace Kratos
         const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
         const SizeType number_of_nodes = r_geometry.size();
-        const SizeType mat_size = number_of_nodes * 3;
 
         // Prepare memory
         if (m_A_ab_covariant_vector.size() != r_number_of_integration_points)
@@ -312,9 +311,6 @@ namespace Kratos
         rValues.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-        Vector strain_vector = ZeroVector(3);
-        Vector curvature_vector = ZeroVector(3);
 
         array_1d<double, 3> strain_vector = 0.5 * (rActualKinematic.a_ab_covariant - m_A_ab_covariant_vector[IntegrationPointIndex]);
         rThisConstitutiveVariablesMembrane.StrainVector = prod(m_T_vector[IntegrationPointIndex], strain_vector);
@@ -716,8 +712,6 @@ namespace Kratos
 
     int Shell3pElement::Check(const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_TRY;
-
         KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
 
         // Verify that the constitutive law exists
@@ -738,7 +732,6 @@ namespace Kratos
         }
 
         return 0;
-        KRATOS_CATCH("");
     }
 
     void Shell3pElement::CalculateHessian(
