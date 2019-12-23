@@ -51,7 +51,7 @@ namespace Kratos
  *  n is the unit normal to the node
  *
  */
-class SlipConstraint
+class KRATOS_API(KRATOS_CORE) SlipConstraint
     :  public LinearMasterSlaveConstraint
 {
 public:
