@@ -3,6 +3,16 @@
     {
         "data_structure" : "pyKratos"
     },
+    "mapper" :
+    {
+        "type": "mappers.radial_basis",
+        "settings":
+        {
+            "directions" : ["X", "Y", "Z"],
+            "balanced_tree" : false,
+            "parallel" : true
+        }
+    },
     "mapper_1d" :
     {
         "type": "mappers.radial_basis",

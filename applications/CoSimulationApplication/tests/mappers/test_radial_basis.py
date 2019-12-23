@@ -2,12 +2,15 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import ImportDataStructure
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from test_nearest import Case1D, Case3DSphere
+
 
 import numpy as np
 import os
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
+from copy import deepcopy
 
 
 class TestMapperRadialBasis(KratosUnittest.TestCase):
@@ -17,6 +20,58 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
         cs_data_structure = ImportDataStructure(parameter_file_name)
         with open(parameter_file_name, 'r') as parameter_file:
             parameters = cs_data_structure.Parameters(parameter_file.read())
+
+        par_mapper_0 = parameters['mapper']
+
+        gui = 1
+
+        # 1D: square-root grid + linear function
+        """
+        n_from = 14, n_to = 5 
+            => max error = 5.8e-5
+        """
+        n_from, n_to = 14, 5
+        case = Case1D(cs_data_structure, n_from, n_to)
+
+        par_mapper = deepcopy(par_mapper_0)
+        par_mapper['settings'].SetArray('directions', ['Z'])
+        mapper = cs_tools.CreateInstance(par_mapper)
+        mapper.Initialize(case.model_part_from, case.model_part_to)
+        mapper((case.model_part_from, case.var_from),
+               (case.model_part_to, case.var_to))
+
+        self.assertTrue(case.check(tolerance=1e-4))
+
+        if gui:
+            case.plot()
+
+        # 3D: sphere + sine function
+        """
+        n_theta_from, n_phi_from = 50, 30
+        n_theta_to, n_phi_to = 22, 11
+            => max error = 3.2e-4
+        """
+        n_theta_from, n_phi_from = 50, 30
+        n_theta_to, n_phi_to = 22, 11
+        case = Case3DSphere(cs_data_structure, n_theta_from, n_phi_from, n_theta_to, n_phi_to)
+
+        par_mapper = deepcopy(par_mapper_0)
+        par_mapper['settings'].SetArray('directions', ['X', 'Y', 'Z'])
+        mapper = cs_tools.CreateInstance(par_mapper)
+        mapper.Initialize(case.model_part_from, case.model_part_to)
+        mapper((case.model_part_from, case.var_from),
+               (case.model_part_to, case.var_to))
+
+        self.assertTrue(case.check(tolerance=5e-4))
+
+        if gui:
+            case.plot()
+
+
+        print('\nNEW CODE ENDS HERE\n')
+        # *** OLD CODE
+
+
 
         # 1D: values on straight line, irregular grid spacing
         var_from = vars(KM)["TEMPERATURE"]
