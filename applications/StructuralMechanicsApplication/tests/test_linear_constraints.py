@@ -13,7 +13,7 @@ def inner_prod(a,b):
 class TestLinearConstraints(KratosUnittest.TestCase):
     def setUp(self):
         pass
-    
+
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -87,7 +87,7 @@ class TestLinearConstraints(KratosUnittest.TestCase):
         strategy.Predict()
         strategy.SolveSolutionStep()
         strategy.FinalizeSolutionStep()
-   
+
 
     def test_constraints(self):
         dim = 2
@@ -100,7 +100,7 @@ class TestLinearConstraints(KratosUnittest.TestCase):
 
         #
         #     3
-        #  4     2  
+        #  4     2
         #     1
         # Create nodes
         n1 = mp.CreateNewNode(1, 0.0, 0.0, 0.0)
@@ -131,14 +131,14 @@ class TestLinearConstraints(KratosUnittest.TestCase):
         ConstantVector = KratosMultiphysics.Vector([0.0])
 
         constraint_2 = KratosMultiphysics.LinearMasterSlaveConstraint(2,
- 
-            master_dofs_2, 
-            slave_dofs_2, 
-            RelationMatrix2, 
+
+            master_dofs_2,
+            slave_dofs_2,
+            RelationMatrix2,
             ConstantVector)
         mp.AddMasterSlaveConstraint(constraint_2)
 
-        ################# apply a slip constraint on node 4 
+        ################# apply a slip constraint on node 4
         # note that SlipConstraint is practically a placeholder for the operations done just above
         #node4 is at allowed to slide normally to normal4
         dx = n1.X - n4.X
@@ -159,14 +159,13 @@ class TestLinearConstraints(KratosUnittest.TestCase):
         self._solve_with_strategy(strategy,0)
 
         ##verify the results
-        d1 = n1.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
         d2 = n2.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
         d3 = n3.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
         d4 = n4.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
 
         self.assertAlmostEqual(d2[0]*normal_2[0] + d2[1]*normal_2[1],0.0, 15)
         self.assertAlmostEqual(d4[0]*normal_4[0] + d4[1]*normal_4[1],0.0, 15)
-        self.assertAlmostEqual(d3[0], 0.0, 15) #symmetry condition       
+        self.assertAlmostEqual(d3[0], 0.0, 15) #symmetry condition
         self.assertAlmostEqual(d3[1], 2.0*d2[1], 15)
 
         R2 = n2.GetSolutionStepValue(KratosMultiphysics.REACTION)
@@ -178,7 +177,7 @@ class TestLinearConstraints(KratosUnittest.TestCase):
         #check that Reactions are in compression
         self.assertTrue(nR2 < 0.0)
         self.assertTrue(nR4 < 0.0)
-        
+
         #check that tangential component is zero
         tang_2 = R2 - nR2*normal_2
         tang_4 = R4 - nR4*normal_4
@@ -187,33 +186,6 @@ class TestLinearConstraints(KratosUnittest.TestCase):
         self.assertTrue(tang_4.norm_2() < 1e-12)
 
         self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], 5) #4 if using Residual Criteria
-
-    def __post_process(self, main_model_part):
-        from gid_output_process import GiDOutputProcess
-        self.gid_output = GiDOutputProcess(main_model_part,
-                                    "gid_output",
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "nodal_results"       : ["DISPLACEMENT"],
-                                                "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR"]
-                                            }
-                                        }
-                                        """)
-                                    )
-
-        self.gid_output.ExecuteInitialize()
-        self.gid_output.ExecuteBeforeSolutionLoop()
-        self.gid_output.ExecuteInitializeSolutionStep()
-        self.gid_output.PrintOutput()
-        self.gid_output.ExecuteFinalizeSolutionStep()
-        self.gid_output.ExecuteFinalize()
 
 if __name__ == '__main__':
     KratosUnittest.main()
