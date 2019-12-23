@@ -177,4 +177,3 @@ def point_on_triangle(P_p, P_1, P_2, P_3):
 
 def triangle_area(P_1, P_2, P_3):
     return np.linalg.norm(np.cross(P_2 - P_1, P_3 - P_1) / 2)
-

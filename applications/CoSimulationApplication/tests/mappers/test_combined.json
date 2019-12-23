@@ -8,6 +8,7 @@
         "type": "mappers.nearest",
         "settings":
         {
+            "directions" : ["X", "Y", "Z"],
             "balanced_tree" : false
         }
     },
@@ -22,6 +23,7 @@
                     "type": "mappers.nearest",
                     "settings":
                     {
+                        "directions" : ["X", "Y", "Z"],
                         "balanced_tree" : false
                     }
                 }
@@ -48,6 +50,7 @@
                     "type": "mappers.nearest",
                     "settings":
                     {
+                        "directions" : ["X", "Y", "Z"],
                         "balanced_tree" : false
                     }
                 },

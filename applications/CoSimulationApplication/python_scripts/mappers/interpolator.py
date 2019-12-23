@@ -101,18 +101,17 @@ class MapperInterpolator():
 
     def check_bounding_box(self, model_part_from, model_part_to):
         # set tolerances  #*** overwrite tolerances from parameters?
+        # *** adapt other tests (extrapolation throws error here)
         tol_center_warning = 0.02
         tol_center_error = 0.1
         tol_minmax_warning = 0.1
         tol_minmax_error = 0.3
 
         # get bounding boxes
-        coords_from = self.coords_from
-        coords_to = self.coords_to
-        from_min = coords_from.min(axis=0)
-        from_max = coords_from.max(axis=0)
-        to_min = coords_to.min(axis=0)
-        to_max = coords_to.max(axis=0)
+        from_min = self.coords_from.min(axis=0)
+        from_max = self.coords_from.max(axis=0)
+        to_min = self.coords_to.min(axis=0)
+        to_max = self.coords_to.max(axis=0)
         from_center = (from_min + from_max) / 2
         to_center = (to_min + to_max) / 2
 
@@ -149,8 +148,12 @@ class MapperInterpolator():
             raise Warning(msg)
 
     def check_duplicate_points(self, model_part_from):
-        # checks only from-points  *** because tree is available, to-points are checked in interpolation in other direction anyway
-        # *** test this function
+        """
+        because tree is available, to-points are checked in interpolation in other direction anyway
+        so only from-points are checked
+        """
+
+        # checks only from-points  *** create optional parameter for this?
         tol_warning = 1e-8
         tol_error = 1e-12
 
