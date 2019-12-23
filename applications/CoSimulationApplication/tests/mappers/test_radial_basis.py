@@ -18,7 +18,7 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
             parameters = cs_data_structure.Parameters(parameter_file.read())
         par_mapper = parameters['mapper']
 
-        gui = 1  # *** gui gives problems when running all tests?
+        gui = 0  # *** gui gives problems when running all tests?
 
         # 1D case: square-root grid + linear function
         """
@@ -26,16 +26,11 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
             => max error = 5.8e-5
         """
         n_from, n_to = 14, 5
-        case = Case1D(cs_data_structure, n_from, n_to)
-
         par_mapper['settings'].SetArray('directions', ['Z'])
-        mapper = cs_tools.CreateInstance(par_mapper)
-        mapper.Initialize(case.model_part_from, case.model_part_to)
-        mapper((case.model_part_from, case.var_from),
-               (case.model_part_to, case.var_to))
 
+        case = Case1D(cs_data_structure, n_from, n_to)
+        case.map(cs_tools, par_mapper)
         self.assertTrue(case.check(tolerance=1e-4))
-
         if gui:
             case.plot()
 
@@ -45,16 +40,11 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
             => max error = 0.003
         """
         n_from, n_to = 33, 22
-        case = Case2D(cs_data_structure, n_from, n_to)
-
         par_mapper['settings'].SetArray('directions', ['X', 'Y'])
-        mapper = cs_tools.CreateInstance(par_mapper)
-        mapper.Initialize(case.model_part_from, case.model_part_to)
-        mapper((case.model_part_from, case.var_from),
-               (case.model_part_to, case.var_to))
 
+        case = Case2D(cs_data_structure, n_from, n_to)
+        case.map(cs_tools, par_mapper)
         self.assertTrue(case.check(tolerance=0.005))
-
         if gui:
             case.plot()
 
@@ -66,16 +56,11 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
         """
         n_theta_from, n_phi_from = 50, 30
         n_theta_to, n_phi_to = 22, 11
-        case = Case3DSphere(cs_data_structure, n_theta_from, n_phi_from, n_theta_to, n_phi_to)
-
         par_mapper['settings'].SetArray('directions', ['X', 'Y', 'Z'])
-        mapper = cs_tools.CreateInstance(par_mapper)
-        mapper.Initialize(case.model_part_from, case.model_part_to)
-        mapper((case.model_part_from, case.var_from),
-               (case.model_part_to, case.var_to))
 
+        case = Case3DSphere(cs_data_structure, n_theta_from, n_phi_from, n_theta_to, n_phi_to)
+        case.map(cs_tools, par_mapper)
         self.assertTrue(case.check(tolerance=5e-4))
-
         if gui:
             case.plot()
 
@@ -91,17 +76,12 @@ class TestMapperRadialBasis(KratosUnittest.TestCase):
         """
         n_x_from, n_y_from = 20, 20
         n_x_to, n_y_to = 13, 13
-        case = Case3DSinc(cs_data_structure, n_x_from, n_y_from, n_x_to, n_y_to)
-
         par_mapper['settings'].SetArray('directions', ['X', 'Y', 'Z'])
-        mapper = cs_tools.CreateInstance(par_mapper)
-        mapper.Initialize(case.model_part_from, case.model_part_to)
-        mapper((case.model_part_from, case.var_from),
-               (case.model_part_to, case.var_to))
 
+        case = Case3DSinc(cs_data_structure, n_x_from, n_y_from, n_x_to, n_y_to)
+        case.map(cs_tools, par_mapper)
         for tmp in case.check(tolerance=0.1):
             self.assertTrue(tmp)
-
         if gui:
             case.plot()
 

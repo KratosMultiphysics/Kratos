@@ -12,35 +12,5 @@
             "balanced_tree" : false,
             "parallel" : true
         }
-    },
-    "mapper_1d" :
-    {
-        "type": "mappers.linear",
-        "settings":
-        {
-            "directions" : ["Z"],
-            "balanced_tree" : false,
-            "parallel" : true
-        }
-    },
-    "mapper_2d" :
-    {
-        "type": "mappers.linear",
-        "settings":
-        {
-            "directions" : ["X", "Y"],
-            "balanced_tree" : false,
-            "parallel" : true
-        }
-    },
-    "mapper_3d" :
-    {
-        "type" : "mappers.linear",
-        "settings" :
-        {
-            "directions" : ["X", "Y", "Z"],
-            "balanced_tree" : false,
-            "parallel" : true
-        }
     }
 }

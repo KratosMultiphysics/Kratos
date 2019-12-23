@@ -18,7 +18,7 @@ class TestMapperNearest(KratosUnittest.TestCase):
             parameters = cs_data_structure.Parameters(parameter_file.read())
         par_mapper = parameters['mapper']
 
-        gui = 1
+        gui = 0
 
         # 1D case: square-root grid + linear function
         """
@@ -26,16 +26,11 @@ class TestMapperNearest(KratosUnittest.TestCase):
             => max error = 0.0085
         """
         n_from, n_to = 14, 5
-        case = Case1D(cs_data_structure, n_from, n_to)
-
         par_mapper['settings'].SetArray('directions', ['Z'])
-        mapper = cs_tools.CreateInstance(par_mapper)
-        mapper.Initialize(case.model_part_from, case.model_part_to)
-        mapper((case.model_part_from, case.var_from),
-               (case.model_part_to, case.var_to))
 
+        case = Case1D(cs_data_structure, n_from, n_to)
+        case.map(cs_tools, par_mapper)
         self.assertTrue(case.check(tolerance=0.01))
-
         if gui:
             case.plot()
 
@@ -45,16 +40,11 @@ class TestMapperNearest(KratosUnittest.TestCase):
             => max error = 0.55
         """
         n_from, n_to = 33, 22
-        case = Case2D(cs_data_structure, n_from, n_to)
-
         par_mapper['settings'].SetArray('directions', ['X', 'Y'])
-        mapper = cs_tools.CreateInstance(par_mapper)
-        mapper.Initialize(case.model_part_from, case.model_part_to)
-        mapper((case.model_part_from, case.var_from),
-               (case.model_part_to, case.var_to))
 
+        case = Case2D(cs_data_structure, n_from, n_to)
+        case.map(cs_tools, par_mapper)
         self.assertTrue(case.check(tolerance=1.))
-
         if gui:
             case.plot()
 
@@ -70,16 +60,11 @@ class TestMapperNearest(KratosUnittest.TestCase):
         """
         n_theta_from, n_phi_from = 50, 30
         n_theta_to, n_phi_to = 22, 11
-        case = Case3DSphere(cs_data_structure, n_theta_from, n_phi_from, n_theta_to, n_phi_to)
-
         par_mapper['settings'].SetArray('directions', ['X', 'Y', 'Z'])
-        mapper = cs_tools.CreateInstance(par_mapper)
-        mapper.Initialize(case.model_part_from, case.model_part_to)
-        mapper((case.model_part_from, case.var_from),
-               (case.model_part_to, case.var_to))
 
+        case = Case3DSphere(cs_data_structure, n_theta_from, n_phi_from, n_theta_to, n_phi_to)
+        case.map(cs_tools, par_mapper)
         self.assertTrue(case.check(tolerance=0.2))
-
         if gui:
             case.plot()
 
@@ -91,24 +76,18 @@ class TestMapperNearest(KratosUnittest.TestCase):
         """
         n_x_from, n_y_from = 20, 20
         n_x_to, n_y_to = 13, 13
-        case = Case3DSinc(cs_data_structure, n_x_from, n_y_from, n_x_to, n_y_to)
-
         par_mapper['settings'].SetArray('directions', ['X', 'Y', 'Z'])
-        mapper = cs_tools.CreateInstance(par_mapper)
-        mapper.Initialize(case.model_part_from, case.model_part_to)
-        mapper((case.model_part_from, case.var_from),
-               (case.model_part_to, case.var_to))
 
+        case = Case3DSinc(cs_data_structure, n_x_from, n_y_from, n_x_to, n_y_to)
+        case.map(cs_tools, par_mapper)
         for tmp in case.check(tolerance=0.2):
             self.assertTrue(tmp)
-
         if gui:
             case.plot()
 
 
 class Case1D:
     # 1D case: square-root grid + linear function
-
     def __init__(self, cs_data_structure, n_from, n_to):
         self.n_from = n_from
         self.n_to = n_to
@@ -133,30 +112,29 @@ class Case1D:
         for i in range(self.n_to):
             self.model_part_to.CreateNewNode(i, 0., 0., self.z_to[i])
 
-    def check(self, tolerance):
-        v_to_fun = self.fun(self.z_to)
-        v_to = np.zeros(self.n_to)
-        for i, node in enumerate(self.model_part_to.Nodes):
-            v_to[i] = node.GetSolutionStepValue(self.var_to)
+    def map(self, cs_tools, parameters):
+        mapper = cs_tools.CreateInstance(parameters)
+        mapper.Initialize(self.model_part_from, self.model_part_to)
+        mapper((self.model_part_from, self.var_from),
+               (self.model_part_to, self.var_to))
 
-        v_error = np.abs(v_to - v_to_fun)
-        criterion = (v_error < tolerance)
+        self.v_to_fun = self.fun(self.z_to)
+        self.v_to = np.zeros(self.n_to)
+        for i, node in enumerate(self.model_part_to.Nodes):
+            self.v_to[i] = node.GetSolutionStepValue(self.var_to)
+        self.v_error = np.abs(self.v_to - self.v_to_fun)
+
+    def check(self, tolerance):
+        criterion = (self.v_error < tolerance)
         return criterion.all()
 
     def plot(self):
-        v_to_fun = self.fun(self.z_to)
-        v_to = np.zeros(self.n_to)
-        for i, node in enumerate(self.model_part_to.Nodes):
-            v_to[i] = node.GetSolutionStepValue(self.var_to)
-
-
         _, ax = plt.subplots(ncols=2, sharex=True, figsize=(15, 6))
+        plt.title(f'max error = {self.v_error.max():.2g}')
 
         ax[0].plot(self.z_from, self.v_from, label='from', marker='o')
-        ax[0].plot(self.z_to, v_to, label='to', marker='o')
-
-        ax[1].plot(self.z_to, np.abs(v_to_fun - v_to), label='error', marker='o')
-
+        ax[0].plot(self.z_to, self.v_to, label='to', marker='o')
+        ax[1].plot(self.z_to, self.v_error, label='error', marker='o')
         for a in ax:
             a.legend()
             a.set_xlabel('z')
@@ -172,7 +150,6 @@ class Case1D:
 
 class Case2D:  # *** TO DO
     # 2D case: circle + linear function
-
     def __init__(self, cs_data_structure, n_from, n_to):
         self.n_from = n_from
         self.n_to = n_to
@@ -205,28 +182,29 @@ class Case2D:  # *** TO DO
         for i in range(self.n_to):
             self.model_part_to.CreateNewNode(i, self.x_to[i], self.y_to[i], 0.)
 
-    def check(self, tolerance):
-        v_to_fun = self.fun(self.x_to, self.y_to)
-        v_to = np.zeros(self.n_to)
-        for i, node in enumerate(self.model_part_to.Nodes):
-            v_to[i] = node.GetSolutionStepValue(self.var_to)
+    def map(self, cs_tools, parameters):
+        mapper = cs_tools.CreateInstance(parameters)
+        mapper.Initialize(self.model_part_from, self.model_part_to)
+        mapper((self.model_part_from, self.var_from),
+               (self.model_part_to, self.var_to))
 
-        v_error = np.abs(v_to - v_to_fun)
-        criterion = (v_error < tolerance)
+        self.v_to_fun = self.fun(self.x_to, self.y_to)
+        self.v_to = np.zeros(self.n_to)
+        for i, node in enumerate(self.model_part_to.Nodes):
+            self.v_to[i] = node.GetSolutionStepValue(self.var_to)
+        self.v_error = np.abs(self.v_to - self.v_to_fun)
+
+    def check(self, tolerance):
+        criterion = (self.v_error < tolerance)
         return criterion.all()
 
     def plot(self):
-        v_to_fun = self.fun(self.x_to, self.y_to)
-        v_to = np.zeros(self.n_to)
-        for i, node in enumerate(self.model_part_to.Nodes):
-            v_to[i] = node.GetSolutionStepValue(self.var_to)
-
         _, ax = plt.subplots(ncols=2, sharex=True, figsize=(15, 6))
 
         ax[0].plot(self.theta_from * 180 / np.pi, self.v_from, label='from', marker='o')
-        ax[0].plot(self.theta_to * 180 / np.pi, v_to, label='to', marker='o')
+        ax[0].plot(self.theta_to * 180 / np.pi, self.v_to, label='to', marker='o')
 
-        ax[1].plot(self.theta_to * 180 / np.pi, np.abs(v_to_fun - v_to), label='error', marker='o')
+        ax[1].plot(self.theta_to * 180 / np.pi, self.v_error, label='error', marker='o')
 
         for a in ax:
             a.legend()
@@ -249,7 +227,6 @@ class Case2D:  # *** TO DO
 
 class Case3DSphere:
     # 3D case: sphere + sine function
-
     def __init__(self, cs_data_structure, n_theta_from, n_phi_from, n_theta_to, n_phi_to):
         self.n_theta_from = n_theta_from
         self.n_phi_from = n_phi_from
@@ -294,33 +271,32 @@ class Case3DSphere:
             self.model_part_to.CreateNewNode(i, self.x_to.flatten()[i],
                             self.y_to.flatten()[i], self.z_to.flatten()[i])
 
-    def check(self, tolerance):
-        v_to_fun = self.fun(self.x_to, self.y_to, self.z_to)
-        v_to = np.zeros(self.n_to)
-        for i, node in enumerate(self.model_part_to.Nodes):
-            v_to[i] = node.GetSolutionStepValue(self.var_to)
-        v_to = v_to.reshape(self.x_to.shape)
+    def map(self, cs_tools, parameters):
+        mapper = cs_tools.CreateInstance(parameters)
+        mapper.Initialize(self.model_part_from, self.model_part_to)
+        mapper((self.model_part_from, self.var_from),
+               (self.model_part_to, self.var_to))
 
-        v_error = np.abs(v_to - v_to_fun)
-        criterion = (v_error < tolerance)
+        self.v_to_fun = self.fun(self.x_to, self.y_to, self.z_to)
+        self.v_to = np.zeros(self.n_to)
+        for i, node in enumerate(self.model_part_to.Nodes):
+            self.v_to[i] = node.GetSolutionStepValue(self.var_to)
+        self.v_to = self.v_to.reshape(self.x_to.shape)
+        self.v_error = np.abs(self.v_to - self.v_to_fun)
+
+    def check(self, tolerance):
+        criterion = (self.v_error < tolerance)
         return criterion.all()
 
     def plot(self):
-        v_to_fun = self.fun(self.x_to, self.y_to, self.z_to)
-        v_to = np.zeros(self.n_to)
-        for i, node in enumerate(self.model_part_to.Nodes):
-            v_to[i] = node.GetSolutionStepValue(self.var_to)
-        v_to = v_to.reshape(self.x_to.shape)
-
-        v_min = min(self.v_from.min(), v_to.min())
-        v_max = max(self.v_from.max(), v_to.max())
+        v_min = min(self.v_from.min(), self.v_to.min())
+        v_max = max(self.v_from.max(), self.v_to.max())
         c_from = cm.jet((self.v_from - v_min) / (v_max - v_min))
-        c_to = cm.jet((v_to - v_min) / (v_max - v_min))
-        v_error = np.abs(v_to - v_to_fun)
-        c_error = cm.jet(v_error / v_error.max())
+        c_to = cm.jet((self.v_to - v_min) / (v_max - v_min))
+        c_error = cm.jet(self.v_error / self.v_error.max())
 
         fig = plt.figure(figsize=(18, 6))
-        plt.suptitle(f'max error = {v_error.max():.2g}     ({v_min:.1f} < v < {v_max:.1g})')
+        plt.suptitle(f'max error = {self.v_error.max():.2g}     ({v_min:.1f} < v < {v_max:.1g})')
 
         ax_from = fig.add_subplot(131, projection='3d')
         ax_from.set_title('from')
@@ -359,7 +335,6 @@ class Case3DSphere:
 
 class Case3DSinc:
     # 3D case: sinc + linear vector function
-
     def __init__(self, cs_data_structure, n_x_from, n_y_from, n_x_to, n_y_to):
         self.n_x_from = n_x_from
         self.n_y_from = n_y_from
@@ -402,41 +377,39 @@ class Case3DSinc:
             self.model_part_to.CreateNewNode(i, self.x_to.flatten()[i],
                                  self.y_to.flatten()[i], self.z_to.flatten()[i])
 
-    def check(self, tolerance):
-        v_to_fun = self.fun(self.x_to, self.y_to, self.z_to)
-        v_to = [np.zeros(self.n_to), np.zeros(self.n_to), np.zeros(self.n_to)]
+    def map(self, cs_tools, parameters):
+        mapper = cs_tools.CreateInstance(parameters)
+        mapper.Initialize(self.model_part_from, self.model_part_to)
+        mapper((self.model_part_from, self.var_from),
+               (self.model_part_to, self.var_to))
+
+        self.v_to_fun = self.fun(self.x_to, self.y_to, self.z_to)
+        self.v_to = [np.zeros(self.n_to), np.zeros(self.n_to), np.zeros(self.n_to)]
         for i, node in enumerate(self.model_part_to.Nodes):
             hist = node.GetSolutionStepValue(self.var_to)
             for j in range(3):
-                v_to[j][i] = hist[j]
+                self.v_to[j][i] = hist[j]
 
+        self.v_error = []
+        for j in range(3):
+            self.v_to[j] = self.v_to[j].reshape(self.x_to.shape)
+            self.v_error.append(np.abs(self.v_to[j] - self.v_to_fun[j]))
+
+    def check(self, tolerance):
         out = []
         for j in range(3):
-            v_to[j] = v_to[j].reshape(self.x_to.shape)
-            v_error = np.abs(v_to[j] - v_to_fun[j])
-            criterion = (v_error < tolerance)
+            criterion = (self.v_error[j] < tolerance)
             out.append(criterion.all())
         return out
 
     def plot(self):
-        v_to_fun = self.fun(self.x_to, self.y_to, self.z_to)
-        v_to = [np.zeros(self.n_to), np.zeros(self.n_to), np.zeros(self.n_to)]
-        for i, node in enumerate(self.model_part_to.Nodes):
-            hist = node.GetSolutionStepValue(self.var_to)
-            for j in range(3):
-                v_to[j][i] = hist[j]
-
-        for j in range(3):
-            v_to[j] = v_to[j].reshape(self.x_to.shape)
-
         fig = plt.figure(figsize=(18, 10))
         for j in range(3):
-            v_min = min(self.v_from[j].min(), v_to[j].min())
-            v_max = max(self.v_from[j].max(), v_to[j].max())
+            v_min = min(self.v_from[j].min(), self.v_to[j].min())
+            v_max = max(self.v_from[j].max(), self.v_to[j].max())
             c_from = cm.jet((self.v_from[j] - v_min) / (v_max - v_min))
-            c_to = cm.jet((v_to[j] - v_min) / (v_max - v_min))
-            v_error = np.abs(v_to[j] - v_to_fun[j])
-            c_error = cm.jet(v_error / v_error.max())
+            c_to = cm.jet((self.v_to[j] - v_min) / (v_max - v_min))
+            c_error = cm.jet(self.v_error[j] / self.v_error[j].max())
 
             ax_from = fig.add_subplot(3, 3, 1 + j * 3, projection='3d')
             ax_from.set_title('from')
@@ -449,7 +422,7 @@ class Case3DSinc:
                                rstride=1, cstride=1, linewidth=0, antialiased=False, shade=False)
 
             ax_error = fig.add_subplot(3, 3, 3 + j * 3, projection='3d')
-            ax_error.set_title(f'max error = {v_error.max():.2g} ({v_min:.1f} < v < {v_max:.1g})')
+            ax_error.set_title(f'max error = {self.v_error[j].max():.2g} ({v_min:.1f} < v < {v_max:.1g})')
             ax_error.plot_surface(self.x_to, self.y_to, self.z_to, facecolors=c_error,
                                   rstride=1, cstride=1, antialiased=False, shade=False)
 

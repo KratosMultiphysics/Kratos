@@ -55,7 +55,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TestConvergenceCriterionRelativeNorm("test_convergence_criterion_relative_norm"))
     smallSuite.addTest(TestMapperInterpolator("test_mapper_interpolator"))
     smallSuite.addTest(TestMapperNearest("test_mapper_nearest"))
-    # smallSuite.addTest(TestMapperLinear("test_mapper_linear"))
+    smallSuite.addTest(TestMapperLinear("test_mapper_linear"))
     smallSuite.addTest(TestMapperRadialBasis("test_mapper_radial_basis"))
     smallSuite.addTest(TestMapperPermutation("test_mapper_permutation"))
     smallSuite.addTest(TestMapperCombined("test_mapper_combined"))
