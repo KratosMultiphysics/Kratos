@@ -279,15 +279,15 @@ public:
 
     void GetValuesVector(
         Vector& rValues,
-        int Step);
+        int Step) override;
 
     void GetFirstDerivativesVector(
         Vector& rValues,
-        int Step);
+        int Step) override;
 
     void GetSecondDerivativesVector(
         Vector& rValues,
-        int Step);
+        int Step) override;
 
     ///@}
     ///@name Geometrical Functions
