@@ -128,3 +128,57 @@ C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_s
   Compiling...
   assign_unique_model_part_collection_tag_utility.cpp
   read_materials_utility.cpp
+  variable_redistribution_utility.cpp
+  auxiliar_model_part_utilities.cpp
+  time_discretization.cpp
+  constraint_utilities.cpp
+  sensitivity_builder.cpp
+  mortar_utilities.cpp
+  os_utilities.cpp
+  exact_mortar_segmentation_utility.cpp
+  timer.cpp
+  geometrical_transformation_utilities.cpp
+  tetrahedra_ball.cpp
+  tetrahedra_edge_shell.cpp
+  modified_shape_functions.cpp
+  ausas_modified_shape_functions.cpp
+  triangle_2d_3_modified_shape_functions.cpp
+  triangle_2d_3_ausas_modified_shape_functions.cpp
+  tetrahedra_3d_4_modified_shape_functions.cpp
+  tetrahedra_3d_4_ausas_modified_shape_functions.cpp
+  Generating Code...
+  Compiling...
+  embedded_nodal_variable_calculation_element_simplex.cpp
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_variable_to_entities_process.h(154): message : see declaration of 'Kratos::AssignScalarVariableToEntitiesProcess<Kratos::MasterSlaveConstraint>::AssignScalarVariableToEntitiesProcess'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\elements/embedded_nodal_variable_calculation_element_simplex.h(368): warning C4661: 'Kratos::Variable<double> Kratos::EmbeddedNodalVariableCalculationElementSimplex<double>::GetUnknownVariable(void)': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\elements/embedded_nodal_variable_calculation_element_simplex.h(344): message : see declaration of 'Kratos::EmbeddedNodalVariableCalculationElementSimplex<double>::GetUnknownVariable'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\elements/embedded_nodal_variable_calculation_element_simplex.h(368): warning C4661: 'Kratos::Variable<Kratos::array_1d<double,3>> Kratos::EmbeddedNodalVariableCalculationElementSimplex<Kratos::array_1d<double,3>>::GetUnknownVariable(void)': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\elements/embedded_nodal_variable_calculation_element_simplex.h(344): message : see declaration of 'Kratos::EmbeddedNodalVariableCalculationElementSimplex<Kratos::array_1d<double,3>>::GetUnknownVariable'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\elements\embedded_nodal_variable_calculation_element_simplex.cpp(32): warning C4661: 'Kratos::Variable<double> Kratos::EmbeddedNodalVariableCalculationElementSimplex<double>::GetUnknownVariable(void)': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\elements/embedded_nodal_variable_calculation_element_simplex.h(344): message : see declaration of 'Kratos::EmbeddedNodalVariableCalculationElementSimplex<double>::GetUnknownVariable'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\elements\embedded_nodal_variable_calculation_element_simplex.cpp(32): warning C4661: 'Kratos::Variable<Kratos::array_1d<double,3>> Kratos::EmbeddedNodalVariableCalculationElementSimplex<Kratos::array_1d<double,3>>::GetUnknownVariable(void)': no suitable definition provided for explicit template instantiation request
+  mesh_element.cpp
+  mesh_condition.cpp
+  apply_periodic_boundary_condition_process.cpp
+  amgcl_solver_impl.cpp
+  communication_coloring_utilities.cpp
+  distributed_test_case.cpp
+  test_case.cpp
+  test_case_result.cpp
+  test_skipped_exception.cpp
+  test_suite.cpp
+  tester.cpp
+  logger.cpp
+  logger_message.cpp
+  logger_output.cpp
+  logger_table_output.cpp
+  unv_output.cpp
+  vtk_output.cpp
+  Generating Code...
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\elements/embedded_nodal_variable_calculation_element_simplex.h(344): message : see declaration of 'Kratos::EmbeddedNodalVariableCalculationElementSimplex<Kratos::array_1d<double,3>>::GetUnknownVariable'
+  mmio.c
+     Creating library C:/Users/s4618455/Documents/KRATOS/kratos_peter/Kratos/cmake_build/kratos/Release/KratosCore.lib and object C:/Users/s4618455/Documents/KRATOS/kratos_peter/Kratos/cmake_build/kratos/Release/KratosCore.exp
+LINK : warning LNK4217: symbol '?GetBuildType@Kratos@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ (class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl Kratos::GetBuildType(void))' defined in 'kratos_version.obj' is imported by 'kernel.obj' in function '"public: static class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl Kratos::Kernel::BuildType(void)" (?BuildType@Kernel@Kratos@@SA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ)'
+LINK : warning LNK4217: symbol '?GetVersionString@Kratos@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ (class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl Kratos::GetVersionString(void))' defined in 'kratos_version.obj' is imported by 'kernel.obj' in function '"public: __cdecl Kratos::Kernel::Kernel(bool)" (??0Kernel@Kratos@@QEAA@_N@Z)'
+LINK : warning LNK4286: symbol '?GetVersionString@Kratos@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ (class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl Kratos::GetVersionString(void))' defined in 'kratos_version.obj' is imported by 'logger_output.obj'
+  KratosCore.vcxproj -> C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\cmake_build\kratos\Release\KratosCore.dll

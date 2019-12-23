@@ -1,0 +1,68 @@
+﻿  Building Custom Rule C:/Users/s4618455/Documents/KRATOS/kratos_peter/Kratos/kratos/CMakeLists.txt
+  assign_scalar_field_to_entities_process.cpp
+  add_model_part_to_python.cpp
+  add_points_to_python.cpp
+  add_deprecated_variables_to_python.cpp
+  add_c2c_variables_to_python.cpp
+  add_cfd_variables_to_python.cpp
+  add_mesh_moving_variables_to_python.cpp
+  add_mapping_variables_to_python.cpp
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_field_to_entities_process.h(389): warning C4661: 'Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Node<3,Kratos::Dof<double>>>::AssignScalarFieldToEntitiesProcess(const Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Node<3,Kratos::Dof<double>>> &)': no suitable definition provided for explicit template instantiation request (compiling source file C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_field_to_entities_process.cpp)
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_field_to_entities_process.h(170): message : see declaration of 'Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Node<3,Kratos::Dof<double>>>::AssignScalarFieldToEntitiesProcess' (compiling source file C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_field_to_entities_process.cpp)
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_field_to_entities_process.h(389): warning C4661: 'Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Condition>::AssignScalarFieldToEntitiesProcess(const Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Condition> &)': no suitable definition provided for explicit template instantiation request (compiling source file C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_field_to_entities_process.cpp)
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_field_to_entities_process.h(170): message : see declaration of 'Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Condition>::AssignScalarFieldToEntitiesProcess' (compiling source file C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_field_to_entities_process.cpp)
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_field_to_entities_process.h(389): warning C4661: 'Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Element>::AssignScalarFieldToEntitiesProcess(const Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Element> &)': no suitable definition provided for explicit template instantiation request (compiling source file C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_field_to_entities_process.cpp)
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_field_to_entities_process.h(170): message : see declaration of 'Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Element>::AssignScalarFieldToEntitiesProcess' (compiling source file C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_field_to_entities_process.cpp)
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_field_to_entities_process.cpp(30): warning C4661: 'Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Node<3,Kratos::Dof<double>>>::AssignScalarFieldToEntitiesProcess(const Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Node<3,Kratos::Dof<double>>> &)': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_field_to_entities_process.h(170): message : see declaration of 'Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Node<3,Kratos::Dof<double>>>::AssignScalarFieldToEntitiesProcess'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_field_to_entities_process.cpp(30): warning C4661: 'Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Condition>::AssignScalarFieldToEntitiesProcess(const Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Condition> &)': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_field_to_entities_process.h(170): message : see declaration of 'Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Condition>::AssignScalarFieldToEntitiesProcess'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_field_to_entities_process.cpp(30): warning C4661: 'Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Element>::AssignScalarFieldToEntitiesProcess(const Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Element> &)': no suitable definition provided for explicit template instantiation request
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_field_to_entities_process.h(170): message : see declaration of 'Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Element>::AssignScalarFieldToEntitiesProcess'
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_field_to_entities_process.h(325): warning C4661: 'Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Node<3,Kratos::Dof<double>>>::AssignScalarFieldToEntitiesProcess(const Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Node<3,Kratos::Dof<double>>> &)': no suitable definition provided for explicit template instantiation request (compiling source file C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_field_to_entities_process.cpp)
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_field_to_entities_process.h(170): message : see declaration of 'Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Node<3,Kratos::Dof<double>>>::AssignScalarFieldToEntitiesProcess' (compiling source file C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_field_to_entities_process.cpp)
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_field_to_entities_process.h(325): warning C4661: 'Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Condition>::AssignScalarFieldToEntitiesProcess(const Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Condition> &)': no suitable definition provided for explicit template instantiation request (compiling source file C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_field_to_entities_process.cpp)
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_field_to_entities_process.h(170): message : see declaration of 'Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Condition>::AssignScalarFieldToEntitiesProcess' (compiling source file C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_field_to_entities_process.cpp)
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_field_to_entities_process.h(325): warning C4661: 'Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Element>::AssignScalarFieldToEntitiesProcess(const Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Element> &)': no suitable definition provided for explicit template instantiation request (compiling source file C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_field_to_entities_process.cpp)
+  add_dem_variables_to_python.cpp
+  add_fsi_variables_to_python.cpp
+  add_mat_variables_to_python.cpp
+  add_legacy_structural_app_vars_to_python.cpp
+  add_containers_to_python.cpp
+  add_constitutive_law_to_python.cpp
+  add_processes_to_python.cpp
+  add_geometries_to_python.cpp
+  add_io_to_python.cpp
+  add_kernel_to_python.cpp
+  add_vector_to_python.cpp
+  add_kratos_application_to_python.cpp
+  add_matrix_to_python.cpp
+  add_mesh_to_python.cpp
+  add_modeler_to_python.cpp
+  add_properties_to_python.cpp
+  add_dofs_to_python.cpp
+  add_node_to_python.cpp
+  add_amgcl_solver_to_python.cpp
+  add_linear_solvers_to_python.cpp
+  add_factories_to_python.cpp
+  add_strategies_to_python.cpp
+  add_utilities_to_python.cpp
+  add_process_info_to_python.cpp
+  add_matrix_market_interface_to_python.cpp
+  add_serializer_to_python.cpp
+  add_table_to_python.cpp
+  add_search_strategies_to_python.cpp
+  add_kratos_parameters_to_python.cpp
+  add_testing_to_python.cpp
+  add_logger_to_python.cpp
+  add_model_to_python.cpp
+  add_memory_info_to_python.cpp
+  add_response_functions_to_python.cpp
+  kratos_python.cpp
+  add_constraint_to_python.cpp
+  add_data_communicator_to_python.cpp
+  add_parallel_environment_to_python.cpp
+  add_global_pointers_to_python.cpp
+C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes/assign_scalar_field_to_entities_process.h(170): message : see declaration of 'Kratos::AssignScalarFieldToEntitiesProcess<Kratos::Element>::AssignScalarFieldToEntitiesProcess' (compiling source file C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\kratos\processes\assign_scalar_field_to_entities_process.cpp)
+     Creating library C:/Users/s4618455/Documents/KRATOS/kratos_peter/Kratos/cmake_build/kratos/Release/Kratos.lib and object C:/Users/s4618455/Documents/KRATOS/kratos_peter/Kratos/cmake_build/kratos/Release/Kratos.exp
+  Kratos.vcxproj -> C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\cmake_build\kratos\Release\Kratos.cp38-win_amd64.pyd

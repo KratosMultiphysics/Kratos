@@ -718,7 +718,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        //KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
+        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
 
         // Verify that the constitutive law exists
         if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
@@ -728,7 +728,6 @@ namespace Kratos
         else
         {
             // Verify that the constitutive law has the correct dimension
-            //KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
             KRATOS_ERROR_IF_NOT(this->GetProperties().Has(THICKNESS))
                 << "THICKNESS not provided for element " << this->Id() << std::endl;
 
@@ -736,9 +735,6 @@ namespace Kratos
             KRATOS_ERROR_IF_NOT(this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize() == 3)
                 << "Wrong constitutive law used. This is a 2D element! Expected strain size is 3 (el id = ) "
                 << this->Id() << std::endl;
-
-            // Check constitutive law
-            //this->GetProperties().GetValue(CONSTITUTIVE_LAW)->Check(this->GetProperties(), r_geometry, rCurrentProcessInfo);
         }
 
         return 0;
