@@ -1,0 +1,20 @@
+﻿  Building Custom Rule C:/Users/s4618455/Documents/KRATOS/kratos_peter/Kratos/external_libraries/zlib/CMakeLists.txt
+  adler32.c
+  compress.c
+  crc32.c
+  deflate.c
+  gzclose.c
+  gzlib.c
+  gzread.c
+  gzwrite.c
+  inflate.c
+  infback.c
+  inftrees.c
+  inffast.c
+  trees.c
+  uncompr.c
+  zutil.c
+  Generating Code...
+cl : command line warning D9025: overriding '/W1' with '/w'
+     Creating library C:/Users/s4618455/Documents/KRATOS/kratos_peter/Kratos/cmake_build/external_libraries/zlib/Release/zlib.lib and object C:/Users/s4618455/Documents/KRATOS/kratos_peter/Kratos/cmake_build/external_libraries/zlib/Release/zlib.exp
+  zlib.vcxproj -> C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\cmake_build\external_libraries\zlib\Release\zlib.dll

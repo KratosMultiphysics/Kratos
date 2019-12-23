@@ -340,18 +340,18 @@ private:
     ///@{
 
     // Components of the metric coefficient tensor on the contravariant basis
-    std::vector<array_1d<double, 3>> mA_ab_covariant_vector;
+    std::vector<array_1d<double, 3>> m_A_ab_covariant_vector;
     // Components of the curvature coefficient tensor on the contravariant basis
-    std::vector<array_1d<double, 3>> mB_ab_covariant_vector;
+    std::vector<array_1d<double, 3>> m_B_ab_covariant_vector;
     // Determinant of the geometrical Jacobian.
-    Vector mdA_vector;
+    Vector m_dA_vector;
     // Transformation the strain tensor from the curvilinear system
     // to the local cartesian in voigt notation including a 2 in the 
     // shear part.
-    std::vector<Matrix> mT_vector;
+    std::vector<Matrix> m_T_vector;
 
     /// The vector containing the constitutive laws
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+    std::vector<ConstitutiveLaw::Pointer> m_constitutive_law_vector;
 
     ///@}
     ///@name Operations
@@ -434,14 +434,24 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    void load(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+        rSerializer.save("A_ab_covariant_vector", m_A_ab_covariant_vector);
+        rSerializer.save("B_ab_covariant_vector", m_B_ab_covariant_vector);
+        rSerializer.save("dA_vector", m_dA_vector);
+        rSerializer.save("T_vector", m_T_vector);
+        rSerializer.save("constitutive_law_vector", m_constitutive_law_vector);
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+        rSerializer.load("A_ab_covariant_vector", m_A_ab_covariant_vector);
+        rSerializer.load("B_ab_covariant_vector", m_B_ab_covariant_vector);
+        rSerializer.load("dA_vector", m_dA_vector);
+        rSerializer.load("T_vector", m_T_vector);
+        rSerializer.load("constitutive_law_vector", m_constitutive_law_vector);
     }
 
     ///@}
