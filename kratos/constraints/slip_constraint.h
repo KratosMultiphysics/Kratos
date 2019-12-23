@@ -45,7 +45,7 @@ namespace Kratos
 /**
  * @class SlipConstraint
  * @ingroup KratosCore
- * @brief This constructs a constraint which imposes that v * n = 0 
+ * @brief This constructs a constraint which imposes that v * n = 0
  * where:
  *  v is a variable
  *  n is the unit normal to the node
@@ -122,7 +122,7 @@ public:
         const VariableComponentType& rVarX,
         const VariableComponentType& rVarY,
         const VariableComponentType& rVarZ,
-        const Variable<array_1d<double,3> >& rNormalVar        
+        const Variable<array_1d<double,3> >& rNormalVar
         ) : BaseType(Id),
             mrNode(rNode),
             mpNormalVar(&rNormalVar)
@@ -154,7 +154,7 @@ public:
             if(std::abs(n[i]) > max_abs_n_component)
             {
                 max_abs_n_component=std::abs(n[i]);
-                max_n_component_index = i; 
+                max_n_component_index = i;
             }
         }
 
