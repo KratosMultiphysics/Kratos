@@ -1,5 +1,0 @@
-﻿  Building Custom Rule C:/Users/s4618455/Documents/KRATOS/kratos_peter/Kratos/external_libraries/triangle/CMakeLists.txt
-cl : command line warning D9025: overriding '/W1' with '/w'
-  triangle.c
-cl : command line warning D9002: ignoring unknown option '-O0'
-  triangle.vcxproj -> C:\Users\s4618455\Documents\KRATOS\kratos_peter\Kratos\cmake_build\external_libraries\triangle\Release\triangle.lib

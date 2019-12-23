@@ -1,3 +1,0 @@
-﻿  Building Custom Rule C:/Users/s4618455/Documents/KRATOS/kratos_peter/Kratos/kratos/run_kratos/CMakeLists.txt
-  krun_main.cpp
-LINK : fatal error LNK1104: cannot open file 'python38_d.lib'
