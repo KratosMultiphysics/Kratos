@@ -41,7 +41,7 @@ add_app ${KRATOS_APP_DIR}/FSIApplication;
 add_app ${KRATOS_APP_DIR}/MeshingApplication;
 add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
 add_app ${KRATOS_APP_DIR}/HDF5Application;
-
+add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
 
 # Clean
 clear
