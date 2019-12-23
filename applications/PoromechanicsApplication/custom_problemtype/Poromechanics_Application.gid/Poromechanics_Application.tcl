@@ -71,8 +71,8 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
     set TableDict [WriteMdpa $basename $dir $problemtypedir]
 
     # Write PoroMaterials.json
-    source [file join $problemtypedir PoroMaterials.tcl]
-    WritePoroMaterials $basename $dir $problemtypedir
+    # source [file join $problemtypedir PoroMaterials.tcl]
+    # WritePoroMaterials $basename $dir $problemtypedir
 
     # Write ProjectParameters.json
     source [file join $problemtypedir ProjectParameters.tcl]
