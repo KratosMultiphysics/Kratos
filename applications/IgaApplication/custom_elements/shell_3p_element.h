@@ -343,14 +343,16 @@ private:
     std::vector<array_1d<double, 3>> m_A_ab_covariant_vector;
     // Components of the curvature coefficient tensor on the contravariant basis
     std::vector<array_1d<double, 3>> m_B_ab_covariant_vector;
+
     // Determinant of the geometrical Jacobian.
     Vector m_dA_vector;
+
     /* Transformation the strain tensor from the curvilinear system
     *  to the local cartesian in voigt notation including a 2 in the
     *  shear part. */
     std::vector<Matrix> m_T_vector;
 
-    /// The vector containing the constitutive laws
+    /// The vector containing the constitutive laws for all integration points.
     std::vector<ConstitutiveLaw::Pointer> m_constitutive_law_vector;
 
     ///@}
