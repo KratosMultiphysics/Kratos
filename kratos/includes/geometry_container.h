@@ -55,11 +55,10 @@ public:
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
 
-    typedef TNodeType NodeType;
+    typedef Geometry<TNodeType> GeometryType;
 
-    typedef Geometry<NodeType> GeometryType;
-
-    /// Geometry container. A vector set of Elements with their Id's as key.
+    /* Geometry Hash Map Container.
+    *  Hash of Id are keys to corresponding intrusive pointer */
     typedef PointerHashMapSet<
         GeometryType,
         std::hash<std::size_t>,
@@ -195,6 +194,7 @@ public:
     {
         mpGeometries->erase(GeometryId);
     }
+
     /// Remove the geometry with given name from geometry container
     void RemoveGeometry(std::string GeometryName)
     {
