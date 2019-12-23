@@ -178,6 +178,9 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( TURBULENCE_STATISTICS_DATA)
     KRATOS_REGISTER_VARIABLE( UPDATE_STATISTICS )
 
+    // Curvature
+    KRATOS_REGISTER_VARIABLE( CURVATURE);
+
     // Smoothing surface auxiliary distance
     KRATOS_REGISTER_VARIABLE( DISTANCE_AUX)
 

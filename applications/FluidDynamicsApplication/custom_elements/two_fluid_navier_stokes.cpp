@@ -131,7 +131,9 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 contact_tangential_neg,
                 has_contact_line);
 
-            CalculateCurvature(int_shape_derivatives_neg, gauss_pts_curvature);
+            CalculateCurvature(int_shape_function_neg, gauss_pts_curvature);         //Uses the saved nodal CURVATURE 
+            //CalculateCurvature(int_shape_derivatives_neg, gauss_pts_curvature);    //Calculates curvature by differentiating DISTANCE_GRADIENT
+            //CalculateCurvature(int_shape_function_neg, int_shape_derivatives_neg, gauss_pts_curvature); //Combination of the above functions
             //KRATOS_INFO("Curvature") << gauss_pts_curvature << std::endl;
 
             if (data.NumberOfDivisions == 1){
@@ -185,18 +187,32 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
                 }
 
+                for (unsigned int g_neg = 0; g_neg < data.w_gauss_neg_side.size(); g_neg++){
+                    UpdateIntegrationPointData(
+                        data,
+                        g_neg,
+                        data.w_gauss_neg_side[g_neg],
+                        row(shape_functions_neg, g_neg),
+                        shape_derivatives_neg[g_neg],
+                        row(shape_functions_enr_neg, g_neg),
+                        shape_derivatives_enr_neg[g_neg]);
+                    this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
+                    ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
+                }
+
                 //SurfaceTension(surface_tension_coefficient,gauss_pts_curvature,int_gauss_pts_weights,int_normals_neg,surface_tension);
-                /* SurfaceTension(
-                surface_tension_coefficient,
-                gauss_pts_curvature,
-                int_gauss_pts_weights,
-                int_shape_function_neg,
-                int_normals_neg,
-                contact_gauss_pts_weights,
-                contact_shape_function_neg,
-                contact_tangential_neg,
-                has_contact_line,
-                rRightHandSideVector); */
+
+                SurfaceTension(
+                    surface_tension_coefficient,
+                    gauss_pts_curvature,
+                    int_gauss_pts_weights,
+                    int_shape_function_neg,
+                    int_normals_neg,
+                    contact_gauss_pts_weights,
+                    contact_shape_function_neg,
+                    contact_tangential_neg,
+                    has_contact_line,
+                    rRightHandSideVector);
 
                 /* SurfaceTension(
                     surface_tension_coefficient,
@@ -206,14 +222,14 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     int_normals_neg,
                     rRightHandSideVector); */
 
-                SurfaceTension(
+                /* SurfaceTension(
                     surface_tension_coefficient,
                     int_gauss_pts_weights,
                     int_shape_function_neg,
                     int_shape_derivatives_neg,
-                    rRightHandSideVector);
+                    rRightHandSideVector); */
 
-                PressureDiscontinuity(
+                /* PressureDiscontinuity(
                     surface_tension_coefficient,
                     gauss_pts_curvature, 
                     int_gauss_pts_weights,
@@ -221,7 +237,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     int_shape_function_enr_pos,
                     int_shape_function_enr_neg,
                     Kee_tot,
-                    rhs_ee_tot);
+                    rhs_ee_tot); */
 
                 //KRATOS_INFO("num. neg. gauss points") << data.w_gauss_neg_side.size() << std::endl;
 
@@ -238,19 +254,6 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 //for (unsigned int i = 0; i < NumNodes; i++)
                 //    for (unsigned int j = 0; j < Dim; j++)
                 //        data.BodyForce(i,j) +=  1.0/(volume_neg*(data.Density))*surface_tension(j);
-
-                for (unsigned int g_neg = 0; g_neg < data.w_gauss_neg_side.size(); g_neg++){
-                    UpdateIntegrationPointData(
-                        data,
-                        g_neg,
-                        data.w_gauss_neg_side[g_neg],
-                        row(shape_functions_neg, g_neg),
-                        shape_derivatives_neg[g_neg],
-                        row(shape_functions_enr_neg, g_neg),
-                        shape_derivatives_enr_neg[g_neg]);
-                    this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
-                    ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
-                }
 
                 CondenseEnrichment(data, rLeftHandSideMatrix, rRightHandSideVector, Htot, Vtot, Kee_tot, rhs_ee_tot);
             }
@@ -2275,6 +2278,29 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
 
 template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::CalculateCurvature(
+        const Matrix& rIntShapeFunctions,
+        Kratos::Vector& rInterfaceCurvature)
+{
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+    const unsigned int n_nodes = this->NumNodes;
+    const unsigned int n_gpt = rIntShapeFunctions.size1();
+
+    rInterfaceCurvature.resize(n_gpt, false);
+
+    for (unsigned int gpt = 0; gpt < n_gpt; gpt++){ 
+
+        double curvature = 0.0;
+
+        for (unsigned int i=0; i < n_nodes; ++i){
+            curvature += rIntShapeFunctions(gpt,i) * (*p_geom)[i].FastGetSolutionStepValue(CURVATURE);
+        }
+
+        rInterfaceCurvature[gpt] = curvature;
+    }
+}
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::CalculateCurvature(
     const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
     Kratos::Vector& rInterfaceCurvature)
 {
@@ -2315,6 +2341,52 @@ void TwoFluidNavierStokes<TElementData>::CalculateCurvature(
 }
 
 template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::CalculateCurvature(
+        const Matrix& rIntShapeFunctions,
+        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
+        Kratos::Vector& rInterfaceCurvature)
+{
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+    const unsigned int n_nodes = this->NumNodes;
+    const unsigned int n_gpt = rIntShapeFunctions.size1();
+
+    rInterfaceCurvature.resize(n_gpt, false);
+
+    for (unsigned int gpt = 0; gpt < n_gpt; gpt++){ 
+
+        double curvature_nodal = 0.0;
+
+        array_1d<double,n_nodes> DN_Dx, DN_Dy, DN_Dz; 
+        array_1d<double,n_nodes> GradPhiX, GradPhiY, GradPhiZ;
+
+        for (unsigned int i=0; i < n_nodes; ++i){
+
+            curvature_nodal += rIntShapeFunctions(gpt,i) * (*p_geom)[i].FastGetSolutionStepValue(CURVATURE);
+
+            const double GradPhiXi = (*p_geom)[i].FastGetSolutionStepValue(DISTANCE_GRADIENT_X); 
+            const double GradPhiYi = (*p_geom)[i].FastGetSolutionStepValue(DISTANCE_GRADIENT_Y);  
+            const double GradPhiZi = (*p_geom)[i].FastGetSolutionStepValue(DISTANCE_GRADIENT_Z);
+            const double norm = std::sqrt(GradPhiXi*GradPhiXi + GradPhiYi*GradPhiYi + GradPhiZi*GradPhiZi);
+            //KRATOS_INFO("Norm of Grad Phi") << norm << std::endl;
+            GradPhiX[i] = GradPhiXi / norm;
+            GradPhiY[i] = GradPhiYi / norm;
+            GradPhiZ[i] = GradPhiZi / norm;
+            DN_Dx[i] = (rInterfaceShapeDerivativesNeg[gpt])(i,0);
+            DN_Dy[i] = (rInterfaceShapeDerivativesNeg[gpt])(i,1);
+            DN_Dz[i] = (rInterfaceShapeDerivativesNeg[gpt])(i,2);
+        }
+
+        const double DGradPhiX_DX = inner_prod(GradPhiX, DN_Dx);
+        const double DGradPhiY_DY = inner_prod(GradPhiY, DN_Dy);
+        const double DGradPhiY_DZ = inner_prod(GradPhiZ, DN_Dz);
+
+        const double curvature_elemental = DGradPhiX_DX + DGradPhiY_DY + DGradPhiY_DZ;
+
+        rInterfaceCurvature[gpt] = (2.0*curvature_nodal + 1.0*curvature_elemental)/3.0;
+    }
+}
+
+template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::PressureDiscontinuity(
     const double coefficient,
     const Kratos::Vector& rCurvature,
@@ -2341,7 +2413,7 @@ void TwoFluidNavierStokes<TElementData>::PressureDiscontinuity(
             TestFunctions(gp, j) = rIntEnrShapeFunctionsNeg(gp,j) - rIntEnrShapeFunctionsPos(gp,j);
 
     // Penalty coefficient
-    const double penalty_coeff = 1000.0;
+    const double penalty_coeff = 1000000.0;
 
     for (unsigned int j = 0; j < NumNodes; j++){
 
@@ -2573,9 +2645,12 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
         VectorType normal_gp = ZeroVector(NumDim);
 
         for (unsigned int i=0; i < NumNodes; ++i){
-            for (unsigned int dim = 0; dim < NumDim; dim++){
+
+            /* for (unsigned int dim = 0; dim < NumDim; dim++){
                 normal_gp(dim) += (*p_geom)[i].FastGetSolutionStepValue(DISTANCE)*(rInterfaceShapeDerivativesNeg[gp])(i,dim);
-            }
+            } */
+
+            normal_gp += (*p_geom)[i].FastGetSolutionStepValue(DISTANCE_GRADIENT)*rIntShapeFunctions(gp,i);
         }
 
         double norm = 0.0;

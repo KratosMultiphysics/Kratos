@@ -219,7 +219,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
     KRATOS_TRY
 
-    const double epsilon = 1.0e-6;
+    const double epsilon = 1.0e-8;
 
     BoundedMatrix<double,num_nodes,dim> DN_DX;  // Gradients matrix 
     array_1d<double,num_nodes> N; //dimension = number of nodes . Position of the gauss point 

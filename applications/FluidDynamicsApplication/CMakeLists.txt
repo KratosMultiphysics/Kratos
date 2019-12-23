@@ -81,6 +81,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mass_conservation_check_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/two_fluids_inlet_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/surface_smoothing_process.cpp #MRH
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mass_conservation_correction.cpp #MRH
 )
 
 ## define python interface sources

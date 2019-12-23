@@ -506,6 +506,26 @@ private:
         Kratos::Vector& rInterfaceCurvature);
 
     /**
+     * @brief Calculates curvature at the gauss points of the interface.
+     * @param rInterfaceCurvature Vector containing curvature values at the gauss points
+     * @param rIntShapeFunctions Shape functions calculated at the interface gauss points
+     */
+    void CalculateCurvature(
+        const Matrix& rIntShapeFunctions,
+        Kratos::Vector& rInterfaceCurvature);
+
+    /**
+     * @brief Calculates curvature at the gauss points of the interface.
+     * @param rInterfaceCurvature Vector containing curvature values at the gauss points
+     * @param rIntShapeFunctions Shape functions calculated at the interface gauss points
+     * @param rInterfaceShapeDerivativesNeg Negative side shape functions derivatives at the interface-gauss-points
+     */
+    void CalculateCurvature(
+        const Matrix& rIntShapeFunctions,
+        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
+        Kratos::Vector& rInterfaceCurvature);
+
+    /**
      * @brief Impose pressure discontinuity at the interface due to the surface tension
      * A penalty method is acquired and integration is done on the interface
      * @param coefficient surface tension coefficient
