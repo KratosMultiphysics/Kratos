@@ -56,8 +56,6 @@ namespace Testing {
 
         p_quad->SetId("Geometry1");
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(p_quad->Id(), "Assigned geometry id is name of type string.")
-
         KRATOS_CHECK_EQUAL(p_quad->Id(), Geometry<Point>::GenerateId("Geometry1"));
     }
 } // namespace Testing.
