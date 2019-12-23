@@ -76,7 +76,7 @@ void GenerateInitialSkinDEMProcess::Execute()
             }
             const array_1d<double,3>& r_coordinates = it_node->Coordinates();
             const int id = this->GetMaximumDEMId() + 1;
-            this->CreateDEMParticle(id, r_coordinates, p_DEM_properties, radius, it_node);
+            this->CreateDEMParticle(id, r_coordinates, p_DEM_properties, 0.8*radius, it_node);
             num_DEM++;
         }
     }
