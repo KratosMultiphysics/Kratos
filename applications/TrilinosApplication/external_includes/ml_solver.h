@@ -307,6 +307,11 @@ public:
         rOStream << "Trilinos MultiLevel-Solver";
     }
 
+    static void SetDefaults(Teuchos::ParameterList& rParameterlist, const std::string& rSettingsName)
+    {
+        ML_Epetra::SetDefaults(rSettingsName.c_str(), rParameterlist);
+    }
+
 private:
     ///@name Member Variables
     ///@{

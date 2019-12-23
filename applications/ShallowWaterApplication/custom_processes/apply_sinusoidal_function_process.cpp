@@ -65,7 +65,8 @@ template< class TVarType >
 void ApplySinusoidalFunctionProcess<TVarType>::ExecuteInitializeSolutionStep()
 {
     double time = mrModelPart.GetProcessInfo().GetValue(TIME);
-    double value = Function(time);
+    double smooth = 2 * std::atan(time / mSmoothTime) / M_PI;
+    double value = smooth * Function(time);
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++)
     {
@@ -79,7 +80,8 @@ template<>
 void ApplySinusoidalFunctionProcess<Variable< array_1d<double, 3> > >::ExecuteInitializeSolutionStep()
 {
     double time = mrModelPart.GetProcessInfo().GetValue(TIME);
-    double modulus = Function(time);
+    double smooth = 2 * std::atan(time / mSmoothTime) / M_PI;
+    double modulus = smooth * Function(time);
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++)
     {
@@ -106,7 +108,8 @@ void ApplySinusoidalFunctionProcess<TVarType>::ValidateParameters(Parameters& rP
         "amplitude"       : 1.0,
         "period"          : 1.0,
         "phase_shift"     : 0.0,
-        "vertical_shift"  : 0.0
+        "vertical_shift"  : 0.0,
+        "smooth_time"     : 0.0
     })");
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
@@ -118,6 +121,7 @@ void ApplySinusoidalFunctionProcess<TVarType>::ValidateParameters(Parameters& rP
     mAngularFrequency = 2 * pi / mPeriod;
     mPhase = rParameters["phase_shift"].GetDouble() * mAngularFrequency;
     mVerticalShift = rParameters["vertical_shift"].GetDouble();
+    mSmoothTime = std::max(rParameters["smooth_time"].GetDouble(), std::numeric_limits<double>::epsilon());
 }
 
 
@@ -126,5 +130,3 @@ template class ApplySinusoidalFunctionProcess< VariableComponent< VectorComponen
 template class ApplySinusoidalFunctionProcess< Variable< array_1d<double, 3> > >;
 
 }  // namespace Kratos.
-
-

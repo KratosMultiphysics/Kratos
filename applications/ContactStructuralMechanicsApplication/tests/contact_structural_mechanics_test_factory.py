@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.ContactStructuralMechanicsApplication.contact_structural_mechanics_analysis as contact_structural_mechanics_analysis
+import KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis as structural_mechanics_analysis
 
 # Other imports
 import os
@@ -63,7 +63,7 @@ class ContactStructuralMechanicsTestFactory(KratosUnittest.TestCase):
 
             # Creating the test
             model = KratosMultiphysics.Model()
-            self.test = contact_structural_mechanics_analysis.ContactStructuralMechanicsAnalysis(model, ProjectParameters)
+            self.test = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParameters)
             self.test.Initialize()
 
     def modify_parameters(self, project_parameters):

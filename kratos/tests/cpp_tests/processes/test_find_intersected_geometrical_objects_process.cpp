@@ -213,8 +213,8 @@ namespace Kratos {
 
             Parameters parameters = Parameters(R"(
             {
-                "intersected_model_part_name"  : "Surface",
-                "intersecting_model_part_name" : "Boundaries",
+                "intersected_model_part_name"  : "Main.Surface",
+                "intersecting_model_part_name" : "Main.Boundaries",
                 "bounding_box_factor"          : 0.2,
                 "debug_obb"                    : false
             })" );
@@ -268,7 +268,7 @@ namespace Kratos {
             // Generate skin
             Parameters surface_parameters = Parameters(R"(
             {
-                "name_auxiliar_model_part"              : "Surface",
+                "name_auxiliar_model_part"              : "Main.Surface",
                 "name_auxiliar_condition"               : "Condition",
                 "list_model_parts_to_assign_conditions" : [],
                 "echo_level"                            : 0
@@ -405,8 +405,8 @@ namespace Kratos {
 
             Parameters intersect_parameters = Parameters(R"(
             {
-                "intersected_model_part_name"  : "Surface",
-                "intersecting_model_part_name" : "Boundaries",
+                "intersected_model_part_name"  : "Main.Surface",
+                "intersecting_model_part_name" : "Main.Boundaries",
                 "bounding_box_factor"          : 0.1,
                 "debug_obb"                    : false,
                 "OBB_intersection_type"        : "SeparatingAxisTheorem",
@@ -532,8 +532,8 @@ namespace Kratos {
 
             Parameters intersect_parameters = Parameters(R"(
             {
-                "intersected_model_part_name"  : "Surface",
-                "intersecting_model_part_name" : "Boundaries",
+                "intersected_model_part_name"  : "Main.Surface",
+                "intersecting_model_part_name" : "Main.Boundaries",
                 "bounding_box_factor"          : 0.1,
                 "debug_obb"                    : false,
                 "OBB_intersection_type"        : "SeparatingAxisTheorem",
@@ -661,8 +661,8 @@ namespace Kratos {
 
             Parameters intersect_parameters = Parameters(R"(
             {
-                "intersected_model_part_name"  : "Surface",
-                "intersecting_model_part_name" : "Boundaries",
+                "intersected_model_part_name"  : "Main.Surface",
+                "intersecting_model_part_name" : "Main.Boundaries",
                 "bounding_box_factor"          : 0.1,
                 "debug_obb"                    : false,
                 "OBB_intersection_type"        : "SeparatingAxisTheorem",
@@ -791,8 +791,8 @@ namespace Kratos {
 
             Parameters intersect_parameters = Parameters(R"(
             {
-                "intersected_model_part_name"  : "Surface",
-                "intersecting_model_part_name" : "Boundaries",
+                "intersected_model_part_name"  : "Main.Surface",
+                "intersecting_model_part_name" : "Main.Boundaries",
                 "bounding_box_factor"          : 0.1,
                 "debug_obb"                    : false,
                 "OBB_intersection_type"        : "SeparatingAxisTheorem",

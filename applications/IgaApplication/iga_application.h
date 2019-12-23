@@ -27,6 +27,7 @@
 
 //conditions
 #include "custom_conditions/load_condition.h"
+#include "custom_conditions/penalty_coupling_condition.h"
 
 
 namespace Kratos {
@@ -173,6 +174,7 @@ private:
 
     //Conditions
     const LoadCondition mLoadCondition;
+    const PenaltyCouplingCondition mPenaltyCouplingCondition;
 
     ///@}
     ///@name Private Operators

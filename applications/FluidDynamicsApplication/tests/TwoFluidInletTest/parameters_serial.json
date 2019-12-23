@@ -103,7 +103,7 @@
         	"kratos_module" : "KratosMultiphysics",
         	"process_name"  : "AssignVectorByDirectionProcess",
         	"Parameters"    : {
-            	"model_part_name" : "Parts_Fluid",
+            	"model_part_name" : "FluidModelPart.Parts_Fluid",
             	"variable_name"   : "BODY_FORCE",
             	"modulus"         : 9.81,
             	"constrained"     : false,
@@ -115,7 +115,7 @@
         	"kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         	"process_name"  : "ApplyDistanceModificationProcess",
         	"Parameters"    : {
-            	"model_part_name"                        : "Parts_Fluid",
+            	"model_part_name"                        : "FluidModelPart.Parts_Fluid",
             	"distance_threshold"                     : 0.0000001,
             	"check_at_each_time_step"                : false,
             	"avoid_almost_empty_elements"            : true,

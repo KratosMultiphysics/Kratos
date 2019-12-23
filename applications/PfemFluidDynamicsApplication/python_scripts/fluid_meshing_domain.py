@@ -49,6 +49,14 @@ class FluidMeshingDomain(object):
                 "upper_point"      : [10,10,10],
                 "lower_point"      : [-10,-10,-10]
             },
+            "spatial_refining_box"            : {
+                    "use_refining_box" : false,
+                    "mesh_size"        : 0.1,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1,
+                    "upper_point"      : [10,10,10],
+                    "lower_point"      : [-10,-10,-10]
+            },
             "refining_parameters":{
                "critical_size": 0.0,
                "threshold_variable": "PLASTIC_STRAIN",
@@ -80,12 +88,6 @@ class FluidMeshingDomain(object):
                    "on_distance": false,
                    "on_threshold": false,
                    "on_error": false
-               },
-               "refining_box":{
-                   "refine_in_box_only": false,
-                   "radius": 0.0,
-                   "center": [0.0, 0.0, 0.0],
-                   "velocity": [0.0, 0.0, 0.0]
                }
             },
             "elemental_variables_to_transfer":[]
@@ -157,29 +159,15 @@ class FluidMeshingDomain(object):
         # parameters
         self.RefiningParameters.SetAlphaParameter(self.settings["alpha_shape"].GetDouble())
 
-        # custom set of the mesh size from settings from initial mesh or other parts
-        self.SetMeshSizeValues()
-
         # set mesh refinement in box
         size = self.dimension
-        refining_box = self.settings["refining_parameters"]["refining_box"]
-        if(refining_box["refine_in_box_only"].GetBool()):
-            radius   = refining_box["radius"].GetDouble()
-            center   = Vector(size)
-            velocity = Vector(size)
-
-            for i in range(0, size):
-                center[i]   = refining_box["center"][i].GetDouble()
-                velocity[i] = refining_box["velocity"][i].GetDouble()
-
-            refining_box = KratosDelaunay.SpatialBoundingBox(center, radius, velocity)
-            self.RefiningParameters.SetRefiningBox(refining_box)
-
-        self.RefiningParameters.SetThresholdVariable(KratosMultiphysics.KratosGlobals.GetVariable(self.settings["refining_parameters"]["threshold_variable"].GetString() ))
-        self.RefiningParameters.SetReferenceThreshold(self.settings["refining_parameters"]["reference_threshold"].GetDouble())
-
-        self.RefiningParameters.SetErrorVariable(KratosMultiphysics.KratosGlobals.GetVariable(self.settings["refining_parameters"]["error_variable"].GetString()))
-        self.RefiningParameters.SetReferenceError(self.settings["refining_parameters"]["reference_error"].GetDouble())
+        refining_box = self.settings["spatial_refining_box"]
+        if(refining_box["use_refining_box"].GetBool()):
+            self.MeshingParameters.SetUseRefiningBox(True) 
+            self.MeshingParameters.SetRefiningBoxMinimumPoint(refining_box["lower_point"][0].GetDouble(),refining_box["lower_point"][1].GetDouble(),refining_box["lower_point"][2].GetDouble()) 
+            self.MeshingParameters.SetRefiningBoxMaximumPoint(refining_box["upper_point"][0].GetDouble(),refining_box["upper_point"][1].GetDouble(),refining_box["upper_point"][2].GetDouble()) 
+            self.MeshingParameters.SetRefiningBoxTimeInterval(refining_box["initial_time"].GetDouble(),refining_box["final_time"].GetDouble())
+            self.MeshingParameters.SetRefiningBoxMeshSize(refining_box["mesh_size"].GetDouble())
 
 
         removing_options = KratosMultiphysics.Flags()
@@ -259,26 +247,6 @@ class FluidMeshingDomain(object):
             self.MeshingStrategy.GenerateMesh()
 
     #
-    def SetMeshSizeValues(self):
-
-        critical_mesh_size = self.settings["refining_parameters"]["critical_size"].GetDouble()
-
-        # set mesh refinement based on wall tip discretization size
-        # if(parameters["TipRadiusRefine"]):
-            # tip arch opening (in degrees = 5-7.5-10)
-            #tool_arch_opening = 12
-            # tip surface length
-            #tool_arch_length = tool_arch_opening * (3.1416 / 180.0)
-            # critical mesh size based on wall tip
-            #critical_mesh_size = tool_arch_length * parameters["CriticalTipRadius"]
-
-        critical_mesh_size = critical_mesh_size
-        critical_mesh_side = critical_mesh_size * 3
-
-        self.RefiningParameters.SetCriticalRadius(critical_mesh_size)
-        self.RefiningParameters.SetCriticalSide(critical_mesh_side)
-
-    #
     def Check(self):
 
         # set mesher utilities
@@ -336,20 +304,30 @@ class FluidMeshingDomain(object):
     #
     def ComputeInitialAverageMeshParameters(self):
 
-        numFluid=0
-        mean_nodal_h=0
-        for node in self.main_model_part.Nodes:
-            if (node.Is(KratosMultiphysics.FLUID)):
-                numFluid+=1
-                nodal_h=node.GetSolutionStepValue(KratosMultiphysics.NODAL_H)
-                mean_nodal_h+=nodal_h
+        self.mesh_parameters =  KratosPfemFluid.ComputeAveragePfemMeshParameters(self.main_model_part, self.MeshingParameters,self.echo_level)
+        self.mesh_parameters.Execute()
 
-        mean_nodal_h*=1.0/numFluid;
+        # numFluid=0
+        # mean_nodal_h=0
+        # for node in self.main_model_part.Nodes:
+        #     if (node.Is(KratosMultiphysics.FLUID)):
+        #         numFluid+=1
+        #         nodal_h=node.GetSolutionStepValue(KratosMultiphysics.NODAL_H)
+        #         mean_nodal_h+=nodal_h
 
-        print("the mean_nodal_h is  ",mean_nodal_h)
+        # mean_nodal_h*=1.0/numFluid;
 
-        self.RefiningParameters.SetCriticalRadius(mean_nodal_h)
-        self.RefiningParameters.SetInitialRadius(mean_nodal_h)
+        # self.RefiningParameters.SetCriticalRadius(mean_nodal_h)
+        # self.RefiningParameters.SetInitialRadius(mean_nodal_h)
+
+        # delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        # self.main_model_part.ProcessInfo.SetValue(KratosPfemFluid.INITIAL_DELTA_TIME,delta_time)
+        # self.main_model_part.ProcessInfo.SetValue(KratosPfemFluid.CURRENT_DELTA_TIME,delta_time)
+        # self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.PREVIOUS_DELTA_TIME,delta_time)
+        # self.main_model_part.ProcessInfo.SetValue(KratosPfemFluid.TIME_INTERVAL_CHANGED,False)
+
+    def SetTimeDataOnProcessInfo(self):
+
         delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         self.main_model_part.ProcessInfo.SetValue(KratosPfemFluid.INITIAL_DELTA_TIME,delta_time)
         self.main_model_part.ProcessInfo.SetValue(KratosPfemFluid.CURRENT_DELTA_TIME,delta_time)

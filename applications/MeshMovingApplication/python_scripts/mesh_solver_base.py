@@ -63,7 +63,7 @@ class MeshSolverBase(PythonSolver):
                 "input_type"     : "mdpa",
                 "input_filename" : "unknown_name"
             },
-            "mesh_motion_linear_solver_settings" : {
+            "linear_solver_settings" : {
                 "solver_type" : "amgcl",
                 "smoother_type":"ilu0",
                 "krylov_type": "gmres",
@@ -79,7 +79,9 @@ class MeshSolverBase(PythonSolver):
                 "coarse_enough" : 5000
             },
             "reform_dofs_each_step"     : false,
-            "compute_reactions"         : false
+            "compute_reactions"         : false,
+            "superimpose_mesh_disp_with": [],
+            "poisson_ratio"             : 0.3
         }""")
         this_defaults.AddMissingParameters(super(MeshSolverBase, cls).GetDefaultSettings())
         return this_defaults
@@ -122,7 +124,11 @@ class MeshSolverBase(PythonSolver):
     def SolveSolutionStep(self):
         # Calling Solve bcs this is what is currently implemented in the MeshSolverStrategies
         # explicit bool conversion is only needed bcs "Solve" returns a double
-        return bool(self.get_mesh_motion_solving_strategy().Solve())
+        is_converged = bool(self.get_mesh_motion_solving_strategy().Solve())
+        self.MoveMesh()
+        for variable in KratosMultiphysics.kratos_utilities.GenerateVariableListFromInput(self.settings["superimpose_mesh_disp_with"]):
+            KMM.SuperImposeMeshDisplacement(variable)
+        return is_converged
 
     def SetEchoLevel(self, level):
         self.get_mesh_motion_solving_strategy().SetEchoLevel(level)
@@ -168,7 +174,7 @@ class MeshSolverBase(PythonSolver):
 
     def _create_linear_solver(self):
         from KratosMultiphysics.python_linear_solver_factory import ConstructSolver
-        return ConstructSolver(self.settings["mesh_motion_linear_solver_settings"])
+        return ConstructSolver(self.settings["linear_solver_settings"])
 
     def _create_mesh_motion_solving_strategy(self):
         """Create the mesh motion solving strategy.
