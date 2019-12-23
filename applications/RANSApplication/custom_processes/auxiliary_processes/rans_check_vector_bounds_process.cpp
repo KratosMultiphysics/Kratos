@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <limits>
 
 // External includes
 
@@ -19,6 +20,7 @@
 
 // Application includes
 #include "custom_utilities/rans_check_utilities.h"
+#include "utilities/openmp_utils.h"
 
 // Include base h
 #include "rans_check_vector_bounds_process.h"
@@ -69,7 +71,7 @@ int RansCheckVectorBoundsProcess::Check()
     const Variable<array_1d<double, 3>> vector_variable =
         KratosComponents<Variable<array_1d<double, 3>>>::Get(mVariableName);
 
-        RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
+    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
     RansCheckUtilities::CheckIfVariableExistsInModelPart(
         mrModel.GetModelPart(mModelPartName), vector_variable);
 
@@ -84,8 +86,8 @@ void RansCheckVectorBoundsProcess::Execute()
     const Variable<array_1d<double, 3>> vector_variable =
         KratosComponents<Variable<array_1d<double, 3>>>::Get(mVariableName);
 
-    const ModelPart::NodesContainerType& r_nodes =
-        mrModel.GetModelPart(mModelPartName).Nodes();
+    const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    const ModelPart::NodesContainerType& r_nodes = r_model_part.Nodes();
 
     array_1d<double, 3> vector_weights;
 
@@ -113,35 +115,48 @@ void RansCheckVectorBoundsProcess::Execute()
         break;
     }
 
-    double min_value = 0.0;
-    double max_value = 0.0;
-    bool is_initialized = false;
+    double min_value = std::numeric_limits<double>::max();
+    double max_value = std::numeric_limits<double>::lowest();
 
     const int number_of_nodes = r_nodes.size();
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+    const int number_of_threads = OpenMPUtils::GetNumThreads();
+    OpenMPUtils::PartitionVector node_partition;
+    OpenMPUtils::DivideInPartitions(number_of_nodes, number_of_threads, node_partition);
+
+    Vector max_values(number_of_threads, max_value);
+    Vector min_values(number_of_threads, min_value);
+
+#pragma omp parallel
     {
-        const ModelPart::NodeType& r_node = *(r_nodes.begin() + i_node);
-        const array_1d<double, 3>& vector_value =
-            r_node.FastGetSolutionStepValue(vector_variable);
+        const int k = OpenMPUtils::ThisThread();
 
-        double current_value = 0.0;
-        for (int dim = 0; dim < 3; ++dim)
-            current_value += std::pow(vector_value[dim] * vector_weights[dim], 2);
+        auto nodes_begin = r_nodes.begin() + node_partition[k];
+        auto nodes_end = r_nodes.begin() + node_partition[k + 1];
 
-        current_value = std::pow(current_value, 0.5);
-
-        if (!is_initialized)
+        for (auto itNode = nodes_begin; itNode != nodes_end; ++itNode)
         {
-            min_value = current_value;
-            max_value = current_value;
-            is_initialized = true;
-        }
+            const array_1d<double, 3>& vector_value =
+                itNode->FastGetSolutionStepValue(vector_variable);
 
-        if (min_value > current_value)
-            min_value = current_value;
-        if (max_value < current_value)
-            max_value = current_value;
+            double value = 0.0;
+            for (int dim = 0; dim < 3; ++dim)
+                value += std::pow(vector_value[dim] * vector_weights[dim], 2);
+            value = std::pow(value, 0.5);
+
+            min_values[k] = std::min(min_values[k], value);
+            max_values[k] = std::max(max_values[k], value);
+        }
     }
+
+    for (int i = 0; i < number_of_threads; ++i)
+    {
+        min_value = std::min(min_value, min_values[i]);
+        max_value = std::max(max_value, max_values[i]);
+    }
+
+    const Communicator& r_communicator = r_model_part.GetCommunicator();
+    min_value = r_communicator.GetDataCommunicator().MinAll(min_value);
+    max_value = r_communicator.GetDataCommunicator().MaxAll(max_value);
 
     KRATOS_INFO(this->Info())
         << vector_variable.Name() << " is bounded between [ " << min_value
