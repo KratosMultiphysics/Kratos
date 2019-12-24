@@ -80,6 +80,7 @@ public:
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface)
     {
+        mIsTrimmed = false;
     }
 
     /// Constructor for trimmed patch
@@ -92,6 +93,7 @@ public:
         , mOuterLoopArray(BrepOuterLoopArray)
         , mInnerLoopArray(BrepInnerLoopArray)
     {
+        mIsTrimmed = !(mOuterLoopArray.size() == 0 && mInnerLoopArray.size() == 0);
     }
 
     explicit BrepSurface(const PointsArrayType& ThisPoints)
@@ -105,6 +107,7 @@ public:
         , mpNurbsSurface(rOther.mpNurbsSurface)
         , mOuterLoopArray(rOther.mOuterLoopArray)
         , mInnerLoopArray(rOther.mInnerLoopArray)
+        , mIsTrimmed(rOther.mIsTrimmed)
     {
     }
 
@@ -116,6 +119,7 @@ public:
         , mpNurbsSurface(rOther.mpNurbsSurface)
         , mOuterLoopArray(rOther.mOuterLoopArray)
         , mInnerLoopArray(rOther.mInnerLoopArray)
+        , mIsTrimmed(rOther.mIsTrimmed)
     {
     }
 
@@ -143,6 +147,7 @@ public:
         mpNurbsSurface = rOther.mpNurbsSurface;
         mOuterLoopArray = rOther.mOuterLoopArray;
         mInnerLoopArray = rOther.mInnerLoopArray;
+        mIsTrimmed = rOther.mIsTrimmed;
         return *this;
     }
 
@@ -164,6 +169,7 @@ public:
         mpNurbsSurface = rOther.mpNurbsSurface;
         mOuterLoopArray = rOther.mOuterLoopArray;
         mInnerLoopArray = rOther.mInnerLoopArray;
+        mIsTrimmed = rOther.mIsTrimmed;
         return *this;
     }
 
@@ -186,8 +192,7 @@ public:
     */
     bool IsTrimmed() const
     {
-        if (mOuterLoopArray.size() == 0 && mInnerLoopArray.size() == 0)
-            return false;
+        return mIsTrimmed;
     }
 
     ///@}
@@ -280,6 +285,8 @@ private:
     BrepCurveOnSurfaceLoopArrayType mOuterLoopArray;
     BrepCurveOnSurfaceLoopArrayType mInnerLoopArray;
 
+    bool mIsTrimmed;
+
     ///@}
     ///@name Serialization
     ///@{
@@ -292,6 +299,7 @@ private:
         rSerializer.save("NurbsSurface", mpNurbsSurface);
         rSerializer.save("OuterLoopArray", mOuterLoopArray);
         rSerializer.save("InnerLoopArray", mInnerLoopArray);
+        rSerializer.save("IsTrimmed", mIsTrimmed);
     }
 
     void load( Serializer& rSerializer ) override
@@ -300,6 +308,7 @@ private:
         rSerializer.load("NurbsSurface", mpNurbsSurface);
         rSerializer.load("OuterLoopArray", mOuterLoopArray);
         rSerializer.load("InnerLoopArray", mInnerLoopArray);
+        rSerializer.load("IsTrimmed", mIsTrimmed);
     }
 
     BrepSurface()
