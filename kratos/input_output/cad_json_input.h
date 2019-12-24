@@ -103,7 +103,7 @@ namespace Kratos
                 if (rParameters.Has("boundary_loops"))
                 {
                     BrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
-                    tie(outer_loops, inner_loops) = ReadBoundaryLoops<TEmbeddedNodeType>(rParameters["boundary_loops"]);
+                    tie(outer_loops, inner_loops) = ReadBoundaryLoops(rParameters["boundary_loops"]);
 
                     auto brep_surface =
                         Kratos::make_intrusive<BrepSurfaceType>(
