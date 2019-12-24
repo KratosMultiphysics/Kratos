@@ -3,10 +3,12 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import ImportDataStructure
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import os
+
 try:
     from mappers.test_nearest import Case1D, Case2D, Case3DSphere, Case3DSinc
 except:
     from test_nearest import Case1D, Case2D, Case3DSphere, Case3DSinc
+
 from KratosMultiphysics.CoSimulationApplication.mappers.linear \
     import get_coeffs_1d_2d, get_coeffs_3d, line_interpolation_coeff, \
     degenerate_triangle, project_on_triangle, point_on_triangle, triangle_area
@@ -132,7 +134,8 @@ class TestMapperLinear(KratosUnittest.TestCase):
             assertArrayAlmostEqual(coeffs, np.array([[1., 0.]]), 1e-15)
 
             # 2D: linear, nearest neighbour
-            coords_from = np.array([[1., 1.], [0., 0.]])
+            coords_from = np.array([[1., 1.],
+                                    [0., 0.]])
 
             coord_to = np.array([0., 1.])
             coeffs = get_coeffs_1d_2d(coords_from, coord_to)
@@ -142,24 +145,83 @@ class TestMapperLinear(KratosUnittest.TestCase):
             coeffs = get_coeffs_1d_2d(coords_from, coord_to)
             assertArrayAlmostEqual(coeffs, np.array([[1., 0.]]), 1e-15)
 
-        # test function degenerate_triangle
-        # *** TO DO
+        # test function triangle_area
+        if True:
+            P_1 = np.array([0., 0., 0.])
+            P_2 = np.array([1., 0., 0.])
+            P_3 = np.array([1., 1., 0.])
+            self.assertAlmostEqual(triangle_area(P_1, P_2, P_3), .5, delta=1e-15)
 
+        # test function degenerate_triangle
+        if True:
+            P_1 = np.array([0., 0., 0.])
+            P_2 = np.array([1., 0., 0.])
+
+            P_3 = np.array([1., 1., 0.])
+            self.assertFalse(degenerate_triangle(P_1, P_2, P_3))
+
+            P_3 = np.array([.5, 0., 0.])
+            self.assertTrue(degenerate_triangle(P_1, P_2, P_3))
+
+            P_3 = np.array([.5, .01, 0.])
+            self.assertTrue(degenerate_triangle(P_1, P_2, P_3))
+
+            P_3 = np.array([0., .01, 0.])
+            self.assertTrue(degenerate_triangle(P_1, P_2, P_3))
 
         # test function project_on_triangle
-        # *** TO DO
+        if True:
+            P_1 = np.array([0., 0., 0.])
+            P_2 = np.array([1., 0., 0.])
+            P_3 = np.array([1., 1., 0.])
 
+            P_0 = np.array([.5, .5, 1.])
+            P_p = project_on_triangle(P_0, P_1, P_2, P_3)
+            assertArrayAlmostEqual(P_p, np.array([[.5, .5, 0.]]), 1e-15)
+
+            P_0 = np.array([0., 1., 1.])
+            P_p = project_on_triangle(P_0, P_1, P_2, P_3)
+            assertArrayAlmostEqual(P_p, np.array([[0., 1., 0.]]), 1e-15)
 
         # test function point_on_triangle
-        # *** TO DO
+        if True:
+            P_1 = np.array([0., 0., 0.])
+            P_2 = np.array([1., 0., 0.])
+            P_3 = np.array([1., 1., 0.])
 
+            P_p = np.array([.5, .5, 0.])
+            self.assertTrue(point_on_triangle(P_p, P_1, P_2, P_3))
 
-        # test function triangle_area
-        # *** TO DO
+            P_p = np.array([0., 1., 0.])
+            self.assertFalse(point_on_triangle(P_p, P_1, P_2, P_3))
 
+            P_p = np.array([.5, 1e-6, 0.])
+            self.assertTrue(point_on_triangle(P_p, P_1, P_2, P_3))
+
+            P_p = np.array([.5, -1e-6, 0.])
+            self.assertFalse(point_on_triangle(P_p, P_1, P_2, P_3))
 
         # test function get_coeffs_3d
-        # *** TO DO
+        if True:
+            coords_from = np.array([[0., 0., 0.],
+                                    [1., 0., 0.],
+                                    [1., 1., 0.]])
+
+            coord_to = np.array([.75, .25, 0.])
+            coeffs = get_coeffs_3d(coords_from, coord_to)
+            assertArrayAlmostEqual(coeffs, np.array([[.25, .5, .25]]), 1e-15)
+
+            coord_to = np.array([.5, .25, 0.])
+            coeffs = get_coeffs_3d(coords_from, coord_to)
+            assertArrayAlmostEqual(coeffs, np.array([[.5, .25, .25]]), 1e-15)
+
+            coord_to = np.array([.5, -.1, 0.])
+            coeffs = get_coeffs_3d(coords_from, coord_to)
+            assertArrayAlmostEqual(coeffs, np.array([[.5, .5, 0.]]), 1e-15)
+
+            coord_to = np.array([-.1, -.1, 0.])
+            coeffs = get_coeffs_3d(coords_from, coord_to)
+            assertArrayAlmostEqual(coeffs, np.array([[1., 0., 0.]]), 1e-15)
 
 
 if __name__ == '__main__':

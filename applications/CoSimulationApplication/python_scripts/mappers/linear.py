@@ -21,23 +21,11 @@ class MapperLinear(MapperInterpolator):
         If this projected point lies outside the
         triangle, the data is extrapolated.
 
-        If the 3 closest points are co-linear,
-        a (specified) number of next nearest points
-        are checked to find a triangle.
-
         If no triangle is found, the point is
         projected on the line through the 2 nearest
         points, and interpolation/extrapolation
         is done based on only 2 points.
 
-        Parallellization can be used for calculating
-        the coefficients. Speed improvement on a
-        36-core machine is only ~4.4, so there is
-        probably room for improvement here.
-
-        On 36 cores, 1e6 points took around
-        70s to Initialize, and 10s to do the
-        mapping with __call__.
 
         # *** TO DO: update this, put part in mappers.md
 
