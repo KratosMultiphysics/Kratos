@@ -226,9 +226,9 @@ namespace Kratos
             ReadNurbsCurve(
                 const Parameters& rParameters)
         {
-            KRATOS_ERROR_IF_NOT(rParameters.Has("is_rational"))
-                << "Missing 'is_rational' in nurbs curve" << std::endl;
-            bool is_rational = rParameters["is_rational"].GetBool();
+            bool is_rational = true;
+            if (rParameters.Has("is_rational"))
+                is_rational = brep_json["is_rational"].GetBool();
 
             KRATOS_ERROR_IF_NOT(rParameters.Has("knot_vector"))
                 << "Missing 'knot_vector' in nurbs curve" << std::endl;
@@ -238,17 +238,25 @@ namespace Kratos
                 << "Missing 'degree' in nurbs curve" << std::endl;
             int polynomial_degree = rParameters["degree"].GetInt();
 
-            PointerVector<TThisNodeType >> control_points = ReadControlPointVector<TThisNodeType>(
+            auto control_points = ReadControlPointVector<TThisNodeType>(
                 rParameters["control_points"]);
 
-            Vector control_point_weights = ReadControlPointVector(
-                rParameters["control_points"]);
+            if (is_rational)
+            {
+                Vector control_point_weights = ReadControlPointVector(
+                    rParameters["control_points"]);
 
+                return Kratos::make_intrusive<NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
+                    NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
+                        control_points,
+                        polynomial_degree,
+                        knot_vector));
+            }
             return Kratos::make_intrusive<NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
-                control_points,
-                polynomial_degree,
-                knot_vector,
-                control_point_weights);
+                NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
+                    control_points,
+                    polynomial_degree,
+                    knot_vector));
         }
 
         template<int TWorkingSpaceDimension, class TThisNodeType>
@@ -256,7 +264,9 @@ namespace Kratos
             ReadNurbsSurface(
                 const Parameters& rParameters)
         {
-            bool is_rational = brep_json["is_rational"].GetBool();
+            bool is_rational = true;
+            if(rParameters.Has("is_rational"))
+                is_rational = brep_json["is_rational"].GetBool();
 
             KRATOS_ERROR_IF_NOT(rParameters.Has("knot_vectors"))
                 << "Missing 'knot_vector' in nurbs surface" << std::endl;
@@ -272,7 +282,7 @@ namespace Kratos
             int p = brep_json["degrees"][0].GetInt();
             int q = brep_json["degrees"][1].GetInt();
 
-            PointerVector<TThisNodeType >> control_points = ReadControlPointVector<TThisNodeType>(
+            auto control_points = ReadControlPointVector<TThisNodeType>(
                 rParameters["control_points"]);
 
             if (is_rational)
