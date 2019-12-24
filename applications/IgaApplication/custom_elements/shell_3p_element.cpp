@@ -36,8 +36,6 @@ namespace Kratos
 
         const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
-        const SizeType number_of_nodes = r_geometry.size();
-
         // Prepare memory
         if (m_A_ab_covariant_vector.size() != r_number_of_integration_points)
             m_A_ab_covariant_vector.resize(r_number_of_integration_points);
