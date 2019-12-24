@@ -80,12 +80,13 @@ namespace Kratos
         ///@name Read in Brep Geometries
         ///@{
 
-        PointerVector<BrepSurfaceType>
+        DenseVector<BrepSurfaceType>
             ReadBrepSurfaces(
                 const Parameters& rParameters)
         {
-            PointerVector<BrepSurfaceType> brep_surfaces;
-            for (int i = 0; i < rParameters.size(); i++)
+            DenseVector<BrepSurfaceType> brep_surfaces;
+
+            for (IndexType i = 0; i < rParameters.size(); i++)
             {
                 KRATOS_ERROR_IF_NOT(rParameters.Has("brep_id") || rParameters.Has("brep_name"))
                     << "Missing 'brep_id' or 'brep_name' in brep face" << std::endl;
