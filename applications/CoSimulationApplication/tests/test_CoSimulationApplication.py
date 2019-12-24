@@ -14,8 +14,10 @@ from convergence_criteria.test_relative_norm import TestConvergenceCriterionRela
 from mappers.test_combined import TestMapperCombined
 from mappers.test_nearest import TestMapperNearest
 from mappers.test_linear import TestMapperLinear
-from mappers.test_permutation import TestMapperPermutation
+from predictors.test_predictor import TestPredictor
 from predictors.test_linear import TestPredictorLinear
+from predictors.test_quadratic import TestPredictorQuadratic
+from predictors.test_cubic import TestPredictorCubic
 from solver_wrappers.pipe.test_flow_solver import TestSolverWrapperPipeFlowSolver
 from solver_wrappers.pipe.test_structure_solver import TestSolverWrapperPipeStructureSolver
 from solver_wrappers.fluent.test_2019R1 import TestSolverWrapperFluent2019R1
@@ -55,7 +57,10 @@ def AssembleTestSuites():
     smallSuite.addTest(TestMapperNearest("test_mapper_nearest"))
     smallSuite.addTest(TestMapperLinear("test_mapper_linear"))
     smallSuite.addTest(TestMapperPermutation("test_mapper_permutation"))
+    smallSuite.addTest(TestPredictor("test_predictor"))
     smallSuite.addTest(TestPredictorLinear("test_predictor_linear"))
+    smallSuite.addTest(TestPredictorQuadratic("test_predictor_quadratic"))
+    smallSuite.addTest(TestPredictorCubic("test_predictor_cubic"))
     smallSuite.addTest(TestSolverWrapperPipeFlowSolver("test_solver_wrapper_pipe_flow_solver"))
     smallSuite.addTest(TestSolverWrapperPipeStructureSolver("test_solver_wrapper_pipe_structure_solver"))
     # smallSuite.addTest(TestSolverWrapperFluent2019R1("test_solver_wrapper_fluent_2019R1"))  # duration ~500s
