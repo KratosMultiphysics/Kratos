@@ -199,8 +199,7 @@ namespace Kratos
                 KRATOS_ERROR_IF_NOT(rParameters.Has("trimming_curves"))
                     << "Missing 'trimming_curves' in boundary loops"
                     << bl_idx << " loop." << std::endl;
-
-                auto trimming_curves = ReadTrimmingCurveVector<2, TEmbeddedNodeType>(rParameters["trimming_curves"]);
+                auto trimming_curves = ReadTrimmingCurveVector(rParameters["trimming_curves"]);
 
                 if (loop_type == "outer")
                     outer_loops.push_back(brep_curve_on_surface_loop);
