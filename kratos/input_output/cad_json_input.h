@@ -97,10 +97,10 @@ namespace Kratos
                 auto surface = ReadNurbsSurface<3, TNodeType>(rParameters["surface"]);
 
                 bool is_trimmed = true;
-                if (brep_json["surface"].Has("is_trimmed"))
-                    is_trimmed = brep_json["surface"]["is_trimmed"].GetBool();
+                if (rParameters["surface"].Has("is_trimmed"))
+                    is_trimmed = rParameters["surface"]["is_trimmed"].GetBool();
 
-                if (brep_json.Has("boundary_loops"))
+                if (rParameters.Has("boundary_loops"))
                 {
                     BrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
                     tie(outer_loops, inner_loops) = ReadBoundaryLoops<TEmbeddedNodeType>(rParameters["boundary_loops"]);
@@ -225,7 +225,7 @@ namespace Kratos
         {
             bool is_rational = true;
             if (rParameters.Has("is_rational"))
-                is_rational = brep_json["is_rational"].GetBool();
+                is_rational = rParameters["is_rational"].GetBool();
 
             KRATOS_ERROR_IF_NOT(rParameters.Has("knot_vector"))
                 << "Missing 'knot_vector' in nurbs curve" << std::endl;
@@ -263,21 +263,21 @@ namespace Kratos
         {
             bool is_rational = true;
             if(rParameters.Has("is_rational"))
-                is_rational = brep_json["is_rational"].GetBool();
+                is_rational = rParameters["is_rational"].GetBool();
 
             KRATOS_ERROR_IF_NOT(rParameters.Has("knot_vectors"))
                 << "Missing 'knot_vector' in nurbs surface" << std::endl;
             KRATOS_ERROR_IF(rParameters["knot_vectors"].size() != 2)
                 << "'knot_vectors' need to be of size two, knot_vector_u and knot_vector_v" << std::endl;
-            Vector knot_vector_u = brep_json["knot_vectors"][0].GetVector();
-            Vector knot_vector_v = brep_json["knot_vectors"][1].GetVector();
+            Vector knot_vector_u = rParameters["knot_vectors"][0].GetVector();
+            Vector knot_vector_v = rParameters["knot_vectors"][1].GetVector();
 
             KRATOS_ERROR_IF_NOT(rParameters.Has("degrees"))
                 << "Missing 'degrees' in nurbs surface" << std::endl;
             KRATOS_ERROR_IF(rParameters["degrees"].size() != 2)
                 << "'degrees' need to be of size two, p and q" << std::endl;
-            int p = brep_json["degrees"][0].GetInt();
-            int q = brep_json["degrees"][1].GetInt();
+            int p = rParameters["degrees"][0].GetInt();
+            int q = rParameters["degrees"][1].GetInt();
 
             auto control_points = ReadControlPointVector<TThisNodeType>(
                 rParameters["control_points"]);
