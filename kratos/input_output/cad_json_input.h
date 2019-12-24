@@ -56,7 +56,7 @@ namespace Kratos
         /// Constructor.
         CadJsonInput(
             ModelPart & rModelPart,
-            Parameters & rNurbsBrepGeometryJson,
+            const Parameters & rNurbsBrepGeometryJson,
             const int EchoLevel = 0)
             : mEchoLevel(EchoLevel)
         {};
@@ -316,8 +316,8 @@ namespace Kratos
                 << "Length of control point list is zero!" << std::endl;
             KRATOS_ERROR_IF(rParameters[0].size() != 4)
                 << "Control points need to be provided in following structure: [[x, y, z, weight]] or [id, [x, y, z, weight]]"
-                << std::endl;
-            << "Size of inner vector incorrect!"
+                << std::endl
+                << "Size of inner vector incorrect!"
                 << std::endl;
 
             SizeType number_of_entries = rParameters[0].size();
