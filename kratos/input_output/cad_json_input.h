@@ -202,9 +202,9 @@ namespace Kratos
                 auto trimming_curves = ReadTrimmingCurveVector(rParameters["trimming_curves"]);
 
                 if (loop_type == "outer")
-                    outer_loops.push_back(brep_curve_on_surface_loop);
+                    outer_loops.push_back(trimming_curves);
                 else if (loop_type == "inner")
-                    inner_loops.push_back(brep_curve_on_surface_loop);
+                    inner_loops.push_back(trimming_curves);
                 else
                     KRATOS_ERROR << "Loop type: " << loop_type
                     << " is not supported." << std::endl;
