@@ -96,6 +96,20 @@ public:
         mIsTrimmed = !(mOuterLoopArray.size() == 0 && mInnerLoopArray.size() == 0);
     }
 
+    /// Constructor for trimmed patch including IsTrimmed
+    BrepSurface(
+        typename NurbsSurfaceType::Pointer pSurface,
+        BrepCurveOnSurfaceLoopArrayType& BrepOuterLoopArray,
+        BrepCurveOnSurfaceLoopArrayType& BrepInnerLoopArray,
+        bool IsTrimmed)
+        : BaseType(PointsArrayType(), &msGeometryData)
+        , mpNurbsSurface(pSurface)
+        , mOuterLoopArray(BrepOuterLoopArray)
+        , mInnerLoopArray(BrepInnerLoopArray)
+        , mIsTrimmed(IsTrimmed)
+    {
+    }
+
     explicit BrepSurface(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
     {
