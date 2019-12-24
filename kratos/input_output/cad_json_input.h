@@ -164,7 +164,7 @@ namespace Kratos
         {
             KRATOS_ERROR_IF_NOT(rParameters.Has("curve_direction"))
                 << "Missing 'curve_direction' in nurbs curve" << std::endl;
-            bool curve_direction = rTrimmingCurve["curve_direction"].GetBool();
+            bool curve_direction = rParameters["curve_direction"].GetBool();
 
             KRATOS_ERROR_IF_NOT(rParameters.Has("parameter_curve"))
                 << "Missing 'parameter_curve' in nurbs curve" << std::endl;
