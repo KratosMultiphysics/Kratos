@@ -14,6 +14,7 @@ from convergence_criteria.test_relative_norm import TestConvergenceCriterionRela
 from mappers.test_combined import TestMapperCombined
 from mappers.test_nearest import TestMapperNearest
 from mappers.test_linear import TestMapperLinear
+from mappers.test_permutation import TestMapperPermutation
 from predictors.test_predictor import TestPredictor
 from predictors.test_linear import TestPredictorLinear
 from predictors.test_quadratic import TestPredictorQuadratic
