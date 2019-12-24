@@ -3,16 +3,15 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.CoSimulationApplication.co_simulation_interface import CoSimulationInterface
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import ImportDataStructure
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-from os.path import join
+# from os.path import join
+import os
 
 class TestPyKratosParameters(KratosUnittest.TestCase):
     def test_pykratos_parameters(self):
-        parameter_file_name = "test_parameters.json"
+        parameter_file_name = os.path.join(os.path.dirname(__file__), 'test_parameters.json')
         cs_data_structure = ImportDataStructure(parameter_file_name)
-
-        file_name = join('pykratos', 'test_parameters.json')
-        with open(file_name, 'r') as file:
-            par = cs_data_structure.Parameters(file.read())
+        with open(parameter_file_name, 'r') as parameter_file:
+            par = cs_data_structure.Parameters(parameter_file.read())
 
         # check if correct type is returned
         self.assertIsInstance(par, cs_data_structure.Parameters)
@@ -26,10 +25,12 @@ class TestPyKratosParameters(KratosUnittest.TestCase):
         par.SetDouble('test_float', 2.2)
         par.SetBool('test_bool', False)
         par.SetString('test_str', 'two')
+        par.SetArray('test_array', [0, 2.3, 'four'])
         self.assertEqual(par['test_int'].GetInt(), 2)
         self.assertEqual(par['test_float'].GetDouble(), 2.2)
         self.assertEqual(par['test_bool'].GetBool(), False)
         self.assertEqual(par['test_str'].GetString(), 'two')
+        self.assertEqual(par['test_array'].GetArray(), [0, 2.3, 'four'])
 
         # test AddMissingParameters
         par_missing = par['sub_parameters']

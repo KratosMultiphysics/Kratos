@@ -3,16 +3,7 @@
     {
         "data_structure" : "pyKratos"
     },
-    "mapper_1d" :
-    {
-        "type": "mappers.nearest",
-        "settings":
-        {
-            "directions" : "Z",
-            "balanced_tree" : false
-        }
-    },
-    "mapper_3d" :
+    "mapper" :
     {
         "type": "mappers.nearest",
         "settings":

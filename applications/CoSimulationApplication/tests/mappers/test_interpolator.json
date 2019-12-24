@@ -5,10 +5,10 @@
     },
     "mapper" :
     {
-        "type": "mappers.linear_1d",
+        "type": "mappers.nearest",
         "settings":
         {
-            "direction" : "Z",
+            "directions" : ["Z"],
             "balanced_tree" : false
         }
     }

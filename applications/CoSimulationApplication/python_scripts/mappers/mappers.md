@@ -12,21 +12,21 @@ It contains 3 main components: a `Mapper` for the input, a real `SolverWrapper` 
 The two mappers in the `SolverWrapperMapped` object are also of a special type: they work on the level of `CoSimulationInterface` objects. They are some sort of mapper-wrapper around the actual mappers which work on `ModelPart` level.
 Currently only one such mapper is available, aptly called `MapperInterface`.
 
-At the lowest level, mappers interpolate historical variables between two `ModelPart` objects, based on the coordinates of the nodes.
-They can be chained together in a `MapperCombined` object, creating in fact another layer of mapping. So many layers! Like an onion!
+At the lowest level, mappers interpolate historical variables between two `ModelPart` objects, based on the coordinates of the nodes. Interpolation is always done from the _from_-`ModelPart` to the _to_-`ModelPart`.
+These mappers can be chained together in a `MapperCombined` object, creating in fact another layer of mapping. So many layers! Like an onion!
 
 
 #### Interpolators and transformers
 
-The `ModelPart`-level mappers have two important methods.
+The `ModelPart`-level mappers have two main methods: `Initialize` and `__call__`. 
 
-First, an `Initialize` method in which one-time expensive operations are performed, mostly nearest-neighbour searches and calculation of interpolation coefficients. This initialization is done based on the original coordinates `X0`, `Y0` and `Z0`. 
+The `Initialize` method performs one-time expensive operations, namely nearest-neighbour search and calculation of the interpolation coefficients. The initialization is done based on the original coordinates `X0`, `Y0` and `Z0`.
 
-Second, a `__call__` method which is used for the actual mapping. It takes two tuples as arguments, containing the `ModelPart` and `Variable` which are used in the interpolation. This method returns nothing: the interpolation is done in-place in the `ModelPart` objects.
+The `__call__` method is used for the actual mapping. It takes two tuples as arguments (_from_ and _to_ respectively), each tuple containing the `ModelPart` and the `Variable` to be used in the interpolation. This method returns nothing: the interpolation is done in-place in the `ModelPart` objects.
 
 There are two types of `ModelPart`-level mappers: interpolators and transformers. They can be distinguished by their boolean `interpolator` attribute (see `__init__`). 
 
-For interpolators, `Initialize` gets two `ModelPart` objects (dubbed _from_ and _to_), and returns nothing. These mappers do real interpolation, examples are `MapperNearest` and `MapperRadialBasis`.
+For interpolators, `Initialize` gets two `ModelPart` objects (_from_ and _to_), and returns nothing. These mappers do the real interpolation. Currently `MapperNearest`, `MapperLinear` and `MapperRadialBasis` are available.
 
 For transformers, `Initialize` gets only one `ModelPart` (from either the _from_ or _to_ side, depending on the transformation), and returns the other `ModelPart`. An example is the `MapperPermutation` transformer, which exchanges the coordinates as specified. 
 
@@ -35,118 +35,121 @@ A transformer can never be used by itself, it must always be combined with an in
 
 ## Overview of available mappers
 
-> TODO: give some details/explanation about every implemented mapper. Shorten comments in the actual Python code.
 
 #### MapperInterface
 
-Special mapper-class: takes two `CoSimulationInterface` objects, 
-and maps the `ModelPart` objects to each other in order of appearance. 
+Special mapper-class that maps on the level of `CoSimulationInterface` objects. 
+It takes two `CoSimulationInterface` objects, 
+and maps the `ModelPart` objects to each other in order of appearance, all using the same `ModelPart` mapper.
 
-
-#### MapperLinear1D
-
-JSON setting|type|description
-------:|:----:|-----------
-`direction`|str|coordinate direction, options: `"X"`, `"Y"`, `"Z"`
-`balanced_tree`|bool|if `true`, create balanced `cKDTree`, which is more stable, but takes longer to build
-
-
-#### MapperLinear2D
+To use different interpolation for the different `ModelPart` objects or even for different historical variables, a new `CoSimulationInterface` mapper must be written. 
 
 JSON setting|type|description
 ------:|:----:|-----------
-`direction_1`|str|first coordinate direction, options: `"X"`, `"Y"`, `"Z"`
-`direction_2`|str|second coordinate direction, options: `"X"`, `"Y"`, `"Z"`
-`balanced_tree`|bool|if `true`, create balanced `cKDTree`, which is more stable, but takes longer to build
+`type`|str|`ModelPart` mapper to be used
+`settings`|dict|all the settings for the `ModelPart` mapper specified in `type`
 
-#### MapperLinear3D
+
+
+#### MapperInterpolator
+
+Base-class for all interpolators (currently `MapperNearest`, `MapperLinear` and `MapperRadialBasis`). 
 
 JSON setting|type|description
-----------:|:---:|-----------
-`balanced_tree`|bool|if `true`, create balanced `cKDTree`, which is more stable, but takes longer to build
-`parallel`|bool|if `true`, use `multiprocessing` module to distribute calculation of coefficients over all cores of current node
+------:|:----:|-----------
+`directions`|list|list of coordinate directions, maximum three entries, may contain `"X"`, `"Y"`, `"Z"`
+`balanced_tree`|bool|if `true`, create balanced `cKDTree`, which is more stable, but takes longer to build; set to `true` if the tree is giving problems (which I don't expect)
+
+The `Initialize`-method should be called in all child-classes. It does the following:
+- read and store the coordinates from the _from_ and _to_ `ModelPart` objects
+- check if the bounding boxes of the _from_ and _to_ `ModelPart` objects are more or less overlapping
+- do an efficient nearest neighbour search using `scipy.spatial.cKDTree`
+- check if the _from_ `ModelPart` does not contain duplicate nodes (i.e. same coordinates)
+
+The `__call__`-method should not be overridden in the child-classes. It maps historical variables based on neighbours and coefficients determined in `Initialize`. Historical variables of type `Double` and type `Array` can be mapped (the latter is just the application of the former for each vector component).
+
+
+#### MapperNearest
+
+Child-class of `MapperInterpolator`, does not require additional settings. Does simple nearest-neighbour mapping.
+
+
+#### MapperLinear
+
+Child-class of `MapperInterpolator`, additional settings:
+
+JSON setting|type|description
+------:|:----:|-----------
+`parallel`|bool|if `true`, use `multiprocessing` to parallellize loop that calculates coefficients
+
+The kind of linear mapping depends on the number of coordinate directions, as given in the `directions` setting.
+
+**1D** - If the _to_-point lies between the 2 nearest _from_-points, linear interpolation is done. Else, nearest neighbour interpolation is done.
+
+**2D** - The _to_-point is first projected on the line through the 2 nearest _from_-points. If the projected point lies between the _from_-points, linear interpolation is done. Else, nearest neighbour interpolation is done.
+
+**3D** - The _to_-point is first projected on the plane through the 3 nearest _from_-points. If the triangle consinsting of those 3 points is _deprecated_ (colinear points), the 2D-methodology is followed. Else, if the projected point lies inside the triangle, barycentric interpolation is done. If it lies outside the triangle, the 2D-methodology is followed.
 
 
 #### MapperRadialBasis
 
+Child-class of `MapperInterpolator`, additional settings:
+
 JSON setting|type|description
-----------:|:---:|-----------
-`directions`|str/list|one or more directions to interpolate, given as a list consisting of `"X"`, `"Y"`, `"Z"`; for 1D, a string is also accepted
-`balanced_tree`|bool|if `true`, create balanced `cKDTree`, which is more stable, but takes longer to build
+------:|:----:|-----------
+`parallel`|bool|if `true`, use `multiprocessing` to parallellize loop that calculates coefficients
 
+Radial basis function interpolation is relatively straightforward: implementation for 1D, 2D and 3D is exactly the same and can be written in a condensed way using `scipy.spatial.distance`. 
 
-TO DO: write this for only 1 point, because nearest neighbours differ!
+Normal radial basis interpolation is done as follows.
+_φ_(_r_) is a radial basis function defined as  
 
-With φ(r) a radial basis function defined as  
+ _φ_(_r_) = (1 − _r_)<sup>4</sup> (1 + 4 _r_) for 0 ≤ _r_ < 1  
+ _φ_(_r_) = 0 for 1 ≤ _r_
+ 
+with _r_ a positive distance. Assume that _n_ nearest _from_-points will be used in the interpolation.
+An unknown function _f_(**x**) can then be approximated as the weighted sum of _n_ shifted radial basis functions:
 
-> φ(r) = (1 − r)<sup>4</sup> (1 + 4r) for 0 ≤ r < 1  
-> φ(r) = 0 for 1 ≤ r
+_f_(**x**) ≈ Σ<sub>j</sub> _α_<sub>j</sub> _φ_(||**x** − **x**<sub>j</sub>||)
 
-![\phi(r)=\begin{cases}(1-r)^4(1+4r)&r\lt1\\0&r\geq1\end{cases}](https://render.githubusercontent.com/render/math?math=%5Cphi(r)%3D%5Cbegin%7Bcases%7D(1-r)%5E4(1%2B4r)%26r%5Clt1%5C%5C0%26r%5Cgeq1%5Cend%7Bcases%7D)
-
-a function _f_(**x**) can be approximated as the weighted sum of _n_ shifted radial basis functions:
-
-> _f_(**x**) = Σ<sub>j</sub> α<sub>j</sub> φ(||**x** − **x**<sub>j</sub>||)
-
-![f(\boldsymbol{x})=\sum_j^n\alpha_j\,\phi(||\boldsymbol{x}-\boldsymbol{x}_j||) ](https://render.githubusercontent.com/render/math?math=f(%5Cboldsymbol%7Bx%7D)%3D%5Csum_j%5En%5Calpha_j%5C%2C%5Cphi(%7C%7C%5Cboldsymbol%7Bx%7D-%5Cboldsymbol%7Bx%7D_j%7C%7C)%20)
-
-
-To determine the coefficients, we require that the exact function value is returned at the _n_ test points.
+To determine the coefficients _α_<sub>j</sub>, we require that the exact function value is returned at the _n_ _from_-points.
 This gives us _n_ equations
 
-> _f_(**x**<sub>i</sub>) = **f**<sub>i</sub> 
-= Σ<sub>j</sub> α<sub>j</sub> φ(||**x**<sub>i</sub> − **x**<sub>j</sub>||)
-
-![f(\boldsymbol{x}_i)=\sum_j^n\alpha_j\,\phi(||\boldsymbol{x}_i-\boldsymbol{x}_j||) ](https://render.githubusercontent.com/render/math?math=f(%5Cboldsymbol%7Bx%7D_i)%3D%5Csum_j%5En%5Calpha_j%5C%2C%5Cphi(%7C%7C%5Cboldsymbol%7Bx%7D_i-%5Cboldsymbol%7Bx%7D_j%7C%7C)%20)
-
+_f_(**x**<sub>i</sub>) = _f_<sub>i</sub> 
+= Σ<sub>j</sub> _α_<sub>j</sub> _φ_(||**x**<sub>i</sub> − **x**<sub>j</sub>||)
 
 which can be written in matrix form as
 
-> **f** = **Φ** · **α**
+**f** = **Φ** · **α**
 
-![\boldsymbol{f}=\boldsymbol{\Phi}\cdot\boldsymbol{\alpha}](https://render.githubusercontent.com/render/math?math=%5Cboldsymbol%7Bf%7D%3D%5Cboldsymbol%7B%5CPhi%7D%5Ccdot%5Cboldsymbol%7B%5Calpha%7D)
+with **f**, **α** ∈ R<sup>n×1</sup>, and **Φ** ∈ R<sup>n×n</sup>. This system can be solved for the weights-vector **α**.
 
+However, in our case, the _from_-point values vector **f** is not known in advance: it contains the values of the `Variable` that will be interpolated. 
 
-with **f**, **α** ∈ R<sup>n×1</sup>, 
-![\boldsymbol{f},\boldsymbol{\alpha}\in\mathbb{R}^{n\times1}](https://render.githubusercontent.com/render/math?math=%5Cboldsymbol%7Bf%7D%2C%5Cboldsymbol%7B%5Calpha%7D%5Cin%5Cmathbb%7BR%7D%5E%7Bn%5Ctimes1%7D)
-and **Φ** ∈ R<sup>n×n</sup>
-![\boldsymbol{\Phi}\in\mathbb{R}^{n\times n}](https://render.githubusercontent.com/render/math?math=%5Cboldsymbol%7B%5CPhi%7D%5Cin%5Cmathbb%7BR%7D%5E%7Bn%5Ctimes%20n%7D)
-. The weights-vector **α** can be extracted by solving this system:
+Therefore, the approximation to calculate the interpolatoin in the _to_-point is rewritten as follows:
 
-> **α** =  **Φ**<sup>-1</sup> · **f**
+_f_(**x**<sub>to</sub>) = Σ<sub>j</sub> _α_<sub>j</sub> _φ_(||**x**<sub>to</sub> − **x**<sub>j</sub>||) = **Φ**<sup>T</sup><sub>to</sub> · **α** = **Φ**<sup>T</sup><sub>to</sub> · **Φ**<sup>-1</sup> · **f** = **c**<sup>T</sup> · **f**
 
-![\boldsymbol{\alpha}=\boldsymbol{\Phi}^{-1}\cdot\boldsymbol{f}](https://render.githubusercontent.com/render/math?math=%5Cboldsymbol%7B%5Calpha%7D%3D%5Cboldsymbol%7B%5CPhi%7D%5E%7B-1%7D%5Ccdot%5Cboldsymbol%7Bf%7D)
+The coefficients vector **c** can now be calculated based only on the coordinates by solving the system
 
-However, the function value vector **f** is not known in advance: it contains the values of the `Variable` that will be interpolated. 
-What we do want, is the weights (coefficients) with which every value in the _n_ 
-![n](https://render.githubusercontent.com/render/math?math=n) 
-nearest from-points must be multiplied, to get the value in the to-point. 
-The target value _f_<sub>to</sub> would be calculated as
+**Φ** · **c** = **Φ**<sub>to</sub>.
 
-![f(\boldsymbol{x}_{to})=\sum_j^n\alpha_j\,\phi(||\boldsymbol{x}_{to}-\boldsymbol{x}_j||)=\boldsymbol{\Phi}^T_{to}\cdot\boldsymbol{\alpha}=\boldsymbol{\Phi}^T_{to}\cdot\boldsymbol{\Phi}^{-1}\cdot\boldsymbol{f}=\boldsymbol{c}^T\cdot\boldsymbol{f}](https://render.githubusercontent.com/render/math?math=f(%5Cboldsymbol%7Bx%7D_%7Bto%7D)%3D%5Csum_j%5En%5Calpha_j%5C%2C%5Cphi(%7C%7C%5Cboldsymbol%7Bx%7D_%7Bto%7D-%5Cboldsymbol%7Bx%7D_j%7C%7C)%3D%5Cboldsymbol%7B%5CPhi%7D%5ET_%7Bto%7D%5Ccdot%5Cboldsymbol%7B%5Calpha%7D%3D%5Cboldsymbol%7B%5CPhi%7D%5ET_%7Bto%7D%5Ccdot%5Cboldsymbol%7B%5CPhi%7D%5E%7B-1%7D%5Ccdot%5Cboldsymbol%7Bf%7D%3D%5Cboldsymbol%7Bc%7D%5ET%5Ccdot%5Cboldsymbol%7Bf%7D)
-
-where **c** is calculated by solving the system
-
-![\boldsymbol{\Phi}\cdot\boldsymbol{c}=\boldsymbol{\Phi}_{to}](https://render.githubusercontent.com/render/math?math=%5Cboldsymbol%7B%5CPhi%7D%5Ccdot%5Cboldsymbol%7Bc%7D%3D%5Cboldsymbol%7B%5CPhi%7D_%7Bto%7D).
-
-As every to-point has different nearest neighbours in the from-points, the coefficient vector **c** must be calculated for each to-point independently. The matrices 
-![\boldsymbol{\Phi}](https://render.githubusercontent.com/render/math?math=%5Cboldsymbol%7B%5CPhi%7D) 
-and 
-![\boldsymbol{\Phi}_{to}](https://render.githubusercontent.com/render/math?math=%5Cboldsymbol%7B%5CPhi%7D_%7Bto%7D) 
-must also be recalculated for every to-point.
+As every to-point has different nearest neighbours in the _from_-points, the coefficient vector **c** must be calculated for each _to_-point independently. The matrix **Φ** and vector **Φ**<sup>T</sup> must also be calculated for every _to_-point independently.
 
 
 
+
+
+[//]: # (SOME HANDY MARKDOW URLS:)
 
 [//]: # (MarkDown cheat sheet: https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#tables)
 
 [//]: # (render LaTeX eqn as image: https://alexanderrodin.com/github-latex-markdown/)
-
-[//]: # (HTML math symbols: http://www.unics.uni-hannover.de/nhtcapri/mathematics.html)
-[//]: # (more: http://www.alanflavell.org.uk/unicode/unidata22.html)
 
 [//]: # (Greek lower: αβγδεζηϑθικλμνξοπρστυφϕχψω)
 [//]: # (Greek upper: ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ)
 [//]: # (super, sub: <sup></sup>, <sub></sub> )
 [//]: # (operators: + - − · / × √ ∘ ∗)
 [//]: # (other: ∂ Δ	∑ ≤ ≥ ∈ )
+[//]: # (more HTML math: http://www.unics.uni-hannover.de/nhtcapri/mathematics.html)
+[//]: # (and even more: http://www.alanflavell.org.uk/unicode/unidata22.html)
