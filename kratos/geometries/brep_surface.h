@@ -299,6 +299,9 @@ private:
     BrepCurveOnSurfaceLoopArrayType mOuterLoopArray;
     BrepCurveOnSurfaceLoopArrayType mInnerLoopArray;
 
+    /** IsTrimmed is used to optimize processes as
+    *   e.g. creation of integration domain.
+    */
     bool mIsTrimmed;
 
     ///@}
