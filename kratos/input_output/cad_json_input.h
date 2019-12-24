@@ -126,9 +126,9 @@ namespace Kratos
                 }
 
                 if (rParameters.Has("brep_id"))
-                    brep_surface.end().SetId(rParameters["brep_id"].GetInt());
+                    brep_surfaces.end().SetId(rParameters["brep_id"].GetInt());
                 else if (rParameters.Has("brep_name"))
-                    brep_surface.end().SetId(rParameters["brep_name"].GetString());
+                    brep_surfaces.end().SetId(rParameters["brep_name"].GetString());
 
             }
 
