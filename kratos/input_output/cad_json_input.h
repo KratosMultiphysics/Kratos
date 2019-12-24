@@ -112,11 +112,6 @@ namespace Kratos
                                 inner_loops,
                                 true));
 
-                    if (rParameters.Has("brep_id"))
-                        brep_surface.SetId(rParameters["brep_id"].GetInt());
-                    if (rParameters.Has("brep_name"))
-                        brep_surface.SetId(rParameters["brep_name"].GetString());
-
                     brep_surfaces.push_back(brep_surface);
                 }
                 else
@@ -126,13 +121,14 @@ namespace Kratos
                             BrepSurfaceType(
                                 surface));
 
-                    if (rParameters.Has("brep_id"))
-                        brep_surface.SetId(rParameters["brep_id"].GetInt());
-                    if (rParameters.Has("brep_name"))
-                        brep_surface.SetId(rParameters["brep_name"].GetString());
-
                     brep_surfaces.push_back(brep_surface);
                 }
+
+                if (rParameters.Has("brep_id"))
+                    brep_surface.end().SetId(rParameters["brep_id"].GetInt());
+                else if (rParameters.Has("brep_name"))
+                    brep_surface.end().SetId(rParameters["brep_name"].GetString());
+
             }
 
             return brep_surfaces;
