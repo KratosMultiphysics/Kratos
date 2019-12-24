@@ -95,12 +95,12 @@
 						"type" : "mappers.interface",
 						"settings" :
 						{
-	                        "type": "mappers.linear_1d",
+	                        "type": "mappers.linear",
                             "settings":
                             {
-                                "direction" : "Z",
-                                "balanced_tree" : false
-
+                                "directions" : ["Z"],
+                                "balanced_tree" : false,
+                                "parallel" : true
                             }
 						}
                     },
@@ -109,11 +109,12 @@
 						"type" : "mappers.interface",
 						"settings" :
 						{
-	                        "type": "mappers.linear_1d",
+	                        "type": "mappers.linear",
                             "settings":
                             {
-                                "direction" : "Z",
-                                "balanced_tree" : false
+                                "directions" : ["Z"],
+                                "balanced_tree" : false,
+                                "parallel" : true
                             }
 						}
                     }
