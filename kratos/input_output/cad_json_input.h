@@ -43,7 +43,7 @@ namespace Kratos
         typedef PointerVector<TEmbeddedNodeType> ContainerPointEmbeddedType;
 
         typedef NurbsSurfaceGeometry<3, ContainerPointType> NurbsSurfaceType;
-        typedef BrepSurface<3, ContainerPointType> BrepSurfaceType;
+        typedef BrepSurface<ContainerPointType, ContainerPointEmbeddedType> BrepSurfaceType;
         typedef BrepCurveOnSurface<ContainerPointType, ContainerPointEmbeddedType> BrepCurveOnSurfaceType;
 
         typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
