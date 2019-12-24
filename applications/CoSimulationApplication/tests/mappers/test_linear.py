@@ -14,6 +14,7 @@ from KratosMultiphysics.CoSimulationApplication.mappers.linear \
     degenerate_triangle, project_on_triangle, point_on_triangle, triangle_area
 import numpy as np
 
+
 class TestMapperLinear(KratosUnittest.TestCase):
     def test_mapper_linear(self):
         parameter_file_name = os.path.join(os.path.dirname(__file__), 'test_linear.json')

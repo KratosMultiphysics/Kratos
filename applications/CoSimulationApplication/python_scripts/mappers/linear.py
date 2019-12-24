@@ -14,21 +14,6 @@ def Create(parameters):
 class MapperLinear(MapperInterpolator):
     def __init__(self, parameters):
         """
-        This mapper uses the 3 nearest points.
-        Barycentric interpolation is done, based on
-        the projection of the point onto the plane
-        through the 3 points.
-        If this projected point lies outside the
-        triangle, the data is extrapolated.
-
-        If no triangle is found, the point is
-        projected on the line through the 2 nearest
-        points, and interpolation/extrapolation
-        is done based on only 2 points.
-
-
-        # *** TO DO: update this, put part in mappers.md
-
         geometrical calculations:
             P_a = point a
             v_ab = vector from a to b

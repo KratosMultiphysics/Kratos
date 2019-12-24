@@ -18,7 +18,7 @@ class TestMapperNearest(KratosUnittest.TestCase):
             parameters = cs_data_structure.Parameters(parameter_file.read())
         par_mapper = parameters['mapper']
 
-        gui = 0
+        gui = 0  # *** gui gives problems when running all tests?
 
         # 1D case: square-root grid + linear function
         """
@@ -148,7 +148,7 @@ class Case1D:
         return z / 10
 
 
-class Case2D:  # *** TO DO
+class Case2D:
     # 2D case: circle + linear function
     def __init__(self, cs_data_structure, n_from, n_to):
         self.n_from = n_from

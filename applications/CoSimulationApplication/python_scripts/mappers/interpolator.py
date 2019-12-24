@@ -46,7 +46,7 @@ class MapperInterpolator():
         if self.n_from < self.n_nearest:
             raise ValueError(f'not enough from-points: {self.n_from} < {self.n_nearest}')
 
-        # check bounding boxes  *** best position in code for this?
+        # check bounding boxes
         self.check_bounding_box(model_part_from, model_part_to)
 
         # build and query tree
@@ -101,7 +101,6 @@ class MapperInterpolator():
 
     def check_bounding_box(self, model_part_from, model_part_to):
         # set tolerances  #*** overwrite tolerances from parameters?
-        # *** adapt other tests (extrapolation throws error here)
         tol_center_warning = 0.02
         tol_center_error = 0.1
         tol_minmax_warning = 0.1
@@ -148,13 +147,8 @@ class MapperInterpolator():
             raise Warning(msg)
 
     def check_duplicate_points(self, model_part_from):
-        """
-        because tree is available, to-points are checked in interpolation in other direction anyway
-        so only from-points are checked
-        """
-
-        # checks only from-points  *** create optional parameter for this?
-        tol_warning = 1e-8
+        # checks only from-points
+        tol_warning = 1e-8  # *** create optional parameter for this?
         tol_error = 1e-12
 
         # calculate reference distance (diagonal of bounding box)
