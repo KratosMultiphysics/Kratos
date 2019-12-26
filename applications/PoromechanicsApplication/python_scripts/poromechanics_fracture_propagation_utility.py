@@ -116,6 +116,8 @@ class FracturePropagationUtility(object):
         self.list_of_files_names.append(filename)
         filename = "ProjectParameters.json"
         self.list_of_files_names.append(filename)
+        filename = "PoroMaterials.json"
+        self.list_of_files_names.append(filename)
         filename = "FracturesData.json"
         self.list_of_files_names.append(filename)
 
