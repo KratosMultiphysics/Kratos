@@ -278,6 +278,7 @@ proc WriteMdpa { basename dir problemtypedir } {
             puts $FileVar "  YIELD_STRESS [lindex [lindex $Groups $i] 18]"
             puts $FileVar "  FRACTURE_ENERGY [lindex [lindex $Groups $i] 22]"
             puts $FileVar "  SHEAR_FRACTURE_ENERGY [lindex [lindex $Groups $i] 23]"
+            puts $FileVar "  STATE_VARIABLE [lindex [lindex $Groups $i] 24]"
             puts $FileVar "End Properties"
             puts $FileVar ""
         } elseif {[lindex [lindex $Groups $i] 4] eq "ExponentialCohesivePlaneStrain2DLaw" || [lindex [lindex $Groups $i] 4] eq "ExponentialCohesivePlaneStress2DLaw"} {
@@ -299,6 +300,7 @@ proc WriteMdpa { basename dir problemtypedir } {
             puts $FileVar "  YIELD_STRESS [lindex [lindex $Groups $i] 18]"
             puts $FileVar "  FRACTURE_ENERGY [lindex [lindex $Groups $i] 22]"
             puts $FileVar "  SHEAR_FRACTURE_ENERGY [lindex [lindex $Groups $i] 23]"
+            puts $FileVar "  STATE_VARIABLE [lindex [lindex $Groups $i] 24]"
             puts $FileVar "End Properties"
             puts $FileVar ""
         }
