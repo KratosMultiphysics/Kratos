@@ -49,7 +49,7 @@ namespace Kratos
  * where:
  *  v is a variable
  *  n is the unit normal to the node
- *
+ * @author Riccardo Rossi
  */
 class KRATOS_API(KRATOS_CORE) SlipConstraint
     :  public LinearMasterSlaveConstraint
@@ -200,8 +200,9 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    Node<3>& mrNode;
-    const Variable<array_1d<double,3> >* mpNormalVar;
+
+    NodeType& mrNode;                                     /// The reference to the node
+    const Variable<array_1d<double,3>>* mpNormalVariable; /// The pointer to the normal variable considered
 
     ///@}
     ///@name Protected Operators
@@ -241,14 +242,14 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearMasterSlaveConstraint);
         rSerializer.save("mrNode", mrNode);
-        rSerializer.save("mpNormalVar", mpNormalVar);
+        rSerializer.save("mpNormalVariable", mpNormalVariable);
     }
 
     void load(Serializer &rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearMasterSlaveConstraint);
         rSerializer.load("mrNode", mrNode);
-        rSerializer.load("mpNormalVar", mpNormalVar);
+        rSerializer.load("mpNormalVariable", mpNormalVariable);
     }
 };
 
