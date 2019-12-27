@@ -52,7 +52,7 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
             # Windows
             regsub -all {\\} $gidexe {/} gidexe
         }
-        set gidexe [string trimright $gidexe gid.exe]
+        set gidexe [string trimright $gidexe ./gid.exe]
 
         if {[GiD_AccessValue get gendata Domain_Size] eq 2} {
 
