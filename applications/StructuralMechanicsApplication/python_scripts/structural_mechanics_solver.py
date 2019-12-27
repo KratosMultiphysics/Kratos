@@ -144,7 +144,7 @@ class MechanicalSolver(PythonSolver):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
-        if self.settings["volumetric_strain_dofs"]:
+        if self.settings["volumetric_strain_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN)
@@ -238,7 +238,17 @@ class MechanicalSolver(PythonSolver):
         return new_time
 
     def ComputeDeltaTime(self):
-        return self.settings["time_stepping"]["time_step"].GetDouble()
+        if self.settings["time_stepping"].Has("time_step"):
+            return self.settings["time_stepping"]["time_step"].GetDouble()
+        elif self.settings["time_stepping"].Has("time_step_table"):
+            current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            time_step_table = self.settings["time_stepping"]["time_step_table"].GetMatrix()
+            tb = KratosMultiphysics.PiecewiseLinearTable()
+            for interval in range(time_step_table.Size1()):
+                tb.AddRow(time_step_table[interval, 0], time_step_table[interval, 1])
+            return tb.GetValue(current_time)
+        else:
+            raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
 
     def GetComputingModelPart(self):
         if self.use_computing_model_part:

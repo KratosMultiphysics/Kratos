@@ -161,8 +161,7 @@
                     "model_part_name": "MainModelPart",
                     "turbulent_intensity": 0.05,
                     "echo_level": 0,
-                    "is_fixed": false,
-                    "min_k_value": 1e-18
+                    "is_fixed": false
                 }
             },
             {
@@ -243,8 +242,7 @@
                     "model_part_name": "MainModelPart.Inlet",
                     "turbulent_intensity": 0.05,
                     "echo_level": 0,
-                    "is_fixed": true,
-                    "min_k_value": 1e-18
+                    "is_fixed": true
                 }
             },
             {

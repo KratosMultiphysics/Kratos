@@ -2,6 +2,11 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosFemToDemApplication ****")
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/SolidMechanicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/PfemFluidDynamicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MeshingsApplication)
+
 ################### PYBIND11
 include(pybind11Tools)
 

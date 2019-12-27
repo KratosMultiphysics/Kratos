@@ -20,16 +20,7 @@
             "materials_filename" : "mpc_contact_tests/contact_beams_axil_hexa_test_materials.json"
         },
         "time_stepping"                   : {
-            "time_step_intervals" : {
-                "first_interval" : {
-                    "interval"  : [0.0, 3.99],
-                    "time_step" : 0.2
-                },
-                "second_interval" : {
-                    "interval"  : [3.99, "End"],
-                    "time_step" : 0.2
-                }
-            }
+            "time_step" : 0.2
         },
         "line_search"                     : false,
         "convergence_criterion"           : "residual_criterion",
