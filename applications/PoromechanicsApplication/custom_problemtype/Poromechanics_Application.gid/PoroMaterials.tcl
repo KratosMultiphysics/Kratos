@@ -1,4 +1,4 @@
-proc WritePoroMaterials { basename dir problemtypedir } {
+proc WritePoroMaterials { basename dir problemtypedir PropertyId } {
 
     ## Start PoroMaterials.json file
     set filename [file join $dir PoroMaterials.json]
@@ -13,13 +13,14 @@ proc WritePoroMaterials { basename dir problemtypedir } {
     set NumGroups [llength $Groups]
     set Groups [GiD_Info conditions Interface_Part groups]
     incr NumGroups [llength $Groups]
-    set PropertyId 0
+    incr NumGroups $PropertyId
+    upvar $PropertyId MyPropertyId
     # Body_Part
     set Groups [GiD_Info conditions Body_Part groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
-        incr PropertyId
+        incr MyPropertyId
         puts $FileVar "        \"model_part_name\": \"PorousModelPart.[lindex [lindex $Groups $i] 1]\","
-        puts $FileVar "        \"properties_id\": $PropertyId,"
+        puts $FileVar "        \"properties_id\": $MyPropertyId,"
         puts $FileVar "        \"Material\": \{"
         puts $FileVar "            \"constitutive_law\": \{"
         if {[lindex [lindex $Groups $i] 3] eq "LinearElasticSolid3DLaw"} {
@@ -90,7 +91,7 @@ proc WritePoroMaterials { basename dir problemtypedir } {
         puts $FileVar "            \},"
         puts $FileVar "            \"Tables\": \{\}"
         puts $FileVar "        \}"
-        if {$PropertyId < $NumGroups} {
+        if {$MyPropertyId < $NumGroups} {
             puts $FileVar "    \},\{"
         } else {
             puts $FileVar "    \}\]"
@@ -99,9 +100,9 @@ proc WritePoroMaterials { basename dir problemtypedir } {
     # Interface_Part
     set Groups [GiD_Info conditions Interface_Part groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
-        incr PropertyId
+        incr MyPropertyId
         puts $FileVar "        \"model_part_name\": \"PorousModelPart.[lindex [lindex $Groups $i] 1]\","
-        puts $FileVar "        \"properties_id\": $PropertyId,"
+        puts $FileVar "        \"properties_id\": $MyPropertyId,"
         puts $FileVar "        \"Material\": \{"
         puts $FileVar "            \"constitutive_law\": \{"
         if {[lindex [lindex $Groups $i] 4] eq "BilinearCohesive3DLaw" || [lindex [lindex $Groups $i] 4] eq "ExponentialCohesive3DLaw"} {
@@ -134,7 +135,7 @@ proc WritePoroMaterials { basename dir problemtypedir } {
         puts $FileVar "            \},"
         puts $FileVar "            \"Tables\": \{\}"
         puts $FileVar "        \}"
-        if {$PropertyId < $NumGroups} {
+        if {$MyPropertyId < $NumGroups} {
             puts $FileVar "    \},\{"
         } else {
             puts $FileVar "    \}\]"

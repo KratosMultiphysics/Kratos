@@ -663,5 +663,7 @@ proc WriteMdpa { basename dir problemtypedir } {
 
     close $FileVar
 
-    return $TableDict
+    set MDPAOutput [list $PropertyId $TableDict]
+
+    return $MDPAOutput
 }

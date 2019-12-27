@@ -68,15 +68,15 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
 
     # Write MDPA file
     source [file join $problemtypedir Mdpa.tcl]
-    set TableDict [WriteMdpa $basename $dir $problemtypedir]
+    set MDPAOutput [WriteMdpa $basename $dir $problemtypedir]
 
     # Write PoroMaterials.json
     source [file join $problemtypedir PoroMaterials.tcl]
-    WritePoroMaterials $basename $dir $problemtypedir
+    WritePoroMaterials $basename $dir $problemtypedir [lindex $MDPAOutput 0]
 
     # Write ProjectParameters.json
     source [file join $problemtypedir ProjectParameters.tcl]
-    WriteProjectParameters $basename $dir $problemtypedir $TableDict
+    WriteProjectParameters $basename $dir $problemtypedir [lindex $MDPAOutput 1]
 
     # Copy python script in the problemdir
     file copy -force [file join $problemtypedir KratosPoromechanics.py] [file join $dir MainKratos.py]
