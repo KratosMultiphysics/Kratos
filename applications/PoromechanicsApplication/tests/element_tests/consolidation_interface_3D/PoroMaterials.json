@@ -1,7 +1,7 @@
 {
     "properties": [{
         "model_part_name": "PorousModelPart.Body_Part-auto-1",
-        "properties_id": 1,
+        "properties_id": 3,
         "Material": {
             "constitutive_law": {
                 "name": "LinearElasticSolid3DLaw"
@@ -32,7 +32,7 @@
         }
     },{
         "model_part_name": "PorousModelPart.Interface_Part-auto-1",
-        "properties_id": 2,
+        "properties_id": 4,
         "Material": {
             "constitutive_law": {
                 "name": "BilinearCohesive3DLaw"

@@ -1,7 +1,7 @@
 {
     "properties": [{
         "model_part_name": "PorousModelPart.Body_Part-auto-1",
-        "properties_id": 1,
+        "properties_id": 2,
         "Material": {
             "constitutive_law": {
                 "name": "ModifiedMisesNonlocalDamagePlaneStress2DLaw"

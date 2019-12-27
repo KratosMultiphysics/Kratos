@@ -1,5 +1,7 @@
 proc WritePoroMaterials { basename dir problemtypedir PropertyId } {
 
+    upvar $PropertyId MyPropertyId
+
     ## Start PoroMaterials.json file
     set filename [file join $dir PoroMaterials.json]
     set FileVar [open $filename w]
@@ -13,8 +15,7 @@ proc WritePoroMaterials { basename dir problemtypedir PropertyId } {
     set NumGroups [llength $Groups]
     set Groups [GiD_Info conditions Interface_Part groups]
     incr NumGroups [llength $Groups]
-    incr NumGroups $PropertyId
-    upvar $PropertyId MyPropertyId
+    incr NumGroups $MyPropertyId
     # Body_Part
     set Groups [GiD_Info conditions Body_Part groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {

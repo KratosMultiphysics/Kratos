@@ -71,12 +71,14 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
     set MDPAOutput [WriteMdpa $basename $dir $problemtypedir]
 
     # Write PoroMaterials.json
+    set PropertyId [lindex $MDPAOutput 0]
     source [file join $problemtypedir PoroMaterials.tcl]
-    WritePoroMaterials $basename $dir $problemtypedir [lindex $MDPAOutput 0]
+    WritePoroMaterials $basename $dir $problemtypedir PropertyId
 
     # Write ProjectParameters.json
+    set TableDict [lindex $MDPAOutput 1]
     source [file join $problemtypedir ProjectParameters.tcl]
-    WriteProjectParameters $basename $dir $problemtypedir [lindex $MDPAOutput 1]
+    WriteProjectParameters $basename $dir $problemtypedir $TableDict
 
     # Copy python script in the problemdir
     file copy -force [file join $problemtypedir KratosPoromechanics.py] [file join $dir MainKratos.py]
@@ -123,9 +125,15 @@ proc Poromechanics_Application::PropagateFractures2D { } {
 
     # Write new MDPA
     source [file join $::Poromechanics_Application::ProblemTypePath Mdpa.tcl]
-    set TableDict [WriteMdpa $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath]
+    set MDPAOutput [WriteMdpa $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath]
+
+    # Write PoroMaterials.json
+    set PropertyId [lindex $MDPAOutput 0]
+    source [file join $::Poromechanics_Application::ProblemTypePath PoroMaterials.tcl]
+    WritePoroMaterials $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath PropertyId
 
     # Write new ProjectParameters
+    set TableDict [lindex $MDPAOutput 1]
     source [file join $::Poromechanics_Application::ProblemTypePath ProjectParameters.tcl]
     WriteProjectParameters $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath $TableDict
 
@@ -147,9 +155,15 @@ proc Poromechanics_Application::PropagateFractures3D { } {
 
     # Write new MDPA
     source [file join $::Poromechanics_Application::ProblemTypePath Mdpa.tcl]
-    set TableDict [WriteMdpa $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath]
+    set MDPAOutput [WriteMdpa $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath]
+
+    # Write PoroMaterials.json
+    set PropertyId [lindex $MDPAOutput 0]
+    source [file join $::Poromechanics_Application::ProblemTypePath PoroMaterials.tcl]
+    WritePoroMaterials $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath PropertyId
 
     # Write new ProjectParameters
+    set TableDict [lindex $MDPAOutput 1]
     source [file join $::Poromechanics_Application::ProblemTypePath ProjectParameters.tcl]
     WriteProjectParameters $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath $TableDict
 
