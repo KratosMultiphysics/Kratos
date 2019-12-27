@@ -1,9 +1,9 @@
 {
     "problem_data": {
-        "problem_name":         "undrained_soil_column_2D",
+        "problem_name":         "element_tests/undrained_soil_column_2D/undrained_soil_column_2D",
         "start_time":           0.0,
         "end_time":             2.0,
-        "echo_level":           1,
+        "echo_level":           0,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1,
         "fracture_utility":     false
@@ -15,14 +15,14 @@
         "start_time":                         0.0,
         "time_step":                          0.02,
         "model_import_settings":              {
-            "input_type":    "mdpa",
-            "input_filename":    "undrained_soil_column_2D"
+            "input_type":       "mdpa",
+            "input_filename":   "element_tests/undrained_soil_column_2D/undrained_soil_column_2D"
         },
-        "material_import_settings": {
-            "materials_filename":    "PoroMaterials.json"
+        "material_import_settings" :{
+            "materials_filename": "element_tests/undrained_soil_column_2D/PoroMaterials.json"
         },
         "buffer_size":                        2,
-        "echo_level":                         1,
+        "echo_level":                         0,
         "clear_storage":                      false,
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
@@ -55,37 +55,6 @@
         "problem_domain_sub_model_part_list": ["Body_Part-auto-1"],
         "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Solid_Displacement-auto-3","Fluid_Pressure-auto-1","Face_Load-auto-1","Normal_Fluid_Flux-auto-1"],
         "body_domain_sub_model_part_list":    ["Body_Part-auto-1"]
-    },
-    "output_processes": {
-        "gid_output": [{
-            "python_module": "gid_output_process",
-            "kratos_module": "KratosMultiphysics",
-            "process_name": "GiDOutputProcess",
-            "Parameters":    {
-                "model_part_name": "PorousModelPart.porous_computational_model_part",
-                "output_name": "undrained_soil_column_2D",
-                "postprocess_parameters": {
-                    "result_file_configuration": {
-                        "gidpost_flags":       {
-                            "WriteDeformedMeshFlag": "WriteUndeformed",
-                            "WriteConditionsFlag":   "WriteElementsOnly",
-                            "GiDPostMode":           "GiD_PostBinary",
-                            "MultiFileFlag":         "SingleFile"
-                        },
-                        "file_label":          "step",
-                        "output_control_type": "step",
-                        "output_frequency":    1,
-                        "body_output":         true,
-                        "node_output":         false,
-                        "skin_output":         false,
-                        "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","WATER_PRESSURE","FACE_LOAD"],
-                        "gauss_point_results": []
-                    },
-                    "point_data_configuration":  []
-                }
-            }
-        }]
     },
     "processes": {
         "constraints_process_list": [{
@@ -156,6 +125,25 @@
                 "table":           0
             }
         }],
-        "auxiliar_process_list": []
-    }
+        "auxiliar_process_list": [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "Parameters"      : {
+                "check_variables"      : ["WATER_PRESSURE"],
+                "input_file_name"      : "element_tests/undrained_soil_column_2D/undrained_soil_column_2D_results.json",
+                "model_part_name"      : "PorousModelPart.Body_Part-auto-1",
+                "time_frequency"       : 0.5
+            }
+        }]
+    },
+    "_json_output_process": [{
+        "python_module" : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "Parameters"    : {
+            "output_variables"     : ["WATER_PRESSURE"],
+            "output_file_name"     : "element_tests/undrained_soil_column_2D/undrained_soil_column_2D_results.json",
+            "model_part_name"      : "PorousModelPart.Body_Part-auto-1",
+            "time_frequency"       : 0.5
+        }
+    }]
 }

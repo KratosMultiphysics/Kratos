@@ -1,9 +1,9 @@
 {
     "problem_data": {
-        "problem_name":         "arc_length_test",
+        "problem_name":         "element_tests/arc_length_test/arc_length_test",
         "start_time":           0.0,
-        "end_time":             250.0,
-        "echo_level":           1,
+        "end_time":             2.0,
+        "echo_level":           0,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1,
         "fracture_utility":     false
@@ -15,14 +15,14 @@
         "start_time":                         0.0,
         "time_step":                          1.0,
         "model_import_settings":              {
-            "input_type":    "mdpa",
-            "input_filename":    "arc_length_test"
+            "input_type":       "mdpa",
+            "input_filename":   "element_tests/arc_length_test/arc_length_test"
         },
-        "material_import_settings": {
-            "materials_filename":    "PoroMaterials.json"
+        "material_import_settings" :{
+            "materials_filename": "element_tests/arc_length_test/PoroMaterials.json"
         },
         "buffer_size":                        2,
-        "echo_level":                         1,
+        "echo_level":                         0,
         "clear_storage":                      false,
         "compute_reactions":                  true,
         "move_mesh_flag":                     false,
@@ -61,37 +61,6 @@
         "body_domain_sub_model_part_list":    ["Body_Part-auto-1"],
         "loads_sub_model_part_list":          ["Face_Load-auto-1","Face_Load-auto-2"],
         "loads_variable_list":                ["FACE_LOAD","FACE_LOAD"]
-    },
-    "output_processes": {
-        "gid_output": [{
-            "python_module": "gid_output_process",
-            "kratos_module": "KratosMultiphysics",
-            "process_name": "GiDOutputProcess",
-            "Parameters":    {
-                "model_part_name": "PorousModelPart.porous_computational_model_part",
-                "output_name": "arc_length_test",
-                "postprocess_parameters": {
-                    "result_file_configuration": {
-                        "gidpost_flags":       {
-                            "WriteDeformedMeshFlag": "WriteUndeformed",
-                            "WriteConditionsFlag":   "WriteElementsOnly",
-                            "GiDPostMode":           "GiD_PostBinary",
-                            "MultiFileFlag":         "SingleFile"
-                        },
-                        "file_label":          "step",
-                        "output_control_type": "step",
-                        "output_frequency":    1,
-                        "body_output":         true,
-                        "node_output":         false,
-                        "skin_output":         false,
-                        "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","REACTION","REACTION_WATER_PRESSURE","FACE_LOAD","NODAL_CAUCHY_STRESS_TENSOR","NODAL_DAMAGE_VARIABLE","NODAL_JOINT_DAMAGE"],
-                        "gauss_point_results": ["CAUCHY_STRESS_TENSOR","DAMAGE_VARIABLE"]
-                    },
-                    "point_data_configuration":  []
-                }
-            }
-        }]
     },
     "processes": {
         "constraints_process_list": [{
@@ -152,6 +121,25 @@
                 "table":           [0,0,0]
             }
         }],
-        "auxiliar_process_list": []
-    }
+        "auxiliar_process_list": [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "Parameters"      : {
+                "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+                "input_file_name"      : "element_tests/arc_length_test/arc_length_test_results.json",
+                "model_part_name"      : "PorousModelPart.Body_Part-auto-1",
+                "time_frequency"       : 1.0
+            }
+         }]
+    },
+    "_json_output_process"  : [{
+        "python_module" : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "Parameters"    : {
+            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "output_file_name"     : "element_tests/arc_length_test/arc_length_test_results.json",
+            "model_part_name"      : "PorousModelPart.Body_Part-auto-1",
+            "time_frequency"       : 1.0
+        }
+    }]
 }
