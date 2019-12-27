@@ -322,7 +322,7 @@ class UPwSolver(PythonSolver):
         if materials_imported:
             KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Constitutive law was successfully imported via json.")
         else:
-            KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Constitutive law was not imported via json. Using mdpa.")
+            KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Constitutive law was not successfully imported.")
 
     def import_constitutive_laws(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
