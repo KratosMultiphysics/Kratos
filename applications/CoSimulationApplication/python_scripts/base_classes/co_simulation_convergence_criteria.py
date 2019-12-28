@@ -43,7 +43,7 @@ class CoSimulationConvergenceCriteria(object):
         cs_tools.cs_print_info("Convergence Criteria", colors.bold(self._ClassName()))
 
     def Check(self):
-        print("ConvCrit does not implement Check yet!")
+        cs_tools.cs_print_warning("Convergence Criteria", colors.bold(self._ClassName()), 'does not implement "Check"')
 
     @classmethod
     def _ClassName(cls):
