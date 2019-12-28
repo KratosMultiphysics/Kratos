@@ -243,10 +243,10 @@ public:
     typedef GeometryContainer<GeometryType> GeometryContainerType;
 
     /// Geometry Iterator
-    typedef typename GeometryContainerType::iterator GeometryIterator;
+    typedef typename GeometryContainerType::GeometryIterator GeometryIterator;
 
     /// Const Geometry Iterator
-    typedef typename GeometryContainerType::const_iterator GeometryConstantIterator;
+    typedef typename GeometryContainerType::GeometryConstantIterator GeometryConstantIterator;
 
     /// The container of the sub model parts. A hash table is used.
     /**
@@ -1353,6 +1353,7 @@ public:
         return mGeometries.NumberOfGeometries();
     }
 
+
     /// Adds a geometry to the geometry container.
     void AddGeometry(typename GeometryType::Pointer pNewGeometry);
 
@@ -1402,6 +1403,27 @@ public:
 
     /// Removes a geometry by pointer from all root and sub model parts.
     void RemoveGeometryFromAllLevels(typename GeometryType::Pointer pThisGeometry);
+
+
+    /// Begin geometry iterator
+    GeometryIterator GeometriesBegin() {
+        return mGeometries.GeometriesBegin();
+    }
+
+    /// Begin geometry const iterator
+    GeometryConstantIterator GeometriesBegin() const {
+        return mGeometries.GeometriesBegin();
+    }
+
+    /// End geometry iterator
+    GeometryIterator GeometriesEnd() {
+        return mGeometries.GeometriesEnd();
+    }
+
+    /// End geometry const iterator
+    GeometryConstantIterator GeometriesEnd() const {
+        return mGeometries.GeometriesEnd();
+    }
 
     ///@}
     ///@name Sub model parts
