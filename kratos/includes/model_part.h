@@ -1356,6 +1356,18 @@ public:
     /// Adds a geometry to the geometry container.
     void AddGeometry(typename GeometryType::Pointer pNewGeometry);
 
+    /// Removes a geometry by id.
+    void RemoveGeometry(IndexType GeometrId);
+
+    /// Removes a geometry by name.
+    void RemoveGeometry(std::string GeometryName);
+
+    /// Removes a geometry.
+    void RemoveGeometry(GeometryType& rThisGeometry);
+
+    /// Removes a geometry by pointer.
+    void RemoveGeometry(typename GeometryType::Pointer pThisGeometry);
+
     ///@}
     ///@name Sub model parts
     ///@{

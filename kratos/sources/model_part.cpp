@@ -1606,6 +1606,52 @@ void ModelPart::AddGeometry(
     mGeometries.AddGeometry(pNewGeometry);
 }
 
+/// Removes a geometry by id.
+void ModelPart::RemoveGeometry(
+    IndexType GeometrId)
+{
+    mGeometries.RemoveGeometry(GeometrId);
+
+    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin();
+        i_sub_model_part != SubModelPartsEnd();
+        i_sub_model_part++)
+        i_sub_model_part->RemoveGeometry(GeometrId);
+}
+
+/// Removes a geometry by name.
+void ModelPart::RemoveGeometry(
+    std::string GeometryName)
+{
+    mGeometries.RemoveGeometry(GeometryName);
+
+    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin();
+        i_sub_model_part != SubModelPartsEnd();
+        i_sub_model_part++)
+        i_sub_model_part->RemoveGeometry(GeometryName);
+}
+
+/// Removes a geometry.
+void ModelPart::RemoveGeometry(GeometryType& rThisGeometry)
+{
+    mGeometries.RemoveGeometry(rThisGeometry);
+
+    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin();
+        i_sub_model_part != SubModelPartsEnd();
+        i_sub_model_part++)
+        i_sub_model_part->RemoveGeometry(rThisGeometry);
+}
+
+/// Removes a geometry by pointer.
+void ModelPart::RemoveGeometry(typename GeometryType::Pointer pThisGeometry)
+{
+    mGeometries.RemoveGeometry(pThisGeometry);
+
+    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin();
+        i_sub_model_part != SubModelPartsEnd();
+        i_sub_model_part++)
+        i_sub_model_part->RemoveGeometry(pThisGeometry);
+}
+
 ///@}
 ///@name Sub Model Parts
 ///@{
