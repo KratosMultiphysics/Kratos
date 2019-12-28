@@ -34,13 +34,6 @@ namespace Testing {
             );
     }
 
-    ///// Test Geometry Id with string
-    KRATOS_TEST_CASE_IN_SUITE(TestNameHash, KratosCoreGeometriesFastSuite) {
-        auto test_id =Geometry<Point>::GenerateId("GeometryTestName");
-
-        KRATOS_WATCH(test_id)
-    }
-
     ///// Test Geometry Id
     KRATOS_TEST_CASE_IN_SUITE(TestGeometryId, KratosCoreGeometriesFastSuite) {
         auto p_quad = GenerateGeometry();
