@@ -121,6 +121,7 @@ public:
 
 
     typedef Node < 3 > NodeType;
+    typedef Geometry<NodeType> GeometryType;
     typedef Properties PropertiesType;
     typedef Element ElementType;
     typedef Condition ConditionType;
