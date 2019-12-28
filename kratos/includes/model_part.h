@@ -1379,6 +1379,17 @@ public:
     }
 
 
+    /// Checks if has geometry by id.
+    bool HasGeometry(IndexType GeometryId) const {
+        return mGeometries.HasGeometry(GeometryId);
+    }
+
+    /// Checks if has geometry by name.
+    bool HasGeometry(std::string GeometryName) const {
+        return mGeometries.HasGeometry(GeometryName);
+    }
+
+
     /// Removes a geometry by id.
     void RemoveGeometry(IndexType GeometryId);
 
