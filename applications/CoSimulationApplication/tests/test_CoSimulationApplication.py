@@ -22,7 +22,8 @@ if numpy_available:
     from test_flower_coupling import TestFLOWerCoupling
     from test_sdof_solver import TestSdofSolver
     from test_convergence_criteria import TestConvergenceCriteria
-    from test_coupling_interface_residual import TestCouplingInterfaceResidual
+    from test_convergence_criteria import TestConvergenceCriteriaWrapper
+    from test_convergence_accelerator import TestConvergenceAcceleratorWrapper
 
 if not using_pykratos:
     from test_cosim_EMPIRE_API import TestCoSim_EMPIRE_API
@@ -50,11 +51,12 @@ def AssembleTestSuites():
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestScalingOperation]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSdofSolver]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceCriteria]))
-        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCouplingInterfaceResidual]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceCriteriaWrapper]))
     if not using_pykratos:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))
     if not using_pykratos and numpy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPingPong]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceAcceleratorWrapper]))
 
 
     ################################################################################
