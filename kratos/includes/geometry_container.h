@@ -33,13 +33,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template<class TNodeType>
+template<class TGeometryType>
 class GeometryContainer : public DataValueContainer, public Flags
 {
-    class GetGeometryId : public std::unary_function<const Geometry<TNodeType>* const, std::size_t>
+    class GetGeometryId : public std::unary_function<const TGeometryType* const, std::size_t>
     {
     public:
-        std::size_t const& operator()(const Geometry<TNodeType>& rGeometry) const
+        std::size_t const& operator()(const TGeometryType& rGeometry) const
         {
             return rGeometry.Id();
         }
@@ -55,12 +55,10 @@ public:
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
 
-    typedef Geometry<TNodeType> GeometryType;
-
     /* Geometry Hash Map Container.
     *  Hash of Id are keys to corresponding intrusive pointer */
     typedef PointerHashMapSet<
-        GeometryType,
+        TGeometryType,
         std::hash<std::size_t>,
         GetGeometryId,
         typename GeometryType::Pointer
@@ -385,14 +383,14 @@ private:
 ///@{
 
 /// input stream function
-template<class TNodeType>
+template<class TGeometryType>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  GeometryContainer<TNodeType>& rThis);
+                                  GeometryContainer<TGeometryType>& rThis);
 
 /// output stream function
-template<class TNodeType>
+template<class TGeometryType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const GeometryContainer<TNodeType>& rThis)
+                                  const GeometryContainer<TGeometryType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
