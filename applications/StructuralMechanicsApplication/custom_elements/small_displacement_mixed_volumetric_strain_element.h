@@ -143,6 +143,8 @@ protected:
         Vector StrainVector;
         Vector StressVector;
         Matrix D;
+        Matrix T;
+        Matrix invT;
 
         /**
          * The default constructor
@@ -153,6 +155,8 @@ protected:
             StrainVector = ZeroVector(StrainSize);
             StressVector = ZeroVector(StrainSize);
             D = ZeroMatrix(StrainSize, StrainSize);
+            T = ZeroMatrix(StrainSize, StrainSize);
+            invT = ZeroMatrix(StrainSize, StrainSize);
         }
     };
 
@@ -586,6 +590,21 @@ private:
      * @param rThisKinematicVariables Kinematic variables container
      */
     void CalculateEquivalentStrain(KinematicVariables& rThisKinematicVariables) const;
+
+    /**
+     * @brief Calculate the anisotropy tensor
+     * This function calculates the anisotropy transformation tensor from the constitutive matrix
+     * @param rThisConstitutiveVariables Constitutive variables container
+     */
+    void CalculateAnisotropyTensor(ConstitutiveVariables &rThisConstitutiveVariables) const;
+
+    /**
+     * @brief Calculate the inverse of the anisotropy tensor
+     * This function calculates the inverse of the anisotropy transformation tensor
+     * Note that we take advantage of the fact that the anisotropy tensor is diagonal
+     * @param rThisConstitutiveVariables Constitutive variables container
+     */
+    void CalculateInverseAnisotropyTensor(ConstitutiveVariables &rThisConstitutiveVariables) const;
 
     /**
      * @brief Calculation of the deformation gradient F
