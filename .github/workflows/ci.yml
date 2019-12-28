@@ -28,6 +28,7 @@ on:
     - 'applications/StructuralMechanicsApplication/**'
     - 'applications/SwimmingDEMApplication/**'
     - 'applications/TrilinosApplication/**'
+    - 'applications/HDF5Application/**'
 
   schedule:
     - cron:  '0 1 * * *'
