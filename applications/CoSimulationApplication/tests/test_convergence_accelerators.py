@@ -33,7 +33,6 @@ class TestConvergenceAccelerators(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KM.PARTITION_INDEX, my_pid)
 
         if KM.IsDistributedRun():
-            KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(self.model_part)
             KratosMPI.ParallelFillCommunicator(self.model_part).Execute()
 
         print(my_pid, self.model_part)
