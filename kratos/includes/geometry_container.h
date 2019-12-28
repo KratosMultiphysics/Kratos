@@ -277,6 +277,29 @@ public:
         mpGeometries = pOtherGeometries;
     }
 
+    //typename GeometriesContainerType::ContainerType& GeometriesArray()
+    //{
+    //    return mpGeometries->GetContainer();
+    //}
+
+    ///@}
+    ///@name Container Functions
+    ///@{
+
+    //GeometriesContainerType& Geometries(GeometryData::KratosGeometryType GeometryType)
+    //{
+    //    return *mpGeometries->where(...);
+    //}
+
+    ///@}
+    ///@name Container Functions
+    ///@{
+
+    //GeometriesContainerType& Geometries(GeometryData::KratosGeometryType GeometryType)
+    //{
+    //    return *mpGeometries->where(...);
+    //}
+
     ///@}
     ///@name Input and output
     ///@{
