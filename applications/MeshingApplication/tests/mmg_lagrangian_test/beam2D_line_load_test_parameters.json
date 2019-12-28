@@ -31,8 +31,6 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["Structure","Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","LineLoad2D_Load_on_lines_Auto1"],
         "auxiliary_variables_list" : []
     },
     "processes"        : {
@@ -43,7 +41,7 @@
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,0.0,0.0],
                 "interval"        : [0.0,"End"]
@@ -57,7 +55,7 @@
             "process_name"  : "AssignVectorByDirectionToConditionProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "LineLoad2D_Load_on_lines_Auto1",
+                "model_part_name" : "Structure.LineLoad2D_Load_on_lines_Auto1",
                 "variable_name"   : "LINE_LOAD",
                 "modulus"         : -1.0e7,
                 "direction"       : [0.0,1,0.0],
