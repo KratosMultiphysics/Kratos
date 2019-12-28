@@ -1357,6 +1357,27 @@ public:
     void AddGeometry(typename GeometryType::Pointer pNewGeometry);
 
 
+    /// Returns the Geometry::Pointer corresponding to the Id
+    typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) {
+        return mGeometries.pGetGeometry(GeometryId);
+    }
+
+    /// Returns the Geometry::Pointer corresponding to the name
+    typename GeometryType::Pointer pGetGeometry(std::string GeometryName) {
+        return mGeometries.pGetGeometry(GeometryName);
+    }
+
+    /// Returns a reference geometry corresponding to the id
+    GeometryType& GetGeometry(IndexType GeometryId) {
+        return mGeometries.GetGeometry(GeometryId);
+    }
+
+    /// Returns a const reference geometry corresponding to the name
+    const GeometryType& GetGeometry(std::string GeometryName) const {
+        return mGeometries.GetGeometry(GeometryName);
+    }
+
+
     /// Removes a geometry by id.
     void RemoveGeometry(IndexType GeometryId);
 
