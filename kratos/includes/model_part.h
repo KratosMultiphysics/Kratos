@@ -241,6 +241,12 @@ public:
     */
     typedef GeometryContainer<NodeType> GeometryContainerType;
 
+    /// Geometry Iterator
+    typedef typename GeometryContainerType::iterator GeometryIterator;
+
+    /// Const Geometry Iterator
+    typedef typename GeometryContainerType::const_iterator GeometryConstantIterator;
+
     /// The container of the sub model parts. A hash table is used.
     /**
     */
