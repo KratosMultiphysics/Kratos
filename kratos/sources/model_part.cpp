@@ -1589,6 +1589,29 @@ void ModelPart::RemoveConditionsFromAllLevels(Flags IdentifierFlag)
     root_model_part.RemoveConditions(IdentifierFlag);
 }
 
+///@}
+///@name Geometry Container
+///@{
+
+/// Adds a geometry to the geometry container.
+void ModelPart::AddGeometry(
+    typename GeometryType::Pointer pNewGeometry)
+{
+    if (IsSubModelPart())
+    {
+        mpParentModelPart->AddGeometry(pNewGeometry);
+        mGeometries.AddGeometry(pNewGeometry);
+    }
+    else
+    {
+        /// Check if geometry id already used, is done within the geometry container.
+        mGeometries.AddGeometry(pNewGeometry);
+    }
+}
+
+///@}
+///@name Sub Model Parts
+///@{
 
 ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {

@@ -240,7 +240,7 @@ public:
     /**
     * Contains all geometries, which can be adressed by specific identifiers.
     */
-    typedef GeometryContainer<NodeType> GeometryContainerType;
+    typedef GeometryContainer<GeometryType> GeometryContainerType;
 
     /// Geometry Iterator
     typedef typename GeometryContainerType::iterator GeometryIterator;
@@ -1352,6 +1352,9 @@ public:
     {
         return mGeometries.NumberOfGeometries();
     }
+
+    /// Adds a geometry to the geometry container.
+    void AddGeometry(typename GeometryType::Pointer pNewGeometry);
 
     ///@}
     ///@name Sub model parts
