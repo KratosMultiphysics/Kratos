@@ -38,6 +38,7 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
     , Flags()
     , mBufferSize(NewBufferSize)
     , mpProcessInfo(new ProcessInfo())
+    , mGeometries()
     , mpVariablesList(pVariablesList)
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
@@ -1600,13 +1601,9 @@ void ModelPart::AddGeometry(
     if (IsSubModelPart())
     {
         mpParentModelPart->AddGeometry(pNewGeometry);
-        mGeometries.AddGeometry(pNewGeometry);
     }
-    else
-    {
-        /// Check if geometry id already used, is done within the geometry container.
-        mGeometries.AddGeometry(pNewGeometry);
-    }
+    /// Check if geometry id already used, is done within the geometry container.
+    mGeometries.AddGeometry(pNewGeometry);
 }
 
 ///@}
@@ -1818,6 +1815,7 @@ void ModelPart::save(Serializer& rSerializer) const
     rSerializer.save("Tables", mTables);
     rSerializer.save("Variables List", mpVariablesList);
     rSerializer.save("Meshes", mMeshes);
+    rSerializer.save("Geometries", mGeometries);
 
     rSerializer.save("NumberOfSubModelParts", NumberOfSubModelParts());
 
@@ -1843,6 +1841,7 @@ void ModelPart::load(Serializer& rSerializer)
     rSerializer.load("Tables", mTables);
     rSerializer.load("Variables List", mpVariablesList);
     rSerializer.load("Meshes", mMeshes);
+    rSerializer.load("Geometries", mGeometries);
 
     SizeType number_of_submodelparts;
     rSerializer.load("NumberOfSubModelParts", number_of_submodelparts);
