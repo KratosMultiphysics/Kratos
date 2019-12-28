@@ -61,7 +61,7 @@ public:
         TGeometryType,
         std::hash<std::size_t>,
         GetGeometryId,
-        typename GeometryType::Pointer
+        typename TGeometryType::Pointer
     > GeometriesContainerType;
 
     /// Geometry Iterator
@@ -130,7 +130,7 @@ public:
     ///@{
 
     /// Adds a geometry to the geometry container.
-    GeometryIterator AddGeometry(typename GeometryType::Pointer pNewGeometry)
+    GeometryIterator AddGeometry(typename TGeometryType::Pointer pNewGeometry)
     {
         auto i = mpGeometries->find(pNewGeometry->Id());
         if(i == mpGeometries->end())
@@ -147,7 +147,7 @@ public:
     ///@{
 
     /// Returns the Geometry::Pointer corresponding to its Id
-    typename GeometryType::Pointer pGetGeometry(IndexType GeometryId)
+    typename TGeometryType::Pointer pGetGeometry(IndexType GeometryId)
     {
         auto i = mpGeometries->find(GeometryId);
         KRATOS_ERROR_IF(i == mpGeometries->end())
@@ -156,9 +156,9 @@ public:
     }
 
     /// Returns the Geometry::Pointer corresponding to its name
-    typename GeometryType::Pointer pGetGeometry(std::string GeometryName)
+    typename TGeometryType::Pointer pGetGeometry(std::string GeometryName)
     {
-        auto hash_index = GeometryType::GenerateId(GeometryName);
+        auto hash_index = TGeometryType::GenerateId(GeometryName);
         auto i = mpGeometries->find(hash_index);
         KRATOS_ERROR_IF(i == mpGeometries->end())
             << " geometry index not found: " << GeometryName << ".";
@@ -166,7 +166,7 @@ public:
     }
 
     /// Returns a reference geometry corresponding to the id
-    GeometryType& GetGeometry(IndexType GeometryId)
+    TGeometryType& GetGeometry(IndexType GeometryId)
     {
         auto i = mpGeometries->find(GeometryId);
         KRATOS_ERROR_IF(i == mpGeometries->end()) << " geometry index not found: " << GeometryId << ".";
@@ -174,9 +174,9 @@ public:
     }
 
     /// Returns a const reference geometry corresponding to the name
-    const GeometryType& GetGeometry(std::string GeometryName) const
+    const TGeometryType& GetGeometry(std::string GeometryName) const
     {
-        auto hash_index = GeometryType::GenerateId(GeometryName);
+        auto hash_index = TGeometryType::GenerateId(GeometryName);
         auto i = mpGeometries->find(hash_index);
         KRATOS_ERROR_IF(i == mpGeometries->end())
             << " geometry index not found: " << GeometryName << ".";
@@ -196,19 +196,19 @@ public:
     /// Remove the geometry with given name from geometry container
     void RemoveGeometry(std::string GeometryName)
     {
-        auto index = GeometryType::GenerateId(GeometryName);
+        auto index = TGeometryType::GenerateId(GeometryName);
 
         mpGeometries->erase(index);
     }
 
     /// Remove given geometry from geometry container
-    void RemoveGeometry(GeometryType& ThisGeometry)
+    void RemoveGeometry(TGeometryType& ThisGeometry)
     {
         mpGeometries->erase(ThisGeometry.Id());
     }
 
     /// Remove given geometry from geometry container
-    void RemoveGeometry(typename GeometryType::Pointer pThisGeometry)
+    void RemoveGeometry(typename TGeometryType::Pointer pThisGeometry)
     {
         mpGeometries->erase(pThisGeometry->Id());
     }
@@ -224,7 +224,7 @@ public:
 
     bool HasGeometry(std::string GeometryName) const
     {
-        auto hash_index = GeometryType::GenerateId(GeometryName);
+        auto hash_index = TGeometryType::GenerateId(GeometryName);
 
         return (mpGeometries->find(hash_index) != mpGeometries->end());
     }
