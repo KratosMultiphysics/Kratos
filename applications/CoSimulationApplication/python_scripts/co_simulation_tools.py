@@ -19,7 +19,7 @@ def cs_print_info(label, *args):
     KM.Logger.PrintInfo(colors.bold(label), " ".join(map(str,args)))
 
 def cs_print_warning(label, *args):
-    KM.Logger.PrintWarning(colors.red("Warning: ")+colors.bold(label), " ".join(map(str,args)))
+    KM.Logger.PrintWarning(colors.bold(label), " ".join(map(str,args)))
 
 
 def UsingPyKratos():
