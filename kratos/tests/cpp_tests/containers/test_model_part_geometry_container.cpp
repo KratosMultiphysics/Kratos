@@ -42,12 +42,12 @@ namespace Testing {
 
         auto& model_part_no_lines = model_part.CreateSubModelPart("NoLines");
 
-        auto p_line_1 = GenerateLineGeometry();
+        auto p_line_1 = GenerateLineModelPartGeometryContainer();
         p_line_1->SetId(1);
 
         model_part_lines.AddGeometry(p_line_1);
 
-        auto p_line_2 = GenerateLineGeometry();
+        auto p_line_2 = GenerateLineModelPartGeometryContainer();
         p_line_2->SetId(1);
 
         // check correct error if multiple geometries with sam id are added
@@ -64,7 +64,7 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(model_part_no_lines.NumberOfGeometries(), 0);
 
         // check adding with string
-        auto p_line_3 = GenerateLineGeometry();
+        auto p_line_3 = GenerateLineModelPartGeometryContainer();
         p_line_3->SetId("GeometryLine1");
         model_part_lines.AddGeometry(p_line_3);
 
