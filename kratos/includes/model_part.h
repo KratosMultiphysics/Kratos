@@ -1651,6 +1651,8 @@ private:
 
     MeshesContainerType mMeshes; /// The container of all meshes
 
+    GeometryContainerType mGeometries; /// The container of geometries
+
     VariablesList::Pointer mpVariablesList; /// The variable list
 
     Communicator::Pointer mpCommunicator; /// The communicator
