@@ -18,6 +18,9 @@
             "input_type":       "mdpa",
             "input_filename":   "element_tests/undrained_soil_column_2D/undrained_soil_column_2D"
         },
+        "material_import_settings" :{
+            "materials_filename": "element_tests/undrained_soil_column_2D/PoroMaterials.json"
+        },
         "buffer_size":                        2,
         "echo_level":                         0,
         "clear_storage":                      false,
