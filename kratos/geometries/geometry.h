@@ -143,6 +143,7 @@ public:
     */
     typedef std::size_t SizeType;
 
+
     typedef typename PointType::CoordinatesArrayType CoordinatesArrayType;
 
 
@@ -220,7 +221,10 @@ public:
     ///@name Life Cycle
     ///@{
 
-    Geometry() : mpGeometryData(&GeometryDataInstance())
+    /// Standard Constructor
+    Geometry(IndexType Id = 0)
+        : mId(Id),
+          mpGeometryData(&GeometryDataInstance())
     {
 
     }
@@ -283,41 +287,51 @@ public:
     have gaussian orden two ThisShapeFunctionsValues[GI_GAUSS_2]
     must be an empty ShapeFunctionsGradientsType.
     */
-    Geometry(const PointsArrayType &ThisPoints,
-             GeometryData const *pThisGeometryData = &GeometryDataInstance())
-        :  mpGeometryData(pThisGeometryData),
-           mPoints(ThisPoints)
+    Geometry(
+        const PointsArrayType &ThisPoints,
+        GeometryData const *pThisGeometryData = &GeometryDataInstance(),
+        IndexType Id = 0)
+        : mId(Id),
+          mpGeometryData(pThisGeometryData),
+          mPoints(ThisPoints)
     {
     }
 
-    /** Copy constructor.
-    Construct this geometry as a copy of given geometry.
-
-    @note This copy constructor don't copy the points and new
-    geometry shares points with given source geometry. It's
-    obvious that any change to this new geometry's point affect
-    source geometry's points too.
+    /**
+    * @brief Copy constructor
+    *
+    * @note Does not copy the points but shares same points with
+    *       the original geometry. Any change to the points of the
+    *       copied geometry affect point of original geometry, too.
+    * @note Copied geometry shares the same Id as the
+    *       original geometry.
     */
-    Geometry( const Geometry& rOther )
-        : mpGeometryData( rOther.mpGeometryData ),
-          mPoints( rOther.mPoints)
+    Geometry(
+        const Geometry& rOther)
+        : mId(rOther.mId)
+        , mpGeometryData(rOther.mpGeometryData)
+        , mPoints(rOther.mPoints)
     {
     }
 
-
-    /** Copy constructor from a geometry with other point type.
-    Construct this geometry as a copy of given geometry which
-    has different type of points. The given goemetry's
-    TOtherPointType* must be implicity convertible to this
-    geometry PointType.
-
-    @note This copy constructor don't copy the points and new
-    geometry shares points with given source geometry. It's
-    obvious that any change to this new geometry's point affect
-    source geometry's points too.
+    /**
+    * @brief Copy constructor with TOtherPointType
+    *
+    *        Copies geometry with a different type of points.
+    *        TOtherPointType* must be implicity convertible
+    *        to TPointType of the original geometry.
+    *
+    * @note Does not copy the points but shares same points with
+    *       the original geometry. Any change to the points of the
+    *       copied geometry affect point of original geometry, too.
+    * @note Copied geometry shares the same Id as the
+    *       original geometry.
     */
-    template<class TOtherPointType> Geometry( Geometry<TOtherPointType> const & rOther )
-        : mpGeometryData(rOther.mpGeometryData)
+    template<class TOtherPointType>
+    Geometry(
+        Geometry<TOtherPointType> const & rOther)
+        : mId(rOther.mId)
+        , mpGeometryData(rOther.mpGeometryData)
     {
         mPoints = new PointsArrayType(rOther.begin(), rOther.end());
     }
@@ -542,26 +556,54 @@ public:
             *i = typename PointType::Pointer( new PointType( **i ) );
     }
 
-     // virtual Kratos::shared_ptr< Geometry< Point > > Clone() const
-     // {
-     //     Geometry< Point >::PointsArrayType NewPoints;
+    ///@}
+    ///@name Id
+    ///@{
 
-     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    /// Id of this Geometry
+    IndexType Id()
+    {
+        return mId;
+    }
 
-     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-     //     {
-     //        NewPoints.push_back(Kratos::make_shared< Point >((*mpPointVector)[i]));
-     //     }
+    /// Id of this Geometry
+    IndexType const& Id() const
+    {
+        return mId;
+    }
 
-     //     //NewPoints[i] = typename Point::Pointer(new Point(*mPoints[i]));
+    /// Sets Id of this Geometry
+    void SetId(IndexType Id)
+    {
+        // The first bit of the Id is used to detect if Id
+        // is int or hash of name. Second bit defines if Id
+        // is self assigned or not.
+        KRATOS_ERROR_IF(IsIdGeneratedFromString(Id)
+            || IsIdSelfAssigned(Id))
+            << "Id out of range. The Id must me lower than 2^62 = 4.61e+18"
+            << std::endl;
 
-     //     //creating a geometry with the new points
-     //     Geometry< Point >::Pointer p_clone( new Geometry< Point >( NewPoints ) );
+        mId = Id;
+    }
 
-     //     p_clone->ClonePoints();
+    /// Sets Id with the use of the name of this geometry
+    void SetId(std::string Name)
+    {
+        mId = GenerateId(Name);
+    }
 
-     //     return p_clone;
-     // }
+    /// Gets the corresponding hash-Id to a string name
+    static inline IndexType GenerateId(std::string Name)
+    {
+        // Create id hash from provided name.
+        std::hash<std::string> string_hash_generator;
+        auto id = string_hash_generator(Name);
+
+        // Sets first bit to one.
+        SetIdGeneratedFromString(id);
+
+        return id;
+    }
 
     ///@}
     ///@name Parent
@@ -2827,112 +2869,82 @@ public:
     ///@name Input and output
     ///@{
 
-    /** Returns geometry information as a string.
-     * Returns geometry information as a string.
-     *
-     * @return String contains information about this geometry.
-     *
-     * @see Name()
-     */
-    virtual std::string Info() const {
-      std::stringstream buffer;
-      buffer << Dimension() << " dimensional geometry in " << WorkingSpaceDimension() << "D space";
+    /// Return geometry information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Geometry # "
+            << std::to_string(mId) << ": "
+            << Dimension() << " dimensional geometry in "
+            << WorkingSpaceDimension() << "D space";
 
-      return buffer.str();
+        return buffer.str();
     }
 
-    /** Returns the name of the geometry as a string.
-     * Returns the name of the geometry as a string.
-     *
-     * Note: compiler's RVO should optimize this code automatically.
-     *
-     * @return String with the name of the geometry.
-     *
-     * @see Info()
-     */
+    /// Returns name.
     virtual std::string Name() const {
-      std::string geometryName = "BaseGeometry";
-      KRATOS_ERROR << "Base geometry does not have a name." << std::endl;
-      return geometryName;
+        std::string geometryName = "BaseGeometry";
+        KRATOS_ERROR << "Base geometry does not have a name." << std::endl;
+        return geometryName;
     }
 
-    /** Prints information about this object.
-     * Prints information about this object.
-     *
-     * @param rOStream Output Stream.
-     *
-     * @see PrintName()
-     * @see PrintData()
-     */
-    virtual void PrintInfo(std::ostream& rOStream) const {
-      rOStream << Dimension()  << " dimensional geometry in " << WorkingSpaceDimension() << "D space";
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
     }
 
-    /** Prints the name of the geometry.
-     * Prints the name of the geometry.
-     *
-     * @param rOStream Output Stream.
-     *
-     * @see PrintInfo()
-     * @see PrintData()
-     */
+    /// Print name.
     virtual void PrintName(std::ostream& rOstream) const {
-      rOstream << Name() << std::endl;
+        rOstream << Name() << std::endl;
     }
 
-    /** Print geometry's data into given stream.
-     * Prints it's points by the order they stored in the
-     * geometry and then center point of geometry.
-     *
-     * @param rOStream Output Stream.
-     *
-     * @see PrintInfo()
-     * @see PrintName()
-     */
-    virtual void PrintData( std::ostream& rOStream ) const {
-      if(mpGeometryData) {
-        mpGeometryData->PrintData( rOStream );
-      }
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        if (mpGeometryData) {
+            mpGeometryData->PrintData(rOStream);
+        }
 
-      rOStream << std::endl;
-      rOStream << std::endl;
-
-      for (unsigned int i = 0; i < this->size(); ++i) {
-        rOStream << "\tPoint " << i + 1 << "\t : ";
-        mPoints[i].PrintData(rOStream);
         rOStream << std::endl;
-      }
+        rOStream << std::endl;
 
-      rOStream << "\tCenter\t : ";
+        for (unsigned int i = 0; i < this->size(); ++i) {
+            rOStream << "\tPoint " << i + 1 << "\t : ";
+            mPoints[i].PrintData(rOStream);
+            rOStream << std::endl;
+        }
 
-      Center().PrintData( rOStream );
+        rOStream << "\tCenter\t : ";
 
-      rOStream << std::endl;
-      rOStream << std::endl;
-      // rOStream << "\tLength\t : " << Length() << std::endl;
-      // rOStream << "\tArea\t : " << Area() << std::endl;
+        Center().PrintData(rOStream);
 
-      // Charlie: Volume is not defined by every geometry (2D geometries),
-      // which can cause this call to generate a KRATOS_ERROR while trying
-      // to call the base class Volume() method.
+        rOStream << std::endl;
+        rOStream << std::endl;
+        // rOStream << "\tLength\t : " << Length() << std::endl;
+        // rOStream << "\tArea\t : " << Area() << std::endl;
 
-      // rOStream << "\tVolume\t : " << Volume() << std::endl;
+        // Charlie: Volume is not defined by every geometry (2D geometries),
+        // which can cause this call to generate a KRATOS_ERROR while trying
+        // to call the base class Volume() method.
 
-      // Charlie: Can this be deleted?
+        // rOStream << "\tVolume\t : " << Volume() << std::endl;
 
-      // for(unsigned int i = 0 ; i < mPoints.size() ; ++i) {
-      //   rOStream << "    Point " << i+1 << "\t            : ";
-      //   mPoints[i].PrintData(rOStream);
-      //   rOStream << std::endl;
-      // }
-      //
-      // rOStream << "    Center\t            : ";
-      // Center().PrintData(rOStream);
-      // rOStream << std::endl;
-      // rOStream << std::endl;
-      // rOStream << "    Length                  : " << Length() << std::endl;
-      // rOStream << "    Area                    : " << Area() << std::endl;
-      // rOStream << "    Volume                  : " << Volume();
+        // Charlie: Can this be deleted?
+
+        // for(unsigned int i = 0 ; i < mPoints.size() ; ++i) {
+        //   rOStream << "    Point " << i+1 << "\t            : ";
+        //   mPoints[i].PrintData(rOStream);
+        //   rOStream << std::endl;
+        // }
+        //
+        // rOStream << "    Center\t            : ";
+        // Center().PrintData(rOStream);
+        // rOStream << std::endl;
+        // rOStream << std::endl;
+        // rOStream << "    Length                  : " << Length() << std::endl;
+        // rOStream << "    Area                    : " << Area() << std::endl;
+        // rOStream << "    Volume                  : " << Volume();
     }
 
 
@@ -3176,20 +3188,45 @@ protected:
 
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    // static const GeometryData msEmptyGeometryData;
-
-    ///@}
     ///@name Member Variables
     ///@{
+
+    std::uint64_t mId;
 
     GeometryData const* mpGeometryData;
 
     static const GeometryDimension msGeometryDimension;
 
     PointsArrayType mPoints;
+
+    ///@}
+    ///@name Id Bit-Change Operations
+    ///@{
+
+    /// Checks first bit in Id. 0 -> id; 1 -> name/ string
+    static inline bool IsIdGeneratedFromString(IndexType Id)
+    {
+        return Id & (IndexType(1) << 63);
+    }
+
+    /// Sets first bit in Id to 1 -> name/ string
+    static inline void SetIdGeneratedFromString(IndexType& Id)
+    {
+        Id |= (IndexType(1) << 63);
+    }
+
+    /// Checks second bit in Id. 0 -> defined id; 1 -> self assigned
+    static inline bool IsIdSelfAssigned(IndexType Id)
+    {
+        return Id & (IndexType(1) << 62);
+    }
+
+    /// Sets second bit in Id to 1 -> self assigned
+    static inline void SetIdSelfAssigned(IndexType& Id)
+    {
+        Id |= (IndexType(1) << 62);
+    }
+
     ///@}
     ///@name Serialization
     ///@{
@@ -3198,19 +3235,15 @@ private:
 
     virtual void save( Serializer& rSerializer ) const
     {
+        rSerializer.save("Id", mId);
         rSerializer.save( "Points", mPoints);
     }
 
     virtual void load( Serializer& rSerializer )
     {
+        rSerializer.load("Id", mId);
         rSerializer.load( "Points", mPoints );
     }
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
 
     ///@}
     ///@name Private Operations
