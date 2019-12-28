@@ -59,6 +59,7 @@
 #include "processes/sub_model_part_skin_detection_process.h"
 #include "processes/apply_periodic_boundary_condition_process.h"
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
+#include "processes/time_averaging_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -121,6 +122,7 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<Process, Process::Pointer>(m,"Process")
     .def(py::init<>())
+    .def("Create",&Process::Create)
     .def("Execute",&Process::Execute)
     .def("ExecuteInitialize",&Process::ExecuteInitialize)
     .def("ExecuteBeforeSolutionLoop",&Process::ExecuteBeforeSolutionLoop)
@@ -602,6 +604,10 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<IntegrationValuesExtrapolationToNodesProcess, IntegrationValuesExtrapolationToNodesProcess::Pointer, Process>(m, "IntegrationValuesExtrapolationToNodesProcess")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
+    ;
+
+    py::class_<TimeAveragingProcess, TimeAveragingProcess::Pointer, Process>(m, "TimeAveragingProcess")
+    .def(py::init<Model&, Parameters>())
     ;
 }
 

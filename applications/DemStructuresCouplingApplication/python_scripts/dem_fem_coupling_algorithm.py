@@ -54,9 +54,9 @@ class Algorithm(object):
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.SHEAR_STRESS)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.NON_DIMENSIONAL_VOLUME_WEAR)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.IMPACT_WEAR)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.TARGET_STRESS)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.REACTION_STRESS)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.LOADING_VELOCITY)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.TARGET_STRESS)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.REACTION_STRESS)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.LOADING_VELOCITY)
 
     def Run(self):
         self.Initialize()
@@ -127,7 +127,7 @@ class Algorithm(object):
     def _TransferStructuresSkinToDem(self):
         self.structural_mp = self.structural_solution._GetSolver().GetComputingModelPart()
         self.skin_mp = self.structural_mp.GetSubModelPart("DetectedByProcessSkinModelPart")
-        dem_walls_mp = self.dem_solution.rigid_face_model_part
+        dem_walls_mp = self.dem_solution.rigid_face_model_part.CreateSubModelPart("SkinTransferredFromStructure")
         max_prop_id = 0
         for prop in dem_walls_mp.Properties:
             if prop.Id > max_prop_id:
