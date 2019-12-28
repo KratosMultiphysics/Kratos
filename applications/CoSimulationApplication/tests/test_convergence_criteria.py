@@ -4,8 +4,9 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
-from KratosMultiphysics.CoSimulationApplication.factories import convergence_criterion_factory
 from testing_utilities import DummySolverWrapper
+
+from KratosMultiphysics.CoSimulationApplication.factories.convergence_criterion_factory import CreateConvergenceCriterion
 
 
 class TestConvergenceCriteria(KratosUnittest.TestCase):
@@ -16,8 +17,7 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
         self.model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
 
         for i in range(5):
-            new_node = self.model_part.CreateNewNode(i+1, i*0.1, 0.0, 0.0)
-            new_node.SetSolutionStepValue(KM.PRESSURE, 0, i+1.3)
+            new_node = self.model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0) # position of nodes does not matter for this test
 
         data_settings = KM.Parameters("""{
             "model_part_name" : "default",
@@ -28,58 +28,51 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
 
         self.solver_wrappers = {"dummy_solver" : DummySolverWrapper({"data_4_testing" : self.interface_data})}
 
-    # def test_RelativeNormInitialResidual_abs_tol(self):
-    #     conv_crit_settings = KM.Parameters("""{
-    #         "type"           : "relative_norm_initial_residual",
-    #         "solver"         : "dummy_solver",
-    #         "data_name"      : "data_4_testing",
-    #         "abs_tolerance"  : 1e-5,
-    #         "rel_tolerance"  : 1e-5,
-    #         "echo_level"     : 0
-    #     }""")
-    #     conv_crit = convergence_criterion_factory.CreateConvergenceCriterion(conv_crit_settings, self.solver_wrappers["dummy_solver"])
-    #     self.__ExecuteTest(conv_crit)
+    def test_RelativeNormInitialResidual_abs_tol(self):
+        conv_crit_settings = KM.Parameters("""{
+            "type"           : "relative_norm_initial_residual",
+            "abs_tolerance"  : 1e-5,
+            "rel_tolerance"  : 1e-5,
+            "echo_level"     : 0
+        }""")
+        conv_crit = CreateConvergenceCriterion(conv_crit_settings)
+        self.__ExecuteTest(conv_crit)
 
-    # def test_RelativeNormInitialResidual_rel_tol(self):
-    #     conv_crit_settings = KM.Parameters("""{
-    #         "type"           : "relative_norm_initial_residual",
-    #         "solver"         : "dummy_solver",
-    #         "data_name"      : "data_4_testing",
-    #         "abs_tolerance"  : 1e-5,
-    #         "rel_tolerance"  : 1e-5,
-    #         "echo_level"     : 0
-    #     }""")
-    #     conv_crit = convergence_criterion_factory.CreateConvergenceCriterion(conv_crit_settings, self.solver_wrappers["dummy_solver"])
-    #     self.__ExecuteTest(conv_crit)
+    def test_RelativeNormInitialResidual_rel_tol(self):
+        conv_crit_settings = KM.Parameters("""{
+            "type"           : "relative_norm_initial_residual",
+            "abs_tolerance"  : 1e-5,
+            "rel_tolerance"  : 1e-5,
+            "echo_level"     : 0
+        }""")
+        conv_crit = CreateConvergenceCriterion(conv_crit_settings)
+        self.__ExecuteTest(conv_crit)
 
-    # def test_RelativeNormPreviousResidual_abs_tol(self):
-    #     conv_crit_settings = KM.Parameters("""{
-    #         "type"           : "relative_norm_previous_residual",
-    #         "solver"         : "dummy_solver",
-    #         "data_name"      : "data_4_testing",
-    #         "abs_tolerance"  : 1e-5,
-    #         "rel_tolerance"  : 1e-5,
-    #         "echo_level"     : 0
-    #     }""")
-    #     conv_crit = convergence_criterion_factory.CreateConvergenceCriterion(conv_crit_settings, self.solver_wrappers["dummy_solver"])
-    #     self.__ExecuteTest(conv_crit)
+    def test_RelativeNormPreviousResidual_abs_tol(self):
+        conv_crit_settings = KM.Parameters("""{
+            "type"           : "relative_norm_previous_residual",
+            "abs_tolerance"  : 1e-5,
+            "rel_tolerance"  : 1e-5,
+            "echo_level"     : 0
+        }""")
+        conv_crit = CreateConvergenceCriterion(conv_crit_settings)
+        self.__ExecuteTest(conv_crit)
 
-    # def test_RelativeNormPreviousResidual_rel_tol(self):
-    #     conv_crit_settings = KM.Parameters("""{
-    #         "type"           : "relative_norm_previous_residual",
-    #         "solver"         : "dummy_solver",
-    #         "data_name"      : "data_4_testing",
-    #         "abs_tolerance"  : 1e-5,
-    #         "rel_tolerance"  : 1e-5,
-    #         "echo_level"     : 0
-    #     }""")
-    #     conv_crit = convergence_criterion_factory.CreateConvergenceCriterion(conv_crit_settings, self.solver_wrappers["dummy_solver"])
-    #     self.__ExecuteTest(conv_crit)
+    def test_RelativeNormPreviousResidual_rel_tol(self):
+        conv_crit_settings = KM.Parameters("""{
+            "type"           : "relative_norm_previous_residual",
+            "abs_tolerance"  : 1e-5,
+            "rel_tolerance"  : 1e-5,
+            "echo_level"     : 0
+        }""")
+        conv_crit = CreateConvergenceCriterion(conv_crit_settings)
+        self.__ExecuteTest(conv_crit)
 
 
     def __ExecuteTest(self, conv_crit):
+        self.__SetInitialValues()
         conv_crit.Initialize()
-        conv_crit.Check()
+        conv_crit.Check() # not yet implemented
 
         '''
         TS 1: no convergence
@@ -98,7 +91,7 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
 
                 conv_crit.InitializeNonLinearIteration()
 
-                SetValues(self.model_part)
+                self.__SetValues(1.0)
 
                 # self.assertEqual(exp_conv_status, conv_crit.IsConverged())
 
@@ -108,8 +101,12 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
 
         conv_crit.Finalize()
 
-def SetValues(model_part):
-    pass
+    def __SetInitialValues(self):
+        for node in self.model_part.Nodes:
+            node.SetSolutionStepValue(KM.PRESSURE, 1.0)
+
+    def __SetValues(self, factor):
+        pass
 
 
 if __name__ == '__main__':
