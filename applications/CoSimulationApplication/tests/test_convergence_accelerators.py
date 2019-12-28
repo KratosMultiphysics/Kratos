@@ -5,7 +5,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import math
 
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
-# from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
 from KratosMultiphysics.CoSimulationApplication.convergence_accelerators.convergence_accelerator_wrapper import ConvergenceAcceleratorWrapper
 from testing_utilities import DummySolverWrapper
 
@@ -27,15 +26,15 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
         self.model_part.ProcessInfo[KM.DOMAIN_SIZE] = self.dimension
 
         num_proc = KM.DataCommunicator.GetDefault().Size()
-        my_pid = KM.DataCommunicator.GetDefault().Rank()
-        self.num_nodes = my_pid % 5 + 3 # num_nodes in range (3 ... 7)
-        if my_pid == 4:
+        self.my_pid = KM.DataCommunicator.GetDefault().Rank()
+        self.num_nodes = self.my_pid % 5 + 3 # num_nodes in range (3 ... 7)
+        if self.my_pid == 4:
             self.num_nodes = 0 # in order to emulate one partition not having local nodes
 
         for i in range(self.num_nodes):
             node = self.model_part.CreateNewNode(i, 0.1*i, 0.0, 0.0) # this creates the same coords in different ranks, which does not matter for this test
 
-            node.SetSolutionStepValue(KM.PARTITION_INDEX, my_pid)
+            node.SetSolutionStepValue(KM.PARTITION_INDEX, self.my_pid)
             node.SetSolutionStepValue(KM.PRESSURE, uniform(-10, 50))
 
         if KM.IsDistributedRun():
@@ -50,8 +49,53 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
 
         self.dummy_solver_wrapper = DummySolverWrapper({"data_4_testing" : self.interface_data})
 
-    # def test_accelerator_without_support_for_distributed_data(self):
-    #     pass
+    def test_accelerator_without_support_for_distributed_data(self):
+        conv_acc_settings = KM.Parameters("""{
+            "type"      : "constant_relaxation",
+            "data_name" : "data_4_testing"
+        }""")
+        conv_acc_wrapper = ConvergenceAcceleratorWrapper(conv_acc_settings, self.dummy_solver_wrapper)
+
+        exp_inp = self.interface_data.GetData()
+        num_nodes_global = KM.DataCommunicator.GetDefault().SumAll(self.num_nodes)
+        update_solution_return_value = [uniform(-10, 50) for _ in range(self.num_nodes)]
+
+        global_update_solution_return_value = np.array(np.concatenate(KM.DataCommunicator.GetDefault().GathervDoubles(update_solution_return_value, 0)))
+
+        conv_acc_mock = Mock()
+
+        attrs = {
+            'SupportsDistributedData.return_value': False,
+            'UpdateSolution.return_value' : global_update_solution_return_value
+        }
+        conv_acc_mock.configure_mock(**attrs)
+
+        conv_acc_wrapper.conv_acc = conv_acc_mock
+
+        conv_acc_wrapper.InitializeSolutionStep()
+
+        self.assertEqual(conv_acc_mock.SupportsDistributedData.call_count, 1)
+        self.assertEqual(conv_acc_wrapper.gather_scatter_required, self.interface_data.IsDistributed()) # gather-scatter is only required in case of distributed data
+        self.assertEqual(conv_acc_wrapper.executing_rank, self.my_pid == 0)
+
+        conv_acc_wrapper.InitializeNonLinearIteration()
+
+        # setting new solution for computing the residual
+        rand_data = [uniform(-10, 50) for _ in range(self.num_nodes)]
+        self.interface_data.SetData(rand_data)
+        exp_res = rand_data - exp_inp
+
+        conv_acc_wrapper.ComputeAndApplyUpdate()
+
+        self.assertEqual(conv_acc_mock.UpdateSolution.call_count, int(self.my_pid == 0)) # only one rank calls "UpdateSolution"
+        global_exp_res = np.array(np.concatenate(KM.DataCommunicator.GetDefault().GathervDoubles(exp_res, 0)))
+        global_exp_inp = np.array(np.concatenate(KM.DataCommunicator.GetDefault().GathervDoubles(exp_inp, 0)))
+        if self.my_pid == 0:
+            # numpy arrays cannot be compared using the mock-functions, hence using the numpy functions
+            np.testing.assert_array_equal(global_exp_res, conv_acc_mock.UpdateSolution.call_args[0][0])
+            np.testing.assert_array_equal(global_exp_inp, conv_acc_mock.UpdateSolution.call_args[0][1])
+
+        np.testing.assert_array_equal(exp_inp + update_solution_return_value, self.interface_data.GetData())
 
 
     def test_accelerator_with_support_for_distributed_data(self):
@@ -78,9 +122,9 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
 
         self.assertEqual(conv_acc_mock.SupportsDistributedData.call_count, 1)
         self.assertFalse(conv_acc_wrapper.gather_scatter_required)
+        self.assertTrue(conv_acc_wrapper.executing_rank)
 
         conv_acc_wrapper.InitializeNonLinearIteration()
-
 
         # setting new solution for computing the residual
         rand_data = [uniform(-10, 50) for _ in range(self.num_nodes)]
@@ -89,7 +133,9 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
 
         conv_acc_wrapper.ComputeAndApplyUpdate()
 
-        # numpy arrays cannot be compared using the mack-functions, hence using the numpy functions
+        self.assertEqual(conv_acc_mock.UpdateSolution.call_count, 1)
+
+        # numpy arrays cannot be compared using the mock-functions, hence using the numpy functions
         np.testing.assert_array_equal(exp_res, conv_acc_mock.UpdateSolution.call_args[0][0])
         np.testing.assert_array_equal(exp_inp, conv_acc_mock.UpdateSolution.call_args[0][1])
 
