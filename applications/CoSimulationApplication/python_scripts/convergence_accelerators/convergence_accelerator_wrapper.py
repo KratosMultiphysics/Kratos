@@ -33,8 +33,9 @@ class ConvergenceAcceleratorWrapper(object):
         # MPI related - TODO might be better to do one in Initialize, but the InterfaceData is not yet initialized there yet (might be possible in the future)
         # However if this is done in initialize, then we would have to Clear or sth in order to make it work with Remeshing (or if the sizes change for other reasons) ...
         self.my_pid = self.interface_data.GetModelPart().GetCommunicator().MyPID()
-        self.executing_rank = self.conv_acc.SupportsDistributedData() or (self.my_pid == 0)
-        self.gather_scatter_required = self.interface_data.IsDistributed() and not self.conv_acc.SupportsDistributedData()
+        conv_acc_supports_dist_data = self.conv_acc.SupportsDistributedData()
+        self.executing_rank = conv_acc_supports_dist_data or (self.my_pid == 0)
+        self.gather_scatter_required = self.interface_data.IsDistributed() and not conv_acc_supports_dist_data
         if self.gather_scatter_required:
             self.data_comm = self.interface_data.GetModelPart().GetCommunicator().GetDataCommunicator()
             self.sizes_from_ranks = np.cumsum(self.data_comm.GatherInts([self.interface_data.Size()], 0))
