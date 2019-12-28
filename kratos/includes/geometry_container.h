@@ -65,10 +65,10 @@ public:
     > GeometriesContainerType;
 
     /// Geometry Iterator
-    typedef GeometriesContainerType::iterator GeometryIterator;
+    typedef typename GeometriesContainerType::iterator GeometryIterator;
 
     /// Const Geometry Iterator
-    typedef GeometriesContainerType::const_iterator GeometryConstantIterator;
+    typedef typename GeometriesContainerType::const_iterator GeometryConstantIterator;
 
     ///@}
     ///@name Life Cycle
