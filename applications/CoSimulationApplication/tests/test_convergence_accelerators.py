@@ -61,10 +61,14 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
         }""")
         conv_acc_wrapper = ConvergenceAcceleratorWrapper(conv_acc_settings, self.dummy_solver_wrapper)
 
+        exp_inp = self.interface_data.GetData()
+        update_solution_return_value = [uniform(-10, 50) for _ in range(self.num_nodes)]
+
         conv_acc_mock = Mock()
+
         attrs = {
             'SupportsDistributedData.return_value': True,
-            'UpdateSolution.return_value' : [uniform(-10, 50) for _ in range(self.num_nodes)]
+            'UpdateSolution.return_value' : update_solution_return_value
         }
         conv_acc_mock.configure_mock(**attrs)
 
@@ -77,7 +81,6 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
 
         conv_acc_wrapper.InitializeNonLinearIteration()
 
-        exp_inp = self.interface_data.GetData()
 
         # setting new solution for computing the residual
         rand_data = [uniform(-10, 50) for _ in range(self.num_nodes)]
@@ -89,6 +92,8 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
         # numpy arrays cannot be compared using the mack-functions, hence using the numpy functions
         np.testing.assert_array_equal(exp_res, conv_acc_mock.UpdateSolution.call_args[0][0])
         np.testing.assert_array_equal(exp_inp, conv_acc_mock.UpdateSolution.call_args[0][1])
+
+        np.testing.assert_array_equal(exp_inp + update_solution_return_value, self.interface_data.GetData())
 
 
 if __name__ == '__main__':
