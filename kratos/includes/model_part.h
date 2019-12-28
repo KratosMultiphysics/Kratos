@@ -28,6 +28,7 @@
 #include "includes/process_info.h"
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
+#include "includes/geometry_container.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/communicator.h"
@@ -233,6 +234,12 @@ public:
     Table by * operator and not a pointer for more convenient
     usage. */
     typedef MeshType::MasterSlaveConstraintConstantIteratorType MasterSlaveConstraintConstantIteratorType;
+
+    /// The Geometry Container.
+    /**
+    * Contains all geometries, which can be adressed by specific identifiers.
+    */
+    typedef GeometryContainer<NodeType> GeometryContainerType;
 
     /// The container of the sub model parts. A hash table is used.
     /**
