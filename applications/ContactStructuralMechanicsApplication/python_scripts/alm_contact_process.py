@@ -70,7 +70,8 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             "interval"                      : [0.0,"End"],
             "normal_variation"              : "no_derivatives_computation",
             "frictional_law"                : "Coulomb",
-            "tangent_factor"                : 1.0e0,
+            "tangent_factor"                : 2.5e-2,
+            "operator_threshold"            : 1.0e-3,
             "slip_augmentation_coefficient" : 0.0,
             "slip_threshold"                : 2.0e-2,
             "zero_tolerance_factor"         : 1.0,
@@ -386,6 +387,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         max_gap_factor = self.contact_settings["advance_ALM_parameters"]["max_gap_factor"].GetDouble()
         process_info[CSMA.ADAPT_PENALTY] = self.contact_settings["advance_ALM_parameters"]["adapt_penalty"].GetBool()
         process_info[CSMA.MAX_GAP_FACTOR] = max_gap_factor
+        process_info[CSMA.OPERATOR_THRESHOLD] = self.contact_settings["operator_threshold"].GetDouble()
 
     def _initialize_search_values(self):
         """ This method initializes some values and variables used during contact computations
@@ -485,3 +487,6 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
                     if self.slip_step_reset_counter >= self.slip_step_reset_frequency:
                         KM.VariableUtils().SetFlag(KM.SLIP, False, self._get_process_model_part().Nodes)
                         self.slip_step_reset_counter = 0
+                else: # If zero never reseted, if negative will consider the direction of the WEIGHTED_SLIP
+                    if self.slip_step_reset_frequency < 0: # Update using the slip direction directly (a la PureSlip style)
+                        KM.MortarUtilities.ComputeNodesTangentModelPart(self._get_process_model_part(), CSMA.WEIGHTED_SLIP, 1.0, True)

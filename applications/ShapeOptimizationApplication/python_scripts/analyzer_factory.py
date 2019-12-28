@@ -36,11 +36,11 @@ def CreateAnalyzer(optimization_settings, model_part_controller, external_analyz
         internal_analyzer = EmptyAnalyzer()
 
     dependency_graph, exist_dependencies = _CreateDependencyGraphRecursively(objectives)
-    # dependency_graph = [ (response_id_1, [], weight_1),
-    #                      (response_id_2, [], weight_2),
-    #                      (response_id_3, [ (response_id_3a, [], weight_3a),
-    #                                        (response_id_3b, [], weight_3b),
-    #                                        (response_id_3c, [...], weight_3c) ], weight_3),
+    # dependency_graph = [ (response_id_1, weight_1, [], combination_type),
+    #                      (response_id_2, weight_2, [], combination_type),
+    #                      (response_id_3, [ (response_id_3a, weight_3a, [], combination_type),
+    #                                        (response_id_3b, weight_3b, [], combination_type),
+    #                                        (response_id_3c, weight_3c, [...]) ], weight_3, combination_type),
     #                      ... ]
 
     if exist_dependencies:
@@ -75,14 +75,15 @@ def _CreateDependencyGraphRecursively(responses):
         response_i = responses[itr]
         identifier = response_i["identifier"].GetString()
         weight = response_i["weight"].GetDouble()
+        combination_type = response_i["combination_type"].GetString()
 
         if response_i.Has("is_combined"):
             if response_i["is_combined"].GetBool():
                 exist_dependencies = True
                 sub_dependency_graph, _ = _CreateDependencyGraphRecursively(response_i["combined_responses"])
-                dependency_graph.append((identifier, sub_dependency_graph, weight))
+                dependency_graph.append((identifier, weight, sub_dependency_graph, combination_type))
             else:
-                dependency_graph.append((identifier, [], weight))
+                dependency_graph.append((identifier, weight, [], None))
 
     return dependency_graph, exist_dependencies
 
@@ -170,7 +171,7 @@ class AnalyzerWithDependencies(Analyzer):
     def __GetIdentifiersRecursively(self, dependencies):
         response_ids = []
 
-        for response_id, dependencies, _ in dependencies:
+        for response_id, _, dependencies, _ in dependencies:
             response_ids += [response_id]
             if len(dependencies) > 0:
                 sub_identifiers = self.__GetIdentifiersRecursively(dependencies)
@@ -180,7 +181,7 @@ class AnalyzerWithDependencies(Analyzer):
 
     # --------------------------------------------------------------------------
     def __RequestResponsesAccordingDependencies(self, communicator):
-        for response_id, dependencies, _ in self.dependency_graph:
+        for response_id, _, dependencies, _ in self.dependency_graph:
             sub_response_ids = self.__GetIdentifiersRecursively(dependencies)
 
             if communicator.isRequestingValueOf(response_id):
@@ -193,29 +194,53 @@ class AnalyzerWithDependencies(Analyzer):
 
     # --------------------------------------------------------------------------
     def __CombineResponsesAccordingDependencies(self, communicator):
-        for response_id, dependencies, _ in self.dependency_graph:
+        for response_id, _, dependencies, combination_type in self.dependency_graph:
             if len(dependencies) > 0:
                 if communicator.isRequestingValueOf(response_id):
-                    combined_value = self.__ComputeCombinedValuesRecursively(dependencies, communicator)
+                    combined_value = self.__ComputeCombinedValuesRecursively(dependencies, combination_type, communicator)
                     communicator.reportValue(response_id, combined_value)
 
-        for response_id, dependencies, _ in self.dependency_graph:
+        for response_id, _, dependencies, _ in self.dependency_graph:
             if len(dependencies) > 0:
                 if communicator.isRequestingGradientOf(response_id):
                     combined_gradient = self.__ComputeCombinedGradientsRecursively(dependencies, communicator)
                     communicator.reportGradient(response_id, combined_gradient)
 
     # --------------------------------------------------------------------------
-    def __ComputeCombinedValuesRecursively(self, dependencies, communicator):
-        combined_value = 0.0
+    def __ComputeCombinedValuesRecursively(self, dependencies, combination_type, communicator):
+        combined_value = None
+        relevant_responses = []
 
-        for response_id, dependencies, weight in dependencies:
-            if len(dependencies) > 0:
-                value = self.__ComputeCombinedValuesRecursively(dependencies, communicator)
+        for response_id, weight, sub_dependencies, sub_combination_type in dependencies:
+            if len(sub_dependencies) > 0:
+                value = self.__ComputeCombinedValuesRecursively(sub_dependencies, sub_combination_type, communicator)
                 communicator.reportValue(response_id, value)
             else:
                 value = communicator.getStandardizedValue(response_id)
-            combined_value += weight*value
+
+            value = weight*value
+
+            if combined_value is None:
+                combined_value = value
+                relevant_responses.append(response_id)
+            else:
+                if combination_type == "sum":
+                    combined_value += value
+                    relevant_responses.append(response_id)
+                elif combination_type == "max":
+                    if value > combined_value:
+                        relevant_responses = [response_id]
+                        combined_value = value
+                elif combination_type == "min":
+                    if value < combined_value:
+                        relevant_responses = [response_id]
+                        combined_value = value
+                else:
+                    raise NameError("The following combination_type is not supported:" + combination_type)
+
+        for response_id, _, _, _ in dependencies:
+            if response_id not in relevant_responses:
+                communicator.updateRequest(response_id, request_value=True, request_gradient=False)
 
         return combined_value
 
@@ -223,27 +248,28 @@ class AnalyzerWithDependencies(Analyzer):
     def __ComputeCombinedGradientsRecursively(self, dependencies, communicator):
         combined_gradient = None
 
-        for response_id, dependencies, weight in dependencies:
-            if len(dependencies) > 0:
-                gradient = self.__ComputeCombinedGradientsRecursively(dependencies, communicator)
-                communicator.reportGradient(response_id, gradient)
-            else:
-                gradient = communicator.getStandardizedGradient(response_id)
+        for response_id, weight, sub_dependencies, _ in dependencies:
+            if communicator.isRequestingGradientOf(response_id):
+                if len(sub_dependencies) > 0:
+                    gradient = self.__ComputeCombinedGradientsRecursively(sub_dependencies, communicator)
+                    communicator.reportGradient(response_id, gradient)
+                else:
+                    gradient = communicator.getStandardizedGradient(response_id)
 
-            for vector in gradient.values():
-                vector[0] *= weight
-                vector[1] *= weight
-                vector[2] *= weight
+                for vector in gradient.values():
+                    vector[0] *= weight
+                    vector[1] *= weight
+                    vector[2] *= weight
 
-            if combined_gradient is None:
-                combined_gradient = gradient
-            else:
-                # Perform nodal sum
-                for key_a, vector_a in combined_gradient.items():
-                    vector_b = gradient[key_a]
-                    vector_a[0] += vector_b[0]
-                    vector_a[1] += vector_b[1]
-                    vector_a[2] += vector_b[2]
+                if combined_gradient is None:
+                    combined_gradient = gradient
+                else:
+                    # Perform nodal sum
+                    for key_a, vector_a in combined_gradient.items():
+                        vector_b = gradient[key_a]
+                        vector_a[0] += vector_b[0]
+                        vector_a[1] += vector_b[1]
+                        vector_a[2] += vector_b[2]
 
         return combined_gradient
 
@@ -252,11 +278,12 @@ class AnalyzerWithDependencies(Analyzer):
         response_ids = self.__GetIdentifiersRecursively(self.dependency_graph)
 
         for response_id in response_ids:
-            gradient = communicator.getStandardizedGradient(response_id)
+            if communicator.isRequestingGradientOf(response_id):
+                gradient = communicator.getStandardizedGradient(response_id)
 
-            nodal_norms = [ entry[0]**2 + entry[1]**2 + entry[2]**2 for entry in gradient.values() ]
-            max_norm = math.sqrt(max(nodal_norms))
-            self.gradient_max_norms[response_id] = max_norm
+                nodal_norms = [ entry[0]**2 + entry[1]**2 + entry[2]**2 for entry in gradient.values() ]
+                max_norm = math.sqrt(max(nodal_norms))
+                self.gradient_max_norms[response_id] = max_norm
 
     # --------------------------------------------------------------------------
     def __WriteResultsOfCombinedResponses(self, iteration, communicator):
@@ -273,7 +300,10 @@ class AnalyzerWithDependencies(Analyzer):
             for identifier, value in zip(identifiers, values):
                 row.append(" {:> .5E}".format(value))
             for identifier, value in zip(identifiers, values):
-                row.append(" {:> .5E}".format(self.gradient_max_norms[identifier]))
+                if communicator.isRequestingGradientOf(identifier):
+                    row.append(" {:> .5E}".format(self.gradient_max_norms[identifier]))
+                else:
+                    row.append("            -")
 
             writer.writerow(row)
 

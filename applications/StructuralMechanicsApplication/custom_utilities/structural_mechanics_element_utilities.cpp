@@ -8,6 +8,9 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher
+//                   Vicente Mataix Ferrandiz
+//                   Riccardo Rossi
+//                   Ruben Zorrilla
 //
 
 // System includes
@@ -15,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "includes/checks.h"
 #include "structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/math_utils.h"
@@ -22,8 +26,91 @@
 namespace Kratos {
 namespace StructuralMechanicsElementUtilities {
 
+int SolidElementCheck(
+    const Element& rElement,
+    const ProcessInfo& rCurrentProcessInfo,
+    std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws
+    )
+{
+    const auto& r_geometry = rElement.GetGeometry();
+    const auto& r_properties = rElement.GetProperties();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+
+    // Verify that the variables are correctly initialized
+    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY)
+    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
+    KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
+
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+    for ( IndexType i = 0; i < number_of_nodes; i++ ) {
+        const NodeType &rnode = r_geometry[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
+
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
+    }
+
+    // Verify that the constitutive law exists
+    KRATOS_ERROR_IF_NOT(r_properties.Has( CONSTITUTIVE_LAW )) << "Constitutive law not provided for property " << r_properties.Id() << std::endl;
+
+    // Verify that the constitutive law has the correct dimension
+    const SizeType strain_size = r_properties.GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+    if ( dimension == 2 ) {
+        KRATOS_ERROR_IF( strain_size < 3 || strain_size > 4) << "Wrong constitutive law used. This is a 2D element! expected strain size is 3 or 4 (el id = ) " << rElement.Id() << std::endl;
+    } else {
+        KRATOS_ERROR_IF_NOT(strain_size == 6) << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) "<<  rElement.Id() << std::endl;
+    }
+    
+    // Check constitutive law
+    if ( rConstitutiveLaws.size() > 0 ) {
+        return rConstitutiveLaws[0]->Check( r_properties, r_geometry, rCurrentProcessInfo );
+    }
+
+    return 0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+array_1d<double, 3> GetBodyForce(
+    const Element& rElement,
+    const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+    const IndexType PointNumber
+    )
+{
+    array_1d<double, 3> body_force;
+    for (IndexType i = 0; i < 3; ++i)
+        body_force[i] = 0.0;
+
+    const auto& r_properties = rElement.GetProperties();
+    double density = 0.0;
+    if (r_properties.Has( DENSITY ))
+        density = r_properties[DENSITY];
+
+    if (r_properties.Has( VOLUME_ACCELERATION ))
+        noalias(body_force) += density * r_properties[VOLUME_ACCELERATION];
+
+    const auto& r_geometry = rElement.GetGeometry();
+    if( r_geometry[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
+        Vector N(r_geometry.size());
+        N = r_geometry.ShapeFunctionsValues(N, rIntegrationPoints[PointNumber].Coordinates());
+        for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node)
+            noalias(body_force) += N[i_node] * density * r_geometry[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    }
+
+    return body_force;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool ComputeLumpedMassMatrix(
-    const Properties& rProperites,
+    const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Giving the globally defined setting (through ProcessInfo) priority
@@ -32,8 +119,8 @@ bool ComputeLumpedMassMatrix(
     // mass matrix and specifies it's computation through the ProcessInfo
     if (rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX)) {
         return rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX];
-    } else if (rProperites.Has(COMPUTE_LUMPED_MASS_MATRIX)) {
-        return rProperites[COMPUTE_LUMPED_MASS_MATRIX];
+    } else if (rProperties.Has(COMPUTE_LUMPED_MASS_MATRIX)) {
+        return rProperties[COMPUTE_LUMPED_MASS_MATRIX];
     }
 
     // The default for all elements in StructuralMechanics is
@@ -45,24 +132,24 @@ bool ComputeLumpedMassMatrix(
 /***********************************************************************************/
 
 bool HasRayleighDamping(
-    const Properties& rProperites,
+    const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    return (std::abs(GetRayleighAlpha(rProperites, rCurrentProcessInfo)) > 0.0 ||
-            std::abs(GetRayleighBeta(rProperites, rCurrentProcessInfo)) > 0.0);
+    return (std::abs(GetRayleighAlpha(rProperties, rCurrentProcessInfo)) > 0.0 ||
+            std::abs(GetRayleighBeta(rProperties, rCurrentProcessInfo)) > 0.0);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 double GetRayleighAlpha(
-    const Properties& rProperites,
+    const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // giving the locally defined setting (through Properties) priority
     // over the globally defined one (through ProcessInfo)
-    if (rProperites.Has(RAYLEIGH_ALPHA)) {
-        return rProperites[RAYLEIGH_ALPHA];
+    if (rProperties.Has(RAYLEIGH_ALPHA)) {
+        return rProperties[RAYLEIGH_ALPHA];
     } else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA)) {
         return rCurrentProcessInfo[RAYLEIGH_ALPHA];
     }
@@ -74,13 +161,13 @@ double GetRayleighAlpha(
 /***********************************************************************************/
 
 double GetRayleighBeta(
-    const Properties& rProperites,
+    const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Giving the locally defined setting (through Properties) priority
     // over the globally defined one (through ProcessInfo)
-    if (rProperites.Has(RAYLEIGH_BETA)) {
-        return rProperites[RAYLEIGH_BETA];
+    if (rProperties.Has(RAYLEIGH_BETA)) {
+        return rProperties[RAYLEIGH_BETA];
     } else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA)) {
         return rCurrentProcessInfo[RAYLEIGH_BETA];
     }
