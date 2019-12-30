@@ -222,7 +222,7 @@ namespace Kratos
         rKinematicVariables.dA = norm_2(rKinematicVariables.a3_tilde);
 
         //base vector 3 normalized
-        rKinematicVariables.a3 = rKinematicVariables.a3_tilde / rKinematicVariables.dA;
+        noalias(rKinematicVariables.a3) = rKinematicVariables.a3_tilde / rKinematicVariables.dA;
 
 
         //GetCovariantMetric
