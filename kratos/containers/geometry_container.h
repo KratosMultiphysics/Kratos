@@ -76,18 +76,18 @@ public:
 
     /// Default Constructor
     GeometryContainer()
-        , mpGeometries(new GeometriesContainerType())
+        : mpGeometries(new GeometriesContainerType())
     {}
 
     /// Copy Constructor
     GeometryContainer(GeometryContainer const& rOther)
-        , mpGeometries(rOther.mpGeometries)
+        : mpGeometries(rOther.mpGeometries)
     {}
 
     /// Components Constructor
     GeometryContainer(
         typename GeometriesContainerType::Pointer NewGeometries)
-        , mpGeometries(NewGeometries)
+        : mpGeometries(NewGeometries)
     {}
 
     /// Destructor
