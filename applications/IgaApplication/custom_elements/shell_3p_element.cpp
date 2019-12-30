@@ -256,7 +256,7 @@ namespace Kratos
             (rKinematicVariables.a_ab_covariant[0] * rKinematicVariables.a_ab_covariant[1]
                 - rKinematicVariables.a_ab_covariant[2] * rKinematicVariables.a_ab_covariant[2]);
 
-        array_1d<double, 3> a_ab_contravariant = ZeroVector(3);
+        array_1d<double, 3> a_ab_contravariant;
         a_ab_contravariant[0] =  inv_det_g_ab * rKinematicVariables.a_ab_covariant[1];
         a_ab_contravariant[1] =  inv_det_g_ab * rKinematicVariables.a_ab_covariant[0];
         a_ab_contravariant[2] = -inv_det_g_ab * rKinematicVariables.a_ab_covariant[2];
@@ -282,8 +282,8 @@ namespace Kratos
         //Transformation matrix T
         if (rT.size1() != 3 && rT.size2() != 3)
             rT.resize(3, 3);
+        noalias(rT) = ZeroMatrix(3, 3);
 
-        rT = ZeroMatrix(3, 3);
         rT(0, 0) = pow(G(0, 0), 2);
         rT(0, 1) = pow(G(0, 1), 2);
         rT(0, 2) = 2 * G(0, 0) * G(0, 1);
