@@ -94,21 +94,11 @@ namespace Kratos
                 auto it_node = mrModelPart.NodesBegin() + i_node;
                 // Retrieve current time step local variable
                 double variable_current = it_node->GetSolutionStepValue(r_reference_var);
-                // Retrieve power sums
-                const double S1_old = it_node->GetValue(POWER_SUM_1);
-                const double S2_old = it_node->GetValue(POWER_SUM_2);
-                const double S3_old = it_node->GetValue(POWER_SUM_3);
-                const double S4_old = it_node->GetValue(POWER_SUM_4);
                 // Update power sums
-                const double S1 = S1_old + std::pow(variable_current,1);
-                const double S2 = S2_old + std::pow(variable_current,2);
-                const double S3 = S3_old + std::pow(variable_current,3);
-                const double S4 = S4_old + std::pow(variable_current,4);
-                // Set power sums
-                it_node->SetValue(POWER_SUM_1,S1);
-                it_node->SetValue(POWER_SUM_2,S2);
-                it_node->SetValue(POWER_SUM_3,S3);
-                it_node->SetValue(POWER_SUM_4,S4);
+                it_node->GetValue(POWER_SUM_1) += std::pow(variable_current,1);
+                it_node->GetValue(POWER_SUM_2) += std::pow(variable_current,2);
+                it_node->GetValue(POWER_SUM_3) += std::pow(variable_current,3);
+                it_node->GetValue(POWER_SUM_4) += std::pow(variable_current,4);
             }
         }
         else {
