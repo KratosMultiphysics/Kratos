@@ -79,8 +79,8 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(model_part.pGetGeometry(1)->Id(), 1);
 
         // check remove functions
-        geometry_container.RemoveGeometry("GeometryLine1");
-        geometry_container.RemoveGeometryFromAllLevels(1);
+        model_part_lines.RemoveGeometry("GeometryLine1");
+        model_part_lines.RemoveGeometryFromAllLevels(1);
         KRATOS_CHECK_EQUAL(model_part_lines.NumberOfGeometries(), 1);
         KRATOS_CHECK_EQUAL(model_part.NumberOfGeometries(), 2);
         KRATOS_CHECK_EQUAL(model_part.NumberOfGeometries(), 2);
