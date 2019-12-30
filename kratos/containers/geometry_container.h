@@ -76,23 +76,22 @@ public:
 
     /// Default Constructor
     GeometryContainer()
-        , mpGeometries(new GeometriesContainerType())
+        : mpGeometries(new GeometriesContainerType())
     {}
 
     /// Copy Constructor
     GeometryContainer(GeometryContainer const& rOther)
-        , mpGeometries(rOther.mpGeometries)
+        : mpGeometries(rOther.mpGeometries)
     {}
 
     /// Components Constructor
     GeometryContainer(
         typename GeometriesContainerType::Pointer NewGeometries)
-        , mpGeometries(NewGeometries)
+        : mpGeometries(NewGeometries)
     {}
 
     /// Destructor
-    ~GeometryContainer() override
-    {}
+    ~GeometryContainer() = default;
 
     ///@}
     ///@name Operations
@@ -277,19 +276,19 @@ public:
     ///@{
 
     /// Return information
-    std::string Info() const override
+    std::string Info() const
     {
         return "GeometryContainer";
     }
 
     /// Print information about this object
-    void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const
     {
         rOStream << "Number of Geometries: " << mpGeometries->size() << std::endl;
     }
@@ -321,12 +320,12 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const
     {
         rSerializer.save("pGeometries", mpGeometries);
     }
 
-    void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer)
     {
         rSerializer.load("pGeometries", mpGeometries);
     }
