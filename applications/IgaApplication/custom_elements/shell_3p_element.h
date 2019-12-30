@@ -290,14 +290,6 @@ public:
         int Step) override;
 
     ///@}
-    ///@name Geometrical Functions
-    ///@{
-
-    void CalculateHessian(
-        Matrix& Hessian,
-        const Matrix& DDN_DDe);
-
-    ///@}
     ///@name Check
     ///@{
 
@@ -423,6 +415,14 @@ private:
         const SecondVariations& rSecondVariationsStrain,
         const Vector& rSD,
         const double IntegrationWeight);
+
+    ///@}
+    ///@name Geometrical Functions
+    ///@{
+
+    void CalculateHessian(
+        Matrix& Hessian,
+        const Matrix& DDN_DDe);
 
     ///@}
     ///@name Serialization
