@@ -61,6 +61,7 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTest(mapper_test('test_execution'))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([WrlIOTest]))
+    smallSuite.addTest(trust_region_projector_test('test_execution'))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
@@ -77,7 +78,6 @@ def AssembleTestSuites():
     nightSuite.addTest(algorithm_steepest_descent_test('test_execution'))
     nightSuite.addTest(algorithm_penalized_projection_test('test_execution'))
     nightSuite.addTest(algorithm_trust_region_test('test_execution'))
-    nightSuite.addTest(trust_region_projector_test('test_execution'))
     nightSuite.addTest(opt_process_multiobjective_test('test_execution'))
     nightSuite.addTest(opt_process_stress_test('test_execution'))
     nightSuite.addTest(sensitivity_verification_semi_analytic_process_test('test_execution'))
