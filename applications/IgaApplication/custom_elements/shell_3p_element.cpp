@@ -321,7 +321,7 @@ namespace Kratos
         rValues.SetStressVector(rThisConstitutiveVariablesMembrane.StressVector);    //this is an ouput parameter
         rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix); //this is an ouput parameter
 
-        mConstitutiveLawVector[0]->CalculateMaterialResponse(rValues, ThisStressMeasure);
+        mConstitutiveLawVector[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
 
         double thickness = this->GetProperties().GetValue(THICKNESS);
         rThisConstitutiveVariablesCurvature.ConstitutiveMatrix = rThisConstitutiveVariablesMembrane.ConstitutiveMatrix*(pow(thickness, 2) / 12);
