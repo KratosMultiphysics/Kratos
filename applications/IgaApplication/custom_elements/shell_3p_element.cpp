@@ -79,13 +79,13 @@ namespace Kratos
         const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
         //Constitutive Law initialisation
-        if (m_constitutive_law_vector.size() != r_number_of_integration_points)
-            m_constitutive_law_vector.resize(r_number_of_integration_points);
+        if (mConstitutiveLawVector.size() != r_number_of_integration_points)
+            mConstitutiveLawVector.resize(r_number_of_integration_points);
 
 
-        for (IndexType point_number = 0; point_number < m_constitutive_law_vector.size(); ++point_number) {
-            m_constitutive_law_vector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-            m_constitutive_law_vector[point_number]->InitializeMaterial(r_properties, r_geometry, row(r_N, point_number));
+        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
+            mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+            mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, row(r_N, point_number));
         }
 
         KRATOS_CATCH("");
@@ -321,7 +321,7 @@ namespace Kratos
         rValues.SetStressVector(rThisConstitutiveVariablesMembrane.StressVector);    //this is an ouput parameter
         rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix); //this is an ouput parameter
 
-        m_constitutive_law_vector[0]->CalculateMaterialResponse(rValues, ThisStressMeasure);
+        mConstitutiveLawVector[0]->CalculateMaterialResponse(rValues, ThisStressMeasure);
 
         double thickness = this->GetProperties().GetValue(THICKNESS);
         rThisConstitutiveVariablesCurvature.ConstitutiveMatrix = rThisConstitutiveVariablesMembrane.ConstitutiveMatrix*(pow(thickness, 2) / 12);

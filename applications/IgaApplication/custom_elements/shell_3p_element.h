@@ -345,7 +345,7 @@ private:
     std::vector<Matrix> m_T_vector;
 
     /// The vector containing the constitutive laws for all integration points.
-    std::vector<ConstitutiveLaw::Pointer> m_constitutive_law_vector;
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
     ///@}
     ///@name Operations
@@ -437,7 +437,7 @@ private:
         rSerializer.save("B_ab_covariant_vector", m_B_ab_covariant_vector);
         rSerializer.save("dA_vector", m_dA_vector);
         rSerializer.save("T_vector", m_T_vector);
-        rSerializer.save("constitutive_law_vector", m_constitutive_law_vector);
+        rSerializer.save("constitutive_law_vector", mConstitutiveLawVector);
     }
 
     void load(Serializer& rSerializer) override
@@ -447,7 +447,7 @@ private:
         rSerializer.load("B_ab_covariant_vector", m_B_ab_covariant_vector);
         rSerializer.load("dA_vector", m_dA_vector);
         rSerializer.load("T_vector", m_T_vector);
-        rSerializer.load("constitutive_law_vector", m_constitutive_law_vector);
+        rSerializer.load("constitutive_law_vector", mConstitutiveLawVector);
     }
 
     ///@}
