@@ -51,14 +51,14 @@ protected:
         */
         KinematicVariables(SizeType Dimension)
         {
-            a_ab_covariant = ZeroVector(Dimension);
-            b_ab_covariant = ZeroVector(Dimension);
+            noalias(a_ab_covariant) = ZeroVector(Dimension);
+            noalias(b_ab_covariant) = ZeroVector(Dimension);
 
-            a1 = ZeroVector(Dimension);
-            a2 = ZeroVector(Dimension);
-            a3 = ZeroVector(Dimension);
+            noalias(a1) = ZeroVector(Dimension);
+            noalias(a2) = ZeroVector(Dimension);
+            noalias(a3) = ZeroVector(Dimension);
 
-            a3_tilde = ZeroVector(Dimension);
+            noalias(a3_tilde) = ZeroVector(Dimension);
 
             dA = 1.0;
         }
