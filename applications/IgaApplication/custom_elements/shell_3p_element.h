@@ -192,7 +192,7 @@ public:
 
         if (rRightHandSideVector.size() != mat_size)
             rRightHandSideVector.resize(mat_size);
-        rRightHandSideVector = ZeroVector(mat_size);
+        noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
         MatrixType left_hand_side_matrix;
 
@@ -241,7 +241,7 @@ public:
 
         if (rRightHandSideVector.size() != mat_size)
             rRightHandSideVector.resize(mat_size);
-        rRightHandSideVector = ZeroVector(mat_size);
+        noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
         if (rLeftHandSideMatrix.size1() != mat_size)
             rLeftHandSideMatrix.resize(mat_size, mat_size);
