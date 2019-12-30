@@ -433,7 +433,7 @@ namespace Kratos
             b(2, index + 2) = 0 - (r_DDN_DDe(2, i) * rActualKinematic.a3[2] + H(0, 2) * dn(2, 0) + H(1, 2) * dn(2, 1) + H(2, 2) * dn(2, 2));
         }
 
-        rB = -prod(m_T_vector[IntegrationPointIndex], b);
+        noalias(rB) = -prod(m_T_vector[IntegrationPointIndex], b);
 
         KRATOS_CATCH("")
     }
