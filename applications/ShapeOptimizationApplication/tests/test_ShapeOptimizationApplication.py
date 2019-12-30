@@ -65,6 +65,7 @@ def AssembleTestSuites():
     smallSuite.addTest(in_plane_opt_test('test_execution'))
     smallSuite.addTest(packaging_plane_based_test('test_execution'))
     smallSuite.addTest(packaging_mesh_based_test('test_execution'))
+    smallSuite.addTest(opt_process_shell_test('test_execution'))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
