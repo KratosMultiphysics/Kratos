@@ -26,9 +26,13 @@ namespace Kratos {
 namespace Testing {
 
     Line3D2<Node<3>>::Pointer GenerateLineModelPartGeometryContainer() {
+        PointerVector<Node<3>> points;
+
+        points.push_back(Node<3>::Pointer(new Node<3>(1, 0, 5, 0)));
+        points.push_back(Node<3>::Pointer(new Node<3>(2, 5, 5, 0)));
+
         return Kratos::make_shared<Line3D2<Node<3>>>(
-            Kratos::make_shared<Node<3>>(0, 0.0, 0.0, 0.0),
-            Kratos::make_shared<Node<3>>(1, 1.0, 1.0, 1.0)
+            points
             );
     }
 
