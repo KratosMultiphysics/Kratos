@@ -341,11 +341,11 @@ namespace Kratos
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;
 
-        const Matrix r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
+        const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
 
         if (rB.size1() != mat_size || rB.size2() != mat_size)
             rB.resize(mat_size, mat_size);
-        rB = ZeroMatrix(3, mat_size);
+        noalias(rB) = ZeroMatrix(3, mat_size);
 
         for (IndexType r = 0; r < mat_size; r++)
         {
@@ -353,7 +353,7 @@ namespace Kratos
             IndexType kr = r / 3;
             IndexType dirr = r % 3;
 
-            array_1d<double, 3> dE_curvilinear = ZeroVector(3);
+            array_1d<double, 3> dE_curvilinear;
             // strain
             dE_curvilinear[0] = r_DN_De(0, kr)*rActualKinematic.a1(dirr);
             dE_curvilinear[1] = r_DN_De(1, kr)*rActualKinematic.a2(dirr);
