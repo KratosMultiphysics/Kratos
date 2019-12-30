@@ -34,7 +34,7 @@ namespace Kratos
 ///@{
 
 template<class TGeometryType>
-class GeometryContainer : public DataValueContainer, public Flags
+class GeometryContainer
 {
     class GetGeometryId : public std::unary_function<const TGeometryType* const, std::size_t>
     {
@@ -76,20 +76,17 @@ public:
 
     /// Default Constructor
     GeometryContainer()
-        : Flags()
         , mpGeometries(new GeometriesContainerType())
     {}
 
     /// Copy Constructor
     GeometryContainer(GeometryContainer const& rOther)
-        : Flags(rOther)
         , mpGeometries(rOther.mpGeometries)
     {}
 
     /// Components Constructor
     GeometryContainer(
         typename GeometriesContainerType::Pointer NewGeometries)
-        : Flags()
         , mpGeometries(NewGeometries)
     {}
 
@@ -110,8 +107,6 @@ public:
 
     void Clear()
     {
-        Flags::Clear();
-        DataValueContainer::Clear();
         mpGeometries->clear();
     }
 
@@ -328,15 +323,11 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DataValueContainer );
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
         rSerializer.save("pGeometries", mpGeometries);
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DataValueContainer );
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
         rSerializer.load("pGeometries", mpGeometries);
     }
 
