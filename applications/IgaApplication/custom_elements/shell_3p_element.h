@@ -194,7 +194,7 @@ public:
             rRightHandSideVector.resize(mat_size);
         rRightHandSideVector = ZeroVector(mat_size);
 
-        MatrixType left_hand_side_matrix = Matrix(0, 0);
+        MatrixType left_hand_side_matrix;
 
         CalculateAll(left_hand_side_matrix, rRightHandSideVector,
             rCurrentProcessInfo, false, true);
@@ -213,7 +213,7 @@ public:
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType mat_size = number_of_nodes * 3;
 
-        VectorType right_hand_side_vector = Vector(0);
+        VectorType right_hand_side_vector;
 
         if (rLeftHandSideMatrix.size1() != mat_size)
             rLeftHandSideMatrix.resize(mat_size, mat_size);
