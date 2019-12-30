@@ -26,9 +26,10 @@ namespace Kratos {
 namespace Testing {
 
     typename Geometry<Node<3>>::Pointer GenerateLineModelPartGeometryContainer() {
-        return Kratos::make_shared<Line3D2<Node<3>>>(
+        return Kratos::make_shared<Geometry<Node<3>>>(
+            new Line3D2<Node<3>>(
             Kratos::make_shared<Node<3>>(0, 0.0, 0.0, 0.0),
-            Kratos::make_shared<Node<3>>(1, 1.0, 1.0, 1.0)
+            Kratos::make_shared<Node<3>>(1, 1.0, 1.0, 1.0))
             );
     }
 
