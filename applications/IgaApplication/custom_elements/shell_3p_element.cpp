@@ -311,10 +311,10 @@ namespace Kratos
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
         array_1d<double, 3> strain_vector = 0.5 * (rActualKinematic.a_ab_covariant - m_A_ab_covariant_vector[IntegrationPointIndex]);
-        rThisConstitutiveVariablesMembrane.StrainVector = prod(m_T_vector[IntegrationPointIndex], strain_vector);
+        noalias(rThisConstitutiveVariablesMembrane.StrainVector) = prod(m_T_vector[IntegrationPointIndex], strain_vector);
 
         array_1d<double, 3> curvature_vector = rActualKinematic.b_ab_covariant - m_B_ab_covariant_vector[IntegrationPointIndex];
-        rThisConstitutiveVariablesCurvature.StrainVector = prod(m_T_vector[IntegrationPointIndex], curvature_vector);
+        noalias(rThisConstitutiveVariablesCurvature.StrainVector) = prod(m_T_vector[IntegrationPointIndex], curvature_vector);
 
         // Constitive Matrices DMembrane and DCurvature
         rValues.SetStrainVector(rThisConstitutiveVariablesMembrane.StrainVector); //this is the input parameter
@@ -324,12 +324,12 @@ namespace Kratos
         mConstitutiveLawVector[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
 
         double thickness = this->GetProperties().GetValue(THICKNESS);
-        rThisConstitutiveVariablesCurvature.ConstitutiveMatrix = rThisConstitutiveVariablesMembrane.ConstitutiveMatrix*(pow(thickness, 2) / 12);
+        noalias(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix) = rThisConstitutiveVariablesMembrane.ConstitutiveMatrix*(pow(thickness, 2) / 12);
 
         //Local Cartesian Forces and Moments
-        rThisConstitutiveVariablesMembrane.StressVector = prod(
+        noalias(rThisConstitutiveVariablesMembrane.StressVector) = prod(
             trans(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix), rThisConstitutiveVariablesMembrane.StrainVector);
-        rThisConstitutiveVariablesCurvature.StressVector = prod(
+        noalias(rThisConstitutiveVariablesCurvature.StressVector) = prod(
             trans(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix), rThisConstitutiveVariablesCurvature.StrainVector);
     }
 
