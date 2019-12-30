@@ -734,7 +734,7 @@ namespace Kratos
 
     void Shell3pElement::CalculateHessian(
         Matrix& Hessian,
-        const Matrix& DDN_DDe)
+        const Matrix& rDDN_DDe)
     {
         const SizeType number_of_points = GetGeometry().size();
         const SizeType working_space_dimension = 3;
@@ -745,17 +745,17 @@ namespace Kratos
         {
             const array_1d<double, 3> coords = GetGeometry()[k].Coordinates();
 
-            Hessian(0, 0) += DDN_DDe(k, 0)*coords[0];
-            Hessian(0, 1) += DDN_DDe(k, 2)*coords[0];
-            Hessian(0, 2) += DDN_DDe(k, 1)*coords[0];
+            Hessian(0, 0) += rDDN_DDe(k, 0)*coords[0];
+            Hessian(0, 1) += rDDN_DDe(k, 2)*coords[0];
+            Hessian(0, 2) += rDDN_DDe(k, 1)*coords[0];
 
-            Hessian(1, 0) += DDN_DDe(k, 0)*coords[1];
-            Hessian(1, 1) += DDN_DDe(k, 2)*coords[1];
-            Hessian(1, 2) += DDN_DDe(k, 1)*coords[1];
+            Hessian(1, 0) += rDDN_DDe(k, 0)*coords[1];
+            Hessian(1, 1) += rDDN_DDe(k, 2)*coords[1];
+            Hessian(1, 2) += rDDN_DDe(k, 1)*coords[1];
 
-            Hessian(2, 0) += DDN_DDe(k, 0)*coords[2];
-            Hessian(2, 1) += DDN_DDe(k, 2)*coords[2];
-            Hessian(2, 2) += DDN_DDe(k, 1)*coords[2];
+            Hessian(2, 0) += rDDN_DDe(k, 0)*coords[2];
+            Hessian(2, 1) += rDDN_DDe(k, 2)*coords[2];
+            Hessian(2, 2) += rDDN_DDe(k, 1)*coords[2];
         }
     }
 

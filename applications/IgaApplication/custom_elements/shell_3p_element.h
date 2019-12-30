@@ -422,7 +422,7 @@ private:
 
     void CalculateHessian(
         Matrix& Hessian,
-        const Matrix& DDN_DDe);
+        const Matrix& rDDN_DDe);
 
     ///@}
     ///@name Serialization
