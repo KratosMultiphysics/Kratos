@@ -6,6 +6,8 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.DEMApplication.DEM_restart_utility import DEMRestartUtility
+#
+import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
 
 from importlib import import_module
 
@@ -652,6 +654,33 @@ class DEMAnalysisStage(AnalysisStage):
         if "post_vtk_option" in self.DEM_parameters.keys():
             if self.DEM_parameters["post_vtk_option"].GetBool():
                 self.vtk_output.WriteResults(self.time)
+
+        #
+        DemFem.DemStructuresCouplingUtilities().MarkBrokenSpheres(self.spheres_model_part)
+
+        center = Array3()
+        center[0] = 0; # self.sp_parameters["problem_data"]["center"][0].GetDouble()
+        center[1] = 0; # self.sp_parameters["problem_data"]["center"][1].GetDouble()
+        center[2] = 0; # self.sp_parameters["problem_data"]["center"][2].GetDouble()
+        axis = Array3()
+        axis[0] = 0; # self.sp_parameters["problem_data"]["axis"][0].GetDouble()
+        axis[1] = 0; # self.sp_parameters["problem_data"]["axis"][1].GetDouble()
+        axis[2] = 1; # self.sp_parameters["problem_data"]["axis"][2].GetDouble()
+
+        radius = 0
+        self.test_number = 1
+        if self.test_number == 1:
+            radius = 0.0036195; #0.01; #0.0036195; #95% of the real hole. CTW16 specimen
+        elif self.test_number == 2:
+            radius = 0.012065; #95% of the real hole. CTW10 specimen
+        elif self.test_number == 3:
+            radius = 0.036195; #95% of the real hole. Blind Test
+
+        self.creator_destructor.MarkParticlesForErasingGivenCylinder(self.spheres_model_part, center, axis, radius)
+
+        DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(self.spheres_model_part, self.rigid_face_model_part, self.time)
+        DemFem.DemStructuresCouplingUtilities().ComputeSandProduction(self.spheres_model_part, self.rigid_face_model_part, self.time)
+        #
 
     def GraphicalOutputFinalize(self):
         self.demio.FinalizeMesh()

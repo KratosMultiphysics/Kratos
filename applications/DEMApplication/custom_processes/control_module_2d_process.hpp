@@ -79,6 +79,8 @@ public:
         mReactionStressOld = 0.0;
         mStiffness = rParameters["young_modulus"].GetDouble()*rParameters["face_area"].GetDouble()/mCompressionLength;
 
+        mrModelPart.GetProcessInfo()[REACTION_STRESS_Z] = 0.0;
+
         KRATOS_CATCH("");
     }
 
@@ -388,8 +390,12 @@ public:
                     it->FastGetSolutionStepValue(REACTION_STRESS_Y) = ReactionStress * sin_theta;
                     it->FastGetSolutionStepValue(LOADING_VELOCITY_X) = mVelocity * cos_theta;
                     it->FastGetSolutionStepValue(LOADING_VELOCITY_Y) = mVelocity * sin_theta;
+
+                    mrModelPart.GetProcessInfo()[REACTION_STRESS_Z] = std::abs(ReactionStress);
                 }
             }
+
+            //mrModelPart.GetProcessInfo()[REACTION_STRESS_Z] = std::abs(ReactionStress);
         }
 
         KRATOS_CATCH("");

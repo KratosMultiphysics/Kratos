@@ -127,8 +127,10 @@ void ComputeSandProduction(ModelPart& dem_model_part, ModelPart& outer_walls_mod
     static const double initial_total_mass_in_grams = current_total_mass_in_grams;
     const double cumulative_sand_mass_in_grams = initial_total_mass_in_grams - current_total_mass_in_grams;
 
-    ModelPart::ConditionsContainerType::iterator condition_begin = outer_walls_model_part.ConditionsBegin();
-    const double face_pressure_in_psi = condition_begin->GetValue(POSITIVE_FACE_PRESSURE) * 0.000145;
+    //ModelPart::ConditionsContainerType::iterator condition_begin = outer_walls_model_part.ConditionsBegin();
+    //const double face_pressure_in_psi = condition_begin->GetValue(POSITIVE_FACE_PRESSURE) * 0.000145;
+    ProcessInfo& r_process_info = outer_walls_model_part.GetProcessInfo();
+    const double face_pressure_in_psi = fabs(r_process_info[REACTION_STRESS_Z]) * 0.000145;
 
     static std::ofstream sand_prod_file("sand_production_graph.txt", std::ios_base::out | std::ios_base::app);
     sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
@@ -166,7 +168,7 @@ void ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(ModelPa
     std::ifstream sand_prod_ifile(sand_prod_filename.c_str());
     std::ifstream granulometry_distr_ifile(granulometry_distr_filename.c_str());
     static bool first_time_entered = true;
-    if (((bool) sand_prod_ifile || (bool) granulometry_distr_ifile) && first_time_entered) {
+    if (false) { //(((bool) sand_prod_ifile || (bool) granulometry_distr_ifile) && first_time_entered) {
         if ((bool) sand_prod_ifile) std::remove(sand_prod_filename.c_str());
         if ((bool) granulometry_distr_ifile) std::remove(granulometry_distr_filename.c_str());
         first_time_entered = false;
@@ -217,8 +219,11 @@ void ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(ModelPa
     static const double initial_total_mass_in_grams = current_total_mass_in_grams;
     const double cumulative_sand_mass_in_grams = initial_total_mass_in_grams - current_total_mass_in_grams;
 
-    ModelPart::ConditionsContainerType::iterator condition_begin = outer_walls_model_part.ConditionsBegin();
-    const double face_pressure_in_psi = condition_begin->GetValue(POSITIVE_FACE_PRESSURE) * 0.000145;
+    //ModelPart::ConditionsContainerType::iterator condition_begin = outer_walls_model_part.ConditionsBegin();
+    //const double face_pressure_in_psi = condition_begin->GetValue(POSITIVE_FACE_PRESSURE) * 0.000145;
+    //ProcessInfo& r_process_info = dem_model_part.GetProcessInfo();
+    ProcessInfo& r_process_info = outer_walls_model_part.GetProcessInfo();
+    const double face_pressure_in_psi = fabs(r_process_info[REACTION_STRESS_Z]) * 0.000145;
 
     static std::ofstream sand_prod_file(sand_prod_filename, std::ios_base::out | std::ios_base::app);
     sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
