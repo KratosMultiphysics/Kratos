@@ -143,7 +143,11 @@ install(TARGETS KratosFluidDynamicsCore DESTINATION libs )
 install(TARGETS KratosFluidDynamicsApplication DESTINATION libs )
 
 ## If trilinos is avaliable, switch on the Fluid trilinos extension
+<<<<<<< HEAD
 if((${USE_MPI} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON))
+=======
+if(${USE_MPI})
+>>>>>>> master
   message("Enabling trilinos extension for KratosFluidDynamicsApplication")
   add_subdirectory(trilinos_extension)
-endif((${USE_MPI} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON) )
+endif(${USE_MPI})

@@ -200,7 +200,7 @@ void ReadMaterialsUtility::AssingConstitutiveLawToProperty(
         cl_parameters["name"].SetString(constitutive_law_name);
 
         KRATOS_ERROR_IF_NOT(KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name)) << "Kratos components missing \"" << constitutive_law_name << "\"" << std::endl;
-        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name).Create(cl_parameters);
+        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name).Create(cl_parameters, rProperty);
         rProperty.SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
     } else {
         KRATOS_INFO("Read materials") << "No constitutive law defined for material ID: " << rProperty.Id() << std::endl;
