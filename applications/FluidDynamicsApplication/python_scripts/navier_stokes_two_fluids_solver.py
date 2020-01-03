@@ -168,13 +168,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.level_set_convection_process = self._set_level_set_convection_process()
 
         self.parallel_distance_process = self._set_parallel_distance_process()
-        #(self.parallel_distance_process).CalculateDistances(
-        #            self.main_model_part, 
-        #            KratosMultiphysics.DISTANCE, 
-        #            KratosCFD.AREA_VARIABLE_AUX, 
-        #            2000, 
-        #            0.05,
-        #            (self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
+        (self.parallel_distance_process).CalculateDistances(
+                    self.main_model_part, 
+                    KratosMultiphysics.DISTANCE, 
+                    KratosCFD.AREA_VARIABLE_AUX, 
+                    2000, 
+                    0.05,
+                    (self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
         self.variational_distance_process = self._set_variational_distance_process()
         #(self.variational_distance_process).Execute()
@@ -240,21 +240,22 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
 
             # Correct the distance function according to volume conservation
-            if (TimeStep % 1 == 0):
-                (self.mass_conservation_correction).ExecuteInTimeStep();
+            # Check the JASON properties file for duplicate processes!
+            #if (TimeStep % 1 == 0):
+            #    (self.mass_conservation_correction).ExecuteInTimeStep();
 
             # Recompute the distance field according to the new level-set position
             #if (TimeStep % 1 == 0):
             #    (self.variational_distance_process).Execute()
 
             # Recompute the distance field according to the new level-set position
-            #if (TimeStep % 1 == 0):
-            #    (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
-            #        self.main_model_part, 
-            #        KratosMultiphysics.DISTANCE, 
-            #        KratosCFD.AREA_VARIABLE_AUX, 
-            #        500, 
-            #        0.02)#,
+            if (TimeStep % 1 == 0):
+                (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
+                    self.main_model_part, 
+                    KratosMultiphysics.DISTANCE, 
+                    KratosCFD.AREA_VARIABLE_AUX, 
+                    500, 
+                    0.02)#,
                     #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
             # Smoothing the surface to filter oscillatory surface
