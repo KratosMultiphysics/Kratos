@@ -21,8 +21,6 @@
 #include "includes/define.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
 #include "custom_processes/weighted_divergence_calculation_process.h"
 #include "custom_processes/metrics_divergencefree_process.h"
 
@@ -33,10 +31,6 @@ namespace Python {
 void AddCustomProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
-
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     py::class_<WeightedDivergenceCalculationProcess, WeightedDivergenceCalculationProcess::Pointer, Process >
         (m, "WeightedDivergenceCalculationProcess")
