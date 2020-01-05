@@ -14,6 +14,7 @@ from __future__ import print_function, absolute_import, division
 # Kratos Core and Apps
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
+from .mapping import in_plane_vertex_morphing_mapper
 
 # ==============================================================================
 def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
@@ -26,12 +27,16 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         "consistent_mapping"         : false,
         "improved_integration"       : false,
         "integration_method"         : "gauss_integration",
-        "number_of_gauss_points"     : 5
+        "number_of_gauss_points"     : 5,
+        "in_plane_morphing"                   : false,
+        "in_plane_morphing_settings"          : {}
     }""")
 
-    mapper_settings.RecursivelyValidateAndAssignDefaults(default_settings)
+    mapper_settings.ValidateAndAssignDefaults(default_settings)
 
-    if mapper_settings["matrix_free_filtering"].GetBool():
+    if mapper_settings["in_plane_morphing"].GetBool():
+        return in_plane_vertex_morphing_mapper.InPlaneVertexMorphingMapper(origin_model_part, destination_model_part, mapper_settings)
+    elif mapper_settings["matrix_free_filtering"].GetBool():
         if mapper_settings["consistent_mapping"].GetBool():
              raise ValueError ("Matrix free mapper has no option to map consistently yet!")
         if mapper_settings["improved_integration"].GetBool():
