@@ -691,7 +691,114 @@ bool DetermineIfCompatibleGeometries(ModelPart& rModelPart)
 {
     KRATOS_TRY
     
-    bool compatible_geometries = false;
+    bool compatible_geometries = true;
+    
+    // Define specifications
+    Parameters specifications;
+    
+    // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
+    const auto& r_elements_array = rModelPart.Elements();
+    if (r_elements_array.size() > 0) {
+        std::string element_name;
+        const auto it_elem_begin = r_elements_array.begin();
+        
+        // Getting geometry type
+        const auto& r_geometry = it_elem_begin->GetGeometry();
+        const auto& r_geometry_type = r_geometry.GetGeometryType();
+        
+        specifications = it_elem_begin->GetSpecifications();
+        CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
+        if (specifications.Has("compatible_geometries")) {
+            const std::vector<std::string> compatible_geometries = specifications["compatible_geometries"].GetStringArray();
+            for (auto& r_geometry_name : compatible_geometries) {
+                if (r_geometry_type != string_geometry_map[r_geometry_name]) {
+                    CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
+                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "is not compatible with the following geometry: " << r_geometry_name << std::endl; 
+                    return false;
+                }
+            }
+        }
+            
+        // Now we iterate over all the elements
+        for(std::size_t i = 1; i < r_elements_array.size(); i++) {
+            const auto it_elem_previous = it_elem_begin + i - 1;
+            const auto it_elem_current = it_elem_begin + i;
+            
+            if(!GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
+                specifications = it_elem_current->GetSpecifications();
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
+              
+                // Getting geometry type
+                const auto& r_geometry = it_elem_current->GetGeometry();
+                const auto& r_geometry_type = r_geometry.GetGeometryType();
+                
+                specifications = it_elem_current->GetSpecifications();
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
+                if (specifications.Has("compatible_geometries")) {
+                    const std::vector<std::string> compatible_geometries = specifications["compatible_geometries"].GetStringArray();
+                    for (auto& r_geometry_name : compatible_geometries) {
+                        if (r_geometry_type != string_geometry_map[r_geometry_name]) {
+                            CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
+                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "is not compatible with the following geometry: " << r_geometry_name << std::endl; 
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // We are going to procede like the following, we are going to iterate over all the conditions and compare with the components, we will save the type and we will compare until we get that the type of condition has changed
+    const auto& r_conditions_array = rModelPart.Conditions();
+    if (r_conditions_array.size() > 0) {
+        std::string condition_name;
+        const auto it_cond_begin = r_conditions_array.begin();
+        
+        // Getting geometry type
+        const auto& r_geometry = it_cond_begin->GetGeometry();
+        const auto& r_geometry_type = r_geometry.GetGeometryType();
+        
+        specifications = it_cond_begin->GetSpecifications();
+        CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
+        if (specifications.Has("compatible_geometries")) {
+            const std::vector<std::string> compatible_geometries = specifications["compatible_geometries"].GetStringArray();
+            for (auto& r_geometry_name : compatible_geometries) {
+                if (r_geometry_type != string_geometry_map[r_geometry_name]) {
+                    CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
+                    KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "is not compatible with the following geometry: " << r_geometry_name << std::endl; 
+                    return false;
+                }
+            }
+        }
+            
+        // Now we iterate over all the conditions
+        for(std::size_t i = 1; i < r_conditions_array.size(); i++) {
+            const auto it_cond_previous = it_cond_begin + i - 1;
+            const auto it_cond_current = it_cond_begin + i;
+            
+            if(!GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
+                specifications = it_cond_current->GetSpecifications();
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
+              
+                // Getting geometry type
+                const auto& r_geometry = it_cond_current->GetGeometry();
+                const auto& r_geometry_type = r_geometry.GetGeometryType();
+                
+                specifications = it_cond_current->GetSpecifications();
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
+                if (specifications.Has("compatible_geometries")) {
+                    const std::vector<std::string> compatible_geometries = specifications["compatible_geometries"].GetStringArray();
+                    for (auto& r_geometry_name : compatible_geometries) {
+                        if (r_geometry_type != string_geometry_map[r_geometry_name]) {
+                            CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
+                            KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << condition_name << "is not compatible with the following geometry: " << r_geometry_name << std::endl; 
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+    }
     
     return compatible_geometries;
     
