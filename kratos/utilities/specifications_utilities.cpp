@@ -1034,8 +1034,99 @@ bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
 {
     KRATOS_TRY
     
-    bool compatible_cl = false;
+    bool compatible_cl = true;
     
+    // Auxiliar things
+    std::vector<ConstitutiveLaw::Pointer> cl_vector;
+    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    ConstitutiveLaw::Features features;    
+    
+    // Define specifications
+    Parameters specifications;
+    
+    // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
+    const auto& r_elements_array = rModelPart.Elements();
+    if (r_elements_array.size() > 0) {
+        std::string element_name;
+        const auto it_elem_begin = r_elements_array.begin();
+        
+        // Getting CL vectors
+        cl_vector.clear();
+        it_elem_begin->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW, cl_vector, r_process_info);
+        
+        specifications = it_elem_begin->GetSpecifications();
+        CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
+        if (specifications.Has("compatible_constitutive_laws")) {
+            const std::vector<std::string> compatible_constitutive_laws_type = specifications["compatible_constitutive_laws"]["type"].GetStringArray();
+            const std::vector<std::string> compatible_constitutive_laws_dimension = specifications["compatible_constitutive_laws"]["dimension"].GetStringArray();
+            const Vector compatible_constitutive_laws_strain_size = specifications["compatible_constitutive_laws"]["strain_size"].GetVector();
+            const std::size_t number_of_cl_compatible = compatible_constitutive_laws_strain_size.size();
+            for (auto& p_cl : cl_vector) {
+                bool check = false;
+                for (std::size_t i = 0; i < number_of_cl_compatible; ++i) {
+                    const std::string& r_type = compatible_constitutive_laws_type[i];
+                    const std::string& r_dimension = compatible_constitutive_laws_dimension[i];
+                    const std::size_t strain_size = compatible_constitutive_laws_strain_size[i];
+                    
+                    // Getting features
+                    p_cl->GetLawFeatures(features);
+                    
+                    if (p_cl->GetStrainSize() == strain_size &&
+                        p_cl->WorkingSpaceDimension() == string_dimension_map[r_dimension] &&
+                        features.mOptions.Is( string_cl_type_map[r_type] )
+                    ) {
+                        check = true;
+                    }
+                }
+                if (!check) {
+                    CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
+                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "is considering a not compatible CL" << std::endl; 
+                    return false;
+                }
+            }
+        }
+            
+        // Now we iterate over all the elements
+        for(std::size_t i = 1; i < r_elements_array.size(); i++) {
+            const auto it_elem_previous = it_elem_begin + i - 1;
+            const auto it_elem_current = it_elem_begin + i;
+            
+            if(!GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
+                specifications = it_elem_current->GetSpecifications();
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
+                if (specifications.Has("compatible_constitutive_laws")) {
+                    const std::vector<std::string> compatible_constitutive_laws_type = specifications["compatible_constitutive_laws"]["type"].GetStringArray();
+                    const std::vector<std::string> compatible_constitutive_laws_dimension = specifications["compatible_constitutive_laws"]["dimension"].GetStringArray();
+                    const Vector compatible_constitutive_laws_strain_size = specifications["compatible_constitutive_laws"]["strain_size"].GetVector();
+                    const std::size_t number_of_cl_compatible = compatible_constitutive_laws_strain_size.size();
+                    for (auto& p_cl : cl_vector) {
+                        bool check = false;
+                        for (std::size_t i = 0; i < number_of_cl_compatible; ++i) {
+                            const std::string& r_type = compatible_constitutive_laws_type[i];
+                            const std::string& r_dimension = compatible_constitutive_laws_dimension[i];
+                            const std::size_t strain_size = compatible_constitutive_laws_strain_size[i];
+                            
+                            // Getting features
+                            p_cl->GetLawFeatures(features);
+                            
+                            if (p_cl->GetStrainSize() == strain_size &&
+                                p_cl->WorkingSpaceDimension() == string_dimension_map[r_dimension] &&
+                                features.mOptions.Is( string_cl_type_map[r_type] )
+                            ) {
+                                check = true;
+                            }
+                        }
+                        if (!check) {
+                            CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
+                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "is considering a not compatible CL" << std::endl; 
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     return compatible_cl;
     
     KRATOS_CATCH("")
