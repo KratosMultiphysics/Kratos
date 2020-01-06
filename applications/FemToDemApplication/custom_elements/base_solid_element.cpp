@@ -1920,6 +1920,32 @@ double BaseSolidElement::GetRayleighBeta(
     return 0.0;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Parameters BaseSolidElement::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({        
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "required_variables"         : ["DISPLACEMENT"],
+        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Line2D2", "Triangle2D3", "Quadrilateral2D4", "Line3D2", "Triangle3D3","Tetrahedra3D4", "Prism3D6", "Hexahedra3D8", "Tetrahedra3D10"],
+        "is_implicit"                : true,
+        "element_integrates_in_time" : true,
+        "compatible_constitutive_laws": {
+            "type"        : ["PlaneStrain","ThreeDimensional"],
+            "dimension"   : ["2D","3D"],
+            "strain_size" : [3,6]
+        }})");
+    return specifications;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void BaseSolidElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element );
