@@ -33,12 +33,12 @@ void ComputeActiveDofs(
     // Base active dofs
     rActiveDofs.resize(rDofSet.size());
 
-    #pragma omp parallel for
+    //PLEASE DO NOT MAKE THIS LOOP PARALLEL - std::vector<bool> cannot be written to in parallel
     for(int i=0; i<static_cast<int>(rActiveDofs.size()); ++i) {
         rActiveDofs[i] = true;
     }
 
-    #pragma omp parallel for
+    //PLEASE DO NOT MAKE THIS LOOP PARALLEL - std::vector<bool> cannot be written to in parallel
     for (int i = 0; i<static_cast<int>(rDofSet.size()); ++i) {
         const auto it_dof = rDofSet.begin() + i;
         if (it_dof->IsFixed()) {

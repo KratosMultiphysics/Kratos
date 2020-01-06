@@ -75,6 +75,7 @@ public:
         typename NurbsCurveType::Pointer pCurve)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface)
+        , mpNurbsCurve(pCurve)
     {
     }
 
