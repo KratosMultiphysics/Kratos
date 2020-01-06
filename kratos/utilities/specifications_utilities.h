@@ -14,12 +14,14 @@
 #define KRATOS_SPECIFICATIONS_UTILITIES
 
 // System includes
+#include <unordered_map>
 
 // External includes
 
 // Project includes
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "geometries/geometry_data.h"
 
 namespace Kratos
 {
