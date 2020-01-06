@@ -82,6 +82,7 @@ def GetDefaultInputParameters():
             "ComputeStressTensorOption"        : false,
             "ImposeZStrainIn2DOption"          : false,
             "ZStrainValue"                     : "0.0*t",
+            "ImposeZStrainIn2DWithControlModule" : false,
             "GlobalDamping"                    : 0.0,
             "PoissonEffectOption"              : true,
             "ShearStrainParallelToBondOption"  : true,
@@ -114,15 +115,15 @@ def GetDefaultInputParameters():
             "output_processes"                 :{},
 
             "material_test_settings" : {
-            "TestType"                         : "None",
-            "ConfinementPressure"              : 0.0,
-            "LoadingVelocity"                  : -0.10,
-            "MeshType"                         : "1",
-            "MeshPath"                         : "0",
-            "SpecimenLength"                   : 0.3,
-            "SpecimenDiameter"                 : 0.15,
-            "MeasuringSurface"                 : 0.01767145867644375},
-
+                "TestType"                         : "None",
+                "ConfinementPressure"              : 0.0,
+                "LoadingVelocity"                  : -0.10,
+                "MeshType"                         : "1",
+                "MeshPath"                         : "0",
+                "SpecimenLength"                   : 0.3,
+                "SpecimenDiameter"                 : 0.15,
+                "MeasuringSurface"                 : 0.01767145867644375
+            },
             "GraphExportFreq"                  : 1e-3,
             "VelTrapGraphExportFreq"           : 1e-3,
             "OutputTimeStep"                   : 1e-2,
@@ -164,6 +165,7 @@ def GetDefaultInputParameters():
             "PostTangentialImpactVelocity"     : false,
             "PostFaceNormalImpactVelocity"     : false,
             "PostFaceTangentialImpactVelocity" : false,
+            "PostControlModule"                : false,
             "post_vtk_option"                  : false,
 
             "IntegrationScheme"                : "deprecated_key_since_6_december_2017",

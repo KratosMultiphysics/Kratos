@@ -98,7 +98,7 @@ public:
             << ", UpdateDisplacement: " << mUpdateDisplacement << "]\n";
 
         // Allocate auxiliary memory.
-        int num_threads = OpenMPUtils::GetNumThreads();
+        const int num_threads = OpenMPUtils::GetNumThreads();
 
         mMassMatrix.resize(num_threads);
         mDampingMatrix.resize(num_threads);
@@ -195,7 +195,7 @@ public:
                                     Element::EquationIdVectorType& rEquationId,
                                     ProcessInfo& rCurrentProcessInfo) override
     {
-        int k = OpenMPUtils::ThisThread();
+        const int k = OpenMPUtils::ThisThread();
 
         // Initializing the non linear iteration for the current element
         (pCurrentElement)->InitializeNonLinearIteration(rCurrentProcessInfo);
@@ -221,7 +221,7 @@ public:
                                                 ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
-        int k = OpenMPUtils::ThisThread();
+        const int k = OpenMPUtils::ThisThread();
 
         (pCurrentCondition)->InitializeNonLinearIteration(rCurrentProcessInfo);
         (pCurrentCondition)->CalculateLocalSystem(rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
@@ -247,7 +247,7 @@ public:
     {
         KRATOS_TRY;
 
-        int k = OpenMPUtils::ThisThread();
+        const int k = OpenMPUtils::ThisThread();
 
         (pCurrentCondition)->InitializeNonLinearIteration(rCurrentProcessInfo);
         (pCurrentCondition)->CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
@@ -391,7 +391,7 @@ protected:
         // adding inertia contribution
         if (rMassMatrix.size1() != 0)
         {
-            int k = OpenMPUtils::ThisThread();
+            const int k = OpenMPUtils::ThisThread();
             rCurrentElement->GetSecondDerivativesVector(
                 mSecondDerivativeValuesVector[k], 0);
             (mSecondDerivativeValuesVector[k]) *= (1.00 - mBossak.Alpha);
@@ -422,7 +422,7 @@ protected:
         // adding inertia contribution
         if (rMassMatrix.size1() != 0)
         {
-            int k = OpenMPUtils::ThisThread();
+            const int k = OpenMPUtils::ThisThread();
             rCurrentCondition->GetSecondDerivativesVector(
                 mSecondDerivativeValuesVector[k], 0);
             (mSecondDerivativeValuesVector[k]) *= (1.00 - mBossak.Alpha);

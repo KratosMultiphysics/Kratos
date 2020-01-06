@@ -39,7 +39,8 @@ RansNutKEpsilonHighReCalculationProcess::RansNutKEpsilonHighReCalculationProcess
         {
             "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "echo_level"      : 0,
-            "c_mu"            : 0.09
+            "c_mu"            : 0.09,
+            "min_value"       : 1e-15
         })");
 
     mrParameters.ValidateAndAssignDefaults(default_parameters);
@@ -47,6 +48,7 @@ RansNutKEpsilonHighReCalculationProcess::RansNutKEpsilonHighReCalculationProcess
     mEchoLevel = mrParameters["echo_level"].GetInt();
     mModelPartName = mrParameters["model_part_name"].GetString();
     mCmu = mrParameters["c_mu"].GetDouble();
+    mMinValue = mrParameters["min_value"].GetDouble();
 
     KRATOS_CATCH("");
 }
@@ -86,13 +88,19 @@ void RansNutKEpsilonHighReCalculationProcess::Execute()
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
         NodeType& r_node = *(r_nodes.begin() + i_node);
-        const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
         const double epsilon =
             r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
-        const double nu_t = EvmKepsilonModelUtilities::CalculateTurbulentViscosity(
-            mCmu, tke, epsilon, 1.0);
 
-        r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = nu_t;
+        if (epsilon > 0.0)
+        {
+            const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
+            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) =
+                mCmu * std::pow(tke, 2) / epsilon;
+        }
+        else
+        {
+            r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = mMinValue;
+        }
     }
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)

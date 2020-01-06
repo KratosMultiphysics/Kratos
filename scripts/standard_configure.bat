@@ -1,3 +1,4 @@
+@echo off
 rem Please do not modify this script
 
 rem For any question please contact with us in:
@@ -8,7 +9,6 @@ rem You can find a list will all the compiation options in INSTALL.md or here:
 rem  - https://github.com/KratosMultiphysics/Kratos/wiki/Compilation-options
 
 rem Set compiler
-@echo off
 set CC=cl.exe
 set CXX=cl.exe
 
@@ -41,7 +41,7 @@ cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BU
 -DBLAS_LIBRARIES="C:\CompiledLibs\blas_x64\libblas.lib"
 
 rem Build
-cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install
+cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
 goto:eof
 
 rem Function to add apps
