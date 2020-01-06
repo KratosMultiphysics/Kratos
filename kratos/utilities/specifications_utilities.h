@@ -21,6 +21,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "includes/constitutive_law.h"
 #include "geometries/geometry_data.h"
 
 namespace Kratos
@@ -78,6 +79,20 @@ namespace SpecificationsUtilities
         {"Point2D",GeometryData::KratosGeometryType::Kratos_Point2D},
         {"Point3D",GeometryData::KratosGeometryType::Kratos_Point3D},
         {"Sphere3D1",GeometryData::KratosGeometryType::Kratos_Sphere3D1}
+    }; 
+    
+    // Definition of the map between the CL type and the corresponding flags
+    static std::unordered_map<std::string, Flags> string_cl_type_map = {
+        {"PlaneStress",ConstitutiveLaw::PLANE_STRESS_LAW},
+        {"PlaneStrain",ConstitutiveLaw::PLANE_STRAIN_LAW},
+        {"Axisymmetric",ConstitutiveLaw::AXISYMMETRIC_LAW},
+        {"ThreeDimensional",ConstitutiveLaw::THREE_DIMENSIONAL_LAW}
+    }; 
+    
+    // Definition of the map between the dimension and integers
+    static std::unordered_map<std::string, std::size_t> string_dimension_map = {
+        {"2D",2},
+        {"3D",3}
     }; 
     
     /// A definition of the component variable
