@@ -7,11 +7,11 @@
 #  Main authors:    Geiser Armin, https://github.com/armingeiser
 #
 # ==============================================================================
+
 import time as timer
 import KratosMultiphysics as KM
 from KratosMultiphysics import Logger
 from .response_function import ResponseFunctionBase
-
 
 class PackagingResponseBase(ResponseFunctionBase):
     """
@@ -44,7 +44,7 @@ class PackagingResponseBase(ResponseFunctionBase):
             domain_size = response_settings["domain_size"].GetInt()
             if domain_size not in [2, 3]:
                 raise Exception("PackagingResponseBase: Invalid 'domain_size': {}".format(domain_size))
-            self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+            self.model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, domain_size)
         elif input_type == "use_input_model_part":
             self.model_part = self.model.GetModelPart(model_part_name)
         else:
@@ -77,7 +77,7 @@ class PackagingResponseBase(ResponseFunctionBase):
     def Initialize(self):
         if self.response_settings["model_import_settings"]["input_type"].GetString() == "mdpa":
             file_name = self.response_settings["model_import_settings"]["input_filename"].GetString()
-            model_part_io = KratosMultiphysics.ModelPartIO(file_name)
+            model_part_io = KM.ModelPartIO(file_name)
             model_part_io.ReadModelPart(self.model_part)
 
     def InitializeSolutionStep(self):

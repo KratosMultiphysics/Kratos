@@ -565,7 +565,7 @@ ModelPart::PropertiesType::Pointer ModelPart::CreateNewProperties(
 {
     auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
     if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
-        KRATOS_ERROR << "Property already existing. Please use pGetProperties() instead" << std::endl;
+        KRATOS_ERROR << "Property #" << PropertiesId << " already existing. Please use pGetProperties() instead" << std::endl;
     } else {
         if(IsSubModelPart()) {
             PropertiesType::Pointer pprop =  mpParentModelPart->CreateNewProperties(PropertiesId, MeshIndex);

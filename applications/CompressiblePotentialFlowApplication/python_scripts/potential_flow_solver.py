@@ -95,6 +95,7 @@ class PotentialFlowSolver(FluidSolver):
             },
             "volume_model_part_name": "volume_model_part",
             "skin_parts":[""],
+            "assign_neighbour_elements_to_conditions": false,
             "no_skin_parts": [""],
             "move_mesh_flag": false,
             "reference_chord": 1.0,
