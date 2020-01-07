@@ -94,7 +94,6 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
 
             if response_type in csm_response_functions:
                 if csm_response_factory is None:
-                    msg =
                     raise RuntimeError("ShapeOpt: {} response function requires StructuralMechanicsApplication.".format(response_type))
                 response_functions[response_id] = csm_response_factory.CreateResponseFunction(response_id, response_settings, model)
             elif response_type in sho_response_functions:
