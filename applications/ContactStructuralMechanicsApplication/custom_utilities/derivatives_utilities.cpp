@@ -15,8 +15,6 @@
 
 // Project includes
 #include "custom_utilities/derivatives_utilities.h"
-
-/* Utilities */
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/math_utils.h"
