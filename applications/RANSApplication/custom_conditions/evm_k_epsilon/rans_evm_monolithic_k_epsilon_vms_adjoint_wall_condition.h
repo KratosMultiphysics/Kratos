@@ -144,9 +144,7 @@ public:
     /**
      * Destructor
      */
-    ~RansEvmMonolithicKEpsilonVMSAdjointWallCondition() override
-    {
-    }
+    ~RansEvmMonolithicKEpsilonVMSAdjointWallCondition() override = default;
 
     ///@}
     ///@name Operators

@@ -44,10 +44,6 @@ RansNutYPlusWallFunctionSensitivitiesProcess::RansNutYPlusWallFunctionSensitivit
     KRATOS_CATCH("");
 }
 
-RansNutYPlusWallFunctionSensitivitiesProcess::~RansNutYPlusWallFunctionSensitivitiesProcess()
-{
-}
-
 int RansNutYPlusWallFunctionSensitivitiesProcess::Check()
 {
     KRATOS_TRY

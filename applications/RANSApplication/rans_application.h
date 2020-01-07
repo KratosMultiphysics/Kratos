@@ -82,9 +82,7 @@ public:
     KratosRANSApplication();
 
     /// Destructor.
-    ~KratosRANSApplication() override
-    {
-    }
+    ~KratosRANSApplication() override = default;
 
     ///@}
     ///@name Operators

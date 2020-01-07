@@ -114,7 +114,7 @@ public:
     RansEvmKEpsilonEpsilonWall(RansEvmKEpsilonEpsilonWall const& rOther);
 
     /// Destructor.
-    ~RansEvmKEpsilonEpsilonWall() override;
+    ~RansEvmKEpsilonEpsilonWall() override = default;
 
     ///@}
     ///@name Operators

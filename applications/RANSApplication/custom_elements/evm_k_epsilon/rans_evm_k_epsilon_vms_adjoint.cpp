@@ -74,14 +74,6 @@ RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::RansEvmKEpsilonVMSAdjoint(
 {
 }
 
-/**
- * Destructor
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::~RansEvmKEpsilonVMSAdjoint()
-{
-}
-
 ///@}
 ///@name Operators
 ///@{

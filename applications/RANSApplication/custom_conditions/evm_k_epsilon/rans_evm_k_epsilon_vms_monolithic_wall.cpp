@@ -67,11 +67,6 @@ RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::RansEvmKEpsilonVmsMonolithicW
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::~RansEvmKEpsilonVmsMonolithicWall()
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>& RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::operator=(
     RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes> const& rOther)
 {

@@ -63,11 +63,6 @@ RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>::RansEvmKEpsilonEpsilonWall(RansEvmK
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>::~RansEvmKEpsilonEpsilonWall()
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>& RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>::operator=(
     RansEvmKEpsilonEpsilonWall<TDim, TNumNodes> const& rOther)
 {

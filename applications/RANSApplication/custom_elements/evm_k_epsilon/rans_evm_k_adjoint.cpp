@@ -91,14 +91,6 @@ RansEvmKAdjoint<TDim, TNumNodes>::RansEvmKAdjoint(RansEvmKAdjoint<TDim, TNumNode
 {
 }
 
-/**
- * Destructor
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKAdjoint<TDim, TNumNodes>::~RansEvmKAdjoint()
-{
-}
-
 ///@}
 ///@name Operators
 ///@{

@@ -89,11 +89,6 @@ RansEvmKAdjointWallCondition<TNumNodes, TDim>::RansEvmKAdjointWallCondition(
 }
 
 template <unsigned int TNumNodes, unsigned int TDim>
-RansEvmKAdjointWallCondition<TNumNodes, TDim>::~RansEvmKAdjointWallCondition()
-{
-}
-
-template <unsigned int TNumNodes, unsigned int TDim>
 RansEvmKAdjointWallCondition<TNumNodes, TDim>& RansEvmKAdjointWallCondition<TNumNodes, TDim>::operator=(
     RansEvmKAdjointWallCondition<TNumNodes, TDim> const& rOther)
 {

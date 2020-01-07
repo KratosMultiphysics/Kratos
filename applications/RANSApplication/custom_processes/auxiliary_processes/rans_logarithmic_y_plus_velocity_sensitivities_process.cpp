@@ -54,10 +54,6 @@ RansLogarithmicYPlusVelocitySensitivitiesProcess::RansLogarithmicYPlusVelocitySe
     KRATOS_CATCH("");
 }
 
-RansLogarithmicYPlusVelocitySensitivitiesProcess::~RansLogarithmicYPlusVelocitySensitivitiesProcess()
-{
-}
-
 int RansLogarithmicYPlusVelocitySensitivitiesProcess::Check()
 {
     KRATOS_TRY

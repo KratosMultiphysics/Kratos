@@ -225,7 +225,7 @@ public:
     /**
      * Destructor
      */
-    ~RansEvmMonolithicKEpsilonVMSAdjoint() override;
+    ~RansEvmMonolithicKEpsilonVMSAdjoint() override = default;
 
     ///@}
     ///@name Operators

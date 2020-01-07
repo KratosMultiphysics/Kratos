@@ -148,7 +148,7 @@ public:
     RansEvmEpsilonAdjointWallCondition(RansEvmEpsilonAdjointWallCondition const& rOther);
 
     /// Destructor.
-    ~RansEvmEpsilonAdjointWallCondition() override;
+    ~RansEvmEpsilonAdjointWallCondition() override = default;
 
     ///@}
     ///@name Operators

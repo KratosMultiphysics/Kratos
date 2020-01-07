@@ -149,7 +149,7 @@ public:
     /**
      * Destructor
      */
-    ~RansEvmKAdjoint() override;
+    ~RansEvmKAdjoint() override = default;
 
     ///@}
     ///@name Operators

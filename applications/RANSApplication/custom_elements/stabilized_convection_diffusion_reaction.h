@@ -140,9 +140,7 @@ public:
     /**
      * Destructor
      */
-    ~StabilizedConvectionDiffusionReaction() override
-    {
-    }
+    ~StabilizedConvectionDiffusionReaction() override = default;
 
     ///@}
     ///@name Operators

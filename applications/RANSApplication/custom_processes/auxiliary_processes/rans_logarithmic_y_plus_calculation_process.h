@@ -86,7 +86,7 @@ public:
     RansLogarithmicYPlusCalculationProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansLogarithmicYPlusCalculationProcess() override;
+    ~RansLogarithmicYPlusCalculationProcess() override = default;
 
     ///@}
     ///@name Operators

@@ -109,7 +109,7 @@ public:
     RansEvmKEpsilonVmsMonolithicWall(RansEvmKEpsilonVmsMonolithicWall const& rOther);
 
     /// Destructor.
-    ~RansEvmKEpsilonVmsMonolithicWall() override;
+    ~RansEvmKEpsilonVmsMonolithicWall() override = default;
 
     ///@}
     ///@name Operators

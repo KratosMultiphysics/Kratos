@@ -93,14 +93,6 @@ RansEvmKEpsilonKElement<TDim, TNumNodes>::RansEvmKEpsilonKElement(
 {
 }
 
-/**
- * Destructor
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonKElement<TDim, TNumNodes>::~RansEvmKEpsilonKElement()
-{
-}
-
 ///@}
 ///@name Operators
 ///@{

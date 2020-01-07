@@ -135,7 +135,7 @@ public:
     RansEvmVmsMonolithicAdjointWallCondition(RansEvmVmsMonolithicAdjointWallCondition const& rOther);
 
     /// Destructor.
-    ~RansEvmVmsMonolithicAdjointWallCondition() override;
+    ~RansEvmVmsMonolithicAdjointWallCondition() override = default;
 
     ///@}
     ///@name Operators

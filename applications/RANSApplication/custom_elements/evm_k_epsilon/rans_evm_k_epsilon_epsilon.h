@@ -126,7 +126,7 @@ public:
     /**
      * Destructor
      */
-    ~RansEvmKEpsilonEpsilon() override;
+    ~RansEvmKEpsilonEpsilon() override = default;
 
     ///@}
     ///@name Operators

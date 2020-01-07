@@ -148,7 +148,7 @@ public:
     RansEvmKAdjointWallCondition(RansEvmKAdjointWallCondition const& rOther);
 
     /// Destructor.
-    ~RansEvmKAdjointWallCondition() override;
+    ~RansEvmKAdjointWallCondition() override = default;
 
     ///@}
     ///@name Operators

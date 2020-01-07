@@ -47,10 +47,6 @@ RansNutKEpsilonHighReSensitivitiesProcess::RansNutKEpsilonHighReSensitivitiesPro
     KRATOS_CATCH("");
 }
 
-RansNutKEpsilonHighReSensitivitiesProcess::~RansNutKEpsilonHighReSensitivitiesProcess()
-{
-}
-
 int RansNutKEpsilonHighReSensitivitiesProcess::Check()
 {
     KRATOS_TRY

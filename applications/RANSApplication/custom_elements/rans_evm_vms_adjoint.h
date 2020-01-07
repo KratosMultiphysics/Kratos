@@ -93,9 +93,7 @@ public:
     {
     }
 
-    ~RANSEvmVMSAdjoint() override
-    {
-    }
+    ~RANSEvmVMSAdjoint() override = default;
 
     ///@}
     ///@name Operations

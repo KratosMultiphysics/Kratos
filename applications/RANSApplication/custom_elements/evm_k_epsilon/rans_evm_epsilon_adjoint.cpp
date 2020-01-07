@@ -94,14 +94,6 @@ RansEvmEpsilonAdjoint<TDim, TNumNodes>::RansEvmEpsilonAdjoint(
 {
 }
 
-/**
- * Destructor
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmEpsilonAdjoint<TDim, TNumNodes>::~RansEvmEpsilonAdjoint()
-{
-}
-
 ///@}
 ///@name Operators
 ///@{

@@ -63,11 +63,6 @@ RansEvmMonolithicKEpsilonVMSAdjoint<TDim, TNumNodes>::RansEvmMonolithicKEpsilonV
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmMonolithicKEpsilonVMSAdjoint<TDim, TNumNodes>::~RansEvmMonolithicKEpsilonVMSAdjoint()
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmMonolithicKEpsilonVMSAdjoint<TDim, TNumNodes>::Initialize()
 {
     this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));

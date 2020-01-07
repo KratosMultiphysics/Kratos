@@ -90,11 +90,6 @@ RansEvmVmsMonolithicAdjointWallCondition<TDim>::RansEvmVmsMonolithicAdjointWallC
 }
 
 template <unsigned int TDim>
-RansEvmVmsMonolithicAdjointWallCondition<TDim>::~RansEvmVmsMonolithicAdjointWallCondition()
-{
-}
-
-template <unsigned int TDim>
 RansEvmVmsMonolithicAdjointWallCondition<TDim>& RansEvmVmsMonolithicAdjointWallCondition<TDim>::operator=(
     RansEvmVmsMonolithicAdjointWallCondition<TDim> const& rOther)
 {

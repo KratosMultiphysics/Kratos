@@ -90,11 +90,6 @@ RansEvmEpsilonAdjointWallCondition<TNumNodes, TDim>::RansEvmEpsilonAdjointWallCo
 }
 
 template <unsigned int TNumNodes, unsigned int TDim>
-RansEvmEpsilonAdjointWallCondition<TNumNodes, TDim>::~RansEvmEpsilonAdjointWallCondition()
-{
-}
-
-template <unsigned int TNumNodes, unsigned int TDim>
 RansEvmEpsilonAdjointWallCondition<TNumNodes, TDim>& RansEvmEpsilonAdjointWallCondition<TNumNodes, TDim>::operator=(
     RansEvmEpsilonAdjointWallCondition<TNumNodes, TDim> const& rOther)
 {

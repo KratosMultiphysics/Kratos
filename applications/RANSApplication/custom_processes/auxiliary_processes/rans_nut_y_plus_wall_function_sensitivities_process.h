@@ -65,7 +65,7 @@ public:
     RansNutYPlusWallFunctionSensitivitiesProcess(Model& rModel, Parameters& rParameters);
 
     /// Destructor.
-    ~RansNutYPlusWallFunctionSensitivitiesProcess() override;
+    ~RansNutYPlusWallFunctionSensitivitiesProcess() override = default;
 
     ///@}
     ///@name Operators

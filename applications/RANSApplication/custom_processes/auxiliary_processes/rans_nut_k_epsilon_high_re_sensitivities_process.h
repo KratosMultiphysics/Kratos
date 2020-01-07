@@ -93,7 +93,7 @@ public:
     RansNutKEpsilonHighReSensitivitiesProcess(Model& rModel, Parameters& rParameters);
 
     /// Destructor.
-    ~RansNutKEpsilonHighReSensitivitiesProcess() override;
+    ~RansNutKEpsilonHighReSensitivitiesProcess() override = default;
 
     ///@}
     ///@name Operators

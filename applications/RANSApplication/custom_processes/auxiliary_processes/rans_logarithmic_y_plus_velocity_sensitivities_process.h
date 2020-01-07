@@ -81,7 +81,7 @@ public:
     /// Constructor
     RansLogarithmicYPlusVelocitySensitivitiesProcess(Model& rModel, Parameters& rParameters);
     /// Destructor.
-    ~RansLogarithmicYPlusVelocitySensitivitiesProcess() override;
+    ~RansLogarithmicYPlusVelocitySensitivitiesProcess() override = default;
 
     ///@}
     ///@name Operators

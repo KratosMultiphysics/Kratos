@@ -157,7 +157,7 @@ public:
     /**
      * Destructor
      */
-    ~RansEvmEpsilonAdjoint() override;
+    ~RansEvmEpsilonAdjoint() override = default;
 
     ///@}
     ///@name Operators

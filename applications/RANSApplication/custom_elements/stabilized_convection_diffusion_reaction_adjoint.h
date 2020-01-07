@@ -183,9 +183,7 @@ public:
     {
     }
 
-    ~StabilizedConvectionDiffusionReactionAdjointElement() override
-    {
-    }
+    ~StabilizedConvectionDiffusionReactionAdjointElement() override = default;
 
     ///@}
     ///@name Operators
