@@ -20,7 +20,7 @@ from .analyzer_base import AnalyzerBaseClass
 from .response_functions import response_function_factory as sho_response_factory
 try:
     from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory as csm_response_factory
-except ModuleNotFoundError:
+except ImportError:
     csm_response_factory = None
 import time as timer
 
