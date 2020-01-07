@@ -366,7 +366,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshElement mElement;
     const MeshElement mElement2D2N;
     const MeshElement mElement2D3N;
+    const MeshElement mElement2D6N;
     const MeshElement mElement2D4N;
+    const MeshElement mElement2D8N;
+    const MeshElement mElement2D9N;
 
     const MeshElement mElement3D2N;
     const MeshElement mElement3D3N;
@@ -374,6 +377,9 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshElement mElement3D6N;
     const MeshElement mElement3D8N;
     const MeshElement mElement3D10N;
+    const MeshElement mElement3D15N;
+    const MeshElement mElement3D20N;
+    const MeshElement mElement3D27N;
 
     const DistanceCalculationElementSimplex<2> mDistanceCalculationElementSimplex2D3N;
     const DistanceCalculationElementSimplex<3> mDistanceCalculationElementSimplex3D4N;
