@@ -91,6 +91,8 @@ class MainCoupledFemDem_Solution:
             self.DEMFEM_contact = False
         else:
             self.DEMFEM_contact = self.FEM_Solution.ProjectParameters["DEM_FEM_contact"].GetBool()
+        self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.DEMFEM_CONTACT] = True
+        
 
         # Initialize IP variables to zero
         self.InitializeIntegrationPointsVariables()
