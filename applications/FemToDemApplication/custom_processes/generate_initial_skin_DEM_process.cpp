@@ -94,7 +94,14 @@ void GenerateInitialSkinDEMProcess::CreateDEMParticle(
 	NodeIteratorType rNode
 )
 {
-    auto spheric_particle = mParticleCreator.CreateSphericParticleRaw(mrDEMModelPart, Id, Coordinates, pProperties, Radius, "SphericParticle3D");
+    auto &r_process_info = mrModelPart.GetProcessInfo();
+    std::string sphere_type;
+    if (r_process_info[DEMFEM_CONTACT])
+        sphere_type = "PolyhedronSkinSphericParticle3D";
+    else
+        sphere_type = "SphericParticle3D";
+
+    auto spheric_particle = mParticleCreator.CreateSphericParticleRaw(mrDEMModelPart, Id, Coordinates, pProperties, Radius, sphere_type);
     rNode->SetValue(IS_DEM, true);
     rNode->SetValue(RADIUS, Radius);
     rNode->SetValue(DEM_PARTICLE_POINTER, spheric_particle);
