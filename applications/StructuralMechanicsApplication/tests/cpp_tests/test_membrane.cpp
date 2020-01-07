@@ -19,7 +19,7 @@ namespace Kratos
 {
 namespace Testing
 {
-    void AssignPredifinedDisplacement(Element::Pointer pElement)
+    void AssignPredefinedDisplacement(Element::Pointer pElement)
     {
         const unsigned int number_of_nodes = pElement->GetGeometry().size();
         const unsigned int dimension = pElement->GetGeometry().WorkingSpaceDimension();
@@ -40,7 +40,7 @@ namespace Testing
         const unsigned int dimension = pElement->GetGeometry().WorkingSpaceDimension();
         const unsigned int number_of_dofs = number_of_nodes * dimension;
         // Set a predifined displacement field to compute the residual
-        AssignPredifinedDisplacement(pElement);
+        AssignPredefinedDisplacement(pElement);
 
         // Compute RHS and LHS
         Vector RHS_original = ZeroVector(number_of_dofs);

@@ -72,7 +72,7 @@
             "Parameters"    : {
                 "check_variables"  : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
                 "input_file_name"  : "membrane_test/Membrane_hemisphere_test_results.json",
-                "model_part_name"  : "check_results",
+                "model_part_name"  : "Structure.check_results",
                 "time_frequency"   : 1.0
             }
         }]

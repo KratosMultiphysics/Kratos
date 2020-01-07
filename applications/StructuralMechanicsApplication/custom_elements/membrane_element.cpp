@@ -18,6 +18,7 @@
 
 // Project includes
 #include "includes/checks.h"
+#include "utilities/math_utils.h"
 #include "custom_elements/membrane_element.hpp"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
@@ -173,7 +174,7 @@ void MembraneElement::CalculateRightHandSide(
     Vector internal_forces = ZeroVector(system_size);
     InternalForces(internal_forces,GetGeometry().GetDefaultIntegrationMethod());
     rRightHandSideVector = ZeroVector(system_size);
-    rRightHandSideVector -= internal_forces;
+    noalias(rRightHandSideVector) -= internal_forces;
     CalculateAndAddBodyForce(rRightHandSideVector);
 }
 
@@ -265,18 +266,6 @@ void MembraneElement::GetSecondDerivativesVector(
     }
 }
 
-void MembraneElement::VoigtNotation(const Matrix& rInputMatrix, Vector& rOutputVector, const VoigtType& rStrainStressCheck)
-{
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    rOutputVector = ZeroVector(dimension);
-    rOutputVector[0] = rInputMatrix(0,0);
-    rOutputVector[1] = rInputMatrix(1,1);
-    rOutputVector[2] = rInputMatrix(0,1);
-    if (rStrainStressCheck==VoigtType::Strain){
-        rOutputVector[2]*=2.0;
-    }
-}
-
 template <class T>
 void MembraneElement::InPlaneTransformationMatrix(Matrix& rTransformationMatrix, const array_1d<Vector,2>& rTransformedBaseVectors,
     const T& rLocalReferenceBaseVectors)
@@ -305,7 +294,7 @@ void MembraneElement::TransformStrains(Vector& rStrains,
     // tranform strains needs contra-variant !
     rStrains = ZeroVector(3);
     rReferenceStrains[2]/=2.0; // extract E12 from voigt strain vector
-    rStrains = prod(rTransformationMatrix,rReferenceStrains);
+    noalias(rStrains) = prod(rTransformationMatrix,rReferenceStrains);
     rStrains[2]*=2.0; // include E12 and E21 for voigt strain vector
 }
 
@@ -342,7 +331,7 @@ void MembraneElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>&
             pre_stress = prod(transformation_matrix,pre_stress);
         }
     }
-    rStress += pre_stress;
+    noalias(rStress) += pre_stress;
 }
 
 void MembraneElement::StressPk2(Vector& rStress,
@@ -388,8 +377,7 @@ void MembraneElement::StrainGreenLagrange(Vector& rStrain, const Matrix& rRefere
     const Matrix& rTransformationMatrix)
 {
     Matrix strain_matrix = 0.50 * (rCurrentCoVariantMetric-rReferenceCoVariantMetric);
-    Vector reference_strain = ZeroVector(3);
-    VoigtNotation(strain_matrix,reference_strain,VoigtType::Strain);
+    Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix,3);
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
@@ -399,9 +387,7 @@ void MembraneElement::DerivativeStrainGreenLagrange(Vector& rStrain, const Matri
     Matrix current_covariant_metric_derivative = ZeroMatrix(2);
     DerivativeCurrentCovariantMetric(current_covariant_metric_derivative,rShapeFunctionGradientValues,DofR,rCurrentCovariantBaseVectors);
     Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
-
-    Vector reference_strain = ZeroVector(3);
-    VoigtNotation(strain_matrix_derivative,reference_strain,VoigtType::Strain);
+    Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative,3);
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
@@ -414,8 +400,7 @@ void MembraneElement::Derivative2StrainGreenLagrange(Vector& rStrain,
 
     Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
 
-    Vector reference_strain = ZeroVector(3);
-    VoigtNotation(strain_matrix_derivative,reference_strain,VoigtType::Strain);
+    Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative,3);
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
@@ -526,7 +511,7 @@ void MembraneElement::ContravariantMetric(Matrix& rMetric,const Matrix& rCovaria
     rMetric(1,1) = rCovariantMetric(0,0);
     rMetric(0,1) = -1.0*rCovariantMetric(1,0);
     rMetric(1,0) = -1.0*rCovariantMetric(0,1);
-    rMetric/=(rCovariantMetric(1,1)*rCovariantMetric(0,0)) - (rCovariantMetric(1,0)*rCovariantMetric(0,1));
+    rMetric /= (rCovariantMetric(1,1)*rCovariantMetric(0,0)) - (rCovariantMetric(1,0)*rCovariantMetric(0,1));
 }
 
 void MembraneElement::ContraVariantBaseVectors(array_1d<Vector,2>& rBaseVectors,const Matrix& rContraVariantMetric,
@@ -732,10 +717,6 @@ void MembraneElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
     }
 }
 
-
-
-
-
 void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
                         std::vector< Vector >& rOutput,
                         const ProcessInfo& rCurrentProcessInfo)
@@ -751,7 +732,7 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
     const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
     const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(integration_method);
 
-    if (rVariable==PK2_STRESS_VECTOR || rVariable==PRINCIPLE_PK2_STRESS_VECTOR){
+    if (rVariable==PK2_STRESS_VECTOR || rVariable==PRINCIPAL_PK2_STRESS_VECTOR){
         Vector stress = ZeroVector(3);
         array_1d<Vector,2> current_covariant_base_vectors;
         array_1d<Vector,2> reference_covariant_base_vectors;
@@ -785,16 +766,16 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
                 covariant_metric_current,transformed_base_vectors,inplane_transformation_matrix_material,
                 point_number);
 
-            if (rVariable==PRINCIPLE_PK2_STRESS_VECTOR){
-                Vector principle_stresses = ZeroVector(2);
-                PrincipleVector(principle_stresses,stress);
-                rOutput[point_number] = principle_stresses;
+            if (rVariable==PRINCIPAL_PK2_STRESS_VECTOR){
+                Vector principal_stresses = ZeroVector(2);
+                PrincipalVector(principal_stresses,stress);
+                rOutput[point_number] = principal_stresses;
             }  else {
                 rOutput[point_number] = stress;
             }
         }
 
-    }  else if (rVariable==CAUCHY_STRESS_VECTOR || rVariable==PRINCIPLE_CAUCHY_STRESS_VECTOR){
+    }  else if (rVariable==CAUCHY_STRESS_VECTOR || rVariable==PRINCIPAL_CAUCHY_STRESS_VECTOR){
 
         Vector stress = ZeroVector(3);
         array_1d<Vector,2> current_covariant_base_vectors;
@@ -835,21 +816,18 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
             DeformationGradient(deformation_gradient,det_deformation_gradient,current_covariant_base_vectors,reference_contravariant_base_vectors);
 
-            stress_matrix(0,0) = stress[0];
-            stress_matrix(1,1) = stress[1];
-            stress_matrix(0,1) = stress[2];
-            stress_matrix(1,0) = stress[2];
 
-            stress_matrix = prod(deformation_gradient,stress_matrix);
-            stress_matrix = prod(stress_matrix,trans(deformation_gradient));
-            stress_matrix = stress_matrix / det_deformation_gradient;
+            stress_matrix = MathUtils<double>::StressVectorToTensor(stress);
+            Matrix temp_stress_matrix = prod(deformation_gradient,stress_matrix);
+            Matrix temp_stress_matrix_2 = prod(temp_stress_matrix,trans(deformation_gradient));
+            Matrix cauchy_stress_matrix = temp_stress_matrix_2 / det_deformation_gradient;
+            stress = MathUtils<double>::StressTensorToVector(cauchy_stress_matrix,3);
 
-            VoigtNotation(stress_matrix,stress,VoigtType::Stress);
 
-            if (rVariable==PRINCIPLE_CAUCHY_STRESS_VECTOR){
-                Vector principle_stresses = ZeroVector(2);
-                PrincipleVector(principle_stresses,stress);
-                rOutput[point_number] = principle_stresses;
+            if (rVariable==PRINCIPAL_CAUCHY_STRESS_VECTOR){
+                Vector principal_stresses = ZeroVector(2);
+                PrincipalVector(principal_stresses,stress);
+                rOutput[point_number] = principal_stresses;
             }  else {
                 rOutput[point_number] = stress;
             }
@@ -1195,30 +1173,30 @@ void MembraneElement::CalculateAndAddBodyForce(VectorType& rRightHandSideVector)
     KRATOS_CATCH("")
 }
 
-void MembraneElement::PrincipleVector(Vector& rPrincipleVector, const Vector& rNonPrincipleVector)
+void MembraneElement::PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector)
 {
-    // make sure to divide rNonPrincipleVector[2]/2 if strains are passed
-    rPrincipleVector = ZeroVector(2);
-    rPrincipleVector[0] = 0.50 * (rNonPrincipleVector[0]+rNonPrincipleVector[1]) + std::sqrt(0.25*(std::pow(rNonPrincipleVector[0]-rNonPrincipleVector[1],2.0)) + std::pow(rNonPrincipleVector[2],2.0));
-    rPrincipleVector[1] = 0.50 * (rNonPrincipleVector[0]+rNonPrincipleVector[1]) - std::sqrt(0.25*(std::pow(rNonPrincipleVector[0]-rNonPrincipleVector[1],2.0)) + std::pow(rNonPrincipleVector[2],2.0));
+    // make sure to divide rNonPrincipalVector[2]/2 if strains are passed
+    rPrincipalVector = ZeroVector(2);
+    rPrincipalVector[0] = 0.50 * (rNonPrincipalVector[0]+rNonPrincipalVector[1]) + std::sqrt(0.25*(std::pow(rNonPrincipalVector[0]-rNonPrincipalVector[1],2.0)) + std::pow(rNonPrincipalVector[2],2.0));
+    rPrincipalVector[1] = 0.50 * (rNonPrincipalVector[0]+rNonPrincipalVector[1]) - std::sqrt(0.25*(std::pow(rNonPrincipalVector[0]-rNonPrincipalVector[1],2.0)) + std::pow(rNonPrincipalVector[2],2.0));
 }
 
 void MembraneElement::CheckWrinklingState(WrinklingType& rWrinklingState, const Vector& rStress, const Vector& rStrain)
 {
     const double numerical_limit = std::numeric_limits<double>::epsilon();
 
-    Vector principle_strains = ZeroVector(2);
+    Vector principal_strains = ZeroVector(2);
     Vector temp_strains = ZeroVector(3);
     temp_strains = rStrain;
-    temp_strains[2] /= 2.0; // normalize voigt strain vector to calcualte principle strains
-    PrincipleVector(principle_strains,temp_strains);
+    temp_strains[2] /= 2.0; // normalize voigt strain vector to calcualte principal strains
+    PrincipalVector(principal_strains,temp_strains);
 
 
-    Vector principle_stresses = ZeroVector(2);
-    PrincipleVector(principle_stresses,rStress);
+    Vector principal_stresses = ZeroVector(2);
+    PrincipalVector(principal_stresses,rStress);
 
-    const double min_stress = std::min(principle_stresses[0],principle_stresses[1]);
-    const double max_strain = std::max(principle_strains[0],principle_strains[1]);
+    const double min_stress = std::min(principal_stresses[0],principal_stresses[1]);
+    const double max_strain = std::max(principal_strains[0],principal_strains[1]);
 
     if (min_stress > 0.0){
         rWrinklingState = WrinklingType::Taut;
@@ -1227,7 +1205,7 @@ void MembraneElement::CheckWrinklingState(WrinklingType& rWrinklingState, const 
     } else if (max_strain<numerical_limit){
         rWrinklingState = WrinklingType::Slack;
     }
-    else KRATOS_ERROR << "error in principle direction calculation of membrane element with id " << Id() << std::endl;
+    else KRATOS_ERROR << "error in principal direction calculation of membrane element with id " << Id() << std::endl;
 
 }
 

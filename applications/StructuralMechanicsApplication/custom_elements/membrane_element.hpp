@@ -246,17 +246,6 @@ namespace Kratos
      */
     void AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>& rTransformedBaseVectors);
 
-
-      /**
-     * @brief Re-writes a tensor 2nd order into voigt notation (n11,n22,n12)
-     * @param rInputMatrix The tensor 2nd order
-     * @param rOutputVector The voigt vector
-     * @param StrainStressCheck if strain: voigtvector[2]*2
-     */
-    void VoigtNotation(const Matrix& rInputMatrix, Vector& rOutputVector, const VoigtType& rStrainStressCheck);
-
-
-
       /**
      * @brief Calculates 1st derivative of the current covariant metric
      * @param rMetric The derived metric
@@ -393,11 +382,11 @@ namespace Kratos
 
 
       /**
-     * @brief Calculates the principle vectors
-     * @param rPrincipleVector the principle vectors
-     * @param rNonPrincipleVector reference state
+     * @brief Calculates the principal vectors
+     * @param rPrincipalVector the principal vectors
+     * @param rNonPrincipalVector reference state
      */
-    void PrincipleVector(Vector& rPrincipleVector, const Vector& rNonPrincipleVector);
+    void PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector);
 
 
       /**
