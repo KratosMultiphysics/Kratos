@@ -510,12 +510,23 @@ public:
     virtual ConstitutiveLaw::Pointer Clone() const;
 
     /**
-     * creates a new constitutive law pointer
+     * @brief It creates a new constitutive law pointer
      * @param NewParameters The configuration parameters of the new constitutive law
      * @return a Pointer to the new constitutive law
      */
     virtual Pointer Create(Kratos::Parameters NewParameters) const;
 
+    /**
+     * @brief It creates a new constitutive law pointer (version with properties)
+     * @param NewParameters The configuration parameters of the new constitutive law
+     * @param rProperties The properties of the material
+     * @return a Pointer to the new constitutive law
+     */
+    virtual Pointer Create(
+        Kratos::Parameters NewParameters, 
+        const Properties& rProperties
+        ) const;
+    
     /**
      * @return The working space dimension of the current constitutive law
      * @note This function HAS TO BE IMPLEMENTED by any derived class

@@ -40,7 +40,8 @@ RansEpsilonTurbulentMixingLengthInletProcess::RansEpsilonTurbulentMixingLengthIn
             "turbulent_mixing_length" : 0.005,
             "c_mu"                    : 0.09,
             "echo_level"              : 0,
-            "is_fixed"                : true
+            "is_fixed"                : true,
+            "min_value"               : 1e-14
         })");
 
     mrParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
@@ -50,9 +51,15 @@ RansEpsilonTurbulentMixingLengthInletProcess::RansEpsilonTurbulentMixingLengthIn
     mEchoLevel = mrParameters["echo_level"].GetInt();
     mModelPartName = mrParameters["model_part_name"].GetString();
     mCmu_75 = std::pow(mrParameters["c_mu"].GetDouble(), 0.75);
+    mMinValue = mrParameters["min_value"].GetDouble();
 
     KRATOS_ERROR_IF(mTurbulentMixingLength < std::numeric_limits<double>::epsilon())
         << "turbulent_mixing_length should be greater than zero.\n";
+
+    KRATOS_ERROR_IF(mMinValue < 0.0) << "Minimum turbulent energy dissipation "
+                                        "rate needs to be positive in the "
+                                        "modelpart "
+                                     << mModelPartName << "\n.";
 
     KRATOS_CATCH("");
 }
@@ -92,7 +99,7 @@ void RansEpsilonTurbulentMixingLengthInletProcess::Execute()
 
     ModelPart::NodesContainerType& r_nodes =
         mrModel.GetModelPart(mModelPartName).Nodes();
-    int number_of_nodes = r_nodes.size();
+    const int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
@@ -137,8 +144,8 @@ void RansEpsilonTurbulentMixingLengthInletProcess::PrintData(std::ostream& rOStr
 void RansEpsilonTurbulentMixingLengthInletProcess::CalculateTurbulentValues(NodeType& rNode)
 {
     const double tke = rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-    rNode.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE) =
-        mCmu_75 * std::pow(std::max(tke, 0.0), 1.5) / mTurbulentMixingLength;
+    rNode.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE) = std::max(
+        mCmu_75 * std::pow(std::max(tke, 0.0), 1.5) / mTurbulentMixingLength, mMinValue);
 }
 
 } // namespace Kratos.

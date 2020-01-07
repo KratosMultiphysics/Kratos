@@ -35,7 +35,7 @@ endif(NOT DEFINED INSTALL_RUNKRATOS)
 
 # Link on install
 if(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
-  message("--No KRATOS_INSTALL_PYTHON_USING_LINKS is defined, setting to OFF")
+  message("-- No KRATOS_INSTALL_PYTHON_USING_LINKS is defined, setting to OFF")
   SET(INSTALL_PYTHON_USING_LINKS OFF)
 else(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
   SET(INSTALL_PYTHON_USING_LINKS $ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
@@ -43,9 +43,15 @@ endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 
 # If no test policy enable by default
 if(NOT DEFINED KRATOS_BUILD_TESTING)
-	message("--No KRATOS_BUILD_TESTING is defined. Setting to ON")
-	SET (KRATOS_BUILD_TESTING ON)
+message("-- No KRATOS_BUILD_TESTING is defined. Setting to ON")
+SET (KRATOS_BUILD_TESTING ON)
 endif(NOT DEFINED KRATOS_BUILD_TESTING)
+
+# If not defined mute the very verbose installation messages
+if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
+	message("-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER")
+	SET (CMAKE_INSTALL_MESSAGE NEVER)
+endif(NOT DEFINED CMAKE_INSTALL_MESSAGE)
 
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${KRATOS_SOURCE_DIR}/cmake_modules")
@@ -210,6 +216,11 @@ SET(INSTALL_PYTHON_FILES ON)        # To be removed when all applications are po
 #include the file with custom installation properties
 include(install_function)
 include(KratosDependencies)
+
+# Logger configuration
+if(KRATOS_COLORED_OUTPUT MATCHES ON)
+  add_definitions(-DKRATOS_COLORED_OUTPUT)
+endif(KRATOS_COLORED_OUTPUT MATCHES ON)
 
 ################### PYBIND11
 
