@@ -87,6 +87,11 @@ class MainCoupledFemDem_Solution:
         else:
             self.PressureLoad = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
 
+        if self.FEM_Solution.ProjectParameters.Has("DEM_FEM_contact") == False:
+            self.DEMFEM_contact = False
+        else:
+            self.DEMFEM_contact = self.FEM_Solution.ProjectParameters["DEM_FEM_contact"].GetBool()
+
         # Initialize IP variables to zero
         self.InitializeIntegrationPointsVariables()
 
