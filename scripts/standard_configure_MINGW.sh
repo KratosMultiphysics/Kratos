@@ -27,6 +27,7 @@ export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 
 # Set basic configuration
 export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"Release"}
+export BOOST_ROOT=${BOOST_ROOT:-"/path/to/boost"}
 export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"location_python/python.exe"}
 
 # Set applications to compile
