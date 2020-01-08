@@ -12,6 +12,7 @@ import os
 import KratosMultiphysics.MeshingApplication as MeshingApplication
 import KratosMultiphysics.SolidMechanicsApplication as Solid
 import KratosMultiphysics.MeshingApplication.mmg_process as MMG
+import KratosMultiphysics.DEMApplication as KratosDEM
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
 
 def Wait():
@@ -92,7 +93,7 @@ class MainCoupledFemDem_Solution:
             self.DEMFEM_contact = False
         else:
             self.DEMFEM_contact = self.FEM_Solution.ProjectParameters["DEM_FEM_contact"].GetBool()
-        self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.DEMFEM_CONTACT] = True
+        self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.DEMFEM_CONTACT] = self.DEMFEM_contact
         
 
         # Initialize IP variables to zero
@@ -152,7 +153,7 @@ class MainCoupledFemDem_Solution:
 
         if self.CreateInitialSkin:
             self.ComputeSkinSubModelPart()
-            if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.DEMFEM_CONTACT]:
+            if self.DEMFEM_contact:
                 self.TransferFEMSkinToDEM()
             KratosFemDem.GenerateInitialSkinDEMProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart).Execute()
 
@@ -867,16 +868,16 @@ class MainCoupledFemDem_Solution:
         fem_skin_mp = self.FEM_Solution.main_model_part.GetSubModelPart("SkinDEMModelPart")
         dem_walls_mp = self.DEM_Solution.rigid_face_model_part.CreateSubModelPart("SkinTransferredFromStructure")
 
-        props = KratosMultiphysics.Properties(100 + 1)
+        props = KratosMultiphysics.Properties(14)
         # NOTE: this should be more general
-        props[Dem.FRICTION] = -0.5773502691896257
-        props[Dem.WALL_COHESION] = 0.0
-        props[Dem.COMPUTE_WEAR] = False
-        props[Dem.SEVERITY_OF_WEAR] = 0.001
-        props[Dem.IMPACT_WEAR_SEVERITY] = 0.001
-        props[Dem.BRINELL_HARDNESS] = 200.0
-        props[Kratos.YOUNG_MODULUS] = 7e9
-        props[Kratos.POISSON_RATIO] = 0.16
+        props[KratosDEM.FRICTION] = -0.5773502691896257
+        props[KratosDEM.WALL_COHESION] = 0.0
+        props[KratosDEM.COMPUTE_WEAR] = False
+        props[KratosDEM.SEVERITY_OF_WEAR] = 0.001
+        props[KratosDEM.IMPACT_WEAR_SEVERITY] = 0.001
+        props[KratosDEM.BRINELL_HARDNESS] = 200.0
+        props[KratosMultiphysics.YOUNG_MODULUS] = 35e9
+        props[KratosMultiphysics.POISSON_RATIO] = 0.2
         dem_walls_mp.AddProperties(props)
         DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(
             fem_skin_mp, dem_walls_mp, props)
