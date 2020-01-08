@@ -76,18 +76,18 @@ public:
 
     /// Default Constructor
     GeometryContainer()
-        : mpGeometries(new GeometriesContainerType())
+        : mGeometries()
     {}
 
     /// Copy Constructor
     GeometryContainer(GeometryContainer const& rOther)
-        : mpGeometries(rOther.mpGeometries)
+        : mGeometries(rOther.mGeometries)
     {}
 
     /// Components Constructor
     GeometryContainer(
         typename GeometriesContainerType::Pointer NewGeometries)
-        : mpGeometries(NewGeometries)
+        : mGeometries(NewGeometries)
     {}
 
     /// Destructor
@@ -99,14 +99,14 @@ public:
 
     GeometryContainer Clone()
     {
-        typename GeometriesContainerType::Pointer p_geometries(new GeometriesContainerType(*mpGeometries));
+        typename GeometriesContainerType::Pointer p_geometries(new GeometriesContainerType(*mGeometries));
 
         return GeometryContainer(p_geometries);
     }
 
     void Clear()
     {
-        mpGeometries->clear();
+        mGeometries.clear();
     }
 
     ///@}
@@ -116,7 +116,7 @@ public:
     /// Return number of geometries stored inside this geometry container
     SizeType NumberOfGeometries() const
     {
-        return mpGeometries->size();
+        return mGeometries.size();
     }
 
     ///@}
@@ -126,9 +126,9 @@ public:
     /// Adds a geometry to the geometry container.
     GeometryIterator AddGeometry(typename TGeometryType::Pointer pNewGeometry)
     {
-        auto i = mpGeometries->find(pNewGeometry->Id());
-        if(i == mpGeometries->end())
-            return mpGeometries->insert(pNewGeometry);
+        auto i = mGeometries.find(pNewGeometry.Id());
+        if(i == mGeometries.end())
+            return mGeometries.insert(pNewGeometry);
         else
         {
             KRATOS_ERROR << "Geometry with Id: " << pNewGeometry->Id()
@@ -143,8 +143,8 @@ public:
     /// Returns the Geometry::Pointer corresponding to its Id
     typename TGeometryType::Pointer pGetGeometry(IndexType GeometryId)
     {
-        auto i = mpGeometries->find(GeometryId);
-        KRATOS_ERROR_IF(i == mpGeometries->end())
+        auto i = mGeometries.find(GeometryId);
+        KRATOS_ERROR_IF(i == mGeometries.end())
             << " geometry index not found: " << GeometryId << ".";
         return (i.base()->second);
     }
@@ -153,8 +153,8 @@ public:
     typename TGeometryType::Pointer pGetGeometry(std::string GeometryName)
     {
         auto hash_index = TGeometryType::GenerateId(GeometryName);
-        auto i = mpGeometries->find(hash_index);
-        KRATOS_ERROR_IF(i == mpGeometries->end())
+        auto i = mGeometries.find(hash_index);
+        KRATOS_ERROR_IF(i == mGeometries.end())
             << " geometry index not found: " << GeometryName << ".";
         return (i.base()->second);
     }
@@ -162,8 +162,8 @@ public:
     /// Returns a reference geometry corresponding to the id
     TGeometryType& GetGeometry(IndexType GeometryId)
     {
-        auto i = mpGeometries->find(GeometryId);
-        KRATOS_ERROR_IF(i == mpGeometries->end()) << " geometry index not found: " << GeometryId << ".";
+        auto i = mGeometries.find(GeometryId);
+        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryId << ".";
         return *i;
     }
 
@@ -171,8 +171,8 @@ public:
     const TGeometryType& GetGeometry(std::string GeometryName) const
     {
         auto hash_index = TGeometryType::GenerateId(GeometryName);
-        auto i = mpGeometries->find(hash_index);
-        KRATOS_ERROR_IF(i == mpGeometries->end())
+        auto i = mGeometries.find(hash_index);
+        KRATOS_ERROR_IF(i == mGeometries.end())
             << " geometry index not found: " << GeometryName << ".";
         return *i;
     }
@@ -184,7 +184,7 @@ public:
     /// Remove the geometry with given Id from geometry container
     void RemoveGeometry(IndexType GeometryId)
     {
-        mpGeometries->erase(GeometryId);
+        mGeometries.erase(GeometryId);
     }
 
     /// Remove the geometry with given name from geometry container
@@ -192,19 +192,19 @@ public:
     {
         auto index = TGeometryType::GenerateId(GeometryName);
 
-        mpGeometries->erase(index);
+        mGeometries.erase(index);
     }
 
     /// Remove given geometry from geometry container
     void RemoveGeometry(TGeometryType& ThisGeometry)
     {
-        mpGeometries->erase(ThisGeometry.Id());
+        mGeometries.erase(ThisGeometry.Id());
     }
 
     /// Remove given geometry from geometry container
     void RemoveGeometry(typename TGeometryType::Pointer pThisGeometry)
     {
-        mpGeometries->erase(pThisGeometry->Id());
+        mGeometries.erase(pThisGeometry->Id());
     }
 
     ///@}
@@ -213,14 +213,14 @@ public:
 
     bool HasGeometry(IndexType GeometryId) const
     {
-        return (mpGeometries->find(GeometryId) != mpGeometries->end());
+        return (mGeometries.find(GeometryId) != mGeometries.end());
     }
 
     bool HasGeometry(std::string GeometryName) const
     {
         auto hash_index = TGeometryType::GenerateId(GeometryName);
 
-        return (mpGeometries->find(hash_index) != mpGeometries->end());
+        return (mGeometries.find(hash_index) != mGeometries.end());
     }
 
     ///@}
@@ -229,22 +229,22 @@ public:
 
     GeometryIterator GeometriesBegin()
     {
-        return mpGeometries->begin();
+        return mGeometries.begin();
     }
 
     GeometryConstantIterator GeometriesBegin() const
     {
-        return mpGeometries->begin();
+        return mGeometries.begin();
     }
 
     GeometryIterator GeometriesEnd()
     {
-        return mpGeometries->end();
+        return mGeometries.end();
     }
 
     GeometryConstantIterator GeometriesEnd() const
     {
-        return mpGeometries->end();
+        return mGeometries.end();
     }
 
     ///@}
@@ -253,22 +253,22 @@ public:
 
     GeometriesContainerType& Geometries()
     {
-        return *mpGeometries;
+        return *mGeometries;
     }
 
     const GeometriesContainerType& Geometries() const
     {
-        return *mpGeometries;
+        return *mGeometries;
     }
 
     typename GeometriesContainerType::Pointer pGeometries()
     {
-        return mpGeometries;
+        return mGeometries;
     }
 
     void SetGeometries(typename GeometriesContainerType::Pointer pOtherGeometries)
     {
-        mpGeometries = pOtherGeometries;
+        mGeometries = pOtherGeometries;
     }
 
     ///@}
@@ -290,7 +290,7 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const
     {
-        rOStream << "Number of Geometries: " << mpGeometries->size() << std::endl;
+        rOStream << "Number of Geometries: " << mGeometries.size() << std::endl;
     }
 
     /// Print information about this object
@@ -302,7 +302,7 @@ public:
     /// Print object's data
     virtual void PrintData(std::ostream& rOStream, std::string const& PrefixString ) const
     {
-        rOStream << PrefixString << "Number of Geometries: " << mpGeometries->size() << std::endl;
+        rOStream << PrefixString << "Number of Geometries: " << mGeometries.size() << std::endl;
     }
 
     ///@}
@@ -312,7 +312,7 @@ private:
     ///@{
 
     /// Geometry Container
-    typename GeometriesContainerType::Pointer mpGeometries;
+    GeometriesContainerType mGeometries;
 
     ///@}
     ///@name Serialization
@@ -322,12 +322,12 @@ private:
 
     void save(Serializer& rSerializer) const
     {
-        rSerializer.save("pGeometries", mpGeometries);
+        rSerializer.save("pGeometries", mGeometries);
     }
 
     void load(Serializer& rSerializer)
     {
-        rSerializer.load("pGeometries", mpGeometries);
+        rSerializer.load("pGeometries", mGeometries);
     }
 
     ///@}
@@ -338,7 +338,7 @@ private:
     GeometryContainer& operator=(const GeometryContainer& rOther)
     {
         Flags::operator =(rOther);
-        mpGeometries = rOther.mpGeometries;
+        mGeometries = rOther.mGeometries;
     }
 
     ///@}
