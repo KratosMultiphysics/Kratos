@@ -892,6 +892,7 @@ class MainCoupledFemDem_Solution:
         dem_walls_mp.AddProperties(props)
         DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(fem_skin_mp, dem_walls_mp, props)
     
+    #-----------------------------------
     def EraseConditionsAndNodesSubModelPart(self):
         DEM_sub_model_part = self.DEM_Solution.rigid_face_model_part.GetSubModelPart("SkinTransferredFromStructure")
         for cond in DEM_sub_model_part.Conditions:
