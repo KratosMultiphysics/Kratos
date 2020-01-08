@@ -192,7 +192,8 @@ class MainCoupledFemDem_Solution:
         self.FEM_Solution.InitializeSolutionStep()
 
 #============================================================================================================================
-    def SolveSolutionStep(self): # Method to perform the coupling FEM <-> DEM
+    def SolveSolutionStep(self):  # Method to perform the coupling FEM <-> DEM
+
         self.FEM_Solution.clock_time = self.FEM_Solution.StartTimeMeasuring()
 
         #### SOLVE FEM #########################################
@@ -876,21 +877,23 @@ class MainCoupledFemDem_Solution:
 
         if self.DEM_Solution.rigid_face_model_part.HasSubModelPart("SkinTransferredFromStructure"):
             self.EraseConditionsAndNodesSubModelPart()
-        else:
+            dem_walls_mp = self.DEM_Solution.rigid_face_model_part.GetSubModelPart("SkinTransferredFromStructure")
+            props = self.DEM_Solution.rigid_face_model_part.GetProperties(14,0)
+            DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(fem_skin_mp, dem_walls_mp, props)
+        else: # have to create it
+            props = KratosMultiphysics.Properties(14)
+            # NOTE: this should be more general
+            props[KratosDEM.FRICTION] =  -0.5773502691896257  #-0.5773502691896257 
+            props[KratosDEM.WALL_COHESION] = 0.0
+            props[KratosDEM.COMPUTE_WEAR] = False
+            props[KratosDEM.SEVERITY_OF_WEAR] = 0.001
+            props[KratosDEM.IMPACT_WEAR_SEVERITY] = 0.001
+            props[KratosDEM.BRINELL_HARDNESS] = 200.0
+            props[KratosMultiphysics.YOUNG_MODULUS] = 35e9
+            props[KratosMultiphysics.POISSON_RATIO] = 0.2
             dem_walls_mp = self.DEM_Solution.rigid_face_model_part.CreateSubModelPart("SkinTransferredFromStructure")
-
-        props = KratosMultiphysics.Properties(14)
-        # NOTE: this should be more general
-        props[KratosDEM.FRICTION] =  -0.5773502691896257  #-0.5773502691896257 
-        props[KratosDEM.WALL_COHESION] = 0.0
-        props[KratosDEM.COMPUTE_WEAR] = False
-        props[KratosDEM.SEVERITY_OF_WEAR] = 0.001
-        props[KratosDEM.IMPACT_WEAR_SEVERITY] = 0.001
-        props[KratosDEM.BRINELL_HARDNESS] = 200.0
-        props[KratosMultiphysics.YOUNG_MODULUS] = 35e9
-        props[KratosMultiphysics.POISSON_RATIO] = 0.2
-        dem_walls_mp.AddProperties(props)
-        DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(fem_skin_mp, dem_walls_mp, props)
+            dem_walls_mp.AddProperties(props)
+            DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(fem_skin_mp, dem_walls_mp, props)
     
     #-----------------------------------
     def EraseConditionsAndNodesSubModelPart(self):
@@ -899,6 +902,5 @@ class MainCoupledFemDem_Solution:
             cond.Set(KratosMultiphysics.TO_ERASE, True)
         for node in DEM_sub_model_part.Nodes:
             node.Set(KratosMultiphysics.TO_ERASE, True)
-        DEM_sub_model_part.RemoveNodes(KratosMultiphysics.TO_ERASE)
-        DEM_sub_model_part.RemoveConditions(KratosMultiphysics.TO_ERASE)
-        
+        DEM_sub_model_part.RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
+        DEM_sub_model_part.RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
