@@ -154,12 +154,13 @@ private:
 
     std::string mModelPartName;
     std::string mIntegrationControlVariableName;
+    enum TimeAveragingContainers {NodalHistorical, NodalNonHistorical, ElementalNonHistorical};
+    TimeAveragingContainers mTimeAveragingContainer;
     enum TimeAveragingMethods {Average, RootMeanSquare};
     TimeAveragingMethods mTimeAveragingMethod;
 
     std::vector<std::string> mVariableNamesList;
-    std::vector<std::string> mElementalVariableNamesList;
-    std::vector<std::string> mAveragedElementalVariableNamesList;
+    std::vector<std::string> mAveragedVariableNamesList;
 
     int mEchoLevel;
 
