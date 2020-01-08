@@ -57,11 +57,7 @@ class TestConvergenceCriteriaWrapper(KratosUnittest.TestCase):
         }""")
         conv_crit_wrapper = ConvergenceCriteriaWrapper(conv_acc_settings, self.dummy_solver_wrapper)
 
-        exp_inp = self.interface_data.GetData()
-        # num_nodes_global = KM.DataCommunicator.GetDefault().SumAll(self.num_nodes)
-        # update_solution_return_value = [uniform(-10, 50) for _ in range(self.num_nodes)]
-
-        # global_update_solution_return_value = np.array(np.concatenate(KM.DataCommunicator.GetDefault().GathervDoubles(update_solution_return_value, 0)))
+        data_init = self.interface_data.GetData()
 
         conv_crit_mock = Mock()
 
@@ -80,7 +76,7 @@ class TestConvergenceCriteriaWrapper(KratosUnittest.TestCase):
         # setting new solution for computing the residual
         rand_data = [uniform(-10, 50) for _ in range(self.num_nodes)]
         self.interface_data.SetData(rand_data)
-        exp_res = rand_data - exp_inp
+        exp_res = rand_data - data_init
 
         self.assertEqual(conv_crit_wrapper.IsConverged(), is_converged)
 
