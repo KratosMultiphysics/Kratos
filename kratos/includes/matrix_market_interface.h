@@ -258,6 +258,26 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     return true;
 }
 
+inline void SetMatrixMarketValueTypeCode(MM_typecode& mm_code, const double& value)
+{
+    mm_set_real(&mm_code);
+}
+
+inline void SetMatrixMarketValueTypeCode(MM_typecode& mm_code, const std::complex<double>& value)
+{
+    mm_set_complex(&mm_code);
+}
+
+inline int WriteMatrixMarketMatrixEntry(FILE *f, int I, int J, const double& entry)
+{
+    return fprintf(f, "%d %d %e\n", I, J, entry);
+}
+
+inline int WriteMatrixMarketMatrixEntry(FILE *f, int I, int J, const std::complex<double>& entry)
+{
+    return fprintf(f, "%d %d %e %e\n", I, J, std::real(entry), std::imag(entry));
+}
+
 template <typename CompressedMatrixType> inline bool WriteMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M, bool Symmetric)
 {
     // Open MM file for writing
@@ -276,7 +296,7 @@ template <typename CompressedMatrixType> inline bool WriteMatrixMarketMatrix(con
 
     mm_set_matrix(&mm_code);
     mm_set_coordinate(&mm_code);
-    mm_set_real(&mm_code);
+    SetMatrixMarketValueTypeCode(mm_code, *M.begin1().begin());
 
     if (Symmetric)
         mm_set_symmetric(&mm_code);
@@ -330,7 +350,7 @@ template <typename CompressedMatrixType> inline bool WriteMatrixMarketMatrix(con
                 int I = a_iterator.index1(), J = row_iterator.index2();
 
                 if (I >= J)
-                    if (fprintf(f, "%d %d %g\n", I + 1, J + 1, *row_iterator) < 0)
+                    if (WriteMatrixMarketMatrixEntry(f, I+1, J+1, *row_iterator) < 0)
                     {
                         printf("WriteMatrixMarketMatrix(): unable to write data.\n");
                         fclose(f);
@@ -355,7 +375,7 @@ template <typename CompressedMatrixType> inline bool WriteMatrixMarketMatrix(con
             {
                 int I = a_iterator.index1(), J = row_iterator.index2();
 
-                if (fprintf(f, "%d %d %g\n", I + 1, J + 1, *row_iterator) < 0)
+                if (WriteMatrixMarketMatrixEntry(f, I+1, J+1, *row_iterator) < 0)
                 {
                     printf("WriteMatrixMarketMatrix(): unable to write data.\n");
                     fclose(f);
@@ -455,6 +475,16 @@ template <typename VectorType> inline bool ReadMatrixMarketVector(const char *Fi
     return true;
 }
 
+inline int WriteMatrixMarketVectorEntry(FILE *f, const double& entry)
+{
+    return fprintf(f, "%e\n", entry);
+}
+
+inline int WriteMatrixMarketVectorEntry(FILE *f, const std::complex<double>& entry)
+{
+    return fprintf(f, "%e %e\n", std::real(entry), std::imag(entry));
+}
+
 template <typename VectorType> inline bool WriteMatrixMarketVector(const char *FileName, VectorType &V)
 {
     // Open MM file for writing
@@ -473,7 +503,7 @@ template <typename VectorType> inline bool WriteMatrixMarketVector(const char *F
 
     mm_set_matrix(&mm_code);
     mm_set_array(&mm_code);
-    mm_set_real(&mm_code);
+    SetMatrixMarketValueTypeCode(mm_code, V(0));
 
     mm_write_banner(f, mm_code);
 
@@ -481,7 +511,7 @@ template <typename VectorType> inline bool WriteMatrixMarketVector(const char *F
     mm_write_mtx_array_size(f, V.size(), 1);
 
     for (unsigned int i = 0; i < V.size(); i++)
-        if (fprintf(f, "%g\n", V(i)) < 0)
+        if (WriteMatrixMarketVectorEntry(f, V(i)) < 0)
         {
             printf("WriteMatrixMarketVector(): unable to write data.\n");
             fclose(f);
