@@ -220,12 +220,13 @@ public:
     double currentTime = rCurrentProcessInfo[TIME];
     double timeInterval = rCurrentProcessInfo[DELTA_TIME];
     bool timeIntervalChanged = rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
+		unsigned int stepsWithChangedDt = rCurrentProcessInfo[STEPS_WITH_CHANGED_DT];
 
     unsigned int maxNonLinearIterations = mMaxPressureIter;
 
     KRATOS_INFO("TwoStepVPStrategy") << "\n                   Solve with two_step_vp strategy at t=" << currentTime << "s" << std::endl;
 
-    if (timeIntervalChanged == true && currentTime > 10 * timeInterval)
+    if ((timeIntervalChanged == true && currentTime > 10 * timeInterval) || stepsWithChangedDt>0)
     {
       maxNonLinearIterations *= 2;
     }
