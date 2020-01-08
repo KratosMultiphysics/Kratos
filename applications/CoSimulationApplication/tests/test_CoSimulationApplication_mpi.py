@@ -8,6 +8,7 @@ if not KM.IsDistributedRun():
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import tests
+from test_convergence_criteria import TestConvergenceCriteriaWrapper
 from test_convergence_accelerators import TestConvergenceAcceleratorWrapper
 
 
@@ -26,6 +27,7 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
     ################################################################################
     smallSuite = suites['mpi_small'] # These tests are executed by the continuous integration tool
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceCriteriaWrapper]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceAcceleratorWrapper]))
 
     ################################################################################

@@ -23,7 +23,7 @@ if numpy_available:
     from test_sdof_solver import TestSdofSolver
     from test_convergence_criteria import TestConvergenceCriteria
     from test_convergence_criteria import TestConvergenceCriteriaWrapper
-    from test_convergence_accelerator import TestConvergenceAcceleratorWrapper
+    from test_convergence_accelerators import TestConvergenceAcceleratorWrapper
 
 if not using_pykratos:
     from test_cosim_EMPIRE_API import TestCoSim_EMPIRE_API
