@@ -1,0 +1,44 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/jig/Kratos/applications/DelaunayMeshingApplication/external_libraries/tetgen/predicates.cxx
+stdio.h
+-
+stdlib.h
+-
+math.h
+-
+float.h
+-
+fpu_control.h
+-
+tetgen.h
+/home/jig/Kratos/applications/DelaunayMeshingApplication/external_libraries/tetgen/tetgen.h
+CGAL/Exact_predicates_inexact_constructions_kernel.h
+-
+
+/home/jig/Kratos/applications/DelaunayMeshingApplication/external_libraries/tetgen/tetgen.cxx
+tetgen.h
+/home/jig/Kratos/applications/DelaunayMeshingApplication/external_libraries/tetgen/tetgen.h
+
+/home/jig/Kratos/applications/DelaunayMeshingApplication/external_libraries/tetgen/tetgen.h
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+math.h
+-
+time.h
+-
+assert.h
+-
+stdint.h
+-
+

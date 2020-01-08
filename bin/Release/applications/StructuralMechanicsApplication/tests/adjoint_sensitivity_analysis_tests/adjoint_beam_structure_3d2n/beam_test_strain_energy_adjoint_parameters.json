@@ -1,0 +1,134 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "Beam_structure",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0
+    },
+    "solver_settings"                  : {
+        "solver_type"                  : "adjoint_static",
+        "analysis_type"                : "linear",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "compute_reactions"			   : false,
+        "move_mesh_flag"                    : false,
+        "time_stepping"                      : {
+            "time_step" : 1.0
+        },
+        "response_function_settings" : {
+                "response_type"     : "adjoint_linear_strain_energy",
+                "analyzer"          : "kratos",
+                "gradient_mode"     : "semi_analytic",
+                "step_size"         : 1e-6,
+                "adapt_step_size"   : true
+            },
+        "sensitivity_settings" : {
+                "sensitivity_model_part_name" : "Parts_Beam",
+                "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+                "element_data_value_sensitivity_variables"  : ["I22"],
+                "condition_data_value_sensitivity_variables"  : ["POINT_LOAD"],
+                "build_mode": "static"
+            },
+        "echo_level"                   : 0,
+        "rotation_dofs"                : true,
+        "linear_solver_settings"       : {
+            "solver_type"         : "ExternalSolversApplication.super_lu"
+        },
+        "model_import_settings"        : {
+            "input_type"     : "mdpa",
+            "input_filename" : "Beam_structure"
+        },
+        "material_import_settings" :{
+            "materials_filename": "materials_beam.json"
+        }
+    },
+    "processes" : {
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Structure.DISPLACEMENT_support",
+            "variable_name"   : "ADJOINT_DISPLACEMENT",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },
+        {
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Structure.ROTATION_support",
+            "variable_name"   : "ADJOINT_ROTATION",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }
+    ],
+    "loads_process_list"       : [{
+        "python_module"   : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
+        "check"                 : "DirectorVectorNonZero direction",
+        "help"                  : "This process ",
+        "process_name"          : "ApplyConstantVectorValueProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Structure.PointLoad3D_load",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"          :40,
+            "direction"       : [0.0,0.0,1.0]
+        }
+    }],
+    "list_other_processes" :[{
+        "kratos_module" : "KratosMultiphysics.HDF5Application",
+        "python_module" : "single_mesh_temporal_input_process",
+        "help"          : "",
+        "process_name"  : "",
+        "Parameters" : {
+	        "model_part_name" : "Structure",
+            "file_settings" : {
+                "file_access_mode" : "read_only"
+            },
+            "nodal_solution_step_data_settings" : {
+                "list_of_variables": ["DISPLACEMENT", "ROTATION"]
+            }
+        }
+     }],
+    "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["ADJOINT_DISPLACEMENT", "ADJOINT_ROTATION", "SHAPE_SENSITIVITY"],
+                "input_file_name"  : "beam_test_strain_energy_results.json",
+                "model_part_name"  : "Structure",
+                "tolerance"            : 1e-5,
+                "time_frequency"   : -2.0
+            }
+        }
+        ]
+    },
+    "_json_output_process" : [
+        {
+            "python_module" : "json_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "",
+            "process_name"  : "JsonOutputProcess",
+            "Parameters"    : {
+                "output_variables" : ["ADJOINT_DISPLACEMENT", "ADJOINT_ROTATION", "SHAPE_SENSITIVITY"],
+                "output_file_name" : "beam_test_strain_energy_results.json",
+                "model_part_name"  : "Structure",
+                "time_frequency"   : -2.0
+            }
+        }]
+}

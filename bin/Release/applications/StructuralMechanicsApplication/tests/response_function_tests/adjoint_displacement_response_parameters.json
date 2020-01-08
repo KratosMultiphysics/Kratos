@@ -1,0 +1,29 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "rectangular_plate_structure",
+        "model_part_name" : "rectangular_plate_structure",
+        "domain_size"     : 3,
+        "time_step"       : 1.0,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0
+    },
+    "response_settings" :{
+        "response_type"     : "adjoint_nodal_displacement",
+        "gradient_mode"     : "semi_analytic",
+        "step_size"         : 1.0e-6,
+        "adapt_step_size"   : true,
+        "traced_node_id"    : 5,
+        "traced_dof"        : "DISPLACEMENT_Z",
+        "primal_settings"   : "rectangular_plate_parameters.json",
+        "adjoint_settings"  : "auto",
+        "sensitivity_settings" : {
+            "sensitivity_model_part_name" :"Parts_AREAS",
+            "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+            "element_data_value_sensitivity_variables"  : [],
+            "condition_data_value_sensitivity_variables"  : [],
+            "build_mode": "static"
+        }
+    }
+}

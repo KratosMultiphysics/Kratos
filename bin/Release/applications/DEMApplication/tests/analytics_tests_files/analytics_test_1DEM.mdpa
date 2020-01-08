@@ -1,0 +1,56 @@
+Begin ModelPartData
+// VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1 // Inlet group: Inlet1
+  PARTICLE_DENSITY 1716.67
+  YOUNG_MODULUS 2.0e7
+  POISSON_RATIO 0.20
+  FRICTION 0.36002215309575664
+  PARTICLE_COHESION 0.0
+  COEFFICIENT_OF_RESTITUTION 0.2
+  PARTICLE_MATERIAL 1
+  ROLLING_FRICTION 0.01
+  PARTICLE_SPHERICITY 0.93
+  DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Hertz_viscous_Coulomb
+  DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
+End Properties
+
+Begin Nodes
+1 0.0 0.0 0.0
+2 0.3 0.0 0.0
+3 1.0 0.0 0.0
+End Nodes
+
+Begin Elements AnalyticSphericParticle3D
+1 1 1
+2 1 2
+3 1 3
+End Elements
+
+Begin NodalData RADIUS
+1 0 0.1
+2 0 0.1
+3 0 0.1
+End NodalData
+
+Begin SubModelPart 1 // DEM-Element-RigidBodyMotion. Group name: line
+  Begin SubModelPartData // DEM-Element-RigidBodyMotion. Group name: line
+  INITIAL_VELOCITY_X_VALUE -3.0
+  IDENTIFIER initial_vel
+  End SubModelPartData
+  Begin SubModelPartNodes
+  2
+  End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart 2 // DEM-Element-RigidBodyMotion. Group name: line
+  Begin SubModelPartData // DEM-Element-RigidBodyMotion. Group name: line
+  INITIAL_VELOCITY_X_VALUE -5.0
+  IDENTIFIER initial_vel
+  End SubModelPartData
+  Begin SubModelPartNodes
+  3
+  End SubModelPartNodes
+End SubModelPart
+

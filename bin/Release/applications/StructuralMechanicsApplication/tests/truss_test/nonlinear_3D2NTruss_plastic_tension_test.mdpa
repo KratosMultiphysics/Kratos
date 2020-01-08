@@ -1,0 +1,60 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+
+Begin Nodes
+   1        0.00000        1.20000        0.00000
+   2        0.00000        0.00000        0.00000
+End Nodes
+
+
+Begin Elements TrussElement3D2N// GUI group identifier: structure
+         1          0         2 			1
+End Elements
+
+Begin Conditions PointLoadCondition3D1N// GUI group identifier: neumann
+1 0 1
+End Conditions
+
+Begin SubModelPart Parts_structure // Group structure // Subtree Parts
+    Begin SubModelPartNodes
+        1
+        2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         1
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_dirichletXYZ // Group dirichletXYZ // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+        2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_dirichletXZ // Group dirichletYZ // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+	    1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart PointLoad3D_neumann // Group neumann // Subtree PointLoad3D
+    Begin SubModelPartNodes
+       1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+         1
+    End SubModelPartConditions
+End SubModelPart

@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../../kratos/includes/kratos_export_api.h
+
+../../kratos/includes/kratos_version.h
+string
+-
+includes/kratos_export_api.h
+../../kratos/includes/includes/kratos_export_api.h
+
+/home/jig/Kratos/kratos/sources/kratos_version.cpp
+string
+-
+includes/kratos_version.h
+/home/jig/Kratos/kratos/sources/includes/kratos_version.h
+
