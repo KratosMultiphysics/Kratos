@@ -31,12 +31,12 @@ def detect_file(file_name):
 
 def read_nodes(line, file):
     nodes = []
-    while not "[" in line:
+    while "[" not in line:
         line = next(file)
 
     line = next(file)
 
-    while not "]" in line:
+    while "]" not in line:
         if line == "\n":
             line = next(file)
 
@@ -54,12 +54,12 @@ def read_nodes(line, file):
 
 def read_faces(line, file):
     faces = []
-    while not "[" in line:
+    while "[" not in line:
         line = next(file)
 
     line = next(file)
 
-    while not "]" in line:
+    while "]" not in line:
         if line == "\n":
             line = next(file)
 
@@ -89,9 +89,9 @@ def read_shape(line, file):
     nodes = []
     faces = []
 
-    while not "geometry" in line:
+    while "geometry" not in line:
         line = next(file)
-    if not "IndexedFaceSet" in line:
+    if "IndexedFaceSet" not in line:
         raise RuntimeError("wrl_reader: Can not read '{}'".format(line))
 
     while not nodes or not faces:
