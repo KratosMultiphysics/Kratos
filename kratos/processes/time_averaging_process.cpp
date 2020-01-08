@@ -33,6 +33,9 @@ TimeAveragingProcess::TimeAveragingProcess(Model& rModel, Parameters rParameters
         {
             "model_part_name"                               : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "variables_list"                                : [],
+            "elemental_variables_list"                      : [],
+            "averaged_elemental_variables_list"             : [],
+            "time_averaging_method"                         : "Average",
             "integration_start_point_control_variable_name" : "TIME",
             "integration_start_point_control_value"         : 0.0,
             "echo_level"                                    : 0
@@ -43,6 +46,11 @@ TimeAveragingProcess::TimeAveragingProcess(Model& rModel, Parameters rParameters
     mEchoLevel = mrParameters["echo_level"].GetInt();
     mModelPartName = mrParameters["model_part_name"].GetString();
     mVariableNamesList = mrParameters["variables_list"].GetStringArray();
+    mElementalVariableNamesList = mrParameters["elemental_variables_list"].GetStringArray();
+    mAveragedElementalVariableNamesList = mrParameters["averaged_elemental_variables_list"].GetStringArray();
+
+    if (mrParameters["time_averaging_method"].GetString() == "Average") mTimeAveragingMethod = Average;
+    else if (mrParameters["time_averaging_method"].GetString() == "RootMeanSquare") mTimeAveragingMethod = RootMeanSquare;
     mIntegrationControlVariableName =
         mrParameters["integration_start_point_control_variable_name"].GetString();
 
@@ -115,6 +123,7 @@ void TimeAveragingProcess::ExecuteInitialize()
     ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
     Communicator& r_communicator = r_model_part.GetCommunicator();
     ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
+    ModelPart::ElementsContainerType& r_elements = r_communicator.LocalMesh().Elements();
 
     mCurrentTime = 0.0;
 
@@ -140,6 +149,24 @@ void TimeAveragingProcess::ExecuteInitialize()
     }
     msg << " variable(s) in " << mModelPartName << " to store time averaged quantities.\n";
 
+    for (const std::string& variable_name : mAveragedElementalVariableNamesList)
+    {
+        if (KratosComponents<Variable<double>>::Has(variable_name))
+        {
+            const Variable<double>& r_variable =
+                KratosComponents<Variable<double>>::Get(variable_name);
+            VariableUtils().SetNonHistoricalVariableToZero(r_variable, r_elements);
+        }
+        else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name))
+        {
+            const Variable<array_1d<double, 3>>& r_variable =
+                KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
+            VariableUtils().SetNonHistoricalVariableToZero(r_variable, r_elements);
+        }
+        msg << " " << variable_name;
+    }
+    msg << " variable(s) in " << mModelPartName << " to store time averaged quantities.\n";
+
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << msg.str();
 
     KRATOS_CATCH("");
@@ -154,11 +181,12 @@ void TimeAveragingProcess::ExecuteFinalizeSolutionStep()
         ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
         Communicator& r_communicator = r_model_part.GetCommunicator();
         ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
+        ModelPart::ElementsContainerType& r_elements = r_communicator.LocalMesh().Elements();
 
         const double delta_time = r_model_part.GetProcessInfo()[DELTA_TIME];
 
         std::stringstream msg;
-        msg << "Integrating historical";
+        msg << "Integrating historical nodal";
 
         for (const std::string& variable_name : mVariableNamesList)
         {
@@ -166,17 +194,44 @@ void TimeAveragingProcess::ExecuteFinalizeSolutionStep()
             {
                 const Variable<double>& r_variable =
                     KratosComponents<Variable<double>>::Get(variable_name);
-                this->CalculateTimeIntegratedQuantity(r_nodes, r_variable, delta_time);
+                this->CalculateTimeIntegratedHistoricalNodalQuantity(r_nodes, r_variable, delta_time);
             }
             else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name))
             {
                 const Variable<array_1d<double, 3>>& r_variable =
                     KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
-                this->CalculateTimeIntegratedQuantity(r_nodes, r_variable, delta_time);
+                this->CalculateTimeIntegratedHistoricalNodalQuantity(r_nodes, r_variable, delta_time);
             }
 
             msg << " " << variable_name;
         }
+
+        msg << "Integrating non historical elemental";
+
+        // int variable_counter = 0;
+        // for (const std::string& time_series_variable_name : mVariableNamesList)
+        // {
+        //     if (KratosComponents<Variable<double>>::Has(time_series_variable_name))
+        //     {
+        //         const Variable<double>& r_time_series_variable =
+        //             KratosComponents<Variable<double>>::Get(time_series_variable_name);
+        //         const Variable<double>& r_time_averaged_variable =
+        //             KratosComponents<Variable<double>>::Get(mElementalVariableNamesList[variable_counter]);
+        //         this->CalculateTimeIntegratedNonHistoricalElementalQuantity(r_elements, r_time_series_variable, r_time_averaged_variable, delta_time);
+        //     }
+        //     else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(time_series_variable_name))
+        //     {
+        //         const Variable<array_1d<double, 3>>& r_time_series_variable =
+        //             KratosComponents<Variable<array_1d<double, 3>>>::Get(time_series_variable_name);
+        //         const Variable<array_1d<double, 3>>& r_time_averaged_variable =
+        //             KratosComponents<Variable<array_1d<double, 3>>>::Get(mElementalVariableNamesList[variable_counter]);
+        //         this->CalculateTimeIntegratedNonHistoricalElementalQuantity(r_elements, r_time_series_variable, r_time_averaged_variable, delta_time);
+        //     }
+
+        //     variable_counter += 1;
+
+        //     msg << " " << time_series_variable_name;
+        // }
 
         mCurrentTime += delta_time;
 
@@ -237,12 +292,12 @@ void TimeAveragingProcess::PrintData(std::ostream& rOStream) const
 }
 
 template <typename TDataType>
-void TimeAveragingProcess::CalculateTimeIntegratedQuantity(ModelPart::NodesContainerType& rNodes,
-                                                           const Variable<TDataType>& rVariable,
-                                                           const double DeltaTime) const
+void TimeAveragingProcess::CalculateTimeIntegratedHistoricalNodalQuantity(ModelPart::NodesContainerType& rNodes,
+                                                                          const Variable<TDataType>& rVariable,
+                                                                          const double DeltaTime) const
 {
     const int number_of_nodes = rNodes.size();
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
         NodeType& r_node = *(rNodes.begin() + i_node);
@@ -254,12 +309,37 @@ void TimeAveragingProcess::CalculateTimeIntegratedQuantity(ModelPart::NodesConta
     }
 }
 
+template <typename TDataType>
+void TimeAveragingProcess::CalculateTimeIntegratedNonHistoricalElementalQuantity(ModelPart::ElementsContainerType& rElements,
+                                                                                 const Variable<TDataType>& rTimeSeriesVariable,
+                                                                                 const Variable<TDataType>& rTimeAveragedVariable,
+                                                                                 const double DeltaTime) const
+{
+    const int number_of_elements = rElements.size();
+    #pragma omp parallel for
+    for (int i_element = 0; i_element < number_of_elements; ++i_element)
+    {
+        ElementType& r_element = *(rElements.begin() + i_element);
+        const TDataType& r_temporal_value = r_element.GetValue(rTimeSeriesVariable);
+        TDataType& r_integrated_value = r_element.GetValue(rTimeAveragedVariable);
+        r_integrated_value =
+            (r_integrated_value * mCurrentTime + r_temporal_value * DeltaTime) /
+            (mCurrentTime + DeltaTime);
+    }
+}
+
 // template instantiations
 
-template void TimeAveragingProcess::CalculateTimeIntegratedQuantity<double>(
+template void TimeAveragingProcess::CalculateTimeIntegratedHistoricalNodalQuantity<double>(
     ModelPart::NodesContainerType&, const Variable<double>&, const double) const;
 
-template void TimeAveragingProcess::CalculateTimeIntegratedQuantity<array_1d<double, 3>>(
+template void TimeAveragingProcess::CalculateTimeIntegratedHistoricalNodalQuantity<array_1d<double, 3>>(
     ModelPart::NodesContainerType&, const Variable<array_1d<double, 3>>&, const double) const;
+
+template void TimeAveragingProcess::CalculateTimeIntegratedNonHistoricalElementalQuantity<double>(
+    ModelPart::ElementsContainerType&, const Variable<double>&, const Variable<double>&, const double) const;
+
+template void TimeAveragingProcess::CalculateTimeIntegratedNonHistoricalElementalQuantity<array_1d<double, 3>>(
+    ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const double) const;
 
 } // namespace Kratos.

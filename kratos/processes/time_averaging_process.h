@@ -54,6 +54,7 @@ public:
     ///@{
 
     using NodeType = ModelPart::NodeType;
+    using ElementType = ModelPart::ElementType;
 
     /// Pointer definition of TimeAveragingProcess
     KRATOS_CLASS_POINTER_DEFINITION(TimeAveragingProcess);
@@ -153,8 +154,12 @@ private:
 
     std::string mModelPartName;
     std::string mIntegrationControlVariableName;
+    enum TimeAveragingMethods {Average, RootMeanSquare};
+    TimeAveragingMethods mTimeAveragingMethod;
 
     std::vector<std::string> mVariableNamesList;
+    std::vector<std::string> mElementalVariableNamesList;
+    std::vector<std::string> mAveragedElementalVariableNamesList;
 
     int mEchoLevel;
 
@@ -170,9 +175,20 @@ private:
     bool IsIntegrationStep() const;
 
     template <typename TDataType>
-    void CalculateTimeIntegratedQuantity(ModelPart::NodesContainerType& rNodes,
-                                         const Variable<TDataType>& rVariable,
-                                         const double DeltaTime) const;
+    void CalculateTimeIntegratedHistoricalNodalQuantity(ModelPart::NodesContainerType& rNodes,
+                                                        const Variable<TDataType>& rVariable,
+                                                        const double DeltaTime) const;
+
+    template <typename TDataType>
+    void CalculateTimeIntegratedNonHistoricalNodalQuantity(ModelPart::NodesContainerType& rNodes,
+                                                           const Variable<TDataType>& rVariable,
+                                                           const double DeltaTime) const;
+
+    template <typename TDataType>
+    void CalculateTimeIntegratedNonHistoricalElementalQuantity(ModelPart::ElementsContainerType& rElements,
+                                                               const Variable<TDataType>& rTimeSeriesVariable,
+                                                               const Variable<TDataType>& rTimeAveragedVariable,
+                                                               const double DeltaTime) const;
 
     ///@}
     ///@name Private  Access
