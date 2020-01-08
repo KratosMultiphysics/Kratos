@@ -86,12 +86,14 @@ public:
     ///@{
 
     /// Default constructor.
-    PertubeGeometrySmallCorrelationLength(
-        ModelPart& rThisModelPart
-        ):mrThisModelPart(rThisModelPart)
+    PertubeGeometrySmallCorrelationLength( ModelPart& rInitialModelPart, double MaximalDisplacement) : 
+        mrInitialModelPart(rInitialModelPart),
+        mMaximalDisplacement(MaximalDisplacement)
     {
         KRATOS_TRY
-
+        MortarUtilities::ComputeNodesMeanNormalModelPart( mrInitialModelPart, false );
+        CorrelationMatrix_check = Eigen::MatrixXd::Zero(mrInitialModelPart.NumberOfNodes(), mrInitialModelPart.NumberOfNodes());
+        CorrelationMatrix_check_orig = Eigen::MatrixXd::Zero(mrInitialModelPart.NumberOfNodes(), mrInitialModelPart.NumberOfNodes());
         KRATOS_CATCH("")
     }
 
@@ -123,9 +125,11 @@ public:
     ///@name Operations
     ///@{
 
-    int CreateEigenvectors(double minDistance, double correlationLength);
+    int CreateEigenvectors(ModelPart& rThisModelPart, double minDistance, double correlationLength);
 
-    void AssembleEigenvectors( const std::vector<double>& variables, double maxDisplacement );
+    void AssembleEigenvectors(ModelPart& rThisModelPart, const std::vector<double>& variables );
+
+    void Average(int number);
    
     double Kernel( double x, double sigma );
 
@@ -213,11 +217,18 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrThisModelPart;              // The main model part
+    ModelPart& mrInitialModelPart;              // The main model part
 
     DenseMatrixType mDisplacement;
 
+    // Remove this again ################################
+    Eigen::MatrixXd CorrelationMatrix_check;
+    Eigen::MatrixXd CorrelationMatrix_check_orig;
+    //###################################################
+
     EigensystemSolver<>* mpEigenSolver;
+
+    double mMaximalDisplacement;
 
     OMP_NodeSearch* searcher;
 

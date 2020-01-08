@@ -31,15 +31,17 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     /// Processes
     py::class_<PertubeGeometryProcess, PertubeGeometryProcess::Pointer, Process>(m,"PertubeGeometryProcess")
-        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&,double>())
         .def("CreateEigenvectors", &PertubeGeometryProcess::CreateEigenvectors)
         .def("AssembleEigenvectors", &PertubeGeometryProcess::AssembleEigenvectors)
+        .def("Average", &PertubeGeometryProcess::Average)
         ;
     
     py::class_<PertubeGeometrySmallCorrelationLength, PertubeGeometrySmallCorrelationLength::Pointer, Process>(m,"PertubeGeometrySmallCorrelationLength")
-        .def(py::init<ModelPart&>()) 
+        .def(py::init<ModelPart&,double>()) 
         .def("CreateEigenvectors", &PertubeGeometrySmallCorrelationLength::CreateEigenvectors)
         .def("AssembleEigenvectors", &PertubeGeometrySmallCorrelationLength::AssembleEigenvectors)
+        .def("Average", &PertubeGeometrySmallCorrelationLength::Average)
         ;
 
 }

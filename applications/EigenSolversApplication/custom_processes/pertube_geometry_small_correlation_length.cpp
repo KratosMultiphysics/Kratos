@@ -39,10 +39,10 @@ namespace Kratos
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
-int PertubeGeometrySmallCorrelationLength::CreateEigenvectors( double correlationLength, double truncationTolerance ){
+int PertubeGeometrySmallCorrelationLength::CreateEigenvectors( ModelPart& rModelPart, double correlationLength, double truncationTolerance ){
     KRATOS_TRY;
     
-    int NumOfNodes = mrThisModelPart.NumberOfNodes();
+    int NumOfNodes = rModelPart.NumberOfNodes();
     KRATOS_WATCH( NumOfNodes );
 
     int NumOfRandomVariables = 6;
@@ -50,7 +50,7 @@ int PertubeGeometrySmallCorrelationLength::CreateEigenvectors( double correlatio
     BuiltinTimer reduceModel;
 
     searcher = new OMP_NodeSearch;
-    ModelPart::NodesContainerType nodes = mrThisModelPart.Nodes();
+    ModelPart::NodesContainerType nodes = rModelPart.Nodes();
 
     ResultNodesContainerType  results;
     std::vector<std::vector<double>> resutlsDistance;
@@ -63,10 +63,10 @@ int PertubeGeometrySmallCorrelationLength::CreateEigenvectors( double correlatio
 
     int row_counter = -1;
     int counter = 0;
-    for ( ModelPart::NodeIterator itNode = mrThisModelPart.NodesBegin(); itNode != mrThisModelPart.NodesEnd(); itNode++ )
+    for ( ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++ )
     {
         row_counter++;
-        results = { mrThisModelPart.Nodes().GetContainer()[ itNode->GetId() - 1 ] };
+        results = { rModelPart.Nodes().GetContainer()[ itNode->GetId() - 1 ] };
         searcher->SearchNodesInRadiusExclusiveImplementation(nodes,itNode->GetId()-1,3*correlationLength,results);
 
         for( int i = 0; i < results.size(); i++ ){
@@ -75,12 +75,28 @@ int PertubeGeometrySmallCorrelationLength::CreateEigenvectors( double correlatio
         }
     }
     KRATOS_WATCH( counter );
+    for(int i = 0; i < 10; i++)
+    {
+        for( int j = 0; j < 10; j++)
+        {
+            std::cout << CorrelationMatrix(i,j) << ", ";
+            
+        }
+        std::cout << std::endl;
+    }
+    for( int i = 0; i < 100; i++)
+    {
+        for( int j = 0; j < 100; j++)
+        {
+            CorrelationMatrix_check_orig(i,j) = CorrelationMatrix(i,j);
+        }
+    }
     
     // Solve Eigenvalue Problem
     Parameters params(R"(
         {
             "solver_type": "eigen_eigensystem",
-            "number_of_eigenvalues": 150,
+            "number_of_eigenvalues": 90,
             "normalize_eigenvectors": false,
             "max_iteration": 1000,
             "tolerance": 1e-3,
@@ -128,18 +144,18 @@ int PertubeGeometrySmallCorrelationLength::CreateEigenvectors( double correlatio
         double eucledian_norm =  norm_2( row(Eigenvectors,i) );
         noalias( row(Eigenvectors,i) )= 1.0 / eucledian_norm * row(Eigenvectors,i);
     }
-    KRATOS_WATCH( Eigenvalues );
-    KRATOS_WATCH( Eigenvectors.size1() );
-    KRATOS_WATCH( Eigenvectors.size2() );
-    KRATOS_WATCH( row(Eigenvectors,0).size() );
-    KRATOS_WATCH( CorrelationMatrix.size1() );
-    KRATOS_WATCH( CorrelationMatrix.size2() );
+    // KRATOS_WATCH( Eigenvalues );
+    // KRATOS_WATCH( Eigenvectors.size1() );
+    // KRATOS_WATCH( Eigenvectors.size2() );
+    // KRATOS_WATCH( row(Eigenvectors,0).size() );
+    // KRATOS_WATCH( CorrelationMatrix.size1() );
+    // KRATOS_WATCH( CorrelationMatrix.size2() );
     //KRATOS_WATCH( Eigenvectors );
     
     mDisplacement.resize(NumOfNodes,NumOfRandomVariables);
     int j = -1;
     DenseVectorType CorrelationVector;
-    for (ModelPart::NodeIterator itNode = mrThisModelPart.NodesBegin(); itNode != mrThisModelPart.NodesEnd(); itNode++)
+    for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
     {
         j++;
         for( int i = 0; i < NumOfRandomVariables; i++)
@@ -147,37 +163,95 @@ int PertubeGeometrySmallCorrelationLength::CreateEigenvectors( double correlatio
             mDisplacement(j,i) = sqrt( Eigenvalues(i) ) * inner_prod( row(Eigenvectors,i),  row( CorrelationMatrix, j));
         }
     }
-    //mrThisModelPart.AddNodalSolutionStepVariable(NORMAL);
-    MortarUtilities::ComputeNodesMeanNormalModelPart( mrThisModelPart, false );
+    //rModelPart.AddNodalSolutionStepVariable(NORMAL);
+    //MortarUtilities::ComputeNodesMeanNormalModelPart( rModelPart, false );
     return NumOfRandomVariables;
 
     KRATOS_CATCH("")
 
 }
 
-void PertubeGeometrySmallCorrelationLength::AssembleEigenvectors( const std::vector<double>& variables, double maxDisplacement )
+void PertubeGeometrySmallCorrelationLength::AssembleEigenvectors( ModelPart& rModelPart, const std::vector<double>& variables )
 {
     int NumOfRandomVariables = variables.size();
-    KRATOS_WATCH( variables );
+    //KRATOS_WATCH( variables );
     int j = -1;
     double max = 0.0;
     array_1d<double, 3> normal;
-    for (ModelPart::NodeIterator itNode = mrThisModelPart.NodesBegin(); itNode != mrThisModelPart.NodesEnd(); itNode++)
+    ModelPart::NodeIterator itNode_initial = mrInitialModelPart.NodesBegin();
+    for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
     {
         j++;
         double tmp = 0.0;
-        normal =  itNode->FastGetSolutionStepValue(NORMAL);
+        normal =  itNode_initial->FastGetSolutionStepValue(NORMAL);
+        itNode_initial = itNode_initial + 1;
         for( int i = 0; i < NumOfRandomVariables; i++)
         {
-            itNode->GetInitialPosition().Coordinates() += normal*maxDisplacement*variables[i]*mDisplacement(j,i);
-            tmp += maxDisplacement*variables[i]*mDisplacement(j,i);
+            itNode->GetInitialPosition().Coordinates() += normal*mMaximalDisplacement*variables[i]*mDisplacement(j,i);
+            tmp += mMaximalDisplacement*variables[i]*mDisplacement(j,i);
         } 
         if( std::abs(tmp) > std::abs(max) )
         {
             max = tmp;
         }     
     }
-    std::cout << "Maximal Displacement: " << max << std::endl;
+    //std::cout << "Maximal Displacement: " << max << std::endl;
+    Eigen::MatrixXd CorrelationMatrix_tmp;
+    CorrelationMatrix_tmp = Eigen::MatrixXd::Zero(rModelPart.NumberOfNodes(), rModelPart.NumberOfNodes());
+    // Remove this later again!
+    // ################################################################################
+    int row_counter = -1;
+    for ( ModelPart::NodeIterator it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); it++ )
+    {
+        row_counter++;
+        int column_counter = -1;
+        for( ModelPart::NodeIterator it_inner = rModelPart.NodesBegin(); it_inner != rModelPart.NodesEnd(); it_inner++ )
+        {
+            column_counter++;
+            array_1d<double, 3> coorrdinate1;
+            array_1d<double, 3> coorrdinate2;
+            //coorrdinate1 = it->GetInitialPosition().Coordinates();
+            //coorrdinate2 = it_inner->GetInitialPosition().Coordinates();
+            double c1 = it->GetInitialPosition().Coordinates()(2);
+            double c2 = it_inner->GetInitialPosition().Coordinates()(2);
+            double norm1 = sqrt( coorrdinate1(0)*coorrdinate1(0) + coorrdinate1(1)*coorrdinate1(1) + coorrdinate1(2)*coorrdinate1(2) );
+            double norm2 = sqrt( coorrdinate2(0)*coorrdinate2(0) + coorrdinate2(1)*coorrdinate2(1) + coorrdinate2(2)*coorrdinate2(2) );
+            CorrelationMatrix_tmp(row_counter ,column_counter ) =  c1*c2;
+        }
+    }
+    CorrelationMatrix_check += CorrelationMatrix_tmp;
+    //################################################################################
+}
+
+void PertubeGeometrySmallCorrelationLength::Average(int number)
+{
+    for(int i = 0; i < CorrelationMatrix_check.rows(); i++)
+    {
+        for( int j = 0; j < CorrelationMatrix_check.cols(); j++)
+        {
+            CorrelationMatrix_check(i,j) = CorrelationMatrix_check(i,j)/ (double)number;
+        }
+    }
+    for(int i = 0; i < 10; i++)
+    {
+        for( int j = 0; j < 10; j++)
+        {
+            std::cout << CorrelationMatrix_check(i,j) << ", ";
+        }
+        std::cout << std::endl;
+    }
+    // KRATOS_WATCH( CorrelationMatrix_check_orig - CorrelationMatrix_check );
+    // KRATOS_WATCH( CorrelationMatrix_check_orig(0,4) );
+    // KRATOS_WATCH( CorrelationMatrix_check(0,4) );
+    // Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(CorrelationMatrix_check.rows());
+    // es.compute(CorrelationMatrix_check,Eigen::ComputeEigenvectors);
+    // for( int i = 0; i < es.eigenvectors().col(0).size(); i++)
+    // {
+    //     std::cout << i << ": " << es.eigenvectors().col(0)(i) << "\t " << CorrelationMatrix_check_orig.col(0)(i) << std::endl;
+    // }
+    KRATOS_WATCH( ( CorrelationMatrix_check  ).rows() );
+    //KRATOS_WATCH( ( CorrelationMatrix_check.cwiseAbs() - CorrelationMatrix_check_orig.cwiseAbs() ) );
+    KRATOS_WATCH( ( CorrelationMatrix_check_orig - CorrelationMatrix_check ).norm() / CorrelationMatrix_check_orig.norm() );
 }
 
 double PertubeGeometrySmallCorrelationLength::CorrelationFunction( ModelPart::NodeIterator itNode1,NodesType itNode2, double CorrelationLenth)

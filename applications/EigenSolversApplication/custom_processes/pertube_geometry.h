@@ -24,6 +24,7 @@
 #include "custom_solvers/eigensystem_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
 #include "custom_utilities/omp_node_search.h"
+#include "utilities/mortar_utilities.h"
 
 
 namespace Kratos
@@ -81,12 +82,17 @@ public:
     ///@{
 
     /// Default constructor.
-    PertubeGeometryProcess(
-        ModelPart& rThisModelPart
-        ):mrThisModelPart(rThisModelPart)
+    PertubeGeometryProcess( ModelPart& rInitialModelPart, double MaximalDisplacement) : 
+        mrInitialModelPart(rInitialModelPart),
+        mMaximalDisplacement(MaximalDisplacement)
     {
         KRATOS_TRY
-
+        MortarUtilities::ComputeNodesMeanNormalModelPart( mrInitialModelPart, false );
+        // Remove this
+        //###############################################################################
+        CorrelationMatrix_check = Eigen::MatrixXd::Zero(mrInitialModelPart.NumberOfNodes(), mrInitialModelPart.NumberOfNodes());
+        CorrelationMatrix_check_orig = Eigen::MatrixXd::Zero(mrInitialModelPart.NumberOfNodes(), mrInitialModelPart.NumberOfNodes());
+        //#################################################################################
         KRATOS_CATCH("")
     }
 
@@ -118,13 +124,17 @@ public:
     ///@name Operations
     ///@{
 
-    int CreateEigenvectors(double minDistance, double correlationLength, double truncationTolerance);
+    int CreateEigenvectors(ModelPart& rThisModelPart, double minDistance, double correlationLength, double truncationTolerance);
 
-    void AssembleEigenvectors( const std::vector<double>& variables, double maxDisplacement );
+    void AssembleEigenvectors(ModelPart& rThisModelPart, const std::vector<double>& variables, double correlationLength );
    
     double Kernel( double x, double sigma );
 
     double CorrelationFunction( ModelPart::NodeIterator itNode1, ModelPart::NodeIterator itNode2, double CorrelationLenth);
+    //Remove this #################
+    void Average(int number);
+    //##############################
+
     ///@}
     ///@name Access
     ///@{
@@ -208,11 +218,18 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrThisModelPart;              // The main model part
+    ModelPart& mrInitialModelPart;
 
     Eigen::MatrixXd Displacement;
 
     OMP_NodeSearch* searcher;
+
+    double mMaximalDisplacement;
+
+    // Remove this again ################################
+    Eigen::MatrixXd CorrelationMatrix_check;
+    Eigen::MatrixXd CorrelationMatrix_check_orig;
+    //###################################################
 
     ///@}
     ///@name Private Operators
