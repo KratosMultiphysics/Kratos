@@ -40,11 +40,12 @@ void TransferNodalForcesToFem::Execute()
         auto& r_node = r_geometry[0];
 
         if (r_node.GetValue(IS_DEM)) {
+            array_1d<double, 3> dem_forces;
             if (!r_process_info[DEMFEM_CONTACT]) {
                 auto p_spheric_particle_associated = r_node.GetValue(DEM_PARTICLE_POINTER);
-                const array_1d<double, 3>& dem_forces = (p_spheric_particle_associated->GetGeometry()[0]).FastGetSolutionStepValue(TOTAL_FORCES);
+                dem_forces = (p_spheric_particle_associated->GetGeometry()[0]).FastGetSolutionStepValue(TOTAL_FORCES);
             } else { // In the DE-FE contact the force is stored at the FEM nodes
-                const array_1d<double, 3>& dem_forces = r_node.FastGetSolutionStepValue(TOTAL_FORCES);
+                dem_forces = r_node.FastGetSolutionStepValue(TOTAL_FORCES);
             }
             it_cond->SetValue(FORCE_LOAD, dem_forces);
         }
