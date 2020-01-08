@@ -34,7 +34,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(DEM_STRUCTURES_COUPLING_APPLICATION) SandProductionUtilities {
+class SandProductionUtilities {
 
 public:
 
@@ -162,7 +162,7 @@ private:
 ///@{
 
 /// Assignment operator.
-SandProductionUtilities & operator=(SandProductionUtilities const& rOther);
+SandProductionUtilities & operator=(SandProductionUtilities const& rOther){};
 
 
 ///@}

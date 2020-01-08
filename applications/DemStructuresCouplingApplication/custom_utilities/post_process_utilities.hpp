@@ -32,7 +32,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(DEM_STRUCTURES_COUPLING_APPLICATION) PostProcessUtilities {
+class  PostProcessUtilities {
 
 public:
 
@@ -168,7 +168,7 @@ void Clear(pybind11::list& my_list);
 ///@{
 
 /// Assignment operator.
-PostProcessUtilities & operator=(PostProcessUtilities const& rOther);
+PostProcessUtilities & operator=(PostProcessUtilities const& rOther){};
 
 
 ///@}
