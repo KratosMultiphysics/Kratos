@@ -173,7 +173,8 @@ void MembraneElement::CalculateRightHandSide(
 
     Vector internal_forces = ZeroVector(system_size);
     InternalForces(internal_forces,GetGeometry().GetDefaultIntegrationMethod());
-    rRightHandSideVector = ZeroVector(system_size);
+    rRightHandSideVector.resize(system_size);
+    noalias(rRightHandSideVector) = ZeroVector(system_size);
     noalias(rRightHandSideVector) -= internal_forces;
     CalculateAndAddBodyForce(rRightHandSideVector);
 }
