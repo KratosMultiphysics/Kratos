@@ -111,6 +111,7 @@ public:
         QUADRATURE_ON_NODES
     };
 
+    /// Defines the possible results of the projection methods.
     constexpr int PROJECTION_FAILED = -1;
     constexpr int PROJECTION_OUTSIDE = 0;
     constexpr int PROJECTION_INSIDE = 1;
