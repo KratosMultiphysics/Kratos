@@ -24,6 +24,7 @@ class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCri
 
         self.abs_tolerance = self.settings["abs_tolerance"].GetDouble()
         self.rel_tolerance = self.settings["rel_tolerance"].GetDouble()
+        self.label = self.settings["label"].GetString()
 
     def IsConverged(self, residual, current_data):
         res_norm = la.norm(residual)
@@ -38,8 +39,11 @@ class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCri
         is_converged = abs_norm < self.abs_tolerance or rel_norm < self.rel_tolerance
 
         if self.echo_level > 1:
-            # info_msg  = 'Convergence for "'+colors.bold(self.interface_data.variable.Name())+'": ' ### TODO find a good way to bring this back
             info_msg  = 'Convergence '
+
+            if self.label != "":
+                info_msg += 'for "{}": '.format(self.label)
+
             if is_converged:
                 info_msg += colors.green("ACHIEVED")
             else:
@@ -58,7 +62,8 @@ class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCri
     def _GetDefaultSettings(cls):
         this_defaults = KM.Parameters("""{
             "abs_tolerance" : 1e-5,
-            "rel_tolerance" : 1e-5
+            "rel_tolerance" : 1e-5,
+            "label"         : ""
         }""")
         this_defaults.AddMissingParameters(super(RelativeNormPreviousResidualConvergenceCriteria, cls)._GetDefaultSettings())
         return this_defaults

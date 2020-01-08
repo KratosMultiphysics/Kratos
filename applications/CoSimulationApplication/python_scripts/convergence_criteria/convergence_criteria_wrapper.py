@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 # CoSimulation imports
 from KratosMultiphysics.CoSimulationApplication.factories.convergence_criterion_factory import CreateConvergenceCriterion
+import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 # Other imports
 import numpy as np
@@ -18,6 +19,9 @@ class ConvergenceCriteriaWrapper(object):
         self.interface_data = solver_wrapper.GetInterfaceData(settings["data_name"].GetString())
         settings.RemoveValue("data_name")
         settings.RemoveValue("solver")
+
+        if not settings.Has("label"):
+            settings.AddEmptyValue("label").SetString(colors.bold('"{}.{}"'.format(self.interface_data.solver_name, self.interface_data.name)))
 
         self.conv_crit = CreateConvergenceCriterion(settings)
 
