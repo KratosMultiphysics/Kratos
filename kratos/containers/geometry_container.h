@@ -126,7 +126,7 @@ public:
     /// Adds a geometry to the geometry container.
     GeometryIterator AddGeometry(typename TGeometryType::Pointer pNewGeometry)
     {
-        auto i = mGeometries.find(pNewGeometry.Id());
+        auto i = mGeometries.find(pNewGeometry->Id());
         if(i == mGeometries.end())
             return mGeometries.insert(pNewGeometry);
         else
