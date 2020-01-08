@@ -113,9 +113,9 @@ public:
 
     /// Defines the possible results of the projection methods.
     constexpr int PROJECTION_FAILED = -1;
-    constexpr int PROJECTION_OUTSIDE = 0;
-    constexpr int PROJECTION_INSIDE = 1;
-    constexpr int PROJECTION_ON_BOUNDARY = 1;
+    constexpr int POINT_OUTSIDE = 0;
+    constexpr int POINT_INSIDE = 1;
+    constexpr int POINT_ON_BOUNDARY = 1;
 
     /** Array of counted pointers to point. This type used to hold
     geometry's points.
@@ -2035,7 +2035,7 @@ public:
         else
         {
             // Projection failed
-            return -1;
+            return PROJECTION_FAILED;
         }
     }
 
