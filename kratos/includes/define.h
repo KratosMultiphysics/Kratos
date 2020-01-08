@@ -40,15 +40,15 @@
 // Check Windows
 #if defined(_WIN32) || defined(_WIN64)
    #if defined(_WIN64)
-     #define ENV64BIT
+     #define KRATOS_ENV64BIT
    #else
-     #define ENV32BIT
+     #define KRATOS_ENV32BIT
   #endif
 #else // It is POSIX (Linux, MacOSX, BSD...)
   #if defined(__x86_64__) || defined(__ppc64__) || defined(__aarch64__)
-    #define ENV64BIT
+    #define KRATOS_ENV64BIT
   #else // This includes __arm__ and __x86__
-    #define ENV32BIT
+    #define KRATOS_ENV32BIT
   #endif
 #endif
 

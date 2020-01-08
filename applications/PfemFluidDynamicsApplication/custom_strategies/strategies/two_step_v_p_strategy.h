@@ -220,12 +220,13 @@ public:
     double currentTime = rCurrentProcessInfo[TIME];
     double timeInterval = rCurrentProcessInfo[DELTA_TIME];
     bool timeIntervalChanged = rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
+		unsigned int stepsWithChangedDt = rCurrentProcessInfo[STEPS_WITH_CHANGED_DT];
 
     unsigned int maxNonLinearIterations = mMaxPressureIter;
 
     KRATOS_INFO("TwoStepVPStrategy") << "\n                   Solve with two_step_vp strategy at t=" << currentTime << "s" << std::endl;
 
-    if (timeIntervalChanged == true && currentTime > 10 * timeInterval)
+    if ((timeIntervalChanged == true && currentTime > 10 * timeInterval) || stepsWithChangedDt>0)
     {
       maxNonLinearIterations *= 2;
     }
@@ -416,7 +417,7 @@ public:
       array_1d<double, 3> &PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
       /* if((i)->IsNot(ISOLATED) || (i)->Is(SOLID)){ */
-      if ((i)->IsNot(ISOLATED) && (i)->IsNot(RIGID))
+      if ((i)->IsNot(ISOLATED) && ((i)->IsNot(RIGID) || (i)->Is(SOLID)))
       {
         UpdateAccelerations(CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity, BDFcoeffs);
       }
@@ -484,7 +485,7 @@ public:
       array_1d<double, 3> &PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
       /* if((i)->IsNot(ISOLATED) || (i)->Is(SOLID)){ */
-      if ((i)->IsNot(ISOLATED) && (i)->IsNot(RIGID))
+      if ((i)->IsNot(ISOLATED) && ((i)->IsNot(RIGID) || (i)->Is(SOLID)))
       {
         UpdateAccelerations(CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity, BDFcoeffs);
       }

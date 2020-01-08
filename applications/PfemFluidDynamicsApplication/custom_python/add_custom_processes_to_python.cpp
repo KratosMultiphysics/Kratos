@@ -8,6 +8,7 @@
 //
 
 // External includes
+#include <pybind11/stl.h>
 
 //Application includes
 #include "custom_python/add_custom_processes_to_python.h"
@@ -44,7 +45,13 @@
 #include "custom_processes/generate_new_conditions_mesher_for_fluids_process.hpp"
 #include "custom_processes/lagrangian_rotation_process.hpp"
 #include "custom_processes/compute_average_pfem_mesh_parameters_process.hpp"
+#include "custom_processes/fix_scalar_pfem_dof_process.hpp"
+#include "custom_processes/free_scalar_pfem_dof_process.hpp"
 
+#include "custom_processes/assign_scalar_variable_to_pfem_entities_process.hpp"
+#include "custom_processes/assign_vector_variable_to_pfem_conditions_process.hpp"
+#include "custom_processes/assign_vector_field_to_pfem_entities_process.hpp"
+#include "custom_processes/assign_scalar_field_to_pfem_entities_process.hpp"
 
 //Processes
 
@@ -53,6 +60,8 @@ namespace Kratos
 
 namespace Python
 {
+
+typedef std::vector<Flags> FlagsContainer;
 
 void AddCustomProcessesToPython(pybind11::module &m)
 {
@@ -112,8 +121,8 @@ void AddCustomProcessesToPython(pybind11::module &m)
     py::class_<BuildModelPartBoundaryForFluidsProcess, BuildModelPartBoundaryForFluidsProcess::Pointer, MesherProcess>(m, "BuildModelPartBoundaryForFluids")
         .def(py::init<ModelPart &, std::string, int>())
         .def("SearchConditionMasters", &BuildModelPartBoundaryForFluidsProcess::SearchConditionMasters);
-    //**********TRANSFER ELEMENTS TO MODEL PART*********//
 
+    //**********TRANSFER ELEMENTS TO MODEL PART*********//
     py::class_<TransferModelPartElementsProcess, TransferModelPartElementsProcess::Pointer, ProcessBaseType>(m, "TransferModelPartElementsProcess")
         .def(py::init<ModelPart &, ModelPart &>())
         .def("Execute", &TransferModelPartElementsProcess::Execute);
@@ -127,6 +136,52 @@ void AddCustomProcessesToPython(pybind11::module &m)
     py::class_<ComputeAveragePfemMeshParametersProcess, ComputeAveragePfemMeshParametersProcess::Pointer, MesherProcess>(m, "ComputeAveragePfemMeshParameters")
         .def(py::init<ModelPart &, MesherUtilities::MeshingParameters &, int>());
 
+    //**********FIX AND FREE DOFS PROCESSES*********//
+
+    py::class_<FixScalarPfemDofProcess, FixScalarPfemDofProcess::Pointer, Process>(m, "FixScalarPfemDofProcess")
+        .def(py::init<ModelPart &, Parameters>())
+        .def(py::init<ModelPart &, Parameters &>())
+        .def(py::init<ModelPart &, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> &>())
+        .def(py::init<ModelPart &, const Variable<double> &>())
+        .def(py::init<ModelPart &, const Variable<int> &>())
+        .def(py::init<ModelPart &, const Variable<bool> &>())
+        .def("Execute", &FixScalarPfemDofProcess::Execute)
+
+        ;
+
+    py::class_<FreeScalarPfemDofProcess, FreeScalarPfemDofProcess::Pointer, Process>(m, "FreeScalarPfemDofProcess")
+        .def(py::init<ModelPart &, Parameters>())
+        .def(py::init<ModelPart &, Parameters &>())
+        .def(py::init<ModelPart &, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> &>())
+        .def(py::init<ModelPart &, const Variable<double> &>())
+        .def(py::init<ModelPart &, const Variable<int> &>())
+        .def(py::init<ModelPart &, const Variable<bool> &>())
+        .def("Execute", &FreeScalarPfemDofProcess::Execute)
+
+        ;
+
+    // //**********ASSIGN VALUES TO VARIABLES PROCESSES*********//
+
+    py::class_<AssignScalarVariableToPfemEntitiesProcess, AssignScalarVariableToPfemEntitiesProcess::Pointer, Process>(m, "AssignScalarToEntitiesProcess")
+        .def(py::init<ModelPart &, Parameters>())
+        .def(py::init<ModelPart &, Parameters &>())
+        .def("Execute", &AssignScalarVariableToPfemEntitiesProcess::Execute);
+
+    py::class_<AssignScalarFieldToPfemEntitiesProcess, AssignScalarFieldToPfemEntitiesProcess::Pointer, AssignScalarVariableToPfemEntitiesProcess>(m, "AssignScalarFieldToEntitiesProcess")
+        .def(py::init<ModelPart &, pybind11::object &, const std::string, const bool, Parameters>())
+        .def(py::init<ModelPart &, pybind11::object &, const std::string, const bool, Parameters &>())
+        .def("Execute", &AssignScalarFieldToPfemEntitiesProcess::Execute);
+
+    py::class_<AssignVectorFieldToPfemEntitiesProcess, AssignVectorFieldToPfemEntitiesProcess::Pointer, AssignScalarFieldToPfemEntitiesProcess>(m, "AssignVectorFieldToEntitiesProcess")
+        .def(py::init<ModelPart &, pybind11::object &, const std::string, const bool, Parameters>())
+        .def(py::init<ModelPart &, pybind11::object &, const std::string, const bool, Parameters &>())
+        .def("Execute", &AssignVectorFieldToPfemEntitiesProcess::Execute);
+
+    py::class_<AssignVectorVariableToPfemConditionsProcess, AssignVectorVariableToPfemConditionsProcess::Pointer, AssignScalarVariableToPfemEntitiesProcess>(m, "AssignVectorToConditionsProcess")
+        .def(py::init<ModelPart &, Parameters>())
+        .def(py::init<ModelPart &, Parameters &>())
+        .def(py::init<ModelPart &, const Variable<array_1d<double, 3>> &, array_1d<double, 3> &>())
+        .def("Execute", &AssignVectorVariableToPfemConditionsProcess::Execute);
     ;
 }
 

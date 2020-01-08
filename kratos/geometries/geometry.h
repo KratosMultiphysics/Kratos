@@ -1372,22 +1372,58 @@ public:
         return rResult;
     }
 
+    ///@}
+    ///@name IsInside
+    ///@{
+
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective
-     * local point for the given global point
-     * @param rPoint The point to be checked if is inside o note in global coordinates
-     * @param rResult The local coordinates of the point
-     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
-     * @return True if the point is inside, false otherwise
-     */
+    * @brief Checks if given point in global space coordinates
+    *        is inside the geometry boundaries. This function
+    *        computes the local coordinates and checks then if
+    *        this point lays within the boundaries.
+    * @param rPointGlobalCoordinates the global coordinates of the
+    *        external point.
+    * @param rResult the local coordinates of the point.
+    * @param Tolerance the tolerance to the boundary.
+    * @return true if the point is inside, false otherwise
+    */
     virtual bool IsInside(
-        const CoordinatesArrayType& rPoint,
+        const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const
     {
-        KRATOS_ERROR << "Calling base class IsInside method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-        return false;
+        PointLocalCoordinates(
+            rResult,
+            rPointGlobalCoordinates);
+
+        if (IsInsideLocalSpace(rResult, Tolerance) == 0) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+    * @brief Checks if given point in local space coordinates of this geometry
+    *        is inside the geometry boundaries.
+    * @param rPointLocalCoordinates the point on the geometry,
+    *        which shall be checked if it lays within
+    *        the boundaries.
+    * @param Tolerance the tolerance to the boundary.
+    * @return -1 -> failed
+    *          0 -> outside
+    *          1 -> inside
+    *          2 -> on the boundary
+    */
+    virtual int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        KRATOS_ERROR << "Calling IsInsideLocalSpace from base class."
+            << " Please check the definition of derived class. "
+            << *this << std::endl;
+        return 0;
     }
 
     ///@}
@@ -1904,6 +1940,200 @@ public:
                 << " Please check the definition within derived class. "
                 << *this << std::endl;
         }
+    }
+
+    ///@}
+    ///@name Spatial Operations
+    ///@{
+
+    /**
+    * @brief Projects a certain point on the geometry, or finds
+    *        the closest point, depending on the provided
+    *        initial guess. The external point does not necessary
+    *        lay on the geometry.
+    *        It shall deal as the interface to the mathematical
+    *        projection function e.g. the Newton-Raphson.
+    *        Thus, the breaking criteria does not necessarily mean
+    *        that it found a point on the surface, if it is really
+    *        the closest if or not. It shows only if the breaking
+    *        criteria, defined by the tolerance is reached.
+    *
+    *        This function requires an initial guess, provided by
+    *        rProjectedPointLocalCoordinates.
+    *        This function can be a very costly operation.
+    *
+    * @param rPointGlobalCoordinates the point to which the
+    *        projection has to be found.
+    * @param rProjectedPointGlobalCoordinates the location of the
+    *        projection in global coordinates.
+    * @param rProjectedPointLocalCoordinates the location of the
+    *        projection in local coordinates.
+    *        The variable is as initial guess!
+    * @param Tolerance accepted of orthogonal error to projection.
+    * @return It is chosen to take an int as output parameter to
+    *         keep more possibilities within the interface.
+    *         0 -> failed
+    *         1 -> converged
+    */
+    virtual int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        KRATOS_ERROR << "Calling ProjectionPoint within geometry base class."
+            << " Please check the definition within derived class. "
+            << *this << std::endl;
+    }
+
+    /**
+    * @brief Returns all coordinates of the closest point on
+    *        the geometry given to an arbitrary point in global coordinates.
+    *        The basic concept is to first do a projection towards
+    *        this geometry and second checking if the projection
+    *        was successfull or if no point on the geometry was found.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param rClosestPointGlobalCoordinates the location of the
+    *        closest point in global coordinates.
+    * @param rClosestPointLocalCoordinates the location of the
+    *        closest point in local coordinates.
+    *        IMPORTANT: The variable can also be used as initial guess.
+    * @param Tolerance accepted orthogonal error.
+    * @return -1 -> failed
+    *          0 -> outside
+    *          1 -> inside
+    *          2 -> on the boundary
+    */
+    virtual int ClosestPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rClosestPointGlobalCoordinates,
+        CoordinatesArrayType& rClosestPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        // 1. Make projection on geometry
+        if (ProjectionPoint(rPointGlobalCoordinates,
+            rClosestPointGlobalCoordinates,
+            rClosestPointLocalCoordinates,
+            Tolerance) == 1)
+        {
+            // 2. If projection converged check if solution lays
+            // within the boundaries of this geometry
+            // Returns either 0, 1 or 2
+            // Or -1 if IsInsideLocalSpace failed
+            return IsInsideLocalSpace(
+                rClosestPointLocalCoordinates,
+                Tolerance);
+        }
+        else
+        {
+            // Projection failed
+            return -1;
+        }
+    }
+
+    /**
+    * @brief Returns global coordinates of the closest point on
+    *        the geometry given to an arbitrary point in global coordinates.
+    *        The basic concept is to first do a projection towards
+    *        this geometry and second checking if the projection
+    *        was successfull or if no point on the geometry was found.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param rClosestPointGlobalCoordinates the location of the
+    *        closest point in global coordinates.
+    *
+    *        WARNING: This function does not provide the possibility
+    *                 to use an initial guess!!
+    *
+    * @param Tolerance accepted orthogonal error.
+    * @return -1 -> failed
+    *          0 -> outside
+    *          1 -> inside
+    *          2 -> on the boundary
+    */
+    virtual int ClosestPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rClosestPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        CoordinatesArrayType local_coordinates(ZeroVector(3));
+
+        return ClosestPoint(
+            rPointGlobalCoordinates,
+            rClosestPointGlobalCoordinates,
+            local_coordinates,
+            Tolerance);
+    }
+
+    /**
+    * @brief Returns local coordinates of the closest point on
+    *        the geometry given to an arbitrary point in global coordinates.
+    *        The basic concept is to first do a projection towards
+    *        this geometry and second checking if the projection
+    *        was successfull or if no point on the geometry was found.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param rClosestPointLocalCoordinates the location of the
+    *        closest point in local coordinates.
+    *
+    *        IMPORTANT: The rClosestPointLocalCoordinates can
+    *                   also be used as initial guess.
+    *
+    * @param Tolerance accepted orthogonal error.
+    * @return -1 -> failed
+    *          0 -> outside
+    *          1 -> inside
+    *          2 -> on the boundary
+    */
+    virtual int ClosestPointLocalCoordinates(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rClosestPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        CoordinatesArrayType global_coordinates(ZeroVector(3));
+
+        return ClosestPoint(
+            rPointGlobalCoordinates,
+            global_coordinates,
+            rClosestPointLocalCoordinates,
+            Tolerance);
+    }
+
+    /**
+    * @brief Computes the distance between an point in
+    *        global coordinates and the closest point
+    *        of this geometry.
+    *        If projection fails, double::max will be returned.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    virtual double CalculateDistance(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        CoordinatesArrayType global_coordinates(ZeroVector(3));
+
+        if (ClosestPoint(
+            rPointGlobalCoordinates,
+            global_coordinates,
+            Tolerance) < 1)
+        {
+            // If projection fails, double::max will be returned
+            return std::numeric_limits<double>::max();
+        }
+
+        // Distance to projected point
+        return norm_2(rPointGlobalCoordinates - global_coordinates);
     }
 
     ///@}

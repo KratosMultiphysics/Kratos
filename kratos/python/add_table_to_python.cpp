@@ -50,6 +50,7 @@ void  AddTableToPython(pybind11::module& m)
     .def("GetDerivative",&DoubleTableType::GetDerivative)
     .def("GetNearestValue", TableGetNearestValue)
     .def("AddRow", &DoubleTableType::PushBack)
+    .def("Clear", &DoubleTableType::Clear)
     .def("__str__", PrintObject<DoubleTableType>)
     ;
 }
