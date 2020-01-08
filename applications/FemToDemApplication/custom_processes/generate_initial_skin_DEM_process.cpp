@@ -37,6 +37,7 @@ void GenerateInitialSkinDEMProcess::Execute()
     auto &r_submodel_part = mrModelPart.GetSubModelPart("SkinDEMModelPart");
     const auto it_node_begin = r_submodel_part.NodesBegin();
     double num_DEM = 0;
+    const int max_id_FEM_nodes = this->GetMaximumFEMId();
     // #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(r_submodel_part.Nodes().size()); i++) {
         auto it_node = it_node_begin + i;
@@ -76,7 +77,7 @@ void GenerateInitialSkinDEMProcess::Execute()
             }
             const array_1d<double,3>& r_coordinates = it_node->Coordinates();
             const int id = this->GetMaximumDEMId() + 1;
-            this->CreateDEMParticle(id, r_coordinates, p_DEM_properties, 0.8*radius, it_node);
+            this->CreateDEMParticle(id + max_id_FEM_nodes, r_coordinates, p_DEM_properties, 0.8*radius, it_node);
             num_DEM++;
         }
     }
@@ -101,7 +102,7 @@ void GenerateInitialSkinDEMProcess::CreateDEMParticle(
     else
         sphere_type = "SphericParticle3D";
 
-    auto spheric_particle = mParticleCreator.CreateSphericParticleRaw(mrDEMModelPart, Id, Coordinates, pProperties, Radius, sphere_type);
+    auto spheric_particle = mParticleCreator.CreateSphericParticleRaw(mrDEMModelPart, Id+1500, Coordinates, pProperties, Radius, sphere_type);
     rNode->SetValue(IS_DEM, true);
     rNode->SetValue(RADIUS, Radius);
     rNode->SetValue(DEM_PARTICLE_POINTER, spheric_particle);
@@ -152,6 +153,22 @@ int GenerateInitialSkinDEMProcess::GetMaximumDEMId()
         auto& r_geometry = it_DEM->GetGeometry();
         const int DEM_id = r_geometry[0].Id();
         max_id = (max_id < DEM_id) ? DEM_id : max_id;
+    }
+    return max_id;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+int GenerateInitialSkinDEMProcess::GetMaximumFEMId()
+{
+    int max_id = 0;
+    const auto it_FEM_node_begin = mrModelPart.NodesBegin();
+    // #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
+        auto it_FEM_node = it_FEM_node_begin + i;
+        const int FEM_node_id = it_FEM_node->Id();
+        max_id = (max_id < FEM_node_id) ? FEM_node_id : max_id;
     }
     return max_id;
 }
