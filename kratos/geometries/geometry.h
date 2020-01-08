@@ -111,6 +111,10 @@ public:
         QUADRATURE_ON_NODES
     };
 
+    constexpr int PROJECTION_FAILED = -1;
+    constexpr int PROJECTION_OUTSIDE = 0;
+    constexpr int PROJECTION_INSIDE = 1;
+    constexpr int PROJECTION_ON_BOUNDARY = 1;
 
     /** Array of counted pointers to point. This type used to hold
     geometry's points.
