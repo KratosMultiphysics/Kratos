@@ -57,7 +57,7 @@ public:
   explicit FileLoggerOutput(const std::string& rName);
 
   /// Destructor.
-  virtual ~FileLoggerOutput();
+  ~FileLoggerOutput() {};
 
   ///@}
   ///@name Operators
@@ -97,6 +97,7 @@ private:
   ///@}
   ///@name Member Variables
   ///@{
+  std::ofstream mFileStream;
 
   ///@}
 }; // Class FileLoggerOutput

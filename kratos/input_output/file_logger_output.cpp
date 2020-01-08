@@ -23,21 +23,11 @@
 
 namespace Kratos
 {
-    namespace {
-    std::ofstream* CreateNewLogFile(const std::string& rFileName)
-    {
-        // The file stream created here on the heap is deleted in the destructor
-        // of the FileLoggerOutput
-        return new std::ofstream(rFileName);
-    }
-    } // namespace
-
     FileLoggerOutput::FileLoggerOutput(const std::string& rFileName)
-        : LoggerOutput(*CreateNewLogFile(rFileName))
-    { }
-
-    FileLoggerOutput::~FileLoggerOutput() {
-        delete &GetStream();
+        : LoggerOutput(),
+        mFileStream(rFileName)
+    {
+        SetStream(&mFileStream);
     }
 
     std::string FileLoggerOutput::Info() const
