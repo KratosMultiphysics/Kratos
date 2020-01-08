@@ -58,6 +58,9 @@ class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCri
 
         return is_converged
 
+    def Check(self):
+        pass
+
     @classmethod
     def _GetDefaultSettings(cls):
         this_defaults = KM.Parameters("""{
