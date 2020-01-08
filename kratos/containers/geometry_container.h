@@ -86,7 +86,7 @@ public:
 
     /// Components Constructor
     GeometryContainer(
-        typename GeometriesContainerType::Pointer NewGeometries)
+        GeometriesContainerType& NewGeometries)
         : mGeometries(NewGeometries)
     {}
 
@@ -261,9 +261,9 @@ public:
         return mGeometries;
     }
 
-    void SetGeometries(GeometriesContainerType OtherGeometries)
+    void SetGeometries(GeometriesContainerType& OtherGeometries)
     {
-        mGeometries = pOtherGeometries;
+        mGeometries = OtherGeometries;
     }
 
     ///@}
