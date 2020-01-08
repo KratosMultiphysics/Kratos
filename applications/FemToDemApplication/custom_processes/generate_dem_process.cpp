@@ -34,6 +34,8 @@ void GenerateDemProcess::Execute()
     nodal_neigh_process.Execute();
 
     const auto it_element_begin = mrModelPart.ElementsBegin();
+    const int max_id_FEM_nodes = this->GetMaximumFEMId();
+
     // #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
         auto it_elem = it_element_begin + i;
@@ -91,7 +93,11 @@ void GenerateDemProcess::Execute()
                     }
                     const array_1d<double,3>& r_coordinates = r_node.Coordinates();
                     const int id = this->GetMaximumDEMId() + 1;
-                    this->CreateDEMParticle(id, r_coordinates, p_DEM_properties, radius, r_node);
+                    
+                    if (mrDEMModelPart.Elements().size() == 0)
+                        this->CreateDEMParticle(id + max_id_FEM_nodes, r_coordinates, p_DEM_properties, radius, r_node);
+                    else 
+                        this->CreateDEMParticle(id, r_coordinates, p_DEM_properties, radius, r_node);
                 }
             }
             it_elem->SetValue(DEM_GENERATED, true);
@@ -171,6 +177,22 @@ int GenerateDemProcess::GetMaximumDEMId()
         auto& r_geometry = it_DEM->GetGeometry();
         const int DEM_id = r_geometry[0].Id();
         max_id = (max_id < DEM_id) ? DEM_id : max_id;
+    }
+    return max_id;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+int GenerateDemProcess::GetMaximumFEMId()
+{
+    int max_id = 0;
+    const auto it_FEM_node_begin = mrModelPart.NodesBegin();
+    // #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
+        auto it_FEM_node = it_FEM_node_begin + i;
+        const int FEM_node_id = it_FEM_node->Id();
+        max_id = (max_id < FEM_node_id) ? FEM_node_id : max_id;
     }
     return max_id;
 }
