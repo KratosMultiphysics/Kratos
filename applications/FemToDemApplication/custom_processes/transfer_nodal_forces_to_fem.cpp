@@ -32,6 +32,7 @@ void TransferNodalForcesToFem::Execute()
 {
     auto& sub_model_conditions = mrModelPart.GetSubModelPart("ContactForcesDEMConditions");
     const auto it_cond_begin = sub_model_conditions.ConditionsBegin();
+    auto& r_process_info = mrModelPart.GetProcessInfo();
     //#pragma omp parallel for
     for (int i = 0; i < static_cast<int>(sub_model_conditions.Conditions().size()); i++) {
         auto it_cond = it_cond_begin + i;
@@ -39,8 +40,12 @@ void TransferNodalForcesToFem::Execute()
         auto& r_node = r_geometry[0];
 
         if (r_node.GetValue(IS_DEM)) {
-            auto p_spheric_particle_associated = r_node.GetValue(DEM_PARTICLE_POINTER);
-            const array_1d<double, 3>& dem_forces = (p_spheric_particle_associated->GetGeometry()[0]).FastGetSolutionStepValue(TOTAL_FORCES);
+            if (!r_process_info[DEMFEM_CONTACT]) {
+                auto p_spheric_particle_associated = r_node.GetValue(DEM_PARTICLE_POINTER);
+                const array_1d<double, 3>& dem_forces = (p_spheric_particle_associated->GetGeometry()[0]).FastGetSolutionStepValue(TOTAL_FORCES);
+            } else { // In the DE-FE contact the force is stored at the FEM nodes
+                const array_1d<double, 3>& dem_forces = r_node.FastGetSolutionStepValue(TOTAL_FORCES);
+            }
             it_cond->SetValue(FORCE_LOAD, dem_forces);
         }
     }
