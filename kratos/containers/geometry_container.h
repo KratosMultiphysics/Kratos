@@ -253,20 +253,15 @@ public:
 
     GeometriesContainerType& Geometries()
     {
-        return *mGeometries;
+        return mGeometries;
     }
 
     const GeometriesContainerType& Geometries() const
     {
-        return *mGeometries;
-    }
-
-    typename GeometriesContainerType::Pointer pGeometries()
-    {
         return mGeometries;
     }
 
-    void SetGeometries(typename GeometriesContainerType::Pointer pOtherGeometries)
+    void SetGeometries(GeometriesContainerType OtherGeometries)
     {
         mGeometries = pOtherGeometries;
     }
