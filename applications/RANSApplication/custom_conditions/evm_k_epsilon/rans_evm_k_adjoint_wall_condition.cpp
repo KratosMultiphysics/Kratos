@@ -54,39 +54,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template <unsigned int TNumNodes, unsigned int TDim>
-RansEvmKAdjointWallCondition<TNumNodes, TDim>::RansEvmKAdjointWallCondition(IndexType NewId)
-    : Condition(NewId)
-{
-}
-
-template <unsigned int TNumNodes, unsigned int TDim>
-RansEvmKAdjointWallCondition<TNumNodes, TDim>::RansEvmKAdjointWallCondition(
-    IndexType NewId, const NodesArrayType& ThisNodes)
-    : Condition(NewId, ThisNodes)
-{
-}
-
-template <unsigned int TNumNodes, unsigned int TDim>
-RansEvmKAdjointWallCondition<TNumNodes, TDim>::RansEvmKAdjointWallCondition(
-    IndexType NewId, GeometryType::Pointer pGeometry)
-    : Condition(NewId, pGeometry)
-{
-}
-
-template <unsigned int TNumNodes, unsigned int TDim>
-RansEvmKAdjointWallCondition<TNumNodes, TDim>::RansEvmKAdjointWallCondition(
-    IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Condition(NewId, pGeometry, pProperties)
-{
-}
-
-template <unsigned int TNumNodes, unsigned int TDim>
-RansEvmKAdjointWallCondition<TNumNodes, TDim>::RansEvmKAdjointWallCondition(
-    RansEvmKAdjointWallCondition const& rOther)
-    : Condition(rOther)
-{
-}
 
 template <unsigned int TNumNodes, unsigned int TDim>
 RansEvmKAdjointWallCondition<TNumNodes, TDim>& RansEvmKAdjointWallCondition<TNumNodes, TDim>::operator=(

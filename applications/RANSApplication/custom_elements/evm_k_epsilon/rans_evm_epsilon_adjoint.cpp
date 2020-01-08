@@ -44,56 +44,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**
- * Constructor.
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmEpsilonAdjoint<TDim, TNumNodes>::RansEvmEpsilonAdjoint(IndexType NewId)
-    : BaseType(NewId)
-{
-}
-
-/**
- * Constructor using an array of nodes
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmEpsilonAdjoint<TDim, TNumNodes>::RansEvmEpsilonAdjoint(IndexType NewId,
-                                                              const NodesArrayType& ThisNodes)
-    : BaseType(NewId, ThisNodes)
-{
-}
-
-/**
- * Constructor using Geometry
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmEpsilonAdjoint<TDim, TNumNodes>::RansEvmEpsilonAdjoint(IndexType NewId,
-                                                              GeometryType::Pointer pGeometry)
-    : BaseType(NewId, pGeometry)
-{
-}
-
-/**
- * Constructor using Properties
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmEpsilonAdjoint<TDim, TNumNodes>::RansEvmEpsilonAdjoint(IndexType NewId,
-                                                              GeometryType::Pointer pGeometry,
-                                                              PropertiesType::Pointer pProperties)
-    : BaseType(NewId, pGeometry, pProperties)
-{
-}
-
-/**
- * Copy Constructor
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmEpsilonAdjoint<TDim, TNumNodes>::RansEvmEpsilonAdjoint(
-    RansEvmEpsilonAdjoint<TDim, TNumNodes> const& rOther)
-    : BaseType(rOther)
-{
-}
-
 ///@}
 ///@name Operators
 ///@{

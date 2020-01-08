@@ -141,7 +141,7 @@ public:
     /**
      * Constructor.
      */
-    StabilizedConvectionDiffusionReactionAdjointElement(IndexType NewId = 0)
+    explicit StabilizedConvectionDiffusionReactionAdjointElement(IndexType NewId = 0)
         : BaseType(NewId)
     {
     }

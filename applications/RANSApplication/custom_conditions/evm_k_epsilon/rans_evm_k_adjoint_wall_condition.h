@@ -118,21 +118,30 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    explicit RansEvmKAdjointWallCondition(IndexType NewId = 0);
+    explicit RansEvmKAdjointWallCondition(IndexType NewId = 0)
+        : Condition(NewId)
+    {
+    }
 
     /// Constructor using an array of nodes
     /**
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    RansEvmKAdjointWallCondition(IndexType NewId, const NodesArrayType& ThisNodes);
+    RansEvmKAdjointWallCondition(IndexType NewId, const NodesArrayType& ThisNodes)
+        : Condition(NewId, ThisNodes)
+    {
+    }
 
     /// Constructor using Geometry
     /**
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    RansEvmKAdjointWallCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    RansEvmKAdjointWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+        : Condition(NewId, pGeometry)
+    {
+    }
 
     /// Constructor using Properties
     /**
@@ -142,10 +151,16 @@ public:
      */
     RansEvmKAdjointWallCondition(IndexType NewId,
                                  GeometryType::Pointer pGeometry,
-                                 PropertiesType::Pointer pProperties);
+                                 PropertiesType::Pointer pProperties)
+        : Condition(NewId, pGeometry, pProperties)
+    {
+    }
 
     /// Copy constructor.
-    RansEvmKAdjointWallCondition(RansEvmKAdjointWallCondition const& rOther);
+    RansEvmKAdjointWallCondition(RansEvmKAdjointWallCondition const& rOther)
+        : Condition(rOther)
+    {
+    }
 
     /// Destructor.
     ~RansEvmKAdjointWallCondition() override = default;

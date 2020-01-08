@@ -118,7 +118,7 @@ public:
     /**
      * Constructor.
      */
-    RansEvmMonolithicKEpsilonVMSAdjointWallCondition(IndexType NewId = 0)
+    explicit RansEvmMonolithicKEpsilonVMSAdjointWallCondition(IndexType NewId = 0)
         : BaseType(NewId)
     {
     }

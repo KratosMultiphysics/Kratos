@@ -130,29 +130,43 @@ public:
     /**
      * Constructor.
      */
-    RansEvmEpsilonAdjoint(IndexType NewId = 0);
+    explicit RansEvmEpsilonAdjoint(IndexType NewId = 0) : BaseType(NewId)
+    {
+    }
 
     /**
      * Constructor using an array of nodes
      */
-    RansEvmEpsilonAdjoint(IndexType NewId, const NodesArrayType& ThisNodes);
+    RansEvmEpsilonAdjoint(IndexType NewId, const NodesArrayType& ThisNodes)
+        : BaseType(NewId, ThisNodes)
+    {
+    }
 
     /**
      * Constructor using Geometry
      */
-    RansEvmEpsilonAdjoint(IndexType NewId, GeometryType::Pointer pGeometry);
+    RansEvmEpsilonAdjoint(IndexType NewId, GeometryType::Pointer pGeometry)
+        : BaseType(NewId, pGeometry)
+    {
+    }
 
     /**
      * Constructor using Properties
      */
     RansEvmEpsilonAdjoint(IndexType NewId,
                           GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties);
+                          PropertiesType::Pointer pProperties)
+        : BaseType(NewId, pGeometry, pProperties)
+    {
+    }
 
     /**
      * Copy Constructor
      */
-    RansEvmEpsilonAdjoint(RansEvmEpsilonAdjoint const& rOther);
+    RansEvmEpsilonAdjoint(RansEvmEpsilonAdjoint const& rOther)
+        : BaseType(rOther)
+    {
+    }
 
     /**
      * Destructor

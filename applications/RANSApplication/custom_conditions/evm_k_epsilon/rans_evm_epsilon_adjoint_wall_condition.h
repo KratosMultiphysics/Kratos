@@ -118,21 +118,30 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    explicit RansEvmEpsilonAdjointWallCondition(IndexType NewId = 0);
+    explicit RansEvmEpsilonAdjointWallCondition(IndexType NewId = 0)
+        : Condition(NewId)
+    {
+    }
 
     /// Constructor using an array of nodes
     /**
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    RansEvmEpsilonAdjointWallCondition(IndexType NewId, const NodesArrayType& ThisNodes);
+    RansEvmEpsilonAdjointWallCondition(IndexType NewId, const NodesArrayType& ThisNodes)
+        : Condition(NewId, ThisNodes)
+    {
+    }
 
     /// Constructor using Geometry
     /**
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    RansEvmEpsilonAdjointWallCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    RansEvmEpsilonAdjointWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+        : Condition(NewId, pGeometry)
+    {
+    }
 
     /// Constructor using Properties
     /**
@@ -142,10 +151,16 @@ public:
      */
     RansEvmEpsilonAdjointWallCondition(IndexType NewId,
                                        GeometryType::Pointer pGeometry,
-                                       PropertiesType::Pointer pProperties);
+                                       PropertiesType::Pointer pProperties)
+        : Condition(NewId, pGeometry, pProperties)
+    {
+    }
 
     /// Copy constructor.
-    RansEvmEpsilonAdjointWallCondition(RansEvmEpsilonAdjointWallCondition const& rOther);
+    RansEvmEpsilonAdjointWallCondition(RansEvmEpsilonAdjointWallCondition const& rOther)
+        : Condition(rOther)
+    {
+    }
 
     /// Destructor.
     ~RansEvmEpsilonAdjointWallCondition() override = default;

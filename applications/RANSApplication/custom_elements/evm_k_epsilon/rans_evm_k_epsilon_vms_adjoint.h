@@ -41,7 +41,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template<std::size_t TNumNodes>
+template <std::size_t TNumNodes>
 struct RANSEvmVMSAdjointData
 {
     Matrix ShapeFunctionDerivatives;
@@ -90,8 +90,6 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-
-
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of RansEvmKEpsilonVMSAdjoint
@@ -104,19 +102,27 @@ public:
     /**
      * Constructor.
      */
-    RansEvmKEpsilonVMSAdjoint(IndexType NewId = 0);
+    explicit RansEvmKEpsilonVMSAdjoint(IndexType NewId = 0) : BaseType(NewId)
+    {
+    }
 
     /**
      * Constructor using Geometry
      */
-    RansEvmKEpsilonVMSAdjoint(IndexType NewId, GeometryType::Pointer pGeometry);
+    RansEvmKEpsilonVMSAdjoint(IndexType NewId, GeometryType::Pointer pGeometry)
+        : BaseType(NewId, pGeometry)
+    {
+    }
 
     /**
      * Constructor using Properties
      */
     RansEvmKEpsilonVMSAdjoint(IndexType NewId,
-                                 GeometryType::Pointer pGeometry,
-                                 PropertiesType::Pointer pProperties);
+                              GeometryType::Pointer pGeometry,
+                              PropertiesType::Pointer pProperties)
+        : BaseType(NewId, pGeometry, pProperties)
+    {
+    }
 
     /**
      * Destructor

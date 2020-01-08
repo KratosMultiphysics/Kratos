@@ -208,19 +208,27 @@ public:
     /**
      * Constructor.
      */
-    RansEvmMonolithicKEpsilonVMSAdjoint(IndexType NewId = 0);
+    explicit RansEvmMonolithicKEpsilonVMSAdjoint(IndexType NewId = 0) : BaseType(NewId)
+    {
+    }
 
     /**
      * Constructor using Geometry
      */
-    RansEvmMonolithicKEpsilonVMSAdjoint(IndexType NewId, GeometryType::Pointer pGeometry);
+    RansEvmMonolithicKEpsilonVMSAdjoint(IndexType NewId, GeometryType::Pointer pGeometry)
+        : BaseType(NewId, pGeometry)
+    {
+    }
 
     /**
      * Constructor using Properties
      */
     RansEvmMonolithicKEpsilonVMSAdjoint(IndexType NewId,
                                         GeometryType::Pointer pGeometry,
-                                        PropertiesType::Pointer pProperties);
+                                        PropertiesType::Pointer pProperties)
+        : BaseType(NewId, pGeometry, pProperties)
+    {
+    }
 
     /**
      * Destructor

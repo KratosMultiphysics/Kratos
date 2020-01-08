@@ -45,35 +45,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**
- * Constructor.
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::RansEvmKEpsilonVMSAdjoint(IndexType NewId)
-    : BaseType(NewId)
-{
-}
-
-/**
- * Constructor using Geometry
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::RansEvmKEpsilonVMSAdjoint(IndexType NewId,
-                                                                      GeometryType::Pointer pGeometry)
-    : BaseType(NewId, pGeometry)
-{
-}
-
-/**
- * Constructor using Properties
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::RansEvmKEpsilonVMSAdjoint(
-    IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : BaseType(NewId, pGeometry, pProperties)
-{
-}
-
 ///@}
 ///@name Operators
 ///@{

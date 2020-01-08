@@ -56,40 +56,6 @@ namespace Kratos
 ///@{
 
 template <unsigned int TDim>
-RansEvmVmsMonolithicAdjointWallCondition<TDim>::RansEvmVmsMonolithicAdjointWallCondition(IndexType NewId)
-    : Condition(NewId)
-{
-}
-
-template <unsigned int TDim>
-RansEvmVmsMonolithicAdjointWallCondition<TDim>::RansEvmVmsMonolithicAdjointWallCondition(
-    IndexType NewId, const NodesArrayType& ThisNodes)
-    : Condition(NewId, ThisNodes)
-{
-}
-
-template <unsigned int TDim>
-RansEvmVmsMonolithicAdjointWallCondition<TDim>::RansEvmVmsMonolithicAdjointWallCondition(
-    IndexType NewId, GeometryType::Pointer pGeometry)
-    : Condition(NewId, pGeometry)
-{
-}
-
-template <unsigned int TDim>
-RansEvmVmsMonolithicAdjointWallCondition<TDim>::RansEvmVmsMonolithicAdjointWallCondition(
-    IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Condition(NewId, pGeometry, pProperties)
-{
-}
-
-template <unsigned int TDim>
-RansEvmVmsMonolithicAdjointWallCondition<TDim>::RansEvmVmsMonolithicAdjointWallCondition(
-    RansEvmVmsMonolithicAdjointWallCondition const& rOther)
-    : Condition(rOther)
-{
-}
-
-template <unsigned int TDim>
 RansEvmVmsMonolithicAdjointWallCondition<TDim>& RansEvmVmsMonolithicAdjointWallCondition<TDim>::operator=(
     RansEvmVmsMonolithicAdjointWallCondition<TDim> const& rOther)
 {

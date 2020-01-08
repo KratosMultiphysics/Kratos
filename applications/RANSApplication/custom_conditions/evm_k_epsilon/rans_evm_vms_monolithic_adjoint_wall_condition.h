@@ -105,21 +105,30 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    explicit RansEvmVmsMonolithicAdjointWallCondition(IndexType NewId = 0);
+    explicit RansEvmVmsMonolithicAdjointWallCondition(IndexType NewId = 0)
+        : Condition(NewId)
+    {
+    }
 
     /// Constructor using an array of nodes
     /**
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    RansEvmVmsMonolithicAdjointWallCondition(IndexType NewId, const NodesArrayType& ThisNodes);
+    RansEvmVmsMonolithicAdjointWallCondition(IndexType NewId, const NodesArrayType& ThisNodes)
+        : Condition(NewId, ThisNodes)
+    {
+    }
 
     /// Constructor using Geometry
     /**
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    RansEvmVmsMonolithicAdjointWallCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    RansEvmVmsMonolithicAdjointWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+        : Condition(NewId, pGeometry)
+    {
+    }
 
     /// Constructor using Properties
     /**
@@ -129,10 +138,16 @@ public:
      */
     RansEvmVmsMonolithicAdjointWallCondition(IndexType NewId,
                                              GeometryType::Pointer pGeometry,
-                                             PropertiesType::Pointer pProperties);
+                                             PropertiesType::Pointer pProperties)
+        : Condition(NewId, pGeometry, pProperties)
+    {
+    }
 
     /// Copy constructor.
-    RansEvmVmsMonolithicAdjointWallCondition(RansEvmVmsMonolithicAdjointWallCondition const& rOther);
+    RansEvmVmsMonolithicAdjointWallCondition(RansEvmVmsMonolithicAdjointWallCondition const& rOther)
+        : Condition(rOther)
+    {
+    }
 
     /// Destructor.
     ~RansEvmVmsMonolithicAdjointWallCondition() override = default;

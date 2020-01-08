@@ -79,7 +79,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    RANSEvmVMSAdjoint(IndexType NewId = 0) : BaseType(NewId)
+    explicit RANSEvmVMSAdjoint(IndexType NewId = 0) : BaseType(NewId)
     {
     }
 

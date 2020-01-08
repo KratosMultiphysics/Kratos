@@ -43,26 +43,6 @@ namespace Kratos
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmMonolithicKEpsilonVMSAdjoint<TDim, TNumNodes>::RansEvmMonolithicKEpsilonVMSAdjoint(IndexType NewId)
-    : BaseType(NewId)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmMonolithicKEpsilonVMSAdjoint<TDim, TNumNodes>::RansEvmMonolithicKEpsilonVMSAdjoint(
-    IndexType NewId, GeometryType::Pointer pGeometry)
-    : BaseType(NewId, pGeometry)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmMonolithicKEpsilonVMSAdjoint<TDim, TNumNodes>::RansEvmMonolithicKEpsilonVMSAdjoint(
-    IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : BaseType(NewId, pGeometry, pProperties)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmMonolithicKEpsilonVMSAdjoint<TDim, TNumNodes>::Initialize()
 {
     this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));

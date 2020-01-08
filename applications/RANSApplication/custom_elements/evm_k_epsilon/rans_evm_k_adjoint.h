@@ -122,29 +122,40 @@ public:
     /**
      * Constructor.
      */
-    RansEvmKAdjoint(IndexType NewId = 0);
+    explicit RansEvmKAdjoint(IndexType NewId = 0) : BaseType(NewId)
+    {
+    }
 
     /**
      * Constructor using an array of nodes
      */
-    RansEvmKAdjoint(IndexType NewId, const NodesArrayType& ThisNodes);
+    RansEvmKAdjoint(IndexType NewId, const NodesArrayType& ThisNodes)
+        : BaseType(NewId, ThisNodes)
+    {
+    }
 
     /**
      * Constructor using Geometry
      */
-    RansEvmKAdjoint(IndexType NewId, GeometryType::Pointer pGeometry);
+    RansEvmKAdjoint(IndexType NewId, GeometryType::Pointer pGeometry)
+        : BaseType(NewId, pGeometry)
+    {
+    }
 
     /**
      * Constructor using Properties
      */
-    RansEvmKAdjoint(IndexType NewId,
-                    GeometryType::Pointer pGeometry,
-                    PropertiesType::Pointer pProperties);
+    RansEvmKAdjoint(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+        : BaseType(NewId, pGeometry, pProperties)
+    {
+    }
 
     /**
      * Copy Constructor
      */
-    RansEvmKAdjoint(RansEvmKAdjoint const& rOther);
+    RansEvmKAdjoint(RansEvmKAdjoint const& rOther) : BaseType(rOther)
+    {
+    }
 
     /**
      * Destructor
