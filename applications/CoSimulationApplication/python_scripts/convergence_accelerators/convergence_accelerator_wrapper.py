@@ -10,6 +10,8 @@ class ConvergenceAcceleratorWrapper(object):
     """This class wraps the convergence accelerators such that they can be used "automized"
     => this class stores the residual and updates the solutions, such that the
     convergence accelerator can be configured through json
+    In case of distributed data, it is checked whether the convergence accelerator supports it.
+    If not, the data is gathered / scattered and the accelerator is executed on only one rank
     """
     def __init__(self, settings, solver_wrapper):
         self.interface_data = solver_wrapper.GetInterfaceData(settings["data_name"].GetString())
