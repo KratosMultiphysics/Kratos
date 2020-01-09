@@ -327,7 +327,8 @@ void  AddIOToPython(pybind11::module& m)
         ;
 
     py::class_<CadJsonInput<Node<3>, Point>, CadJsonInput<Node<3>, Point>::Pointer>(m, "CadJsonInput")
-        .def(py::init< ModelPart&, Parameters >())
+        .def(py::init< Parameters >())
+        .def("ReadModelPart", &CadJsonInput<Node<3>, Point>::ReadModelPart)
         ;
 }
 }  // namespace Python.

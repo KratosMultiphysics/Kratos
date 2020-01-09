@@ -56,10 +56,10 @@ namespace Kratos
 
         /// Constructor.
         CadJsonInput(
-            ModelPart & rModelPart,
-            const Parameters & rNurbsBrepGeometryJson,
+            const Parameters & rCadJsonParameters,
             const int EchoLevel = 0)
-            : mEchoLevel(EchoLevel)
+            : mCadJsonParameters(rCadJsonParameters)
+            , mEchoLevel(EchoLevel)
         {};
 
         /// Destructor.
@@ -67,19 +67,30 @@ namespace Kratos
 
         ///@}
 
+        void ReadModelPart(ModelPart& rThisModelPart) override
+        {
+            ReadBreps(mCadJsonParameters);
+        }
+
     private:
 
         ///@name Read in Brep
         ///@{
 
+        void ReadBreps(
+            const Parameters& rParameters)
+        {
+            for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
+            {
+                ReadBrep(rParameters[brep_index]);
+            }
+        }
+
         void ReadBrep(
             const Parameters& rParameters)
         {
-            for (IndexType brep_idx = 0; brep_idx < rParameters.size(); brep_idx++)
-            {
-                if (rParameters["brep_idx"].Has("faces"))
-                    ReadBrepSurfaces(rParameters["brep_idx"]["faces"]);
-            }
+            if (rParameters.Has("faces"))
+                ReadBrepSurfaces(rParameters["brep_idx"]["faces"]);
         }
 
         ///@}
@@ -386,6 +397,7 @@ namespace Kratos
         ///@name Members
         ///@{
 
+        const Parameters& mCadJsonParameters;
         int mEchoLevel;
 
         ///@}
