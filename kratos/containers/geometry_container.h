@@ -184,6 +184,16 @@ public:
         return *i;
     }
 
+    /// Returns a reference geometry corresponding to the name
+    TGeometryType& GetGeometry(std::string GeometryName)
+    {
+        auto hash_index = TGeometryType::GenerateId(GeometryName);
+        auto i = mGeometries.find(hash_index);
+        KRATOS_ERROR_IF(i == mGeometries.end())
+            << " geometry index not found: " << GeometryName << ".";
+        return *i;
+    }
+
     /// Returns a const reference geometry corresponding to the name
     const TGeometryType& GetGeometry(std::string GeometryName) const
     {
