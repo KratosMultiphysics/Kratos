@@ -48,8 +48,8 @@ class TimeAveragingProcessTests(UnitTest.TestCase):
             self.model_part.CloneTimeStep(current_time)
             self.model_part.ProcessInfo[Kratos.STEP] += 1
 
-            for process in self.process_list:
-                process.ExecuteInitializeSolutionStep()
+            # for process in self.process_list:
+            #     process.ExecuteInitializeSolutionStep()
 
             for node_index, node in enumerate(self.model_part.Nodes):
                 velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
@@ -311,6 +311,15 @@ class TimeAveragingProcessTests(UnitTest.TestCase):
 
             scalar = random.random()
             node.SetValue(Kratos.DENSITY, scalar)
+
+        for elem in self.model_part.Elements:
+            vector[0] = random.random()
+            vector[1] = random.random()
+            vector[2] = random.random()
+            elem.SetValue(Kratos.VELOCITY, vector)
+            scalar = random.random()
+            elem.SetValue(Kratos.DENSITY, scalar)
+
 
 
 if __name__ == '__main__':

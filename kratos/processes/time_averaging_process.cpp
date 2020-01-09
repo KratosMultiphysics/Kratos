@@ -305,9 +305,7 @@ void TimeAveragingProcess::CalculateTimeIntegratedNodalHistoricalQuantity(ModelP
         NodeType& r_node = *(rNodes.begin() + i_node);
         const TDataType& r_temporal_value = r_node.FastGetSolutionStepValue(rVariable);
         TDataType& r_integrated_value = r_node.GetValue(rAveragedVariable);
-        r_integrated_value =
-            (r_integrated_value * mCurrentTime + r_temporal_value * DeltaTime) /
-            (mCurrentTime + DeltaTime);
+        this->AverageMethod(r_temporal_value, r_integrated_value, DeltaTime);
     }
 }
 
@@ -324,9 +322,7 @@ void TimeAveragingProcess::CalculateTimeIntegratedNodalNonHistoricalQuantity(Mod
         NodeType& r_node = *(rNodes.begin() + i_node);
         const TDataType& r_temporal_value = r_node.GetValue(rVariable);
         TDataType& r_integrated_value = r_node.GetValue(rAveragedVariable);
-        r_integrated_value =
-            (r_integrated_value * mCurrentTime + r_temporal_value * DeltaTime) /
-            (mCurrentTime + DeltaTime);
+        this->AverageMethod(r_temporal_value, r_integrated_value, DeltaTime);
     }
 }
 
@@ -343,10 +339,18 @@ void TimeAveragingProcess::CalculateTimeIntegratedElementalNonHistoricalQuantity
         ElementType& r_element = *(rElements.begin() + i_element);
         const TDataType& r_temporal_value = r_element.GetValue(rVariable);
         TDataType& r_integrated_value = r_element.GetValue(rAveragedVariable);
-        r_integrated_value =
-            (r_integrated_value * mCurrentTime + r_temporal_value * DeltaTime) /
-            (mCurrentTime + DeltaTime);
+        this->AverageMethod(r_temporal_value, r_integrated_value, DeltaTime);
     }
+}
+
+template <typename TDataType>
+void TimeAveragingProcess::AverageMethod(const TDataType& rTemporalVariable,
+                                         TDataType& rAveragedVariable,
+                                         const double DeltaTime) const
+{
+    rAveragedVariable =
+        (rAveragedVariable * mCurrentTime + rTemporalVariable * DeltaTime) /
+        (mCurrentTime + DeltaTime);
 }
 
 // template instantiations
