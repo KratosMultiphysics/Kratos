@@ -114,6 +114,10 @@ void AddConstraintToPython(pybind11::module &m)
     .def("SetValue", SetValueHelperFunctionMasterSlaveConstraint< Variable< std::string > >)
     .def("GetValue", GetValueHelperFunctionMasterSlaveConstraint< Variable< std::string > >)
 
+    .def("GetMasterDofsVector", &MasterSlaveConstraint::GetMasterDofsVector, pybind11::return_value_policy::reference_internal)
+    .def("GetSlaveDofsVector", &MasterSlaveConstraint::GetSlaveDofsVector, pybind11::return_value_policy::reference_internal)
+    .def("CalculateLocalSystem", &MasterSlaveConstraint::CalculateLocalSystem)
+
     .def("__str__", PrintObject<MasterSlaveConstraint>)
     ;
 }

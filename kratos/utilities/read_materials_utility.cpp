@@ -163,13 +163,35 @@ void ReadMaterialsUtility::TrimComponentName(std::string& rLine)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ReadMaterialsUtility::AssingMaterialToProperty(
+void ReadMaterialsUtility::AssignMaterialToProperty(
     const Parameters MaterialData,
     Properties& rProperty
     )
 {
     KRATOS_TRY;
+    
+    // Assign CL
+    AssignConstitutiveLawToProperty(MaterialData, rProperty);
 
+    // Assign variables
+    AssignVariablesToProperty(MaterialData, rProperty);
+    
+    // Assign tables
+    AssignTablesToProperty(MaterialData, rProperty);
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ReadMaterialsUtility::AssignConstitutiveLawToProperty(
+    const Parameters MaterialData,
+    Properties& rProperty
+    )
+{
+    KRATOS_TRY;
+    
     // Set the CONSTITUTIVE_LAW for the current p_properties.
     if (MaterialData.Has("constitutive_law")) {
         Parameters cl_parameters = MaterialData["constitutive_law"];
@@ -178,11 +200,25 @@ void ReadMaterialsUtility::AssingMaterialToProperty(
         cl_parameters["name"].SetString(constitutive_law_name);
 
         KRATOS_ERROR_IF_NOT(KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name)) << "Kratos components missing \"" << constitutive_law_name << "\"" << std::endl;
-        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name).Create(cl_parameters);
+        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name).Create(cl_parameters, rProperty);
         rProperty.SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
     } else {
         KRATOS_INFO("Read materials") << "No constitutive law defined for material ID: " << rProperty.Id() << std::endl;
     }
+    
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ReadMaterialsUtility::AssignVariablesToProperty(
+    const Parameters MaterialData,
+    Properties& rProperty
+    )
+{
+    KRATOS_TRY;
+ 
     // Add / override the values of material parameters in the p_properties
     if (MaterialData.Has("Variables")) {
         Parameters variables = MaterialData["Variables"];
@@ -242,7 +278,20 @@ void ReadMaterialsUtility::AssingMaterialToProperty(
     } else {
         KRATOS_INFO("Read materials") << "No variables defined for material ID: " << rProperty.Id() << std::endl;
     }
+    
+    KRATOS_CATCH("");
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ReadMaterialsUtility::AssignTablesToProperty(
+    const Parameters MaterialData,
+    Properties& rProperty
+    )
+{
+    KRATOS_TRY;
+    
     // Add / override tables in the p_properties
     if (MaterialData.Has("Tables")) {
         Parameters tables = MaterialData["Tables"];
@@ -270,7 +319,7 @@ void ReadMaterialsUtility::AssingMaterialToProperty(
     } else {
         KRATOS_INFO("Read materials") << "No tables defined for material ID: " << rProperty.Id() << std::endl;
     }
-
+    
     KRATOS_CATCH("");
 }
 
@@ -330,7 +379,7 @@ void ReadMaterialsUtility::CreateSubProperties(
 
             // If existing, assigning the materials
             if (sub_prop.Has("Material")) {
-                AssingMaterialToProperty(sub_prop["Material"], *p_new_sub_prop);
+                AssignMaterialToProperty(sub_prop["Material"], *p_new_sub_prop);
             }
 
             // If existing, recursively creating SubProperties
@@ -400,7 +449,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     }
 
     // Assigning the materials
-    AssingMaterialToProperty(material_data, *p_prop);
+    AssignMaterialToProperty(material_data, *p_prop);
 
     // If existing, creating SubProperties
     if (Data.Has("sub_properties")) {

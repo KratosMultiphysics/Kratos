@@ -41,7 +41,7 @@ void SetElementDataValues(Variable<Matrix<double>> const&,
                           int);
 
 template <typename TVariable>
-class WriteVariableFunctor
+class WriteElementVariableFunctor
 {
 public:
     void operator()(TVariable const& rVariable,
@@ -57,7 +57,7 @@ public:
 };
 
 template <>
-class WriteVariableFunctor<Variable<Vector<double>>>
+class WriteElementVariableFunctor<Variable<Vector<double>>>
 {
 public:
     void operator()(Variable<Vector<double>> const& rVariable,
@@ -73,7 +73,7 @@ public:
 };
 
 template <>
-class WriteVariableFunctor<Variable<Matrix<double>>>
+class WriteElementVariableFunctor<Variable<Matrix<double>>>
 {
 public:
     void operator()(Variable<Matrix<double>> const& rVariable,
@@ -95,7 +95,7 @@ public:
 };
 
 template <typename TVariable>
-class ReadVariableFunctor
+class ReadElementVariableFunctor
 {
 public:
     void operator()(TVariable const& rVariable,
@@ -113,7 +113,7 @@ public:
 };
 
 template <>
-class ReadVariableFunctor<Variable<Vector<double>>>
+class ReadElementVariableFunctor<Variable<Vector<double>>>
 {
 public:
     void operator()(Variable<Vector<double>> const& rVariable,
@@ -131,7 +131,7 @@ public:
 };
 
 template <>
-class ReadVariableFunctor<Variable<Matrix<double>>>
+class ReadElementVariableFunctor<Variable<Matrix<double>>>
 {
 public:
     void operator()(Variable<Matrix<double>> const& rVariable,
@@ -211,7 +211,7 @@ void ElementDataValueIO::WriteElementResults(ElementsContainerType const& rEleme
                                  Variable<int>,
                                  Variable<Vector<double>>,
                                  Variable<Matrix<double>>>(r_variable_name)
-            .Execute<WriteVariableFunctor>(local_elements, *mpFile, mPrefix, info);
+            .Execute<WriteElementVariableFunctor>(local_elements, *mpFile, mPrefix, info);
 
     // Write block partition.
     WritePartitionTable(*mpFile, mPrefix + "/ElementDataValues", info);
@@ -237,7 +237,7 @@ void ElementDataValueIO::ReadElementResults(ElementsContainerType& rElements)
                                  Variable<int>,
                                  Variable<Vector<double>>,
                                  Variable<Matrix<double>>>(r_variable_name)
-            .Execute<ReadVariableFunctor>(local_elements, *mpFile, mPrefix,
+            .Execute<ReadElementVariableFunctor>(local_elements, *mpFile, mPrefix,
                                           start_index, block_size);
 
     KRATOS_CATCH("");

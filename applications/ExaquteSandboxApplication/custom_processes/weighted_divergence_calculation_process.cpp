@@ -63,8 +63,18 @@ namespace Kratos
         this->PrintInfo(rOStream);
     }
 
-    // Execution
-    void WeightedDivergenceCalculationProcess::Execute()
+    void WeightedDivergenceCalculationProcess::ExecuteInitialize()
+    {
+        KRATOS_TRY;
+
+        auto& r_nodes_array = mrModelPart.Nodes();
+        // Initialize variable
+        VariableUtils().SetNonHistoricalVariableToZero(DIVERGENCE_WEIGHTED, r_nodes_array);
+
+        KRATOS_CATCH("");
+    }
+
+    void WeightedDivergenceCalculationProcess::ExecuteFinalizeSolutionStep()
     {
         KRATOS_TRY;
 

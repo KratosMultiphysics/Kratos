@@ -12,6 +12,8 @@
 //
 
 #include <cstring>
+#include <limits>
+#include <cmath> // std::abs for double
 #include "includes/exception.h"
 
 #if !defined(KRATOS_CHECKS_H_INCLUDED )

@@ -28,8 +28,6 @@
         "residual_relative_tolerance"        : 1e-14,
         "residual_absolute_tolerance"        : 1e-15,
         "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_membrane","Parts_cable"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_supports", "Structure"],
         "rotation_dofs"                      : false
     },
     "processes" : {
