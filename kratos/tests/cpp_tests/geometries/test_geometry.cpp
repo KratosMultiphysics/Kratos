@@ -385,7 +385,7 @@ namespace Testing {
     }
 
     /// Test self assigned geometry Id
-    KRATOS_TEST_CASE_IN_SUITE(TestGeometryIdSelfAssigned, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(GeometryIdSelfAssigned, KratosCoreGeometriesFastSuite) {
         auto this_geometry = Geometry<Point>();
 
         KRATOS_CHECK_IS_FALSE(this_geometry.IsIdGeneratedFromString());
@@ -401,7 +401,7 @@ namespace Testing {
     }
 
     /// Test geometry Id with name
-    KRATOS_TEST_CASE_IN_SUITE(TestGeometryName, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(GeometryName, KratosCoreGeometriesFastSuite) {
         auto this_geometry = Geometry<Point>("Geometry1");
 
         KRATOS_CHECK(this_geometry.IsIdGeneratedFromString());
@@ -410,7 +410,7 @@ namespace Testing {
     }
 
     /// Test geometry Id
-    KRATOS_TEST_CASE_IN_SUITE(TestGeometryId, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(GeometryId, KratosCoreGeometriesFastSuite) {
         auto this_geometry = Geometry<Point>(1);
 
         KRATOS_CHECK_IS_FALSE(this_geometry.IsIdGeneratedFromString());
