@@ -10,10 +10,13 @@
 //  Main authors:    Philipp Bucher
 //
 
+// Project includes
+#include "utilities/check_filesystem_availability.h" // has to be included before using "KRATOS_FILESYSTEM_AVAILABLE"
+
 // External includes
 #ifndef KRATOS_FILESYSTEM_AVAILABLE
-// only required if we use ghc/filesystem
-// has to be included before kratos_filesystem!
+// only required if we ghc/filesystem is used
+// has to be included before "includes/kratos_filesystem.h", see following explanation
 
 //---------------------------------------------------------------------------------------
 // fs_impl.hpp - The implementation header for the header/implementation seperated usage of
