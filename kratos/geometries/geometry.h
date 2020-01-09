@@ -3218,7 +3218,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::uint64_t mId;
+    IndexType mId;
 
     GeometryData const* mpGeometryData;
 
@@ -3233,25 +3233,25 @@ private:
     /// Checks first bit in Id. 0 -> id; 1 -> name/ string
     static inline bool IsIdGeneratedFromString(IndexType Id)
     {
-        return Id & (IndexType(1) << 63);
+        return Id & (IndexType(1) << (sizeof(IndexType) - 1));
     }
 
     /// Sets first bit in Id to 1 -> name/ string
     static inline void SetIdGeneratedFromString(IndexType& Id)
     {
-        Id |= (IndexType(1) << 63);
+        Id |= (IndexType(1) << (sizeof(IndexType) - 1));
     }
 
     /// Checks second bit in Id. 0 -> defined id; 1 -> self assigned
     static inline bool IsIdSelfAssigned(IndexType Id)
     {
-        return Id & (IndexType(1) << 62);
+        return Id & (IndexType(1) << (sizeof(IndexType) - 2));
     }
 
     /// Sets second bit in Id to 1 -> self assigned
     static inline void SetIdSelfAssigned(IndexType& Id)
     {
-        Id |= (IndexType(1) << 62);
+        Id |= (IndexType(1) << (sizeof(IndexType) - 2));
     }
 
     ///@}
