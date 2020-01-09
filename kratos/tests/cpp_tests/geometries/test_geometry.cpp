@@ -384,5 +384,11 @@ namespace Testing {
         }
     }
 
+    /// Test self assigned geometry Id
+    KRATOS_TEST_CASE_IN_SUITE(TestGeometrySelfAssigned, KratosCoreGeometriesFastSuite) {
+        auto this_geometry = Geometry<Point>();
+
+        KRATOS_CHECK(this_geometry.IsIdSelfAssigned());
+    }
 } // namespace Testing.
 } // namespace Kratos.
