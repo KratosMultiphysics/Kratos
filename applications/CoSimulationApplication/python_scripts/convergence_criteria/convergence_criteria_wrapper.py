@@ -21,7 +21,7 @@ class ConvergenceCriteriaWrapper(object):
         settings.RemoveValue("solver")
 
         if not settings.Has("label"):
-            settings.AddEmptyValue("label").SetString(colors.bold('"{}.{}"'.format(self.interface_data.solver_name, self.interface_data.name)))
+            settings.AddEmptyValue("label").SetString(colors.bold('{}.{}'.format(self.interface_data.solver_name, self.interface_data.name)))
 
         self.conv_crit = CreateConvergenceCriterion(settings)
 
