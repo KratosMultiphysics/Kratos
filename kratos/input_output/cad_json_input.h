@@ -16,6 +16,7 @@
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/brep_surface.h"
+#include "geometries/brep_curve_on_surface.h"
 #include "geometries/geometry.h"
 
 namespace Kratos
@@ -64,7 +65,12 @@ namespace Kratos
         /// Destructor.
         virtual ~CadJsonInput() {};
 
+        ///@}
+
     private:
+
+        ///@name Read in Brep
+        ///@{
 
         void ReadBrep(
             const Parameters& rParameters)
