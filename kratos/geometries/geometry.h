@@ -303,11 +303,30 @@ public:
     */
     Geometry(
         const PointsArrayType &ThisPoints,
-        GeometryData const *pThisGeometryData = &GeometryDataInstance(),
-        IndexType Id = 0)
+        GeometryData const *pThisGeometryData = &GeometryDataInstance())
+        : mId(SetSelfAssigned(static_cast<IndexType>(this)))
+        , mpGeometryData(pThisGeometryData)
+        , mPoints(ThisPoints)
+    {
+    }
+
+    Geometry(
+        IndexType Id
+        const PointsArrayType& ThisPoints,
+        GeometryData const* pThisGeometryData = &GeometryDataInstance())
         : mId(Id),
-          mpGeometryData(pThisGeometryData),
-          mPoints(ThisPoints)
+        mpGeometryData(pThisGeometryData),
+        mPoints(ThisPoints)
+    {
+    }
+
+    Geometry(
+        std::string GeometryName,
+        const PointsArrayType& ThisPoints,
+        GeometryData const* pThisGeometryData = &GeometryDataInstance())
+        : mId(GenerateId(GeometryName))
+        , mpGeometryData(pThisGeometryData)
+        , mPoints(ThisPoints)
     {
     }
 
