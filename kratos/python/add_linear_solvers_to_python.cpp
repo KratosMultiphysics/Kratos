@@ -86,7 +86,9 @@ void  AddLinearSolversToPython(pybind11::module& m)
 
     bool (LinearSolverType::*pointer_to_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB) = &LinearSolverType::Solve;
     void (LinearSolverType::*pointer_to_solve_eigen)(LinearSolverType::SparseMatrixType& rK, LinearSolverType::SparseMatrixType& rM,LinearSolverType::DenseVectorType& Eigenvalues, LinearSolverType::DenseMatrixType& Eigenvectors) = &LinearSolverType::Solve;
+    bool (LinearSolverType::*pointer_to_solve_dense)(LinearSolverType::DenseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB) = &LinearSolverType::Solve;
     bool (ComplexLinearSolverType::*pointer_to_complex_solve)(ComplexLinearSolverType::SparseMatrixType& rA, ComplexLinearSolverType::VectorType& rX, ComplexLinearSolverType::VectorType& rB) = &ComplexLinearSolverType::Solve;
+    bool (ComplexLinearSolverType::*pointer_to_complex_solve_dense)(ComplexLinearSolverType::DenseMatrixType& rA, ComplexLinearSolverType::VectorType& rX, ComplexLinearSolverType::VectorType& rB) = &ComplexLinearSolverType::Solve;
 
     //****************************************************************************************************
     //preconditioners
@@ -124,6 +126,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def("Initialize",&LinearSolverType::Initialize)
     .def("Solve",pointer_to_solve)
     .def("Solve",pointer_to_solve_eigen)
+    .def("Solve",pointer_to_solve_dense)
     .def("Clear",&LinearSolverType::Clear)
     .def("__str__", PrintObject<LinearSolverType>)
     ;
@@ -132,6 +135,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def(py::init< >() )
     .def("Initialize",&ComplexLinearSolverType::Initialize)
     .def("Solve",pointer_to_complex_solve)
+    .def("Solve",pointer_to_complex_solve_dense)
     .def("Clear",&ComplexLinearSolverType::Clear)
     .def("__str__", PrintObject<ComplexLinearSolverType>)
     ;
