@@ -194,9 +194,14 @@ private:
                                                                const double DeltaTime) const;
 
     template <typename TDataType>
-    void AverageMethod(const TDataType& rTemporalVariable,
-                       TDataType& rAveragedVariable,
-                       const double DeltaTime) const;
+    TDataType AverageMethod(const TDataType rTemporalVariable,
+                         const TDataType rAveragedVariable,
+                         const double DeltaTime) const;
+
+    template <typename TDataType>
+    TDataType RootMeanSquareMethod(const TDataType rTemporalVariable,
+                                   const TDataType rAveragedVariable,
+                                   const double DeltaTime) const;
 
     ///@}
     ///@name Private  Access
