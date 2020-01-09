@@ -222,18 +222,6 @@ public:
         mGeometries.erase(index);
     }
 
-    /// Remove given geometry from geometry container
-    void RemoveGeometry(TGeometryType& ThisGeometry)
-    {
-        mGeometries.erase(ThisGeometry.Id());
-    }
-
-    /// Remove given geometry from geometry container
-    void RemoveGeometry(typename TGeometryType::Pointer pThisGeometry)
-    {
-        mGeometries.erase(pThisGeometry->Id());
-    }
-
     ///@}
     ///@name Search Functions
     ///@{
