@@ -176,6 +176,14 @@ public:
         return *i;
     }
 
+    /// Returns a const reference geometry corresponding to the id
+    const TGeometryType& GetGeometry(IndexType GeometryId) const
+    {
+        auto i = mGeometries.find(GeometryId);
+        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryId << ".";
+        return *i;
+    }
+
     /// Returns a const reference geometry corresponding to the name
     const TGeometryType& GetGeometry(std::string GeometryName) const
     {
