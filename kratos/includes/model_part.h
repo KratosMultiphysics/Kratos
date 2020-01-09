@@ -1363,8 +1363,18 @@ public:
         return mGeometries.pGetGeometry(GeometryId);
     }
 
+    /// Returns the const Geometry::Pointer corresponding to the Id
+    const typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) const {
+        return mGeometries.pGetGeometry(GeometryId);
+    }
+
     /// Returns the Geometry::Pointer corresponding to the name
     typename GeometryType::Pointer pGetGeometry(std::string GeometryName) {
+        return mGeometries.pGetGeometry(GeometryName);
+    }
+
+    /// Returns the Geometry::Pointer corresponding to the name
+    const typename GeometryType::Pointer pGetGeometry(std::string GeometryName) const {
         return mGeometries.pGetGeometry(GeometryName);
     }
 
