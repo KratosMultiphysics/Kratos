@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import math
 
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 from KratosMultiphysics.CoSimulationApplication.convergence_accelerators.convergence_accelerator_wrapper import ConvergenceAcceleratorWrapper
@@ -25,7 +24,6 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
         self.dimension = 3
         self.model_part.ProcessInfo[KM.DOMAIN_SIZE] = self.dimension
 
-        num_proc = KM.DataCommunicator.GetDefault().Size()
         self.my_pid = KM.DataCommunicator.GetDefault().Rank()
         self.num_nodes = self.my_pid % 5 + 3 # num_nodes in range (3 ... 7)
         if self.my_pid == 4:
@@ -57,7 +55,6 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
         conv_acc_wrapper = ConvergenceAcceleratorWrapper(conv_acc_settings, self.dummy_solver_wrapper)
 
         exp_inp = self.interface_data.GetData()
-        num_nodes_global = KM.DataCommunicator.GetDefault().SumAll(self.num_nodes)
         update_solution_return_value = [uniform(-10, 50) for _ in range(self.num_nodes)]
 
         global_update_solution_return_value = np.array(np.concatenate(KM.DataCommunicator.GetDefault().GathervDoubles(update_solution_return_value, 0)))

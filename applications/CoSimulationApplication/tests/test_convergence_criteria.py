@@ -26,7 +26,6 @@ class TestConvergenceCriteriaWrapper(KratosUnittest.TestCase):
         self.dimension = 3
         self.model_part.ProcessInfo[KM.DOMAIN_SIZE] = self.dimension
 
-        num_proc = KM.DataCommunicator.GetDefault().Size()
         self.my_pid = KM.DataCommunicator.GetDefault().Rank()
         self.num_nodes = self.my_pid % 5 + 3 # num_nodes in range (3 ... 7)
         if self.my_pid == 4:
@@ -213,13 +212,13 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
 
         conv_crit.InitializeSolutionStep()
 
-        for i in range(len(solution_values)):
+        for vals_tuple in solution_values:
 
             conv_crit.InitializeNonLinearIteration()
 
-            KM.VariableUtils().SetScalarVar(KM.PRESSURE, solution_values[i][0], self.model_part.Nodes)
+            KM.VariableUtils().SetScalarVar(KM.PRESSURE, vals_tuple[0], self.model_part.Nodes)
 
-            self.assertEqual(solution_values[i][1], conv_crit.IsConverged())
+            self.assertEqual(vals_tuple[1], conv_crit.IsConverged())
 
             conv_crit.FinalizeNonLinearIteration()
 
