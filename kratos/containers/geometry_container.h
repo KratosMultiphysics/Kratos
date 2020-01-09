@@ -327,12 +327,12 @@ private:
 
     void save(Serializer& rSerializer) const
     {
-        rSerializer.save("pGeometries", mGeometries);
+        rSerializer.save("Geometries", mGeometries);
     }
 
     void load(Serializer& rSerializer)
     {
-        rSerializer.load("pGeometries", mGeometries);
+        rSerializer.load("Geometries", mGeometries);
     }
 
     ///@}
