@@ -97,8 +97,9 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
         self.model_part = self.model.CreateModelPart("default")
         self.model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
 
-        for i in range(5):
-            new_node = self.model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0) # position of nodes does not matter for this test
+        for i in range(10): # using 10 nodes gives suitable values in the tests
+            node = self.model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0) # position of nodes does not matter for this test
+            node.SetSolutionStepValue(KM.PRESSURE, 1.0)
 
         data_settings = KM.Parameters("""{
             "model_part_name" : "default",
@@ -107,87 +108,124 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
         self.interface_data = CouplingInterfaceData(data_settings, self.model)
         self.interface_data.Initialize()
 
-        self.solver_wrappers = {"dummy_solver" : DummySolverWrapper({"data_4_testing" : self.interface_data})}
+        self.dummy_solver_wrapper = DummySolverWrapper({"data_4_testing" : self.interface_data})
 
     def test_RelativeNormInitialResidual_abs_tol(self):
         conv_crit_settings = KM.Parameters("""{
             "type"           : "relative_norm_initial_residual",
+            "data_name"      : "data_4_testing",
             "abs_tolerance"  : 1e-5,
-            "rel_tolerance"  : 1e-5,
+            "rel_tolerance"  : 1e-12,
             "echo_level"     : 0
         }""")
-        conv_crit = CreateConvergenceCriterion(conv_crit_settings)
-        self.__ExecuteTest(conv_crit)
+        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.dummy_solver_wrapper)
+
+        sol_values = [
+            (2e-1, False),
+            (2e-4, False),
+            (2e-6, False),
+            (2e-7, True),
+            (2e-8, True),
+            (2e-9, True),
+            (2e-4, False),
+            (2e-6, False),
+            (2e-7, True)
+        ]
+
+        self.__ExecuteTest(conv_crit, sol_values)
 
     def test_RelativeNormInitialResidual_rel_tol(self):
         conv_crit_settings = KM.Parameters("""{
             "type"           : "relative_norm_initial_residual",
-            "abs_tolerance"  : 1e-5,
+            "data_name"      : "data_4_testing",
+            "abs_tolerance"  : 1e-12,
             "rel_tolerance"  : 1e-5,
             "echo_level"     : 0
         }""")
-        conv_crit = CreateConvergenceCriterion(conv_crit_settings)
-        self.__ExecuteTest(conv_crit)
+        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.dummy_solver_wrapper)
+
+        sol_values = [
+            (2e-1, False),
+            (2e-2, False),
+            (2e-3, False),
+            (2e-4, False),
+            (2e-5, False),
+            (2e-6, False),
+            (1e-6, True),
+            (1e-7, True),
+            (2e-5, False),
+            (2e-6, False),
+            (1e-6, True),
+        ]
+
+        self.__ExecuteTest(conv_crit, sol_values)
 
     def test_RelativeNormPreviousResidual_abs_tol(self):
         conv_crit_settings = KM.Parameters("""{
             "type"           : "relative_norm_previous_residual",
+            "data_name"      : "data_4_testing",
             "abs_tolerance"  : 1e-5,
-            "rel_tolerance"  : 1e-5,
+            "rel_tolerance"  : 1e-12,
             "echo_level"     : 0
         }""")
-        conv_crit = CreateConvergenceCriterion(conv_crit_settings)
-        self.__ExecuteTest(conv_crit)
+        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.dummy_solver_wrapper)
+
+        sol_values = [
+            (2e-1, False),
+            (2e-4, False),
+            (2e-6, False),
+            (2e-7, True),
+            (2e-8, True),
+            (2e-9, True),
+            (2e-4, False),
+            (2e-6, False),
+            (2e-7, True)
+        ]
+
+        self.__ExecuteTest(conv_crit, sol_values)
 
     def test_RelativeNormPreviousResidual_rel_tol(self):
         conv_crit_settings = KM.Parameters("""{
             "type"           : "relative_norm_previous_residual",
-            "abs_tolerance"  : 1e-5,
+            "data_name"      : "data_4_testing",
+            "abs_tolerance"  : 1e-12,
             "rel_tolerance"  : 1e-5,
             "echo_level"     : 0
         }""")
-        conv_crit = CreateConvergenceCriterion(conv_crit_settings)
-        self.__ExecuteTest(conv_crit)
+        conv_crit = ConvergenceCriteriaWrapper(conv_crit_settings, self.dummy_solver_wrapper)
+
+        sol_values = [
+            (2e-1, False),
+            (2e-2, False),
+            (2.00001e-2, True), # small change in the values leads to convergence
+            (2e-4, False),
+            (8e-6, False),
+            (7e-6, False),
+            (7.00001e-6, True) # small change in the values leads to convergence
+        ]
+
+        self.__ExecuteTest(conv_crit, sol_values)
 
 
-    def __ExecuteTest(self, conv_crit):
-        self.__SetInitialValues()
+    def __ExecuteTest(self, conv_crit, solution_values):
         conv_crit.Initialize()
         conv_crit.Check() # not yet implemented
 
-        '''
-        TS 1: no convergence
-        TS 2: res decreases, abs
-        TS 3: res decreases, rel
-        TS 4: res does not change, abs
-        TS 5: res does not change, rel
-        '''
-        time_steps = 5
-        max_inner_iter = 5
+        conv_crit.InitializeSolutionStep()
 
-        for i in range(time_steps):
-            conv_crit.InitializeSolutionStep()
+        for i in range(len(solution_values)):
 
-            for j in range(max_inner_iter):
+            conv_crit.InitializeNonLinearIteration()
 
-                conv_crit.InitializeNonLinearIteration()
+            KM.VariableUtils().SetScalarVar(KM.PRESSURE, solution_values[i][0], self.model_part.Nodes)
 
-                self.__SetValues(1.0)
+            self.assertEqual(solution_values[i][1], conv_crit.IsConverged())
 
-                # self.assertEqual(exp_conv_status, conv_crit.IsConverged())
+            conv_crit.FinalizeNonLinearIteration()
 
-                conv_crit.FinalizeNonLinearIteration()
-
-            conv_crit.FinalizeSolutionStep()
+        conv_crit.FinalizeSolutionStep()
 
         conv_crit.Finalize()
-
-    def __SetInitialValues(self):
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(KM.PRESSURE, 1.0)
-
-    def __SetValues(self, factor):
-        pass
 
 
 if __name__ == '__main__':
