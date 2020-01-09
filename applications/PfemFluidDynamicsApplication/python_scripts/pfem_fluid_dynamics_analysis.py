@@ -91,8 +91,11 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         # Add variables (always before importing the model part)
         self.AddNodalVariablesToModelPart()
 
-        # Read model_part (note: the buffer_size is set here) (restart is read here)
+        # Read model_part from mdpa file
         self._solver.ImportModelPart()
+
+        # Prepare model_part (note: the buffer_size is set here) (restart is read here)
+        self._solver.PrepareModelPart()
 
         # Add dofs (always after importing the model part)
         if((self.main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
