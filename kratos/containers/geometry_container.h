@@ -149,6 +149,15 @@ public:
         return (i.base()->second);
     }
 
+    /// Returns the Geometry::Pointer corresponding to its Id
+    const typename TGeometryType::Pointer pGetGeometry(IndexType GeometryId) const
+    {
+        auto i = mGeometries.find(GeometryId);
+        KRATOS_ERROR_IF(i == mGeometries.end())
+            << " geometry index not found: " << GeometryId << ".";
+        return (i.base()->second);
+    }
+
     /// Returns the Geometry::Pointer corresponding to its name
     typename TGeometryType::Pointer pGetGeometry(std::string GeometryName)
     {
