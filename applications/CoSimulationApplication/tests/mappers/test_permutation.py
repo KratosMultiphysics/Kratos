@@ -51,7 +51,7 @@ class TestMapperPermutation(KratosUnittest.TestCase):
             node = model_part_from.Nodes[0]
             self.assertListEqual([node.X, node.Y, node.Z], [0., 1., 2.])
 
-        # check if method __call__ works
+        # check if method __call__ works for Double Variable
         if True:
             var = vars(KM)["TEMPERATURE"]
             model = cs_data_structure.Model()
@@ -70,6 +70,27 @@ class TestMapperPermutation(KratosUnittest.TestCase):
                 val_from = node_from.GetSolutionStepValue(var)
                 val_to = node_to.GetSolutionStepValue(var)
                 self.assertEqual(val_from, val_to)
+
+        # check if method __call__ works for Array Variable
+        if True:
+            var = vars(KM)["DISPLACEMENT"]
+            model = cs_data_structure.Model()
+            model_part_from = model.CreateModelPart('wall_from')
+            model_part_from.AddNodalSolutionStepVariable(var)
+
+            for i in range(10):
+                node = model_part_from.CreateNewNode(i, i * 1., i * 2., i * 3.)
+                node.SetSolutionStepValue(var, 0, [node.X ** 2, node.Y ** 2, node.Z ** 2])
+
+            mapper = cs_tools.CreateInstance(parameters['mapper'])
+            model_part_to = mapper.Initialize(model_part_from, forward=True)
+            mapper((model_part_from, var), (model_part_to, var))
+
+            for node_from, node_to in zip(model_part_from.Nodes, model_part_to.Nodes):
+                val_from = node_from.GetSolutionStepValue(var)
+                val_from = list(np.array(val_from)[[2, 0, 1]])
+                val_to = node_to.GetSolutionStepValue(var)
+                self.assertListEqual(val_from, val_to)
 
 
 if __name__ == '__main__':

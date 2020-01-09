@@ -68,4 +68,12 @@ class MapperPermutation(object):
 
         for node_from, node_to in zip(model_part_from.Nodes, model_part_to.Nodes):
             value = node_from.GetSolutionStepValue(var_from)
+
+            if var_from.Type() == 'Double':
+                pass
+            elif var_from.Type() == 'Array':
+                value = list(np.array(value)[self.permutation])
+            else:
+                raise NotImplementedError(f'Mapping not yet implemented for Variable of Type {var_from.Type()}.')
+
             node_to.SetSolutionStepValue(var_to, 0, value)
