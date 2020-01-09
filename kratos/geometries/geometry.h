@@ -225,7 +225,7 @@ public:
     Geometry()
         : mpGeometryData(&GeometryDataInstance())
     {
-        IndexType index = static_cast<IndexType>(*this);
+        IndexType index = reinterpret_cast<IndexType>(this);
         SetIdSelfAssigned(index);
         mId = index;
     }
@@ -308,7 +308,7 @@ public:
         : mpGeometryData(pThisGeometryData)
         , mPoints(ThisPoints)
     {
-        IndexType index = static_cast<IndexType>(*this);
+        IndexType index = reinterpret_cast<IndexType>(this);
         SetIdSelfAssigned(index);
         mId = index;
     }
