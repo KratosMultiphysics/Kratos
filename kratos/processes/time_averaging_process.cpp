@@ -89,31 +89,40 @@ int TimeAveragingProcess::Check()
         KRATOS_ERROR << msg;
     }
 
-    // const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    for (const std::string& variable_name : mVariableNamesList)
+    {
+        if (!(KratosComponents<Variable<double>>::Has(variable_name) || KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name)))
+        {
+            KRATOS_ERROR << "Variable " << variable_name << " not found in the scalar and 3d variables list of Kratos.\n";
+        }
+    }
 
-    // for (const std::string& variable_name : mVariableNamesList)
-    // {
-    //     if (KratosComponents<Variable<double>>::Has(variable_name))
-    //     {
-    //         const Variable<double>& r_variable =
-    //             KratosComponents<Variable<double>>::Get(variable_name);
-    //         KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(r_variable))
-    //             << r_model_part.Name() << " doesn't have "
-    //             << r_variable.Name() << " in NodalSolutionStepDataContainer. Please add it as a SolutionStepVariable.";
-    //     }
-    //     else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name))
-    //     {
-    //         const Variable<array_1d<double, 3>>& r_variable =
-    //             KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
-    //         KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(r_variable))
-    //             << r_model_part.Name() << " doesn't have "
-    //             << r_variable.Name() << " in NodalSolutionStepDataContainer. Please add it as a SolutionStepVariable.";
-    //     }
-    //     else
-    //     {
-    //         KRATOS_ERROR << "Variable " << variable_name << " not found in the scalar and 3d variables list of Kratos.\n";
-    //     }
-    // }
+    for (const std::string& variable_name : mAveragedVariableNamesList)
+    {
+        if (!(KratosComponents<Variable<double>>::Has(variable_name) || KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name)))
+        {
+            KRATOS_ERROR << "Variable " << variable_name << " not found in the scalar and 3d variables list of Kratos.\n";
+        }
+    }
+
+    if (!(mAveragedVariableNamesList.size() == mVariableNamesList.size()))
+    {
+        KRATOS_ERROR << "List of input variables" << mVariableNamesList << " and list of averaged variables" << mAveragedVariableNamesList << " has different length. Please provide arrays of same length and corresponding variables of the same type.\n";
+    }
+
+    for (int counter = 0; counter < mVariableNamesList.size(); ++counter)
+        {
+            const std::string& variable_name = mVariableNamesList[counter];
+            const std::string& averaged_variable_name = mAveragedVariableNamesList[counter];
+
+            if (!(
+                (KratosComponents<Variable<double>>::Has(variable_name) && KratosComponents<Variable<double>>::Has(averaged_variable_name)) ||
+                (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name) && KratosComponents<Variable<array_1d<double, 3>>>::Has(averaged_variable_name))
+                ))
+                {
+                    KRATOS_ERROR << "List of input variables" << mVariableNamesList << " and list of averaged variables" << mAveragedVariableNamesList << " has different variable types. Please provide arrays of same length and corresponding variables of the same type.\n";
+                }
+        }
 
     return 0;
 
@@ -132,26 +141,6 @@ void TimeAveragingProcess::ExecuteInitialize()
     mCurrentTime = 0.0;
 
     std::stringstream msg;
-
-    // msg << "Initialized non-historical";
-
-    // for (const std::string& variable_name : mVariableNamesList)
-    // {
-    //     if (KratosComponents<Variable<double>>::Has(variable_name))
-    //     {
-    //         const Variable<double>& r_variable =
-    //             KratosComponents<Variable<double>>::Get(variable_name);
-    //         VariableUtils().SetNonHistoricalVariableToZero(r_variable, r_nodes);
-    //     }
-    //     else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name))
-    //     {
-    //         const Variable<array_1d<double, 3>>& r_variable =
-    //             KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
-    //         VariableUtils().SetNonHistoricalVariableToZero(r_variable, r_nodes);
-    //     }
-    //     msg << " " << variable_name;
-    // }
-    // msg << " variable(s) in " << mModelPartName << " to store time averaged quantities.\n";
 
     if (mTimeAveragingContainer == NodalHistorical || mTimeAveragingContainer == NodalNonHistorical)
     {
@@ -226,9 +215,9 @@ void TimeAveragingProcess::ExecuteFinalizeSolutionStep()
                     KratosComponents<Variable<double>>::Get(variable_name);
                 const Variable<double>& r_averaged_variable =
                     KratosComponents<Variable<double>>::Get(averaged_variable_name);
-                if (mTimeAveragingContainer == NodalHistorical){this->CalculateTimeIntegratedHistoricalNodalQuantity(r_nodes, r_variable, r_averaged_variable, delta_time);}
-                else if (mTimeAveragingContainer == NodalNonHistorical){this->CalculateTimeIntegratedNonHistoricalNodalQuantity(r_nodes, r_variable, r_averaged_variable, delta_time);}
-                else if (mTimeAveragingContainer == ElementalNonHistorical){this->CalculateTimeIntegratedNonHistoricalElementalQuantity(r_elements, r_variable, r_averaged_variable, delta_time);}
+                if (mTimeAveragingContainer == NodalHistorical){this->CalculateTimeIntegratedNodalHistoricalQuantity(r_nodes, r_variable, r_averaged_variable, delta_time);}
+                else if (mTimeAveragingContainer == NodalNonHistorical){this->CalculateTimeIntegratedNodalNonHistoricalQuantity(r_nodes, r_variable, r_averaged_variable, delta_time);}
+                else if (mTimeAveragingContainer == ElementalNonHistorical){this->CalculateTimeIntegratedElementalNonHistoricalQuantity(r_elements, r_variable, r_averaged_variable, delta_time);}
 
             }
             else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name))
@@ -237,9 +226,9 @@ void TimeAveragingProcess::ExecuteFinalizeSolutionStep()
                     KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
                 const Variable<array_1d<double, 3>>& r_averaged_variable =
                     KratosComponents<Variable<array_1d<double, 3>>>::Get(averaged_variable_name);
-                if (mTimeAveragingContainer == NodalHistorical){this->CalculateTimeIntegratedHistoricalNodalQuantity(r_nodes, r_variable, r_averaged_variable, delta_time);}
-                else if (mTimeAveragingContainer == NodalNonHistorical){this->CalculateTimeIntegratedNonHistoricalNodalQuantity(r_nodes, r_variable, r_averaged_variable, delta_time);}
-                else if (mTimeAveragingContainer == ElementalNonHistorical){this->CalculateTimeIntegratedNonHistoricalElementalQuantity(r_elements, r_variable, r_averaged_variable, delta_time);}
+                if (mTimeAveragingContainer == NodalHistorical){this->CalculateTimeIntegratedNodalHistoricalQuantity(r_nodes, r_variable, r_averaged_variable, delta_time);}
+                else if (mTimeAveragingContainer == NodalNonHistorical){this->CalculateTimeIntegratedNodalNonHistoricalQuantity(r_nodes, r_variable, r_averaged_variable, delta_time);}
+                else if (mTimeAveragingContainer == ElementalNonHistorical){this->CalculateTimeIntegratedElementalNonHistoricalQuantity(r_elements, r_variable, r_averaged_variable, delta_time);}
             }
 
             msg << " " << variable_name;
@@ -304,7 +293,7 @@ void TimeAveragingProcess::PrintData(std::ostream& rOStream) const
 }
 
 template <typename TDataType>
-void TimeAveragingProcess::CalculateTimeIntegratedHistoricalNodalQuantity(ModelPart::NodesContainerType& rNodes,
+void TimeAveragingProcess::CalculateTimeIntegratedNodalHistoricalQuantity(ModelPart::NodesContainerType& rNodes,
                                                                           const Variable<TDataType>& rVariable,
                                                                           const Variable<TDataType>& rAveragedVariable,
                                                                           const double DeltaTime) const
@@ -323,7 +312,7 @@ void TimeAveragingProcess::CalculateTimeIntegratedHistoricalNodalQuantity(ModelP
 }
 
 template <typename TDataType>
-void TimeAveragingProcess::CalculateTimeIntegratedNonHistoricalNodalQuantity(ModelPart::NodesContainerType& rNodes,
+void TimeAveragingProcess::CalculateTimeIntegratedNodalNonHistoricalQuantity(ModelPart::NodesContainerType& rNodes,
                                                                              const Variable<TDataType>& rVariable,
                                                                              const Variable<TDataType>& rAveragedVariable,
                                                                              const double DeltaTime) const
@@ -342,7 +331,7 @@ void TimeAveragingProcess::CalculateTimeIntegratedNonHistoricalNodalQuantity(Mod
 }
 
 template <typename TDataType>
-void TimeAveragingProcess::CalculateTimeIntegratedNonHistoricalElementalQuantity(ModelPart::ElementsContainerType& rElements,
+void TimeAveragingProcess::CalculateTimeIntegratedElementalNonHistoricalQuantity(ModelPart::ElementsContainerType& rElements,
                                                                                  const Variable<TDataType>& rVariable,
                                                                                  const Variable<TDataType>& rAveragedVariable,
                                                                                  const double DeltaTime) const
@@ -362,22 +351,22 @@ void TimeAveragingProcess::CalculateTimeIntegratedNonHistoricalElementalQuantity
 
 // template instantiations
 
-template void TimeAveragingProcess::CalculateTimeIntegratedHistoricalNodalQuantity<double>(
+template void TimeAveragingProcess::CalculateTimeIntegratedNodalHistoricalQuantity<double>(
     ModelPart::NodesContainerType&, const Variable<double>&, const Variable<double>&, const double) const;
 
-template void TimeAveragingProcess::CalculateTimeIntegratedHistoricalNodalQuantity<array_1d<double, 3>>(
+template void TimeAveragingProcess::CalculateTimeIntegratedNodalHistoricalQuantity<array_1d<double, 3>>(
     ModelPart::NodesContainerType&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const double) const;
 
-template void TimeAveragingProcess::CalculateTimeIntegratedNonHistoricalNodalQuantity<double>(
+template void TimeAveragingProcess::CalculateTimeIntegratedNodalNonHistoricalQuantity<double>(
     ModelPart::NodesContainerType&, const Variable<double>&, const Variable<double>&, const double) const;
 
-template void TimeAveragingProcess::CalculateTimeIntegratedNonHistoricalNodalQuantity<array_1d<double, 3>>(
+template void TimeAveragingProcess::CalculateTimeIntegratedNodalNonHistoricalQuantity<array_1d<double, 3>>(
     ModelPart::NodesContainerType&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const double) const;
 
-template void TimeAveragingProcess::CalculateTimeIntegratedNonHistoricalElementalQuantity<double>(
+template void TimeAveragingProcess::CalculateTimeIntegratedElementalNonHistoricalQuantity<double>(
     ModelPart::ElementsContainerType&, const Variable<double>&, const Variable<double>&, const double) const;
 
-template void TimeAveragingProcess::CalculateTimeIntegratedNonHistoricalElementalQuantity<array_1d<double, 3>>(
+template void TimeAveragingProcess::CalculateTimeIntegratedElementalNonHistoricalQuantity<array_1d<double, 3>>(
     ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const double) const;
 
 } // namespace Kratos.
