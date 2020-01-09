@@ -221,12 +221,26 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Standard Constructor
-    Geometry(IndexType Id = 0)
-        : mId(Id),
-          mpGeometryData(&GeometryDataInstance())
+    /// Standard Constructor. Generates self assigned id.
+    Geometry()
+        : mId(SetSelfAssigned(static_cast<IndexType>(this)))
+        , mpGeometryData(&GeometryDataInstance())
     {
 
+    }
+
+    /// Standard Constructor with a Id
+    Geometry(IndexType GeomertyId)
+        : mId(GeomertyId)
+        , mpGeometryData(&GeometryDataInstance())
+    {
+    }
+
+    /// Standard Constructor with a Name
+    Geometry(std::string GeometryName)
+        : mId(GenerateId(GeometryName))
+        , mpGeometryData(&GeometryDataInstance())
+    {
     }
 
     /** Complete argument constructor. This constructor gives a
