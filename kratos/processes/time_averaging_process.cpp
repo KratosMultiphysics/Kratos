@@ -305,9 +305,7 @@ void TimeAveragingProcess::CalculateTimeIntegratedNodalHistoricalQuantity(ModelP
         NodeType& r_node = *(rNodes.begin() + i_node);
         const TDataType& r_temporal_value = r_node.FastGetSolutionStepValue(rVariable);
         TDataType& r_integrated_value = r_node.GetValue(rAveragedVariable);
-        r_integrated_value =
-            (r_integrated_value * mCurrentTime + r_temporal_value * DeltaTime) /
-            (mCurrentTime + DeltaTime);
+        r_integrated_value = AverageMethod(r_temporal_value, r_integrated_value, DeltaTime);
     }
 }
 
@@ -324,9 +322,7 @@ void TimeAveragingProcess::CalculateTimeIntegratedNodalNonHistoricalQuantity(Mod
         NodeType& r_node = *(rNodes.begin() + i_node);
         const TDataType& r_temporal_value = r_node.GetValue(rVariable);
         TDataType& r_integrated_value = r_node.GetValue(rAveragedVariable);
-        r_integrated_value =
-            (r_integrated_value * mCurrentTime + r_temporal_value * DeltaTime) /
-            (mCurrentTime + DeltaTime);
+        r_integrated_value = AverageMethod(r_temporal_value, r_integrated_value, DeltaTime);
     }
 }
 
@@ -343,10 +339,30 @@ void TimeAveragingProcess::CalculateTimeIntegratedElementalNonHistoricalQuantity
         ElementType& r_element = *(rElements.begin() + i_element);
         const TDataType& r_temporal_value = r_element.GetValue(rVariable);
         TDataType& r_integrated_value = r_element.GetValue(rAveragedVariable);
-        r_integrated_value =
-            (r_integrated_value * mCurrentTime + r_temporal_value * DeltaTime) /
-            (mCurrentTime + DeltaTime);
+        r_integrated_value = RootMeanSquareMethod(r_temporal_value, r_integrated_value, DeltaTime);
     }
+}
+
+template <typename TDataType>
+TDataType TimeAveragingProcess::AverageMethod(const TDataType rTemporalVariable,
+                                              TDataType rAveragedVariable,
+                                              const double DeltaTime) const
+{
+    rAveragedVariable =
+        (rAveragedVariable * mCurrentTime + rTemporalVariable * DeltaTime) /
+        (mCurrentTime + DeltaTime);
+    return rAveragedVariable;
+}
+
+template <typename TDataType>
+TDataType TimeAveragingProcess::RootMeanSquareMethod(const TDataType rTemporalVariable,
+                                                     TDataType rAveragedVariable,
+                                                     const double DeltaTime) const
+{
+    rAveragedVariable = std::sqrt(
+        (std::pow(rAveragedVariable,2) * mCurrentTime + std::pow(rTemporalVariable,2) * DeltaTime) /
+        (mCurrentTime + DeltaTime));
+    return rAveragedVariable;
 }
 
 // template instantiations
@@ -368,5 +384,17 @@ template void TimeAveragingProcess::CalculateTimeIntegratedElementalNonHistorica
 
 template void TimeAveragingProcess::CalculateTimeIntegratedElementalNonHistoricalQuantity<array_1d<double, 3>>(
     ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const double) const;
+
+template double TimeAveragingProcess::AverageMethod<double>(
+    const double, double, const double) const;
+
+template array_1d<double, 3> TimeAveragingProcess::AverageMethod<array_1d<double, 3>>(
+    const array_1d<double, 3>, array_1d<double, 3>, const double) const;
+
+template double TimeAveragingProcess::RootMeanSquareMethod<double>(
+    const double, double, const double) const;
+
+template array_1d<double, 3> TimeAveragingProcess::RootMeanSquareMethod<array_1d<double, 3>>(
+    const array_1d<double, 3>, array_1d<double, 3>, const double) const;
 
 } // namespace Kratos.

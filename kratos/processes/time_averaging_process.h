@@ -176,22 +176,32 @@ private:
     bool IsIntegrationStep() const;
 
     template <typename TDataType>
-    void CalculateTimeIntegratedHistoricalNodalQuantity(ModelPart::NodesContainerType& rNodes,
+    void CalculateTimeIntegratedNodalHistoricalQuantity(ModelPart::NodesContainerType& rNodes,
                                                         const Variable<TDataType>& rVariable,
                                                         const Variable<TDataType>& rAveragedVariable,
                                                         const double DeltaTime) const;
 
     template <typename TDataType>
-    void CalculateTimeIntegratedNonHistoricalNodalQuantity(ModelPart::NodesContainerType& rNodes,
+    void CalculateTimeIntegratedNodalNonHistoricalQuantity(ModelPart::NodesContainerType& rNodes,
                                                            const Variable<TDataType>& rVariable,
                                                            const Variable<TDataType>& rAveragedVariable,
                                                            const double DeltaTime) const;
 
     template <typename TDataType>
-    void CalculateTimeIntegratedNonHistoricalElementalQuantity(ModelPart::ElementsContainerType& rElements,
+    void CalculateTimeIntegratedElementalNonHistoricalQuantity(ModelPart::ElementsContainerType& rElements,
                                                                const Variable<TDataType>& rVariable,
                                                                const Variable<TDataType>& rAveragedVariable,
                                                                const double DeltaTime) const;
+
+    template <typename TDataType>
+    TDataType AverageMethod(const TDataType rTemporalVariable,
+                         const TDataType rAveragedVariable,
+                         const double DeltaTime) const;
+
+    template <typename TDataType>
+    TDataType RootMeanSquareMethod(const TDataType rTemporalVariable,
+                                   const TDataType rAveragedVariable,
+                                   const double DeltaTime) const;
 
     ///@}
     ///@name Private  Access
