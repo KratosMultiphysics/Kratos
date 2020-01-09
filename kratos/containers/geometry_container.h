@@ -149,7 +149,7 @@ public:
         return (i.base()->second);
     }
 
-    /// Returns the Geometry::Pointer corresponding to its Id
+    /// Returns the const Geometry::Pointer corresponding to its Id
     const typename TGeometryType::Pointer pGetGeometry(IndexType GeometryId) const
     {
         auto i = mGeometries.find(GeometryId);
