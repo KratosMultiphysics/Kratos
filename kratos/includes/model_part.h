@@ -1383,6 +1383,16 @@ public:
         return mGeometries.GetGeometry(GeometryId);
     }
 
+    /// Returns a const reference geometry corresponding to the id
+    const GeometryType& GetGeometry(IndexType GeometryId) const {
+        return mGeometries.GetGeometry(GeometryId);
+    }
+
+    /// Returns a reference geometry corresponding to the name
+    GeometryType& GetGeometry(std::string GeometryName) {
+        return mGeometries.GetGeometry(GeometryName);
+    }
+
     /// Returns a const reference geometry corresponding to the name
     const GeometryType& GetGeometry(std::string GeometryName) const {
         return mGeometries.GetGeometry(GeometryName);
