@@ -3,6 +3,7 @@ import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
+import KratosMultiphysics.DelaunayMeshingApplication  as KratosDelaunay
 from KratosMultiphysics.python_solver import PythonSolver
 
 
@@ -200,7 +201,18 @@ class PfemFluidSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
 
-        print("::[Pfem Fluid Solver]:: Variables ADDED")
+        # Pfem Extra Vars
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_NORMAL)
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.OFFSET)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.SHRINK_FACTOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.MEAN_ERROR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.RIGID_WALL)
+
+        print("::[PfemFluidSolver]:: Variables ADDED")
 
 
     def AddDofs(self):
