@@ -11,9 +11,6 @@ class ConvergenceCriteriaWrapper(object):
     """This class wraps the convergence criteria such that they can be used "automized"
     => this class stores the residual and updates the solutions, such that the
     convergence criteria can be configured through json
-
-    ### TODO check if run the conv-crit only on one rank
-
     """
     def __init__(self, settings, solver_wrapper):
         self.interface_data = solver_wrapper.GetInterfaceData(settings["data_name"].GetString())

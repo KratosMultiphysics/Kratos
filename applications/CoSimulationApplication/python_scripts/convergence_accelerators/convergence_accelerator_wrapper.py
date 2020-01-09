@@ -10,9 +10,6 @@ class ConvergenceAcceleratorWrapper(object):
     """This class wraps the convergence accelerators such that they can be used "automized"
     => this class stores the residual and updates the solutions, such that the
     convergence accelerator can be configured through json
-
-    ### TODO check if run the conv-acc only on one rank if it does not support MPI
-
     """
     def __init__(self, settings, solver_wrapper):
         self.interface_data = solver_wrapper.GetInterfaceData(settings["data_name"].GetString())
