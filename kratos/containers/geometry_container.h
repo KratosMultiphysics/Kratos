@@ -276,11 +276,6 @@ public:
         return mGeometries;
     }
 
-    void SetGeometries(GeometriesContainerType& OtherGeometries)
-    {
-        mGeometries = OtherGeometries;
-    }
-
     ///@}
     ///@name Input and output
     ///@{
