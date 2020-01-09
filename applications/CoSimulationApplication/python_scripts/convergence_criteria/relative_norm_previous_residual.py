@@ -38,6 +38,8 @@ class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCri
 
         is_converged = abs_norm < self.abs_tolerance or rel_norm < self.rel_tolerance
 
+        info_msg = ""
+
         if self.echo_level > 1:
             info_msg  = 'Convergence '
 
@@ -48,12 +50,11 @@ class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCri
                 info_msg += colors.green("ACHIEVED")
             else:
                 info_msg += colors.red("NOT ACHIEVED")
-            cs_tools.cs_print_info(self._ClassName(), info_msg)
+
         if self.echo_level > 2:
-            info_msg  = colors.bold("abs_norm") + " = " + str(abs_norm) + " | "
-            info_msg += colors.bold("abs_tol")  + " = " + str(self.abs_tolerance) + " || "
-            info_msg += colors.bold("rel_norm") + " = " + str(rel_norm) + " | "
-            info_msg += colors.bold("rel_tol")  + " = " + str(self.rel_tolerance)
+            info_msg += '\n\t abs-norm = {:.2e} | abs-tol = {} || rel-norm = {:.2e} | rel-tol = {}'.format(abs_norm, self.abs_tolerance, rel_norm, self.rel_tolerance)
+
+        if info_msg != "":
             cs_tools.cs_print_info(self._ClassName(), info_msg)
 
         return is_converged
