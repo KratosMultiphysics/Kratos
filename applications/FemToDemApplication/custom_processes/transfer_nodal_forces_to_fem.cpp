@@ -45,7 +45,10 @@ void TransferNodalForcesToFem::Execute()
                 auto p_spheric_particle_associated = r_node.GetValue(DEM_PARTICLE_POINTER);
                 dem_forces = (p_spheric_particle_associated->GetGeometry()[0]).FastGetSolutionStepValue(TOTAL_FORCES);
             } else { // In the DE-FE contact the force is stored at the FEM nodes
-                dem_forces = r_node.FastGetSolutionStepValue(TOTAL_FORCES);
+                auto p_spheric_particle_associated = r_node.GetValue(DEM_PARTICLE_POINTER);
+                auto& r_dem_forces_ball = (p_spheric_particle_associated->GetGeometry()[0]).FastGetSolutionStepValue(TOTAL_FORCES);
+                auto& r_dem_forces_wall = r_node.FastGetSolutionStepValue(TOTAL_FORCES);
+                dem_forces = r_dem_forces_ball + r_dem_forces_wall;
             }
             it_cond->SetValue(FORCE_LOAD, dem_forces);
         }
