@@ -1631,29 +1631,6 @@ void ModelPart::RemoveGeometry(
         i_sub_model_part->RemoveGeometry(GeometryName);
 }
 
-/// Removes a geometry.
-void ModelPart::RemoveGeometry(GeometryType& rThisGeometry)
-{
-    mGeometries.RemoveGeometry(rThisGeometry);
-
-    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin();
-        i_sub_model_part != SubModelPartsEnd();
-        i_sub_model_part++)
-        i_sub_model_part->RemoveGeometry(rThisGeometry);
-}
-
-/// Removes a geometry by pointer.
-void ModelPart::RemoveGeometry(typename GeometryType::Pointer pThisGeometry)
-{
-    mGeometries.RemoveGeometry(pThisGeometry);
-
-    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin();
-        i_sub_model_part != SubModelPartsEnd();
-        i_sub_model_part++)
-        i_sub_model_part->RemoveGeometry(pThisGeometry);
-}
-
-
 /// Removes a geometry by id from all root and sub model parts.
 void ModelPart::RemoveGeometryFromAllLevels(IndexType GeometryId)
 {
@@ -1676,30 +1653,6 @@ void ModelPart::RemoveGeometryFromAllLevels(std::string GeometryName)
     }
 
     RemoveGeometry(GeometryName);
-}
-
-/// Removes a geometry from all root and sub model parts.
-void ModelPart::RemoveGeometryFromAllLevels(GeometryType& rThisGeometry)
-{
-    if (IsSubModelPart())
-    {
-        mpParentModelPart->RemoveGeometry(rThisGeometry);
-        return;
-    }
-
-    RemoveGeometry(rThisGeometry);
-}
-
-/// Removes a geometry from all root and sub model parts.
-void ModelPart::RemoveGeometryFromAllLevels(typename GeometryType::Pointer pThisGeometry)
-{
-    if (IsSubModelPart())
-    {
-        mpParentModelPart->RemoveGeometry(pThisGeometry);
-        return;
-    }
-
-    RemoveGeometry(pThisGeometry);
 }
 
 ///@}

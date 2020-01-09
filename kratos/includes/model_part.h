@@ -1416,24 +1416,11 @@ public:
     /// Removes a geometry by name.
     void RemoveGeometry(std::string GeometryName);
 
-    /// Removes a geometry.
-    void RemoveGeometry(GeometryType& rThisGeometry);
-
-    /// Removes a geometry by pointer.
-    void RemoveGeometry(typename GeometryType::Pointer pThisGeometry);
-
-
     /// Removes a geometry by id from all root and sub model parts.
     void RemoveGeometryFromAllLevels(IndexType GeometryId);
 
     /// Removes a geometry by name from all root and sub model parts.
     void RemoveGeometryFromAllLevels(std::string GeometryName);
-
-    /// Removes a geometry from all root and sub model parts.
-    void RemoveGeometryFromAllLevels(GeometryType& rThisGeometry);
-
-    /// Removes a geometry by pointer from all root and sub model parts.
-    void RemoveGeometryFromAllLevels(typename GeometryType::Pointer pThisGeometry);
 
 
     /// Begin geometry iterator
