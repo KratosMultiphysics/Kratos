@@ -2,12 +2,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/triangle )
 
-if(DELAUNATORCPP_INCLUDE_DIR)
-    add_definitions( -DINCLUDE_DELAUNATORCPP )
-
-    INCLUDE_DIRECTORIES(${DELAUNATORCPP_INCLUDE_DIR})
-endif(DELAUNATORCPP_INCLUDE_DIR)
-
 ## Kratos main source code
 set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/flags.cpp

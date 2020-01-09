@@ -43,7 +43,7 @@ namespace Kratos
 /**
  * @namespace DelaunatorUtilities
  * @ingroup KratosCore
- * @brief This namespace includes several utilities using the library delaunator-cpp
+ * @brief This namespace includes several utilities using the library triangle
  * @author Vicente Mataix Ferrandiz
  */
 namespace DelaunatorUtilities

@@ -20,10 +20,6 @@
 #include "triangle.h"
 #endif
 
-#ifdef INCLUDE_DELAUNATORCPP
-#include "delaunator.hpp"
-#endif
-
 // Project includes
 #include "utilities/delaunator_utilities.h"
 
@@ -150,16 +146,8 @@ void CreateTriangleMeshFromNodes(ModelPart& rModelPart)
 
 std::vector<std::size_t> ComputeTrianglesConnectivity(const std::vector<double>& rCoordinates)
 {
-#ifdef INCLUDE_DELAUNATORCPP
-    // Calling the delaunator library
-    delaunator::Delaunator delaunator(rCoordinates);
-
-    // Creating the triangles
-    return delaunator.triangles;
-#else
     // Use triangle library
     return ComputeTrianglesConnectivityWithTriangle(rCoordinates);
-#endif
 }
 
 /***********************************************************************************/
