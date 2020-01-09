@@ -385,10 +385,19 @@ namespace Testing {
     }
 
     /// Test self assigned geometry Id
-    KRATOS_TEST_CASE_IN_SUITE(TestGeometrySelfAssigned, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(TestGeometryIdSelfAssigned, KratosCoreGeometriesFastSuite) {
         auto this_geometry = Geometry<Point>();
 
+        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdGeneratedFromString());
         KRATOS_CHECK(this_geometry.IsIdSelfAssigned());
+
+        this_geometry.SetId(2);
+        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdGeneratedFromString());
+        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdSelfAssigned());
+
+        this_geometry.SetId("ThisGeometry");
+        KRATOS_CHECK(this_geometry.IsIdGeneratedFromString());
+        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdSelfAssigned());
     }
 
     /// Test geometry Id with name
@@ -404,6 +413,8 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(TestGeometryId, KratosCoreGeometriesFastSuite) {
         auto this_geometry = Geometry<Point>(1);
 
+        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdGeneratedFromString());
+        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdSelfAssigned());
         KRATOS_CHECK_EQUAL(this_geometry.Id(), 1);
     }
 } // namespace Testing.
