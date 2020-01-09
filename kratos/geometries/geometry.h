@@ -223,11 +223,9 @@ public:
 
     /// Standard Constructor. Generates self assigned id.
     Geometry()
-        : mpGeometryData(&GeometryDataInstance())
+        : mId(GenerateSelfAssignedId())
+        , mpGeometryData(&GeometryDataInstance())
     {
-        IndexType index = reinterpret_cast<IndexType>(this);
-        SetIdSelfAssigned(index);
-        mId = index;
     }
 
     /// Standard Constructor with a Id
@@ -305,21 +303,19 @@ public:
     Geometry(
         const PointsArrayType &ThisPoints,
         GeometryData const *pThisGeometryData = &GeometryDataInstance())
-        : mpGeometryData(pThisGeometryData)
+        : mId(GenerateSelfAssignedId())
+        , mpGeometryData(pThisGeometryData)
         , mPoints(ThisPoints)
     {
-        IndexType index = reinterpret_cast<IndexType>(this);
-        SetIdSelfAssigned(index);
-        mId = index;
     }
 
     Geometry(
         IndexType Id,
         const PointsArrayType& ThisPoints,
         GeometryData const* pThisGeometryData = &GeometryDataInstance())
-        : mId(Id),
-        mpGeometryData(pThisGeometryData),
-        mPoints(ThisPoints)
+        : mId(Id)
+        , mpGeometryData(pThisGeometryData)
+        , mPoints(ThisPoints)
     {
     }
 
@@ -649,6 +645,9 @@ public:
 
         // Sets first bit to one.
         SetIdGeneratedFromString(id);
+
+        // Sets second bit to zero.
+        SetIdNotSelfAssigned(id);
 
         return id;
     }
@@ -3448,6 +3447,21 @@ private:
     ///@name Id Bit-Change Operations
     ///@{
 
+    /// Gets the corresponding self assigned id from pointer
+    IndexType GenerateSelfAssignedId()
+    {
+        // Create id hash from provided name.
+        IndexType id = reinterpret_cast<IndexType>(this);
+
+        // Sets second bit to zero.
+        SetIdSelfAssigned(id);
+
+        // Sets first bit to zero.
+        SetIdNotGeneratedFromString(id);
+
+        return id;
+    }
+
     /// Checks first bit in Id. 0 -> id; 1 -> name/ string
     static inline bool IsIdGeneratedFromString(IndexType Id)
     {
@@ -3456,6 +3470,12 @@ private:
 
     /// Sets first bit in Id to 1 -> name/ string
     static inline void SetIdGeneratedFromString(IndexType& Id)
+    {
+        Id |= (IndexType(1) << (sizeof(IndexType) - 1));
+    }
+
+    /// Sets first bit in Id to 0 -> no name/ string
+    static inline void SetIdNotGeneratedFromString(IndexType& Id)
     {
         Id |= (IndexType(1) << (sizeof(IndexType) - 1));
     }
@@ -3470,6 +3490,12 @@ private:
     static inline void SetIdSelfAssigned(IndexType& Id)
     {
         Id |= (IndexType(1) << (sizeof(IndexType) - 2));
+    }
+
+    /// Sets second bit in Id to 0 -> not self assigned
+    static inline void SetIdNotSelfAssigned(IndexType& Id)
+    {
+        Id |= (IndexType(0) << (sizeof(IndexType) - 2));
     }
 
     ///@}
