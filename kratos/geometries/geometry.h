@@ -223,7 +223,7 @@ public:
 
     /// Standard Constructor. Generates self assigned id.
     Geometry()
-        : mId(SetSelfAssigned(static_cast<IndexType>(this)))
+        : mId(SetIdSelfAssigned(static_cast<IndexType>(this)))
         , mpGeometryData(&GeometryDataInstance())
     {
 
@@ -311,7 +311,7 @@ public:
     }
 
     Geometry(
-        IndexType Id
+        IndexType Id,
         const PointsArrayType& ThisPoints,
         GeometryData const* pThisGeometryData = &GeometryDataInstance())
         : mId(Id),
