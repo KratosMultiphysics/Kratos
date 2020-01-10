@@ -6,22 +6,6 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 import numpy as np
 import os
 
-import time
-from contextlib import contextmanager
-@contextmanager
-def timer(name=None, t=0, n=0, ms=False):
-    startTime = time.time()
-    yield
-    elapsedTime = time.time() - startTime
-    if ms:
-        s = '\n' * n + '\t' * t + f'{elapsedTime * 1000:.2f}ms'
-        s.replace(',', ' ')
-    else:
-        s = '\n' * n + '\t' * t + f'{elapsedTime:.1f}s'
-    if name is not None:
-        s += f' - {name}'
-    s += '\n' * n
-    print(s)
 
 class TestMapperPermutation(KratosUnittest.TestCase):
     def test_mapper_permutation(self):
@@ -80,7 +64,7 @@ class TestMapperPermutation(KratosUnittest.TestCase):
 
             for i in range(10):
                 node = model_part_from.CreateNewNode(i, i * 1., i * 2., i * 3.)
-                node.SetSolutionStepValue(var, 0, [node.X ** 2, node.Y ** 2, node.Z ** 2])
+                node.SetSolutionStepValue(var, 0, list(np.random.rand(3)))
 
             mapper = cs_tools.CreateInstance(parameters['mapper'])
             model_part_to = mapper.Initialize(model_part_from, forward=True)
@@ -88,7 +72,7 @@ class TestMapperPermutation(KratosUnittest.TestCase):
 
             for node_from, node_to in zip(model_part_from.Nodes, model_part_to.Nodes):
                 val_from = node_from.GetSolutionStepValue(var)
-                val_from = list(np.array(val_from)[[2, 0, 1]])
+                val_from = list(np.array(val_from)[mapper.permutation])
                 val_to = node_to.GetSolutionStepValue(var)
                 self.assertListEqual(val_from, val_to)
 
