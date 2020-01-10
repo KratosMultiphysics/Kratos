@@ -239,12 +239,12 @@ void TimeAveragingProcess::ExecuteFinalizeSolutionStep()
                 }
                 else if (mTimeAveragingContainer == NodalNonHistorical)
                 {
-                    this->CalculateTimeIntegratedNodalNonHistoricalQuantity(
+                    this->CalculateTimeIntegratedNonHistoricalQuantity(
                         r_nodes, r_variable, r_averaged_variable, delta_time);
                 }
                 else if (mTimeAveragingContainer == ElementalNonHistorical)
                 {
-                    this->CalculateTimeIntegratedElementalNonHistoricalQuantity(
+                    this->CalculateTimeIntegratedNonHistoricalQuantity(
                         r_elements, r_variable, r_averaged_variable, delta_time);
                 }
             }
@@ -261,12 +261,12 @@ void TimeAveragingProcess::ExecuteFinalizeSolutionStep()
                 }
                 else if (mTimeAveragingContainer == NodalNonHistorical)
                 {
-                    this->CalculateTimeIntegratedNodalNonHistoricalQuantity(
+                    this->CalculateTimeIntegratedNonHistoricalQuantity(
                         r_nodes, r_variable, r_averaged_variable, delta_time);
                 }
                 else if (mTimeAveragingContainer == ElementalNonHistorical)
                 {
-                    this->CalculateTimeIntegratedElementalNonHistoricalQuantity(
+                    this->CalculateTimeIntegratedNonHistoricalQuantity(
                         r_elements, r_variable, r_averaged_variable, delta_time);
                 }
             }
@@ -380,9 +380,9 @@ void TimeAveragingProcess::CalculateTimeIntegratedNodalHistoricalQuantity(
     }
 }
 
-template <typename TDataType>
-void TimeAveragingProcess::CalculateTimeIntegratedNodalNonHistoricalQuantity(
-    ModelPart::NodesContainerType& rNodes,
+template <typename TDataType, typename TContainerType>
+void TimeAveragingProcess::CalculateTimeIntegratedNonHistoricalQuantity(
+    TContainerType& rContainer,
     const Variable<TDataType>& rVariable,
     const Variable<TDataType>& rAveragedVariable,
     const double DeltaTime) const
@@ -390,34 +390,13 @@ void TimeAveragingProcess::CalculateTimeIntegratedNodalNonHistoricalQuantity(
     const std::function<void(const TDataType&, TDataType&, const double)> averaging_method =
         this->GetTimeAveragingMethod<TDataType>();
 
-    const int number_of_nodes = rNodes.size();
+    const int number_of_nodes = rContainer.size();
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
-        NodeType& r_node = *(rNodes.begin() + i_node);
-        const TDataType& r_temporal_value = r_node.GetValue(rVariable);
-        TDataType& r_integrated_value = r_node.GetValue(rAveragedVariable);
-        averaging_method(r_temporal_value, r_integrated_value, DeltaTime);
-    }
-}
-
-template <typename TDataType>
-void TimeAveragingProcess::CalculateTimeIntegratedElementalNonHistoricalQuantity(
-    ModelPart::ElementsContainerType& rElements,
-    const Variable<TDataType>& rVariable,
-    const Variable<TDataType>& rAveragedVariable,
-    const double DeltaTime) const
-{
-    const std::function<void(const TDataType&, TDataType&, const double)> averaging_method =
-        this->GetTimeAveragingMethod<TDataType>();
-    const int number_of_elements = rElements.size();
-
-#pragma omp parallel for
-    for (int i_element = 0; i_element < number_of_elements; ++i_element)
-    {
-        ElementType& r_element = *(rElements.begin() + i_element);
-        const TDataType& r_temporal_value = r_element.GetValue(rVariable);
-        TDataType& r_integrated_value = r_element.GetValue(rAveragedVariable);
+        auto& r_container_element = *(rContainer.begin() + i_node);
+        const TDataType& r_temporal_value = r_container_element.GetValue(rVariable);
+        TDataType& r_integrated_value = r_container_element.GetValue(rAveragedVariable);
         averaging_method(r_temporal_value, r_integrated_value, DeltaTime);
     }
 }
@@ -467,22 +446,22 @@ template void TimeAveragingProcess::CalculateTimeIntegratedNodalHistoricalQuanti
     const Variable<array_1d<double, 3>>&,
     const double) const;
 
-template void TimeAveragingProcess::CalculateTimeIntegratedNodalNonHistoricalQuantity<double>(
+template void TimeAveragingProcess::CalculateTimeIntegratedNonHistoricalQuantity<double, ModelPart::NodesContainerType>(
     ModelPart::NodesContainerType&, const Variable<double>&, const Variable<double>&, const double) const;
 
-template void TimeAveragingProcess::CalculateTimeIntegratedNodalNonHistoricalQuantity<array_1d<double, 3>>(
+template void TimeAveragingProcess::CalculateTimeIntegratedNonHistoricalQuantity<array_1d<double, 3>, ModelPart::NodesContainerType>(
     ModelPart::NodesContainerType&,
     const Variable<array_1d<double, 3>>&,
     const Variable<array_1d<double, 3>>&,
     const double) const;
 
-template void TimeAveragingProcess::CalculateTimeIntegratedElementalNonHistoricalQuantity<double>(
+template void TimeAveragingProcess::CalculateTimeIntegratedNonHistoricalQuantity<double, ModelPart::ElementsContainerType>(
     ModelPart::ElementsContainerType&,
     const Variable<double>&,
     const Variable<double>&,
     const double) const;
 
-template void TimeAveragingProcess::CalculateTimeIntegratedElementalNonHistoricalQuantity<array_1d<double, 3>>(
+template void TimeAveragingProcess::CalculateTimeIntegratedNonHistoricalQuantity<array_1d<double, 3>, ModelPart::ElementsContainerType>(
     ModelPart::ElementsContainerType&,
     const Variable<array_1d<double, 3>>&,
     const Variable<array_1d<double, 3>>&,

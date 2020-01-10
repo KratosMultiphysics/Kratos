@@ -192,16 +192,9 @@ private:
                                                         const Variable<TDataType>& rAveragedVariable,
                                                         const double DeltaTime) const;
 
-    template <typename TDataType>
-    void CalculateTimeIntegratedNodalNonHistoricalQuantity(
-        ModelPart::NodesContainerType& rNodes,
-        const Variable<TDataType>& rVariable,
-        const Variable<TDataType>& rAveragedVariable,
-        const double DeltaTime) const;
-
-    template <typename TDataType>
-    void CalculateTimeIntegratedElementalNonHistoricalQuantity(
-        ModelPart::ElementsContainerType& rElements,
+    template <typename TDataType, typename TContainerType>
+    void CalculateTimeIntegratedNonHistoricalQuantity(
+        TContainerType& rContainer,
         const Variable<TDataType>& rVariable,
         const Variable<TDataType>& rAveragedVariable,
         const double DeltaTime) const;
