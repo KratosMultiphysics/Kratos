@@ -793,7 +793,6 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
         Matrix contravariant_metric_reference = ZeroMatrix(3);
         Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
 
-        Matrix stress_matrix = ZeroMatrix(2);
         Matrix deformation_gradient = ZeroMatrix(2);
         double det_deformation_gradient = 0.0;
 
@@ -821,7 +820,7 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
             DeformationGradient(deformation_gradient,det_deformation_gradient,current_covariant_base_vectors,reference_contravariant_base_vectors);
 
 
-            stress_matrix = MathUtils<double>::StressVectorToTensor(stress);
+            Matrix stress_matrix = MathUtils<double>::StressVectorToTensor(stress);
             Matrix temp_stress_matrix = prod(deformation_gradient,stress_matrix);
             Matrix temp_stress_matrix_2 = prod(temp_stress_matrix,trans(deformation_gradient));
             Matrix cauchy_stress_matrix = temp_stress_matrix_2 / det_deformation_gradient;
@@ -1259,12 +1258,14 @@ void MembraneElement::save(Serializer& rSerializer) const
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
       rSerializer.save("mConstitutiveLawVector", mConstitutiveLawVector);
+      rSerializer.save("mReferenceArea", mReferenceArea);
     }
 
     void MembraneElement::load(Serializer& rSerializer)
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-      rSerializer.save("mConstitutiveLawVector", mConstitutiveLawVector);
+      rSerializer.load("mConstitutiveLawVector", mConstitutiveLawVector);
+      rSerializer.load("mReferenceArea", mReferenceArea);
     }
 
 
