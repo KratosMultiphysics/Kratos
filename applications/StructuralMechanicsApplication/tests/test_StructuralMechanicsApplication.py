@@ -24,9 +24,11 @@ from test_perfect_plasticity_implementation_verification import TestPerfectPlast
 from test_mass_calculation import TestMassCalculation as TTestMassCalculation
 from test_compute_center_of_gravity import TestComputeCenterOfGravity as TTestComputeCenterOfGravity
 from test_compute_mass_moment_of_inertia import TestComputeMassMomentOfInertia as TTestComputeMassMomentOfInertia
+from test_axis_projection import TestAxisProjection as TTestAxisProjection
 # Simple patch tests
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
 from test_patch_test_small_strain_bbar import TestPatchTestSmallStrainBbar as TTestPatchTestSmallStrainBbar
+from test_patch_test_small_displacement_mixed_volumetric_strain import TestPatchTestSmallDisplacementMixedVolumetricStrain as TTestPatchTestSmallDisplacementMixedVolumetricStrain
 from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchTestLargeStrain
 from test_quadratic_elements import TestQuadraticElements as TTestQuadraticElements
 from test_patch_test_shells import TestPatchTestShells as TTestPatchTestShells
@@ -73,6 +75,7 @@ from test_adjoint_sensitivity_analysis_beam_3d2n_structure import TestAdjointSen
 from test_adjoint_sensitivity_analysis_shell_3d3n_structure import TestAdjointSensitivityAnalysisShell3D3NStructure as TTestAdjointSensitivityAnalysisShell3D3NStructure
 from test_adjoint_sensitivity_analysis_truss_3d2n_structure import TestAdjointSensitivityAnalysisLinearTrussStructure as TTestAdjointSensitivityAnalysisLinearTrussStructure
 from test_adjoint_sensitivity_analysis_truss_3d2n_structure import TestAdjointSensitivityAnalysisNonLinearTrussStructure as TTestAdjointSensitivityAnalysisNonLinearTrussStructure
+from test_adjoint_sensitivity_analysis_spring_damper_3d2n_structure import TestAdjointSensitivityAnalysisSpringDamperStructure as TTestAdjointSensitivityAnalysisSpringDamperStructure
 
 ##### SMALL TESTS #####
 # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -109,6 +112,8 @@ from structural_mechanics_test_factory import ULThreeDTensionTetraPatchTest as T
 # SPRISM tests
 from structural_mechanics_test_factory import SprismMembranePatchTests as TSprismMembranePatchTests
 from structural_mechanics_test_factory import SprismBendingPatchTests as TSprismBendingPatchTests
+# Mixed displacement - volumetric strain tests
+from test_cook_membrane import TestCookMembrane as TTestCookMembrane
 # Explicit tests
 from structural_mechanics_test_factory import ExplicitSolidBeam as TExplicitSolidBeam
 # Eigenvalues tests
@@ -176,6 +181,9 @@ from structural_mechanics_test_factory import BigCubeSmallDeformationPlasticityT
 from structural_mechanics_test_factory import SmallDeformationPlasticityTest as TSmallDeformationPlasticityTest
 from structural_mechanics_test_factory import SimpleJ2PlasticityTest as TSimpleJ2PlasticityTest
 from structural_mechanics_test_factory import TensileTestStructuralTest as TTensileTestStructuralTest
+# Serial-Parallel Tests
+from structural_mechanics_test_factory import SerialParallelRuleOfMixturesCubeDamageTest as TSerialParallelRuleOfMixturesCubeDamageTest
+
 # Rigid test
 from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
 from structural_mechanics_test_factory import RigidBlockTest as TRigidBlockTest
@@ -246,6 +254,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestConstitutiveLaw]))
     nightSuite.addTest(TSimpleSmallDeformationPlasticityMCTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityVMTest('test_execution'))
+    nightSuite.addTest(TSerialParallelRuleOfMixturesCubeDamageTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityDPTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityTTest('test_execution'))
     nightSuite.addTest(TBigCubeSmallDeformationPlasticityMCTest('test_execution'))
@@ -257,11 +266,14 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeCenterOfGravity]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeMassMomentOfInertia]))
+    # Axis projection tests
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAxisProjection]))
     # Solids
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrainBbar]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestLargeStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestQuadraticElements]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallDisplacementMixedVolumetricStrain]))
     # Shells
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShells]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsStressRec])) # TODO should be in smallSuite but is too slow
@@ -339,6 +351,9 @@ def AssembleTestSuites():
     # SPRISM tests
     nightSuite.addTest(TSprismMembranePatchTests('test_execution'))
     nightSuite.addTest(TSprismBendingPatchTests('test_execution'))
+    # Mixed displacement - volumetric strain tests
+    nightSuite.addTest(TTestCookMembrane('test_cook_membrane_2d'))
+    nightSuite.addTest(TTestCookMembrane('test_cook_membrane_incompressible_2d'))
     # Membrane tests
     nightSuite.addTest(TFofi4PointTentnoCableTests('test_execution'))
     nightSuite.addTest(TFofi4PointTentCableTests('test_execution'))
@@ -397,6 +412,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisShell3D3NStructure]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisLinearTrussStructure]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisNonLinearTrussStructure]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisSpringDamperStructure]))
     nightSuite.addTest(TTestMassResponseFunction('test_execution'))
     nightSuite.addTest(TTestStrainEnergyResponseFunction('test_execution'))
     nightSuite.addTest(TTestEigenfrequencyResponseFunction('test_execution'))
@@ -433,8 +449,10 @@ def AssembleTestSuites():
     # validationSuite.addTest(TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests('test_execution'))
     # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests('test_execution'))
     # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests('test_execution'))
+
     # CL tests
     validationSuite.addTest(TTensileTestStructuralTest('test_execution'))
+
     # Explicit solid beam
     validationSuite.addTest(TExplicitSolidBeam('test_execution'))
 

@@ -100,7 +100,9 @@ class MechanicalSolver(PythonSolver):
                 "materials_filename": ""
             },
             "time_stepping" : { },
+            "volumetric_strain_dofs": false,
             "rotation_dofs": false,
+            "pressure_dofs": false,
             "displacement_control": false,
             "reform_dofs_at_each_step": false,
             "line_search": false,
@@ -142,6 +144,10 @@ class MechanicalSolver(PythonSolver):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
+        if self.settings["volumetric_strain_dofs"].GetBool():
+            # Add specific variables for the problem (rotation dofs).
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN)
         if self.settings["displacement_control"].GetBool():
             # Add displacement-control variables
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LOAD_FACTOR)
@@ -162,6 +168,8 @@ class MechanicalSolver(PythonSolver):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,self.main_model_part)
+        if self.settings["volumetric_strain_dofs"].GetBool():
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VOLUMETRIC_STRAIN, StructuralMechanicsApplication.REACTION_STRAIN,self.main_model_part)
         if self.settings["displacement_control"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.LOAD_FACTOR, StructuralMechanicsApplication.PRESCRIBED_DISPLACEMENT,self.main_model_part)
 
@@ -230,7 +238,17 @@ class MechanicalSolver(PythonSolver):
         return new_time
 
     def ComputeDeltaTime(self):
-        return self.settings["time_stepping"]["time_step"].GetDouble()
+        if self.settings["time_stepping"].Has("time_step"):
+            return self.settings["time_stepping"]["time_step"].GetDouble()
+        elif self.settings["time_stepping"].Has("time_step_table"):
+            current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            time_step_table = self.settings["time_stepping"]["time_step_table"].GetMatrix()
+            tb = KratosMultiphysics.PiecewiseLinearTable()
+            for interval in range(time_step_table.Size1()):
+                tb.AddRow(time_step_table[interval, 0], time_step_table[interval, 1])
+            return tb.GetValue(current_time)
+        else:
+            raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
 
     def GetComputingModelPart(self):
         if self.use_computing_model_part:
@@ -379,6 +397,7 @@ class MechanicalSolver(PythonSolver):
         # Create an auxiliary Kratos parameters object to store the convergence settings.
         conv_params = KratosMultiphysics.Parameters("{}")
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
+        conv_params.AddValue("volumetric_strain_dofs",self.settings["volumetric_strain_dofs"])
         conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
         conv_params.AddValue("echo_level",self.settings["echo_level"])
         conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])

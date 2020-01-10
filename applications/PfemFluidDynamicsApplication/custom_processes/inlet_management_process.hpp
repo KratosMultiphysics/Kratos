@@ -223,38 +223,8 @@ private:
               clonedNodes.resize(sizeClonedNodes);
               clonedNodes[numberClonedNodes] = pnode;
               numberClonedNodes++;
-
-              i_node->Reset(INLET);
-              i_node->Reset(RIGID);
-              i_node->Reset(BOUNDARY);
-
-              double velocityX = i_node->FastGetSolutionStepValue(VELOCITY_X, 0);
-              double velocityY = i_node->FastGetSolutionStepValue(VELOCITY_Y, 0);
-
-              i_node->Free(VELOCITY_X);
-              i_node->Free(VELOCITY_Y);
-              i_node->FastGetSolutionStepValue(VELOCITY_X, 0) = velocityX;
-              i_node->FastGetSolutionStepValue(VELOCITY_Y, 0) = velocityY;
-              i_node->FastGetSolutionStepValue(VELOCITY_X, 1) = velocityX;
-              i_node->FastGetSolutionStepValue(VELOCITY_Y, 1) = velocityY;
-
-              i_node->FastGetSolutionStepValue(ACCELERATION_X, 0) = 0;
-              i_node->FastGetSolutionStepValue(ACCELERATION_X, 1) = 0;
-              i_node->FastGetSolutionStepValue(ACCELERATION_Y, 0) = 0;
-              i_node->FastGetSolutionStepValue(ACCELERATION_Y, 1) = 0;
-
-              if (dimension == 3)
-              {
-                double velocityZ = i_node->FastGetSolutionStepValue(VELOCITY_Z, 0);
-                i_node->Free(VELOCITY_Z);
-                i_node->FastGetSolutionStepValue(VELOCITY_Z, 0) = velocityZ;
-                i_node->FastGetSolutionStepValue(VELOCITY_Z, 1) = velocityZ;
-                i_node->FastGetSolutionStepValue(ACCELERATION_Z, 0) = 0;
-                i_node->FastGetSolutionStepValue(ACCELERATION_Z, 1) = 0;
-              }
             }
-            else
-            { //these are isolated nodes of the inlet, they will be replaced at their initial position
+             //inlet nodes will be replaced at their initial position
               i_node->X() = i_node->X0();
               i_node->Y() = i_node->Y0();
               i_node->FastGetSolutionStepValue(DISPLACEMENT_X, 0) = 0;
@@ -267,7 +237,6 @@ private:
                 i_node->FastGetSolutionStepValue(DISPLACEMENT_Z, 0) = 0;
                 i_node->FastGetSolutionStepValue(DISPLACEMENT_Z, 1) = 0;
               }
-            }
 
           } /// if maxSeparation> limit
         }
@@ -287,21 +256,15 @@ private:
         id = NodeId + 1;
       }
       pnode->SetId(id);
-      pnode->X() = pnode->X0();
-      pnode->Y() = pnode->Y0();
-      pnode->FastGetSolutionStepValue(DISPLACEMENT_X, 0) = 0;
-      pnode->FastGetSolutionStepValue(DISPLACEMENT_Y, 0) = 0;
-      pnode->FastGetSolutionStepValue(DISPLACEMENT_X, 1) = 0;
-      pnode->FastGetSolutionStepValue(DISPLACEMENT_Y, 1) = 0;
-
+      pnode->Free(VELOCITY_X);
+      pnode->Free(VELOCITY_Y);
       if (dimension == 3)
       {
-        pnode->Z() = pnode->Z0();
-        pnode->FastGetSolutionStepValue(DISPLACEMENT_Z, 0) = 0;
-        pnode->FastGetSolutionStepValue(DISPLACEMENT_Z, 1) = 0;
+        pnode->Free(VELOCITY_Z);
       }
-
-      pnode->Set(INLET); //inlet node
+      pnode->Reset(INLET); 
+      pnode->Reset(RIGID); 
+      pnode->Reset(BOUNDARY); 
       mrRemesh.NodalPreIds.push_back(pnode->Id());
       mrModelPart.AddNode(pnode);
     }
@@ -396,33 +359,33 @@ private:
     KRATOS_CATCH("")
   }
 
-  void SetInletNodes()
+  // void SetInletNodes()
 
-  {
-    KRATOS_TRY
-    std::cout << " SET INLET NODES " << std::endl;
-    const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+  // {
+  //   KRATOS_TRY
+  //   std::cout << " SET INLET NODES " << std::endl;
+  //   const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-    for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
-    {
-      if (i_node->Is(RIGID) && i_node->IsNot(SOLID))
-      {
-        double velocityX = i_node->FastGetSolutionStepValue(VELOCITY_X);
-        double velocityY = i_node->FastGetSolutionStepValue(VELOCITY_Y);
-        double velocityZ = 0;
-        if (dimension == 3)
-        {
-          velocityZ = i_node->FastGetSolutionStepValue(VELOCITY_Z);
-        }
-        if (velocityX != 0 || velocityY != 0 || velocityZ != 0)
-        {
-          i_node->Set(INLET);
-        }
-      }
-    }
+  //   for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
+  //   {
+  //     if (i_node->Is(RIGID) && i_node->IsNot(SOLID))
+  //     {
+  //       double velocityX = i_node->FastGetSolutionStepValue(VELOCITY_X);
+  //       double velocityY = i_node->FastGetSolutionStepValue(VELOCITY_Y);
+  //       double velocityZ = 0;
+  //       if (dimension == 3)
+  //       {
+  //         velocityZ = i_node->FastGetSolutionStepValue(VELOCITY_Z);
+  //       }
+  //       if (velocityX != 0 || velocityY != 0 || velocityZ != 0)
+  //       {
+  //         i_node->Set(INLET);
+  //       }
+  //     }
+  //   }
 
-    KRATOS_CATCH("")
-  }
+  //   KRATOS_CATCH("")
+  // }
 
   ///@}
   ///@name Private  Access

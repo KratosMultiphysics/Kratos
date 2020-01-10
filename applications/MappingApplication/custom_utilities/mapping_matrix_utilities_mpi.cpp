@@ -32,7 +32,7 @@ namespace MappingMatrixUtilities
 
 namespace
 {
-typedef typename MapperDefinitions::MPISparseSpaceType SparseSpaceType;
+typedef typename MapperDefinitions::MPISparseSpaceType MPISparseSpaceType;
 typedef typename MapperDefinitions::DenseSpaceType DenseSpaceType;
 
 typedef typename MapperLocalSystem::MatrixType MatrixType;
@@ -75,7 +75,7 @@ void ConstructMatrixStructure(Epetra_FECrsGraph& rGraph,
     }
 }
 
-void BuildMatrix(Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMdo,
+void BuildMatrix(Kratos::unique_ptr<typename MPISparseSpaceType::MatrixType>& rpMdo,
                  std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems)
 {
     MatrixType local_mapping_matrix;
@@ -110,10 +110,10 @@ void BuildMatrix(Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMdo
 }
 
 template<>
-void BuildMappingMatrix<SparseSpaceType, DenseSpaceType>(
-    Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMappingMatrix,
-    Kratos::unique_ptr<typename SparseSpaceType::VectorType>& rpInterfaceVectorOrigin,
-    Kratos::unique_ptr<typename SparseSpaceType::VectorType>& rpInterfaceVectorDestination,
+void BuildMappingMatrix<MPISparseSpaceType, DenseSpaceType>(
+    Kratos::unique_ptr<typename MPISparseSpaceType::MatrixType>& rpMappingMatrix,
+    Kratos::unique_ptr<typename MPISparseSpaceType::VectorType>& rpInterfaceVectorOrigin,
+    Kratos::unique_ptr<typename MPISparseSpaceType::VectorType>& rpInterfaceVectorDestination,
     const ModelPart& rModelPartOrigin,
     const ModelPart& rModelPartDestination,
     std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems,
@@ -121,7 +121,7 @@ void BuildMappingMatrix<SparseSpaceType, DenseSpaceType>(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(SparseSpaceType::IsDistributed())
+    KRATOS_ERROR_IF_NOT(MPISparseSpaceType::IsDistributed())
         << "Using a non-distributed Space!" << std::endl;
 
     // ***** Creating vectors with information abt which IDs are local *****
@@ -206,8 +206,8 @@ void BuildMappingMatrix<SparseSpaceType, DenseSpaceType>(
     epetra_graph.OptimizeStorage(); // TODO is an extra-call needed?
 
     // ***** Creating the MappingMatrix *****
-    Kratos::unique_ptr<typename SparseSpaceType::MatrixType> p_Mdo =
-        Kratos::make_unique<typename SparseSpaceType::MatrixType>(Epetra_DataAccess::Copy, epetra_graph);
+    Kratos::unique_ptr<typename MPISparseSpaceType::MatrixType> p_Mdo =
+        Kratos::make_unique<typename MPISparseSpaceType::MatrixType>(Epetra_DataAccess::Copy, epetra_graph);
 
     BuildMatrix(p_Mdo, rMapperLocalSystems);
 
@@ -219,16 +219,16 @@ void BuildMappingMatrix<SparseSpaceType, DenseSpaceType>(
 
     if (EchoLevel > 2) {
         const std::string file_name = "TrilinosMappingMatrix_O_" + rModelPartOrigin.Name() + "__D_" + rModelPartDestination.Name() +".mm";
-        SparseSpaceType::WriteMatrixMarketMatrix(file_name.c_str(), *p_Mdo, false);
+        MPISparseSpaceType::WriteMatrixMarketMatrix(file_name.c_str(), *p_Mdo, false);
     }
 
     rpMappingMatrix.swap(p_Mdo);
 
     // ***** Creating the SystemVectors *****
-    Kratos::unique_ptr<typename SparseSpaceType::VectorType> p_new_vector_destination =
-        Kratos::make_unique<typename SparseSpaceType::VectorType>(epetra_range_map);
-    Kratos::unique_ptr<typename SparseSpaceType::VectorType> p_new_vector_origin =
-        Kratos::make_unique<typename SparseSpaceType::VectorType>(epetra_domain_map);
+    Kratos::unique_ptr<typename MPISparseSpaceType::VectorType> p_new_vector_destination =
+        Kratos::make_unique<typename MPISparseSpaceType::VectorType>(epetra_range_map);
+    Kratos::unique_ptr<typename MPISparseSpaceType::VectorType> p_new_vector_origin =
+        Kratos::make_unique<typename MPISparseSpaceType::VectorType>(epetra_domain_map);
     rpInterfaceVectorDestination.swap(p_new_vector_destination);
     rpInterfaceVectorOrigin.swap(p_new_vector_origin);
 
