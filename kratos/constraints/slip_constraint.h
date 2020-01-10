@@ -103,18 +103,9 @@ public:
      * @brief The default constructor
      * @param IndexType The Id of the new created constraint
      */
-    // explicit SlipConstraint(IndexType Id = 0)
-    //     : BaseType(Id)
-    // {
-    // }
 
     /**
-     * @brief Constructor by passing a vector of Master and slave dofs and corresponding Matrix and constant vector
-     * @param IndexType The Id of the new created constraint
-     * @param rMasterDofsVector The vector containing the DoF of the master side
-     * @param rSlaveDofsVector The vector containing the DoF of the slave side
-     * @param rRelationMatrix The relation matrix between the master/slave DoF
-     * @param rConstantVector The vector containing the additional kinematic relationship
+     * @brief Constructor 
      */
     SlipConstraint(
         IndexType Id,
@@ -122,7 +113,8 @@ public:
         const VariableComponentType& rVarX,
         const VariableComponentType& rVarY,
         const VariableComponentType& rVarZ,
-        const Variable<array_1d<double,3> >& rNormalVar
+        const array_1d<double,3> NormalVector,
+        const unsigned int dim
     );
 
     /// Destructor.
@@ -193,16 +185,11 @@ public:
     void PrintInfo(std::ostream &rOStream) const override;
 
     ///@}
-protected:
-    ///@name Protected static Member Variables
-    ///@{
+protected:    
 
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    NodeType& mrNode;                                     /// The reference to the node
-    const Variable<array_1d<double,3>>* mpNormalVariable; /// The pointer to the normal variable considered
 
     ///@}
     ///@name Protected Operators
@@ -241,15 +228,11 @@ private:
     void save(Serializer &rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearMasterSlaveConstraint);
-        rSerializer.save("mrNode", mrNode);
-        rSerializer.save("mpNormalVariable", mpNormalVariable);
     }
 
     void load(Serializer &rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearMasterSlaveConstraint);
-        rSerializer.load("mrNode", mrNode);
-        rSerializer.load("mpNormalVariable", mpNormalVariable);
     }
 };
 

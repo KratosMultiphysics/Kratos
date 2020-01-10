@@ -143,7 +143,8 @@ void AddConstraintToPython(pybind11::module &m)
         const SlipConstraint::VariableComponentType& ,
         const SlipConstraint::VariableComponentType& ,
         const SlipConstraint::VariableComponentType& ,
-        const Variable<array_1d<double,3> >&
+        array_1d<double,3> ,
+        const unsigned int
         >())
     ;
 

@@ -18,7 +18,6 @@ class TestLinearConstraints(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
 
     def _apply_material_properties(self, mp, dim, small_strain = True):
         #define properties
@@ -58,7 +57,6 @@ class TestLinearConstraints(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-#        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-13,1e-14) #Parallelism problem, not sure where!
         convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-13,1e-14)
         convergence_criterion.SetEchoLevel(0)
 
@@ -144,14 +142,15 @@ class TestLinearConstraints(KratosUnittest.TestCase):
         dx = n1.X - n4.X
         dy = n1.Y - n4.Y
         normal_4 = KratosMultiphysics.Array3([dy,-dx,0])/math.sqrt(dx**2+dy**2)
-        n4.SetSolutionStepValue(KratosMultiphysics.NORMAL, normal_4) #artificially set the normal
+        n4.SetValue(KratosMultiphysics.NORMAL, normal_4) #artificially set the normal
 
         constraint_4 = KratosMultiphysics.SlipConstraint(4,
             n4,
             KratosMultiphysics.DISPLACEMENT_X,
             KratosMultiphysics.DISPLACEMENT_Y,
             KratosMultiphysics.DISPLACEMENT_Z,
-            KratosMultiphysics.NORMAL)
+            n4.GetValue(KratosMultiphysics.NORMAL),
+            dim)
         mp.AddMasterSlaveConstraint(constraint_4)
 
         #solve the problem
