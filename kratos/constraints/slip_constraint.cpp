@@ -57,7 +57,7 @@ SlipConstraint::SlipConstraint(
 }
 
 void SlipConstraint::ConstructorHelper(
-    DofPointerVectorType rAllDofs,
+    DofPointerVectorType& rAllDofs,
     array_1d<double,3>& rNormalVector
     ) 
 {

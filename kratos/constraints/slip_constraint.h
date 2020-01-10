@@ -193,17 +193,9 @@ public:
     void PrintInfo(std::ostream &rOStream) const override;
 
     ///@}
-protected:    
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
+protected:        
     void ConstructorHelper(
-        DofPointerVectorType rAllDofs,
+        DofPointerVectorType& rAllDofs,
         array_1d<double,3>& rNormalVector
         );
 
