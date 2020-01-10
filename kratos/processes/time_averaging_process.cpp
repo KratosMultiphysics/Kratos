@@ -111,7 +111,7 @@ int TimeAveragingProcess::Check()
         KRATOS_ERROR << "List of input variables" << mVariableNamesList << " and list of averaged variables" << mAveragedVariableNamesList << " has different length. Please provide arrays of same length and corresponding variables of the same type.\n";
     }
 
-    for (int counter = 0; counter < mVariableNamesList.size(); ++counter)
+    for (int counter = 0; counter < static_cast<int>(mVariableNamesList.size()); ++counter)
         {
             const std::string& variable_name = mVariableNamesList[counter];
             const std::string& averaged_variable_name = mAveragedVariableNamesList[counter];
@@ -205,7 +205,7 @@ void TimeAveragingProcess::ExecuteFinalizeSolutionStep()
         std::stringstream msg;
         msg << "Integrating";
 
-        for (int counter = 0; counter < mVariableNamesList.size(); ++counter)
+        for (int counter = 0; counter < static_cast<int>(mVariableNamesList.size()); ++counter)
         {
             const std::string& variable_name = mVariableNamesList[counter];
             const std::string& averaged_variable_name = mAveragedVariableNamesList[counter];
