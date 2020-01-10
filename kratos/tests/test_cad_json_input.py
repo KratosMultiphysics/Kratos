@@ -12,7 +12,6 @@ def GetFilePath(fileName):
 
 class TestCadJsonInput(KratosUnittest.TestCase):
 
-
     def test_cad_json_input_read(self):
         cad_model = KratosMultiphysics.Model("CadModel")
         cad_model_part = cad_model.CreateModelPart("CadModelPart")
