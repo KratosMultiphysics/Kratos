@@ -24,36 +24,59 @@ namespace Kratos
 
 SlipConstraint::SlipConstraint(
     IndexType Id,
-    Node<3>& rNode,
-    const VariableComponentType& rVarX,
-    const VariableComponentType& rVarY,
-    const VariableComponentType& rVarZ,
-    array_1d<double,3> NormalVector, //note that a copy is made
-    const unsigned int dim
+    Dof<double>* pDofX,
+    Dof<double>* pDofY,
+    array_1d<double,3> NormalVector //note that a copy is made
     ) : BaseType(Id)
 {
+
+    DofPointerVectorType all_dofs;
+    all_dofs.reserve(2);
+    all_dofs.push_back(pDofX);
+    all_dofs.push_back(pDofY);
+
+    ConstructorHelper(all_dofs, NormalVector);
+}
+
+SlipConstraint::SlipConstraint(
+    IndexType Id,
+    Dof<double>* pDofX,
+    Dof<double>* pDofY,
+    Dof<double>* pDofZ,
+    array_1d<double,3> NormalVector //note that a copy is made
+    ) : BaseType(Id)
+{
+
+    DofPointerVectorType all_dofs;
+    all_dofs.reserve(3);
+    all_dofs.push_back(pDofX);
+    all_dofs.push_back(pDofY);
+    all_dofs.push_back(pDofZ);
+
+    ConstructorHelper(all_dofs, NormalVector);
+}
+
+void SlipConstraint::ConstructorHelper(
+    DofPointerVectorType rAllDofs,
+    array_1d<double,3>& rNormalVector
+    ) 
+{
+    const unsigned int dim = rAllDofs.size();
     mRelationMatrix.resize(1,dim-1,false);
     mRelationMatrix.clear();
 
     mConstantVector.resize(1,false);
     mConstantVector.clear();
 
-    DofPointerVectorType all_dofs;
-    all_dofs.reserve(dim);
-    all_dofs.push_back(rNode.pGetDof(rVarX));
-    all_dofs.push_back(rNode.pGetDof(rVarY));
-    if(dim == 3)
-       all_dofs.push_back(rNode.pGetDof(rVarZ));
-
-    const double n_norm = norm_2(NormalVector);
+    const double n_norm = norm_2(rNormalVector);
     KRATOS_ERROR_IF( n_norm < std::numeric_limits<double>::epsilon()) << "The norm of the normal vector is zero or almost zero" << std::endl;
-    NormalVector /= n_norm;
+    rNormalVector /= n_norm;
 
     IndexType max_n_component_index = 0;
-    double max_abs_n_component = std::abs(NormalVector[0]);
+    double max_abs_n_component = std::abs(rNormalVector[0]);
     for(IndexType i=1; i<dim; ++i) {
-        if(std::abs(NormalVector[i]) > max_abs_n_component) {
-            max_abs_n_component=std::abs(NormalVector[i]);
+        if(std::abs(rNormalVector[i]) > max_abs_n_component) {
+            max_abs_n_component=std::abs(rNormalVector[i]);
             max_n_component_index = i;
         }
     }
@@ -63,12 +86,12 @@ SlipConstraint::SlipConstraint(
 
     IndexType counter = 0;
     IndexType Tcounter = 0;
-    for(auto& r_dof : all_dofs) {
+    for(auto& r_dof : rAllDofs) {
         if(counter == max_n_component_index) {
             mSlaveDofsVector.push_back(r_dof);
         } else {
             mMasterDofsVector.push_back(r_dof);
-            mRelationMatrix(0,Tcounter++) = -NormalVector[counter]/NormalVector[max_n_component_index];
+            mRelationMatrix(0,Tcounter++) = -rNormalVector[counter]/rNormalVector[max_n_component_index];
         }
 
         counter++;

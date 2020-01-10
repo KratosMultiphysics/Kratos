@@ -105,16 +105,24 @@ public:
      */
 
     /**
-     * @brief Constructor 
+     * @brief Constructor2D
+     */    
+    SlipConstraint(
+        IndexType Id,
+        Dof<double>* pDofX,
+        Dof<double>* pDofY,
+        const array_1d<double,3> NormalVector
+    );
+
+    /**
+     * @brief Constructor3D
      */
     SlipConstraint(
         IndexType Id,
-        Node<3>& rNode,
-        const VariableComponentType& rVarX,
-        const VariableComponentType& rVarY,
-        const VariableComponentType& rVarZ,
-        const array_1d<double,3> NormalVector,
-        const unsigned int dim
+        Dof<double>* pDofX,
+        Dof<double>* pDofY,
+        Dof<double>* pDofZ,
+        const array_1d<double,3> NormalVector
     );
 
     /// Destructor.
@@ -194,6 +202,10 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
+    void ConstructorHelper(
+        DofPointerVectorType rAllDofs,
+        array_1d<double,3>& rNormalVector
+        );
 
     ///@}
     ///@name Protected Operations

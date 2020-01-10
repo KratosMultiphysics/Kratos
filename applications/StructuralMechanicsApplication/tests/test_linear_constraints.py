@@ -145,13 +145,12 @@ class TestLinearConstraints(KratosUnittest.TestCase):
         n4.SetValue(KratosMultiphysics.NORMAL, normal_4) #artificially set the normal
 
         constraint_4 = KratosMultiphysics.SlipConstraint(4,
-            n4,
-            KratosMultiphysics.DISPLACEMENT_X,
-            KratosMultiphysics.DISPLACEMENT_Y,
-            KratosMultiphysics.DISPLACEMENT_Z,
-            n4.GetValue(KratosMultiphysics.NORMAL),
-            dim)
+            n4.GetDof(KratosMultiphysics.DISPLACEMENT_X),
+            n4.GetDof(KratosMultiphysics.DISPLACEMENT_Y),
+            n4.GetValue(KratosMultiphysics.NORMAL)
+            )
         mp.AddMasterSlaveConstraint(constraint_4)
+        print(constraint_4)
 
         #solve the problem
         strategy = self._create_strategy(mp)

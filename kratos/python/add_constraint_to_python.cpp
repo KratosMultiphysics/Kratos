@@ -139,12 +139,16 @@ void AddConstraintToPython(pybind11::module &m)
             (m, "SlipConstraint")
     .def(pybind11::init<
         SlipConstraint::IndexType,
-        Node<3>&,
-        const SlipConstraint::VariableComponentType& ,
-        const SlipConstraint::VariableComponentType& ,
-        const SlipConstraint::VariableComponentType& ,
-        array_1d<double,3> ,
-        const unsigned int
+        Dof<double>* ,
+        Dof<double>* ,
+        array_1d<double,3>
+        >())
+    .def(pybind11::init<
+        SlipConstraint::IndexType,
+        Dof<double>* ,
+        Dof<double>* ,
+        Dof<double>* ,
+        array_1d<double,3>
         >())
     ;
 
