@@ -95,6 +95,8 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         if self.response_function_settings["response_type"].GetString() == "adjoint_lift_jump_coordinates":
             self.response_function = KCPFApp.AdjointLiftJumpCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)
+        elif self.response_function_settings["response_type"].GetString() == "adjoint_lift_far_field":
+            self.response_function = KCPFApp.AdjointLiftFarFieldCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)
         else:
             raise Exception("invalid response_type: " + self.response_function_settings["response_type"].GetString())
 
@@ -124,6 +126,9 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
     def InitializeSolutionStep(self):
         super(PotentialFlowAdjointSolver, self).InitializeSolutionStep()
         self.response_function.InitializeSolutionStep()
+        print("LIFT:", self.response_function.CalculateValue(self.main_model_part))
+
+
 
     def FinalizeSolutionStep(self):
         super(PotentialFlowAdjointSolver, self).FinalizeSolutionStep()
