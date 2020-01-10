@@ -6,13 +6,18 @@ The *EigenSolversApplication* is a thin wrapper for the [Eigen linear algebra li
 
 The application provides the following direct sparse solvers:
 
-| Python class      | solver_type          | Matrix kind | Dependencies |
-|-------------------|----------------------|:-----------:|:------------:|
-| SparseLUSolver    | `eigen_sparse_lu`    | Square      | None         |
-| SparseQRSolver    | *not available*      | Rectangular | None         |
-| PardisoLLTSolver  | `eigen_pardiso_llt`  | SPD*        | Intel® MKL   |
-| PardisoLDLTSolver | `eigen_pardiso_ldlt` | SPD*        | Intel® MKL   |
-| PardisoLUSolver   | `eigen_pardiso_lu`   | Square      | Intel® MKL   |
+| Python class             | solver_type            | Matrix kind | Domain   | Dependencies |
+|--------------------------|------------------------|:-----------:|:--------:|:------------:|
+| SparseLUSolver           | `sparse_lu`            | Square      | Real     | None         |
+| SparseQRSolver           | `sparse_qr`            | Rectangular | Real     | None         |
+| SparseCGSolver           | `sparse_cg`            | SPD*        | Real     | None         |
+| PardisoLLTSolver         | `pardiso_llt`          | SPD*        | Real     | Intel® MKL   |
+| PardisoLDLTSolver        | `pardiso_ldlt`         | SPD*        | Real     | Intel® MKL   |
+| PardisoLUSolver          | `pardiso_lu`           | Square      | Real     | Intel® MKL   |
+| ComplexSparseLUSolver    | `sparse_lu_complex`    | Square      | Complex  | None         |
+| ComplexPardisoLLTSolver  | `pardiso_llt_complex`  | SPD*        | Complex  | Intel® MKL   |
+| ComplexPardisoLDLTSolver | `pardiso_ldlt_complex` | SPD*        | Complex  | Intel® MKL   |
+| ComplexPardisoLUSolver   | `pardiso_lu_complex`   | Square      | Complex  | Intel® MKL   |
 
 *SPD = Symmetric Positive Definite
 
@@ -47,18 +52,22 @@ The application provides a generalized eigensystem solver for sparse matrices. I
 2. Set the required definitions for cmake
 
     As any other app:
-    
-    ~~~sh
-    add_app ${KRATOS_APP_DIR}/EigenSolversApplication
-    ~~~
 
     **Windows:** in `configure.bat`
+
+    ```batch
+    set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\EigenSolversApplication;
+    ```
 
     ```batch
     -DEIGEN_ROOT="<path to eigen>" ^
     ```
 
     **Linux:** in `configure.sh`
+    
+    ```bash
+    add_app ${KRATOS_APP_DIR}/EigenSolversApplication
+    ```
 
     ```bash
     -DEIGEN_ROOT="<path to eigen>" \
@@ -72,7 +81,7 @@ The application provides a generalized eigensystem solver for sparse matrices. I
 
     ```json
     "linear_solver_settings": {
-        "solver_type" : "eigen_sparse_lu"
+        "solver_type" : "sparse_lu"
     }
     ```
 
