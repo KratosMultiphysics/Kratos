@@ -131,6 +131,14 @@ void SmallStrainIsotropicDamage3D::InitializeMaterialResponseCauchy(Constitutive
 //************************************************************************************
 //************************************************************************************
 
+bool SmallStrainIsotropicDamage3D::RequiresFinalizeMaterialResponse()
+{
+    return true;
+}
+
+//************************************************************************************
+//************************************************************************************
+
 void SmallStrainIsotropicDamage3D::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
     Vector internal_variables(1);

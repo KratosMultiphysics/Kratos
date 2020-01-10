@@ -171,6 +171,11 @@ public:
     void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
+     * @brief This CL requires to finalize the material response, called by the element in FinalizeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override;
+
+    /**
      * @brief Finalize the material response in terms of Cauchy stresses
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
