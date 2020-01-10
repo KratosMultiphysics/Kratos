@@ -33,7 +33,7 @@ void TransferNodalForcesToFem::Execute()
     auto& sub_model_conditions = mrModelPart.GetSubModelPart("ContactForcesDEMConditions");
     const auto it_cond_begin = sub_model_conditions.ConditionsBegin();
     auto& r_process_info = mrModelPart.GetProcessInfo();
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(sub_model_conditions.Conditions().size()); i++) {
         auto it_cond = it_cond_begin + i;
         auto& r_geometry = it_cond->GetGeometry();
