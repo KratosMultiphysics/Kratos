@@ -8,15 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.python_linear_solver_factory import ConstructSolver
 
 class TestEigenDenseDirectSolver(KratosUnittest.TestCase):
-    def _execute_eigen_dense_direct_solver_test(self, class_name, solver_type):
-        # check if solver is available
-        if (not hasattr(EigenSolversApplication, class_name)):
-            self.skipTest(class_name + " is not included in the compilation of the EigenSolversApplication")
-
-        settings = KratosMultiphysics.Parameters('{ "solver_type" : "EigenSolversApplication.' + solver_type + '" }')
-
-        solver = ConstructSolver(settings)
-
+    def _real_eq_system(self):
         A = KratosMultiphysics.Matrix(3,3)
         val = 0
         for i in range(3):
@@ -25,25 +17,27 @@ class TestEigenDenseDirectSolver(KratosUnittest.TestCase):
                 A[i,j] = val
         A[2,2] = 10
 
-        b_act = KratosMultiphysics.Vector([3., 3., 4.])
+        b = KratosMultiphysics.Vector([3., 3., 4.])
         x = KratosMultiphysics.Vector(3)
 
-        solver.Solve(A, x, b_act)
+        return A, b, x
 
-        b_exp = A * x
+    def _real_posdef_eq_system(self):
+        A = KratosMultiphysics.Matrix(3,3,0.)
+        A[0,0] = 4
+        A[0,1] = -1
+        A[1,0] = -1
+        A[2,0] = 2
+        A[0,2] = 2
+        A[1,1] = 6
+        A[2,2] = 5
 
-        for i in range(3):
-            self.assertAlmostEqual(b_act[i], b_exp[i], 7)
+        b = KratosMultiphysics.Vector([3., 3., 4.])
+        x = KratosMultiphysics.Vector(3)
 
-    def _execute_eigen_dense_direct_complex_solver_test(self, class_name, solver_type):
-        # check if solver is available
-        if (not hasattr(EigenSolversApplication, class_name)):
-            self.skipTest(class_name + " is not included in the compilation of the EigenSolversApplication")
-            
-        settings = KratosMultiphysics.Parameters('{ "solver_type" : "EigenSolversApplication.' + solver_type + '" }')
+        return A, b, x
 
-        solver = ConstructSolver(settings)
-
+    def _cplx_eq_system(self):
         A = KratosMultiphysics.ComplexMatrix(3,3)
         val = 0
         for i in range(3):
@@ -52,8 +46,21 @@ class TestEigenDenseDirectSolver(KratosUnittest.TestCase):
                 A[i,j] = val
         A[2,2] = 10
 
-        b_act = KratosMultiphysics.ComplexVector([3., 3., 4.-2j])
+        b = KratosMultiphysics.ComplexVector([3., 3., 4.-2.j])
         x = KratosMultiphysics.ComplexVector(3)
+        
+        return A, b, x
+
+    def _execute_eigen_dense_direct_solver_test(self, class_name, solver_type, eq_system_type):
+        # check if solver is available
+        if (not hasattr(EigenSolversApplication, class_name)):
+            self.skipTest(class_name + " is not included in the compilation of the EigenSolversApplication")
+
+        settings = KratosMultiphysics.Parameters('{ "solver_type" : "EigenSolversApplication.' + solver_type + '" }')
+
+        solver = ConstructSolver(settings)
+        
+        A, b_act, x = eq_system_type()
 
         solver.Solve(A, x, b_act)
 
@@ -63,22 +70,25 @@ class TestEigenDenseDirectSolver(KratosUnittest.TestCase):
             self.assertAlmostEqual(b_act[i], b_exp[i], 7)
 
     def test_eigen_dense_colpivhouseholderqr(self):
-        self._execute_eigen_dense_direct_solver_test('DenseColPivHouseholderQRSolver', 'dense_colpivhouseholderqr')
+        self._execute_eigen_dense_direct_solver_test('DenseColPivHouseholderQRSolver', 'dense_colpivhouseholderqr',self._real_eq_system)
 
     def test_eigen_dense_householderqr(self):
-        self._execute_eigen_dense_direct_solver_test('DenseHouseholderQRSolver', 'dense_householderqr')
+        self._execute_eigen_dense_direct_solver_test('DenseHouseholderQRSolver', 'dense_householderqr',self._real_eq_system)
 
     def test_eigen_dense_llt(self):
-        self._execute_eigen_dense_direct_solver_test('DenseLLTSolver', 'dense_llt')
+        self._execute_eigen_dense_direct_solver_test('DenseLLTSolver', 'dense_llt', self._real_posdef_eq_system)
+
+    def test_eigen_dense_partialpivlu(self):
+        self._execute_eigen_dense_direct_solver_test('DensePartialPivLUSolver', 'dense_partialpivlu', self._real_eq_system)
 
     def test_eigen_dense_colpivhouseholderqr_complex(self):
-        self._execute_eigen_dense_direct_complex_solver_test('ComplexDenseColPivHouseholderQRSolver', 'complex_dense_colpivhouseholderqr')
+        self._execute_eigen_dense_direct_solver_test('ComplexDenseColPivHouseholderQRSolver', 'complex_dense_colpivhouseholderqr', self._cplx_eq_system)
 
     def test_eigen_dense_householderqr_complex(self):
-        self._execute_eigen_dense_direct_complex_solver_test('ComplexDenseHouseholderQRSolver', 'complex_dense_householderqr')
+        self._execute_eigen_dense_direct_solver_test('ComplexDenseHouseholderQRSolver', 'complex_dense_householderqr', self._cplx_eq_system)
 
-    def test_eigen_dense_llt_complex(self):
-        self._execute_eigen_dense_direct_complex_solver_test('ComplexDenseLLTSolver', 'complex_dense_llt')
+    def test_eigen_dense_partialpivlu_complex(self):
+        self._execute_eigen_dense_direct_solver_test('ComplexDensePartialPivLUSolver', 'complex_dense_partialpivlu', self._cplx_eq_system)
 
 if __name__ == '__main__':
     KratosUnittest.main()

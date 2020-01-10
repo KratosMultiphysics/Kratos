@@ -24,6 +24,7 @@
 #include "custom_solvers/eigen_dense_colpivhouseholderqr_solver.h"
 #include "custom_solvers/eigen_dense_householderqr_solver.h"
 #include "custom_solvers/eigen_dense_llt_solver.h"
+#include "custom_solvers/eigen_dense_partialpivlu_solver.h"
 #include "custom_solvers/eigen_dense_direct_solver.h"
 #include "custom_solvers/eigensystem_solver.h"
 
@@ -117,10 +118,11 @@ void AddCustomSolversToPython(pybind11::module& m)
     register_dense_solver<EigenDenseColPivHouseholderQRSolver<double>>(m, "DenseColPivHouseholderQRSolver");
     register_dense_solver<EigenDenseHouseholderQRSolver<double>>(m, "DenseHouseholderQRSolver");
     register_dense_solver<EigenDenseLLTSolver<double>>(m, "DenseLLTSolver");
+    register_dense_solver<EigenDensePartialPivLUSolver<double>>(m, "DensePartialPivLUSolver");
 
     register_dense_solver<EigenDenseColPivHouseholderQRSolver<complex>>(m, "ComplexDenseColPivHouseholderQRSolver");
     register_dense_solver<EigenDenseHouseholderQRSolver<complex>>(m, "ComplexDenseHouseholderQRSolver");
-    register_dense_solver<EigenDenseLLTSolver<complex>>(m, "ComplexDenseLLTSolver");
+    register_dense_solver<EigenDensePartialPivLUSolver<complex>>(m, "ComplexDensePartialPivLUSolver");
 
     // --- eigensystem solver
 
@@ -252,6 +254,14 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
 
     KRATOS_REGISTER_LINEAR_SOLVER("dense_llt", DenseLLTSolverFactory);
 
+    // Dense PartialPivLU solver
+
+    using EigenDirectPartialPivLUType = EigenDenseDirectSolver<EigenDensePartialPivLUSolver<double>>;
+
+    static auto DensePartialPivLUSolverFactory = EigenDirectPartialPivLUType::Factory();
+
+    KRATOS_REGISTER_LINEAR_SOLVER("dense_partialpivlu", DensePartialPivLUSolverFactory);
+
 
     // Complex dense ColPivHouseholderQR solver
 
@@ -269,13 +279,13 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
 
     KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("complex_dense_householderqr", ComplexDenseHouseholderQRSolverFactory);
 
-    // Complex dense LLT solver
+    // Complex dense PartialPivLU solver
 
-    using ComplexEigenDirectLLTType = EigenDenseDirectSolver<EigenDenseLLTSolver<complex>>;
+    using ComplexEigenDirectPartialPivLUType = EigenDenseDirectSolver<EigenDensePartialPivLUSolver<complex>>;
 
-    static auto ComplexDenseLLTSolverFactory = ComplexEigenDirectLLTType::Factory();
+    static auto ComplexDensePartialPivLUSolverFactory = ComplexEigenDirectPartialPivLUType::Factory();
 
-    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("complex_dense_llt", ComplexDenseLLTSolverFactory);
+    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("complex_dense_partialpivlu", ComplexDensePartialPivLUSolverFactory);
 
 }
 
