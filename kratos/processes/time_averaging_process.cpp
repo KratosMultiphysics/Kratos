@@ -121,7 +121,7 @@ int TimeAveragingProcess::Check()
                 (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name) && KratosComponents<Variable<array_1d<double, 3>>>::Has(averaged_variable_name))
                 ))
                 {
-                    KRATOS_ERROR << "List of input variables" << mVariableNamesList << " and list of averaged variables" << mAveragedVariableNamesList << " has different variable types. Please provide arrays of same length and corresponding variables of the same type.\n";
+                    KRATOS_ERROR << variable_name << " type and its corresponding averaging variable " << averaged_variable_name << " has different types. Please provide corresponding variables of the same type.\n";
                 }
         }
 
