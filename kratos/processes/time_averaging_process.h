@@ -155,9 +155,18 @@ private:
 
     std::string mModelPartName;
     std::string mIntegrationControlVariableName;
-    enum TimeAveragingContainers {NodalHistorical, NodalNonHistorical, ElementalNonHistorical};
+    enum TimeAveragingContainers
+    {
+        NodalHistorical,
+        NodalNonHistorical,
+        ElementalNonHistorical
+    };
     TimeAveragingContainers mTimeAveragingContainer;
-    enum TimeAveragingMethods {Average, RootMeanSquare};
+    enum TimeAveragingMethods
+    {
+        Average,
+        RootMeanSquare
+    };
     TimeAveragingMethods mTimeAveragingMethod;
 
     std::vector<std::string> mVariableNamesList;
@@ -183,16 +192,18 @@ private:
                                                         const double DeltaTime) const;
 
     template <typename TDataType>
-    void CalculateTimeIntegratedNodalNonHistoricalQuantity(ModelPart::NodesContainerType& rNodes,
-                                                           const Variable<TDataType>& rVariable,
-                                                           const Variable<TDataType>& rAveragedVariable,
-                                                           const double DeltaTime) const;
+    void CalculateTimeIntegratedNodalNonHistoricalQuantity(
+        ModelPart::NodesContainerType& rNodes,
+        const Variable<TDataType>& rVariable,
+        const Variable<TDataType>& rAveragedVariable,
+        const double DeltaTime) const;
 
     template <typename TDataType>
-    void CalculateTimeIntegratedElementalNonHistoricalQuantity(ModelPart::ElementsContainerType& rElements,
-                                                               const Variable<TDataType>& rVariable,
-                                                               const Variable<TDataType>& rAveragedVariable,
-                                                               const double DeltaTime) const;
+    void CalculateTimeIntegratedElementalNonHistoricalQuantity(
+        ModelPart::ElementsContainerType& rElements,
+        const Variable<TDataType>& rVariable,
+        const Variable<TDataType>& rAveragedVariable,
+        const double DeltaTime) const;
 
     template <typename TDataType>
     void AverageMethod(const TDataType& rTemporalVariable,
@@ -203,6 +214,9 @@ private:
     void RootMeanSquareMethod(const TDataType& rTemporalVariable,
                               TDataType& rAveragedVariable,
                               const double DeltaTime) const;
+
+    template <typename TDataType>
+    std::function<void(const TDataType&, TDataType&, const double)> GetTimeAveragingMethod() const;
 
     ///@}
     ///@name Private  Access
