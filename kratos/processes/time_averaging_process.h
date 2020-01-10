@@ -15,6 +15,7 @@
 #define KRATOS_TIME_AVERAGING_PROCESS_H_INCLUDED
 
 // System includes
+#include <functional>
 #include <string>
 #include <vector>
 
