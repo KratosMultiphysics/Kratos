@@ -20,7 +20,7 @@
 #include "testing/testing.h"
 #include "geometries/line_3d_2.h"
 
-#include "includes/geometry_container.h"
+#include "containers/geometry_container.h"
 
 namespace Kratos {
 namespace Testing {
@@ -34,7 +34,7 @@ namespace Testing {
 
     ///// Test Geometry Container
     KRATOS_TEST_CASE_IN_SUITE(TestgeometryContainer, KratosCoreGeometryContainerFastSuite) {
-        auto geometry_container = GeometryContainer<Point>();
+        auto geometry_container = GeometryContainer<Geometry<Point>>();
 
         auto p_line_1 = GenerateLineGeometry();
         p_line_1->SetId(1);
