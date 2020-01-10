@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//                   Riccardo Tosi
 //
 
 #if !defined(KRATOS_TIME_AVERAGING_PROCESS_H_INCLUDED)

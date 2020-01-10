@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//                   Riccardo Tosi
 //
 
 // System includes
