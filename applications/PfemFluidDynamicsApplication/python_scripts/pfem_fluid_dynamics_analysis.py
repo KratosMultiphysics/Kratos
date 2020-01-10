@@ -76,17 +76,11 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         """
         return solver_wrapper.CreateSolverByParameters(self.model, self.project_parameters["solver_settings"],self.project_parameters["problem_data"]["parallel_type"].GetString())
 
-    def AddNodalVariablesToModelPart(self):
-        from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_variables
-        pfem_variables.AddVariables(self.main_model_part)
-
     def Initialize(self):
         """This function initializes the AnalysisStage
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         This function has to be implemented in deriving classes!
         """
-        # Add variables (always before importing the model part)
-        self.AddNodalVariablesToModelPart()
 
         # Read model_part from mdpa file
         self._solver.ImportModelPart()
