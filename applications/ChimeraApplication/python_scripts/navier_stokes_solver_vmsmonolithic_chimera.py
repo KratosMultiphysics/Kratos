@@ -30,6 +30,20 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithicChimera", "Fluid solver variables added correctly.")
 
+    def ImportModelPart(self):
+        if(self.settings["model_import_settings"]["input_type"].GetString() == "chimera"):
+            chimera_mp_import_settings = []
+            for chimera_part_levels in self.chimera_settings["chimera_parts"]:
+                for chimera_part_settings in chimera_part_levels:
+                    chimera_mp_import_settings.append( chimera_part_settings["model_import_settings"].Clone() )
+
+            material_file_name = self.settings["material_import_settings"]["materials_filename"].GetString()
+            import KratosMultiphysics.ChimeraApplication.chimera_modelpart_import as chim_mp_imp
+            chim_mp_imp.ImportChimeraModelparts(self.main_model_part, chimera_mp_import_settings, material_file=material_file_name, parallel_type="OpenMP")
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithicChimera", " Import of all chimera modelparts completed.")
+        else:# we can use the default implementation in the base class
+            super(NavierStokesSolverMonolithicChimera,self).ImportModelPart()
+
     def Initialize(self):
 
         #self.computing_model_part = self.GetComputingModelPart()
