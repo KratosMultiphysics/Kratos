@@ -64,7 +64,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Geometry<Node<3>> GeometryType;
+    typedef Node<3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
 
     /// Pointer definition of MoveShallowParticlesProcess
     KRATOS_CLASS_POINTER_DEFINITION(MoveShallowParticlesProcess<TDim>);
@@ -164,6 +165,7 @@ protected:
     double mDryTreshold;
     size_t mLastParticleId;
     ConvectionOperator<TDim> mConvectionOperator;
+    GeometryData::IntegrationMethod mQuadratureOrder;
 
     ///@}
     ///@name Protected Operators
@@ -176,7 +178,7 @@ protected:
 
     void InitializeVariables();
 
-    void InitializeParticle(Node<3>& rParticle, Element& rElement);
+    void InitializeParticle(NodeType& rParticle, Element& pElement);
 
     void ComputeMeanSize();
 
@@ -191,6 +193,8 @@ protected:
     void TransferLagrangianToEulerian();
 
     void TransferEulerianToLagrangian();
+
+    void GetShapeFunctionsValues(Vector& rN, GeometryType& rGeom, NodeType& rParticle);
 
     ///@}
     ///@name Protected  Access

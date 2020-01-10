@@ -126,9 +126,12 @@ public:
     {
         bool is_found = false;
         is_found = mSearchStructure.FindPointOnMesh(rPosition, rN, pElement, miResultBegin, mMaxResults);
-        GeometryType geom = pElement->GetGeometry();
-        array_1d<double,3> vel = 0.5 * rN[0] * (geom[0].FastGetSolutionStepValue(VELOCITY) + geom[0].FastGetSolutionStepValue(VELOCITY,1));
-        Convect(Dt, rPosition, pElement, rN, vel, Substeps);
+        if (is_found)
+        {
+            GeometryType geom = pElement->GetGeometry();
+            array_1d<double,3> vel = 0.5 * rN[0] * (geom[0].FastGetSolutionStepValue(VELOCITY) + geom[0].FastGetSolutionStepValue(VELOCITY,1));
+            Convect(Dt, rPosition, pElement, rN, vel, Substeps);
+        }
         return is_found;
     }
 

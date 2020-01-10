@@ -45,6 +45,8 @@ MoveShallowParticlesProcess<TDim>::MoveShallowParticlesProcess(
     mLastParticleId = 0;
     mDryTreshold = mrModelPart.GetProcessInfo()[DRY_HEIGHT];
 
+    mQuadratureOrder = GeometryData::GI_GAUSS_1;
+
     InitializeVariables();
     ComputeMeanSize();
 }
@@ -66,15 +68,23 @@ void MoveShallowParticlesProcess<TDim>::ExecuteBeforeSolutionLoop()
 template<size_t TDim>
 void MoveShallowParticlesProcess<TDim>::ExecuteInitializeSolutionStep()
 {
+    mrParticles.GetProcessInfo()[STEP] = mrModelPart.GetProcessInfo()[STEP];
+    mrParticles.GetProcessInfo()[TIME] = mrModelPart.GetProcessInfo()[TIME];
+    KRATOS_WATCH("A")
     ComputeMeanVelocity();
+    KRATOS_WATCH("B")
     MoveParticles();
+    KRATOS_WATCH("C")
     TransferLagrangianToEulerian();
+    KRATOS_WATCH("D")
 }
 
 template<size_t TDim>
 void MoveShallowParticlesProcess<TDim>::ExecuteFinalizeSolutionStep()
 {
+    KRATOS_WATCH("E")
     TransferEulerianToLagrangian();
+    KRATOS_WATCH("F")
 }
 
 template<size_t TDim>
@@ -137,26 +147,35 @@ void MoveShallowParticlesProcess<TDim>::SeedInitialParticles()
     for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
     {
         const auto it_elem = mrModelPart.ElementsBegin() + i;
-        if (it_elem->Is(ACTIVE))
+
+        GeometryType& geom = it_elem->GetGeometry();
+
+        int& num_of_particles = it_elem->GetValue(NUMBER_OF_PARTICLES);
+        if (num_of_particles < static_cast<int>(num_nodes))
         {
-            int& num_of_particles = it_elem->GetValue(NUMBER_OF_PARTICLES);
-            if (num_of_particles < num_nodes)
+            const GeometryType::IntegrationPointsArrayType& integration_points = geom.IntegrationPoints(mQuadratureOrder);
+            size_t num_gauss = geom.IntegrationPointsNumber(mQuadratureOrder);
+            for (size_t g = 0; g < num_gauss; ++g)
             {
-                const GeometryType::IntegrationPointsArrayType& integration_points = it_elem->GetGeometry().IntegrationPoints();
-                for (size_t g = 0; g < num_nodes; ++g)
+                array_1d<double,3> position;
+                geom.GlobalCoordinates(position, integration_points[g]);
+                const double x = position[0];
+                const double y = position[1];
+                const double z = position[2];
+                NodeType::Pointer p_part;
+                #pragma omp critical
+                p_part = mrParticles.CreateNewNode(++mLastParticleId, x, y, z);
+                InitializeParticle(*p_part, *it_elem);
+                ++num_of_particles;
+
+                if (p_part->FastGetSolutionStepValue(HEIGHT) < 0.0)
                 {
-                    const double x = integration_points[g].X();
-                    const double y = integration_points[g].Y();
-                    const double z = integration_points[g].Z();
-                    Node<3>::Pointer p_part;
-                    #pragma omp critical
-                    p_part = mrParticles.CreateNewNode(++mLastParticleId, x, y, z);
-                    InitializeParticle(*p_part, *it_elem);
-                    ++num_of_particles;
+                    p_part->Set(TO_ERASE);
                 }
             }
         }
     }
+    mrParticles.RemoveNodesFromAllLevels();
 }
 
 template<size_t TDim>
@@ -172,9 +191,12 @@ void MoveShallowParticlesProcess<TDim>::ComputeNumberOfParticlesPerElement()
     for (int i = 0; i < static_cast<int>(mrParticles.NumberOfNodes()); ++i)
     {
         auto it_part = mrParticles.NodesBegin() + i;
-        int& num_of_particles = it_part->GetValue(CURRENT_ELEMENT)->GetValue(NUMBER_OF_PARTICLES);
-        #pragma omp critical
-        ++num_of_particles;
+        auto p_elem = it_part->GetValue(CURRENT_ELEMENT);
+        if (p_elem != nullptr) {
+            int& num_of_particles = p_elem->GetValue(NUMBER_OF_PARTICLES);
+            #pragma omp critical
+            ++num_of_particles;
+        }
     }
 }
 
@@ -185,20 +207,33 @@ void MoveShallowParticlesProcess<TDim>::MoveParticles()
     size_t num_nodes = mrModelPart.ElementsBegin()->GetGeometry().size();
     mConvectionOperator.InitializeSearch();
 
-    #pragma omp parallel for
+    // #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrParticles.NumberOfNodes()); ++i)
     {
         auto it_part = mrParticles.NodesBegin() + i;
-        auto p_elem = it_part->GetValue(CURRENT_ELEMENT)->shared_from_this();
+        auto p_elem = it_part->GetValue(CURRENT_ELEMENT);
         Vector N(num_nodes);
-        mConvectionOperator.Convect(time_step, *it_part, p_elem, N);
-        it_part->GetValue(CURRENT_ELEMENT) = p_elem;
+        bool is_found = mConvectionOperator.Convect(time_step, *it_part, p_elem, N);
+        if (is_found) {
+            it_part->GetValue(CURRENT_ELEMENT) = p_elem;
+        } else {
+            it_part->GetValue(CURRENT_ELEMENT) = nullptr;
+        }
     }
 }
 
 template<size_t TDim>
 void MoveShallowParticlesProcess<TDim>::TransferLagrangianToEulerian()
 {
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
+    {
+        auto it_node = mrModelPart.NodesBegin() + i;
+        it_node->FastGetSolutionStepValue(MASS_WEIGHT) = 0.0;
+        it_node->FastGetSolutionStepValue(PROJECTED_SCALAR1) = 0.0;
+        it_node->FastGetSolutionStepValue(PROJECTED_VECTOR1) = ZeroVector(3);
+    }
+
     size_t num_nodes = mrModelPart.ElementsBegin()->GetGeometry().size();
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrParticles.NumberOfNodes()); ++i)
@@ -206,20 +241,42 @@ void MoveShallowParticlesProcess<TDim>::TransferLagrangianToEulerian()
         auto it_part = mrParticles.NodesBegin() + i;
 
         // Particle contributions
-        double particle_weight = it_part->FastGetSolutionStepValue(INTEGRATION_WEIGHT);
+        // double particle_weight = it_part->FastGetSolutionStepValue(INTEGRATION_WEIGHT);
         double scalar_contribution = 0;
         array_1d<double,3> vector_contribution = ZeroVector(3);
-        scalar_contribution = particle_weight * it_part->FastGetSolutionStepValue(mrMassVariable);
-        vector_contribution = particle_weight * it_part->FastGetSolutionStepValue(mrMomentumVariable);
+        scalar_contribution =  it_part->FastGetSolutionStepValue(mrMassVariable);
+        vector_contribution =  it_part->FastGetSolutionStepValue(mrMomentumVariable);
 
         // Transfer the values
-        auto& geom = it_part->GetValue(CURRENT_ELEMENT)->GetGeometry();
-        for (size_t j = 0; j < num_nodes; ++j)
+        auto p_current_elem = it_part->GetValue(CURRENT_ELEMENT);
+        if (p_current_elem != nullptr)
         {
-            geom[j].SetLock();
-            geom[j].FastGetSolutionStepValue(mrMassVariable) = scalar_contribution;
-            geom[j].FastGetSolutionStepValue(mrMomentumVariable) = vector_contribution;
-            geom[j].UnSetLock();
+            auto& geom = p_current_elem->GetGeometry();
+
+            Vector N;
+            GetShapeFunctionsValues(N, geom, *it_part);
+
+            for (size_t j = 0; j < num_nodes; ++j)
+            {
+                double weight = N[j]*N[j];
+                geom[j].SetLock();
+                geom[j].FastGetSolutionStepValue(MASS_WEIGHT) += weight;
+                geom[j].FastGetSolutionStepValue(PROJECTED_SCALAR1) += weight * scalar_contribution;
+                geom[j].FastGetSolutionStepValue(PROJECTED_VECTOR1) += weight * vector_contribution;
+                geom[j].UnSetLock();
+            }
+        }
+    }
+
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
+    {
+        auto it_node = mrModelPart.NodesBegin() + i;
+        double weight = it_node->FastGetSolutionStepValue(MASS_WEIGHT);
+        if (weight > 0.00001)
+        {
+            it_node->FastGetSolutionStepValue(PROJECTED_SCALAR1) /= weight;
+            it_node->FastGetSolutionStepValue(PROJECTED_VECTOR1) /= weight;
         }
     }
 }
@@ -233,42 +290,46 @@ void MoveShallowParticlesProcess<TDim>::TransferEulerianToLagrangian()
     {
         auto it_part = mrParticles.NodesBegin() + i;
         auto p_elem = it_part->GetValue(CURRENT_ELEMENT);
-        GeometryType geom = p_elem->GetGeometry();
-        Vector N;
-        geom.ShapeFunctionsValues(N, *it_part);
-
-        // Variables to update
-        double& scalar_value = it_part->FastGetSolutionStepValue(mrMassVariable);
-        double delta_scalar = 0;
-        array_1d<double,3> vector_value = it_part->FastGetSolutionStepValue(mrMomentumVariable);
-        array_1d<double,3> delta_vector = ZeroVector(3);
-
-        for (size_t j = 0; j < num_nodes; ++j)
+        if (p_elem != nullptr)
         {
-            delta_scalar += N[j] * (geom[j].FastGetSolutionStepValue(mrMassVariable) - geom[j].FastGetSolutionStepValue(mrMassVariable,1));
-            delta_vector += N[j] * (geom[j].FastGetSolutionStepValue(mrMomentumVariable) - geom[j].FastGetSolutionStepValue(mrMomentumVariable,1));
+            GeometryType& geom = p_elem->GetGeometry();
+            Vector N;
+            GetShapeFunctionsValues(N, geom, *it_part);
+
+            // Variables to update
+            double& scalar_value = it_part->FastGetSolutionStepValue(mrMassVariable);
+            double delta_scalar = 0;
+            array_1d<double,3>& vector_value = it_part->FastGetSolutionStepValue(mrMomentumVariable);
+            array_1d<double,3> delta_vector = ZeroVector(3);
+
+            for (size_t j = 0; j < num_nodes; ++j)
+            {
+                delta_scalar += N[j] * (geom[j].FastGetSolutionStepValue(mrMassVariable) - geom[j].FastGetSolutionStepValue(mrMassVariable,1));
+                delta_vector += N[j] * (geom[j].FastGetSolutionStepValue(mrMomentumVariable) - geom[j].FastGetSolutionStepValue(mrMomentumVariable,1));
+            }
+            scalar_value += delta_scalar;
+            vector_value += delta_vector;
         }
-        scalar_value += delta_scalar;
-        vector_value += delta_vector;
     }
 }
 
 template<size_t TDim>
-void MoveShallowParticlesProcess<TDim>::InitializeParticle(Node<3>& rParticle, Element& rElement)
+void MoveShallowParticlesProcess<TDim>::InitializeParticle(NodeType& rParticle, Element& rElement)
 {
-    GeometryType geom = rElement.GetGeometry();
+    GeometryType& geom = rElement.GetGeometry();
     const size_t num_nodes = geom.size();
-    const double particle_weight = 1 / static_cast<double>(num_nodes);
+    const size_t num_particles = geom.IntegrationPointsNumber(mQuadratureOrder);
+    const double particle_weight = 1 / static_cast<double>(num_particles);
 
     Vector N;
-    geom.ShapeFunctionsValues(N, rParticle);
+    GetShapeFunctionsValues(N, geom, rParticle);
 
     double scalar_value = 0.0;
     array_1d<double,3> vector_value = ZeroVector(3);
     for (size_t i = 0; i < num_nodes; ++i)
     {
-        scalar_value += geom[i].FastGetSolutionStepValue(mrMassVariable);
-        vector_value += geom[i].FastGetSolutionStepValue(mrMomentumVariable);
+        scalar_value += N[i] * geom[i].FastGetSolutionStepValue(mrMassVariable);
+        vector_value += N[i] * geom[i].FastGetSolutionStepValue(mrMomentumVariable);
     }
 
     rParticle.SetValue(CURRENT_ELEMENT, &rElement);
@@ -278,9 +339,17 @@ void MoveShallowParticlesProcess<TDim>::InitializeParticle(Node<3>& rParticle, E
 }
 
 template<size_t TDim>
+void MoveShallowParticlesProcess<TDim>::GetShapeFunctionsValues(Vector& rN, GeometryType& rGeom, NodeType& rParticle)
+{
+    array_1d<double,3> local_coordinates;
+    rGeom.PointLocalCoordinates(local_coordinates, rParticle);
+    rGeom.ShapeFunctionsValues(rN, local_coordinates);    
+}
+
+template<size_t TDim>
 int MoveShallowParticlesProcess<TDim>::Check()
 {
-    const Node<3>& r_node = *mrModelPart.NodesBegin();
+    const NodeType& r_node = *mrModelPart.NodesBegin();
 
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mrMomentumVariable, r_node);
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mrMassVariable, r_node);
@@ -290,6 +359,7 @@ int MoveShallowParticlesProcess<TDim>::Check()
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_VECTOR1, r_node);
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_SCALAR1, r_node);
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MEAN_SIZE, r_node);
+    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MASS_WEIGHT, r_node);
 
     KRATOS_CHECK_EQUAL(mrParticles.NumberOfNodes(), 0);
 
