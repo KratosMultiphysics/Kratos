@@ -46,7 +46,7 @@ SlipConstraint::SlipConstraint(
     all_dofs.push_back(rNode.pGetDof(rVarZ));
 
     auto n = rNode.FastGetSolutionStepValue(rNormalVar);
-    KRATOS_DEBUG_ERROR_IF(norm_2(n) < std::numeric_limits<double>::epsilon()) << "The norm of the normal vector is zero or almost zero" << std::endl;
+    KRATOS_ERROR_IF(norm_2(n) < std::numeric_limits<double>::epsilon()) << "The norm of the normal vector is zero or almost zero" << std::endl;
     n /= norm_2(n);
 
     array_1d<double,3> v;
@@ -142,5 +142,4 @@ void SlipConstraint::PrintInfo(std::ostream &rOStream) const
 }
 
 }  // namespace Kratos.
-
 
