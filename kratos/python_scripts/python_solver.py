@@ -53,7 +53,8 @@ class PythonSolver(object):
         """This function validates the settings of the solver
         """
         default_settings = self.GetDefaultSettings()
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        self.settings.ValidateDefaults(default_settings)
+        self.settings.RecursivelyAddMissingParameters(default_settings)
 
     def AddVariables(self):
         """This function add the Variables needed by this PythonSolver to the the ModelPart
