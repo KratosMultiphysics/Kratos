@@ -19,14 +19,14 @@ set KRATOS_APP_DIR=applications
 
 rem Set basic configuration
 if not defined KRATOS_BUILD_TYPE set KRATOS_BUILD_TYPE=Release
-if not defined BOOST_ROOT set BOOST_ROOT=C:\Users\s4618455\Documents\KRATOS\boost_1_71_0
-if not defined PYTHON_EXECUTABLE set PYTHON_EXECUTABLE=C:\Users\s4618455\AppData\Local\Programs\Python\Python38\python.exe
+if not defined BOOST_ROOT set BOOST_ROOT=C:\CompiledLibs\boost_1_67_0
+if not defined PYTHON_EXECUTABLE set PYTHON_EXECUTABLE=C:\Windows\py.exe
 
 rem Set applications to compile
 set KRATOS_APPLICATIONS=
-#CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
-#CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
-#CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
+CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
+CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
+CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
 
 rem Clean
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
@@ -37,10 +37,8 @@ rem Configure
 @echo on
 cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"          ^
 -DINCLUDE_FEAST=OFF                                                                                 ^
--DLAPACK_LIBRARIES="C:\Users\s4618455\Documents\KRATOS\external_libraries\liblapack.lib"                                         ^
--DBLAS_LIBRARIES="C:\Users\s4618455\Documents\KRATOS\external_libraries\libblas.lib"
--DKRATOS_BUILD_TESTING=OFF
--DCMAKE_INSTALL_PREFIX="C:\Users\s4618455\Documents\KRATOS_INSTALL"
+-DLAPACK_LIBRARIES="C:\CompiledLibs\blas_x64\liblapack.lib"                                         ^
+-DBLAS_LIBRARIES="C:\CompiledLibs\blas_x64\libblas.lib"
 
 rem Build
 cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64

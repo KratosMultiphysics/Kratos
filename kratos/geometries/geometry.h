@@ -3471,7 +3471,7 @@ private:
     /// Sets first bit in Id to 0 -> no name/ string
     static inline void SetIdNotGeneratedFromString(IndexType& Id)
     {
-        Id |= (IndexType(0) << (sizeof(IndexType) - 1));
+        Id |= (IndexType(1) << (sizeof(IndexType) - 1));
     }
 
     /// Checks second bit in Id. 0 -> defined id; 1 -> self assigned
