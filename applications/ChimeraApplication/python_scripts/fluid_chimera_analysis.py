@@ -54,7 +54,6 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
             raise Exception("MPI-Chimera is not implemented yet")
 
-        self.full_parameters["solver_settings"].RemoveValue("chimera_settings")
         super(FluidChimeraAnalysis,self).__init__(model,self.full_parameters)
 
     def Initialize(self):
