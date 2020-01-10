@@ -71,6 +71,11 @@ void ApplyFarFieldProcess::AssignFarFieldBoundaryConditions()
         auto it_cond = mrModelPart.ConditionsBegin() + i;
         auto& r_geometry = it_cond->GetGeometry();
 
+        for (std::size_t i_node = 0; i_node<r_geometry.size(); i_node++)
+        {
+            r_geometry[i_node].Set(INLET, true);
+        }
+
         // Computing normal
         array_1d<double,3> aux_coordinates;
         r_geometry.PointLocalCoordinates(aux_coordinates, r_geometry.Center());
