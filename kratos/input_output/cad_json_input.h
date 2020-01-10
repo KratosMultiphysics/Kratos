@@ -56,10 +56,8 @@ namespace Kratos
 
         /// Constructor.
         CadJsonInput(
-            const Parameters & rCadJsonParameters,
-            const int EchoLevel = 0)
+            const Parameters & rCadJsonParameters)
             : mCadJsonParameters(rCadJsonParameters)
-            , mEchoLevel(EchoLevel)
         {};
 
         /// Destructor.
@@ -67,9 +65,9 @@ namespace Kratos
 
         ///@}
 
-        void ReadModelPart(ModelPart& rThisModelPart) override
+        void ReadModelPart(ModelPart& rModelPart) override
         {
-            ReadBreps(mCadJsonParameters);
+            ReadBreps(mCadJsonParameters, rModelPart);
         }
 
     private:
@@ -78,78 +76,81 @@ namespace Kratos
         ///@{
 
         void ReadBreps(
-            const Parameters& rParameters)
+            const Parameters& rParameters,
+            ModelPart& rModelPart)
         {
             for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
             {
-                ReadBrep(rParameters[brep_index]);
+                ReadBrep(rParameters[brep_index], rModelPart);
             }
         }
 
         void ReadBrep(
-            const Parameters& rParameters)
+            const Parameters& rParameters,
+            ModelPart& rModelPart)
         {
             if (rParameters.Has("faces"))
-                ReadBrepSurfaces(rParameters["brep_idx"]["faces"]);
+                ReadBrepSurfaces(rParameters["faces"], rModelPart);
+
+            if (rParameters.Has("edges"))
+                ReadBrepEdges(rParameters["edges"], rModelPart);
         }
 
         ///@}
         ///@name Read in Brep Geometries
         ///@{
 
-        DenseVector<BrepSurfaceType>
-            ReadBrepSurfaces(
-                const Parameters& rParameters)
+        void ReadBrepSurfaces(
+                const Parameters& rParameters,
+                ModelPart& rModelPart)
         {
-            DenseVector<BrepSurfaceType> brep_surfaces;
-
             for (IndexType i = 0; i < rParameters.size(); i++)
             {
-                KRATOS_ERROR_IF_NOT(rParameters.Has("brep_id") || rParameters.Has("brep_name"))
+                KRATOS_ERROR_IF_NOT(rParameters[i].Has("brep_id") || rParameters[i].Has("brep_name"))
                     << "Missing 'brep_id' or 'brep_name' in brep face" << std::endl;
 
-                KRATOS_ERROR_IF_NOT(rParameters.Has("surface"))
+                KRATOS_ERROR_IF_NOT(rParameters[i].Has("surface"))
                     << "Missing 'surface' in brep face" << std::endl;
 
-                auto surface = ReadNurbsSurface<3, TNodeType>(rParameters["surface"]);
+                auto p_surface = ReadNurbsSurface<3, TNodeType>(rParameters["surface"]);
 
                 bool is_trimmed = true;
-                if (rParameters["surface"].Has("is_trimmed"))
-                    is_trimmed = rParameters["surface"]["is_trimmed"].GetBool();
+                if (rParameters[i]["surface"].Has("is_trimmed"))
+                    is_trimmed = rParameters[i]["surface"]["is_trimmed"].GetBool();
 
-                if (rParameters.Has("boundary_loops"))
+                if (rParameters[i].Has("boundary_loops"))
                 {
                     BrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
-                    tie(outer_loops, inner_loops) = ReadBoundaryLoops(rParameters["boundary_loops"]);
+                    tie(outer_loops, inner_loops) = ReadBoundaryLoops(rParameters[i]["boundary_loops"], p_surface);
 
-                    auto brep_surface =
-                        Kratos::make_intrusive<BrepSurfaceType>(
-                            BrepSurfaceType(
-                                surface,
-                                outer_loops,
-                                inner_loops,
-                                true));
+                    auto p_brep_surface =
+                        Kratos::make_shared<BrepSurfaceType>(
+                            p_surface,
+                            outer_loops,
+                            inner_loops,
+                            true);
 
-                    brep_surfaces.push_back(brep_surface);
+                    if (rParameters[i].Has("brep_id"))
+                        p_brep_surface->SetId(rParameters[i]["brep_id"].GetInt());
+                    else if (rParameters[i].Has("brep_name"))
+                        p_brep_surface->SetId(rParameters[i]["brep_name"].GetString());
+
+                    rModelPart.AddGeometry(p_brep_surface);
                 }
                 else
                 {
-                    auto brep_surface =
-                        Kratos::make_intrusive<BrepSurfaceType>(
-                            BrepSurfaceType(
-                                surface));
+                    auto p_brep_surface =
+                        Kratos::make_shared<BrepSurfaceType>(
+                            p_surface);
 
-                    brep_surfaces.push_back(brep_surface);
+                    if (rParameters[i].Has("brep_id"))
+                        p_brep_surface->SetId(rParameters[i]["brep_id"].GetInt());
+                    else if (rParameters[i].Has("brep_name"))
+                        p_brep_surface->SetId(rParameters[i]["brep_name"].GetString());
+
+                    rModelPart.AddGeometry(p_brep_surface);
                 }
-
-                if (rParameters.Has("brep_id"))
-                    brep_surfaces.end().SetId(rParameters["brep_id"].GetInt());
-                else if (rParameters.Has("brep_name"))
-                    brep_surfaces.end().SetId(rParameters["brep_name"].GetString());
-
             }
-
-            return brep_surfaces;
         }
 
         ///@}
@@ -189,7 +190,7 @@ namespace Kratos
             auto p_trimming_curve = ReadNurbsCurve<2, TEmbeddedNodeType>(rParameters["parameter_curve"]);
 
             BrepCurveOnSurfaceType p_brep_curve_on_surface
-                = Kratos::make_intrusive<BrepCurveOnSurfaceType>(
+                = Kratos::make_shared<BrepCurveOnSurfaceType>(
                     BrepCurveOnSurfaceType(pNurbsSurface, p_trimming_curve));
 
             if (rParameters.Has("trim_index"))
@@ -219,15 +220,60 @@ namespace Kratos
                 auto trimming_curves = ReadTrimmingCurveVector(rParameters["trimming_curves"]);
 
                 if (loop_type == "outer")
-                    outer_loops.push_back(trimming_curves);
+                {
+                    outer_loops.resize(outer_loops.size() + 1);
+                    outer_loops[outer_loops.size()-1] = trimming_curves;
+                }
                 else if (loop_type == "inner")
-                    inner_loops.push_back(trimming_curves);
+                {
+                    inner_loops.resize(inner_loops.size() + 1);
+                    inner_loops[inner_loops.size() - 1] = trimming_curves;
+                }
                 else
+                {
                     KRATOS_ERROR << "Loop type: " << loop_type
-                    << " is not supported." << std::endl;
+                        << " is not supported." << std::endl;
+                }
             }
 
             return std::make_tuple(outer_loops, inner_loops);
+        }
+
+        ///@}
+        ///@name Read in Nurbs Geometries
+        ///@{
+
+        void ReadBrepEdges(
+            const Parameters& rParameters,
+            ModelPart& rModelPart)
+        {
+            for (IndexType i = 0; i < rParameters.size(); i++)
+            {
+                ReadBrepEdge(rParameters[i], rModelPart);
+            }
+        }
+
+        void ReadBrepEdge(
+            const Parameters& rParameters,
+            ModelPart& rModelPart)
+        {
+                KRATOS_ERROR_IF_NOT(rParameters.Has("brep_id") || rParameters.Has("brep_name"))
+                    << "Missing 'brep_id' or 'brep_name' in brep face" << std::endl;
+
+                if (rParameters.Has("topology"))
+                {
+                    for (IndexType i = 0; i < rParameters["topology"].size(); i++)
+                    {
+                        KRATOS_ERROR_IF_NOT(rParameters["topology"][i].Has("brep_id") || rParameters["topology"][i].Has("brep_name"))
+                            << "Missing 'brep_id' or 'brep_name' in brep face" << std::endl;
+
+                        if (rParameters["topology"][i].Has("brep_id"))
+                        {
+                            auto p_geometry = rModelPart.pGetGeometry(rParameters["topology"][i]["brep_id"].GetInt());
+                            auto p_trim = p_geometry->GetGeometryPart(rParameters["topology"][i]["trim_index"].GetInt());
+                        }
+                    }
+                }
         }
 
         ///@}
@@ -259,13 +305,13 @@ namespace Kratos
                 Vector control_point_weights = ReadControlPointVector(
                     rParameters["control_points"]);
 
-                return Kratos::make_intrusive<NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
+                return Kratos::make_shared<NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
                     NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
                         control_points,
                         polynomial_degree,
                         knot_vector));
             }
-            return Kratos::make_intrusive<NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
+            return Kratos::make_shared<NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
                 NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
                     control_points,
                     polynomial_degree,
@@ -300,19 +346,18 @@ namespace Kratos
 
             if (is_rational)
             {
-                Vector control_point_weights = ReadControlPointVector(
+                Vector control_point_weights = ReadControlPointWeightVector(
                     rParameters["control_points"]);
 
-                return Kratos::make_intrusive<NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
-                    NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
+                return Kratos::make_shared<NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
                         control_points,
                         p,
                         q,
                         knot_vector_u,
                         knot_vector_v,
-                        control_point_weights));
+                        control_point_weights);
             }
-            return Kratos::make_intrusive<NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
+            return Kratos::make_shared<NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
                 NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
                     control_points,
                     p,
@@ -359,7 +404,7 @@ namespace Kratos
 
             for (IndexType cp_idx = 0; cp_idx < rParameters.size(); cp_idx++)
             {
-                control_points[cp_idx] = ReadNode(rParameters[cp_idx]);
+                control_points[cp_idx] = ReadNode<TThisNodeType>(rParameters[cp_idx]);
             }
 
             return control_points;
@@ -382,14 +427,14 @@ namespace Kratos
             {
                 Vector cp = rParameters[0].GetVector();
 
-                return TThisNodeType(0, cp[0], cp[1], cp[2]);
+                //return TThisNodeType(0, cp[0], cp[1], cp[2]);
             }
             else
             {
                 SizeType id = rParameters[0].GetInt();
                 Vector cp = rParameters[1].GetVector();
 
-                return TThisNodeType(id, cp[0], cp[1], cp[2]);
+                //return TThisNodeType(id, cp[0], cp[1], cp[2]);
             }
         }
 
