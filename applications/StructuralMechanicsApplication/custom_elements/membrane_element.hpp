@@ -18,7 +18,6 @@
 
 // Project includes
 #include "includes/element.h"
-#include "custom_utilities/structural_mechanics_math_utilities.hpp"
 
 namespace Kratos
 {
@@ -110,7 +109,52 @@ namespace Kratos
       ProcessInfo& rCurrentProcessInfo) override;
 
 
+    void GetValuesVector(
+      Vector& rValues,
+      int Step = 0) override;
 
+    void GetFirstDerivativesVector(
+      Vector& rValues,
+      int Step = 0) override;
+
+    void GetSecondDerivativesVector(
+      Vector& rValues,
+      int Step = 0) override;
+
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+      const Variable<array_1d<double, 3>>& rVariable,
+      std::vector<array_1d<double, 3>>& rOutput,
+      const ProcessInfo& rCurrentProcessInfo) override;
+
+    void GetValueOnIntegrationPoints(
+      const Variable<array_1d<double, 3>>& rVariable,
+      std::vector<array_1d<double, 3>>& rOutput,
+      const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateMassMatrix(MatrixType& rMassMatrix,ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLumpedMassVector(VectorType& rMassVector);
+
+    void AddExplicitContribution(
+      const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
+      Variable<array_1d<double, 3>>& rDestinationVariable,
+      const ProcessInfo& rCurrentProcessInfo) override;
+
+    void AddExplicitContribution(
+      const VectorType& rRHSVector,
+      const Variable<VectorType>& rRHSVariable,
+      Variable<double >& rDestinationVariable,
+      const ProcessInfo& rCurrentProcessInfo) override;
+
+    void Calculate(const Variable<Matrix>& rVariable,
+      Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
+
+  private:
      /**
      * @brief Calculates the covariant base vectors
      * @param rBaseVectors The base vectors to be calculated
@@ -314,30 +358,6 @@ namespace Kratos
      */
     void TransformStrains(Vector& rStrains, Vector& rReferenceStrains, const Matrix& rTransformationMatrix);
 
-    void GetValuesVector(
-      Vector& rValues,
-      int Step = 0) override;
-
-    void GetFirstDerivativesVector(
-      Vector& rValues,
-      int Step = 0) override;
-
-    void GetSecondDerivativesVector(
-      Vector& rValues,
-      int Step = 0) override;
-
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(
-      const Variable<array_1d<double, 3>>& rVariable,
-      std::vector<array_1d<double, 3>>& rOutput,
-      const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(
-      const Variable<array_1d<double, 3>>& rVariable,
-      std::vector<array_1d<double, 3>>& rOutput,
-      const ProcessInfo& rCurrentProcessInfo) override;
-
 
       /**
      * @brief Creates a given local coordinate system
@@ -357,28 +377,6 @@ namespace Kratos
     template <class T>
     void InPlaneTransformationMatrix(Matrix& rTransformationMatrix, const array_1d<Vector,2>& rTransformedBaseVectors,
       const T& rLocalReferenceBaseVectors);
-
-    void CalculateMassMatrix(MatrixType& rMassMatrix,ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLumpedMassVector(VectorType& rMassVector);
-
-    void AddExplicitContribution(
-      const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-      Variable<array_1d<double, 3>>& rDestinationVariable,
-      const ProcessInfo& rCurrentProcessInfo) override;
-
-    void AddExplicitContribution(
-      const VectorType& rRHSVector,
-      const Variable<VectorType>& rRHSVariable,
-      Variable<double >& rDestinationVariable,
-      const ProcessInfo& rCurrentProcessInfo) override;
-
-    void Calculate(const Variable<Matrix>& rVariable,
-      Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector);
-
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
 
       /**
@@ -406,25 +404,26 @@ namespace Kratos
     void DeformationGradient(Matrix& rDeformationGradient, double& rDetDeformationGradient,
        const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase);
 
-protected:
-  std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
-private:
+    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector);
 
-  ///@}
-  ///@name Serialization
-  ///@{
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
+    double mReferenceArea = 0.0;
 
-  friend class Serializer;
+    ///@}
+    ///@name Serialization
+    ///@{
 
-  // A private default constructor necessary for serialization
-  MembraneElement() = default;
+    friend class Serializer;
 
-  void save(Serializer& rSerializer) const override;
+    // A private default constructor necessary for serialization
+    MembraneElement() = default;
 
-  void load(Serializer& rSerializer) override;
+    void save(Serializer& rSerializer) const override;
 
-  ///@}
+    void load(Serializer& rSerializer) override;
+
+    ///@}
 
   };	// class MembraneElement.
 

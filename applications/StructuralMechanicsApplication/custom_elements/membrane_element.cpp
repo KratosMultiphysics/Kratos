@@ -21,6 +21,7 @@
 #include "utilities/math_utils.h"
 #include "custom_elements/membrane_element.hpp"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/structural_mechanics_math_utilities.hpp"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos
@@ -145,6 +146,8 @@ void MembraneElement::Initialize()
     } else
         KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
 
+
+    mReferenceArea = GetGeometry().Area();
     KRATOS_CATCH( "" )
 }
 
@@ -1009,7 +1012,7 @@ void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& 
 
     noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
 
-    const double total_mass = r_geom.Area() * GetProperties()[THICKNESS] *
+    const double total_mass = mReferenceArea * GetProperties()[THICKNESS] *
         StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
     Vector lump_fact =  ZeroVector(number_of_nodes);
@@ -1040,7 +1043,7 @@ void MembraneElement::CalculateLumpedMassVector(VectorType& rMassVector)
         rMassVector.resize(local_size, false);
     }
 
-    const double total_mass = r_geom.Area() * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
+    const double total_mass = mReferenceArea * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
 
     Vector lump_fact =  ZeroVector(number_of_nodes);
     r_geom.LumpingFactors(lump_fact);
@@ -1157,7 +1160,7 @@ void MembraneElement::CalculateAndAddBodyForce(VectorType& rRightHandSideVector)
     auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
 
-    const double total_mass = r_geom.Area() * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
+    const double total_mass = mReferenceArea * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
 
     Vector lump_fact =  ZeroVector(number_of_nodes);
     r_geom.LumpingFactors(lump_fact);
