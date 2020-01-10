@@ -67,7 +67,7 @@
             "Parameters"            : {
                 "gauss_points_check_variables" : ["PLASTIC_DISSIPATION"],
                 "input_file_name"              : "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_MC_test_results.json",
-                "model_part_name"              : "Parts_Parts_Auto1",
+                "model_part_name"              : "Structure.Parts_Parts_Auto1",
                 "time_frequency"               : 1.0
             }
         }
@@ -82,7 +82,7 @@
         "Parameters"            : {
             "gauss_points_output_variables" : ["PLASTIC_DISSIPATION"],
             "output_file_name"              : "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_MC_test_results.json",
-            "model_part_name"               : "Parts_Parts_Auto1",
+            "model_part_name"               : "Structure.Parts_Parts_Auto1",
             "time_frequency"                : 1.0
         }
     }

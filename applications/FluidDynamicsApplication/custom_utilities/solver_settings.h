@@ -182,7 +182,7 @@ public:
                 return true;
             } else {
                 KRATOS_INFO("SolverSettingsFSStrategy")<<"Strategy for :: "<<rStrategyLabel<<" not found."<<std::endl;
-                return false;                
+                return false;
             }
         }
         else {

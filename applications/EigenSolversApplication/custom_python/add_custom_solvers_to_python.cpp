@@ -79,10 +79,16 @@ void AddCustomSolversToPython(pybind11::module& m)
     register_solver<EigenSparseCGSolver<double>>(m, "SparseCGSolver");
     register_solver<EigenSparseQRSolver<double>>(m, "SparseQRSolver");
 
+    register_solver<EigenSparseLUSolver<complex>>(m, "ComplexSparseLUSolver");
+
 #if defined USE_EIGEN_MKL
     register_solver<EigenPardisoLUSolver<double>>(m, "PardisoLUSolver");
     register_solver<EigenPardisoLDLTSolver<double>>(m, "PardisoLDLTSolver");
     register_solver<EigenPardisoLLTSolver<double>>(m, "PardisoLLTSolver");
+
+    register_solver<EigenPardisoLUSolver<complex>>(m, "ComplexPardisoLUSolver");
+    register_solver<EigenPardisoLDLTSolver<complex>>(m, "ComplexPardisoLDLTSolver");
+    register_solver<EigenPardisoLLTSolver<complex>>(m, "ComplexPardisoLLTSolver");
 #endif // defined USE_EIGEN_MKL
 
     // --- eigensystem solver
@@ -161,6 +167,32 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
     static auto PardisoLLTFactory = PardisoLLTType::Factory();
 
     KRATOS_REGISTER_LINEAR_SOLVER("pardiso_llt", PardisoLLTFactory);
+
+    // Complex Pardiso LU Solver
+
+    using ComplexPardisoLUType = EigenDirectSolver<EigenPardisoLUSolver<complex>>;
+
+    static auto ComplexPardisoLUFactory = ComplexPardisoLUType::Factory();
+
+    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_lu_complex", ComplexPardisoLUFactory);
+
+
+    // Complex Pardiso LDLT Solver
+
+    using ComplexPardisoLDLTType = EigenDirectSolver<EigenPardisoLDLTSolver<complex>>;
+
+    static auto ComplexPardisoLDLTFactory = ComplexPardisoLDLTType::Factory();
+
+    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_ldlt_complex", ComplexPardisoLDLTFactory);
+
+
+    // Complex Pardiso LLT Solver
+
+    using ComplexPardisoLLTType = EigenDirectSolver<EigenPardisoLLTSolver<complex>>;
+
+    static auto ComplexPardisoLLTFactory = ComplexPardisoLLTType::Factory();
+
+    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_llt_complex", ComplexPardisoLLTFactory);
 
     #endif // defined USE_EIGEN_MKL
 }
