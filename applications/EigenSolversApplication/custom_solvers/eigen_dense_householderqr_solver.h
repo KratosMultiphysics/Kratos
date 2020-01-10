@@ -6,7 +6,7 @@
 //     /_____/_/\__, /\___/_/ /_/ SolversApplication
 //             /____/
 //
-//  Author: Thomas Oberbichler
+//  Author: Quirin Aumann
 */
 
 #if !defined(KRATOS_EIGEN_DENSE_HOUSEHOLDERQR_SOLVER_H_INCLUDED)

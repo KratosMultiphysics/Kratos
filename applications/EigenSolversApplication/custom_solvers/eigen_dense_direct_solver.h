@@ -14,35 +14,12 @@
 
 // External includes
 #include <Eigen/Core>
-#include <Eigen/Sparse>
 
 // Project includes
 #include "includes/define.h"
-#include "custom_utilities/ublas_wrapper.h"
-#include "factories/standard_linear_solver_factory.h"
-#include "includes/ublas_complex_interface.h"
-#include "includes/ublas_interface.h"
 #include "linear_solvers/direct_solver.h"
-#include "spaces/ublas_space.h"
 
 namespace Kratos {
-
-// template <typename Scalar>
-// struct SpaceType;
-
-// template <>
-// struct SpaceType<double>
-// {
-//     using Global = UblasSpace<double, CompressedMatrix, Vector>;
-//     using Local = UblasSpace<double, Matrix, Vector>;
-// };
-
-// template <>
-// struct SpaceType<std::complex<double>>
-// {
-//     using Global = UblasSpace<std::complex<double>, ComplexCompressedMatrix, ComplexVector>;
-//     using Local = UblasSpace<std::complex<double>, ComplexMatrix, ComplexVector>;
-// };
 
 template <
     class TSolverType,
@@ -66,15 +43,11 @@ public:
 
     typedef DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 
-    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
-
     typedef typename TSparseSpaceType::VectorType VectorType;
 
     typedef typename TSparseSpaceType::DataType DataType;
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
-
-    typedef StandardLinearSolverFactory<TSparseSpaceType, TDenseSpaceType, EigenDenseDirectSolver> FactoryType;
 
     EigenDenseDirectSolver() {}
 
@@ -96,9 +69,6 @@ public:
      */
     void InitializeSolutionStep(DenseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        // m_a_wrapper = UblasWrapper<DataType>(rA);
-
-        // const auto& a = m_a_wrapper.matrix();
         Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>> A(rA.data().begin(), rA.size1(), rA.size2());
 
         const bool success = m_solver.Compute(A);
@@ -137,18 +107,6 @@ public:
 
         return true;
     }
-
-    /**
-     * Solves the linear system Ax=b
-     * @param rA System matrix
-     * @param rX Solution matrix
-     * @param rB Right hand side matrix
-     * @return true if solution found, otherwise false
-     */
-    // bool Solve(DenseMatrixType &rA, DenseMatrixType &rX, DenseMatrixType &rB) override
-    // {
-    //     return false;
-    // }
 
     /**
      * Print information about this object.
