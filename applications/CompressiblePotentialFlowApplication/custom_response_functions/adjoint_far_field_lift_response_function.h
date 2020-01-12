@@ -175,6 +175,7 @@ private:
 
     Element::Pointer mpNeighboringElement;
     double mReferenceChord;
+    double mUnperturbedLift;
 
 
     ///@}
