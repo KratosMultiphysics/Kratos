@@ -70,6 +70,8 @@ public:
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
+    constexpr IndexType SURFACE_INDEX = -1;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -197,6 +199,39 @@ public:
     }
 
     ///@}
+    ///@name Access to Geometry Parts
+    ///@{
+
+    typename GeometryType::Pointer pGetGeometryPart(IndexType Index)
+    {
+        if (Index == SURFACE_INDEX)
+            return mpNurbsSurface;
+
+        for (int i = 0; i < mOuterLoopArray.size(); ++i)
+        {
+            for (int j = 0; j < mOuterLoopArray[i].size(); ++j)
+            {
+                if (mOuterLoopArray[i][j]->Id() == Index)
+                    return mOuterLoopArray[i][j];
+            }
+        }
+
+        for (int i = 0; i < mInnerLoopArray.size(); ++i)
+        {
+            for (int j = 0; j < mInnerLoopArray[i].size(); ++j)
+            {
+                if (mInnerLoopArray[i][j]->Id() == Index)
+                    return mInnerLoopArray[i][j];
+            }
+        }
+
+        KRATOS_ERROR << "Index " << Index << " not existing in geometry: "
+            << Id() << std::endl;
+
+        return this;
+    }
+
+    ///@}
     ///@name Information
     ///@{
 
@@ -250,11 +285,6 @@ public:
 
         return rResult;
     }
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
 
     ///@}
     ///@name Information
