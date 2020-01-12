@@ -70,6 +70,8 @@ public:
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
+    constexpr IndexType SURFACE_INDEX = -1;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -202,6 +204,9 @@ public:
 
     typename GeometryType::Pointer pGetGeometryPart(IndexType Index)
     {
+        if (Index == SURFACE_INDEX)
+            return mpNurbsSurface;
+
         for (int i = 0; i < mOuterLoopArray.size(); ++i)
         {
             for (int j = 0; j < mOuterLoopArray[i].size(); ++j)
