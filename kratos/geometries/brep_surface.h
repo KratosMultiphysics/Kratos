@@ -197,6 +197,36 @@ public:
     }
 
     ///@}
+    ///@name Access to Geometry Parts
+    ///@{
+
+    typename GeometryType::Pointer pGetGeometryPart(IndexType Index)
+    {
+        for (int i = 0; i < mOuterLoopArray.size(); ++i)
+        {
+            for (int j = 0; j < mOuterLoopArray[i].size(); ++j)
+            {
+                if (mOuterLoopArray[i][j]->Id() == Index)
+                    return mOuterLoopArray[i][j];
+            }
+        }
+
+        for (int i = 0; i < mInnerLoopArray.size(); ++i)
+        {
+            for (int j = 0; j < mInnerLoopArray[i].size(); ++j)
+            {
+                if (mInnerLoopArray[i][j]->Id() == Index)
+                    return mInnerLoopArray[i][j];
+            }
+        }
+
+        KRATOS_ERROR << "Index " << Index << " not existing in geometry: "
+            << Id() << std::endl;
+
+        return this;
+    }
+
+    ///@}
     ///@name Information
     ///@{
 
