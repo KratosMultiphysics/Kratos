@@ -1324,8 +1324,7 @@ public:
     */
     virtual const typename GeometryType::Pointer pGetGeometryPart(IndexType Index) const
     {
-        KRATOS_ERROR << "Calling base class 'pGetGeometryPart' method instead of derived function."
-            << " Please check the definition in the derived class. " << *this << std::endl;
+        return pGetGeometryPart(Index);
     }
 
     /**
