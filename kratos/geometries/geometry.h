@@ -1314,20 +1314,6 @@ public:
     }
 
     /**
-    * @brief This function is necessary for composite geometries. It returns the
-    * pointer to a geometry part which is accessable with a certain index.
-    * @details This index
-    * is dependent on the derived implementation.
-    * @param Index of the geometry part. This index can be used differently
-    *        within the derived classes
-    * @return pointer to geometry, which is connected through the Index
-    */
-    virtual const typename GeometryType::Pointer pGetGeometryPart(IndexType Index) const
-    {
-        return pGetGeometryPart(Index);
-    }
-
-    /**
     * @return the number of geometry parts that this geometry contains.
     */
     virtual SizeType NumberOfGeometryParts() const
