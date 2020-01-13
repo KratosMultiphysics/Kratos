@@ -60,10 +60,6 @@ RansKTurbulentIntensityInletProcess::RansKTurbulentIntensityInletProcess(Model& 
     KRATOS_CATCH("");
 }
 
-RansKTurbulentIntensityInletProcess::~RansKTurbulentIntensityInletProcess()
-{
-}
-
 void RansKTurbulentIntensityInletProcess::ExecuteInitialize()
 {
     if (mIsConstrained)

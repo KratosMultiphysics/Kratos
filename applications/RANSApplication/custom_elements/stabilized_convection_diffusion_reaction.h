@@ -140,9 +140,7 @@ public:
     /**
      * Destructor
      */
-    ~StabilizedConvectionDiffusionReaction() override
-    {
-    }
+    ~StabilizedConvectionDiffusionReaction() override = default;
 
     ///@}
     ///@name Operators
@@ -732,13 +730,12 @@ public:
         const double bossak_gamma =
             TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
         const double dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
+        const double eps = std::numeric_limits<double>::epsilon();
 
         array_1d<double, 3> variable_gradient;
         const Variable<double>& primal_variable = this->GetPrimalVariable();
 
         BoundedMatrix<double, TDim, TDim> contravariant_metric_tensor;
-
-        const double eps = std::numeric_limits<double>::epsilon();
 
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
