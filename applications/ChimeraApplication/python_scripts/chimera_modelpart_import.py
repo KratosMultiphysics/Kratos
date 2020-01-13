@@ -8,7 +8,7 @@ from copy import deepcopy
 
 def ImportChimeraModelparts(main_modelpart, chimera_mp_import_settings_list, material_file="", parallel_type="OpenMP"):
     '''
-        This function extends and specifies the functionalies of the
+        This function extends the functionalies of the
         mpda_manipulator from: https://github.com/philbucher/mdpa-manipulator
 
         main_modelpart      : The modelpart to which the new modelparts are appended to.
@@ -22,11 +22,16 @@ def ImportChimeraModelparts(main_modelpart, chimera_mp_import_settings_list, mat
         }
     '''
     if parallel_type == "OpenMP":
+        import KratosMultiphysics
         for mp_import_setting in chimera_mp_import_settings_list:
             mdpa_file_name = mp_import_setting["input_filename"].GetString()
             if mdpa_file_name.endswith('.mdpa'):
                 mdpa_file_name = mdpa_file_name[:-5]
-            model_part = ReadModelPart(mdpa_file_name, "new_modelpart", material_file)
+
+            model = KratosMultiphysics.Model()
+            model_part = model.CreateModelPart("new_modelpart")
+
+            ReadModelPart(mdpa_file_name, model_part, material_file)
             AddModelPart(main_modelpart, model_part)
     elif(parallel_type == "MPI"):
         import KratosMultiphysics
@@ -61,14 +66,10 @@ def ImportChimeraModelparts(main_modelpart, chimera_mp_import_settings_list, mat
             ParallelFillCommunicator.Execute()
 
 
-def ReadModelPart(mdpa_file_name, model_part_name, materials_file_name=""):
+def ReadModelPart(mdpa_file_name, model_part, materials_file_name=""):
     '''
     Read and return a ModelPart from a mdpa file
     '''
-    if mdpa_file_name.endswith('.mdpa'):
-        mdpa_file_name = mdpa_file_name[:-5]
-    model = KratosMultiphysics.Model()
-    model_part = model.CreateModelPart(model_part_name)
     # We reorder because otherwise the numbering might be screwed up when we combine the ModelParts later
     KratosMultiphysics.ReorderConsecutiveModelPartIO(mdpa_file_name, KratosMultiphysics.IO.SKIP_TIMER).ReadModelPart(model_part)
 
@@ -81,7 +82,6 @@ def ReadModelPart(mdpa_file_name, model_part_name, materials_file_name=""):
         model_part[KratosMultiphysics.IDENTIFIER] = materials_string
 
     __RemoveAuxFiles()
-    return model_part
 
 def AddModelPart(model_part_1,
                  model_part_2,
