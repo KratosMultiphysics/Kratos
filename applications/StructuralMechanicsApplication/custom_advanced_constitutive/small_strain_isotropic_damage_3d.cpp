@@ -124,6 +124,14 @@ void SmallStrainIsotropicDamage3D::InitializeMaterial(
 //************************************************************************************
 //************************************************************************************
 
+bool SmallStrainIsotropicDamage3D::RequiresInitializeMaterialResponse()
+{
+    return false;
+}
+
+//************************************************************************************
+//************************************************************************************
+
 void SmallStrainIsotropicDamage3D::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
 }
