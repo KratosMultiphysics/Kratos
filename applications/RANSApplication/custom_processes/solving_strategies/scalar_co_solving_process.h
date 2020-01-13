@@ -108,9 +108,7 @@ public:
     }
 
     /// Destructor.
-    ~ScalarCoSolvingProcess() override
-    {
-    }
+    ~ScalarCoSolvingProcess() override = default;
 
     ///@}
     ///@name Operators
