@@ -594,6 +594,11 @@ double& SerialParallelRuleOfMixturesLaw::GetValue(
     double& rValue
     )
 {
+    if (rThisVariable == DAMAGE_MATRIX) {
+        return mpMatrixConstitutiveLaw->GetValue(DAMAGE, rValue);
+    } else if (rThisVariable == DAMAGE_FIBER) {
+         return mpFiberConstitutiveLaw->GetValue(DAMAGE, rValue);
+    }
     if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
         return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
