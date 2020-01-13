@@ -352,6 +352,7 @@ public:
                 else
                     aux.push_back( *(it.base()) );
             }
+            (aux.end()-1)->SetSolutionStepVariablesList(mpVariablesList);
         }
 
         //now add to the root model part
