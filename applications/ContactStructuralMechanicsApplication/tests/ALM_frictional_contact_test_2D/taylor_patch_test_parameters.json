@@ -24,16 +24,12 @@
             "mortar_type"                    : "ALMContactFrictional"
         },
         "time_stepping"                      : {
-            "time_step_intervals" : {
-                "first_interval" : {
-                    "interval"  : [0.0, 1.0],
-                    "time_step" : 5.0e-2
-                },
-                "second_interval" : {
-                    "interval"  : [1.0, "End"],
-                    "time_step" : 2.5e-2
-                }
-            }
+            "time_step_table" : [
+                [0.0, 5.0e-2],
+                [0.9999, 5.0e-2],
+                [1.0, 2.5e-2],
+                [2.5, 2.5e-2]
+            ]
         },
         "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
@@ -44,16 +40,7 @@
         "buffer_size"                        : 3,
         "linear_solver_settings"             : {
             "solver_type" : "skyline_lu_factorization"
-        },
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_foundation","Parts_punch"],
-        "processes_sub_model_part_list"      : ["Structure","Contact_Part",
-                                                "Parts_foundation",
-                                                "Parts_punch",
-                                                "DISPLACEMENT_fixed_support",
-                                                "DISPLACEMENT_rolling_support_y",
-                                                "DISPLACEMENT_rolling_support_x",
-                                                "LineLoad2D_line_load"
-                                                ]
+        }
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -152,7 +139,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
                 "input_file_name"      : "ALM_frictional_contact_test_2D/taylor_patch_test_results.json",
-                "model_part_name"      : "Contact_Part",
+                "model_part_name"      : "Structure.Contact_Part",
                 "time_frequency"       : 1.0e-1
             }
         }
@@ -201,7 +188,7 @@
                 "output_frequency"                   : 1,
                 "file_format"                        : "ascii",
                 "output_precision"                   : 7,
-                "output_sub_model_parts"             : true,
+                "output_sub_model_parts"             : false,
                 "folder_name"                        : "vtk_output",
                 "save_output_files_in_folder"        : true,
                 "nodal_solution_step_data_variables" : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER","WEIGHTED_GAP","WEIGHTED_SLIP"],
@@ -211,7 +198,7 @@
                 "element_flags"                      : [],
                 "condition_data_value_variables"     : [],
                 "condition_flags"                    : [],
-                "gauss_point_variables"              : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
+                "gauss_point_variables_extrapolated_to_nodes"              : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
             }
         }]
     },
@@ -224,7 +211,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictional_contact_test_2D/taylor_patch_test_results.json",
-            "model_part_name"      : "Contact_Part",
+            "model_part_name"      : "Structure.Contact_Part",
             "time_frequency"       : 1.0e-1
         }
     }

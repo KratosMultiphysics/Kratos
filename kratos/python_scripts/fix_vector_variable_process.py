@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-import fix_scalar_variable_process
+from KratosMultiphysics import fix_scalar_variable_process
 
 def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):

@@ -12,19 +12,19 @@
 from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
+import KratosMultiphysics as KM
+import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Additional imports
 import time as timer
-from mesh_controller_base import MeshController
+from KratosMultiphysics.ShapeOptimizationApplication.mesh_controller_base import MeshController
 from KratosMultiphysics.MeshMovingApplication.mesh_moving_analysis import MeshMovingAnalysis
 
 # # ==============================================================================
 class MeshControllerWithSolver(MeshController) :
     # --------------------------------------------------------------------------
     def __init__(self, MeshSolverSettings, model):
-        default_settings = Parameters("""
+        default_settings = KM.Parameters("""
         {
             "apply_mesh_solver" : true,
             "solver_settings" : {
@@ -38,7 +38,7 @@ class MeshControllerWithSolver(MeshController) :
                 "time_stepping" : {
                     "time_step"       : 1.0
                 },
-                "mesh_motion_linear_solver_settings" : {
+                "linear_solver_settings" : {
                     "solver_type" : "amgcl",
                     "smoother_type":"ilu0",
                     "krylov_type": "gmres",
@@ -47,8 +47,7 @@ class MeshControllerWithSolver(MeshController) :
                     "verbosity" : 0,
                     "tolerance": 1e-7
                 },
-                "compute_reactions"         : false,
-                "calculate_mesh_velocities" : false
+                "compute_reactions"         : false
             },
             "processes" : {
                 "boundary_conditions_process_list" : []
@@ -59,14 +58,14 @@ class MeshControllerWithSolver(MeshController) :
         self.MeshSolverSettings["solver_settings"].ValidateAndAssignDefaults(default_settings["solver_settings"])
         self.MeshSolverSettings["processes"].ValidateAndAssignDefaults(default_settings["processes"])
 
-        if not self.MeshSolverSettings["solver_settings"].Has("mesh_motion_linear_solver_settings"):
-            MeshSolverSettings.AddValue("mesh_motion_linear_solver_settings", default_settings["solver_settings"]["mesh_motion_linear_solver_settings"])
-            print("::[MeshControllerWithSolver]::INFO using default linear solver for mesh motion.")
+        if not self.MeshSolverSettings["solver_settings"].Has("linear_solver_settings"):
+            MeshSolverSettings.AddValue("linear_solver_settings", default_settings["solver_settings"]["linear_solver_settings"])
+            KM.Logger.PrintInfo("ShapeOpt", "::[MeshControllerWithSolver]:: using default linear solver for mesh motion.")
 
         if not MeshSolverSettings.Has("problem_data"):
             self.__AddDefaultProblemData(self.MeshSolverSettings)
         else:
-            print("::[MeshControllerWithSolver]::WARNING: using custom problem data for mesh motion.")
+            KM.Logger.PrintInfo("ShapeOpt", "::[MeshControllerWithSolver]:: using custom problem data for mesh motion.")
 
         self.OptimizationModelPart = model[self.MeshSolverSettings["solver_settings"]["model_part_name"].GetString()]
 
@@ -81,37 +80,38 @@ class MeshControllerWithSolver(MeshController) :
     # --------------------------------------------------------------------------
     def Initialize(self):
         if self.has_automatic_boundary_process:
-            GeometryUtilities(self.OptimizationModelPart).ExtractBoundaryNodes("auto_surface_nodes")
+            KSO.GeometryUtilities(self.OptimizationModelPart).ExtractBoundaryNodes("auto_surface_nodes")
 
         self._mesh_moving_analysis.Initialize()
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable(self, variable):
-        print("\n> Starting to update the mesh...")
+        KM.Logger.Print("")
+        KM.Logger.PrintInfo("ShapeOpt", "Starting to update the mesh...")
         startTime = timer.time()
 
-        time_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(TIME)
-        step_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(STEP)
-        delta_time_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(DELTA_TIME)
+        time_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(KM.TIME)
+        step_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(KM.STEP)
+        delta_time_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(KM.DELTA_TIME)
 
         # Reset step/time iterators such that they match the current iteration after calling RunSolutionLoop (which internally calls CloneTimeStep)
-        self.OptimizationModelPart.ProcessInfo.SetValue(STEP, step_before_update-1)
-        self.OptimizationModelPart.ProcessInfo.SetValue(TIME, time_before_update-1)
-        self.OptimizationModelPart.ProcessInfo.SetValue(DELTA_TIME, 0)
+        self.OptimizationModelPart.ProcessInfo.SetValue(KM.STEP, step_before_update-1)
+        self.OptimizationModelPart.ProcessInfo.SetValue(KM.TIME, time_before_update-1)
+        self.OptimizationModelPart.ProcessInfo.SetValue(KM.DELTA_TIME, 0)
 
-        VariableUtils().CopyVectorVar(variable, MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
+        KM.VariableUtils().CopyVectorVar(variable, KM.MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
 
         if not self._mesh_moving_analysis.time < self._mesh_moving_analysis.end_time:
             self._mesh_moving_analysis.end_time += 1
         self._mesh_moving_analysis.RunSolutionLoop()
 
-        MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(MESH_DISPLACEMENT)
+        KSO.MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(KM.MESH_DISPLACEMENT)
 
-        self.OptimizationModelPart.ProcessInfo.SetValue(STEP, step_before_update)
-        self.OptimizationModelPart.ProcessInfo.SetValue(TIME, time_before_update)
-        self.OptimizationModelPart.ProcessInfo.SetValue(DELTA_TIME, delta_time_before_update)
+        self.OptimizationModelPart.ProcessInfo.SetValue(KM.STEP, step_before_update)
+        self.OptimizationModelPart.ProcessInfo.SetValue(KM.TIME, time_before_update)
+        self.OptimizationModelPart.ProcessInfo.SetValue(KM.DELTA_TIME, delta_time_before_update)
 
-        print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
+        KM.Logger.PrintInfo("ShapeOpt", "Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 
     # --------------------------------------------------------------------------
     def Finalize(self):
@@ -120,7 +120,7 @@ class MeshControllerWithSolver(MeshController) :
     # --------------------------------------------------------------------------
     @staticmethod
     def __AddDefaultProblemData(mesh_solver_settings):
-        problem_data = Parameters("""{
+        problem_data = KM.Parameters("""{
             "echo_level"    : 0,
             "start_time"    : 0.0,
             "end_time"      : 1.0,
@@ -134,7 +134,7 @@ class MeshControllerWithSolver(MeshController) :
     def __FixWholeSurface(optimization_model_part, mesh_solver_settings):
         optimization_model_part.CreateSubModelPart("auto_surface_nodes")
 
-        auto_process_settings = Parameters(
+        auto_process_settings = KM.Parameters(
             """
             {
                 "python_module" : "fix_vector_variable_process",
@@ -149,7 +149,7 @@ class MeshControllerWithSolver(MeshController) :
             }
             """)
 
-        print("> Add automatic process to fix the whole surface to mesh motion solver:")
+        KM.Logger.PrintInfo("ShapeOpt", "Add automatic process to fix the whole surface to mesh motion solver:")
         mesh_solver_settings["processes"]["boundary_conditions_process_list"].Append(auto_process_settings)
 
 # ==============================================================================

@@ -15,11 +15,7 @@
 #include "spaces/ublas_space.h"
 
 #include "custom_processes/trilinos_levelset_convection_process.h"
-#include "custom_processes/trilinos_spalart_allmaras_turbulence_model.h"
-#include "custom_processes/trilinos_stokes_initialization_process.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
-#include "../FluidDynamicsApplication/custom_processes/spalart_allmaras_turbulence_model.h"
-#include "../FluidDynamicsApplication/custom_processes/stokes_initialization_process.h"
 
 namespace Kratos
 {
@@ -58,31 +54,6 @@ template< class TBinder, unsigned int TDim > void DistanceCalculatorConstruction
 
 void AddProcesses(pybind11::module& m)
 {
-    // Turbulence models
-    typedef SpalartAllmarasTurbulenceModel<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseSpAlModelType;
-
-    py::class_<BaseSpAlModelType, BaseSpAlModelType::Pointer, Process>(m, "TrilinosBaseSpAlModel");
-
-    typedef TrilinosSpalartAllmarasTurbulenceModel<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosSpAlModelType;
-    py::class_<TrilinosSpAlModelType, TrilinosSpAlModelType::Pointer, BaseSpAlModelType >(m,"TrilinosSpalartAllmarasTurbulenceModel")
-        .def(py::init < Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
-        .def("ActivateDES", &SpalartAllmarasTurbulenceModel< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::ActivateDES)
-        .def("AdaptForFractionalStep", &SpalartAllmarasTurbulenceModel< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::AdaptForFractionalStep)
-        ;
-
-    // Stokes initialization processes
-    typedef StokesInitializationProcess<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseStokesInitializationType;
-
-    py::class_<BaseStokesInitializationType, BaseStokesInitializationType::Pointer, Process>(m, "TrilinosBaseStokesInitialization")
-        .def("SetConditions",&BaseStokesInitializationType::SetConditions)
-        ;
-
-    typedef TrilinosStokesInitializationProcess<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosStokesInitializationType;
-    py::class_<TrilinosStokesInitializationType, TrilinosStokesInitializationType::Pointer, BaseStokesInitializationType >
-        (m,"TrilinosStokesInitializationProcess")
-        .def(py::init<Epetra_MpiComm&, ModelPart&,TrilinosLinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
-        ;
-
     // Variational distance calculation processes
     using DistanceCalculator2DBinderType = py::class_<TrilinosVariationalDistanceCalculation<2>, typename TrilinosVariationalDistanceCalculation<2>::Pointer, Process >;
     using DistanceCalculator3DBinderType = py::class_<TrilinosVariationalDistanceCalculation<3>, typename TrilinosVariationalDistanceCalculation<3>::Pointer, Process >;

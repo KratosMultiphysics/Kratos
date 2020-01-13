@@ -18,6 +18,7 @@
 #include "custom_processes/sliding_edge_process.h"
 #include "custom_processes/edge_cable_element_process.h"
 #include "custom_processes/apply_weak_sliding_process.h"
+#include "custom_processes/empirical_spring_element_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -37,6 +38,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<EdgeCableElementProcess, EdgeCableElementProcess::Pointer, Process>(m,"EdgeCableElementProcess")
         .def(py::init<ModelPart&,Parameters>())
+        ;
+
+    py::class_<EmpiricalSpringElementProcess, EmpiricalSpringElementProcess::Pointer, Process>(m,"EmpiricalSpringElementProcess")
+        .def(py::init<ModelPart&,Parameters,std::vector<double>>())
         ;
 }
 

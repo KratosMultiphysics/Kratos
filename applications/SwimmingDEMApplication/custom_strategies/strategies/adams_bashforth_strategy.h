@@ -101,7 +101,7 @@ namespace Kratos {
         /// Destructor.
         virtual ~AdamsBashforthStrategy() {}
 
-        double Solve() override;
+        double SolveSolutionStep() override;
 
     protected:
 

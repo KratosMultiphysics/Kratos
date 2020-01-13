@@ -9,16 +9,15 @@
 #
 # ==============================================================================
 
-# Kratos Core and Apps
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
+# importing the Kratos Library
+import KratosMultiphysics as KM
 
 # Import logger base classes
-from value_logger_base import ValueLogger
+from .value_logger_base import ValueLogger
 
 # Import additional libraries
 import csv
-from custom_timer import Timer
+from .custom_timer import Timer
 
 # ==============================================================================
 class ValueLoggerBeadOptimization( ValueLogger ):
@@ -47,11 +46,12 @@ class ValueLoggerBeadOptimization( ValueLogger ):
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToConsole( self ):
         objective_id = self.objectives[0]["identifier"].GetString()
-        print("\n> Current value of objective = ","{:> .5E}".format(self.history["response_value"][objective_id][self.current_index]))
+        KM.Logger.Print("")
+        KM.Logger.PrintInfo("ShapeOpt", "Current value of objective = ","{:> .5E}".format(self.history["response_value"][objective_id][self.current_index]))
 
-        print("> Absolut change of objective = ","{:> .5E}".format(self.history["abs_change_objective"][self.current_index])," [%]")
-        print("> Relative change of objective = ","{:> .5E}".format(self.history["rel_change_objective"][self.current_index])," [%]\n")
-        print("> Value of penalty term = ","{:> .5E}".format(self.history["penalty_value"][self.current_index]),"\n")
+        KM.Logger.PrintInfo("ShapeOpt", "Absolut change of objective = ","{:> .5E}".format(self.history["abs_change_objective"][self.current_index])," [%]")
+        KM.Logger.PrintInfo("ShapeOpt", "Relative change of objective = ","{:> .5E}".format(self.history["rel_change_objective"][self.current_index])," [%]\n")
+        KM.Logger.PrintInfo("ShapeOpt", "Value of penalty term = ","{:> .5E}".format(self.history["penalty_value"][self.current_index]),"\n")
 
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToFile( self ):

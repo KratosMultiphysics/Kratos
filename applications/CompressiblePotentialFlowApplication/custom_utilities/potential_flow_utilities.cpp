@@ -11,6 +11,7 @@
 
 #include "custom_utilities/potential_flow_utilities.h"
 #include "compressible_potential_flow_application_variables.h"
+#include "includes/model_part.h"
 
 namespace Kratos {
 namespace PotentialFlowUtilities {
@@ -175,8 +176,35 @@ double ComputeIncompressiblePressureCoefficient(const Element& rElement, const P
     return pressure_coefficient;
 }
 
+
 template <int Dim, int NumNodes>
-const bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances)
+double ComputeCompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo)
+{
+    // Reading free stream conditions
+    const array_1d<double, 3>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
+    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+
+    // Computing local velocity
+    array_1d<double, Dim> v = ComputeVelocity<Dim, NumNodes>(rElement);
+
+    // Computing squares
+    const double v_inf_2 = inner_prod(vinfinity, vinfinity);
+    const double M_inf_2 = M_inf * M_inf;
+    double v_2 = inner_prod(v, v);
+
+    KRATOS_ERROR_IF(v_inf_2 < std::numeric_limits<double>::epsilon())
+        << "Error on element -> " << rElement.Id() << "\n"
+        << "v_inf_2 must be larger than zero." << std::endl;
+
+    const double base = 1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2;
+
+    return 2 * (pow(base, heat_capacity_ratio / (heat_capacity_ratio - 1)) - 1) /
+           (heat_capacity_ratio * M_inf_2);
+}
+
+template <int Dim, int NumNodes>
+bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances)
 {
     // Initialize counters
     unsigned int number_of_nodes_with_positive_distance = 0;
@@ -197,6 +225,47 @@ const bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& 
            number_of_nodes_with_positive_distance > 0;
 }
 
+template <int Dim>
+void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel)
+{
+    unsigned int number_of_unfulfilled_wake_conditions = 0;
+    for (auto& r_element : rWakeModelPart.Elements()){
+        const bool wake_condition_is_fulfilled =
+            CheckWakeCondition<Dim, Dim + 1>(r_element, rTolerance, rEchoLevel);
+        if (!wake_condition_is_fulfilled)
+        {
+            number_of_unfulfilled_wake_conditions += 1;
+        }
+    }
+    KRATOS_WARNING_IF("CheckIfWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
+        << "THE WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_wake_conditions
+        << " ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
+}
+
+template <int Dim, int NumNodes>
+bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel)
+{
+    const auto upper_velocity = ComputeVelocityUpperWakeElement<Dim,NumNodes>(rElement);
+    const auto lower_velocity = ComputeVelocityLowerWakeElement<Dim,NumNodes>(rElement);
+
+    bool wake_condition_is_fulfilled = true;
+    for (unsigned int i = 0; i < upper_velocity.size(); i++){
+        if(std::abs(upper_velocity[i] - lower_velocity[i]) > rTolerance){
+            wake_condition_is_fulfilled = false;
+            break;
+        }
+    }
+
+    KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 0)
+        << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id() << std::endl;
+    KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 1)
+        << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id()
+        << " upper_velocity  = " << upper_velocity
+        << " lower_velocity  = " << lower_velocity << std::endl;
+
+    return wake_condition_is_fulfilled;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 
@@ -214,7 +283,10 @@ template array_1d<double, 2> ComputeVelocityUpperWakeElement<2, 3>(const Element
 template array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
 template double ComputeIncompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template const bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
+template double ComputeCompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
+template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
+template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 
 // 3D
 template array_1d<double, 4> GetWakeDistances<3, 4>(const Element& rElement);
@@ -230,6 +302,9 @@ template array_1d<double, 3> ComputeVelocityUpperWakeElement<3, 4>(const Element
 template array_1d<double, 3> ComputeVelocityLowerWakeElement<3, 4>(const Element& rElement);
 template array_1d<double, 3> ComputeVelocity<3, 4>(const Element& rElement);
 template double ComputeIncompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template const bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
+template double ComputeCompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
+template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
+template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 } // namespace PotentialFlow
 } // namespace Kratos

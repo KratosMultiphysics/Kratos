@@ -20,13 +20,16 @@ class CoSimulationAnalysis(AnalysisStage):
     def __init__(self, cosim_settings):
         # Note: deliberately NOT calling the base-class constructor since arguments are different
 
+        if not isinstance(cosim_settings, KM.Parameters):
+            raise Exception("Input is expected to be provided as a Kratos Parameters object")
+
         self.cosim_settings = cosim_settings
 
         # this contains only the optional parameters, not the ones that have to be specified
         problem_data_defaults = KM.Parameters("""{
             "problem_name" : "default_co_simulation",
             "print_colors" : false,
-            "echo_level"   : 0
+            "echo_level"   : 1
         }""")
 
         problem_data = cosim_settings["problem_data"]

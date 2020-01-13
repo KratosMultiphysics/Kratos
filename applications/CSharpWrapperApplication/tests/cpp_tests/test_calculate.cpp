@@ -21,24 +21,21 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "external_interface.h"
+#include "custom_includes/kratos_wrapper.h"
 #include "utilities/os_utilities.h"
 
-namespace Kratos
-{
-    namespace Testing
-    {
-        void CreateMDPAFile()
-        {
+namespace Kratos {
+    namespace Testing {
+        void CreateMDPAFile() {
             std::filebuf buffer;
-            buffer.open(OSUtilities::GetCurrentWorkingDir() + "/file.mdpa",std::ios::out);
+            buffer.open(OSUtilities::GetCurrentWorkingDir() + "/file.mdpa", std::ios::out);
             std::ostream os(&buffer);
-            os << "Begin ModelPartData\nEnd ModelPartData\n\nBegin Properties  0\n    DENSITY 2700.000000\n    YOUNG_MODULUS 7000000.000000\n    POISSON_RATIO 0.300000\n    BODY_FORCE [3] (0.000000,0.000000,0.000000)\n    THICKNESS 1.000000\nEnd Properties\n\nBegin Nodes\n        1        0.0        0.0         0.0\n        2        0.0        0.0         1.0\n        3        1.0        0.0         0.0\n        4        1.0        1.0         0.0\nEnd Nodes\n\nBegin Elements SmallDisplacementElement3D4N\n    1 0 1 2 3 4\nEnd Elements\n\nBegin SubModelPart BasePart // Note that this would be a sub sub modelpart\n    Begin SubModelPartNodes\n        1\n        2\n    End SubModelPartNodes\n    Begin SubModelPart inner_part\n        Begin SubModelPartNodes\n            1\n        End SubModelPartNodes\n    End SubModelPart\nEnd SubModelPart";
+            os
+                    << "Begin ModelPartData\nEnd ModelPartData\n\nBegin Properties  0\n    DENSITY 2700.000000\n    YOUNG_MODULUS 7000000.000000\n    POISSON_RATIO 0.300000\n    BODY_FORCE [3] (0.000000,0.000000,0.000000)\n    THICKNESS 1.000000\nEnd Properties\n\nBegin Nodes\n        1        0.0        0.0         0.0\n        2        0.0        0.0         1.0\n        3        1.0        0.0         0.0\n        4        1.0        1.0         0.0\nEnd Nodes\n\nBegin Elements SmallDisplacementElement3D4N\n    1 0 1 2 3 4\nEnd Elements\n\nBegin SubModelPart BasePart // Note that this would be a sub sub modelpart\n    Begin SubModelPartNodes\n        1\n        2\n    End SubModelPartNodes\n    Begin SubModelPart inner_part\n        Begin SubModelPartNodes\n            1\n        End SubModelPartNodes\n    End SubModelPart\nEnd SubModelPart";
             buffer.close();
         }
 
-        void CreateJSONFile()
-        {
+        void CreateJSONFile() {
             Parameters json_parameters = Parameters(R"(
             {
                 "problem_data"    : {
@@ -86,10 +83,10 @@ namespace Kratos
                 },
                 "processes"        : {},
                 "output_processes" : {}
-            })" );
-            const std::string& r_json_text = json_parameters.PrettyPrintJsonString();
+            })");
+            const std::string &r_json_text = json_parameters.PrettyPrintJsonString();
             std::filebuf buffer;
-            buffer.open(OSUtilities::GetCurrentWorkingDir() + "/file.json",std::ios::out);
+            buffer.open(OSUtilities::GetCurrentWorkingDir() + "/file.json", std::ios::out);
             std::ostream os(&buffer);
             os << r_json_text;
             buffer.close();
@@ -98,8 +95,7 @@ namespace Kratos
         /**
         * Checks the correct work of update node position
         */
-        KRATOS_TEST_CASE_IN_SUITE(CSharpWrapperUpdateNodePosition, KratosCSharpWrapperApplicationFastSuite)
-        {
+        KRATOS_TEST_CASE_IN_SUITE(CSharpWrapperUpdateNodePosition, KratosCSharpWrapperApplicationFastSuite) {
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<Element>::Has("SmallDisplacementElement3D4N"))
                 return void();
@@ -107,13 +103,15 @@ namespace Kratos
             // Import mdpa
             CreateMDPAFile();
             const std::string file_name = OSUtilities::GetCurrentWorkingDir() + "/file.mdpa";
-            CSharpKratosWrapper::CSharpInterface::init(file_name.c_str());
-
+            CSharpKratosWrapper::KratosWrapper *wrapperInstance = new CSharpKratosWrapper::KratosWrapper();
+            wrapperInstance->init(file_name.c_str());
+            CSharpKratosWrapper::ModelPartWrapper *mainModelPart = wrapperInstance->getRootModelPartWrapper();
             // Get some API info
-            float *x = CSharpKratosWrapper::CSharpInterface::getXCoordinates();
-            float *y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
-            float *z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
-//            int n = CSharpKratosWrapper::CSharpInterface::getNodesCount();
+            mainModelPart->retrieveResults();
+            float *x = mainModelPart->getXCoordinates();
+            float *y = mainModelPart->getYCoordinates();
+            float *z = mainModelPart->getZCoordinates();
+//            int n = mainModelPart->getNodesCount();
 
 //            const float float_epsilon = std::numeric_limits<float>::epsilon();
 
@@ -125,10 +123,11 @@ namespace Kratos
 //             }
 
             // None fixed
-            CSharpKratosWrapper::CSharpInterface::calculate();
-            x = CSharpKratosWrapper::CSharpInterface::getXCoordinates();
-            y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
-            z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
+            wrapperInstance->calculate();
+            mainModelPart->retrieveResults();
+            x = mainModelPart->getXCoordinates();
+            y = mainModelPart->getYCoordinates();
+            z = mainModelPart->getZCoordinates();
 
 //             KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
 //             KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
@@ -144,15 +143,16 @@ namespace Kratos
 //             KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
 
             // All fixed
-            CSharpKratosWrapper::CSharpInterface::updateNodePos(0, x[0], y[0], z[0]);
-            CSharpKratosWrapper::CSharpInterface::updateNodePos(1, x[1], y[1], z[1]);
-            CSharpKratosWrapper::CSharpInterface::updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
-            CSharpKratosWrapper::CSharpInterface::updateNodePos(3, x[3], y[3], z[3]);
+            mainModelPart->updateNodePos(0, x[0], y[0], z[0]);
+            mainModelPart->updateNodePos(1, x[1], y[1], z[1]);
+            mainModelPart->updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
+            mainModelPart->updateNodePos(3, x[3], y[3], z[3]);
 
-            CSharpKratosWrapper::CSharpInterface::calculate();
-            x = CSharpKratosWrapper::CSharpInterface::getXCoordinates();
-            y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
-            z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
+            wrapperInstance->calculate();
+            mainModelPart->retrieveResults();
+            x = mainModelPart->getXCoordinates();
+            y = mainModelPart->getYCoordinates();
+            z = mainModelPart->getZCoordinates();
 
 //             KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
 //             KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
@@ -168,14 +168,15 @@ namespace Kratos
 //             KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
 
             // Partially fixed
-            CSharpKratosWrapper::CSharpInterface::updateNodePos(0, x[0], y[0], z[0]);
-            CSharpKratosWrapper::CSharpInterface::updateNodePos(1, x[1], y[1], z[1]);
-            CSharpKratosWrapper::CSharpInterface::updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
+            mainModelPart->updateNodePos(0, x[0], y[0], z[0]);
+            mainModelPart->updateNodePos(1, x[1], y[1], z[1]);
+            mainModelPart->updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
 
-            CSharpKratosWrapper::CSharpInterface::calculate();
-            x = CSharpKratosWrapper::CSharpInterface::getXCoordinates();
-            y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
-            z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
+            wrapperInstance->calculate();
+            mainModelPart->retrieveResults();
+            x = mainModelPart->getXCoordinates();
+            y = mainModelPart->getYCoordinates();
+            z = mainModelPart->getZCoordinates();
 
 //             KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
 //             KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
@@ -196,8 +197,7 @@ namespace Kratos
         /**
         * Checks the correct work of update node position with json input
         */
-        KRATOS_TEST_CASE_IN_SUITE(CSharpWrapperUpdateNodePositionWithJSON, KratosCSharpWrapperApplicationFastSuite)
-        {
+        KRATOS_TEST_CASE_IN_SUITE(CSharpWrapperUpdateNodePositionWithJSON, KratosCSharpWrapperApplicationFastSuite) {
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<Element>::Has("SmallDisplacementElement3D4N"))
                 return void();
@@ -207,13 +207,17 @@ namespace Kratos
             CreateJSONFile();
             const std::string file_name = OSUtilities::GetCurrentWorkingDir() + "/file.mdpa";
             const std::string file_name_json = OSUtilities::GetCurrentWorkingDir() + "/file.json";
-            CSharpKratosWrapper::CSharpInterface::init(file_name.c_str(), file_name_json.c_str());
+            CSharpKratosWrapper::KratosWrapper *wrapperInstance = new CSharpKratosWrapper::KratosWrapper();
+
+            wrapperInstance->init(file_name.c_str(), file_name_json.c_str());
+            CSharpKratosWrapper::ModelPartWrapper *mainModelPart = wrapperInstance->getRootModelPartWrapper();
 
             // Get some API info
-            float *x = CSharpKratosWrapper::CSharpInterface::getXCoordinates();
-            float *y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
-            float *z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
-//            int n = CSharpKratosWrapper::CSharpInterface::getNodesCount();
+            mainModelPart->retrieveResults();
+            float *x = mainModelPart->getXCoordinates();
+            float *y = mainModelPart->getYCoordinates();
+            float *z = mainModelPart->getZCoordinates();
+//            int n = mainModelPart->getNodesCount();
 
 //            const float float_epsilon = std::numeric_limits<float>::epsilon();
 
@@ -225,10 +229,11 @@ namespace Kratos
 //             }
 
             // None fixed
-            CSharpKratosWrapper::CSharpInterface::calculate();
-            x = CSharpKratosWrapper::CSharpInterface::getXCoordinates();
-            y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
-            z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
+            wrapperInstance->calculate();
+            mainModelPart->retrieveResults();
+            x = mainModelPart->getXCoordinates();
+            y = mainModelPart->getYCoordinates();
+            z = mainModelPart->getZCoordinates();
 
 //             KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
 //             KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
@@ -244,15 +249,16 @@ namespace Kratos
 //             KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
 
             // All fixed
-            CSharpKratosWrapper::CSharpInterface::updateNodePos(0, x[0], y[0], z[0]);
-            CSharpKratosWrapper::CSharpInterface::updateNodePos(1, x[1], y[1], z[1]);
-            CSharpKratosWrapper::CSharpInterface::updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
-            CSharpKratosWrapper::CSharpInterface::updateNodePos(3, x[3], y[3], z[3]);
+            mainModelPart->updateNodePos(0, x[0], y[0], z[0]);
+            mainModelPart->updateNodePos(1, x[1], y[1], z[1]);
+            mainModelPart->updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
+            mainModelPart->updateNodePos(3, x[3], y[3], z[3]);
 
-            CSharpKratosWrapper::CSharpInterface::calculate();
-            x = CSharpKratosWrapper::CSharpInterface::getXCoordinates();
-            y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
-            z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
+            wrapperInstance->calculate();
+            mainModelPart->retrieveResults();
+            x = mainModelPart->getXCoordinates();
+            y = mainModelPart->getYCoordinates();
+            z = mainModelPart->getZCoordinates();
 
 //             KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
 //             KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
@@ -268,14 +274,15 @@ namespace Kratos
 //             KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
 
             // Partially fixed
-            CSharpKratosWrapper::CSharpInterface::updateNodePos(0, x[0], y[0], z[0]);
-            CSharpKratosWrapper::CSharpInterface::updateNodePos(1, x[1], y[1], z[1]);
-            CSharpKratosWrapper::CSharpInterface::updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
+            mainModelPart->updateNodePos(0, x[0], y[0], z[0]);
+            mainModelPart->updateNodePos(1, x[1], y[1], z[1]);
+            mainModelPart->updateNodePos(2, x[2], y[2] + 1.0e-8, z[2]);
 
-            CSharpKratosWrapper::CSharpInterface::calculate();
-            x = CSharpKratosWrapper::CSharpInterface::getXCoordinates();
-            y = CSharpKratosWrapper::CSharpInterface::getYCoordinates();
-            z = CSharpKratosWrapper::CSharpInterface::getZCoordinates();
+            wrapperInstance->calculate();
+            mainModelPart->retrieveResults();
+            x = mainModelPart->getXCoordinates();
+            y = mainModelPart->getYCoordinates();
+            z = mainModelPart->getZCoordinates();
 
 //             KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
 //             KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);

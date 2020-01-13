@@ -1,6 +1,6 @@
 import KratosMultiphysics
 from KratosMultiphysics.DEMApplication import *
-import DEM_analysis_stage
+import KratosMultiphysics.DEMApplication.DEM_analysis_stage as DEM_analysis_stage
 
 
 class TimeStepTester(object):

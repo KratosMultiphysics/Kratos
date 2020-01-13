@@ -16,7 +16,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/define_python.h"
-#include "custom_utilities/process_factory_utility.h"
+#include "custom_python/process_factory_utility.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "spaces/ublas_space.h"
 
@@ -24,6 +24,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/custom_strategies/line_search_contact_strategy.h"
 #include "custom_strategies/custom_strategies/residualbased_newton_raphson_contact_strategy.h"
+#include "custom_strategies/custom_strategies/residualbased_newton_raphson_mpc_contact_strategy.h"
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
@@ -46,11 +47,11 @@
 #include "custom_strategies/custom_convergencecriterias/displacement_lagrangemultiplier_residual_contact_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/displacement_lagrangemultiplier_residual_frictional_contact_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/contact_error_mesh_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/mpc_contact_criteria.h"
 
 // Builders and solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_constraints_elementwise.h"
 #include "custom_strategies/custom_builder_and_solvers/contact_residualbased_block_builder_and_solver.h"
 #include "custom_strategies/custom_builder_and_solvers/contact_residualbased_elimination_builder_and_solver.h"
 #include "custom_strategies/custom_builder_and_solvers/contact_residualbased_elimination_builder_and_solver_with_constraints.h"
@@ -83,6 +84,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Custom strategy types
     typedef ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedNewtonRaphsonContactStrategyType;
     typedef LineSearchContactStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  LineSearchContactStrategyType;
+    typedef ResidualBasedNewtonRaphsonMPCContactStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedNewtonRaphsonMPCContactStrategyType;
 
     // Custom scheme types
 
@@ -103,16 +105,15 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef DisplacementLagrangeMultiplierResidualContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierResidualContactCriteriaType;
     typedef DisplacementLagrangeMultiplierResidualFrictionalContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierResidualFrictionalContactCriteriaType;
     typedef ContactErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ContactErrorMeshCriteriaType;
+    typedef MPCContactCriteria< SparseSpaceType,  LocalSpaceType > MPCContactCriteriaType;
 
     // Linear solvers
 
     // Custom builder and solvers types
     typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
-    typedef ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithConstraintsElementWiseType;
     typedef ContactResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, ResidualBasedBlockBuilderAndSolverType > ContactResidualBasedBlockBuilderAndSolverType;
     typedef ContactResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ContactResidualBasedEliminationBuilderAndSolverType;
     typedef ContactResidualBasedEliminationBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ContactResidualBasedEliminationBuilderAndSolverWithConstraintsType;
-    typedef ContactResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, ResidualBasedBlockBuilderAndSolverWithConstraintsElementWiseType > ContactResidualBasedBlockBuilderAndSolverWithConstraintsElementWiseType;
 
     //********************************************************************
     //*************************STRATEGY CLASSES***************************
@@ -144,6 +145,16 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("GetMaxIterationNumber", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
         .def("SetKeepSystemConstantDuringIterations", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
         .def("GetKeepSystemConstantDuringIterations", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
+        ;
+
+    // Residual Based Newton Raphson Contact Strategy
+    py::class_< ResidualBasedNewtonRaphsonMPCContactStrategyType, typename ResidualBasedNewtonRaphsonMPCContactStrategyType::Pointer, BaseSolvingStrategyType  >  (m, "ResidualBasedNewtonRaphsonMPCContactStrategy")
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
+        .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonMPCContactStrategyType::SetMaxIterationNumber)
+        .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonMPCContactStrategyType::GetMaxIterationNumber)
+        .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonMPCContactStrategyType::SetKeepSystemConstantDuringIterations)
+        .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonMPCContactStrategyType::GetKeepSystemConstantDuringIterations)
         ;
 
     //********************************************************************
@@ -249,10 +260,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         (m, "DisplacementLagrangeMultiplierFrictionalContactCriteria")
         .def(py::init<>())
         .def(py::init<Parameters>())
-        .def(py::init< double, double, double, double, double, double, double >())
-        .def(py::init< double, double, double, double, double, double, double , bool >())
-        .def(py::init< double, double, double, double, double, double, double , bool, bool >())
-        .def(py::init< double, double, double, double, double, double, double , bool, bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double, double, double >())
+        .def(py::init< double, double, double, double, double, double, double, double, double, bool >())
+        .def(py::init< double, double, double, double, double, double, double, double, double, bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double, double, double, bool, bool, bool >())
         ;
 
     // Displacement and lagrange multiplier mixed Convergence Criterion
@@ -272,10 +283,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         (m, "DisplacementLagrangeMultiplierMixedFrictionalContactCriteria")
         .def(py::init<>())
         .def(py::init<Parameters>())
-        .def(py::init< double, double, double, double, double, double, double >())
-        .def(py::init< double, double, double, double, double, double, double, bool >())
-        .def(py::init< double, double, double, double, double, double, double, bool, bool >())
-        .def(py::init< double, double, double, double, double, double, double, bool, bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double, double, double >())
+        .def(py::init< double, double, double, double, double, double, double, double, double, bool >())
+        .def(py::init< double, double, double, double, double, double, double, double, double, bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double, double, double, bool, bool, bool >())
         ;
 
     // Displacement residual Convergence Criterion
@@ -305,16 +316,21 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         (m, "DisplacementLagrangeMultiplierResidualFrictionalContactCriteria")
         .def(py::init<>())
         .def(py::init<Parameters>())
-        .def(py::init< double, double, double, double, double, double, double >())
-        .def(py::init< double, double, double, double, double, double, double , bool >())
-        .def(py::init< double, double, double, double, double, double, double , bool, bool >())
-        .def(py::init< double, double, double, double, double, double, double , bool, bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double, double, double >())
+        .def(py::init< double, double, double, double, double, double, double, double, double , bool >())
+        .def(py::init< double, double, double, double, double, double, double, double, double , bool, bool >())
+        .def(py::init< double, double, double, double, double, double, double, double, double , bool, bool, bool >())
         ;
 
     // Error mesh Convergence Criterion
     py::class_< ContactErrorMeshCriteriaType, typename ContactErrorMeshCriteriaType::Pointer, ConvergenceCriteriaType >(m, "ContactErrorMeshCriteria")
-    .def(py::init<Parameters>())
-    ;
+        .def(py::init<Parameters>())
+        ;
+
+    // Contact convergence criteria
+    py::class_< MPCContactCriteriaType, typename MPCContactCriteriaType::Pointer, ConvergenceCriteriaType > (m, "MPCContactCriteria")
+        .def(py::init< >())
+        ;
 
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
@@ -330,10 +346,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Contact elimination builder and sokver with constraints
     py::class_< ContactResidualBasedEliminationBuilderAndSolverWithConstraintsType, ContactResidualBasedEliminationBuilderAndSolverWithConstraintsType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedEliminationBuilderAndSolverWithConstraints")
-    .def(py::init< LinearSolverType::Pointer > ());
-
-    // Contact block buiklder and sokver with constraints
-    py::class_< ContactResidualBasedBlockBuilderAndSolverWithConstraintsElementWiseType, ContactResidualBasedBlockBuilderAndSolverWithConstraintsElementWiseType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedBlockBuilderAndSolverWithConstraintsElementWise")
     .def(py::init< LinearSolverType::Pointer > ());
 }
 

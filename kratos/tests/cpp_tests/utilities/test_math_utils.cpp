@@ -249,7 +249,8 @@ namespace Kratos
 
             BoundedMatrix<double, 3, 3> inv33;
             MathUtils<double>::InvertMatrix(mat33, inv33, det);
-            const BoundedMatrix<double, 3, 3> I33 = prod(inv33, mat33);
+            BoundedMatrix<double, 3, 3> I33 = ZeroMatrix(3, 3);
+            noalias(I33) = prod(inv33, mat33);
 
             for (unsigned int i = 0; i < 3; i++) {
                 for (unsigned int j = 0; j < 3; j++) {
@@ -281,7 +282,8 @@ namespace Kratos
 
             BoundedMatrix<double, 4, 4> inv44;
             MathUtils<double>::InvertMatrix(mat44, inv44, det);
-            const BoundedMatrix<double, 4, 4> I44 = prod(inv44, mat44);
+            BoundedMatrix<double, 4, 4> I44 = ZeroMatrix(4, 4);
+            noalias(I44) = prod(inv44, mat44);
 
             for (unsigned int i = 0; i < 4; i++) {
                 for (unsigned int j = 0; j < 4; j++) {
@@ -749,9 +751,11 @@ namespace Kratos
 
             MathUtils<double>::CrossProduct(c, b, a);
             MathUtils<double>::UnitCrossProduct(d, b, a);
+            array_1d<double,3> e = MathUtils<double>::CrossProduct(b, a);
 
             KRATOS_CHECK_EQUAL(c[2], 2.0);
             KRATOS_CHECK_EQUAL(d[2], 1.0);
+            KRATOS_CHECK_EQUAL(e[2], 2.0);
         }
 
         /** Checks if it calculates the orthonormal base
@@ -834,4 +838,3 @@ namespace Kratos
 
     } // namespace Testing
 }  // namespace Kratos.
-

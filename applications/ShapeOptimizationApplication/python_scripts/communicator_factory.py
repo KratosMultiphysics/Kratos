@@ -39,6 +39,13 @@ class Communicator:
         self.__deleteAllReportedValues()
 
     # --------------------------------------------------------------------------
+    def updateRequest(self, response_id, **kwargs):
+        if "request_value" in kwargs.keys():
+            self.list_of_requests[response_id]["calculateValue"] = kwargs["request_value"]
+        if "request_gradient" in kwargs.keys():
+            self.list_of_requests[response_id]["calculateGradient"] = kwargs["request_gradient"]
+
+    # --------------------------------------------------------------------------
     def requestValueOf(self, response_id):
         self.list_of_requests[response_id]["calculateValue"] = True
 
@@ -162,19 +169,19 @@ class Communicator:
                 raise RuntimeError("Unsupported reference defined for the following constraint: " + constraint_id)
 
             if  constraint["reference"].GetString() == "specified_value":
-                self.list_of_responses[constraint_id] = { "type"                 : constraint["type"].GetString(),
-                                                          "value"                : None,
-                                                          "scaling_factor"       : constraint["scaling_factor"].GetDouble(),
-                                                          "standardized_value"   : None,
-                                                          "standardized_gradient": None,
-                                                          "reference_value"      : constraint["reference_value"].GetDouble() }
+                list_of_constraints[constraint_id] = { "type"                 : constraint["type"].GetString(),
+                                                        "value"                : None,
+                                                        "scaling_factor"       : constraint["scaling_factor"].GetDouble(),
+                                                        "standardized_value"   : None,
+                                                        "standardized_gradient": None,
+                                                        "reference_value"      : constraint["reference_value"].GetDouble() }
             elif constraint["reference"].GetString() == "initial_value":
-                self.list_of_responses[constraint_id] = { "type"                 : constraint["type"].GetString(),
-                                                          "value"                : None,
-                                                          "scaling_factor"       : constraint["scaling_factor"].GetDouble(),
-                                                          "standardized_value"   : None,
-                                                          "standardized_gradient": None,
-                                                          "reference_value"      : None }
+                list_of_constraints[constraint_id] = { "type"                 : constraint["type"].GetString(),
+                                                        "value"                : None,
+                                                        "scaling_factor"       : constraint["scaling_factor"].GetDouble(),
+                                                        "standardized_value"   : None,
+                                                        "standardized_gradient": None,
+                                                        "reference_value"      : None }
             else:
                 raise RuntimeError("Unsupported reference defined for the following constraint: " + constraint_id)
 
@@ -196,11 +203,9 @@ class Communicator:
     # --------------------------------------------------------------------------
     def __isResponseWaitingForInitialValueAsReference(self, response_id):
         response = self.list_of_responses[response_id]
-        is_reference_defined = "reference" in response
-        if is_reference_defined:
-            is_reference_initial_value = (response["reference"].GetString() == "initial_value")
+        if "reference_value" in response:
             is_reference_value_missing = (response["reference_value"] is None)
-            if is_reference_initial_value and is_reference_value_missing:
+            if is_reference_value_missing:
                 return True
         return False
 

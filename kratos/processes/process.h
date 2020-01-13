@@ -14,19 +14,16 @@
 #if !defined(KRATOS_PROCESS_H_INCLUDED )
 #define  KRATOS_PROCESS_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -34,13 +31,21 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// The base class for all processes in Kratos.
-/** The process is the base class for all processes and defines a simple interface for them.
+// Some forward declarations to avoid increase a lot the compilation time
+class Model;
+
+/**
+ * @class Process
+ * @ingroup KratosCore
+ * @brief The base class for all processes in Kratos.
+ * @details The process is the base class for all processes and defines a simple interface for them.
     Execute method is used to execute the Process algorithms. While the parameters of this method
   can be very different from one Process to other there is no way to create enough overridden
   versions of it. For this reason this method takes no argument and all Process parameters must
   be passed at construction time. The reason is that each constructor can take different set of
   argument without any dependency to other processes or the base Process class.
+  @author Pooyan Dadvand
+  @author Riccardo Rossi
 */
 class Process : public Flags
 {
@@ -78,53 +83,86 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This method creates an pointer of the process
+     * @details We consider as input a Mmodel and a set of Parameters for the sake of generality
+     * @warning Must be overrided in each process implementation
+     * @param rModel The model to be consider
+     * @param ThisParameters The configuration parameters
+     */
+    virtual Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters
+        )
+    {
+        KRATOS_ERROR << "Calling base class create. Please override this method in the corresonding Process" << std::endl;
+        return nullptr;
+    }
 
-    /// Execute method is used to execute the Process algorithms.
+    /**
+     * @brief Execute method is used to execute the Process algorithms.
+     */
     virtual void Execute() {}
 
-    /// this function is designed for being called at the beginning of the computations
-    /// right after reading the model and the groups
+    /**
+     * @brief This function is designed for being called at the beginning of the computations
+     * right after reading the model and the groups
+     */
     virtual void ExecuteInitialize()
     {
     }
 
-    /// this function is designed for being execute once before the solution loop but after all of the
-    /// solvers where built
+    /**
+     * @brief This function is designed for being execute once before the solution loop but after
+     * all of the solvers where built
+     */
     virtual void ExecuteBeforeSolutionLoop()
     {
     }
 
 
-    /// this function will be executed at every time step BEFORE performing the solve phase
+    /**
+     * @brief This function will be executed at every time step BEFORE performing the solve phase
+     */
     virtual void ExecuteInitializeSolutionStep()
     {
     }
 
-    /// this function will be executed at every time step AFTER performing the solve phase
+    /**
+     * @brief This function will be executed at every time step AFTER performing the solve phase
+     */
     virtual void ExecuteFinalizeSolutionStep()
     {
     }
 
 
-    /// this function will be executed at every time step BEFORE  writing the output
+    /**
+     * @brief This function will be executed at every time step BEFORE  writing the output
+     */
     virtual void ExecuteBeforeOutputStep()
     {
     }
 
 
-    /// this function will be executed at every time step AFTER writing the output
+    /**
+     * @brief This function will be executed at every time step AFTER writing the output
+     */
     virtual void ExecuteAfterOutputStep()
     {
     }
 
 
-    /// this function is designed for being called at the end of the computations
+    /**
+     * @brief This function is designed for being called at the end of the computations
+     */
     virtual void ExecuteFinalize()
     {
     }
 
-    /// this function is designed for being called after ExecuteInitialize ONCE to
-    /// verify that the input is correct.
+    /**
+     * @brief This function is designed for being called after ExecuteInitialize ONCE
+     * to verify that the input is correct.
+     */
     virtual int Check()
     {
         return 0;

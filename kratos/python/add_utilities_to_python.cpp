@@ -38,7 +38,6 @@
 #include "includes/global_pointer_variables.h"
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
-#include "utilities/divide_elem_utils.h"
 #include "utilities/timer.h"
 
 #include "utilities/binbased_fast_point_locator.h"
@@ -59,6 +58,7 @@
 #include "utilities/sensitivity_builder.h"
 #include "utilities/auxiliar_model_part_utilities.h"
 #include "utilities/time_discretization.h"
+#include "utilities/geometrical_transformation_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -334,6 +334,55 @@ void PrintTimingInformation(Timer& rTimer)
     rTimer.PrintTimingInformation();
 }
 
+void ComputeNodesTangentModelPartWithSlipVariable(
+    ModelPart& rModelPart,
+    const Variable<array_1d<double, 3>>& rSlipVariable,
+    const double SlipCoefficient,
+    const bool SlipAlways
+    )
+{
+    MortarUtilities::ComputeNodesTangentModelPart(rModelPart, &rSlipVariable, SlipCoefficient, SlipAlways);
+}
+
+void ComputeNodesTangentModelPartWithOutSlipVariable(
+    ModelPart& rModelPart,
+    const double SlipCoefficient,
+    const bool SlipAlways
+    )
+{
+    MortarUtilities::ComputeNodesTangentModelPart(rModelPart, NULL, SlipCoefficient, SlipAlways);
+}
+
+void ComputeNodesTangentModelPartWithSlipVariableNotAlwaysSlip(
+    ModelPart& rModelPart,
+    const Variable<array_1d<double, 3>>& rSlipVariable,
+    const double SlipCoefficient
+    )
+{
+    MortarUtilities::ComputeNodesTangentModelPart(rModelPart, &rSlipVariable, SlipCoefficient, false);
+}
+
+void ComputeNodesTangentModelPartWithOutSlipVariableNotAlwaysSlip(
+    ModelPart& rModelPart,
+    const double SlipCoefficient
+    )
+{
+    MortarUtilities::ComputeNodesTangentModelPart(rModelPart, NULL, SlipCoefficient, false);
+}
+
+void ComputeNodesTangentModelPartWithSlipVariableNotAlwaysSlipUnitary(
+    ModelPart& rModelPart,
+    const Variable<array_1d<double, 3>>& rSlipVariable
+    )
+{
+    MortarUtilities::ComputeNodesTangentModelPart(rModelPart, &rSlipVariable, 1.0, false);
+}
+
+void ComputeNodesTangentModelPartWithOutSlipVariableNotAlwaysSlipUnitary(ModelPart& rModelPart)
+{
+    MortarUtilities::ComputeNodesTangentModelPart(rModelPart, NULL, 1.0, false);
+}
+
 void AddUtilitiesToPython(pybind11::module &m)
 {
     namespace py = pybind11;
@@ -375,7 +424,7 @@ void AddUtilitiesToPython(pybind11::module &m)
     InputGetConditionNumber ThisGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
     DirectGetConditionNumber ThisDirectGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
 
-    py::class_<ConditionNumberUtility>(m,"ConditionNumberUtility")
+    py::class_<ConditionNumberUtility,ConditionNumberUtility::Pointer>(m,"ConditionNumberUtility")
         .def(py::init<>())
         .def(py::init<LinearSolverType::Pointer, LinearSolverType::Pointer>())
         .def("GetConditionNumber", ThisGetConditionNumber)
@@ -424,53 +473,48 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<array_1d<double, 9>>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<Vector>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<Matrix>>)
-        .def("SetVectorVar", VariableUtilsSetVariable<array_1d<double, 3>>)                                                                                                             // To be removed
-        .def("SetVectorVar", VariableUtilsSetVariableForFlag<array_1d<double, 3>>)                                                                                                      // To be removed
-        .def("SetScalarVar", VariableUtilsSetVariable<double>)                                                                                                                          // To be removed
-        .def("SetScalarVar", VariableUtilsSetVariable<double, VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)                                                          // To be removed
-        .def("SetScalarVar", VariableUtilsSetVariable<double, VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)                                                          // To be removed
-        .def("SetScalarVar", VariableUtilsSetVariable<double, VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)                                                          // To be removed
-        .def("SetScalarVar", VariableUtilsSetVariable<double, VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)                                                          // To be removed
-        .def("SetScalarVar", VariableUtilsSetVariableForFlag<double>)                                                                                                                   // To be removed
-        .def("SetScalarVar", VariableUtilsSetVariableForFlag<double, VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)                                                   // To be removed
-        .def("SetScalarVar", VariableUtilsSetVariableForFlag<double, VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)                                                   // To be removed
-        .def("SetScalarVar", VariableUtilsSetVariableForFlag<double, VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)                                                   // To be removed
-        .def("SetScalarVar", VariableUtilsSetVariableForFlag<double, VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)                                                   // To be removed
-        .def("SetNonHistoricalScalarVar", VariableUtilsSetNonHistoricalVariable<double, ModelPart::NodesContainerType>)                                                                 // To be removed
-        .def("SetNonHistoricalScalarVar", VariableUtilsSetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>) // To be removed
-        .def("SetNonHistoricalScalarVar", VariableUtilsSetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>) // To be removed
-        .def("SetNonHistoricalScalarVar", VariableUtilsSetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>) // To be removed
-        .def("SetNonHistoricalScalarVar", VariableUtilsSetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>) // To be removed
-        .def("SetNonHistoricalVectorVar", VariableUtilsSetNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)                                                    // To be removed
-        .def("SetVariable", VariableUtilsSetVariable<bool>)
-        .def("SetVariable", VariableUtilsSetVariable<double>)
-        .def("SetVariable", VariableUtilsSetVariable<double, VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
-        .def("SetVariable", VariableUtilsSetVariable<double, VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
-        .def("SetVariable", VariableUtilsSetVariable<double, VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
-        .def("SetVariable", VariableUtilsSetVariable<double, VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
-        .def("SetVariable", VariableUtilsSetVariable<array_1d<double, 3>>)
-        .def("SetVariable", VariableUtilsSetVariable<array_1d<double, 4>>)
-        .def("SetVariable", VariableUtilsSetVariable<array_1d<double, 6>>)
-        .def("SetVariable", VariableUtilsSetVariable<array_1d<double, 9>>)
-        .def("SetVariable", VariableUtilsSetVariable<Vector>)
-        .def("SetVariable", VariableUtilsSetVariable<Matrix>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<bool>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<double>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<double, VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<double, VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<double, VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<double, VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<array_1d<double, 3>>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<array_1d<double, 4>>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<array_1d<double, 6>>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<array_1d<double, 9>>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<Vector>)
-        .def("SetVariable", VariableUtilsSetVariableForFlag<Matrix>)
+        .def("SetVectorVar", &VariableUtils::SetVectorVar)
+        .def("SetVectorVar", &VariableUtils::SetVectorVarForFlag)
+        .def("SetScalarVar", &VariableUtils::SetScalarVar<Variable<double>>)
+        .def("SetScalarVar", &VariableUtils::SetScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SetScalarVar", &VariableUtils::SetScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
+        .def("SetScalarVar", &VariableUtils::SetScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
+        .def("SetScalarVar", &VariableUtils::SetScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
+        .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<Variable<double>>)
+        .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
+        .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
+        .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<int, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
+        .def("SetNonHistoricalVectorVar", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)
+        .def("SetVariable", &VariableUtils::SetVariable<int>)
+        .def("SetVariable", &VariableUtils::SetVariable<bool>)
+        .def("SetVariable", &VariableUtils::SetVariable<double>)
+        .def("SetVariable", &VariableUtils::SetVariable<array_1d<double, 3>>)
+        .def("SetVariable", &VariableUtils::SetVariable<Vector>)
+        .def("SetVariable", &VariableUtils::SetVariable<Matrix>)
+        .def("SetVariable", &VariableUtils::SetVariableForFlag<bool>)
+        .def("SetVariable", &VariableUtils::SetVariableForFlag<double>)
+        .def("SetVariable", &VariableUtils::SetVariableForFlag<array_1d<double, 3>>)
+        .def("SetVariable", &VariableUtils::SetVariableForFlag<array_1d<double, 4>>)
+        .def("SetVariable", &VariableUtils::SetVariableForFlag<array_1d<double, 6>>)
+        .def("SetVariable", &VariableUtils::SetVariableForFlag<array_1d<double, 9>>)
+        .def("SetVariable", &VariableUtils::SetVariableForFlag<Vector>)
+        .def("SetVariable", &VariableUtils::SetVariableForFlag<Matrix>)
+        .def("SetHistoricalVariableToZero", &VariableUtils::SetHistoricalVariableToZero<int>)
         .def("SetHistoricalVariableToZero", &VariableUtils::SetHistoricalVariableToZero<double>)
         .def("SetHistoricalVariableToZero", &VariableUtils::SetHistoricalVariableToZero<array_1d<double, 3>>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<int, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<double, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<double, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<int, ModelPart::ElementsContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<double, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<int, ModelPart::ConditionsContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<double, ModelPart::MasterSlaveConstraintContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 3>, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 3>, ModelPart::ElementsContainerType>)
@@ -488,57 +532,55 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 9>, ModelPart::ElementsContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 9>, ModelPart::ConditionsContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 9>, ModelPart::MasterSlaveConstraintContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<bool, ModelPart::NodesContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<array_1d<double, 4>, ModelPart::NodesContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<array_1d<double, 6>, ModelPart::NodesContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<array_1d<double, 9>, ModelPart::NodesContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<Vector, ModelPart::NodesContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<Matrix, ModelPart::NodesContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<bool, ModelPart::ConditionsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<double, ModelPart::ConditionsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<double, ModelPart::ConditionsContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<array_1d<double, 3>, ModelPart::ConditionsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<array_1d<double, 4>, ModelPart::ConditionsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<array_1d<double, 6>, ModelPart::ConditionsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<array_1d<double, 9>, ModelPart::ConditionsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<Vector, ModelPart::ConditionsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<Matrix, ModelPart::ConditionsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<bool, ModelPart::ElementsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<double, ModelPart::ElementsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<double, ModelPart::ElementsContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<array_1d<double, 3>, ModelPart::ElementsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<array_1d<double, 4>, ModelPart::ElementsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<array_1d<double, 6>, ModelPart::ElementsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<array_1d<double, 9>, ModelPart::ElementsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<Vector, ModelPart::ElementsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariable<Matrix, ModelPart::ElementsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<bool, ModelPart::NodesContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<double, ModelPart::NodesContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<array_1d<double, 3>, ModelPart::NodesContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<array_1d<double, 4>, ModelPart::NodesContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<array_1d<double, 6>, ModelPart::NodesContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<array_1d<double, 9>, ModelPart::NodesContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<Vector, ModelPart::NodesContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<Matrix, ModelPart::NodesContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<bool, ModelPart::ConditionsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<double, ModelPart::ConditionsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<array_1d<double, 3>, ModelPart::ConditionsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<array_1d<double, 4>, ModelPart::ConditionsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<array_1d<double, 6>, ModelPart::ConditionsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<array_1d<double, 9>, ModelPart::ConditionsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<Vector, ModelPart::ConditionsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<Matrix, ModelPart::ConditionsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<bool, ModelPart::ElementsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<double, ModelPart::ElementsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<array_1d<double, 3>, ModelPart::ElementsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<array_1d<double, 4>, ModelPart::ElementsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<array_1d<double, 6>, ModelPart::ElementsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<array_1d<double, 9>, ModelPart::ElementsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<Vector, ModelPart::ElementsContainerType>)
-        .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<Matrix, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<int, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<bool, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 4>, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 6>, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 9>, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<Vector, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<Matrix, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<bool, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 3>, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 4>, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 6>, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 9>, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<Vector, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<Matrix, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<bool, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 3>, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 4>, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 6>, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 9>, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<Vector, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<Matrix, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<bool, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<double, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<array_1d<double, 3>, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<array_1d<double, 4>, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<array_1d<double, 6>, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<array_1d<double, 9>, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<Vector, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<Matrix, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<bool, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<double, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<array_1d<double, 3>, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<array_1d<double, 4>, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<array_1d<double, 6>, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<array_1d<double, 9>, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<Vector, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<Matrix, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<bool, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<double, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<array_1d<double, 3>, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<array_1d<double, 4>, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<array_1d<double, 6>, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<array_1d<double, 9>, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<Vector, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<Matrix, ModelPart::ElementsContainerType>)
         .def("ClearNonHistoricalData", &VariableUtils::ClearNonHistoricalData<ModelPart::NodesContainerType>)
         .def("ClearNonHistoricalData", &VariableUtils::ClearNonHistoricalData<ModelPart::ConditionsContainerType>)
         .def("ClearNonHistoricalData", &VariableUtils::ClearNonHistoricalData<ModelPart::ElementsContainerType>)
@@ -780,11 +822,6 @@ void AddUtilitiesToPython(pybind11::module &m)
 //                             .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<3>::FindMaximumEdgeSize )
 //             ;
 
-    py::class_<DivideElemUtils >(m,"DivideElemUtils")
-        .def(py::init<>())
-        .def("DivideElement_2D", &DivideElemUtils::DivideElement_2D)
-        ;
-
     py::class_<Timer >(m,"Timer")
         .def(py::init<>())
         .def_property("PrintOnScreen", &Timer::GetPrintOnScreen, &Timer::SetPrintOnScreen)
@@ -976,9 +1013,19 @@ void AddUtilitiesToPython(pybind11::module &m)
         ;
 
     // Mortar utilities
-    m.def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart);
-    m.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Element, IndexedObject>>);
-    m.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>);
+    auto mortar_utilities = m.def_submodule("MortarUtilities");
+    mortar_utilities.def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart);
+    mortar_utilities.def("ComputeNodesTangentFromNormalModelPart",&MortarUtilities::ComputeNodesTangentFromNormalModelPart);
+    mortar_utilities.def("ComputeNodesTangentModelPart",ComputeNodesTangentModelPartWithSlipVariable);
+    mortar_utilities.def("ComputeNodesTangentModelPart",ComputeNodesTangentModelPartWithOutSlipVariable);
+    mortar_utilities.def("ComputeNodesTangentModelPart",ComputeNodesTangentModelPartWithSlipVariableNotAlwaysSlip);
+    mortar_utilities.def("ComputeNodesTangentModelPart",ComputeNodesTangentModelPartWithOutSlipVariableNotAlwaysSlip);
+    mortar_utilities.def("ComputeNodesTangentModelPart",ComputeNodesTangentModelPartWithSlipVariableNotAlwaysSlipUnitary);
+    mortar_utilities.def("ComputeNodesTangentModelPart",ComputeNodesTangentModelPartWithOutSlipVariableNotAlwaysSlipUnitary);
+    mortar_utilities.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Element, IndexedObject>>);
+    mortar_utilities.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>);
+    mortar_utilities.def("InvertNormal",&MortarUtilities::InvertNormalForFlag<PointerVectorSet<Element, IndexedObject>>);
+    mortar_utilities.def("InvertNormal",&MortarUtilities::InvertNormalForFlag<PointerVectorSet<Condition, IndexedObject>>);
 
     // Read materials utility
     py::class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")
@@ -1056,7 +1103,7 @@ void AddUtilitiesToPython(pybind11::module &m)
 
     py::class_<TimeDiscretization::BDF>(mod_time_discretization, "BDF")
         .def(py::init<const unsigned int>())
-        .def("GetTimeOrder", (const unsigned int (TimeDiscretization::BDF::*)() const) & TimeDiscretization::BDF::GetTimeOrder)
+        .def("GetTimeOrder", (unsigned int (TimeDiscretization::BDF::*)() const) & TimeDiscretization::BDF::GetTimeOrder)
         .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF::*)(double) const) & TimeDiscretization::BDF::ComputeBDFCoefficients)
         .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF::*)(double, double) const) & TimeDiscretization::BDF::ComputeBDFCoefficients)
         .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF::*)(const ProcessInfo &) const) & TimeDiscretization::BDF::ComputeBDFCoefficients)
@@ -1138,6 +1185,11 @@ void AddUtilitiesToPython(pybind11::module &m)
     mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeNewmark );
     mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeBossak );
     mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeGeneralizedAlpha );
+
+    // GeometricalTransformationUtilities
+    auto mod_geom_trans_utils = m.def_submodule("GeometricalTransformationUtilities");
+    mod_geom_trans_utils.def("CalculateTranslationMatrix", &GeometricalTransformationUtilities::CalculateTranslationMatrix );
+    mod_geom_trans_utils.def("CalculateRotationMatrix", &GeometricalTransformationUtilities::CalculateRotationMatrix );
 }
 
 } // namespace Python.

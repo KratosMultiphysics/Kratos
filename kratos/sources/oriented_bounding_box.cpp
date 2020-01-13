@@ -17,6 +17,7 @@
 // Project includes
 #include "includes/oriented_bounding_box.h"
 #include "utilities/math_utils.h"
+#include "utilities/mortar_utilities.h"
 #include "utilities/intersection_utilities.h"
 
 namespace Kratos
@@ -54,7 +55,8 @@ OrientedBoundingBox<TDim>::OrientedBoundingBox(
 template<>
 OrientedBoundingBox<2>::OrientedBoundingBox(
     const GeometryType& rGeometry,
-    const double BoundingBoxFactor
+    const double BoundingBoxFactor,
+    const bool BuildFromBoundingBox
     )
 {
     // Check the intersection of each edge of the object bounding box against the intersecting object bounding box
@@ -64,14 +66,14 @@ OrientedBoundingBox<2>::OrientedBoundingBox(
     // Creating OBB
     noalias(mOrientationVectors[0]) = geometry_high_node - geometry_low_node;
     const double norm_orientation_vectors = norm_2(mOrientationVectors[0]);
-    if (norm_orientation_vectors > std::numeric_limits<double>::epsilon())
+    if (norm_orientation_vectors > ZeroTolerance)
         mOrientationVectors[0] /= norm_orientation_vectors;
     else
         KRATOS_ERROR << "Zero norm on OrientedBoundingBox direction" << std::endl;
     mOrientationVectors[1][0] = mOrientationVectors[0][1];
     mOrientationVectors[1][1] = - mOrientationVectors[0][0];
     mOrientationVectors[1][2] = 0.0;
-    mPointCenter = 0.5 * (geometry_low_node.Coordinates() + geometry_high_node.Coordinates());
+    noalias(mPointCenter) = 0.5 * (geometry_low_node.Coordinates() + geometry_high_node.Coordinates());
     mHalfLength[0] = 0.5 * norm_orientation_vectors + BoundingBoxFactor;
     mHalfLength[1] = BoundingBoxFactor;
 }
@@ -82,22 +84,57 @@ OrientedBoundingBox<2>::OrientedBoundingBox(
 template<>
 OrientedBoundingBox<3>::OrientedBoundingBox(
     const GeometryType& rGeometry,
-    const double BoundingBoxFactor
+    const double BoundingBoxFactor,
+    const bool BuildFromBoundingBox
     )
 {
-    // Check the intersection of each face of the object bounding box against the intersecting object bounding box
-    NodeType geometry_low_node, geometry_high_node;
-    rGeometry.BoundingBox(geometry_low_node, geometry_high_node);
+    if (BuildFromBoundingBox || rGeometry.WorkingSpaceDimension() == rGeometry.LocalSpaceDimension()) {
+        // Check the intersection of each face of the object bounding box against the intersecting object bounding box
+        NodeType geometry_low_node, geometry_high_node;
+        rGeometry.BoundingBox(geometry_low_node, geometry_high_node);
 
-    // Creating OBB
-    noalias(mOrientationVectors[0]) = geometry_high_node - geometry_low_node;
-    const double norm_mOrientationVectors = norm_2(mOrientationVectors[0]);
-    if (norm_mOrientationVectors > std::numeric_limits<double>::epsilon())
-        mOrientationVectors[0] /= norm_mOrientationVectors;
-    else
-        KRATOS_ERROR << "Zero norm on OrientedBoundingBox direction" << std::endl;
-    MathUtils<double>::OrthonormalBasis(mOrientationVectors[0], mOrientationVectors[1], mOrientationVectors[2]);
-    mPointCenter = rGeometry.Center().Coordinates();// 0.5 * (geometry_low_node.Coordinates() + geometry_high_node.Coordinates());
+        // Creating OBB
+        noalias(mOrientationVectors[0]) = geometry_high_node - geometry_low_node;
+        const double norm_mOrientationVectors = norm_2(mOrientationVectors[0]);
+        if (norm_mOrientationVectors > ZeroTolerance)
+            mOrientationVectors[0] /= norm_mOrientationVectors;
+        else
+            KRATOS_ERROR << "Zero norm in OrientedBoundingBox direction" << std::endl;
+        MathUtils<double>::OrthonormalBasis(mOrientationVectors[0], mOrientationVectors[1], mOrientationVectors[2]);
+
+        // Compute center
+        noalias(mPointCenter) = rGeometry.Center().Coordinates();// 0.5 * (geometry_low_node.Coordinates() + geometry_high_node.Coordinates());
+    } else { // Build from orthonormal base (only for surfaces)
+        // Compute the center, normal and base vectors
+        noalias(mPointCenter) = rGeometry.Center().Coordinates();
+        GeometryType::CoordinatesArrayType aux_coords;
+        rGeometry.PointLocalCoordinates(aux_coords, mPointCenter);
+        noalias(mOrientationVectors[0]) = rGeometry.UnitNormal(aux_coords);
+        MathUtils<double>::OrthonormalBasis(mOrientationVectors[0], mOrientationVectors[1], mOrientationVectors[2]);
+
+        // Getting the farest node
+        double distance = 0.0;
+        const Point center = rGeometry.Center();
+        Point aux_point;
+        IndexType aux_i_node;
+        for (IndexType i_node = 0; i_node < rGeometry.size(); ++i_node) {
+            noalias(aux_point.Coordinates()) = rGeometry[i_node].Coordinates();
+            MortarUtilities::RotatePoint(aux_point, center, mOrientationVectors[1], mOrientationVectors[2], false);
+            const double aux_distance = norm_2(aux_point.Coordinates()- mPointCenter);
+            if (distance < aux_distance) {
+                aux_i_node = i_node;
+                distance = aux_distance;
+            }
+        }
+
+        const array_1d<double, 3> aux_vector = mPointCenter - rGeometry[aux_i_node].Coordinates();
+        mOrientationVectors[1] = inner_prod(aux_vector, mOrientationVectors[1]) * mOrientationVectors[1] + inner_prod(aux_vector, mOrientationVectors[2]) * mOrientationVectors[2];
+        mOrientationVectors[1] /= norm_2(mOrientationVectors[1]);
+
+        // Construct  mOrientationVectors[2]  using a cross  product
+        MathUtils<double>::UnitCrossProduct(mOrientationVectors[2], mOrientationVectors[1] , mOrientationVectors[0]);
+    }
+
     double distance_0 = 0.0;
     double distance_1 = 0.0;
     double distance_2 = 0.0;
@@ -110,7 +147,6 @@ OrientedBoundingBox<3>::OrientedBoundingBox(
     mHalfLength[0] = distance_0 + BoundingBoxFactor;
     mHalfLength[1] = distance_1 + BoundingBoxFactor;
     mHalfLength[2] = distance_2 + BoundingBoxFactor;
-
 }
 
 /***********************************************************************************/
@@ -176,8 +212,8 @@ template<>
 bool OrientedBoundingBox<2>::IsInside(const OrientedBoundingBox<2>& rOtherOrientedBoundingBox)  const
 {
     // Signs
-    constexpr static std::array<double, 4> sign_components_X2D = {-1.0, 1.0, 1.0, -1.0};
-    constexpr static std::array<double, 4> sign_components_Y2D = {-1.0, -1.0, 1.0, 1.0};
+    constexpr static std::array<double, 4> sign_components_X2D = {{-1.0, 1.0, 1.0, -1.0}};
+    constexpr static std::array<double, 4> sign_components_Y2D = {{-1.0, -1.0, 1.0, 1.0}};
 
     // Getting nodes from second
     const auto& r_second_obb_center = rOtherOrientedBoundingBox.GetCenter();
@@ -218,9 +254,9 @@ bool OrientedBoundingBox<3>::IsInside(const OrientedBoundingBox<3>& rOtherOrient
     MathUtils<double>::InvertMatrix(rotation_matrix, inverted_rotation_matrix, det_rotation_matrix);
 
     // Signs
-    constexpr static std::array<double, 8> sign_components_X3D = {-1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0};
-    constexpr static std::array<double, 8> sign_components_Y3D = {-1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0};
-    constexpr static std::array<double, 8> sign_components_Z3D = {-1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0};
+    constexpr static std::array<double, 8> sign_components_X3D = {{-1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0}};
+    constexpr static std::array<double, 8> sign_components_Y3D = {{-1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0}};
+    constexpr static std::array<double, 8> sign_components_Z3D = {{-1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0}};
 
     // Getting nodes from second
     const auto& r_second_obb_center = rOtherOrientedBoundingBox.GetCenter();
@@ -281,8 +317,8 @@ bool OrientedBoundingBox<TDim>::DirectHasIntersection(const OrientedBoundingBox<
 
     // Id 2D we check edges
     if (TDim == 2) {
-        auto r_edges_1 = geom1.Edges();
-        auto r_edges_2 = geom2.Edges();
+        const auto r_edges_1 = geom1.GenerateEdges();
+        const auto r_edges_2 = geom2.GenerateEdges();
         Point int_pt(0.0,0.0,0.0);
         for (auto& r_edge_1 : r_edges_1) {
             for (auto& r_edge_2 : r_edges_2) {
@@ -298,8 +334,8 @@ bool OrientedBoundingBox<TDim>::DirectHasIntersection(const OrientedBoundingBox<
             }
         }
     } else { // If 3D we check faces
-        auto faces_1 = geom1.Faces();
-        auto faces_2 = geom2.Faces();
+        const auto faces_1 = geom1.GenerateFaces();
+        const auto faces_2 = geom2.GenerateFaces();
         for (auto& r_face_1 : faces_1) {
             for (auto& r_face_2 : faces_2) {
                 if (r_face_1.HasIntersection(r_face_2)){
@@ -445,8 +481,8 @@ template<>
 Quadrilateral2D4<Point> OrientedBoundingBox<2>::GetEquivalentGeometry() const
 {
     // Signs
-    constexpr static std::array<double, 4> sign_components_X2D = {-1.0, 1.0, 1.0, -1.0};
-    constexpr static std::array<double, 4> sign_components_Y2D = {-1.0, -1.0, 1.0, 1.0};
+    constexpr static std::array<double, 4> sign_components_X2D = {{-1.0, 1.0, 1.0, -1.0}};
+    constexpr static std::array<double, 4> sign_components_Y2D = {{-1.0, -1.0, 1.0, 1.0}};
 
     // Create a quad points
     std::vector<Point::Pointer> points(4);
@@ -468,9 +504,9 @@ template<>
 Hexahedra3D8<Point> OrientedBoundingBox<3>::GetEquivalentGeometry() const
 {
     // Signs
-    constexpr static std::array<double, 8> sign_components_X3D = {-1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0};
-    constexpr static std::array<double, 8> sign_components_Y3D = {-1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0};
-    constexpr static std::array<double, 8> sign_components_Z3D = {-1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0};
+    constexpr static std::array<double, 8> sign_components_X3D = {{-1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0}};
+    constexpr static std::array<double, 8> sign_components_Y3D = {{-1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0}};
+    constexpr static std::array<double, 8> sign_components_Z3D = {{-1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0}};
 
     // Create a hexa points
     std::vector<Point::Pointer> points(8);
@@ -533,7 +569,7 @@ void OrientedBoundingBox<TDim>::RotateNode2D(array_1d<double, 3>& rCoords) const
     const double angle = - std::atan2(mOrientationVectors[0][1], mOrientationVectors[0][0]);
 
     // Avoid if no rotation
-    if (std::abs(angle) < std::numeric_limits<double>::epsilon()) {
+    if (std::abs(angle) < ZeroTolerance) {
         return void();
     }
 

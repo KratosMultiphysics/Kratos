@@ -3,8 +3,9 @@ import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
+import KratosMultiphysics.DelaunayMeshingApplication  as KratosDelaunay
 
-import pfem_fluid_solver as BaseSolver
+from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_fluid_solver as BaseSolver
 
 def CreateSolver(model, parameters):
     return PfemFluidNodalIntegrationSolver(model, parameters)
@@ -26,7 +27,20 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         # Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
 
-        self.fluid_solver = KratosPfemFluid.NodalTwoStepVPStrategy(self.computing_model_part,
+        physics_type = self.settings["physics_type"].GetString()
+
+        if( physics_type == "fsi" ):
+            self.fluid_solver = KratosPfemFluid.NodalTwoStepVPStrategyForFSI(self.computing_model_part,
+                                                                        self.velocity_linear_solver,
+                                                                        self.pressure_linear_solver,
+                                                                        self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                                        self.settings["velocity_tolerance"].GetDouble(),
+                                                                        self.settings["pressure_tolerance"].GetDouble(),
+                                                                        self.settings["maximum_pressure_iterations"].GetInt(),
+                                                                        self.settings["time_order"].GetInt(),
+                                                                        self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
+        else:
+            self.fluid_solver = KratosPfemFluid.NodalTwoStepVPStrategy(self.computing_model_part,
                                                                    self.velocity_linear_solver,
                                                                    self.pressure_linear_solver,
                                                                    self.settings["reform_dofs_at_each_step"].GetBool(),
@@ -143,6 +157,17 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_VOLUMETRIC_COEFFICIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_DEVIATORIC_COEFFICIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_INTERFACE_NODE)
+
+        # Pfem Extra Vars
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_NORMAL)
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.OFFSET)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.SHRINK_FACTOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.MEAN_ERROR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.RIGID_WALL)
         
         print("::[Pfem Fluid Solver]:: Variables ADDED")
 
