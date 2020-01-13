@@ -173,6 +173,21 @@ class MembraneQ4PointLoadTests(StructuralMechanicsTestFactory):
 class MembraneQ4TrussPointLoadTests(StructuralMechanicsTestFactory):
     file_name = "membrane_test/Membrane_Q4_Truss_PointLoad_test"
 
+class MembraneHemisphereTests(StructuralMechanicsTestFactory):
+    file_name = "membrane_test/Membrane_hemisphere_test"
+
+class MembraneOrthotropicDiagonalTests(StructuralMechanicsTestFactory):
+    file_name = "membrane_test/Membrane_orthotropic_diagonal_test"
+
+class MembraneOrthotropicHorizontalTests(StructuralMechanicsTestFactory):
+    file_name = "membrane_test/Membrane_orthotropic_horizontal_test"
+
+class MembranePreStressHorizontalTests(StructuralMechanicsTestFactory):
+    file_name = "membrane_test/Membrane_prestress_horizontal_test"
+
+class MembranePreStressDiagonalTests(StructuralMechanicsTestFactory):
+    file_name = "membrane_test/Membrane_prestress_diagonal_test"
+
 class Simple3D2NTrussTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/nonlinear_3D2NTruss_test"
 
