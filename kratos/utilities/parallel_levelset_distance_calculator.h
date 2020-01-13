@@ -89,7 +89,7 @@ public:
                             const Variable<double>& rAreaVar,
                             const unsigned int max_levels,
                             const double max_distance,
-                            Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                            Flags Options = ~CALCULATE_EXACT_DISTANCES_TO_PLANE)
     {
         KRATOS_TRY
 
@@ -1091,9 +1091,6 @@ private:
 template< unsigned int TDim>
 const Kratos::Flags ParallelDistanceCalculator<TDim>::CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(0));
 
-template< unsigned int TDim>
-const Kratos::Flags ParallelDistanceCalculator<TDim>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(0, false));
-
 ///@}
 ///@name Input and output
 ///@{
@@ -1124,5 +1121,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_PARALLEL_DISTANCE_CALCULATOR_H_INCLUDED  defined
-
-

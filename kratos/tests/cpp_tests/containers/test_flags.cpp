@@ -120,16 +120,16 @@ KRATOS_TEST_CASE_IN_SUITE(KratosFlagsSetMultiple, KratosCoreFastSuite) {
 
 KRATOS_TEST_CASE_IN_SUITE(KratosFlagsEquality, KratosCoreFastSuite) {
 
-    KRATOS_CHECK_EQUAL( INLET == NOT_INLET, false );
-    KRATOS_CHECK_EQUAL( INLET != NOT_INLET, true );
+    KRATOS_CHECK_EQUAL( INLET == (~INLET), false );
+    KRATOS_CHECK_EQUAL( INLET != (~INLET), true );
     // trivial check (it is acutally 0 == 0) just to see that everything works when the first argument of == is not a lhs
-    KRATOS_CHECK_EQUAL( (~INLET & INLET) == NOT_INLET, true );
+    KRATOS_CHECK_EQUAL( (~INLET & INLET) == (~INLET), true );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosFlagsOperators, KratosCoreFastSuite) {
 
     const Kratos::Flags flags1(INLET);
-    const Kratos::Flags flags2(NOT_INLET | OUTLET);
+    const Kratos::Flags flags2((~INLET) | OUTLET);
 
     Kratos::Flags flags_or = flags1 | flags2;
 
@@ -162,7 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosFlagsOperators, KratosCoreFastSuite) {
     KRATOS_CHECK_EQUAL(flags_and.Is(INLET), true);
     KRATOS_CHECK_EQUAL(flags_and.Is(OUTLET), false);
 
-    Kratos::Flags flags3(NOT_OUTLET | VISITED);
+    Kratos::Flags flags3((~OUTLET) | VISITED);
 
     flags3 |= flags2;
 

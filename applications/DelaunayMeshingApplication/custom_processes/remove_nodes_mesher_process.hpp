@@ -226,7 +226,7 @@ class RemoveNodesMesherProcess
     }
 
     //reset flags for the local process execution
-    mMesherUtilities.SetFlagsToNodes(mrModelPart,{BLOCKED},{NOT_BLOCKED});
+    mMesherUtilities.SetFlagsToNodes(mrModelPart,{BLOCKED},{~BLOCKED});
 
     // number of removed nodes:
     mrRemesh.Info->RemovedNodes = NumberOfNodes - mrModelPart.NumberOfNodes();
@@ -334,9 +334,9 @@ class RemoveNodesMesherProcess
         if( i_node->Is(BOUNDARY) ) {
           if( mEchoLevel > 0 )
             std::cout<<"   BOUNDARY NODE RELEASED "<<i_node->Id()<<std::endl;
-		std::cout << " Removing Boundary " << i_node->Id() << " :: " << i_node->X() << " , " << i_node->Y() << std::endl; 
+		std::cout << " Removing Boundary " << i_node->Id() << " :: " << i_node->X() << " , " << i_node->Y() << std::endl;
   	} else {
-		std::cout << " Removing NONboundary " << i_node->Id() << " :: " << i_node->X() << " , " << i_node->Y() << std::endl; 
+		std::cout << " Removing NONboundary " << i_node->Id() << " :: " << i_node->X() << " , " << i_node->Y() << std::endl;
 	}
       }
     }
@@ -929,7 +929,7 @@ class RemoveNodesMesherProcess
     }
 
     //set flags for the local process execution
-    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{NOT_MODIFIED});
+    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{~MODIFIED});
 
     //nodes
     int i=0,j=0;
@@ -1028,7 +1028,7 @@ class RemoveNodesMesherProcess
     }
 
     //reset flags for the local process execution
-    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{NOT_MODIFIED});
+    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{~MODIFIED});
 
     return any_condition_removed;
 
@@ -1114,7 +1114,7 @@ class RemoveNodesMesherProcess
 
 
     //set flags for the local process execution
-    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{NOT_MODIFIED});
+    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{~MODIFIED});
 
 
     //vector of the neighbour conditions
@@ -1416,7 +1416,7 @@ class RemoveNodesMesherProcess
     }
 
     //reset flags for the local process execution
-    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{NOT_MODIFIED});
+    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{~MODIFIED});
 
 
     RemovedConditions = rModelPart.Conditions().size() - RemovedConditions;
