@@ -12,7 +12,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_D_Conical_damage::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEM_D_Conical_damage::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_Conical_damage to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
         this->Check(pProp);
@@ -382,6 +382,10 @@ namespace Kratos {
         const double my_tg_of_friction_angle        = element1->GetTgOfFrictionAngle();
         const double neighbour_tg_of_friction_angle = element2->GetTgOfFrictionAngle();
         double equiv_tg_of_fri_ang                  = 0.5 * (my_tg_of_friction_angle + neighbour_tg_of_friction_angle);
+
+        if(equiv_tg_of_fri_ang < 0.0) {
+            KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
+        }
 
         if (fabs(equiv_tg_of_fri_ang) > 1.0e-12) {
             double critical_force = 0.6666666666666667 * Globals::Pi * equiv_radius * indentation * element1->GetParticleConicalDamageMaxStress();

@@ -35,6 +35,10 @@
 #include "custom_processes/update_pressure_value_pfem_conditions_process.h"
 #include "custom_processes/fix_free_velocity_on_nodes_process.h"
 #include "custom_processes/remove_alone_DEM_elements_process.h"
+#include "custom_processes/update_flag_no_remesh_femdem_boundary_process.h"
+#include "custom_processes/compute_initial_volume_process.h"
+#include "custom_processes/update_pressure_volume_process.h"
+#include "custom_processes/generate_initial_skin_DEM_process.h"
 
 
 namespace Kratos
@@ -112,9 +116,17 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def(init<ModelPart &>())
         .def("Execute", &RegeneratePfemPressureConditionsProcess<3>::Execute);
 
+    class_<RegeneratePfemPressureConditionsProcess<2>, RegeneratePfemPressureConditionsProcess<2>::Pointer, Process>(m, "RegeneratePfemPressureConditionsProcess2D")
+        .def(init<ModelPart &>())
+        .def("Execute", &RegeneratePfemPressureConditionsProcess<2>::Execute);
+
     class_<UpdatePressureValuePfemConditionsProcess<3>, UpdatePressureValuePfemConditionsProcess<3>::Pointer, Process>(m, "UpdatePressureValuePfemConditionsProcess3D")
         .def(init<ModelPart &>())
         .def("Execute", &UpdatePressureValuePfemConditionsProcess<3>::Execute);
+
+    class_<UpdatePressureValuePfemConditionsProcess<2>, UpdatePressureValuePfemConditionsProcess<2>::Pointer, Process>(m, "UpdatePressureValuePfemConditionsProcess2D")
+        .def(init<ModelPart &>())
+        .def("Execute", &UpdatePressureValuePfemConditionsProcess<2>::Execute);
 
     class_<FixFreeVelocityOnNodesProcess, FixFreeVelocityOnNodesProcess::Pointer, Process>(m, "FixFreeVelocityOnNodesProcess")
         .def(init<ModelPart &, const int>())
@@ -123,6 +135,23 @@ void AddCustomProcessesToPython(pybind11::module &m)
     class_<RemoveAloneDEMElementsProcess, RemoveAloneDEMElementsProcess::Pointer, Process>(m, "RemoveAloneDEMElementsProcess")
         .def(init<ModelPart &, ModelPart &>())
         .def("Execute", &RemoveAloneDEMElementsProcess::Execute);
+
+    class_<UpdateFlagNoRemeshFemDemBoundaryProcess, UpdateFlagNoRemeshFemDemBoundaryProcess::Pointer, Process>(m, "UpdateFlagNoRemeshFemDemBoundaryProcess")
+        .def(init<ModelPart &>())
+        .def("Execute", &UpdateFlagNoRemeshFemDemBoundaryProcess::Execute);
+
+    class_<ComputeInitialVolumeProcess, ComputeInitialVolumeProcess::Pointer, Process>(m, "ComputeInitialVolumeProcess")
+        .def(init<ModelPart &>())
+        .def("Execute", &ComputeInitialVolumeProcess::Execute);
+
+    class_<UpdatePressureVolumeProcess, UpdatePressureVolumeProcess::Pointer, Process>(m, "UpdatePressureVolumeProcess")
+        .def(init<ModelPart &>())
+        .def("Execute", &UpdatePressureVolumeProcess::Execute);
+
+    class_<GenerateInitialSkinDEMProcess, GenerateInitialSkinDEMProcess::Pointer, Process>(m, "GenerateInitialSkinDEMProcess")
+        .def(init<ModelPart &, ModelPart &>())
+        .def("Execute", &GenerateInitialSkinDEMProcess::Execute);
+
 }
 } // namespace Python.
 } // Namespace Kratos

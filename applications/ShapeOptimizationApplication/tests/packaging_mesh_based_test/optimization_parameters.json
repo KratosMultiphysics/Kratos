@@ -1,0 +1,81 @@
+{
+    "optimization_settings" : {
+        "model_settings" : {
+            "domain_size"              : 3,
+            "model_part_name"          : "structure",
+            "model_import_settings"    : {
+                "input_type"       : "mdpa",
+                "input_filename"   : "structure"
+            },
+            "design_surface_sub_model_part_name" : "design_surface",
+            "damping" : {
+                "apply_damping" : true,
+                "damping_regions" : [{
+                        "sub_model_part_name"   : "support",
+                        "damp_X"                : true,
+                        "damp_Y"                : true,
+                        "damp_Z"                : true,
+                        "damping_function_type" : "linear",
+                        "damping_radius"        : 0.5
+                    }]
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : false
+            }
+        },
+        "objectives" : [{
+            "identifier" : "z_distance",
+            "type"       : "minimization",
+            "analyzer"   : "external",
+            "response_settings" :{
+            },
+            "project_gradient_on_surface_normals" : true
+        }],
+        "constraints" : [
+            {
+                "identifier" : "mesh_based_packaging",
+                "type"       : "<=",
+                "reference"  : "specified_value",
+                "reference_value" : 0,
+                "analyzer"   : "kratos",
+                "response_settings":{
+                    "response_type"   : "mesh_based_packaging",
+                    "model_part_name" : "structure",
+                    "packaging_model_part_name"       : "packaging_plate",
+                    "packaging_model_import_settings" : {
+                        "input_type"     : "mdpa",
+                        "input_filename" : "packaging_plate"
+                    },
+                    "feasible_in_normal_direction"    : false
+                }
+            }
+        ],
+        "design_variables" : {
+            "type"  : "vertex_morphing",
+            "filter" : {
+                "filter_function_type"       : "linear",
+                "filter_radius"              : 0.5,
+                "max_nodes_in_filter_radius" : 1000
+            }
+        },
+        "optimization_algorithm" : {
+            "name"                    : "penalized_projection",
+            "correction_scaling"      : 0.1,
+            "use_adaptive_correction" : true,
+            "max_iterations"     : 10,
+            "relative_tolerance" : 1e-10,
+            "line_search" : {
+                "line_search_type"           : "manual_stepping",
+                "normalize_search_direction" : true,
+                "step_size"                  : 0.1
+            }
+        },
+        "output" : {
+            "design_output_mode" : "WriteDesignSurface",
+            "nodal_results"      : [ "DF1DX", "DC1DX", "SHAPE_CHANGE" ],
+            "output_format" : {
+                "name": "vtk"
+            }
+        }
+    }
+}

@@ -50,12 +50,17 @@ class DEMRestartTestFactory():
 class TestRestartOneBall(DEMRestartTestFactory, KratosUnittest.TestCase):
     case_name = "one_ball"
     def setUp(self):
-        super().setUp(TestRestartOneBall.case_name)
+        super(TestRestartOneBall, self).setUp(TestRestartOneBall.case_name)
 
 class TestRestartTwoBalls(DEMRestartTestFactory, KratosUnittest.TestCase):
     case_name = "two_balls"
     def setUp(self):
-        super().setUp(TestRestartTwoBalls.case_name)
+        super(TestRestartTwoBalls, self).setUp(TestRestartTwoBalls.case_name)
+
+class TestRestartBallAndWall(DEMRestartTestFactory, KratosUnittest.TestCase):
+    case_name = "ball_and_wall"
+    def setUp(self):
+        super(TestRestartBallAndWall, self).setUp(TestRestartBallAndWall.case_name)
 
 if __name__ == '__main__':
     Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
@@ -65,7 +70,8 @@ if __name__ == '__main__':
     smallSuite = suites['small'] # These tests are executed by the continuous integration tool
     test_list = [
         TestRestartOneBall,
-        TestRestartTwoBalls
+        TestRestartTwoBalls,
+        TestRestartBallAndWall
     ]
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(test_list))
     allSuite = suites['all']
