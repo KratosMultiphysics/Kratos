@@ -1,12 +1,8 @@
-/*
 //  KRATOS  _____________
 //         /  _/ ____/   |
 //         / // / __/ /| |
 //       _/ // /_/ / ___ |
 //      /___/\____/_/  |_| Application
-//
-//  Main authors:   Thomas Oberbichler
-*/
 
 // System includes
 
@@ -46,12 +42,6 @@ void KratosIgaApplication::Register() {
     // ELEMENTS
     //KRATOS_REGISTER_ELEMENT("IgaTrussElement", mIgaTrussElement)
     KRATOS_REGISTER_ELEMENT("ShellKLDiscreteElement", mShellKLDiscreteElement)
-    KRATOS_REGISTER_ELEMENT("IgaShell3pElement", mShellKLDiscreteElement)
-
-    KRATOS_REGISTER_CONDITION("IgaCheckCondition", mIgaCheckCondition)
-
-    KRATOS_REGISTER_CONDITION("CouplingPenaltyDiscreteCondition", mCouplingPenaltyDiscreteCondition)
-    KRATOS_REGISTER_CONDITION("SupportPenaltyCurveDiscreteCondition", mSupportPenaltyCurveDiscreteCondition)
     KRATOS_REGISTER_CONDITION("LoadSurfaceDiscreteCondition", mLoadSurfaceDiscreteCondition)
     KRATOS_REGISTER_CONDITION("LoadCurveDiscreteCondition", mLoadCurveDiscreteCondition)
 

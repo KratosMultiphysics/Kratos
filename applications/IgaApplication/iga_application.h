@@ -1,12 +1,8 @@
-/*
 //  KRATOS  _____________
 //         /  _/ ____/   |
 //         / // / __/ /| |
 //       _/ // /_/ / ___ |
 //      /___/\____/_/  |_| Application
-//
-//  Main authors:   Thomas Oberbichler
-*/
 
 #if !defined(KRATOS_IGA_APPLICATION_H_INCLUDED)
 #define  KRATOS_IGA_APPLICATION_H_INCLUDED
@@ -38,22 +34,6 @@
 
 namespace Kratos {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name Enum's
-///@{
-
-///@}
-///@name Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -80,34 +60,22 @@ public:
     ~KratosIgaApplication() override {}
 
     ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
     ///@name Operations
     ///@{
 
     void Register() override;
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
+    /// Turn back information
     std::string Info() const override
     {
         return "KratosIgaApplication";
     }
 
-    /// Print information about this object.
+    /// Print Information
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
@@ -131,46 +99,9 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
 
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -190,23 +121,7 @@ private:
 
 
     ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Unaccessible methods
+    ///@name Private methods
     ///@{
 
     /// Assignment operator.
@@ -218,15 +133,6 @@ private:
     ///@}
 
 }; // class KratosIgaApplication
-
-///@}
-
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
 
 ///@}
 

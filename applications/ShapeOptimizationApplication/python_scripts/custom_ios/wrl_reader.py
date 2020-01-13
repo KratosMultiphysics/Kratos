@@ -11,10 +11,10 @@
 import os
 
 class Shape:
-    def __init__(self, name, nodes, triangles):
+    def __init__(self, name, nodes, faces):
         self.name = name
         self.nodes = nodes
-        self.triangles = triangles
+        self.faces = faces
 
 def detect_file(file_name):
     wrl_name = file_name + ".wrl"
@@ -31,12 +31,12 @@ def detect_file(file_name):
 
 def read_nodes(line, file):
     nodes = []
-    while not "[" in line:
+    while "[" not in line:
         line = next(file)
 
     line = next(file)
 
-    while not "]" in line:
+    while "]" not in line:
         if line == "\n":
             line = next(file)
 
@@ -52,28 +52,34 @@ def read_nodes(line, file):
 
     return nodes
 
-def read_triangles(line, file):
-    triangles = []
-    while not "[" in line:
+def read_faces(line, file):
+    faces = []
+    while "[" not in line:
         line = next(file)
 
     line = next(file)
 
-    while not "]" in line:
+    while "]" not in line:
         if line == "\n":
             line = next(file)
 
         try:
-            entries = line.split(",")[:3]
-            if len(entries) != 3:
-                raise RuntimeError("wrl_reader: Did not find 3 triangle node indices!", line)
-            triangles.append([int(x) for x in entries])
+            entries = line.split(",")
+            entries = [x.strip() for x in entries]
+            if entries.count("-1") != 1:
+                raise RuntimeError("wrl_reader: Can only read one face per line!", line)
+            entries = entries[:entries.index("-1")]
+            if len(entries) < 2:
+                raise RuntimeError("wrl_reader: Can not read faces with less than 3 nodes!", line)
+            elif len(entries) > 4:
+                raise RuntimeError("wrl_reader: Can not read faces with more than 4 nodes!", line)
+            faces.append([int(x) for x in entries])
         except IOError:
             pass
 
         line = next(file)
 
-    return triangles
+    return faces
 
 def read_shape(line, file):
     try:
@@ -81,15 +87,21 @@ def read_shape(line, file):
     except IndexError:
         name = "geometry"
     nodes = []
-    triangles = []
-    while not nodes or not triangles:
+    faces = []
+
+    while "geometry" not in line:
+        line = next(file)
+    if "IndexedFaceSet" not in line:
+        raise RuntimeError("wrl_reader: Can not read '{}'".format(line))
+
+    while not nodes or not faces:
         if line.strip().startswith("coord "):
             nodes = read_nodes(line, file)
         elif line.strip().startswith("coordIndex"):
-            triangles = read_triangles(line, file)
+            faces = read_faces(line, file)
         line = next(file)
 
-    return Shape(name, nodes, triangles)
+    return Shape(name, nodes, faces)
 
 def read_shapes(file_name):
     shapes = []
