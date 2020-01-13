@@ -241,6 +241,7 @@ protected:
                                     "model_part_name":"PLEASE_SPECIFY",
                                     "search_model_part_name":"PLEASE_SPECIFY",
                                     "boundary_model_part_name":"PLEASE_SPECIFY",
+                                    "model_import_settings":{},
                                     "overlap_distance":0.0
                                 }
         )");
@@ -288,11 +289,10 @@ protected:
                 {
                     for (auto &slave_patch_param : mParameters[i_slave_level]) // Loop over all other slave patches
                     {
-                        KRATOS_INFO_IF("Formulating Chimera for the combination :: ", mEchoLevel > 0) << "Background" << background_patch_param << "\n Patch::" << slave_patch_param << std::endl;
+                        KRATOS_INFO_IF("Formulating Chimera for the combination :: ", mEchoLevel > 0) << "\n :: Background :: \n" << background_patch_param << "\n :: Patch :: \n" << slave_patch_param << std::endl;
                         slave_patch_param.ValidateAndAssignDefaults(parameters_for_validation);
                         if (i_current_level == 0) // a check to identify computational Domain boundary
                             domain_type = ChimeraHoleCuttingUtility::Domain::OTHER;
-                        KRATOS_INFO_IF("Formulating Chimera for the combination :: ", mEchoLevel > 0) << "Background" << background_patch_param << "\n Patch::" << slave_patch_param << std::endl;
                         FormulateChimera(background_patch_param, slave_patch_param, domain_type);
                         mPointLocatorsMap.erase(background_patch_param["model_part_name"].GetString());
                     }
