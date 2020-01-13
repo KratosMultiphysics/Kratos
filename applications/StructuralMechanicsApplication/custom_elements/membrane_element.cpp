@@ -949,7 +949,6 @@ void MembraneElement::CalculateOnIntegrationPoints(
 void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
-
         rOutput = ZeroMatrix(3);
         array_1d<Vector,2> base_vectors_current_cov;
         const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
@@ -974,6 +973,9 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
         column(rOutput,0) = base_1;
         column(rOutput,1) = base_2;
         column(rOutput,2) = base_3;
+    }
+    if (rVariable == MEMBRANE_PRESTRESS) {
+
     }
 }
 
