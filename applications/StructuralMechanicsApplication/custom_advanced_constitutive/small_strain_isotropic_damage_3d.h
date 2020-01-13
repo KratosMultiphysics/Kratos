@@ -167,7 +167,10 @@ public:
      * @brief Indicates if this CL requires initialization of the material response,
      * called by the element in InitializeSolutionStep.
      */
-    bool RequiresInitializeMaterialResponse() override;
+    bool RequiresInitializeMaterialResponse() override
+    {
+        return false;
+    }
 
     /**
      * @brief Initialize the material response in terms of Cauchy stresses
@@ -181,7 +184,10 @@ public:
      * response (e.g. update of the internal variables), called by the element
      * in FinalizeSolutionStep.
      */
-    bool RequiresFinalizeMaterialResponse() override;
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return true;
+    }
 
     /**
      * @brief Finalize the material response in terms of Cauchy stresses
