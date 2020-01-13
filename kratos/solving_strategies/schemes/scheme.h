@@ -755,21 +755,21 @@ public:
     /**
      * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
      * @details It "asks" the matrix needed to the element and performs the operations needed to introduce the selected time integration scheme. This function calculates at the same time the contribution to the LHS and to the RHS of the system
-     * @param pCurrentElement The element to compute
+     * @param rElement The element to compute
      * @param LHS_Contribution The LHS matrix contribution
      * @param RHS_Contribution The RHS vector contribution
-     * @param EquationId The ID's of the element degrees of freedom
+     * @param rEquationIdVector The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     virtual void CalculateSystemContributions(
-        Element::Pointer pCurrentElement,
+        Element& rElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        const Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
-        )
+        ) const
     {
-        pCurrentElement->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
+        rElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateSystemContributions(
@@ -785,21 +785,21 @@ public:
 
     /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
-     * @param pCurrentCondition The condition to compute
+     * @param rCondition The condition to compute
      * @param LHS_Contribution The LHS matrix contribution
      * @param RHS_Contribution The RHS vector contribution
-     * @param EquationId The ID's of the condition degrees of freedom
+     * @param rEquationIdVector The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     virtual void CalculateSystemContributions(
-        Condition::Pointer pCurrentCondition,
+        Condition& rCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        const Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
-        )
+        ) const
     {
-        pCurrentCondition->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
+        rCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void Condition_CalculateSystemContributions(
@@ -815,19 +815,19 @@ public:
 
     /**
      * @brief This function is designed to calculate just the RHS contribution
-     * @param pCurrentElement The element to compute
+     * @param rElement The element to compute
      * @param RHS_Contribution The RHS vector contribution
-     * @param EquationId The ID's of the element degrees of freedom
+     * @param rEquationIdVector The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     virtual void Calculate_RHS_Contribution(
-        Element::Pointer pCurrentElement,
+        Element& rElement,
         LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        const Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
-        )
+        ) const
     {
-        pCurrentElement->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
+        rElement.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void Calculate_RHS_Contribution(
@@ -842,19 +842,19 @@ public:
 
     /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
-     * @param pCurrentCondition The condition to compute
+     * @param rCondition The condition to compute
      * @param RHS_Contribution The RHS vector contribution
-     * @param EquationId The ID's of the condition degrees of freedom
+     * @param rEquationIdVector The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     virtual void Calculate_RHS_Contribution(
-        Condition::Pointer pCurrentCondition,
+        Condition& rCondition,
         LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        const Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
-        )
+        ) const
     {
-        pCurrentCondition->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
+        rCondition.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void Condition_Calculate_RHS_Contribution(
@@ -869,19 +869,19 @@ public:
 
     /**
      * @brief This function is designed to calculate just the LHS contribution
-     * @param pCurrentElement The element to compute
+     * @param rElement The element to compute
      * @param LHS_Contribution The RHS vector contribution
-     * @param EquationId The ID's of the element degrees of freedom
+     * @param rEquationIdVector The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     virtual void Calculate_LHS_Contribution(
-        Element::Pointer pCurrentElement,
+        Element& rElement,
         LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        const Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
-        )
+        ) const
     {
-        pCurrentElement->CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
+        rElement.CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void Calculate_LHS_Contribution(
@@ -896,19 +896,19 @@ public:
 
     /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
-     * @param pCurrentCondition The condition to compute
+     * @param rCondition The condition to compute
      * @param LHS_Contribution The RHS vector contribution
-     * @param EquationId The ID's of the condition degrees of freedom
+     * @param rEquationIdVector The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     virtual void Calculate_LHS_Contribution(
-        Condition::Pointer pCurrentCondition,
+        Condition& rCondition,
         LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        const Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
-        )
+        ) const
     {
-        pCurrentCondition->CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
+        rCondition.CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void Condition_Calculate_LHS_Contribution(
@@ -954,16 +954,16 @@ public:
     /**
      * @brief Function that returns the list of Degrees of freedom to be assembled in the system for a Given element
      * @param pCurrentElement The element to compute
-     * @param ElementalDofList The list containing the element degrees of freedom
+     * @param rDofList The list containing the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void GetElementalDofList(
-        Element::Pointer pCurrentElement,
-        Element::DofsVectorType& ElementalDofList,
+    virtual void GetDofList(
+        const Element& rElement,
+        Element::DofsVectorType& rDofList,
         const ProcessInfo& rCurrentProcessInfo
-        )
+        ) const
     {
-        pCurrentElement->GetDofList(ElementalDofList, rCurrentProcessInfo);
+        rElement.GetDofList(rDofList, rCurrentProcessInfo);
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetElementalDofList(
@@ -977,17 +977,17 @@ public:
 
     /**
      * @brief Function that returns the list of Degrees of freedom to be assembled in the system for a Given condition
-     * @param pCurrentCondition The condition to compute
-     * @param ConditionDofList The list containing the condition degrees of freedom
+     * @param rCondition The condition to compute
+     * @param rDofList The list containing the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void GetConditionDofList(
-        Condition::Pointer pCurrentCondition,
-        Element::DofsVectorType& ConditionDofList,
+    virtual void GetDofList(
+        const Condition& rCondition,
+        Element::DofsVectorType& rDofList,
         const ProcessInfo& rCurrentProcessInfo
-        )
+        ) const
     {
-        pCurrentCondition->GetDofList(ConditionDofList, rCurrentProcessInfo);
+        rCondition.GetDofList(rDofList, rCurrentProcessInfo);
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetConditionDofList(
