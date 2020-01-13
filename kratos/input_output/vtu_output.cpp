@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <numeric>
 
 // External includes
 #include "vtu11.hpp"
