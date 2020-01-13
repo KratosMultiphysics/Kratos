@@ -106,7 +106,7 @@ void GenerateInitialSkinDEMProcess::CreateDEMParticle(
     else
         sphere_type = "SphericParticle3D";
 
-    auto spheric_particle = mParticleCreator.CreateSphericParticleRaw(mrDEMModelPart, Id+1500, Coordinates, pProperties, Radius, sphere_type);
+    auto spheric_particle = mParticleCreator.CreateSphericParticleRaw(mrDEMModelPart, Id, Coordinates, pProperties, Radius, sphere_type);
     rNode->SetValue(IS_DEM, true);
     rNode->SetValue(RADIUS, Radius);
     rNode->SetValue(DEM_PARTICLE_POINTER, spheric_particle);

@@ -39,7 +39,7 @@ namespace Kratos
 
     enum class SofteningType {Linear = 0, Exponential = 1};
 
-    enum class TangentOperatorEstimation {Analytic = 0, FirstOrderPerturbation = 1, SecondOrderPerturbation = 2};
+    enum class TangentOperatorEstimation {Analytic = 0, FirstOrderPerturbation = 1, SecondOrderPerturbation = 2, Secant = 3};
 
 ///@}
 ///@name  Functions
