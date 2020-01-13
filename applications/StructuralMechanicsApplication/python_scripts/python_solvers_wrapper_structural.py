@@ -47,7 +47,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"static\", \"dynamic\", \"eigen_value\", \"harmonic_analysis\", \"formfinding\", \"adjoint_static\""
+            err_msg += "Available options are: \"static\", \"custom_scipy\", \"dynamic\", \"eigen_value\", \"harmonic_analysis\", \"formfinding\", \"adjoint_static\""
             raise Exception(err_msg)
 
     # Solvers for MPI parallelism
