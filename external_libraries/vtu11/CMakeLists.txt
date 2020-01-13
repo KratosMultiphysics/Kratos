@@ -62,7 +62,7 @@ endif( ZLIB_FOUND )
 
 # -------------------- Set up testrunner --------------------------
 
-OPTION ( VTU11_ENABLE_TESTS "Enable unit tests." ON )
+OPTION ( VTU11_ENABLE_TESTS "Enable unit tests." OFF )
 
 if( VTU11_ENABLE_TESTS )
 
