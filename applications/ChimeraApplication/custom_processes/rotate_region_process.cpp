@@ -97,7 +97,7 @@ void RotateRegionProcess::ExecuteInitializeSolutionStep()
     if (domain_size > 2)
       it_node->Z() = transformed_coordinates[2];
 
-    it_node->FastGetSolutionStepValue(DISPLACEMENT) = transformed_coordinates - it_node->GetInitialPosition().Coordinates();
+    it_node->FastGetSolutionStepValue(ROTATION_MESH_DISPLACEMENT) = transformed_coordinates - it_node->GetInitialPosition().Coordinates();
 
     // Computing the linear velocity at this it_node
     DenseVector<double> radius(3);
@@ -108,26 +108,26 @@ void RotateRegionProcess::ExecuteInitializeSolutionStep()
     CalculateLinearVelocity(mAxisOfRotationVector, radius, linearVelocity);
     if (mParameters["is_ale"].GetBool())
     {
-      it_node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0) =
+      it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_X, 0) =
           mAngularVelocityRadians * linearVelocity[0];
-      it_node->FastGetSolutionStepValue(MESH_VELOCITY_Y, 0) =
+      it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Y, 0) =
           mAngularVelocityRadians * linearVelocity[1];
       if (domain_size > 2)
-        it_node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0) =
+        it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Z, 0) =
             mAngularVelocityRadians * linearVelocity[2];
 
       if (it_node->IsFixed(VELOCITY_X))
         it_node->FastGetSolutionStepValue(VELOCITY_X, 0) =
-            it_node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0);
+            it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_X, 0);
 
       if (it_node->IsFixed(VELOCITY_Y))
         it_node->FastGetSolutionStepValue(VELOCITY_Y, 0) =
-            it_node->FastGetSolutionStepValue(MESH_VELOCITY_Y, 0);
+            it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Y, 0);
 
       if (domain_size > 2)
         if (it_node->IsFixed(VELOCITY_Z))
           it_node->FastGetSolutionStepValue(VELOCITY_Z, 0) =
-              it_node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0);
+              it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Z, 0);
     }
   }
 
