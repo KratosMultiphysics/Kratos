@@ -198,7 +198,15 @@ def  AuxiliarComputeDeltaTime(main_model_part, computing_model_part, settings, c
                         delta_time = delta_time/float(inner_iterations)
                         KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Advancing with a reduced delta time of ", delta_time)
         return delta_time
+    elif settings["time_stepping"].Has("time_step_table"):
+        current_time = main_model_part.ProcessInfo[KM.TIME]
+        time_step_table = settings["time_stepping"]["time_step_table"].GetMatrix()
+        tb = KM.PiecewiseLinearTable()
+        for interval in range(time_step_table.Size1()):
+            tb.AddRow(time_step_table[interval, 0], time_step_table[interval, 1])
+        return tb.GetValue(current_time)
     elif settings["time_stepping"].Has("time_step_intervals"):
+        KM.Logger.PrintWarning("::[Contact Mechanical Static Solver]:: ", "Legacy way to consider time stepping by intervals. Use time_step_table instead")
         current_time = main_model_part.ProcessInfo[KM.TIME]
         for key in settings["time_stepping"]["time_step_intervals"].keys():
             interval_settings = settings["time_stepping"]["time_step_intervals"][key]
@@ -208,9 +216,9 @@ def  AuxiliarComputeDeltaTime(main_model_part, computing_model_part, settings, c
             if interval.IsInInterval(current_time):
                 return interval_settings["time_step"].GetDouble()
         # If we arrive here we raise an error because the intervals are not well defined
-        raise Exception("::[MechanicalSolver]:: Time stepping not well defined!")
+        raise Exception("::[Contact Mechanical Static Solver]:: Time stepping not well defined!")
     else:
-        raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
+        raise Exception("::[Contact Mechanical Static Solver]:: Time stepping not defined!")
 
 def  AuxiliarCreateConvergenceParameters(main_model_part, settings, contact_settings):
     # Create an auxiliary Kratos parameters object to store the convergence settings.

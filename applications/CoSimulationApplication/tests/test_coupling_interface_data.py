@@ -282,6 +282,17 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         with self.assertRaisesRegex(Exception, exp_error):
             coupling_data.Initialize()
 
+    def test_non_existing_model_part(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "something",
+            "variable_name"   : "PRESSURE",
+            "location"        : "node_non_historical"
+        }""")
+
+        coupling_data = CouplingInterfaceData(settings, self.model)
+        with self.assertRaisesRegex(Exception, "The specified ModelPart is not in the Model, only the following ModelParts are available:"):
+            coupling_data.Initialize()
+
     def test_GetHistoricalVariableDict(self):
         settings = KM.Parameters("""{
             "model_part_name" : "mp_4_test",

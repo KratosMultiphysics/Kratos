@@ -9,13 +9,11 @@ def Create(settings):
 class CopyDataTransferOperator(CoSimulationDataTransferOperator):
     """DataTransferOperator that copies values from one interface to another, without any checks
     """
-    def TransferData(self, from_solver_data, to_solver_data, transfer_options):
-        self._CheckAvailabilityTransferOptions(transfer_options)
-
+    def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
         from_solver_data_size = from_solver_data.Size()
         to_solver_data_size = to_solver_data.Size()
         if not from_solver_data_size == to_solver_data_size:
-            raise Exception('The sizes of the data are not matching: {} != {}!'.format(from_solver_data_size, to_solver_data_size))
+            raise Exception('The sizes of the data are not matching: {} != {} for interface data "{}" of solver "{}" and interface data "{}" of solver "{}"!'.format(from_solver_data_size, to_solver_data_size, from_solver_data.name, from_solver_data.solver_name, to_solver_data.name, to_solver_data.solver_name))
 
         from_solver_data_array = from_solver_data.GetData()
 

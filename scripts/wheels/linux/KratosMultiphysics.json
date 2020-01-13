@@ -2,7 +2,7 @@
 {
 	"wheel_name": "KratosMultiphysics",
 	"included_modules": [],
-	"included_binaries": ["Kratos.cpython-${PYTHON}m-x86_64-linux-gnu.so"],
+	"included_binaries": ["Kratos.cpython-${PYTHON}-x86_64-linux-gnu.so"],
 	"dependencies": [],
 	"author": "Kratos Team",
 	"author_email": "kratos@listas.cimne.upc.edu",
