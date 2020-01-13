@@ -17,6 +17,7 @@
 #include "includes/define_python.h"
 #include "includes/data_communicator.h"
 #include "input_output/logger.h"
+#include "input_output/file_logger_output.h"
 
 
 namespace Kratos {
@@ -166,6 +167,10 @@ void  AddLoggerToPython(pybind11::module& m) {
     logger_output.attr("DETAIL_PREFIX") = LoggerOutput::DETAIL_PREFIX;
     logger_output.attr("DEBUG_PREFIX") = LoggerOutput::DEBUG_PREFIX;
     logger_output.attr("TRACE_PREFIX") = LoggerOutput::TRACE_PREFIX;
+
+    py::class_<FileLoggerOutput, Kratos::shared_ptr<FileLoggerOutput>, LoggerOutput>(m,"FileLoggerOutput")
+    .def(py::init<std::string>())
+    ;
 
     py::class_<Logger, Kratos::shared_ptr<Logger>> logger_scope(m,"Logger");
     logger_scope.def(py::init<std::string const &>());
