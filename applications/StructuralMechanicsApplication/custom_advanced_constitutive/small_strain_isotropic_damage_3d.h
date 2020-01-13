@@ -109,13 +109,6 @@ public:
     void GetLawFeatures(Features& rFeatures) override;
 
     /**
-     * @brief Returns whether this constitutive Law has specified variable (bool)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<bool>& rThisVariable) override;
-
-    /**
      * @brief Returns whether this constitutive Law has specified variable (double)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
@@ -123,14 +116,33 @@ public:
     bool Has(const Variable<double>& rThisVariable) override;
 
     /**
-     * @brief Returns the value of a specified variable (bool)
+     * @brief Returns whether this constitutive Law has specified variable (double)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<Vector>& rThisVariable) override;
+
+     /**
+     * @brief Returns the value of a specified variable (Vector)
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    bool& GetValue(
-        const Variable<bool>& rThisVariable,
-        bool& rValue
+    Vector& GetValue(
+        const Variable<Vector>& rThisVariable,
+        Vector& rValue
+        ) override;
+
+     /**
+     * @brief Returns the value of a specified variable (Vector)
+     * @param rThisVariable the variable requested
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    void SetValue(
+        const Variable<Vector>& rThisVariable,
+        const Vector& rValue,
+        const ProcessInfo& rProcessInfo
         ) override;
 
     /**
@@ -152,11 +164,30 @@ public:
     void CalculateMaterialResponsePK2(Parameters& rValues) override;
 
     /**
+     * @brief Indicates if this CL requires initialization of the material response,
+     * called by the element in InitializeSolutionStep.
+     */
+    bool RequiresInitializeMaterialResponse() override
+    {
+        return false;
+    }
+
+    /**
      * @brief Initialize the material response in terms of Cauchy stresses
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
      */
     void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Indicates if this CL requires finalization step the material
+     * response (e.g. update of the internal variables), called by the element
+     * in FinalizeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return true;
+    }
 
     /**
      * @brief Finalize the material response in terms of Cauchy stresses
@@ -202,6 +233,13 @@ public:
         rOStream << "Small Strain Isotropic Damage 3D constitutive law\n";
     };
 
+    /**
+     * @brief This method computes the stress and constitutive tensor
+     * @param rValues The norm of the deviation stress
+     * @param rStrainVariable
+     */
+    void CalculateStressResponse(ConstitutiveLaw::Parameters& rValues, Vector& rInternalVariables) override;
+
 protected:
 
     ///@name Protected static Member Variables
@@ -210,7 +248,6 @@ protected:
 
     ///@name Protected member Variables
     ///@{
-    bool mInelasticFlag; /// Flags when in inelastic regime
     double mStrainVariable;
     ///@}
 
@@ -220,15 +257,6 @@ protected:
 
     ///@name Protected Operations
     ///@{
-
-    /**
-     * @brief This method computes the stress and constitutive tensor
-     * @param rValues The norm of the deviation stress
-     * @param rStrainVariable
-     */
-    virtual void CalculateStressResponse(
-            ConstitutiveLaw::Parameters &rValues,
-            double &rStrainVariable);
 
     /**
      * @brief This method computes the positive stress vector, which in the traction-only model, is different from the stress vector.

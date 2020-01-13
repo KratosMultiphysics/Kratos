@@ -712,9 +712,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
     ModelPart& r_slave_model_part = r_sub_contact_model_part.GetSubModelPart(slave_model_part_name);
 
     // Whole model parts names
-    std::string whole_master_model_part_name = "", whole_slave_model_part_name = "";
-    GetWholeModelPartName(r_master_model_part, whole_master_model_part_name);
-    GetWholeModelPartName(r_slave_model_part, whole_slave_model_part_name);
+    const std::string whole_master_model_part_name = r_master_model_part.FullName();
+    const std::string whole_slave_model_part_name = r_slave_model_part.FullName();
 
     // Creating Parameters
     Parameters octree_parameters = mThisParameters["octree_search_parameters"];

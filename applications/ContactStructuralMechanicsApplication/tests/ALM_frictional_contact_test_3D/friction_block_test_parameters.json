@@ -20,12 +20,7 @@
             "materials_filename" : "ALM_frictional_contact_test_3D/friction_block_test_materials.json"
         },
         "time_stepping"                   : {
-            "time_step_intervals" : {
-                "0" : {
-                    "interval"  : [0.0, "End"],
-                    "time_step" : 5.0e-3
-                }
-            }
+            "time_step" : 5.0e-3
         },
         "convergence_criterion"           : "contact_residual_criterion",
         "displacement_relative_tolerance" : 0.0001,

@@ -119,7 +119,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MOMENT_COEFFICIENT, self.moment_coefficient[2])
 
     def _ComputeLiftFromJumpCondition(self):
-        self.__GetTrailingEdgeNode()
+        self._GetTrailingEdgeNode()
         free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
         u_inf = free_stream_velocity.norm_2()
 
@@ -149,7 +149,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ', self.lift_coefficient_jump, 'Potential Jump')
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT_JUMP, self.lift_coefficient_jump)
 
-    def __GetTrailingEdgeNode(self):
+    def _GetTrailingEdgeNode(self):
         # Find the Trailing Edge node
         for node in self.body_model_part.Nodes:
             if node.GetValue(CPFApp.TRAILING_EDGE):

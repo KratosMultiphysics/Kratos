@@ -83,10 +83,8 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageTractionOnl
     //
     // Test: check correct behavior of internal and calculated variables
     //
-    KRATOS_CHECK(cl.Has(INELASTIC_FLAG));  // = True - TO BE REMOVED
     KRATOS_CHECK_IS_FALSE(cl.Has(STRAIN_ENERGY));  // = False, in order to use CalculateValue())
     KRATOS_CHECK_IS_FALSE(cl.Has(DAMAGE_VARIABLE));  // = False, in order to use CalculateValue())
-
 
     //
     // Test: load - unload in traction
@@ -136,9 +134,13 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageTractionOnl
         for (std::size_t comp = 0; comp < 6; ++comp) {
             strain_vector[comp] = epr(t, comp);
         }
-        cl.InitializeMaterialResponseCauchy(cl_parameters);
+        if (cl.RequiresInitializeMaterialResponse()){
+            cl.InitializeMaterialResponseCauchy(cl_parameters);
+        }
         cl.CalculateMaterialResponseCauchy(cl_parameters);
-        cl.FinalizeMaterialResponseCauchy(cl_parameters);
+        if (cl.RequiresFinalizeMaterialResponse()) {
+            cl.FinalizeMaterialResponseCauchy(cl_parameters);
+        }
         double value;
 
         // Check damage variable
