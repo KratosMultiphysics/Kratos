@@ -94,6 +94,14 @@ public:
         SetAllCoordinates();
     }
 
+    /// 3d constructor, additional id for templated creation of Node/ Point
+    Point(int id, double NewX, double NewY = 0, double NewZ = 0) : BaseType()
+    {
+        this->operator()(0) = NewX;
+        this->operator()(1) = NewY;
+        this->operator()(2) = NewZ;
+    }
+
     /// 3d constructor.
     Point(double NewX, double NewY = 0, double NewZ = 0) : BaseType()
     {
