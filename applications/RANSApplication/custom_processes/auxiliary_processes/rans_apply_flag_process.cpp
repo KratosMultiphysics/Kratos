@@ -55,10 +55,6 @@ RansApplyFlagProcess::RansApplyFlagProcess(Model& rModel, Parameters rParameters
     KRATOS_CATCH("");
 }
 
-RansApplyFlagProcess::~RansApplyFlagProcess()
-{
-}
-
 int RansApplyFlagProcess::Check()
 {
     KRATOS_TRY
