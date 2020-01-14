@@ -46,7 +46,8 @@ namespace Testing
         Vector RHS_original = ZeroVector(number_of_dofs);
         Matrix LHS_original = ZeroMatrix(number_of_dofs,number_of_dofs);
 
-        pElement->Initialize(); // Initialize the element to initialize the constitutive law
+        pElement->Initialize(rModelPart.GetProcessInfo()); // Initialize the element to initialize the constitutive law
+        pElement->Check(rModelPart.GetProcessInfo());
         pElement->CalculateLocalSystem(LHS_original, RHS_original, rModelPart.GetProcessInfo());
 
         const double delta = 1e-4;
