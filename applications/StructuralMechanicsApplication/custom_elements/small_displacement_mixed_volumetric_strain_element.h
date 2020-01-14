@@ -143,8 +143,6 @@ protected:
         Vector StrainVector;
         Vector StressVector;
         Matrix D;
-        Matrix T;
-        Matrix invT;
 
         /**
          * The default constructor
@@ -155,8 +153,6 @@ protected:
             StrainVector = ZeroVector(StrainSize);
             StressVector = ZeroVector(StrainSize);
             D = ZeroMatrix(StrainSize, StrainSize);
-            T = ZeroMatrix(StrainSize, StrainSize);
-            invT = ZeroMatrix(StrainSize, StrainSize);
         }
     };
 
@@ -497,7 +493,7 @@ protected:
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints
-        );
+        ) const;
 
     /**
      * @brief This functions updates the constitutive variables
@@ -515,7 +511,7 @@ protected:
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2
-        );
+        ) const;
 
     /**
      * @brief This function computes the body force
@@ -547,6 +543,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    Matrix mAnisotropyTensor;
+    Matrix mInverseAnisotropyTensor;
 
     ///@}
     ///@name Private Operators
@@ -594,17 +593,15 @@ private:
     /**
      * @brief Calculate the anisotropy tensor
      * This function calculates the anisotropy transformation tensor from the constitutive matrix
-     * @param rThisConstitutiveVariables Constitutive variables container
      */
-    void CalculateAnisotropyTensor(ConstitutiveVariables &rThisConstitutiveVariables) const;
+    void CalculateAnisotropyTensor(const ProcessInfo &rCurrentProcessInfo);
 
     /**
      * @brief Calculate the inverse of the anisotropy tensor
      * This function calculates the inverse of the anisotropy transformation tensor
      * Note that we take advantage of the fact that the anisotropy tensor is diagonal
-     * @param rThisConstitutiveVariables Constitutive variables container
      */
-    void CalculateInverseAnisotropyTensor(ConstitutiveVariables &rThisConstitutiveVariables) const;
+    void CalculateInverseAnisotropyTensor();
 
     /**
      * @brief Calculation of the deformation gradient F
