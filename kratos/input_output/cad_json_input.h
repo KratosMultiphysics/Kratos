@@ -59,10 +59,16 @@ namespace Kratos
 
         /// Constructor.
         CadJsonInput(
-            //filename
-            const Parameters& rCadJsonParameters)
-            : mCadJsonParameters(rCadJsonParameters)
-        {};
+            const std::string & rDataFileName)
+        {
+            std::ifstream cad_json_file;
+            cad_json_file.open(rDataFileName);
+
+            std::string cad_json_string((std::istreambuf_iterator<char>(cad_json_file)),
+                std::istreambuf_iterator<char>());
+
+            mCadJsonParameters = Parameters(cad_json_string);
+        };
 
         /// Destructor.
         ~CadJsonInput() = default;
@@ -480,7 +486,7 @@ namespace Kratos
         ///@name Members
         ///@{
 
-        const Parameters& mCadJsonParameters;
+        Parameters mCadJsonParameters;
         int mEchoLevel;
 
         ///@}
