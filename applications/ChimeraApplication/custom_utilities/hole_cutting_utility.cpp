@@ -39,7 +39,7 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
         for (j = 0; j < geom.size(); j++)
         {
             nodal_distance =
-                i_element.GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
+                i_element.GetGeometry()[j].FastGetSolutionStepValue(CHIMERA_DISTANCE);
 
             nodal_distance = nodal_distance * DomainType;
             if (nodal_distance < -1 * OverLapDistance)

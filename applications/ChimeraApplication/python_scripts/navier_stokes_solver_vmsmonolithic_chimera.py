@@ -22,7 +22,7 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
     def AddVariables(self):
         super(NavierStokesSolverMonolithicChimera,self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.CHIMERA_DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.ROTATIONAL_ANGLE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.ROTATIONAL_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.ROTATION_MESH_DISPLACEMENT)

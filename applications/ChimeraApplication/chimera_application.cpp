@@ -42,6 +42,8 @@ void KratosChimeraApplication::Register()
                     <<"           ..........\\____/_/ /_/___/_/  /_/_____/_/ |_/_/  |_|.........\n"
                     <<"           ............................................................. Application initializing ... "<<std::endl;
 
+
+    KRATOS_REGISTER_VARIABLE(CHIMERA_DISTANCE);
     KRATOS_REGISTER_VARIABLE(ROTATIONAL_ANGLE);
     KRATOS_REGISTER_VARIABLE(ROTATIONAL_VELOCITY);
     KRATOS_REGISTER_VARIABLE(ROTATION_MESH_DISPLACEMENT);

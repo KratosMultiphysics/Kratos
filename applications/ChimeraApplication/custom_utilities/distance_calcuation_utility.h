@@ -26,6 +26,7 @@
 #include "processes/variational_distance_calculation_process.h"
 #include "utilities/parallel_levelset_distance_calculator.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
+#include "utilities/variable_utils.h"
 
 
 namespace Kratos
@@ -110,6 +111,8 @@ public:
 		double max_distance = 200;
         auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<TDim>>();
         p_distance_smoother->CalculateDistances(rBackgroundModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
+
+        VariableUtils().CopyScalarVar(DISTANCE, CHIMERA_DISTANCE, rBackgroundModelPart.Nodes());
     }
 
     ///@}
