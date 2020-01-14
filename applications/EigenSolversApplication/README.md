@@ -6,18 +6,18 @@ The *EigenSolversApplication* is a thin wrapper for the [Eigen linear algebra li
 
 The application provides the following direct sparse solvers:
 
-| Python class             | solver_type            | Matrix kind | Domain   | Dependencies |
-|--------------------------|------------------------|:-----------:|:--------:|:------------:|
-| SparseLUSolver           | `sparse_lu`            | Square      | Real     | None         |
-| SparseQRSolver           | `sparse_qr`            | Rectangular | Real     | None         |
-| SparseCGSolver           | `sparse_cg`            | SPD*        | Real     | None         |
-| PardisoLLTSolver         | `pardiso_llt`          | SPD*        | Real     | Intel® MKL   |
-| PardisoLDLTSolver        | `pardiso_ldlt`         | SPD*        | Real     | Intel® MKL   |
-| PardisoLUSolver          | `pardiso_lu`           | Square      | Real     | Intel® MKL   |
-| ComplexSparseLUSolver    | `sparse_lu_complex`    | Square      | Complex  | None         |
-| ComplexPardisoLLTSolver  | `pardiso_llt_complex`  | SPD*        | Complex  | Intel® MKL   |
-| ComplexPardisoLDLTSolver | `pardiso_ldlt_complex` | SPD*        | Complex  | Intel® MKL   |
-| ComplexPardisoLUSolver   | `pardiso_lu_complex`   | Square      | Complex  | Intel® MKL   |
+| Python class             | solver_type            | Matrix kind | Domain  | Dependencies |
+| ------------------------ | ---------------------- | :---------: | :-----: | :----------: |
+| SparseLUSolver           | `sparse_lu`            |   Square    |  Real   |     None     |
+| SparseQRSolver           | `sparse_qr`            | Rectangular |  Real   |     None     |
+| SparseCGSolver           | `sparse_cg`            |    SPD*     |  Real   |     None     |
+| PardisoLLTSolver         | `pardiso_llt`          |    SPD*     |  Real   |  Intel® MKL  |
+| PardisoLDLTSolver        | `pardiso_ldlt`         |    SPD*     |  Real   |  Intel® MKL  |
+| PardisoLUSolver          | `pardiso_lu`           |   Square    |  Real   |  Intel® MKL  |
+| ComplexSparseLUSolver    | `sparse_lu_complex`    |   Square    | Complex |     None     |
+| ComplexPardisoLLTSolver  | `pardiso_llt_complex`  |    SPD*     | Complex |  Intel® MKL  |
+| ComplexPardisoLDLTSolver | `pardiso_ldlt_complex` |    SPD*     | Complex |  Intel® MKL  |
+| ComplexPardisoLUSolver   | `pardiso_lu_complex`   |   Square    | Complex |  Intel® MKL  |
 
 *SPD = Symmetric Positive Definite
 
@@ -28,6 +28,22 @@ The application provides the following direct sparse solvers:
     "solver_type": "eigen_sparse_lu"
 }
 ```
+
+## Direct dense solvers
+
+The application provides the following direct solvers for dense systems of equations:
+
+| Python class                          | solver_type                         | Matrix requirements | Domain  | Dependencies |
+| ------------------------------------- | ----------------------------------- | :-----------------: | :-----: | :----------: |
+| DenseColPivHouseholderQRSolver        | `dense_colpivhouseholderqr`         |        None         |  Real   |     None     |
+| DenseHouseholderQRSolver              | `dense_householderqr`               |        None         |  Real   |     None     |
+| DenseLLTSolver                        | `dense_llt`                         |        SPD*         |  Real   |     None     |
+| DensePartialPivLUSolver               | `dense_partialpivlu`                |     Invertible      |  Real   |     None     |
+| ComplexDenseColPivHouseholderQRSolver | `complex_dense_colpivhouseholderqr` |        None         | Complex |     None     |
+| ComplexDenseHouseholderQRSolver       | `complex_dense_householderqr`       |        None         | Complex |     None     |
+| ComplexDensePartialPivLUSolver        | `complex_dense_partialpivlu`        |     Invertible      | Complex |     None     |
+
+*SPD = Symmetric Positive Definite
 
 ## Generalized eigensystem solver
 
