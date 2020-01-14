@@ -165,7 +165,7 @@ class Commander(object):
             import_module("KratosMultiphysics." + application)
 
         try:
-            KtsMp.Tester.SetVerbosity(KtsMp.Tester.Verbosity.TESTS_OUTPUTS)
+            KtsMp.Tester.SetVerbosity(KtsMp.Tester.Verbosity.PROGRESS)
             self.exitCode = KtsMp.Tester.RunAllTestCases()
         except Exception as e:
             print('[Warning]:', e, file=sys.stderr)
@@ -287,7 +287,7 @@ def main():
 
     # Run the tests for the rest of the Applications
     for application in applications:
-        print('Running tests for {}'.format(application), file=sys.stderr)
+        print('Running tests for {}'.format(application), file=sys.stderr, flush=True)
         sys.stderr.flush()
 
         with KtsUt.SupressConsoleOutput():
@@ -304,9 +304,10 @@ def main():
         exit_code = max(exit_code, commander.exitCode)
 
     # Run the cpp tests (does the same as run_cpp_tests.py)
-    print('Running cpp tests', file=sys.stderr)
+    print('Running cpp tests', file=sys.stderr, flush=True)
     with KtsUt.SupressConsoleOutput():
         commander.RunCppTests(applications)
+    print('Done Running cpp tests', file=sys.stderr, flush=True)
 
     exit_code = max(exit_code, commander.exitCode)
 
