@@ -145,7 +145,7 @@ namespace Kratos
                             p_surface,
                             outer_loops,
                             inner_loops,
-                            true);
+                            is_trimmed);
 
                     if (rParameters[i].Has("brep_id"))
                         p_brep_surface->SetId(rParameters[i]["brep_id"].GetInt());
