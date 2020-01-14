@@ -30,9 +30,7 @@ namespace Kratos
         ModelPart& rModelPart):
         Process(),
         mrModelPart(rModelPart)
-    {
-
-    }
+    {}
 
     std::string DivergenceProcess::Info() const
     {
