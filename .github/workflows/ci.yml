@@ -71,7 +71,7 @@ jobs:
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/run_tests.py -l small -c python3 -v 2
+        python3 kratos/python_scripts/run_tests.py -l small -c python3
 
     - name: Running nightly tests
       if: github.event_name == 'schedule' # this is the nightly build
