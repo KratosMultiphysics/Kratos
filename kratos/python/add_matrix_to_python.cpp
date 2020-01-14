@@ -14,6 +14,7 @@
 // System includes
 
 // External includes
+#include <pybind11/complex.h>
 
 // Project includes
 #include "includes/define_python.h"
