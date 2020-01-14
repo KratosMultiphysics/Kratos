@@ -97,8 +97,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             ;
 
     py::class_< FormfindingStrategyType,typename FormfindingStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"FormfindingStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, ModelPart&, Parameters, int, bool, bool, bool>())
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, ModelPart&, Parameters, int, bool, bool, bool>())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, ModelPart&, std::string, Parameters, int, bool, bool, bool>())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, ModelPart&, std::string, Parameters, int, bool, bool, bool>())
         ;
 
 

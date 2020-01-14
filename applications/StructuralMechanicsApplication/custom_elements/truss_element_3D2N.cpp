@@ -303,7 +303,22 @@ void TrussElement3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOut
         }
         noalias(rOutput) = transformation_matrix;
     }
+    if (rVariable == MEMBRANE_PRESTRESS) {
+        std::vector< Vector > prestress_matrix;
+        CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,prestress_matrix,rCurrentProcessInfo);
+        const int manual_integraton_points_size(1);
+        rOutput = ZeroMatrix(3,manual_integraton_points_size);
+
+        // each column represents 1 GP
+        for (SizeType i=0;i<manual_integraton_points_size;++i){
+            column(rOutput,i) = prestress_matrix[i];
+        }
+    }
 }
+
+
+
+
 
 void TrussElement3D2N::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rOutput,

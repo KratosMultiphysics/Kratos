@@ -22,6 +22,8 @@
 #include "includes/model_part_io.h"
 #include "includes/kratos_filesystem.h"
 #include "input_output/vtk_output.h"
+#include "includes/gid_io.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -43,10 +45,10 @@ namespace Kratos
             typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
             typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
             typedef typename BaseType::TSchemeType TSchemeType;
-            typedef GidIO<> IterationIOType;
-            typedef IterationIOType::Pointer IterationIOPointerType;
             typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
             typedef typename BaseType::TSystemVectorType TSystemVectorType;
+            typedef GidIO<> IterationIOType;
+            typedef IterationIOType::Pointer IterationIOPointerType;
 
             ///@}
             ///@name Life Cycle
@@ -63,6 +65,7 @@ namespace Kratos
                 typename TLinearSolver::Pointer pNewLinearSolver,
                 typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
                 ModelPart& rFormFindingModelPart,
+                std::string PrintingFormat,
                 Parameters ProjectionSetting,
                 int MaxIterations = 30,
                 bool CalculateReactions = false,
@@ -77,7 +80,8 @@ namespace Kratos
                     ReformDofSetAtEachStep,
                     MoveMeshFlag),
                     mProjectionSettings(ProjectionSetting),
-                    mrFormFindingModelPart(rFormFindingModelPart)
+                    mrFormFindingModelPart(rFormFindingModelPart),
+                    mPrintingFormat(PrintingFormat)
                  {
                     InitializeIterationIO();
                  }
@@ -90,6 +94,7 @@ namespace Kratos
                 typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
                 typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
                 ModelPart& rFormFindingModelPart,
+                std::string PrintingFormat,
                 Parameters ProjectionSetting,
                 int MaxIterations = 30,
                 bool CalculateReactions = false,
@@ -100,7 +105,8 @@ namespace Kratos
                     pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep,
                     MoveMeshFlag),
                     mProjectionSettings(ProjectionSetting),
-                    mrFormFindingModelPart(rFormFindingModelPart)
+                    mrFormFindingModelPart(rFormFindingModelPart),
+                    mPrintingFormat(PrintingFormat)
                  {
                     InitializeIterationIO();
                  }
@@ -111,14 +117,8 @@ namespace Kratos
         private:
             bool SolveSolutionStep() override
             {
-
-                /* KRATOS_ERROR_IF_NOT(mpIterationIO) << " IterationIO is uninitialized!" << std::endl;
-                mpIterationIO->InitializeResults(0.0, BaseType::GetModelPart().GetMesh()); */
-
                 BaseType::SolveSolutionStep();
-
-                /* mpIterationIO->FinalizeResults(); */
-
+                if (mPrintingFormat=="all" || mPrintingFormat=="gid") mpIterationIO->FinalizeResults();
                 return true;
             }
 
@@ -141,6 +141,8 @@ namespace Kratos
                         r_node.FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
                     }
                     ProjectVectorOnSurfaceUtility::Execute(mrFormFindingModelPart, mProjectionSettings);
+
+                    PrintResults();
                 }
 
                 FormfindingStrategy(const FormfindingStrategy& Other) {};
@@ -148,10 +150,47 @@ namespace Kratos
                 void EchoInfo(const unsigned int IterationNumber) override
                 {
                     BaseType::EchoInfo(IterationNumber);
+                    mIterationNumber = IterationNumber;
+                }
 
-                    /* KRATOS_ERROR_IF_NOT(mpIterationIO) << " IterationIO is uninitialized!" << std::endl;
-                    mpIterationIO->WriteNodalResults(DISPLACEMENT, BaseType::GetModelPart().Nodes(), IterationNumber, 0); */
+                void PrintResults()
+                {
+                    if (mPrintingFormat=="all"){
+                        PrintVtkFiles(mIterationNumber);
+                        PrintGiDFiles(mIterationNumber);
+                    }
+                    else if (mPrintingFormat=="vtk") PrintVtkFiles(mIterationNumber);
+                    else if (mPrintingFormat=="gid") PrintGiDFiles(mIterationNumber);
+                    else KRATOS_ERROR << "chosen printing format :" << mPrintingFormat << " is not available" << std::endl;
+                }
 
+                void FinalizeSolutionStep() override
+                {
+                    BaseType::FinalizeSolutionStep();
+                    WriteNewMdpaFile();
+                }
+
+                void WriteNewMdpaFile()
+                {
+                    Matrix output_matrix;
+                    const ProcessInfo temp_process_info;
+                    for(auto& r_element : mrFormFindingModelPart.Elements()){
+                        r_element.Calculate(MEMBRANE_PRESTRESS,output_matrix,temp_process_info);
+                        r_element.SetValue(MEMBRANE_PRESTRESS,output_matrix);
+                    }
+
+                    // write new mdpa
+                    // erase properties
+                    for (auto& prop: BaseType::GetModelPart().rProperties())
+                        prop.Data().Clear();
+
+
+                    ModelPartIO model_part_io("formfinding_result_model", IO::WRITE);
+                    model_part_io.WriteModelPart(BaseType::GetModelPart());
+                }
+
+                void PrintVtkFiles(const int& rIterationNumber)
+                {
                     Parameters vtk_params( R"({
                         "file_format"                        : "binary",
                         "output_precision"                   : 7,
@@ -163,41 +202,52 @@ namespace Kratos
 
                     const int max_prefix = int(std::floor(std::log10(BaseType::mMaxIterationNumber)))+1;
                     std::stringstream postfix;
-                    postfix << std::setw(max_prefix) << std::setfill('0') << IterationNumber;
-
+                    postfix << std::setw(max_prefix) << std::setfill('0') << rIterationNumber;
                     VtkOutput(BaseType::GetModelPart(), vtk_params).PrintOutput("formfinding_"+postfix.str());
                 }
-                
+
+
+                void PrintGiDFiles(const int& rIterationNumber)
+                {
+                    double solution_tag = rIterationNumber;
+                    mpIterationIO->WriteNodalResultsNonHistorical(DISPLACEMENT,BaseType::GetModelPart().Nodes(),solution_tag);
+                }
+
 
                 void InitializeIterationIO()
                 {
-                    if (Kratos::filesystem::exists("formfinding_results_vtk")){
-                        Kratos::filesystem::remove_all("formfinding_results_vtk"); 
-                    }       
-                    Kratos::filesystem::create_directory("formfinding_results_vtk");
+
+                    if (mPrintingFormat=="all" || mPrintingFormat=="vtk"){
+                        if (Kratos::filesystem::exists("formfinding_results_vtk")){
+                            Kratos::filesystem::remove_all("formfinding_results_vtk");
+                        }
+                        Kratos::filesystem::create_directory("formfinding_results_vtk");
+                        PrintVtkFiles(mIterationNumber);
+                    }
+
+                    if (mPrintingFormat=="all" || mPrintingFormat=="gid"){
+                        mpIterationIO = Kratos::make_unique<IterationIOType>(
+                            "Formfinding_Iterations",
+                            GiD_PostAscii, // GiD_PostAscii // for debugging GiD_PostBinary
+                            MultiFileFlag::SingleFile,
+                            WriteDeformedMeshFlag::WriteUndeformed,
+                            WriteConditionsFlag::WriteConditions);
+
+                        mpIterationIO->InitializeMesh(0.0);
+                        mpIterationIO->WriteMesh(BaseType::GetModelPart().GetMesh());
+                        mpIterationIO->WriteNodeMesh(BaseType::GetModelPart().GetMesh());
+                        mpIterationIO->FinalizeMesh();
+                        mpIterationIO->InitializeResults(0.0, BaseType::GetModelPart().GetMesh());
+                    }
                 }
 
 
-                void FinalizeSolutionStep() override
-                {
-                    BaseType::FinalizeSolutionStep();
-
-                    // write new mdpa
-                    // erase properties
-                    for (auto& prop: BaseType::GetModelPart().rProperties())
-                        prop.Data().Clear();
-
-                    ModelPartIO model_part_io("formfinding_result_model", IO::WRITE);
-                    model_part_io.WriteModelPart(BaseType::GetModelPart());
-
-
-                    
-                }
-
-
-                /* IterationIOPointerType mpIterationIO; */
+                IterationIOPointerType mpIterationIO;
                 Parameters mProjectionSettings;
                 ModelPart& mrFormFindingModelPart;
+                std::string mPrintingFormat;
+                int mIterationNumber = 0;
+
         }; /* Class FormfindingStrategy */
 } /* namespace Kratos. */
 
