@@ -1389,7 +1389,7 @@ private:
             }
         }
     }
-
+      
     /**
      * @brief This method assembles the LHS of the system (on free rows)
      * @param rA The LHS to assemble
