@@ -1,0 +1,124 @@
+{
+    "Dimension"                      : 3,
+    "PeriodicDomainOption"           : false,
+    "BoundingBoxOption"              : false,
+    "AutomaticBoundingBoxOption"     : false,
+    "BoundingBoxEnlargementFactor"   : 1.1,
+    "BoundingBoxStartTime"           : 0.0,
+    "BoundingBoxStopTime"            : 1000.0,
+    "BoundingBoxMaxX"                : 10,
+    "BoundingBoxMaxY"                : 10,
+    "BoundingBoxMaxZ"                : 10,
+    "BoundingBoxMinX"                : -10,
+    "BoundingBoxMinY"                : -10,
+    "BoundingBoxMinZ"                : -10,
+    "dem_inlet_option"               : false,
+    "GravityX"                       : 0.0,
+    "GravityY"                       : -9.81,
+    "GravityZ"                       : 0.0,
+    "RotationOption"                 : true,
+    "CleanIndentationsOption"        : false,
+    "solver_settings"                : {
+        "RemoveBallsInitiallyTouchingWalls" : false,
+        "strategy"                          : "sphere_strategy"
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "processes.apply_kinematic_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "SpheresPart.Ball1",
+		"velocity_constraints_settings" : {
+                    "constrained"          : [true,true,true],
+                    "value"                : [0.0, 0.0, 0.0]
+                },
+                "angular_velocity_constraints_settings" : {
+                    "constrained"          : [true,true,true],
+                    "value"                : [0.0, 0.0, 0.0]
+                },
+                "interval"             : [0.0, 0.2]
+            }
+        },{
+            "python_module" : "processes.apply_kinematic_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "SpheresPart.Ball2",
+		"velocity_constraints_settings" : {
+                    "constrained"          : [true,true,true],
+                    "value"                : ["-10.0*t", 0.0, 0.0]
+                },
+                "angular_velocity_constraints_settings" : {
+                    "constrained"          : [true,true,true],
+                    "value"                : [0.0, 0.0, 0.0]
+                },
+                "interval"             : [0.2, 0.4]
+            }
+        },{
+            "python_module" : "processes.apply_kinematic_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "SpheresPart.Ball3",
+		"velocity_constraints_settings" : {
+                    "constrained"          : [true,true,true],
+                    "value"                : [-5.0, 0.0, 0.0]
+                },
+                "angular_velocity_constraints_settings" : {
+                    "constrained"          : [true,true,true],
+                    "value"                : [0.0, 0.0, -10.0]
+                },
+                "interval"             : [0.0, 0.1]
+            }
+        },{
+            "python_module" : "processes.apply_kinematic_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "SpheresPart.Ball4",
+		"velocity_constraints_settings" : {
+                    "constrained"          : [false, false, true],
+                    "value"                : [10000.0, 3000.0, 0.0]
+                },
+                "angular_velocity_constraints_settings" : {
+                    "constrained"          : [false, false, false],
+                    "value"                : [1000.0, "3000.0*t", "x+y+1000.0"]
+                },
+                "interval"             : [0.0, 1e30]
+            }
+        }],
+        "loads_process_list"       : [],
+        "list_other_processes"     : []
+    },
+    "VirtualMassCoefficient"         : 1.0,
+    "RollingFrictionOption"          : false,
+    "GlobalDamping"                  : 0.0,
+    "ContactMeshOption"              : false,
+    "OutputFileType"                 : "Binary",
+    "Multifile"                      : "multiple_files",
+    "ElementType"                    : "SphericPartDEMElement3D",
+    "TranslationalIntegrationScheme" : "Symplectic_Euler",
+    "RotationalIntegrationScheme"    : "Direct_Integration",
+    "MaxTimeStep"                    : 0.0002,
+    "FinalTime"                      : 0.61,
+    "NeighbourSearchFrequency"       : 50,
+    "GraphExportFreq"                : 0.001,
+    "VelTrapGraphExportFreq"         : 0.001,
+    "OutputTimeStep"                 : 0.01,
+    "PostBoundingBox"                : false,
+    "PostLocalContactForce"          : false,
+    "PostDisplacement"               : true,
+    "PostRadius"                     : true,
+    "PostVelocity"                   : true,
+    "PostAngularVelocity"            : true,
+    "PostElasticForces"              : false,
+    "PostContactForces"              : false,
+    "PostRigidElementForces"         : false,
+    "PostStressStrainOption"         : false,
+    "PostTangentialElasticForces"    : false,
+    "PostTotalForces"                : false,
+    "PostPressure"                   : false,
+    "PostShearStress"                : false,
+    "PostNonDimensionalVolumeWear"   : false,
+    "PostParticleMoment"             : false,
+    "PostEulerAngles"                : false,
+    "PostRollingResistanceMoment"    : false,
+    "problem_name"                   : "processes"
+}

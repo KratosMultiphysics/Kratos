@@ -1,0 +1,7 @@
+Begin Properties 1
+VELOCITY 1.0, 2.0, 3.0
+//VELOCITY [3] (1.0, 2.0, 3.0) //should be like this
+TEMPERATURE 4.0
+TIME 5.0
+PRESSURE 6.0
+End Properties
