@@ -209,7 +209,7 @@ namespace Kratos
 
             auto p_brep_curve_on_surface
                 = Kratos::make_shared<BrepCurveOnSurfaceType>(
-                    pNurbsSurface, p_trimming_curve);
+                    pNurbsSurface, p_trimming_curve, curve_direction);
 
             if (rParameters.Has("trim_index"))
                 p_brep_curve_on_surface->SetId(rParameters["trim_index"].GetInt());
@@ -444,14 +444,18 @@ namespace Kratos
             {
                 Vector cp = rParameters[0].GetVector();
 
-                return TThisNodeType(0, cp[0], cp[1], cp[2]);
+                TThisNodeType node(0, cp[0], cp[1], cp[2]);
+
+                return node;
             }
             else
             {
-                SizeType id = rParameters[0].GetInt();
+                IndexType id = rParameters[0].GetInt();
                 Vector cp = rParameters[1].GetVector();
 
-                return TThisNodeType(id, cp[0], cp[1], cp[2]);
+                TThisNodeType node(id, cp[0], cp[1], cp[2]);
+
+                return node;
             }
         }
 
