@@ -119,8 +119,7 @@ namespace Kratos
             }
         }
 
-        // if (counter > r_geometry.WorkingSpaceDimension()-1){
-        if (counter > 0){
+        if (counter > r_geometry.WorkingSpaceDimension()-1){
             is_cond = true;
         }
 
