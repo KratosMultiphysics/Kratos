@@ -202,7 +202,7 @@ public:
     ///@name Access to Geometry Parts
     ///@{
 
-    typename GeometryType::Pointer pGetGeometryPart(IndexType Index)
+    typename GeometryType::Pointer pGetGeometryPart(IndexType Index) override
     {
         if (Index == SURFACE_INDEX)
             return mpNurbsSurface;
@@ -226,7 +226,7 @@ public:
         }
 
         KRATOS_ERROR << "Index " << Index << " not existing in geometry: "
-            << Id() << std::endl;
+            << this->Id() << std::endl;
     }
 
     ///@}
