@@ -2034,7 +2034,7 @@ public:
         else
         {
             // Projection failed
-            return -1;
+            return PROJECTION_FAILED;
         }
     }
 
