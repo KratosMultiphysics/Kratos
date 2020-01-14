@@ -388,8 +388,6 @@ double MassConservationCorrection::ComputeFlowOverBoundary( const Kratos::Flags 
     return inflow_over_boundary;
 }
 
-
-
 void MassConservationCorrection::ShiftDistanceField( double deltaDist ){
 
     // negative shift = "more water"
@@ -397,18 +395,30 @@ void MassConservationCorrection::ShiftDistanceField( double deltaDist ){
     ModelPart::NodesContainerType rNodes = mrModelPart.Nodes();
 
     double mean_curvature = 0.0;
+    double nnodes = 0.0;
 
-    #pragma omp parallel for
-    for(int count = 0; count < static_cast<int>(rNodes.size()); count++){
+    for (int count = 0; count < static_cast<int>(rNodes.size()); count++){
         ModelPart::NodesContainerType::iterator i_node = rNodes.begin() + count;
-        mean_curvature += (1.0/rNodes.size())*i_node->FastGetSolutionStepValue( CURVATURE );
+        const double curvature = i_node->FastGetSolutionStepValue( CURVATURE );
+
+        if (curvature < 1.0e8 && curvature > -1.0e8){
+            mean_curvature += curvature;
+            nnodes ++;
+        }            
     }
+
+    mean_curvature /= nnodes;
+
+    KRATOS_INFO("MassConservationCorrection") << mean_curvature << std::endl;
 
     #pragma omp parallel for
     for(int count = 0; count < static_cast<int>(rNodes.size()); count++){
         ModelPart::NodesContainerType::iterator i_node = rNodes.begin() + count;
         const double curvature = i_node->FastGetSolutionStepValue( CURVATURE );
-        i_node->FastGetSolutionStepValue( DISTANCE ) += (curvature/mean_curvature)*deltaDist;
+
+        if (curvature < 1.0e8 && curvature > -1.0e8){
+            i_node->FastGetSolutionStepValue( DISTANCE ) += (curvature/mean_curvature)*deltaDist;
+        }
     }
 }
 

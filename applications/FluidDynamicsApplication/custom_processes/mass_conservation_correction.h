@@ -64,7 +64,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of DistanceModificationProcess
+    /// Pointer definition of MassConservationCorrection
     KRATOS_CLASS_POINTER_DEFINITION(MassConservationCorrection);
 
     typedef Node<3> NodeType;

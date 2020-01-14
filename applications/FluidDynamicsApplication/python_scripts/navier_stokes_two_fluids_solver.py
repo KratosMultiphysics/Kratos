@@ -167,29 +167,36 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self.level_set_convection_process = self._set_level_set_convection_process()
 
+        self.mass_conservation_correction = self._set_mass_conservation_correction()
+        #(self.mass_conservation_correction).Initialize();
+
         self.parallel_distance_process = self._set_parallel_distance_process()
-        (self.parallel_distance_process).CalculateDistances(
-                    self.main_model_part, 
-                    KratosMultiphysics.DISTANCE, 
-                    KratosCFD.AREA_VARIABLE_AUX, 
-                    2000, 
-                    0.05,
-                    (self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
+        #(self.parallel_distance_process).CalculateDistances(
+        #            self.main_model_part, 
+        #            KratosMultiphysics.DISTANCE, 
+        #            KratosCFD.AREA_VARIABLE_AUX, 
+        #            2000, 
+        #            0.05,
+        #            (self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
         self.variational_distance_process = self._set_variational_distance_process()
         #(self.variational_distance_process).Execute()
 
-        self.surface_smoothing_process = self._set_surface_smoothing_process()
-        #(self.surface_smoothing_process).Execute();
+        self.lumped_eikonal_distance_calculation = self._set_lumped_eikonal_distance_calculation()
+        (self.lumped_eikonal_distance_calculation).Execute()
 
-        self.mass_conservation_correction = self._set_mass_conservation_correction()
-        (self.mass_conservation_correction).Initialize();
+        self.surface_smoothing_process = self._set_surface_smoothing_process()
+        (self.surface_smoothing_process).Execute()
+        
+        for node in self.main_model_part.Nodes:
+            smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
         self.distance_gradient_process = self._set_distance_gradient_process()
-        #(self.distance_gradient_process).Execute()
+        (self.distance_gradient_process).Execute()
 
         self.curvature_calculation_process = self._set_curvature_calculation_process()
-        #(self.curvature_calculation_process).Execute()
+        (self.curvature_calculation_process).Execute()
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],   # Domain size (2,3)
                                                                                         self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1) # DOFs (3,4)
@@ -226,6 +233,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # Recompute the BDF2 coefficients
             (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
+            TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+
+            # Correct the distance function according to volume conservation
+            # Check the JASON properties file for duplicate processes!
+            #if (TimeStep % 1 == 0):
+            #    KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "About to impose mass conservation!")
+            #    (self.mass_conservation_correction).ExecuteInTimeStep();
+
             # Perform the level-set convection according to the previous step velocity
             if self._bfecc_convection:
                 KratosMultiphysics.Logger.PrintInfo("LevelSetSolver", "BFECCconvect will be called")
@@ -237,26 +252,23 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             else:
                 (self.level_set_convection_process).Execute()
 
-            TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-
-            # Correct the distance function according to volume conservation
-            # Check the JASON properties file for duplicate processes!
-            #if (TimeStep % 1 == 0):
-            #    (self.mass_conservation_correction).ExecuteInTimeStep();
-
             # Recompute the distance field according to the new level-set position
             #if (TimeStep % 1 == 0):
             #    (self.variational_distance_process).Execute()
 
             # Recompute the distance field according to the new level-set position
-            if (TimeStep % 1 == 0):
-                (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
-                    self.main_model_part, 
-                    KratosMultiphysics.DISTANCE, 
-                    KratosCFD.AREA_VARIABLE_AUX, 
-                    500, 
-                    0.02)#,
+            #if (TimeStep % 20 == 0):
+            #    (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
+            #        self.main_model_part, 
+            #        KratosMultiphysics.DISTANCE, 
+            #        KratosCFD.AREA_VARIABLE_AUX, 
+            #        500, 
+            #        0.02)#,
                     #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
+
+            # Reinitialize distance according to time dependent Eikonal equation
+            if (TimeStep % 1 == 0):
+                (self.lumped_eikonal_distance_calculation).Execute()
 
             # Smoothing the surface to filter oscillatory surface
             (self.surface_smoothing_process).Execute()
@@ -422,6 +434,16 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 parallel_distance_process = KratosMultiphysics.ParallelDistanceCalculator3D()
         
         return parallel_distance_process
+
+    def _set_lumped_eikonal_distance_calculation(self):
+        # Construct the process for redistancing
+        lumped_eikonal_distance_calculation = KratosCFD.LumpedEikonalDistanceCalculation(
+                self.main_model_part,
+                10,
+                1.0e-8,
+                0.001)
+        
+        return lumped_eikonal_distance_calculation
 
 
     def _set_distance_gradient_process(self):
