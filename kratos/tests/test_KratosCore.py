@@ -49,7 +49,7 @@ import test_serializer
 import test_dofs
 import test_time_averaging
 import test_scipy_conversion_tools
-
+import test_linear_constraints 
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -115,6 +115,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_dofs.TestDofs]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_time_averaging.TimeAveragingProcessTests]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_scipy_conversion_tools.TestScipyConversionTools]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_constraints.TestLinearConstraints]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']

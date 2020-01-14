@@ -2,7 +2,12 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as KratosUtils
 import math
+
+dependencies_are_available = KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication")
+if dependencies_are_available:
+    import KratosMultiphysics.StructuralMechanicsApplication
 
 def inner_prod(a,b):
     tmp = 0
@@ -86,7 +91,7 @@ class TestLinearConstraints(KratosUnittest.TestCase):
         strategy.SolveSolutionStep()
         strategy.FinalizeSolutionStep()
 
-
+    @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication is not available")
     def test_constraints(self):
         dim = 2
 
