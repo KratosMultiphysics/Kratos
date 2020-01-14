@@ -171,6 +171,7 @@ class SDoFSolver(object):
                                     str(self.dx[2] - self.dx_f[2]) + " " +
                                     str(reaction) + "\n")
 
+
     def AdvanceInTime(self, current_time):
         # similar to the Kratos CloneTimeStep function
         # advances values along the buffer axis (so rolling columns) using numpy's roll

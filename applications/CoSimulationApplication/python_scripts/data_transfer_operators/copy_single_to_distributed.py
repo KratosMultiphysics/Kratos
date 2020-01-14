@@ -26,7 +26,6 @@ class CopySingleToDistributed(CoSimulationDataTransferOperator):
         if "distribute_values" in transfer_options.GetStringArray():
             data_comm = from_solver_data.model_part.GetCommunicator().GetDataCommunicator()
             to_solver_values /= data_comm.SumAll(to_solver_data.Size())
-
         if "add_values" in transfer_options.GetStringArray():
             to_solver_values += to_solver_data.GetData()
 
