@@ -72,23 +72,12 @@ public:
     /// constructor for untrimmed surface
     BrepCurveOnSurface( 
         typename NurbsSurfaceType::Pointer pSurface,
-        typename NurbsCurveType::Pointer pCurve)
-        : BaseType(PointsArrayType(), &msGeometryData)
-        , mpNurbsSurface(pSurface)
-        , mpNurbsCurve(pCurve)
-        , mCurveDirection(true)
-    {
-    }
-
-    BrepCurveOnSurface(
-        typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve,
-        NurbsInterval CurveNurbsInterval)
+        bool curve_direction = true)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface)
         , mpNurbsCurve(pCurve)
-        , mCurveNurbsInterval(CurveNurbsInterval)
-        , mCurveDirection(true)
+        , mCurveDirection(curve_direction)
     {
     }
 
@@ -96,7 +85,20 @@ public:
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve,
         NurbsInterval CurveNurbsInterval,
-        bool curve_direction)
+        bool curve_direction = true)
+        : BaseType(PointsArrayType(), &msGeometryData)
+        , mpNurbsSurface(pSurface)
+        , mpNurbsCurve(pCurve)
+        , mCurveNurbsInterval(CurveNurbsInterval)
+        , mCurveDirection(curve_direction)
+    {
+    }
+
+    BrepCurveOnSurface(
+        typename NurbsSurfaceType::Pointer pSurface,
+        typename NurbsCurveType::Pointer pCurve,
+        NurbsInterval CurveNurbsInterval,
+        bool curve_direction = true)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface)
         , mpNurbsCurve(pCurve)
