@@ -1,13 +1,12 @@
 from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtils
 import math
 
 dependencies_are_available = KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication")
 if dependencies_are_available:
-    import KratosMultiphysics.StructuralMechanicsApplication
+    import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 def inner_prod(a,b):
     tmp = 0
