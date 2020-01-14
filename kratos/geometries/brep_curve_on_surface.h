@@ -76,6 +76,7 @@ public:
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface)
         , mpNurbsCurve(pCurve)
+        , mCurveDirection(true)
     {
     }
 
@@ -87,6 +88,20 @@ public:
         , mpNurbsSurface(pSurface)
         , mpNurbsCurve(pCurve)
         , mCurveNurbsInterval(CurveNurbsInterval)
+        , mCurveDirection(true)
+    {
+    }
+
+    BrepCurveOnSurface(
+        typename NurbsSurfaceType::Pointer pSurface,
+        typename NurbsCurveType::Pointer pCurve,
+        NurbsInterval CurveNurbsInterval,
+        bool curve_direction)
+        : BaseType(PointsArrayType(), &msGeometryData)
+        , mpNurbsSurface(pSurface)
+        , mpNurbsCurve(pCurve)
+        , mCurveNurbsInterval(CurveNurbsInterval)
+        , mCurveDirection(curve_direction)
     {
     }
 
@@ -287,6 +302,8 @@ private:
 
     NurbsInterval mCurveNurbsInterval;
 
+    NurbsInterval mCurveDirection;
+
     ///@}
     ///@name Serialization
     ///@{
@@ -299,6 +316,7 @@ private:
         rSerializer.save("NurbsSurface", mpNurbsSurface);
         rSerializer.save("NurbsCurve", mpNurbsCurve);
         rSerializer.save("NurbsInterval", mCurveNurbsInterval);
+        rSerializer.save("CurveDirection", mCurveDirection);
     }
 
     void load( Serializer& rSerializer ) override
@@ -307,6 +325,7 @@ private:
         rSerializer.load("NurbsSurface", mpNurbsSurface);
         rSerializer.load("NurbsCurve", mpNurbsCurve);
         rSerializer.load("NurbsInterval", mCurveNurbsInterval);
+        rSerializer.load("CurveDirection", mCurveDirection);
     }
 
     BrepCurveOnSurface()
