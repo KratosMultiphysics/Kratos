@@ -24,7 +24,7 @@ class CopySingleToDistributed(CoSimulationDataTransferOperator):
         if "swap_sign" in transfer_options.GetStringArray():
             to_solver_values *= (-1)
         if "distribute_values" in transfer_options.GetStringArray():
-            data_comm = KM.DataCommunicator.GetDefault()
+            data_comm = from_solver_data.model_part.GetCommunicator().GetDataCommunicator()
             to_solver_values /= data_comm.SumAll(to_solver_data.Size())
 
         if "add_values" in transfer_options.GetStringArray():
