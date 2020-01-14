@@ -326,9 +326,9 @@ void  AddIOToPython(pybind11::module& m)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<array_1d<double,3>>&, const double)) &UnvOutput::WriteNodalResults)
         ;
 
-    py::class_<CadJsonInput<Node<3>, Point>, CadJsonInput<Node<3>, Point>::Pointer>(m, "CadJsonInput")
-        .def(py::init< Parameters >())
-        .def("ReadModelPart", &CadJsonInput<Node<3>, Point>::ReadModelPart)
+    py::class_<CadJsonInput<>, typename CadJsonInput<>::Pointer>(m, "CadJsonInput")
+        .def(py::init<const Parameters&>())
+        .def("ReadModelPart", &CadJsonInput<>::ReadModelPart)
         ;
 }
 }  // namespace Python.
