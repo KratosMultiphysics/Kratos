@@ -70,7 +70,7 @@ public:
     /**
      * Pointer definition of QuadrilateralInterface3D4
      */
-    KRATOS_CLASS_POINTER_DEFINITION( QuadrilateralInterface3D4 );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( QuadrilateralInterface3D4 );
 
     /**
      * Integration methods implemented in geometry.

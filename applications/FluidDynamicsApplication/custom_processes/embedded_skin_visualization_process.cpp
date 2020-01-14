@@ -616,9 +616,9 @@ Geometry< Node<3> >::Pointer EmbeddedSkinVisualizationProcess::SetNewConditionGe
 
     switch(rOriginGeometryType){
         case GeometryData::KratosGeometryType::Kratos_Line2D2:
-            return Kratos::make_shared<Line2D2< Node<3> > >(rNewNodesArray);
+            return Kratos::make_intrusive<Line2D2< Node<3> > >(rNewNodesArray);
         case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
-            return Kratos::make_shared<Triangle3D3< Node<3> > >(rNewNodesArray);
+            return Kratos::make_intrusive<Triangle3D3< Node<3> > >(rNewNodesArray);
         default:
             KRATOS_ERROR << "Implement the visualization for the intersection geometry type " << rOriginGeometryType;
     }
@@ -634,8 +634,8 @@ std::tuple< Properties::Pointer , Properties::Pointer > EmbeddedSkinVisualizatio
             max_prop_id = it_prop->Id();
         }
     }
-    Properties::Pointer p_pos_prop = Kratos::make_shared<Properties>(max_prop_id + 1);
-    Properties::Pointer p_neg_prop = Kratos::make_shared<Properties>(max_prop_id + 2);
+    Properties::Pointer p_pos_prop = Kratos::make_intrusive<Properties>(max_prop_id + 1);
+    Properties::Pointer p_neg_prop = Kratos::make_intrusive<Properties>(max_prop_id + 2);
     mrVisualizationModelPart.AddProperties(p_pos_prop);
     mrVisualizationModelPart.AddProperties(p_neg_prop);
 

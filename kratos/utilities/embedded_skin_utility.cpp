@@ -233,9 +233,9 @@ namespace Kratos
     {
         switch(rOriginGeometryType){
             case GeometryData::KratosGeometryType::Kratos_Line2D2:
-                return Kratos::make_shared<Line2D2< Node<3> > >(rNewNodesArray);
+                return Kratos::make_intrusive<Line2D2< Node<3> > >(rNewNodesArray);
             case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
-                return Kratos::make_shared<Triangle3D3< Node<3> > >(rNewNodesArray);
+                return Kratos::make_intrusive<Triangle3D3< Node<3> > >(rNewNodesArray);
             default:
                 KRATOS_ERROR << "Implement the skin generation for the intersection geometry type: " << rOriginGeometryType;
         }
@@ -277,7 +277,7 @@ namespace Kratos
             }
         }
 
-        Properties::Pointer p_new_prop = Kratos::make_shared<Properties>(max_prop_id + 1);
+        Properties::Pointer p_new_prop = Kratos::make_intrusive<Properties>(max_prop_id + 1);
         mrModelPart.AddProperties(p_new_prop);
 
         return p_new_prop;

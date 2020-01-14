@@ -1269,7 +1269,7 @@ void ModelPartIO::ReadPropertiesBlock(PropertiesContainerType& rThisProperties)
 {
     KRATOS_TRY
 
-    Properties::Pointer props = Kratos::make_shared<Properties>();
+    Properties::Pointer props = Kratos::make_intrusive<Properties>();
     Properties& temp_properties = *props;
     //Properties temp_properties;
 
@@ -2875,7 +2875,7 @@ void ModelPartIO::ReadMeshPropertiesBlock(ModelPart& rModelPart, MeshType& rMesh
 {
     KRATOS_TRY
 
-    Properties::Pointer props = Kratos::make_shared<Properties>();
+    Properties::Pointer props = Kratos::make_intrusive<Properties>();
     Properties& temp_properties = *props;
 //         Properties temp_properties;
 

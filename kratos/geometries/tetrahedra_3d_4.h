@@ -77,7 +77,7 @@ public:
     /**
      * Pointer definition of Tetrahedra3D4
      */
-    KRATOS_CLASS_POINTER_DEFINITION(Tetrahedra3D4);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Tetrahedra3D4);
 
     /**
      * Integration methods implemented in geometry.

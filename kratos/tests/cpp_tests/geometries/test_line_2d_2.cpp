@@ -32,7 +32,7 @@ namespace Testing {
     * @return  Pointer to a Line2D2N
     */
     Line2D2<Point>::Pointer GeneratePointsUnitXDirectionLine2D2() {
-        return Kratos::make_shared<Line2D2<Point>>(
+        return Kratos::make_intrusive<Line2D2<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
         Kratos::make_shared<Point>(1.0, 0.0, 0.0)
         );
@@ -42,7 +42,7 @@ namespace Testing {
     * @return  Pointer to a Line2D2N
     */
     Line2D2<Point>::Pointer GeneratePointsUnitYDirectionLine2D2() {
-        return Kratos::make_shared<Line2D2<Point>>(
+        return Kratos::make_intrusive<Line2D2<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
         Kratos::make_shared<Point>(0.0, 1.0, 0.0)
         );
@@ -52,7 +52,7 @@ namespace Testing {
     * @return  Pointer to a Line2D2N
     */
     Line2D2<Point>::Pointer GeneratePointsDiagonalLine2D2() {
-        return Kratos::make_shared<Line2D2<Point>>(
+        return Kratos::make_intrusive<Line2D2<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
         Kratos::make_shared<Point>(1.0, 1.0, 0.0)
         );
@@ -62,7 +62,7 @@ namespace Testing {
     * @return  Pointer to a Line2D2N
     */
     Line2D2<Point>::Pointer GenerateLine2D2WithPoints(Point::Pointer rPointOne, Point::Pointer rPointTwo ) {
-        return Kratos::make_shared<Line2D2<Point>>(rPointOne, rPointTwo);
+        return Kratos::make_intrusive<Line2D2<Point>>(rPointOne, rPointTwo);
     }
 
     /** Checks if the number of edges is correct.

@@ -176,7 +176,7 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraSplitEdgesPatterns, KratosCoreFastSuite)
 
                             // Reconstruct each one of the splitting tetras
                             for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
-                                Tetrahedra3D4<Node<3>>::Pointer p_sub_tetra = Kratos::make_shared<Tetrahedra3D4<Node<3>>>(
+                                Tetrahedra3D4<Node<3>>::Pointer p_sub_tetra = Kratos::make_intrusive<Tetrahedra3D4<Node<3>>>(
                                     nodes_pointer_vect[t[i_elem*4]],
                                     nodes_pointer_vect[t[i_elem*4 + 1]],
                                     nodes_pointer_vect[t[i_elem*4 + 2]],

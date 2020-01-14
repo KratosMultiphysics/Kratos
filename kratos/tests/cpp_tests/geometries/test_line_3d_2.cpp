@@ -31,7 +31,7 @@ namespace Testing {
     * @return  Pointer to a Line3D2N
     */
     Line3D2<Point>::Pointer GeneratePointsUnitXDirectionLine3D2() {
-        return Kratos::make_shared<Line3D2<Point>>(
+        return Kratos::make_intrusive<Line3D2<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
         Kratos::make_shared<Point>(1.0, 0.0, 0.0)
         );
@@ -41,7 +41,7 @@ namespace Testing {
     * @return  Pointer to a Line3D2N
     */
     Line3D2<Point>::Pointer GeneratePointsUnitYDirectionLine3D2() {
-        return Kratos::make_shared<Line3D2<Point>>(
+        return Kratos::make_intrusive<Line3D2<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
         Kratos::make_shared<Point>(0.0, 1.0, 0.0)
         );
@@ -51,7 +51,7 @@ namespace Testing {
     * @return  Pointer to a Line3D2N
     */
     Line3D2<Point>::Pointer GeneratePointsDiagonalLine3D2() {
-        return Kratos::make_shared<Line3D2<Point>>(
+        return Kratos::make_intrusive<Line3D2<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
         Kratos::make_shared<Point>(1.0, 1.0, 1.0)
         );
@@ -61,7 +61,7 @@ namespace Testing {
     * @return  Pointer to a Line3D2N
     */
     Line3D2<Point>::Pointer GenerateLine3D2WithPoints(Point::Pointer rPointOne, Point::Pointer rPointTwo ) {
-        return Kratos::make_shared<Line3D2<Point>>(rPointOne, rPointTwo);
+        return Kratos::make_intrusive<Line3D2<Point>>(rPointOne, rPointTwo);
     }
 
     /** Checks if the number of edges is correct.
@@ -320,7 +320,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(p_geom->ShapeFunctionValue(0, coord), 1.0/6.0, TOLERANCE);
         KRATOS_CHECK_NEAR(p_geom->ShapeFunctionValue(1, coord), 5.0/6.0, TOLERANCE);
         auto& r_geom = *p_geom;
-        Geometry<Node<3>>::Pointer p_geom_nodes = Kratos::make_shared<Line3D2<Node<3>>>(
+        Geometry<Node<3>>::Pointer p_geom_nodes = Kratos::make_intrusive<Line3D2<Node<3>>>(
         Kratos::make_intrusive<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
         Kratos::make_intrusive<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
         );
@@ -361,7 +361,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(Line3D2ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
         Geometry<Point>::Pointer p_geom = GeneratePointsDiagonalLine3D2();
         auto& r_geom = *p_geom;
-        Geometry<Node<3>>::Pointer p_geom_nodes = Kratos::make_shared<Line3D2<Node<3>>>(
+        Geometry<Node<3>>::Pointer p_geom_nodes = Kratos::make_intrusive<Line3D2<Node<3>>>(
         Kratos::make_intrusive<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
         Kratos::make_intrusive<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
         );

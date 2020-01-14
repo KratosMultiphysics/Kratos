@@ -50,7 +50,7 @@ public:
     typedef std::vector<GeometryPointer> GeometryPointerVector;
 
     /// Pointer definition of CouplingGeometry
-    KRATOS_CLASS_POINTER_DEFINITION( CouplingGeometry );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( CouplingGeometry );
 
     typedef TPointType PointType;
 
@@ -184,7 +184,7 @@ public:
     typename BaseType::Pointer Create(
         PointsArrayType const& ThisPoints ) const override
     {
-        return Kratos::make_shared<CouplingGeometry>();
+        return Kratos::make_intrusive<CouplingGeometry>();
     }
 
     ///@}

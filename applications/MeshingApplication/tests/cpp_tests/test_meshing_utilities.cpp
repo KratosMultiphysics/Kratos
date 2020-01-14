@@ -28,7 +28,7 @@ namespace Kratos {
 
         void CreateDummy2DNoModelPartPropertiesModelPart(ModelPart& rModelPart)
         {
-            Properties::Pointer p_elem_prop = Kratos::make_shared<Properties>(0);
+            Properties::Pointer p_elem_prop(0);
 
             // First we create the nodes
             rModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);

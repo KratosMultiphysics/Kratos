@@ -228,7 +228,7 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      virtual Kratos::shared_ptr< Geometry< Point > > Clone() const
+      virtual  Geometry< Point >::Pointer Clone() const
     {
       Geometry< Point >::PointsArrayType NewPoints;
 
@@ -237,7 +237,7 @@ namespace Kratos
         NewPoints.push_back(mPoints[i]);
 
       //creating a geometry with the new points
-      Kratos::shared_ptr< Geometry< Point > > p_clone(new ClassName< Point >(NewPoints));
+      Geometry< Point >::Pointer p_clone(new ClassName< Point >(NewPoints));
       p_clone->ClonePoints();
 
       return p_clone;

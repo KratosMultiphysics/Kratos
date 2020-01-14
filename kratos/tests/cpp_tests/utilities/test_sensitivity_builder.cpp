@@ -40,7 +40,7 @@ public:
     static typename TestAdjoint::Pointer Create(std::size_t NewId, const PointerVector<Node<3>>& rNodes)
     {
         Geometry<Node<3>>::Pointer p_geom =
-            Kratos::make_shared<Triangle2D3<Node<3>>>(rNodes);
+            Kratos::make_intrusive<Triangle2D3<Node<3>>>(rNodes);
         return Kratos::make_intrusive<TestAdjoint>(NewId, p_geom);
     }
 

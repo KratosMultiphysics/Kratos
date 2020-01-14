@@ -21,6 +21,7 @@
 #define  KRATOS_GEOMETRY_H_INCLUDED
 
 // System includes
+#include <atomic>
 
 // External includes
 
@@ -77,7 +78,7 @@ public:
     typedef Geometry<TPointType> GeometryType;
 
     /// Pointer definition of Geometry
-    KRATOS_CLASS_POINTER_DEFINITION( Geometry );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( Geometry );
 
     /** Different criteria to evaluate the quality of a geometry.
      * Different criteria to evaluate the quality of a geometry.
@@ -542,7 +543,7 @@ public:
             *i = typename PointType::Pointer( new PointType( **i ) );
     }
 
-     // virtual Kratos::shared_ptr< Geometry< Point > > Clone() const
+     // virtual  Geometry< Point >::Pointer Clone() const
      // {
      //     Geometry< Point >::PointsArrayType NewPoints;
 
@@ -1509,7 +1510,7 @@ public:
         for (IndexType i_point = 0; i_point < p_points.size(); ++i_point) {
             PointsArrayType point_array;
             point_array.push_back(p_points(i_point));
-            auto p_point_geometry = Kratos::make_shared<Geometry<TPointType>>(point_array);
+            auto p_point_geometry = Kratos::make_intrusive<Geometry<TPointType>>(point_array);
             points.push_back(p_point_geometry);
         }
 
@@ -3407,6 +3408,23 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+    //*********************************************
+    //this block is needed for refcounting
+    mutable std::atomic<int> mReferenceCounter;
+
+    friend void intrusive_ptr_add_ref(const Geometry<TPointType>* x)
+    {
+        x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    friend void intrusive_ptr_release(const Geometry<TPointType>* x)
+    {
+        if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
+        std::atomic_thread_fence(std::memory_order_acquire);
+        delete x;
+        }
+    }
+    //*********************************************
 
 
     ///@}

@@ -72,7 +72,7 @@ public:
     /**
      * Pointer definition of PrismInterface3D6
      */
-    KRATOS_CLASS_POINTER_DEFINITION( PrismInterface3D6 );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PrismInterface3D6 );
 
     /**
      * Integration methods implemented in geometry.

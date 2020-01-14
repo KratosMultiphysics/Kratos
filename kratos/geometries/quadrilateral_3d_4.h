@@ -97,7 +97,7 @@ public:
     /**
      * Pointer definition of Quadrilateral3D4
      */
-    KRATOS_CLASS_POINTER_DEFINITION( Quadrilateral3D4 );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( Quadrilateral3D4 );
 
     /**
      * Integration methods implemented in geometry.
@@ -1053,7 +1053,7 @@ public:
     {
         GeometriesArrayType faces = GeometriesArrayType();
 
-        faces.push_back( Kratos::make_shared<FaceType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 2 ), this->pGetPoint( 3 )) );
+        faces.push_back( Kratos::make_intrusive<FaceType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 2 ), this->pGetPoint( 3 )) );
         return faces;
     }
 
