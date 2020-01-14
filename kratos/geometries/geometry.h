@@ -1367,8 +1367,8 @@ public:
     }
 
     /**
-    * @brief This function is necessary for composite geometries. It returns the
-    *        geometry part which is accessable with a certain index.
+    * @brief Used for composite geometries. It returns the
+    *        the geometry part, corresponding to the Index.
     * @param Index of the geometry part. This index can be used differently
     *        within the derived classes.
     * @return reference to corresponding geometry.
@@ -1380,8 +1380,8 @@ public:
     }
 
     /**
-    * @brief This function is used for composite geometries. It returns the
-    *        pointer to a geometry part which is accessable with a certain index.
+    * @brief Used for composite geometries. It returns the pointer
+    *        of a geometry part, corresponding to the Index.
     * @param Index of the geometry part. This index can be used differently
     *        within the derived classes.
     * @return pointer to corresponding geometry.
@@ -1393,8 +1393,8 @@ public:
     }
 
     /**
-    * @brief This function is used for composite geometries. It returns the
-    *        const pointer to a geometry part which is accessable with a certain index.
+    * @brief Used for composite geometries. It returns the const pointer
+    *        of a geometry part, corresponding to the Index.
     * @details This index is dependent on the derived implementation.
     * @param Index of the geometry part. This index can be used differently
     *        within the derived classes.
@@ -1406,7 +1406,7 @@ public:
     }
 
     /**
-    * @brief This function is used to check if certain Indexed object is
+    * @brief Use to check if certain Indexed object is
     *        within the geometry parts of this geometry.
     * @param Index of the geometry part. This index can be used differently
     *        within the derived classes.
