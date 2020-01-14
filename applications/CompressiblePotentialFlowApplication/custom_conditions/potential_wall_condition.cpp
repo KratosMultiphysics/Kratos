@@ -193,6 +193,10 @@ void PotentialWallCondition<TDim, TNumNodes>::FinalizeNonLinearIteration(Process
     std::vector<double> density;
     pElem->GetValueOnIntegrationPoints(DENSITY, density, rCurrentProcessInfo);
     this->SetValue(DENSITY, density[0]);
+
+    auto normal = this->GetValue(NORMAL);
+    pElem->SetValue(NORMAL, normal);
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

@@ -182,6 +182,9 @@ void AdjointPotentialWallCondition<TPrimalCondition>::FinalizeSolutionStep(Proce
 template <class TPrimalCondition>
 void AdjointPotentialWallCondition<TPrimalCondition>::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
+    auto normal = this-> GetValue(NORMAL);
+    mpPrimalCondition -> SetValue(NORMAL, normal);
+
     mpPrimalCondition -> FinalizeNonLinearIteration(rCurrentProcessInfo);
     auto velocity = mpPrimalCondition -> GetValue(VELOCITY);
     auto density = mpPrimalCondition -> GetValue(DENSITY);
