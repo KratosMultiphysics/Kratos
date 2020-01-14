@@ -77,7 +77,7 @@ namespace Kratos
         ///@name Python exposed Functions
         ///@{
 
-        void ReadModelPart(ModelPart& rModelPart)// override
+        void ReadGeometryModelPart(ModelPart& rModelPart)// override
         {
             ReadBreps(mCadJsonParameters, rModelPart);
         }
