@@ -302,7 +302,7 @@ private:
 
     NurbsInterval mCurveNurbsInterval;
 
-    NurbsInterval mCurveDirection;
+    bool mCurveDirection;
 
     ///@}
     ///@name Serialization
