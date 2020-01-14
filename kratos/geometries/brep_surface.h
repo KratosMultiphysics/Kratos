@@ -207,18 +207,18 @@ public:
         if (Index == SURFACE_INDEX)
             return mpNurbsSurface;
 
-        for (int i = 0; i < mOuterLoopArray.size(); ++i)
+        for (IndexType i = 0; i < mOuterLoopArray.size(); ++i)
         {
-            for (int j = 0; j < mOuterLoopArray[i].size(); ++j)
+            for (IndexType j = 0; j < mOuterLoopArray[i].size(); ++j)
             {
                 if (mOuterLoopArray[i][j]->Id() == Index)
                     return mOuterLoopArray[i][j];
             }
         }
 
-        for (int i = 0; i < mInnerLoopArray.size(); ++i)
+        for (IndexType i = 0; i < mInnerLoopArray.size(); ++i)
         {
-            for (int j = 0; j < mInnerLoopArray[i].size(); ++j)
+            for (IndexType j = 0; j < mInnerLoopArray[i].size(); ++j)
             {
                 if (mInnerLoopArray[i][j]->Id() == Index)
                     return mInnerLoopArray[i][j];
