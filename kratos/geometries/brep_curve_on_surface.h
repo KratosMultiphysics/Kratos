@@ -94,19 +94,6 @@ public:
     {
     }
 
-    BrepCurveOnSurface(
-        typename NurbsSurfaceType::Pointer pSurface,
-        typename NurbsCurveType::Pointer pCurve,
-        NurbsInterval CurveNurbsInterval,
-        bool curve_direction = true)
-        : BaseType(PointsArrayType(), &msGeometryData)
-        , mpNurbsSurface(pSurface)
-        , mpNurbsCurve(pCurve)
-        , mCurveNurbsInterval(CurveNurbsInterval)
-        , mCurveDirection(curve_direction)
-    {
-    }
-
     explicit BrepCurveOnSurface(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
     {
