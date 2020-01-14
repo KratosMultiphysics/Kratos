@@ -25,7 +25,7 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
   /// Short class definition.
-  /** Gives IO capabilities for Nurbs based Brep models in the JSON format defined in 
+  /** Gives IO capabilities for Nurbs based Brep models in the JSON format defined in
   https://amses-journal.springeropen.com/articles/10.1186/s40323-018-0109-4.
   */
     template<class TNodeType = Node<3>, class TEmbeddedNodeType = Point>
@@ -326,7 +326,7 @@ namespace Kratos
                 << "Missing 'degree' in nurbs curve" << std::endl;
             int polynomial_degree = rParameters["degree"].GetInt();
 
-            PointerVector<typename TThisNodeType> control_points;
+            PointerVector<TThisNodeType> control_points;
 
             this->ReadControlPointVector(control_points,
                 rParameters["control_points"], rModelPart);
@@ -465,7 +465,7 @@ namespace Kratos
 
             IndexType id = rParameters[0].GetInt();
             Vector cp = rParameters[1].GetVector();
-            
+
             return rModelPart.CreateNewNode(id, cp[0], cp[1], cp[2]);
         }
 
