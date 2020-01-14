@@ -227,8 +227,6 @@ public:
 
         KRATOS_ERROR << "Index " << Index << " not existing in geometry: "
             << Id() << std::endl;
-
-        return this;
     }
 
     ///@}
