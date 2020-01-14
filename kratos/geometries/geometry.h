@@ -1370,8 +1370,8 @@ public:
     * @brief This function is necessary for composite geometries. It returns the
     *        geometry part which is accessable with a certain index.
     * @param Index of the geometry part. This index can be used differently
-    *        within the derived classes
-    * @return geometry, which is connected through the Index
+    *        within the derived classes.
+    * @return reference to corresponding geometry.
      */
     virtual GeometryType& GetGeometryPart(IndexType Index) const
     {
@@ -1383,8 +1383,8 @@ public:
     * @brief This function is used for composite geometries. It returns the
     *        pointer to a geometry part which is accessable with a certain index.
     * @param Index of the geometry part. This index can be used differently
-    *        within the derived classes
-    * @return pointer to geometry, which is connected through the Index
+    *        within the derived classes.
+    * @return pointer to corresponding geometry.
     */
     virtual typename GeometryType::Pointer pGetGeometryPart(IndexType Index)
     {
@@ -1397,12 +1397,25 @@ public:
     *        const pointer to a geometry part which is accessable with a certain index.
     * @details This index is dependent on the derived implementation.
     * @param Index of the geometry part. This index can be used differently
-    *        within the derived classes
-    * @return pointer to geometry, which is connected through the Index
+    *        within the derived classes.
+    * @return const pointer to corresponding geometry.
     */
     virtual const typename GeometryType::Pointer pGetGeometryPart(IndexType Index) const
     {
         return pGetGeometryPart(Index);
+    }
+
+    /**
+    * @brief This function is used to check if certain Indexed object is
+    *        within the geometry parts of this geometry.
+    * @param Index of the geometry part. This index can be used differently
+    *        within the derived classes.
+    * @return true if has geometry part
+    */
+    virtual bool HasGeometryPart(IndexType Index) const
+    {
+        KRATOS_ERROR << "Calling base class 'HasGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
     }
 
     /**
