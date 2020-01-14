@@ -12,6 +12,7 @@
 #include "containers/flags.h"
 #include "geometries/point_3d.h"
 #include "geometries/line_3d_2.h"
+#include "geometries/line_2d_2.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/sphere_3d_1.h"
@@ -882,6 +883,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D3N", mAnalyticRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidEdge3D", mRigidEdge3D2N)
     KRATOS_REGISTER_CONDITION("RigidEdge3D2N", mRigidEdge3D2N)
+    KRATOS_REGISTER_CONDITION("RigidEdge2D2N", mRigidEdge2D2N)
 
     // SERIALIZER
     Serializer::Register("PropertiesProxy", PropertiesProxy());
