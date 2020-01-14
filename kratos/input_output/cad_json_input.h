@@ -1,5 +1,5 @@
-#if !defined(KRATOS_CAD_JSON_INPUT_H_INCLUDED )
-#define  KRATOS_CAD_JSON_INPUT_H_INCLUDED
+#if !defined(KRATOS_CAD_JSON_INPUT_INCLUDED )
+#define  KRATOS_CAD_JSON_INPUT_INCLUDED
 
 
 // System includes
@@ -28,8 +28,8 @@ namespace Kratos
   /** Gives IO capabilities for Nurbs based Brep models in the JSON format defined in 
   https://amses-journal.springeropen.com/articles/10.1186/s40323-018-0109-4.
   */
-    template<class TNodeType, class TEmbeddedNodeType>
-    class KRATOS_API(KRATOS_CORE) CadJsonInput : public IO
+    template<class TNodeType = Node<3>, class TEmbeddedNodeType = Point>
+    class KRATOS_API(KRATOS_CORE) CadJsonInput //: public IO
     {
     public:
 
@@ -39,6 +39,9 @@ namespace Kratos
 
         /// Pointer definition of CadJsonInput
         KRATOS_CLASS_POINTER_DEFINITION(CadJsonInput);
+
+        typedef std::size_t SizeType;
+        typedef std::size_t IndexType;
 
         typedef PointerVector<TNodeType> ContainerPointType;
         typedef PointerVector<TEmbeddedNodeType> ContainerPointEmbeddedType;
@@ -56,19 +59,23 @@ namespace Kratos
 
         /// Constructor.
         CadJsonInput(
-            const Parameters & rCadJsonParameters)
+            const Parameters& rCadJsonParameters)
             : mCadJsonParameters(rCadJsonParameters)
         {};
 
         /// Destructor.
-        virtual ~CadJsonInput() {};
+        ~CadJsonInput() = default;
 
         ///@}
+        ///@name Python exposed Functions
+        ///@{
 
-        void ReadModelPart(ModelPart& rModelPart) override
+        void ReadModelPart(ModelPart& rModelPart)// override
         {
             ReadBreps(mCadJsonParameters, rModelPart);
         }
+
+        ///@}
 
     private:
 
@@ -81,19 +88,29 @@ namespace Kratos
         {
             for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
             {
-                ReadBrep(rParameters[brep_index], rModelPart);
+                ReadBrepFaces(rParameters[brep_index], rModelPart);
+            }
+
+            for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
+            {
+                ReadBrepEdges(rParameters[brep_index], rModelPart);
             }
         }
 
-        void ReadBrep(
+        void ReadBrepFaces(
             const Parameters& rParameters,
             ModelPart& rModelPart)
         {
             if (rParameters.Has("faces"))
                 ReadBrepSurfaces(rParameters["faces"], rModelPart);
+        }
 
+        void ReadBrepEdges(
+            const Parameters& rParameters,
+            ModelPart& rModelPart)
+        {
             if (rParameters.Has("edges"))
-                ReadBrepEdges(rParameters["edges"], rModelPart);
+                ReadBrepCurveOnSurfaces(rParameters["edges"], rModelPart);
         }
 
         ///@}
@@ -159,7 +176,8 @@ namespace Kratos
 
         BrepCurveOnSurfaceLoopType
             ReadTrimmingCurveVector(
-                const Parameters& rParameters)
+                const Parameters& rParameters,
+                typename NurbsSurfaceType::Pointer pNurbsSurface)
         {
             KRATOS_ERROR_IF(rParameters.size() < 1)
                 << "Trimming curve list has no element." << std::endl;
@@ -169,7 +187,7 @@ namespace Kratos
 
             for (IndexType tc_idx = 0; tc_idx < rParameters.size(); tc_idx++)
             {
-                trimming_brep_curve_vector[tc_idx] = ReadTrimmingCurve(rParameters[tc_idx]);
+                trimming_brep_curve_vector[tc_idx] = ReadTrimmingCurve(rParameters[tc_idx], pNurbsSurface);
             }
 
             return trimming_brep_curve_vector;
@@ -189,12 +207,12 @@ namespace Kratos
 
             auto p_trimming_curve = ReadNurbsCurve<2, TEmbeddedNodeType>(rParameters["parameter_curve"]);
 
-            BrepCurveOnSurfaceType p_brep_curve_on_surface
+            auto p_brep_curve_on_surface
                 = Kratos::make_shared<BrepCurveOnSurfaceType>(
-                    BrepCurveOnSurfaceType(pNurbsSurface, p_trimming_curve));
+                    pNurbsSurface, p_trimming_curve);
 
             if (rParameters.Has("trim_index"))
-                p_brep_curve_on_surface.SetId(rParameters["trim_index"]);
+                p_brep_curve_on_surface->SetId(rParameters["trim_index"].GetInt());
 
             return p_brep_curve_on_surface;
         }
@@ -217,7 +235,7 @@ namespace Kratos
                 KRATOS_ERROR_IF_NOT(rParameters.Has("trimming_curves"))
                     << "Missing 'trimming_curves' in boundary loops"
                     << bl_idx << " loop." << std::endl;
-                auto trimming_curves = ReadTrimmingCurveVector(rParameters["trimming_curves"]);
+                auto trimming_curves = ReadTrimmingCurveVector(rParameters["trimming_curves"], pNurbsSurface);
 
                 if (loop_type == "outer")
                 {
@@ -243,7 +261,7 @@ namespace Kratos
         ///@name Read in Nurbs Geometries
         ///@{
 
-        void ReadBrepEdges(
+        void ReadBrepCurveOnSurfaces(
             const Parameters& rParameters,
             ModelPart& rModelPart)
         {
@@ -270,7 +288,7 @@ namespace Kratos
                         if (rParameters["topology"][i].Has("brep_id"))
                         {
                             auto p_geometry = rModelPart.pGetGeometry(rParameters["topology"][i]["brep_id"].GetInt());
-                            auto p_trim = p_geometry->GetGeometryPart(rParameters["topology"][i]["trim_index"].GetInt());
+                            auto p_trim = p_geometry->pGetGeometryPart(rParameters["topology"][i]["trim_index"].GetInt());
                         }
                     }
                 }
@@ -302,7 +320,7 @@ namespace Kratos
 
             if (is_rational)
             {
-                Vector control_point_weights = ReadControlPointVector(
+                Vector control_point_weights = ReadControlPointWeightVector(
                     rParameters["control_points"]);
 
                 return Kratos::make_shared<NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
@@ -378,7 +396,6 @@ namespace Kratos
                 << "Length of control point list is zero!" << std::endl;
             KRATOS_ERROR_IF(rParameters[0].size() != 4)
                 << "Control points need to be provided in following structure: [[x, y, z, weight]] or [id, [x, y, z, weight]]"
-                << std::endl
                 << "Size of inner vector incorrect!"
                 << std::endl;
 
@@ -449,4 +466,4 @@ namespace Kratos
     }; // Class CadJsonInput
 }  // namespace Kratos.
 
-#endif // KRATOS_CAD_JSON_INPUT_H_INCLUDED  defined
+#endif // KRATOS_CAD_JSON_INPUT_INCLUDED  defined
