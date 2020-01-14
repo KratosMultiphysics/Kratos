@@ -147,177 +147,57 @@ namespace Kratos
                 force_coefficient_pres.clear();
                 array_1d<double, 3> force_coefficient_vel;
                 force_coefficient_vel.clear();
-                // Computing normal
                 const auto normal = rAdjointElement.GetValue(NORMAL);
 
                 std::vector<double> pressure_coefficient_vector;
                 r_this_element.GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient_vector, r_current_process_info);
                 double pressure_coefficient = pressure_coefficient_vector[0];
-                force_coefficient_pres = -normal*pressure_coefficient;
+                force_coefficient_pres = -normal*pressure_coefficient/ mReferenceChord;;
 
                 std::vector<array_1d<double,3>> velocity_vector;
                 r_this_element.GetValueOnIntegrationPoints(VELOCITY,velocity_vector, r_current_process_info);
                 array_1d<double,3> velocity = velocity_vector[0];
-
                 std::vector<double> density_vector;
                 r_this_element.GetValueOnIntegrationPoints(DENSITY,density_vector, r_current_process_info);
                 double density = density_vector[0];
-
                 double velocity_projection = inner_prod(normal,velocity);
                 array_1d<double,3> disturbance = velocity - free_stream_velocity;
-                force_coefficient_vel = -velocity_projection * disturbance * density;
-                force_coefficient_pres = force_coefficient_pres / mReferenceChord;
-                force_coefficient_vel = force_coefficient_vel/(dynamic_pressure*mReferenceChord);
+                force_coefficient_vel = -velocity_projection * disturbance * density/(dynamic_pressure*mReferenceChord);
 
                 auto force_coefficient = force_coefficient_pres + force_coefficient_vel;
 
                 double lift =  inner_prod(force_coefficient, wake_normal);
 
-                if (rResidualGradient.size1() == 3) {
-                    if (rAdjointElement.GetValue(KUTTA) && r_geometry[i_node].GetValue(TRAILING_EDGE))
-                        r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += epsilon;
-                    else
-                        r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += epsilon;
-
-                    r_this_element.GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient_vector, r_current_process_info);
-                    double pressure_coefficient_pert = pressure_coefficient_vector[0];
-                    force_coefficient_pres = -normal*pressure_coefficient_pert;
-
-                    r_this_element.GetValueOnIntegrationPoints(VELOCITY,velocity_vector, r_current_process_info);
-                    array_1d<double,3> velocity_pert = velocity_vector[0];
-
-                    r_this_element.GetValueOnIntegrationPoints(DENSITY,density_vector, r_current_process_info);
-                    double density_pert = density_vector[0];
-
-                    velocity_projection = inner_prod(normal,velocity_pert);
-                    disturbance = velocity_pert - free_stream_velocity;
-                    force_coefficient_vel = -velocity_projection * disturbance * density_pert;
-                    force_coefficient_pres = force_coefficient_pres / mReferenceChord;
-                    force_coefficient_vel = force_coefficient_vel/(dynamic_pressure*mReferenceChord);
-
-                    auto force_coefficient_pert = force_coefficient_pres + force_coefficient_vel;
-
-                    double perturbed_lift =  inner_prod(force_coefficient_pert, wake_normal);
-
-                    if (rAdjointElement.GetValue(KUTTA) && r_geometry[i_node].GetValue(TRAILING_EDGE))
-                        r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= epsilon;
-                    else
-                        r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= epsilon;
-
-                    rResponseGradient[i_node] = (perturbed_lift-lift)/epsilon;
-                }else {
-                    if (r_geometry[i_node].GetValue(WAKE_DISTANCE) > 0.0) {
-
-                        r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += epsilon;
-
-                        r_this_element.GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient_vector, r_current_process_info);
-                        double pressure_coefficient_pert = pressure_coefficient_vector[0];
-                        force_coefficient_pres = -normal*pressure_coefficient_pert;
-
-                        r_this_element.GetValueOnIntegrationPoints(VELOCITY,velocity_vector, r_current_process_info);
-                        array_1d<double,3> velocity_pert = velocity_vector[0];
-
-                        r_this_element.GetValueOnIntegrationPoints(DENSITY,density_vector, r_current_process_info);
-                        double density_pert = density_vector[0];
-
-                        velocity_projection = inner_prod(normal,velocity_pert);
-                        disturbance = velocity_pert - free_stream_velocity;
-                        force_coefficient_vel = -velocity_projection * disturbance * density_pert;
-                        force_coefficient_pres = force_coefficient_pres / mReferenceChord;
-                        force_coefficient_vel = force_coefficient_vel/(dynamic_pressure*mReferenceChord);
-
-                        auto force_coefficient_pert = force_coefficient_pres + force_coefficient_vel;
-
-                        double perturbed_lift =  inner_prod(force_coefficient_pert, wake_normal);
-
-                        r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= epsilon;
-
-                        rResponseGradient[i_node] = (perturbed_lift-lift)/epsilon;
-
-
-                        r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += epsilon;
-
-                        force_coefficient_pres.clear();
-                        force_coefficient_vel.clear();
-
-                        r_this_element.GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient_vector, r_current_process_info);
-                        pressure_coefficient_pert = pressure_coefficient_vector[0];
-                        force_coefficient_pres = -normal*pressure_coefficient_pert;
-
-                        r_this_element.GetValueOnIntegrationPoints(VELOCITY,velocity_vector, r_current_process_info);
-                        velocity_pert = velocity_vector[0];
-
-                        r_this_element.GetValueOnIntegrationPoints(DENSITY,density_vector, r_current_process_info);
-                        density_pert = density_vector[0];
-
-                        velocity_projection = inner_prod(normal,velocity_pert);
-                        disturbance = velocity_pert - free_stream_velocity;
-                        force_coefficient_vel = -velocity_projection * disturbance * density_pert;
-                        force_coefficient_pres = force_coefficient_pres / mReferenceChord;
-                        force_coefficient_vel = force_coefficient_vel/(dynamic_pressure*mReferenceChord);
-
-                        auto force_coefficient_pert_2 = force_coefficient_pres + force_coefficient_vel;
-
-                        perturbed_lift =  inner_prod(force_coefficient_pert_2, wake_normal);
-
-                        r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= epsilon;
-
-                        rResponseGradient[i_node+3] = 0.0;//(perturbed_lift-lift)/epsilon;
-                    }else{
-
-                        r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += epsilon;
-
-                        r_this_element.GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient_vector, r_current_process_info);
-                        double pressure_coefficient_pert = pressure_coefficient_vector[0];
-                        force_coefficient_pres = -normal*pressure_coefficient_pert;
-
-                        r_this_element.GetValueOnIntegrationPoints(VELOCITY,velocity_vector, r_current_process_info);
-                        array_1d<double,3> velocity_pert = velocity_vector[0];
-
-                        r_this_element.GetValueOnIntegrationPoints(DENSITY,density_vector, r_current_process_info);
-                        double density_pert = density_vector[0];
-
-                        velocity_projection = inner_prod(normal,velocity_pert);
-                        disturbance = velocity_pert - free_stream_velocity;
-                        force_coefficient_vel = -velocity_projection * disturbance * density_pert;
-                        force_coefficient_pres = force_coefficient_pres / mReferenceChord;
-                        force_coefficient_vel = force_coefficient_vel/(dynamic_pressure*mReferenceChord);
-
-                        auto force_coefficient_pert = force_coefficient_pres + force_coefficient_vel;
-
-                        double perturbed_lift =  inner_prod(force_coefficient_pert, wake_normal);
-
-                        r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= epsilon;
-
-                        rResponseGradient[i_node+3] = 0.0;//(perturbed_lift-lift)/epsilon;
-                        r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += epsilon;
-
-
-                        r_this_element.GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient_vector, r_current_process_info);
-                        pressure_coefficient_pert = pressure_coefficient_vector[0];
-                        force_coefficient_pres = -normal*pressure_coefficient_pert;
-
-                        r_this_element.GetValueOnIntegrationPoints(VELOCITY,velocity_vector, r_current_process_info);
-                        velocity_pert = velocity_vector[0];
-
-                        r_this_element.GetValueOnIntegrationPoints(DENSITY,density_vector, r_current_process_info);
-                        density_pert = density_vector[0];
-
-                        velocity_projection = inner_prod(normal,velocity_pert);
-                        disturbance = velocity_pert - free_stream_velocity;
-                        force_coefficient_vel = -velocity_projection * disturbance * density_pert;
-                        force_coefficient_pres = force_coefficient_pres / mReferenceChord;
-                        force_coefficient_vel = force_coefficient_vel/(dynamic_pressure*mReferenceChord);
-
-                        auto force_coefficient_pert_2 = force_coefficient_pres + force_coefficient_vel;
-
-                        perturbed_lift =  inner_prod(force_coefficient_pert_2, wake_normal);
-
-                        r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= epsilon;
-
-                        rResponseGradient[i_node] = (perturbed_lift-lift)/epsilon;
-                    }
+                if (rAdjointElement.GetValue(WAKE) && (r_geometry[i_node].GetValue(WAKE_DISTANCE) < 0.0)) {
+                    r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += epsilon;
                 }
+                else{
+                    r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += epsilon;
+                }
+
+                r_this_element.GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient_vector, r_current_process_info);
+                double pressure_coefficient_pert = pressure_coefficient_vector[0];
+                force_coefficient_pres = -normal*pressure_coefficient_pert/ mReferenceChord;;
+
+                r_this_element.GetValueOnIntegrationPoints(VELOCITY,velocity_vector, r_current_process_info);
+                array_1d<double,3> velocity_pert = velocity_vector[0];
+                r_this_element.GetValueOnIntegrationPoints(DENSITY,density_vector, r_current_process_info);
+                double density_pert = density_vector[0];
+                velocity_projection = inner_prod(normal,velocity_pert);
+                disturbance = velocity_pert - free_stream_velocity;
+                force_coefficient_vel = -velocity_projection * disturbance * density_pert/(dynamic_pressure*mReferenceChord);
+
+                auto force_coefficient_pert = force_coefficient_pres + force_coefficient_vel;
+                double perturbed_lift =  inner_prod(force_coefficient_pert, wake_normal);
+
+                if (rAdjointElement.GetValue(WAKE) && (r_geometry[i_node].GetValue(WAKE_DISTANCE) < 0.0)) {
+                    r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= epsilon;
+                }
+                else {
+                    r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= epsilon;
+                }
+
+                rResponseGradient[i_node] = (perturbed_lift-lift)/epsilon;
             }
         }
 
