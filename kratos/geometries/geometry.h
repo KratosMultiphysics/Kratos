@@ -1368,9 +1368,7 @@ public:
 
     /**
     * @brief This function is necessary for composite geometries. It returns the
-    * geometry part which is accessable with a certain index.
-    * @details This index
-    * is dependent on the derived implementation.
+    *        geometry part which is accessable with a certain index.
     * @param Index of the geometry part. This index can be used differently
     *        within the derived classes
     * @return geometry, which is connected through the Index
@@ -1383,8 +1381,7 @@ public:
 
     /**
     * @brief This function is used for composite geometries. It returns the
-    * pointer to a geometry part which is accessable with a certain index.
-    * @details This index is dependent on the derived implementation.
+    *        pointer to a geometry part which is accessable with a certain index.
     * @param Index of the geometry part. This index can be used differently
     *        within the derived classes
     * @return pointer to geometry, which is connected through the Index
@@ -1397,7 +1394,7 @@ public:
 
     /**
     * @brief This function is used for composite geometries. It returns the
-    * const pointer to a geometry part which is accessable with a certain index.
+    *        const pointer to a geometry part which is accessable with a certain index.
     * @details This index is dependent on the derived implementation.
     * @param Index of the geometry part. This index can be used differently
     *        within the derived classes
@@ -1405,8 +1402,7 @@ public:
     */
     virtual const typename GeometryType::Pointer pGetGeometryPart(IndexType Index) const
     {
-        KRATOS_ERROR << "Calling base class 'pGetGeometryPart' method instead of derived function."
-            << " Please check the definition in the derived class. " << *this << std::endl;
+        return pGetGeometryPart(Index);
     }
 
     /**
