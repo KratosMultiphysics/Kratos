@@ -119,19 +119,34 @@ namespace Kratos
             }
         }
 
-        if (counter > r_geometry.WorkingSpaceDimension()-1){
+        // if (counter > r_geometry.WorkingSpaceDimension()-1){
+        if (counter > 0){
             is_cond = true;
         }
 
         if (is_cond) {
             for (std::size_t i_node=0; i_node<r_geometry.size(); ++i_node){
 
-                //Perturbing potential
-                r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += epsilon;
-                double lift = this->CalculateValue(mrModelPart);
-                rResponseGradient[i_node] = -(lift-mUnperturbedLift)/epsilon;
-                //Unperturbing potential
-                r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= epsilon;
+                    if (rAdjointElement.GetValue(WAKE)){
+
+                        if (r_geometry[i_node].GetValue(WAKE_DISTANCE)<0.0){
+                            r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += epsilon;
+                            double lift = this->CalculateValue(mrModelPart);
+                            rResponseGradient[i_node] = (lift-mUnperturbedLift)/epsilon;
+                            // rResponseGradient[i_node+3] = (lift-mUnperturbedLift)/epsilon;
+                            r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= epsilon;
+                        }
+                    }
+                    else {
+                        if (r_geometry[i_node].IsNot(MARKER)) {
+                            r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += epsilon;
+                            double lift = this->CalculateValue(mrModelPart);
+                            rResponseGradient[i_node] = (lift-mUnperturbedLift)/epsilon;
+                            //Unperturbing potential
+                            r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= epsilon;
+                            r_geometry[i_node].Set(MARKER,true);
+                        }
+                   }
             }
         }
 
@@ -145,132 +160,7 @@ namespace Kratos
                                    const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
-
         rResponseGradient = ZeroVector(rResidualGradient.size1());
-        auto this_id = rAdjointCondition.Id();
-        auto& r_this_condition = mrModelPart.GetCondition(this_id);
-        auto& r_geometry = r_this_condition.GetGeometry();
-        double epsilon = 1e-9;
-        for (std::size_t i_node=0; i_node<r_geometry.size(); ++i_node){
-                //Perturbing potential
-                r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += epsilon;
-                double lift = this->CalculateValue(mrModelPart);
-                rResponseGradient[i_node] = (lift-mUnperturbedLift)/epsilon;
-                //Unperturbing potential
-                r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= epsilon;
-
-        }
-        KRATOS_WATCH(rResponseGradient)
-
-
-        // rResponseGradient = ZeroVector(rResidualGradient.size1());
-        // auto this_id = rAdjointCondition.Id();
-        // auto& r_this_condition = mrModelPart.GetCondition(this_id);
-        // auto& r_geometry = r_this_condition.GetGeometry();
-        // double epsilon = 1e-6;
-        // for (std::size_t i_node=0; i_node<r_geometry.size(); ++i_node){
-        //     if (r_geometry[i_node].IsNot(MARKER)){
-        //         double unperturbed_lift = this->CalculateValue(mrModelPart);
-        //         //Perturbing potential
-        //         r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += epsilon;
-        //         double lift = this->CalculateValue(mrModelPart);
-        //         rResponseGradient[i_node] = (lift-unperturbed_lift)/epsilon;
-        //         //Unperturbing potential
-        //         r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= epsilon;
-
-        //         r_geometry[i_node].Set(MARKER,true);
-        //     }
-
-        // }
-        // KRATOS_WATCH(rResponseGradient)
-
-
-        // double epsilon = 1e-9;
-        // rResponseGradient = ZeroVector(rResidualGradient.size1());
-        // auto this_id = rAdjointCondition.Id();
-        // auto& r_this_condition = mrModelPart.GetCondition(this_id);
-
-        // ModelPart& root_model_part = mrModelPart.GetRootModelPart();
-        // auto free_stream_velocity = root_model_part.GetProcessInfo()[FREE_STREAM_VELOCITY];
-        // auto free_stream_density = root_model_part.GetProcessInfo()[FREE_STREAM_DENSITY];
-        // double free_stream_velocity_norm = norm_2(free_stream_velocity);
-        // KRATOS_ERROR_IF(free_stream_velocity_norm<std::numeric_limits<double>::epsilon()) << "Free stream velocity is zero!" << std::endl;
-        // auto r_current_process_info = mrModelPart.GetProcessInfo();
-        // auto wake_direction = free_stream_velocity/free_stream_velocity_norm;
-        // double free_stream_velocity_2 = inner_prod(free_stream_velocity, free_stream_velocity);
-        // double dynamic_pressure = 0.5 * free_stream_velocity_2 * free_stream_density;
-
-        // array_1d<double,3> wake_normal;
-        // wake_normal[0] = -wake_direction[1];
-        // wake_normal[1] = wake_direction[0];
-
-
-        // auto& r_geometry = r_this_condition.GetGeometry();
-
-        // for (std::size_t i_node=0; i_node<r_geometry.size(); ++i_node){
-
-        //     if (r_geometry[i_node].Is(INLET)){
-
-
-
-        //     array_1d<double, 3> force_coefficient_pres;
-        //     force_coefficient_pres.clear();
-        //     array_1d<double, 3> force_coefficient_vel;
-        //     force_coefficient_vel.clear();
-        //     // Computing normal
-        //     array_1d<double,3> aux_coordinates;
-        //     r_geometry.PointLocalCoordinates(aux_coordinates, r_geometry.Center());
-        //     const auto normal = r_geometry.Normal(aux_coordinates);
-        //     r_this_condition.Initialize(r_current_process_info); // TO-DO: Move the initialize outside this loop
-        //     r_this_condition.FinalizeNonLinearIteration(r_current_process_info);
-        //     double pressure_coefficient = r_this_condition.GetValue(PRESSURE_COEFFICIENT);
-        //     force_coefficient_pres = normal*pressure_coefficient;
-
-        //     auto velocity = r_this_condition.GetValue(VELOCITY);
-        //     double density = r_this_condition.GetValue(DENSITY);
-        //     double velocity_projection = inner_prod(normal,velocity);
-        //     array_1d<double,3> disturbance = velocity - free_stream_velocity;
-        //     force_coefficient_vel = velocity_projection * disturbance * density;
-        //     force_coefficient_pres = force_coefficient_pres / mReferenceChord;
-        //     force_coefficient_vel = force_coefficient_vel/(dynamic_pressure*mReferenceChord);
-
-        //     auto force_coefficient = force_coefficient_pres + force_coefficient_vel;
-
-        //     double lift =  inner_prod(force_coefficient, wake_normal);
-
-        //     r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += epsilon;
-
-        //     array_1d<double, 3> force_coefficient_pres_pert;
-        //     force_coefficient_pres_pert.clear();
-        //     array_1d<double, 3> force_coefficient_vel_pert;
-        //     force_coefficient_vel_pert.clear();
-
-        //     // Computing normal
-        //     // r_this_condition.Initialize(r_current_process_info); // TO-DO: Move the initialize outside this loop
-        //     r_this_condition.FinalizeNonLinearIteration(r_current_process_info);
-        //     pressure_coefficient = r_this_condition.GetValue(PRESSURE_COEFFICIENT);
-        //     force_coefficient_pres_pert = normal*pressure_coefficient;
-
-        //     velocity = r_this_condition.GetValue(VELOCITY);
-        //     density = r_this_condition.GetValue(DENSITY);
-        //     velocity_projection = inner_prod(normal,velocity);
-        //     disturbance = velocity - free_stream_velocity;
-        //     force_coefficient_vel_pert = velocity_projection * disturbance * density;
-        //     force_coefficient_pres_pert = force_coefficient_pres_pert / mReferenceChord;
-        //     force_coefficient_vel_pert = force_coefficient_vel_pert/(dynamic_pressure*mReferenceChord);
-
-        //     auto force_coefficient_pert = force_coefficient_pres_pert + force_coefficient_vel_pert;
-
-        //     double perturbed_lift =  inner_prod(force_coefficient_pert, wake_normal);
-
-        //     r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= epsilon;
-
-        //     rResponseGradient[i_node] = (perturbed_lift-lift)/epsilon;
-        //     }
-
-        // }
-        // KRATOS_WATCH(rResponseGradient)
-
         KRATOS_CATCH("");
     }
 
