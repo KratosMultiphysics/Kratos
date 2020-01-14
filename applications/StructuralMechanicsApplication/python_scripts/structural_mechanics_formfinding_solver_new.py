@@ -33,6 +33,7 @@ class FormfindingMechanicalSolverNew(MechanicalSolver):
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "printing_format"             : "all",
+            "write_new_reference_file"    : true,
             "formfinding_model_part_name" : "",
             "projection_settings": {
                 "model_part_name"  : "Structure",
@@ -62,17 +63,6 @@ class FormfindingMechanicalSolverNew(MechanicalSolver):
         formfinding_model_part = self.GetComputingModelPart()
         if len(self.settings["formfinding_model_part_name"].GetString())>0:
             formfinding_model_part = computing_model_part.GetSubModelPart(self.settings["formfinding_model_part_name"].GetString())
-
-        possible_printing_choices = ["all","vtk","gid"]
-        chosen_printing_format = self.settings["printing_format"].GetString()
-
-        if chosen_printing_format not in possible_printing_choices:
-            err_msg =  "The requested printing type \"" + chosen_printing_format + "\" is not available!\n"
-            err_msg += "Available options are: "
-            for i in range(len(possible_printing_choices)): err_msg += "\""+possible_printing_choices[i]+"\" "
-            raise Exception(err_msg)
-
-
         return StructuralMechanicsApplication.FormfindingStrategy(
                                                                 computing_model_part,
                                                                 mechanical_scheme,
@@ -80,6 +70,7 @@ class FormfindingMechanicalSolverNew(MechanicalSolver):
                                                                 mechanical_convergence_criterion,
                                                                 builder_and_solver,
                                                                 formfinding_model_part,
+                                                                self.settings["write_new_reference_file"].GetBool(),
                                                                 self.settings["printing_format"].GetString(),
                                                                 self.settings["projection_settings"],
                                                                 self.settings["max_iteration"].GetInt(),

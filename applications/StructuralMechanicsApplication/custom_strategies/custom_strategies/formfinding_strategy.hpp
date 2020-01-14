@@ -65,6 +65,7 @@ namespace Kratos
                 typename TLinearSolver::Pointer pNewLinearSolver,
                 typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
                 ModelPart& rFormFindingModelPart,
+                bool WriteNewReferenceFile,
                 std::string PrintingFormat,
                 Parameters ProjectionSetting,
                 int MaxIterations = 30,
@@ -81,7 +82,8 @@ namespace Kratos
                     MoveMeshFlag),
                     mProjectionSettings(ProjectionSetting),
                     mrFormFindingModelPart(rFormFindingModelPart),
-                    mPrintingFormat(PrintingFormat)
+                    mPrintingFormat(PrintingFormat),
+                    mWriteNewReferenceFile(WriteNewReferenceFile)
                  {
                     InitializeIterationIO();
                  }
@@ -94,6 +96,7 @@ namespace Kratos
                 typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
                 typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
                 ModelPart& rFormFindingModelPart,
+                bool WriteNewReferenceFile,
                 std::string PrintingFormat,
                 Parameters ProjectionSetting,
                 int MaxIterations = 30,
@@ -106,7 +109,8 @@ namespace Kratos
                     MoveMeshFlag),
                     mProjectionSettings(ProjectionSetting),
                     mrFormFindingModelPart(rFormFindingModelPart),
-                    mPrintingFormat(PrintingFormat)
+                    mPrintingFormat(PrintingFormat),
+                    mWriteNewReferenceFile(WriteNewReferenceFile)
                  {
                     InitializeIterationIO();
                  }
@@ -161,13 +165,13 @@ namespace Kratos
                     }
                     else if (mPrintingFormat=="vtk") PrintVtkFiles(mIterationNumber);
                     else if (mPrintingFormat=="gid") PrintGiDFiles(mIterationNumber);
-                    else KRATOS_ERROR << "chosen printing format :" << mPrintingFormat << " is not available" << std::endl;
+                    else;
                 }
 
                 void FinalizeSolutionStep() override
                 {
                     BaseType::FinalizeSolutionStep();
-                    WriteNewMdpaFile();
+                    if (mWriteNewReferenceFile) WriteNewMdpaFile();
                 }
 
                 void WriteNewMdpaFile()
@@ -216,7 +220,13 @@ namespace Kratos
 
                 void InitializeIterationIO()
                 {
+                    // check user input for visualization of results
+                    std::vector<std::string> printing_possibilities {"all","vtk","gid","none"};
+                    if (std::find(printing_possibilities.begin(), printing_possibilities.end(), mPrintingFormat)==printing_possibilities.end()){
+                        KRATOS_ERROR << "Chosen printing format :" << mPrintingFormat << " is not available. Please use: " << printing_possibilities << std::endl;
+                    }
 
+                    // initialize i/o
                     if (mPrintingFormat=="all" || mPrintingFormat=="vtk"){
                         if (Kratos::filesystem::exists("formfinding_results_vtk")){
                             Kratos::filesystem::remove_all("formfinding_results_vtk");
@@ -227,7 +237,7 @@ namespace Kratos
 
                     if (mPrintingFormat=="all" || mPrintingFormat=="gid"){
                         mpIterationIO = Kratos::make_unique<IterationIOType>(
-                            "Formfinding_Iterations",
+                            "formfinding_iterations",
                             GiD_PostAscii, // GiD_PostAscii // for debugging GiD_PostBinary
                             MultiFileFlag::SingleFile,
                             WriteDeformedMeshFlag::WriteUndeformed,
@@ -247,6 +257,7 @@ namespace Kratos
                 ModelPart& mrFormFindingModelPart;
                 std::string mPrintingFormat;
                 int mIterationNumber = 0;
+                bool mWriteNewReferenceFile = true;
 
         }; /* Class FormfindingStrategy */
 } /* namespace Kratos. */
