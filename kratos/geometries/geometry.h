@@ -111,6 +111,7 @@ public:
         QUADRATURE_ON_NODES
     };
 
+    /// Defines the possible results of the projection methods.
     static constexpr int PROJECTION_FAILED = -1;
     static constexpr int POINT_OUTSIDE = 0;
     static constexpr int POINT_INSIDE = 1;
