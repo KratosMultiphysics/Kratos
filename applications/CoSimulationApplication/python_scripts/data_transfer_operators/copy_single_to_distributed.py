@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
+import KratosMultiphysics as KM
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_transfer_operator import CoSimulationDataTransferOperator
 
@@ -23,7 +24,9 @@ class CopySingleToDistributed(CoSimulationDataTransferOperator):
         if "swap_sign" in transfer_options.GetStringArray():
             to_solver_values *= (-1)
         if "distribute_values" in transfer_options.GetStringArray():
-            to_solver_values /= to_solver_data.Size()
+            data_comm = KM.DataCommunicator.GetDefault()
+            to_solver_values /= data_comm.SumAll(to_solver_data.Size())
+
         if "add_values" in transfer_options.GetStringArray():
             to_solver_values += to_solver_data.GetData()
 
