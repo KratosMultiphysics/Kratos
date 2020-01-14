@@ -3,8 +3,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import KratosMultiphysics.kratos_utilities as kratos_utils
-
 import os
 
 def GetFilePath(fileName):
