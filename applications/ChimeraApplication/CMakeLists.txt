@@ -90,5 +90,5 @@ endif(USE_COTIRE MATCHES ON)
 install(TARGETS KratosChimeraApplicationCore DESTINATION libs )
 install(TARGETS KratosChimeraApplication DESTINATION libs )
 
-# Add to the KratosMultiphisics Python module
+# Add to the KratosMultiphisics Python module 
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ChimeraApplication.py" DESTINATION "KratosMultiphysics/ChimeraApplication" RENAME "__init__.py")
