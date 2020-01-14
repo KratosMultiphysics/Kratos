@@ -10,14 +10,12 @@
 #include "includes/io.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
-#include "includes/node.h"
 
 // Geometries
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/brep_surface.h"
 #include "geometries/brep_curve_on_surface.h"
-#include "geometries/geometry.h"
 
 namespace Kratos
 {
@@ -29,7 +27,7 @@ namespace Kratos
   https://amses-journal.springeropen.com/articles/10.1186/s40323-018-0109-4.
   */
     template<class TNodeType = Node<3>, class TEmbeddedNodeType = Point>
-    class KRATOS_API(KRATOS_CORE) CadJsonInput //: public IO
+    class CadJsonInput //: public IO
     {
     public:
 
