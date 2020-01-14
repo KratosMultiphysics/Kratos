@@ -70,7 +70,7 @@ public:
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
-    constexpr IndexType SURFACE_INDEX = -1;
+    static constexpr IndexType SURFACE_INDEX = -1;
 
     ///@}
     ///@name Life Cycle
@@ -227,8 +227,6 @@ public:
 
         KRATOS_ERROR << "Index " << Index << " not existing in geometry: "
             << Id() << std::endl;
-
-        return this;
     }
 
     ///@}
