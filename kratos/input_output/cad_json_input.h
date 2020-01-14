@@ -444,14 +444,14 @@ namespace Kratos
             {
                 Vector cp = rParameters[0].GetVector();
 
-                //return TThisNodeType(0, cp[0], cp[1], cp[2]);
+                return TThisNodeType(0, cp[0], cp[1], cp[2]);
             }
             else
             {
                 SizeType id = rParameters[0].GetInt();
                 Vector cp = rParameters[1].GetVector();
 
-                //return TThisNodeType(id, cp[0], cp[1], cp[2]);
+                return TThisNodeType(id, cp[0], cp[1], cp[2]);
             }
         }
 
