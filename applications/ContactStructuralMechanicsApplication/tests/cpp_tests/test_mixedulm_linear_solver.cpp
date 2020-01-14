@@ -12,20 +12,18 @@
 // System includes
 #include <limits>
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
+#include "includes/define.h"
+#include "includes/kratos_filesystem.h"
+#include "includes/model_part.h"
+#include "includes/matrix_market_interface.h"
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "includes/kratos_filesystem.h"
-
-/* Utility includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "spaces/ublas_space.h"
-#include "includes/matrix_market_interface.h"
 
-// Linear solvers
+/* Linear solvers */
 #include "linear_solvers/reorderer.h"
 #include "linear_solvers/preconditioner.h"
 #include "linear_solvers/direct_solver.h"
