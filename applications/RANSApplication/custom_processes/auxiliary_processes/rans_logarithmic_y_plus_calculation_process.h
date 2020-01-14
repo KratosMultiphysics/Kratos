@@ -86,7 +86,7 @@ public:
     RansLogarithmicYPlusCalculationProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansLogarithmicYPlusCalculationProcess() override;
+    ~RansLogarithmicYPlusCalculationProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -170,7 +170,7 @@ private:
     std::string mModelPartName;
 
     unsigned int mEchoLevel;
-    unsigned int mStep;
+    int mStep;
 
     unsigned int mMaxIterations;
     double mTolerance;

@@ -83,7 +83,7 @@ public:
     RansEpsilonTurbulentMixingLengthInletProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansEpsilonTurbulentMixingLengthInletProcess() override;
+    ~RansEpsilonTurbulentMixingLengthInletProcess() override = default;
 
     ///@}
     ///@name Operators

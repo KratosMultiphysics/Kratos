@@ -66,7 +66,7 @@ public:
     RansLineOutputProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansLineOutputProcess() override;
+    ~RansLineOutputProcess() override = default;
 
     ///@}
     ///@name Operators
