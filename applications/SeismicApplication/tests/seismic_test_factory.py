@@ -9,7 +9,7 @@ from KratosMultiphysics import SeismicApplication
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
+class SeismicTestFactory(KratosUnittest.TestCase):
     def setUp(self):
         # Within this location context:
         with KratosUnittest.WorkFolderScope(".", __file__):
@@ -71,7 +71,7 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
 
 
 
-class FiberBeamElementTest(StructuralMechanicsTestFactory):
+class FiberBeamElementTest(SeismicTestFactory):
     file_name = "fiber_beam_element_test/reinforced_concrete_hysteritic_test"
 
 

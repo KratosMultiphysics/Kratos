@@ -5,12 +5,8 @@ import KratosMultiphysics.SeismicApplication
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# == Python unittests == #
 # Import the tests o test_classes to create the suits
 from generalTests import KratosSeismicGeneralTests
-
-
-# == Test cases == #
 from seismic_test_factory import FiberBeamElementTest
 
 

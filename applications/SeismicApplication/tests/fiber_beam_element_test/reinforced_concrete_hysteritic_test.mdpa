@@ -11,7 +11,7 @@ End Nodes
 
 
 Begin Elements FiberBeamColumnElement3D2N// GUI group identifier: beam
-        1          0          1          2 
+        1          0          1          2
 End Elements
 
 Begin Conditions DisplacementControlCondition3D1N// GUI group identifier: top
