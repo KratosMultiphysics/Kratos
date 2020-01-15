@@ -46,6 +46,7 @@ import test_flags
 import test_time_discretization
 import test_python_generic_function_utility
 import test_serializer
+import test_file_logger
 import test_dofs
 import test_time_averaging
 import test_scipy_conversion_tools
@@ -112,6 +113,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_time_discretization.TestTimeDiscretization]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_python_generic_function_utility.TestPythonGenericFunctionUtility]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_serializer.TestSerializer]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_file_logger.TestFileLogger]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_dofs.TestDofs]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_time_averaging.TimeAveragingProcessTests]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_scipy_conversion_tools.TestScipyConversionTools]))
