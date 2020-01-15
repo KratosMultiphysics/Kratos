@@ -36,15 +36,24 @@ class ShallowWaterSolver(ShallowWaterBaseSolver):
         SW.ShallowWaterUtilities().UpdatePrimitiveVariables(self.main_model_part, epsilon)
         SW.ShallowWaterUtilities().ComputeAccelerations(self.main_model_part)
 
-    def InitializeSolutionStep(self):
-        KM.VariableUtils().CopyVectorVar(KM.MOMENTUM, SW.PROJECTED_VECTOR1, self.main_model_part.Nodes)
-        super(ShallowWaterSolver, self).InitializeSolutionStep()
-
     @classmethod
     def GetDefaultSettings(cls):
         default_settings = KM.Parameters("""
         {
-            "advection_epsilon" : 1e-2
+            "advection_epsilon"     : 1.0e-2,
+            "permeability"          : 1.0e-4,
+            "dry_discharge_penalty" : 1.0e+2
         }""")
         default_settings.AddMissingParameters(super(ShallowWaterSolver,cls).GetDefaultSettings())
         return default_settings
+
+    def PrepareModelPart(self):
+        super(ShallowWaterSolver, self).PrepareModelPart()
+        permeability = self.settings["permeability"].GetDouble()
+        discharge_penalty = self.settings["dry_discharge_penalty"].GetDouble()
+        if permeability == 0.0:
+            KM.Logger.PrintWarning("::[ShallowWaterSolver]::", "Detected permeability == 0.0")
+        if discharge_penalty == 0.0:
+            KM.Logger.PrintWarning("::[ShallowWaterSolver]::", "Detected dry_discharge_penalty == 0.0")
+        self.main_model_part.ProcessInfo.SetValue(SW.PERMEABILITY, permeability)
+        self.main_model_part.ProcessInfo.SetValue(SW.DRY_DISCHARGE_PENALTY, discharge_penalty)

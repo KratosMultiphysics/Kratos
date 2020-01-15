@@ -293,6 +293,18 @@ void TrussElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     KRATOS_CATCH("")
 }
 
+void TrussElement3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
+        BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix = ZeroMatrix(msLocalSize, msLocalSize);
+        CreateTransformationMatrix(transformation_matrix);
+        if(rOutput.size1() != msLocalSize || rOutput.size2() != msLocalSize) {
+            rOutput.resize(msLocalSize, msLocalSize, false);
+        }
+        noalias(rOutput) = transformation_matrix;
+    }
+}
+
 void TrussElement3D2N::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -309,6 +321,11 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
         if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
             rOutput[0] = GetProperties()[TRUSS_PRESTRESS_PK2];
         }
+    }
+    if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT) {
+        const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        rOutput[0] = l/L0;
     }
     KRATOS_CATCH("")
 }
@@ -344,7 +361,24 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
 
         rOutput[0] = temp_internal_stresses;
     }
+    if (rVariable == CAUCHY_STRESS_VECTOR) {
 
+        array_1d<double, 3 > truss_stresses;
+        array_1d<double, msDimension> temp_internal_stresses = ZeroVector(msDimension);
+        ProcessInfo temp_process_information;
+
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
+        Vector temp_strain = ZeroVector(1);
+        temp_strain[0] = CalculateGreenLagrangeStrain();
+        Values.SetStrainVector(temp_strain);
+        mpConstitutiveLaw->CalculateValue(Values,FORCE,temp_internal_stresses);
+
+
+        const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+
+        rOutput[0] = temp_internal_stresses*l/L0;
+    }
 
     KRATOS_CATCH("")
 }
@@ -474,7 +508,8 @@ int TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 
     KRATOS_CATCH("")
 }
-double TrussElement3D2N::CalculateGreenLagrangeStrain()
+
+double TrussElement3D2N::CalculateGreenLagrangeStrain() const
 {
 
     KRATOS_TRY
@@ -707,10 +742,7 @@ void TrussElement3D2N::CalculateGeometricStiffnessMatrix(
 {
     KRATOS_TRY;
 
-    double E = 0.00;
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-    mpConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,E);
-
+    double E = ReturnTangentModulus1D(rCurrentProcessInfo);
     const double A = GetProperties()[CROSS_AREA];
 
     double prestress = 0.00;
@@ -807,9 +839,7 @@ void TrussElement3D2N::CalculateElasticStiffnessMatrix(
 {
     KRATOS_TRY;
 
-    double E = 0.00;
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-    mpConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,E);
+    double E = ReturnTangentModulus1D(rCurrentProcessInfo);
 
     double A = GetProperties()[CROSS_AREA];
 
@@ -998,6 +1028,21 @@ void TrussElement3D2N::CalculateLumpedMassVector(VectorType& rMassVector)
     KRATOS_CATCH("")
 }
 
+
+double TrussElement3D2N::ReturnTangentModulus1D(ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    double tangent_modulus(0.00);
+    Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
+    strain_vector[0] = CalculateGreenLagrangeStrain();
+
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    Values.SetStrainVector(strain_vector);
+
+    mpConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,tangent_modulus);
+    return tangent_modulus;
+    KRATOS_CATCH("");
+}
 
 
 } // namespace Kratos.

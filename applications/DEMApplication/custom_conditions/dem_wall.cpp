@@ -57,7 +57,7 @@ DEMWall::~DEMWall()
 //***********************************************************************************
 //***********************************************************************************
 
-void DEMWall::Initialize()
+void DEMWall::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMWall::Initialize) shouldn't be accessed, use derived class instead", 0);
 }
@@ -68,11 +68,13 @@ void DEMWall::Initialize()
 void DEMWall::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     ProcessInfo& r_process_info) {
+      KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMWall::CalculateRightHandSide) shouldn't be accessed, use derived class instead", 0);
 }
 
 void DEMWall::CalculateElasticForces(
     VectorType& rRightHandSideVector,
     ProcessInfo& r_process_info) {
+      KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMWall::CalculateElasticForces) shouldn't be accessed, use derived class instead", 0);
 }
 
 void DEMWall::GetDeltaDisplacement( array_1d<double, 3> & delta_displacement, int inode)

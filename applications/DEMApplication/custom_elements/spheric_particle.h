@@ -148,6 +148,7 @@ virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& r_proces
 virtual void ComputeNewNeighboursHistoricalData(DenseVector<int>& temp_neighbours_ids, std::vector<array_1d<double, 3> >& temp_neighbour_elastic_contact_forces);
 virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
+virtual void FinalizeStressTensor(ProcessInfo& r_process_info, double& rRepresentative_Volume){};
 virtual void SymmetrizeStressTensor();
 virtual void CorrectRepresentativeVolume(double& rRepresentative_Volume/*, bool& is_smaller_than_sphere*/);
 virtual void ComputeReactions();
@@ -251,7 +252,7 @@ return buffer.str();
 virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "SphericParticle";}
 
 /// Print object's data.
-virtual void PrintData(std::ostream& rOStream) const override {}
+//virtual void PrintData(std::ostream& rOStream) const override {}
 
 double mElasticEnergy;
 double mInelasticFrictionalEnergy;
@@ -351,7 +352,13 @@ virtual void ComputeMoments(double normalLocalContactForce,
                             double LocalCoordSystem_2[3],
                             SphericParticle* neighbour_iterator,
                             double indentation,
-                            bool wall=false) final;
+                            bool wall,
+                            unsigned int i);
+
+virtual void ComputeRollingResistance(double& RollingResistance,
+                                      const double& NormalLocalContactForce,
+                                      const double& equiv_rolling_friction_coeff,
+                                      const unsigned int i);
 
 virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt) final;
 
@@ -417,7 +424,8 @@ virtual void ComputeWear(double LocalRelVel[3],
 
 virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
 
-virtual void AddNeighbourContributionToStressTensor(const double GlobalElasticContactForce[3],
+virtual void AddNeighbourContributionToStressTensor(ProcessInfo& r_process_info,
+                                                    const double GlobalElasticContactForce[3],
                                                     const double other_to_me_vect[3],
                                                     const double distance,
                                                     const double radius_sum,

@@ -749,6 +749,45 @@ class ConstitutiveLawUtilities
         rMaxValues[1] = V[1];
     }
 
+    /**
+     * @brief Calculation of the Hencky strain vector (true strain, natural strain, logarithmic strain)
+     * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Seth%E2%80%93Hill_family_of_generalized_strain_tensors
+     * @param rCauchyTensor The right Cauchy tensor
+     * @param rStrainVector The Hencky strain vector
+     */
+    static void CalculateHenckyStrain(
+        const MatrixType& rCauchyTensor,
+        VectorType& rStrainVector);
+
+    /**
+     * @brief Calculation of the Biot strain vector
+     * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Seth%E2%80%93Hill_family_of_generalized_strain_tensors
+     * @param rCauchyTensor The right Cauchy tensor
+     * @param rStrainVector The Biot strain vector
+     */
+    static void CalculateBiotStrain(
+        const MatrixType& rCauchyTensor,
+        VectorType& rStrainVector);
+
+    /**
+     * @brief Calculation of the Almansi strain vector
+     * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Seth%E2%80%93Hill_family_of_generalized_strain_tensors
+     * @param rLeftCauchyTensor The left Cauchy tensor
+     * @param rStrainVector The Almansi strain vector
+     */
+    static void CalculateAlmansiStrain(
+        const MatrixType& rLeftCauchyTensor,
+        VectorType& rStrainVector);
+
+    /**
+     * @brief Calculation of the Green-Lagrange strain vector
+     * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Seth%E2%80%93Hill_family_of_generalized_strain_tensors
+     * @param rCauchyTensor The right Cauchy tensor
+     * @param rStrainVector The Green-Lagrange strain vector
+     */
+    static void CalculateGreenLagrangianStrain(
+        const MatrixType& rCauchyTensor,
+        VectorType& rStrainVector);
   private:
 
 }; // class ConstitutiveLawUtilities

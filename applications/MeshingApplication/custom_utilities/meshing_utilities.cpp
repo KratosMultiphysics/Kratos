@@ -23,7 +23,7 @@ namespace Kratos
 {
 namespace MeshingUtilities
 {
-void RecursiveEnsureModelPartOwnsProperties(
+void KRATOS_API(MESHING_APPLICATION) RecursiveEnsureModelPartOwnsProperties(
     ModelPart& rModelPart,
     const bool RemovePreviousProperties
     )
@@ -40,7 +40,7 @@ void RecursiveEnsureModelPartOwnsProperties(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void EnsureModelPartOwnsProperties(
+void KRATOS_API(MESHING_APPLICATION) EnsureModelPartOwnsProperties(
     ModelPart& rModelPart,
     const bool RemovePreviousProperties
     )
