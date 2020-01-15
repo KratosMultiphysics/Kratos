@@ -188,9 +188,7 @@ public:
         const CoordinatesArrayType& rLocalCoordinates
     ) const override
      {
-        CoordinatesArrayType surface_coordinates(3, 0.0);
-        mpNurbsCurve->GlobalCoordinates(surface_coordinates, rLocalCoordinates);
-        mpNurbsSurface->GlobalCoordinates(rResult, surface_coordinates);
+        mpCurveOnSurface->GlobalCoordinates(rResult, rCoordinates);
 
         return rResult;
     }
@@ -219,7 +217,7 @@ public:
         Vector &rResult,
         const CoordinatesArrayType& rCoordinates) const override
     {
-        mpCurveOnSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
+        mpCurveOnSurface->ShapeFunctionsValues(rResult, rCoordinates);
 
         return rResult;
     }
