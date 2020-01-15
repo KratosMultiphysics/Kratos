@@ -271,8 +271,8 @@ public:
     ///@{
 
     /*
-    * @brief checks if the Brep Face has any boundary trim information
-    * @return true if face has no boundary trimming curves
+    * @brief checks if the BrepSurface has any boundary trim information.
+    * @return true if has no trimming.
     */
     bool IsTrimmed() const
     {
