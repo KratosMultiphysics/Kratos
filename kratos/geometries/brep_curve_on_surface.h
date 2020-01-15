@@ -282,8 +282,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    typename NurbsSurfaceType::Pointer mpNurbsSurface;
-    typename NurbsCurveType::Pointer mpNurbsCurve;
+    typename NurbsCurveOnSurface::Pointer mpCurveOnSurface;
 
     NurbsInterval mCurveNurbsInterval;
 
