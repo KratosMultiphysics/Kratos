@@ -24,6 +24,8 @@
 #include "geometries/geometry.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
+#include "geometries/nurbs_curve_on_surface_geometry.h"
+
 
 namespace Kratos
 {
