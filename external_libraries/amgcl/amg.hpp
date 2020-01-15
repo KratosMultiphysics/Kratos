@@ -36,13 +36,6 @@ THE SOFTWARE.
 #include <list>
 #include <memory>
 
-#ifdef AMGCL_ASYNC_SETUP
-#  include <atomic>
-#  include <thread>
-#  include <mutex>
-#  include <condition_variable>
-#endif
-
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/solver/detail/default_inner_product.hpp>
 #include <amgcl/util.hpp>
@@ -136,23 +129,11 @@ class amg {
             /// Number of cycles to make as part of preconditioning.
             unsigned pre_cycles;
 
-#ifdef AMGCL_ASYNC_SETUP
-            /// Asynchronous setup.
-            /** Starts cycling as soon as the first level is (partially)
-             * constructed. May be useful for GPGPU backends as a way to split
-             * the work between the host CPU and the compute device(s).
-             */
-            bool async_setup;
-#endif
-
             params() :
                 coarse_enough( Backend::direct_solver::coarse_enough() ),
                 direct_coarse(true),
                 max_levels( std::numeric_limits<unsigned>::max() ),
                 npre(1), npost(1), ncycle(1), pre_cycles(1)
-#ifdef AMGCL_ASYNC_SETUP
-                , async_setup(false)
-#endif
             {}
 
 #ifndef AMGCL_NO_BOOST
@@ -166,15 +147,10 @@ class amg {
                   AMGCL_PARAMS_IMPORT_VALUE(p, npost),
                   AMGCL_PARAMS_IMPORT_VALUE(p, ncycle),
                   AMGCL_PARAMS_IMPORT_VALUE(p, pre_cycles)
-#ifdef AMGCL_ASYNC_SETUP
-                , AMGCL_PARAMS_IMPORT_VALUE(p, async_setup)
-#endif
             {
-                check_params(p, {"coarsening", "relax", "coarse_enough",  "direct_coarse", "max_levels", "npre", "npost", "ncycle",  "pre_cycles"
-#ifdef AMGCL_ASYNC_SETUP
-                        , "async_setup"
-#endif
-                        });
+                check_params(p, {"coarsening", "relax", "coarse_enough",
+                        "direct_coarse", "max_levels", "npre", "npost",
+                        "ncycle",  "pre_cycles"});
 
                 precondition(max_levels > 0, "max_levels should be positive");
             }
@@ -193,9 +169,6 @@ class amg {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, npost);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, ncycle);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, pre_cycles);
-#ifdef AMGCL_ASYNC_SETUP
-                AMGCL_PARAMS_EXPORT_VALUE(p, path, async_setup);
-#endif
             }
 #endif
         } prm;
@@ -244,13 +217,6 @@ class amg {
         {
             do_init(A, bprm);
         }
-
-#ifdef AMGCL_ASYNC_SETUP
-        ~amg() {
-            done = true;
-            if (prm.async_setup) init_thread.join();
-        }
-#endif
 
         /// Performs single V-cycle for the given right-hand side and solution.
         /**
@@ -403,14 +369,8 @@ class amg {
         typedef typename std::list<level>::const_iterator level_iterator;
 
         std::list<level> levels;
-#ifdef AMGCL_ASYNC_SETUP
-        std::thread init_thread;
-        std::atomic<bool> done;
-        mutable std::mutex levels_mx;
-        mutable std::condition_variable ready_to_cycle;
-#endif
 
-        void init(
+        void do_init(
                 std::shared_ptr<build_matrix> A,
                 const backend_params &bprm = backend_params()
            )
@@ -425,17 +385,8 @@ class amg {
             coarsening_type C(prm.coarsening);
 
             while( backend::rows(*A) > prm.coarse_enough) {
-                {
-#ifdef AMGCL_ASYNC_SETUP
-                    if (done) break;
-                    std::lock_guard<std::mutex> lock(levels_mx);
-#endif
-                    levels.push_back( level(A, prm, bprm) );
-                }
-#ifdef AMGCL_ASYNC_SETUP
-                if (done) break;
-                ready_to_cycle.notify_all();
-#endif
+                levels.push_back( level(A, prm, bprm) );
+
                 if (levels.size() >= prm.max_levels) break;
 
                 A = levels.back().step_down(A, C, bprm);
@@ -458,59 +409,19 @@ class amg {
                 if (prm.direct_coarse) {
                     level l;
                     l.create_coarse(A, bprm, levels.empty());
-
-                    {
-#ifdef AMGCL_ASYNC_SETUP
-                        std::lock_guard<std::mutex> lock(levels_mx);
-#endif
-                        levels.push_back( l );
-                    }
+                    levels.push_back(l);
                 } else {
-                    {
-#ifdef AMGCL_ASYNC_SETUP
-                        std::lock_guard<std::mutex> lock(levels_mx);
-#endif
-                        levels.push_back( level(A, prm, bprm) );
-                    }
+                    levels.push_back( level(A, prm, bprm) );
                 }
-#ifdef AMGCL_ASYNC_SETUP
-                ready_to_cycle.notify_all();
-#endif
                 AMGCL_TOC("coarsest level");
             }
         }
 
-        void do_init(
-                std::shared_ptr<build_matrix> A,
-                const backend_params &bprm = backend_params()
-                )
-        {
-#ifdef AMGCL_ASYNC_SETUP
-            done = false;
-            if (prm.async_setup) {
-                init_thread = std::thread(&amg::init, this, A, bprm);
-                {
-                    std::unique_lock<std::mutex> lock(levels_mx);
-                    while(levels.empty()) ready_to_cycle.wait(lock);
-                }
-            } else
-#endif
-            {
-                init(A, bprm);
-            }
-        }
         template <class Vec1, class Vec2>
         void cycle(level_iterator lvl, const Vec1 &rhs, Vec2 &x) const
         {
-            level_iterator nxt = lvl, end;
-
-            {
-#ifdef AMGCL_ASYNC_SETUP
-                std::lock_guard<std::mutex> lock(levels_mx);
-#endif
-                ++nxt;
-                end = levels.end();
-            }
+            level_iterator nxt = lvl, end = levels.end();
+            ++nxt;
 
             if (nxt == end) {
                 if (lvl->solve) {
