@@ -209,11 +209,11 @@ public:
     }
 
     /**
-    * @brief This function returns the geometry part which is accessable
-    *        with a certain index.
-    * @details Here, 0 is the master, all above 0 is for the slaves
+    * @brief This function returns the geometry which is corresponding
+    *        to given Index
+    * @details 0->master, bigger than 0->Slave
     * of the geometry. Checks if index is available only in debug mode.
-    * @param Index of the geometry part. 0->Master; all bigger than 1->Slave
+    * @param Index of the geometry part. 0->Master; bigger than 0->Slave
     * @return pointer of geometry, corresponding to the Index
     */
     typename GeometryType::Pointer pGetGeometryPart(IndexType Index) override
