@@ -226,7 +226,7 @@ class RemoveNodesMesherProcess
     }
 
     //reset flags for the local process execution
-    mMesherUtilities.SetFlagsToNodes(mrModelPart,{BLOCKED},{!BLOCKED});
+    mMesherUtilities.SetFlagsToNodes(mrModelPart,{BLOCKED},{Flags::Not(BLOCKED)});
 
     // number of removed nodes:
     mrRemesh.Info->RemovedNodes = NumberOfNodes - mrModelPart.NumberOfNodes();

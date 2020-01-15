@@ -109,7 +109,7 @@ public:
             FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS|
             FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS|
             FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS|
-            // FindIntersectedGeometricalObjectsWithOBBProcess::NOT_DEBUG_OBB|
+            Flags::Not(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB)|
             FindIntersectedGeometricalObjectsWithOBBProcess::SEPARATING_AXIS_THEOREM|
             FindIntersectedGeometricalObjectsWithOBBProcess::BUILD_OBB_FROM_BB
         );

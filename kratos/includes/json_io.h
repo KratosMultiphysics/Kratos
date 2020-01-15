@@ -105,8 +105,7 @@ public:
     ///@{
 
     /// Constructor with  filenames.
-    KratosJsonIO(std::string const& Filename, const Flags Options = IO::READ)
-    // KratosJsonIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR)
+    KratosJsonIO(std::string const& Filename, const Flags Options = IO::READ|Flags::Not(IO::IGNORE_VARIABLES_ERROR))
         :IO()
     {
         mFilename = Filename;

@@ -123,7 +123,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosFlagsEquality, KratosCoreFastSuite) {
     KRATOS_CHECK_EQUAL( INLET == Flags::Not(INLET), false );
     KRATOS_CHECK_EQUAL( INLET != Flags::Not(INLET), true );
     // trivial check (it is acutally 0 == 0) just to see that everything works when the first argument of == is not a lhs
-    KRATOS_CHECK_EQUAL( (Flags::Not(INLET) & INLET) == (!INLET), true );
+    KRATOS_CHECK_EQUAL( (Flags::Not(INLET) & INLET) == Flags::Not(INLET), true );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosFlagsOperators, KratosCoreFastSuite) {

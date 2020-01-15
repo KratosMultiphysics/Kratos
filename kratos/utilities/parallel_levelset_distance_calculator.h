@@ -90,7 +90,6 @@ public:
                             const unsigned int max_levels,
                             const double max_distance,
                             Flags Options = Flags::Not(CALCULATE_EXACT_DISTANCES_TO_PLANE))
-                            // Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
     {
         KRATOS_TRY
 

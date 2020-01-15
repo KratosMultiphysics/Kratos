@@ -83,7 +83,6 @@ public:
     explicit EntitiesEraseProcess(
         ModelPart& rModelPart,
         Flags Options = Flags::Not(REMOVE_FROM_ALL_LEVELS) | Flags::Not(ERASE_ALL_ENTITIES)
-        // Flags Options = NOT_REMOVE_FROM_ALL_LEVELS | NOT_ERASE_ALL_ENTITIES
         );
 
     /**
