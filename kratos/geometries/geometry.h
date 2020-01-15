@@ -677,6 +677,70 @@ public:
     }
 
     ///@}
+    ///@name Geometry part functions
+    ///@{
+
+    /**
+    * @brief Used for composite geometries. It returns the
+    *        the geometry part, corresponding to the Index.
+    * @param Index of the geometry part. This index can be used differently
+    *        within the derived classes.
+    * @return reference to corresponding geometry.
+     */
+    virtual GeometryType& GetGeometryPart(IndexType Index) const
+    {
+        KRATOS_ERROR << "Calling base class 'GetGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+    * @brief Used for composite geometries. It returns the pointer
+    *        of a geometry part, corresponding to the Index.
+    * @param Index of the geometry part. This index can be used differently
+    *        within the derived classes.
+    * @return pointer to corresponding geometry.
+    */
+    virtual typename GeometryType::Pointer pGetGeometryPart(IndexType Index)
+    {
+        KRATOS_ERROR << "Calling base class 'pGetGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+    * @brief Used for composite geometries. It returns the const pointer
+    *        of a geometry part, corresponding to the Index.
+    * @details This index is dependent on the derived implementation.
+    * @param Index of the geometry part. This index can be used differently
+    *        within the derived classes.
+    * @return const pointer to corresponding geometry.
+    */
+    virtual const typename GeometryType::Pointer pGetGeometryPart(IndexType Index) const
+    {
+        return pGetGeometryPart(Index);
+    }
+
+    /**
+    * @brief Use to check if certain Indexed object is
+    *        within the geometry parts of this geometry.
+    * @param Index of the geometry part. This index can be used differently
+    *        within the derived classes.
+    * @return true if has geometry part
+    */
+    virtual bool HasGeometryPart(IndexType Index) const
+    {
+        KRATOS_ERROR << "Calling base class 'HasGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+    * @return the number of geometry parts that this geometry contains.
+    */
+    virtual SizeType NumberOfGeometryParts() const
+    {
+        return 0;
+    }
+
+    ///@}
     ///@name Operations
     ///@{
 
@@ -1364,66 +1428,6 @@ public:
         KRATOS_TRY
         return mPoints[Index];
         KRATOS_CATCH(mPoints);
-    }
-
-    /**
-    * @brief Used for composite geometries. It returns the
-    *        the geometry part, corresponding to the Index.
-    * @param Index of the geometry part. This index can be used differently
-    *        within the derived classes.
-    * @return reference to corresponding geometry.
-     */
-    virtual GeometryType& GetGeometryPart(IndexType Index) const
-    {
-        KRATOS_ERROR << "Calling base class 'GetGeometryPart' method instead of derived function."
-            <<" Please check the definition in the derived class. " << *this << std::endl;
-    }
-
-    /**
-    * @brief Used for composite geometries. It returns the pointer
-    *        of a geometry part, corresponding to the Index.
-    * @param Index of the geometry part. This index can be used differently
-    *        within the derived classes.
-    * @return pointer to corresponding geometry.
-    */
-    virtual typename GeometryType::Pointer pGetGeometryPart(IndexType Index)
-    {
-        KRATOS_ERROR << "Calling base class 'pGetGeometryPart' method instead of derived function."
-            << " Please check the definition in the derived class. " << *this << std::endl;
-    }
-
-    /**
-    * @brief Used for composite geometries. It returns the const pointer
-    *        of a geometry part, corresponding to the Index.
-    * @details This index is dependent on the derived implementation.
-    * @param Index of the geometry part. This index can be used differently
-    *        within the derived classes.
-    * @return const pointer to corresponding geometry.
-    */
-    virtual const typename GeometryType::Pointer pGetGeometryPart(IndexType Index) const
-    {
-        return pGetGeometryPart(Index);
-    }
-
-    /**
-    * @brief Use to check if certain Indexed object is
-    *        within the geometry parts of this geometry.
-    * @param Index of the geometry part. This index can be used differently
-    *        within the derived classes.
-    * @return true if has geometry part
-    */
-    virtual bool HasGeometryPart(IndexType Index) const
-    {
-        KRATOS_ERROR << "Calling base class 'HasGeometryPart' method instead of derived function."
-            << " Please check the definition in the derived class. " << *this << std::endl;
-    }
-
-    /**
-    * @return the number of geometry parts that this geometry contains.
-    */
-    virtual SizeType NumberOfGeometryParts() const
-    {
-        return 0;
     }
 
     /**
