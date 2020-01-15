@@ -62,6 +62,10 @@ public:
     {
     }
 
+    NurbsCurveOnSurfaceGeometry()
+        : BaseType(PointsArrayType(), &msGeometryData)
+    {};
+
     /// Copy constructor.
     NurbsCurveOnSurfaceGeometry(NurbsCurveOnSurfaceGeometry const& rOther)
         : BaseType(rOther)
