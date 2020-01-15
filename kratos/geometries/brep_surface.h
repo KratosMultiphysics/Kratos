@@ -204,7 +204,7 @@ public:
 
     GeometryType& GetGeometryPart(IndexType Index) const override
     {
-        return *pGetGeometryPart(Index);
+        return *(this->pGetGeometryPart(Index));
     }
 
     typename GeometryType::Pointer pGetGeometryPart(IndexType Index) override
