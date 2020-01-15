@@ -516,6 +516,16 @@ public:
     {
         return mPoints.size();
     }
+
+    /** 
+    * @detail Returns the number of the points/ nodes
+    *         belonging to this geometry.
+    * @return Number of points/ nodes.
+    */
+    SizeType PointsNumber() const {
+        return this->size();
+    }
+
     virtual SizeType max_size() const
     {
         return mPoints.max_size();
@@ -885,14 +895,6 @@ public:
     inline SizeType LocalSpaceDimension() const
     {
         return mpGeometryData->LocalSpaceDimension();
-    }
-
-    /** Returns number of the points which this geometry has.
-     *
-     * @return SizeType, number of the points in this geometry.
-     */
-    SizeType PointsNumber() const {
-      return this->size();
     }
 
     /** This method calculate and return Length or charactereistic
