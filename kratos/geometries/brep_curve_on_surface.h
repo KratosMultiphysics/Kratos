@@ -177,6 +177,15 @@ public:
     }
 
     ///@}
+    ///@name Set/ Get functions
+    ///@{
+
+    bool GetCurveDirection()
+    {
+        return mCurveDirection;
+    }
+
+    ///@}
     ///@name Geometrical Operations
     ///@{
 
