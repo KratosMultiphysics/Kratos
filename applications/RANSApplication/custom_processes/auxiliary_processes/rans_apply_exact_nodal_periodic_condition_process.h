@@ -79,7 +79,7 @@ public:
     RansApplyExactNodalPeriodicConditionProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansApplyExactNodalPeriodicConditionProcess() override;
+    ~RansApplyExactNodalPeriodicConditionProcess() override = default;
 
     ///@}
     ///@name Operators
