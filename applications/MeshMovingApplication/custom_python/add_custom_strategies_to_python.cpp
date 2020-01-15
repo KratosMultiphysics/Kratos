@@ -24,7 +24,6 @@
 // strategies
 #include "custom_strategies/strategies/laplacian_meshmoving_strategy.h"
 #include "custom_strategies/strategies/structural_meshmoving_strategy.h"
-#include "includes/kratos_filesystem.h"
 // linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -33,7 +32,6 @@ namespace Python {
 
 void AddCustomStrategiesToPython(pybind11::module& m) {
     namespace py = pybind11;
-    std::cout << "MyPath : " << Kratos::filesystem::current_path().string() << std::endl;
 
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
