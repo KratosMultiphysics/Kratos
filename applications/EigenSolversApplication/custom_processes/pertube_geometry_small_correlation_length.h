@@ -92,8 +92,6 @@ public:
     {
         KRATOS_TRY
         MortarUtilities::ComputeNodesMeanNormalModelPart( mrInitialModelPart, false );
-        CorrelationMatrix_check = Eigen::MatrixXd::Zero(mrInitialModelPart.NumberOfNodes(), mrInitialModelPart.NumberOfNodes());
-        CorrelationMatrix_check_orig = Eigen::MatrixXd::Zero(mrInitialModelPart.NumberOfNodes(), mrInitialModelPart.NumberOfNodes());
         KRATOS_CATCH("")
     }
 
@@ -128,10 +126,6 @@ public:
     int CreateEigenvectors(ModelPart& rThisModelPart, double minDistance, double correlationLength);
 
     void AssembleEigenvectors(ModelPart& rThisModelPart, const std::vector<double>& variables );
-
-    void Average(int number);
-   
-    double Kernel( double x, double sigma );
 
     double CorrelationFunction( ModelPart::NodeIterator itNode1, NodesType itNode2, double CorrelationLenth);
     ///@}
@@ -220,11 +214,6 @@ private:
     ModelPart& mrInitialModelPart;              // The main model part
 
     DenseMatrixType mDisplacement;
-
-    // Remove this again ################################
-    Eigen::MatrixXd CorrelationMatrix_check;
-    Eigen::MatrixXd CorrelationMatrix_check_orig;
-    //###################################################
 
     EigensystemSolver<>* mpEigenSolver;
 

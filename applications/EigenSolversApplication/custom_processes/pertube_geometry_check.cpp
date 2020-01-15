@@ -84,7 +84,30 @@ int PertubeGeometryProcess::CreateEigenvectors( ModelPart& rThisModelPart, doubl
             CorrelationMatrix(row_counter ,column_counter ) =  CorrelationFunction( (*it), (*it_inner), correlationLength);  
         }
     }
-    
+    // Remove this
+    row_counter = -1;
+    for ( ModelPart::NodeIterator it = rThisModelPart.NodesBegin(); it != rThisModelPart.NodesEnd(); it++ )
+    {
+        row_counter++;
+        int column_counter = -1;
+        for( ModelPart::NodeIterator it_inner = rThisModelPart.NodesBegin(); it_inner != rThisModelPart.NodesEnd(); it_inner++ )
+        {
+            column_counter++;
+            CorrelationMatrix_check_orig(row_counter ,column_counter ) =  CorrelationFunction( (it), (it_inner), correlationLength);  
+        }
+    }
+    for(int i = 0; i < 10; i++)
+    {
+        for( int j = 0; j < 10; j++)
+        {
+            std::cout << CorrelationMatrix_check_orig(i,j) << ", ";
+        }
+        std::cout << std::endl;
+    }
+    //#######################
+    // Remove this later
+    //CorrelationMatrix_check_orig = CorrelationMatrix;
+    //KRATOS_WATCH( CorrelationMatrix );
     // Solve Eigenvalue Problem
     Parameters params(R"(
         {
@@ -201,60 +224,89 @@ int PertubeGeometryProcess::CreateEigenvectors( ModelPart& rThisModelPart, doubl
     KRATOS_CATCH("");
 }
 
-void PertubeGeometryProcess::AssembleEigenvectors( ModelPart& rThisModelPart, const std::vector<double>& variables )
+void PertubeGeometryProcess::AssembleEigenvectors( ModelPart& rThisModelPart, const std::vector<double>& variables, double correlationLength )
 {
     //Todo: Check if NumOfRandomVariables==NumberOfEigenvectors
-    const int NumOfRandomVariables = variables.size();
-    const int NumOfNodes = rThisModelPart.NumberOfNodes();
+    int NumOfRandomVariables = variables.size();
     // KRATOS_WATCH( NumOfRandomVariables );
     //KRATOS_WATCH( variables );
     int j = -1;
+    double max = 0.0;
     array_1d<double, 3> normal;
-    std::vector<double> randomField(NumOfNodes,0.0);
-    
-    for (ModelPart::NodeIterator itNode = rThisModelPart.NodesBegin(); itNode != rThisModelPart.NodesEnd(); itNode++)
-    {
-        j++;
-        for( int i = 0; i < NumOfRandomVariables; i++)
-        {
-            randomField[j] += variables[i]*Displacement(j,i);
-        }
-    }
-    double shifted_mean = 1.0 / NumOfNodes * std::accumulate(randomField.begin(), randomField.end(), 0.0);
-    // Scale and shift random Field
-    for(auto& element : randomField){
-        element = element - shifted_mean;
-    }
-    std::cout << "Shifted Mean: " << shifted_mean << std::endl;
-    double max_disp = *std::max_element(randomField.begin(), randomField.end());
-    double min_disp = *std::min_element(randomField.begin(), randomField.end());
-
-    double max_abs_disp = std::max( std::abs(max_disp), std::abs(min_disp) );
-    std::cout << "Maximal Displacement: " << max_abs_disp << std::endl;
-    for(auto& element : randomField){
-        element = mMaximalDisplacement/max_abs_disp*element;
-    } 
-
-    max_disp = *std::max_element(randomField.begin(), randomField.end());
-    min_disp = *std::min_element(randomField.begin(), randomField.end());
-
-    max_abs_disp = std::max( std::abs(max_disp), std::abs(min_disp) );
-    std::cout << "Maximal Displacement: " << max_abs_disp << std::endl;
-    j = -1;
     ModelPart::NodeIterator itNode_intial = mrInitialModelPart.NodesBegin();
     for (ModelPart::NodeIterator itNode = rThisModelPart.NodesBegin(); itNode != rThisModelPart.NodesEnd(); itNode++)
     {
         j++;
         double tmp = 0.0;
         normal =  itNode_intial->FastGetSolutionStepValue(NORMAL);
-
         itNode_intial = itNode_intial + 1;
-        itNode->GetInitialPosition().Coordinates() += normal*randomField[j];
-
-        // KRATOS_WATCH( itNode->GetInitialPosition().Coordinates() );
-        //itNode->GetInitialPosition().Coordinates()(1) += maxDisplacement*variables[i]*Displacement(j,i);
+        for( int i = 0; i < NumOfRandomVariables; i++)
+        {
+            itNode->GetInitialPosition().Coordinates() += normal*mMaximalDisplacement*variables[i]*Displacement(j,i);
+            //itNode->GetInitialPosition().Coordinates()(1) += maxDisplacement*variables[i]*Displacement(j,i);
+            tmp += mMaximalDisplacement*variables[i]*Displacement(j,i);
+        } 
+        if( std::abs(tmp) > std::abs(max) )
+        {
+            max = tmp;
+        }     
     }
-    //std::cout << "Maximal Displacement: " << max_disp << std::endl;
+    Eigen::MatrixXd CorrelationMatrix_tmp;
+    CorrelationMatrix_tmp = Eigen::MatrixXd::Zero(rThisModelPart.NumberOfNodes(), rThisModelPart.NumberOfNodes());
+    // Remove this later again!
+    // ################################################################################
+    int row_counter = -1;
+    for ( ModelPart::NodeIterator it = rThisModelPart.NodesBegin(); it != rThisModelPart.NodesEnd(); it++ )
+    {
+        row_counter++;
+        int column_counter = -1;
+        for( ModelPart::NodeIterator it_inner = rThisModelPart.NodesBegin(); it_inner != rThisModelPart.NodesEnd(); it_inner++ )
+        {
+            column_counter++;
+            array_1d<double, 3> coorrdinate1;
+            array_1d<double, 3> coorrdinate2;
+            //coorrdinate1 = it->GetInitialPosition().Coordinates();
+            //coorrdinate2 = it_inner->GetInitialPosition().Coordinates();
+            double c1 = it->GetInitialPosition().Coordinates()(2);
+            double c2 = it_inner->GetInitialPosition().Coordinates()(2);
+            double norm1 = sqrt( coorrdinate1(0)*coorrdinate1(0) + coorrdinate1(1)*coorrdinate1(1) + coorrdinate1(2)*coorrdinate1(2) );
+            double norm2 = sqrt( coorrdinate2(0)*coorrdinate2(0) + coorrdinate2(1)*coorrdinate2(1) + coorrdinate2(2)*coorrdinate2(2) );
+            CorrelationMatrix_tmp(row_counter ,column_counter ) =  c1*c2;
+        }
+    }
+    CorrelationMatrix_check += CorrelationMatrix_tmp;
+    //################################################################################
+    //std::cout << "Maximal Displacement: " << max << std::endl;
+}
+
+void PertubeGeometryProcess::Average(int number)
+{
+    for(int i = 0; i < CorrelationMatrix_check.rows(); i++)
+    {
+        for( int j = 0; j < CorrelationMatrix_check.cols(); j++)
+        {
+            CorrelationMatrix_check(i,j) = CorrelationMatrix_check(i,j)/ (double)number;
+        }
+    }
+    for(int i = 0; i < 10; i++)
+    {
+        for( int j = 0; j < 10; j++)
+        {
+            std::cout << CorrelationMatrix_check(i,j) << ", ";
+        }
+        std::cout << std::endl;
+    }
+    // KRATOS_WATCH( CorrelationMatrix_check_orig - CorrelationMatrix_check );
+    // KRATOS_WATCH( CorrelationMatrix_check_orig(0,4) );
+    // KRATOS_WATCH( CorrelationMatrix_check(0,4) );
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(CorrelationMatrix_check.rows());
+    es.compute(CorrelationMatrix_check,Eigen::ComputeEigenvectors);
+    // for( int i = 0; i < es.eigenvectors().col(0).size(); i++)
+    // {
+    //     std::cout << i << ": " << es.eigenvectors().col(0)(i) << "\t " << CorrelationMatrix_check_orig.col(0)(i) << std::endl;
+    // }
+
+    KRATOS_WATCH( (CorrelationMatrix_check_orig - CorrelationMatrix_check ).norm() / CorrelationMatrix_check_orig.norm()  );
 }
 
 
@@ -266,6 +318,12 @@ double PertubeGeometryProcess::CorrelationFunction( ModelPart::NodeIterator itNo
     double norm = sqrt( coorrdinate(0)*coorrdinate(0) + coorrdinate(1)*coorrdinate(1) + coorrdinate(2)*coorrdinate(2) );
 
     return( exp( - norm*norm / (CorrelationLenth*CorrelationLenth) ) );  
+}
+
+
+double PertubeGeometryProcess::Kernel( double x, double sigma )
+{
+    return exp( - (x*x) / (0.45*0.45*sigma*sigma) );
 }
 
 } // namespace Kratos

@@ -75,6 +75,22 @@ int PertubeGeometrySmallCorrelationLength::CreateEigenvectors( ModelPart& rModel
         }
     }
     KRATOS_WATCH( counter );
+    for(int i = 0; i < 10; i++)
+    {
+        for( int j = 0; j < 10; j++)
+        {
+            std::cout << CorrelationMatrix(i,j) << ", ";
+            
+        }
+        std::cout << std::endl;
+    }
+    for( int i = 0; i < 100; i++)
+    {
+        for( int j = 0; j < 100; j++)
+        {
+            CorrelationMatrix_check_orig(i,j) = CorrelationMatrix(i,j);
+        }
+    }
     
     // Solve Eigenvalue Problem
     Parameters params(R"(
@@ -147,7 +163,8 @@ int PertubeGeometrySmallCorrelationLength::CreateEigenvectors( ModelPart& rModel
             mDisplacement(j,i) = sqrt( Eigenvalues(i) ) * inner_prod( row(Eigenvectors,i),  row( CorrelationMatrix, j));
         }
     }
-
+    //rModelPart.AddNodalSolutionStepVariable(NORMAL);
+    //MortarUtilities::ComputeNodesMeanNormalModelPart( rModelPart, false );
     return NumOfRandomVariables;
 
     KRATOS_CATCH("")
@@ -179,6 +196,62 @@ void PertubeGeometrySmallCorrelationLength::AssembleEigenvectors( ModelPart& rMo
         }     
     }
     //std::cout << "Maximal Displacement: " << max << std::endl;
+    Eigen::MatrixXd CorrelationMatrix_tmp;
+    CorrelationMatrix_tmp = Eigen::MatrixXd::Zero(rModelPart.NumberOfNodes(), rModelPart.NumberOfNodes());
+    // Remove this later again!
+    // ################################################################################
+    int row_counter = -1;
+    for ( ModelPart::NodeIterator it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); it++ )
+    {
+        row_counter++;
+        int column_counter = -1;
+        for( ModelPart::NodeIterator it_inner = rModelPart.NodesBegin(); it_inner != rModelPart.NodesEnd(); it_inner++ )
+        {
+            column_counter++;
+            array_1d<double, 3> coorrdinate1;
+            array_1d<double, 3> coorrdinate2;
+            //coorrdinate1 = it->GetInitialPosition().Coordinates();
+            //coorrdinate2 = it_inner->GetInitialPosition().Coordinates();
+            double c1 = it->GetInitialPosition().Coordinates()(2);
+            double c2 = it_inner->GetInitialPosition().Coordinates()(2);
+            double norm1 = sqrt( coorrdinate1(0)*coorrdinate1(0) + coorrdinate1(1)*coorrdinate1(1) + coorrdinate1(2)*coorrdinate1(2) );
+            double norm2 = sqrt( coorrdinate2(0)*coorrdinate2(0) + coorrdinate2(1)*coorrdinate2(1) + coorrdinate2(2)*coorrdinate2(2) );
+            CorrelationMatrix_tmp(row_counter ,column_counter ) =  c1*c2;
+        }
+    }
+    CorrelationMatrix_check += CorrelationMatrix_tmp;
+    //################################################################################
+}
+
+void PertubeGeometrySmallCorrelationLength::Average(int number)
+{
+    for(int i = 0; i < CorrelationMatrix_check.rows(); i++)
+    {
+        for( int j = 0; j < CorrelationMatrix_check.cols(); j++)
+        {
+            CorrelationMatrix_check(i,j) = CorrelationMatrix_check(i,j)/ (double)number;
+        }
+    }
+    for(int i = 0; i < 10; i++)
+    {
+        for( int j = 0; j < 10; j++)
+        {
+            std::cout << CorrelationMatrix_check(i,j) << ", ";
+        }
+        std::cout << std::endl;
+    }
+    // KRATOS_WATCH( CorrelationMatrix_check_orig - CorrelationMatrix_check );
+    // KRATOS_WATCH( CorrelationMatrix_check_orig(0,4) );
+    // KRATOS_WATCH( CorrelationMatrix_check(0,4) );
+    // Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(CorrelationMatrix_check.rows());
+    // es.compute(CorrelationMatrix_check,Eigen::ComputeEigenvectors);
+    // for( int i = 0; i < es.eigenvectors().col(0).size(); i++)
+    // {
+    //     std::cout << i << ": " << es.eigenvectors().col(0)(i) << "\t " << CorrelationMatrix_check_orig.col(0)(i) << std::endl;
+    // }
+    KRATOS_WATCH( ( CorrelationMatrix_check  ).rows() );
+    //KRATOS_WATCH( ( CorrelationMatrix_check.cwiseAbs() - CorrelationMatrix_check_orig.cwiseAbs() ) );
+    KRATOS_WATCH( ( CorrelationMatrix_check_orig - CorrelationMatrix_check ).norm() / CorrelationMatrix_check_orig.norm() );
 }
 
 double PertubeGeometrySmallCorrelationLength::CorrelationFunction( ModelPart::NodeIterator itNode1,NodesType itNode2, double CorrelationLenth)
@@ -189,6 +262,12 @@ double PertubeGeometrySmallCorrelationLength::CorrelationFunction( ModelPart::No
     double norm = sqrt( coorrdinate(0)*coorrdinate(0) + coorrdinate(1)*coorrdinate(1) + coorrdinate(2)*coorrdinate(2) );
 
     return( exp( - norm*norm / (CorrelationLenth*CorrelationLenth) ) );  
+}
+
+
+double PertubeGeometrySmallCorrelationLength::Kernel( double x, double sigma )
+{
+    return exp( - (x*x) / (0.45*0.45*sigma*sigma) );
 }
 
 } // namespace Kratos
