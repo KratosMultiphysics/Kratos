@@ -334,27 +334,24 @@ namespace Kratos
                     else { // if (rParameters["topology"][i].Has("brep_name"))
                         p_geometry = rModelPart.pGetGeometry(rParameters["topology"][0]["brep_name"].GetString());
                     }
+                    GeometryPointerType p_brep_trim = p_geometry->pGetGeometryPart(rParameters["topology"][0]["trim_index"].GetInt());
 
-                    GeometryPointerType p_trim = p_geometry->pGetGeometryPart(rParameters["topology"][0]["trim_index"].GetInt());
+                    BrepCurveOnSurfaceType brep_curve_on_surface = static_cast<BrepCurveOnSurfaceType>(*p_brep_trim);
+
                     bool relative_direction = rParameters["topology"][0]["trim_index"].GetBool();
 
-                    GeometryPointerType p_geometry_surface = p_trim->pGetGeometryPart(BrepCurveOnSurfaceType::SURFACE_INDEX);
-                    NurbsSurfaceType nurbs_surface = static_cast<NurbsSurfaceType>(*p_geometry_surface);
-                    NurbsSurfacePointerType p_nurbs_surface = Kratos::make_shared<NurbsSurfaceType>(nurbs_surface);
+                    auto p_nurbs_curve_on_surface = brep_curve_on_surface.pGetCurveOnSurface();
 
-                    GeometryPointerType p_geometry_curve = p_trim->pGetGeometryPart(BrepCurveOnSurfaceType::CURVE_INDEX);
-                    NurbsTrimmingCurveType nurbs_curve = static_cast<NurbsTrimmingCurveType>(*p_geometry_curve);
+                    typename BrepCurveOnSurfaceType::Pointer p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
+                        nurbs_curve_on_surface, relative_direction);
 
-                    //auto p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
-                    //    p_nurbs_surface, p_nurbs_curve, relative_direction);
+                    // Setting BrepId of the geometry
+                    if (rParameters.Has("brep_id"))
+                        p_brep_curve_on_surface->SetId(rParameters[0]["brep_id"].GetInt());
+                    else if (rParameters.Has("brep_name"))
+                        p_brep_curve_on_surface->SetId(rParameters[0]["brep_name"].GetString());
 
-                    //// Setting BrepId of the geometry
-                    //if (rParameters.Has("brep_id"))
-                    //    p_brep_curve_on_surface->SetId(rParameters[0]["brep_id"].GetInt());
-                    //else if (rParameters.Has("brep_name"))
-                    //    p_brep_curve_on_surface->SetId(rParameters[0]["brep_name"].GetString());
-
-                    //rModelPart.AddGeometry(p_brep_curve_on_surface);
+                    rModelPart.AddGeometry(p_brep_curve_on_surface);
                 }
                 else
                 {
