@@ -56,6 +56,7 @@ public:
                 "initial_velocity" : 0.0,
                 "limit_velocity" : 0.1,
                 "velocity_factor" : 1.0,
+                "stress_averaging_time": 1e-7,
                 "compression_length" : 1.0,
                 "face_area": 1.0,
                 "young_modulus" : 1.0e9,
@@ -78,6 +79,8 @@ public:
         mUpdateStiffness = rParameters["update_stiffness"].GetBool();
         mReactionStressOld = 0.0;
         mStiffness = rParameters["young_modulus"].GetDouble()*rParameters["face_area"].GetDouble()/mCompressionLength;
+        mStressAveragingTime = rParameters["stress_averaging_time"].GetDouble();
+        mVectorOfLastStresses.resize(0);
 
         KRATOS_CATCH("");
     }
@@ -235,7 +238,9 @@ public:
                     //FaceReaction -= it->FastGetSolutionStepValue(DEM_PRESSURE);
                 }
             }
-            const double ReactionStress = FaceReaction / face_area;
+            double ReactionStress = FaceReaction / face_area;
+
+            ReactionStress = UpdateVectorOfHistoricalStressesAndComputeNewAverage(ReactionStress);
 
             // Update K if required
             const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
@@ -388,6 +393,8 @@ protected:
     double mStressIncrementTolerance;
     double mStiffness;
     bool mUpdateStiffness;
+    std::vector<double> mVectorOfLastStresses;
+    double mStressAveragingTime;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -398,6 +405,37 @@ private:
 
     /// Copy constructor.
     //ControlModule2DProcess(ControlModule2DProcess const& rOther);
+
+    double UpdateVectorOfHistoricalStressesAndComputeNewAverage(const double& last_reaction) {
+        KRATOS_TRY;
+        int length_of_vector = mVectorOfLastStresses.size();
+        if (length_of_vector == 0) { //only the first time
+            int number_of_steps_for_stress_averaging = (int) (mStressAveragingTime / mrModelPart.GetProcessInfo()[DELTA_TIME]);
+            KRATOS_WATCH(mStressAveragingTime)
+            if(number_of_steps_for_stress_averaging < 1) number_of_steps_for_stress_averaging = 1;
+            mVectorOfLastStresses.resize(number_of_steps_for_stress_averaging);
+            KRATOS_WATCH(number_of_steps_for_stress_averaging)
+        }
+
+        length_of_vector = mVectorOfLastStresses.size();
+
+        if(length_of_vector > 1) {
+            for(int i=1; i<length_of_vector; i++) {
+                mVectorOfLastStresses[i-1] = mVectorOfLastStresses[i];
+            }
+        }
+        mVectorOfLastStresses[length_of_vector-1] = last_reaction;
+
+        double average = 0.0;
+        for(int i=0; i<length_of_vector; i++) {
+            average += mVectorOfLastStresses[i];
+        }
+        average /= (double) length_of_vector;
+        return average;
+
+        KRATOS_CATCH("");
+    }
+
 
 }; // Class ControlModule2DProcess
 
