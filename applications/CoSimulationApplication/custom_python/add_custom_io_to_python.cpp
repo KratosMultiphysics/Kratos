@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "includes/kratos_filesystem.h"
 #include "custom_python/add_custom_io_to_python.h"
 
 // IO
@@ -29,6 +30,7 @@ namespace EMPIRE_API_Wrappers { // helpers namespace
 template<bool TIsDataField>
 void SendArray(const std::string& rName, const int sizeOfArray, const std::vector<double>& signal)
 {
+    std::cout << "MyPath : " << Kratos::filesystem::current_path().string() << std::endl;
     // Wrapper is needed bcs pybind cannot do the conversion to raw-ptr automatically
     if (TIsDataField) {
         EMPIRE_API_sendDataField(rName.c_str(), sizeOfArray, signal.data());
