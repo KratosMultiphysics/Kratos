@@ -53,5 +53,5 @@ if __name__ == '__main__':
     KratosMultiphysics.Tester.RunTestSuite("CompressiblePotentialApplicationFastSuite")
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
-    #KratosUnittest.runTests(AssembleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
