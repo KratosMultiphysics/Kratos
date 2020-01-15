@@ -85,6 +85,7 @@ public:
             pSurface, pCurve);
     }
 
+    /// constructor for trimmed surface
     BrepCurveOnSurface(
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve,
@@ -96,6 +97,28 @@ public:
     {
         mpCurveOnSurface = Kratos::make_shared<NurbsCurveOnSurfaceType>(
             pSurface, pCurve);
+    }
+
+    /// constructor for untrimmed surface with curve on surface
+    BrepCurveOnSurface(
+        NurbsCurveOnSurfacePointerType pNurbsCurveOnSurface,
+        bool curve_direction = true)
+        : BaseType(PointsArrayType(), &msGeometryData)
+        , mpCurveOnSurface(pNurbsCurveOnSurface)
+        , mCurveDirection(curve_direction)
+    {
+    }
+
+    /// constructor for trimmed surface with curve on surface
+    BrepCurveOnSurface(
+        NurbsCurveOnSurfacePointerType pNurbsCurveOnSurface,
+        NurbsInterval CurveNurbsInterval,
+        bool curve_direction = true)
+        : BaseType(PointsArrayType(), &msGeometryData)
+        , mCurveNurbsInterval(CurveNurbsInterval)
+        , mpCurveOnSurface(pNurbsCurveOnSurface)
+        , mCurveDirection(curve_direction)
+    {
     }
 
     explicit BrepCurveOnSurface(const PointsArrayType& ThisPoints)
