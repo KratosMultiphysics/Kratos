@@ -343,7 +343,7 @@ namespace Kratos
 
             PointerVector<TThisNodeType> control_points;
 
-            this->ReadControlPointVector(control_points,
+            ReadControlPointVector(control_points,
                 rParameters["control_points"], rModelPart);
 
             if (is_rational)
