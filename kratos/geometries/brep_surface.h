@@ -238,7 +238,7 @@ public:
     * @brief This function is used to check if this BrepSurface
     *        has certain trim or surface object.
     * @param Index of the geometry part.
-    * @return true if has brep surface has trim or surface part
+    * @return true if has trim or surface
     */
     bool HasGeometryPart(IndexType Index) const override
     {
