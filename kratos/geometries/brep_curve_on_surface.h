@@ -57,7 +57,7 @@ public:
     typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
     typedef NurbsCurveGeometry<2, TContainerPointEmbeddedType> NurbsCurveType;
 
-    typedef NurbsCurveOnSurface<3, TContainerPointEmbeddedType, TContainerPointType> NurbsCurveOnSurfaceType;
+    typedef NurbsCurveOnSurfaceGeometry<3, TContainerPointEmbeddedType, TContainerPointType> NurbsCurveOnSurfaceType;
 
     typedef typename NurbsCurveOnSurfaceType::Pointer NurbsCurveOnSurfacePointerType;
 
