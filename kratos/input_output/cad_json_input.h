@@ -27,7 +27,7 @@ namespace Kratos
   https://amses-journal.springeropen.com/articles/10.1186/s40323-018-0109-4.
   */
     template<class TNodeType = Node<3>, class TEmbeddedNodeType = Point>
-    class CadJsonInput //: public IO
+    class CadJsonInput : public IO
     {
     public:
 
@@ -82,7 +82,7 @@ namespace Kratos
         ///@name Python exposed Functions
         ///@{
 
-        void ReadGeometryModelPart(ModelPart& rModelPart)// override
+        void ReadModelPart(ModelPart& rModelPart) override
         {
             ReadBreps(mCadJsonParameters, rModelPart);
         }
@@ -94,9 +94,9 @@ namespace Kratos
         ///@name Read in Brep
         ///@{
 
-        void ReadBreps(
+        static void ReadBreps(
             const Parameters& rParameters,
-            ModelPart& rModelPart)
+            ModelPart& rModelPart) const
         {
             for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
             {
@@ -109,17 +109,17 @@ namespace Kratos
             }
         }
 
-        void ReadBrepFaces(
+        static void ReadBrepFaces(
             const Parameters& rParameters,
-            ModelPart& rModelPart)
+            ModelPart& rModelPart) const
         {
             if (rParameters.Has("faces"))
                 ReadBrepSurfaces(rParameters["faces"], rModelPart);
         }
 
-        void ReadBrepEdges(
+        static void ReadBrepEdges(
             const Parameters& rParameters,
-            ModelPart& rModelPart)
+            ModelPart& rModelPart) const
         {
             if (rParameters.Has("edges"))
                 ReadBrepCurveOnSurfaces(rParameters["edges"], rModelPart);
@@ -129,9 +129,9 @@ namespace Kratos
         ///@name Read in Brep Geometries
         ///@{
 
-        void ReadBrepSurfaces(
+        static void ReadBrepSurfaces(
                 const Parameters& rParameters,
-                ModelPart& rModelPart)
+                ModelPart& rModelPart) const
         {
             for (IndexType i = 0; i < rParameters.size(); i++)
             {
@@ -186,11 +186,11 @@ namespace Kratos
         ///@name Read in Surface Trimming
         ///@{
 
-        BrepCurveOnSurfaceLoopType
+        static BrepCurveOnSurfaceLoopType
             ReadTrimmingCurveVector(
                 const Parameters& rParameters,
                 typename NurbsSurfaceType::Pointer pNurbsSurface,
-                ModelPart& rModelPart)
+                ModelPart& rModelPart) const
         {
             KRATOS_ERROR_IF(rParameters.size() < 1)
                 << "Trimming curve list has no element." << std::endl;
@@ -206,11 +206,11 @@ namespace Kratos
             return trimming_brep_curve_vector;
         }
 
-        typename BrepCurveOnSurfaceType::Pointer
+        static typename BrepCurveOnSurfaceType::Pointer
             ReadTrimmingCurve(
                 const Parameters& rParameters,
                 typename NurbsSurfaceType::Pointer pNurbsSurface,
-                ModelPart& rModelPart)
+                ModelPart& rModelPart) const
         {
             KRATOS_ERROR_IF_NOT(rParameters.Has("curve_direction"))
                 << "Missing 'curve_direction' in nurbs curve" << std::endl;
@@ -231,11 +231,11 @@ namespace Kratos
             return p_brep_curve_on_surface;
         }
 
-        std::tuple<BrepCurveOnSurfaceLoopArrayType, BrepCurveOnSurfaceLoopArrayType>
+        static std::tuple<BrepCurveOnSurfaceLoopArrayType, BrepCurveOnSurfaceLoopArrayType>
             ReadBoundaryLoops(
                 const Parameters& rParameters,
                 typename NurbsSurfaceType::Pointer pNurbsSurface,
-                ModelPart& rModelPart)
+                ModelPart& rModelPart) const
         {
             BrepCurveOnSurfaceLoopArrayType outer_loops;
             BrepCurveOnSurfaceLoopArrayType inner_loops;
@@ -276,9 +276,9 @@ namespace Kratos
         ///@name Read in Nurbs Geometries
         ///@{
 
-        void ReadBrepCurveOnSurfaces(
+        static void ReadBrepCurveOnSurfaces(
             const Parameters& rParameters,
-            ModelPart& rModelPart)
+            ModelPart& rModelPart) const
         {
             for (IndexType i = 0; i < rParameters.size(); i++)
             {
@@ -286,9 +286,9 @@ namespace Kratos
             }
         }
 
-        void ReadBrepEdge(
+        static void ReadBrepEdge(
             const Parameters& rParameters,
-            ModelPart& rModelPart)
+            ModelPart& rModelPart) const
         {
                 KRATOS_ERROR_IF_NOT(rParameters.Has("brep_id") || rParameters.Has("brep_name"))
                     << "Missing 'brep_id' or 'brep_name' in brep face" << std::endl;
@@ -314,10 +314,10 @@ namespace Kratos
         ///@{
 
         template<int TWorkingSpaceDimension, class TThisNodeType>
-        typename NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer
+        static typename NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer
             ReadNurbsCurve(
                 const Parameters& rParameters,
-                ModelPart& rModelPart)
+                ModelPart& rModelPart) const
         {
             bool is_rational = true;
             if (rParameters.Has("is_rational"))
@@ -355,10 +355,10 @@ namespace Kratos
         }
 
         template<int TWorkingSpaceDimension, class TThisNodeType>
-        typename NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer
+        static typename NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer
             ReadNurbsSurface(
                 const Parameters& rParameters,
-                ModelPart& rModelPart)
+                ModelPart& rModelPart) const
         {
             bool is_rational = true;
             if(rParameters.Has("is_rational"))
@@ -409,8 +409,8 @@ namespace Kratos
         ///@name Read in Control Points
         ///@{
 
-        Vector ReadControlPointWeightVector(
-            const Parameters& rParameters)
+        static Vector ReadControlPointWeightVector(
+            const Parameters& rParameters) const
         {
             Vector control_point_weights = ZeroVector(rParameters.size());
             KRATOS_ERROR_IF(rParameters.size() == 0)
@@ -433,10 +433,10 @@ namespace Kratos
             return control_point_weights;
         }
 
-        void ReadControlPointVector(
+        static void ReadControlPointVector(
             PointerVector<Point>& rControlPoints,
             const Parameters& rParameters,
-            ModelPart& rModelPart)
+            ModelPart& rModelPart) const
         {
             for (IndexType cp_idx = 0; cp_idx < rParameters.size(); cp_idx++)
             {
@@ -444,10 +444,10 @@ namespace Kratos
             }
         }
 
-        void ReadControlPointVector(
+        static void ReadControlPointVector(
                 PointerVector<Node<3>>& rControlPoints,
                 const Parameters& rParameters,
-                ModelPart& rModelPart)
+                ModelPart& rModelPart) const
         {
             for (IndexType cp_idx = 0; cp_idx < rParameters.size(); cp_idx++)
             {
@@ -459,9 +459,9 @@ namespace Kratos
         ///@name Read in Nodes/ Points
         ///@{
 
-        Node<3>::Pointer ReadNode(
+        static Node<3>::Pointer ReadNode(
             const Parameters& rParameters,
-            ModelPart& rModelPart)
+            ModelPart& rModelPart) const
         {
             SizeType number_of_entries = rParameters[0].size();
             KRATOS_ERROR_IF(number_of_entries != 1 || number_of_entries != 2)
@@ -474,8 +474,8 @@ namespace Kratos
             return rModelPart.CreateNewNode(id, cp[0], cp[1], cp[2]);
         }
 
-        Point::Pointer ReadPoint(
-            const Parameters& rParameters)
+        static Point::Pointer ReadPoint(
+            const Parameters& rParameters) const
         {
             SizeType number_of_entries = rParameters[0].size();
             KRATOS_ERROR_IF(number_of_entries != 1 || number_of_entries != 2)
