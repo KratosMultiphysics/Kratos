@@ -129,7 +129,7 @@ void ComputeSandProduction(ModelPart& dem_model_part, ModelPart& outer_walls_mod
 
     //ModelPart::ConditionsContainerType::iterator condition_begin = outer_walls_model_part.ConditionsBegin();
     //const double face_pressure_in_psi = condition_begin->GetValue(POSITIVE_FACE_PRESSURE) * 0.000145;
-    ProcessInfo& r_process_info = outer_walls_model_part.GetProcessInfo();
+    ProcessInfo& r_process_info = dem_model_part.GetProcessInfo();
     const double face_pressure_in_psi = fabs(r_process_info[REACTION_STRESS_Z]) * 0.000145;
 
     static std::ofstream sand_prod_file("sand_production_graph.txt", std::ios_base::out | std::ios_base::app);
@@ -222,7 +222,7 @@ void ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(ModelPa
     //ModelPart::ConditionsContainerType::iterator condition_begin = outer_walls_model_part.ConditionsBegin();
     //const double face_pressure_in_psi = condition_begin->GetValue(POSITIVE_FACE_PRESSURE) * 0.000145;
     //ProcessInfo& r_process_info = dem_model_part.GetProcessInfo();
-    ProcessInfo& r_process_info = outer_walls_model_part.GetProcessInfo();
+    ProcessInfo& r_process_info = dem_model_part.GetProcessInfo();
     const double face_pressure_in_psi = fabs(r_process_info[REACTION_STRESS_Z]) * 0.000145;
 
     static std::ofstream sand_prod_file(sand_prod_filename, std::ios_base::out | std::ios_base::app);
