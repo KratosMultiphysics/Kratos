@@ -1437,7 +1437,21 @@ public:
      */
     virtual const Parameters GetSpecifications() const
     {
-        const Parameters specifications = Parameters(R"({})");
+        const Parameters specifications = Parameters(R"({        
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : false,
+        "positive_definite_lhs"      : false,
+        "required_variables"         : [],
+        "required_dofs"              : [],
+        "flags_used"                 : [],
+        "compatible_geometries"      : [],
+        "is_implicit"                : true,
+        "element_integrates_in_time" : true,
+        "compatible_constitutive_laws": {
+            "type"        : [],
+            "dimension"   : [],
+            "strain_size" : []
+        }})");
         return specifications;
     }
 
