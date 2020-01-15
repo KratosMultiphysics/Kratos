@@ -158,8 +158,7 @@ public:
     BrepCurveOnSurface& operator=( BrepCurveOnSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
         BaseType::operator=( rOther );
-        mpNurbsSurface = rOther.mpNurbsSurface;
-        mpNurbsCurve = rOther.mpNurbsCurve;
+        mpCurveOnSurface = rOther.mpCurveOnSurface;
         mCurveNurbsInterval = rOther.mCurveNurbsInterval;
         return *this;
     }
