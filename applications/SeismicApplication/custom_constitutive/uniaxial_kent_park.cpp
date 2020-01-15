@@ -69,8 +69,10 @@ void UniaxialKentParkMaterialLaw::CalculateMaterialResponsePK2(Parameters& rValu
 void UniaxialKentParkMaterialLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     KRATOS_TRY
-    mConvergedStress = rValues.GetStressVector()[0];
-    mConvergedStrain = rValues.GetStrainVector()[0];
+    mConvergedStress  = rValues.GetStressVector()[0];
+    mConvergedStrain  = rValues.GetStrainVector()[0];
+    mConvergedStrainR = mStrainR;
+    mConvergedStrainP = mStrainP;
     KRATOS_CATCH("")
 }
 
@@ -78,7 +80,8 @@ void UniaxialKentParkMaterialLaw::CalculateStressResponsePK2(
     Parameters& rValues, Vector& rStrainVector, Vector& rStressVector)
 {
     KRATOS_TRY
-
+    mStrainR = mConvergedStrainR;
+    mStrainP = mConvergedStrainP;
     rStressVector[0] = mConvergedStress;
     double strain = rStrainVector[0];
 
@@ -230,6 +233,8 @@ void UniaxialKentParkMaterialLaw::save(Serializer& rSerializer) const
     rSerializer.save("mTangentModulus", mTangentModulus);
     rSerializer.save("mConvergedStress", mConvergedStress);
     rSerializer.save("mConvergedStrain", mConvergedStrain);
+    rSerializer.save("mConvergedStrainR", mConvergedStrainR);
+    rSerializer.save("mConvergedStrainP", mConvergedStrainP);
 }
 void UniaxialKentParkMaterialLaw::load(Serializer& rSerializer)
 {
@@ -240,6 +245,8 @@ void UniaxialKentParkMaterialLaw::load(Serializer& rSerializer)
     rSerializer.load("mTangentModulus", mTangentModulus);
     rSerializer.load("mConvergedStress", mConvergedStress);
     rSerializer.load("mConvergedStrain", mConvergedStrain);
+    rSerializer.load("mConvergedStrainR", mConvergedStrainR);
+    rSerializer.load("mConvergedStrainP", mConvergedStrainP);
 }
 
 } // namespace Kratos.

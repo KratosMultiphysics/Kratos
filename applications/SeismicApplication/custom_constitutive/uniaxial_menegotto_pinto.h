@@ -213,6 +213,14 @@ private:
     double mStrainMax = 0.0;         // max strain
     double mStrainMin = 0.0;         // min strain
 
+    unsigned int mConvergedLoadingIndex = 0;
+    double mConvergedStrain0 = 0.0;
+    double mConvergedStress0 = 0.0;
+    double mConvergedStrainR = 0.0;
+    double mConvergedStressR = 0.0;
+    double mConvergedStrainPlastic = 0.0;
+    double mConvergedStrainMax = 0.0;
+    double mConvergedStrainMin = 0.0;
     double mConvergedStrain = 0.0;
     double mConvergedStress = 0.0;
 

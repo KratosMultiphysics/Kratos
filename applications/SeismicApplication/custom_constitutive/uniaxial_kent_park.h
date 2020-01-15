@@ -210,6 +210,8 @@ private:
     // material converged history variables
     double mConvergedStress         = 0.0;
     double mConvergedStrain         = 0.0;
+    double mConvergedStrainR        = 0.0;
+    double mConvergedStrainP        = 0.0;
 
     ///@}
     ///@name Private Operators
