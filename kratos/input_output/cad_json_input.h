@@ -335,10 +335,10 @@ namespace Kratos
                     GeometryPointerType p_trim = p_geometry->pGetGeometryPart(rParameters["topology"][0]["trim_index"].GetInt());
                     bool relative_direction = rParameters["topology"][0]["trim_index"].GetBool();
 
-                    auto p_geometry_surface = p_trim->pGetGeometryPart(BrepCurveOnSurface::SURFACE_INDEX);
+                    auto p_geometry_surface = p_trim->pGetGeometryPart(BrepCurveOnSurfaceType::SURFACE_INDEX);
                     auto p_nurbs_surface = static_cast<NurbsSurfacePointerType>(p_geometry_surface);
 
-                    auto p_geometry_curve = p_trim->pGetGeometryPart(BrepCurveOnSurface::CURVE_INDEX);
+                    auto p_geometry_curve = p_trim->pGetGeometryPart(BrepCurveOnSurfaceType::CURVE_INDEX);
                     auto p_nurbs_curve = static_cast<NurbsTrimmingCurvePointerType>(p_geometry_curve);
 
                     auto p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurface<>>(
