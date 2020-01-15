@@ -33,7 +33,7 @@ class ConvergenceCriteriaWrapper(object):
         self.conv_crit.InitializeSolutionStep()
 
         # MPI related - TODO might be better to do one in Initialize, but the InterfaceData is not yet initialized there yet (might be possible in the future)
-        self.my_pid = self.interface_data.GetModelPart().GetCommunicator().MyPID()
+        self.executing_rank = (self.interface_data.GetModelPart().GetCommunicator().MyPID() == 0)
         if self.interface_data.IsDistributed():
             self.data_comm = self.interface_data.GetModelPart().GetCommunicator().GetDataCommunicator()
 
@@ -59,7 +59,7 @@ class ConvergenceCriteriaWrapper(object):
             current_data = np.array(np.concatenate(self.data_comm.GathervDoubles(current_data, 0)))
 
         is_converged = 0
-        if self.my_pid == 0:
+        if self.executing_rank:
             is_converged = self.conv_crit.IsConverged(residual, current_data)
 
         if self.interface_data.IsDistributed():
