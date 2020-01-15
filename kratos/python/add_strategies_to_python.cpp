@@ -387,7 +387,6 @@ namespace Kratos
                 .def("BuildAndSolve", &BuilderAndSolverType::BuildAndSolve)
                 .def("BuildRHSAndSolve", &BuilderAndSolverType::BuildRHSAndSolve)
                 .def("ApplyDirichletConditions", &BuilderAndSolverType::ApplyDirichletConditions)
-                .def("ApplyConstraints", &BuilderAndSolverType::ApplyConstraints)
                 .def("SetUpDofSet", &BuilderAndSolverType::SetUpDofSet)
                 .def("GetDofSet", &BuilderAndSolverType::GetDofSet, py::return_value_policy::reference_internal)
                 .def("SetUpSystem", &BuilderAndSolverType::SetUpSystem)
