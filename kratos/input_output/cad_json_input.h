@@ -41,12 +41,20 @@ namespace Kratos
         typedef std::size_t SizeType;
         typedef std::size_t IndexType;
 
-        typedef PointerVector<TNodeType> ContainerPointType;
-        typedef PointerVector<TEmbeddedNodeType> ContainerPointEmbeddedType;
+        typedef Geometry<TNodeType> GeometryType;
+        typedef typename GeometryType::Pointer GeometryPointerType;
 
-        typedef NurbsSurfaceGeometry<3, ContainerPointType> NurbsSurfaceType;
-        typedef BrepSurface<ContainerPointType, ContainerPointEmbeddedType> BrepSurfaceType;
-        typedef BrepCurveOnSurface<ContainerPointType, ContainerPointEmbeddedType> BrepCurveOnSurfaceType;
+        typedef PointerVector<TNodeType> ContainerNodeType;
+        typedef PointerVector<TEmbeddedNodeType> ContainerEmbeddedNodeType;
+
+        typedef NurbsSurfaceGeometry<3, ContainerNodeType> NurbsSurfaceType;
+        typedef NurbsSurfaceGeometry<2, ContainerEmbeddedNodeType> NurbsTrimmingCurveType;
+
+        typedef typename NurbsSurfaceType::Pointer NurbsSurfacePointerType;
+        typedef typename NurbsTrimmingCurveType::Pointer NurbsTrimmingCurvePointerType;
+
+        typedef BrepSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepSurfaceType;
+        typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
 
         typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
         typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>> BrepCurveOnSurfaceLoopArrayType;
@@ -300,23 +308,62 @@ namespace Kratos
             const Parameters& rParameters,
             ModelPart& rModelPart)
         {
-                KRATOS_ERROR_IF_NOT(rParameters.Has("brep_id") || rParameters.Has("brep_name"))
-                    << "Missing 'brep_id' or 'brep_name' in brep face" << std::endl;
+            KRATOS_ERROR_IF_NOT(rParameters.Has("brep_id") || rParameters.Has("brep_name"))
+                << "Missing 'brep_id' or 'brep_name' in brep face" << std::endl;
 
-                if (rParameters.Has("topology"))
+            if (rParameters.Has("topology"))
+            {
+                if (rParameters["topology"].size() == 0)
                 {
-                    for (IndexType i = 0; i < rParameters["topology"].size(); i++)
-                    {
-                        KRATOS_ERROR_IF_NOT(rParameters["topology"][i].Has("brep_id") || rParameters["topology"][i].Has("brep_name"))
-                            << "Missing 'brep_id' or 'brep_name' in brep face" << std::endl;
+                    KRATOS_ERROR << "BrepCurves are not yet enabled." << std::endl;
+                }
+                else if (rParameters["topology"].size() == 1)
+                {
+                    KRATOS_ERROR_IF_NOT(rParameters["topology"][0].Has("brep_id")
+                        || rParameters["topology"][0].Has("brep_name"))
+                        << "Missing 'brep_id' or 'brep_name' in brep face" << std::endl;
 
-                        if (rParameters["topology"][i].Has("brep_id"))
-                        {
-                            auto p_geometry = rModelPart.pGetGeometry(rParameters["topology"][i]["brep_id"].GetInt());
-                            auto p_trim = p_geometry->pGetGeometryPart(rParameters["topology"][i]["trim_index"].GetInt());
-                        }
+                    GeometryPointerType p_geometry;
+
+                    if (rParameters["topology"][0].Has("brep_id")){
+                        p_geometry = rModelPart.pGetGeometry(rParameters["topology"][0]["brep_id"].GetInt());
+                    }
+                    else { // if (rParameters["topology"][i].Has("brep_name"))
+                        p_geometry = rModelPart.pGetGeometry(rParameters["topology"][0]["brep_name"].GetString());
+                    }
+
+                    GeometryPointerType p_trim = p_geometry->pGetGeometryPart(rParameters["topology"][0]["trim_index"].GetInt());
+                    bool relative_direction = rParameters["topology"][0]["trim_index"].GetBool();
+
+                    auto p_geometry_surface = p_trim->pGetGeometryPart(BrepCurveOnSurface::SURFACE_INDEX);
+                    auto p_nurbs_surface = static_cast<NurbsSurfacePointerType>(p_geometry_surface);
+
+                    auto p_geometry_curve = p_trim->pGetGeometryPart(BrepCurveOnSurface::CURVE_INDEX);
+                    auto p_nurbs_curve = static_cast<NurbsTrimmingCurvePointerType>(p_geometry_curve);
+
+                    auto p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurface<>>(
+                        p_nurbs_surface, p_nurbs_curve, relative_direction);
+
+                    // Setting BrepId of the geometry
+                    if (rParameters.Has("brep_id"))
+                        p_brep_curve_on_surface->SetId(rParameters[0]["brep_id"].GetInt());
+                    else if (rParameters.Has("brep_name"))
+                        p_brep_curve_on_surface->SetId(rParameters[0]["brep_name"].GetString());
+
+                    rModelPart.AddGeometry(p_brep_curve_on_surface);
+                }
+                for (IndexType i = 0; i < rParameters["topology"].size(); i++)
+                {
+                    KRATOS_ERROR_IF_NOT(rParameters["topology"][i].Has("brep_id") || rParameters["topology"][i].Has("brep_name"))
+                        << "Missing 'brep_id' or 'brep_name' in brep face" << std::endl;
+
+                    if (rParameters["topology"][i].Has("brep_id"))
+                    {
+                        auto p_geometry = rModelPart.pGetGeometry(rParameters["topology"][i]["brep_id"].GetInt());
+                        auto p_trim = p_geometry->pGetGeometryPart(rParameters["topology"][i]["trim_index"].GetInt());
                     }
                 }
+            }
         }
 
         ///@}
