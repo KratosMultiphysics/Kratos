@@ -599,6 +599,21 @@ public:
     }
 
     ///@}
+    ///@name  Geometry Data
+    ///@{
+
+    /**
+    * @brief GeometryData contains all information about dimensions
+    *        and has a set of precomputed values for integration points
+    *        and shape functions, including derivatives.
+    * @return the geometry data of a certain geometry class.
+    */
+    GeometryData const& GetGeometryData() const
+    {
+        return *mpGeometryData;
+    }
+
+    ///@}
     ///@name Id
     ///@{
 
@@ -1264,21 +1279,6 @@ public:
             << "ERROR: The normal norm is zero or almost zero: "
             << norm_normal << std::endl;
         return normal_vector;
-    }
-
-    ///@}
-    ///@name  Geometry Data
-    ///@{
-
-    /**
-    * @brief GeometryData contains all information about dimensions
-    *        and has a set of precomputed values for integration points
-    *        and shape functions, including derivatives.
-    * @return the geometry data of a certain geometry class.
-    */
-    GeometryData const& GetGeometryData() const
-    {
-        return *mpGeometryData;
     }
 
     ///@}
