@@ -346,7 +346,7 @@ namespace Kratos
                     auto p_nurbs_curve_on_surface = brep_curve_on_surface.pGetCurveOnSurface();
 
                     typename BrepCurveOnSurfaceType::Pointer p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
-                        nurbs_curve_on_surface, relative_direction);
+                        p_nurbs_curve_on_surface, relative_direction);
 
                     // Setting BrepId of the geometry
                     if (rParameters.Has("brep_id"))
