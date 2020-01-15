@@ -39,10 +39,10 @@ KRATOS_TEST_CASE_IN_SUITE(FilesystemExists, KratosCoreFastSuite)
     const std::string file_name("dummy_file.txt");
     std::ofstream output_file;
     output_file.open(file_name);
+    output_file.close();
 
     KRATOS_CHECK(Kratos::filesystem::exists(file_name));
 
-    output_file.close();
     Kratos::filesystem::remove(file_name);
 
     KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(file_name));
