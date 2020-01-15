@@ -17,6 +17,7 @@
 
 // External includes
 #include <pybind11/pybind11.h>
+#include <pybind11/complex.h>
 #include "boost/numeric/ublas/vector.hpp"
 
 
@@ -93,8 +94,21 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("SetEchoLevel", &BaseMixedSolvingStrategyType::SetEchoLevel)
         .def("Solve", &BaseMixedSolvingStrategyType::Solve)
         ;
-    py::class_< MorSecondOrderRealInRealOutOfflineStrategyType, typename MorSecondOrderRealInRealOutOfflineStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorSecondOrderRealInRealOutOfflineStrategy");
-    py::class_< MorSecondOrderRealInComplexOutOfflineStrategyType, typename MorSecondOrderRealInComplexOutOfflineStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorSecondOrderRealInComplexOutOfflineStrategy");
+    py::class_< MorSecondOrderRealInRealOutOfflineStrategyType, typename MorSecondOrderRealInRealOutOfflineStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorSecondOrderRealInRealOutOfflineStrategy")
+        .def("EchoInfo", &MorSecondOrderRealInRealOutOfflineStrategyType::EchoInfo);
+    py::class_< MorSecondOrderRealInComplexOutOfflineStrategyType, typename MorSecondOrderRealInComplexOutOfflineStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorSecondOrderRealInComplexOutOfflineStrategy")
+        .def("EchoInfo", &MorSecondOrderRealInComplexOutOfflineStrategyType::EchoInfo)
+        .def("GetK", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetSystemMatrix)
+        .def("GetD", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetDampingMatrix)
+        .def("GetM", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetMassMatrix)
+        .def("GetRHS", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetSystemVector)
+        .def("GetOutputVector", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetOutputVector)
+        .def("GetBasis", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetBasis)
+        .def("GetKr", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetKr)
+        .def("GetDr", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetDr)
+        .def("GetMr", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetMr)
+        .def("GetOutputVectorR", &MorSecondOrderRealInComplexOutOfflineStrategyType::GetOVr)
+        ;
     // py::class_< MorSecondOrderComplexInComplexOutOfflineStrategyType, typename MorSecondOrderComplexInComplexOutOfflineStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorSecondOrderComplexInComplexOutOfflineStrategy");
 
 
@@ -109,7 +123,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_< MorSecondOrderComplexOnlineStrategyType, typename MorSecondOrderComplexOnlineStrategyType::Pointer, BaseComplexSolvingStrategyType >(m,"MorComplexOnlineStrategy")
-        // .def(py::init < ModelPart&, ComplexLinearSolverPointer, MorSecondOrderRealInComplexOutOfflineStrategyType::Pointer > ())
+        .def(py::init < ModelPart&, ComplexLinearSolverPointer, MorSecondOrderRealInComplexOutOfflineStrategyType::Pointer > ())
+        .def("Check", &MorSecondOrderComplexOnlineStrategyType::Check)
+        .def("Solve", &MorSecondOrderComplexOnlineStrategyType::Solve)
         ;
 
     // py::class_< MorSecondOrderComplexOnlineStrategyType, typename MorSecondOrderComplexOnlineStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorComplexOnlineStrategy");
@@ -126,9 +142,11 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //     .def(py::init < ModelPart&, ComplexLinearSolverPointer, MorOfflineSecondOrderStrategyType::Pointer, bool >())
     //     ;
 
-    py::class_< MorSecondOrderKrylovStrategyType, typename MorSecondOrderKrylovStrategyType::Pointer, MorSecondOrderRealInRealOutOfflineStrategyType >(m,"MorSecondOrderRealKrylovStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, SystemMatrixBuilderAndSolverType::Pointer, LinearSolverPointer, vector<double>, bool >())
-        ;
+
+    //TODO: needs a distinct file
+    // py::class_< MorSecondOrderKrylovStrategyType, typename MorSecondOrderKrylovStrategyType::Pointer, MorSecondOrderRealInRealOutOfflineStrategyType >(m,"MorSecondOrderRealKrylovStrategy")
+    //     .def(py::init < ModelPart&, BaseSchemeType::Pointer, SystemMatrixBuilderAndSolverType::Pointer, LinearSolverPointer, vector<double>, bool >())
+    //     ;
 
     py::class_< MorSecondOrderComplexKrylovStrategyType, typename MorSecondOrderComplexKrylovStrategyType::Pointer, MorSecondOrderRealInComplexOutOfflineStrategyType >(m,"MorSecondOrderComplexKrylovStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, SystemMatrixBuilderAndSolverType::Pointer, ComplexLinearSolverPointer, vector<double>, bool >())

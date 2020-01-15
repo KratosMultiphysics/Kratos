@@ -694,7 +694,7 @@ class FrequencyResponseAnalysisStrategy
         TSystemMatrixType& rK  = *mpK;
         TSystemMatrixType& rM = *mpM;
         TSolutionVectorType& rRHS  = *mpRHS;
-        // TSolutionMatrixType& rC  = *mpC;
+        TSolutionMatrixType& rC  = *mpC;
 
         if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
         {
@@ -715,9 +715,9 @@ class FrequencyResponseAnalysisStrategy
         matrix_market_mass_name << "M_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
         TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mass_name.str()).c_str(), rM, false);   
 
-        // std::stringstream matrix_market_damping_name;
-        // matrix_market_name << "C_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-        // ComplexSparseSpaceType::WriteMatrixMarketMatrix((char *)(matrix_market_damping_name.str()).c_str(), rC, false);        
+        std::stringstream matrix_market_damping_name;
+        matrix_market_name << "C_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
+        ComplexSparseSpaceType::WriteMatrixMarketMatrix((char *)(matrix_market_damping_name.str()).c_str(), rC, false);        
 
         // std::stringstream matrix_market_vectname;
         // matrix_market_vectname << "RHS_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";

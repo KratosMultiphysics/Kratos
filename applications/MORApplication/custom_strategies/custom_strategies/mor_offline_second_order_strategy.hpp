@@ -115,6 +115,8 @@ class MorOfflineSecondOrderStrategy
 
     typedef typename TReducedSparseSpace::MatrixPointerType TReducedSparseMatrixPointerType;
 
+    typedef typename TReducedSparseSpace::VectorPointerType TReducedSparseVectorPointerType;
+
     typedef typename TReducedDenseSpace::MatrixPointerType TReducedDenseMatrixPointerType;
 
     typedef typename TReducedDenseSpace::VectorPointerType TReducedDenseVectorPointerType;
@@ -138,9 +140,11 @@ class MorOfflineSecondOrderStrategy
         typename TSchemeType::Pointer pScheme,
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver,
         typename LinearSolver< TReducedSparseSpace, TReducedDenseSpace >::Pointer pNewLinearSolver,
+        bool UseDampingFlag = false,
         bool MoveMeshFlag = false)//,
         // bool UseDefinedOutputFlag = false)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
+            mUseDamping(UseDampingFlag)
     {
         KRATOS_TRY;
 
@@ -158,6 +162,8 @@ class MorOfflineSecondOrderStrategy
         // Set flags to start correcty the calculations
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
+        std::cout << "baseclass constructor\n";
+        KRATOS_WATCH(mSolutionStepIsInitialized)
 
         // Tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(false);
@@ -312,8 +318,8 @@ class MorOfflineSecondOrderStrategy
             mpAr = TReducedDenseSpace::CreateEmptyMatrixPointer();
             mpMr = TReducedDenseSpace::CreateEmptyMatrixPointer();
             mpRHSr = TReducedDenseSpace::CreateEmptyVectorPointer();
-            // mpOVr = TReducedDenseSpace::CreateEmptyVectorPointer();
-            mpBasis = TReducedSparseSpace::CreateEmptyMatrixPointer();
+            mpOVr = TReducedDenseSpace::CreateEmptyVectorPointer();
+            mpBasis = TReducedDenseSpace::CreateEmptyMatrixPointer();
             mpSr = TReducedDenseSpace::CreateEmptyMatrixPointer();
 
             //pointers needed in the solution
@@ -380,11 +386,18 @@ class MorOfflineSecondOrderStrategy
 
         if (mSolutionStepIsInitialized == false)
         {
+            std::cout << "base class action!\n";
             //pointers needed in the solution
             typename TSchemeType::Pointer p_scheme = GetScheme();
             typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
             const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+
+            TSystemMatrixType& r_K  = *mpA;
+            TSystemMatrixType& r_M = *mpM;
+            TSystemMatrixType& r_C = *mpS;
+            TSystemVectorType& r_RHS  = *mpRHS;
+            TSystemVectorType& r_OV  = *mpOV;
 
             //set up the system, operation performed just once unless it is required
             //to reform the dof set at each iteration
@@ -410,31 +423,47 @@ class MorOfflineSecondOrderStrategy
                                                                  BaseType::GetModelPart());
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpM, mpOV, mpRHS,
                                                                  BaseType::GetModelPart());
-                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpS, mpOV, mpRHS,
-                                                                 BaseType::GetModelPart());
+                if( mUseDamping )
+                {
+                    p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpS, mpOV, mpRHS,
+                                                                    BaseType::GetModelPart());
+                }
 
                 KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
+
+                //set up system matrices
+                TSystemVectorType tmp(r_K.size1(), 0.0);
+
+                p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), r_RHS);
+
+                p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), r_K, tmp);
+                p_builder_and_solver->ApplyDirichletConditions(p_scheme, BaseType::GetModelPart(), r_K, tmp, r_RHS);
+
+                p_builder_and_solver->BuildMassMatrix(p_scheme, BaseType::GetModelPart(), r_M, tmp);
+                p_builder_and_solver->ApplyDirichletConditionsForMassMatrix(p_scheme, BaseType::GetModelPart(), r_M);
+
+                if( mUseDamping )
+                {
+                    p_builder_and_solver->BuildDampingMatrix(p_scheme, BaseType::GetModelPart(), r_C, tmp);
+                    p_builder_and_solver->ApplyDirichletConditionsForDampingMatrix(p_scheme, BaseType::GetModelPart(), r_C);
+                }
             }
 
             KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                 << system_construction_time.ElapsedSeconds() << std::endl;
 
-            TSystemMatrixType& rA  = *mpA;
-            TSystemMatrixType& rM = *mpM;
-            TSystemVectorType& rRHS  = *mpRHS;
-            TSystemVectorType& rOV  = *mpOV;
-
             //initial operations ... things that are constant over the Solution Step
-            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rA, rOV, rRHS);
-            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rM, rOV, rRHS);
+            // p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rA, rOV, rRHS);
+            // p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rM, rOV, rRHS);
 
-            //initial operations ... things that are constant over the Solution Step
-            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rA, rOV, rRHS);
-            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rM, rOV, rRHS);
+            // //initial operations ... things that are constant over the Solution Step
+            // p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rA, rOV, rRHS);
+            // p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rM, rOV, rRHS);
 
             //create output vector
-            p_builder_and_solver->BuildOutputStructure(BaseType::GetModelPart(), rOV);
+            r_OV = ZeroVector(r_K.size1());
+            p_builder_and_solver->BuildOutputStructure(BaseType::GetModelPart(), r_OV);
 
             mSolutionStepIsInitialized = true;
         }
@@ -517,6 +546,56 @@ class MorOfflineSecondOrderStrategy
         return 0;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This method returns the components of the system of equations depending of the echo level
+     * @param IterationNumber The non linear iteration in the solution loop
+     */
+    virtual void EchoInfo()
+    {
+        TSystemMatrixType& rA  = *mpA;
+        TSystemMatrixType& rM = *mpM;
+        TSystemVectorType& rRHS  = *mpRHS;
+        TSystemMatrixType& rS  = *mpS;
+
+        TReducedDenseMatrixType& rMr = *mpMr;
+        TReducedDenseVectorType& rRHSr = *mpRHSr;
+
+        if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
+        {
+            KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
+        }
+        else if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
+        {
+            KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
+            KRATOS_INFO("Dx")  << "Mass Matrix = " << mpM << std::endl;
+            KRATOS_INFO("Sx")  << "Damping Matrix = " << mpS << std::endl;
+            KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
+        }
+        std::stringstream matrix_market_name;
+        matrix_market_name << "K.mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rA, false);
+
+        std::stringstream matrix_market_mass_name;
+        matrix_market_mass_name << "M.mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mass_name.str()).c_str(), rM, false);
+
+        // std::stringstream matrix_market_reduced_mass_name;
+        // matrix_market_reduced_mass_name << "M_r.mm";
+        // TReducedDenseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_reduced_mass_name.str()).c_str(), rMr, false);
+
+        std::stringstream matrix_market_damping_name;
+        matrix_market_damping_name << "D.mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_damping_name.str()).c_str(), rS, false);
+
+        std::stringstream matrix_market_vectname;
+        matrix_market_vectname << "RHS.mm";
+        TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), rRHS);
+
+        std::stringstream matrix_market_reduced_vectname;
+        matrix_market_reduced_vectname << "RHS_r.mm";
+        TReducedDenseSpace::WriteMatrixMarketVector((char *)(matrix_market_reduced_vectname.str()).c_str(), rRHSr);
     }
 
     ///@}
@@ -618,17 +697,32 @@ class MorOfflineSecondOrderStrategy
         return mpRHSr;
     }
 
-    virtual TReducedSparseMatrixType& GetBasis()
+    // virtual TReducedSparseMatrixType& GetBasis()
+    virtual TReducedDenseMatrixType& GetBasis()
     {
-        TReducedSparseMatrixType &mBasis = *mpBasis;
+        TReducedDenseMatrixType &mBasis = *mpBasis;
 
         return mBasis;
     }
 
-    virtual TReducedSparseMatrixPointerType& pGetBasis()
+    virtual TReducedDenseMatrixPointerType& pGetBasis()
     {
         return mpBasis;
     }
+
+    virtual TSystemVectorType& GetOutputVector()
+    {
+        TSystemVectorType &mOutputVector = *mpOV;
+
+        return mOutputVector;
+    }
+
+    virtual TReducedDenseVectorType& GetOVr()
+    {
+        TReducedDenseVectorType &mOVr = *mpOVr;
+
+        return mOVr;
+    };
 
     ///@}
     ///@name Inquiry
@@ -693,7 +787,7 @@ class MorOfflineSecondOrderStrategy
     TReducedDenseMatrixPointerType mpAr;
     TReducedDenseMatrixPointerType mpMr;
     // TDenseMatrixPointerType mpBasis;
-    TReducedSparseMatrixPointerType mpBasis;
+    TReducedDenseMatrixPointerType mpBasis;
     TReducedDenseMatrixPointerType mpSr;
     TReducedDenseVectorPointerType mpOVr;
 
@@ -715,48 +809,11 @@ class MorOfflineSecondOrderStrategy
 
     bool mInitializeWasPerformed; /// Flag to set as initialized the strategy
 
+    bool mUseDamping; /// Flag to set if damping should be considered
+
     ///@}
     ///@name Private Operators
     ///@{
-
-    /**
-     * @brief This method returns the components of the system of equations depending of the echo level
-     * @param IterationNumber The non linear iteration in the solution loop
-     */
-    virtual void EchoInfo(const unsigned int IterationNumber)
-    {
-        TSystemMatrixType& rA  = *mpA;
-        TSystemMatrixType& rM = *mpM;
-        TSystemVectorType& rRHS  = *mpRHS;
-        TSystemMatrixType& rS  = *mpS;
-
-        if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
-        {
-            KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
-        }
-        else if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
-        {
-            KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
-            KRATOS_INFO("Dx")  << "Mass Matrix = " << mpM << std::endl;
-            KRATOS_INFO("Sx")  << "Damping Matrix = " << mpS << std::endl;
-            KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
-        }
-        // std::stringstream matrix_market_name;
-        // matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-        // TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rA, false);
-
-        // std::stringstream matrix_market_mass_name;
-        // matrix_market_mass_name << "M_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-        // TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mass_name.str()).c_str(), rM, false);
-
-        // std::stringstream matrix_market_damping_name;
-        // matrix_market_name << "S_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-        // TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_damping_name.str()).c_str(), rS, false);
-
-        // std::stringstream matrix_market_vectname;
-        // matrix_market_vectname << "RHS_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
-        // TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), rRHS);
-    }
 
     /**
      * @brief This method prints information after reach the max number of iterations

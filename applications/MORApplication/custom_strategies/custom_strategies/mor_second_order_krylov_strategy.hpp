@@ -24,6 +24,7 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/qr_utility.h"
 #include "custom_strategies/custom_strategies/mor_offline_second_order_strategy.hpp"
+#include "custom_utilities/eigen_qr_utility.hpp"
 
 //default builder and solver
 #include "custom_strategies/custom_builder_and_solvers/system_matrix_builder_and_solver.hpp"
@@ -109,6 +110,8 @@ class MorSecondOrderKrylovStrategy
 
     typedef typename TReducedSparseSpace::MatrixType TReducedSparseMatrixType;
 
+    typedef typename TReducedSparseSpace::VectorType TReducedSparseVectorType;
+
     typedef typename TReducedDenseSpace::MatrixType TReducedDenseMatrixType;
 
 
@@ -118,7 +121,7 @@ class MorSecondOrderKrylovStrategy
     ///@{
 
     /**
-     * Default constructor
+     * Default constructor for the damped case
      * @param rModelPart The model part of the problem
      * @param pScheme The integration schemed
      * @param MoveMeshFlag The flag that allows to move the mesh
@@ -129,8 +132,7 @@ class MorSecondOrderKrylovStrategy
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver,
         typename LinearSolver< TReducedSparseSpace, TReducedDenseSpace >::Pointer pNewLinearSolver,
         vector< double > samplingPoints,
-        bool MoveMeshFlag = false,
-        bool UseComplexFlag = false)
+        bool MoveMeshFlag = false)
         : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, MoveMeshFlag)
     {
         KRATOS_TRY;
@@ -163,6 +165,12 @@ class MorSecondOrderKrylovStrategy
         // // By default the matrices are rebuilt at each iteration
         // this->SetRebuildLevel(0);
 
+        std::cout << "subclass constructor\n";
+        // KRATOS_WATCH(mSolutionStepIsInitialized)
+        KRATOS_WATCH(this->mSolutionStepIsInitialized)
+
+        this->mUseDamping = true;
+
         mSamplingPoints = samplingPoints;
 
         KRATOS_CATCH("");
@@ -177,6 +185,27 @@ class MorSecondOrderKrylovStrategy
         this->Clear();
     }
 
+
+    /**
+     * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
+     * @details A member variable should be used as a flag to make sure this function is called only once per step.
+     */
+    virtual void InitializeSolutionStep() override
+    {
+        KRATOS_TRY;
+        std::cout << "initialize????\n";
+        KRATOS_WATCH(this->mSolutionStepIsInitialized)
+
+        if (this->mSolutionStepIsInitialized == false)
+        {
+            BaseType::InitializeSolutionStep();
+            std::cout << "subclass action!\n";
+            this->mSolutionStepIsInitialized = true;
+        }
+
+        KRATOS_CATCH("");
+
+    }
 
 
     //*********************************************************************************
@@ -218,64 +247,93 @@ class MorSecondOrderKrylovStrategy
         const std::size_t reduced_system_size = 3 * n_sampling_points;
 
         //initialize sb, As, AAs vectors
-        auto s = SparseSpaceType::CreateEmptyVectorPointer();
+        auto s = TReducedSparseSpace::CreateEmptyVectorPointer();
         auto& rs = *s;
-        SparseSpaceType::Resize(rs,system_size);
-        SparseSpaceType::Set(rs,0.0);
-        auto As = SparseSpaceType::CreateEmptyVectorPointer();
+        TReducedSparseSpace::Resize(rs,system_size);
+        // TReducedSparseSpace::Set(rs,0.0);
+        auto As = TReducedSparseSpace::CreateEmptyVectorPointer();
         auto& rAs = *As;
-        SparseSpaceType::Resize(rAs,system_size);
-        SparseSpaceType::Set(rAs,0.0);
-        auto AAs = SparseSpaceType::CreateEmptyVectorPointer();
+        TReducedSparseSpace::Resize(rAs,system_size);
+        // TReducedSparseSpace::Set(rAs,0.0);
+        auto AAs = TReducedSparseSpace::CreateEmptyVectorPointer();
         auto& rAAs = *AAs;
-        SparseSpaceType::Resize(rAAs,system_size);
-        SparseSpaceType::Set(rAAs,0.0);
+        TReducedSparseSpace::Resize(rAAs,system_size);
+        // TReducedSparseSpace::Set(rAAs,0.0);
 
-        auto kdyn = SparseSpaceType::CreateEmptyMatrixPointer();
+        auto kdyn = TReducedSparseSpace::CreateEmptyMatrixPointer();
         auto& r_kdyn = *kdyn;
-        SparseSpaceType::Resize(r_kdyn, system_size, system_size);
+        TReducedSparseSpace::Resize(r_kdyn, system_size, system_size);
 
-        auto tmp_basis = DenseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_tmp_basis = *tmp_basis;
-        DenseSpaceType::Resize(r_tmp_basis, system_size, reduced_system_size);
+        // auto tmp_basis = TReducedDenseSpace::CreateEmptyMatrixPointer();
+        // auto& r_tmp_basis = *tmp_basis;
+        // TReducedDenseSpace::Resize(r_tmp_basis, system_size, reduced_system_size);
 
         auto& r_basis = this->GetBasis();
         // SparseSpaceType::Resize(r_basis, system_size, reduced_system_size);
         r_basis.resize(system_size,reduced_system_size,false);
 
 
-        TSystemVectorType aux;
+        TReducedSparseVectorType aux(r_K.size1(), std::complex<double>(0.0,0.0));
+        TReducedSparseMatrixType tmp_C; 
+        tmp_C = TReducedSparseMatrixType(r_D);
+        TReducedSparseVectorType tmp_rhs;
+        tmp_rhs = TReducedSparseVectorType(r_RHS);
+        // LocalSystemMatrixType& r_Kr = *mpKr;
+        // LocalSystemMatrixType& r_Dr = *mpDr;
+        // LocalSystemMatrixType& r_Mr = *mpMr;
+        // ComplexDenseVectorType& r_rhs = *mpRHSr;
 
         for( size_t i = 0; i < n_sampling_points; ++i )
         {
             KRATOS_WATCH( mSamplingPoints(i) )
-            r_kdyn = r_K - ( std::pow( mSamplingPoints(i), 2.0 ) * r_M );    // Without Damping
-            //r_kdyn = r_K - ( std::pow( mSamplingPoints(i), 2.0 ) * r_M )-r_D;  With Damping
+            std::complex<double> c_sampling_point(0.0, mSamplingPoints(i));
+            // r_kdyn = r_K - ( std::pow( mSamplingPoints(i), 2.0 ) * r_M );    // Without Damping
+            r_kdyn = r_K - ( std::pow( mSamplingPoints(i), 2.0 ) * r_M ) + c_sampling_point*tmp_C; // With Damping
 
-            p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rs, r_RHS );
+            this->mpLinearSolver->Solve( r_kdyn, rs, tmp_rhs );
+            // p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rs, &tmp_rhs );
             aux = prod( r_M, rs );
-            p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rAs, aux );
+        
+            // p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rAs, aux );
+            this->mpLinearSolver->Solve( r_kdyn, rAs, aux );
             aux = prod( r_M, rAs );
-            p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rAAs, aux );
 
-            column( r_tmp_basis, (i*3) ) = rs;
-            column( r_tmp_basis, (i*3)+1 ) = rAs;
-            column( r_tmp_basis, (i*3)+2 ) = rAAs;
+            // p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rAAs, aux );
+            this->mpLinearSolver->Solve( r_kdyn, rAAs, aux );
+
+            column( r_basis, (i*3) ) = rs;
+            column( r_basis, (i*3)+1 ) = rAs;
+            column( r_basis, (i*3)+2 ) = rAAs;
+
+            // std::stringstream matrix_market_name;
+            // matrix_market_name << "kdyn_complex.mm";
+            // TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), r_kdyn, false);
+            // std::stringstream matrix_market_name2;
+            // matrix_market_name2 << "M_real.mm";
+            // TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name2.str()).c_str(), r_M, false);
         }
+
+        // KRATOS_WATCH(r_tmp_basis)
+        // r_basis = r_tmp_basis;
+        KRATOS_WATCH(r_basis(1,2))
+
+        EigenQrUtility<TReducedDenseSpace> bla;// = new EigenQrUtility();
+        bla.MatrixQ(r_basis);
+        KRATOS_WATCH(r_basis(1,2))
 
         //orthogonalize the basis -> basis_r
         // mQR_decomposition.compute( system_size, 3*n_sampling_points, &(r_basis)(0,0) );
-        mQR_decomposition.compute( system_size, 3*n_sampling_points, &(r_tmp_basis)(0,0) );
-        mQR_decomposition.compute_q();
+        // mQR_decomposition.compute( system_size, 3*n_sampling_points, &(std::real(r_tmp_basis))(0,0) );
+        // mQR_decomposition.compute_q();
 
-        for( size_t i = 0; i < system_size; ++i )
-        {
-            for( size_t j = 0; j < (3*n_sampling_points); ++j )
-            {
-                r_basis(i,j) = mQR_decomposition.Q(i,j);
+        // for( size_t i = 0; i < system_size; ++i )
+        // {
+        //     for( size_t j = 0; j < (3*n_sampling_points); ++j )
+        //     {
+        //         r_basis(i,j) = mQR_decomposition.Q(i,j);
 
-            }
-        }
+        //     }
+        // }
 
         // project the system matrices onto the Krylov subspace
         KRATOS_WATCH(this->GetRHSr())
@@ -287,16 +345,19 @@ class MorSecondOrderKrylovStrategy
 
         r_force_vector_reduced = prod( r_RHS, r_basis );
 
-        TReducedDenseMatrixType T = prod( trans( r_basis ), r_K );
+        TReducedDenseMatrixType T = prod( herm( r_basis ), r_K );
         r_stiffness_matrix_reduced = prod( T, r_basis );
 
-        T = prod( trans( r_basis ), r_M );
+        T = prod( herm( r_basis ), r_M );
         r_mass_matrix_reduced = prod( T, r_basis );
 
-        T = prod( trans( r_basis ), r_D );
+        T = prod( herm( r_basis ), r_D );
         r_damping_matrix_reduced = prod( T, r_basis );
 
+        KRATOS_WATCH(r_force_vector_reduced)
+        KRATOS_WATCH(r_stiffness_matrix_reduced)
         KRATOS_WATCH(r_mass_matrix_reduced)
+        KRATOS_WATCH(r_damping_matrix_reduced)
 
         std::cout << "MOR offline solve finished" << std::endl;
 
@@ -386,11 +447,11 @@ class MorSecondOrderKrylovStrategy
         - true  : Reforme at each time step
         - false : Form just one (more efficient)
      */
-    bool mReformDofSetAtEachStep;
+    // bool mReformDofSetAtEachStep;
 
-    bool mSolutionStepIsInitialized; /// Flag to set as initialized the solution step
+    // bool mSolutionStepIsInitialized; /// Flag to set as initialized the solution step
 
-    bool mInitializeWasPerformed; /// Flag to set as initialized the strategy
+    // bool mInitializeWasPerformed; /// Flag to set as initialized the strategy
 
     ///@}
     ///@name Private Operators

@@ -145,8 +145,8 @@ class MorOnlineSecondOrderStrategy
         KRATOS_TRY;
 
         // Setting up the default scheme
-        mpScheme = typename TSchemeType::Pointer(
-            new TSchemeType());
+        // mpScheme = typename TSchemeType::Pointer(
+        //     new TSchemeType());
 
         // Setting up the default builder and solver
         //TODO change to a builder and solver that can handle complex numbers
@@ -196,19 +196,19 @@ class MorOnlineSecondOrderStrategy
      * @brief Set method for the time scheme
      * @param pScheme The pointer to the time scheme considered
      */
-    void SetScheme(typename TSchemeType::Pointer pScheme)
-    {
-        mpScheme = pScheme;
-    };
+    // void SetScheme(typename TSchemeType::Pointer pScheme)
+    // {
+    //     mpScheme = pScheme;
+    // };
 
     /**
      * @brief Get method for the time scheme
      * @return mpScheme: The pointer to the time scheme considered
      */
-    typename TSchemeType::Pointer GetScheme()
-    {
-        return mpScheme;
-    };
+    // typename TSchemeType::Pointer GetScheme()
+    // {
+    //     return mpScheme;
+    // };
 
     /**
      * @brief Set method for the builder and solver
@@ -303,6 +303,7 @@ class MorOnlineSecondOrderStrategy
 
         if (mInitializeWasPerformed == false)
         {
+            std::cout << "INITIALIZE online\n";
             typename OfflineStrategyType::Pointer p_offline_strategy = GetOfflineStrategy();
             p_offline_strategy->Initialize();
             p_offline_strategy->Solve();
@@ -365,21 +366,20 @@ class MorOnlineSecondOrderStrategy
         //setting to zero the internal flag to ensure that the dof sets are recalculated
         GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
         GetBuilderAndSolver()->Clear();
-        GetScheme()->Clear();
+        // GetScheme()->Clear();
 
         mInitializeWasPerformed = false;
 
         KRATOS_CATCH("");
     }
 
-    /**
-     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
-     */
-    bool SolveSolutionStep() override
+    void InitializeSolutionStep() override
     {
         KRATOS_TRY;
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        const int rank = r_model_part.GetCommunicator().MyPID();
 
-        auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
+        auto& r_process_info = r_model_part.GetProcessInfo();
         const double excitation_frequency = r_process_info[FREQUENCY];
 
         LocalSystemMatrixType& r_Kr = *mpKr;
@@ -391,21 +391,67 @@ class MorOnlineSecondOrderStrategy
         ComplexDenseMatrixType& r_A = *mpA;
         ComplexDenseVectorType& r_dx = *mpDx;
 
-        r_A = r_Kr - ( std::pow( excitation_frequency, 2.0 ) * r_Mr );
+        BuiltinTimer system_construction_time;
+        r_A = r_Dr;
+        r_A *= std::complex<double>(0,excitation_frequency);
+        r_A += r_Kr;
+        r_A -= std::pow( excitation_frequency, 2.0 ) * r_Mr;
+
+        KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+            << system_construction_time.ElapsedSeconds() << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
+     */
+    bool SolveSolutionStep() override
+    {
+        KRATOS_TRY;
+
+        // auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
+        // const double excitation_frequency = r_process_info[FREQUENCY];
+
+        // LocalSystemMatrixType& r_Kr = *mpKr;
+        // LocalSystemMatrixType& r_Dr = *mpDr;
+        // LocalSystemMatrixType& r_Mr = *mpMr;
+        ComplexDenseVectorType& r_rhs = *mpRHSr;
+        // ComplexDenseVectorType tmp = ComplexDenseVectorType( r_rhs );
+
+        ComplexDenseMatrixType& r_A = *mpA;
+        ComplexDenseVectorType& r_dx = *mpDx;
+
+        // BuiltinTimer aa;
+        // r_A = r_Dr;
+        // r_A *= std::complex<double>(0,excitation_frequency);
+        // r_A += r_Kr;
+        // r_A -= std::pow( excitation_frequency, 2.0 ) * r_Mr;
+        // KRATOS_INFO("solve system build") << aa.ElapsedSeconds() << "\n";
+        // r_A = r_Kr - ( std::pow( excitation_frequency, 2.0 ) * r_Mr ); //TODO: damping is missing
         // r_A = r_Kr - ( std::pow( excitation_frequency, 2.0 ) * r_Mr ) + IMAG*excitation_frequency*r_Dr;
 
-        // ComplexLinearSolverType solver = GetBuilderAndSolver()->GetLinearSystemSolver();
+        // ComplexLinearSolverType 
+        // TLinearSolver solver = GetBuilderAndSolver()->GetLinearSystemSolver();
         // solver.Solve( r_A, r_dx, r_rhs );
+        BuiltinTimer ab;
+        GetBuilderAndSolver()->GetLinearSystemSolver()->Solve( r_A, r_dx, r_rhs );
+        KRATOS_INFO("solve system solve") << ab.ElapsedSeconds() << "\n";
+        // KRATOS_WATCH(r_A)
+        // KRATOS_WATCH(r_dx)
+        // KRATOS_WATCH(r_rhs)
 
         std::cout << "ok hier\n";
-        GetBuilderAndSolver()->GetLinearSystemSolver()->Solve( r_A, r_dx, r_rhs ); //all have to be in the same space type!
+        // GetBuilderAndSolver()->GetLinearSystemSolver()->Solve( r_A, r_dx, r_rhs ); //all have to be in the same space type!
 
+        BuiltinTimer bb;
         if (mExpandSolution)
         {
             std::cout << "hello i am expanding\n";
             // TSystemMatrixType& r_basis = *mpBasis;
             ComplexDenseVectorType& r_result = *mpResult;
             r_result = prod( *mpBasis, *mpDx );
+            // KRATOS_WATCH(r_result)
             AssignVariables(r_result);
         }
         else
@@ -413,6 +459,7 @@ class MorOnlineSecondOrderStrategy
             /* code */
         }
 
+        KRATOS_INFO("expand") << bb.ElapsedSeconds() << "\n";
 
         return true;
         KRATOS_CATCH("")
@@ -431,11 +478,49 @@ class MorOnlineSecondOrderStrategy
         KRATOS_WATCH(GetBuilderAndSolver())
         GetBuilderAndSolver()->Check(BaseType::GetModelPart());
 
-        GetScheme()->Check(BaseType::GetModelPart());
+        // GetScheme()->Check(BaseType::GetModelPart());
 
         return 0;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This method returns the components of the system of equations depending of the echo level
+     */
+    virtual void EchoInfo()
+    {
+        // TSystemMatrixType& rA  = *mpKr;
+        // TSystemMatrixType& rM = *mpMr;
+        // TSystemVectorType& rRHS  = *mpRHSr;
+        // TSystemMatrixType& rS  = *mpDr;
+
+        // if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
+        // {
+        //     KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
+        // }
+        // else if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
+        // {
+        //     KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
+        //     KRATOS_INFO("Dx")  << "Mass Matrix = " << mpMr << std::endl;
+        //     KRATOS_INFO("Sx") << "Damping Matrix = " << rS << std::endl;
+        //     KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
+        // }
+        // std::stringstream matrix_market_name;
+        // matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
+        // TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rA, false);
+
+        // std::stringstream matrix_market_mass_name;
+        // matrix_market_mass_name << "M_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
+        // TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mass_name.str()).c_str(), rM, false);
+
+        // std::stringstream matrix_market_damping_name;
+        // matrix_market_name << "S_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
+        // TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_damping_name.str()).c_str(), rS, false);
+
+        // std::stringstream matrix_market_vectname;
+        // matrix_market_vectname << "RHS_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm.rhs";
+        // TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), *mpRHSr);
     }
 
     ///@}
@@ -522,7 +607,7 @@ class MorOnlineSecondOrderStrategy
     ///@name Member Variables
     ///@{
     typename TLinearSolver::Pointer mpLinearSolver; /// The pointer to the linear solver considered
-    typename TSchemeType::Pointer mpScheme; /// The pointer to the time scheme employed
+    // typename TSchemeType::Pointer mpScheme; /// The pointer to the time scheme employed
     typename TBuilderAndSolverType::Pointer mpBuilderAndSolver; /// The pointer to the builder and solver employe
     typename OfflineStrategyType::Pointer mpOfflineStrategy;
 
@@ -536,7 +621,8 @@ class MorOnlineSecondOrderStrategy
     LocalSystemMatrixPointerType mpDr; /// The Damping matrix in reduced space
 
     ComplexDenseVectorPointerType mpResult; /// The result expanded to original space
-    TSystemMatrixPointerType mpBasis;
+    // TSystemMatrixPointerType mpBasis;
+    typename OfflineStrategyType::TReducedDenseMatrixPointerType mpBasis;
 
     unsigned int mSystemSize;
     unsigned int mSystemSizeR;
@@ -559,45 +645,6 @@ class MorOnlineSecondOrderStrategy
     ///@{
 
     /**
-     * @brief This method returns the components of the system of equations depending of the echo level
-     * @param IterationNumber The non linear iteration in the solution loop
-     */
-    // virtual void EchoInfo(const unsigned int IterationNumber)
-    // {
-    //     TSystemMatrixType& rA  = *mpKr;
-    //     TSystemMatrixType& rM = *mpMr;
-    //     TSystemVectorType& rRHS  = *mpRHSr;
-    //     TSystemMatrixType& rS  = *mpDr;
-
-    //     if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
-    //     {
-    //         KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
-    //     }
-    //     else if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
-    //     {
-    //         KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
-    //         KRATOS_INFO("Dx")  << "Mass Matrix = " << mpMr << std::endl;
-    //         KRATOS_INFO("Sx") << "Damping Matrix = " << rS << std::endl;
-    //         KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
-    //     }
-    //     std::stringstream matrix_market_name;
-    //     matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-    //     TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rA, false);
-
-    //     std::stringstream matrix_market_mass_name;
-    //     matrix_market_mass_name << "M_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-    //     TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mass_name.str()).c_str(), rM, false);
-
-    //     std::stringstream matrix_market_damping_name;
-    //     matrix_market_name << "S_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-    //     TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_damping_name.str()).c_str(), rS, false);
-
-    //     std::stringstream matrix_market_vectname;
-    //     matrix_market_vectname << "RHS_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
-    //     TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), rRHS);
-    // }
-
-    /**
      * @brief This method prints information after reach the max number of iterations
      * @todo Replace by logger
      */
@@ -614,6 +661,7 @@ class MorOnlineSecondOrderStrategy
 
     void AssignVariables(ComplexDenseVectorType& rDisplacement, int step=0)
     {
+        // KRATOS_WATCH(rDisplacement)
         auto& r_model_part = BaseType::GetModelPart();
         for( auto& node : r_model_part.Nodes() )
         {
