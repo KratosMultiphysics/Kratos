@@ -24,6 +24,8 @@
 #include "geometries/geometry.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
+#include "geometries/nurbs_curve_on_surface_geometry.h"
+
 
 namespace Kratos
 {
@@ -57,6 +59,10 @@ public:
     typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
     typedef NurbsCurveGeometry<2, TContainerPointEmbeddedType> NurbsCurveType;
 
+    typedef NurbsCurveOnSurfaceGeometry<3, TContainerPointEmbeddedType, TContainerPointType> NurbsCurveOnSurfaceType;
+
+    typedef typename NurbsCurveOnSurfaceType::Pointer NurbsCurveOnSurfacePointerType;
+
     typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
 
     typedef typename BaseType::IndexType IndexType;
@@ -77,20 +83,45 @@ public:
         typename NurbsCurveType::Pointer pCurve,
         bool curve_direction = true)
         : BaseType(PointsArrayType(), &msGeometryData)
-        , mpNurbsSurface(pSurface)
-        , mpNurbsCurve(pCurve)
+        , mpCurveOnSurface(
+            Kratos::make_shared<NurbsCurveOnSurfaceType>(
+                pSurface, pCurve))
         , mCurveDirection(curve_direction)
     {
     }
 
+    /// constructor for trimmed surface
     BrepCurveOnSurface(
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve,
         NurbsInterval CurveNurbsInterval,
         bool curve_direction = true)
         : BaseType(PointsArrayType(), &msGeometryData)
-        , mpNurbsSurface(pSurface)
-        , mpNurbsCurve(pCurve)
+        , mpCurveOnSurface(
+            Kratos::make_shared<NurbsCurveOnSurfaceType>(
+                pSurface, pCurve))
+        , mCurveNurbsInterval(CurveNurbsInterval)
+        , mCurveDirection(curve_direction)
+    {
+    }
+
+    /// constructor for untrimmed surface with curve on surface
+    BrepCurveOnSurface(
+        NurbsCurveOnSurfacePointerType pNurbsCurveOnSurface,
+        bool curve_direction = true)
+        : BaseType(PointsArrayType(), &msGeometryData)
+        , mpCurveOnSurface(pNurbsCurveOnSurface)
+        , mCurveDirection(curve_direction)
+    {
+    }
+
+    /// constructor for trimmed surface with curve on surface
+    BrepCurveOnSurface(
+        NurbsCurveOnSurfacePointerType pNurbsCurveOnSurface,
+        NurbsInterval CurveNurbsInterval,
+        bool curve_direction = true)
+        : BaseType(PointsArrayType(), &msGeometryData)
+        , mpCurveOnSurface(pNurbsCurveOnSurface)
         , mCurveNurbsInterval(CurveNurbsInterval)
         , mCurveDirection(curve_direction)
     {
@@ -104,8 +135,7 @@ public:
     /// Copy constructor.
     BrepCurveOnSurface( BrepCurveOnSurface const& rOther )
         : BaseType( rOther )
-        , mpNurbsSurface(rOther.mpNurbsSurface)
-        , mpNurbsCurve(rOther.mpNurbsCurve)
+        , mpCurveOnSurface(rOther.mpCurveOnSurface)
         , mCurveNurbsInterval(rOther.mCurveNurbsInterval)
     {
     }
@@ -115,8 +145,7 @@ public:
     explicit BrepCurveOnSurface(
         BrepCurveOnSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const& rOther )
         : BaseType( rOther )
-        , mpNurbsSurface(rOther.mpNurbsSurface)
-        , mpNurbsCurve(rOther.mpNurbsCurve)
+        , mpCurveOnSurface(rOther.mpCurveOnSurface)
         , mCurveNurbsInterval(rOther.mCurveNurbsInterval)
     {
     }
@@ -142,8 +171,7 @@ public:
     BrepCurveOnSurface& operator=( const BrepCurveOnSurface& rOther )
     {
         BaseType::operator=( rOther );
-        mpNurbsSurface = rOther.mpNurbsSurface;
-        mpNurbsCurve = rOther.mpNurbsCurve;
+        mpCurveOnSurface = rOther.mpCurveOnSurface;
         mCurveNurbsInterval = rOther.mCurveNurbsInterval;
         return *this;
     }
@@ -163,8 +191,7 @@ public:
     BrepCurveOnSurface& operator=( BrepCurveOnSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
         BaseType::operator=( rOther );
-        mpNurbsSurface = rOther.mpNurbsSurface;
-        mpNurbsCurve = rOther.mpNurbsCurve;
+        mpCurveOnSurface = rOther.mpCurveOnSurface;
         mCurveNurbsInterval = rOther.mCurveNurbsInterval;
         return *this;
     }
@@ -214,6 +241,20 @@ public:
         return false;
     }
 
+    ///@name Set/ Get functions
+    ///@{
+
+    bool GetCurveDirection()
+    {
+        return mCurveDirection;
+    }
+
+    /// Returns the curve on surface of this brep.
+    NurbsCurveOnSurfacePointerType pGetCurveOnSurface()
+    {
+        return mpCurveOnSurface;
+    }
+
     ///@}
     ///@name Geometrical Operations
     ///@{
@@ -230,11 +271,7 @@ public:
         const CoordinatesArrayType& rLocalCoordinates
     ) const override
      {
-        CoordinatesArrayType surface_coordinates(3, 0.0);
-        mpNurbsCurve->GlobalCoordinates(surface_coordinates, rLocalCoordinates);
-        mpNurbsSurface->GlobalCoordinates(rResult, surface_coordinates);
-
-        return rResult;
+        return mpCurveOnSurface->GlobalCoordinates(rResult, rLocalCoordinates);
     }
 
     /**
@@ -261,22 +298,14 @@ public:
         Vector &rResult,
         const CoordinatesArrayType& rCoordinates) const override
     {
-        CoordinatesArrayType surface_coordinates(3, 0.0);
-        mpNurbsCurve->GlobalCoordinates(surface_coordinates, rCoordinates);
-        mpNurbsSurface->ShapeFunctionsValues(rResult, surface_coordinates);
-
-        return rResult;
+        return mpCurveOnSurface->ShapeFunctionsValues(rResult, rCoordinates);
     }
 
     Matrix& ShapeFunctionsLocalGradients(
         Matrix& rResult,
         const CoordinatesArrayType& rCoordinates) const override
     {
-        CoordinatesArrayType surface_coordinates(3, 0.0);
-        mpNurbsCurve->GlobalCoordinates(surface_coordinates, rCoordinates);
-        mpNurbsSurface->ShapeFunctionsLocalGradients(rResult, surface_coordinates);
-
-        return rResult;
+        return mpCurveOnSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
     }
 
     ///@}
@@ -310,8 +339,6 @@ public:
 
     ///@}
 
-protected:
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -324,8 +351,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    typename NurbsSurfaceType::Pointer mpNurbsSurface;
-    typename NurbsCurveType::Pointer mpNurbsCurve;
+    NurbsCurveOnSurfacePointerType mpCurveOnSurface;
 
     NurbsInterval mCurveNurbsInterval;
 
@@ -340,8 +366,7 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
-        rSerializer.save("NurbsSurface", mpNurbsSurface);
-        rSerializer.save("NurbsCurve", mpNurbsCurve);
+        rSerializer.save("CurveOnSurface", mpCurveOnSurface);
         rSerializer.save("NurbsInterval", mCurveNurbsInterval);
         rSerializer.save("CurveDirection", mCurveDirection);
     }
@@ -349,8 +374,7 @@ private:
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
-        rSerializer.load("NurbsSurface", mpNurbsSurface);
-        rSerializer.load("NurbsCurve", mpNurbsCurve);
+        rSerializer.load("CurveOnSurface", mpCurveOnSurface);
         rSerializer.load("NurbsInterval", mCurveNurbsInterval);
         rSerializer.load("CurveDirection", mCurveDirection);
     }
