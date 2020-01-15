@@ -232,7 +232,7 @@ public:
         const CoordinatesArrayType& rLocalCoordinates
     ) const override
      {
-        return mpCurveOnSurface->GlobalCoordinates(rResult, rCoordinates);
+        return mpCurveOnSurface->GlobalCoordinates(rResult, rLocalCoordinates);
     }
 
     /**
