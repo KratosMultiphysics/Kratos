@@ -106,7 +106,7 @@ namespace Kratos
 
         static void ReadBreps(
             const Parameters& rParameters,
-            ModelPart& rModelPart) const
+            ModelPart& rModelPart)
         {
             for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
             {
@@ -121,7 +121,7 @@ namespace Kratos
 
         static void ReadBrepFaces(
             const Parameters& rParameters,
-            ModelPart& rModelPart) const
+            ModelPart& rModelPart)
         {
             if (rParameters.Has("faces"))
                 ReadBrepSurfaces(rParameters["faces"], rModelPart);
@@ -129,7 +129,7 @@ namespace Kratos
 
         static void ReadBrepEdges(
             const Parameters& rParameters,
-            ModelPart& rModelPart) const
+            ModelPart& rModelPart)
         {
             if (rParameters.Has("edges"))
                 ReadBrepCurveOnSurfaces(rParameters["edges"], rModelPart);
@@ -141,7 +141,7 @@ namespace Kratos
 
         static void ReadBrepSurfaces(
                 const Parameters& rParameters,
-                ModelPart& rModelPart) const
+                ModelPart& rModelPart)
         {
             for (IndexType i = 0; i < rParameters.size(); i++)
             {
@@ -200,7 +200,7 @@ namespace Kratos
             ReadTrimmingCurveVector(
                 const Parameters& rParameters,
                 typename NurbsSurfaceType::Pointer pNurbsSurface,
-                ModelPart& rModelPart) const
+                ModelPart& rModelPart)
         {
             KRATOS_ERROR_IF(rParameters.size() < 1)
                 << "Trimming curve list has no element." << std::endl;
@@ -220,7 +220,7 @@ namespace Kratos
             ReadTrimmingCurve(
                 const Parameters& rParameters,
                 typename NurbsSurfaceType::Pointer pNurbsSurface,
-                ModelPart& rModelPart) const
+                ModelPart& rModelPart)
         {
             KRATOS_ERROR_IF_NOT(rParameters.Has("curve_direction"))
                 << "Missing 'curve_direction' in nurbs curve" << std::endl;
@@ -245,7 +245,7 @@ namespace Kratos
             ReadBoundaryLoops(
                 const Parameters& rParameters,
                 typename NurbsSurfaceType::Pointer pNurbsSurface,
-                ModelPart& rModelPart) const
+                ModelPart& rModelPart)
         {
             BrepCurveOnSurfaceLoopArrayType outer_loops;
             BrepCurveOnSurfaceLoopArrayType inner_loops;
@@ -288,7 +288,7 @@ namespace Kratos
 
         static void ReadBrepCurveOnSurfaces(
             const Parameters& rParameters,
-            ModelPart& rModelPart) const
+            ModelPart& rModelPart)
         {
             for (IndexType i = 0; i < rParameters.size(); i++)
             {
@@ -298,7 +298,7 @@ namespace Kratos
 
         static void ReadBrepEdge(
             const Parameters& rParameters,
-            ModelPart& rModelPart) const
+            ModelPart& rModelPart)
         {
                 KRATOS_ERROR_IF_NOT(rParameters.Has("brep_id") || rParameters.Has("brep_name"))
                     << "Missing 'brep_id' or 'brep_name' in brep face" << std::endl;
@@ -327,7 +327,7 @@ namespace Kratos
         static typename NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer
             ReadNurbsCurve(
                 const Parameters& rParameters,
-                ModelPart& rModelPart) const
+                ModelPart& rModelPart)
         {
             bool is_rational = true;
             if (rParameters.Has("is_rational"))
@@ -368,7 +368,7 @@ namespace Kratos
         static typename NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer
             ReadNurbsSurface(
                 const Parameters& rParameters,
-                ModelPart& rModelPart) const
+                ModelPart& rModelPart)
         {
             bool is_rational = true;
             if(rParameters.Has("is_rational"))
@@ -420,7 +420,7 @@ namespace Kratos
         ///@{
 
         static Vector ReadControlPointWeightVector(
-            const Parameters& rParameters) const
+            const Parameters& rParameters)
         {
             Vector control_point_weights = ZeroVector(rParameters.size());
             KRATOS_ERROR_IF(rParameters.size() == 0)
@@ -446,7 +446,7 @@ namespace Kratos
         static void ReadControlPointVector(
             PointerVector<Point>& rControlPoints,
             const Parameters& rParameters,
-            ModelPart& rModelPart) const
+            ModelPart& rModelPart)
         {
             for (IndexType cp_idx = 0; cp_idx < rParameters.size(); cp_idx++)
             {
@@ -457,7 +457,7 @@ namespace Kratos
         static void ReadControlPointVector(
                 PointerVector<Node<3>>& rControlPoints,
                 const Parameters& rParameters,
-                ModelPart& rModelPart) const
+                ModelPart& rModelPart)
         {
             for (IndexType cp_idx = 0; cp_idx < rParameters.size(); cp_idx++)
             {
@@ -471,7 +471,7 @@ namespace Kratos
 
         static Node<3>::Pointer ReadNode(
             const Parameters& rParameters,
-            ModelPart& rModelPart) const
+            ModelPart& rModelPart)
         {
             SizeType number_of_entries = rParameters[0].size();
             KRATOS_ERROR_IF(number_of_entries != 1 || number_of_entries != 2)
@@ -485,7 +485,7 @@ namespace Kratos
         }
 
         static Point::Pointer ReadPoint(
-            const Parameters& rParameters) const
+            const Parameters& rParameters)
         {
             SizeType number_of_entries = rParameters[0].size();
             KRATOS_ERROR_IF(number_of_entries != 1 || number_of_entries != 2)
