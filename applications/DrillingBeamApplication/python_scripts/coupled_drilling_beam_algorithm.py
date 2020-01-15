@@ -9,12 +9,12 @@ from Kratos import Logger
 import KratosMultiphysics.DEMApplication as Dem
 sys.path.insert(0, '')
 Logger.Print("Running under OpenMP........", label="DEM")
-import DEM_procedures
-import DEM_material_test_script
+import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
+import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
 import KratosMultiphysics.StructuralMechanicsApplication as Structural
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
-import dem_structures_coupling_gid_output
-import dem_fem_coupling_algorithm
+import KratosMultiphysics.DemStructuresCouplingApplication.dem_structures_coupling_gid_output as dem_structures_coupling_gid_output
+import KratosMultiphysics.DemStructuresCouplingApplication.dem_fem_coupling_algorithm as dem_fem_coupling_algorithm
 import KratosMultiphysics.DrillingBeamApplication as DBA
 
 
