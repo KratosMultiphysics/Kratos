@@ -188,9 +188,7 @@ public:
         const CoordinatesArrayType& rLocalCoordinates
     ) const override
      {
-        mpCurveOnSurface->GlobalCoordinates(rResult, rCoordinates);
-
-        return rResult;
+        return mpCurveOnSurface->GlobalCoordinates(rResult, rCoordinates);
     }
 
     /**
@@ -217,18 +215,14 @@ public:
         Vector &rResult,
         const CoordinatesArrayType& rCoordinates) const override
     {
-        mpCurveOnSurface->ShapeFunctionsValues(rResult, rCoordinates);
-
-        return rResult;
+        return mpCurveOnSurface->ShapeFunctionsValues(rResult, rCoordinates);
     }
 
     Matrix& ShapeFunctionsLocalGradients(
         Matrix& rResult,
         const CoordinatesArrayType& rCoordinates) const override
     {
-        mpCurveOnSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
-
-        return rResult;
+        return mpCurveOnSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
     }
 
     ///@}
