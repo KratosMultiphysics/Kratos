@@ -98,8 +98,7 @@ public:
     /// Copy constructor.
     BrepCurveOnSurface( BrepCurveOnSurface const& rOther )
         : BaseType( rOther )
-        , mpNurbsSurface(rOther.mpNurbsSurface)
-        , mpNurbsCurve(rOther.mpNurbsCurve)
+        , mpCurveOnSurface(rOther.mpCurveOnSurface)
         , mCurveNurbsInterval(rOther.mCurveNurbsInterval)
     {
     }
@@ -109,8 +108,7 @@ public:
     explicit BrepCurveOnSurface(
         BrepCurveOnSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const& rOther )
         : BaseType( rOther )
-        , mpNurbsSurface(rOther.mpNurbsSurface)
-        , mpNurbsCurve(rOther.mpNurbsCurve)
+        , mpCurveOnSurface(rOther.mpCurveOnSurface)
         , mCurveNurbsInterval(rOther.mCurveNurbsInterval)
     {
     }
@@ -136,8 +134,7 @@ public:
     BrepCurveOnSurface& operator=( const BrepCurveOnSurface& rOther )
     {
         BaseType::operator=( rOther );
-        mpNurbsSurface = rOther.mpNurbsSurface;
-        mpNurbsCurve = rOther.mpNurbsCurve;
+        mpCurveOnSurface = rOther.mpCurveOnSurface;
         mCurveNurbsInterval = rOther.mCurveNurbsInterval;
         return *this;
     }
@@ -268,7 +265,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    typename NurbsCurveOnSurface::Pointer mpCurveOnSurface;
+    typename NurbsCurveOnSurfaceType::Pointer mpCurveOnSurface;
 
     NurbsInterval mCurveNurbsInterval;
 
@@ -281,16 +278,14 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
-        rSerializer.save("NurbsSurface", mpNurbsSurface);
-        rSerializer.save("NurbsCurve", mpNurbsCurve);
+        rSerializer.save("CurveOnSurface", mpCurveOnSurface);
         rSerializer.save("NurbsInterval", mCurveNurbsInterval);
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
-        rSerializer.load("NurbsSurface", mpNurbsSurface);
-        rSerializer.load("NurbsCurve", mpNurbsCurve);
+        rSerializer.load("CurveOnSurface", mpCurveOnSurface);
         rSerializer.load("NurbsInterval", mCurveNurbsInterval);
     }
 
