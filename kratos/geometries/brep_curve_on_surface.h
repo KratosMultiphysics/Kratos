@@ -76,8 +76,10 @@ public:
     /// constructor for untrimmed surface
     BrepCurveOnSurface( 
         typename NurbsSurfaceType::Pointer pSurface,
-        typename NurbsCurveType::Pointer pCurve)
+        typename NurbsCurveType::Pointer pCurve,
+        bool curve_direction = true)
         : BaseType(PointsArrayType(), &msGeometryData)
+        , mCurveDirection(curve_direction)
     {
         mpCurveOnSurface = Kratos::make_shared<NurbsCurveOnSurfaceType>(
             pSurface, pCurve);
@@ -86,9 +88,11 @@ public:
     BrepCurveOnSurface(
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve,
-        NurbsInterval CurveNurbsInterval)
+        NurbsInterval CurveNurbsInterval,
+        bool curve_direction = true)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mCurveNurbsInterval(CurveNurbsInterval)
+        , mCurveDirection(curve_direction)
     {
         mpCurveOnSurface = Kratos::make_shared<NurbsCurveOnSurfaceType>(
             pSurface, pCurve);
@@ -272,6 +276,8 @@ private:
 
     NurbsInterval mCurveNurbsInterval;
 
+    bool mCurveDirection;
+
     ///@}
     ///@name Serialization
     ///@{
@@ -283,6 +289,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
         rSerializer.save("CurveOnSurface", mpCurveOnSurface);
         rSerializer.save("NurbsInterval", mCurveNurbsInterval);
+        rSerializer.save("CurveDirection", mCurveDirection);
     }
 
     void load( Serializer& rSerializer ) override
@@ -290,6 +297,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
         rSerializer.load("CurveOnSurface", mpCurveOnSurface);
         rSerializer.load("NurbsInterval", mCurveNurbsInterval);
+        rSerializer.load("CurveDirection", mCurveDirection);
     }
 
     BrepCurveOnSurface()
