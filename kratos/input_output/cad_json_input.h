@@ -352,16 +352,35 @@ namespace Kratos
 
                     rModelPart.AddGeometry(p_brep_curve_on_surface);
                 }
-                for (IndexType i = 0; i < rParameters["topology"].size(); i++)
+                else
                 {
-                    KRATOS_ERROR_IF_NOT(rParameters["topology"][i].Has("brep_id") || rParameters["topology"][i].Has("brep_name"))
-                        << "Missing 'brep_id' or 'brep_name' in brep face" << std::endl;
+                    CouplingGeometry::GeometryPointerVector geometry_vector;
 
-                    if (rParameters["topology"][i].Has("brep_id"))
+                    for (IndexType i = 0; i < rParameters["topology"].size(); i++)
                     {
-                        auto p_geometry = rModelPart.pGetGeometry(rParameters["topology"][i]["brep_id"].GetInt());
-                        auto p_trim = p_geometry->pGetGeometryPart(rParameters["topology"][i]["trim_index"].GetInt());
+                        KRATOS_ERROR_IF_NOT(rParameters["topology"][i].Has("brep_id") || rParameters["topology"][i].Has("brep_name"))
+                            << "Missing 'brep_id' or 'brep_name' in brep face" << std::endl;
+
+                        if (rParameters["topology"][i].Has("brep_id")) {
+                            auto p_geometry = rModelPart.pGetGeometry(rParameters["topology"][0]["brep_name"].GetString());
+                            geometry_vector.push_back(
+                                p_geometry->pGetGeometryPart(rParameters["topology"][i]["trim_index"].GetInt()));
+                        }
+                        else { // if (rParameters["topology"][i].Has("brep_name"))
+                            auto p_geometry = rModelPart.pGetGeometry(rParameters["topology"][0]["brep_name"].GetString());
+                            geometry_vector.push_back(
+                                p_geometry->pGetGeometryPart(rParameters["topology"][i]["trim_index"].GetInt()));
+                        }
                     }
+
+                    // Setting BrepId of the geometry
+                    if (rParameters.Has("brep_id"))
+                        p_coupling_geometry->SetId(rParameters[0]["brep_id"].GetInt());
+                    else if (rParameters.Has("brep_name"))
+                        p_coupling_geometry->SetId(rParameters[0]["brep_name"].GetString());
+
+                    auto p_coupling_geometry = Kratos::make_shared<CouplingGeometry<TNodeType>>(
+                        geometry_vector);
                 }
             }
         }
