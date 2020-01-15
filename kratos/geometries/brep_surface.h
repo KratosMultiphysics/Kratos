@@ -202,6 +202,11 @@ public:
     ///@name Access to Geometry Parts
     ///@{
 
+    typename GeometryType::Pointer GetGeometryPart(IndexType Index) override
+    {
+        return *pGetGeometryPart(Index);
+    }
+
     typename GeometryType::Pointer pGetGeometryPart(IndexType Index) override
     {
         if (Index == SURFACE_INDEX)
@@ -225,8 +230,40 @@ public:
             }
         }
 
-        KRATOS_ERROR << "Index " << Index << " not existing in geometry: "
+        KRATOS_ERROR << "Index " << Index << " not existing in BrepSurface: "
             << this->Id() << std::endl;
+    }
+
+    /**
+    * @brief This function is used to check if this BrepSurface
+    *        has certain trim or surface object.
+    * @param Index of the geometry part.
+    * @return true if has brep surface has trim or surface part
+    */
+    bool HasGeometryPart(IndexType Index) const override
+    {
+        if (Index == SURFACE_INDEX)
+            return true;
+
+        for (IndexType i = 0; i < mOuterLoopArray.size(); ++i)
+        {
+            for (IndexType j = 0; j < mOuterLoopArray[i].size(); ++j)
+            {
+                if (mOuterLoopArray[i][j]->Id() == Index)
+                    return true;
+            }
+        }
+
+        for (IndexType i = 0; i < mInnerLoopArray.size(); ++i)
+        {
+            for (IndexType j = 0; j < mInnerLoopArray[i].size(); ++j)
+            {
+                if (mInnerLoopArray[i][j]->Id() == Index)
+                    return true;
+            }
+        }
+
+        return false;
     }
 
     ///@}
