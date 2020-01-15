@@ -66,7 +66,14 @@ namespace Kratos
                 std::istreambuf_iterator<char>());
 
             mCadJsonParameters = Parameters(cad_json_string);
-        };
+        }
+
+        /// Constructor with Parameters
+        CadJsonInput(
+            Parameters CadJsonParameters)
+            : mCadJsonParameters(CadJsonParameters)
+        {
+        }
 
         /// Destructor.
         ~CadJsonInput() = default;
