@@ -217,9 +217,9 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
         }
     }
 
-    pnew_comm->SumAll(non_zero_partition_index_found);
+    non_zero_partition_index_found = r_data_communicator.SumAll(non_zero_partition_index_found);
 
-    KRATOS_WARNING_IF("ParallelFillCommunicator", non_zero_partition_index_found == 0) << "All nodes have a PARTITION_INDEX index of 0! This could mean that PARTITION_INDEX was not assigned" << std::endl;
+    KRATOS_WARNING_IF("ParallelFillCommunicator", r_data_communicator.Size() > 1 && non_zero_partition_index_found == 0) << "All nodes have a PARTITION_INDEX index of 0! This could mean that PARTITION_INDEX was not assigned" << std::endl;
 
     // Get rank of current processor.
     const unsigned my_rank = r_data_communicator.Rank();

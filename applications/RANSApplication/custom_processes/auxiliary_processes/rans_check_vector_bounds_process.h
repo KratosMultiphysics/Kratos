@@ -81,7 +81,7 @@ public:
     RansCheckVectorBoundsProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansCheckVectorBoundsProcess() override;
+    ~RansCheckVectorBoundsProcess() override = default;
 
     ///@}
     ///@name Operators
