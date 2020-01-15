@@ -270,12 +270,12 @@ inline void SetMatrixMarketValueTypeCode(MM_typecode& mm_code, const std::comple
 
 inline int WriteMatrixMarketMatrixEntry(FILE *f, int I, int J, const double& entry)
 {
-    return fprintf(f, "%d %d %e\n", I, J, entry);
+    return fprintf(f, "%d %d %.12e\n", I, J, entry);
 }
 
 inline int WriteMatrixMarketMatrixEntry(FILE *f, int I, int J, const std::complex<double>& entry)
 {
-    return fprintf(f, "%d %d %e %e\n", I, J, std::real(entry), std::imag(entry));
+    return fprintf(f, "%d %d %.12e %.12e\n", I, J, std::real(entry), std::imag(entry));
 }
 
 template <typename CompressedMatrixType> inline bool WriteMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M, bool Symmetric)
