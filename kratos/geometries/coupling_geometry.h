@@ -209,6 +209,23 @@ public:
     }
 
     /**
+    * @brief This function returns the geometry part which is accessable
+    *        with a certain index.
+    * @details Here, 0 is the master, all above 0 is for the slaves
+    * of the geometry. Checks if index is available only in debug mode.
+    * @param Index of the geometry part. 0->Master; all bigger than 1->Slave
+    * @return pointer of geometry, corresponding to the Index
+    */
+    typename GeometryType::Pointer pGetGeometryPart(IndexType Index) override
+    {
+        KRATOS_DEBUG_ERROR_IF(mpGeometries.size() <= Index) << "Index "
+            << Index << " out of range. Composite contains only of: "
+            << mpGeometries.size() << " geometries." << std::endl;
+
+        return mpGeometries[Index];
+    }
+
+    /**
     * @brief ONLY for coupling_geometry. Not necessary in base class.
     * @details Allows to exchange certain geometries.
     * @param Index of the geometry part. 0->Master; 1->Slave
