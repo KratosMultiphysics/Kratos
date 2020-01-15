@@ -291,7 +291,7 @@ public:
 
                 // Check dof id is solved
                 if (dof_id < number_active_dofs) {
-                    if (mActiveDofs[dof_id]) {
+                    if (mActiveDofs[dof_id] == 1) {
                         // The component of the residual
                         residual_dof_value = rb[dof_id];
 
@@ -697,7 +697,7 @@ private:
 
     TDataType mNormalTangentRatio;                /// The ratio to accept a non converged tangent component in case
 
-    std::vector<bool> mActiveDofs;                /// This vector contains the dofs that are active
+    std::vector<int> mActiveDofs;                 /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators

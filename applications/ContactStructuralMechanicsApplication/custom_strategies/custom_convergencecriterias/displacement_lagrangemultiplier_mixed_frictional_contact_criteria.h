@@ -278,7 +278,7 @@ public:
 
                 // Check dof id is solved
                 if (dof_id < number_active_dofs) {
-                    if (mActiveDofs[dof_id]) {
+                    if (mActiveDofs[dof_id] == 1) {
                         const auto& r_curr_var = it_dof->GetVariable();
                         if (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) {
                             // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
@@ -639,7 +639,7 @@ private:
 
     TDataType mNormalTangentRatio;      /// The ratio to accept a non converged tangent component in case
 
-    std::vector<bool> mActiveDofs;      /// This vector contains the dofs that are active
+    std::vector<int> mActiveDofs;       /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators

@@ -227,7 +227,7 @@ public:
 
                 // Check dof id is solved
                 if (dof_id < number_active_dofs) {
-                    if (mActiveDofs[dof_id]) {
+                    if (mActiveDofs[dof_id] == 1) {
                         residual_dof_value = rb[dof_id];
 
                         const auto& r_curr_var = it_dof->GetVariable();
@@ -453,7 +453,7 @@ private:
     TDataType mLMInitialResidualNorm; /// The reference norm of the LM residual
     TDataType mLMCurrentResidualNorm; /// The current norm of the LM residual
 
-    std::vector<bool> mActiveDofs; /// This vector contains the dofs that are active
+    std::vector<int> mActiveDofs;     /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators
