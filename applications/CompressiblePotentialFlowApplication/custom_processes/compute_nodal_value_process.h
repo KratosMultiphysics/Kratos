@@ -117,14 +117,9 @@ private:
     void StoreVariableList(const std::vector<std::string>& rVariableStringArray);
 
     /**
-     * @brief If the nodal variables are not initialize, they get initialized.
+     * @brief This clears the nodal values.
     */
     void InitializeNodalVariables();
-
-    /**
-     * This clears the nodal values
-     */
-    void ClearNodalValues();
 
     /**
      * This sums up the contribution of all elements to their respective nodes

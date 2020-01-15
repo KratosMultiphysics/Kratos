@@ -38,8 +38,6 @@ ComputeNodalValueProcess::ComputeNodalValueProcess(
 
     StoreVariableList(rVariableStringArray);
 
-    InitializeNodalVariables();
-
     KRATOS_CATCH("")
 }
 
@@ -48,7 +46,7 @@ void ComputeNodalValueProcess::Execute()
     KRATOS_TRY;
 
     // Set nodal values to zero
-    ClearNodalValues();
+    InitializeNodalVariables();
 
     CalculateNodalAreaProcess<false> area_calculator(mrModelPart, mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
     area_calculator.Execute();
@@ -88,42 +86,16 @@ void ComputeNodalValueProcess::StoreVariableList(const std::vector<std::string>&
 
 void ComputeNodalValueProcess::InitializeNodalVariables()
 {
-    // In case the variables are not initialized we initialize them
     auto& r_nodes = mrModelPart.Nodes();
+    const array_1d<double,3> zero_vector = ZeroVector(3);
     for (std::size_t i_var = 0; i_var < mArrayVariablesList.size(); i_var++){
         const auto& r_array_var = *mArrayVariablesList[i_var];
-        if (!r_nodes.begin()->Has(r_array_var)){
-            const array_1d<double,3> zero_vector = ZeroVector(3);
-            VariableUtils().SetNonHistoricalVariable(r_array_var, zero_vector, r_nodes);
-        }
-    }
-    for (std::size_t i_var = 0; i_var < mDoubleVariablesList.size(); i_var++){
-        const auto& r_double_var = *mDoubleVariablesList[i_var];
-        if (!r_nodes.begin()->Has(r_double_var)){
-            VariableUtils().SetNonHistoricalVariable(r_double_var, 0.0, r_nodes);
-        }
-    }
-}
-
-void ComputeNodalValueProcess::ClearNodalValues()
-{
-    const array_1d<double, 3> aux_zero_vector = ZeroVector(3);
-    for (std::size_t i_var = 0; i_var < mArrayVariablesList.size(); i_var++){
-        const auto& r_array_var = *mArrayVariablesList[i_var];
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
-            auto it_node=mrModelPart.NodesBegin()+i;
-            it_node->SetValue(r_array_var, aux_zero_vector);
-        }
+        VariableUtils().SetNonHistoricalVariable(r_array_var, zero_vector, r_nodes);
     }
 
     for (std::size_t i_var = 0; i_var < mDoubleVariablesList.size(); i_var++){
         const auto& r_double_var = *mDoubleVariablesList[i_var];
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
-            auto it_node=mrModelPart.NodesBegin()+i;
-            it_node->SetValue(r_double_var, 0.0);
-        }
+        VariableUtils().SetNonHistoricalVariable(r_double_var, 0.0, r_nodes);
     }
 }
 
