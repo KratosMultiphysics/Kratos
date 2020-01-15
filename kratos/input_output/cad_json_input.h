@@ -93,7 +93,7 @@ namespace Kratos
 
         void ReadGeometryModelPart(
             const Parameters& rCadJsonParameters,
-            ModelPart& rModelPart) override
+            ModelPart& rModelPart)
         {
             ReadBreps(rCadJsonParameters, rModelPart);
         }
