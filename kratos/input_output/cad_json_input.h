@@ -376,14 +376,16 @@ namespace Kratos
                         }
                     }
 
+                    auto p_coupling_geometry = Kratos::make_shared<CouplingGeometry<TNodeType>>(
+                        geometry_vector);
+
                     // Setting BrepId of the geometry
                     if (rParameters.Has("brep_id"))
                         p_coupling_geometry->SetId(rParameters[0]["brep_id"].GetInt());
                     else if (rParameters.Has("brep_name"))
                         p_coupling_geometry->SetId(rParameters[0]["brep_name"].GetString());
 
-                    auto p_coupling_geometry = Kratos::make_shared<CouplingGeometry<TNodeType>>(
-                        geometry_vector);
+                    rModelPart.AddGeometry(p_coupling_geometry);
                 }
             }
         }
