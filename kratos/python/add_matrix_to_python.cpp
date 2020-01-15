@@ -89,7 +89,11 @@ namespace Python
         matrix_binder.def(py::init<const DenseMatrix<double>& >());
         matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const Vector& v){ return Vector(prod(m1,v));}, py::is_operator());
         matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const array_1d<double,3>& v){ if(m1.size2() != 3) KRATOS_ERROR << "matrix size2 is not 3!" << std::endl; return Vector(prod(m1,v));}, py::is_operator());
-
+        matrix_binder.def("value_data", [](const DenseMatrix<double>& rA) ->  std::vector<double>
+                                            {return std::vector<double>(
+                                                rA.data().begin(),
+                                                rA.data().end()
+                                                ) ;});
         ;
 
         //here we add the sparse matrix
@@ -128,7 +132,11 @@ namespace Python
         cplx_matrix_binder.def(py::init<const ComplexMatrix& >());
         cplx_matrix_binder.def("__mul__", [](const ComplexMatrix& m1, const ComplexVector& v){ return ComplexVector(prod(m1,v));}, py::is_operator());
         // cplx_matrix_binder.def("__mul__", [](const ComplexMatrix& m1, const array_1d<double,3>& v){ if(m1.size2() != 3) KRATOS_ERROR << "matrix size2 is not 3!" << std::endl; return Vector(prod(m1,v));}, py::is_operator());
-
+        cplx_matrix_binder.def("value_data", [](const ComplexMatrix& rA) ->  std::vector<std::complex<double>>
+                                            {return std::vector<std::complex<double>>(
+                                                rA.data().begin(),
+                                                rA.data().end()
+                                                ) ;});
         ;
         //here we add the complex sparse matrix
         auto cplx_compressed_matrix_binder = CreateMatrixInterface< ComplexCompressedMatrix >(m,"ComplexCompressedMatrix");
