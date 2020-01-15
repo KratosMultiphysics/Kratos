@@ -376,7 +376,7 @@ namespace Kratos
                         }
                     }
 
-                    auto p_coupling_geometry = Kratos::make_shared<CouplingGeometry<TNodeType>>(
+                    auto p_coupling_geometry = Kratos::make_shared<CouplingGeometryType>(
                         geometry_vector);
 
                     // Setting BrepId of the geometry
