@@ -40,66 +40,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**
- * Constructor.
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::RansEvmKEpsilonLowReEpsilonElement(IndexType NewId)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonLowReEpsilonElementData>(NewId)
-{
-}
-
-/**
- * Constructor using an array of nodes
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::RansEvmKEpsilonLowReEpsilonElement(
-    IndexType NewId, const NodesArrayType& ThisNodes)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonLowReEpsilonElementData>(
-          NewId, ThisNodes)
-{
-}
-
-/**
- * Constructor using Geometry
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::RansEvmKEpsilonLowReEpsilonElement(
-    IndexType NewId, GeometryType::Pointer pGeometry)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonLowReEpsilonElementData>(
-          NewId, pGeometry)
-{
-}
-
-/**
- * Constructor using Properties
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::RansEvmKEpsilonLowReEpsilonElement(
-    IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonLowReEpsilonElementData>(
-          NewId, pGeometry, pProperties)
-{
-}
-
-/**
- * Copy Constructor
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::RansEvmKEpsilonLowReEpsilonElement(
-    RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes> const& rOther)
-    : StabilizedConvectionDiffusionReaction<TDim, TNumNodes, RansEvmKEpsilonLowReEpsilonElementData>(rOther)
-{
-}
-
-/**
- * Destructor
- */
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonLowReEpsilonElement<TDim, TNumNodes>::~RansEvmKEpsilonLowReEpsilonElement()
-{
-}
-
 ///@}
 ///@name Operators
 ///@{

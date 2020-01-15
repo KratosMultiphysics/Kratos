@@ -83,9 +83,7 @@ public:
     }
 
     /// Destructor.
-    ~KEpsilonCoSolvingProcess() override
-    {
-    }
+    ~KEpsilonCoSolvingProcess() override = default;
 
     void ExecuteInitializeSolutionStep() override
     {
@@ -105,7 +103,7 @@ public:
         int value = BaseType::Check();
 
         NodesContainerType& r_nodes = this->mrModelPart.Nodes();
-        int number_of_nodes = r_nodes.size();
+        const int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
@@ -188,7 +186,7 @@ private:
     void UpdateEffectiveViscosity()
     {
         NodesContainerType& r_nodes = this->mrModelPart.Nodes();
-        int number_of_nodes = r_nodes.size();
+        const int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)

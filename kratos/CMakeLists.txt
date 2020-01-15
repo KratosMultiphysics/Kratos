@@ -25,6 +25,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/constitutive_law.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_components.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/memory_info.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/process_info.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/oriented_bounding_box.cpp;
@@ -34,6 +35,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/nodal_data.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_filesystem.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/model.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/factories/standard_linear_solver_factory.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/factories/standard_preconditioner_factory.cpp;
@@ -66,6 +68,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/integration_values_extrapolation_to_nodes_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/apply_ray_casting_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_global_nodal_elemental_neighbours_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/time_averaging_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
@@ -136,6 +139,7 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_mesh_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_modeler_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_properties_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_dofs_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_node_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_linear_solvers_to_python.cpp
@@ -220,6 +224,8 @@ if(USE_COTIRE MATCHES ON)
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram
     SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j2")
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/memory_info.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_filesystem.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/mortar_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     cotire(KratosVersion)
     cotire(KratosCore)

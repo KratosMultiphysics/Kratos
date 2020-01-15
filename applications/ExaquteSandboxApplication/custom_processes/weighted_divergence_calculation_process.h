@@ -23,6 +23,7 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "geometries/geometry.h"
+#include "utilities/variable_utils.h"
 #include "exaqute_sandbox_application_variables.h"
 
 // Application includes
@@ -98,9 +99,14 @@ namespace Kratos
         ///@{
 
         /**
-         * @brief Function executing the weighted time average of DIVERGENCE_WEIGHTED and VELOCITY_H1_SEMINORM
+         * @brief Function initializing the statistic utilities
          */
-        void Execute() override;
+        void ExecuteInitialize() override;
+
+        /**
+         * @brief Function updating statistics at each time step
+         */
+        void ExecuteFinalizeSolutionStep() override;
 
         ///@}
         ///@name Access
