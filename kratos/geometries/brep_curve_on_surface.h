@@ -78,9 +78,9 @@ public:
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve)
         : BaseType(PointsArrayType(), &msGeometryData)
-        , mpNurbsSurface(pSurface)
-        , mpNurbsCurve(pCurve)
     {
+        mpCurveOnSurface = Kratos::make_shared<NurbsCurveOnSurfaceType>(
+            pSurface, pCurve);
     }
 
     BrepCurveOnSurface(
@@ -88,10 +88,10 @@ public:
         typename NurbsCurveType::Pointer pCurve,
         NurbsInterval CurveNurbsInterval)
         : BaseType(PointsArrayType(), &msGeometryData)
-        , mpNurbsSurface(pSurface)
-        , mpNurbsCurve(pCurve)
         , mCurveNurbsInterval(CurveNurbsInterval)
     {
+        mpCurveOnSurface = Kratos::make_shared<NurbsCurveOnSurfaceType>(
+            pSurface, pCurve);
     }
 
     explicit BrepCurveOnSurface(const PointsArrayType& ThisPoints)
