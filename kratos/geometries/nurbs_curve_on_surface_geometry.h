@@ -46,9 +46,9 @@ public:
 
     /** Array of counted pointers to point. This type used to hold
         geometry's points.*/
-    typedef  typename BaseType::PointsArrayType PointsArrayType;
+    typedef typename BaseType::PointsArrayType PointsArrayType;
 
-    typedef  typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
@@ -60,7 +60,9 @@ public:
     NurbsCurveOnSurfaceGeometry(
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve)
-        : BaseType(pCurve->Points(), &msGeometryData), mpNurbsSurface(pSurface), mpNurbsCurve(pCurve)
+        : BaseType(pCurve->Points(), &msGeometryData)
+        , mpNurbsSurface(pSurface)
+        , mpNurbsCurve(pCurve)
     {
     }
 
