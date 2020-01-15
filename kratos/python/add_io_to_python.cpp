@@ -328,6 +328,8 @@ void  AddIOToPython(pybind11::module& m)
 
     py::class_<CadJsonInput<>, CadJsonInput<>::Pointer>(m, "CadJsonInput")
         .def(py::init<const std::string &>())
+        .def(py::init<Parameters>())
+        .def("ReadModelPart", &CadJsonInput<>::ReadModelPart)
         .def("ReadGeometryModelPart", &CadJsonInput<>::ReadGeometryModelPart)
         ;
 }
