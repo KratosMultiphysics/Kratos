@@ -66,7 +66,6 @@ public:
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
     static constexpr IndexType SURFACE_INDEX = -1;
-    static constexpr IndexType CURVE_INDEX = -2;
 
     ///@}
     ///@name Life Cycle
@@ -184,9 +183,6 @@ public:
         if (Index == SURFACE_INDEX)
             return *mpNurbsSurface;
 
-        if (Index == CURVE_INDEX)
-            return *mpNurbsSurface;
-
         KRATOS_ERROR << "Index " << Index << " not existing in BrepCurveOnSurface: "
             << this->Id() << std::endl;
     }
@@ -194,9 +190,6 @@ public:
     typename GeometryType::Pointer pGetGeometryPart(IndexType Index) override
     {
         if (Index == SURFACE_INDEX)
-            return mpNurbsSurface;
-
-        if (Index == CURVE_INDEX)
             return mpNurbsSurface;
 
         KRATOS_ERROR << "Index " << Index << " not existing in BrepCurveOnSurface: "
@@ -212,9 +205,6 @@ public:
     bool HasGeometryPart(IndexType Index) const override
     {
         if (Index == SURFACE_INDEX)
-            return true;
-
-        if (Index == CURVE_INDEX)
             return true;
 
         return false;
