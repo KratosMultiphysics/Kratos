@@ -219,9 +219,7 @@ public:
         Vector &rResult,
         const CoordinatesArrayType& rCoordinates) const override
     {
-        CoordinatesArrayType surface_coordinates(3, 0.0);
-        mpNurbsCurve->GlobalCoordinates(surface_coordinates, rCoordinates);
-        mpNurbsSurface->ShapeFunctionsValues(rResult, surface_coordinates);
+        mpCurveOnSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
 
         return rResult;
     }
@@ -230,9 +228,7 @@ public:
         Matrix& rResult,
         const CoordinatesArrayType& rCoordinates) const override
     {
-        CoordinatesArrayType surface_coordinates(3, 0.0);
-        mpNurbsCurve->GlobalCoordinates(surface_coordinates, rCoordinates);
-        mpNurbsSurface->ShapeFunctionsLocalGradients(rResult, surface_coordinates);
+        mpCurveOnSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
 
         return rResult;
     }
