@@ -44,10 +44,6 @@ public:
     typedef NurbsSurfaceGeometry<3, TSurfaceContainerPointType> NurbsSurfaceType;
     typedef NurbsCurveGeometry<2, TCurveContainerPointType> NurbsCurveType;
 
-    /** Array of counted pointers to point. This type used to hold
-        geometry's points.*/
-    typedef typename BaseType::PointsArrayType PointsArrayType;
-
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
