@@ -202,7 +202,7 @@ public:
     ///@name Access to Geometry Parts
     ///@{
 
-    GeometryType& GetGeometryPart(IndexType Index) override
+    GeometryType& GetGeometryPart(IndexType Index) const override
     {
         return *pGetGeometryPart(Index);
     }
