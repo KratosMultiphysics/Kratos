@@ -33,6 +33,7 @@ KRATOS_TEST_CASE_IN_SUITE(FilesystemExists, KratosCoreFastSuite)
 
     KRATOS_CHECK(Kratos::filesystem::exists(file_name));
 
+    output_file.close();
     Kratos::filesystem::remove(file_name);
 
     KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(file_name));
