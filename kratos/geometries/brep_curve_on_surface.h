@@ -59,6 +59,8 @@ public:
 
     typedef NurbsCurveOnSurface<3, TContainerPointEmbeddedType, TContainerPointType> NurbsCurveOnSurfaceType;
 
+    typedef typename NurbsCurveOnSurfaceType::Pointer NurbsCurveOnSurfacePointerType;
+
     typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
 
     typedef typename BaseType::IndexType IndexType;
@@ -267,7 +269,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    typename NurbsCurveOnSurfaceType::Pointer mpCurveOnSurface;
+    NurbsCurveOnSurfacePointerType mpCurveOnSurface;
 
     NurbsInterval mCurveNurbsInterval;
 
