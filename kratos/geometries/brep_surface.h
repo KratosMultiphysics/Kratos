@@ -202,7 +202,7 @@ public:
     ///@name Access to Geometry Parts
     ///@{
 
-    typename GeometryType::Pointer GetGeometryPart(IndexType Index) override
+    GeometryType& GetGeometryPart(IndexType Index) override
     {
         return *pGetGeometryPart(Index);
     }
