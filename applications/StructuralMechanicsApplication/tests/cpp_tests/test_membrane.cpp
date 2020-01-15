@@ -84,6 +84,7 @@ namespace Testing
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
 
         // Set the element properties
         auto p_elem_prop = r_model_part.CreateNewProperties(0);
@@ -119,6 +120,7 @@ namespace Testing
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
 
         // Set the element properties
         auto p_elem_prop = r_model_part.CreateNewProperties(0);
