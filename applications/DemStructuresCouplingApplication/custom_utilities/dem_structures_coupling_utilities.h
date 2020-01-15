@@ -229,7 +229,7 @@ void ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(ModelPa
     sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
     sand_prod_file.flush();
 
-    unsigned int number_of_time_steps_between_granulometry_prints = 100;
+    unsigned int number_of_time_steps_between_granulometry_prints = 1000;
     static unsigned int printing_counter = 0;
     static std::ofstream granulometry_distr_file(granulometry_distr_filename, std::ios_base::out | std::ios_base::app);
     if (printing_counter == number_of_time_steps_between_granulometry_prints) {
