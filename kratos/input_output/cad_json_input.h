@@ -12,6 +12,7 @@
 #include "includes/model_part.h"
 
 // Geometries
+#include "geometries/coupling_geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/brep_surface.h"
@@ -46,6 +47,8 @@ namespace Kratos
 
         typedef PointerVector<TNodeType> ContainerNodeType;
         typedef PointerVector<TEmbeddedNodeType> ContainerEmbeddedNodeType;
+
+        typedef CouplingGeometry<TNodeType> CouplingGeometryType;
 
         typedef NurbsSurfaceGeometry<3, ContainerNodeType> NurbsSurfaceType;
         typedef NurbsSurfaceGeometry<2, ContainerEmbeddedNodeType> NurbsTrimmingCurveType;
@@ -354,7 +357,7 @@ namespace Kratos
                 }
                 else
                 {
-                    CouplingGeometry::GeometryPointerVector geometry_vector;
+                    typename CouplingGeometryType::GeometryPointerVector geometry_vector;
 
                     for (IndexType i = 0; i < rParameters["topology"].size(); i++)
                     {
