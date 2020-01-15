@@ -204,7 +204,29 @@ public:
 
     GeometryType& GetGeometryPart(IndexType Index) const override
     {
-        return *(this->pGetGeometryPart(Index));
+        if (Index == SURFACE_INDEX)
+            return *mpNurbsSurface;
+
+        for (IndexType i = 0; i < mOuterLoopArray.size(); ++i)
+        {
+            for (IndexType j = 0; j < mOuterLoopArray[i].size(); ++j)
+            {
+                if (mOuterLoopArray[i][j]->Id() == Index)
+                    return *mOuterLoopArray[i][j];
+            }
+        }
+
+        for (IndexType i = 0; i < mInnerLoopArray.size(); ++i)
+        {
+            for (IndexType j = 0; j < mInnerLoopArray[i].size(); ++j)
+            {
+                if (mInnerLoopArray[i][j]->Id() == Index)
+                    return *mInnerLoopArray[i][j];
+            }
+        }
+
+        KRATOS_ERROR << "Index " << Index << " not existing in BrepSurface: "
+            << this->Id() << std::endl;
     }
 
     typename GeometryType::Pointer pGetGeometryPart(IndexType Index) override
