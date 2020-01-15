@@ -81,10 +81,11 @@ public:
         typename NurbsCurveType::Pointer pCurve,
         bool curve_direction = true)
         : BaseType(PointsArrayType(), &msGeometryData)
+        , mpCurveOnSurface(
+            Kratos::make_shared<NurbsCurveOnSurfaceType>(
+                pSurface, pCurve))
         , mCurveDirection(curve_direction)
     {
-        mpCurveOnSurface = Kratos::make_shared<NurbsCurveOnSurfaceType>(
-            pSurface, pCurve);
     }
 
     /// constructor for trimmed surface
@@ -94,11 +95,12 @@ public:
         NurbsInterval CurveNurbsInterval,
         bool curve_direction = true)
         : BaseType(PointsArrayType(), &msGeometryData)
+        , mpCurveOnSurface(
+            Kratos::make_shared<NurbsCurveOnSurfaceType>(
+                pSurface, pCurve))
         , mCurveNurbsInterval(CurveNurbsInterval)
         , mCurveDirection(curve_direction)
     {
-        mpCurveOnSurface = Kratos::make_shared<NurbsCurveOnSurfaceType>(
-            pSurface, pCurve);
     }
 
     /// constructor for untrimmed surface with curve on surface
