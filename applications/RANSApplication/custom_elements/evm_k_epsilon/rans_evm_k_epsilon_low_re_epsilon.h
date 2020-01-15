@@ -101,34 +101,49 @@ public:
     /**
      * Constructor.
      */
-    explicit RansEvmKEpsilonLowReEpsilonElement(IndexType NewId = 0);
+    explicit RansEvmKEpsilonLowReEpsilonElement(IndexType NewId = 0)
+        : BaseType(NewId)
+    {
+    }
 
     /**
      * Constructor using an array of nodes
      */
-    RansEvmKEpsilonLowReEpsilonElement(IndexType NewId, const NodesArrayType& ThisNodes);
+    RansEvmKEpsilonLowReEpsilonElement(IndexType NewId, const NodesArrayType& ThisNodes)
+        : BaseType(NewId, ThisNodes)
+    {
+    }
 
     /**
      * Constructor using Geometry
      */
-    RansEvmKEpsilonLowReEpsilonElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    RansEvmKEpsilonLowReEpsilonElement(IndexType NewId, GeometryType::Pointer pGeometry)
+        : BaseType(NewId, pGeometry)
+    {
+    }
 
     /**
      * Constructor using Properties
      */
     RansEvmKEpsilonLowReEpsilonElement(IndexType NewId,
                                        GeometryType::Pointer pGeometry,
-                                       PropertiesType::Pointer pProperties);
+                                       PropertiesType::Pointer pProperties)
+        : BaseType(NewId, pGeometry, pProperties)
+    {
+    }
 
     /**
      * Copy Constructor
      */
-    RansEvmKEpsilonLowReEpsilonElement(RansEvmKEpsilonLowReEpsilonElement const& rOther);
+    RansEvmKEpsilonLowReEpsilonElement(RansEvmKEpsilonLowReEpsilonElement const& rOther)
+        : BaseType(rOther)
+    {
+    }
 
     /**
      * Destructor
      */
-    ~RansEvmKEpsilonLowReEpsilonElement() override;
+    ~RansEvmKEpsilonLowReEpsilonElement() override = default;
 
     ///@}
     ///@name Operators
