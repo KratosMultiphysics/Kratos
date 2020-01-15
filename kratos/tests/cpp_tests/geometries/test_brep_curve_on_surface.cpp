@@ -80,12 +80,8 @@ namespace Testing {
         auto p_surface = GenerateReferenceNodeSurfacePointer();
         auto p_curve = GenerateReferenceCurve2dPointer();
 
-        auto p_nurbs_curve_on_surface = Kratos::make_shared<
-            NurbsCurveOnSurfaceGeometry<3, TContainerPointEmbeddedType, TContainerPointType>>(
-                p_surface, p_curve);
-
         auto brep_curve_on_surface = BrepCurveOnSurface< PointerVector<NodeType>, PointerVector<Point>>(
-            p_nurbs_curve_on_surface);
+            p_surface, p_curve);
 
         // Check general information, input to ouput
         KRATOS_CHECK_EQUAL(brep_curve_on_surface.Dimension(), 1);
