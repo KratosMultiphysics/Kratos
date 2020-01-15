@@ -157,7 +157,7 @@ public:
     MmgIO(
         std::string const& rFilename,
         Parameters ThisParameters = Parameters(R"({})"),
-        const Flags Options = IO::READ|(~IO::IGNORE_VARIABLES_ERROR)|IO::SKIP_TIMER
+        const Flags Options = IO::READ|Flags::Not(IO::IGNORE_VARIABLES_ERROR)|IO::SKIP_TIMER
         );
 
     /// Destructor.

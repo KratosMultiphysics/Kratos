@@ -238,6 +238,12 @@ public:
         mFlags = BlockType();
     }
 
+    static const Flags Not(Flags ThisFlag)
+    {
+        Flags NOT_ThisFlag(ThisFlag);
+        NOT_ThisFlag.mFlags = !ThisFlag.mFlags;
+        return  NOT_ThisFlag;
+    }
 
     ///@}
     ///@name Access
@@ -478,5 +484,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_FLAGS_H_INCLUDED  defined
-
-

@@ -89,8 +89,8 @@ class TestFlags(KratosUnittest.TestCase):
 
     def testFlagAndEqual(self):
         #       both true | both false | opposite sets | first true   | first false | second true | second false
-        flag1 = ACTIVE    | NOT_RIGID  | STRUCTURE     | MPI_BOUNDARY | NOT_PERIODIC
-        flag2 = ACTIVE    | NOT_RIGID  | NOT_STRUCTURE |                              INLET       | NOT_OUTLET
+        flag1 = ACTIVE    | Flags.__not__(RIGID)  | STRUCTURE     | MPI_BOUNDARY | Flags.__not__(PERIODIC)
+        flag2 = ACTIVE    | Flags.__not__(RIGID)  | Flags.__not__(STRUCTURE) |                              INLET       | Flags.__not__(OUTLET)
 
         flag1 &= flag2
         # true (defined) & true (defined) = true (defined)
@@ -120,8 +120,8 @@ class TestFlags(KratosUnittest.TestCase):
 
     def testFlagOrEqual(self):
         #       both true | both false | opposite sets | first true   | first false | second true | second false
-        flag1 = ACTIVE    | NOT_RIGID  | STRUCTURE     | MPI_BOUNDARY | NOT_PERIODIC
-        flag2 = ACTIVE    | NOT_RIGID  | NOT_STRUCTURE |                              INLET       | NOT_OUTLET
+        flag1 = ACTIVE    | Flags.__not__(RIGID)  | STRUCTURE     | MPI_BOUNDARY | Flags.__not__(PERIODIC)
+        flag2 = ACTIVE    | Flags.__not__(RIGID)  | Flags.__not__(STRUCTURE) |                              INLET       | Flags.__not__(OUTLET)
 
         flag1 |= flag2
         # true (defined) | true (defined) = true (defined)

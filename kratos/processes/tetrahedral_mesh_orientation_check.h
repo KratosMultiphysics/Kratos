@@ -90,7 +90,8 @@ public:
     TetrahedralMeshOrientationCheck(
         ModelPart& rModelPart,
         bool ThrowErrors,
-        Flags options = (~COMPUTE_NODAL_NORMALS) | (~COMPUTE_CONDITION_NORMALS) | (~ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS) | (~ALLOW_REPEATED_CONDITIONS)
+        Flags options = Flags::Not(COMPUTE_NODAL_NORMALS) | Flags::Not(COMPUTE_CONDITION_NORMALS) | Flags::Not(ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS) | Flags::Not(ALLOW_REPEATED_CONDITIONS)
+        // Flags options = NOT_COMPUTE_NODAL_NORMALS | NOT_COMPUTE_CONDITION_NORMALS | NOT_ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS | NOT_ALLOW_REPEATED_CONDITIONS
         ):  Process(),
             mrModelPart(rModelPart),
             mThrowErrors(ThrowErrors), //to be changed to a flag
@@ -101,7 +102,8 @@ public:
 
     TetrahedralMeshOrientationCheck(
         ModelPart& rModelPart,
-        Flags options = (~COMPUTE_NODAL_NORMALS) | (~COMPUTE_CONDITION_NORMALS) | (~ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS) | (~ALLOW_REPEATED_CONDITIONS)
+        Flags options = Flags::Not(COMPUTE_NODAL_NORMALS) | Flags::Not(COMPUTE_CONDITION_NORMALS) | Flags::Not(ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS) | Flags::Not(ALLOW_REPEATED_CONDITIONS)
+        // Flags options = NOT_COMPUTE_NODAL_NORMALS | NOT_COMPUTE_CONDITION_NORMALS | NOT_ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS | NOT_ALLOW_REPEATED_CONDITIONS
         ):  Process(),
             mrModelPart(rModelPart),
             mThrowErrors(false),

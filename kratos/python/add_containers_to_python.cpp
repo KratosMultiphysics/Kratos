@@ -242,6 +242,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def("__or__", FlagsOr)
     .def("__and__", FlagsAnd)
     .def("__str__", PrintObject<Flags>)
+    .def_static("__not__", &Flags::Not)
     ;
 
     KRATOS_REGISTER_IN_PYTHON_FLAG(m,STRUCTURE);
