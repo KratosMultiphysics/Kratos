@@ -51,7 +51,7 @@ namespace Kratos
         typedef CouplingGeometry<TNodeType> CouplingGeometryType;
 
         typedef NurbsSurfaceGeometry<3, ContainerNodeType> NurbsSurfaceType;
-        typedef NurbsSurfaceGeometry<2, ContainerEmbeddedNodeType> NurbsTrimmingCurveType;
+        typedef NurbsCurveGeometry<2, ContainerEmbeddedNodeType> NurbsTrimmingCurveType;
 
         typedef typename NurbsSurfaceType::Pointer NurbsSurfacePointerType;
         typedef typename NurbsTrimmingCurveType::Pointer NurbsTrimmingCurvePointerType;
@@ -338,22 +338,23 @@ namespace Kratos
                     GeometryPointerType p_trim = p_geometry->pGetGeometryPart(rParameters["topology"][0]["trim_index"].GetInt());
                     bool relative_direction = rParameters["topology"][0]["trim_index"].GetBool();
 
-                    auto p_geometry_surface = p_trim->pGetGeometryPart(BrepCurveOnSurfaceType::SURFACE_INDEX);
-                    auto p_nurbs_surface = static_cast<NurbsSurfacePointerType>(p_geometry_surface);
+                    GeometryPointerType p_geometry_surface = p_trim->pGetGeometryPart(BrepCurveOnSurfaceType::SURFACE_INDEX);
+                    NurbsSurfaceType nurbs_surface = static_cast<NurbsSurfaceType>(*p_geometry_surface);
+                    NurbsSurfacePointerType p_nurbs_surface = Kratos::make_shared<NurbsSurfaceType>(nurbs_surface);
 
-                    auto p_geometry_curve = p_trim->pGetGeometryPart(BrepCurveOnSurfaceType::CURVE_INDEX);
-                    auto p_nurbs_curve = static_cast<NurbsTrimmingCurvePointerType>(p_geometry_curve);
+                    GeometryPointerType p_geometry_curve = p_trim->pGetGeometryPart(BrepCurveOnSurfaceType::CURVE_INDEX);
+                    NurbsTrimmingCurveType nurbs_curve = static_cast<NurbsTrimmingCurveType>(*p_geometry_curve);
 
-                    auto p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
-                        p_nurbs_surface, p_nurbs_curve, relative_direction);
+                    //auto p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
+                    //    p_nurbs_surface, p_nurbs_curve, relative_direction);
 
-                    // Setting BrepId of the geometry
-                    if (rParameters.Has("brep_id"))
-                        p_brep_curve_on_surface->SetId(rParameters[0]["brep_id"].GetInt());
-                    else if (rParameters.Has("brep_name"))
-                        p_brep_curve_on_surface->SetId(rParameters[0]["brep_name"].GetString());
+                    //// Setting BrepId of the geometry
+                    //if (rParameters.Has("brep_id"))
+                    //    p_brep_curve_on_surface->SetId(rParameters[0]["brep_id"].GetInt());
+                    //else if (rParameters.Has("brep_name"))
+                    //    p_brep_curve_on_surface->SetId(rParameters[0]["brep_name"].GetString());
 
-                    rModelPart.AddGeometry(p_brep_curve_on_surface);
+                    //rModelPart.AddGeometry(p_brep_curve_on_surface);
                 }
                 else
                 {
