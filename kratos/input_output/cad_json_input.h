@@ -88,9 +88,19 @@ namespace Kratos
         }
 
         ///@}
+        ///@name Static Functions
+        ///@{
+
+        void ReadGeometryModelPart(
+            const Parameters& rCadJsonParameters,
+            ModelPart& rModelPart) override
+        {
+            ReadBreps(rCadJsonParameters, rModelPart);
+        }
+
+        ///@}
 
     private:
-
         ///@name Read in Brep
         ///@{
 
