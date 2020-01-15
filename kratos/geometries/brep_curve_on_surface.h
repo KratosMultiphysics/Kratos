@@ -185,6 +185,12 @@ public:
         return mCurveDirection;
     }
 
+    /// Returns the curve on surface of this brep.
+    NurbsCurveOnSurfacePointerType pGetCurveOnSurface()
+    {
+        return mpCurveOnSurface;
+    }
+
     ///@}
     ///@name Geometrical Operations
     ///@{
