@@ -8,11 +8,20 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher
+//                   Vicente Mataix Ferrándiz
 //
 
 // System includes
 #include <fstream>
 #include <string>
+#include <stdio.h>  /* defines FILENAME_MAX */
+#ifdef _WIN32
+#include <direct.h>
+#define GetCurrentDir _getcwd
+#else
+#include <unistd.h>
+#define GetCurrentDir getcwd
+#endif
 
 // External includes
 
@@ -37,6 +46,18 @@ KRATOS_TEST_CASE_IN_SUITE(FilesystemExists, KratosCoreFastSuite)
     Kratos::filesystem::remove(file_name);
 
     KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(file_name));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FilesystemCurrentPath, KratosCoreFastSuite)
+{
+    // This test check that the current path method works
+    const std::string current_path = (Kratos::filesystem::current_path()).string();
+    
+    char buff[FILENAME_MAX];
+    GetCurrentDir( buff, FILENAME_MAX );
+    const std::string current_working_dir(buff);
+    
+    KRATOS_CHECK_STRING_EQUAL(current_working_dir, current_path);
 }
 
 } // namespace Testing
