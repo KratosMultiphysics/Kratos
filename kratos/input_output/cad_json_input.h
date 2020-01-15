@@ -341,7 +341,7 @@ namespace Kratos
                     auto p_geometry_curve = p_trim->pGetGeometryPart(BrepCurveOnSurfaceType::CURVE_INDEX);
                     auto p_nurbs_curve = static_cast<NurbsTrimmingCurvePointerType>(p_geometry_curve);
 
-                    auto p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurface<>>(
+                    auto p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
                         p_nurbs_surface, p_nurbs_curve, relative_direction);
 
                     // Setting BrepId of the geometry
