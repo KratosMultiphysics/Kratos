@@ -127,6 +127,10 @@ public:
     {
     }
 
+    BrepCurveOnSurface()
+        : BaseType(PointsArrayType(), &msGeometryData)
+    {}
+
     explicit BrepCurveOnSurface(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
     {
@@ -378,10 +382,6 @@ private:
         rSerializer.load("NurbsInterval", mCurveNurbsInterval);
         rSerializer.load("CurveDirection", mCurveDirection);
     }
-
-    BrepCurveOnSurface()
-        : BaseType( PointsArrayType(), &msGeometryData )
-    {}
 
     ///@}
 }; // Class BrepCurveOnSurface

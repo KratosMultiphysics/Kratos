@@ -44,6 +44,7 @@ public:
     typedef NurbsSurfaceGeometry<3, TSurfaceContainerPointType> NurbsSurfaceType;
     typedef NurbsCurveGeometry<2, TCurveContainerPointType> NurbsCurveType;
 
+    typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
@@ -56,11 +57,15 @@ public:
     NurbsCurveOnSurfaceGeometry(
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve)
-        : BaseType(pCurve->Points(), &msGeometryData)
+        : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface)
         , mpNurbsCurve(pCurve)
     {
     }
+
+    NurbsCurveOnSurfaceGeometry()
+        : BaseType(PointsArrayType(), &msGeometryData)
+    {};
 
     /// Copy constructor.
     NurbsCurveOnSurfaceGeometry(NurbsCurveOnSurfaceGeometry const& rOther)
