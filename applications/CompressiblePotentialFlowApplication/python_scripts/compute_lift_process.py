@@ -155,7 +155,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
                 drag_integral -= 0.5 * length * potential_jump * velocity_normal_component
 
         free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
-        free_stream_velocity_norm2 = _DotProduct(free_stream_velocity,free_stream_velocity)
+        free_stream_velocity_norm2 = free_stream_velocity.norm_2()
         self.drag_coefficient_jump = drag_integral/(free_stream_velocity_norm2*self.reference_area)
         self.lift_coefficient_jump = 2*potential_integral/(self.free_stream_velocity_norm*self.reference_area)
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ', self.lift_coefficient_jump, 'Potential Jump')
