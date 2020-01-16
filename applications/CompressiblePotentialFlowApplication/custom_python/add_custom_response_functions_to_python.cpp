@@ -30,9 +30,9 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
     namespace py = pybind11;
 
     // Response Functions
-    py::class_<AdjointLiftJumpCoordinatesResponseFunction, AdjointLiftJumpCoordinatesResponseFunction::Pointer, AdjointResponseFunction>
-        (m, "AdjointLiftJumpCoordinatesResponseFunction")
-        .def(py::init<ModelPart&, Parameters>());
+    // py::class_<AdjointLiftJumpCoordinatesResponseFunction, AdjointLiftJumpCoordinatesResponseFunction::Pointer, AdjointResponseFunction>
+    //     (m, "AdjointLiftJumpCoordinatesResponseFunction")
+    //     .def(py::init<ModelPart&, Parameters>());
 
 }
 
