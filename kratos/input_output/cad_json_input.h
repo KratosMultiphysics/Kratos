@@ -115,7 +115,7 @@ namespace Kratos
             SizeType EchoLevel = 0)
         {
             KRATOS_ERROR_IF_NOT(rCadJsonParameters.Has("breps"))
-                << "Missing 'brep' section" << std::endl;
+                << "Missing \"breps\" section" << std::endl;
 
             ReadBreps(rCadJsonParameters["breps"], rModelPart, EchoLevel);
         }
@@ -133,11 +133,17 @@ namespace Kratos
         {
             for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
             {
+                KRATOS_INFO_IF("ReadBreps", (EchoLevel > 0))
+                    << "Reading Brep \"" << GetIdOrName(rParameters[brep_index]) << "\" - faces." << std::endl;
+
                 ReadBrepFaces(rParameters[brep_index], rModelPart, EchoLevel);
             }
 
             for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
             {
+                KRATOS_INFO_IF("ReadBreps", (EchoLevel > 0))
+                    << ">Reading Brep \"" << GetIdOrName(rParameters[brep_index]) << "\" - edges." << std::endl;
+
                 ReadBrepEdges(rParameters[brep_index], rModelPart, EchoLevel);
             }
         }
@@ -147,10 +153,10 @@ namespace Kratos
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
         {
-            KRATOS_INFO_IF("ReadBrepFaces", EchoLevel > 1) << "Reading \"faces\" section..." << std::endl;
-
             if (rParameters.Has("faces"))
+            {
                 ReadBrepSurfaces(rParameters["faces"], rModelPart, EchoLevel);
+            }
         }
 
         static void ReadBrepEdges(
@@ -158,10 +164,10 @@ namespace Kratos
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
         {
-            KRATOS_INFO_IF("ReadBrepEdges", EchoLevel > 1) << "Reading \"edges\" section..." << std::endl;
-
             if (rParameters.Has("edges"))
+            {
                 ReadBrepCurveOnSurfaces(rParameters["edges"], rModelPart, EchoLevel);
+            }
         }
 
         ///@}
@@ -173,11 +179,15 @@ namespace Kratos
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
         {
-            KRATOS_INFO_IF("ReadBrepSurfaces", EchoLevel > 2) << "Reading " << rParameters.size() << " BrepSurfaces..." << std::endl;
+            KRATOS_ERROR_IF_NOT(rParameters.IsArray())
+                << "\"faces\" section needs to be an array of BrepSurfaces." << std::endl;
 
-            for (IndexType i = 0; i < rParameters.size(); i++)
+            KRATOS_INFO_IF("ReadBrepSurfaces", EchoLevel > 2)
+                << "Reading " << rParameters.size() << " BrepSurfaces..." << std::endl;
+
+            for (IndexType brep_surface_i = 0; brep_surface_i < rParameters.size(); ++brep_surface_i)
             {
-                ReadBrepSurfaces(rParameters[i], rModelPart, EchoLevel);
+                ReadBrepSurface(rParameters[brep_surface_i], rModelPart, EchoLevel);
             }
         }
 
@@ -186,12 +196,10 @@ namespace Kratos
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
         {
-            KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 3) && (rParameters.Has("brep_id")))
-                << "Reading BrepSurface " << rParameters["brep_id"].GetInt() << std::endl;
-            KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 3) && (rParameters.Has("brep_name")))
-                << "Reading BrepSurface " << rParameters["brep_name"].GetString() << std::endl;
+            KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 3))
+                << "Reading BrepSurface \"" << GetIdOrName(rParameters) << "\"..." << std::endl;
 
-            KRATOS_ERROR_IF_NOT(rParameters.Has("brep_id") || rParameters.Has("brep_name"))
+            KRATOS_ERROR_IF_NOT(HasIdOrName(rParameters))
                 << "Missing 'brep_id' or 'brep_name' in brep face." << std::endl;
 
             KRATOS_ERROR_IF_NOT(rParameters.Has("surface"))
@@ -206,7 +214,8 @@ namespace Kratos
             if (rParameters.Has("boundary_loops"))
             {
                 BrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
-                tie(outer_loops, inner_loops) = ReadBoundaryLoops(rParameters["boundary_loops"], p_surface, rModelPart);
+                tie(outer_loops, inner_loops) =
+                    ReadBoundaryLoops(rParameters["boundary_loops"], p_surface, rModelPart);
 
                     auto p_brep_surface =
                     Kratos::make_shared<BrepSurfaceType>(
@@ -216,9 +225,9 @@ namespace Kratos
                         is_trimmed);
 
                     if (rParameters.Has("brep_id"))
-                        p_brep_surface->SetId(rParameters[i]["brep_id"].GetInt());
+                        p_brep_surface->SetId(rParameters["brep_id"].GetInt());
                     else if (rParameters.Has("brep_name"))
-                        p_brep_surface->SetId(rParameters[i]["brep_name"].GetString());
+                        p_brep_surface->SetId(rParameters["brep_name"].GetString());
 
                     rModelPart.AddGeometry(p_brep_surface);
             }
@@ -234,7 +243,6 @@ namespace Kratos
                     p_brep_surface->SetId(rParameters["brep_name"].GetString());
 
                 rModelPart.AddGeometry(p_brep_surface);
-
             }
         }
 
@@ -610,6 +618,27 @@ namespace Kratos
             Vector cp = rParameters[number_of_entries-1].GetVector();
 
             return Kratos::make_shared<Point>(cp[0], cp[1], cp[2]);
+        }
+
+        ///@}
+        ///@name Utility functions
+        ///@{
+
+        static std::string GetIdOrName(
+            const Parameters& rParameters)
+        {
+            if (rParameters.Has("brep_id"))
+                return std::to_string(rParameters["brep_id"].GetInt());
+            else if (rParameters.Has("brep_name"))
+                return rParameters["brep_name"].GetString();
+            else
+                return "no_id_assigned";
+        }
+
+        static bool HasIdOrName(
+            const Parameters& rParameters)
+        {
+            return (rParameters.Has("brep_id") || rParameters.Has("brep_name"));
         }
 
         ///@}
