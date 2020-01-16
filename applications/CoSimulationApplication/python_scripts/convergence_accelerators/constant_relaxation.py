@@ -1,25 +1,24 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
+# Importing the Kratos Library
+import KratosMultiphysics as KM
+
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
 
 # CoSimulation imports
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
-def Create(settings, solver_wrapper):
+def Create(settings):
     cs_tools.SettingsTypeCheck(settings)
-    raise NotImplementedError("This class needs some updates see MVQN and Aitken")
-    return ConstantRelaxationConvergenceAccelerator(settings, solver_wrapper)
+    return ConstantRelaxationConvergenceAccelerator(settings)
 
 class ConstantRelaxationConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     ## The constructor.
     # @param alpha relaxation factor.
-    def __init__( self, settings, solvers, cosim_solver_details ):
-        super(ConstantRelaxationConvergenceAccelerator, self).__init__(settings, solvers, cosim_solver_details)
-        if "alpha" in self.settings:
-            self.alpha = self.settings["alpha"]
-        else:
-            self.alpha = 0.125
+    def __init__(self, settings):
+        super(ConstantRelaxationConvergenceAccelerator, self).__init__(settings)
+        self.alpha = self.settings["alpha"].GetDouble()
 
     ## UpdateSolution(r, x)
     # @param r residual r_k
@@ -27,6 +26,19 @@ class ConstantRelaxationConvergenceAccelerator(CoSimulationConvergenceAccelerato
     # Computes the approximated update in each iteration.
     def UpdateSolution( self, r, x ):
         if self.echo_level > 3:
-            classprint(self._ClassName(), "Doing relaxation with factor = ", "{0:.1g}".format(self.alpha))
+            cs_tools.cs_print_info(self._ClassName(), "Doing relaxation with factor = ", "{0:.1g}".format(self.alpha))
         delta_x = self.alpha * r
         return delta_x
+
+    @classmethod
+    def SupportsDistributedData(cls):
+        return True
+
+    @classmethod
+    def _GetDefaultSettings(cls):
+        this_defaults = KM.Parameters("""{
+            "alpha" : 0.125
+        }""")
+        this_defaults.AddMissingParameters(super(ConstantRelaxationConvergenceAccelerator, cls)._GetDefaultSettings())
+        return this_defaults
+
