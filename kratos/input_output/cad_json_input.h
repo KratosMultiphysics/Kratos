@@ -98,7 +98,7 @@ namespace Kratos
 
         void ReadModelPart(ModelPart& rModelPart) override
         {
-            ReadBreps(mCadJsonParameters, rModelPart);
+            ReadGeometryModelPart(mCadJsonParameters, rModelPart);
         }
 
         ///@}
@@ -109,7 +109,10 @@ namespace Kratos
             const Parameters& rCadJsonParameters,
             ModelPart& rModelPart)
         {
-            ReadBreps(rCadJsonParameters, rModelPart);
+            KRATOS_ERROR_IF_NOT(rCadJsonParameters.Has("breps"))
+                << "Missing 'brep' section" << std::endl;
+
+            ReadBreps(rCadJsonParameters["breps"], rModelPart);
         }
 
         ///@}
