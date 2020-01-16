@@ -239,7 +239,7 @@ public:
     */
     bool HasGeometryPart(IndexType Index) const override
     {
-        if (Index == SURFACE_INDEX)
+        if (Index == CURVE_ON_SURFACE_INDEX)
             return true;
 
         return false;
