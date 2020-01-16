@@ -341,9 +341,14 @@ class MorSecondOrderKrylovStrategy
         auto& r_stiffness_matrix_reduced = this->GetKr();
         auto& r_mass_matrix_reduced = this->GetMr();
         auto& r_damping_matrix_reduced = this->GetDr();
-        r_force_vector_reduced.resize( reduced_system_size, false);
+        auto& r_output_vector = this->GetOutputVector();
+        auto& r_output_vector_r = this->GetOVr();
 
+        r_force_vector_reduced.resize( reduced_system_size, false);
         r_force_vector_reduced = prod( r_RHS, r_basis );
+
+        r_output_vector_r.resize( reduced_system_size, false);
+        r_output_vector_r = prod( r_output_vector, r_basis );
 
         TReducedDenseMatrixType T = prod( herm( r_basis ), r_K );
         r_stiffness_matrix_reduced = prod( T, r_basis );

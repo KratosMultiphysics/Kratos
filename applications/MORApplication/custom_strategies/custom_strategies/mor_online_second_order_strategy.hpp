@@ -162,7 +162,6 @@ class MorOnlineSecondOrderStrategy
         // Set flags to correcty start the calculations
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
-        mReformDofSetAtEachStep = false;
 
         // Tells to the builder and solver if the reactions have to be Calculated or not
         // GetBuilderAndSolver()->SetCalculateReactionsFlag(false);
@@ -266,24 +265,10 @@ class MorOnlineSecondOrderStrategy
         return mInitializeWasPerformed;
     }
 
-    // /**
-    //  * @brief This method sets the flag mReformDofSetAtEachStep
-    //  * @param Flag The flag that tells if each time step the system is rebuilt
-    //  */
-    // void SetReformDofSetAtEachStepFlag(bool Flag)
-    // {
-    //     mReformDofSetAtEachStep = Flag;
-    //     GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
-    // }
-
-    // /**
-    //  * @brief This method returns the flag mReformDofSetAtEachStep
-    //  * @return The flag that tells if each time step the system is rebuilt
-    //  */
-    // bool GetReformDofSetAtEachStepFlag()
-    // {
-    //     return mReformDofSetAtEachStep;
-    // }
+    std::complex<double> GetScalarResult()
+    {
+        return mScalarResult;
+    }
 
     /**
      * @brief It sets the level of echo for the solving strategy
@@ -472,7 +457,8 @@ class MorOnlineSecondOrderStrategy
         }
         else
         {
-            /* code */
+            auto& r_output_vector = mpOfflineStrategy->GetOVr();
+            mScalarResult = inner_prod( r_output_vector, r_dx );
         }
 
         KRATOS_INFO("expand") << bb.ElapsedSeconds() << "\n";
@@ -636,21 +622,14 @@ class MorOnlineSecondOrderStrategy
     LocalSystemMatrixPointerType mpMr; /// The Mass matrix in reduced space
     LocalSystemMatrixPointerType mpDr; /// The Damping matrix in reduced space
 
-    ComplexDenseVectorPointerType mpResult; /// The result expanded to original space
     // TSystemMatrixPointerType mpBasis;
     typename OfflineStrategyType::TReducedDenseMatrixPointerType mpBasis;
 
+    ComplexDenseVectorPointerType mpResult; /// The result expanded to original space
+    std::complex<double> mScalarResult;
+
     unsigned int mSystemSize;
     unsigned int mSystemSizeR;
-
-    /**
-     * @brief Flag telling if it is needed to reform the DofSet at each
-    solution step or if it is possible to form it just once
-    * @details Default = false
-        - true  : Reforme at each time step
-        - false : Form just one (more efficient)
-     */
-    bool mReformDofSetAtEachStep;
 
     bool mSolutionStepIsInitialized; /// Flag to set as initialized the solution step
 
@@ -687,7 +666,8 @@ class MorOnlineSecondOrderStrategy
             {
                 if( !(*it_dof)->IsFixed() )
                 {
-                    (*it_dof)->GetSolutionStepValue(step) = std::abs( rDisplacement((*it_dof)->EquationId()) );
+                    (*it_dof)->GetSolutionStepValue(step) = std::real( rDisplacement((*it_dof)->EquationId()) );
+                    (*it_dof)->GetSolutionStepReactionValue(step) = std::imag( rDisplacement((*it_dof)->EquationId()) );
                 }
                 else
                 {

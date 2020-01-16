@@ -124,8 +124,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     py::class_< MorSecondOrderComplexOnlineStrategyType, typename MorSecondOrderComplexOnlineStrategyType::Pointer, BaseComplexSolvingStrategyType >(m,"MorComplexOnlineStrategy")
         .def(py::init < ModelPart&, ComplexLinearSolverPointer, MorSecondOrderRealInComplexOutOfflineStrategyType::Pointer > ())
+        .def(py::init < ModelPart&, ComplexLinearSolverPointer, MorSecondOrderRealInComplexOutOfflineStrategyType::Pointer, bool > ())
         .def("Check", &MorSecondOrderComplexOnlineStrategyType::Check)
         .def("Solve", &MorSecondOrderComplexOnlineStrategyType::Solve)
+        .def("GetScalarResult", &MorSecondOrderComplexOnlineStrategyType::GetScalarResult)
         ;
 
     // py::class_< MorSecondOrderComplexOnlineStrategyType, typename MorSecondOrderComplexOnlineStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorComplexOnlineStrategy");
