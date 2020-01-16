@@ -19,7 +19,7 @@
 #include "custom_processes/compute_embedded_lift_process.h"
 #include "custom_processes/define_2d_wake_process.h"
 #include "custom_processes/apply_far_field_process.h"
-#include "custom_processes/compute_nodal_potential_flow_velocity_process.h"
+#include "custom_processes/compute_nodal_value_process.h"
 
 namespace Kratos {
   namespace Testing {
