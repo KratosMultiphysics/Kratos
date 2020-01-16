@@ -217,19 +217,16 @@ namespace Kratos
                 tie(outer_loops, inner_loops) =
                     ReadBoundaryLoops(rParameters["boundary_loops"], p_surface, rModelPart);
 
-                    auto p_brep_surface =
+                auto p_brep_surface =
                     Kratos::make_shared<BrepSurfaceType>(
                         p_surface,
                         outer_loops,
                         inner_loops,
                         is_trimmed);
 
-                    if (rParameters.Has("brep_id"))
-                        p_brep_surface->SetId(rParameters["brep_id"].GetInt());
-                    else if (rParameters.Has("brep_name"))
-                        p_brep_surface->SetId(rParameters["brep_name"].GetString());
+                SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
 
-                    rModelPart.AddGeometry(p_brep_surface);
+                rModelPart.AddGeometry(p_brep_surface);
             }
             else
             {
@@ -237,10 +234,7 @@ namespace Kratos
                     Kratos::make_shared<BrepSurfaceType>(
                         p_surface);
 
-                if (rParameters.Has("brep_id"))
-                    p_brep_surface->SetId(rParameters["brep_id"].GetInt());
-                else if (rParameters.Has("brep_name"))
-                    p_brep_surface->SetId(rParameters["brep_name"].GetString());
+                SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
 
                 rModelPart.AddGeometry(p_brep_surface);
             }
@@ -639,6 +633,17 @@ namespace Kratos
             const Parameters& rParameters)
         {
             return (rParameters.Has("brep_id") || rParameters.Has("brep_name"));
+        }
+
+        template<class TGeometry>
+        static void SetIdOrName(
+            const Parameters& rParameters,
+            typename TGeometry::Pointer pGeometry)
+        {
+            if (rParameters.Has("brep_id"))
+                pGeometry->SetId(rParameters["brep_id"].GetInt());
+            else if (rParameters.Has("brep_name"))
+                pGeometry->SetId(rParameters["brep_name"].GetString());
         }
 
         ///@}
