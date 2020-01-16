@@ -88,7 +88,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
     //*************************STRATEGY CLASSES***************************
     //********************************************************************
-    py::class_< BaseComplexSolvingStrategyType, typename BaseComplexSolvingStrategyType::Pointer >(m,"BaseComplexSolvingStrategy");
+    py::class_< BaseComplexSolvingStrategyType, typename BaseComplexSolvingStrategyType::Pointer >(m,"BaseComplexSolvingStrategy")
+        .def("SetEchoLevel", &BaseComplexSolvingStrategyType::SetEchoLevel)
+        ;
     py::class_< BaseMixedSolvingStrategyType, typename BaseMixedSolvingStrategyType::Pointer >(m,"BaseMixedSolvingStrategy")
         .def("Check", &BaseMixedSolvingStrategyType::Check)
         .def("SetEchoLevel", &BaseMixedSolvingStrategyType::SetEchoLevel)

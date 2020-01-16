@@ -85,22 +85,13 @@ class MorOnlineSecondOrderStrategy
     typedef typename ComplexDenseSpaceType::MatrixPointerType ComplexDenseMatrixPointerType;
     typedef typename ComplexDenseSpaceType::VectorPointerType ComplexDenseVectorPointerType;
 
-    // typedef MassAndStiffnessBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > TBuilderAndSolverType;
-
-    // typedef LinearMorMatrixOutputStrategy< TSparseSpace, TDenseSpace, TLinearSolver > OfflineStrategyType;
-
-    // typedef MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver > OfflineStrategyType;
-
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
-    // typedef typename
 
     typedef typename BaseType::TDataType TDataType;
 
     typedef TSparseSpace SparseSpaceType;
 
     typedef typename BaseType::TSchemeType TSchemeType;
-
-    //typedef typename BaseType::DofSetType DofSetType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
@@ -140,18 +131,10 @@ class MorOnlineSecondOrderStrategy
         typename TLinearSolver::Pointer pLinearSolver,
         typename OfflineStrategyType::Pointer pOfflineStrategy,
         bool expandSolution = true)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, false)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, false),
+            mExpandSolution(expandSolution)
     {
         KRATOS_TRY;
-
-        // Setting up the default scheme
-        // mpScheme = typename TSchemeType::Pointer(
-        //     new TSchemeType());
-
-        // Setting up the default builder and solver
-        //TODO change to a builder and solver that can handle complex numbers
-        // mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
-        //     new TBuilderAndSolverType(pLinearSolver));
 
         // Saving the linear solver
         mpLinearSolver = pLinearSolver;
@@ -163,21 +146,11 @@ class MorOnlineSecondOrderStrategy
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
 
-        // Tells to the builder and solver if the reactions have to be Calculated or not
-        // GetBuilderAndSolver()->SetCalculateReactionsFlag(false);
-
-        // Tells to the Builder And Solver if the system matrix and vectors need to
-        // be reshaped at each step or not
-        // GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
-
         // Set EchoLevel to the default value (only time is displayed)
-        SetEchoLevel(1);
+        SetEchoLevel(0);
 
         // Do not rebuild the stiffness matrix
         this->SetRebuildLevel(0);
-
-        // Set strategy flags
-        mExpandSolution = expandSolution;
 
         KRATOS_CATCH("");
     }
@@ -190,42 +163,6 @@ class MorOnlineSecondOrderStrategy
     {
         Clear();
     }
-
-    /**
-     * @brief Set method for the time scheme
-     * @param pScheme The pointer to the time scheme considered
-     */
-    // void SetScheme(typename TSchemeType::Pointer pScheme)
-    // {
-    //     mpScheme = pScheme;
-    // };
-
-    /**
-     * @brief Get method for the time scheme
-     * @return mpScheme: The pointer to the time scheme considered
-     */
-    // typename TSchemeType::Pointer GetScheme()
-    // {
-    //     return mpScheme;
-    // };
-
-    // /**
-    //  * @brief Set method for the builder and solver
-    //  * @param pNewBuilderAndSolver The pointer to the builder and solver considered
-    //  */
-    // void SetBuilderAndSolver(typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver)
-    // {
-    //     mpBuilderAndSolver = pNewBuilderAndSolver;
-    // };
-
-    // /**
-    //  * @brief Get method for the builder and solver
-    //  * @return mpBuilderAndSolver: The pointer to the builder and solver considered
-    //  */
-    // typename TBuilderAndSolverType::Pointer GetBuilderAndSolver()
-    // {
-    //     return mpBuilderAndSolver;
-    // };
 
     void SetLinearSolver(typename TLinearSolver::Pointer pNewLinearSolver)
     {
@@ -283,7 +220,6 @@ class MorOnlineSecondOrderStrategy
     void SetEchoLevel(int Level) override
     {
         BaseType::mEchoLevel = Level;
-        // GetBuilderAndSolver()->SetEchoLevel(Level);
     }
 
     //*********************************************************************************
@@ -303,17 +239,12 @@ class MorOnlineSecondOrderStrategy
             p_offline_strategy->Initialize();
             p_offline_strategy->Solve();
 
-            mpKr = p_offline_strategy->pGetKr();
-            mpDr = p_offline_strategy->pGetDr();
-            mpMr = p_offline_strategy->pGetMr();
-
             // cast rhs to complex
             LocalSystemVectorPointerType p_tmp_rhs = p_offline_strategy->pGetRHSr();
-            KRATOS_WATCH(p_tmp_rhs)
-            mpRHSr = ComplexDenseSpaceType::CreateEmptyVectorPointer();
-            *mpRHSr = ComplexDenseVectorType( *p_tmp_rhs );
+            mpRHS = ComplexDenseSpaceType::CreateEmptyVectorPointer();
+            *mpRHS = ComplexDenseVectorType( *p_tmp_rhs );
 
-            mSystemSizeR = mpKr->size1();
+            mSystemSizeR = p_offline_strategy->pGetKr()->size1();
 
             mpA = ComplexDenseSpaceType::CreateEmptyMatrixPointer();
             mpA->resize( mSystemSizeR, mSystemSizeR, false );
@@ -322,8 +253,7 @@ class MorOnlineSecondOrderStrategy
 
             if (mExpandSolution)
             {
-                mpBasis = p_offline_strategy->pGetBasis();
-                mSystemSize = mpBasis->size1();
+                mSystemSize = p_offline_strategy->pGetBasis()->size1();
                 mpResult = ComplexDenseSpaceType::CreateEmptyVectorPointer();
                 mpResult->resize( mSystemSize, false );
             }
@@ -341,28 +271,16 @@ class MorOnlineSecondOrderStrategy
     {
         KRATOS_TRY;
 
-        // if the preconditioner is saved between solves, it
-        // should be cleared here.
-        // GetBuilderAndSolver()->GetLinearSystemSolver()->Clear();
         mpLinearSolver->Clear();
 
-        // if (mpKr != nullptr)
-        //     SparseSpaceType::Clear(mpKr);
-        // if (mpMr != nullptr)
-        //     SparseSpaceType::Clear(mpMr);
-        // if (mpDr != nullptr)
-        //     SparseSpaceType::Clear(mpDr);
-        // if (mpRHSr != nullptr)
-        //     SparseSpaceType::Clear(mpRHSr);
-        // if (mpA != nullptr)
-        //     SparseSpaceType::Clear(mpA);
-        // if (mpDx != nullptr)
-        //     SparseSpaceType::Clear(mpDx);
-
-        //setting to zero the internal flag to ensure that the dof sets are recalculated
-        // GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
-        // GetBuilderAndSolver()->Clear();
-        // GetScheme()->Clear();
+        if (mpA != nullptr)
+            ComplexDenseSpaceType::Clear(mpA);
+        if (mpRHS != nullptr)
+            ComplexDenseSpaceType::Clear(mpRHS);
+        if (mpDx != nullptr)
+            ComplexDenseSpaceType::Clear(mpDx);
+        if (mpResult != nullptr)
+            ComplexDenseSpaceType::Clear(mpResult);
 
         mInitializeWasPerformed = false;
 
@@ -375,17 +293,15 @@ class MorOnlineSecondOrderStrategy
         ModelPart& r_model_part = BaseType::GetModelPart();
         const int rank = r_model_part.GetCommunicator().MyPID();
 
+        typename OfflineStrategyType::Pointer p_offline_strategy = GetOfflineStrategy();
+
         auto& r_process_info = r_model_part.GetProcessInfo();
         const double excitation_frequency = r_process_info[FREQUENCY];
 
-        LocalSystemMatrixType& r_Kr = *mpKr;
-        LocalSystemMatrixType& r_Dr = *mpDr;
-        LocalSystemMatrixType& r_Mr = *mpMr;
-        // ComplexDenseVectorType& r_rhs = *mpRHSr;
-        // ComplexDenseVectorType tmp = ComplexDenseVectorType( r_rhs );
-
+        LocalSystemMatrixType& r_Kr = *(p_offline_strategy->pGetKr());
+        LocalSystemMatrixType& r_Dr = *(p_offline_strategy->pGetDr());
+        LocalSystemMatrixType& r_Mr = *(p_offline_strategy->pGetMr());
         ComplexDenseMatrixType& r_A = *mpA;
-        // ComplexDenseVectorType& r_dx = *mpDx;
 
         BuiltinTimer system_construction_time;
         r_A = r_Dr;
@@ -405,65 +321,47 @@ class MorOnlineSecondOrderStrategy
     bool SolveSolutionStep() override
     {
         KRATOS_TRY;
-
-        // auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
-        // const double excitation_frequency = r_process_info[FREQUENCY];
-
-        // LocalSystemMatrixType& r_Kr = *mpKr;
-        // LocalSystemMatrixType& r_Dr = *mpDr;
-        // LocalSystemMatrixType& r_Mr = *mpMr;
-        ComplexDenseVectorType& r_rhs = *mpRHSr;
-        // ComplexDenseVectorType tmp = ComplexDenseVectorType( r_rhs );
-
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        const int rank = r_model_part.GetCommunicator().MyPID();
+        
+        ComplexDenseVectorType& r_rhs = *mpRHS;
         ComplexDenseMatrixType& r_A = *mpA;
         ComplexDenseVectorType& r_dx = *mpDx;
 
-        // BuiltinTimer aa;
-        // r_A = r_Dr;
-        // r_A *= std::complex<double>(0,excitation_frequency);
-        // r_A += r_Kr;
-        // r_A -= std::pow( excitation_frequency, 2.0 ) * r_Mr;
-        // KRATOS_INFO("solve system build") << aa.ElapsedSeconds() << "\n";
-        // r_A = r_Kr - ( std::pow( excitation_frequency, 2.0 ) * r_Mr ); //TODO: damping is missing
-        // r_A = r_Kr - ( std::pow( excitation_frequency, 2.0 ) * r_Mr ) + IMAG*excitation_frequency*r_Dr;
+        BuiltinTimer system_solve_time;
 
-        // ComplexLinearSolverType 
-        // TLinearSolver solver = GetBuilderAndSolver()->GetLinearSystemSolver();
-        // solver.Solve( r_A, r_dx, r_rhs );
-        // auto& solver = *GetBuilderAndSolver()->GetLinearSystemSolver();
-        // KRATOS_WATCH(solver)
-        // auto pbs = GetBuilderAndSolver();
-        // KRATOS_WATCH(*pbs)
-        BuiltinTimer ab;
-        // GetBuilderAndSolver()->GetLinearSystemSolver()->Solve( r_A, r_dx, r_rhs );
         mpLinearSolver->Solve( r_A, r_dx, r_rhs );
-        KRATOS_INFO("solve system solve") << ab.ElapsedSeconds() << "\n";
-        // KRATOS_WATCH(r_A)
-        // KRATOS_WATCH(r_dx)
-        // KRATOS_WATCH(r_rhs)
 
-        std::cout << "ok hier\n";
-        // GetBuilderAndSolver()->GetLinearSystemSolver()->Solve( r_A, r_dx, r_rhs ); //all have to be in the same space type!
+        KRATOS_INFO_IF("System Solve Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+            << system_solve_time.ElapsedSeconds() << std::endl;
 
-        BuiltinTimer bb;
+        return true;
+        KRATOS_CATCH("")
+    }
+
+    void FinalizeSolutionStep() override
+    {
+        KRATOS_TRY;
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        const int rank = r_model_part.GetCommunicator().MyPID();
+
         if (mExpandSolution)
         {
-            std::cout << "hello i am expanding\n";
-            // TSystemMatrixType& r_basis = *mpBasis;
+            BuiltinTimer solution_expansion_time;
             ComplexDenseVectorType& r_result = *mpResult;
-            r_result = prod( *mpBasis, *mpDx );
-            // KRATOS_WATCH(r_result)
+
+            r_result = prod( GetOfflineStrategy()->GetBasis(), *mpDx );
             AssignVariables(r_result);
+
+            KRATOS_INFO_IF("Solution Expansion Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                << solution_expansion_time.ElapsedSeconds() << std::endl;
         }
         else
         {
             auto& r_output_vector = mpOfflineStrategy->GetOVr();
-            mScalarResult = inner_prod( r_output_vector, r_dx );
+            mScalarResult = inner_prod( r_output_vector, *mpDx );
         }
 
-        KRATOS_INFO("expand") << bb.ElapsedSeconds() << "\n";
-
-        return true;
         KRATOS_CATCH("")
     }
 
@@ -476,11 +374,6 @@ class MorOnlineSecondOrderStrategy
         KRATOS_TRY
 
         BaseType::Check();
-        KRATOS_WATCH(BaseType::GetModelPart())
-        // KRATOS_WATCH(GetBuilderAndSolver())
-        // GetBuilderAndSolver()->Check(BaseType::GetModelPart());
-
-        // GetScheme()->Check(BaseType::GetModelPart());
 
         return 0;
 
@@ -494,7 +387,7 @@ class MorOnlineSecondOrderStrategy
     {
         // TSystemMatrixType& rA  = *mpKr;
         // TSystemMatrixType& rM = *mpMr;
-        // TSystemVectorType& rRHS  = *mpRHSr;
+        // TSystemVectorType& rRHS  = *mpRHS;
         // TSystemMatrixType& rS  = *mpDr;
 
         // if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
@@ -522,7 +415,7 @@ class MorOnlineSecondOrderStrategy
 
         // std::stringstream matrix_market_vectname;
         // matrix_market_vectname << "RHS_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm.rhs";
-        // TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), *mpRHSr);
+        // TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), *mpRHS);
     }
 
     ///@}
@@ -536,30 +429,7 @@ class MorOnlineSecondOrderStrategy
 
     ///@}
     ///@name Access
-
     ///@{
-
-    /**
-     * @brief This method returns the LHS matrix
-     * @return The LHS matrix
-     */
-    // TSystemMatrixType &GetSystemMatrix()
-    // {
-    //     TSystemMatrixType &mA = *mpKr;
-
-    //     return mA;
-    // }
-
-    /**
-     * @brief This method returns the RHS vector
-     * @return The RHS vector
-     */
-    // TSystemVectorType& GetSystemVector()
-    // {
-    //     TSystemVectorType& mb = *mpRHSr;
-
-    //     return mb;
-    // }
 
     ///@}
     ///@name Inquiry
@@ -609,21 +479,13 @@ class MorOnlineSecondOrderStrategy
     ///@name Member Variables
     ///@{
     typename TLinearSolver::Pointer mpLinearSolver; /// The pointer to the linear solver considered
-    // typename TSchemeType::Pointer mpScheme; /// The pointer to the time scheme employed
-    // typename TBuilderAndSolverType::Pointer mpBuilderAndSolver; /// The pointer to the builder and solver employe
     typename OfflineStrategyType::Pointer mpOfflineStrategy;
 
     bool mExpandSolution;
 
     ComplexDenseMatrixPointerType mpA; /// The system matrix in reduced space
     ComplexDenseVectorPointerType mpDx; /// The result in reduced space
-    ComplexDenseVectorPointerType mpRHSr; /// The RHS vector in reduced space
-    LocalSystemMatrixPointerType mpKr; /// The Stiffness matrix in reduced space
-    LocalSystemMatrixPointerType mpMr; /// The Mass matrix in reduced space
-    LocalSystemMatrixPointerType mpDr; /// The Damping matrix in reduced space
-
-    // TSystemMatrixPointerType mpBasis;
-    typename OfflineStrategyType::TReducedDenseMatrixPointerType mpBasis;
+    ComplexDenseVectorPointerType mpRHS; /// The RHS vector in reduced space
 
     ComplexDenseVectorPointerType mpResult; /// The result expanded to original space
     std::complex<double> mScalarResult;
@@ -638,21 +500,6 @@ class MorOnlineSecondOrderStrategy
     ///@}
     ///@name Private Operators
     ///@{
-
-    /**
-     * @brief This method prints information after reach the max number of iterations
-     * @todo Replace by logger
-     */
-
-    virtual void MaxIterationsExceeded()
-    {
-        if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
-        {
-            std::cout << "***************************************************" << std::endl;
-            std::cout << "******* ATTENTION: max iterations exceeded ********" << std::endl;
-            std::cout << "***************************************************" << std::endl;
-        }
-    }
 
     void AssignVariables(ComplexDenseVectorType& rDisplacement, int step=0)
     {
