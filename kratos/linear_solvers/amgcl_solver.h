@@ -371,18 +371,14 @@ public:
         KRATOS_ERROR_IF(TSparseSpaceType::Size(rB) != TSparseSpaceType::Size1(rA)) << "size of b does not match the size of A. b size is " << TSparseSpaceType::Size(rB)
             << " matrix size is " << TSparseSpaceType::Size1(rA) << std::endl;
 
-        // Set block size
 
-        if(mUseAMGPreconditioning && mAMGCLParameters.get<std::string>("precond.coarsening.type") != std::string("ruge_stuben")) {
-            mAMGCLParameters.put("precond.coarsening.aggr.eps_strong",0.0);
-            mAMGCLParameters.put("precond.coarsening.aggr.block_size",mBlockSize);
-        }
         mAMGCLParameters.put("solver.tol", mTolerance);
         mAMGCLParameters.put("solver.maxiter", mMaxIterationsNumber);
 
         if(mUseAMGPreconditioning)
             mAMGCLParameters.put("precond.coarse_enough",mCoarseEnough/mBlockSize);
 
+        // Use rigid body modes or set block size
         if(mUseAMGPreconditioning && mProvideCoordinates && (mBlockSize == 2 || mBlockSize == 3)) {
             std::vector<double> B;
             int nmodes = amgcl::coarsening::rigid_body_modes(mBlockSize,
@@ -391,9 +387,13 @@ public:
                         &mCoordinates[0][0] + TSparseSpaceType::Size1(rA)),
                     B);
 
+            mAMGCLParameters.put("precond.coarsening.aggr.eps_strong",0.0);
             mAMGCLParameters.put("precond.coarsening.nullspace.cols", nmodes);
             mAMGCLParameters.put("precond.coarsening.nullspace.rows", TSparseSpaceType::Size1(rA));
             mAMGCLParameters.put("precond.coarsening.nullspace.B",    &B[0]);
+        } else if(mUseAMGPreconditioning && mAMGCLParameters.get<std::string>("precond.coarsening.type") != std::string("ruge_stuben")) {
+            mAMGCLParameters.put("precond.coarsening.aggr.eps_strong",0.0);
+            mAMGCLParameters.put("precond.coarsening.aggr.block_size",mBlockSize);
         }
 
         if(mVerbosity > 1)
