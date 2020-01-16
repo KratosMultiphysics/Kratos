@@ -138,6 +138,9 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
     def _ComputeLiftFromJumpCondition3D(self):
 
+        nodal_value_process = CPFApp.ComputeNodalValueProcess(self.wake_sub_model_part, ["VELOCITY"])
+        nodal_value_process.Execute()
+
         potential_integral = 0.0
         drag_integral = 0.0
         for cond in self.trailing_edge_model_part.Conditions:
