@@ -492,8 +492,8 @@ class FrequencyResponseAnalysisStrategy
             {
                 if( !(*it_dof)->IsFixed() )
                 {
-                    (*it_dof)->GetSolutionStepValue(step) = std::abs(rDisplacement((*it_dof)->EquationId()));
-                    // it_dof->GetSolutionStepReactionValue(step) = std::imag(rDisplacement(it_dof->EquationId()));
+                    (*it_dof)->GetSolutionStepValue(step) = std::real(rDisplacement((*it_dof)->EquationId()));
+                    (*it_dof)->GetSolutionStepReactionValue(step) = std::imag(rDisplacement((*it_dof)->EquationId()));
                 }
                 else
                 {
