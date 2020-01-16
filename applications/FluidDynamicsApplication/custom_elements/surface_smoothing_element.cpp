@@ -169,6 +169,9 @@ Element::Pointer SurfaceSmoothingElement::Clone(IndexType NewId, NodesArrayType 
  */
 void SurfaceSmoothingElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
+    const int num_dim  = 3;
+    const int num_nodes  = num_dim + 1;
+
     // num_dof = num_nodes
     if (rResult.size() != num_nodes){
         rResult.resize(num_nodes, false);
@@ -186,6 +189,9 @@ void SurfaceSmoothingElement::EquationIdVector(EquationIdVectorType& rResult, Pr
  */
 void SurfaceSmoothingElement::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo)
 {
+    const int num_dim  = 3;
+    const int num_nodes  = num_dim + 1;
+
     // num_dof = num_nodes
     if (rElementalDofList.size() != num_nodes){
         rElementalDofList.resize(num_nodes);
@@ -216,12 +222,14 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 {
-
     KRATOS_TRY
+
+    const int num_dim  = 3;
+    const int num_nodes  = num_dim + 1;
 
     const double epsilon = 1.0e-8;
 
-    BoundedMatrix<double,num_nodes,dim> DN_DX;  // Gradients matrix 
+    BoundedMatrix<double,num_nodes,num_dim> DN_DX;  // Gradients matrix 
     array_1d<double,num_nodes> N; //dimension = number of nodes . Position of the gauss point 
     array_1d<double,num_nodes> tempVdof; //dimension = number of DOFs . . since we are using a residualbased approach
     array_1d<double,num_nodes> tempVold; //dimension = number of DOFs . . since we are using a residualbased approach
@@ -256,7 +264,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
         for(unsigned int j = 0; j<num_nodes; j++){
             tempM(i,j) = area*N[i]*N[j];
 
-            for (unsigned int k = 0; k<dim; k++){
+            for (unsigned int k = 0; k<num_dim; k++){
                 tempA(i,j) += area*epsilon*DN_DX(i,k)*DN_DX(j,k);
             }
 

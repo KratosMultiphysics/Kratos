@@ -11,8 +11,8 @@
 //
 //
 
-#ifndef KRATOS_SURFACE_SMOOTHING_H
-#define KRATOS_SURFACE_SMOOTHING_H
+#ifndef KRATOS_VARIATIONAL_NON_EIKONAL_DISTANCE_H
+#define KRATOS_VARIATIONAL_NON_EIKONAL_DISTANCE_H
 
 // System includes
 #include <string>
@@ -35,12 +35,12 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 //#include "utilities/variable_utils.h" Not necessary!!!!
-#include "processes/compute_nodal_gradient_process.h"
+//#include "processes/compute_nodal_normal_divergence_process.h" //Not needed, already done in python
 #include "custom_utilities/element_size_calculator.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
-#include "custom_elements/surface_smoothing_element.h"
+#include "custom_elements/variational_non_eikonal_distance_element.h"
 
 namespace Kratos
 {
@@ -66,17 +66,17 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Utility for surface smoothing
-/// Based on Tornberg, Anna-Karin, and Björn Engquist. "A finite element based level-set method 
-/// for multiphase flow applications." Computing and Visualization in Science 3, no. 1-2 (2000): 93-101.
-class SurfaceSmoothingProcess : public Process
+/// Utility for distance reinitialization
+/// There is no need to keep distance gradient unity.
+/// This process tries to keep distance zero at the interface while keeping the curvature is also penalized.
+class VariationalNonEikonalDistance : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of SurfaceSmoothingProcess
-    KRATOS_CLASS_POINTER_DEFINITION(SurfaceSmoothingProcess);
+    /// Pointer definition of VariationalNonEikonalDistance
+    KRATOS_CLASS_POINTER_DEFINITION(VariationalNonEikonalDistance);
 
     typedef UblasSpace<double, CompressedMatrix, Vector> TSparseSpace;
     typedef UblasSpace<double, Matrix, Vector> TDenseSpace;
@@ -91,12 +91,12 @@ public:
     ///@{
 
     /// Constructor.
-    SurfaceSmoothingProcess(
+    VariationalNonEikonalDistance(
         ModelPart& rModelPart,
         TLinearSolver::Pointer);
 
     /// Destructor.
-    ~SurfaceSmoothingProcess() override 
+    ~VariationalNonEikonalDistance() override 
     {
         Model& current_model = mrModelPart.GetModel();
         if(current_model.HasModelPart( mAuxModelPartName ))
@@ -137,12 +137,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "TESTING: surface_smoothing" ;
+        buffer << "TESTING: VariationalNonEikonalDistance" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "surface_smoothing";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "VariationalNonEikonalDistance";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -164,7 +164,7 @@ private:
 
     ModelPart& mrModelPart;
 
-    std::string mAuxModelPartName = "Aux_Smoothing_Model_Part";
+    std::string mAuxModelPartName = "Aux_Variational_Non_Eikonal_Distance_Model_Part";
 
     SolvingStrategyType::UniquePointer mp_solving_strategy;
 
@@ -188,7 +188,7 @@ private:
         Model& r_model = mrModelPart.GetModel();
         ModelPart& r_smoothing_model_part = r_model.GetModelPart( mAuxModelPartName );
     
-       bool CalculateReactions = false;
+        bool CalculateReactions = false;
         bool ReformDofAtEachIteration = false;
         bool CalculateNormDxFlag = false;
     
@@ -206,7 +206,7 @@ private:
 
     /**
      * @brief Initialize the process 
-     * Create a Model Part with the SurfaceSmoothingElement
+     * Create a Model Part with the VariationalNonEikonalDistanceElement
      */
     void CreateAuxModelPart();
 
@@ -226,17 +226,17 @@ private:
     ///@{
 
     /// Default constructor.
-    SurfaceSmoothingProcess() = delete;
+    VariationalNonEikonalDistance() = delete;
 
     /// Assignment operator.
-    SurfaceSmoothingProcess& operator=(SurfaceSmoothingProcess const& rOther) = delete;
+    VariationalNonEikonalDistance& operator=(VariationalNonEikonalDistance const& rOther) = delete;
 
     /// Copy constructor.
-    SurfaceSmoothingProcess(SurfaceSmoothingProcess const& rOther) = delete;
+    VariationalNonEikonalDistance(VariationalNonEikonalDistance const& rOther) = delete;
 
     ///@}
 
-}; // Class SurfaceSmoothingProcess
+}; // Class VariationalNonEikonalDistance
 
 ///@}
 ///@name Type Definitions
@@ -252,4 +252,4 @@ private:
 
 };  // namespace Kratos.
 
-#endif // KRATOS_SURFACE_SMOOTHING__H
+#endif // KRATOS_VARIATIONAL_NON_EIKONAL_DISTANCE_H

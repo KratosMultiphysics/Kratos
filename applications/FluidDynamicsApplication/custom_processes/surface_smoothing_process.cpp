@@ -98,6 +98,9 @@ void SurfaceSmoothingProcess::Execute()
         DistDiff[it_node->Id()-1] = it_node->FastGetSolutionStepValue(DISTANCE_AUX) - it_node->FastGetSolutionStepValue(DISTANCE);
     }
 
+    const int num_dim  = 3;
+    const int num_nodes  = num_dim + 1;
+
     for (unsigned int k = 0; k < NumElements; ++k) {
         auto it_elem = mrModelPart.ElementsBegin() + k;
         auto geom = it_elem->pGetGeometry();

@@ -49,6 +49,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_fluid_navier_stokes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms_adjoint_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/surface_smoothing_element.cpp #MRH
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/variational_non_eikonal_distance_element.cpp #MRH
 
   # conditions
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition.cpp
@@ -83,6 +84,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/surface_smoothing_process.cpp #MRH
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mass_conservation_correction.cpp #MRH
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/lumped_eikonal_distance_calculation.cpp #MRH
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/variational_non_eikonal_distance.cpp #MRH
 )
 
 ## define python interface sources

@@ -10,8 +10,8 @@
 //  Main authors:    KratosAppGenerator
 //
 
-#if !defined(KRATOS_SURFACE_SMOOTHING_ELEMENT_H_INCLUDED )
-#define KRATOS_SURFACE_SMOOTHING_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_VARIATIONAL_NON_EIKONAL_ELEMENT_H_INCLUDED )
+#define KRATOS_VARIATIONAL_NON_EIKONAL_ELEMENT_H_INCLUDED
 
 
 // System includes
@@ -23,10 +23,9 @@
 
 // Project includes
 #include "includes/element.h"
-
-// Include Base headers
 #include "includes/checks.h"
 #include "utilities/geometry_utilities.h"
+#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -54,7 +53,7 @@ namespace Kratos
 ///@{
 
 
-class SurfaceSmoothingElement : public Element
+class VariationalNonEikonalDistanceElement : public Element
 {
 public:
 
@@ -66,7 +65,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of CellNodeProjectionElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SurfaceSmoothingElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(VariationalNonEikonalDistanceElement);
 
     ///@}
     ///@name Life Cycle
@@ -75,39 +74,39 @@ public:
     /**
      * Constructor.
      */
-    SurfaceSmoothingElement(IndexType NewId = 0);
+    VariationalNonEikonalDistanceElement(IndexType NewId = 0);
 
     /**
      * Constructor using an array of nodes
      */
-    SurfaceSmoothingElement(IndexType NewId, const NodesArrayType& ThisNodes);
+    VariationalNonEikonalDistanceElement(IndexType NewId, const NodesArrayType& ThisNodes);
 
     /**
      * Constructor using Geometry
      */
-    SurfaceSmoothingElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    VariationalNonEikonalDistanceElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /**
      * Constructor using Properties
      */
-    SurfaceSmoothingElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    VariationalNonEikonalDistanceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /**
      * Copy Constructor
      */
-    SurfaceSmoothingElement(SurfaceSmoothingElement const& rOther);
+    VariationalNonEikonalDistanceElement(VariationalNonEikonalDistanceElement const& rOther);
 
     /**
      * Destructor
      */
-    ~SurfaceSmoothingElement() override;
+    ~VariationalNonEikonalDistanceElement() override;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    SurfaceSmoothingElement & operator=(SurfaceSmoothingElement const& rOther);
+    VariationalNonEikonalDistanceElement & operator=(VariationalNonEikonalDistanceElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -396,7 +395,7 @@ private:
 
     ///@}
 
-}; // Class SurfaceSmoothingElement
+}; // Class VariationalNonEikonalDistanceElement
 
 ///@}
 
@@ -411,4 +410,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_SURFACE_SMOOTHING_ELEMENT_H_INCLUDED
+#endif // KRATOS_VARIATIONAL_NON_EIKONAL_ELEMENT_H_INCLUDED

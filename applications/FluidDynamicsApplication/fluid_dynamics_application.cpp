@@ -183,7 +183,8 @@ void KratosFluidDynamicsApplication::Register() {
 
     // Smoothing surface auxiliary distance
     KRATOS_REGISTER_VARIABLE( DISTANCE_AUX)
-
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DISTANCE_GRADIENT_AUX)
+    
     // Parallel levelset distance calculator needs an AREA_VARIABLE_AUX
     KRATOS_REGISTER_VARIABLE( AREA_VARIABLE_AUX)
 
