@@ -19,7 +19,7 @@ NodalSolutionStepBossakIO::NodalSolutionStepBossakIO(Parameters Settings, File::
 
 namespace {
 template <typename TVariable>
-class WriteVariableFunctor;
+class WriteNodalBossakVariableFunctor;
 }
 
 void NodalSolutionStepBossakIO::WriteNodalResults(NodesContainerType const& rNodes)
@@ -39,7 +39,7 @@ void NodalSolutionStepBossakIO::WriteNodalResults(NodesContainerType const& rNod
         RegisteredVariableLookup<Variable<array_1d<double, 3>>,
                                  VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>,
                                  Variable<double>, Variable<int>>(r_name)
-            .Execute<WriteVariableFunctor>(local_nodes, GetFile(), prefix,
+            .Execute<WriteNodalBossakVariableFunctor>(local_nodes, GetFile(), prefix,
                                            mAlphaBossak, info);
 
     // Write block partition.
@@ -54,7 +54,7 @@ template <class TVariableType, class TFileDataType>
 void SetDataBuffer(TVariableType const&, std::vector<NodeType*> const&, double, Vector<TFileDataType>&);
 
 template <typename TVariable>
-class WriteVariableFunctor
+class WriteNodalBossakVariableFunctor
 {
 public:
     void operator()(TVariable const& rVariable,

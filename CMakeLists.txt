@@ -35,7 +35,7 @@ endif(NOT DEFINED INSTALL_RUNKRATOS)
 
 # Link on install
 if(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
-  message("--No KRATOS_INSTALL_PYTHON_USING_LINKS is defined, setting to OFF")
+  message("-- No KRATOS_INSTALL_PYTHON_USING_LINKS is defined, setting to OFF")
   SET(INSTALL_PYTHON_USING_LINKS OFF)
 else(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
   SET(INSTALL_PYTHON_USING_LINKS $ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
@@ -43,9 +43,15 @@ endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 
 # If no test policy enable by default
 if(NOT DEFINED KRATOS_BUILD_TESTING)
-	message("--No KRATOS_BUILD_TESTING is defined. Setting to ON")
-	SET (KRATOS_BUILD_TESTING ON)
+message("-- No KRATOS_BUILD_TESTING is defined. Setting to ON")
+SET (KRATOS_BUILD_TESTING ON)
 endif(NOT DEFINED KRATOS_BUILD_TESTING)
+
+# If not defined mute the very verbose installation messages
+if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
+	message("-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER")
+	SET (CMAKE_INSTALL_MESSAGE NEVER)
+endif(NOT DEFINED CMAKE_INSTALL_MESSAGE)
 
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${KRATOS_SOURCE_DIR}/cmake_modules")
@@ -211,6 +217,11 @@ SET(INSTALL_PYTHON_FILES ON)        # To be removed when all applications are po
 include(install_function)
 include(KratosDependencies)
 
+# Logger configuration
+if(KRATOS_COLORED_OUTPUT MATCHES ON)
+  add_definitions(-DKRATOS_COLORED_OUTPUT)
+endif(KRATOS_COLORED_OUTPUT MATCHES ON)
+
 ################### PYBIND11
 
 # Try to use python executable from env variable
@@ -363,14 +374,20 @@ add_subdirectory(kratos)
 
 # Configure kratos applications
 message("-- Configuring applications (ENV):")
-set_property(GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THOUGH_DEPENDENCIES)
+set_property(GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THROUGH_DEPENDENCIES)
+if(DEFINED ENV{KRATOS_APPLICATIONS})
+    foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
+        get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
+        list(APPEND LIST_OF_APPLICATIONS_TO_BE_COMPILED ${APPLICATION_NAME})
+    endforeach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
+endif(DEFINED ENV{KRATOS_APPLICATIONS})
+
 if(DEFINED ENV{KRATOS_APPLICATIONS})
     foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
         get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
         if(NOT TARGET Kratos${APPLICATION_NAME})
             message("Adding application '${APPLICATION_PATH}'")
             add_subdirectory(${APPLICATION_PATH} ${CMAKE_CURRENT_BINARY_DIR}/applications/${APPLICATION_NAME})
-            list(APPEND LIST_OF_APPLICATIONS_TO_BE_COMPILED ${APPLICATION_NAME})
         else(NOT TARGET Kratos${APPLICATION_NAME})
             message("[Warning] Application '${APPLICATION_PATH}' was already added")
         endif(NOT TARGET Kratos${APPLICATION_NAME})
@@ -388,9 +405,11 @@ endforeach()
 message("")
 message("        APPLICATIONS ADDED TO COMPILATION THROUGH DEPENDENCIES:")
 message("")
-get_property(local_list GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THOUGH_DEPENDENCIES)
+get_property(local_list GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THROUGH_DEPENDENCIES)
 foreach(individual_app_name ${local_list})
-  message("        ${individual_app_name}")
+    if(NOT ";${LIST_OF_APPLICATIONS_TO_BE_COMPILED};" MATCHES ${individual_app_name})
+        message("        ${individual_app_name}")
+    endif(NOT ";${LIST_OF_APPLICATIONS_TO_BE_COMPILED};" MATCHES ${individual_app_name})
 endforeach()
 message("")
 message("***********************************************************************")
