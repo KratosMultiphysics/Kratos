@@ -147,10 +147,10 @@ namespace Kratos
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
         {
-            KRATOS_INFO_IF("ReadBrepFaces", EchoLevel > 2) << "Reding \"faces\" section..." << std::endl;
+            KRATOS_INFO_IF("ReadBrepFaces", EchoLevel > 1) << "Reading \"faces\" section..." << std::endl;
 
             if (rParameters.Has("faces"))
-                ReadBrepSurfaces(rParameters["faces"], rModelPart);
+                ReadBrepSurfaces(rParameters["faces"], rModelPart, EchoLevel);
         }
 
         static void ReadBrepEdges(
@@ -158,10 +158,10 @@ namespace Kratos
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
         {
-            KRATOS_INFO_IF("ReadBrepEdges", EchoLevel > 2) << "Reding \"edges\" section..." << std::endl;
+            KRATOS_INFO_IF("ReadBrepEdges", EchoLevel > 1) << "Reading \"edges\" section..." << std::endl;
 
             if (rParameters.Has("edges"))
-                ReadBrepCurveOnSurfaces(rParameters["edges"], rModelPart);
+                ReadBrepCurveOnSurfaces(rParameters["edges"], rModelPart, EchoLevel);
         }
 
         ///@}
@@ -173,11 +173,11 @@ namespace Kratos
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
         {
-            KRATOS_INFO_IF("ReadBrepSurfaces", EchoLevel > 2) << "Reding BrepSurfaces..." << std::endl;
+            KRATOS_INFO_IF("ReadBrepSurfaces", EchoLevel > 2) << "Reading " << rParameters.size() << " BrepSurfaces..." << std::endl;
 
             for (IndexType i = 0; i < rParameters.size(); i++)
             {
-                ReadBrepSurfaces(rParameters[i], rModelPart);
+                ReadBrepSurfaces(rParameters[i], rModelPart, EchoLevel);
             }
         }
 
@@ -186,6 +186,11 @@ namespace Kratos
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
         {
+            KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 3) && (rParameters.Has("brep_id")))
+                << "Reading BrepSurface " << rParameters["brep_id"].GetInt() << std::endl;
+            KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 3) && (rParameters.Has("brep_name")))
+                << "Reading BrepSurface " << rParameters["brep_name"].GetString() << std::endl;
+
             KRATOS_ERROR_IF_NOT(rParameters.Has("brep_id") || rParameters.Has("brep_name"))
                 << "Missing 'brep_id' or 'brep_name' in brep face." << std::endl;
 
