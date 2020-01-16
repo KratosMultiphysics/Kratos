@@ -14,11 +14,9 @@ class CoSimulationConvergenceAccelerator(object):
     Note that the interface matches the convergence accelerators in the FSIApplication such that they can be used interchangeable
     ("FSIApplication/custom_utilities/convergence_accelerator.hpp")
     """
-    def __init__(self, settings, solver_wrapper):
+    def __init__(self, settings):
         self.settings = settings
         self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
-
-        self.interface_data = solver_wrapper.GetInterfaceData(self.settings["data_name"].GetString())
 
         self.echo_level = self.settings["echo_level"].GetInt()
 
@@ -35,18 +33,10 @@ class CoSimulationConvergenceAccelerator(object):
         pass
 
     def InitializeNonLinearIteration(self):
-        # Saving the previous data for the computation of the residual
-        # and the computation of the solution update
-        self.input_data = self.interface_data.GetData()
+        pass
 
     def FinalizeNonLinearIteration(self):
         pass
-
-    def ComputeAndApplyUpdate(self):
-        current_data = self.interface_data.GetData()
-        residual = current_data - self.input_data
-        updated_data = self.input_data + self.UpdateSolution(residual, self.input_data)
-        self.interface_data.SetData(updated_data)
 
     def PrintInfo(self):
         '''Function to print Info abt the Object
@@ -58,7 +48,13 @@ class CoSimulationConvergenceAccelerator(object):
         print("ConvAcc does not yet implement Check")
 
     def UpdateSolution(self, residual, iteration_guess):
+        # TODO this should update the solution in place, otherwise not compatible with the conv-acc in the FSI-App
+        # => would probably not be compatible with any C++ Conv-Acc
         raise NotImplementedError('"UpdateSolution" has to be implemented in the derived class!')
+
+    @classmethod
+    def SupportsDistributedData(cls):
+        return False
 
     @classmethod
     def _ClassName(cls):
@@ -68,7 +64,5 @@ class CoSimulationConvergenceAccelerator(object):
     def _GetDefaultSettings(cls):
         return KM.Parameters("""{
             "type"       : "UNSPECIFIED",
-            "solver"     : "UNSPECIFIED",
-            "data_name"  : "UNSPECIFIED",
             "echo_level" : 0
         }""")

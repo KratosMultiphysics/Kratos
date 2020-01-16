@@ -69,9 +69,12 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         err_msg += "Available options are: \"OpenMP\", \"MPI\""
         raise Exception(err_msg)
 
-    if solver_settings.Has("contact_settings"): # this is a contact problem
+    if solver_settings.Has("contact_settings"):  # This is a contact problem
         kratos_module = "KratosMultiphysics.ContactStructuralMechanicsApplication"
         solver_module_name = "contact_" + solver_module_name
+    elif solver_settings.Has("mpc_contact_settings"):  # This is a mpc contact problem
+        kratos_module = "KratosMultiphysics.ContactStructuralMechanicsApplication"
+        solver_module_name = "mpc_contact_" + solver_module_name
     else:
         kratos_module = "KratosMultiphysics.StructuralMechanicsApplication"
 

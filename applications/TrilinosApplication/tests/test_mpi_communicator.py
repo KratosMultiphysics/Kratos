@@ -43,7 +43,7 @@ class TestMPICommunicator(KratosUnittest.TestCase):
             model_part_io = KratosMultiphysics.ModelPartIO(input_filename)
 
             # Partition of the original .mdpa file
-            number_of_partitions = KratosMPI.mpi.size # Number of partitions equals the number of processors
+            number_of_partitions = self.communicator.Size() # Number of partitions equals the number of processors
             domain_size = main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
             verbosity = 0
             sync_conditions = True # Make sure that the condition goes to the same partition as the element is a face of

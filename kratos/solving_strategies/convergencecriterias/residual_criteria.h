@@ -200,6 +200,7 @@ public:
     void Initialize(ModelPart& rModelPart) override
     {
         BaseType::Initialize(rModelPart);
+        KRATOS_ERROR_IF(rModelPart.IsDistributed() && rModelPart.NumberOfMasterSlaveConstraints() > 0) << "This Criteria does not yet support constraints in MPI!" << std::endl;
     }
 
     /**
@@ -221,7 +222,9 @@ public:
         BaseType::InitializeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
 
         // Filling mActiveDofs when MPC exist
-        ConstraintUtilities::ComputeActiveDofs(rModelPart, mActiveDofs, rDofSet);
+        if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
+            ConstraintUtilities::ComputeActiveDofs(rModelPart, mActiveDofs, rDofSet);
+        }
 
         SizeType size_residual;
         CalculateResidualNorm(rModelPart, mInitialResidualNorm, size_residual, rDofSet, rb);
@@ -336,7 +339,7 @@ protected:
 
                 const IndexType dof_id = it_dof->EquationId();
 
-                if (mActiveDofs[dof_id]) {
+                if (mActiveDofs[dof_id] == 1) {
                     residual_dof_value = TSparseSpace::GetValue(rb,dof_id);
                     residual_solution_norm += std::pow(residual_dof_value, 2);
                     dof_num++;
@@ -392,7 +395,7 @@ private:
 
     TDataType mReferenceDispNorm;   /// The norm at the beginning of the iterations
 
-    std::vector<bool> mActiveDofs;  /// This vector contains the dofs that are active
+    std::vector<int> mActiveDofs;   /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators

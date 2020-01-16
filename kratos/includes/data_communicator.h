@@ -391,12 +391,26 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return rLocalValue;
     }
 
+    virtual bool AndReduce(
+        const bool Value,
+        const int Root) const
+    {
+        return Value;
+    }
+
     virtual Kratos::Flags AndReduce(
         const Kratos::Flags Values,
         const Kratos::Flags Mask,
         const int Root) const
     {
         return Values;
+    }
+
+    virtual bool OrReduce(
+        const bool Value,
+        const int Root) const
+    {
+        return Value;
     }
 
     virtual Kratos::Flags OrReduce(
@@ -439,10 +453,19 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return rLocalValue;
     }
 
+    virtual bool AndReduceAll(const bool Value) const
+    {
+        return Value;
+    }
 
     virtual Kratos::Flags AndReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
     {
         return Values;
+    }
+
+    virtual bool OrReduceAll(const bool Value) const
+    {
+        return Value;
     }
 
     virtual Kratos::Flags OrReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const

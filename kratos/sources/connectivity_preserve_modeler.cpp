@@ -133,7 +133,7 @@ void ConnectivityPreserveModeler::CopyCommonData(
             << "Attempting to change the BufferSize of the Destination Model Part, which is a SubModelPart." << std::endl
             << "Aborting, since this would break its parent ModelPart." << std::endl;
     } else {
-        rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
+        rDestinationModelPart.SetNodalSolutionStepVariablesList(rOriginModelPart.pGetNodalSolutionStepVariablesList());
         rDestinationModelPart.SetBufferSize( rOriginModelPart.GetBufferSize() );
     }
 

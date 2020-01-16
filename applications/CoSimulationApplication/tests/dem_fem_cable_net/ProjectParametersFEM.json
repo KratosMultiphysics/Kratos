@@ -20,7 +20,8 @@
 		"material_import_settings"    : {
 			"materials_filename"      : "dem_fem_cable_net/cableNetFEMStructuralMaterials.json"
 		},
-		"rotation_dofs"                       : false,
+		"rotation_dofs"            : false,
+		"use_computing_model_part" : false,
 		"model_part_name" : "Structure",
 		"domain_size"     : 3,
 		"time_stepping":{
@@ -33,7 +34,7 @@
 		"kratos_module" : "KratosMultiphysics",
 		"help" : "This process fixes the selected components of a given vector variable",
 		"Parameters" : {
-			"model_part_name" : "DISPLACEMENT_dirichXYZ",
+			"model_part_name" : "Structure.DISPLACEMENT_dirichXYZ",
 			"variable_name" : "DISPLACEMENT",
 			"constrained" : [true, true, true]
 			}
@@ -45,7 +46,7 @@
         "Parameters"            : {
             "check_variables"  : ["DISPLACEMENT_Z"],
             "input_file_name"  : "dem_fem_cable_net/dem_fem_cable_net_test_results.json",
-            "model_part_name"  : "RESULT_middleNode",
+            "model_part_name"  : "Structure.RESULT_middleNode",
 			"time_frequency"   : 5e-04,
 			"tolerance"        : 1e-2
         }

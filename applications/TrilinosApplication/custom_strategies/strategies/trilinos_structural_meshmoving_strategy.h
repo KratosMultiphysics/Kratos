@@ -170,8 +170,6 @@ public:
         // Solve for mesh movement
         mstrategy->Solve();
 
-        MoveMesh();
-
         // Clearing the system if needed
         if (m_reform_dof_set_at_each_step == true)
             mstrategy->Clear();
@@ -179,18 +177,6 @@ public:
         return 0.0;
 
         KRATOS_CATCH("")
-    }
-
-    void MoveMesh() override
-    {
-        for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
-             i != BaseType::GetModelPart().NodesEnd();
-             ++i)
-        {
-            (i)->X() = (i)->X0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_X);
-            (i)->Y() = (i)->Y0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_Y);
-            (i)->Z() = (i)->Z0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_Z);
-        }
     }
 
     /*@} */

@@ -108,7 +108,16 @@ KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApp
     mPenaltyFrictionalMortarContactCondition3D3N4N( 0, GeometryPointerType(new TriangleType(PointsArrayType(3))), nullptr, GeometryPointerType(new QuadrilateralType(PointsArrayType(4)))),
     mPenaltyNVFrictionalMortarContactCondition3D3N4N( 0, GeometryPointerType(new TriangleType(PointsArrayType(3))), nullptr, GeometryPointerType(new QuadrilateralType(PointsArrayType(4)))),
     mPenaltyFrictionalMortarContactCondition3D4N3N( 0, GeometryPointerType(new QuadrilateralType(PointsArrayType(4))), nullptr, GeometryPointerType(new TriangleType(PointsArrayType(3)))),
-    mPenaltyNVFrictionalMortarContactCondition3D4N3N( 0, GeometryPointerType(new QuadrilateralType(PointsArrayType(4))), nullptr, GeometryPointerType(new TriangleType(PointsArrayType(3))))
+    mPenaltyNVFrictionalMortarContactCondition3D4N3N( 0, GeometryPointerType(new QuadrilateralType(PointsArrayType(4))), nullptr, GeometryPointerType(new TriangleType(PointsArrayType(3)))),
+    // 2D MPC
+    mMPCMortarContactCondition2D2N( 0, GeometryPointerType(new LineType(PointsArrayType(2))), nullptr, GeometryPointerType(new LineType(PointsArrayType(2)))),
+    // 3D MPC
+    mMPCMortarContactCondition3D3N( 0, GeometryPointerType(new TriangleType(PointsArrayType(3))), nullptr, GeometryPointerType(new TriangleType(PointsArrayType(3)))),
+    mMPCMortarContactCondition3D4N( 0, GeometryPointerType(new QuadrilateralType(PointsArrayType(4))), nullptr, GeometryPointerType(new QuadrilateralType(PointsArrayType(4)))),
+    mMPCMortarContactCondition3D3N4N( 0, GeometryPointerType(new TriangleType(PointsArrayType(3))), nullptr, GeometryPointerType(new QuadrilateralType(PointsArrayType(4)))),
+    mMPCMortarContactCondition3D4N3N( 0, GeometryPointerType(new QuadrilateralType(PointsArrayType(4))), nullptr, GeometryPointerType(new TriangleType(PointsArrayType(3)))),
+    // Master-Slave Constraint
+    mContactMasterSlaveConstraint()
     {}
 
 void KratosContactStructuralMechanicsApplication::Register()
@@ -117,13 +126,17 @@ void KratosContactStructuralMechanicsApplication::Register()
     KratosApplication::Register();
 
     // VARIABLES
+    // MPC Contact related variables
+    KRATOS_REGISTER_VARIABLE( CONSTRAINT_POINTER )                                    // Pointer to the constraint of the condition
+    KRATOS_REGISTER_VARIABLE( REACTION_CHECK_STIFFNESS_FACTOR )                       // The reaction factor to be considered on the tension check
+
     /* Mortar method general variables */
     KRATOS_REGISTER_VARIABLE( INNER_LOOP_ITERATION )                                  // The number of loops in the simplified semi-smooth inner iteration
     KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER_CONTACT )                             // The integration order computed in the contact
     KRATOS_REGISTER_VARIABLE( DISTANCE_THRESHOLD )                                    // The distance threshold considered
     KRATOS_REGISTER_VARIABLE( ZERO_TOLERANCE_FACTOR )                                 // The epsilon factor considered
     KRATOS_REGISTER_VARIABLE( ACTIVE_CHECK_FACTOR )                                   // The factor employed to serach an active/inactive node
-    KRATOS_REGISTER_VARIABLE( PAIRED_NORMAL )                                         // The normal of the paired geometry
+    KRATOS_REGISTER_VARIABLE( SLIP_THRESHOLD )                                        // The threshold employed to search an slip/stick node
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUXILIAR_COORDINATES )               // Auxiliar coordinates used to map
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DELTA_COORDINATES )                  // Delta coordinates used to map
 
@@ -140,7 +153,7 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( ACTIVE_SET_COMPUTED )                                   // To know if the active set has been computed
     KRATOS_REGISTER_VARIABLE( ACTIVE_SET_CONVERGED )                                  // To know if the active set has converged
     KRATOS_REGISTER_VARIABLE( SLIP_SET_CONVERGED )                                    // To know if the slip set has converged
-    KRATOS_REGISTER_VARIABLE( SLIP_CONVERGENCE_COEFFICIENT )                          // Coefficient to improve the slip computation convergence
+    KRATOS_REGISTER_VARIABLE( OPERATOR_THRESHOLD )                                    // Consider objetive/non-objetive formulation threshold
     KRATOS_REGISTER_VARIABLE( SLIP_AUGMENTATION_COEFFICIENT )                         // Coefficient to improve the slip computation convergence (augmented part related)
     KRATOS_REGISTER_VARIABLE( DYNAMIC_FACTOR )                                        // The factor considered for dynamic problems (in order to take intro account the gap evolution)
     KRATOS_REGISTER_VARIABLE( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE )                  // The lagrange multiplier for normal contact pressure
@@ -233,6 +246,15 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "PenaltyNVFrictionalMortarContactCondition3D3N4N", mPenaltyNVFrictionalMortarContactCondition3D3N4N );
     KRATOS_REGISTER_CONDITION( "PenaltyFrictionalMortarContactCondition3D4N3N", mPenaltyFrictionalMortarContactCondition3D4N3N );
     KRATOS_REGISTER_CONDITION( "PenaltyNVFrictionalMortarContactCondition3D4N3N", mPenaltyNVFrictionalMortarContactCondition3D4N3N );
+    // MPC conditions
+    KRATOS_REGISTER_CONDITION( "MPCMortarContactCondition2D2N", mMPCMortarContactCondition2D2N );
+    KRATOS_REGISTER_CONDITION( "MPCMortarContactCondition3D3N", mMPCMortarContactCondition3D3N );
+    KRATOS_REGISTER_CONDITION( "MPCMortarContactCondition3D4N", mMPCMortarContactCondition3D4N );
+    KRATOS_REGISTER_CONDITION( "MPCMortarContactCondition3D3N4N", mMPCMortarContactCondition3D3N4N );
+    KRATOS_REGISTER_CONDITION( "MPCMortarContactCondition3D4N3N", mMPCMortarContactCondition3D4N3N );
+
+    // Register constraints
+    KRATOS_REGISTER_CONSTRAINT("ContactMasterSlaveConstraint",mContactMasterSlaveConstraint);
 }
 
 }  // namespace Kratos.

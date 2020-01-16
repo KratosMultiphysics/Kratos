@@ -20,14 +20,14 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "includes/cfd_variables.h"
-#include "solid_mechanics_application_variables.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
 //Define Variables
 
 //Warning: Note that the application variables must not be defined if they already exist in "includes/variables.h",
-//         in "includes/cfd_variables.h" or in "solid_mechanics_application_variables.h"
+//         in "includes/cfd_variables.h" or in "structural_mechanics_application_variables.h"
 
 KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, VELOCITY_COEFFICIENT )
 KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, DT_PRESSURE_COEFFICIENT )

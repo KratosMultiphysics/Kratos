@@ -85,6 +85,12 @@ public:
 
     void ComputeMomentum(ModelPart& rModelPart);
 
+    void UpdatePrimitiveVariables(ModelPart& rModelPart);
+
+    void UpdatePrimitiveVariables(ModelPart& rModelPart, double Epsilon);
+
+    void ComputeAccelerations(ModelPart& rModelPart);
+
     void FlipScalarVariable(Variable<double>& rOriginVariable, Variable<double>& rDestinationVariable, ModelPart& rModelPart);
 
     void IdentifySolidBoundary(ModelPart& rModelPart, double SeaWaterLevel, Flags SolidBoundaryFlag);
@@ -105,6 +111,8 @@ public:
     void ComputeVisualizationWaterHeight(ModelPart& rModelPart, Flags WetFlag, double SeaWaterLevel = 0.0);
 
     void ComputeVisualizationWaterSurface(ModelPart& rModelPart);
+
+    void NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable);
 
     ///@}
     ///@name Access

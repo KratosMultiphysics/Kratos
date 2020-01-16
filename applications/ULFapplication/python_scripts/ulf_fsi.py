@@ -4,8 +4,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.MeshingApplication import *
-# Check that KratosMultiphysics was imported in the main script
-# CheckForPreviousImport()
 
 import time
 
@@ -259,7 +257,7 @@ class ULF_FSISolver:
     def Remesh(self):
 
 	self.UlfUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.08)
-        self.UlfUtils.MarkExcessivelyCloseNodes(self.fluid_model_part.Nodes, 0.00005)	
+        self.UlfUtils.MarkExcessivelyCloseNodes(self.fluid_model_part.Nodes, 0.00005)
 
         # erase all conditions and elements prior to remeshing
         ((self.combined_model_part).Elements).clear();
@@ -303,7 +301,7 @@ class ULF_FSISolver:
 
     def FindNeighbours(self):
         (self.neigh_finder).Execute();
-        
+
   ######################################################################
     #this function is included since at the findNodalHProcess of Kratos core assigns max value (1.7*e^309) to all nodes
     #and then computes the correct value only for the nodes of elements. Thus lonely nodes remain with this enormous values
@@ -318,7 +316,7 @@ class ULF_FSISolver:
         av_nodal_h=0.0
         for node in self.fluid_model_part.Nodes:
             if (node.GetSolutionStepValue(NODAL_H)!=0.0):
-               nnodes=nnodes+1;	    
+               nnodes=nnodes+1;
                nodal_h=nodal_h+node.GetSolutionStepValue(NODAL_H);
 
         av_nodal_h=nodal_h/nnodes
