@@ -1,10 +1,10 @@
 # import Kratos
 import KratosMultiphysics
 from KratosMultiphysics import *
-from KratosMultiphysics.CompressiblePotentialFlowApplication import *
+# from KratosMultiphysics.CompressiblePotentialFlowApplication import *
 
 ##### SMALL TESTS #####
-from potential_flow_test_factory import PotentialFlowTests
+# from potential_flow_test_factory import PotentialFlowTests
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
