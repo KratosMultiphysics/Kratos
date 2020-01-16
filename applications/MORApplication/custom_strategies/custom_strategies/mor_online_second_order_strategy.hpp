@@ -150,8 +150,8 @@ class MorOnlineSecondOrderStrategy
 
         // Setting up the default builder and solver
         //TODO change to a builder and solver that can handle complex numbers
-        mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
-            new TBuilderAndSolverType(pLinearSolver));
+        // mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
+        //     new TBuilderAndSolverType(pLinearSolver));
 
         // Saving the linear solver
         mpLinearSolver = pLinearSolver;
@@ -165,11 +165,11 @@ class MorOnlineSecondOrderStrategy
         mReformDofSetAtEachStep = false;
 
         // Tells to the builder and solver if the reactions have to be Calculated or not
-        GetBuilderAndSolver()->SetCalculateReactionsFlag(false);
+        // GetBuilderAndSolver()->SetCalculateReactionsFlag(false);
 
         // Tells to the Builder And Solver if the system matrix and vectors need to
         // be reshaped at each step or not
-        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+        // GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
 
         // Set EchoLevel to the default value (only time is displayed)
         SetEchoLevel(1);
@@ -210,23 +210,33 @@ class MorOnlineSecondOrderStrategy
     //     return mpScheme;
     // };
 
-    /**
-     * @brief Set method for the builder and solver
-     * @param pNewBuilderAndSolver The pointer to the builder and solver considered
-     */
-    void SetBuilderAndSolver(typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver)
-    {
-        mpBuilderAndSolver = pNewBuilderAndSolver;
-    };
+    // /**
+    //  * @brief Set method for the builder and solver
+    //  * @param pNewBuilderAndSolver The pointer to the builder and solver considered
+    //  */
+    // void SetBuilderAndSolver(typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver)
+    // {
+    //     mpBuilderAndSolver = pNewBuilderAndSolver;
+    // };
 
-    /**
-     * @brief Get method for the builder and solver
-     * @return mpBuilderAndSolver: The pointer to the builder and solver considered
-     */
-    typename TBuilderAndSolverType::Pointer GetBuilderAndSolver()
+    // /**
+    //  * @brief Get method for the builder and solver
+    //  * @return mpBuilderAndSolver: The pointer to the builder and solver considered
+    //  */
+    // typename TBuilderAndSolverType::Pointer GetBuilderAndSolver()
+    // {
+    //     return mpBuilderAndSolver;
+    // };
+
+    void SetLinearSolver(typename TLinearSolver::Pointer pNewLinearSolver)
     {
-        return mpBuilderAndSolver;
-    };
+        mpLinearSolver = pNewLinearSolver;
+    }
+
+    typename TLinearSolver::Pointer GetLinearSolver()
+    {
+        return mpLinearSolver;
+    }
 
     void SetOfflineStrategy(typename OfflineStrategyType::Pointer pNewOfflineStrategy)
     {
@@ -256,24 +266,24 @@ class MorOnlineSecondOrderStrategy
         return mInitializeWasPerformed;
     }
 
-    /**
-     * @brief This method sets the flag mReformDofSetAtEachStep
-     * @param Flag The flag that tells if each time step the system is rebuilt
-     */
-    void SetReformDofSetAtEachStepFlag(bool Flag)
-    {
-        mReformDofSetAtEachStep = Flag;
-        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
-    }
+    // /**
+    //  * @brief This method sets the flag mReformDofSetAtEachStep
+    //  * @param Flag The flag that tells if each time step the system is rebuilt
+    //  */
+    // void SetReformDofSetAtEachStepFlag(bool Flag)
+    // {
+    //     mReformDofSetAtEachStep = Flag;
+    //     GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+    // }
 
-    /**
-     * @brief This method returns the flag mReformDofSetAtEachStep
-     * @return The flag that tells if each time step the system is rebuilt
-     */
-    bool GetReformDofSetAtEachStepFlag()
-    {
-        return mReformDofSetAtEachStep;
-    }
+    // /**
+    //  * @brief This method returns the flag mReformDofSetAtEachStep
+    //  * @return The flag that tells if each time step the system is rebuilt
+    //  */
+    // bool GetReformDofSetAtEachStepFlag()
+    // {
+    //     return mReformDofSetAtEachStep;
+    // }
 
     /**
      * @brief It sets the level of echo for the solving strategy
@@ -348,7 +358,8 @@ class MorOnlineSecondOrderStrategy
 
         // if the preconditioner is saved between solves, it
         // should be cleared here.
-        GetBuilderAndSolver()->GetLinearSystemSolver()->Clear();
+        // GetBuilderAndSolver()->GetLinearSystemSolver()->Clear();
+        mpLinearSolver->Clear();
 
         // if (mpKr != nullptr)
         //     SparseSpaceType::Clear(mpKr);
@@ -364,8 +375,8 @@ class MorOnlineSecondOrderStrategy
         //     SparseSpaceType::Clear(mpDx);
 
         //setting to zero the internal flag to ensure that the dof sets are recalculated
-        GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
-        GetBuilderAndSolver()->Clear();
+        // GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
+        // GetBuilderAndSolver()->Clear();
         // GetScheme()->Clear();
 
         mInitializeWasPerformed = false;
@@ -385,11 +396,11 @@ class MorOnlineSecondOrderStrategy
         LocalSystemMatrixType& r_Kr = *mpKr;
         LocalSystemMatrixType& r_Dr = *mpDr;
         LocalSystemMatrixType& r_Mr = *mpMr;
-        ComplexDenseVectorType& r_rhs = *mpRHSr;
+        // ComplexDenseVectorType& r_rhs = *mpRHSr;
         // ComplexDenseVectorType tmp = ComplexDenseVectorType( r_rhs );
 
         ComplexDenseMatrixType& r_A = *mpA;
-        ComplexDenseVectorType& r_dx = *mpDx;
+        // ComplexDenseVectorType& r_dx = *mpDx;
 
         BuiltinTimer system_construction_time;
         r_A = r_Dr;
@@ -434,8 +445,13 @@ class MorOnlineSecondOrderStrategy
         // ComplexLinearSolverType 
         // TLinearSolver solver = GetBuilderAndSolver()->GetLinearSystemSolver();
         // solver.Solve( r_A, r_dx, r_rhs );
+        // auto& solver = *GetBuilderAndSolver()->GetLinearSystemSolver();
+        // KRATOS_WATCH(solver)
+        // auto pbs = GetBuilderAndSolver();
+        // KRATOS_WATCH(*pbs)
         BuiltinTimer ab;
-        GetBuilderAndSolver()->GetLinearSystemSolver()->Solve( r_A, r_dx, r_rhs );
+        // GetBuilderAndSolver()->GetLinearSystemSolver()->Solve( r_A, r_dx, r_rhs );
+        mpLinearSolver->Solve( r_A, r_dx, r_rhs );
         KRATOS_INFO("solve system solve") << ab.ElapsedSeconds() << "\n";
         // KRATOS_WATCH(r_A)
         // KRATOS_WATCH(r_dx)
@@ -475,8 +491,8 @@ class MorOnlineSecondOrderStrategy
 
         BaseType::Check();
         KRATOS_WATCH(BaseType::GetModelPart())
-        KRATOS_WATCH(GetBuilderAndSolver())
-        GetBuilderAndSolver()->Check(BaseType::GetModelPart());
+        // KRATOS_WATCH(GetBuilderAndSolver())
+        // GetBuilderAndSolver()->Check(BaseType::GetModelPart());
 
         // GetScheme()->Check(BaseType::GetModelPart());
 
@@ -608,7 +624,7 @@ class MorOnlineSecondOrderStrategy
     ///@{
     typename TLinearSolver::Pointer mpLinearSolver; /// The pointer to the linear solver considered
     // typename TSchemeType::Pointer mpScheme; /// The pointer to the time scheme employed
-    typename TBuilderAndSolverType::Pointer mpBuilderAndSolver; /// The pointer to the builder and solver employe
+    // typename TBuilderAndSolverType::Pointer mpBuilderAndSolver; /// The pointer to the builder and solver employe
     typename OfflineStrategyType::Pointer mpOfflineStrategy;
 
     bool mExpandSolution;
