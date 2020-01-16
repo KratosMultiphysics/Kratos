@@ -29,7 +29,6 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/mpi_serializer.h"
-#include "mpi/mpi_environment.h"
 #include "mpi/includes/mpi_data_communicator.h"
 
 #define CUSTOMTIMER 1
