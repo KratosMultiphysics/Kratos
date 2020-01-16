@@ -205,7 +205,7 @@ namespace Kratos
             KRATOS_ERROR_IF_NOT(rParameters.Has("surface"))
                 << "Missing 'surface' in brep face." << std::endl;
 
-            auto p_surface = ReadNurbsSurface<3, TNodeType>(rParameters["surface"], rModelPart);
+            auto p_surface = ReadNurbsSurface<3, TNodeType>(rParameters["surface"], rModelPart, EchoLevel);
 
             bool is_trimmed = true;
             if (rParameters["surface"].Has("is_trimmed"))
@@ -215,7 +215,7 @@ namespace Kratos
             {
                 BrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
                 tie(outer_loops, inner_loops) =
-                    ReadBoundaryLoops(rParameters["boundary_loops"], p_surface, rModelPart);
+                    ReadBoundaryLoops(rParameters["boundary_loops"], p_surface, rModelPart, EchoLevel);
 
                 auto p_brep_surface =
                     Kratos::make_shared<BrepSurfaceType>(
@@ -259,7 +259,7 @@ namespace Kratos
 
             for (IndexType tc_idx = 0; tc_idx < rParameters.size(); tc_idx++)
             {
-                trimming_brep_curve_vector[tc_idx] = ReadTrimmingCurve(rParameters[tc_idx], pNurbsSurface, rModelPart);
+                trimming_brep_curve_vector[tc_idx] = ReadTrimmingCurve(rParameters[tc_idx], pNurbsSurface, rModelPart, EchoLevel);
             }
 
             return trimming_brep_curve_vector;
@@ -279,7 +279,7 @@ namespace Kratos
             KRATOS_ERROR_IF_NOT(rParameters.Has("parameter_curve"))
                 << "Missing 'parameter_curve' in nurbs curve" << std::endl;
 
-            auto p_trimming_curve = ReadNurbsCurve<2, TEmbeddedNodeType>(rParameters["parameter_curve"], rModelPart);
+            auto p_trimming_curve = ReadNurbsCurve<2, TEmbeddedNodeType>(rParameters["parameter_curve"], rModelPart, EchoLevel);
 
             auto p_brep_curve_on_surface
                 = Kratos::make_shared<BrepCurveOnSurfaceType>(
@@ -311,7 +311,7 @@ namespace Kratos
                 KRATOS_ERROR_IF_NOT(rParameters.Has("trimming_curves"))
                     << "Missing 'trimming_curves' in boundary loops"
                     << bl_idx << " loop." << std::endl;
-                auto trimming_curves = ReadTrimmingCurveVector(rParameters["trimming_curves"], pNurbsSurface, rModelPart);
+                auto trimming_curves = ReadTrimmingCurveVector(rParameters["trimming_curves"], pNurbsSurface, rModelPart, EchoLevel);
 
                 if (loop_type == "outer")
                 {
@@ -344,7 +344,7 @@ namespace Kratos
         {
             for (IndexType i = 0; i < rParameters.size(); i++)
             {
-                ReadBrepEdge(rParameters[i], rModelPart);
+                ReadBrepEdge(rParameters[i], rModelPart, EchoLevel);
             }
         }
 
@@ -456,7 +456,7 @@ namespace Kratos
             PointerVector<TThisNodeType> control_points;
 
             ReadControlPointVector(control_points,
-                rParameters["control_points"], rModelPart);
+                rParameters["control_points"], rModelPart, EchoLevel);
 
             if (is_rational)
             {
@@ -504,7 +504,7 @@ namespace Kratos
             PointerVector<TThisNodeType> control_points;
 
             ReadControlPointVector(control_points,
-                rParameters["control_points"], rModelPart);
+                rParameters["control_points"], rModelPart, EchoLevel);
 
             if (is_rational)
             {
@@ -545,7 +545,7 @@ namespace Kratos
                 << std::endl;
 
             SizeType number_of_entries = rParameters[0].size();
-            KRATOS_ERROR_IF(number_of_entries != 1 || number_of_entries != 2)
+            KRATOS_ERROR_IF((number_of_entries != 1) && (number_of_entries != 2))
                 << "Control points need to be provided in following structure: [[x, y, z, weight]] or [id, [x, y, z, weight]]"
                 << std::endl;
 
@@ -563,6 +563,12 @@ namespace Kratos
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
         {
+            KRATOS_ERROR_IF_NOT(rParameters.IsArray())
+                << "\"control_points\" section needs to be an array." << std::endl;
+
+            KRATOS_INFO_IF("ReadControlPointVector", EchoLevel > 3)
+                << "Reading " << rParameters.size() << " control points of type Point." << std::endl;
+
             for (IndexType cp_idx = 0; cp_idx < rParameters.size(); cp_idx++)
             {
                 rControlPoints.push_back(ReadPoint(rParameters[cp_idx]));
@@ -570,10 +576,17 @@ namespace Kratos
         }
 
         static void ReadControlPointVector(
-                PointerVector<Node<3>>& rControlPoints,
-                const Parameters& rParameters,
-                ModelPart& rModelPart)
+            PointerVector<Node<3>>& rControlPoints,
+            const Parameters& rParameters,
+            ModelPart& rModelPart,
+            SizeType EchoLevel = 0)
         {
+            KRATOS_ERROR_IF_NOT(rParameters.IsArray())
+                << "\"control_points\" section needs to be an array." << std::endl;
+
+            KRATOS_INFO_IF("ReadControlPointVector", EchoLevel > 3)
+                << "Reading " << rParameters.size() << " control points of type Node<3>." << std::endl;
+
             for (IndexType cp_idx = 0; cp_idx < rParameters.size(); cp_idx++)
             {
                 rControlPoints.push_back(ReadNode(rParameters[cp_idx], rModelPart));
@@ -589,8 +602,8 @@ namespace Kratos
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
         {
-            SizeType number_of_entries = rParameters[0].size();
-            KRATOS_ERROR_IF(number_of_entries != 1 || number_of_entries != 2)
+            SizeType number_of_entries = rParameters.size();
+            KRATOS_ERROR_IF((number_of_entries != 1) && (number_of_entries != 2))
                 << "Control points need to be provided in following structure: [[x, y, z, weight]] or [id, [x, y, z, weight]]"
                 << std::endl;
 
@@ -604,8 +617,8 @@ namespace Kratos
             const Parameters& rParameters,
             SizeType EchoLevel = 0)
         {
-            SizeType number_of_entries = rParameters[0].size();
-            KRATOS_ERROR_IF(number_of_entries != 1 || number_of_entries != 2)
+            SizeType number_of_entries = rParameters.size();
+            KRATOS_ERROR_IF((number_of_entries != 1) && (number_of_entries != 2))
                 << "Control points need to be provided in following structure: [[x, y, z, weight]] or [id, [x, y, z, weight]]"
                 << std::endl;
 
