@@ -1170,7 +1170,9 @@ void MembraneElement::CalculateAndAddBodyForce(VectorType& rRightHandSideVector)
         for (SizeType j = 0; j < 3; ++j)
         {
             const SizeType index = i * 3 + j;
-            rRightHandSideVector[index] += temp * r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION)[j];
+            if (r_geom[i].SolutionStepsDataHas(VOLUME_ACCELERATION)){
+                rRightHandSideVector[index] += temp * r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION)[j];
+            }
         }
     }
     KRATOS_CATCH("")
