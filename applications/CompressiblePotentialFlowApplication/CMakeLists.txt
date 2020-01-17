@@ -28,6 +28,7 @@ set( KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_embedded_lift_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_nodal_value_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/define_2d_wake_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/define_3d_wake_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/define_embedded_wake_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/move_model_part_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_potential_response_function.cpp

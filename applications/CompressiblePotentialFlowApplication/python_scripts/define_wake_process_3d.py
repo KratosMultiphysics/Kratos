@@ -66,6 +66,16 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.WAKE_NORMAL,self.wake_normal)
 
     def ExecuteInitialize(self):
+        # Read wake from stl and create the wake model part
+        self.__CreateWakeModelPart()
+
+        CPFApp.Define3DWakeProcess(self.trailing_edge_model_part,
+                                    self.body_model_part,
+                                    self.wake_model_part,
+                                    self.epsilon,
+                                    self.wake_normal).ExecuteInitialize()
+
+    def ExecuteInitializePython(self):
 
         self.__SetWakeAndSpanDirections()
         # Save the trailing edge and wing tip nodes for further computations
@@ -398,4 +408,8 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         gid_output.ExecuteFinalize()
 
     def ExecuteFinalizeSolutionStep(self):
+        if not self.fluid_model_part.HasSubModelPart("wake_elements_model_part"):
+            raise Exception("Fluid model part does not have a wake_elements_model_part")
+        else: self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake_elements_model_part")
+
         CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, 0)
