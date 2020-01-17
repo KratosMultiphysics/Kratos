@@ -39,9 +39,6 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif solver_type == "formfinding":
             solver_module_name = "structural_mechanics_formfinding_solver"
 
-        elif solver_type == "formfinding_new":
-            solver_module_name = "structural_mechanics_formfinding_solver_new"
-
         elif solver_type == "adjoint_static":
             solver_module_name = "structural_mechanics_adjoint_static_solver"
 
