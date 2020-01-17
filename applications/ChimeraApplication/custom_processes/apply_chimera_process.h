@@ -242,7 +242,8 @@ protected:
                                     "search_model_part_name":"PLEASE_SPECIFY",
                                     "boundary_model_part_name":"PLEASE_SPECIFY",
                                     "model_import_settings":{},
-                                    "overlap_distance":0.0
+                                    "overlap_distance":0.0,
+                                    "internal_parts_for_chimera":[]
                                 }
         )");
 

@@ -37,8 +37,16 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         else:
             self.chimera_echo_lvl = self.fluid_parameters["echo_level"].GetInt()
 
-        if self.chimera_parameters.Has("internal_parts_for_chimera"):
-            self.chimera_internal_parts = self.chimera_parameters["internal_parts_for_chimera"].Clone()
+        # if self.chimera_parameters.Has("internal_parts_for_chimera"):
+        #     self.chimera_internal_parts = self.chimera_parameters["internal_parts_for_chimera"].Clone()
+
+        self.chimera_internal_parts = []
+        for level in self.chimera_levels:
+            for level_parameters in level :
+                if level_parameters.Has("internal_parts_for_chimera"):
+                    part_name_list = level_parameters["internal_parts_for_chimera"]
+                    for part_name in part_name_list:
+                        self.chimera_internal_parts.append(part_name.GetString())
 
         self.reformulate_every_step = False
         if self.chimera_parameters.Has("reformulate_chimera_every_step"):
@@ -73,12 +81,12 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
             Creating the necessary variant of the apply chimera process.
         '''
         if domain_size == 2:
-            if(solver_type == "Monolithic" or solver_type == "monolithic"):
+            if(solver_type == "Monolithic" or solver_type == "monolithic" or solver_type == "chimera_embedded"):
                 self.chimera_process = KratosChimera.ApplyChimeraProcessMonolithic2d(main_model_part,self.chimera_levels)
             elif (solver_type == "fractional_step" or solver_type == "FractionalStep"):
                 self.chimera_process = KratosChimera.ApplyChimeraProcessFractionalStep2d(main_model_part,self.chimera_levels)
         else:
-            if(solver_type == "Monolithic" or solver_type == "monolithic"):
+            if(solver_type == "Monolithic" or solver_type == "monolithic" or solver_type == "chimera_embedded"):
                 self.chimera_process = KratosChimera.ApplyChimeraProcessMonolithic3d(main_model_part,self.chimera_levels)
             elif (solver_type == "fractional_step" or solver_type == "FractionalStep"):
                 self.chimera_process = KratosChimera.ApplyChimeraProcessFractionalStep3d(main_model_part,self.chimera_levels)
@@ -94,28 +102,28 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
             so that they are excluded from the extract surface operation later on.
         '''
         for mp_name in self.chimera_internal_parts:
-            KratosMultiphysics.VariableUtils().SetFlag(KratosChimera.CHIMERA_INTERNAL_BOUNDARY, True,  self.model[mp_name.GetString()].Nodes)
+            KratosMultiphysics.VariableUtils().SetFlag(KratosChimera.CHIMERA_INTERNAL_BOUNDARY, True,  self.model[mp_name].Nodes)
 
     def InitializeSolutionStep(self):
         self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty
-        ## The following will construct the constraints 
+        ## The following will construct the constraints
         self.chimera_process.ExecuteInitializeSolutionStep()
         self._GetSolver().InitializeSolutionStep()
         self.PrintAnalysisStageProgressInformation()
 
-    #def RunSolutionLoop(self):
-        #"""This function executes the solution loop of the AnalysisStage
-        #It can be overridden by derived classes
-        #"""
-        #while self.KeepAdvancingSolutionLoop():
-            #self.time = self._GetSolver().AdvanceInTime(self.time)
-            #self.InitializeSolutionStep()
-            ##self._GetSolver().Predict()
-            ##is_converged = self._GetSolver().SolveSolutionStep()
-            ##self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
-            #self.FinalizeSolutionStep()
-            #self.OutputSolutionStep()
+    def RunSolutionLoop(self):
+        """This function executes the solution loop of the AnalysisStage
+        It can be overridden by derived classes
+        """
+        while self.KeepAdvancingSolutionLoop():
+            self.time = self._GetSolver().AdvanceInTime(self.time)
+            self.InitializeSolutionStep()
+            self._GetSolver().Predict()
+            is_converged = self._GetSolver().SolveSolutionStep()
+            #self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
+            self.FinalizeSolutionStep()
+            self.OutputSolutionStep()
 
     def FinalizeSolutionStep(self):
         super(FluidChimeraAnalysis,self).FinalizeSolutionStep()
