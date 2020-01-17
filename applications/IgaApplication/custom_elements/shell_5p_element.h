@@ -1,5 +1,5 @@
-#if !defined(KRATOS_SHELL_3P_ELEMENT_H_INCLUDED )
-#define  KRATOS_SHELL_3P_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_SHELL_5P_ELEMENT_H_INCLUDED )
+#define  KRATOS_SHELL_5P_ELEMENT_H_INCLUDED
 
 
 // System includes
@@ -21,7 +21,7 @@ namespace Kratos
 /// Short class definition.
 /** Kirchhoff-Love Shell. Optimized for Isogeometric Analysis by Kiendl et al. .
 */
-class Shell3pElement
+class Shell5pElement
     : public Element
 {
 protected:
@@ -110,7 +110,7 @@ public:
     ///@{
 
     /// Counted pointer of Shell3pElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Shell3pElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Shell5pElement);
 
     /// Size types
     typedef std::size_t SizeType;
@@ -124,14 +124,14 @@ public:
     ///@{
 
     /// Constructor using an array of nodes
-    Shell3pElement(
+    Shell5pElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
     {};
 
     /// Constructor using an array of nodes with properties
-    Shell3pElement(
+    Shell5pElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -139,12 +139,12 @@ public:
     {};
 
     /// Default constructor necessary for serialization
-    Shell3pElement()
+    Shell5pElement()
         : Element()
     {};
 
     /// Destructor.
-    virtual ~Shell3pElement() override
+    virtual ~Shell5pElement() override
     {};
 
     ///@}
@@ -158,7 +158,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<Shell3pElement>(
+        return Kratos::make_intrusive<Shell5pElement>(
             NewId, pGeom, pProperties);
     };
 
@@ -169,7 +169,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive< Shell3pElement >(
+        return Kratos::make_intrusive< Shell5pElement >(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -211,7 +211,7 @@ public:
         ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType mat_size = number_of_nodes * 3;
+        const SizeType mat_size = number_of_nodes * 5;
 
         VectorType right_hand_side_vector;
 
@@ -237,7 +237,7 @@ public:
         ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType mat_size = number_of_nodes * 3;
+        const SizeType mat_size = number_of_nodes * 5;
 
         if (rRightHandSideVector.size() != mat_size)
             rRightHandSideVector.resize(mat_size);
@@ -452,9 +452,9 @@ private:
 
     ///@}
 
-};     // Class Shell3pElement
+};     // Class Shell5pElement
 ///@}
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MESHLESS_SHELL_3P_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_MESHLESS_SHELL_5P_ELEMENT_H_INCLUDED  defined
