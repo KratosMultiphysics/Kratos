@@ -1,12 +1,14 @@
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.ExaquteSandboxApplication
+import KratosMultiphysics.MeshingApplication as MeshingApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 from generalTests import KratosExaquteSandboxGeneralTests
+from test_divergencefree_refinement_process import TimeAveragingProcessTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -28,6 +30,10 @@ def AssembleTestSuites():
     # - testSmallExample
     smallSuite = suites['small']
     smallSuite.addTest(KratosExaquteSandboxGeneralTests('testSmallExample'))
+    if(hasattr(MeshingApplication,"MmgProcess2D")):
+        smallSuite.addTest(TimeAveragingProcessTests('testDivergenceFreeRefinementProcess'))
+    else:
+        print("MMG process is not compiled and the corresponding tests will not be executed")
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
@@ -42,7 +48,7 @@ def AssembleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            KratosExaquteSandboxGeneralTests
+            KratosExaquteSandboxGeneralTests,TimeAveragingProcessTests
         ])
     )
 
