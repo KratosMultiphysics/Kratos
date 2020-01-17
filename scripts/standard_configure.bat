@@ -17,6 +17,9 @@ set KRATOS_SOURCE=~0,-1%/..
 set KRATOS_BUILD=%KRATOS_SOURCE%/build
 set KRATOS_APP_DIR=applications
 
+rem Warning: In windows this option only works if you run through a terminal with admin privileges
+rem set KRATOS_INSTALL_PYTHON_USING_LINKS=ON
+
 rem Set basic configuration
 if not defined KRATOS_BUILD_TYPE set KRATOS_BUILD_TYPE=Release
 if not defined BOOST_ROOT set BOOST_ROOT=C:\CompiledLibs\boost_1_67_0
