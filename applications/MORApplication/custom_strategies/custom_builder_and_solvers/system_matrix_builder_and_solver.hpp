@@ -197,12 +197,10 @@ public:
 
         if( mBuildOutputVectorFlag )
         {
-            std::cout << "hello\n";
             size_t n_model_parts = mOutputModelPartNames.size();
             for( size_t i=0; i<n_model_parts; ++i )
             {
                 auto const this_model_part = rModelPart.pGetSubModelPart( mOutputModelPartNames[i] );
-                KRATOS_WATCH(*this_model_part)
                 for( auto& node : this_model_part->Nodes() )
                 {
                     for( auto& dof : node.GetDofs() )

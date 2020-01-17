@@ -163,7 +163,7 @@ class MorOfflineSecondOrderStrategy
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
         std::cout << "baseclass constructor\n";
-        KRATOS_WATCH(mSolutionStepIsInitialized)
+        // KRATOS_WATCH(mSolutionStepIsInitialized)
 
         // Tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(false);
@@ -383,10 +383,11 @@ class MorOfflineSecondOrderStrategy
     virtual void InitializeSolutionStep() override
     {
         KRATOS_TRY;
+        std::cout << "offline initialize base class call\n";
 
         if (mSolutionStepIsInitialized == false)
         {
-            std::cout << "base class action!\n";
+            std::cout << "offline initialize base class perform\n";
             //pointers needed in the solution
             typename TSchemeType::Pointer p_scheme = GetScheme();
             typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
@@ -481,24 +482,65 @@ class MorOfflineSecondOrderStrategy
 
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
+        const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
-        TSystemMatrixType& rA  = *mpA;
-        TSystemMatrixType& rM = *mpM;
-        TSystemVectorType& rRHS  = *mpRHS;
-        TSystemMatrixType& rS  = *mpS;
+        // project the system matrices onto the reduced subspace
+        TSystemMatrixType& r_K  = *mpA;
+        TSystemMatrixType& r_M = *mpM;
+        TSystemVectorType& r_RHS  = *mpRHS;
+        TSystemMatrixType& r_D  = *mpS;
+
+        auto& r_force_vector_reduced = this->GetRHSr();
+        auto& r_stiffness_matrix_reduced = this->GetKr();
+        auto& r_mass_matrix_reduced = this->GetMr();
+        auto& r_damping_matrix_reduced = this->GetDr();
+        auto& r_output_vector = this->GetOutputVector();
+        auto& r_output_vector_r = this->GetOVr();
+        auto& r_basis = this->GetBasis();
+
+        const size_t system_size = r_basis.size1();
+        const size_t reduced_system_size = r_basis.size2();
+
+        BuiltinTimer system_projection_time;
+
+        r_force_vector_reduced.resize( reduced_system_size, false);
+        r_force_vector_reduced = prod( r_RHS, r_basis );
+
+        r_output_vector_r.resize( reduced_system_size, false);
+        r_output_vector_r = prod( r_output_vector, r_basis );
+
+        TReducedDenseMatrixType basis_herm;
+        TReducedDenseSpace::Resize(basis_herm, reduced_system_size, system_size);
+        TReducedDenseMatrixType T;
+        TReducedDenseSpace::Resize(T, reduced_system_size, system_size);
+
+        noalias(basis_herm) = herm(r_basis);
+
+        noalias(T) = prod( basis_herm, r_K );
+        noalias(r_stiffness_matrix_reduced) = prod( T, r_basis );
+
+        noalias(T) = prod( basis_herm, r_M );
+        noalias(r_mass_matrix_reduced) = prod( T, r_basis );
+
+        noalias(T) = prod( basis_herm, r_D );
+        noalias(r_damping_matrix_reduced) = prod( T, r_basis );
+
+        KRATOS_INFO_IF("System Projection Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+            << system_projection_time.ElapsedSeconds() << std::endl;
+
+
 
         //Finalisation of the solution step,
         //operations to be done after achieving convergence, for example the
         //Final Residual Vector (mb) has to be saved in there
         //to avoid error accumulation
 
-        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), rA, rRHS, rRHS);
-        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), rM, rRHS, rRHS);
-        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), rA, rRHS, rRHS);
-        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), rM, rRHS, rRHS);
-
-        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), rS, rRHS, rRHS);
-        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), rS, rRHS, rRHS);
+        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), r_K, r_RHS, r_RHS);
+        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), r_M, r_RHS, r_RHS);
+        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), r_D, r_RHS, r_RHS);
+        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), r_K, r_RHS, r_RHS);
+        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), r_M, r_RHS, r_RHS);
+        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), r_D, r_RHS, r_RHS);
 
         //Cleaning memory after the solution
         p_scheme->Clean();
