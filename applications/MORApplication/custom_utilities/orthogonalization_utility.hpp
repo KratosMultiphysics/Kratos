@@ -14,10 +14,10 @@ namespace Kratos
 namespace OrthogonalizationUtility
 {
 
-    template <typename TSparseSpaceType>
-    void OrthogonalizeQR(typename TSparseSpaceType::MatrixType& rA)
+    template <typename DenseSpaceType>
+    void OrthogonalizeQR(typename DenseSpaceType::MatrixType& rA)
     {
-        typedef typename TSparseSpaceType::DataType ScalarType;
+        typedef typename DenseSpaceType::DataType ScalarType;
 
         Eigen::Map<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>> A(rA.data().begin(), rA.size1(), rA.size2());
         Eigen::HouseholderQR<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>> qr(A);
