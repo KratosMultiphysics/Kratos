@@ -111,6 +111,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/apply_periodic_boundary_condition_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers/amgcl_solver_impl.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/communication_coloring_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/constraints/slip_constraint.cpp
 )
 
 ## Kratos python interface code
