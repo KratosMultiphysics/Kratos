@@ -1,7 +1,13 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Other imports
-from KratosMultiphysics.MeshMovingApplication.ale_fluid_solver import AleFluidSolver
+from  KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+have_mesh_moving = CheckIfApplicationsAvailable("MeshMovingApplication")
+if have_mesh_moving:
+    from KratosMultiphysics.MeshMovingApplication.ale_fluid_solver import AleFluidSolver
+else:
+    raise Exception("In importing the AlePotentialFlowSolver: The solver requires the MeshMovingApplication, but this application is not available.")
+
 import KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_solver as potential_flow_solver
 
 def CreateSolver(model, solver_settings, parallelism):
