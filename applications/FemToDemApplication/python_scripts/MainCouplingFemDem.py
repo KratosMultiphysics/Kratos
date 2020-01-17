@@ -205,6 +205,16 @@ class MainCoupledFemDem_Solution:
         self.ExecuteAfterGeneratingDEM()
         self.BeforeSolveDEMOperations()
 
+        # node = self.FEM_Solution.main_model_part.GetNode(2864)
+        # node_dem = self.DEM_Solution.spheres_model_part.GetNode(25099)
+        # print(node.X)
+        # print(node.X - node_dem.X)
+        # node = self.FEM_Solution.main_model_part.GetNode(2917)
+        # node_dem = self.DEM_Solution.SpheresModelPart.GetElement(25123)
+        # print(node.X)
+        # print(node.X - node_dem.X)
+        # Wait()
+
         #### SOLVE DEM #########################################
         self.DEM_Solution.solver.Solve()
         ########################################################
@@ -878,19 +888,9 @@ class MainCoupledFemDem_Solution:
         if self.DEM_Solution.rigid_face_model_part.HasSubModelPart("SkinTransferredFromStructure"):
             self.EraseConditionsAndNodesSubModelPart()
             dem_walls_mp = self.DEM_Solution.rigid_face_model_part.GetSubModelPart("SkinTransferredFromStructure")
-            props = self.DEM_Solution.rigid_face_model_part.GetProperties(14,0)
+            props = self.DEM_Solution.rigid_face_model_part.GetProperties(self.created_props_id,0)
             DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(fem_skin_mp, dem_walls_mp, props)
         else: # have to create it
-            # props = KratosMultiphysics.Properties(14)
-            # # NOTE: this should be more general
-            # props[KratosDEM.FRICTION] =  -0.5773502691896257  #-0.5773502691896257 
-            # props[KratosDEM.WALL_COHESION] = 0.0
-            # props[KratosDEM.COMPUTE_WEAR] = False
-            # props[KratosDEM.SEVERITY_OF_WEAR] = 0.001
-            # props[KratosDEM.IMPACT_WEAR_SEVERITY] = 0.001
-            # props[KratosDEM.BRINELL_HARDNESS] = 200.0
-            # props[KratosMultiphysics.YOUNG_MODULUS] = 35e9 # the PENALTY
-            # props[KratosMultiphysics.POISSON_RATIO] = 0.2
             props = self.CreateFEMPropertiesForDEFEContact()
             dem_walls_mp = self.DEM_Solution.rigid_face_model_part.CreateSubModelPart("SkinTransferredFromStructure")
             dem_walls_mp.AddProperties(props)
@@ -916,6 +916,7 @@ class MainCoupledFemDem_Solution:
             if max_id_properties < prop.Id:
                 max_id_properties = prop.Id
         props = KratosMultiphysics.Properties(max_id_properties + 1)
+        self.created_props_id = max_id_properties + 1
         props[KratosDEM.FRICTION] =  -0.5773502691896257
         props[KratosDEM.WALL_COHESION] = 0.0
         props[KratosDEM.COMPUTE_WEAR] = False
