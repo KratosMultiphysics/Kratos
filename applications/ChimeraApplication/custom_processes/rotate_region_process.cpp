@@ -106,28 +106,36 @@ void RotateRegionProcess::ExecuteInitializeSolutionStep()
     radius[1] = it_node->Y() - mCenterOfRotation[1];
     radius[2] = it_node->Z() - mCenterOfRotation[2];
     CalculateLinearVelocity(mAxisOfRotationVector, radius, linearVelocity);
+    it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_X, 0) =
+        mAngularVelocityRadians * linearVelocity[0];
+    it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Y, 0) =
+        mAngularVelocityRadians * linearVelocity[1];
+    if (domain_size > 2)
+      it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Z, 0) =
+          mAngularVelocityRadians * linearVelocity[2];
+
     if (mParameters["is_ale"].GetBool())
     {
-      it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_X, 0) =
-          mAngularVelocityRadians * linearVelocity[0];
-      it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Y, 0) =
-          mAngularVelocityRadians * linearVelocity[1];
+      it_node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0) =
+            it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_X, 0);
+      it_node->FastGetSolutionStepValue(MESH_VELOCITY_Y, 0) =
+            it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Y, 0);
       if (domain_size > 2)
-        it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Z, 0) =
-            mAngularVelocityRadians * linearVelocity[2];
+        it_node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0) =
+            it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Z, 0);
 
       if (it_node->IsFixed(VELOCITY_X))
         it_node->FastGetSolutionStepValue(VELOCITY_X, 0) =
-            it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_X, 0);
+            it_node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0);
 
       if (it_node->IsFixed(VELOCITY_Y))
         it_node->FastGetSolutionStepValue(VELOCITY_Y, 0) =
-            it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Y, 0);
+            it_node->FastGetSolutionStepValue(MESH_VELOCITY_Y, 0);
 
       if (domain_size > 2)
         if (it_node->IsFixed(VELOCITY_Z))
           it_node->FastGetSolutionStepValue(VELOCITY_Z, 0) =
-              it_node->FastGetSolutionStepValue(ROTATION_MESH_VELOCITY_Z, 0);
+              it_node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0);
     }
   }
 
@@ -317,7 +325,8 @@ double RotateRegionProcess::CalculateTorque() const
   const int num_nodes = static_cast<int>(r_torque_model_part.NumberOfNodes());
   const NodeIteratorType it_node_begin = r_torque_model_part.NodesBegin();
 
-#pragma omp parallel for schedule(guided, 512) reduction(+ : torque)
+#pragma omp parallel for schedule(guided, 512) reduction(+ \
+                                                         : torque)
   for (int i_node = 0; i_node < num_nodes; ++i_node)
   {
     NodeIteratorType it_node = it_node_begin;
