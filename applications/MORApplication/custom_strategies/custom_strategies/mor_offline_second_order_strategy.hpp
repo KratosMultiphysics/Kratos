@@ -152,10 +152,6 @@ class MorOfflineSecondOrderStrategy
         mpScheme = pScheme;
         mpBuilderAndSolver = pBuilderAndSolver;
 
-        // Setting up the default builder and solver
-        //  mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
-            // new TBuilderAndSolverType(pNewLinearSolver));
-
         // Saving the linear solver -> better put this in the builder and solver?
         mpLinearSolver = pNewLinearSolver;
 
@@ -522,8 +518,11 @@ class MorOfflineSecondOrderStrategy
         noalias(T) = prod( basis_herm, r_M );
         noalias(r_mass_matrix_reduced) = prod( T, r_basis );
 
-        noalias(T) = prod( basis_herm, r_D );
-        noalias(r_damping_matrix_reduced) = prod( T, r_basis );
+        if (mUseDamping)
+        {
+            noalias(T) = prod( basis_herm, r_D );
+            noalias(r_damping_matrix_reduced) = prod( T, r_basis );
+        }
 
         KRATOS_INFO_IF("System Projection Time", BaseType::GetEchoLevel() > 0 && rank == 0)
             << system_projection_time.ElapsedSeconds() << std::endl;
@@ -601,7 +600,6 @@ class MorOfflineSecondOrderStrategy
         TSystemVectorType& rRHS  = *mpRHS;
         TSystemMatrixType& rS  = *mpS;
 
-        TReducedDenseMatrixType& rMr = *mpMr;
         TReducedDenseVectorType& rRHSr = *mpRHSr;
 
         if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
@@ -622,10 +620,6 @@ class MorOfflineSecondOrderStrategy
         std::stringstream matrix_market_mass_name;
         matrix_market_mass_name << "M.mm";
         TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mass_name.str()).c_str(), rM, false);
-
-        // std::stringstream matrix_market_reduced_mass_name;
-        // matrix_market_reduced_mass_name << "M_r.mm";
-        // TReducedDenseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_reduced_mass_name.str()).c_str(), rMr, false);
 
         std::stringstream matrix_market_damping_name;
         matrix_market_damping_name << "D.mm";
