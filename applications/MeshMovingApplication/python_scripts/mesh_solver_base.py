@@ -258,7 +258,6 @@ class MeshSolverBase(PythonSolver):
             alpha_f = mesh_vel_calc_setting["alpha_f"].GetDouble()
             self.time_int_helper = KratosMultiphysics.TimeDiscretization.GeneralizedAlpha(alpha_m, alpha_f)
         else:
-            err_msg =  'The requested time scheme "' + time_scheme + '" is not available!\n'
-            err_msg += 'Available options are: "bdf1", "bdf2", '
-            err_msg += '"newmark", "bossak", "generalized_alpha"'
+            err_msg =  'The requested time scheme "{}" is not available for the calculation of the mesh velocity!\n'.format(time_scheme)
+            err_msg += 'Available options are: "bdf1", "bdf2", "newmark", "bossak", "generalized_alpha"'
             raise Exception(err_msg)
