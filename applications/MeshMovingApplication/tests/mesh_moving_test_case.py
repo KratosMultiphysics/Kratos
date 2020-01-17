@@ -1,6 +1,5 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.MeshMovingApplication as KMM
 from KratosMultiphysics.MeshMovingApplication.mesh_moving_analysis import MeshMovingAnalysis
 import os
 

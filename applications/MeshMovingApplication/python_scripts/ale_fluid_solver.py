@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics as KM
-import KratosMultiphysics.MeshMovingApplication as KMM
 
 # Other imports
 from KratosMultiphysics.python_solver import PythonSolver
