@@ -90,6 +90,8 @@ class PotentialFlowTests(UnitTest.TestCase):
     def test_EmbeddedCircle(self):
         if not hdf5_is_available:
             self.skipTest("Missing required application: HDF5Application")
+        if not meshing_is_available:
+            self.skipTest("Missing required application: MeshingApplication")
         settings_file_name = "embedded_circle_parameters.json"
         settings_adjoint_file_name = "embedded_circle_adjoint_parameters.json"
         work_folder = "embedded_test"
