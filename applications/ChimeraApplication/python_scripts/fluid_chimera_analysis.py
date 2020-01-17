@@ -105,12 +105,12 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
             KratosMultiphysics.VariableUtils().SetFlag(KratosChimera.CHIMERA_INTERNAL_BOUNDARY, True,  self.model[mp_name].Nodes)
 
     def InitializeSolutionStep(self):
+        self.PrintAnalysisStageProgressInformation()
         self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty
         ## The following will construct the constraints
         self.chimera_process.ExecuteInitializeSolutionStep()
         self._GetSolver().InitializeSolutionStep()
-        self.PrintAnalysisStageProgressInformation()
 
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
