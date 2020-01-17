@@ -1,0 +1,1104 @@
+Script started on Mi 08 Jan 2020 14:01:32 CET
+]0;msaranshs@stud4: ~/Kratosmsaranshs@stud4:~/Kratos$ git merge mastercheckout geo-cht[4Pmerge master[Ksc[K[Kcd scripts/
+]0;msaranshs@stud4: ~/Kratos/scriptsmsaranshs@stud4:~/Kratos/scripts$ ls
+[0m[01;34mbuild[0m         [01;32mconfigure.sh~[0m  standard_configure.bat     standard_configure_MINGW.bat  [01;32mstandard_configure.sh[0m
+[01;32mconfigure.sh[0m  [01;34mpackaging[0m      standard_configure_mac.sh  standard_configure_MINGW.sh   [01;34mwheels[0m
+]0;msaranshs@stud4: ~/Kratos/scriptsmsaranshs@stud4:~/Kratos/scripts$ sh configure.sh 
+[H[2J-- The C compiler identification is GNU 4.8.4
+-- The CXX compiler identification is GNU 4.8.4
+-- Check for working C compiler: /usr/bin/gcc
+-- Check for working C compiler: /usr/bin/gcc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Check for working CXX compiler: /usr/bin/g++
+-- Check for working CXX compiler: /usr/bin/g++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- No KRATOS_SOURCE_DIR is defined, using: /home/msaranshs/Kratos
+-- No KRATOS_BINARY_DIR is defined, using: /home/msaranshs/Kratos/build/Debug
+-- No INSTALL_RUNKRATOS is defined, setting to ON
+-- No KRATOS_INSTALL_PYTHON_USING_LINKS is defined, setting to OFF
+-- No KRATOS_BUILD_TESTING is defined. Setting to ON
+-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER
+-- Found Git: /usr/bin/git (found version "2.21.0") 
+-- additional default options were set for gcc
+-- CMAKE_CXX_FLAGS =  -funroll-loops -Wall -std=c++11
+-- CMAKE_C_FLAGS =  -funroll-loops -Wall
+-- Found PythonInterp: /usr/bin/python3 (found version "3.4.3") 
+-- Found PythonLibs: /usr/lib/x86_64-linux-gnu/libpython3.4m.so
+-- Performing Test HAS_CPP14_FLAG
+-- Performing Test HAS_CPP14_FLAG - Failed
+-- Performing Test HAS_CPP11_FLAG
+-- Performing Test HAS_CPP11_FLAG - Success
+-- Standard install dir /home/msaranshs/Kratos/bin/Debug
+-- OpenMP included
+-- Try OpenMP C flag = [-fopenmp]
+-- Performing Test OpenMP_FLAG_DETECTED
+-- Performing Test OpenMP_FLAG_DETECTED - Success
+-- Try OpenMP CXX flag = [-fopenmp]
+-- Performing Test OpenMP_FLAG_DETECTED
+-- Performing Test OpenMP_FLAG_DETECTED - Success
+-- Found OpenMP: -fopenmp  
+-- Boost version: 1.70.0
+-- Boost Include: /home/msaranshs/boost_1_70_0
+-- Boost Linkdir: 
+-- Found ZLIB: /usr/lib/x86_64-linux-gnu/libz.so (found version "1.2.8") 
+-- AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.
+ 
+CMAKE_BUILD_TYPE ........ Debug
+ 
+WARNING: YOUR GIDPOST IS BEING COMPILED  WITHOUT DEBUG (ALL ASSERTS WILL BE AVOIDED)
+-- Looking for include file pthread.h
+-- Looking for include file pthread.h - found
+-- Looking for pthread_create
+-- Looking for pthread_create - found
+-- Found Threads: TRUE  
+-- Configuring applications (ENV):
+Adding application '/home/msaranshs/Kratos/scripts/../applications/ExternalSolversApplication'
+**** Configuring KratosExternalSolversApplication ****
+-- The Fortran compiler identification is GNU
+-- Check for working Fortran compiler: /usr/bin/gfortran
+-- Check for working Fortran compiler: /usr/bin/gfortran  -- works
+-- Detecting Fortran compiler ABI info
+-- Detecting Fortran compiler ABI info - done
+-- Checking whether /usr/bin/gfortran supports Fortran 90
+-- Checking whether /usr/bin/gfortran supports Fortran 90 -- yes
+-- Detecting Fortran/C Interface
+-- Detecting Fortran/C Interface - Found GLOBAL and MODULE mangling
+-- Looking for Fortran sgemm
+-- Looking for Fortran sgemm - found
+-- A library with BLAS API found.
+linker flags with blas =
+BLA_VENDOR = All
+-- A library with BLAS API found.
+-- Looking for Fortran cheev
+-- Looking for Fortran cheev - found
+-- A library with LAPACK API found.
+LAPACK = /usr/lib/liblapack.so/usr/lib/libblas/libblas.so.3.0
+LAPACK modified = /usr/lib/lapack/liblapack.so.3.0/usr/lib/libblas/libblas.so.3.0
+Adding application '/home/msaranshs/Kratos/scripts/../applications/StructuralMechanicsApplication'
+**** configuring KratosStructuralMechanicsApplication ****
+Adding application '/home/msaranshs/Kratos/scripts/../applications/FluidDynamicsApplication'
+**** configuring KratosFluidDynamicsApplication ****
+Adding application '/home/msaranshs/Kratos/scripts/../applications/MappingApplication'
+**** configuring KratosMappingApplication ****
+Adding application '/home/msaranshs/Kratos/scripts/../applications/MeshingApplication'
+**** configuring KratosMeshingApplication ****
+Installed MMG = /home/msaranshs/mmg/build/lib/libmmg.so
+Installed MMG2D = /home/msaranshs/mmg/build/lib/libmmg2d.so
+Installed MMG3D = /home/msaranshs/mmg/build/lib/libmmg3d.so
+Installed MMGS = /home/msaranshs/mmg/build/lib/libmmgs.so
+Adding application '/home/msaranshs/Kratos/scripts/../applications/FSIApplication'
+**** configuring KratosFSIApplication ****
+Adding application '/home/msaranshs/Kratos/scripts/../applications/GeodataProcessingApplication'
+**** configuring KratosGeodataProcessingApplication ****
+Adding application '/home/msaranshs/Kratos/scripts/../applications/ConvectionDiffusionApplication'
+**** configuring KratosConvectionDiffusionApplication ****
+Adding application '/home/msaranshs/Kratos/scripts/../applications/MeshMovingApplication'
+**** configuring KratosMeshMovingApplication ****
+
+***********************************************************************
+
+        LIST OF APPLICATIONS THAT ARE GOING TO BE COMPILED:
+
+        ExternalSolversApplication
+        StructuralMechanicsApplication
+        FluidDynamicsApplication
+        MappingApplication
+        MeshingApplication
+        FSIApplication
+        GeodataProcessingApplication
+        ConvectionDiffusionApplication
+        MeshMovingApplication
+
+        APPLICATIONS ADDED TO COMPILATION THROUGH DEPENDENCIES:
+
+
+***********************************************************************
+
+-- triangle : /home/msaranshs/Kratos/external_libraries/triangle
+python libraries to be installed are: /usr/lib/x86_64-linux-gnu/libpython3.4m.so.1.0
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/msaranshs/Kratos/build/Debug
+[35m[1mScanning dependencies of target KratosVersion
+[0m[35m[1mScanning dependencies of target triangle
+[0m[  0%] [  1%] Built target gidpost
+[  2%] [32mBuilding CXX object kratos/CMakeFiles/KratosVersion.dir/sources/kratos_version.cpp.o
+[0m[32mBuilding C object external_libraries/triangle/CMakeFiles/triangle.dir/triangle.c.o
+[0m[ 11%] Built target superlu
+[ 12%] [35m[1mScanning dependencies of target runkratos
+Built target tetMeshOpt
+[0m[ 12%] [32mBuilding CXX object kratos/run_kratos/CMakeFiles/runkratos.dir/krun_main.cpp.o
+[0m[ 12%] Built target KratosVersion
+[31m[1mLinking CXX executable runkratos
+[0m[ 12%] Built target runkratos
+[31m[1mLinking C static library libtriangle.a
+[0m[ 12%] Built target triangle
+[35m[1mScanning dependencies of target KratosCore
+[0m[ 12%] [ 12%] [ 12%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/containers/flags.cpp.o
+[0m[ 12%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/c2c_variables.cpp.o
+[0m[32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/deprecated_variables.cpp.o
+[0m[32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/cfd_variables.cpp.o
+[0m[ 12%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/mesh_moving_variables.cpp.o
+[0m[ 12%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/mapping_variables.cpp.o
+[0m[ 12%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/dem_variables.cpp.o
+[0m[ 13%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/fsi_variables.cpp.o
+[0m[ 13%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/mat_variables.cpp.o
+[0m[ 13%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/legacy_structural_app_vars.cpp.o
+[0m[ 13%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/global_pointer_variables.cpp.o
+[0m[ 13%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/variables.cpp.o
+[0m[ 13%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/kratos_application.cpp.o
+[0m[ 13%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/integration_rules.cpp.o
+[0m[ 14%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/communicator.cpp.o
+[0m[ 14%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/serializer.cpp.o
+[0m[ 14%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/kernel.cpp.o
+[0m[ 14%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/periodic_condition.cpp.o
+[0m[ 14%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/constitutive_law.cpp.o
+[0m[ 14%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/kratos_components.cpp.o
+[0m[ 15%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/model_part_io.cpp.o
+[0m[ 15%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/memory_info.cpp.o
+[0m[ 15%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/reorder_consecutive_model_part_io.cpp.o
+[0m[ 15%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/process_info.cpp.o
+[0m[ 15%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/oriented_bounding_box.cpp.o
+[0m[ 15%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/simple_mortar_mapper_process.cpp.o
+[0m[ 15%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/io.cpp.o
+[0m[ 16%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/gid_io.cpp.o
+[0m[ 16%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/model_part.cpp.o
+[0m[ 16%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/containers/nodal_data.cpp.o
+[0m[ 16%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/kratos_parameters.cpp.o
+[0m[ 16%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/containers/model.cpp.o
+[0m[ 16%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/factories/standard_linear_solver_factory.cpp.o
+[0m[ 16%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/factories/standard_preconditioner_factory.cpp.o
+[0m[ 17%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/containers/variable_data.cpp.o
+[0m[ 17%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/containers/data_value_container.cpp.o
+[0m[ 17%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/fast_transfer_between_model_parts_process.cpp.o
+[0m[ 17%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/mesh_local_smoothing_process.cpp.o
+[0m[ 17%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/tetrahedra_mesh_worst_element_smoothing_process.cpp.o
+[0m[ 17%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/tetrahedra_mesh_quality_weighted_smoothing_process.cpp.o
+[0m[ 17%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/measure_mesh_quality_process.cpp.o
+[0m[ 18%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/structured_mesh_generator_process.cpp.o
+[0m[ 18%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/mesh_coarsening_process.cpp.o
+[0m[ 18%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/mesh_node_collapsing_process.cpp.o
+[0m[ 18%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/tetrahedra_mesh_edge_swapping_process.cpp.o
+[0m[ 18%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/find_intersected_geometrical_objects_process.cpp.o
+[0m[ 18%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/find_intersected_geometrical_objects_with_obb_process.cpp.o
+[0m[ 18%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/calculate_discontinuous_distance_to_skin_process.cpp.o
+[0m[ 19%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/calculate_distance_to_skin_process.cpp.o
+[0m[ 19%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/reorder_and_optimize_modelpart_process.cpp.o
+[0m[ 19%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/compute_nodal_gradient_process.cpp.o
+[0m[ 19%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/find_nodal_h_process.cpp.o
+[0m[ 19%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/calculate_nodal_area_process.cpp.o
+[0m[ 19%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/skin_detection_process.cpp.o
+[0m[ 19%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/sub_model_part_skin_detection_process.cpp.o
+[0m[ 20%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/replace_elements_and_condition_process.cpp.o
+[0m[ 20%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/entity_erase_process.cpp.o
+[0m[ 20%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/assign_scalar_variable_to_entities_process.cpp.o
+[0m[ 20%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/tetrahedral_mesh_orientation_check.cpp.o
+[0m[ 20%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/integration_values_extrapolation_to_nodes_process.cpp.o
+[0m[ 20%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/apply_ray_casting_process.cpp.o
+[0m[ 21%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/find_global_nodal_elemental_neighbours_process.cpp.o
+[0m[ 21%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/time_averaging_process.cpp.o
+[0m[ 21%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/bounding_volume_tree.cpp.o
+[0m[ 21%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/exception.cpp.o
+[0m[ 21%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/code_location.cpp.o
+[0m[ 21%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/prime_numbers.cpp.o
+[0m[ 21%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/connectivity_preserve_modeler.cpp.o
+[0m[ 22%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/parallel_environment.cpp.o
+[0m[ 22%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/sources/data_communicator.cpp.o
+[0m[ 22%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/divide_geometry.cpp.o
+[0m[ 22%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/divide_triangle_2d_3.cpp.o
+[0m[ 22%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/divide_tetrahedra_3d_4.cpp.o
+[0m[ 22%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/element_size_calculator.cpp.o
+[0m[ 22%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/embedded_skin_utility.cpp.o
+[0m[ 23%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/geometrical_sensitivity_utility.cpp.o
+[0m[ 23%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/line_sensitivity_utility.cpp.o
+[0m[ 23%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/brute_force_point_locator.cpp.o
+[0m[ 23%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/variable_utils.cpp.o
+[0m[ 23%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/assign_unique_model_part_collection_tag_utility.cpp.o
+[0m[ 23%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/read_materials_utility.cpp.o
+[0m[ 23%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/variable_redistribution_utility.cpp.o
+[0m[ 24%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/auxiliar_model_part_utilities.cpp.o
+[0m[ 24%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/time_discretization.cpp.o
+[0m[ 24%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/constraint_utilities.cpp.o
+[0m[ 24%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/sensitivity_builder.cpp.o
+[0m[ 24%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/mortar_utilities.cpp.o
+[0m[ 24%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/os_utilities.cpp.o
+[0m[ 24%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/exact_mortar_segmentation_utility.cpp.o
+[0m[ 25%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/timer.cpp.o
+[0m[ 25%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/geometrical_transformation_utilities.cpp.o
+[0m[ 25%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/modeler/tetrahedra_ball.cpp.o
+[0m[ 25%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/modeler/tetrahedra_edge_shell.cpp.o
+[0m[ 25%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/modified_shape_functions/modified_shape_functions.cpp.o
+[0m[ 25%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/modified_shape_functions/ausas_modified_shape_functions.cpp.o
+[0m[ 25%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/modified_shape_functions/triangle_2d_3_modified_shape_functions.cpp.o
+[0m[ 26%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/modified_shape_functions/triangle_2d_3_ausas_modified_shape_functions.cpp.o
+[0m[ 26%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.cpp.o
+[0m[ 26%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.cpp.o
+[0m[ 26%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/elements/embedded_nodal_variable_calculation_element_simplex.cpp.o
+[0m[ 26%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/elements/mesh_element.cpp.o
+[0m[ 26%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/conditions/mesh_condition.cpp.o
+[0m[ 26%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/processes/apply_periodic_boundary_condition_process.cpp.o
+[0m[ 27%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/linear_solvers/amgcl_solver_impl.cpp.o
+[0m[ 27%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/utilities/communication_coloring_utilities.cpp.o
+[0m[ 27%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/testing/test_suite.cpp.o
+[0m[ 27%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/testing/tester.cpp.o
+[0m[ 27%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/testing/distributed_test_case.cpp.o
+[0m[ 27%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/testing/test_case_result.cpp.o
+[0m[ 27%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/testing/test_skipped_exception.cpp.o
+[0m[ 28%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/testing/test_case.cpp.o
+[0m[ 28%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/input_output/logger_table_output.cpp.o
+[0m[ 28%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/input_output/logger.cpp.o
+[0m[ 28%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/input_output/logger_output.cpp.o
+[0m[ 28%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/input_output/vtk_output.cpp.o
+[0m[ 28%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/input_output/unv_output.cpp.o
+[0m[ 28%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/input_output/logger_message.cpp.o
+[0m[ 29%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/containers/test_data_value_container.cpp.o
+[0m[ 29%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/containers/test_flags.cpp.o
+[0m[ 29%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/containers/test_model.cpp.o
+[0m[ 29%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/containers/test_properties.cpp.o
+[0m[ 29%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/containers/test_variables.cpp.o
+[0m[ 29%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/containers/test_nodal_data.cpp.o
+[0m[ 30%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/input_output/test_logger.cpp.o
+[0m[ 30%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/spatial_containers/test_bins_static.cpp.o
+[0m[ 30%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/spatial_containers/test_bins_dynamic.cpp.o
+[0m[ 30%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/global_pointers/test_global_pointers_container.cpp.o
+[0m[ 30%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/global_pointers/test_global_pointer.cpp.o
+[0m[ 30%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/global_pointers/test_global_pointers_vector.cpp.o
+[0m[ 30%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/strategies/builder_and_solvers/test_builder_and_solver.cpp.o
+[0m[ 31%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/strategies/strategies/test_strategies.cpp.o
+[0m[ 31%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/strategies/schemes/test_residual_based_adjoint_bossak_scheme.cpp.o
+[0m[ 31%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/strategies/schemes/test_schemes.cpp.o
+[0m[ 31%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/constitutive_laws/test_constitutive_law.cpp.o
+[0m[ 31%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_checks.cpp.o
+[0m[ 31%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_element.cpp.o
+[0m[ 31%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_node.cpp.o
+[0m[ 32%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_shape_function_derivatives.cpp.o
+[0m[ 32%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_condition.cpp.o
+[0m[ 32%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_parameters.cpp.o
+[0m[ 32%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/cross_check_shape_functions_values.cpp.o
+[0m[ 32%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_serializer_geometry_data.cpp.o
+[0m[ 32%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_table.cpp.o
+[0m[ 32%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_serializer.cpp.o
+[0m[ 33%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_model_part_io.cpp.o
+[0m[ 33%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_oriented_bounding_box.cpp.o
+[0m[ 33%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_memory_pool.cpp.o
+[0m[ 33%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_amatrix_alias.cpp.o
+[0m[ 33%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_dof.cpp.o
+[0m[ 33%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_constraint.cpp.o
+[0m[ 33%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_compare_elements_and_conditions_utility.cpp.o
+[0m[ 34%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_exceptions.cpp.o
+[0m[ 34%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_amatrix.cpp.o
+[0m[ 34%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_properties.cpp.o
+[0m[ 34%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_model_part.cpp.o
+[0m[ 34%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_chunk.cpp.o
+[0m[ 34%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_linear_master_slave_constraint.cpp.o
+[0m[ 34%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_kratos_components.cpp.o
+[0m[ 35%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/sources/test_code_location.cpp.o
+[0m[ 35%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/modified_shape_functions/test_tetrahedra_3d_4_ausas_modified_shape_functions.cpp.o
+[0m[ 35%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/modified_shape_functions/test_tetrahedra_3d_4_modified_shape_functions.cpp.o
+[0m[ 35%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/modified_shape_functions/test_triangle_2d_3_ausas_modified_shape_functions.cpp.o
+[0m[ 35%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/modified_shape_functions/test_triangle_2d_3_modified_shape_functions.cpp.o
+[0m[ 35%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/testing/test_testing.cpp.o
+[0m[ 35%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_line_2d_2.cpp.o
+[0m[ 36%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_geometry.cpp.o
+[0m[ 36%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_non_rectangular_jacobian.cpp.o
+[0m[ 36%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_brep_surface.cpp.o
+[0m[ 36%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_nurbs_utilities.cpp.o
+[0m[ 36%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_projection_nurbs_geometry.cpp.o
+[0m[ 36%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_hexahedra_3d_8.cpp.o
+[0m[ 36%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_line_2d_3.cpp.o
+[0m[ 37%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_quadrilateral_2d_4.cpp.o
+[0m[ 37%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_line_3d_2.cpp.o
+[0m[ 37%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_nurbs_surface.cpp.o
+[0m[ 37%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_nurbs_curve_on_surface_geometry.cpp.o
+[0m[ 37%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_triangle_2d_6.cpp.o
+[0m[ 37%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_tetrahedra_3d_4.cpp.o
+[0m[ 37%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_prism_3d_6.cpp.o
+[0m[ 38%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_quadrilateral_3d_4.cpp.o
+[0m[ 38%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_brep_curve_on_surface.cpp.o
+[0m[ 38%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_quadrature_point_geometry.cpp.o
+[0m[ 38%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_triangle_2d_3.cpp.o
+[0m[ 38%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_nurbs_curve.cpp.o
+[0m[ 38%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_triangle_3d_3.cpp.o
+[0m[ 39%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_tetrahedra_3d_10.cpp.o
+[0m[ 39%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_coupling_geometry.cpp.o
+[0m[ 39%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_nurbs_curve_shape_functions.cpp.o
+[0m[ 39%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/geometries/test_nurbs_surface_shape_functions.cpp.o
+[0m[ 39%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/processes/test_calculate_embedded_nodal_variable_from_skin_process.cpp.o
+[0m[ 39%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/processes/test_fast_transfer_between_model_parts_process.cpp.o
+[0m[ 39%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/processes/test_integration_values_extrapolation_to_nodes_process.cpp.o
+[0m[ 40%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/processes/test_coarsening_process.cpp.o
+[0m[ 40%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/processes/test_calculate_nodal_area_process.cpp.o
+[0m[ 40%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/processes/test_apply_ray_casting_process.cpp.o
+[0m[ 40%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/processes/test_calculate_distance_to_skin_process.cpp.o
+[0m[ 40%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/processes/test_calculate_discontinuous_distance_to_skin_process.cpp.o
+[0m[ 40%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/processes/test_find_intersected_geometrical_objects_process.cpp.o
+[0m[ 40%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/processes/test_skin_detection_process.cpp.o
+[0m[ 41%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/processes/test_find_nodal_h_process.cpp.o
+[0m[ 41%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/processes/test_compute_nodal_gradient_process.cpp.o
+[0m[ 41%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/processes/test_structured_mesh_generator_process.cpp.o
+[0m[ 41%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/processes/test_mortar_mapper_process.cpp.o
+[0m[ 41%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/processes/test_tetrahedra_edge_swapping_process.cpp.o
+[0m[ 41%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/processes/test_replace_elements_and_condition_process.cpp.o
+[0m[ 41%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_geometrical_sensitivity_utility.cpp.o
+[0m[ 42%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_brute_force_point_locator.cpp.o
+[0m[ 42%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_divide_triangle_2d_3.cpp.o
+[0m[ 42%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_nurbs_curve_tessellation.cpp.o
+[0m[ 42%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_stl_io.cpp.o
+[0m[ 42%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_line_geometrical_sensitivity.cpp.o
+[0m[ 42%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_discont_utils.cpp.o
+[0m[ 42%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_embedded_skin_utility.cpp.o
+[0m[ 43%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_intersection_utilities.cpp.o
+[0m[ 43%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_sparse_matrix_mutiplication_utilities.cpp.o
+[0m[ 43%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_geometry_utils.cpp.o
+[0m[ 43%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_divide_tetrahedra_3d_4.cpp.o
+[0m[ 43%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_assign_unique_model_part_collection_tag_utility.cpp.o
+[0m[ 43%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_geometrical_projection_utilities.cpp.o
+[0m[ 43%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_sensitivity_builder.cpp.o
+[0m[ 44%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_svd_utils.cpp.o
+[0m[ 44%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_os_utilities.cpp.o
+[0m[ 44%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_binbased_fast_point_locator.cpp.o
+[0m[ 44%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_brent_iteration.cpp.o
+[0m[ 44%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_plane_approximation_utility.cpp.o
+[0m[ 44%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_split_tetrahedra.cpp.o
+[0m[ 44%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/utilities/test_math_utils.cpp.o
+[0m[ 45%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_element.cpp.o
+[0m[ 45%] [32mBuilding CXX object kratos/CMakeFiles/KratosCore.dir/tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_bar_element.cpp.o
+[0m[31m[1mLinking CXX shared library libKratosCore.so
+[0m[ 46%] Built target KratosCore
+[35m[1mScanning dependencies of target KratosExternalSolversApplication
+[0m[ 46%] [32mBuilding CXX object applications/ExternalSolversApplication/CMakeFiles/KratosExternalSolversApplication.dir/externalsolvers_application.cpp.o
+[0m[35m[1mScanning dependencies of target Kratos
+[35m[1mScanning dependencies of target KratosFluidDynamicsCore
+[0m[ 46%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/processes/assign_scalar_field_to_entities_process.cpp.o
+[0m[0m[35m[1mScanning dependencies of target KratosStructuralMechanicsCore
+[ 46%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/fluid_dynamics_application.cpp.o
+[0m[0m[ 46%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_utilities/constitutive_law_utilities.cpp.o
+[0m[ 46%] [32mBuilding CXX object applications/ExternalSolversApplication/CMakeFiles/KratosExternalSolversApplication.dir/custom_python/add_linear_solvers_to_python.cpp.o
+[0m[ 47%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/structural_mechanics_application.cpp.o
+[0m[ 47%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_model_part_to_python.cpp.o
+[0m[ 47%] [32mBuilding CXX object applications/ExternalSolversApplication/CMakeFiles/KratosExternalSolversApplication.dir/custom_python/externalsolvers_python_application.cpp.o
+[0m[31m[1mLinking CXX shared module KratosExternalSolversApplication.cpython-34m.so
+[0m[ 47%] Built target KratosExternalSolversApplication
+[ 47%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_points_to_python.cpp.o
+[0m[ 47%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/structural_mechanics_application_variables.cpp.o
+[0m[ 47%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_deprecated_variables_to_python.cpp.o
+[0m[35m[1mScanning dependencies of target KratosMappingApplication
+[0m[ 48%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/mapping_application.cpp.o
+[0m[ 49%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/fluid_dynamics_application_variables.cpp.o
+[0m[ 49%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_c2c_variables_to_python.cpp.o
+[0m[ 49%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_utilities/fluid_element_data.cpp.o
+[0m[ 49%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_cfd_variables_to_python.cpp.o
+[0m[ 49%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_utilities/fluid_element_utilities.cpp.o
+[0m[ 50%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_mesh_moving_variables_to_python.cpp.o
+[0m[ 50%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/mapping_application_variables.cpp.o
+[0m[ 50%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_utilities/drag_utilities.cpp.o
+[0m[ 50%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_mapping_variables_to_python.cpp.o
+[0m[ 50%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/custom_python/mapping_python_application.cpp.o
+[0m[ 50%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_utilities/statistics_record.cpp.o
+[0m[ 50%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_dem_variables_to_python.cpp.o
+[0m[ 50%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_utilities/vorticity_utilities.cpp.o
+[0m[ 50%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_fsi_variables_to_python.cpp.o
+[0m[ 50%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_utilities/acceleration_limitation_utilities.cpp.o
+[0m[ 50%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/custom_python/add_custom_mappers_to_python.cpp.o
+[0m[ 50%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_mat_variables_to_python.cpp.o
+[0m[ 51%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/vms.cpp.o
+[0m[ 51%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_conditions/base_load_condition.cpp.o
+[0m[ 51%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_legacy_structural_app_vars_to_python.cpp.o
+[0m[ 51%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/custom_mappers/interpolative_mapper_base.cpp.o
+[0m[ 51%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/fluid_element.cpp.o
+[0m[ 51%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_containers_to_python.cpp.o
+[0m[ 51%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/custom_mappers/nearest_neighbor_mapper.cpp.o
+[0m[ 51%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_conditions/point_contact_condition.cpp.o
+[0m[ 51%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/custom_mappers/nearest_element_mapper.cpp.o
+[0m[ 51%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_conditions/line_load_condition_2d.cpp.o
+[0mIn file included from /home/msaranshs/Kratos/kratos/includes/define.h:25:0,
+                 from /home/msaranshs/Kratos/kratos/includes/properties.h:27,
+                 from /home/msaranshs/Kratos/kratos/includes/condition.h:21,
+                 from /home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_conditions/base_load_condition.h:21,
+                 from /home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_conditions/line_load_condition_2d.h:22,
+                 from /home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_conditions/line_load_condition_2d.cpp:20:
+/home/msaranshs/Kratos/kratos/includes/shared_pointers.h: In instantiation of ‘Kratos::intrusive_ptr<T> Kratos::make_intrusive(Args&& ...) [with C = Kratos::LineLoadCondition2D; Args = {long unsigned int&, std::shared_ptr<Kratos::Geometry<Kratos::Node<3ul, Kratos::Dof<double> > > >&, std::shared_ptr<Kratos::Properties>&}]’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_conditions/line_load_condition_2d.cpp:52:81:   required from here
+/home/msaranshs/Kratos/kratos/includes/shared_pointers.h:38:63: warning: ‘Kratos::LineLoadCondition2D::LineLoadCondition2D(Kratos::LineLoadCondition2D::IndexType, Kratos::Geometry<Kratos::Node<3ul> >::Pointer, Kratos::Properties::Pointer)’ is deprecated (declared at /home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_conditions/line_load_condition_2d.cpp:38) [-Wdeprecated-declarations]
+     return intrusive_ptr<C>(new C(std::forward<Args>(args)...));
+                                                               ^
+/home/msaranshs/Kratos/kratos/includes/shared_pointers.h: In instantiation of ‘Kratos::intrusive_ptr<T> Kratos::make_intrusive(Args&& ...) [with C = Kratos::LineLoadCondition2D; Args = {long unsigned int&, std::shared_ptr<Kratos::Geometry<Kratos::Node<3ul, Kratos::Dof<double> > > >, std::shared_ptr<Kratos::Properties>&}]’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_conditions/line_load_condition_2d.cpp:64:111:   required from here
+/home/msaranshs/Kratos/kratos/includes/shared_pointers.h:38:63: warning: ‘Kratos::LineLoadCondition2D::LineLoadCondition2D(Kratos::LineLoadCondition2D::IndexType, Kratos::Geometry<Kratos::Node<3ul> >::Pointer, Kratos::Properties::Pointer)’ is deprecated (declared at /home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_conditions/line_load_condition_2d.cpp:38) [-Wdeprecated-declarations]
+/home/msaranshs/Kratos/kratos/includes/shared_pointers.h: In instantiation of ‘Kratos::intrusive_ptr<T> Kratos::make_intrusive(Args&& ...) [with C = Kratos::LineLoadCondition2D; Args = {long unsigned int&, std::shared_ptr<Kratos::Geometry<Kratos::Node<3ul, Kratos::Dof<double> > > >, const std::shared_ptr<Kratos::Properties>}]’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_conditions/line_load_condition_2d.cpp:77:137:   required from here
+/home/msaranshs/Kratos/kratos/includes/shared_pointers.h:38:63: warning: ‘Kratos::LineLoadCondition2D::LineLoadCondition2D(Kratos::LineLoadCondition2D::IndexType, Kratos::Geometry<Kratos::Node<3ul> >::Pointer, Kratos::Properties::Pointer)’ is deprecated (declared at /home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_conditions/line_load_condition_2d.cpp:38) [-Wdeprecated-declarations]
+[ 52%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/custom_searching/interface_communicator.cpp.o
+[0m[ 52%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/qs_vms.cpp.o
+[0m[ 52%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_conditions/point_load_condition.cpp.o
+[0m[ 52%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/custom_utilities/mapping_matrix_utilities.cpp.o
+[0m[ 53%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_constitutive_law_to_python.cpp.o
+[0m[ 53%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/custom_utilities/interface_vector_container.cpp.o
+[0m[ 53%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_conditions/surface_load_condition_3d.cpp.o
+[0m[ 53%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/d_vms.cpp.o
+[0m[ 53%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/custom_utilities/mapper_factory.cpp.o
+[0m[ 54%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_conditions/axisym_point_load_condition.cpp.o
+[0m[ 54%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/custom_utilities/mapper_flags.cpp.o
+[0m[ 54%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/custom_utilities/mapper_utilities.cpp.o
+[0m[ 54%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_processes_to_python.cpp.o
+[0m[ 54%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/symbolic_navier_stokes.cpp.o
+[0m[ 54%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_conditions/axisym_line_load_condition_2d.cpp.o
+[0m[ 54%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/custom_utilities/projection_utilities.cpp.o
+[0m[ 54%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_conditions/line_load_condition.cpp.o
+[0m[ 54%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/embedded_fluid_element.cpp.o
+[0m[ 55%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/tests/cpp_tests/test_nearest_element_aux_classes.cpp.o
+[0m[ 55%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_conditions/point_moment_condition_3d.cpp.o
+[0m[ 55%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_conditions/displacement_control_condition.cpp.o
+[0m[ 55%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/embedded_fluid_element_discontinuous.cpp.o
+[0m[ 55%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/tests/cpp_tests/test_projection_utilities.cpp.o
+[0m[ 55%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_constitutive/axisym_elastic_isotropic.cpp.o
+[0m[ 55%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_constitutive/linear_plane_stress.cpp.o
+[0m[ 56%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_constitutive/user_provided_linear_elastic_law.cpp.o
+[0m[ 57%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/fic.cpp.o
+[0m[ 57%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/tests/cpp_tests/test_interface_object.cpp.o
+[0m[ 57%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_constitutive/elastic_isotropic_3d.cpp.o
+[0m[ 57%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_constitutive/linear_plane_strain.cpp.o
+[0m[ 57%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/tests/cpp_tests/test_mapper_utilities.cpp.o
+[0m[ 57%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_constitutive/truss_constitutive_law.cpp.o
+[0m[ 57%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/dynamic_vms.cpp.o
+[0m[ 57%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_constitutive/beam_constitutive_law.cpp.o
+[0m[ 57%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_geometries_to_python.cpp.o
+[0m[ 57%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/base_solid_element.cpp.o
+[0m/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/base_solid_element.cpp: In member function ‘virtual void Kratos::BaseSolidElement::InitializeSolutionStep(Kratos::ProcessInfo&)’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/base_solid_element.cpp:124:155: warning: ‘virtual void Kratos::ConstitutiveLaw::InitializeSolutionStep(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’ is deprecated (declared at /home/msaranshs/Kratos/kratos/includes/constitutive_law.h:836) [-Wdeprecated-declarations]
+                 mConstitutiveLawVector[point_number]->InitializeSolutionStep( r_properties, r_geometry, row( N_values, point_number ), rCurrentProcessInfo);
+                                                                                                                                                           ^
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/base_solid_element.cpp: In member function ‘virtual void Kratos::BaseSolidElement::InitializeNonLinearIteration(Kratos::ProcessInfo&)’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/base_solid_element.cpp:140:153: warning: ‘virtual void Kratos::ConstitutiveLaw::InitializeNonLinearIteration(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’ is deprecated (declared at /home/msaranshs/Kratos/kratos/includes/constitutive_law.h:866) [-Wdeprecated-declarations]
+         mConstitutiveLawVector[point_number]->InitializeNonLinearIteration( r_properties, r_geometry, row( N_values, point_number ), rCurrentProcessInfo);
+                                                                                                                                                         ^
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/base_solid_element.cpp: In member function ‘virtual void Kratos::BaseSolidElement::FinalizeNonLinearIteration(Kratos::ProcessInfo&)’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/base_solid_element.cpp:154:151: warning: ‘virtual void Kratos::ConstitutiveLaw::FinalizeNonLinearIteration(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’ is deprecated (declared at /home/msaranshs/Kratos/kratos/includes/constitutive_law.h:882) [-Wdeprecated-declarations]
+         mConstitutiveLawVector[point_number]->FinalizeNonLinearIteration( r_properties, r_geometry, row( N_values, point_number ), rCurrentProcessInfo);
+                                                                                                                                                       ^
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/base_solid_element.cpp: In member function ‘virtual void Kratos::BaseSolidElement::FinalizeSolutionStep(Kratos::ProcessInfo&)’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/base_solid_element.cpp:212:153: warning: ‘virtual void Kratos::ConstitutiveLaw::FinalizeSolutionStep(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’ is deprecated (declared at /home/msaranshs/Kratos/kratos/includes/constitutive_law.h:850) [-Wdeprecated-declarations]
+                 mConstitutiveLawVector[point_number]->FinalizeSolutionStep( r_properties, r_geometry, row( N_values, point_number ), rCurrentProcessInfo);
+                                                                                                                                                         ^
+[ 57%] [32mBuilding CXX object applications/MappingApplication/CMakeFiles/KratosMappingApplication.dir/tests/cpp_tests/test_nearest_neighbor_aux_classes.cpp.o
+[0m[ 57%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/fractional_step.cpp.o
+[0m[ 57%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/axisym_total_lagrangian.cpp.o
+[0m[ 58%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/prestress_membrane_element.cpp.o
+[0m[31m[1mLinking CXX shared module KratosMappingApplication.cpython-34m.so
+[0m/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/prestress_membrane_element.cpp: In member function ‘virtual void Kratos::PrestressMembraneElement::FinalizeSolutionStep(Kratos::ProcessInfo&)’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/prestress_membrane_element.cpp:301:32: warning: ‘virtual void Kratos::ConstitutiveLaw::FinalizeSolutionStep(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’ is deprecated (declared at /home/msaranshs/Kratos/kratos/includes/constitutive_law.h:850) [-Wdeprecated-declarations]
+             rCurrentProcessInfo);
+                                ^
+[ 58%] Built target KratosMappingApplication
+[35m[1mScanning dependencies of target KratosMeshingCore
+[ 58%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_io_to_python.cpp.o
+[0m[0m[ 58%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/meshing_application.cpp.o
+[0m[ 58%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/fractional_step_discontinuous.cpp.o
+[0m[ 58%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/axisym_updated_lagrangian.cpp.o
+[0m[ 58%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/small_displacement.cpp.o
+[0m[ 58%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/meshing_application_variables.cpp.o
+[0m[ 58%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/spalart_allmaras.cpp.o
+[0m[ 58%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/external_includes/mesh_suites.cpp.o
+[0m[ 58%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/custom_utilities/local_refine_geometry_mesh.cpp.o
+[0m[ 58%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_kernel_to_python.cpp.o
+[0m[ 58%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/updated_lagrangian.cpp.o
+[0m/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/updated_lagrangian.cpp: In member function ‘virtual void Kratos::UpdatedLagrangian::FinalizeSolutionStep(Kratos::ProcessInfo&)’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/updated_lagrangian.cpp:143:9: warning: ‘virtual void Kratos::ConstitutiveLaw::FinalizeSolutionStep(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’ is deprecated (declared at /home/msaranshs/Kratos/kratos/includes/constitutive_law.h:850) [-Wdeprecated-declarations]
+         );
+         ^
+[ 58%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/stationary_stokes.cpp.o
+[0m[ 58%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/custom_utilities/uniform_refinement_utility.cpp.o
+[0m[ 58%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/shell_thick_element_3D4N.cpp.o
+[0m[ 58%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/stokes_3D.cpp.o
+[0m[ 58%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_vector_to_python.cpp.o
+[0m[ 59%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/stokes_3D_twofluid.cpp.o
+[0m[ 59%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/shell_thick_element_3D3N.cpp.o
+[0m[ 60%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/custom_utilities/meshing_utilities.cpp.o
+[0m[ 60%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/navier_stokes.cpp.o
+[0m[ 60%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/custom_includes/meshing_flags.cpp.o
+[0m[ 60%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/custom_processes/metrics_levelset_process.cpp.o
+[0m[ 60%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_kratos_application_to_python.cpp.o
+[0m[ 60%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/total_lagrangian.cpp.o
+[0m[ 60%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/embedded_ausas_navier_stokes.cpp.o
+[0m[ 60%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/custom_processes/internal_variables_interpolation_process.cpp.o
+[0m[ 61%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_matrix_to_python.cpp.o
+[0m[ 61%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/compressible_navier_stokes2D.cpp.o
+[0m[ 62%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/cr_beam_element_2D2N.cpp.o
+[0m[ 62%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/custom_processes/metric_fast_init_process.cpp.o
+[0m[ 62%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_mesh_to_python.cpp.o
+[0m[ 62%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/compressible_navier_stokes3D.cpp.o
+[0m[ 62%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/custom_processes/metrics_hessian_process.cpp.o
+[0m[ 62%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/truss_element_3D2N.cpp.o
+[0m[ 62%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/two_fluid_navier_stokes.cpp.o
+[0m/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/truss_element_3D2N.cpp: In member function ‘virtual void Kratos::TrussElement3D2N::FinalizeNonLinearIteration(Kratos::ProcessInfo&)’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/truss_element_3D2N.cpp:925:66: warning: ‘virtual void Kratos::ConstitutiveLaw::FinalizeNonLinearIteration(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’ is deprecated (declared at /home/msaranshs/Kratos/kratos/includes/constitutive_law.h:882) [-Wdeprecated-declarations]
+             GetGeometry(),temp_shape_function,rCurrentProcessInfo);
+                                                                  ^
+[ 63%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/custom_processes/metrics_error_process.cpp.o
+[0m[ 63%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/shell_thin_element_3D3N.cpp.o
+[0m[ 63%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/custom_processes/nodal_values_interpolation_process.cpp.o
+[0m[ 63%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_elements/vms_adjoint_element.cpp.o
+[0m[ 63%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_modeler_to_python.cpp.o
+[0m[ 63%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/nodal_concentrated_element.cpp.o
+[0m[ 63%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/custom_processes/multiscale_refining_process.cpp.o
+[0m[ 63%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/axisym_small_displacement.cpp.o
+[0m[ 64%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_conditions/wall_condition.cpp.o
+[0m[ 64%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_properties_to_python.cpp.o
+[0m[ 64%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/custom_utilities/mmg_utilities.cpp.o
+[0m[ 64%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/solid_shell_element_sprism_3D6N.cpp.o
+[0m/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/solid_shell_element_sprism_3D6N.cpp: In member function ‘virtual void Kratos::SolidShellElementSprism3D6N::InitializeSolutionStep(Kratos::ProcessInfo&)’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/solid_shell_element_sprism_3D6N.cpp:1525:147: warning: ‘virtual void Kratos::ConstitutiveLaw::InitializeSolutionStep(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’ is deprecated (declared at /home/msaranshs/Kratos/kratos/includes/constitutive_law.h:836) [-Wdeprecated-declarations]
+         mConstitutiveLawVector[point_number]->InitializeSolutionStep( r_properties, r_geometry, row( N_values, point_number ), rCurrentProcessInfo);
+                                                                                                                                                   ^
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/solid_shell_element_sprism_3D6N.cpp: In member function ‘virtual void Kratos::SolidShellElementSprism3D6N::FinalizeSolutionStep(Kratos::ProcessInfo&)’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/solid_shell_element_sprism_3D6N.cpp:1581:145: warning: ‘virtual void Kratos::ConstitutiveLaw::FinalizeSolutionStep(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’ is deprecated (declared at /home/msaranshs/Kratos/kratos/includes/constitutive_law.h:850) [-Wdeprecated-declarations]
+         mConstitutiveLawVector[point_number]->FinalizeSolutionStep( r_properties, r_geometry, row( N_values, point_number ), rCurrentProcessInfo);
+                                                                                                                                                 ^
+[ 64%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_conditions/fs_werner_wengle_wall_condition.cpp.o
+[0m[ 64%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_dofs_to_python.cpp.o
+[0m[ 64%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_conditions/fs_generalized_wall_condition.cpp.o
+[0m[ 64%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/spring_damper_element_3D2N.cpp.o
+[0m[ 64%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/custom_processes/mmg_process.cpp.o
+[0m[ 64%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_node_to_python.cpp.o
+[0m[ 65%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/small_displacement_mixed_volumetric_strain_element.cpp.o
+[0m[ 65%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_conditions/wall_condition_discontinuous.cpp.o
+[0m[ 65%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_conditions/monolithic_wall_condition.cpp.o
+[0m[ 65%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/cr_beam_element_3D2N.cpp.o
+[0m[ 65%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/custom_io/mmg_io.cpp.o
+[0m[ 65%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_conditions/stokes_wall_condition.cpp.o
+[0m[ 65%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_amgcl_solver_to_python.cpp.o
+[0m[ 65%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/isotropic_shell_element.cpp.o
+[0m[ 65%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/tests/cpp_tests/test_meshing_utilities.cpp.o
+[0m[ 65%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_conditions/fs_periodic_condition.cpp.o
+[0m[ 66%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/tests/cpp_tests/test_metrics_math_utils.cpp.o
+[0m[ 66%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/tests/cpp_tests/test_metric_process.cpp.o
+[0m[ 66%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/cable_element_3D2N.cpp.o
+[0m[ 67%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_conditions/navier_stokes_wall_condition.cpp.o
+[0m[ 67%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/tests/cpp_tests/test_internal_interpolation_process.cpp.o
+[0m[ 68%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_linear_solvers_to_python.cpp.o
+[0m[ 68%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/base_shell_element.cpp.o
+[0m[ 68%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/tests/cpp_tests/test_uniform_refinement_utility.cpp.o
+[0m[ 68%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_conditions/embedded_ausas_navier_stokes_wall_condition.cpp.o
+[0m[ 68%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/tests/cpp_tests/test_mmg_process.cpp.o
+[0m[ 68%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/shell_thin_element_3D4N.cpp.o
+[0m[ 68%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_factories_to_python.cpp.o
+[0m[ 68%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingCore.dir/tests/cpp_tests/test_mmg_io.cpp.o
+[0m[ 69%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/small_displacement_bbar.cpp.o
+[0m[ 69%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_constitutive/fluid_constitutive_law.cpp.o
+[0m/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/small_displacement_bbar.cpp: In member function ‘virtual void Kratos::SmallDisplacementBbar::FinalizeSolutionStep(Kratos::ProcessInfo&)’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_elements/small_displacement_bbar.cpp:964:36: warning: ‘virtual void Kratos::ConstitutiveLaw::FinalizeSolutionStep(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’ is deprecated (declared at /home/msaranshs/Kratos/kratos/includes/constitutive_law.h:850) [-Wdeprecated-declarations]
+                 rCurrentProcessInfo);
+                                    ^
+[31m[1mLinking CXX shared library libKratosMeshingCore.so
+[0m[ 69%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_constitutive/bingham_3d_law.cpp.o
+[0m[ 69%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_strategies_to_python.cpp.o
+[0m[ 69%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/cr_beam_element_linear_3D2N.cpp.o
+[0m[ 69%] Built target KratosMeshingCore
+[ 69%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/truss_element_linear_3D2N.cpp.o
+[0m[ 69%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_constitutive/euler_2d_law.cpp.o
+[0m[35m[1mScanning dependencies of target KratosFSIApplication
+[ 69%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_constitutive/euler_3d_law.cpp.o
+[0m[0m[ 69%] [32mBuilding CXX object applications/FSIApplication/CMakeFiles/KratosFSIApplication.dir/fsi_application.cpp.o
+[0m[ 69%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_elements/cr_beam_element_linear_2D2N.cpp.o
+[0m[ 69%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_constitutive/newtonian_2d_law.cpp.o
+[0m[ 70%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_constitutive/newtonian_temperature_dependent_2d_law.cpp.o
+[0m[ 70%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_io/vtk_eigen_output.cpp.o
+[0m[ 70%] [32mBuilding CXX object applications/FSIApplication/CMakeFiles/KratosFSIApplication.dir/custom_utilities/AdvancedNMPointsMapper.cpp.o
+[0m[ 70%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_constitutive/newtonian_temperature_dependent_3d_law.cpp.o
+[0m[ 70%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_constitutive/newtonian_3d_law.cpp.o
+[0m[ 70%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_processes/impose_rigid_movement_process.cpp.o
+[0m[ 71%] [32mBuilding CXX object applications/FSIApplication/CMakeFiles/KratosFSIApplication.dir/custom_python/fsi_python_application.cpp.o
+[0m[ 71%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_constitutive/newtonian_two_fluid_2d_law.cpp.o
+[0m[ 71%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_utilities_to_python.cpp.o
+[0m[ 71%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_processes/solid_shell_thickness_compute_process.cpp.o
+[0m[ 71%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_constitutive/newtonian_two_fluid_3d_law.cpp.o
+[0m[ 71%] [32mBuilding CXX object applications/FSIApplication/CMakeFiles/KratosFSIApplication.dir/custom_python/add_mappers_to_python.cpp.o
+[0m[ 71%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_constitutive/herschel_bulkley_3d_law.cpp.o
+[0m[ 72%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_processes/spr_error_process.cpp.o
+[0m[ 72%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_processes/boussinesq_force_process.cpp.o
+[0m[ 72%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_processes/compute_mass_moment_of_inertia_process.cpp.o
+[0m[ 73%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_processes/distance_modification_process.cpp.o
+[0m[ 73%] [32mBuilding CXX object applications/FSIApplication/CMakeFiles/KratosFSIApplication.dir/custom_python/add_custom_utilities_to_python.cpp.o
+[0m[ 73%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_processes/total_structural_mass_process.cpp.o
+[0m[ 73%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_processes/shell_to_solid_shell_process.cpp.o
+[0m[ 73%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_processes/embedded_skin_visualization_process.cpp.o
+[0m[ 73%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_processes/postprocess_eigenvalues_process.cpp.o
+[0m[ 73%] [32mBuilding CXX object applications/FSIApplication/CMakeFiles/KratosFSIApplication.dir/custom_python/add_convergence_accelerators_to_python.cpp.o
+[0m[ 73%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_processes/mass_conservation_check_process.cpp.o
+[0m[ 73%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_processes/compute_center_of_gravity_process.cpp.o
+[0m[ 73%] [32mBuilding CXX object applications/FSIApplication/CMakeFiles/KratosFSIApplication.dir/tests/cpp_tests/test_convergence_accelerators.cpp.o
+[0m[ 73%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_processes/prism_neighbours_process.cpp.o
+[0m[ 73%] [32mBuilding CXX object applications/FSIApplication/CMakeFiles/KratosFSIApplication.dir/tests/cpp_tests/test_partitioned_fsi_utilities.cpp.o
+[0m[ 73%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/custom_processes/two_fluids_inlet_process.cpp.o
+[0m[ 74%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_response_functions/response_utilities/adjoint_nodal_reaction_response_function.cpp.o
+[0m[ 74%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/tests/cpp_tests/test_vorticity_utilities.cpp.o
+[0m[ 74%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.cpp.o
+[0m[31m[1mLinking CXX shared module KratosFSIApplication.cpython-34m.so
+[0m[ 74%] Built target KratosFSIApplication
+[ 74%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/tests/cpp_tests/test_two_fluid_navier_stokes_element.cpp.o
+[0m[ 74%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_process_info_to_python.cpp.o
+[0m[ 74%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_matrix_market_interface_to_python.cpp.o
+[0m[ 74%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_response_functions/response_utilities/element_finite_difference_utility.cpp.o
+[0m[ 74%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_response_functions/response_utilities/adjoint_max_stress_response_function.cpp.o
+[0m[ 74%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_serializer_to_python.cpp.o
+[0m[ 74%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_response_functions/response_utilities/adjoint_local_stress_response_function.cpp.o
+[0m[35m[1mScanning dependencies of target KratosGeodataProcessingApplication
+[ 74%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/tests/cpp_tests/test_embedded_fluid_element_discontinuous.cpp.o
+[0m[0m[ 74%] [32mBuilding CXX object applications/GeodataProcessingApplication/CMakeFiles/KratosGeodataProcessingApplication.dir/geodata_processing_application.cpp.o
+[0m[ 74%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.cpp.o
+[0m[ 75%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_table_to_python.cpp.o
+[0m[ 76%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/tests/cpp_tests/test_drag_utils.cpp.o
+[0m[ 76%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_response_functions/response_utilities/adjoint_structural_response_function.cpp.o
+[0m[ 77%] [32mBuilding CXX object applications/GeodataProcessingApplication/CMakeFiles/KratosGeodataProcessingApplication.dir/geodata_processing_application_variables.cpp.o
+[0m[ 77%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_search_strategies_to_python.cpp.o
+[0m[ 78%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_response_functions/response_utilities/stress_response_definitions.cpp.o
+[0m[ 78%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/tests/cpp_tests/test_embedded_skin_visualization_process.cpp.o
+[0m[ 78%] [32mBuilding CXX object applications/GeodataProcessingApplication/CMakeFiles/KratosGeodataProcessingApplication.dir/custom_python/geodata_processing_python_application.cpp.o
+[0m[ 78%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_kratos_parameters_to_python.cpp.o
+[0m[ 78%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.cpp.o
+[0m[ 78%] [32mBuilding CXX object applications/GeodataProcessingApplication/CMakeFiles/KratosGeodataProcessingApplication.dir/custom_python/add_custom_utilities_to_python.cpp.o
+[0m[ 78%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/tests/cpp_tests/test_embedded_ausas_navier_stokes_wall_condition.cpp.o
+[0m[ 78%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_testing_to_python.cpp.o
+[0m[ 78%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_response_functions/adjoint_elements/adjoint_finite_difference_spring_damper_element_3D2N.cpp.o
+[0m[ 78%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_logger_to_python.cpp.o
+[0m[ 78%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/tests/cpp_tests/test_qs_vms_element.cpp.o
+[0m[ 78%] [32mBuilding CXX object applications/GeodataProcessingApplication/CMakeFiles/KratosGeodataProcessingApplication.dir/custom_python/add_custom_strategies_to_python.cpp.o
+[0m[ 78%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_model_to_python.cpp.o
+[0m[ 78%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_response_functions/adjoint_elements/adjoint_solid_element.cpp.o
+[0m[ 78%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/tests/cpp_tests/test_fluid_element_data.cpp.o
+[0m[ 78%] [32mBuilding CXX object applications/GeodataProcessingApplication/CMakeFiles/KratosGeodataProcessingApplication.dir/custom_utilities/hello.cpp.o
+[0m[ 78%] [32mBuilding CXX object applications/GeodataProcessingApplication/CMakeFiles/KratosGeodataProcessingApplication.dir/custom_utilities/extrusion_height_utilities.cpp.o
+[0m[ 78%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_memory_info_to_python.cpp.o
+[0m[ 78%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_response_functions/adjoint_elements/adjoint_finite_difference_small_displacement_element.cpp.o
+[0m[ 78%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/tests/cpp_tests/test_fluid_dynamics_constitutive_laws.cpp.o
+[0m[ 79%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_response_functions_to_python.cpp.o
+[0m[ 79%] [32mBuilding CXX object applications/GeodataProcessingApplication/CMakeFiles/KratosGeodataProcessingApplication.dir/custom_utilities/cleaning_utilities.cpp.o
+[0m[ 80%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/tests/cpp_tests/test_statistics_utilities.cpp.o
+[0m[ 80%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.cpp.o
+[0m[ 80%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/kratos_python.cpp.o
+[0m[31m[1mLinking CXX shared module KratosGeodataProcessingApplication.cpython-34m.so
+[0m[ 80%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_constraint_to_python.cpp.o
+[0m[ 80%] Built target KratosGeodataProcessingApplication
+[ 80%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_response_functions/adjoint_elements/adjoint_finite_difference_shell_element.cpp.o
+[0m[ 80%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/tests/cpp_tests/test_compressible_navier_stokes_symbolic_element.cpp.o
+[0m[ 80%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/tests/cpp_tests/test_navier_stokes_symbolic_element.cpp.o
+[0m[ 81%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.cpp.o
+[0m[ 81%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_data_communicator_to_python.cpp.o
+[0m[ 81%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_parallel_environment_to_python.cpp.o
+[0m[ 81%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/tests/cpp_tests/test_embedded_navier_stokes_element.cpp.o
+[0m[ 81%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/tests/cpp_tests/test_embedded_fluid_element.cpp.o
+[0m[ 81%] [32mBuilding CXX object kratos/CMakeFiles/Kratos.dir/python/add_global_pointers_to_python.cpp.o
+[0m[ 81%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_response_functions/adjoint_elements/adjoint_finite_difference_base_element.cpp.o
+[0m[ 81%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_response_functions/adjoint_processes/replace_multiple_elements_and_conditions_process.cpp.o
+[0m[31m[1mLinking CXX shared module Kratos.cpython-34m.so
+[0m[ 81%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsCore.dir/tests/cpp_tests/test_distance_modification_process.cpp.o
+[0m[35m[1mScanning dependencies of target KratosConvectionDiffusionCore
+[0m[ 81%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionCore.dir/convection_diffusion_application.cpp.o
+[0m[31m[1mLinking CXX shared library libKratosFluidDynamicsCore.so
+[0m[ 81%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.cpp.o
+[0m[ 81%] Built target KratosFluidDynamicsCore
+[ 81%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_utilities/explicit_integration_utilities.cpp.o
+[0m[ 81%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionCore.dir/convection_diffusion_application_variables.cpp.o
+[0m[ 81%] Built target Kratos
+[ 81%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionCore.dir/custom_elements/eulerian_conv_diff.cpp.o
+[0m[35m[1mScanning dependencies of target KratosMeshMovingApplication
+[0m[ 81%] [32mBuilding CXX object applications/MeshMovingApplication/CMakeFiles/KratosMeshMovingApplication.dir/mesh_moving_application.cpp.o
+[0m[ 81%] [32mBuilding CXX object applications/MeshMovingApplication/CMakeFiles/KratosMeshMovingApplication.dir/custom_elements/laplacian_meshmoving_element.cpp.o
+[0m[ 81%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_utilities/formfinding_io_utility.cpp.o
+[0m[ 81%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_utilities/structural_mechanics_element_utilities.cpp.o
+[0m[ 82%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionCore.dir/custom_elements/conv_diff_2d.cpp.o
+[0m[ 82%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionCore.dir/custom_elements/conv_diff_3d.cpp.o
+[0m[ 83%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_utilities/rve_periodicity_utility.cpp.o
+[0m[ 84%] [32mBuilding CXX object applications/MeshMovingApplication/CMakeFiles/KratosMeshMovingApplication.dir/custom_elements/structural_meshmoving_element.cpp.o
+[0m[ 84%] [32mBuilding CXX object applications/MeshMovingApplication/CMakeFiles/KratosMeshMovingApplication.dir/custom_python/add_custom_strategies_to_python.cpp.o
+[0m[ 84%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionCore.dir/custom_elements/laplacian_element.cpp.o
+[0m[ 84%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_utilities/rayleigh_damping_coefficients_utilities.cpp.o
+[0m[ 84%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionCore.dir/custom_elements/adjoint_diffusion_element.cpp.o
+[0m[ 84%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionCore.dir/custom_conditions/thermal_face.cpp.o
+[0m[ 84%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_utilities/shell_cross_section.cpp.o
+[0m/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_utilities/shell_cross_section.cpp: In member function ‘virtual void Kratos::ShellCrossSection::InitializeSolutionStep(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_utilities/shell_cross_section.cpp:263:151: warning: ‘virtual void Kratos::ConstitutiveLaw::InitializeSolutionStep(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’ is deprecated (declared at /home/msaranshs/Kratos/kratos/includes/constitutive_law.h:836) [-Wdeprecated-declarations]
+             r_int_point.GetConstitutiveLaw()->InitializeSolutionStep(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
+                                                                                                                                                       ^
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_utilities/shell_cross_section.cpp: In member function ‘virtual void Kratos::ShellCrossSection::FinalizeSolutionStep(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_utilities/shell_cross_section.cpp:279:149: warning: ‘virtual void Kratos::ConstitutiveLaw::FinalizeSolutionStep(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’ is deprecated (declared at /home/msaranshs/Kratos/kratos/includes/constitutive_law.h:850) [-Wdeprecated-declarations]
+             r_int_point.GetConstitutiveLaw()->FinalizeSolutionStep(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
+                                                                                                                                                     ^
+[ 84%] [32mBuilding CXX object applications/MeshMovingApplication/CMakeFiles/KratosMeshMovingApplication.dir/custom_python/add_custom_utilities_to_python.cpp.o
+[0m[ 84%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionCore.dir/custom_conditions/flux_condition.cpp.o
+[0m[ 84%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_utilities/project_vector_on_surface_utility.cpp.o
+[0m[ 84%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionCore.dir/custom_conditions/adjoint_thermal_face.cpp.o
+[0m[ 84%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_utilities/shell_utilities.cpp.o
+[0m[ 84%] [32mBuilding CXX object applications/MeshMovingApplication/CMakeFiles/KratosMeshMovingApplication.dir/custom_python/mesh_moving_python_application.cpp.o
+[0m[ 84%] [32mBuilding CXX object applications/MeshMovingApplication/CMakeFiles/KratosMeshMovingApplication.dir/custom_utilities/move_mesh_utilities.cpp.o
+[0m[ 84%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_utilities/static_condensation_utility.cpp.o
+[0m[ 84%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/viscous_generalized_maxwell.cpp.o
+[0m[ 85%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionCore.dir/custom_processes/metrics_temperature_gradient_process.cpp.o
+[0m[ 85%] [32mBuilding CXX object applications/MeshMovingApplication/CMakeFiles/KratosMeshMovingApplication.dir/custom_utilities/explicit_fixed_mesh_ale_utilities.cpp.o
+[0m[ 85%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionCore.dir/tests/cpp_tests/test_eulerian_conv_diff.cpp.o
+[0m[ 86%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/generic_small_strain_viscoplasticity_3d.cpp.o
+[0m[ 86%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/generic_small_strain_d_plus_d_minus_damage.cpp.o
+[0m[ 86%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/generic_small_strain_high_cycle_fatigue_law.cpp.o
+[0m[ 86%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionCore.dir/tests/cpp_tests/test_eulerian_diff.cpp.o
+[0m[ 86%] [32mBuilding CXX object applications/MeshMovingApplication/CMakeFiles/KratosMeshMovingApplication.dir/custom_utilities/fixed_mesh_ale_utilities.cpp.o
+[0m[ 86%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionCore.dir/tests/cpp_tests/test_thermal_face.cpp.o
+[0m[ 86%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionCore.dir/tests/cpp_tests/test_laplacian_element.cpp.o
+[0m[ 86%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/rule_of_mixtures_law.cpp.o
+[0m/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_advanced_constitutive/rule_of_mixtures_law.cpp: In member function ‘virtual void Kratos::RuleOfMixturesLaw::InitializeSolutionStep(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_advanced_constitutive/rule_of_mixtures_law.cpp:961:107: warning: ‘virtual void Kratos::ConstitutiveLaw::InitializeSolutionStep(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’ is deprecated (declared at /home/msaranshs/Kratos/kratos/includes/constitutive_law.h:836) [-Wdeprecated-declarations]
+         p_law->InitializeSolutionStep(r_prop, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
+                                                                                                           ^
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_advanced_constitutive/rule_of_mixtures_law.cpp: In member function ‘virtual void Kratos::RuleOfMixturesLaw::FinalizeSolutionStep(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_advanced_constitutive/rule_of_mixtures_law.cpp:980:105: warning: ‘virtual void Kratos::ConstitutiveLaw::FinalizeSolutionStep(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’ is deprecated (declared at /home/msaranshs/Kratos/kratos/includes/constitutive_law.h:850) [-Wdeprecated-declarations]
+         p_law->FinalizeSolutionStep(r_prop, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
+                                                                                                         ^
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_advanced_constitutive/rule_of_mixtures_law.cpp: In member function ‘virtual void Kratos::RuleOfMixturesLaw::InitializeNonLinearIteration(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_advanced_constitutive/rule_of_mixtures_law.cpp:999:113: warning: ‘virtual void Kratos::ConstitutiveLaw::InitializeNonLinearIteration(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’ is deprecated (declared at /home/msaranshs/Kratos/kratos/includes/constitutive_law.h:866) [-Wdeprecated-declarations]
+         p_law->InitializeNonLinearIteration(r_prop, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
+                                                                                                                 ^
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_advanced_constitutive/rule_of_mixtures_law.cpp: In member function ‘virtual void Kratos::RuleOfMixturesLaw::FinalizeNonLinearIteration(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’:
+/home/msaranshs/Kratos/applications/StructuralMechanicsApplication/custom_advanced_constitutive/rule_of_mixtures_law.cpp:1018:111: warning: ‘virtual void Kratos::ConstitutiveLaw::FinalizeNonLinearIteration(const Kratos::Properties&, const GeometryType&, const Vector&, const Kratos::ProcessInfo&)’ is deprecated (declared at /home/msaranshs/Kratos/kratos/includes/constitutive_law.h:882) [-Wdeprecated-declarations]
+         p_law->FinalizeNonLinearIteration(r_prop, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
+                                                                                                               ^
+[31m[1mLinking CXX shared library libKratosConvectionDiffusionCore.so
+[0m[ 87%] [32mBuilding CXX object applications/MeshMovingApplication/CMakeFiles/KratosMeshMovingApplication.dir/custom_utilities/mesh_velocity_calculation.cpp.o
+[0m[ 87%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/viscous_generalized_kelvin.cpp.o
+[0m[ 87%] Built target KratosConvectionDiffusionCore
+[ 87%] [32mBuilding CXX object applications/MeshMovingApplication/CMakeFiles/KratosMeshMovingApplication.dir/tests/cpp_tests/test_mesh_velocity_calculation.cpp.o
+[0m[ 87%] [32mBuilding CXX object applications/MeshMovingApplication/CMakeFiles/KratosMeshMovingApplication.dir/tests/cpp_tests/test_fixed_mesh_ale_utilities.cpp.o
+[0m[35m[1mScanning dependencies of target KratosFluidDynamicsApplication
+[0m[ 87%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsApplication.dir/custom_python/add_custom_strategies_to_python.cpp.o
+[0m[ 87%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/truss_plasticity_constitutive_law.cpp.o
+[0m[ 87%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/hyper_elastic_isotropic_ogden_1d.cpp.o
+[0m[ 88%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsApplication.dir/custom_python/add_custom_utilities_to_python.cpp.o
+[0m[ 89%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/small_strain_j2_plasticity_plane_strain_2d.cpp.o
+[0m[ 89%] [32mBuilding CXX object applications/MeshMovingApplication/CMakeFiles/KratosMeshMovingApplication.dir/tests/cpp_tests/test_explicit_fixed_mesh_ale_utilities.cpp.o
+[0m[ 89%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.cpp.o
+[0m[ 89%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/small_strain_kinematic_plasticity_factory.cpp.o
+[0m[31m[1mLinking CXX shared module KratosMeshMovingApplication.cpython-34m.so
+[0m[ 89%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/linear_elastic_orthotropic_2D_law.cpp.o
+[0m[35m[1mScanning dependencies of target KratosMeshingApplication
+[0m[ 89%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingApplication.dir/custom_python/add_meshers_to_python.cpp.o
+[0m[ 89%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/small_strain_isotropic_damage_traction_only_3d.cpp.o
+[0m[ 89%] Built target KratosMeshMovingApplication
+[ 89%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/hyper_elastic_isotropic_kirchhoff_3d.cpp.o
+[0m[ 89%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingApplication.dir/custom_python/add_custom_io_to_python.cpp.o
+[0m[ 89%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/generic_small_strain_isotropic_damage.cpp.o
+[0m[ 89%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsApplication.dir/custom_python/add_custom_processes_to_python.cpp.o
+[0m[ 89%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsApplication.dir/custom_python/add_custom_constitutive_laws_to_python.cpp.o
+[0m[ 89%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingApplication.dir/custom_python/add_processes_to_python.cpp.o
+[0m[35m[1mScanning dependencies of target KratosConvectionDiffusionApplication
+[0m[ 89%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionApplication.dir/custom_python/kratos_convection_diffusion_python_application.cpp.o
+[0m[ 90%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/serial_parallel_rule_of_mixtures_law.cpp.o
+[0m[ 91%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingApplication.dir/custom_python/kratos_meshing_python_application.cpp.o
+[0m[ 91%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.cpp.o
+[0m[ 92%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionApplication.dir/custom_python/add_custom_strategies_to_python.cpp.o
+[0m[ 92%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/generic_finite_strain_isotropic_plasticity.cpp.o
+[0m[ 92%] [32mBuilding CXX object applications/MeshingApplication/CMakeFiles/KratosMeshingApplication.dir/custom_python/add_custom_utilities_to_python.cpp.o
+[0m[ 92%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsApplication.dir/custom_python/add_custom_response_functions_to_python.cpp.o
+[0m[ 92%] [32mBuilding CXX object applications/FluidDynamicsApplication/CMakeFiles/KratosFluidDynamicsApplication.dir/custom_python/fluid_dynamics_python_application.cpp.o
+[0m[ 92%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/hyper_elastic_isotropic_neo_hookean_3d.cpp.o
+[0m[ 92%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionApplication.dir/custom_python/add_custom_utilities_to_python.cpp.o
+[0m[ 92%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/hyper_elastic_isotropic_henky_1d.cpp.o
+[0m[ 92%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/small_strain_isotropic_plasticity_factory.cpp.o
+[0m[31m[1mLinking CXX shared module KratosFluidDynamicsApplication.cpython-34m.so
+[0m[ 93%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/small_strain_isotropic_damage_3d.cpp.o
+[0m[31m[1mLinking CXX shared module KratosMeshingApplication.cpython-34m.so
+[0m[ 93%] Built target KratosFluidDynamicsApplication
+[ 93%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/finite_strain_isotropic_plasticity_factory.cpp.o
+[0m[ 93%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionApplication.dir/custom_python/add_custom_response_functions_to_python.cpp.o
+[0m[ 93%] Built target KratosMeshingApplication
+[ 93%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/small_strain_j2_plasticity_3d.cpp.o
+[0m[ 93%] [32mBuilding CXX object applications/ConvectionDiffusionApplication/CMakeFiles/KratosConvectionDiffusionApplication.dir/custom_python/add_custom_processes_to_python.cpp.o
+[0m[ 93%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/elastic_isotropic_plane_stress_uncoupled_shear.cpp.o
+[0m[ 93%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/small_strain_isotropic_damage_factory.cpp.o
+[0m[ 93%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/generic_finite_strain_kinematic_plasticity.cpp.o
+[0m[ 93%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/generic_small_strain_kinematic_plasticity.cpp.o
+[0m[31m[1mLinking CXX shared module KratosConvectionDiffusionApplication.cpython-34m.so
+[0m[ 94%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/finite_strain_kinematic_plasticity_factory.cpp.o
+[0m[ 94%] Built target KratosConvectionDiffusionApplication
+[ 94%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/generic_small_strain_orthotropic_damage.cpp.o
+[0m[ 94%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/small_strain_isotropic_damage_plane_strain_2d.cpp.o
+[0m[ 94%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/generic_small_strain_isotropic_plasticity.cpp.o
+[0m[ 94%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.cpp.o
+[0m[ 94%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/generic_small_strain_plastic_damage_model.cpp.o
+[0m[ 94%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/plasticity_isotropic_kinematic_j2.cpp.o
+[0m[ 95%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/d_plus_d_minus_damage_masonry_3d.cpp.o
+[0m[ 95%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/custom_advanced_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.cpp.o
+[0m[ 95%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_tests/test_replace_multiple_elements_and_conditions_process.cpp.o
+[0m[ 95%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_tests/test_mpc_plate_tension.cpp.o
+[0m[ 95%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_tests/test_solid_shell_thickness_compute_process.cpp.o
+[0m[ 95%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_tests/test_structural_mechanics_element_utilities.cpp.o
+[0m[ 95%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_tests/test_constitutive_law_utilities.cpp.o
+[0m[ 96%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_tests/test_shell_to_solid_shell_process.cpp.o
+[0m[ 96%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_tests/test_complex_orientation_mpc.cpp.o
+[0m[ 96%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_tests/test_user_provided_linear_elastic_law.cpp.o
+[0m[ 96%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_tests/test_spr_error_process.cpp.o
+[0m[ 96%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_tests/bits/adjoint_test_model_part_factory.cpp.o
+[0m[ 96%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_tests/bits/test_model_part_factory.cpp.o
+[0m[ 96%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_tests/test_prism_neighbours_process.cpp.o
+[0m[ 97%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_tests/test_small_displacement_mixed_volumetric_strain_element.cpp.o
+[0m[ 97%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_advanced_constitutive_tests/test_plastic_damage_constitutive_law_3d.cpp.o
+[0m[ 97%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_advanced_constitutive_tests/test_d+d-damage_law_masonry_3d.cpp.o
+[0m[ 97%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_advanced_constitutive_tests/test_rule_of_mixtures_law.cpp.o
+[0m[ 97%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_advanced_constitutive_tests/test_solid_transient_sensitivity.cpp.o
+[0m[ 97%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_advanced_constitutive_tests/test_total_lagrangian_element_matrices.cpp.o
+[0m[ 97%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_advanced_constitutive_tests/test_small_strain_isotropic_damage_3d.cpp.o
+[0m[ 98%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_advanced_constitutive_tests/test_small_strain_isotropic_damage_traction_only_3d.cpp.o
+[0m[ 98%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_advanced_constitutive_tests/test_kinematic_plasticity_constitutive_laws_3d.cpp.o
+[0m[ 98%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_advanced_constitutive_tests/test_kelvin_constitutive_law.cpp.o
+[0m[ 98%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_advanced_constitutive_tests/test_maxwell_constitutive_law.cpp.o
+[0m[ 98%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_advanced_constitutive_tests/test_yield_surfaces_3d.cpp.o
+[0m[ 98%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_advanced_constitutive_tests/test_d+d-damage_law_masonry_2d.cpp.o
+[0m[ 98%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_advanced_constitutive_tests/test_damage_constitutive_laws_3d.cpp.o
+[0m[ 99%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_advanced_constitutive_tests/test_plasticity_constitutive_laws_3d.cpp.o
+[0m[ 99%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_advanced_constitutive_tests/test_orthotropic_damage_constitutive_laws_3d.cpp.o
+[0m[ 99%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_advanced_constitutive_tests/test_solid_static_sensitivity.cpp.o
+[0m[ 99%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_advanced_constitutive_tests/test_tangent_tensor_numerical_derivation_utility.cpp.o
+[0m[ 99%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsCore.dir/tests/cpp_advanced_constitutive_tests/test_high_cycle_fatigue_constitutive_law_3d.cpp.o
+[0m[31m[1mLinking CXX shared library libKratosStructuralMechanicsCore.so
+[0m[ 99%] Built target KratosStructuralMechanicsCore
+[35m[1mScanning dependencies of target KratosStructuralMechanicsApplication
+[0m[ 99%] [ 99%] [100%] [100%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsApplication.dir/custom_python/add_custom_response_functions_to_python.cpp.o
+[0m[32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsApplication.dir/custom_python/add_custom_constitutive_laws_to_python.cpp.o
+[0m[32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsApplication.dir/custom_python/structural_mechanics_python_application.cpp.o
+[0m[32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsApplication.dir/custom_python/add_custom_advanced_constitutive_laws_to_python.cpp.o
+[0m[100%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsApplication.dir/custom_python/add_custom_strategies_to_python.cpp.o
+[0m[100%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsApplication.dir/custom_python/add_custom_processes_to_python.cpp.o
+[0m[100%] [32mBuilding CXX object applications/StructuralMechanicsApplication/CMakeFiles/KratosStructuralMechanicsApplication.dir/custom_python/add_custom_utilities_to_python.cpp.o
+[0m[31m[1mLinking CXX shared module KratosStructuralMechanicsApplication.cpython-34m.so
+[0m[100%] Built target KratosStructuralMechanicsApplication
+[36mInstall the project...
+[0m-- Install configuration: "Debug"
+-- Deleting: /home/msaranshs/Kratos/bin/Debug/KratosMultiphysics
+-- Deleting: /home/msaranshs/Kratos/bin/Debug/libs
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/Kratos.cpython-34m.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/KratosExternalSolversApplication.cpython-34m.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/libKratosStructuralMechanicsCore.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/KratosStructuralMechanicsApplication.cpython-34m.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/libKratosFluidDynamicsCore.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/KratosFluidDynamicsApplication.cpython-34m.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/KratosMappingApplication.cpython-34m.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/libKratosMeshingCore.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/KratosMeshingApplication.cpython-34m.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/KratosFSIApplication.cpython-34m.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/KratosGeodataProcessingApplication.cpython-34m.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/libKratosConvectionDiffusionCore.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/KratosConvectionDiffusionApplication.cpython-34m.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/KratosMeshMovingApplication.cpython-34m.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/./runkratos"
+]0;msaranshs@stud4: ~/Kratos/scriptsmsaranshs@stud4:~/Kratos/scripts$ cd ../..
+]0;msaranshs@stud4: ~msaranshs@stud4:~$ python
+Python 2.7.6 (default, Nov 13 2018, 12:45:42) 
+[GCC 4.8.4] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import KratosMultiphysics
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ImportError: No module named KratosMultiphysics
+>>> import KratosMultiphysics[K[K[K[K[K[K[K[K[K[K[K[Kmultiphysics
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ImportError: No module named Kratosmultiphysics
+>>> exit
+Use exit() or Ctrl-D (i.e. EOF) to exit
+>>> exit()
+]0;msaranshs@stud4: ~msaranshs@stud4:~$ [K]0;msaranshs@stud4: ~msaranshs@stud4:~$ cd Documents/tri[K[K[KTrial_mapping/
+]0;msaranshs@stud4: ~/Documents/Trial_mappingmsaranshs@stud4:~/Documents/Trial_mapping$ ls
+BuoyancyMaterials.json             [0m[01;34mfluid_buoyancy.gid[0m   ProjectParameters.json   [01;34msolid_convdiff.gid[0m
+ConvectionDiffusionMaterials.json  fluid_buoyancy.mdpa  ProjectParameters.json~  solid_convdiff.mdpa
+]0;msaranshs@stud4: ~/Documents/Trial_mappingmsaranshs@stud4:~/Documents/Trial_mapping$ m[Krunk[K[K[K[Kpython MainKratos.py 
+Traceback (most recent call last):
+  File "MainKratos.py", line 3, in <module>
+    import KratosMultiphysics
+ImportError: No module named KratosMultiphysics
+]0;msaranshs@stud4: ~/Documents/Trial_mappingmsaranshs@stud4:~/Documents/Trial_mapping$ cd ../..
+]0;msaranshs@stud4: ~msaranshs@stud4:~$ python
+Python 2.7.6 (default, Nov 13 2018, 12:45:42) 
+[GCC 4.8.4] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> exit()
+]0;msaranshs@stud4: ~msaranshs@stud4:~$ python3
+Python 3.4.3 (default, Nov 12 2018, 22:25:49) 
+[GCC 4.8.4] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> imü[Kport KratosMultiphysics
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ImportError: No module named 'KratosMultiphysics'
+>>> import KratosMultiphysics[1Pultiphysicsmultiphysics
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ImportError: No module named 'Kratosmultiphysics'
+>>> import KratosmultiphysicsMultiphysics
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ImportError: No module named 'KratosMultiphysics'
+>>> exit()
+]0;msaranshs@stud4: ~msaranshs@stud4:~$ cd Kratos
+]0;msaranshs@stud4: ~/Kratosmsaranshs@stud4:~/Kratos$ cd scripts/
+]0;msaranshs@stud4: ~/Kratos/scriptsmsaranshs@stud4:~/Kratos/scripts$ sh configure.sh 
+[H[2J-- The C compiler identification is GNU 4.8.4
+-- The CXX compiler identification is GNU 4.8.4
+-- Check for working C compiler: /usr/bin/gcc
+-- Check for working C compiler: /usr/bin/gcc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Check for working CXX compiler: /usr/bin/g++
+-- Check for working CXX compiler: /usr/bin/g++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- No KRATOS_SOURCE_DIR is defined, using: /home/msaranshs/Kratos
+-- No KRATOS_BINARY_DIR is defined, using: /home/msaranshs/Kratos/build/Debug
+-- No INSTALL_RUNKRATOS is defined, setting to ON
+-- No KRATOS_INSTALL_PYTHON_USING_LINKS is defined, setting to OFF
+-- No KRATOS_BUILD_TESTING is defined. Setting to ON
+-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER
+-- Found Git: /usr/bin/git (found version "2.21.0") 
+-- additional default options were set for gcc
+-- CMAKE_CXX_FLAGS =  -funroll-loops -Wall -std=c++11
+-- CMAKE_C_FLAGS =  -funroll-loops -Wall
+-- Found PythonInterp: /usr/bin/python3 (found version "3.4.3") 
+-- Found PythonLibs: /usr/lib/x86_64-linux-gnu/libpython3.4m.so
+-- Performing Test HAS_CPP14_FLAG
+-- Performing Test HAS_CPP14_FLAG - Failed
+-- Performing Test HAS_CPP11_FLAG
+-- Performing Test HAS_CPP11_FLAG - Success
+-- Standard install dir /home/msaranshs/Kratos/bin/Debug
+-- OpenMP included
+-- Try OpenMP C flag = [-fopenmp]
+-- Performing Test OpenMP_FLAG_DETECTED
+-- Performing Test OpenMP_FLAG_DETECTED - Success
+-- Try OpenMP CXX flag = [-fopenmp]
+-- Performing Test OpenMP_FLAG_DETECTED
+-- Performing Test OpenMP_FLAG_DETECTED - Success
+-- Found OpenMP: -fopenmp  
+-- Boost version: 1.70.0
+-- Boost Include: /home/msaranshs/boost_1_70_0
+-- Boost Linkdir: 
+-- Found ZLIB: /usr/lib/x86_64-linux-gnu/libz.so (found version "1.2.8") 
+-- AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.
+ 
+CMAKE_BUILD_TYPE ........ Debug
+ 
+WARNING: YOUR GIDPOST IS BEING COMPILED  WITHOUT DEBUG (ALL ASSERTS WILL BE AVOIDED)
+-- Looking for include file pthread.h
+-- Looking for include file pthread.h - found
+-- Looking for pthread_create
+-- Looking for pthread_create - found
+-- Found Threads: TRUE  
+-- Configuring applications (ENV):
+Adding application '/home/msaranshs/Kratos/scripts/../applications/ExternalSolversApplication'
+**** Configuring KratosExternalSolversApplication ****
+-- The Fortran compiler identification is GNU
+-- Check for working Fortran compiler: /usr/bin/gfortran
+-- Check for working Fortran compiler: /usr/bin/gfortran  -- works
+-- Detecting Fortran compiler ABI info
+-- Detecting Fortran compiler ABI info - done
+-- Checking whether /usr/bin/gfortran supports Fortran 90
+-- Checking whether /usr/bin/gfortran supports Fortran 90 -- yes
+-- Detecting Fortran/C Interface
+-- Detecting Fortran/C Interface - Found GLOBAL and MODULE mangling
+-- Looking for Fortran sgemm
+-- Looking for Fortran sgemm - found
+-- A library with BLAS API found.
+linker flags with blas =
+BLA_VENDOR = All
+-- A library with BLAS API found.
+-- Looking for Fortran cheev
+-- Looking for Fortran cheev - found
+-- A library with LAPACK API found.
+LAPACK = /usr/lib/liblapack.so/usr/lib/libblas/libblas.so.3.0
+LAPACK modified = /usr/lib/lapack/liblapack.so.3.0/usr/lib/libblas/libblas.so.3.0
+Adding application '/home/msaranshs/Kratos/scripts/../applications/StructuralMechanicsApplication'
+**** configuring KratosStructuralMechanicsApplication ****
+Adding application '/home/msaranshs/Kratos/scripts/../applications/FluidDynamicsApplication'
+**** configuring KratosFluidDynamicsApplication ****
+Adding application '/home/msaranshs/Kratos/scripts/../applications/MappingApplication'
+**** configuring KratosMappingApplication ****
+Adding application '/home/msaranshs/Kratos/scripts/../applications/MeshingApplication'
+**** configuring KratosMeshingApplication ****
+Installed MMG = /home/msaranshs/mmg/build/lib/libmmg.so
+Installed MMG2D = /home/msaranshs/mmg/build/lib/libmmg2d.so
+Installed MMG3D = /home/msaranshs/mmg/build/lib/libmmg3d.so
+Installed MMGS = /home/msaranshs/mmg/build/lib/libmmgs.so
+Adding application '/home/msaranshs/Kratos/scripts/../applications/FSIApplication'
+**** configuring KratosFSIApplication ****
+Adding application '/home/msaranshs/Kratos/scripts/../applications/GeodataProcessingApplication'
+**** configuring KratosGeodataProcessingApplication ****
+Adding application '/home/msaranshs/Kratos/scripts/../applications/ConvectionDiffusionApplication'
+**** configuring KratosConvectionDiffusionApplication ****
+Adding application '/home/msaranshs/Kratos/scripts/../applications/MeshMovingApplication'
+**** configuring KratosMeshMovingApplication ****
+
+***********************************************************************
+
+        LIST OF APPLICATIONS THAT ARE GOING TO BE COMPILED:
+
+        ExternalSolversApplication
+        StructuralMechanicsApplication
+        FluidDynamicsApplication
+        MappingApplication
+        MeshingApplication
+        FSIApplication
+        GeodataProcessingApplication
+        ConvectionDiffusionApplication
+        MeshMovingApplication
+
+        APPLICATIONS ADDED TO COMPILATION THROUGH DEPENDENCIES:
+
+
+***********************************************************************
+
+-- triangle : /home/msaranshs/Kratos/external_libraries/triangle
+python libraries to be installed are: /usr/lib/x86_64-linux-gnu/libpython3.4m.so.1.0
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/msaranshs/Kratos/build/Debug
+[  1%] [  1%] Built target gidpost
+Built target KratosVersion
+[  2%] Built target triangle
+[ 11%] Built target superlu
+[ 11%] [ 12%] Built target runkratos
+Built target tetMeshOpt
+[ 46%] Built target KratosCore
+[ 46%] Built target KratosExternalSolversApplication
+[ 49%] Built target KratosMappingApplication
+[ 55%] Built target Kratos
+[ 58%] Built target KratosMeshingCore
+[ 59%] Built target KratosFSIApplication
+[ 60%] Built target KratosGeodataProcessingApplication
+[ 62%] Built target KratosConvectionDiffusionCore
+[ 64%] Built target KratosMeshMovingApplication
+[ 65%] Built target KratosMeshingApplication
+[ 66%] Built target KratosConvectionDiffusionApplication
+[ 76%] Built target KratosFluidDynamicsCore
+[ 77%] Built target KratosFluidDynamicsApplication
+[ 99%] Built target KratosStructuralMechanicsCore
+[100%] Built target KratosStructuralMechanicsApplication
+[36mInstall the project...
+[0m-- Install configuration: "Debug"
+-- Deleting: /home/msaranshs/Kratos/bin/Debug/KratosMultiphysics
+-- Deleting: /home/msaranshs/Kratos/bin/Debug/libs
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/Kratos.cpython-34m.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/KratosExternalSolversApplication.cpython-34m.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/libKratosStructuralMechanicsCore.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/KratosStructuralMechanicsApplication.cpython-34m.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/libKratosFluidDynamicsCore.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/KratosFluidDynamicsApplication.cpython-34m.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/KratosMappingApplication.cpython-34m.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/libKratosMeshingCore.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/KratosMeshingApplication.cpython-34m.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/KratosFSIApplication.cpython-34m.so"
+-- Removed runtime path from "/home/msaranshs/Kratos/bin/Debug/libs/KratosGeodataProcessingApplication.cpython-34m.so"
+-- 
