@@ -85,6 +85,7 @@ class MechanicalSolver(PythonSolver):
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type" : "mechanical_solver",
+            "custom_solver_module" : "",
             "model_part_name" : "",
             "domain_size" : -1,
             "echo_level": 0,

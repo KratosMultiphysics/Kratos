@@ -8,6 +8,13 @@ from importlib import import_module
 
 def CreateSolverByParameters(model, solver_settings, parallelism):
 
+    if solver_settings.Has("custom_solver_module"):
+        # this means that the user specified a custom solver
+        solver_module_name = solver_settings["custom_solver_module"].GetString()
+        solver = import_module(solver_module_name).CreateSolver(model, solver_settings)
+        KratosMultiphysics.Logger.PrintInfo("MechanicalSolversWrapper", 'Using custom solver "{}", defined in module "{}"'.format(solver.__class__.__name__, solver.__class__.__module__))
+        return solver
+
     solver_type = solver_settings["solver_type"].GetString()
 
     if solver_settings.Has("time_integration_method"):
