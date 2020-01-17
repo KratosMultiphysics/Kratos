@@ -238,8 +238,8 @@ class MeshSolverBase(PythonSolver):
     def __CreateTimeIntegratorHelper(self):
         '''Initializing the helper-class for the time-integration
         '''
-        time_int_settings = self.settings["mesh_velocity_calculation"]
-        time_scheme = time_int_settings["time_scheme"].GetString()
+        mesh_vel_calc_setting = self.settings["mesh_velocity_calculation"]
+        time_scheme = mesh_vel_calc_setting["time_scheme"].GetString()
 
         if time_scheme == "bdf1":
             self.time_int_helper = KratosMultiphysics.TimeDiscretization.BDF1()
@@ -248,14 +248,14 @@ class MeshSolverBase(PythonSolver):
         elif time_scheme == "newmark":
             self.time_int_helper = KratosMultiphysics.TimeDiscretization.Newmark()
         elif time_scheme == "bossak":
-            if time_int_settings.Has("alpha_m"):
-                alpha_m = time_int_settings["alpha_m"].GetDouble()
+            if mesh_vel_calc_setting.Has("alpha_m"):
+                alpha_m = mesh_vel_calc_setting["alpha_m"].GetDouble()
                 self.time_int_helper = KratosMultiphysics.TimeDiscretization.Bossak(alpha_m)
             else:
                 self.time_int_helper = KratosMultiphysics.TimeDiscretization.Bossak()
         elif time_scheme == "generalized_alpha":
-            alpha_m = time_int_settings["alpha_m"].GetDouble()
-            alpha_f = time_int_settings["alpha_f"].GetDouble()
+            alpha_m = mesh_vel_calc_setting["alpha_m"].GetDouble()
+            alpha_f = mesh_vel_calc_setting["alpha_f"].GetDouble()
             self.time_int_helper = KratosMultiphysics.TimeDiscretization.GeneralizedAlpha(alpha_m, alpha_f)
         else:
             err_msg =  'The requested time scheme "' + time_scheme + '" is not available!\n'
