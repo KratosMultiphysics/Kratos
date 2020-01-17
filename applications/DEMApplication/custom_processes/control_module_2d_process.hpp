@@ -82,7 +82,7 @@ public:
         mStressAveragingTime = rParameters["stress_averaging_time"].GetDouble();
         mVectorOfLastStresses.resize(0);
 
-        mrModelPart.GetProcessInfo()[REACTION_STRESS_Z] = 0.0;
+        mrModelPart.GetProcessInfo()[TARGET_STRESS_Z] = 0.0;
 
         KRATOS_CATCH("");
     }
@@ -296,7 +296,7 @@ public:
                     it->FastGetSolutionStepValue(REACTION_STRESS_Z) = ReactionStress;
                     it->FastGetSolutionStepValue(LOADING_VELOCITY_Z) = mVelocity;
 
-                    mrModelPart.GetProcessInfo()[REACTION_STRESS_Z] = std::abs(ReactionStress);
+                    mrModelPart.GetProcessInfo()[TARGET_STRESS_Z] = std::abs(pTargetStressTable->GetValue(CurrentTime));
                 }
             } else { // Radial direction
                 #pragma omp parallel for
