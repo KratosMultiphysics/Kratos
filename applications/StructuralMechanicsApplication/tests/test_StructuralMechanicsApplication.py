@@ -39,7 +39,7 @@ from test_patch_test_cr_beam import DynamicPatchTestBeam2D2N as TDynamicPatchTes
 from test_patch_test_cr_beam import StaticPatchTestBeam2D2N as TStaticPatchTestBeam2D2N
 from test_patch_test_shells_stress import TestPatchTestShellsStressRec as TTestPatchTestShellsStressRec
 from test_patch_test_shells_orthotropic import TestPatchTestShellsOrthotropic as TTestPatchTestShellsOrthotropic
-from test_patch_test_formfinding import TestPatchTestFormfinding as TTestPatchTestFormfinding
+from test_patch_test_formfinding_trusses import TestPatchTestFormfinding as TTestPatchTestFormfinding
 from test_patch_test_membrane import StaticPatchTestMembrane as TStaticPatchTestMembrane
 from test_patch_test_membrane import DynamicPatchTestMembrane as TDynamicPatchTestMembrane
 
@@ -122,7 +122,6 @@ from structural_mechanics_test_factory import EigenQ4Thick2x2PlateTests as TEige
 from structural_mechanics_test_factory import EigenTL3D8NCubeTests as TEigenTL3D8NCubeTests
 from structural_mechanics_test_factory import Eigen3D3NThinCircleTests as TEigen3D3NThinCircleTests
 # Membrane tests
-from structural_mechanics_test_factory import Fofi4PointTentnoCableTests as TFofi4PointTentnoCableTests
 from structural_mechanics_test_factory import Fofi4PointTentCableTests as TFofi4PointTentCableTests
 from structural_mechanics_test_factory import MembraneQ4PointLoadTests as TMembraneQ4PointLoadTests
 from structural_mechanics_test_factory import MembraneQ4TrussPointLoadTests as TMembraneQ4TrussPointLoadTests
@@ -361,7 +360,6 @@ def AssembleTestSuites():
     nightSuite.addTest(TTestCookMembrane('test_cook_membrane_2d'))
     nightSuite.addTest(TTestCookMembrane('test_cook_membrane_incompressible_2d'))
     # Membrane tests
-    nightSuite.addTest(TFofi4PointTentnoCableTests('test_execution'))
     nightSuite.addTest(TFofi4PointTentCableTests('test_execution'))
     nightSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
     nightSuite.addTest(TMembraneQ4TrussPointLoadTests('test_execution'))
