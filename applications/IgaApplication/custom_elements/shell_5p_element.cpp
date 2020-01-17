@@ -19,7 +19,7 @@
 // Project includes
 
 // Application includes
-#include "custom_elements/shell_3p_element.h"
+#include "custom_elements/shell_5p_element.h"
 
 
 
@@ -28,7 +28,7 @@ namespace Kratos
     ///@name Initialize Functions
     ///@{
 
-    void Shell3pElement::Initialize()
+    void Shell5pElement::Initialize()
     {
         KRATOS_TRY
 
@@ -68,7 +68,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void Shell3pElement::InitializeMaterial()
+    void Shell5pElement::InitializeMaterial()
     {
         KRATOS_TRY
 
@@ -95,7 +95,7 @@ namespace Kratos
     ///@name Assembly
     ///@{
 
-    void Shell3pElement::CalculateAll(
+    void Shell5pElement::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
@@ -109,7 +109,7 @@ namespace Kratos
 
         // definition of problem size
         const SizeType number_of_nodes = r_geometry.size();
-        const SizeType mat_size = number_of_nodes * 3;
+        const SizeType mat_size = number_of_nodes * 5;
 
         const auto& r_integration_points = r_geometry.IntegrationPoints();
 
@@ -204,7 +204,7 @@ namespace Kratos
     ///@name Kinematics
     ///@{
 
-    void Shell3pElement::CalculateKinematics(
+    void Shell5pElement::CalculateKinematics(
         IndexType IntegrationPointIndex,
         KinematicVariables& rKinematicVariables
     )
@@ -246,7 +246,7 @@ namespace Kratos
     *
     *  The transformation from ε_12_cu to 2*ε_12_ca is included in T.
     */
-    void Shell3pElement::CalculateTransformation(
+    void Shell5pElement::CalculateTransformation(
         const KinematicVariables& rKinematicVariables,
         Matrix& rT
     )
@@ -297,7 +297,7 @@ namespace Kratos
         rT(2, 2) = 2 * (G(0, 0) * G(1, 1) + G(0, 1) * G(1, 0));
     }
 
-    void Shell3pElement::CalculateConstitutiveVariables(
+    void Shell5pElement::CalculateConstitutiveVariables(
         IndexType IntegrationPointIndex,
         KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
@@ -333,7 +333,7 @@ namespace Kratos
             trans(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix), rThisConstitutiveVariablesCurvature.StrainVector);
     }
 
-    void Shell3pElement::CalculateBMembrane(
+    void Shell5pElement::CalculateBMembrane(
         IndexType IntegrationPointIndex,
         Matrix& rB,
         const KinematicVariables& rActualKinematic)
@@ -365,7 +365,7 @@ namespace Kratos
         }
     }
 
-    void Shell3pElement::CalculateBCurvature(
+    void Shell5pElement::CalculateBCurvature(
         IndexType IntegrationPointIndex,
         Matrix& rB,
         const KinematicVariables& rActualKinematic)
@@ -438,7 +438,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void Shell3pElement::CalculateSecondVariationStrainCurvature(
+    void Shell5pElement::CalculateSecondVariationStrainCurvature(
         IndexType IntegrationPointIndex,
         SecondVariations& rSecondVariationsStrain,
         SecondVariations& rSecondVariationsCurvature,
@@ -560,7 +560,7 @@ namespace Kratos
     ///@name Stiffness matrix assembly
     ///@{
 
-    inline void Shell3pElement::CalculateAndAddKm(
+    inline void Shell5pElement::CalculateAndAddKm(
         MatrixType& rLeftHandSideMatrix,
         const Matrix& rB,
         const Matrix& rD,
@@ -570,7 +570,7 @@ namespace Kratos
         noalias(rLeftHandSideMatrix) += IntegrationWeight * prod(trans(rB), Matrix(prod(rD, rB)));
     }
 
-    inline void Shell3pElement::CalculateAndAddNonlinearKm(
+    inline void Shell5pElement::CalculateAndAddNonlinearKm(
         Matrix& rLeftHandSideMatrix,
         const SecondVariations& rSecondVariationsStrain,
         const Vector& rSD,
@@ -598,12 +598,12 @@ namespace Kratos
     ///@name Dynamic Functions
     ///@{
 
-    void Shell3pElement::GetValuesVector(
+    void Shell5pElement::GetValuesVector(
         Vector& rValues,
         int Step)
     {
         const unsigned int number_of_control_points = GetGeometry().size();
-        const unsigned int mat_size = number_of_control_points * 3;
+        const unsigned int mat_size = number_of_control_points * 5;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
@@ -611,7 +611,7 @@ namespace Kratos
         for (unsigned int i = 0; i < number_of_control_points; ++i)
         {
             const array_1d<double, 3 >& displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-            const int index = i * 3;
+            const int index = i * 3; //TODO Geometry are 6 parameters but degrees of freedeom are 5 how to deal with this?
 
             rValues[index] = displacement[0];
             rValues[index + 1] = displacement[1];
@@ -619,7 +619,7 @@ namespace Kratos
         }
     }
 
-    void Shell3pElement::GetFirstDerivativesVector(
+    void Shell5pElement::GetFirstDerivativesVector(
         Vector& rValues,
         int Step)
     {
@@ -639,7 +639,7 @@ namespace Kratos
         }
     }
 
-    void Shell3pElement::GetSecondDerivativesVector(
+    void Shell5pElement::GetSecondDerivativesVector(
         Vector& rValues,
         int Step)
     {
@@ -659,7 +659,7 @@ namespace Kratos
         }
     }
 
-    void Shell3pElement::EquationIdVector(
+    void Shell5pElement::EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo
     )
@@ -683,7 +683,7 @@ namespace Kratos
         KRATOS_CATCH("")
     };
 
-    void Shell3pElement::GetDofList(
+    void Shell5pElement::GetDofList(
         DofsVectorType& rElementalDofList,
         ProcessInfo& rCurrentProcessInfo
     )
@@ -708,7 +708,7 @@ namespace Kratos
     ///@name Check
     ///@{
 
-    int Shell3pElement::Check(const ProcessInfo& rCurrentProcessInfo)
+    int Shell5pElement::Check(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
 
@@ -732,7 +732,7 @@ namespace Kratos
         return 0;
     }
 
-    void Shell3pElement::CalculateHessian(
+    void Shell5pElement::CalculateHessian(
         Matrix& Hessian,
         const Matrix& rDDN_DDe)
     {
