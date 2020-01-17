@@ -87,7 +87,7 @@ class MeshSolverBase(PythonSolver):
             "reform_dofs_each_step"     : false,
             "compute_reactions"         : false,
             "poisson_ratio"             : 0.3,
-            "calculate_mesh_velocity"   : false,
+            "calculate_mesh_velocity"   : true,
             "mesh_velocity_calculation" : { },
             "superimpose_mesh_disp_with": [],
             "superimpose_mesh_velocity_with": []
