@@ -25,22 +25,13 @@ class AleFluidSolver(PythonSolver):
         if not self.model.HasModelPart(fluid_model_part_name):
             model.CreateModelPart(fluid_model_part_name)
 
-        ## Checking if reactions are being computed in the fluid
-        if fluid_solver_settings.Has("compute_reactions"):
-            if fluid_solver_settings["compute_reactions"].GetBool() == False:
-                fluid_solver_settings["compute_reactions"].SetBool(True)
-                warn_msg  = '"compute_reactions" is switched off for the fluid-solver, '
-                warn_msg += 'switching it on!'
-                KM.Logger.PrintWarning("::[AleFluidSolver]::", warn_msg)
-        else:
-            fluid_solver_settings.AddEmptyValue("compute_reactions").SetBool(True)
-            info_msg = 'Setting "compute_reactions" to true for the fluid-solver'
-            KM.Logger.PrintInfo("::[AleFluidSolver]::", info_msg)
+        # Derived class decides if the reactions should be computed or not
+        self._ManipulateFluidSolverSettingsForReactionsComputation(fluid_solver_settings)
 
-        ## Creating the fluid solver
+        # Creating the fluid solver
         self.fluid_solver = self._CreateFluidSolver(fluid_solver_settings, parallelism)
 
-        ## Creating the mesh-motion solver
+        # Creating the mesh-motion solver
         if not mesh_motion_solver_settings.Has("echo_level"):
             mesh_motion_solver_settings.AddValue("echo_level", self.settings["echo_level"])
 
@@ -61,16 +52,8 @@ class AleFluidSolver(PythonSolver):
         else:
             mesh_motion_solver_settings.AddValue("domain_size", fluid_solver_settings["domain_size"])
 
-        # Ensure that the MESH_VELOCITY is computed
-        if mesh_motion_solver_settings.Has("calculate_mesh_velocity"):
-            if not mesh_motion_solver_settings["calculate_mesh_velocity"].GetBool():
-                mesh_motion_solver_settings["calculate_mesh_velocity"].SetBool(True)
-                KM.Logger.PrintWarning("AleFluidSolver", 'Mesh velocity calculation was desactivated. Switching "calculate_mesh_velocity" on')
-        else:
-            mesh_motion_solver_settings.AddEmptyValue("calculate_mesh_velocity").SetBool(True)
-
-        # Calling this method ensures that the MESH_VELOCITY is consistently computed (same scheme as the fluid)
-        self._SelectMeshVelocityCalculationSettings()
+        # Derived class decides if the mesh velocities should be computed or not
+        self._ManipulateMeshMotionSolverSettingsForMeshVelocityComputation(fluid_solver_settings, mesh_motion_solver_settings)
 
         # Constructing the mesh-solver with the entire mesh
         # if no submodelparts are specified then this is used for the computation of the mesh-motion
@@ -211,8 +194,7 @@ class AleFluidSolver(PythonSolver):
 
     def GetMeshMotionSolver(self):
         if len(self.mesh_motion_solvers) > 1:
-            raise Exception('More than one mesh-motion-solver \
-                exists, please use "GetMeshMotionSolvers"')
+            raise Exception('More than one mesh-motion-solver exists, please use "GetMeshMotionSolvers"')
         return self.mesh_motion_solvers[0]
 
     def GetMeshMotionSolvers(self):
@@ -226,7 +208,7 @@ class AleFluidSolver(PythonSolver):
         '''This function creates the fluid solver.
         It has to be overridden in derived classes
         '''
-        raise Exception("Fluid solver creation must be implemented in the derived class.")
+        raise NotImplementedError("Fluid solver creation must be implemented in the derived class.")
 
     def __ApplyALEBoundaryCondition(self):
         '''Copy the MESH_VELOCITY to the VELOCITY (ALE) on the ale-boundary
@@ -237,3 +219,11 @@ class AleFluidSolver(PythonSolver):
                 KM.VELOCITY,
                 mp.GetCommunicator().LocalMesh().Nodes)
             mp.GetCommunicator().SynchronizeVariable(KM.VELOCITY)
+
+    @classmethod
+    def _ManipulateFluidSolverSettingsForReactionsComputation(cls, fluid_solver_settings):
+        raise NotImplementedError('"_ManipulateFluidSolverSettingsForReactionsComputation" has to be implemented in the derived class!')
+
+    @classmethod
+    def _ManipulateMeshMotionSolverSettingsForMeshVelocityComputation(cls, fluid_solver_settings, mesh_motion_solver_settings):
+        raise NotImplementedError('"_ManipulateMeshMotionSolverSettingsForMeshVelocityComputation" has to be implemented in the derived class!')
