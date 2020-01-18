@@ -20,95 +20,87 @@ void ChimeraHoleCuttingUtility::CreateHoleAfterDistance(
 
 template <int TDim>
 void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
-    ModelPart &rModelPart, ModelPart &rModifiedModelPart,
+    ModelPart &rModelPart, ModelPart &rRemovedModelPart,
     const ChimeraHoleCuttingUtility::Domain DomainType, const double OverLapDistance,
     const ChimeraHoleCuttingUtility::SideToExtract Side)
 {
     KRATOS_TRY;
     std::vector<IndexType> vector_of_node_ids;
+    vector_of_node_ids.reserve(rModelPart.NumberOfNodes());
+    std::vector<IndexType> vector_of_elem_ids;
+    vector_of_elem_ids.reserve(rModelPart.NumberOfElements());
 
-    int count = 0;
-
-    for (auto &i_element : rModelPart.Elements())
+    const auto &r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
+    for (auto &i_element : r_local_mesh.Elements())
     {
         double nodal_distance = 0.0;
-        IndexType numPointsOutside = 0;
-        IndexType j = 0;
-        Geometry<Node<3>> &geom = i_element.GetGeometry();
+        bool is_elem_outside = true;
+        IndexType num_pts_outside = 0;
+        auto& geom = i_element.GetGeometry();
 
-        for (j = 0; j < geom.size(); j++)
+        for (auto& node : geom)
         {
             nodal_distance =
-                i_element.GetGeometry()[j].FastGetSolutionStepValue(CHIMERA_DISTANCE);
+                node.FastGetSolutionStepValue(CHIMERA_DISTANCE);
 
             nodal_distance = nodal_distance * DomainType;
             if (nodal_distance < -1 * OverLapDistance)
             {
-                numPointsOutside++;
+                num_pts_outside++;
+                is_elem_outside = is_elem_outside && true;
+                vector_of_node_ids.push_back(node.Id()); // This is for important for MPI cases when a different
+                                                         // partition just touches this partition with one node.
+            } else {
+                is_elem_outside = is_elem_outside && false;
             }
         }
 
         /* Any node goes out of the domain means the element need to be INACTIVE ,
-       otherwise the modified patch boundary wont find any nodes on background
-     */
-        if (numPointsOutside > 0)
+            otherwise the modified patch boundary wont find any nodes on background
+         */
+        //if (num_pts_outside > 0)
+        if(is_elem_outside)
         {
             i_element.Set(ACTIVE, false);
-            IndexType num_nodes_per_elem = i_element.GetGeometry().PointsNumber();
+            auto& geom = i_element.GetGeometry();
             if (Side == ChimeraHoleCuttingUtility::SideToExtract::INSIDE)
-                rModifiedModelPart.AddElement(rModelPart.pGetElement(i_element.Id()));
-            for (j = 0; j < num_nodes_per_elem; j++)
+                vector_of_elem_ids.push_back(i_element.Id());
+            for (auto& node : geom)
             {
-                i_element.GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0) =
-                    0.0;
-                i_element.GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0) =
-                    0.0;
-                if (num_nodes_per_elem - 1 > 2)
-                    i_element.GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 0) =
-                        0.0;
-                i_element.GetGeometry()[j].FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
-                i_element.GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 1) =
-                    0.0;
-                i_element.GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 1) =
-                    0.0;
-                if (num_nodes_per_elem - 1 > 2)
-                    i_element.GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z, 1) =
-                        0.0;
-                i_element.GetGeometry()[j].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
-                if (Side == ChimeraHoleCuttingUtility::SideToExtract::INSIDE)
-                    vector_of_node_ids.push_back(i_element.GetGeometry()[j].Id());
+                node.FastGetSolutionStepValue(VELOCITY_X, 0) = 0.0;
+                node.FastGetSolutionStepValue(VELOCITY_Y, 0) = 0.0;
+                if (TDim > 2)
+                    node.FastGetSolutionStepValue(VELOCITY_Z, 0) = 0.0;
+                node.FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
+                node.FastGetSolutionStepValue(VELOCITY_X, 1) = 0.0;
+                node.FastGetSolutionStepValue(VELOCITY_Y, 1) = 0.0;
+                if (TDim > 2)
+                    node.FastGetSolutionStepValue(VELOCITY_Z, 1) = 0.0;
+                node.FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
             }
         }
         else
         {
             if (Side == ChimeraHoleCuttingUtility::SideToExtract::OUTSIDE)
-            {
-                count++;
-                IndexType num_nodes_per_elem =
-                    i_element.GetGeometry().PointsNumber(); // Size()
-                rModifiedModelPart.AddElement(
-                    rModelPart.pGetElement(i_element.Id())); // AddElement()
-                for (j = 0; j < num_nodes_per_elem; j++)
-                    vector_of_node_ids.push_back(i_element.GetGeometry()[j].Id());
-            }
+                vector_of_elem_ids.push_back(i_element.Id());
         }
     }
 
+    rRemovedModelPart.AddElements(vector_of_elem_ids);
+    for (auto& elem : rRemovedModelPart.Elements())
+        for(auto& node : elem.GetGeometry())
+            vector_of_node_ids.push_back(node.Id());
     // sorting and making unique list of node ids
     std::set<IndexType> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
     vector_of_node_ids.assign(s.begin(), s.end());
+    rRemovedModelPart.AddNodes(vector_of_node_ids);
 
-    // Add unique nodes in the ModelPart
-    for (auto i_node_id = vector_of_node_ids.begin();
-         i_node_id != vector_of_node_ids.end(); i_node_id++)
-    {
-        Node<3>::Pointer pnode = rModelPart.Nodes()(*i_node_id);
-        rModifiedModelPart.AddNode(pnode);
-    }
+    // Can be omp parallelized.
+    for(auto& elem : rRemovedModelPart.Elements())
+        elem.Set(ACTIVE, false);
 
     KRATOS_CATCH("");
 }
-
 template <int TDim>
 void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(
     ModelPart &rVolumeModelPart, ModelPart &rExtractedBoundaryModelPart,
