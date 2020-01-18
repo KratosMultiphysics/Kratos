@@ -47,14 +47,14 @@ void AddCustomProcessesToPython(pybind11::module &m)
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-    typedef ApplyChimera<2, SparseSpaceType, LocalSpaceType> BaseApplyChimera2D;
-    typedef ApplyChimera<3, SparseSpaceType, LocalSpaceType> BaseApplyChimera3D;
+    typedef ApplyChimera<2> BaseApplyChimera2D;
+    typedef ApplyChimera<3> BaseApplyChimera3D;
 
-    typedef ApplyChimeraProcessMonolithic<2, SparseSpaceType, LocalSpaceType> ApplyChimeraMonolithic2DType;
-    typedef ApplyChimeraProcessMonolithic<3, SparseSpaceType, LocalSpaceType> ApplyChimeraMonolithic3DType;
+    typedef ApplyChimeraProcessMonolithic<2> ApplyChimeraMonolithic2DType;
+    typedef ApplyChimeraProcessMonolithic<3> ApplyChimeraMonolithic3DType;
 
-    typedef ApplyChimeraProcessFractionalStep<2, SparseSpaceType, LocalSpaceType> ApplyChimeraFractionalStep2DType;
-    typedef ApplyChimeraProcessFractionalStep<3, SparseSpaceType, LocalSpaceType> ApplyChimeraFractionalStep3DType;
+    typedef ApplyChimeraProcessFractionalStep<2> ApplyChimeraFractionalStep2DType;
+    typedef ApplyChimeraProcessFractionalStep<3> ApplyChimeraFractionalStep3DType;
 
     py::class_<BaseApplyChimera2D, BaseApplyChimera2D::Pointer, Process>(m, "BaseApplyChimera2D")
         .def(py::init<ModelPart &, Parameters>())

@@ -69,7 +69,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template <int TDim, class TSparseSpaceType, class TLocalSpaceType>
+template <int TDim>
 class KRATOS_API(CHIMERA_APPLICATION) ApplyChimera : public Process
 {
 public:
@@ -344,7 +344,7 @@ protected:
         auto& r_modified_patch_boundary_model_part = ExtractPatchBoundary(PatchParameters, r_background_boundary_model_part, DomainType);
 
         BuiltinTimer bg_distance_calc_time;
-        DistanceCalculationUtility <TDim, TSparseSpaceType, TLocalSpaceType>::CalculateDistance(r_background_model_part,
+        DistanceCalculationUtility <TDim>::CalculateDistance(r_background_model_part,
                                                                                                 r_modified_patch_boundary_model_part);
         KRATOS_INFO_IF("Distance calculation on background took : ", mEchoLevel > 0)<< bg_distance_calc_time.ElapsedSeconds()<< " seconds"<< std::endl;
 
@@ -583,7 +583,7 @@ private:
             ModelPart &r_modified_patch_model_part = current_model.CreateModelPart("ModifiedPatch");
             ModelPart &r_modified_patch_boundary_model_part = current_model.CreateModelPart("ModifiedPatchBoundary");
             BuiltinTimer distance_calc_time_patch;
-            DistanceCalculationUtility <TDim, TSparseSpaceType, TLocalSpaceType>::CalculateDistance(r_patch_model_part,
+            DistanceCalculationUtility <TDim>::CalculateDistance(r_patch_model_part,
                                                                                                             rBackgroundBoundaryModelpart);
             KRATOS_INFO_IF("Distance calculation on patch took : ", mEchoLevel > 0)<< distance_calc_time_patch.ElapsedSeconds()<< " seconds"<< std::endl;
             //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.

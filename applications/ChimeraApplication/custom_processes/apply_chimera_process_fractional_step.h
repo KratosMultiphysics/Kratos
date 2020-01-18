@@ -48,9 +48,8 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-template <int TDim, class TSparseSpaceType, class TLocalSpaceType>
-class KRATOS_API(CHIMERA_APPLICATION) ApplyChimeraProcessFractionalStep : public ApplyChimera<TDim, TSparseSpaceType, TLocalSpaceType>
+template <int TDim>
+class KRATOS_API(CHIMERA_APPLICATION) ApplyChimeraProcessFractionalStep : public ApplyChimera<TDim>
 {
 public:
     ///@name Type Definitions
@@ -60,7 +59,7 @@ public:
     ///@name Pointer Definitions
     /// Pointer definition of ApplyChimeraProcessFractionalStep
     KRATOS_CLASS_POINTER_DEFINITION(ApplyChimeraProcessFractionalStep);
-    typedef ApplyChimera<TDim, TSparseSpaceType, TLocalSpaceType> BaseType;
+    typedef ApplyChimera<TDim> BaseType;
     typedef typename BaseType::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
     typedef typename BaseType::PointLocatorType PointLocatorType;
     typedef typename BaseType::PointLocatorPointerType PointLocatorPointerType;

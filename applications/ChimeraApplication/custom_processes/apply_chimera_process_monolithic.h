@@ -51,9 +51,8 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-template <int TDim, class TSparseSpaceType, class TLocalSpaceType>
-class KRATOS_API(CHIMERA_APPLICATION) ApplyChimeraProcessMonolithic : public ApplyChimera<TDim, TSparseSpaceType, TLocalSpaceType>
+template <int TDim>
+class KRATOS_API(CHIMERA_APPLICATION) ApplyChimeraProcessMonolithic : public ApplyChimera<TDim>
 {
 public:
     ///@name Type Definitions
@@ -62,7 +61,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     KRATOS_CLASS_POINTER_DEFINITION(ApplyChimeraProcessMonolithic);
-    typedef ApplyChimera<TDim, TSparseSpaceType, TLocalSpaceType> BaseType;
+    typedef ApplyChimera<TDim> BaseType;
     typedef typename BaseType::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
     typedef typename BaseType::PointLocatorType PointLocatorType;
     typedef typename BaseType::PointLocatorPointerType PointLocatorPointerType;
