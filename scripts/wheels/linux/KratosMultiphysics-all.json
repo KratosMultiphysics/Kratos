@@ -14,8 +14,7 @@
         "KratosExternalSolversApplication==${KRATOS_VERSION}",
         "KratosFSIApplication==${KRATOS_VERSION}",
         "KratosParticleMechanicsApplication==${KRATOS_VERSION}",
-        "KratosPoroMechanicsApplication==${KRATOS_VERSION}",
-        
+        "KratosPoroMechanicsApplication==${KRATOS_VERSION}"
     ],
 	"author": "Kratos Team",
 	"author_email": "kratos@listas.cimne.upc.edu",
