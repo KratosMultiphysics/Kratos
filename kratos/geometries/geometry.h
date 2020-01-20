@@ -740,7 +740,7 @@ public:
     virtual typename GeometryType::Pointer pGetGeometryPart(IndexType Index)
     {
         const auto& const_this = *this;
-        return const_cast<typename GeometryType::Pointer>(const_this.pGetGeometryPart(Index));
+        return const_pointer_cast<GeometryType&>(const_this.pGetGeometryPart(Index));
     }
 
     /**
