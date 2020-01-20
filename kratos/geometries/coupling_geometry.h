@@ -199,13 +199,13 @@ public:
     * @param Index of the geometry part. 0->Master; all bigger than 1->Slave
     * @return geometry, which is connected through the Index
      */
-    GeometryType& GetGeometryPart(IndexType Index) const override
+    const GeometryPointer pGetGeometryPart(IndexType Index) const override
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometries.size() <= Index) << "Index "
             << Index << " out of range. Composite contains only of: "
             << mpGeometries.size() << " geometries." << std::endl;
 
-        return *mpGeometries[Index];
+        return mpGeometries[Index];
     }
 
     /**
