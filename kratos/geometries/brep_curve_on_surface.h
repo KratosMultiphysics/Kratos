@@ -178,15 +178,6 @@ public:
     ///@name Access to Geometry Parts
     ///@{
 
-    GeometryType& GetGeometryPart(IndexType Index) const override
-    {
-        if (Index == SURFACE_INDEX)
-            return *mpNurbsSurface;
-
-        KRATOS_ERROR << "Index " << Index << " not existing in BrepCurveOnSurface: "
-            << this->Id() << std::endl;
-    }
-
     const typename GeometryType::Pointer pGetGeometryPart(IndexType Index) const override
     {
         if (Index == SURFACE_INDEX)
