@@ -30,7 +30,7 @@
 #include "rom_application_variables.h"
 
 namespace Kratos
-{    
+{
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
@@ -39,13 +39,13 @@ namespace Kratos
     class GetRomResiduals
     {
         public:
-        
+
         KRATOS_CLASS_POINTER_DEFINITION(GetRomResiduals);
-        
+
         GetRomResiduals(
         ModelPart& rModelPart,
         Parameters ThisParameters,
-        BaseSchemeType::Pointer pScheme             // Need to define a scheme in a simple way     
+        BaseSchemeType::Pointer pScheme             // Need to define a scheme in a simple way
         ): mpModelPart(rModelPart), mpScheme(pScheme)
     {
         // Validate default parameters
@@ -56,8 +56,8 @@ namespace Kratos
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
-        
-        mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();        
+
+        mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();
         //Need to read the type of the variable and optain its size, incorrectly done here
         if (mNodalVariablesNames[0] == "TEMPERATURE")
             mNodalDofs = 1;
@@ -71,7 +71,7 @@ namespace Kratos
         ~GetRomResiduals()= default;
 
 
-        Matrix Calculate() 
+        Matrix Calculate()
         {
             // Getting the elements from the model
             const int nelements = static_cast<int>(mpModelPart.Elements().size());
@@ -90,7 +90,7 @@ namespace Kratos
             //terms
             Element::EquationIdVectorType EquationId;
             Matrix MatrixResiduals( (nelements + nconditions), mRomDofs);   // Matrix of reduced residuals.
-            
+
             for (int k = 0; k < nelements; k++)
             {
                 auto it_el = el_begin + k;
@@ -98,11 +98,11 @@ namespace Kratos
                 //is active by default
                 bool element_is_active = true;
                 if ((it_el)->IsDefined(ACTIVE))
-                    element_is_active = (it_el)->Is(ACTIVE);              
-                
+                    element_is_active = (it_el)->Is(ACTIVE);
+
                 if (element_is_active)
                 {   //calculate elemental contribution
-                    mpScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);                    
+                    mpScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                     Element::DofsVectorType dofs;
                     it_el->GetDofList(dofs, CurrentProcessInfo);
                     //assemble the elemental contribution - here is where the ROM acts
@@ -125,9 +125,9 @@ namespace Kratos
                     ResidualReduced = prod(trans(PhiElemental), RHS_Contribution);
                     row(MatrixResiduals, k) = ResidualReduced;
                     // clean local elemental me overridemory
-                    mpScheme->CleanMemory(*(it_el.base()));                
+                    mpScheme->CleanMemory(*(it_el.base()));
                 }
-                
+
             }
 
             // #pragma omp for  schedule(guided , 512)
@@ -163,7 +163,7 @@ namespace Kratos
                             else
                                 row(PhiElemental, i*mNodalDofs+k) = row(rom_nodal_basis,k);
                         }
-                    }                                       
+                    }
                     ResidualReduced = prod(trans(PhiElemental), RHS_Contribution);
                     row(MatrixResiduals, k+nelements) = ResidualReduced;
 
@@ -172,7 +172,7 @@ namespace Kratos
                 }
 
             }
-        return MatrixResiduals;        
+        return MatrixResiduals;
         }
 
 
@@ -185,11 +185,11 @@ namespace Kratos
             double *p = (double*)buf;
             Py_XDECREF(pobj);
 
-            u_int n_rows = input.size1();
-            u_int n_cols = input.size2();
-            for (u_int i = 0; i < n_rows; i++)
+			unsigned int n_rows = input.size1();
+			unsigned int n_cols = input.size2();
+            for (unsigned int i = 0; i < n_rows; i++)
             {
-                for (u_int j = 0; j < n_cols; j++)
+                for (unsigned int j = 0; j < n_cols; j++)
                 {
                     p[i*n_cols+j] = input(i,j);
                 }
@@ -200,7 +200,7 @@ namespace Kratos
 
 
 
-        Vector Volumes() 
+        Vector Volumes()
         {
             // Getting the elements from the model
             const int nelements = static_cast<int>(mpModelPart.Elements().size());
@@ -221,17 +221,17 @@ namespace Kratos
                 //is active by default
                 bool element_is_active = true;
                 if ((it_el)->IsDefined(ACTIVE))
-                    element_is_active = (it_el)->Is(ACTIVE);              
-                
+                    element_is_active = (it_el)->Is(ACTIVE);
+
                 if (element_is_active)
-                {   
+                {
                     const auto& geom = it_el->GetGeometry();
                     VolumeofCurrentElement = geom.Area();
                     VectorVolumes(k) = VolumeofCurrentElement;
-                    mpScheme->CleanMemory(*(it_el.base())); 
-               
+                    mpScheme->CleanMemory(*(it_el.base()));
+
                 }
-                
+
             }
             for (int k = 0; k < nconditions;  k++)
             {
@@ -247,18 +247,18 @@ namespace Kratos
                     const auto& geom = it->GetGeometry();
                     VolumeofCurrentElement = geom.Area();
                     VectorVolumes(k+nelements) = VolumeofCurrentElement;
-                    mpScheme->CleanMemory(*(it.base())); 
+                    mpScheme->CleanMemory(*(it.base()));
 
                 }
 
             }
-        return VectorVolumes;       
+        return VectorVolumes;
         }
 
 
 
         protected:
-        
+
             std::vector< std::string > mNodalVariablesNames;
             int mNodalDofs;
             int mRomDofs;
