@@ -18,31 +18,37 @@
 // Project includes
 #include "includes/define.h"
 #include "integration/integration_point.h"
+#include "geometries/geometry.h"
 
 namespace Kratos
 {
     namespace IntegrationPointUtilities
     {
-        static IntegrationPoints1D(
+        typedef std::size_t SizeType;
+        typedef std::size_t IndexType;
+
+        typedef typename Geometry<Node<3>>::IntegrationPointsArrayType IntegrationPointsArrayType;
+
+        static void IntegrationPoints1D(
             IntegrationPointsArrayType& rIntegrationPoints,
-            SizeType DegreeU,
+            SizeType PointsInU,
             double U0, double U1)
         {
-            if (rIntegrationPoints.size() != DegreeU)
-                rIntegrationPoints.resize(DegreeU * DegreeV);
+            if (rIntegrationPoints.size() != PointsInU)
+                rIntegrationPoints.resize(PointsInU);
 
-            KRATOS_ERROR_IF(DegreeU < 1)
+            KRATOS_ERROR_IF(PointsInU < 1)
                 << "Degree need to be bigger than 0." << std::endl;
 
             const double distance_u = U1 - U0;
             const double length_u = std::abs(U1 - U0);
 
-            const std::vector<array_1d<double, 2>>& integration_point_list_u = s_gauss_legendre[DegreeU - 1];
+            const std::vector<array_1d<double, 2>>& integration_point_list_u = s_gauss_legendre[PointsInU - 1];
 
             IndexType counter;
-            for (SizeType u = 0; u < DegreeU - 1; ++u)
+            for (SizeType u = 0; u < PointsInU - 1; ++u)
             {
-                const auto& r_int_point = rIntegrationPoints[counter];
+                auto& r_int_point = rIntegrationPoints[counter];
 
                 r_int_point[0] = U0 + distance_u * integration_point_list_u[u][0];
                 r_int_point.Weight() =
@@ -52,31 +58,31 @@ namespace Kratos
             }
         }
 
-        static IntegrationPoints2D(
+        static void IntegrationPoints2D(
             IntegrationPointsArrayType& rIntegrationPoints,
-            SizeType DegreeU, SizeType DegreeV,
+            SizeType PointsInU, SizeType PointsInV,
             double U0, double U1, double V0, double V1)
         {
-            if (rIntegrationPoints.size() != DegreeU * DegreeV)
-                rIntegrationPoints.resize(DegreeU * DegreeV);
+            if (rIntegrationPoints.size() != PointsInU * PointsInV)
+                rIntegrationPoints.resize(PointsInU * PointsInV);
 
-            KRATOS_ERROR_IF(DegreeU < 1 || DegreeV < 1)
+            KRATOS_ERROR_IF(PointsInU < 1 || PointsInV < 1)
                 << "Degrees need to be bigger than 0." << std::endl;
 
             const double distance_u = U1 - U0;
             const double length_u = std::abs(U1 - U0);
             const double distance_v = V1 - V0;
-            const double length_u = std::abs(U1 - U0);
+            const double length_v = std::abs(V1 - V0);
 
-            const std::vector<array_1d<double, 2>>& integration_point_list_u = s_gauss_legendre[DegreeU - 1];
-            const std::vector<array_1d<double, 2>>& integration_point_list_v = s_gauss_legendre[DegreeV - 1];
+            const std::vector<array_1d<double, 2>>& integration_point_list_u = s_gauss_legendre[PointsInU - 1];
+            const std::vector<array_1d<double, 2>>& integration_point_list_v = s_gauss_legendre[PointsInV - 1];
 
             IndexType counter;
-            for (SizeType u = 0; u < DegreeU - 1; ++u)
+            for (SizeType u = 0; u < PointsInU - 1; ++u)
             {
-                for (SizeType v = 0; v < DegreeV - 1; ++v)
+                for (SizeType v = 0; v < PointsInV - 1; ++v)
                 {
-                    const auto& r_int_point = rIntegrationPoints[counter];
+                    auto& r_int_point = rIntegrationPoints[counter];
 
                     r_int_point[0] = U0 + distance_u * integration_point_list_u[u][0];
                     r_int_point[1] = V0 + distance_v * integration_point_list_v[v][0];
