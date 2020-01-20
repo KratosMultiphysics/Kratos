@@ -152,10 +152,7 @@ public:
     /// Returns the const Geometry::Pointer corresponding to its Id
     const typename TGeometryType::Pointer pGetGeometry(IndexType GeometryId) const
     {
-        auto i = mGeometries.find(GeometryId);
-        KRATOS_ERROR_IF(i == mGeometries.end())
-            << " geometry index not found: " << GeometryId << ".";
-        return (i.base()->second);
+        return pGetGeometry(GeometryId);
     }
 
     /// Returns the Geometry::Pointer corresponding to its name
@@ -171,27 +168,22 @@ public:
     /// Returns the Geometry::Pointer corresponding to its name
     const typename TGeometryType::Pointer pGetGeometry(std::string GeometryName) const
     {
-        auto hash_index = TGeometryType::GenerateId(GeometryName);
-        auto i = mGeometries.find(hash_index);
-        KRATOS_ERROR_IF(i == mGeometries.end())
-            << " geometry index not found: " << GeometryName << ".";
-        return (i.base()->second);
+        return pGetGeometry(GeometryName);
     }
 
     /// Returns a reference geometry corresponding to the id
     TGeometryType& GetGeometry(IndexType GeometryId)
     {
         auto i = mGeometries.find(GeometryId);
-        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryId << ".";
+        KRATOS_ERROR_IF(i == mGeometries.end())
+            << " geometry index not found: " << GeometryId << ".";
         return *i;
     }
 
     /// Returns a const reference geometry corresponding to the id
     const TGeometryType& GetGeometry(IndexType GeometryId) const
     {
-        auto i = mGeometries.find(GeometryId);
-        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryId << ".";
-        return *i;
+        return GetGeometry(GeometryId);
     }
 
     /// Returns a reference geometry corresponding to the name
@@ -207,11 +199,7 @@ public:
     /// Returns a const reference geometry corresponding to the name
     const TGeometryType& GetGeometry(std::string GeometryName) const
     {
-        auto hash_index = TGeometryType::GenerateId(GeometryName);
-        auto i = mGeometries.find(hash_index);
-        KRATOS_ERROR_IF(i == mGeometries.end())
-            << " geometry index not found: " << GeometryName << ".";
-        return *i;
+        return GetGeometry(GeometryName);
     }
 
     ///@}
