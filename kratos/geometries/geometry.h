@@ -1834,8 +1834,7 @@ public:
     * Creates integration points according to its own integration rule.
     * @return integration points.
     */
-    virtual IntegrationPointsArrayType CreateIntegrationPoints(
-        IntegrationMethod ThisMethod) const
+    virtual IntegrationPointsArrayType CreateIntegrationPoints() const
     {
         KRATOS_ERROR << "Calling CreateIntegrationPoints from base class."
             << " Please check the definition of derived class. "
