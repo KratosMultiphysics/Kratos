@@ -204,6 +204,7 @@ namespace Kratos
 
 			static void ReportFailures(std::ostream& rOStream);
 
+			static void ReportDistributedFailureDetails(std::ostream& rOStream, const TestCase* const pTheTestCase);
 
 
 		}; // Class Tester
