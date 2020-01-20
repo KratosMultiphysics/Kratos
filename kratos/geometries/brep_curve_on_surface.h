@@ -215,6 +215,12 @@ public:
     ///@name Set/ Get functions
     ///@{
 
+    /*
+    * @brief Indicates if the NURBS-curve is pointing in the same direction
+    *        as the B-Rep curve.
+    * @return true -> brep curve and nurbs curve point in same direction.
+    *        false -> brep curve and nurbs curve point in controversial directions.
+    */
     bool HasSameCurveDirection()
     {
         return mSameCurveDirection;
@@ -326,6 +332,8 @@ private:
 
     NurbsInterval mCurveNurbsInterval;
 
+    /** true-> brep curve and nurbs curve point in same direction.
+     * false-> brep curve and nurbs curve point in controversial directions. */
     bool mSameCurveDirection;
 
     ///@}
