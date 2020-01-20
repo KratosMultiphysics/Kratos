@@ -52,17 +52,18 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
     std::vector<std::string> variables_list = {{"DISPLACEMENT"},
                                                {"PRESSURE"},
                                                {"REFINEMENT_LEVEL"},
-                                               {"GREEN_LAGRANGE_STRAIN_TENSOR"}};
+                                               {"GREEN_LAGRANGE_STRAIN_TENSOR"},
+                                               {"SLIP"}};
 
     for (auto& r_element : r_write_model_part.Elements())
     {
-        TestModelPartFactory::AssignDataValueContainer(r_element.Data(), variables_list);
+        TestModelPartFactory::AssignDataValueContainer(r_element.Data(), r_element, variables_list);
     }
 
     Parameters io_params(R"(
         {
             "prefix": "/Step",
-            "list_of_variables": ["DISPLACEMENT", "PRESSURE", "REFINEMENT_LEVEL", "GREEN_LAGRANGE_STRAIN_TENSOR"]
+            "list_of_variables": ["DISPLACEMENT", "PRESSURE", "REFINEMENT_LEVEL", "GREEN_LAGRANGE_STRAIN_TENSOR", "SLIP"]
         })");
 
     HDF5::ElementDataValueIO data_io(io_params, p_test_file);
@@ -72,7 +73,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
     for (auto& r_write_element : r_write_model_part.Elements())
     {
         HDF5::ElementType& r_read_element = r_read_model_part.Elements()[r_write_element.Id()];
-        CompareDataValueContainers(r_read_element.Data(), r_write_element.Data());
+        CompareDataValueContainers(r_read_element.Data(), r_read_element, r_write_element.Data(), r_write_element);
     }
 }
 

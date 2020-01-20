@@ -37,14 +37,15 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5NodalDataValueIO_WriteNodalResults1, KratosHDF5Tes
                               "VELOCITY",
                               "DOMAIN_SIZE",
                               "EXTERNAL_FORCES_VECTOR",
-                              "CONSTITUTIVE_MATRIX"]
+                              "CONSTITUTIVE_MATRIX",
+                              "SLIP"]
         })");
     Model this_model;
     ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
     TestModelPartFactory::CreateModelPart(r_write_model_part);
     TestModelPartFactory::AssignNonHistoricalNodalTestData(
         r_write_model_part,
-        {{"DENSITY"}, {"VELOCITY"}, {"DOMAIN_SIZE"}, {"EXTERNAL_FORCES_VECTOR"}, {"CONSTITUTIVE_MATRIX"}});
+        {{"DENSITY"}, {"VELOCITY"}, {"DOMAIN_SIZE"}, {"EXTERNAL_FORCES_VECTOR"}, {"CONSTITUTIVE_MATRIX"}, {"SLIP"}});
     auto p_file = pGetTestSerialFile();
     HDF5::ModelPartIO model_part_io(p_file, "/ModelData");
     model_part_io.WriteNodes(r_write_model_part.Nodes());
