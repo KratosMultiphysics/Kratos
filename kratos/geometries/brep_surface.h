@@ -210,6 +210,19 @@ public:
     }
 
     ///@}
+    ///@name Point Access
+    ///@{
+
+    void GetPointsAt(
+        PointsArrayType& rGeometryArray,
+        const CoordinatesArrayType& rLocalCoordinates,
+        IndexType SpecificationType = 0) const override
+    {
+        mpNurbsSurface->GetPointsAt(
+            rGeometryArray, rLocalCoordinates, SpecificationType);
+    }
+
+    ///@}
     ///@name Geometrical Operations
     ///@{
 
