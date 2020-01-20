@@ -116,6 +116,16 @@ namespace Kratos
                     cond->Set(TO_ERASE, true);
                     break;
                 }
+
+                // /*** TRY WITH AT FUNCTION ***/
+                // // TODO: solve the segmentation fault that appears when these lines are performed
+                // auto existing_node_it = r_nodes_array.find(r_geom[i_node].Id());
+                // if (existing_node_it == mrModelPart.NodesEnd()) {
+                //     // we delete the condition (and break from loop) if at least one node it is not in main model part
+                //     KRATOS_INFO("\t* CleanConditions") << "The Condition " << cond->Id() <<" will be delete!" << std::endl;
+                //     cond->Set(TO_ERASE, true);
+                //     break;
+                // }
             }
         }
 
@@ -142,11 +152,15 @@ namespace Kratos
 
 			int count = 0;
 			for (unsigned int i_node = 0; i_node < r_geom.size(); ++i_node) {
-                bool exist_in_skin = std::find(std::begin(r_skin_nodes_array), std::end(r_skin_nodes_array), r_geom[i_node]) != std::end(r_skin_nodes_array);
-				// bool exist_in_skin = std::find(std::begin(skin_nodes_set), std::end(skin_nodes_set), r_geom[i_node]) != std::end(skin_nodes_set);
-				if (exist_in_skin) {
-					count++;
-				}
+                // bool exist_in_skin = std::find(std::begin(r_skin_nodes_array), std::end(r_skin_nodes_array), r_geom[i_node]) != std::end(r_skin_nodes_array);
+				// // bool exist_in_skin = std::find(std::begin(skin_nodes_set), std::end(skin_nodes_set), r_geom[i_node]) != std::end(skin_nodes_set);
+				// if (exist_in_skin) {
+				// 	count++;
+				// }
+                auto existing_node_in_skin_it = r_skin_nodes_array.find(r_geom[i_node].Id());
+                if (existing_node_in_skin_it == r_skin_model_part.NodesEnd()) {
+                    count++;
+                }
 			}
 			if (count == 3) {
 				KRATOS_INFO("\t CleanConditionsAngles") << "The Condition " << cond->Id() <<" will be delete!" << std::endl;

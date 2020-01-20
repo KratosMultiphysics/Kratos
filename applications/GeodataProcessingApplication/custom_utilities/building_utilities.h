@@ -80,9 +80,14 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
+    
+    /// new_nodes_map
+    std::unordered_map<IndexType, std::vector<ModelPart::IndexType>> new_nodes_map;      // map{old_node, [new_node_1, ..., new_node_n]}
 
     /**
      * @brief Function to check if there are overlapping elements
+     * We check if a node belong at least two sub model parts: in this case we create a new node
+     * and we fill a map with "key: origin_node" and "value: a vector with the new nodes"
      *
      */
     void CheckOverlapElement();
@@ -94,22 +99,28 @@ namespace Kratos
     void SplitBuilding();
 
     /**
-     * @brief Function to check if a node is in the map
+     * @brief Function to delete the elements with at least two equal nodes
      *
      */
-    bool CheckNodeInMap(std::unordered_map<IndexType, IndexType> new_nodes_map, IndexType node_id);
+    void DeleteNotValidElements();
 
-    /**
-     * @brief Function to fill the new_nodes_map
-     *
-     */
-    void FillNodesMap(std::unordered_map<IndexType, std::vector<ModelPart::IndexType>> new_nodes_map, IndexType node_id);
+    // /**
+    //  * @brief Function to check if a node is in the map
+    //  *
+    //  */
+    // bool CheckNodeInMap(std::unordered_map<IndexType, IndexType> new_nodes_map, IndexType node_id);
+
+    // /**
+    //  * @brief Function to fill the new_nodes_map
+    //  *
+    //  */
+    // void FillNodesMap(std::unordered_map<IndexType, std::vector<ModelPart::IndexType>> new_nodes_map, IndexType node_id);
 
     /**
      * @brief Function to find the maximum node id
      *
      */
-    void FindMaxNodeId(IndexType new_node_id);
+    void FindMaxNodeId(IndexType &new_node_id);
 
 
     ///@}
