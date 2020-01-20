@@ -48,8 +48,8 @@ public:
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
-    using GetPoint;
-    using pGetPoint;
+    using typename BaseType::GetPoint;
+    using typename BaseType::pGetPoint;
 
     /// Counted pointer of NurbsSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsSurfaceGeometry);
