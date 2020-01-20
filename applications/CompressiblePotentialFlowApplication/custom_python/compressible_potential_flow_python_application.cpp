@@ -17,12 +17,12 @@
 #include <pybind11/pybind11.h>
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "compressible_potential_flow_application.h"
 #include "compressible_potential_flow_application_variables.h"
-#include "custom_python/add_custom_processes_to_python.h"
-#include "custom_python/add_custom_response_functions_to_python.h"
-#include "custom_python/add_custom_utilities_to_python.h"
+// #include "custom_python/add_custom_processes_to_python.h"
+// #include "custom_python/add_custom_response_functions_to_python.h"
+// #include "custom_python/add_custom_utilities_to_python.h"
 
 namespace Kratos
 {
@@ -38,9 +38,9 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
                KratosApplication>(m, "KratosCompressiblePotentialFlowApplication")
         .def(py::init<>());
 
-    AddCustomResponseFunctionUtilitiesToPython(m);
-    AddCustomProcessesToPython(m);
-    AddCustomUtilitiesToPython(m);
+    // AddCustomResponseFunctionUtilitiesToPython(m);
+    // AddCustomProcessesToPython(m);
+    // AddCustomUtilitiesToPython(m);
 
     //registering variables in python
     // Degrees of freedom
