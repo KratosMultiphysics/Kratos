@@ -712,10 +712,22 @@ public:
     *        within the derived classes.
     * @return reference to corresponding geometry.
      */
-    virtual GeometryType& GetGeometryPart(IndexType Index) const
+    virtual GeometryType& GetGeometryPart(IndexType Index)
     {
-        KRATOS_ERROR << "Calling base class 'GetGeometryPart' method instead of derived function."
-            << " Please check the definition in the derived class. " << *this << std::endl;
+        const auto& const_this = *this;
+        return const_cast<GeometryType&>(const_this.GetGeometryPart(Index));
+    }
+
+    /**
+    * @brief Used for composite geometries. It returns the
+    *        the geometry part, corresponding to the Index.
+    * @param Index of the geometry part. This index can be used differently
+    *        within the derived classes.
+    * @return reference to corresponding geometry.
+    */
+    virtual const GeometryType& GetGeometryPart(IndexType Index) const
+    {
+        return *pGetGeometryPart(Index);
     }
 
     /**
