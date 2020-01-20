@@ -1,8 +1,3 @@
-"""
-    edit:       03 September 2019 -> added "gid_post_mode" variable in CreateGidControlOutput function
-    edit:       03 September 2019 -> added "gid_parameters" in CreateGidControlOutput function to allow "gid_post_mode" as an external parameter
-"""
-
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeodataProcessingApplication as KratosGeo
 
@@ -29,7 +24,6 @@ class GeoProcessor:
             Kratos.Logger.PrintWarning("GeoProcessor", "No model part can be returned")
 
 
-    """ UGLY """
     # delete geo model part
     def DelGeoModelPart(self):
         if self.HasModelPart:

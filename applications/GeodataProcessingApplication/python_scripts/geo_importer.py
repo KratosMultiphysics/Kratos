@@ -1,10 +1,3 @@
-"""
-    # edit:     30 August 2019 -> add bool_building variable in ObjImport function
-    # edit:     30 August 2019 -> in ObjImport, split [elif (row[0] == "o") and ("Building" in row[1]):]
-    # edit:     03 September 2019 -> added change_coord variable to avoid/allow the change of the coordinates in ObjImport function
-    # edit:     03 September 2019 -> create nodes and elements in self.ModelPart in ObjToPyMap function
-"""
-
 import KratosMultiphysics
 from geo_processor import GeoProcessor
 
@@ -16,101 +9,6 @@ class GeoImporter( GeoProcessor ):
 
         KratosMultiphysics.Logger.PrintWarning("GeoImporter: SetGeoModelPart", "This function cannot be used. The model is created be reading a file.")
 
-
-    def CreateBoxTetra(self, name_model_part, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax):
-        
-        self._InitializeModelPart(name_model_part)
-        # sub model part
-        bottom = self.ModelPart.CreateSubModelPart("BottomModelPart")
-        top = self.ModelPart.CreateSubModelPart("TopModelPart")
-        lateral = self.ModelPart.CreateSubModelPart("LateralModelPart")
-        # node
-        node = self.ModelPart.CreateNewNode(1, Xmin, Ymin, Zmin)
-        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, 1e-7)		# set distance value
-        node = self.ModelPart.CreateNewNode(2, Xmax, Ymin, Zmin)
-        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, 1e-7)		# set distance value
-        node = self.ModelPart.CreateNewNode(3, Xmin, Ymax, Zmin)
-        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, 1e-7)		# set distance value
-        node = self.ModelPart.CreateNewNode(4, Xmax, Ymax, Zmin)
-        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, 1e-7)		# set distance value
-        node = self.ModelPart.CreateNewNode(5, Xmin, Ymin, Zmax)
-        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, 1.0)		# set distance value
-        node = self.ModelPart.CreateNewNode(6, Xmax, Ymin, Zmax)
-        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, 1.0)		# set distance value
-        node = self.ModelPart.CreateNewNode(7, Xmin, Ymax, Zmax)
-        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, 1.0)		# set distance value
-        node = self.ModelPart.CreateNewNode(8, Xmax, Ymax, Zmax)
-        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, 1.0)		# set distance value
-        # elements 3D4N
-        prop = self.ModelPart.GetProperties()[1]
-        self.ModelPart.CreateNewElement("Element3D4N", 1, [1, 3, 8, 4], prop)
-        self.ModelPart.CreateNewElement("Element3D4N", 2, [3, 8, 7, 1], prop)
-        self.ModelPart.CreateNewElement("Element3D4N", 3, [5, 7, 8, 1], prop)
-        self.ModelPart.CreateNewElement("Element3D4N", 4, [1, 5, 6, 8], prop)
-        self.ModelPart.CreateNewElement("Element3D4N", 5, [1, 2, 4, 8], prop)
-        self.ModelPart.CreateNewElement("Element3D4N", 6, [2, 6, 8, 1], prop)
-        # conditions 3D3N
-        self.ModelPart.CreateNewCondition("SurfaceCondition3D3N",  1, [1, 2, 4], prop)		# bottom sub model part
-        self.ModelPart.CreateNewCondition("SurfaceCondition3D3N",  2, [1, 4, 3], prop)		# bottom sub model part
-        self.ModelPart.CreateNewCondition("SurfaceCondition3D3N",  3, [6, 5, 8], prop)		# top sub model part
-        self.ModelPart.CreateNewCondition("SurfaceCondition3D3N",  4, [8, 5, 7], prop)		# top sub model part
-        self.ModelPart.CreateNewCondition("SurfaceCondition3D3N",  5, [1, 5, 6], prop)		# lateral sub model part
-        self.ModelPart.CreateNewCondition("SurfaceCondition3D3N",  6, [1, 6, 2], prop)		# lateral sub model part
-        self.ModelPart.CreateNewCondition("SurfaceCondition3D3N",  7, [2, 6, 8], prop)		# lateral sub model part
-        self.ModelPart.CreateNewCondition("SurfaceCondition3D3N",  8, [2, 8, 4], prop)		# lateral sub model part
-        self.ModelPart.CreateNewCondition("SurfaceCondition3D3N",  9, [4, 8, 3], prop)		# lateral sub model part
-        self.ModelPart.CreateNewCondition("SurfaceCondition3D3N", 10, [3, 8, 7], prop)		# lateral sub model part
-        self.ModelPart.CreateNewCondition("SurfaceCondition3D3N", 11, [3, 7, 1], prop)		# lateral sub model part
-        self.ModelPart.CreateNewCondition("SurfaceCondition3D3N", 12, [1, 7, 5], prop)		# lateral sub model part
-
-        # fill bottom model part
-        bottom.AddNodes([1, 2, 3, 4])
-        bottom.AddConditions([1, 2])
-        # fill top model part
-        top.AddNodes([5, 6, 7, 8])
-        top.AddConditions([3, 4])
-        # fill lateral model part
-        lateral.AddNodes([1, 2, 3, 4, 5, 6, 7, 8])
-        lateral.AddConditions([5, 6, 7, 8, 9, 10, 11, 12])
-
-        self.HasModelPart = True
-
-
-    """ TEST!   FUNCTION UNDER CONSTRUCTION """
-    def ObjToPyMap(self, obj_file_name_input):
-
-        self._InitializeModelPart("building_model_part")
-
-        with open (obj_file_name_input) as read_file:
-            # vertex
-            vertex_map = {}         # key: vertex_id; value: [x, y, z]
-            vertex_id = 1
-            
-            # element
-            elem_map = {}           # key: elem_id; value: [node1, node2, node3]
-            elem_id = 1
-            for row in read_file.readlines():
-                row = row.split()
-                if (row[0] == "v"):
-                    x = float(row[1])
-                    y = float(row[2])
-                    z = float(row[3])
-                    vertex_map[vertex_id] = [x, y, z]
-                    self.ModelPart.CreateNewNode(vertex_id, x, y, z)  # added on 02/09/2019
-                    vertex_id += 1
-                
-                elif (row[0] == "f"):
-                    n1 = int(row[1])
-                    n2 = int(row[2])
-                    n3 = int(row[3])
-                    elem_map[elem_id] = [n1, n2, n3]
-                    self.ModelPart.CreateNewElement("Element2D3N", elem_id, [n1, n2, n3], self.ModelPart.GetProperties()[1])   # added on 02/09/2019
-                    elem_id += 1
-        
-        self.HasModelPart = True        # added on 02/09/2019
-        
-        # probably the best solution is to fill a ModelPart. I will try also this way!
-        return (vertex_map, elem_map)
 
     """ FUNCTION UNDER CONSTRUCTION """
     def ObjToSplit(self, obj_file_name_input, name_model_part="ModelPart"):
@@ -212,9 +110,12 @@ class GeoImporter( GeoProcessor ):
                         # we create new nodes in SubModelPart
                         if change_coord:
                             # when we importing OBJ file, there is a change in coordinate system: x = x; y = -z; z = y
-                            self.ModelPart.CreateNewNode(ID_vertex, vertex_coord[0], -vertex_coord[2], vertex_coord[1])
+                            node = self.ModelPart.CreateNewNode(ID_vertex, vertex_coord[0], -vertex_coord[2], vertex_coord[1])
                         else:
-                            self.ModelPart.CreateNewNode(ID_vertex, vertex_coord[0], vertex_coord[1], vertex_coord[2])
+                            node = self.ModelPart.CreateNewNode(ID_vertex, vertex_coord[0], vertex_coord[1], vertex_coord[2])
+                        
+                        # we add the node in current sub model part
+                        current_sub_model_building.AddNode(node, 0)
                         
                         vertex_coord = []
                         ID_vertex += 1
@@ -231,17 +132,29 @@ class GeoImporter( GeoProcessor ):
                                 current_sub_model_building.AddNodes([node])
                     
                         # we create new elements in SubModelPart
-                        current_sub_model_building.CreateNewElement("Element2D3N", ID_elem, [vertices_to_element[0], vertices_to_element[1], vertices_to_element[2]], self.ModelPart.GetProperties()[2])
+                        current_sub_model_building.CreateNewElement("Element2D3N", ID_elem, [vertices_to_element[0], vertices_to_element[1], vertices_to_element[2]], self.ModelPart.GetProperties()[0])
                         ID_elem += 1
                     
-                    elif (row[0] == "o"):			# when there is 'o Building' we create a new sub_model_part because there is a new Building
+                    elif (row[0] == "o"):			# when there is "o Building" we create a new sub_model_part because there is a new Building
                         if ("Building" in row[1]):
                             name_sub_model_building = "Building_{}".format(num_building)
                             current_sub_model_building = self.ModelPart.CreateSubModelPart(name_sub_model_building)
                             num_building += 1
                             bool_building = True
                         else:
+                            current_sub_model_building = self.ModelPart
                             bool_building = False
+        
+        for node in self.ModelPart.Nodes:
+            node.Set(KratosMultiphysics.TO_ERASE,True)
+        
+        for sub_model in self.ModelPart.SubModelParts:
+            for node in sub_model.Nodes:
+                node.Set(KratosMultiphysics.TO_ERASE, False)
+                node.Set(KratosMultiphysics.VISITED, False)     # we set all nodes as not visited
+
+        # we erase unused nodes
+        self.ModelPart.RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
 
         self.HasModelPart = True
 
@@ -410,3 +323,8 @@ class GeoImporter( GeoProcessor ):
                 del (node_dict[coords])
 
         return node_dict
+
+
+    def _find_max_node_id(self):
+        return max((node.Id for node in self.ModelPart.Nodes))
+

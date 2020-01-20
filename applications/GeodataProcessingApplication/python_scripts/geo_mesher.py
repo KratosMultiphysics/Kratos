@@ -1,8 +1,3 @@
-"""
-    # edit:     02 September 2019 -> z_min and z_max are calculated only in the nodes of the central region (in MeshCircleWithTerrainPoints function)
-
-"""
-
 import KratosMultiphysics
 import KratosMultiphysics.GeodataProcessingApplication as KratosGeo
 import KratosMultiphysics.MeshingApplication as KratosMesh
@@ -62,11 +57,6 @@ class GeoMesher( GeoProcessor ):
             all_markers.append(3)
 
         pass
-
-    def ExtrudeBox(self, height):
-
-        pass
-    """ END TEST FUNCTIONS """
 
 
     ### --- functions to determine an extrusion height --- ###
@@ -563,11 +553,6 @@ class GeoMesher( GeoProcessor ):
         for face in triangle_dict_top["triangles"]:
             self.ModelPart.CreateNewElement("Element2D3N", elem_Id, [face[0]+nun_node_bottom+1, face[1]+nun_node_bottom+1, face[2]+nun_node_bottom+1], self.ModelPart.Properties[0])
             elem_Id += 1
-        
-        # [CHECKPOINT] A QUESTO PUNTO HO LA MESH DEL BOTTOM, LA MESH DEL TOP
-        # HO LE LISTE all_facets E all_markers (DI BOTTOM E TOP) RIEMPITE
-
-        # return
 
         # we fill the lists for "lateral"
         # TODO: USE DIRECTLY THE SUB MODEL PART WITHOUT THE LISTS
@@ -670,43 +655,43 @@ class GeoMesher( GeoProcessor ):
         print("\nModelPart\n", self.ModelPart)
 
         """ OPTIONAL VALUES """
-        # if extract_center:
-        #     # we extract the center of the geometry and we add them in a sub model part
-        #     center_elem = self.ModelPart.CreateSubModelPart("CenterElement")
+        if extract_center:
+            # we extract the center of the geometry and we add them in a sub model part
+            center_elem = self.ModelPart.CreateSubModelPart("CenterElement")
 
-        #     # elem_inside = {}        # dictionary with the information about the element that are in r_buildings
-        #     # elem_id = 1
+            # elem_inside = {}        # dictionary with the information about the element that are in r_buildings
+            # elem_id = 1
 
-        #     elem_list = []  #########################################################################################################################
+            elem_list = []  #########################################################################################################################
 
-        #     for node in triangle_dict["triangles"]:
-        #         for i in range(3):
-        #             x_curr = self.ModelPart.GetNode(node[i]+1).X
-        #             y_curr = self.ModelPart.GetNode(node[i]+1).Y
-        #             dist = math.sqrt(((x_center-x_curr)**2) + ((y_center-y_curr)**2))
+            for node in triangle_dict["triangles"]:
+                for i in range(3):
+                    x_curr = self.ModelPart.GetNode(node[i]+1).X
+                    y_curr = self.ModelPart.GetNode(node[i]+1).Y
+                    dist = math.sqrt(((x_center-x_curr)**2) + ((y_center-y_curr)**2))
 
-        #             if dist > r_buildings:
-        #                 break   # if at least one node is external to r_buildings, we reject the entire element
+                    if dist > r_buildings:
+                        break   # if at least one node is external to r_buildings, we reject the entire element
 
-        #         else:
-        #             # we get here if all nodes of the element are inside the r_buildings
-        #             node1 = self.ModelPart.GetNode(node[0]+1)
-        #             node2 = self.ModelPart.GetNode(node[1]+1)
-        #             node3 = self.ModelPart.GetNode(node[2]+1)
+                else:
+                    # we get here if all nodes of the element are inside the r_buildings
+                    node1 = self.ModelPart.GetNode(node[0]+1)
+                    node2 = self.ModelPart.GetNode(node[1]+1)
+                    node3 = self.ModelPart.GetNode(node[2]+1)
 
-        #             # elem_inside[elem_id] = [[node1.Id, node1.X, node1.Y, node1.Z],
-        #             #                         [node2.Id, node2.X, node2.Y, node2.Z],
-        #             #                         [node3.Id, node3.X, node3.Y, node3.Z]]
+                    # elem_inside[elem_id] = [[node1.Id, node1.X, node1.Y, node1.Z],
+                    #                         [node2.Id, node2.X, node2.Y, node2.Z],
+                    #                         [node3.Id, node3.X, node3.Y, node3.Z]]
 
-        #             elem_list.append([node1.X, node1.Y, node1.Z]) ###################################################################################
-        #             elem_list.append([node2.X, node2.Y, node2.Z]) ###################################################################################
-        #             elem_list.append([node3.X, node3.Y, node3.Z]) ###################################################################################
+                    elem_list.append([node1.X, node1.Y, node1.Z]) ###################################################################################
+                    elem_list.append([node2.X, node2.Y, node2.Z]) ###################################################################################
+                    elem_list.append([node3.X, node3.Y, node3.Z]) ###################################################################################
 
-        #             # elem_id += 1
+                    # elem_id += 1
 
-        #     return elem_list    # JUST FOR THE CHECK
+            return elem_list    # JUST FOR THE CHECK
 
-        # [NG] new code under construction
+        """# [NG] new code under construction
         # we create a sub model part (if extract_center = True) and fill it with conditions that are inside r_buildings
         if extract_center:
             # we extract the center of the geometry and we add them in a sub model part
@@ -724,7 +709,7 @@ class GeoMesher( GeoProcessor ):
                 else:
                     # we get here if all nodes of the condition are inside the r_buildings
                     center_cond.AddNodes(list_nodes)
-                    center_cond.AddCondition(cond, 0)
+                    center_cond.AddCondition(cond, 0)"""
 
 
 
@@ -950,6 +935,7 @@ class GeoMesher( GeoProcessor ):
                     list_nodes.append(node.Id)
                     dist = math.sqrt(((x_center-node.X)**2) + ((y_center-node.Y)**2))
                     
+                    # if (dist > r_ground):       # Only for a test. The value correcr is r_buildings
                     if (dist > r_buildings):
                         break   # if at least one node is external to r_buildings, we reject the entire condition
                         

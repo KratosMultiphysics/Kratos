@@ -1,8 +1,3 @@
-"""
-    # edit:     19 September 2019 -> added FillPartsFluid, FillInlet, FillOutlet, FillSlip, FillNoslip functions
-    # edit:     20 September 2019
-"""
-
 import KratosMultiphysics
 import KratosMultiphysics.GeodataProcessingApplication as KratosGeo
 import KratosMultiphysics.MeshingApplication as KratosMesh

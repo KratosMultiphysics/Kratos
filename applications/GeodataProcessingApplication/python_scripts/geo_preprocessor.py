@@ -212,7 +212,6 @@ class GeoPreprocessor( GeoProcessor ):
     #     with open(obj_file_out, mode = "w") as fout:
     #         fout.write(string)
 
-    # edit 03/09/2019
     def WriteOBJ(self, obj_file_out):
         string = "o Building\n"     # we initialize the object
         for node in self.ModelPart.Nodes:
