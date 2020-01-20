@@ -1,13 +1,16 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Author1 Fullname
+//                   Author2 Fullname
 //
+
 
 // System includes
 
@@ -16,12 +19,11 @@
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "includes/define.h"
-#include <pybind11/pybind11.h>
+#include "spaces/ublas_space.h"
+#include "includes/ublas_interface.h"
 
 //Utilities
-#include "custom_utilities/eigen_qr_utility.hpp"
-#include "custom_utilities/ublas_wrapper.h"
-#include "custom_utilities/mor_qr_utility.hpp"
+#include "custom_utilities/generalized_eigenvalue_utility.hpp"
 
 
 namespace Kratos {
@@ -31,13 +33,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-	//typedef EigenQrUtility EigenQrUtilityType;
-
-		py::class_<EigenQrUtility, EigenQrUtility::Pointer>(m, "EigenQrUtility")
-		.def(py::init<unsigned int, const std::size_t>());
-
-        /*py::class_< storage_order_mor>(m, "MorQrUtility")
-		.def(py::init<>());*/
+	m.def("ComputeGeneralizedEigenvalues", &GeneralizedEigenvalueUtility::Compute<TUblasDenseSpace<double>>);
        
 }
 
