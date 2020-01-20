@@ -336,7 +336,21 @@ public:
             IndexU, IndexV));
     }
 
+    const NodeType GetPoint(IndexType IndexU, IndexType IndexV) const
+    {
+        return this->GetPoint(NurbsUtilities::GetVectorIndexFromMatrixIndices(
+            NumberOfControlPointsU(), NumberOfControlPointsV(),
+            IndexU, IndexV));
+    }
+
     typename NodeType::Pointer pGetPoint(IndexType IndexU, IndexType IndexV)
+    {
+        return this->pGetPoint(NurbsUtilities::GetVectorIndexFromMatrixIndices(
+            NumberOfControlPointsU(), NumberOfControlPointsV(),
+            IndexU, IndexV));
+    }
+
+    const typename NodeType::Pointer pGetPoint(IndexType IndexU, IndexType IndexV) const
     {
         return this->pGetPoint(NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfControlPointsU(), NumberOfControlPointsV(),
