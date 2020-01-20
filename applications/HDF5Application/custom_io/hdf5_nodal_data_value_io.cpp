@@ -49,12 +49,13 @@ void NodalDataValueIO::WriteNodalResults(NodesContainerType const& rNodes)
 
     // Write each variable.
     for (const std::string& r_variable_name : mVariableNames)
-        RegisteredVariableLookup<Variable<array_1d<double, 3>>,
+        RegisteredVariableLookup<Flags,
+                                 Variable<array_1d<double, 3>>,
                                  Variable<double>,
                                  Variable<int>,
                                  Variable<Vector<double>>,
                                  Variable<Matrix<double>>>(r_variable_name)
-            .Execute<WriteNonHistoricalVariableFunctor>(local_nodes, *mpFile, mPrefix, info);
+            .Execute<WriteNonHistoricalVariableFunctor>(local_nodes, *mpFile, mPrefix, info, r_variable_name);
 
     // Write block partition.
     WritePartitionTable(*mpFile, mPrefix + "/NodalDataValues", info);
@@ -67,6 +68,10 @@ template <typename TDataType>
 void SetNodalDataValueBuffer(Variable<TDataType> const&,
                              std::vector<NodeType*> const&,
                              Vector<TDataType>&);
+
+void SetNodalDataValueBuffer(Flags const&,
+                             std::vector<NodeType*> const&,
+                             Vector<int>&);
 
 void SetNodalDataValueBuffer(Variable<Vector<double>> const&,
                              std::vector<NodeType*> const&,
@@ -84,11 +89,29 @@ public:
                     std::vector<NodeType*>& rNodes,
                     File& rFile,
                     std::string const& rPrefix,
-                    WriteInfo& rInfo)
+                    WriteInfo& rInfo,
+                    std::string const&)
     {
         Vector<typename TVariable::Type> data;
         SetNodalDataValueBuffer(rVariable, rNodes, data);
         rFile.WriteDataSet(rPrefix + "/NodalDataValues/" + rVariable.Name(), data, rInfo);
+    }
+};
+
+template <>
+class WriteNonHistoricalVariableFunctor<Flags>
+{
+public:
+    void operator()(Flags const& rVariable,
+                    std::vector<NodeType*>& rNodes,
+                    File& rFile,
+                    std::string const& rPrefix,
+                    WriteInfo& rInfo,
+                    std::string const& rVariableName)
+    {
+        Vector<int> data;
+        SetNodalDataValueBuffer(rVariable, rNodes, data);
+        rFile.WriteDataSet(rPrefix + "/NodalDataValues/" + rVariableName, data, rInfo);
     }
 };
 
@@ -100,7 +123,8 @@ public:
                     std::vector<NodeType*>& rNodes,
                     File& rFile,
                     std::string const& rPrefix,
-                    WriteInfo& rInfo)
+                    WriteInfo& rInfo,
+                    std::string const&)
     {
         Matrix<double> data;
         SetNodalDataValueBuffer(rVariable, rNodes, data);
@@ -116,7 +140,8 @@ public:
                     std::vector<NodeType*>& rNodes,
                     File& rFile,
                     std::string const& rPrefix,
-                    WriteInfo& rInfo)
+                    WriteInfo& rInfo,
+                    std::string const&)
     {
         Matrix<double> data;
         SetNodalDataValueBuffer(rVariable, rNodes, data);
@@ -143,6 +168,23 @@ void SetNodalDataValueBuffer(Variable<TDataType> const& rVariable,
     {
         const NodeType& r_node = *rNodes[i];
         rData[i] = r_node.GetValue(rVariable);
+    }
+
+    KRATOS_CATCH("");
+}
+
+void SetNodalDataValueBuffer(Flags const& rVariable,
+                             std::vector<NodeType*> const& rNodes,
+                             Vector<int>& rData)
+{
+    KRATOS_TRY;
+
+    rData.resize(rNodes.size(), false);
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rNodes.size()); ++i)
+    {
+        const NodeType& r_node = *rNodes[i];
+        rData[i] = static_cast<int>(r_node.Is(rVariable));
     }
 
     KRATOS_CATCH("");
@@ -209,13 +251,14 @@ void NodalDataValueIO::ReadNodalResults(NodesContainerType& rNodes, Communicator
 
     // Read local data for each variable.
     for (const std::string& r_variable_name : mVariableNames)
-        RegisteredVariableLookup<Variable<array_1d<double, 3>>,
+        RegisteredVariableLookup<Flags,
+                                 Variable<array_1d<double, 3>>,
                                  Variable<double>,
                                  Variable<int>,
                                  Variable<Vector<double>>,
                                  Variable<Matrix<double>>>(r_variable_name)
             .Execute<ReadNonHistoricalVariableFunctor>(
-                local_nodes, ghost_nodes, rComm, *mpFile, mPrefix, start_index, block_size);
+                local_nodes, ghost_nodes, rComm, *mpFile, mPrefix, start_index, block_size, r_variable_name);
 
     KRATOS_CATCH("");
 }
@@ -225,6 +268,10 @@ template <typename TDataType>
 void SetNodalDataValue(Variable<TDataType> const&,
                        std::vector<NodeType*>&,
                        Vector<TDataType> const&);
+
+void SetNodalDataValue(Flags const&,
+                       std::vector<NodeType*>&,
+                       Vector<int> const&);                       
 
 void SetNodalDataValue(Variable<Vector<double>> const&,
                        std::vector<NodeType*>&,
@@ -250,7 +297,8 @@ public:
                     File& rFile,
                     std::string const& rPrefix,
                     unsigned StartIndex,
-                    unsigned BlockSize)
+                    unsigned BlockSize,
+                    std::string const&)
     {
         Vector<typename TVariable::Type> data;
         rFile.ReadDataSet(rPrefix + "/NodalDataValues/" + rVariable.Name(), data,
@@ -258,6 +306,27 @@ public:
         SetNodalDataValue(rVariable, rLocalNodes, data);
         ZeroNodalDataValue(rVariable, rGhostNodes);
         rComm.AssembleNonHistoricalData(rVariable);
+    }
+};
+
+template <>
+class ReadNonHistoricalVariableFunctor<Flags>
+{
+public:
+    void operator()(Flags const& rVariable,
+                    std::vector<NodeType*>& rLocalNodes,
+                    std::vector<NodeType*>& rGhostNodes,
+                    Communicator& rComm,
+                    File& rFile,
+                    std::string const& rPrefix,
+                    unsigned StartIndex,
+                    unsigned BlockSize,
+                    std::string const& rVariableName)
+    {
+        Vector<int> data;
+        rFile.ReadDataSet(rPrefix + "/NodalDataValues/" + rVariableName, data,
+                          StartIndex, BlockSize);
+        SetNodalDataValue(rVariable, rLocalNodes, data);
     }
 };
 
@@ -272,7 +341,8 @@ public:
                     File& rFile,
                     std::string const& rPrefix,
                     unsigned StartIndex,
-                    unsigned BlockSize)
+                    unsigned BlockSize,
+                    std::string const&)
     {
         Matrix<double> data;
         rFile.ReadDataSet(rPrefix + "/NodalDataValues/" + rVariable.Name(), data,
@@ -294,7 +364,8 @@ public:
                     File& rFile,
                     std::string const& rPrefix,
                     unsigned StartIndex,
-                    unsigned BlockSize)
+                    unsigned BlockSize,
+                    std::string const&)
     {
         Matrix<double> data;
         rFile.ReadDataSet(rPrefix + "/NodalDataValues/" + rVariable.Name(), data,
@@ -321,6 +392,20 @@ void SetNodalDataValue(Variable<TDataType> const& rVariable,
         << "Number of nodes does not equal data set dimension\n";
     for (std::size_t i = 0; i < rNodes.size(); ++i)
         rNodes[i]->GetValue(rVariable) = rData[i];
+
+    KRATOS_CATCH("");
+}
+
+void SetNodalDataValue(Flags const& rVariable,
+                       std::vector<NodeType*>& rNodes,
+                       Vector<int> const& rData)
+{
+    KRATOS_TRY;
+
+    KRATOS_ERROR_IF(rNodes.size() != rData.size())
+        << "Number of nodes does not equal data set dimension\n";
+    for (std::size_t i = 0; i < rNodes.size(); ++i)
+        rNodes[i]->Set(rVariable, static_cast<int>(rData[i]));
 
     KRATOS_CATCH("");
 }
