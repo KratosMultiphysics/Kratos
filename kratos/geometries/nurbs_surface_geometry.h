@@ -26,7 +26,7 @@
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_utilities.h"
 
-
+#include "integration/integration_point_utilities.h"
 
 namespace Kratos {
 
@@ -322,6 +322,59 @@ public:
         }
 
         return result;
+    }
+
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /*
+    * Creates integration points according to its the polynomial degrees.
+    * @return integration points.
+    */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        CreateIntegrationPoints(
+            rIntegrationPoints, PolynomialDegreeU() + 1, PolynomialDegreeV + 1);
+    }
+
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        SizeType IntegrationPointsPerKnotU, SizeType IntegrationPointsPerKnotV)
+    {
+        auto knot_span_intervals_u = KnotSpanIntervalsU();
+        auto knot_span_intervals_v = KnotSpanIntervalsV();
+
+        const SizeType number_of_integration_points =
+            knot_span_intervals_u.size() * knot_span_intervals_v.size()
+            * IntegrationPointsPerKnotU * IntegrationPointsPerKnotV;
+
+        if (rIntegrationPoints.size() != number_of_integration_points)
+            rIntegrationPoints.resize(number_of_integration_points);
+
+        IntegrationPointsArrayType integration_points_knot_span(
+            IntegrationPointsPerKnotU * IntegrationPointsPerKnotV);
+
+        IndexType counter = 0;
+
+        for (IndexType i = 0; i < knot_span_intervals_u.size(); ++i)
+        {
+            for (IndexType j = 0; j < knot_span_intervals_v.size(); ++j)
+            {
+                IntegrationPointUtilities::IntegrationPoints2D(
+                    integration_points_knot_span,
+                    IntegrationPointsPerKnotU, IntegrationPointsPerKnotV,
+                    knot_span_intervals_u.T0(), knot_span_intervals_u.T1(),
+                    knot_span_intervals_v.T0(), knot_span_intervals_v.T1());
+
+                for (IndexType k = 0; k < integration_points_knot_span.size(); ++k)
+                {
+                    rIntegrationPoints[counter] = integration_points_knot_span[k];
+                    counter++;
+                }
+            }
+        }
     }
 
     ///@}
