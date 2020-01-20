@@ -1580,6 +1580,22 @@ public:
         }
     }
 
+    /**
+     * @brief provides acces to a set of node lying at a boundary (face, edge, vertex).
+     * @param rGeometryArray is set with all boundary nodes.
+     * @param SpecificationType 0-> nodes on boundary.
+     *                          1-> nodes in scond row\ variation
+     */
+    virtual void GetPointsAt(
+        PointsArrayType& rGeometryArray,
+        const CoordinatesArrayType& rLocalCoordinates,
+        IndexType SpecificationType = 0) const
+    {
+        KRATOS_ERROR << "Calling GetPointsAt from base class."
+            << " Please check the definition of derived class. "
+            << *this << std::endl;
+    }
+
     ///@}
     ///@name Points
     ///@{
