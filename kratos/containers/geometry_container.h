@@ -145,10 +145,8 @@ public:
     /// Returns the Geometry::Pointer corresponding to its Id
     GeometryTypePointer pGetGeometry(IndexType GeometryId)
     {
-        auto i = mGeometries.find(GeometryId);
-        KRATOS_ERROR_IF(i == mGeometries.end())
-            << " geometry index not found: " << GeometryId << ".";
-        return (i.base()->second);
+        const auto& const_this = *this;
+        return const_cast<GeometryTypePointer>(const_this.pGetGeometry(GeometryId));
     }
 
     /// Returns the const Geometry::Pointer corresponding to its Id
@@ -163,11 +161,8 @@ public:
     /// Returns the Geometry::Pointer corresponding to its name
     GeometryTypePointer pGetGeometry(std::string GeometryName)
     {
-        auto hash_index = TGeometryType::GenerateId(GeometryName);
-        auto i = mGeometries.find(hash_index);
-        KRATOS_ERROR_IF(i == mGeometries.end())
-            << " geometry index not found: " << GeometryName << ".";
-        return (i.base()->second);
+        const auto& const_this = *this;
+        return const_cast<GeometryTypePointer>(const_this.pGetGeometry(GeometryName));
     }
 
     /// Returns the Geometry::Pointer corresponding to its name
@@ -183,9 +178,8 @@ public:
     /// Returns a reference geometry corresponding to the id
     TGeometryType& GetGeometry(IndexType GeometryId)
     {
-        auto i = mGeometries.find(GeometryId);
-        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryId << ".";
-        return *i;
+        const auto& const_this = *this;
+        return const_cast<TGeometryType&>(const_this.GetGeometry(GeometryId));
     }
 
     /// Returns a const reference geometry corresponding to the id
@@ -199,11 +193,8 @@ public:
     /// Returns a reference geometry corresponding to the name
     TGeometryType& GetGeometry(std::string GeometryName)
     {
-        auto hash_index = TGeometryType::GenerateId(GeometryName);
-        auto i = mGeometries.find(hash_index);
-        KRATOS_ERROR_IF(i == mGeometries.end())
-            << " geometry index not found: " << GeometryName << ".";
-        return *i;
+        const auto& const_this = *this;
+        return const_cast<TGeometryType&>(const_this.GetGeometry(GeometryName));
     }
 
     /// Returns a const reference geometry corresponding to the name
