@@ -714,8 +714,8 @@ public:
      */
     virtual GeometryType& GetGeometryPart(IndexType Index)
     {
-        const auto& const_this = *this;
-        return const_cast<GeometryType&>(const_this.GetGeometryPart(Index));
+        KRATOS_ERROR << "Calling base class 'GetGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
     }
 
     /**
@@ -727,7 +727,8 @@ public:
     */
     virtual const GeometryType& GetGeometryPart(IndexType Index) const
     {
-        return *pGetGeometryPart(Index);
+        KRATOS_ERROR << "Calling base class 'GetGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
     }
 
     /**
@@ -739,8 +740,8 @@ public:
     */
     virtual typename GeometryType::Pointer pGetGeometryPart(IndexType Index)
     {
-        const auto& const_this = *this;
-        return const_pointer_cast<GeometryType&>(const_this.pGetGeometryPart(Index));
+        KRATOS_ERROR << "Calling base class 'pGetGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
     }
 
     /**
