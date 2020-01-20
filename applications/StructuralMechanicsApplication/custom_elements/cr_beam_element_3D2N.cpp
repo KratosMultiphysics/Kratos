@@ -1204,7 +1204,7 @@ void CrBeamElement3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOu
         for (SizeType i=0;i<msDimension;++i){
             base_1[i] = transformation_matrix(i,0);
             base_2[i] = transformation_matrix(i,1);
-            base_3[i] = transformation_matrix(i,1);
+            base_3[i] = transformation_matrix(i,2);
         }
 
         column(rOutput,0) = base_1;
