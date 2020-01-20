@@ -210,6 +210,26 @@ public:
     }
 
     ///@}
+    ///@name Integration Points
+    ///@{
+
+    /*
+    * Creates integration points according to its the polynomial degrees.
+    * @return integration points.
+    */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        if (!IsTrimmed()){
+            return mpNurbsSurface->CreateIntegrationPoints(
+                rIntegrationPoints, PolynomialDegreeU() + 1, PolynomialDegreeV + 1);
+        }
+        else {
+            KRATOS_ERROR << "CreateIntegrationPoints is not impelemented for trimmed BrepSurfaces." << std::endl;
+        }
+    }
+
+    ///@}
     ///@name Geometrical Operations
     ///@{
 
