@@ -120,6 +120,7 @@ from structural_mechanics_test_factory import EigenQ4Thick2x2PlateTests as TEige
 from structural_mechanics_test_factory import EigenTL3D8NCubeTests as TEigenTL3D8NCubeTests
 from structural_mechanics_test_factory import Eigen3D3NThinCircleTests as TEigen3D3NThinCircleTests
 # Membrane tests
+from structural_mechanics_test_factory import Fofi4PointTentCableTests as TFofi4PointTentCableTests
 from structural_mechanics_test_factory import MembraneHemisphereTests as TMembraneHemisphereTests
 from structural_mechanics_test_factory import MembraneOrthotropicDiagonalTests as TMembraneOrthotropicDiagonalTests
 from structural_mechanics_test_factory import MembraneOrthotropicHorizontalTests as TMembraneOrthotropicHorizontalTests
@@ -353,6 +354,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TTestCookMembrane('test_cook_membrane_2d'))
     nightSuite.addTest(TTestCookMembrane('test_cook_membrane_incompressible_2d'))
     # Membrane tests
+    nightSuite.addTest(TFofi4PointTentCableTests('test_execution'))
     nightSuite.addTest(TMembraneHemisphereTests('test_execution'))
     nightSuite.addTest(TMembraneOrthotropicDiagonalTests('test_execution'))
     nightSuite.addTest(TMembraneOrthotropicHorizontalTests('test_execution'))

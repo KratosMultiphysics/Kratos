@@ -161,15 +161,8 @@ class EigenTL3D8NCubeTests(StructuralMechanicsTestFactory):
 class Eigen3D3NThinCircleTests(StructuralMechanicsTestFactory):
     file_name = "eigen_test/Eigen_3D3N_Thin_Circle_test"
 
-
 class Fofi4PointTentCableTests(StructuralMechanicsTestFactory):
     file_name = "formfinding_test/Formfinding_Four_Point_Membrane_With_Cable_test"
-
-class MembraneQ4PointLoadTests(StructuralMechanicsTestFactory):
-    file_name = "membrane_test/Membrane_Q4_PointLoad_test"
-
-class MembraneQ4TrussPointLoadTests(StructuralMechanicsTestFactory):
-    file_name = "membrane_test/Membrane_Q4_Truss_PointLoad_test"
 
 class MembraneHemisphereTests(StructuralMechanicsTestFactory):
     file_name = "membrane_test/Membrane_hemisphere_test"

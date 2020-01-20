@@ -79,7 +79,7 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
         strategy.Check()
         strategy.Solve()
 
-    def _do_formfinding(self,mp):
+    def _setup_formfinding(self,mp):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
@@ -97,7 +97,8 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
                 "global_direction" : [1,0,0],
                 "variable_name"    : "LOCAL_MATERIAL_AXIS_1",
                 "visualize_in_vtk" : false,
-                "method_specific_settings" : { }
+                "method_specific_settings" : { },
+                "check_local_space_dimension" : false
         }""")
         strategy = StructuralMechanicsApplication.FormfindingStrategy(mp,
                                                         scheme,
@@ -114,7 +115,9 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
                                                         move_mesh_flag)
         strategy.SetEchoLevel(0)
         strategy.Initialize()
-        strategy.Check()
+        return strategy
+
+    def _do_formfinding(self,strategy):
         strategy.Solve()
 
 
@@ -168,7 +171,8 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
         self._apply_BCs(bcs_xyz,'xyz')
 
         #find form suitable for given pre-stress state
-        self._do_formfinding(mp)
+        formfinding_strategy = self._setup_formfinding(mp)
+        self._do_formfinding(formfinding_strategy)
 
         final_shape = [mp.Nodes[5].X0,mp.Nodes[5].Y0,mp.Nodes[5].Z0]
         self.assertAlmostEqual(final_shape[0],1.0)

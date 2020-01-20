@@ -42,7 +42,8 @@ class FormfindingMechanicalSolverNew(MechanicalSolver):
                 "global_direction" : [1,0,0],
                 "variable_name"    : "PLEASE_SPECIFY",
                 "visualize_in_vtk" : false,
-                "method_specific_settings" : { }
+                "method_specific_settings" : { },
+                "check_local_space_dimension" : false
             }
         }""")
         this_defaults.AddMissingParameters(super(FormfindingMechanicalSolverNew, cls).GetDefaultSettings())
