@@ -49,6 +49,9 @@ public:
 
     typedef Geometry<Node<3>> GeometryType;
 
+    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename GeometryType::PointsArrayType PointsArrayType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -98,9 +101,13 @@ private:
     {
         KRATOS_ERROR_IF_NOT(rParameters.Has("geometry_type"))
             << "\"geometry_type\" need to be specified." << std::endl;
+        std::string geometry_type = rParameters["geometry_type"];
 
         KRATOS_ERROR_IF_NOT(rParameters.Has("iga_model_part"))
             << "\"iga_model_part\" need to be specified." << std::endl;
+
+        KRATOS_ERROR_IF_NOT(rParameters.Has("parameters"))
+            << "\"parameters\" need to be specified." << std::endl;
 
         std::string sub_model_part_name = rParameters["iga_model_part"].GetString();
 
@@ -110,6 +117,48 @@ private:
 
         std::vector<GeometryType> geometry_list;
         GetGeometryList(geometry_list, rModelPart, rParameters, EchoLevel);
+
+        if (geometry_type == "GeometryCurveNodes" || geometry_type == "GeometrySurfaceNodes")
+        {
+            GetGeometryPointsAt(geometry_list, rModelPart, rCadModelPart, rParameters["parameters"], 0, EchoLevel);
+        }
+        if (geometry_type == "GeometryCurveVariationNodes" || geometry_type == "GeometrySurfaceVariationNodes")
+        {
+            GetGeometryPointsAt(geometry_list, rModelPart, rCadModelPart, rParameters["parameters"], 1, EchoLevel);
+        }
+    }
+
+    static void GetGeometryPointsAt(
+        std::vector<GeometryType>& rGeometryList,
+        ModelPart& rModelPart,
+        ModelPart& rCadSubModelPart,
+        const Parameters& rParameters,
+        IndexType SpecificationType,
+        int EchoLevel = 0)
+    {
+        KRATOS_ERROR_IF_NOT(rParameters.Has("local_parameters"))
+            << "\"local_parameters\" need to be specified." << std::endl;
+        KRATOS_ERROR_IF(rParameters["local_parameters"].size() > 3)
+            << "\"local_parameters\" exceeds size. Maximum size is 3. Actual size is: "
+            << rParameters["local_parameters"].size() << std::endl;
+
+        CoordinatesArrayType local_parameters = ZeroVector(3);
+
+        for (SizeType i = 0; i < rParameters["local_parameters"].size(); ++i)
+        {
+            local_parameters[i] = rParameters["local_parameters"][i].GetDouble();
+        }
+
+        PointsArrayType points;
+        for (SizeType i = 0; i < rGeometryList.size(); ++i)
+        {
+            rGeometryList[i]->GetPointsAt(
+                points,
+                local_parameters,
+                SpecificationType);
+        }
+
+        rCadSubModelPart.AddNodes(rGeometryList.Begin(), rGeometryList.End());
     }
 
     static void GetGeometryList(
