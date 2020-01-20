@@ -291,9 +291,6 @@ public:
                 << "GetPointsAt: Not enough control points to get second row of nodes."
                 << std::endl;
 
-            IndexType t_start = 1;
-            IndexType t_end = number_of_cps - 1;
-
             if (rLocalCoordinates[0] == 0)
             {
                 rGeometryArray.push_back(this->pGetPoint(1));
