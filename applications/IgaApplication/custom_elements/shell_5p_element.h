@@ -356,7 +356,8 @@ private:
     // Components of the shear coefficient tensor on the contravariant basis
     std::vector<array_1d<double, 2>> m_S_a_covariant_vector;
 
-
+    // Shape functions at all integration points
+    Matrix m_N;
     // Determinant of the geometrical Jacobian.
     Vector m_dA_vector;
 
@@ -400,9 +401,10 @@ private:
 
     void CalculateGeometricStiffness(
         IndexType IntegrationPointIndex,
-        SecondVariations& rSecondVariationsStrain,
-        SecondVariations& rSecondVariationsCurvature,
-        const KinematicVariables& rActualKinematic);
+        Matrix& Kg,
+        const KinematicVariables& rActKin,
+        const VariationVariables& ractVar,
+        const ConstitutiveVariables& rThisConstitutiveVariables);
 
     /**
     * This functions updates the constitutive variables
