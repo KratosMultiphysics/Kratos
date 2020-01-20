@@ -215,7 +215,7 @@ public:
     ///@name Set/ Get functions
     ///@{
 
-    bool GetCurveDirection()
+    bool HasSameCurveDirection()
     {
         return mSameCurveDirection;
     }
