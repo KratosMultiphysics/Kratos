@@ -276,8 +276,8 @@ public:
 
             if (rLocalCoordinates[0] >= 0)
             {
-                t_start = rT * (number_of_cps - 1);
-                t_end = rT * (number_of_cps - 1) + 1;
+                t_start = rLocalCoordinates[0] * (number_of_cps - 1);
+                t_end = rLocalCoordinates[0] * (number_of_cps - 1) + 1;
             }
 
             for (IndexType i = t_start; i < t_end; ++i)
