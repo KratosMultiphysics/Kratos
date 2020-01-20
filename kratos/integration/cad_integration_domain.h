@@ -47,6 +47,8 @@ public:
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
 
+    typedef Geometry<Node<3>> GeometryType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -55,7 +57,7 @@ public:
         ModelPart& rModelPart,
         ModelPart &rCadModelPart,
         const Parameters& rPhysicsParameters,
-        int EchoLevel = 0) override
+        int EchoLevel = 0)
     {
         KRATOS_ERROR_IF_NOT(rPhysicsParameters.Has("element_condition_list"))
             << "Missing \"element_condition_list\" section" << std::endl;
@@ -71,7 +73,7 @@ public:
         ModelPart& rModelPart,
         ModelPart& rCadModelPart,
         const Parameters& rElementConditionListParameters,
-        int EchoLevel = 0) override
+        int EchoLevel = 0)
     {
         KRATOS_ERROR_IF_NOT(rElementConditionListParameters.IsArray())
             << "\"element_condition_list\" needs to be an array." << std::endl;
@@ -91,9 +93,56 @@ private:
     static void CreateIntegrationDomainElementCondition(
         ModelPart& rModelPart,
         ModelPart& rCadModelPart,
-        const Parameters& rParameters) override
+        const Parameters& rParameters,
+        int EchoLevel = 0)
     {
+        KRATOS_ERROR_IF_NOT(rParameters.Has("geometry_type"))
+            << "\"geometry_type\" need to be specified." << std::endl;
 
+        KRATOS_ERROR_IF_NOT(rParameters.Has("iga_model_part"))
+            << "\"iga_model_part\" need to be specified." << std::endl;
+
+        std::string sub_model_part_name = rParameters["iga_model_part"].GetString();
+
+        ModelPart& iga_model_part = rModelPart.HasSubModelPart(sub_model_part_name)
+            ? rModelPart.GetSubModelPart(iga_model_part)
+            : rModelPart.CreateSubModelPart(iga_model_part);
+
+        std::vector<GeometryType> geometry_list;
+        GetGeometryList(geometry_list, rModelPart, rParameters, EchoLevel);
+    }
+
+    static void GetGeometryList(
+        std::vector<GeometryType> rGeometryList,
+        ModelPart& rModelPart,
+        const Parameters& rParameters,
+        int EchoLevel = 0)
+    {
+        if (rParameters.Has("brep_id"))
+        {
+            rGeometryList.push_back(rModelPart.pGetGeometryPart(rParameters["brep_id"].GetInt()));
+        }
+        if (rParameters.Has("brep_ids"))
+        {
+            for (SizeType i = 0; i < rParameters["brep_ids"].size(); ++i)
+            {
+                rGeometryList.push_back(rModelPart.pGetGeometryPart(rParameters["brep_ids"][i].GetInt()));
+            }
+        }
+        if (rParameters.Has("brep_name"))
+        {
+            rGeometryList.push_back(rModelPart.pGetGeometryPart(rParameters["brep_name"].GetString()))
+        }
+        if (rParameters.Has("brep_names"))
+        {
+            for (SizeType i = 0; i < rParameters["brep_names"].size(); ++i)
+            {
+                rGeometryList.push_back(rModelPart.pGetGeometryPart(rParameters["brep_names"][i].GetString()));
+            }
+        }
+
+        KRATOS_ERROR_IF(rGeometryList.size() == 0)
+            << "Empty geometry list. Either \"brep_id\", \"brep_ids\", \"brep_name\" or \"brep_names\" need to be specified." << std::endl;
     }
 
     ///@}
