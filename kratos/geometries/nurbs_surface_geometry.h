@@ -360,13 +360,13 @@ public:
         {
             if (rLocalCoordinates[0] >= 0)
             {
-                u_start = rU * (number_of_cps_u - 1);
-                u_end = rU * (number_of_cps_u - 1) + 1;
+                u_start = rLocalCoordinates[0] * (number_of_cps_u - 1);
+                u_end = rLocalCoordinates[0] * (number_of_cps_u - 1) + 1;
             }
             if (rLocalCoordinates[1] >= 0)
             {
-                v_start = rV * (number_of_cps_v - 1);
-                v_end = rV * (number_of_cps_v - 1) + 1;
+                v_start = rLocalCoordinates[1] * (number_of_cps_v - 1);
+                v_end = rLocalCoordinates[1] * (number_of_cps_v - 1) + 1;
             }
 
             for (IndexType i = u_start; i < u_end; ++i)
