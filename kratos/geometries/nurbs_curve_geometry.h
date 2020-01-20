@@ -263,7 +263,7 @@ public:
     ///@{
 
     void GetPointsAt(
-        PointsArrayType& rGeometryArray,
+        PointsArrayType& rPoints,
         const CoordinatesArrayType& rLocalCoordinates,
         IndexType SpecificationType = 0) const override
     {
@@ -282,7 +282,7 @@ public:
 
             for (IndexType i = t_start; i < t_end; ++i)
             {
-                rGeometryArray.push_back(this->pGetPoint(i));
+                rPoints.push_back(this->pGetPoint(i));
             }
         }
         if (SpecificationType == 1)
@@ -293,11 +293,11 @@ public:
 
             if (rLocalCoordinates[0] == 0)
             {
-                rGeometryArray.push_back(this->pGetPoint(1));
+                rPoints.push_back(this->pGetPoint(1));
             }
             if (rLocalCoordinates[0] == 1)
             {
-                rGeometryArray.push_back(this->pGetPoint(number_of_cps - 1));
+                rPoints.push_back(this->pGetPoint(number_of_cps - 1));
             }
         }
         KRATOS_ERROR << "SpecificationType " << SpecificationType

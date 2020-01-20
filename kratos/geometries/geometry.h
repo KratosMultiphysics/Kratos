@@ -1590,7 +1590,7 @@ public:
      *                          1-> nodes in scond row\ variation
      */
     virtual void GetPointsAt(
-        PointsArrayType& rGeometryArray,
+        PointsArrayType& rPoints,
         const CoordinatesArrayType& rLocalCoordinates,
         IndexType SpecificationType = 0) const
     {

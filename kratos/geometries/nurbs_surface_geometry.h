@@ -363,7 +363,7 @@ public:
     }
 
     void GetPointsAt(
-        PointsArrayType& rGeometryArray,
+        PointsArrayType& rPoints,
         const CoordinatesArrayType& rLocalCoordinates,
         IndexType SpecificationType = 0) const override
     {
@@ -392,7 +392,7 @@ public:
             {
                 for (IndexType j = v_start; j < v_end; ++j)
                 {
-                    rGeometryArray.push_back(this->pGetPoint(i, j));
+                    rPoints.push_back(this->pGetPoint(i, j));
                 }
             }
         }
@@ -423,7 +423,7 @@ public:
             {
                 for (IndexType j = v_start; j < v_end; ++j)
                 {
-                    rGeometryArray.push_back(this->pGetPoint(i, j));
+                    rPoints.push_back(this->pGetPoint(i, j));
                 }
             }
         }

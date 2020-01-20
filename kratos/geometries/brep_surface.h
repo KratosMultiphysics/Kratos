@@ -214,12 +214,12 @@ public:
     ///@{
 
     void GetPointsAt(
-        PointsArrayType& rGeometryArray,
+        PointsArrayType& rPoints,
         const CoordinatesArrayType& rLocalCoordinates,
         IndexType SpecificationType = 0) const override
     {
         mpNurbsSurface->GetPointsAt(
-            rGeometryArray, rLocalCoordinates, SpecificationType);
+            rPoints, rLocalCoordinates, SpecificationType);
     }
 
     ///@}
