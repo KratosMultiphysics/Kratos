@@ -199,6 +199,23 @@ public:
     * @param Index of the geometry part. 0->Master; all bigger than 1->Slave
     * @return geometry, which is connected through the Index
      */
+    const GeometryType GetGeometryPart(IndexType Index) const override
+    {
+        KRATOS_DEBUG_ERROR_IF(mpGeometries.size() <= Index) << "Index "
+            << Index << " out of range. Composite contains only of: "
+            << mpGeometries.size() << " geometries." << std::endl;
+
+        return *mpGeometries[Index];
+    }
+
+    /**
+    * @brief This function returns the geometry part which is accessable
+    *        with a certain index.
+    * @details Here, 0 is the master, all above 0 is for the slaves
+    * of the geometry. Checks if index is available only in debug mode.
+    * @param Index of the geometry part. 0->Master; all bigger than 1->Slave
+    * @return geometry, which is connected through the Index
+     */
     const GeometryPointer pGetGeometryPart(IndexType Index) const override
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometries.size() <= Index) << "Index "
