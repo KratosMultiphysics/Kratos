@@ -19,7 +19,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /// Short class definition.
-/** Kirchhoff-Love Shell. Optimized for Isogeometric Analysis by Kiendl et al. .
+/** Reissner-Mindlin shell using Green-Lagrangian strains and formulated using stress resultants
 */
 class Shell5pElement
     : public Element
@@ -32,15 +32,18 @@ protected:
         // covariant metric
         array_1d<double, 3> a_ab_covariant;
         array_1d<double, 3> b_ab_covariant;
+        array_1d<double, 2> s_a_covariant; //shear 
 
         //base vector 1
         array_1d<double, 3> a1;
         //base vector 2
         array_1d<double, 3> a2;
-        //base vector 3 normalized
-        array_1d<double, 3> a3;
-        //not-normalized base vector 3
-        array_1d<double, 3> a3_tilde;
+        //director
+        array_1d<double, 3> t;
+
+        //director derivatives wrt physical space
+        array_1d<double, 3> dtd1;
+        array_1d<double, 3> dtd2;
 
         //differential area
         double dA;
@@ -56,9 +59,9 @@ protected:
 
             noalias(a1) = ZeroVector(Dimension);
             noalias(a2) = ZeroVector(Dimension);
-            noalias(a3) = ZeroVector(Dimension);
-
-            noalias(a3_tilde) = ZeroVector(Dimension);
+            noalias(t) = ZeroVector(Dimension);
+            noalias(dtd1) = ZeroVector(Dimension);
+            noalias(dtd2) = ZeroVector(Dimension);
 
             dA = 1.0;
         }
@@ -85,23 +88,38 @@ protected:
     };
 
     /**
-    * Internal variables used in the constitutive equations
+    * Internal variables used in the material and geometric stiffness
     */
-    struct SecondVariations
+    struct VariationVariables
     {
-        Matrix B11;
-        Matrix B22;
-        Matrix B12;
+        Matrix P;
+        Matrix Q1;
+        Matrix Q2;
+        Matrix S1;
+        Matrix S2;
+        Matrix Chi11;
+        Matrix Chi12;
+        Matrix Chi21;
+        Matrix Chi22;
+        Matrix WI;
+        Matrix WJ;
 
         /**
         * The default constructor
-        * @param StrainSize: The size of the strain vector in Voigt notation
         */
-        SecondVariations(const int& mat_size)
+        VariationVariables()
         {
-            B11 = ZeroMatrix(mat_size, mat_size);
-            B22 = ZeroMatrix(mat_size, mat_size);
-            B12 = ZeroMatrix(mat_size, mat_size);
+            P = ZeroMatrix(3, 3);
+            Q1 = ZeroMatrix(3, 3);
+            Q2 = ZeroMatrix(3, 3);
+            S1 = ZeroMatrix(3, 3);
+            S2 = ZeroMatrix(3, 3);
+            Chi11 = ZeroMatrix(3, 3);
+            Chi12 = ZeroMatrix(3, 3);
+            Chi21 = ZeroMatrix(3, 3);
+            Chi22 = ZeroMatrix(3, 3);
+            WI = ZeroMatrix(3, 3);
+            WJ = ZeroMatrix(3, 3);
         }
     };
 
@@ -109,7 +127,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of Shell3pElement
+    /// Counted pointer of Shell5pElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Shell5pElement);
 
     /// Size types
@@ -310,14 +328,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "KLElement #" << Id();
+        buffer << "RMElement #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "KLElement #" << Id();
+        rOStream << "RMElement #" << Id();
     }
 
     /// Print object's data.
@@ -332,17 +350,18 @@ private:
     ///@{
 
     // Components of the metric coefficient tensor on the contravariant basis
-    std::vector<array_1d<double, 3>> m_A_ab_covariant_vector;
+    //std::vector<array_1d<double, 3>> m_A_ab_covariant_vector;
     // Components of the curvature coefficient tensor on the contravariant basis
     std::vector<array_1d<double, 3>> m_B_ab_covariant_vector;
+    // Components of the shear coefficient tensor on the contravariant basis
+    std::vector<array_1d<double, 2>> m_S_a_covariant_vector;
+
 
     // Determinant of the geometrical Jacobian.
     Vector m_dA_vector;
 
-    /* Transformation the strain tensor from the curvilinear system
-    *  to the local cartesian in voigt notation including a 2 in the
-    *  shear part. */
-    std::vector<Matrix> m_T_vector;
+    // Transformed curvilinear derivatives into cartesian derivatives/
+    std::vector<Matrix> m_cart_deriv;
 
     /// The vector containing the constitutive laws for all integration points.
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
@@ -365,24 +384,21 @@ private:
 
     void CalculateKinematics(
         IndexType IntegrationPointIndex,
-        KinematicVariables& rKinematicVariables);
+        KinematicVariables& rKinematicVariables, VariationVariables& rVariationVariables);
 
-    // Computes transformation
-    void CalculateTransformation(
+    // Computes the cartesian derivatives from curvilinear ones
+    void CalculateCartesianDerivatives(
+        IndexType IntegrationPointIndex,
         const KinematicVariables& rKinematicVariables,
         Matrix& rT);
 
-    void CalculateBMembrane(
+    void CalculateBOperator(
         IndexType IntegrationPointIndex,
         Matrix& rB,
-        const KinematicVariables& rActualKinematic);
+        const KinematicVariables& rActualKinematic,
+        const VariationVariables& rVariations);
 
-    void CalculateBCurvature(
-        IndexType IntegrationPointIndex,
-        Matrix& rB,
-        const KinematicVariables& rActualKinematic);
-
-    void CalculateSecondVariationStrainCurvature(
+    void CalculateGeometricStiffness(
         IndexType IntegrationPointIndex,
         SecondVariations& rSecondVariationsStrain,
         SecondVariations& rSecondVariationsCurvature,
@@ -400,6 +416,7 @@ private:
         KinematicVariables& rActualMetric,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
+        ConstitutiveVariables& rThisConstitutiveVariablesShear,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     );
@@ -416,13 +433,6 @@ private:
         const Vector& rSD,
         const double IntegrationWeight);
 
-    ///@}
-    ///@name Geometrical Functions
-    ///@{
-
-    void CalculateHessian(
-        Matrix& Hessian,
-        const Matrix& rDDN_DDe);
 
     ///@}
     ///@name Serialization
@@ -433,20 +443,20 @@ private:
     void load(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-        rSerializer.save("A_ab_covariant_vector", m_A_ab_covariant_vector);
-        rSerializer.save("B_ab_covariant_vector", m_B_ab_covariant_vector);
+        rSerializer.save("A_ab_covariant_vector", m_B_ab_covariant_vector);
+        rSerializer.save("B_ab_covariant_vector", m_S_a_covariant_vector);
         rSerializer.save("dA_vector", m_dA_vector);
-        rSerializer.save("T_vector", m_T_vector);
+        rSerializer.save("cart_deriv", m_cart_deriv);
         rSerializer.save("constitutive_law_vector", mConstitutiveLawVector);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-        rSerializer.load("A_ab_covariant_vector", m_A_ab_covariant_vector);
-        rSerializer.load("B_ab_covariant_vector", m_B_ab_covariant_vector);
+        rSerializer.load("A_ab_covariant_vector", m_B_ab_covariant_vector);
+        rSerializer.load("B_ab_covariant_vector", m_S_a_covariant_vector);
         rSerializer.load("dA_vector", m_dA_vector);
-        rSerializer.load("T_vector", m_T_vector);
+        rSerializer.save("cart_deriv", m_cart_deriv);
         rSerializer.load("constitutive_law_vector", mConstitutiveLawVector);
     }
 
