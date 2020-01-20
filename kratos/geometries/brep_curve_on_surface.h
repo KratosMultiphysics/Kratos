@@ -139,6 +139,7 @@ public:
         : BaseType( rOther )
         , mpCurveOnSurface(rOther.mpCurveOnSurface)
         , mCurveNurbsInterval(rOther.mCurveNurbsInterval)
+        , mCurveDirection(rOther.mCurveDirection)
     {
     }
 
@@ -149,6 +150,7 @@ public:
         : BaseType( rOther )
         , mpCurveOnSurface(rOther.mpCurveOnSurface)
         , mCurveNurbsInterval(rOther.mCurveNurbsInterval)
+        , mCurveDirection(rOther.mCurveDirection)
     {
     }
 
@@ -175,6 +177,7 @@ public:
         BaseType::operator=( rOther );
         mpCurveOnSurface = rOther.mpCurveOnSurface;
         mCurveNurbsInterval = rOther.mCurveNurbsInterval;
+        mCurveDirection = rOther.mCurveDirection;
         return *this;
     }
 
@@ -195,6 +198,7 @@ public:
         BaseType::operator=( rOther );
         mpCurveOnSurface = rOther.mpCurveOnSurface;
         mCurveNurbsInterval = rOther.mCurveNurbsInterval;
+        mCurveDirection = rOther.mCurveDirection;
         return *this;
     }
 
