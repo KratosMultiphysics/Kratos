@@ -28,8 +28,19 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::InitializeSolut
     // would be part of the element properties this transferring would be not necessary. The stiffness parameters
     // are needed by the primal element in order to compute later on the element stiffness matrix for the
     // adjoint problem and the sensitivity matrix as the element contribution to the pseudo-load.
-    this->pGetPrimalElement()->SetValue(NODAL_DISPLACEMENT_STIFFNESS, this->GetValue(NODAL_DISPLACEMENT_STIFFNESS));
-    this->pGetPrimalElement()->SetValue(NODAL_ROTATIONAL_STIFFNESS, this->GetValue(NODAL_ROTATIONAL_STIFFNESS));
+    auto stiffness_available = false;
+    if (this->Has(NODAL_DISPLACEMENT_STIFFNESS)) {
+        const auto temp = this->GetValue(NODAL_DISPLACEMENT_STIFFNESS);
+        this->pGetPrimalElement()->SetValue(NODAL_DISPLACEMENT_STIFFNESS, temp);
+        stiffness_available = true;
+    }
+    if (this->Has(NODAL_ROTATIONAL_STIFFNESS)) {
+        const auto temp = this->GetValue(NODAL_ROTATIONAL_STIFFNESS);
+        this->pGetPrimalElement()->SetValue(NODAL_ROTATIONAL_STIFFNESS, temp);
+        stiffness_available = true;
+    }
+    KRATOS_ERROR_IF_NOT(stiffness_available) << "Neither NODAL_DISPLACEMENT_STIFFNESS nor NODAL_ROTATIONAL_STIFFNESS available!" << std::endl;
+
     BaseType::InitializeSolutionStep(rCurrentProcessInfo);
 
     KRATOS_CATCH("")
@@ -76,6 +87,16 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensit
         if ((rOutput.size1() != dimension) || (rOutput.size2() != local_size)) {
                 rOutput.resize(dimension, local_size, false);
         }
+
+        // Save initial spring stiffness parameters
+        array_1d<double,3> disp_stiffness = ZeroVector(3);
+        array_1d<double,3> rot_stiffness = ZeroVector(3);
+        if (this->Has(NODAL_DISPLACEMENT_STIFFNESS)) {
+            disp_stiffness = this->GetValue(NODAL_DISPLACEMENT_STIFFNESS);
+        }
+        if (this->Has(NODAL_ROTATIONAL_STIFFNESS)) {
+            rot_stiffness = this->GetValue(NODAL_ROTATIONAL_STIFFNESS);
+        }
         // reset original stiffness parameters before computing the derivatives
         this->pGetPrimalElement()->SetValue(NODAL_ROTATIONAL_STIFFNESS, rDesignVariable.Zero());
         this->pGetPrimalElement()->SetValue(NODAL_DISPLACEMENT_STIFFNESS, rDesignVariable.Zero());
@@ -93,9 +114,9 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensit
                 rOutput(dir_i, i) = RHS[i];
             }
         }
-        // give original stiffness parameters back. This way is possible since adjoint and primal element don't share their data base.
-        this->pGetPrimalElement()->SetValue(NODAL_ROTATIONAL_STIFFNESS, this->GetValue(NODAL_ROTATIONAL_STIFFNESS));
-        this->pGetPrimalElement()->SetValue(NODAL_DISPLACEMENT_STIFFNESS, this->GetValue(NODAL_DISPLACEMENT_STIFFNESS));
+        // give original stiffness parameters back.
+        this->pGetPrimalElement()->SetValue(NODAL_ROTATIONAL_STIFFNESS, rot_stiffness);
+        this->pGetPrimalElement()->SetValue(NODAL_DISPLACEMENT_STIFFNESS, disp_stiffness);
     }
     else {
         if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) {
