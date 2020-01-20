@@ -146,7 +146,7 @@ public:
     GeometryTypePointer pGetGeometry(IndexType GeometryId)
     {
         const auto& const_this = *this;
-        return const_cast<GeometryTypePointer>(const_this.pGetGeometry(GeometryId));
+        return std::const_pointer_cast<TGeometryType>(const_this.pGetGeometry(GeometryId));
     }
 
     /// Returns the const Geometry::Pointer corresponding to its Id
@@ -162,7 +162,7 @@ public:
     GeometryTypePointer pGetGeometry(std::string GeometryName)
     {
         const auto& const_this = *this;
-        return const_cast<GeometryTypePointer>(const_this.pGetGeometry(GeometryName));
+        return std::const_pointer_cast<TGeometryType>(const_this.pGetGeometry(GeometryName));
     }
 
     /// Returns the Geometry::Pointer corresponding to its name
