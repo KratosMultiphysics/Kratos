@@ -79,12 +79,12 @@ public:
     BrepCurveOnSurface( 
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve,
-        bool curve_direction = true)
+        bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpCurveOnSurface(
             Kratos::make_shared<NurbsCurveOnSurfaceType>(
                 pSurface, pCurve))
-        , mCurveDirection(curve_direction)
+        , mSameCurveDirection(SameCurveDirection)
     {
     }
 
@@ -93,23 +93,23 @@ public:
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve,
         NurbsInterval CurveNurbsInterval,
-        bool curve_direction = true)
+        bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpCurveOnSurface(
             Kratos::make_shared<NurbsCurveOnSurfaceType>(
                 pSurface, pCurve))
         , mCurveNurbsInterval(CurveNurbsInterval)
-        , mCurveDirection(curve_direction)
+        , mSameCurveDirection(SameCurveDirection)
     {
     }
 
     /// constructor for untrimmed surface with curve on surface
     BrepCurveOnSurface(
         NurbsCurveOnSurfacePointerType pNurbsCurveOnSurface,
-        bool curve_direction = true)
+        bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpCurveOnSurface(pNurbsCurveOnSurface)
-        , mCurveDirection(curve_direction)
+        , mSameCurveDirection(SameCurveDirection)
     {
     }
 
@@ -117,11 +117,11 @@ public:
     BrepCurveOnSurface(
         NurbsCurveOnSurfacePointerType pNurbsCurveOnSurface,
         NurbsInterval CurveNurbsInterval,
-        bool curve_direction = true)
+        bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mCurveNurbsInterval(CurveNurbsInterval)
         , mpCurveOnSurface(pNurbsCurveOnSurface)
-        , mCurveDirection(curve_direction)
+        , mSameCurveDirection(SameCurveDirection)
     {
     }
 
@@ -139,7 +139,7 @@ public:
         : BaseType( rOther )
         , mpCurveOnSurface(rOther.mpCurveOnSurface)
         , mCurveNurbsInterval(rOther.mCurveNurbsInterval)
-        , mCurveDirection(rOther.mCurveDirection)
+        , mSameCurveDirection(rOther.mSameCurveDirection)
     {
     }
 
@@ -150,7 +150,7 @@ public:
         : BaseType( rOther )
         , mpCurveOnSurface(rOther.mpCurveOnSurface)
         , mCurveNurbsInterval(rOther.mCurveNurbsInterval)
-        , mCurveDirection(rOther.mCurveDirection)
+        , mSameCurveDirection(rOther.mSameCurveDirection)
     {
     }
 
@@ -177,7 +177,7 @@ public:
         BaseType::operator=( rOther );
         mpCurveOnSurface = rOther.mpCurveOnSurface;
         mCurveNurbsInterval = rOther.mCurveNurbsInterval;
-        mCurveDirection = rOther.mCurveDirection;
+        mSameCurveDirection = rOther.mSameCurveDirection;
         return *this;
     }
 
@@ -198,7 +198,7 @@ public:
         BaseType::operator=( rOther );
         mpCurveOnSurface = rOther.mpCurveOnSurface;
         mCurveNurbsInterval = rOther.mCurveNurbsInterval;
-        mCurveDirection = rOther.mCurveDirection;
+        mSameCurveDirection = rOther.mSameCurveDirection;
         return *this;
     }
 
@@ -217,7 +217,7 @@ public:
 
     bool GetCurveDirection()
     {
-        return mCurveDirection;
+        return mSameCurveDirection;
     }
 
     /// Returns the curve on surface of this brep.
@@ -326,7 +326,7 @@ private:
 
     NurbsInterval mCurveNurbsInterval;
 
-    bool mCurveDirection;
+    bool mSameCurveDirection;
 
     ///@}
     ///@name Serialization
@@ -339,7 +339,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
         rSerializer.save("CurveOnSurface", mpCurveOnSurface);
         rSerializer.save("NurbsInterval", mCurveNurbsInterval);
-        rSerializer.save("CurveDirection", mCurveDirection);
+        rSerializer.save("SameCurveDirection", mSameCurveDirection);
     }
 
     void load( Serializer& rSerializer ) override
@@ -347,7 +347,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
         rSerializer.load("CurveOnSurface", mpCurveOnSurface);
         rSerializer.load("NurbsInterval", mCurveNurbsInterval);
-        rSerializer.load("CurveDirection", mCurveDirection);
+        rSerializer.load("SameCurveDirection", mSameCurveDirection);
     }
 
     ///@}
