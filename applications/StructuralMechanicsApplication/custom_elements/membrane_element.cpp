@@ -1157,20 +1157,21 @@ void MembraneElement::CalculateAndAddBodyForce(VectorType& rRightHandSideVector)
 {
     KRATOS_TRY
     auto& r_geom = GetGeometry();
-    const SizeType number_of_nodes = r_geom.size();
+    if (r_geom[0].SolutionStepsDataHas(VOLUME_ACCELERATION)){
 
-    const double total_mass = mReferenceArea * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
+        const SizeType number_of_nodes = r_geom.size();
+        const double total_mass = mReferenceArea * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+        Vector lump_fact =  ZeroVector(number_of_nodes);
+        r_geom.LumpingFactors(lump_fact);
 
-    Vector lump_fact =  ZeroVector(number_of_nodes);
-    r_geom.LumpingFactors(lump_fact);
+        for (SizeType i = 0; i < number_of_nodes; ++i) {
+            const double temp = lump_fact[i] * total_mass;
 
-    for (SizeType i = 0; i < number_of_nodes; ++i) {
-        const double temp = lump_fact[i] * total_mass;
-
-        for (SizeType j = 0; j < 3; ++j)
-        {
-            const SizeType index = i * 3 + j;
-            rRightHandSideVector[index] += temp * r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION)[j];
+            for (SizeType j = 0; j < 3; ++j)
+            {
+                const SizeType index = i * 3 + j;
+                rRightHandSideVector[index] += temp * r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION)[j];
+            }
         }
     }
     KRATOS_CATCH("")
