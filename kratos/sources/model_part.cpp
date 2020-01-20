@@ -1615,7 +1615,7 @@ void ModelPart::RemoveGeometry(
 
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin();
         i_sub_model_part != SubModelPartsEnd();
-        i_sub_model_part++)
+        ++i_sub_model_part)
         i_sub_model_part->RemoveGeometry(GeometryId);
 }
 
@@ -1627,7 +1627,7 @@ void ModelPart::RemoveGeometry(
 
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin();
         i_sub_model_part != SubModelPartsEnd();
-        i_sub_model_part++)
+        ++i_sub_model_part)
         i_sub_model_part->RemoveGeometry(GeometryName);
 }
 
