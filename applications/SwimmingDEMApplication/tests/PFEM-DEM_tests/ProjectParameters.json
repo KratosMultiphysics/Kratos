@@ -134,6 +134,9 @@
             "input_type" : "mdpa",
             "input_filename" : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test"
         },
+        "material_import_settings"           : {
+            "materials_filename" : "PFEM-DEM_tests/PfemFluidDynamicsMaterials.json"
+        },
         "move_mesh_flag": false,
         "maximum_pressure_iterations" : 7,
         "velocity_tolerance" : 1e-5,
