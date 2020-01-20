@@ -38,6 +38,7 @@ public:
     ///@{
 
     /// Geometry as base class.
+    typedef typename TContainerPointType::value_type NodeType;
     typedef Geometry<typename TContainerPointType::value_type> BaseType;
     typedef NurbsSurfaceGeometry<TWorkingSpaceDimension, TContainerPointType> GeometryType;
 
@@ -328,14 +329,14 @@ public:
     ///@name Point Access
     ///@{
 
-    TNodeType GetPoint(IndexType IndexU, IndexType IndexV)
+    NodeType GetPoint(IndexType IndexU, IndexType IndexV)
     {
         return this->GetPoint(NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfControlPointsU(), NumberOfControlPointsV(),
             IndexU, IndexV));
     }
 
-    typename TNodeType::Pointer pGetPoint(IndexType IndexU, IndexType IndexV)
+    typename NodeType::Pointer pGetPoint(IndexType IndexU, IndexType IndexV)
     {
         return this->pGetPoint(NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfControlPointsU(), NumberOfControlPointsV(),
