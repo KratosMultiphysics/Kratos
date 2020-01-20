@@ -236,6 +236,8 @@ namespace Python
         cplx_vector_binder.def(py::init<typename ComplexVector::size_type, std::complex<double>>());
         cplx_vector_binder.def(py::init<Vector>());
         cplx_vector_binder.def(py::init<ComplexVector>());
+        cplx_vector_binder.def("real", [](ComplexVector& self){Vector tmp(self.size()); for(unsigned int i=0; i<self.size(); ++i) tmp[i]=std::real(self[i]); return tmp;});
+        cplx_vector_binder.def("imag", [](ComplexVector& self){Vector tmp(self.size()); for(unsigned int i=0; i<self.size(); ++i) tmp[i]=std::imag(self[i]); return tmp;});
         // vector_binder.def(py::init<array_1d<double,3>>());
         cplx_vector_binder.def(py::init( [](const py::list& input){
                                 ComplexVector tmp(input.size());
