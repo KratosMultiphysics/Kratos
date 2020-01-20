@@ -139,7 +139,7 @@ void VtkOutput::WriteModelPartToFile(const ModelPart& rModelPart, const bool IsS
         output_file.open(output_file_name, std::ios::out | std::ios::binary | std::ios::trunc);
     }
 
-    KRATOS_ERROR_IF_NOT(output_file.is_open()) << "File \"" << output_file_name << "\" could not be openend!" << std::endl;
+    KRATOS_ERROR_IF_NOT(output_file.is_open()) << "File \"" << output_file_name << "\" could not be opened!" << std::endl;
 
     WriteHeaderToFile(rModelPart, output_file);
     WriteMeshToFile(rModelPart, output_file);
