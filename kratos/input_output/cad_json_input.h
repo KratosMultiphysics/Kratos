@@ -75,13 +75,7 @@ namespace Kratos
             SizeType EchoLevel = 0)
             : mEchoLevel(EchoLevel)
         {
-            std::ifstream cad_json_file;
-            cad_json_file.open(rDataFileName);
-
-            std::string cad_json_string((std::istreambuf_iterator<char>(cad_json_file)),
-                std::istreambuf_iterator<char>());
-
-            mCadJsonParameters = Parameters(cad_json_string);
+            mCadJsonParameters = ReadParamatersFile(rDataFileName);
         }
 
         /// Constructor with Parameters
@@ -657,6 +651,17 @@ namespace Kratos
             else { // if (rParameters["topology"][i].Has("brep_name"))
                 return rModelPart.pGetGeometry(rParameters["brep_name"].GetString());
             }
+        }
+
+        static Parameters ReadParamatersFile(const std::string& rDataFileName)
+        {
+            std::ifstream cad_json_file;
+            cad_json_file.open(rDataFileName);
+
+            std::string cad_json_string((std::istreambuf_iterator<char>(cad_json_file)),
+                std::istreambuf_iterator<char>());
+
+            return Parameters(cad_json_string);
         }
 
         ///@}
