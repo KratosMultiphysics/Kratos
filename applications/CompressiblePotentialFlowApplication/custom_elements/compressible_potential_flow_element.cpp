@@ -662,7 +662,7 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensity(const Pro
     const array_1d<double, 3>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     const double rho_inf = rCurrentProcessInfo[FREE_STREAM_DENSITY];
     const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
-    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+    const double heat_capacity_ratio = rCurrentProcessInfo[ADIABATIC_COEFFICIENT];
     const double a_inf = rCurrentProcessInfo[SOUND_VELOCITY];
 
     // Computing local velocity
@@ -702,7 +702,7 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensityDerivative
 {
     // Reading free stream conditions
     const double rho_inf = rCurrentProcessInfo[FREE_STREAM_DENSITY];
-    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+    const double heat_capacity_ratio = rCurrentProcessInfo[ADIABATIC_COEFFICIENT];
     const double a_inf = rCurrentProcessInfo[SOUND_VELOCITY];
 
     return -pow(rho_inf, heat_capacity_ratio - 1) *

@@ -183,7 +183,7 @@ double ComputeCompressiblePressureCoefficient(const Element& rElement, const Pro
     // Reading free stream conditions
     const array_1d<double, 3>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
-    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+    const double heat_capacity_ratio = rCurrentProcessInfo[ADIABATIC_COEFFICIENT];
 
     // Computing local velocity
     array_1d<double, Dim> v = ComputeVelocity<Dim, NumNodes>(rElement);
