@@ -331,7 +331,7 @@ public:
 
     NodeType GetPoint(IndexType IndexU, IndexType IndexV)
     {
-        return this->GetPoint(std::static_cast<int>(
+        return this->GetPoint(static_cast<int>(
             NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfControlPointsU(), NumberOfControlPointsV(),
             IndexU, IndexV)));
@@ -339,7 +339,7 @@ public:
 
     const NodeType GetPoint(IndexType IndexU, IndexType IndexV) const
     {
-        return this->GetPoint(std::static_cast<int>(
+        return this->GetPoint(static_cast<int>(
             NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfControlPointsU(), NumberOfControlPointsV(),
             IndexU, IndexV)));
@@ -347,7 +347,7 @@ public:
 
     typename NodeType::Pointer pGetPoint(IndexType IndexU, IndexType IndexV)
     {
-        return this->pGetPoint(std::static_cast<int>(
+        return this->pGetPoint(static_cast<int>(
             NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfControlPointsU(), NumberOfControlPointsV(),
             IndexU, IndexV)));
@@ -355,7 +355,7 @@ public:
 
     const typename NodeType::Pointer pGetPoint(IndexType IndexU, IndexType IndexV) const
     {
-        return this->pGetPoint(std::static_cast<int>(
+        return this->pGetPoint(static_cast<int>(
             NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfControlPointsU(), NumberOfControlPointsV(),
             IndexU, IndexV)));
