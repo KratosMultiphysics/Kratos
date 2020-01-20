@@ -229,7 +229,7 @@ public:
             << this->Id() << std::endl;
     }
 
-    typename GeometryType::Pointer pGetGeometryPart(IndexType Index) override
+    const typename GeometryType::Pointer pGetGeometryPart(IndexType Index) const override
     {
         if (Index == SURFACE_INDEX)
             return mpNurbsSurface;
