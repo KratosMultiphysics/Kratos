@@ -325,6 +325,93 @@ public:
     }
 
     ///@}
+    ///@name Point Access
+    ///@{
+
+    TNodeType GetPoint(IndexType IndexU, IndexType IndexV)
+    {
+        return this->GetPoint(NurbsUtilities::GetVectorIndexFromMatrixIndices(
+            NumberOfControlPointsU(), NumberOfControlPointsV(),
+            IndexU, IndexV));
+    }
+
+    typename TNodeType::Pointer pGetPoint(IndexType IndexU, IndexType IndexV)
+    {
+        return this->pGetPoint(NurbsUtilities::GetVectorIndexFromMatrixIndices(
+            NumberOfControlPointsU(), NumberOfControlPointsV(),
+            IndexU, IndexV));
+    }
+
+    void GetPointsAt(
+        PointsArrayType& rGeometryArray,
+        const CoordinatesArrayType& rLocalCoordinates,
+        IndexType SpecificationType = 0) const override
+    {
+        SizeType number_of_cps_u = NumberOfControlPointsU();
+        SizeType number_of_cps_v = NumberOfControlPointsV();
+
+        IndexType u_start = 0;
+        IndexType u_end = number_of_cps_u;
+        IndexType v_start = 0;
+        IndexType v_end = number_of_cps_v;
+
+        if (SpecificationType == 0)
+        {
+            if (rLocalCoordinates[0] >= 0)
+            {
+                u_start = rU * (number_of_cps_u - 1);
+                u_end = rU * (number_of_cps_u - 1) + 1;
+            }
+            if (rLocalCoordinates[1] >= 0)
+            {
+                v_start = rV * (number_of_cps_v - 1);
+                v_end = rV * (number_of_cps_v - 1) + 1;
+            }
+
+            for (IndexType i = u_start; i < u_end; ++i)
+            {
+                for (IndexType j = v_start; j < v_end; ++j)
+                {
+                    rGeometryArray.push_back(this->pGetPoint(i, j));
+                }
+            }
+        }
+        if (SpecificationType == 1)
+        {
+            if (rLocalCoordinates[0] == 0)
+            {
+                u_start = 1;
+                u_end = 2;
+            }
+            if (rLocalCoordinates[0] == 1)
+            {
+                u_start = number_of_cps_u - 2;
+                u_end = number_of_cps_u - 1;
+            }
+            if (rLocalCoordinates[1] == 0)
+            {
+                v_start = 1;
+                v_end = 2;
+            }
+            if (rLocalCoordinates[1] == 1)
+            {
+                v_start = number_of_cps_v - 2;
+                v_end = number_of_cps_v - 1;
+            }
+
+            for (int i = u_start; i < u_end; ++i)
+            {
+                for (int j = v_start; j < v_end; ++j)
+                {
+                    rGeometryArray.push_back(this->pGetPoint(i, j));
+                }
+            }
+        }
+        KRATOS_ERROR << "SpecificationType " << SpecificationType
+            << " not defined." << std::endl;
+    }
+
+    ///@}
     ///@name Operations
     ///@{
 
