@@ -222,7 +222,7 @@ if import_building_mdpa:
 else:
 	print("\n*** IMPORT BUILDINGS FROM OBJ FILE ***\n")
 	# obj file name
-	obj_file_in = "data/buildings/Pescara/buildings.obj"
+	obj_file_in = "data/buildings/buildings.obj"
 	importer.ObjImport(obj_file_in, "BuildingModelPart", True)		# (obj_file_name_input, name_model_part, change_coord)
 	building_model_part = importer.GetGeoModelPart()
 
