@@ -16,6 +16,10 @@ void SetDataBuffer(Variable<TDataType> const&,
                    std::vector<ElementType*> const&,
                    Vector<TDataType>&);
 
+void SetDataBuffer(Flags const&,
+                   std::vector<ElementType*> const&,
+                   Vector<int>&);
+
 void SetDataBuffer(Variable<Vector<double>> const&,
                    std::vector<ElementType*> const&,
                    Matrix<double>&);
@@ -28,6 +32,14 @@ void SetDataBuffer(Variable<Matrix<double>> const&,
 template <typename TDataType>
 void SetElementDataValues(Variable<TDataType> const&,
                           Vector<TDataType> const&,
+                          std::vector<ElementType*>&);
+
+void SetElementDataValues(Flags const&,
+                          Vector<int> const&,
+                          std::vector<ElementType*>&);
+
+void SetElementDataValues(Variable<Vector<double>> const&,
+                          Matrix<double> const&,
                           std::vector<ElementType*>&);
 
 void SetElementDataValues(Variable<Vector<double>> const&,
@@ -48,11 +60,29 @@ public:
                     std::vector<ElementType*>& rElements,
                     File& rFile,
                     std::string const& rPrefix,
-                    WriteInfo& rInfo)
+                    WriteInfo& rInfo,
+                    std::string const&)
     {
         Vector<typename TVariable::Type> data;
         SetDataBuffer(rVariable, rElements, data);
         rFile.WriteDataSet(rPrefix + "/ElementDataValues/" + rVariable.Name(), data, rInfo);
+    }
+};
+
+template <>
+class WriteElementVariableFunctor<Flags>
+{
+public:
+    void operator()(Flags const& rVariable,
+                    std::vector<ElementType*>& rElements,
+                    File& rFile,
+                    std::string const& rPrefix,
+                    WriteInfo& rInfo,
+                    std::string const& rVariableName)
+    {
+        Vector<int> data;
+        SetDataBuffer(rVariable, rElements, data);
+        rFile.WriteDataSet(rPrefix + "/ElementDataValues/" + rVariableName, data, rInfo);
     }
 };
 
@@ -64,7 +94,8 @@ public:
                     std::vector<ElementType*>& rElements,
                     File& rFile,
                     std::string const& rPrefix,
-                    WriteInfo& rInfo)
+                    WriteInfo& rInfo,
+                    std::string const&)
     {
         Matrix<double> data;
         SetDataBuffer(rVariable, rElements, data);
@@ -80,7 +111,8 @@ public:
                     std::vector<ElementType*>& rElements,
                     File& rFile,
                     std::string const& rPrefix,
-                    WriteInfo& rInfo)
+                    WriteInfo& rInfo,
+                    std::string const&)
     {
         Matrix<double> data;
         SetDataBuffer(rVariable, rElements, data);
@@ -103,10 +135,30 @@ public:
                     File& rFile,
                     std::string const& rPrefix,
                     std::size_t StartIndex,
-                    std::size_t BlockSize)
+                    std::size_t BlockSize,
+                    std::string const&)
     {
         Vector<typename TVariable::Type> data;
         rFile.ReadDataSet(rPrefix + "/ElementDataValues/" + rVariable.Name(), data,
+                          StartIndex, BlockSize);
+        SetElementDataValues(rVariable, data, rElements);
+    }
+};
+
+template <>
+class ReadElementVariableFunctor<Flags>
+{
+public:
+    void operator()(Flags const& rVariable,
+                    std::vector<ElementType*>& rElements,
+                    File& rFile,
+                    std::string const& rPrefix,
+                    std::size_t StartIndex,
+                    std::size_t BlockSize,
+                    std::string const& rVariableName)
+    {
+        Vector<int> data;
+        rFile.ReadDataSet(rPrefix + "/ElementDataValues/" + rVariableName, data,
                           StartIndex, BlockSize);
         SetElementDataValues(rVariable, data, rElements);
     }
@@ -121,7 +173,8 @@ public:
                     File& rFile,
                     std::string const& rPrefix,
                     std::size_t StartIndex,
-                    std::size_t BlockSize)
+                    std::size_t BlockSize,
+                    std::string const&)
     {
         Matrix<double> data;
         rFile.ReadDataSet(rPrefix + "/ElementDataValues/" + rVariable.Name(), data,
@@ -139,7 +192,8 @@ public:
                     File& rFile,
                     std::string const& rPrefix,
                     std::size_t StartIndex,
-                    std::size_t BlockSize)
+                    std::size_t BlockSize,
+                    std::string const&)
     {
         Matrix<double> data;
         rFile.ReadDataSet(rPrefix + "/ElementDataValues/" + rVariable.Name(), data,
@@ -206,12 +260,13 @@ void ElementDataValueIO::WriteElementResults(ElementsContainerType const& rEleme
 
     // Write each variable.
     for (const std::string& r_variable_name : mVariableNames)
-        RegisteredVariableLookup<Variable<array_1d<double, 3>>,
+        RegisteredVariableLookup<Flags,
+                                 Variable<array_1d<double, 3>>,
                                  Variable<double>,
                                  Variable<int>,
                                  Variable<Vector<double>>,
                                  Variable<Matrix<double>>>(r_variable_name)
-            .Execute<WriteElementVariableFunctor>(local_elements, *mpFile, mPrefix, info);
+            .Execute<WriteElementVariableFunctor>(local_elements, *mpFile, mPrefix, info, r_variable_name);
 
     // Write block partition.
     WritePartitionTable(*mpFile, mPrefix + "/ElementDataValues", info);
@@ -232,13 +287,14 @@ void ElementDataValueIO::ReadElementResults(ElementsContainerType& rElements)
 
     // Read local data for each variable.
     for (const std::string& r_variable_name : mVariableNames)
-        RegisteredVariableLookup<Variable<array_1d<double, 3>>,
+        RegisteredVariableLookup<Flags,
+                                 Variable<array_1d<double, 3>>,
                                  Variable<double>,
                                  Variable<int>,
                                  Variable<Vector<double>>,
                                  Variable<Matrix<double>>>(r_variable_name)
             .Execute<ReadElementVariableFunctor>(local_elements, *mpFile, mPrefix,
-                                          start_index, block_size);
+                                          start_index, block_size, r_variable_name);
 
     KRATOS_CATCH("");
 }
@@ -258,6 +314,23 @@ void SetDataBuffer(Variable<TDataType> const& rVariable,
     {
         const ElementType& r_element = *rElements[i];
         rData[i] = r_element.GetValue(rVariable);
+    }
+
+    KRATOS_CATCH("");
+}
+
+void SetDataBuffer(Flags const& rVariable,
+                   std::vector<ElementType*> const& rElements,
+                   Vector<int>& rData)
+{
+    KRATOS_TRY;
+
+    rData.resize(rElements.size(), false);
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rElements.size()); ++i)
+    {
+        const ElementType& r_element = *rElements[i];
+        rData[i] = static_cast<int>(r_element.Is(rVariable));
     }
 
     KRATOS_CATCH("");
@@ -316,6 +389,20 @@ void SetElementDataValues(Variable<TDataType> const& rVariable,
         << "Number of elements does not equal data set dimension\n";
     for (std::size_t i = 0; i < rElements.size(); ++i)
         rElements[i]->GetValue(rVariable) = rData[i];
+
+    KRATOS_CATCH("");
+}
+
+void SetElementDataValues(Flags const& rVariable,
+                         Vector<int> const& rData,
+                         std::vector<ElementType*>& rElements)
+{
+    KRATOS_TRY;
+
+    KRATOS_ERROR_IF(rElements.size() != rData.size())
+        << "Number of elements does not equal data set dimension\n";
+    for (std::size_t i = 0; i < rElements.size(); ++i)
+        rElements[i]->Set(rVariable, static_cast<bool>(rData[i]));
 
     KRATOS_CATCH("");
 }
