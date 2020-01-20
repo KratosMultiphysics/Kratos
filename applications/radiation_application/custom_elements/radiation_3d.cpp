@@ -46,6 +46,11 @@ namespace Kratos
     return Element::Pointer(new Rad3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
   }
   
+   Element::Pointer Rad3D::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+  {
+    return Kratos::make_intrusive<Rad3D>(NewId, pGeom, pProperties);
+  }
+
   Rad3D::~Rad3D()
   {
   }
@@ -105,6 +110,7 @@ namespace Kratos
     absorptioncoefficient = 75.0;
     
     
+    absorptioncoefficient = 100.0;
     boost::numeric::ublas::bounded_matrix<double,4, 3 > coords;
     array_1d<double,4> distances;
     array_1d<double,6>  volumes(6);

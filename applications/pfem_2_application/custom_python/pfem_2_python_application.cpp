@@ -60,9 +60,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 //#include "includes/define.h"
 #include "includes/define_python.h"
+
+#include "../applications/FluidDynamicsApplication/fluid_dynamics_application_variables.h"
+#include "../applications/FluidDynamicsApplication/fluid_dynamics_application.h"
+#include "../applications/FluidDynamicsApplication/custom_elements/vms.h"
+
 #include "pfem_2_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+//#include "custom_python/add_custom_processes_to_python.h"
+
+
 
 
 namespace Kratos
@@ -81,6 +89,7 @@ namespace Python
 
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
+    //AddCustomProcessesToPython();
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,G_VALUE)
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,PREVIOUS_ITERATION_PRESSURE)

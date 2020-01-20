@@ -27,6 +27,7 @@
 
 /* Project includes */
 #include "includes/define.h"
+#include "includes/deprecated_variables.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 
 namespace Kratos
@@ -331,8 +332,8 @@ public:
     ) override
     {
         KRATOS_TRY
-
-
+        ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
+        int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];
         //fills a list of "active" nodes defined as nodes which have neighbours
         // AND no fixed pressure
         mActiveNodes.clear();
@@ -341,7 +342,17 @@ public:
         {
             if( (it->GetValue(NEIGHBOUR_NODES)).size() != 0 )
             {
-                mActiveNodes.push_back(*(it.base() ));
+/*
+		//for pressure solution stage we dont assemble DOFS in purely structural nodes, so, node has to be IS_FLUID
+		if(FractionalStepNumber==4)
+			{
+			 if( it->FastGetSolutionStepValue(IS_FLUID)==1.0 )
+				mActiveNodes.push_back(*(it.base() ));
+			}
+
+		else
+*/
+                         mActiveNodes.push_back(*(it.base() ));
             }
         }
 

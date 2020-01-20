@@ -32,8 +32,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-
-    py::class_<RadFaceUtilities>(m,"RadFaceUtilities").def(init<>())
+    py::class_<RadFaceUtilities>(m,"RadFaceUtilities").def(py::init<>())
     .def("ConditionModelPart",&RadFaceUtilities::ConditionModelPart)
     ;
 

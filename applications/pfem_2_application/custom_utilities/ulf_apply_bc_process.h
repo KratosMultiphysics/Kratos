@@ -118,15 +118,13 @@ namespace Kratos
         for(ModelPart::NodesContainerType::const_iterator in = mr_model_part.NodesBegin(); in!=mr_model_part.NodesEnd(); in++)
 	  {
             //marking wet nodes
-            /*					if(in->FastGetSolutionStepValue(IS_STRUCTURE) )
-						if( (in->GetValue(NEIGHBOUR_ELEMENTS)).size() != 0)
-						in->FastGetSolutionStepValue(IS_FLUID) = 1.0;
-						else //it is not anymore of fluid
-						in->FastGetSolutionStepValue(IS_FLUID) = 0.0;
-						//marking as free surface the lonely nodes
-								else
-            */						if( (in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0)
-	    in->FastGetSolutionStepValue(IS_BOUNDARY) = 1.0;
+            //if(in->FastGetSolutionStepValue(IS_STRUCTURE) )
+	if( (in->GetValue(NEIGHBOUR_ELEMENTS)).size() != 0) in->FastGetSolutionStepValue(IS_FLUID) = 1.0;
+	else //it is not anymore of fluid
+	in->FastGetSolutionStepValue(IS_FLUID) = 0.0;
+	    	
+
+	if( (in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0) in->FastGetSolutionStepValue(IS_BOUNDARY) = 1.0;
         }
 
         //identify the free surface
@@ -136,9 +134,7 @@ namespace Kratos
             //reset the free surface
             i->FastGetSolutionStepValue(IS_FREE_SURFACE) = 0;
             //identify the free surface and fix the pressure accordingly
-            if( i->FastGetSolutionStepValue(IS_BOUNDARY) != 0
-		&&
-		i->FastGetSolutionStepValue(IS_STRUCTURE) == 0)
+            if( i->FastGetSolutionStepValue(IS_BOUNDARY) != 0 && i->FastGetSolutionStepValue(IS_INTERFACE) == 0)
 	      {
                 i->FastGetSolutionStepValue(IS_FREE_SURFACE) = 1;
 	      }

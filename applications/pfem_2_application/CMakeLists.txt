@@ -4,12 +4,16 @@ message("**** configuring KratosPFEM2Application ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
+# Dependencies on other application -- TRILINOS specific
+include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
+
 ## generate variables with the sources
 set( KRATOS_QUIET_WATER_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}//pfem_2_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/pfem_2_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fractional_step_pfem_2_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fractional_step_pfem_2_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_2fluid_2d.cpp
@@ -29,6 +33,8 @@ set( KRATOS_QUIET_WATER_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fixed_pressure_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/autoslip_inlet_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/proj_dirichlet_cond3D.cpp	
+        ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/fluid_dynamics_application_variables.cpp  #TODO: this should REALLY 
+        ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/custom_elements/vms.cpp  #TODO: this should REALLY 
 
 )
 

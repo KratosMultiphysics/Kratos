@@ -76,6 +76,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/enrichmentutilities.h"
 #include "custom_utilities/embedded_utilities.h"
 #include "custom_utilities/streamline.h"
+//#include "custom_utilities/subdomain_disable_process.h"
+
+#include "../applications/FluidDynamicsApplication/fluid_dynamics_application.h"
+#include "../applications/FluidDynamicsApplication/fluid_dynamics_application_variables.h"
+//#include "../applications/FluidDynamicsApplication/custom_elements/vms.h"
+
 
 namespace Kratos
 {
@@ -88,9 +94,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
 namespace py = pybind11;
 
- // typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
- // typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
- // typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+  //typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+  //typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+  //typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
 
  py::class_< MoveParticleUtilityPFEM2<2> > (m,"MoveParticleUtilityPFEM22D").def(py::init<ModelPart& , int >())
@@ -184,7 +190,7 @@ namespace py = pybind11;
    ;
  */
 
- py::class_<ParticleUtils < 3 > >(m,"ParticleUtils3D").def(py::init<>())
+/* py::class_<ParticleUtils < 3 > >(m,"ParticleUtils3D").def(py::init<>())
    .def("MoveMesh_Streamlines_freesurfaceflows", &ParticleUtils < 3 > ::MoveMesh_Streamlines_freesurfaceflows)
    .def("TransferToEulerianMeshShapeBased_aux_3D", &ParticleUtils < 3 > ::TransferToEulerianMeshShapeBased_aux_3D)
    .def("TransferToEulerianMesh_Face_Heat_Flux", &ParticleUtils < 3 > ::TransferToEulerianMesh_Face_Heat_Flux)
@@ -193,7 +199,6 @@ namespace py = pybind11;
    .def("CalculateNormal", &ParticleUtils < 3 > ::CalculateNormal)
    .def("MarkExcessivelyCloseNodes", &ParticleUtils < 3 > ::MarkExcessivelyCloseNodes)
    .def("MoveLonelyNodes", &ParticleUtils < 3 > ::MoveLonelyNodes)
-   .def("Calculate_Vol", &ParticleUtils < 3 > ::Calculate_Vol)
    .def("TransferToParticlesAirVelocity", &ParticleUtils < 3 > ::TransferToParticlesAirVelocity)
    .def("ComputedDragCoefficient", &ParticleUtils < 3 > ::ComputedDragCoefficient)
    .def("CalculateNewtonianDragCoefficient", &ParticleUtils < 3 > ::CalculateNewtonianDragCoefficient)
@@ -201,9 +206,25 @@ namespace py = pybind11;
    .def("ColorOilClusters", &ParticleUtils < 3 > ::ColorOilClusters)
    .def("TransferToEulerianMesh_2", &ParticleUtils < 3 > ::TransferToEulerianMesh_2)
    ;
- py::class_<Streamline < 2 > >(m,"Streamline").def(py::init<>())
-   .def("MoveMesh_StreamlinesTn", &Streamline < 2 > ::MoveMesh_StreamlinesTn)
-   .def("MoveMesh_Streamlines", &Streamline < 2 > ::MoveMesh_Streamlines)
+*/
+// py::class_<ParticleUtils < 3 > >(m,"ParticleUtils3D").def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
+//   .def("TransferToEulerianMeshShapeBased_aux_3D", &ParticleUtils < 3 > ::TransferToEulerianMeshShapeBased_aux_3D)
+//   ;
+
+    py::class_<BFECCConvection1<3> > (m,"BFECCConvection13D").def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
+    .def("BFECCconvect", &BFECCConvection1<3>::BFECCconvect)
+    ;
+
+
+
+ py::class_<Streamline < 3 > >(m,"Streamline").def(py::init<>())
+   .def("MoveMesh_StreamlinesTn", &Streamline < 3 > ::MoveMesh_StreamlinesTn)
+   .def("MoveMesh_Streamlines", &Streamline < 3 > ::MoveMesh_Streamlines)
+   .def("Calculate_Vol", &Streamline < 3 > ::Calculate_Vol)
+   .def("MoveMesh_RK", &Streamline < 3 > ::MoveMesh_RK)
+   .def("MoveMesh_RKTn", &Streamline < 3 > ::MoveMesh_RKTn)
+   .def("Force", &Streamline < 3 > ::Force)
+   .def("MoveMesh_FE", &Streamline < 3 > ::MoveMesh_FE)
    ;
 
  py::class_<Pfem2ApplyBCProcess, Pfem2ApplyBCProcess::Pointer, Process>(m,"Pfem2ApplyBCProcess").def(py::init<ModelPart&>());
@@ -217,9 +238,17 @@ namespace py = pybind11;
    .def("MarkNodesTouchingWall", &Pfem2Utils::MarkNodesTouchingWall)
    .def("MarkNodesCloseToWallForBladder", &Pfem2Utils::MarkNodesCloseToWallForBladder)
    .def("MarkNodesCloseToFS", &Pfem2Utils::MarkNodesCloseToFS)
+   .def("CalculateNodalArea", &Pfem2Utils::CalculateNodalArea)
    .def ("MarkLonelyNodesForErasing", &Pfem2Utils::MarkLonelyNodesForErasing)
    .def ("SaveReducedPart", &Pfem2Utils::SaveReducedPart)
+   .def ("SettingToZeroPressureatLonelyNodes", &Pfem2Utils::SettingToZeroPressureatLonelyNodes)
+   .def ("MarkFreeSurface", &Pfem2Utils::MarkFreeSurface)
+   .def ("ResetBoundaryConditions", &Pfem2Utils::ResetBoundaryConditions)
+   .def ("ResetBoundaryConditionsSpeciesP", &Pfem2Utils::ResetBoundaryConditionsSpeciesP)
+   .def ("SetBoundaryConditionsforDCP", &Pfem2Utils::SetBoundaryConditionsforDCP)
+   .def ("FixVelocity", &Pfem2Utils::FixVelocity)
    ;
+
  py::class_<MarkOuterNodesProcess, MarkOuterNodesProcess::Pointer, Process>(m,"MarkOuterNodesProcess").def(py::init<ModelPart&>())
    .def("MarkOuterNodes",&MarkOuterNodesProcess::MarkOuterNodes)
    ;
@@ -245,10 +274,17 @@ namespace py = pybind11;
     //class_<EmbeddedUtils > ("EmbeddedUtils", init<>())
     // .def("SaveInterfaceElemsModelPart", &EmbeddedUtils::SaveInterfaceElemsModelPart)
     //.def "CreateIntersectionConditions", &EmbeddedUtils::CreateIntersectionConditions)
-    //.def("DisableSubdomain3D", &EmbeddedUtils::DisableSubdomain)
+    .def("DisableSubdomain3D", &EmbeddedUtils::DisableSubdomain)
     .def("CreateIntersConditions", &EmbeddedUtils::CreateIntersConditions)
     .def("ApplyProjDirichlet", &EmbeddedUtils::ApplyProjDirichlet)
     ;
+
+   //py::class_<SubdomainDisableProcess>(m,"SubdomainDisableProcess").def(py::init<>())
+//		   .def("SaveReducedPart", &SubdomainDisableProcess::SaveReducedPart)		   
+//		 ;	
+
+
+
 
 }
 

@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosTestApplication 
+KratosULFApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Pawel Ryzhakov
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,34 +38,31 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author:  $
-//   Date:                $Date:  $
+
+
+//
+//   Project Name:        Kratos
+//   Last Modified by:    $Author: anonymous $
+//   Date:                $Date: 2008-05-27 10:39:48 $
 //   Revision:            $Revision: 1.1 $
 //
 //
 
 
-#if !defined(KRATOS_ADD_PFEM2_UTILITIES_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_PFEM2_UTILITIES_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
-#include <pybind11/pybind11.h>
+// External includes
+
 
 // Project includes
-//#include "includes/define.h"
-#include "includes/define_python.h"
+#include "includes/define.h"
 
-#include "../applications/FluidDynamicsApplication/fluid_dynamics_application.h"
-#include "../applications/FluidDynamicsApplication/fluid_dynamics_application_variables.h"
-#include "../applications/FluidDynamicsApplication/custom_elements/vms.h"
 
 namespace Kratos
 {
@@ -73,10 +70,10 @@ namespace Kratos
 namespace Python
 {
 
-  void  AddCustomUtilitiesToPython(pybind11::module& m);
+void  AddCustomProcessesToPython();
 
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED  defined

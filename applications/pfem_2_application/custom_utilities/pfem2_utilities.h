@@ -699,9 +699,9 @@ public:
 
                 //counting number on nodes at the wall
                 Geometry< Node<3> >& geom = i->GetGeometry();
-                n_str = int(geom[0].FastGetSolutionStepValue(IS_STRUCTURE));
-                n_str+= int(geom[1].FastGetSolutionStepValue(IS_STRUCTURE));
-                n_str+= int(geom[2].FastGetSolutionStepValue(IS_STRUCTURE));
+                n_str = int(geom[0].FastGetSolutionStepValue(IS_INTERFACE));
+                n_str+= int(geom[1].FastGetSolutionStepValue(IS_INTERFACE));
+                n_str+= int(geom[2].FastGetSolutionStepValue(IS_INTERFACE));
                 //if two walls are at the wall, we check if the third node is close to it or not by passing the alpha-shape
                 if (n_str==2)
                 {
@@ -711,7 +711,7 @@ public:
                         for (int i=0; i<3; i++)
                         {
                             //if thats not the wall node, remove it
-                            if (geom[i].FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
+                            if (geom[i].FastGetSolutionStepValue(IS_INTERFACE)==0.0)
                             {
                                 geom[i].Set(TO_ERASE,true);
                                 //KRATOS_WATCH("NODE CLOSE TO THE WALL - WILL BE ERASED!!!!")
@@ -788,7 +788,7 @@ public:
         for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin();
                 in!=ThisModelPart.NodesEnd(); in++)
         {
-            if((in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)!=1 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET,1)!=1.0)
+            if( (in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0 && in->FastGetSolutionStepValue(IS_INTERFACE)==0.0)
             {
                 in->Set(TO_ERASE,true);
                 KRATOS_WATCH("Marking lonelynodes!!!")
@@ -817,6 +817,39 @@ public:
         }
         */
     }
+
+    void SettingToZeroPressureatLonelyNodes(ModelPart& ThisModelPart)
+    {
+
+
+        for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); in++)
+        {
+            if((in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0)
+            {
+		in->FastGetSolutionStepValue(PRESSURE)=0;
+		in->FastGetSolutionStepValue(PRESSURE,1)=0;
+            }
+
+        }
+        }
+
+
+    void MarkFreeSurface(ModelPart& ThisModelPart)
+    {
+        for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); in++)
+        {
+		if(in->FastGetSolutionStepValue(FLAG_VARIABLE)==1.0)
+		{
+ 			for( WeakPointerVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin(); i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
+                	{
+
+				if (i->FastGetSolutionStepValue(IS_FREE_SURFACE)==1.0) i->FastGetSolutionStepValue(FLAG_VARIABLE)=5.0;
+			}
+		}
+
+	}
+    }
+
 
     bool AlphaShape(double alpha_param, Geometry<Node<3> >& pgeom)
     //bool AlphaShape(double alpha_param, Triangle2D<Node<3> >& pgeom)
@@ -1321,8 +1354,145 @@ public:
         KRATOS_CATCH("")
     }
 
+   //**********************************************************************************************
+    //**********************************************************************************************
+
+    void ResetBoundaryConditions(ModelPart& ThisModelPart)
+    {
+        KRATOS_TRY;
+
+        for(ModelPart::NodesContainerType::iterator i = ThisModelPart.NodesBegin(); i!=ThisModelPart.NodesEnd(); i++)
+        {
+            //i->FastGetSolutionStepValue(AUX_VEL) = ZeroVector(3);
+	    	
+            i->FastGetSolutionStepValue(ENTHALPY) = 0.0;
+            i->FastGetSolutionStepValue(ENTHALPY) = i->FastGetSolutionStepValue(IS_INTERFACE);
+	    if(i->FastGetSolutionStepValue(IS_INTERFACE)==1)
+		{
+			i->Free(VELOCITY_X);
+			i->Free(VELOCITY_Y);
+			i->Free(VELOCITY_Z);
+
+			i->Free(FRACT_VEL_X);
+			i->Free(FRACT_VEL_Y);
+			i->Free(FRACT_VEL_Z);
+
+			//i->Free(AUX_VEL_X);
+			//i->Free(AUX_VEL_Y);
+			//i->Free(AUX_VEL_Z);
+
+		}
+	    i->FastGetSolutionStepValue(IS_INTERFACE) = 0.0;
+	    if(i->FastGetSolutionStepValue(MATERIAL_VARIABLE)==1)
+		{
+		i->FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
+		}
+	
+        }
+
+        KRATOS_CATCH("");
+    }
+
+//**********************************************************************************************
+    //**********************************************************************************************
+
+    void FixVelocity(ModelPart& ThisModelPart)
+    {
+        KRATOS_TRY;
+
+        for(ModelPart::NodesContainerType::iterator i = ThisModelPart.NodesBegin(); i!=ThisModelPart.NodesEnd(); i++)
+        {
+	    if(i->X()<0.0001)
+		{
+			i->Fix(VELOCITY_X);
+			i->Fix(VELOCITY_Z);
+			i->Fix(FRACT_VEL_X);
+			i->Fix(FRACT_VEL_Z);
+		}
+	    if(i->Z()<0.0001)
+		{
+			i->Fix(VELOCITY_X);
+			i->Fix(VELOCITY_Z);
+			i->Fix(FRACT_VEL_X);
+			i->Fix(FRACT_VEL_Z);
+		}
+
+	
+        }
+
+        KRATOS_CATCH("");
+    }
+    //**********************************************************************************************
+    //**********************************************************************************************
+
+ void SetBoundaryConditionsforDCP(ModelPart& ThisModelPart)
+    {
+        KRATOS_TRY;
+
+        for(ModelPart::NodesContainerType::iterator i = ThisModelPart.NodesBegin(); i!=ThisModelPart.NodesEnd(); i++)
+        {
+	    i->Free(TEMPERATURE);
+	    i->Free(YO);
+	    i->Free(YF);
+	    if(i->FastGetSolutionStepValue(TEMPERATURE)<298.0)	i->FastGetSolutionStepValue(TEMPERATURE) = 298.0;
+	    if(i->FastGetSolutionStepValue(IS_INTERFACE)==1)
+	    	{
+		 	i->Fix(TEMPERATURE);
+			i->FastGetSolutionStepValue(TEMPERATURE) = i->FastGetSolutionStepValue(FUEL);
+			if(i->FastGetSolutionStepValue(TEMPERATURE)>723.0) // 650 //800
+				{
+				i->Fix(YO);
+				i->Fix(YF);
+				i->GetSolutionStepValue(YO)=0.0; 
+				i->GetSolutionStepValue(YF)=1.0;
+				//double &yo= i->FastGetSolutionStepValue(YO);
+				//double &yf= i->FastGetSolutionStepValue(YF);
+				//yo=0.0;
+				//yf=1.0;
 
 
+
+				}
+		}
+	    //if(i->X()>0.0299999)
+		//{
+		//	i->Fix(TEMPERATURE);
+		//	i->FastGetSolutionStepValue(TEMPERATURE) = 298.0;
+
+		//}	
+
+	    //if(i->Y()>0.0299999)
+		//{
+		//	i->Fix(TEMPERATURE);
+		//	i->FastGetSolutionStepValue(TEMPERATURE) = 298.0;
+
+		//}	
+	}
+
+
+        KRATOS_CATCH("");
+    }
+    //**********************************************************************************************
+    //**********************************************************************************************
+
+ void ResetBoundaryConditionsSpeciesP(ModelPart& ThisModelPart)
+    {
+        KRATOS_TRY;
+
+        for(ModelPart::NodesContainerType::iterator i = ThisModelPart.NodesBegin(); i!=ThisModelPart.NodesEnd(); i++)
+        {
+	    if(i->FastGetSolutionStepValue(IS_INTERFACE)==1)
+		{
+			i->Free(YO);
+			i->Free(YF);
+			i->FastGetSolutionStepValue(IS_BOUNDARY) =0.0; 
+
+		}
+	}
+
+
+        KRATOS_CATCH("");
+    }
 
 private:
 

@@ -4,9 +4,12 @@ from KratosMultiphysics import *
 #from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.PFEM2Application import *
 from KratosMultiphysics.MeshingApplication import *
+#from KratosMultiphysics.StructuralMechanicsApplication import *
 #from KratosMultiphysics.PFEMApplication import *
 #from KratosMultiphysics.ConvectionDiffusionApplication import *
-#from KratosMultiphysics.ULFApplication import *
+from KratosMultiphysics.ULFApplication import *
+from KratosMultiphysics.ULFApplication import *
+
 from KratosMultiphysics.ExternalSolversApplication import *
 
 #from KratosMultiphysics.StructuralApplication import *
@@ -48,6 +51,7 @@ def AddVariables(model_part,p_model_part):
     model_part.AddNodalSolutionStepVariable(BULK_MODULUS)
     model_part.AddNodalSolutionStepVariable(NORMAL)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
+    model_part.AddNodalSolutionStepVariable(CAUCHY_STRESS_TENSOR)
     p_model_part.AddNodalSolutionStepVariable(VELOCITY);
     #p_model_part.AddNodalSolutionStepVariable(FRACT_VEL);
     p_model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
@@ -86,6 +90,7 @@ def AddVariables(model_part,p_model_part):
     p_model_part.AddNodalSolutionStepVariable(VELOCITY)
 
 
+
 def AddDofs(model_part,p_model_part):
   
     for node in model_part.Nodes:
@@ -106,17 +111,23 @@ def ReadRestartFile(FileName,nodes):
 
 class FracStepSolver:
     
-    def __init__(self,model_part,p_model_part,box_corner1,box_corner2,domain_size):
+    def __init__(self, fluid_model_part, structure_model_part, combined_model_part,p_model_part,box_corner1,box_corner2,domain_size):
 
+        #
+	# saving the different model parts
+        self.fluid_model_part = fluid_model_part;  # contains only fluid elements, but all nodes!
+        self.combined_model_part = combined_model_part;  # contains both structure and fluid
+        self.structure_model_part = structure_model_part;  # contains only structural elements
         
+        self.p_model_part = p_model_part
+        self.domain_size = domain_size
+
         #neighbour search
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
-        self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
+        self.neighbour_search = FindNodalNeighboursProcess(fluid_model_part,number_of_avg_elems,number_of_avg_nodes)
 
-        self.model_part = model_part
-        self.p_model_part = p_model_part
-        self.domain_size = domain_size
+
 
         #assignation of parameters to be used
         self.vel_toll = 0.0001;
@@ -150,27 +161,34 @@ class FracStepSolver:
 
         ##handling slip condition
         self.slip_conditions_initialized = False
-        self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
+        self.neigh_finder = FindNodalNeighboursProcess(fluid_model_part,9,18)
         self.compute_reactions=False
         self.timer=Timer()    
  
 
         self.Mesher1 = TriGenPFEMModeler()
 
-        self.node_erase_process = NodeEraseProcess(model_part);
+        self.node_erase_process = NodeEraseProcess(fluid_model_part);
 
-        self.Pfem2_apply_bc_process = Pfem2ApplyBCProcess(model_part);
+        self.Pfem2_apply_bc_process = Pfem2ApplyBCProcess(fluid_model_part);
         self.Pfem2Utils = Pfem2Utils()
-        self.mark_outer_nodes_process = MarkOuterNodesProcess(model_part);
+        self.mark_outer_nodes_process = MarkOuterNodesProcess(fluid_model_part);
+
+        # tools to save and merge the structural contributions
+        self.save_structure_model_part_process = SaveStructureModelPartProcess();
+        self.merge_model_parts_process = MergeModelPartsProcess();
+        # this will save fluid only model part
+
         
         if(domain_size == 2):
             #self.particle_utils = ParticleUtils2D()	
             self.Mesher = TriGenPFEMModeler()
             
-            self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
+            self.fluid_neigh_finder = FindNodalNeighboursProcess(self.fluid_model_part,9,18)
             #this is needed if we want to also store the conditions a node belongs to
-            self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,2, 10)
-            self.elem_neighbor_finder = FindElementalNeighboursProcess(model_part, 2, 10)	
+            self.condition_neigh_finder = FindConditionsNeighboursProcess(self.fluid_model_part,2, 10)
+            self.elem_neighbor_finder = FindElementalNeighboursProcess(self.fluid_model_part, 2, 10)	
+            self.combined_neigh_finder = FindNodalNeighboursProcess(self.combined_model_part, 9, 18)
             
         elif (domain_size == 3):
             #self.Mesher = TetGenModeler()
@@ -178,12 +196,15 @@ class FracStepSolver:
             self.particle_utils = ParticleUtils3D()
             
             self.Mesher = TetGenPfemModeler()
-            self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,20,30)
+            self.fluid_neigh_finder = FindNodalNeighboursProcess(self.fluid_model_part,20,30)
             #this is needed if we want to also store the conditions a node belongs to
-            self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,3, 20)
-            self.elem_neighbor_finder = FindElementalNeighboursProcess(model_part, 20, 30)
+            self.condition_neigh_finder = FindConditionsNeighboursProcess(self.fluid_model_part,3, 20)
+            self.elem_neighbor_finder = FindElementalNeighboursProcess(self.fluid_model_part, 20, 30)
      
-        self.mark_fluid_process = MarkFluidProcess(model_part);
+        self.mark_fluid_process = MarkFluidProcess(self.fluid_model_part);
+        self.mark_structure_process = MarkStructureProcess(self.fluid_model_part);
+        self.hypoelastic_solid_stress_tensor_calculate_process=HypoelasticStressCalculateProcess(self.combined_model_part, self.domain_size)
+
 
     def Initialize(self):
         (self.neighbour_search).Execute()
@@ -199,55 +220,33 @@ class FracStepSolver:
         self.time_order = int(self.time_order)
         self.domain_size = int(self.domain_size)
 
-
         self.predictor_corrector = bool(self.predictor_corrector)
-        self.solver = FracStepStrategy( self.model_part, self.velocity_linear_solver,self.pressure_linear_solver, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size,self.predictor_corrector)
-
-
-        #(self.solver).SetEchoLevel(self.echo_level)
+        self.solver = FracStepStrategy( self.combined_model_part, self.velocity_linear_solver,self.pressure_linear_solver, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size,self.predictor_corrector)
 
         (self.fluid_neigh_finder).Execute();
         (self.Pfem2_apply_bc_process).Execute();  
 
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(IS_FREE_SURFACE,0,0.0)
+        #for node in self.fluid_model_part.Nodes:
+        #    node.SetSolutionStepValue(IS_FREE_SURFACE,0,0.0)
 
-		#self.Remesh2();
+        self.mark_structure_process.Execute()
+        self.mark_fluid_process.Execute()
+
+        (self.save_structure_model_part_process).SaveStructure(self.fluid_model_part, self.structure_model_part);
+        print("STRUCTURE PART!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", self.structure_model_part)
+        self.hypoelastic_solid_stress_tensor_calculate_process.Execute()
+        #because of the changes in trigen_pfem_refine, where is_interface is used to identify the structure
+        for node in self.fluid_model_part.Nodes:
+            if(node.GetSolutionStepValue(IS_STRUCTURE)==1.0):
+               node.SetSolutionStepValue(IS_INTERFACE,1.0)
         self.RemeshAux(); #solo multifluido
-
         
     def Solve(self):
         (self.solver).Solve()
-
-    #def solve3(self):
-	
-
-    #    (self.solver).SolveStep3(1.0)
-
-    #def solve5(self):
-	
-
-    #    (self.solver).SolveStep5(1.0)
-
-    #def solve4(self):
-	
-
-    #    (self.solver).SolveStep4(1.0)
-
-    #def solve5(self):
-	
-
-    #    (self.solver).SolveStep5(1.0)
+        self.hypoelastic_solid_stress_tensor_calculate_process.Execute()
 
 
-    #def Projections(self):
-	
-    #    (self.solver).SolveStep5()
-
-    #def Reactions(self):
-
-
-    #    (self.solver).Compute()
+    
 
 
     def Clear(self):
@@ -255,40 +254,32 @@ class FracStepSolver:
         self.slip_conditions_initialized = True
 
 
-    #def Remesh2(self):
-	
-    #    h_factor=1.0;
-    #    alpha_shape=1.2;
-
-
-    #    self.node_erase_process = NodeEraseProcess(self.model_part);
-
-    #    (self.Mesher).ReGenerateMesh("Fluid3DGLS","Condition3D", self.model_part, self.node_erase_process,False, False, alpha_shape, h_factor)
-
-
-    #    (self.fluid_neigh_finder).Execute();
-    #    (self.condition_neigh_finder).Execute();
 
 
     def RemeshAux(self):
-	
+        ((self.combined_model_part).Elements).clear();
+        ((self.combined_model_part).Conditions).clear();
+        ((self.combined_model_part).Nodes).clear();
+
+        ((self.fluid_model_part).Elements).clear();
+        ((self.fluid_model_part).Conditions).clear();
         
         h_factor=0.1 
         alpha_shape=1.4;
 
         
-        for node in (self.model_part).Nodes:
+        for node in (self.fluid_model_part).Nodes:
             node.Set(TO_ERASE, False)
 
-        for node in (self.model_part).Nodes: 
+        for node in (self.fluid_model_part).Nodes: 
             node.SetSolutionStepValue(NODAL_H,0,0.0011) 
 
         if(self.domain_size == 2):
 
-            for node in (self.model_part).Nodes: 
+            for node in (self.fluid_model_part).Nodes: 
                 node.SetSolutionStepValue(NODAL_H,0,0.005) 
         
-        self.node_erase_process = NodeEraseProcess(self.model_part);
+        self.node_erase_process = NodeEraseProcess(self.fluid_model_part);
 
         
 
@@ -297,7 +288,7 @@ class FracStepSolver:
             h_factor=0.30 
             alpha_shape=5.0;
 
-        self.Pfem2Utils.MarkLonelyNodesForErasing(self.model_part)
+        self.Pfem2Utils.MarkLonelyNodesForErasing(self.fluid_model_part)
 
         
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
@@ -306,10 +297,10 @@ class FracStepSolver:
         
 
         if (self.domain_size == 2):
-            (self.Mesher).ReGenerateMesh("FSFluid2D","Condition2D", self.model_part, self.node_erase_process, False, False, alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMesh("FSFluid2D","Condition2D", self.fluid_model_part, self.node_erase_process, False, False, alpha_shape, h_factor)
         elif (self.domain_size == 3):
             
-            (self.Mesher).ReGenerateMesh("QFluid3D","Condition3D", self.model_part, self.node_erase_process, True, False, alpha_shape, h_factor)            
+            (self.Mesher).ReGenerateMesh("QFluid3D","Condition3D", self.fluid_model_part, self.node_erase_process, True, False, alpha_shape, h_factor)            
 
         
         (self.fluid_neigh_finder).Execute();
@@ -318,6 +309,12 @@ class FracStepSolver:
 
         (self.Pfem2_apply_bc_process).Execute();
         (self.mark_fluid_process).Execute();
+
+        # merging the structural elements back (they are saved in the Initialize)
+        (self.merge_model_parts_process).MergeParts(self.fluid_model_part, self.structure_model_part, self.combined_model_part);
+        print("Combined model part is...")
+        print (self.combined_model_part)
+        (self.combined_neigh_finder).Execute();
         
     def FindNeighbours(self):
         (self.neigh_finder).Execute();
@@ -327,23 +324,15 @@ class FracStepSolver:
         restart_file = open(FileName + ".mdpa",'w')
         import new_restart_utilities
         new_restart_utilities.PrintProperties(restart_file)
-        new_restart_utilities.PrintNodes(self.model_part.Nodes,restart_file)
-        new_restart_utilities.PrintElements("Fluid2DGLS",self.model_part.Elements,restart_file)
-        new_restart_utilities.PrintRestart_ScalarVariable(PRESSURE,"PRESSURE",self.model_part.Nodes,restart_file)
-        new_restart_utilities.PrintRestart_ScalarVariable(VISCOSITY,"VISCOSITY",self.model_part.Nodes,restart_file)
-        new_restart_utilities.PrintRestart_ScalarVariable(DENSITY,"DENSITY",self.model_part.Nodes,restart_file)
-        new_restart_utilities.PrintRestart_ScalarVariable(TEMPERATURE,"TEMPERATURE",self.model_part.Nodes,restart_file)
-        new_restart_utilities.PrintRestart_ScalarVariable(IS_STRUCTURE,"IS_STRUCTURE",self.model_part.Nodes,restart_file)
-        new_restart_utilities.PrintRestart_ScalarVariable(IS_FREE_SURFACE,"IS_FREE_SURFACE",self.model_part.Nodes,restart_file)
-        new_restart_utilities.PrintRestart_ScalarVariable(IS_FREE_SURFACE,"IS_LAGRANGIAN_INLET",self.model_part.Nodes,restart_file)
-        new_restart_utilities.PrintRestart_ScalarVariable(IS_BOUNDARY,"IS_BOUNDARY",self.model_part.Nodes,restart_file)
-        new_restart_utilities.PrintRestart_ScalarVariable(VELOCITY_X,"VELOCITY_X",self.model_part.Nodes,restart_file)
-        new_restart_utilities.PrintRestart_ScalarVariable(VELOCITY_Y,"VELOCITY_Y",self.model_part.Nodes,restart_file)
-        new_restart_utilities.PrintRestart_ScalarVariable(VELOCITY_Z,"VELOCITY_Z",self.model_part.Nodes,restart_file)
-        new_restart_utilities.PrintRestart_ScalarVariable(YCH4,"YCH4",self.model_part.Nodes,restart_file)
-        new_restart_utilities.PrintRestart_ScalarVariable(TEMPERATURE,"TEMPERATURE",self.model_part.Nodes,restart_file)
-        new_restart_utilities.PrintRestart_ScalarVariable(FACE_HEAT_FLUX,"FACE_HEAT_FLUX",self.model_part.Nodes,restart_file)
-        new_restart_utilities.PrintRestart_ScalarVariable(ENTHALPY,"ENTHALPY",self.model_part.Nodes,restart_file)
+        new_restart_utilities.PrintNodes(self.combined_model_part.Nodes,restart_file)
+        new_restart_utilities.PrintElements("Fluid2DGLS",self.combined_model_part.Elements,restart_file)
+        new_restart_utilities.PrintRestart_ScalarVariable(PRESSURE,"PRESSURE",self.combined_model_part.Nodes,restart_file)
+        new_restart_utilities.PrintRestart_ScalarVariable(VISCOSITY,"VISCOSITY",self.combined_model_part.Nodes,restart_file)
+        new_restart_utilities.PrintRestart_ScalarVariable(DENSITY,"DENSITY",self.combined_model_part.Nodes,restart_file)
+        new_restart_utilities.PrintRestart_ScalarVariable(TEMPERATURE,"TEMPERATURE",self.combined_model_part.Nodes,restart_file)
+        new_restart_utilities.PrintRestart_ScalarVariable(IS_STRUCTURE,"IS_STRUCTURE",self.combined_model_part.Nodes,restart_file)
+        new_restart_utilities.PrintRestart_ScalarVariable(IS_FREE_SURFACE,"IS_FREE_SURFACE",self.combined_model_part.Nodes,restart_file)
+        new_restart_utilities.PrintRestart_ScalarVariable(IS_BOUNDARY,"IS_BOUNDARY",self.combined_model_part.Nodes,restart_file)
         restart_file.close() 
 
      

@@ -55,9 +55,10 @@ KratosULFApplication::KratosULFApplication():
     mPointNeumann3D(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mPointNeumann2D(0, Element::GeometryType::Pointer(new Point2D <Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mPointNeumannAxisym(0, Element::GeometryType::Pointer(new Point2D <Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mSurfaceTension2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mSurfaceTension3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mFluid2DGLS_expl(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 ))))
+    //mSurfaceTension2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    //mSurfaceTension3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mFluid2DGLS_expl(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
+    mHypoElasticSolid2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3))))
 
 {}
 
@@ -128,11 +129,13 @@ void KratosULFApplication::Register()
     KRATOS_REGISTER_CONDITION("PointNeumann3D", mPointNeumann3D);
     KRATOS_REGISTER_CONDITION("PointNeumann2D", mPointNeumann2D);
     KRATOS_REGISTER_CONDITION("PointNeumannAxisym", mPointNeumannAxisym);
+    KRATOS_REGISTER_ELEMENT("HypoElasticSolid2D",mHypoElasticSolid2D);
+
     
-    KRATOS_REGISTER_ELEMENT("SurfaceTension2D3N",mSurfaceTension2D); //this is the name the element should have according to the naming convention
-    KRATOS_REGISTER_ELEMENT("SurfaceTension3D4N",mSurfaceTension3D); //this is the name the element should have according to the naming convention
-    KRATOS_REGISTER_ELEMENT("SurfaceTension2D",mSurfaceTension2D);
-    KRATOS_REGISTER_ELEMENT("SurfaceTension3D",mSurfaceTension3D);
+    //KRATOS_REGISTER_ELEMENT("SurfaceTension2D3N",mSurfaceTension2D); //this is the name the element should have according to the naming convention
+    //KRATOS_REGISTER_ELEMENT("SurfaceTension3D4N",mSurfaceTension3D); //this is the name the element should have according to the naming convention
+    //KRATOS_REGISTER_ELEMENT("SurfaceTension2D",mSurfaceTension2D);
+    //KRATOS_REGISTER_ELEMENT("SurfaceTension3D",mSurfaceTension3D);
 
 
 }

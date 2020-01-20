@@ -110,7 +110,12 @@ namespace Kratos
  			mFixedVelocity3D    ( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
  			mFixedPressure2D    ( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
  			mFixedPressure3D    ( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
-			mMonolithicAutoSlipInlet3D    ( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) )
+			mMonolithicAutoSlipInlet3D    ( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
+                        mLagrangianFluidVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+                        mLagrangianFluidVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
+
+
+
 
  	{}
  	
@@ -195,6 +200,12 @@ namespace Kratos
 		KRATOS_REGISTER_VARIABLE(SOLID_PRESSURE)
 		KRATOS_REGISTER_VARIABLE(SOLID_YP)
 		KRATOS_REGISTER_VARIABLE(WATER_DISTANCE)
+
+                KRATOS_REGISTER_ELEMENT("LagrangianFluidVMS2D",mLagrangianFluidVMS2D);
+mLagrangianFluidVMS2D;
+                KRATOS_REGISTER_ELEMENT("LagrangianFluidVMS3D",mLagrangianFluidVMS3D);
+mLagrangianFluidVMS3D;
+
  		//KRATOS_REGISTER_VARIABLE(IS_AIR)
 // 		KRATOS_REGISTER_VARIABLE(NODAL_AREA);
 

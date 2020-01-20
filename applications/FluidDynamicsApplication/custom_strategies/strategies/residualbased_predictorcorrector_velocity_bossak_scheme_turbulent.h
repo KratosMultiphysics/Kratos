@@ -290,14 +290,18 @@ namespace Kratos {
 
                     if (mMeshVelocity == 2)//Lagrangian
                     {
+
+			
                         if((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
                         {
+			    //KRATOS_WATCH("!!!!!!!!!!!  FIRST TIME < FIRST !!!!!!!!")	
+			    //KRATOS_THROW_ERROR(std::logic_error, "!!!!!!!!!!!  FIRST TIME < FIRST !!!!!!!!", OldAcceleration);
                             array_1d<double, 3 > & CurrentDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 0);
                             array_1d<double, 3 > & OldDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 1);
                             array_1d<double, 3 > & OldVelocity = (itNode)->FastGetSolutionStepValue(VELOCITY, 1);
 
                             noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
-                            UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
+                            //UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
                         }
                         else
                         {
@@ -374,8 +378,11 @@ namespace Kratos {
 
                   if((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
 			{
+				//KRATOS_WATCH("!!!!!!!!!!!  ZERO TIME < ZERO !!!!!!!!")	
+ 				//KRATOS_THROW_ERROR(std::logic_error, "!!!!!!!!!!!  ZERO TIME < ZERO !!!!!!!!", OldAcceleration);
+
 			    noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
-			    UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
+			    //UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
 			}
 			else
 			{
@@ -425,7 +432,7 @@ namespace Kratos {
             //std::cout << rCurrentElement->Id() << " RHS = " << RHS_Contribution << std::endl;
             (rCurrentElement)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
             (rCurrentElement)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
-
+	    //KRATOS_THROW_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!");
             (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
 
             //adding the dynamic contributions (statics is already included)

@@ -48,8 +48,8 @@
 #endif
 
 //#define QCOMP
-//#define BODY_FORCE 
-
+#define BODY_FORCE 
+//#define STRANG
 namespace Kratos
 {
 
@@ -234,18 +234,18 @@ namespace Kratos
 	  Timer time;
 	Timer::Start("Solve_strategy");
 
+#if defined(QCOMP)
+	double Dp_norm;
+	Dp_norm = IterativeSolve();
+#else
+	//multifluids
+	//AssignInitialStepValues();
+
 	double Dp_norm = 1.00;
 	int iteration = 0;
-	for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();i != BaseType::GetModelPart().NodesEnd(); ++i)
-	  {
-	    i->FastGetSolutionStepValue(VELOCITY_X) =  i->FastGetSolutionStepValue(VELOCITY_X,1);
-	    i->FastGetSolutionStepValue(VELOCITY_Y) =  i->FastGetSolutionStepValue(VELOCITY_Y,1);
-	    i->FastGetSolutionStepValue(VELOCITY_Z) =  i->FastGetSolutionStepValue(VELOCITY_Z,1);
-            i->FastGetSolutionStepValue(PRESSURE) =  i->FastGetSolutionStepValue(PRESSURE,1);
-	  }
 	//int MaxPressureIterations = this->mMaxPressIterations;
 	Dp_norm = IterativeSolve();
-
+#endif
 	//this->Clear();
 	this->m_step += 1;
 	return Dp_norm;
@@ -256,23 +256,13 @@ namespace Kratos
       {
 	KRATOS_TRY
 
+	//ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+	//this->SolveStep7(); //pold=pn+1
 	double Dp_norm = this->SolveStep2();
       	return Dp_norm;
 
 	KRATOS_CATCH("")
 	  }
-
-void InitializeSolutionStep() 
-{
-	KRATOS_TRY
-	KRATOS_WATCH("Init sol step of strategy!!!")
-	for (ModelPart::ElementIterator i = BaseType::GetModelPart().ElementsBegin(); i != BaseType::GetModelPart().ElementsEnd(); ++i)
-	  {
-            (i)->InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
-	  }
-
-	KRATOS_CATCH("")
-}
 
       double IterativeSolve()
       {
@@ -287,69 +277,78 @@ void InitializeSolutionStep()
 	const double dt = model_part.GetProcessInfo()[DELTA_TIME];
 	double cal_time = model_part.GetProcessInfo()[TIME];
 	double cal_timetn = cal_time-dt;
+	//double time_evaluation = model_part.GetProcessInfo()[TIME];
 
-	KRATOS_WATCH("iteration")
-        KRATOS_WATCH(iteration)
-	while (  iteration++ < 1)//6) 
-	{
-
-        KRATOS_WATCH("iteration")
-        KRATOS_WATCH(iteration)
 	#if defined(BODY_FORCE)
 	  Force(cal_time);
 	  Forcetn(cal_timetn);
 	#endif
+	//KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
+	rCurrentProcessInfo[VISCOSITY] = 1.0;
+      /*
+	for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();i != BaseType::GetModelPart().NodesEnd(); ++i)
+	  {
+	    i->FastGetSolutionStepValue(VELOCITY_X,1) =  i->FastGetSolutionStepValue(VELOCITY_X);
+	    i->FastGetSolutionStepValue(VELOCITY_Y,1) =  i->FastGetSolutionStepValue(VELOCITY_Y);
+	    i->FastGetSolutionStepValue(VELOCITY_Z,1) =  i->FastGetSolutionStepValue(VELOCITY_Z);
+      
+	  }*/
 
-
+#if defined(QCOMP)
+	this->SolveStep1(this->mvelocity_toll, this->mMaxVelIterations);
+#else
 	for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();i != BaseType::GetModelPart().NodesEnd(); ++i)
 	  {
 	    double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
 	    nodal_mass = 0.0;
 	  }
 
+ 	//ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 	rCurrentProcessInfo[FRACTIONAL_STEP] = 6;
 	for (ModelPart::ElementIterator i = BaseType::GetModelPart().ElementsBegin(); i != BaseType::GetModelPart().ElementsEnd(); ++i)
 	  {
             (i)->InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
 	  }
 
-	 //PredictPressure(1.0);
-
-
+	PredictPressure(1.0);
 
 
 	this->SolveStep1(this->mvelocity_toll, this->mMaxVelIterations);
+#endif
+        //double p_norm=0.0;
+#if defined(QCOMP)
 
+	//polimero
+	this->SolveStepaux();
+	//int MaxPressureIterations = this->mMaxPressIterations;
+	//int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+	double p_norm = SavePressureIteration();
+	Dp_norm = 1.0;
+	//Timer::Stop("Solve_ambos");
+	//KRATOS_WATCH(time)
+#else
+	//while (  iteration++ < 3)   
+	//  {
 
-	    Dp_norm = 0.0;//SolvePressure();
+	/*
+	for(ModelPart::NodesContainerType::iterator in = model_part.NodesBegin() ; in != model_part.NodesEnd() ; ++in)
+	  {
+	    if(in->X()<0.00001) in->FastGetSolutionStepValue(PRESSURE)=0.0;
+	    if(in->X()>0.99999) in->FastGetSolutionStepValue(PRESSURE)=100.0;	
+	    if(in->X()<0.00001) in->FastGetSolutionStepValue(PRESSURE,1)=0.0;
+	    if(in->X()>0.99999) in->FastGetSolutionStepValue(PRESSURE,1)=100.0;	
+	    
+	  }*/
+	    Dp_norm = SolvePressure();
  	    double p_norm = SavePressureIteration();
-	    //this->SolveStep4();
-
-        //MoveMesh_FE(model_part, 100);
-
-	}
-
-        array_1d<double, 3 > x;
-
-	double dt_aux = model_part.GetProcessInfo()[DELTA_TIME];
-        dt_aux *=0.5; 
-
-/*	for (ModelPart::NodesContainerType::iterator in = model_part.NodesBegin() ; in != model_part.NodesEnd() ; ++in)
-        {
-
-            if(in->FastGetSolutionStepValue(IS_INTERFACE) == 0.0)
-		{
-		noalias(x) = in->GetInitialPosition() + in->FastGetSolutionStepValue(DISPLACEMENT);
-		noalias(x) += dt_aux*in->FastGetSolutionStepValue(VELOCITY);
-
-	        array_1d<double,3> displacement_aux = x - in->GetInitialPosition();
-		in->FastGetSolutionStepValue(DISPLACEMENT) = displacement_aux;
-
-		noalias(in->Coordinates()) = x;
-	        }
-	}
-*/
-
+	    //if (fabs(p_norm) > 1e-10){
+	    //  Dp_norm /= p_norm;
+	   // }
+	    //else
+	    //  Dp_norm = 1.0;
+	    this->SolveStep4();
+	  //}
+#endif
 	this->Clear();
 	return Dp_norm;
 	KRATOS_CATCH("")
@@ -387,6 +386,16 @@ void InitializeSolutionStep()
       {
 	KRATOS_TRY
 
+	  ModelPart& model_part=BaseType::GetModelPart();
+
+	const double dt = model_part.GetProcessInfo()[DELTA_TIME];
+
+	for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();i != BaseType::GetModelPart().NodesEnd(); ++i)
+	  {	    
+	    //(i)->FastGetSolutionStepValue(PRESSURE_OLD_IT) = 0.0;
+	    //(i)->FastGetSolutionStepValue(PRESSURE) = 0.0;
+	    //(i)->FastGetSolutionStepValue(PRESSURE,1) = 0.0;
+	  }
 	KRATOS_CATCH("");
       }
 
@@ -454,6 +463,10 @@ void InitializeSolutionStep()
         number_of_threads = 1;
 #endif
 
+        //ModelPart& model_part=BaseType::GetModelPart();
+
+        //double dt = model_part.GetProcessInfo()[DELTA_TIME];
+	//dt=0.005;
 	for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();i != BaseType::GetModelPart().NodesEnd(); ++i)
 	  {
 	    array_1d<double, 3 > zero = ZeroVector(3);
@@ -462,14 +475,31 @@ void InitializeSolutionStep()
 	    nodal_mass = 0.0;
 	  }
 
+ 	//ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 	rCurrentProcessInfo[FRACTIONAL_STEP] = 6;
 	for (ModelPart::ElementIterator i = BaseType::GetModelPart().ElementsBegin(); i != BaseType::GetModelPart().ElementsEnd(); ++i)
 	  {
             (i)->InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
 	  }
 
+	/*for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();i != BaseType::GetModelPart().NodesEnd(); ++i)
+	  {
+	    array_1d<double,3>& force_temp = i->FastGetSolutionStepValue(FORCE);
+	    double A = (i)->FastGetSolutionStepValue(NODAL_MASS);
+	    if(A<0.0000000000000001){
+	      A=1.0;
+	    }
+
+	    double dt_Minv = 0.005  / A ;
+	    //dt_Minv=1.0;
+	    force_temp *= dt_Minv;*/
+
+	  //KRATOS_WATCH(force_temp);
+	  /////////////////////
           boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
           array_1d<double,3> N;
+          //array_1d<double,3> aux0, aux1, aux2; //this are sized to 3 even in 2D!!
+          //double lumping_factor = 0.33333333333333;
 
 
             //calculate the velocity correction and store it in AUX_VECTOR
@@ -484,7 +514,7 @@ void InitializeSolutionStep()
                 array_1d<double,3> pres_inc;
                 pres_inc[0] = geom[0].FastGetSolutionStepValue(PRESSURE)-geom[0].FastGetSolutionStepValue(PRESSURE,1);
                 pres_inc[1] = geom[1].FastGetSolutionStepValue(PRESSURE)-geom[1].FastGetSolutionStepValue(PRESSURE,1);
-	        pres_inc[2] = geom[2].FastGetSolutionStepValue(PRESSURE)-geom[2].FastGetSolutionStepValue(PRESSURE,1);
+			    pres_inc[2] = geom[2].FastGetSolutionStepValue(PRESSURE)-geom[2].FastGetSolutionStepValue(PRESSURE,1);
 
 		//pres_inc*=one_sixth;
 		pres_inc*=0.5;
@@ -492,7 +522,9 @@ void InitializeSolutionStep()
 
                 array_1d<double,3> aux=ZeroVector(2);
 
- 		double p_avg = N[0]*pres_inc[0] + N[1]*pres_inc[1] + N[2]*pres_inc[2];
+ 		double p_avg = N[0]*pres_inc[0]
+                       + N[1]*pres_inc[1]
+                       + N[2]*pres_inc[2];
 		
 		p_avg *= volume;
 
@@ -525,13 +557,11 @@ void InitializeSolutionStep()
         {
             //VELOCITY = VELOCITY + dt * Minv * AUX_VECTOR
 
-	    double A = (it)->FastGetSolutionStepValue(NODAL_MASS);
-	    if(A<0.0000000000000001){
-	      A=1.0;
-	    }
-            double dt_Minv = dt / A;
+	      #if defined(STRANG)
+              dt *=0.5;
+              #endif
 
-
+            double dt_Minv = dt / it->FastGetSolutionStepValue(NODAL_MASS);
 
             array_1d<double,3>& temp = it->FastGetSolutionStepValue(FORCE);
             if(!it->IsFixed(VELOCITY_X))
@@ -557,8 +587,33 @@ void InitializeSolutionStep()
       void SolveStep7()
       {
 	KRATOS_TRY;
+	//  ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+	array_1d<double, 3 > zero = ZeroVector(3);
+	//Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 
+#ifdef _OPENMP
+	int number_of_threads = omp_get_max_threads();
+#else
+	int number_of_threads = 1;
+#endif
 
+	//ModelPart& model_part=BaseType::GetModelPart();
+	//const double dt = model_part.GetProcessInfo()[DELTA_TIME];
+	vector<unsigned int> partition;
+	CreatePartition(number_of_threads, BaseType::GetModelPart().Nodes().size(), partition);
+
+#pragma omp parallel for schedule(static,1)
+      for (int k = 0; k < number_of_threads; k++)
+        {
+            ModelPart::NodeIterator it_begin = BaseType::GetModelPart().NodesBegin() + partition[k];
+            ModelPart::NodeIterator it_end = BaseType::GetModelPart().NodesBegin() + partition[k + 1];
+
+            array_1d<double, 3 > zero = ZeroVector(3);
+            for (typename ModelPart::NodesContainerType::iterator it=it_begin; it!=it_end; ++it)
+	      {
+		it->FastGetSolutionStepValue(PRESSURE_OLD_IT)=it->FastGetSolutionStepValue(PRESSURE);
+	      }
+        }
       KRATOS_CATCH("");
       }
 
@@ -579,6 +634,75 @@ void InitializeSolutionStep()
       {
 	KRATOS_TRY
 
+	  ModelPart& model_part=BaseType::GetModelPart();
+	const double dt = model_part.GetProcessInfo()[DELTA_TIME];
+        Timer time;
+        Timer::Start("paso_3");
+
+#ifdef _OPENMP
+        int number_of_threads = omp_get_max_threads();
+#else
+        int number_of_threads = 1;
+#endif
+
+        vector<unsigned int> partition;
+        CreatePartition(number_of_threads, BaseType::GetModelPart().Nodes().size(), partition);
+
+
+
+#pragma omp parallel for schedule(static,1)
+        for (int k = 0; k < number_of_threads; k++)
+	  {
+            ModelPart::NodeIterator it_begin = BaseType::GetModelPart().NodesBegin() + partition[k];
+            ModelPart::NodeIterator it_end = BaseType::GetModelPart().NodesBegin() + partition[k + 1];
+
+
+            array_1d<double, 3 > zero = ZeroVector(3);
+
+
+            for (ModelPart::NodeIterator i = it_begin; i != it_end; ++i)
+	      {
+                double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
+                nodal_mass = 0.0;
+	        noalias(i->FastGetSolutionStepValue(FORCE)) =    zero;
+                //double & nodal_area = (i)->FastGetSolutionStepValue(NODAL_AREA);
+                //nodal_area = 0.0;
+	      }
+	  }
+        array_1d<double,3> zero = ZeroVector(3);
+
+        ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+        rCurrentProcessInfo[FRACTIONAL_STEP] = 5;
+
+        vector<unsigned int> elem_partition;
+        CreatePartition(number_of_threads, BaseType::GetModelPart().Elements().size(), elem_partition);
+
+#pragma omp parallel for schedule(static,1)
+        for (int k = 0; k < number_of_threads; k++)
+	  {
+            ModelPart::ElementIterator it_begin = BaseType::GetModelPart().ElementsBegin() + elem_partition[k];
+            ModelPart::ElementIterator it_end = BaseType::GetModelPart().ElementsBegin() + elem_partition[k + 1];
+            for (ModelPart::ElementIterator i = it_begin; i != it_end; ++i)
+	      {
+                (i)->InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
+	      }
+	  }
+#pragma omp parallel for schedule(static,1)
+        for (int k = 0; k < number_of_threads; k++)
+	  {
+            ModelPart::NodeIterator it_begin = BaseType::GetModelPart().NodesBegin() + partition[k];
+            ModelPart::NodeIterator it_end = BaseType::GetModelPart().NodesBegin() + partition[k + 1];
+
+            for (ModelPart::NodeIterator i = it_begin; i != it_end; ++i)
+	      {
+                array_1d<double,3>& force_temp = i->FastGetSolutionStepValue(FORCE);
+
+                force_temp *=(1.0/ i->FastGetSolutionStepValue(NODAL_MASS));
+
+		//array_1d<double,3>& vel = i->FastGetSolutionStepValue(VELOCITY);
+ 		i->FastGetSolutionStepValue(VELOCITY) = i->FastGetSolutionStepValue(VELOCITY,1) + dt * force_temp;
+	      }
+	  }
 
         KRATOS_CATCH("");
       }
@@ -586,6 +710,78 @@ void InitializeSolutionStep()
       void SolveStepaux()
       {
 	KRATOS_TRY
+
+	  Timer time;
+	Timer::Start("SolveStepaux");
+
+	//ModelPart& model_part=BaseType::GetModelPart();
+	//const double dt = model_part.GetProcessInfo()[DELTA_TIME];
+
+#ifdef _OPENMP
+	int number_of_threads = omp_get_max_threads();
+#else
+	int number_of_threads = 1;
+#endif
+
+	//number_of_threads = 1;
+	vector<unsigned int> partition;
+	CreatePartition(number_of_threads, BaseType::GetModelPart().Nodes().size(), partition);
+
+#pragma omp parallel for schedule(static,1)
+	for (int k = 0; k < number_of_threads; k++)
+	  {
+            ModelPart::NodeIterator it_begin = BaseType::GetModelPart().NodesBegin() + partition[k];
+            ModelPart::NodeIterator it_end = BaseType::GetModelPart().NodesBegin() + partition[k + 1];
+
+            array_1d<double, 3 > zero = ZeroVector(3);
+
+            for (ModelPart::NodeIterator i = it_begin; i != it_end; ++i)
+	      {
+                double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
+                nodal_mass = 0.0;
+		i->FastGetSolutionStepValue(PRESSUREAUX)=0.0;
+                i->FastGetSolutionStepValue(PRESSURE)=0.0;
+	      }
+	  }
+
+
+	ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+	rCurrentProcessInfo[FRACTIONAL_STEP] = 7;
+
+	vector<unsigned int> elem_partition;
+	CreatePartition(number_of_threads, BaseType::GetModelPart().Elements().size(), elem_partition);
+#pragma omp parallel for schedule(static,1)
+	for (int k = 0; k < number_of_threads; k++)
+	  {
+	    ModelPart::ElementIterator it_begin = BaseType::GetModelPart().ElementsBegin() + elem_partition[k];
+	    ModelPart::ElementIterator it_end = BaseType::GetModelPart().ElementsBegin() + elem_partition[k + 1];
+            for (ModelPart::ElementIterator i = it_begin; i != it_end; ++i)
+	      {
+                (i)->InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
+	      }
+	  }
+
+
+#pragma omp parallel for schedule(static,1)
+	for (int k = 0; k < number_of_threads; k++)
+	  {
+	    ModelPart::NodeIterator it_begin = BaseType::GetModelPart().NodesBegin() + partition[k];
+	    ModelPart::NodeIterator it_end = BaseType::GetModelPart().NodesBegin() + partition[k + 1];
+
+            for (ModelPart::NodeIterator i = it_begin; i != it_end; ++i)
+	      {
+		if(i->FastGetSolutionStepValue(NODAL_MASS)==0.0)
+		  {
+		    i->FastGetSolutionStepValue(PRESSURE)=0.0;
+		  }
+		else
+		  {
+		    //if()
+		    i->FastGetSolutionStepValue(PRESSURE)=i->FastGetSolutionStepValue(PRESSUREAUX) * (1.0/ i->FastGetSolutionStepValue(NODAL_MASS));
+		  }
+
+	      }
+	  }
 
 
         KRATOS_CATCH("");
@@ -797,7 +993,7 @@ void InitializeSolutionStep()
 		double d2uxdx2 = 100.0 * ht * ( d2fx * dfy );
 		double d2uxdy2 = 100.0 * ht * ( fx * d3fy );
 		double d2uydx2 = -100.0 * ht * ( d3fx * fy );
-		double d2uydy2 = -100.0 * ht * ( dfx * d2fy ); ///
+		double d2uydy2 = -100.0 * ht * ( dfx * d2fy );
 
 		double d2uxdxdy = 100.0 * ht * dfx * d2fy;
                 double d2uydxdy = -100.0 * ht * d2fx * dfy;
@@ -814,12 +1010,12 @@ void InitializeSolutionStep()
 		//3. viscous term
 		//Fx -= nu * ( d2uxdx2 + d2uxdy2 );
 		//Fy -= nu * ( d2uydx2 + d2uydy2 );
-    /*pavel's implementation*/
-		Fx -= nu * 2.0 * ( d2uxdx2 + 0.5*(d2uydxdy + d2uxdy2));
-		Fy -= nu * 2.0 * ( d2uydy2 + 0.5*(d2uxdxdy + d2uydx2));
-    
-	        //Fx -= nu * ( d2uxdx2 + d2uxdy2);
-		//Fy -= nu * ( d2uydy2 + d2uydx2);
+    /*pavel's implementation
+		Fx -= nu * ( d2uxdx2 + 0.5*(d2uydxdy + d2uxdy2));
+		Fy -= nu * ( d2uydy2 + 0.5*(d2uxdxdy + d2uydx2));
+    */
+	        Fx -= nu * ( d2uxdx2 + d2uxdy2);
+		Fy -= nu * ( d2uydy2 + d2uydx2);
 
 		//4. pressure gradient
 		Fx += dpx;
@@ -892,12 +1088,12 @@ void InitializeSolutionStep()
 		//3. viscous term
 		//Fx -= nu * ( d2uxdx2 + d2uxdy2 );
 		//Fy -= nu * ( d2uydx2 + d2uydy2 );
-    /*pavel's implementation*/
-		Fx -= nu * 2.0 * ( d2uxdx2 + 0.5*(d2uydxdy + d2uxdy2));
-		Fy -= nu * 2.0 * ( d2uydy2 + 0.5*(d2uxdxdy + d2uydx2));
-    
-	//        Fx -= nu * ( d2uxdx2 + d2uxdy2);
-	//	Fy -= nu * ( d2uydy2 + d2uydx2);
+    /*pavel's implementation
+		Fx -= nu * ( d2uxdx2 + 0.5*(d2uydxdy + d2uxdy2));
+		Fy -= nu * ( d2uydy2 + 0.5*(d2uxdxdy + d2uydx2));
+    */
+	        Fx -= nu * ( d2uxdx2 + d2uxdy2);
+		Fy -= nu * ( d2uydy2 + d2uydx2);
 
 		//4. pressure gradient
 		Fx += dpx;
@@ -928,7 +1124,7 @@ void InitializeSolutionStep()
         for(ModelPart::NodesContainerType::iterator in = model_part.NodesBegin() ; in != model_part.NodesEnd() ; ++in)
         {
 	  in->FastGetSolutionStepValue(PRESSUREAUX)= 0.0; //
-	  //in->FastGetSolutionStepValue(PRESSURE)=0.0;
+	  in->FastGetSolutionStepValue(PRESSURE)=0.0;
         }
 	
 	double K=0.0;
@@ -971,9 +1167,9 @@ void InitializeSolutionStep()
 		
 		//P = Mconsistent*pold + dp
 		
-		geom[0].FastGetSolutionStepValue(PRESSUREAUX) += dp_el *0.333333333333333333 + pn[0] * 0.333333333333333333 * Area;//diag_term*pn[0] + out_term*pn[1]  + out_term*pn[2] ;
-		geom[1].FastGetSolutionStepValue(PRESSUREAUX) += dp_el *0.333333333333333333 + pn[1] * 0.333333333333333333 * Area;//out_term*pn[0] + diag_term*pn[1]  + out_term*pn[2] ;
-		geom[2].FastGetSolutionStepValue(PRESSUREAUX) += dp_el *0.333333333333333333 + pn[2] * 0.333333333333333333 * Area;//out_term*pn[0] + out_term*pn[1]  + diag_term*pn[2] ; 
+		geom[0].FastGetSolutionStepValue(PRESSUREAUX) += dp_el *0.333333333333333333 + diag_term*pn[0] + out_term*pn[1]  + out_term*pn[2] ;
+		geom[1].FastGetSolutionStepValue(PRESSUREAUX) += dp_el *0.333333333333333333+ out_term*pn[0] + diag_term*pn[1]  + out_term*pn[2] ;
+		geom[2].FastGetSolutionStepValue(PRESSUREAUX) += dp_el *0.333333333333333333+ out_term*pn[0] + out_term*pn[1]  + diag_term*pn[2] ; 
 		
 		//KRATOS_WATCH(dp_el);
 	      }
@@ -997,65 +1193,12 @@ void InitializeSolutionStep()
 
 	for(ModelPart::NodesContainerType::iterator in = model_part.NodesBegin() ; in != model_part.NodesEnd() ; ++in)
 	  {
-//	    in->FastGetSolutionStepValue(PRESSUREAUX)=in->FastGetSolutionStepValue(PRESSURE,1);
-in->FastGetSolutionStepValue(ANGULAR_ACCELERATION_X)=in->FastGetSolutionStepValue(PRESSURE,1);
-
-in->FastGetSolutionStepValue(ANGULAR_ACCELERATION_Y)=in->FastGetSolutionStepValue(PRESSUREAUX)-in->FastGetSolutionStepValue(PRESSURE,1);
-
-	    in->FastGetSolutionStepValue(PRESSURE,1)=in->FastGetSolutionStepValue(PRESSUREAUX);
-	    in->FastGetSolutionStepValue(PRESSURE)=in->FastGetSolutionStepValue(PRESSUREAUX);
-	    if(in->FastGetSolutionStepValue(FLAG_VARIABLE) == 1.0)  in->FastGetSolutionStepValue(PRESSURE)=0.0;	
+	    in->FastGetSolutionStepValue(PRESSUREAUX)=in->FastGetSolutionStepValue(PRESSURE,1);
 	  }
 
 
         KRATOS_CATCH("")
 	  }
-
-void MoveMesh_FE(ModelPart& rModelPart, unsigned int substeps)
-    {      
-	double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
-        dt *=0.5; 
-	
-	//do movement
-	array_1d<double, 3 > veulerian;
-
-        array_1d<double, 3 > v1,v2,v3,v4,vtot,x;
-
-	array_1d<double, 2 + 1 > N;
-
-	const int max_results = 10000;
-
-	const int nparticles = rModelPart.Nodes().size();
-
-//	ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-
-	//ModelPart& model_part=BaseType::GetModelPart();
-
-	
-//	#pragma omp parallel for firstprivate(results,N,veulerian,v1,v2,v3,v4,x)
-
-
-
-	for (ModelPart::NodeIterator it = rModelPart.NodesBegin();it != rModelPart.NodesEnd(); ++it)
-        {
-
-            if(it->FastGetSolutionStepValue(IS_INTERFACE) == 0.0)
-		{
-		noalias(x) = it->GetInitialPosition() + it->FastGetSolutionStepValue(DISPLACEMENT);
-		noalias(x) += dt*(it->FastGetSolutionStepValue(VELOCITY)+it->FastGetSolutionStepValue(VELOCITY,1))*0.5;
-		//it->FastGetSolutionStepValue(DISPLACEMENT) = x - it->GetInitialPosition();
-
-	        //array_1d<double,3> displacement_aux = x - it->GetInitialPosition();
-		//it->FastGetSolutionStepValue(DISPLACEMENT) = displacement_aux;
-
-		noalias(it->Coordinates()) = x;
-	        }
-	}
-
-
-
-}
-
 
       /*@} */
       /**@name Operators

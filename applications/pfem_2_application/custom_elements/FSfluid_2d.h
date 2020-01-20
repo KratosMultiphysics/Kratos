@@ -122,7 +122,7 @@ namespace Kratos
     //void CalculateViscousMatrix(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double& nu);
     void CalculateViscousMatrix(MatrixType& K  , const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double& nu, const double& deltat, const double& bulk); //, const double& k);
 
-
+    void Calculate(const Variable<double >& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
     int Check(const ProcessInfo& rCurrentProcessInfo);
 

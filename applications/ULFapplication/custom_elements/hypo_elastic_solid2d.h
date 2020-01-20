@@ -1,51 +1,13 @@
-/*
-==============================================================================
-KratosULFApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Pawel Ryzhakov
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: anonymous $
-//   Date:                $Date: 2007-03-23 13:03:13 $
-//   Revision:            $Revision: 1.3 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Pavel Ryzhakov and Julio Marti
 //
 
 
@@ -137,16 +99,25 @@ public:
 
     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
+    void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
     void Calculate(const Variable<double >& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
-    void Calculate(const Variable<Matrix >& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
     //void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
     void GetValuesVector(Vector& values, int Step = 0);
     void GetFirstDerivativesVector(Vector& values, int Step = 0);
     void GetSecondDerivativesVector(Vector& values, int Step = 0);
+
+    //for visualizing Gauss point results in GiD
+    //void GetValueOnIntegrationPoints( const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo   );
+
+    void GetValueOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
 
     ///@}
@@ -226,22 +197,7 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    /*
-    static boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors;
-    static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_Dx;
-    static array_1d<double,3> msN; //dimension = number of nodes
-    //static Matrix msDN_DX;
-    //static Matrix msMassFactors;
-    static array_1d<double,2> ms_vel_gauss; //dimesion coincides with space dimension
-    static array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes
-    static array_1d<double,3> ms_u_DN;
 
-
-    static boost::numeric::ublas::bounded_matrix<double,3,6> msB;
-    static boost::numeric::ublas::bounded_matrix<double,3,3> ms_constitutive_matrix;
-    static boost::numeric::ublas::bounded_matrix<double,3,6> ms_temp;
-    static array_1d<double,6> ms_temp_vec;
-    */
 
     ///@}
     ///@name Member Variables
@@ -274,13 +230,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    void Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, unsigned int ComponentIndex);
-    void Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
-    void MeshMovingStep(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, unsigned int ComponentIndex);
-
-    //inline void CalculateGeometryData(Matrix& msDN_DX, Vector& N, double& Area)
-    inline void CalculateGeometryData(BoundedMatrix<double,3,2>& DN_DX, array_1d<double,3>& N, double& Area);
 
     ///@}
     ///@name Private Operations

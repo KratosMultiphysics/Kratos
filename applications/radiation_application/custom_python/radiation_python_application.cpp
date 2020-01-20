@@ -39,7 +39,7 @@ namespace Python
 
 	  py::class_<KratosRadiationApplication,
 			  KratosRadiationApplication::Pointer,
-			  KratosApplication>(m,"KratosRadiationApplication").def(init<>())
+			  KratosApplication>(m,"KratosRadiationApplication").def(py::init<>())
 			;
 
 	AddCustomStrategiesToPython(m);

@@ -676,7 +676,7 @@ private:
             n_points_in_radius = nodes_tree1.SearchInRadius(work_point, radius, res.begin(),res_distances.begin(), max_results);
             if (n_points_in_radius>1)
             {
-                if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0 && in->FastGetSolutionStepValue(FLAG_VARIABLE)==0.0)
+                if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_INTERFACE)==0.0 && in->FastGetSolutionStepValue(FLAG_VARIABLE)==0.0)
                 {
                     //look if we are already erasing any of the other nodes
                     double erased_nodes = 0;
@@ -687,7 +687,7 @@ private:
                         in->Set(TO_ERASE,true);
 
                 }
-                else if ( (in)->FastGetSolutionStepValue(IS_STRUCTURE)!=1.0) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2 * h_factor)
+                else if ( (in)->FastGetSolutionStepValue(IS_INTERFACE)!=1.0) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2 * h_factor)
                 {
                     //here we loop over the neighbouring nodes and if there are nodes
                     //with IS_BOUNDARY=1 which are closer than 0.2*nodal_h from our we remove the node we are considering
@@ -755,9 +755,9 @@ private:
             temp.push_back( *((ThisModelPart.Nodes()).find( out_mid.trianglelist[base+1]).base()	) );
             temp.push_back( *((ThisModelPart.Nodes()).find( out_mid.trianglelist[base+2]).base()	) );
 
-            int number_of_structure_nodes = int( temp[0].FastGetSolutionStepValue(IS_STRUCTURE) );
-            number_of_structure_nodes += int( temp[1].FastGetSolutionStepValue(IS_STRUCTURE) );
-            number_of_structure_nodes += int( temp[2].FastGetSolutionStepValue(IS_STRUCTURE) );
+            int number_of_structure_nodes = int( temp[0].FastGetSolutionStepValue(IS_INTERFACE) );
+            number_of_structure_nodes += int( temp[1].FastGetSolutionStepValue(IS_INTERFACE) );
+            number_of_structure_nodes += int( temp[2].FastGetSolutionStepValue(IS_INTERFACE) );
 
             //check the number of nodes of boundary
             int nfs = int( temp[0].FastGetSolutionStepValue(IS_FREE_SURFACE) );

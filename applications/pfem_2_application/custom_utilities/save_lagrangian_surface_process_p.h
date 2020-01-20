@@ -108,6 +108,7 @@ public:
     void  SaveSurfaceConditions_p(ModelPart& lagrangian_model_part, ModelPart& surface_model_part)
     {
         KRATOS_TRY
+	//KRATOS_THROW_ERROR(std::logic_error,  "Your element Proj DIrichlet Cond has a zero volume!!!! " , "");
         surface_model_part.Elements().clear();
         surface_model_part.Conditions().clear();
         surface_model_part.Nodes().clear();
@@ -127,9 +128,9 @@ public:
 	Properties::Pointer properties = lagrangian_model_part.GetMesh().pGetProperties(1);
         for(ModelPart::ConditionsContainerType::iterator ic = lagrangian_model_part.ConditionsBegin() ; ic != lagrangian_model_part.ConditionsEnd() ; ++ic)
         {
-	    //surface_model_part.Conditions().push_back(*(ic.base()));
+	    surface_model_part.Conditions().push_back(*(ic.base()));
 	    Geometry< Node<3> >& geom = ic->GetGeometry();
-
+            
             std::vector<std::size_t> NodeIds(3);
 
 	    for(int i=0; i<3; i++) NodeIds[i]= geom[i].Id();

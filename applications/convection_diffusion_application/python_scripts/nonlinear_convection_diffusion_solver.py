@@ -27,9 +27,9 @@ def AddVariables(model_part, config):
     model_part.AddNodalSolutionStepVariable(thermal_settings.GetProjectionVariable())
     model_part.AddNodalSolutionStepVariable(thermal_settings.GetVelocityVariable());
     model_part.AddNodalSolutionStepVariable(thermal_settings.GetSpecificHeatVariable());
-
+    
 #    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-#    model_part.AddNodalSolutionStepVariable(VELOCITY);
+    model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE);
     model_part.AddNodalSolutionStepVariable(NODAL_AREA);
 #    model_part.AddNodalSolutionStepVariable(SPECIFIC_HEAT);
 #    model_part.AddNodalSolutionStepVariable(ENTHALPY);
@@ -67,9 +67,9 @@ class ConvectionDiffusionSolver:
         # self.thermal_settings.SetVelocityVariable(globals()[self.settings.velocity_variable])
         # self.thermal_settings.SetSpecificHeatVariable(globals()[self.settings.specific_heat_variable])
 
-        print("julio marcelo marti")
-        print(self.settings.unknown_variable)
-
+        #print("julio marcelo marti")
+        #print(self.settings.unknown_variable)
+        
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
         self.neighbour_search = FindNodalNeighboursProcess(model_part, number_of_avg_elems, number_of_avg_nodes)
@@ -89,9 +89,10 @@ class ConvectionDiffusionSolver:
         # definition of the solvers
         pDiagPrecond = DiagonalPreconditioner()
         self.linear_solver = BICGSTABSolver(1e-6, 5000, pDiagPrecond)
+        
 
     def Initialize(self):
-
+        
         (self.neighbour_search).Execute()
         self.model_part.ProcessInfo
         self.thermal_settings = ConvectionDiffusionSettings()
@@ -112,6 +113,7 @@ class ConvectionDiffusionSolver:
         (self.solver).SetEchoLevel(self.echo_level)
 
         print("finished initialization of the fluid strategy")
+        
 
     def Solve(self):
         if(self.ReformDofAtEachIteration):
@@ -130,14 +132,14 @@ class ConvectionDiffusionSolver:
 
         (self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS, self.thermal_settings)
         (self.solver).Solve()
-
+        
         if(self.ReformDofAtEachIteration):
             (self.solver).Clear()
 
 
 def CreateSolver(model_part, config):
     conv_diff_solver = ConvectionDiffusionSolver(model_part, config.domain_size, config)
-
+    
     # default settings
     if(hasattr(config, "time_order")):
         conv_diff_solver.time_order = config.time_order
@@ -153,10 +155,11 @@ def CreateSolver(model_part, config):
         conv_diff_solver.max_iter = config.max_iter
     if(hasattr(config, "toll")):
         conv_diff_solver.toll = config.toll
-
+    
     # linear solver settings
     import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+    
     if(hasattr(config, "linear_solver_config")):
         conv_diff_solver.linear_solver = linear_solver_factory.ConstructSolver(config.linear_solver_config)
-
+    
     return conv_diff_solver

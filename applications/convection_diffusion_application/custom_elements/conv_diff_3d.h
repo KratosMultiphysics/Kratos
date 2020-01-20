@@ -187,6 +187,10 @@ private:
     ///@}
     ///@name Serialization
     ///@{
+     IntegrationMethod mThisIntegrationMethod;
+     std::vector< Matrix > mInvJ0;
+     Vector mDetJ0;
+
     friend class Serializer;
 
     // A private default constructor necessary for serialization
@@ -204,7 +208,9 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
 
-
+    double CalculateTriangleArea3D(	array_1d<double,3>& Point1, array_1d<double,3>& Point2, array_1d<double,3>& Point3	);
+   
+    double Length(array_1d<double,3>& Point1, array_1d<double,3>& Point2);
 
 
     ///@}

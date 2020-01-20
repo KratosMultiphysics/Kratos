@@ -92,6 +92,7 @@ namespace Kratos
 
 			typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 			typedef ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+			typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > SolvingStrategyType;
 			typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
 			//********************************************************************
@@ -117,7 +118,8 @@ namespace Kratos
 
 			py::class_< FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >:: Pointer> (m,"FracStepStrategy")
 			  .def(py::init<	ModelPart&, LinearSolverType::Pointer,LinearSolverType::Pointer,bool, double, double,int, int, unsigned int, unsigned int,bool >() )
-			  .def("Solve", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve)
+			  .def("InitializeSolutionStep",&FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::InitializeSolutionStep)			  
+                          .def("Solve", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve)
 			  .def("SolveStep1", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
 			  .def("SolveStep2", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
 			  .def("SolveStep3", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)

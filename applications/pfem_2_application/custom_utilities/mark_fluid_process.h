@@ -113,29 +113,18 @@ public:
     {
         KRATOS_TRY
 
-        ProcessInfo& proc_info = mr_model_part.GetProcessInfo();
+              ProcessInfo& proc_info = mr_model_part.GetProcessInfo();
         double temp;
 
-        for(ModelPart::NodesContainerType::iterator in = mr_model_part.NodesBegin(); in!=mr_model_part.NodesEnd(); in++)
-        {
-            in->FastGetSolutionStepValue(IS_FLUID) = 0.0;
-        }
+        KRATOS_WATCH("Mark Fluid process::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::")
         //set to 1 all the nodes surrounded by at least one fluid element
         for(ModelPart::ElementsContainerType::iterator ie = mr_model_part.ElementsBegin(); ie!=mr_model_part.ElementsEnd(); ie++)
         {
+
             ie->Calculate(IS_FLUID,temp,proc_info);
+
         }
 
-        /*		for(ModelPart::NodesContainerType::const_iterator in = mr_model_part.NodesBegin(); in!=mr_model_part.NodesEnd(); in++)
-        			{
-        				if( (in->GetValue(NEIGHBOUR_ELEMENTS)).size() != 0)
-        					{
-        					in->FastGetSolutionStepValue(IS_IS_FLUID) = 1.0;
-
-        					}
-        				else
-        							in->FastGetSolutionStepValue(IS_IS_FLUID) = 0.0;
-        			}*/
         KRATOS_CATCH("")
     }
 

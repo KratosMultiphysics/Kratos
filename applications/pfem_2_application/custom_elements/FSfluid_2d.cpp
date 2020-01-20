@@ -236,15 +236,15 @@ void FSFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSi
     }
 
     //constitutive tensor
-    ms_constitutive_matrix(0,0) = (4.0/3.0)*nu*density;
-    ms_constitutive_matrix(0,1) = -2.0/3.0*nu*density;
+    ms_constitutive_matrix(0,0) = (4.0/3.0)*nu;
+    ms_constitutive_matrix(0,1) = -2.0/3.0*nu;
     ms_constitutive_matrix(0,2) = 0.0;
-    ms_constitutive_matrix(1,0) = -2.0/3.0*nu*density;
-    ms_constitutive_matrix(1,1) = 4.0/3.0*nu*density;
+    ms_constitutive_matrix(1,0) = -2.0/3.0*nu;
+    ms_constitutive_matrix(1,1) = 4.0/3.0*nu;
     ms_constitutive_matrix(1,2) = 0.0;
     ms_constitutive_matrix(2,0) = 0.0;
     ms_constitutive_matrix(2,1) = 0.0;
-    ms_constitutive_matrix(2,2) = nu*density;
+    ms_constitutive_matrix(2,2) = nu;
 
     //calculating viscous contributions
     ms_temp = prod( ms_constitutive_matrix , msB);
@@ -478,7 +478,7 @@ void FSFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSi
     //	msWorkMatrix stores the element laplacian
     //
     noalias(msWorkMatrix)=prod(msDN_DX,trans(msDN_DX));
-    noalias(rLeftHandSideMatrix) = (0.5 * dt + tau) * Area*msWorkMatrix;
+    noalias(rLeftHandSideMatrix) = (1.0 * dt + tau) * Area*msWorkMatrix;
     //noalias(rLeftHandSideMatrix) = (dt + tau) * Area*msWorkMatrix;
     //rhs consists of D*u_tilda (divergence of the Fractional velocity) and the term: Tau1*(nabla_q, residual_gausspoint)
     //fv is u_tilda
@@ -509,7 +509,7 @@ void FSFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSi
     ms_temp_vec_np[1] = p1_pred;
     ms_temp_vec_np[2] = p2_pred;*/
 
-    noalias(rRightHandSideVector) += 0.5 * Area*dt* (prod(msWorkMatrix,ms_temp_vec_np)) ;
+    noalias(rRightHandSideVector) += 1.0 * Area*dt* (prod(msWorkMatrix,ms_temp_vec_np)) ;
     //noalias(rRightHandSideVector) += Area*dt* (prod(msWorkMatrix,ms_temp_vec_np)) ;
 
     //***************************************************************************
@@ -662,153 +662,7 @@ void FSFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSi
       {
         //KRATOS_ERROR(std::logic_error, "method not implemented", "");
         ///////////////////////NECESSARY LOCALS///////////////////////////////////////////
-        boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
-        array_1d<double,6> GalerkinRHS = ZeroVector(6); //dimension = number of nodes
-        boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
-        array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
-        boost::numeric::ublas::bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
-        boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
-        boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
-        array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
-        array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
-        array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
-	boost::numeric::ublas::bounded_matrix<double,3,6> msB;
-        boost::numeric::ublas::bounded_matrix<double,3,3> ms_constitutive_matrix;
-        boost::numeric::ublas::bounded_matrix<double,3,6> ms_temp;
-	//double dt = CurrentProcessInfo[DELTA_TIME];
-	double Area;
-        GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Area);
-	
-        //getting the velocity on the nodes and other necessary variabless
-        const array_1d<double,3> vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
-        //double p_n0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_OLD_IT);
-        double p_n0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1);
 
-        const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
-        const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
-        //const double k0 = GetGeometry()[0].FastGetSolutionStepValue(BULK_MODULUS);
-	
-        const array_1d<double,3> vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
-        //double p_n1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE_OLD_IT);
-        double p_n1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE,1);
-        const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
-        const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
-        //const double k1 = GetGeometry()[1].FastGetSolutionStepValue(BULK_MODULUS);
-        
-	const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
-        //double p_n2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE_OLD_IT);
-        double p_n2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE,1);
-	
-        const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
-        const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
-        //const double k2 = GetGeometry()[2].FastGetSolutionStepValue(BULK_MODULUS);
-	
-        //====================================================================
-        //calculating viscosity and density
-        double nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
-        double density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
-        //double bulk_modulus = 0.3333333333333333333333*(k0 + k1 + k2 ) * dt;
-        nu=0.0;
-        density=1000.0;
-
-        noalias(msWorkMatrix) = Area*  nu  * prod(msDN_DX,trans(msDN_DX)); 
-	
-        //x comp
-        GalerkinRHS[0]=-1.0*(msWorkMatrix(0,0)*vel0[0]+msWorkMatrix(0,1)*vel1[0]+msWorkMatrix(0,2)*vel2[0]);
-        //y comp
-        GalerkinRHS[1]=-1.0*(msWorkMatrix(0,0)*vel0[1]+msWorkMatrix(0,1)*vel1[1]+msWorkMatrix(0,2)*vel2[1]);
-
-        //x comp
-        GalerkinRHS[2]=-1.0*(msWorkMatrix(1,0)*vel0[0]+msWorkMatrix(1,1)*vel1[0]+msWorkMatrix(1,2)*vel2[0]);
-        //y comp
-        GalerkinRHS[3]=-1.0*(msWorkMatrix(1,0)*vel0[1]+msWorkMatrix(1,1)*vel1[1]+msWorkMatrix(1,2)*vel2[1]);
-
-        //x comp
-        GalerkinRHS[4]=-1.0*(msWorkMatrix(2,0)*vel0[0]+msWorkMatrix(2,1)*vel1[0]+msWorkMatrix(2,2)*vel2[0]);
-        //y comp
-        GalerkinRHS[5]=-1.0*(msWorkMatrix(2,0)*vel0[1]+msWorkMatrix(2,1)*vel1[1]+msWorkMatrix(2,2)*vel2[1]);
-
-        ms_adv_vel[0] = msN[0]*(vel0[0])+msN[1]*(vel1[0])+msN[2]*(vel2[0]);
-        ms_adv_vel[1] = msN[0]*(vel0[1])+msN[1]*(vel1[1])+msN[2]*(vel2[1]);
-	
-        const array_1d<double,3> body_force = 0.333333333333333*(GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE)+ GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE) +	GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE));
-        unsigned int number_of_nodes=3;
-	
-        for(unsigned int i = 0; i<number_of_nodes; i++)
-	  {
-            GalerkinRHS[i*2] += body_force[0] * Area * 0.3333333333333 * density;
-            GalerkinRHS[i*2+1] += body_force[1] * Area * 0.3333333333333 * density;
-	  }
-	
-	double p_avg=0.333333333333*(p_n0+p_n1+p_n2)*Area;
-	
-        GalerkinRHS[0]+= 0.0 * msDN_DX(0,0)*p_avg ;
-        GalerkinRHS[1]+= 0.0 * msDN_DX(0,1)*p_avg ;
-	
-        GalerkinRHS[2]+= 0.0 * msDN_DX(1,0)*p_avg ;
-        GalerkinRHS[3]+= 0.0 * msDN_DX(1,1)*p_avg ;
-	
-        GalerkinRHS[4]+= 0.0 * msDN_DX(2,0)*p_avg ;
-        GalerkinRHS[5]+= 0.0 * msDN_DX(2,1)*p_avg ;
-
- 	double p_grad = DN_DX(0, 0) * p_n0 + DN_DX(1, 0) * p_n1 + DN_DX(2, 0) * p_n2;
-        double p_grad1 = DN_DX(0, 1) * p_n0 + DN_DX(1, 1) * p_n1 + DN_DX(2, 1) * p_n2;
-
-	p_avg = N[0] * p_n0 + N[1] * p_n1 + N[2] * p_n2;
-#if defined(FIRST)
-        GalerkinRHS[0] -=  0.0;
-        GalerkinRHS[1] -=  0.0;
-
-        GalerkinRHS[2] -=  0.0;
-        GalerkinRHS[3] -=  0.0;
-
-        GalerkinRHS[4] -=  0.0;
-        GalerkinRHS[5] -=  0.0;
-#else
-        GalerkinRHS[0] +=  msN[0] * p_grad * Area ;  //ojo con el signo
-        GalerkinRHS[1] +=  msN[0] * p_grad1 * Area;
-
-        GalerkinRHS[2] +=  msN[1] * p_grad * Area;
-        GalerkinRHS[3] +=  msN[1] * p_grad1 * Area;
-
-        GalerkinRHS[4] +=  msN[2] * p_grad * Area;
-        GalerkinRHS[5] +=  msN[2] * p_grad1 * Area;
-
-#endif
-
-        GetGeometry()[0].SetLock();
-        array_1d<double,3>& rhs0 = GetGeometry()[0].FastGetSolutionStepValue(FORCE);
-        rhs0[0] += GalerkinRHS[0] ;
-        rhs0[1] += GalerkinRHS[1] ;
-        GetGeometry()[0].UnSetLock();
-
-        GetGeometry()[1].SetLock();
-        array_1d<double,3>& rhs1 = GetGeometry()[1].FastGetSolutionStepValue(FORCE);
-        rhs1[0] += GalerkinRHS[2] ;
-        rhs1[1] += GalerkinRHS[3] ;
-        GetGeometry()[1].UnSetLock();
-
-        GetGeometry()[2].SetLock();
-        array_1d<double,3>& rhs2 = GetGeometry()[2].FastGetSolutionStepValue(FORCE);
-        rhs2[0] += GalerkinRHS[4] ;
-        rhs2[1] += GalerkinRHS[5] ;
-        GetGeometry()[2].UnSetLock();
-
-        double nodal_contrib = 0.333333333333333333333333333 * Area;
-
-	//KRATOS_WATCH(nodal_contrib);
-	//KRATOS_WATCH(density);
-        GetGeometry()[0].SetLock();
-        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib * density;
-        GetGeometry()[0].UnSetLock();
-
-        GetGeometry()[1].SetLock();
-        GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib * density;
-        GetGeometry()[1].UnSetLock();
-
-        GetGeometry()[2].SetLock();
-        GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib * density;
-        GetGeometry()[2].UnSetLock();
       }
     else if (FractionalStepNumber == 6) //calculation of velocities
       {
@@ -869,125 +723,7 @@ void FSFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSi
     
     else if (FractionalStepNumber == 7) 
       {
-	///////////////////////NECESSARY LOCALS///////////////////////////////////////////
-        boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
-        array_1d<double,6> GalerkinRHS = ZeroVector(3); //dimension = number of nodes
-        boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
-        array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
-        boost::numeric::ublas::bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
-        boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
-        boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
-        array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
-        array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
-        array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
-	array_1d<double,3> temp_vec_np = ZeroVector(3); //dimension = number of nodes
-	
-	double dt = CurrentProcessInfo[DELTA_TIME];
-	
-        //getting data for the given geometry
-        double Area;
-        GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Area);
-	
-    	Matrix Mass(3,3);
-    	Mass(0,0)=2.0;
-    	Mass(1,1)=2.0;
-    	Mass(2,2)=2.0;
-    	Mass(0,1)=1.0;
-    	Mass(0,2)=1.0;
-    	Mass(1,0)=1.0;
-    	Mass(1,2)=1.0;
-    	Mass(2,0)=1.0;
-    	Mass(2,1)=1.0;
-    	Mass/=12.0;
 
-        Mass *=Area;
-
-        double nodal_contrib = 0.333333333333333333333333333 * Area;
-        GetGeometry()[0].SetLock();
-        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib ;
-        GetGeometry()[0].UnSetLock();
-
-        GetGeometry()[1].SetLock();
-        GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib ;
-        GetGeometry()[1].UnSetLock();
-
-        GetGeometry()[2].SetLock();
-        GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib ;
-        GetGeometry()[2].UnSetLock();
-
-        //getting the velocity on the nodes and other necessary variabless
-        const array_1d<double,3> vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-        double p_n0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1);
-        //const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
-        //const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
-        const double k0 = GetGeometry()[0].FastGetSolutionStepValue(BULK_MODULUS);
-
-        const array_1d<double,3> vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
-        double p_n1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE,1);
-        //const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
-        //const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
-        const double k1 = GetGeometry()[1].FastGetSolutionStepValue(BULK_MODULUS);
-
-        const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
-        double p_n2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE,1);
-        //const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
-        //const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
-	
-        const double k2 = GetGeometry()[2].FastGetSolutionStepValue(BULK_MODULUS);
-        double bulk_modulus = -0.3333333333333333333333*(k0 + k1 + k2 ) * dt;
-        //double density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
-	
-        temp_vec_np[0] = p_n0;
-        temp_vec_np[1] = p_n1;
-        temp_vec_np[2] = p_n2;
-
-        noalias(GalerkinRHS) = prod(MassFactors, temp_vec_np);
-        
-	GalerkinRHS *= Area * 1.0 ;
-
-        double Gaux;
-        Gaux =  msDN_DX(0,0) * vel0[0] + msDN_DX(0,1) * vel0[1];
-        Gaux += msDN_DX(1,0) * vel1[0] + msDN_DX(1,1) * vel1[1];
-        Gaux += msDN_DX(2,0) * vel2[0] + msDN_DX(2,1) * vel2[1];
-
-	constexpr double E_over_R = 28961.49;//24466.81;
-    	constexpr double C = 1.19e15; 
-	
-        double t1 = GetGeometry()[0].FastGetSolutionStepValue(YCH4);
-        //double Arr1 = C * exp(-E_over_R/(t1));
-        double t2 = GetGeometry()[1].FastGetSolutionStepValue(YCH4);
-        //double Arr2 = C * exp(-E_over_R/(t2));
-        double t3 = GetGeometry()[2].FastGetSolutionStepValue(YCH4);
-        //double Arr3 = C * exp(-E_over_R/(t3));
-
-        //double Aver = 0.33333333333333*(Arr1 + Arr2 + Arr3 );
-
-	double temp=t1 + t2 + t3;
-	temp *= 0.33333333333333;
-	if(temp>1000.0) temp=1000.0;
- 
-        double aux_var= C * exp(-E_over_R/(temp));
-        GalerkinRHS[0] += bulk_modulus * Area * Gaux * 0.33333333333333 + 0.0 * bulk_modulus *  aux_var * 0.33333333333333 * Area ;
-        GalerkinRHS[1] += bulk_modulus * Area * Gaux * 0.33333333333333 + 0.0 * bulk_modulus *  aux_var * 0.33333333333333 * Area ;
-        GalerkinRHS[2] += bulk_modulus * Area * Gaux * 0.33333333333333 + 0.0 * bulk_modulus *  aux_var * 0.33333333333333 * Area ;
-
-	//double ddd=C * exp(-E_over_R/(temp));
-	//KRATOS_WATCH(ddd);
-
-        GetGeometry()[0].SetLock();
-        double & rhs0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSUREAUX);
-        rhs0 += GalerkinRHS[0] ;
-        GetGeometry()[0].UnSetLock();
-
-        GetGeometry()[1].SetLock();
-        double & rhs1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSUREAUX);
-        rhs1 += GalerkinRHS[1] ;
-        GetGeometry()[1].UnSetLock();
-
-        GetGeometry()[2].SetLock();
-        double & rhs2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSUREAUX);
-        rhs2 += GalerkinRHS[2] ;
-        GetGeometry()[2].UnSetLock();
     }
     KRATOS_CATCH("");
 }
@@ -1149,7 +885,20 @@ void FSFluid2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& Cur
 
     KRATOS_CATCH("");
   }
-  
+
+  void  FSFluid2D::Calculate(const Variable<double >& rVariable, double & Output, const ProcessInfo& rCurrentProcessInfo)
+{
+    //KRATOS_WATCH("empty for fluid")
+   KRATOS_WATCH("Setting is_fluid in elements")
+    if(rVariable == IS_FLUID)
+    {
+
+
+    GetGeometry()[0].FastGetSolutionStepValue(IS_FLUID)=1.0;
+    GetGeometry()[1].FastGetSolutionStepValue(IS_FLUID)=1.0;
+    GetGeometry()[2].FastGetSolutionStepValue(IS_FLUID)=1.0;
+    }
+}
   
 } // Namespace Kratos
 

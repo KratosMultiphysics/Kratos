@@ -67,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/mass_calculate_process.h"
 #include "custom_processes/ulf_time_step_dec_process.h"
 #include "custom_processes/mark_fluid_process.h"
+#include "custom_processes/mark_structure_process.h"
 #include "custom_processes/mark_close_nodes_process.h"
 #include "custom_processes/mark_outer_nodes_process.h"
 #include "custom_processes/save_structure_model_part_process.h"
@@ -83,6 +84,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/calculate_nodal_length.h"
 #include "custom_processes/find_nodal_neighbours_surface_process.h"
 #include "custom_processes/mark_free_surface_process.h"
+
+#include "custom_processes/hypoelastic_solid_stress_tensor_calculate_process.h"
+
 
 #include "includes/node.h"
 
@@ -136,7 +140,9 @@ void  AddProcessesToPython(pybind11::module& m)
     	 ;
      */
 
-
+    py::class_<HypoelasticStressCalculateProcess, HypoelasticStressCalculateProcess::Pointer, Process >(m,"HypoelasticStressCalculateProcess")
+    .def(py::init<ModelPart&, unsigned int>())
+    ;
 
     py::class_<PressureCalculateProcess, PressureCalculateProcess::Pointer, Process >(m,"PressureCalculateProcess")
     .def(py::init<ModelPart&, unsigned int>())
@@ -156,17 +162,21 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&>())
     .def("EstimateDeltaTime",&UlfTimeStepDecProcess::EstimateDeltaTime)
     ;
-    py::class_<MarkOuterNodesProcess, MarkOuterNodesProcess::Pointer, Process > (m,"MarkOuterNodesProcess")
-    .def(py::init<ModelPart&>())
-    .def("MarkOuterNodes",&MarkOuterNodesProcess::MarkOuterNodes)
-    ;
-    py::class_<MarkFluidProcess, MarkFluidProcess::Pointer, Process > (m,"MarkFluidProcess")
+
+    py::class_<MarkStructureProcess, MarkStructureProcess::Pointer, Process > (m,"MarkStructureProcess")
     .def(py::init<ModelPart&>())
     ;
-    py::class_<MarkCloseNodesProcess, MarkCloseNodesProcess::Pointer, Process > (m,"MarkCloseNodesProcess")
-    .def(py::init<ModelPart&>())
-    .def("MarkCloseNodes", &MarkCloseNodesProcess::MarkCloseNodes)
-    ;
+    //py::class_<MarkOuterNodesProcess, MarkOuterNodesProcess::Pointer, Process > (m,"MarkOuterNodesProcess")
+    //.def(py::init<ModelPart&>())
+    //.def("MarkOuterNodes",&MarkOuterNodesProcess::MarkOuterNodes)
+    //;
+    //py::class_<MarkFluidProcess, MarkFluidProcess::Pointer, Process > (m,"MarkFluidProcess")
+    //.def(py::init<ModelPart&>())
+    //;
+    //py::class_<MarkCloseNodesProcess, MarkCloseNodesProcess::Pointer, Process > (m,"MarkCloseNodesProcess")
+    //.def(py::init<ModelPart&>())
+    //.def("MarkCloseNodes", &MarkCloseNodesProcess::MarkCloseNodes)
+    //;
     py::class_<SaveStructureModelPartProcess, SaveStructureModelPartProcess::Pointer, Process> (m, "SaveStructureModelPartProcess")
     .def(py::init<>())
     .def("SaveStructure", &SaveStructureModelPartProcess::SaveStructure)

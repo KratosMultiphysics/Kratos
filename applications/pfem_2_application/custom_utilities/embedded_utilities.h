@@ -307,8 +307,86 @@ public:
     void DisableSubdomain(ModelPart& full_model_part, ModelPart& reduced_model_part)
     {
         KRATOS_TRY
-  KRATOS_THROW_ERROR(std::logic_error,  "USE THE PROCESS INSTEAD.... " , "");
-       /*
+
+	//clear reduced_model_part
+        reduced_model_part.Conditions().clear();
+        reduced_model_part.Elements().clear();
+        reduced_model_part.Nodes().clear();
+      
+        reduced_model_part.Conditions().reserve(full_model_part.Conditions().size());
+        reduced_model_part.Elements().reserve(full_model_part.Elements().size());
+        reduced_model_part.Nodes().reserve(full_model_part.Nodes().size());
+
+
+	//change the name of the var to another one  - otherwise confusing
+	for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; in != full_model_part.NodesEnd() ; ++in)
+	{	  	
+	in->FastGetSolutionStepValue(MATERIAL_VARIABLE)=false;
+	}
+
+	int n_nodes=0;
+
+        for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ;
+                im != full_model_part.ElementsEnd() ; ++im)
+        {
+	    int n_int=0;
+	    int n_nodes=im->GetGeometry().size();
+
+	    for (int i=0; i<n_nodes; i++)
+		if(im->GetGeometry()[i].FastGetSolutionStepValue(MIXTURE_FRACTION)>0.5) n_int+=1;
+		//n_int+=im->GetGeometry()[i].FastGetSolutionStepValue(MIXTURE_FRACTION);  //(IS_INTERFACE) 
+
+
+
+            if (n_int<n_nodes)
+            {
+                reduced_model_part.AddElement(*(im.base())); 
+		for (int i=0;i<n_nodes;i++)
+			{
+			im->GetGeometry()[i].FastGetSolutionStepValue(MATERIAL_VARIABLE)=true;
+			}               
+            }
+	    //KRATOS_WATCH(n_int)
+	    //KRATOS_WATCH(n_nodes)
+            //if (n_int>n_nodes)
+            //    KRATOS_THROW_ERROR(std::logic_error,  "Number of DISABLE flags cant exceed number of the element nodes.... " , "");
+
+        }
+
+	for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; in != full_model_part.NodesEnd() ; ++in)
+        {
+
+            if (in->FastGetSolutionStepValue(MATERIAL_VARIABLE)==true)
+            {
+                reduced_model_part.AddNode(*(in.base()));       
+	    }
+	}
+       
+        for(ModelPart::PropertiesContainerType::iterator i_properties = full_model_part.PropertiesBegin() ;
+                i_properties != full_model_part.PropertiesEnd() ; ++i_properties)
+        {
+            reduced_model_part.AddProperties(*(i_properties.base()));
+
+        }
+	
+	//find neighbors within reduced model part
+	if (n_nodes==3)
+		{
+		FindNodalNeighboursProcess N_FINDER=FindNodalNeighboursProcess(reduced_model_part, 9, 20);
+		N_FINDER.Execute();
+		}
+	else if (n_nodes==4)
+		{
+		FindNodalNeighboursProcess N_FINDER=FindNodalNeighboursProcess(reduced_model_part, 20, 30);
+		N_FINDER.Execute();
+		}
+
+
+
+
+/*
+        //KRATOS_THROW_ERROR(std::logic_error,  "USE THE PROCESS INSTEAD.... " , "");
+       
         reduced_model_part.Conditions().clear();
         reduced_model_part.Elements().clear();
         reduced_model_part.Nodes().clear();
@@ -322,7 +400,7 @@ public:
 
         for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; in != full_model_part.NodesEnd() ; ++in)
         {
-            in->FastGetSolutionStepValue(DISABLE)=false;
+            in->FastGetSolutionStepValue(IS_DIVIDED)=false;
         }
         for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ; im != full_model_part.ElementsEnd() ; ++im)
         {
@@ -344,7 +422,7 @@ public:
                 reduced_model_part.Elements().push_back(*(im.base()));
                 for (int i=0; i<3; i++)
                 {
-                    im->GetGeometry()[i].FastGetSolutionStepValue(DISABLE)=true;
+                    im->GetGeometry()[i].FastGetSolutionStepValue(IS_DIVIDED)=true;
                 }
 
             }
@@ -356,7 +434,7 @@ public:
         for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ;
                 in != full_model_part.NodesEnd() ; ++in)
         {
-            n_disabled=in->FastGetSolutionStepValue(DISABLE);
+            n_disabled=in->FastGetSolutionStepValue(IS_DIVIDED);
             if (n_disabled==1.0)
             {
                 reduced_model_part.Nodes().push_back(*(in.base()));

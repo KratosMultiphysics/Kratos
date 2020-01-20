@@ -60,7 +60,7 @@ namespace Kratos
 			//
 
 
-		py::class_< ResidualBasedConvectionDiffusionrStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >,ResidualBasedConvectionDiffusionrStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,BaseSolvingStrategyType> (m,"ResidualBasedConvectionDiffusionrStrategyNonLinear").def(init<ModelPart&, LinearSolverType::Pointer,	bool, int, int ,double	>() );
+		py::class_< ResidualBasedConvectionDiffusionrStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >,ResidualBasedConvectionDiffusionrStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,BaseSolvingStrategyType> (m,"ResidualBasedConvectionDiffusionrStrategyNonLinear").def(py::init<ModelPart&, LinearSolverType::Pointer,	bool, int, int ,double	>() );
 
 
 		}

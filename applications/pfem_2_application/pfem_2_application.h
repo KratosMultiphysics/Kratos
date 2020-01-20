@@ -49,6 +49,25 @@
 #include "custom_conditions/autoslip_inlet_3d.h" //the condition
 
 
+#include "../applications/FluidDynamicsApplication/fluid_dynamics_application.h"
+#include "../applications/FluidDynamicsApplication/fluid_dynamics_application_variables.h"
+#include "../applications/FluidDynamicsApplication/custom_elements/vms.h"
+
+#include "../applications/FluidDynamicsApplication/custom_constitutive/bingham_3d_law.h"
+#include "../applications/FluidDynamicsApplication/custom_constitutive/euler_2d_law.h"
+#include "../applications/FluidDynamicsApplication/custom_constitutive/euler_3d_law.h"
+#include "../applications/FluidDynamicsApplication/custom_constitutive/herschel_bulkley_3d_law.h"
+#include "../applications/FluidDynamicsApplication/custom_constitutive/newtonian_2d_law.h"
+#include "../applications/FluidDynamicsApplication/custom_constitutive/newtonian_3d_law.h"
+#include "../applications/FluidDynamicsApplication/custom_constitutive/newtonian_two_fluid_2d_law.h"
+#include "../applications/FluidDynamicsApplication/custom_constitutive/newtonian_two_fluid_3d_law.h"
+#include "../applications/FluidDynamicsApplication/custom_constitutive/newtonian_temperature_dependent_2d_law.h"
+#include "../applications/FluidDynamicsApplication/custom_constitutive/newtonian_temperature_dependent_3d_law.h"
+
+
+#include "custom_elements/lagrangian_vms.h"
+
+
 namespace Kratos
 {
 
@@ -287,6 +306,8 @@ namespace Kratos
     const FixedPressure3D   mFixedPressure3D;
     const MonolithicAutoSlipInlet3D   mMonolithicAutoSlipInlet3D;
 
+    const LagrangianFluidVMS<2,3> mLagrangianFluidVMS2D;
+    const LagrangianFluidVMS<3,4> mLagrangianFluidVMS3D;
 
     ///@}
     ///@name Private Operators
