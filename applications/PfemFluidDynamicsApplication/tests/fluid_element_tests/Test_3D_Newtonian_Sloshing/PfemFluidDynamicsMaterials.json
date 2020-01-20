@@ -1,0 +1,14 @@
+{
+    "properties" : [{
+        "model_part_name" : "PfemFluidModelPart.Parts_Parts_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "Variables" : {
+                "DENSITY"           : 1000.0,
+                "DYNAMIC_VISCOSITY" : 0.001,
+                "BULK_MODULUS"      : 2100000000.0
+            },
+            "Tables"    : {}
+        }
+    }]
+}
