@@ -593,12 +593,6 @@ public:
     ///@{
 
     /// Id of this Geometry
-    IndexType Id()
-    {
-        return mId;
-    }
-
-    /// Id of this Geometry
     IndexType const& Id() const
     {
         return mId;
