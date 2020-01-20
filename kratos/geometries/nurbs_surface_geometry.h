@@ -414,9 +414,9 @@ public:
                 v_end = number_of_cps_v - 1;
             }
 
-            for (int i = u_start; i < u_end; ++i)
+            for (IndexType i = u_start; i < u_end; ++i)
             {
-                for (int j = v_start; j < v_end; ++j)
+                for (IndexType j = v_start; j < v_end; ++j)
                 {
                     rGeometryArray.push_back(this->pGetPoint(i, j));
                 }
