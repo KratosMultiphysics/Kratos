@@ -367,7 +367,7 @@ public:
         const CoordinatesArrayType& rLocalCoordinates,
         IndexType SpecificationType = 0) const override
     {
-        rPoints.resize(0);
+        rPoints.clear();
 
         SizeType number_of_cps_u = NumberOfControlPointsU();
         SizeType number_of_cps_v = NumberOfControlPointsV();
