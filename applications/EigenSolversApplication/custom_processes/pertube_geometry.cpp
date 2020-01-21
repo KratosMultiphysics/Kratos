@@ -265,7 +265,12 @@ double PertubeGeometryProcess::CorrelationFunction( ModelPart::NodeIterator itNo
 
     double norm = sqrt( coorrdinate(0)*coorrdinate(0) + coorrdinate(1)*coorrdinate(1) + coorrdinate(2)*coorrdinate(2) );
 
-    return( exp( - norm*norm / (CorrelationLenth*CorrelationLenth) ) );  
+    //This is for cylinder coordinates
+    
+
+    return( exp( - norm / (CorrelationLenth) ) );  
 }
+
+
 
 } // namespace Kratos
