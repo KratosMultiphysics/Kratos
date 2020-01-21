@@ -27,8 +27,6 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
     KRATOS_TRY;
     std::vector<IndexType> vector_of_node_ids;
 
-    int count = 0;
-
     for (auto &i_element : rModelPart.Elements())
     {
         double nodal_distance = 0.0;
@@ -36,22 +34,19 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
         IndexType j = 0;
         Geometry<Node<3>> &geom = i_element.GetGeometry();
 
-        for (j = 0; j < geom.size(); j++)
+        for (auto& node : geom)
         {
-            nodal_distance =
-                i_element.GetGeometry()[j].FastGetSolutionStepValue(CHIMERA_DISTANCE);
+            nodal_distance = node.FastGetSolutionStepValue(CHIMERA_DISTANCE);
 
             nodal_distance = nodal_distance * DomainType;
             if (nodal_distance < -1 * OverLapDistance)
-            {
                 numPointsOutside++;
-            }
         }
 
         /* Any node goes out of the domain means the element need to be INACTIVE ,
-       otherwise the modified patch boundary wont find any nodes on background
-     */
-        if (numPointsOutside > 0)
+        *   otherwise the modified patch boundary wont find any nodes on background
+        */
+        if (numPointsOutside == geom.size())
         {
             i_element.Set(ACTIVE, false);
             IndexType num_nodes_per_elem = i_element.GetGeometry().PointsNumber();
