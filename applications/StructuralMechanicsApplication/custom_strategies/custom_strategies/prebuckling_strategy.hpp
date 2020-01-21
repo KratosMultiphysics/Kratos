@@ -591,7 +591,13 @@ public:
                 mSolutionFound = true;
                 KRATOS_INFO_IF("Prebuckling Analysis: ", BaseType::GetEchoLevel() > 0)
                 << "Convergence achieved in " << mLoadStepIteration + 1 << " Load Iterations!" << std::endl;
-            }   
+            }
+            else
+            {
+                KRATOS_INFO_IF("Prebuckling Analysis: ", BaseType::GetEchoLevel() > 0)
+                << "Convergence not achieved yet " << mLambda/mLambdaPrev << " / " << mConvergenceRatio << std::endl;
+            }
+            
         }
         
         mLoadStepIteration++;
