@@ -83,9 +83,18 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             coupling_operation.Finalize()
 
     def AdvanceInTime(self, current_time):
+        # not all solvers provide time (e.g. external solvers or steady solvers)
+        # hence we have to check first if they return time (i.e. time != 0.0)
+        # and then if the times are matching, since currently no interpolation in time is possible
+
         self.time = 0.0
         for solver in self.solver_wrappers.values():
-            self.time = max(self.time, solver.AdvanceInTime(current_time))
+            solver_time = solver.AdvanceInTime(current_time)
+            if solver_time != 0.0: # solver provides time
+                if self.time == 0.0: # first time a solver returns a time different from 0.0
+                    self.time = solver_time
+                elif abs(self.time - solver_time) > 1e-12:
+                        raise Exception("Solver time mismatch")
 
         return self.time
 
