@@ -24,6 +24,9 @@ namespace Kratos
 {
     class IntegrationPointUtilities
     {
+    private:
+        static std::vector<std::vector<std::vector<double>>> s_gauss_legendre;
+
     public:
 
         typedef std::size_t SizeType;
@@ -31,8 +34,6 @@ namespace Kratos
 
         typedef IntegrationPoint<3> IntegrationPointType;
         typedef std::vector<IntegrationPointType> IntegrationPointsArrayType;
-
-        static std::vector<std::vector<std::vector<double>>> s_gauss_legendre;
 
         static void IntegrationPoints1D(
             IntegrationPointsArrayType& rIntegrationPoints,
@@ -50,7 +51,7 @@ namespace Kratos
 
             const std::vector<std::vector<double>>& integration_point_list_u = IntegrationPointUtilities::s_gauss_legendre[PointsInU - 1];
 
-            IndexType counter;
+            IndexType counter = 0;
             for (SizeType u = 0; u < PointsInU - 1; ++u)
             {
                 auto& r_int_point = rIntegrationPoints[counter];
@@ -82,7 +83,7 @@ namespace Kratos
             const std::vector<std::vector<double>>& integration_point_list_u = IntegrationPointUtilities::s_gauss_legendre[PointsInU - 1];
             const std::vector<std::vector<double>>& integration_point_list_v = IntegrationPointUtilities::s_gauss_legendre[PointsInV - 1];
 
-            IndexType counter;
+            IndexType counter = 0;
             for (SizeType u = 0; u < PointsInU - 1; ++u)
             {
                 for (SizeType v = 0; v < PointsInV - 1; ++v)
