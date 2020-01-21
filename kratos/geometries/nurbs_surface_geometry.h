@@ -335,13 +335,16 @@ public:
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints) const override
     {
-        CreateIntegrationPoints(
-            rIntegrationPoints, PolynomialDegreeU() + 1, PolynomialDegreeV + 1);
+        const SizeType points_in_u = PolynomialDegreeU() + 1;
+        const SizeType points_in_v = PolynomialDegreeV() + 1;
+
+        CreateIntegrationPoints2(
+            rIntegrationPoints, points_in_u, points_in_v);
     }
 
-    void CreateIntegrationPoints(
+    void CreateIntegrationPoints2(
         IntegrationPointsArrayType& rIntegrationPoints,
-        SizeType IntegrationPointsPerKnotU, SizeType IntegrationPointsPerKnotV)
+        SizeType IntegrationPointsPerKnotU, SizeType IntegrationPointsPerKnotV) const
     {
         auto knot_span_intervals_u = KnotSpanIntervalsU();
         auto knot_span_intervals_v = KnotSpanIntervalsV();
@@ -365,8 +368,8 @@ public:
                 IntegrationPointUtilities::IntegrationPoints2D(
                     integration_points_knot_span,
                     IntegrationPointsPerKnotU, IntegrationPointsPerKnotV,
-                    knot_span_intervals_u.T0(), knot_span_intervals_u.T1(),
-                    knot_span_intervals_v.T0(), knot_span_intervals_v.T1());
+                    knot_span_intervals_u[i].GetT0(), knot_span_intervals_u[i].GetT1(),
+                    knot_span_intervals_v[j].GetT0(), knot_span_intervals_v[j].GetT1());
 
                 for (IndexType k = 0; k < integration_points_knot_span.size(); ++k)
                 {
