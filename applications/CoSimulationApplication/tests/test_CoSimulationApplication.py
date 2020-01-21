@@ -17,12 +17,17 @@ from test_mok_fsi import TestMokFSI
 from test_function_callback_utility import TestGenericCallFunction
 from test_ping_pong_coupling import TestPingPong
 from test_co_sim_io_dummy_solvers import TestCoSimIODummySolvers
+
 if numpy_available:
     from test_coupling_interface_data import TestCouplingInterfaceData
     from test_data_transfer_operators import TestDataTransferOperators
     from test_coupling_operations import TestScalingOperation
     from test_flower_coupling import TestFLOWerCoupling
     from test_sdof_solver import TestSdofSolver
+    from test_convergence_criteria import TestConvergenceCriteria
+    from test_convergence_criteria import TestConvergenceCriteriaWrapper
+    from test_convergence_accelerators import TestConvergenceAcceleratorWrapper
+
 if not using_pykratos:
     from test_cosim_EMPIRE_API import TestCoSim_EMPIRE_API
     from test_co_sim_io_kratos_python_exposure import TestCoSimIOKratosPythonExposure
@@ -32,7 +37,7 @@ if not using_pykratos:
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
-    Populates the test suites to run. At least, it should pupulate the suites:
+    Populates the test suites to run. At least, it should populate the suites:
     "small", "nighlty" and "all"
 
     Return
@@ -50,10 +55,14 @@ def AssembleTestSuites():
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestScalingOperation]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSdofSolver]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceCriteria]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceCriteriaWrapper]))
     if not using_pykratos:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))
+    if not using_pykratos and numpy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOKratosPythonExposure]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPingPong]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceAcceleratorWrapper]))
 
 
     ################################################################################
@@ -80,7 +89,6 @@ def AssembleTestSuites():
     allSuite.addTests(validationSuite)
 
     return suites
-
 
 
 if __name__ == '__main__':

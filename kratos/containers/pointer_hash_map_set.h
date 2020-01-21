@@ -284,14 +284,14 @@ public:
 
     iterator insert(TPointerType pData)
     {
-		std::string key=KeyOf(*pData);
-		typename ContainerType::value_type item(key, pData);
-		std::pair<typename ContainerType::iterator, bool> result = mData.insert(item);
-	// TODO: I should enable this after adding the KRATOS_ERROR to define.h. Pooyan.
-	//if(result.second != true)
-	//	KRATOS_ERROR << "Error in adding the new item" << std::endl
-		return result.first;
-	}
+        key_type key=KeyOf(*pData);
+        typename ContainerType::value_type item(key, pData);
+        std::pair<typename ContainerType::iterator, bool> result = mData.insert(item);
+        // TODO: I should enable this after adding the KRATOS_ERROR to define.h. Pooyan.
+        //if(result.second != true)
+        //	KRATOS_ERROR << "Error in adding the new item" << std::endl
+        return result.first;
+    }
 
     template <class InputIterator>
     void insert(InputIterator First, InputIterator Last)

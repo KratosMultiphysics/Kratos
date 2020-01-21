@@ -3,6 +3,7 @@ import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
+import KratosMultiphysics.DelaunayMeshingApplication  as KratosDelaunay
 from KratosMultiphysics.python_solver import PythonSolver
 
 
@@ -200,7 +201,18 @@ class PfemFluidSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
 
-        print("::[Pfem Fluid Solver]:: Variables ADDED")
+        # Pfem Extra Vars
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_NORMAL)
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.OFFSET)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.SHRINK_FACTOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.MEAN_ERROR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.RIGID_WALL)
+
+        print("::[PfemFluidSolver]:: Variables ADDED")
 
 
     def AddDofs(self):
@@ -217,15 +229,16 @@ class PfemFluidSolver(PythonSolver):
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
         print("::[Pfem Fluid Solver]:: DOF's ADDED")
 
-
     def ImportModelPart(self):
-
-        print("::[Pfem Fluid Solver]:: Model reading starts.")
-
-        self.computing_model_part_name = "fluid_computing_domain"
 
         # we can use the default implementation in the base class
         self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
+
+    def PrepareModelPart(self):
+
+        print("::[Pfem Fluid Solver]:: Model preparing started.")
+
+        self.computing_model_part_name = "fluid_computing_domain"
 
         # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
         params = KratosMultiphysics.Parameters("{}")
@@ -257,7 +270,7 @@ class PfemFluidSolver(PythonSolver):
 
         self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
-        print ("::[Pfem Fluid Solver]:: Model reading finished.")
+        print ("::[Pfem Fluid Solver]:: Model preparing finished.")
 
 
     def CheckAndPrepareModelProcess(self, params):

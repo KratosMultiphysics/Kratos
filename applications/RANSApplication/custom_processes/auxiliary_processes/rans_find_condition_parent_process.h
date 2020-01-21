@@ -72,7 +72,7 @@ public:
     RansFindConditionParentProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansFindConditionParentProcess() override;
+    ~RansFindConditionParentProcess() override = default;
 
     ///@}
     ///@name Operators

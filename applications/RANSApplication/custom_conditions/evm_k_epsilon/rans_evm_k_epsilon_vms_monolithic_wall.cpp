@@ -33,45 +33,6 @@
 namespace Kratos
 {
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::RansEvmKEpsilonVmsMonolithicWall(IndexType NewId)
-    : BaseType(NewId)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::RansEvmKEpsilonVmsMonolithicWall(
-    IndexType NewId, const NodesArrayType& ThisNodes)
-    : BaseType(NewId, ThisNodes)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::RansEvmKEpsilonVmsMonolithicWall(
-    IndexType NewId, GeometryType::Pointer pGeometry)
-    : BaseType(NewId, pGeometry)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::RansEvmKEpsilonVmsMonolithicWall(
-    IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : BaseType(NewId, pGeometry, pProperties)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::RansEvmKEpsilonVmsMonolithicWall(
-    RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes> const& rOther)
-    : BaseType(rOther)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::~RansEvmKEpsilonVmsMonolithicWall()
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>& RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes>::operator=(
     RansEvmKEpsilonVmsMonolithicWall<TDim, TNumNodes> const& rOther)
 {

@@ -4,11 +4,13 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics as KM
 
 # CoSimulation imports
-from KratosMultiphysics.CoSimulationApplication.factories.predictor_factory import CreatePredictor
-from KratosMultiphysics.CoSimulationApplication.factories.convergence_accelerator_factory import CreateConvergenceAccelerator
-from KratosMultiphysics.CoSimulationApplication.factories.convergence_criterion_factory import CreateConvergenceCriterion
 from KratosMultiphysics.CoSimulationApplication.factories.coupling_operation_factory import CreateCouplingOperation
 from KratosMultiphysics.CoSimulationApplication.factories.data_transfer_operator_factory import CreateDataTransferOperator
+from KratosMultiphysics.CoSimulationApplication.convergence_accelerators.convergence_accelerator_wrapper import ConvergenceAcceleratorWrapper
+from KratosMultiphysics.CoSimulationApplication.convergence_criteria.convergence_criteria_wrapper import ConvergenceCriteriaWrapper
+from KratosMultiphysics.CoSimulationApplication.factories.predictor_factory import CreatePredictor
+
+
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 ### This file contains functionalities that are commonly used in CoSimulation ###
@@ -17,15 +19,11 @@ def cs_print_info(label, *args):
     KM.Logger.PrintInfo(colors.bold(label), " ".join(map(str,args)))
 
 def cs_print_warning(label, *args):
-    KM.Logger.PrintWarning(colors.red("Warning: ")+colors.bold(label), " ".join(map(str,args)))
+    KM.Logger.PrintWarning(colors.bold(label), " ".join(map(str,args)))
 
 
 def UsingPyKratos():
-    for i_path in KM.__path__:
-        if "pyKratos" in i_path:
-            return True
-    return False
-
+    return any(["pyKratos" in i_path for i_path in KM.__path__])
 
 def SettingsTypeCheck(settings):
     if not isinstance(settings, KM.Parameters):
@@ -34,8 +32,8 @@ def SettingsTypeCheck(settings):
 
 def AddEchoLevelToSettings(settings, echo_level):
     echo_level_params = KM.Parameters("""{
-        "echo_level" : """ + str(echo_level) + """
-    }""")
+        "echo_level" : %d
+    }""" % echo_level)
     settings.AddMissingParameters(echo_level_params)
 
 
@@ -52,7 +50,7 @@ def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers
     for conv_acc_settings in convergence_accelerator_settings_list:
         solver = solvers[conv_acc_settings["solver"].GetString()]
         AddEchoLevelToSettings(conv_acc_settings, parent_echo_level)
-        convergence_accelerators.append(CreateConvergenceAccelerator(conv_acc_settings, solver))
+        convergence_accelerators.append(ConvergenceAcceleratorWrapper(conv_acc_settings, solver))
 
     return convergence_accelerators
 
@@ -61,7 +59,7 @@ def CreateConvergenceCriteria(convergence_criterion_settings_list, solvers, pare
     for conv_crit_settings in convergence_criterion_settings_list:
         solver = solvers[conv_crit_settings["solver"].GetString()]
         AddEchoLevelToSettings(conv_crit_settings, parent_echo_level)
-        convergence_criteria.append(CreateConvergenceCriterion(conv_crit_settings, solver))
+        convergence_criteria.append(ConvergenceCriteriaWrapper(conv_crit_settings, solver))
 
     return convergence_criteria
 
