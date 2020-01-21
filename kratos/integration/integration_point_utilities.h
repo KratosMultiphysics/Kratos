@@ -55,7 +55,7 @@ namespace Kratos
             const std::vector<std::vector<double>>& integration_point_list_u = IntegrationPointUtilities::s_gauss_legendre[PointsInU - 1];
 
             IndexType counter = 0;
-            for (SizeType u = 0; u < PointsInU - 1; ++u)
+            for (SizeType u = 0; u < PointsInU; ++u)
             {
                 auto& r_int_point = rIntegrationPoints[counter];
 
