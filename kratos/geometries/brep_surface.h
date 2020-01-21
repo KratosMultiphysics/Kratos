@@ -222,7 +222,7 @@ public:
     {
         if (!IsTrimmed()){
             return mpNurbsSurface->CreateIntegrationPoints(
-                rIntegrationPoints, PolynomialDegreeU() + 1, PolynomialDegreeV + 1);
+                rIntegrationPoints);
         }
         else {
             KRATOS_ERROR << "CreateIntegrationPoints is not impelemented for trimmed BrepSurfaces." << std::endl;
