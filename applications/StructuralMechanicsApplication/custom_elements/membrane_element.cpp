@@ -983,7 +983,7 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
     else if (rVariable == MEMBRANE_PRESTRESS) {
         std::vector< Vector > prestress_matrix;
         CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,prestress_matrix,rCurrentProcessInfo);
-        const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(GetGeometry().GetDefaultIntegrationMethod());
+        const auto& r_integration_points = GetGeometry().IntegrationPoints(GetGeometry().GetDefaultIntegrationMethod());
         rOutput = ZeroMatrix(3,r_integration_points.size());
 
         // each column represents 1 GP
