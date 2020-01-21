@@ -11,8 +11,8 @@
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_VARIABLE_UTILITIES_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_VARIABLE_UTILITIES_TO_PYTHON_H_INCLUDED
 
 
 
@@ -31,10 +31,10 @@ namespace Kratos
 namespace Python
 {
 
-void  AddUtilitiesToPython(pybind11::module& m);
+void  AddVariableUtilitiesToPython(pybind11::module& m);  // This must change in all of the instances  AddGeometricalUtilitiesToPython, AddOtherUtilitiesToPython, AddKernelUtilitiesToPython, AddVariableUtilitiesToPython
 
 }  // namespace Python.
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_VARIABLE_UTILITIES_TO_PYTHON_H_INCLUDED  defined 

@@ -50,7 +50,9 @@
 #include "add_serializer_to_python.h"
 #include "add_table_to_python.h"
 #include "add_strategies_to_python.h"
-#include "add_utilities_to_python.h"
+#include "add_geometrical_utilities_to_python.h"
+#include "add_other_utilities_to_python.h"
+#include "add_variable_utilities_to_python.h"//Partition needed
 #include "add_matrix_market_interface_to_python.h"
 #include "add_search_strategies_to_python.h"
 #include "add_kratos_parameters_to_python.h"
@@ -117,7 +119,9 @@ PYBIND11_MODULE(Kratos, m)
     AddFactoriesToPython(m);
     AddAMGCLSolverToPython(m);
     AddStrategiesToPython(m);
-    AddUtilitiesToPython(m);
+    AddGeometricalUtilitiesToPython(m);
+    AddOtherUtilitiesToPython(m);
+    AddVariableUtilitiesToPython(m);
     AddProcessInfoToPython(m);
     AddConstitutiveLawToPython(m);
     AddSerializerToPython(m);
