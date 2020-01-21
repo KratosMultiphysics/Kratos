@@ -409,6 +409,21 @@ namespace Testing {
         KRATOS_CHECK_NEAR(result[2], 0.0, TOLERANCE);
     }
 
+    /// Check integration of nurbs surface.
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceNodeIntegrationDomain, KratosCoreNurbsGeometriesFastSuite) {
+        auto surface = GenerateReferenceNodeSurface();
+
+        // Check general information, input to ouput
+        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        surface.CreateIntegrationPoints(integration_points);
+
+        KRATOS_CHECK_EQUAL(integration_points.size(), 6);
+        double area = 0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            area += integration_points[i].Weight();
+        }
+        KRATOS_CHECK_NEAR(area, 50.0, TOLERANCE);
+    }
     KRATOS_TEST_CASE_IN_SUITE(NurbsQuarterSphereSurface, KratosCoreNurbsGeometriesFastSuite) {
         auto surface = GenerateReferenceQuarterSphereGeometry();
 
