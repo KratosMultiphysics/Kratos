@@ -60,10 +60,6 @@ RansCheckVectorBoundsProcess::RansCheckVectorBoundsProcess(Model& rModel, Parame
     KRATOS_CATCH("");
 }
 
-RansCheckVectorBoundsProcess::~RansCheckVectorBoundsProcess()
-{
-}
-
 int RansCheckVectorBoundsProcess::Check()
 {
     KRATOS_TRY

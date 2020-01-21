@@ -70,7 +70,7 @@ public:
     RelaxedDofUpdater(RelaxedDofUpdater const& rOther) = delete;
 
     /// Destructor.
-    virtual ~RelaxedDofUpdater(){}
+    virtual ~RelaxedDofUpdater() = default;
 
     /// Deleted assignment operator
     RelaxedDofUpdater& operator=(RelaxedDofUpdater const& rOther) = delete;
