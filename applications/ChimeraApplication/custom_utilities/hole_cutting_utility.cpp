@@ -141,7 +141,7 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(
     };
 
     if(rVolumeModelPart.NumberOfElements() == 0)
-        return; // No elements no boundary.
+        return; // No elements no boundary. 
 
     IndexType n_nodes = rVolumeModelPart.ElementsBegin()->GetGeometry().size();
     KRATOS_ERROR_IF(!(n_nodes != 3 || n_nodes != 4))
