@@ -420,15 +420,15 @@ namespace Testing {
 
         // test to obtain the points on the left boundary
         KRATOS_CHECK_EQUAL(points.size(), 2);
-        KRATOS_CHECK_EQUAL(points[0]->Id(), 1);
-        KRATOS_CHECK_EQUAL(points[1]->Id(), 4);
+        KRATOS_CHECK_EQUAL(points[0].Id(), 1);
+        KRATOS_CHECK_EQUAL(points[1].Id(), 4);
 
         surface.GetPointsAt(points, local_parameters, 1);
 
         // test to obtain the second row of points on the left boundary
         KRATOS_CHECK_EQUAL(points.size(), 2);
-        KRATOS_CHECK_EQUAL(points[0]->Id(), 2);
-        KRATOS_CHECK_EQUAL(points[1]->Id(), 5);
+        KRATOS_CHECK_EQUAL(points[0].Id(), 2);
+        KRATOS_CHECK_EQUAL(points[1].Id(), 5);
 
 
         local_parameters[0] = -1;
@@ -438,9 +438,9 @@ namespace Testing {
 
         // test to obtain the second row of points on the left boundary
         KRATOS_CHECK_EQUAL(points.size(), 3);
-        KRATOS_CHECK_EQUAL(points[0]->Id(), 1);
-        KRATOS_CHECK_EQUAL(points[1]->Id(), 2);
-        KRATOS_CHECK_EQUAL(points[2]->Id(), 3);
+        KRATOS_CHECK_EQUAL(points[0].Id(), 1);
+        KRATOS_CHECK_EQUAL(points[1].Id(), 2);
+        KRATOS_CHECK_EQUAL(points[2].Id(), 3);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsQuarterSphereSurface, KratosCoreNurbsGeometriesFastSuite) {
