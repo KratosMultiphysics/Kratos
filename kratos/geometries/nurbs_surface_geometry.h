@@ -338,11 +338,11 @@ public:
         const SizeType points_in_u = PolynomialDegreeU() + 1;
         const SizeType points_in_v = PolynomialDegreeV() + 1;
 
-        CreateIntegrationPoints2(
+        CreateIntegrationPoints(
             rIntegrationPoints, points_in_u, points_in_v);
     }
 
-    void CreateIntegrationPoints2(
+    void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints,
         SizeType IntegrationPointsPerKnotU, SizeType IntegrationPointsPerKnotV) const
     {
