@@ -73,7 +73,7 @@ public:
     RansCheckScalarBoundsProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansCheckScalarBoundsProcess() override;
+    ~RansCheckScalarBoundsProcess() override = default;
 
     ///@}
     ///@name Operators

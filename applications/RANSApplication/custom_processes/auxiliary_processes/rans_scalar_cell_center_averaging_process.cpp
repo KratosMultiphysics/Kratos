@@ -52,10 +52,6 @@ RansScalarCellCenterAveragingProcess::RansScalarCellCenterAveragingProcess(Model
     KRATOS_CATCH("");
 }
 
-RansScalarCellCenterAveragingProcess::~RansScalarCellCenterAveragingProcess()
-{
-}
-
 int RansScalarCellCenterAveragingProcess::Check()
 {
     KRATOS_TRY
