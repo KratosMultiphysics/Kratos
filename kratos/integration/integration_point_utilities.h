@@ -8,8 +8,11 @@
 //                   Kratos default license: kratos/license.txt
 //
 
+#pragma once
+
 #if !defined(KRATOS_INTEGRATION_POINT_UTILITIES_INCLUDED )
 #define  KRATOS_INTEGRATION_POINT_UTILITIES_INCLUDED
+
 
 // System includes
 
@@ -25,7 +28,7 @@ namespace Kratos
     class IntegrationPointUtilities
     {
     private:
-        static std::vector<std::vector<std::vector<double>>> s_gauss_legendre;
+        static const std::vector<std::vector<std::vector<double>>> s_gauss_legendre;
 
     public:
 
@@ -102,7 +105,7 @@ namespace Kratos
         }
     };
 
-    std::vector<std::vector<std::vector<double>>> IntegrationPointUtilities::s_gauss_legendre = {
+    const std::vector<std::vector<std::vector<double>>> IntegrationPointUtilities::s_gauss_legendre = {
         {   // degree 1
             { 0.5000000000000000000, 1.0000000000000000000 },
         },
