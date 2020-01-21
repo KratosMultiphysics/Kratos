@@ -62,8 +62,9 @@ public:
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
 
-    typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::PointsArrayType PointsArrayType;
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     ///@}
     ///@name Life Cycle
