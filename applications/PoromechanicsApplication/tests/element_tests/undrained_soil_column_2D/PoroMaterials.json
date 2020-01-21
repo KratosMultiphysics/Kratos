@@ -1,0 +1,34 @@
+{
+    "properties": [{
+        "model_part_name": "PorousModelPart.Body_Part-auto-1",
+        "properties_id": 2,
+        "Material": {
+            "constitutive_law": {
+                "name": "LinearElasticPlaneStrainSolid2DLaw"
+            },
+            "Variables": {
+                "YOUNG_MODULUS": 2.5e7,
+                "POISSON_RATIO": 0.2,
+                "DENSITY_SOLID": 2.0e3,
+                "DENSITY_WATER": 1.0e3,
+                "POROSITY": 0.3,
+                "BULK_MODULUS_SOLID": 1.5e17,
+                "BULK_MODULUS_FLUID": 3.0e14,
+                "PERMEABILITY_XX": 1.0e-14,
+                "PERMEABILITY_YY": 1.0e-14,
+                "PERMEABILITY_ZZ": 4.5e-13,
+                "PERMEABILITY_XY": 0.0,
+                "PERMEABILITY_YZ": 0.0,
+                "PERMEABILITY_ZX": 0.0,
+                "DYNAMIC_VISCOSITY": 1.0e-3,
+                "THICKNESS": 1.0,
+                "DAMAGE_THRESHOLD": 1.0e-4,
+                "STRENGTH_RATIO": 10.0,
+                "FRACTURE_ENERGY": 100.0,
+                "RESIDUAL_STRENGTH": 0.8,
+                "SOFTENING_SLOPE": 9000.0
+            },
+            "Tables": {}
+        }
+    }]
+}

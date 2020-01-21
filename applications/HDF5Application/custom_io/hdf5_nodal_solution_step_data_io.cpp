@@ -26,7 +26,7 @@ void SetNodalSolutionStepData(TVariableType const& rVariable,
                               unsigned Step);
 
 template <typename TVariable>
-class WriteVariableFunctor
+class WriteNodalVariableFunctor
 {
 public:
     void operator()(TVariable const& rVariable,
@@ -43,7 +43,7 @@ public:
 };
 
 template <typename TVariable>
-class ReadVariableFunctor
+class ReadNodalVariableFunctor
 {
 public:
     void operator()(TVariable const& rVariable,
@@ -100,7 +100,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
         RegisteredVariableLookup<Variable<array_1d<double, 3>>,
                                  VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>,
                                  Variable<double>, Variable<int>>(r_variable_name)
-            .Execute<WriteVariableFunctor>(local_nodes, Step, *mpFile, mPrefix, info);
+            .Execute<WriteNodalVariableFunctor>(local_nodes, Step, *mpFile, mPrefix, info);
 
     // Write block partition.
     WritePartitionTable(*mpFile, mPrefix + "/NodalSolutionStepData", info);
@@ -125,7 +125,7 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
         RegisteredVariableLookup<Variable<array_1d<double, 3>>,
                                  VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>,
                                  Variable<double>, Variable<int>>(r_variable_name)
-            .Execute<ReadVariableFunctor>(local_nodes, Step, *mpFile, mPrefix,
+            .Execute<ReadNodalVariableFunctor>(local_nodes, Step, *mpFile, mPrefix,
                                           start_index, block_size);
 
     // Synchronize ghost nodes.

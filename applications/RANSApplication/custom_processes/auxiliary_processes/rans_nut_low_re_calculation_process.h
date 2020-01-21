@@ -68,7 +68,7 @@ public:
     RansNutLowReCalculationProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansNutLowReCalculationProcess() override;
+    ~RansNutLowReCalculationProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -154,6 +154,7 @@ private:
     int mEchoLevel;
 
     double mCmu;
+    double mMinValue;
 
     ///@}
     ///@name Private Operators
