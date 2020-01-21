@@ -43,7 +43,7 @@ namespace Kratos
             const double distance_u = U1 - U0;
             const double length_u = std::abs(U1 - U0);
 
-            const std::vector<array_1d<double, 2>>& integration_point_list_u = s_gauss_legendre[PointsInU - 1];
+            const std::vector<std::vector<double>>& integration_point_list_u = s_gauss_legendre[PointsInU - 1];
 
             IndexType counter;
             for (SizeType u = 0; u < PointsInU - 1; ++u)
