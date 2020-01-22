@@ -130,6 +130,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         self.distributed_model_part_importer = DistributedImportModelPartUtility(self.main_model_part, self.settings)
         ## Execute the Metis partitioning and reading
         self.distributed_model_part_importer.ImportModelPart()
+        self.distributed_model_part_importer.CreateCommunicators()
 
         KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverMonolithic","MPI model reading finished.")
 
@@ -139,7 +140,6 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
 
         super(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic, self).PrepareModelPart()
 
-        self.distributed_model_part_importer.CreateCommunicators()
 
         if hasattr(self, "_turbulence_model_solver"):
             self._turbulence_model_solver.PrepareModelPart()
