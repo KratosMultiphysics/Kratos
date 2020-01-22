@@ -57,11 +57,6 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
                 self.fluid_parameters.AddEmptyValue("reform_dofs_at_each_step")
                 self.fluid_parameters["reform_dofs_at_each_step"].SetBool(False)
 
-        # Import parallel modules if needed
-        # has to be done before the base-class constuctor is called (in which the solver is constructed)
-        if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
-            raise Exception("MPI-Chimera is not implemented yet")
-
         super(FluidChimeraAnalysis,self).__init__(model,self.full_parameters)
 
     def Initialize(self):

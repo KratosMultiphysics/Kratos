@@ -20,12 +20,17 @@ def CreateSolverByParameters(model, custom_settings, parallelism):
 
     # Solvers for MPI parallelism
     elif (parallelism == "MPI"):
-        raise Exception("the requested solver type is not in the python solvers wrapper")
+        if (solver_type == "monolithic" or solver_type == "Monolithic"):
+            solver_module_name = "trilinos_navier_stokes_solver_vmsmonolithic_chimera"
+        elif (solver_type == "fractional_step" or solver_type == "FractionalStep"):
+            solver_module_name = "trilinos_navier_stokes_solver_fractionalstep_chimera"
+        else:
+            raise Exception("the requested solver type is not in the python solvers wrapper")
     else:
         raise Exception("parallelism is neither OpenMP nor MPI")
 
     module_full = 'KratosMultiphysics.ChimeraApplication.' + solver_module_name
-    solver = import_module(module_full).CreateSolver(model, custom_settings)    
+    solver = import_module(module_full).CreateSolver(model, custom_settings)
 
     return solver
 
