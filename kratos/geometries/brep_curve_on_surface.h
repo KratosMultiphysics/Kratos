@@ -65,8 +65,6 @@ public:
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
-    static constexpr IndexType SURFACE_INDEX = -1;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -172,33 +170,6 @@ public:
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
         return typename BaseType::Pointer( new BrepCurveOnSurface( ThisPoints ) );
-    }
-
-    ///@}
-    ///@name Access to Geometry Parts
-    ///@{
-
-    const typename GeometryType::Pointer pGetGeometryPart(IndexType Index) const override
-    {
-        if (Index == SURFACE_INDEX)
-            return mpNurbsSurface;
-
-        KRATOS_ERROR << "Index " << Index << " not existing in BrepCurveOnSurface: "
-            << this->Id() << std::endl;
-    }
-
-    /**
-    * @brief This function is used to check if this BrepSurface
-    *        has certain trim or surface object.
-    * @param Index of the geometry part.
-    * @return true if has trim or surface
-    */
-    bool HasGeometryPart(IndexType Index) const override
-    {
-        if (Index == SURFACE_INDEX)
-            return true;
-
-        return false;
     }
 
     ///@}
