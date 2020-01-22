@@ -26,6 +26,7 @@ void  AddIOToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
+    m.def("CreateIntegrationDomain", &CadIntegrationDomain::CreateIntegrationDomain);
 }
 
 }  // namespace Python.
