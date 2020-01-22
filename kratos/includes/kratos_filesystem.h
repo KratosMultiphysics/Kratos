@@ -22,6 +22,8 @@
 // Project includes
 
 namespace Kratos {
+// Functions that provide some basic functionalities that are provided by std::filesystem (part of C++17)
+// please check the documentation of std::filesystem for the function documentation
 namespace FileSystem {
 
 bool Exists(const std::string& rPath);
