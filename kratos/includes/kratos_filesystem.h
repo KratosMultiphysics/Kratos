@@ -27,6 +27,9 @@ namespace Kratos {
 // wrapper functions for std::filesystem (part of C++17)
 // the function signatures are identical, hence after moving to C++17 Kratos::filesystem can be replaced with std::filesystem
 // please check the documentation of std::filesystem for the function documentation
+
+// Note: the filesystem functinos have a filesystem::path as input, but currently std::string is used as filesystem::path is not available
+// this should not be a problem for upgrading to std::filesystem, since filesystem::path has a constructor accepting a string
 namespace filesystem {
 
 bool KRATOS_API(KRATOS_CORE) exists(const std::string& rPath);
