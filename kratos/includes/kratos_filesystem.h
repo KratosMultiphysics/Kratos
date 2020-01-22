@@ -1,4 +1,4 @@
-#//    |  /           |
+//    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
@@ -7,39 +7,44 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
 #if !defined(KRATOS_FILESYSTEM)
 #define KRATOS_FILESYSTEM
 
-// Project includes
-#include "utilities/check_filesystem_availability.h" // has to be included before using "KRATOS_FILESYSTEM_AVAILABLE"
+// System includes
+#include <string>
+#include <vector>
 
-// System / External includes
-// std::filesystem is part of C++17.
-// Until Kratos moves C++17, we use the ghc-filesystem library, which is a C++11 version of std::filesystem
-#if defined(KRATOS_FILESYSTEM_AVAILABLE)
-    #include <filesystem>
-#else
-    //---------------------------------------------------------------------------------------
-    // fs_fwd.hpp - The forwarding header for the header/implementation seperated usage of
-    //              ghc::filesystem.
-    // This file can be include at any place, where ghc::filesystem api is needed while
-    // not bleeding implementation details (e.g. system includes) into the global namespace,
-    // as long as one cpp includes fs_impl.hpp to deliver the matching implementations.
-    //---------------------------------------------------------------------------------------
-    #include "ghc/fs_fwd.hpp"
-#endif
+// External includes
+
+// Project includes
 
 namespace Kratos {
+namespace FileSystem {
 
-// alias to make it available as Kratos::filesystem
-#ifdef KRATOS_FILESYSTEM_AVAILABLE
-    namespace filesystem = std::filesystem;
-#else
-    namespace filesystem = ghc::filesystem;
-#endif
-}
+bool Exists(const std::string& rPath);
+
+bool IsRegularFile(const std::string& rPath);
+
+bool IsDirectory(const std::string& rPath);
+
+bool CreateDirectory(const std::string& rPath);
+
+bool CreateDirectories(const std::string& rPath);
+
+std::string CurrentPath();
+
+bool Remove(const std::string& rPath);
+
+bool RemoveAll(const std::string& rPath);
+
+void Rename(const std::string& rPathFrom, const std::string& rPathTo);
+
+std::string JoinPaths(const std::vector<std::string>& rPaths);
+
+} // namespace Kratos
+} // namespace FileSystem
 
 #endif // KRATOS_FILESYSTEM defined
