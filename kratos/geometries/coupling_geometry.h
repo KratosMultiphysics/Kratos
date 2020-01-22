@@ -201,7 +201,7 @@ public:
     GeometryPointer pGetGeometryPart(IndexType Index) override
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometries.size() <= Index) << "Index "
-            << Index << " out of range. CouplingGeometry #" << Id()
+            << Index << " out of range. CouplingGeometry #" << this->Id()
             << " has " << mpGeometries.size() << " geometries." << std::endl;
 
         return mpGeometries[Index];
@@ -217,7 +217,7 @@ public:
     const GeometryPointer pGetGeometryPart(IndexType Index) const override
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometries.size() <= Index) << "Index \""
-            << Index << "\" out of range. CouplingGeometry #" << Id() 
+            << Index << "\" out of range. CouplingGeometry #" << this->Id() 
             << " has " << mpGeometries.size() << " geometries." << std::endl;
 
         return mpGeometries[Index];
