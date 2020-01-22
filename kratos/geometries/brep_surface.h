@@ -222,9 +222,8 @@ public:
     */
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
-        const IntegrationPointsArrayType& rIntegrationPoints,
         IndexType NumberOfShapeFunctionDerivatives,
-        IndexType SpecificationType = 0) const override
+        const IntegrationPointsArrayType& rIntegrationPoints) const override
     {
         mpNurbsSurface->CreateQuadraturePointGeometries(
             rGeometries, rIntegrationPoints,
