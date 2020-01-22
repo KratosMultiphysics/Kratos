@@ -70,22 +70,22 @@ KRATOS_TEST_CASE_IN_SUITE(FileSystemIsRegularFile, KratosCoreFastSuite)
     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(file_name));
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(FileSystemIsDirectory, KratosCoreFastSuite)
-// {
-//     const std::string dir_name("MyCustomDir");
-//     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(dir_name));
+KRATOS_TEST_CASE_IN_SUITE(FileSystemIsDirectory, KratosCoreFastSuite)
+{
+    const std::string dir_name("MyCustomDir");
+    KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(dir_name));
 
-//     KRATOS_CHECK(Kratos::FileSystem::CreateDirectory(dir_name));
+    KRATOS_CHECK(Kratos::FileSystem::CreateDirectory(dir_name));
 
-//     KRATOS_CHECK(Kratos::FileSystem::Exists(dir_name));
+    KRATOS_CHECK(Kratos::FileSystem::Exists(dir_name));
 
-//     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::IsRegularFile(dir_name));
-//     KRATOS_CHECK(Kratos::FileSystem::IsDirectory(dir_name));
+    KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::IsRegularFile(dir_name));
+    KRATOS_CHECK(Kratos::FileSystem::IsDirectory(dir_name));
 
-//     KRATOS_CHECK(Kratos::FileSystem::Remove(dir_name));
+    KRATOS_CHECK(Kratos::FileSystem::Remove(dir_name));
 
-//     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(dir_name));
-// }
+    KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(dir_name));
+}
 
 // KRATOS_TEST_CASE_IN_SUITE(FileSystemSubDirectories, KratosCoreFastSuite)
 // {
