@@ -1833,7 +1833,8 @@ void ModelPart::PrintData(std::ostream& rOStream, std::string const& PrefixStrin
         mpProcessInfo->PrintData(rOStream);
     }
     rOStream << std::endl;
-
+    rOStream << "    Number of Geometries  : " << mGeometries.NumberOfGeometries() << std::endl;
+    
     for (IndexType i = 0; i < mMeshes.size(); i++) {
         rOStream << PrefixString << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, PrefixString + "    ");
