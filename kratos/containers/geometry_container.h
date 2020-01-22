@@ -55,7 +55,7 @@ public:
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
 
-    typedef typename TGeometryType::Pointer GeometryTypePointer;
+    typedef typename TGeometryType::Pointer GeometryPointerType;
 
     /* Geometry Hash Map Container.
     *  Hash of Id are keys to corresponding intrusive pointer */
@@ -63,7 +63,7 @@ public:
         TGeometryType,
         std::hash<std::size_t>,
         GetGeometryId,
-        GeometryTypePointer
+        GeometryPointerType
     > GeometriesContainerType;
 
     /// Geometry Iterator
@@ -126,7 +126,7 @@ public:
     ///@{
 
     /// Adds a geometry to the geometry container.
-    GeometryIterator AddGeometry(GeometryTypePointer pNewGeometry)
+    GeometryIterator AddGeometry(GeometryPointerType pNewGeometry)
     {
         auto i = mGeometries.find(pNewGeometry->Id());
         if(i == mGeometries.end())
@@ -143,7 +143,7 @@ public:
     ///@{
 
     /// Returns the Geometry::Pointer corresponding to its Id
-    GeometryTypePointer pGetGeometry(IndexType GeometryId)
+    GeometryPointerType pGetGeometry(IndexType GeometryId)
     {
         auto i = mGeometries.find(GeometryId);
         KRATOS_ERROR_IF(i == mGeometries.end())
@@ -152,7 +152,7 @@ public:
     }
 
     /// Returns the const Geometry::Pointer corresponding to its Id
-    const GeometryTypePointer pGetGeometry(IndexType GeometryId) const
+    const GeometryPointerType pGetGeometry(IndexType GeometryId) const
     {
         auto i = mGeometries.find(GeometryId);
         KRATOS_ERROR_IF(i == mGeometries.end())
@@ -161,7 +161,7 @@ public:
     }
 
     /// Returns the Geometry::Pointer corresponding to its name
-    GeometryTypePointer pGetGeometry(std::string GeometryName)
+    GeometryPointerType pGetGeometry(std::string GeometryName)
     {
         auto hash_index = TGeometryType::GenerateId(GeometryName);
         auto i = mGeometries.find(hash_index);
@@ -171,7 +171,7 @@ public:
     }
 
     /// Returns the Geometry::Pointer corresponding to its name
-    const GeometryTypePointer pGetGeometry(std::string GeometryName) const
+    const GeometryPointerType pGetGeometry(std::string GeometryName) const
     {
         auto hash_index = TGeometryType::GenerateId(GeometryName);
         auto i = mGeometries.find(hash_index);
