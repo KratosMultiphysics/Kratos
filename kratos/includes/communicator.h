@@ -153,6 +153,9 @@ public:
     /// Condintions container. A vector set of Conditions with their Id's as key.
     typedef MeshType::ConditionsContainerType ConditionsContainerType;
 
+    /// MasterSlaveConstraints container. A vector set of Conditions with their Id's as key.
+    typedef MeshType::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
+
     /** Iterator over the Conditions. This iterator is an indirect
        iterator over Conditions::Pointer which turn back a reference to
        Condition by * operator and not a pointer for more convenient
@@ -419,11 +422,15 @@ public:
 
     virtual bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects);
 
+    virtual bool TransferObjects(std::vector<MasterSlaveConstraintContainerType>& SendObjects, std::vector<MasterSlaveConstraintContainerType>& RecvObjects);
+
     virtual bool TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects,Kratos::Serializer& particleSerializer);
 
     virtual bool TransferObjects(std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType>& RecvObjects,Kratos::Serializer& particleSerializer);
 
     virtual bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects,Kratos::Serializer& particleSerializer);
+    
+    virtual bool TransferObjects(std::vector<MasterSlaveConstraintContainerType>& SendObjects, std::vector<MasterSlaveConstraintContainerType>& RecvObjects, Kratos::Serializer& particleSerializer);
 
     virtual bool SynchronizeOrNodalFlags(const Flags& TheFlags);
 

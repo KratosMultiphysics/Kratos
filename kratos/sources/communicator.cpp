@@ -583,6 +583,11 @@ bool Communicator::TransferObjects(std::vector<ConditionsContainerType>& SendObj
     return true;
 }
 
+bool Communicator::TransferObjects(std::vector<MasterSlaveConstraintContainerType>& SendObjects, std::vector<MasterSlaveConstraintContainerType>& RecvObjects)
+{
+    return true;
+}
+
 bool Communicator::TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects,Kratos::Serializer& particleSerializer)
 {
     return true;
@@ -594,6 +599,11 @@ bool Communicator::TransferObjects(std::vector<ElementsContainerType>& SendObjec
 }
 
 bool Communicator::TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects,Kratos::Serializer& particleSerializer)
+{
+    return true;
+}
+
+bool Communicator::TransferObjects(std::vector<MasterSlaveConstraintContainerType>& SendObjects, std::vector<MasterSlaveConstraintContainerType>& RecvObjects, Kratos::Serializer& particleSerializer)
 {
     return true;
 }

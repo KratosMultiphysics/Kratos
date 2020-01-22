@@ -1076,6 +1076,17 @@ public:
     }
 
     /**
+    * Transfer objects from a given process to a destination process
+    * @param SendObjects list of objects to be send.      SendObjects[i] -> Objects to   process i
+    * @param RecvObjects list of objects to be received.  RecvObjects[i] -> objects from process i
+    **/
+    bool TransferObjects(std::vector<MasterSlaveConstraintContainerType>& SendObjects, std::vector<MasterSlaveConstraintContainerType>& RecvObjects) override
+    {
+        AsyncSendAndReceiveObjects<MasterSlaveConstraintContainerType>(SendObjects,RecvObjects);
+        return true;
+    }
+
+    /**
      * Transfer objects from a given process to a destination process
      * @param SendObjects list of objects to be send.      SendObjects[i] -> Objects to   process i
      * @param RecvObjects list of objects to be received.  RecvObjects[i] -> objects from process i
