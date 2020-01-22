@@ -53,6 +53,7 @@ public:
 
     typedef Geometry<typename TContainerPointType::value_type> BaseType;
     typedef Geometry<typename TContainerPointType::value_type> GeometryType;
+    typedef typename GeometryType::Pointer GeometryPointer;
 
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
@@ -202,7 +203,7 @@ public:
     ///@name Access to Geometry Parts
     ///@{
 
-    const typename GeometryType::Pointer pGetGeometryPart(IndexType Index) const override
+    const GeometryPointer pGetGeometryPart(IndexType Index) const override
     {
         if (Index == SURFACE_INDEX)
             return mpNurbsSurface;
