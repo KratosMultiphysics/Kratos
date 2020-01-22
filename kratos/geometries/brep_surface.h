@@ -212,29 +212,9 @@ public:
     */
     GeometryPointer pGetGeometryPart(IndexType Index) override
     {
-        if (Index == SURFACE_INDEX)
-            return mpNurbsSurface;
-
-        for (IndexType i = 0; i < mOuterLoopArray.size(); ++i)
-        {
-            for (IndexType j = 0; j < mOuterLoopArray[i].size(); ++j)
-            {
-                if (mOuterLoopArray[i][j]->Id() == Index)
-                    return mOuterLoopArray[i][j];
-            }
-        }
-
-        for (IndexType i = 0; i < mInnerLoopArray.size(); ++i)
-        {
-            for (IndexType j = 0; j < mInnerLoopArray[i].size(); ++j)
-            {
-                if (mInnerLoopArray[i][j]->Id() == Index)
-                    return mInnerLoopArray[i][j];
-            }
-        }
-
-        KRATOS_ERROR << "Trim with Index " << Index << " not existing in BrepSurface: "
-            << this->Id() << std::endl;
+        const auto& const_this = *this;
+        return std::const_pointer_cast<GeometryPointer>(
+            const_this.pGetGeometry(Index));
     }
 
     /**
