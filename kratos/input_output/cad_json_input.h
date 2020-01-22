@@ -356,9 +356,6 @@ namespace Kratos
             KRATOS_ERROR_IF_NOT(HasIdOrName(rParameters))
                 << "Missing 'brep_id' or 'brep_name' in brep edge" << std::endl;
 
-            KRATOS_INFO_IF("ReadBrepEdge", (EchoLevel > 3))
-                << "Reading BrepEdge \"" << GetIdOrName(rParameters) << "\"" << std::endl;
-
             if (rParameters.Has("topology"))
             {
                 if (rParameters["topology"].size() == 0)
@@ -367,34 +364,56 @@ namespace Kratos
                 }
                 else if (rParameters["topology"].size() == 1)
                 {
-                    KRATOS_ERROR_IF_NOT(HasIdOrName(rParameters["topology"][0]))
-                        << "Missing 'brep_id' or 'brep_name' in topology" << std::endl;
-
-                    GeometryPointerType p_geometry = GetGeometry(rParameters["topology"][0], rModelPart);
-
-                    GeometryPointerType p_brep_trim = p_geometry->pGetGeometryPart(rParameters["topology"][0]["trim_index"].GetInt());
-
-                    BrepCurveOnSurfaceType brep_curve_on_surface = dynamic_cast<BrepCurveOnSurfaceType>(*p_brep_trim);
-                    KRATOS_ERROR_IF(brep_curve_on_surface == NULL)
-                        << "dynamic_cast from Geometry to BrepCurveOnSurface not successfull. Brep Id: "
-                        << GetIdOrName(rParameters["topology"][0]) << " and trim index: "
-                        << rParameters["topology"][0]["trim_index"].GetInt() << std::endl;
-
-                    bool relative_direction = rParameters["topology"][0]["trim_index"].GetInt();
-
-                    auto p_nurbs_curve_on_surface = brep_curve_on_surface.pGetCurveOnSurface();
-
-                    typename BrepCurveOnSurfaceType::Pointer p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
-                        p_nurbs_curve_on_surface, relative_direction);
-
-                    SetIdOrName<BrepCurveOnSurfaceType>(rParameters, p_brep_curve_on_surface);
-
-                    rModelPart.AddGeometry(p_brep_curve_on_surface);
+                    ReadBrepEdgeBrepCurveOnSurface(rParameters, rModelPart, EchoLevel);
                 }
                 else { // More than one topology means that a coupling geometry is required.
                     ReadCouplingGeometry(rParameters, rModelPart, EchoLevel);
                 }
             }
+        }
+
+        static void ReadBrepEdgeBrepCurveOnSurface(
+            const Parameters& rParameters,
+            ModelPart& rModelPart,
+            SizeType EchoLevel = 0)
+        {
+            KRATOS_INFO_IF("ReadBrepEdge", (EchoLevel > 3))
+                << "Reading BrepEdge \"" << GetIdOrName(rParameters) << "\"" << std::endl;
+
+            KRATOS_ERROR_IF_NOT(HasIdOrName(rParameters["topology"][0]))
+                << "Missing 'brep_id' or 'brep_name' in topology" << std::endl;
+
+            KRATOS_INFO_IF("ReadBrepEdge", (EchoLevel > 4))
+                << "Getting trim: \"" << rParameters["topology"][0]["trim_index"].GetInt()
+                << "\" from geometry: \"" << GetIdOrName(rParameters["topology"][0]) << "\"." << std::endl;
+
+            GeometryPointerType p_geometry = GetGeometry(rParameters["topology"][0], rModelPart);
+            GeometryPointerType p_brep_trim = p_geometry->pGetGeometryPart(rParameters["topology"][0]["trim_index"].GetInt());
+
+            BrepCurveOnSurfaceType brep_curve_on_surface = dynamic_cast<BrepCurveOnSurfaceType>(*p_brep_trim);
+            KRATOS_ERROR_IF(brep_curve_on_surface == NULL)
+                << "dynamic_cast from Geometry to BrepCurveOnSurface not successfull. Brep Id: "
+                << GetIdOrName(rParameters["topology"][0]) << " and trim index: "
+                << rParameters["topology"][0]["trim_index"].GetInt() << std::endl;
+
+            bool relative_direction = true;
+            if (rParameters["topology"][0].Has("trim_index"))
+                relative_direction = rParameters["topology"][0]["trim_index"].GetInt();
+            else {
+                KRATOS_INFO_IF("ReadBrepEdge", (EchoLevel > 4))
+                    << "For trim: \"" << rParameters["topology"][0]["trim_index"].GetInt()
+                    << "\" from geometry: \"" << GetIdOrName(rParameters["topology"][0])
+                    << "\", no relative_direction is provided in the input." << std::endl;
+            }
+
+            auto p_nurbs_curve_on_surface = brep_curve_on_surface.pGetCurveOnSurface();
+
+            typename BrepCurveOnSurfaceType::Pointer p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
+                p_nurbs_curve_on_surface, relative_direction);
+
+            SetIdOrName<BrepCurveOnSurfaceType>(rParameters, p_brep_curve_on_surface);
+
+            rModelPart.AddGeometry(p_brep_curve_on_surface);
         }
 
         static void ReadCouplingGeometry(
