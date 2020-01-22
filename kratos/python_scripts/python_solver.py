@@ -187,6 +187,15 @@ class PythonSolver(object):
                 KratosMultiphysics.ReorderAndOptimizeModelPartProcess(model_part, tmp).Execute()
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading model part from mdpa file.")
 
+        elif (input_type == "json")
+            problem_path = os.getcwd()
+            input_filename = model_part_import_settings["input_filename"].GetString()
+
+            # Import model part from mdpa file.
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading CAD model from file: " + os.path.join(problem_path, input_filename) + ".json")
+            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(model_part)
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading CAD model.")
+
         elif (input_type == "rest"):
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
             RestartUtility(model_part, self._GetRestartSettings(model_part_import_settings)).LoadRestart()
