@@ -203,6 +203,47 @@ public:
     ///@name Access to Geometry Parts
     ///@{
 
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the trim index.
+    *        Surface of the geometry is accessable with SURFACE_INDEX.
+    * @param Index: trim_index or SURFACE_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
+    GeometryPointer pGetGeometryPart(IndexType Index) override
+    {
+        if (Index == SURFACE_INDEX)
+            return mpNurbsSurface;
+
+        for (IndexType i = 0; i < mOuterLoopArray.size(); ++i)
+        {
+            for (IndexType j = 0; j < mOuterLoopArray[i].size(); ++j)
+            {
+                if (mOuterLoopArray[i][j]->Id() == Index)
+                    return mOuterLoopArray[i][j];
+            }
+        }
+
+        for (IndexType i = 0; i < mInnerLoopArray.size(); ++i)
+        {
+            for (IndexType j = 0; j < mInnerLoopArray[i].size(); ++j)
+            {
+                if (mInnerLoopArray[i][j]->Id() == Index)
+                    return mInnerLoopArray[i][j];
+            }
+        }
+
+        KRATOS_ERROR << "Trim with Index " << Index << " not existing in BrepSurface: "
+            << this->Id() << std::endl;
+    }
+
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the trim index.
+    *        Surface of the geometry is accessable with SURFACE_INDEX.
+    * @param Index: trim_index or SURFACE_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
     const GeometryPointer pGetGeometryPart(IndexType Index) const override
     {
         if (Index == SURFACE_INDEX)
