@@ -128,7 +128,8 @@ namespace Kratos
             for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
             {
                 KRATOS_INFO_IF("ReadBreps", (EchoLevel > 0))
-                    << "Reading Brep \"" << GetIdOrName(rParameters[brep_index]) << "\" - faces." << std::endl;
+                    << "Reading Brep \"" << GetIdOrName(rParameters[brep_index])
+                    << "\" - faces." << std::endl;
 
                 ReadBrepFaces(rParameters[brep_index], rModelPart, EchoLevel);
             }
@@ -136,7 +137,8 @@ namespace Kratos
             for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
             {
                 KRATOS_INFO_IF("ReadBreps", (EchoLevel > 0))
-                    << "Reading Brep \"" << GetIdOrName(rParameters[brep_index]) << "\" - edges." << std::endl;
+                    << "Reading Brep \"" << GetIdOrName(rParameters[brep_index])
+                    << "\" - edges." << std::endl;
 
                 ReadBrepEdges(rParameters[brep_index], rModelPart, EchoLevel);
             }
@@ -199,7 +201,8 @@ namespace Kratos
             KRATOS_ERROR_IF_NOT(rParameters.Has("surface"))
                 << "Missing 'surface' in brep face." << std::endl;
 
-            auto p_surface = ReadNurbsSurface<3, TNodeType>(rParameters["surface"], rModelPart, EchoLevel);
+            auto p_surface = ReadNurbsSurface<3, TNodeType>(
+                rParameters["surface"], rModelPart, EchoLevel);
 
             bool is_trimmed = true;
             if (rParameters["surface"].Has("is_trimmed"))
@@ -264,7 +267,8 @@ namespace Kratos
 
             for (IndexType tc_idx = 0; tc_idx < rParameters.size(); tc_idx++)
             {
-                trimming_brep_curve_vector[tc_idx] = ReadTrimmingCurve(rParameters[tc_idx], pNurbsSurface, rModelPart, EchoLevel);
+                trimming_brep_curve_vector[tc_idx] = ReadTrimmingCurve(
+                    rParameters[tc_idx], pNurbsSurface, rModelPart, EchoLevel);
             }
 
             return trimming_brep_curve_vector;
@@ -284,7 +288,8 @@ namespace Kratos
             KRATOS_ERROR_IF_NOT(rParameters.Has("parameter_curve"))
                 << "Missing 'parameter_curve' in nurbs curve" << std::endl;
 
-            auto p_trimming_curve = ReadNurbsCurve<2, TEmbeddedNodeType>(rParameters["parameter_curve"], rModelPart, EchoLevel);
+            auto p_trimming_curve = ReadNurbsCurve<2, TEmbeddedNodeType>(
+                rParameters["parameter_curve"], rModelPart, EchoLevel);
 
             auto p_brep_curve_on_surface
                 = Kratos::make_shared<BrepCurveOnSurfaceType>(
@@ -316,7 +321,8 @@ namespace Kratos
                 KRATOS_ERROR_IF_NOT(rParameters[bl_idx].Has("trimming_curves"))
                     << "Missing 'trimming_curves' in boundary loops"
                     << bl_idx << " loop." << std::endl;
-                auto trimming_curves = ReadTrimmingCurveVector(rParameters[bl_idx]["trimming_curves"], pNurbsSurface, rModelPart, EchoLevel);
+                auto trimming_curves = ReadTrimmingCurveVector(
+                    rParameters[bl_idx]["trimming_curves"], pNurbsSurface, rModelPart, EchoLevel);
 
                 if (loop_type == "outer")
                 {
@@ -396,10 +402,12 @@ namespace Kratos
 
             KRATOS_INFO_IF("ReadBrepEdge", (EchoLevel > 4))
                 << "Getting trim: \"" << rParameters["topology"][0]["trim_index"].GetInt()
-                << "\" from geometry: \"" << GetIdOrName(rParameters["topology"][0]) << "\"." << std::endl;
+                << "\" from geometry: \"" << GetIdOrName(rParameters["topology"][0])
+                << "\"." << std::endl;
 
             GeometryPointerType p_geometry = GetGeometry(rParameters["topology"][0], rModelPart);
-            GeometryPointerType p_brep_trim = p_geometry->pGetGeometryPart(rParameters["topology"][0]["trim_index"].GetInt());
+            GeometryPointerType p_brep_trim = 
+                p_geometry->pGetGeometryPart(rParameters["topology"][0]["trim_index"].GetInt());
 
             auto p_brep_curve_on_surface 
                 = dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_brep_trim);
@@ -420,12 +428,12 @@ namespace Kratos
 
             auto p_nurbs_curve_on_surface = p_brep_curve_on_surface->pGetCurveOnSurface();
 
-            typename BrepCurveOnSurfaceType::Pointer p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
+            auto p_bre_edge_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
                 p_nurbs_curve_on_surface, relative_direction);
 
-            SetIdOrName<BrepCurveOnSurfaceType>(rParameters, p_brep_curve_on_surface);
+            SetIdOrName<BrepCurveOnSurfaceType>(rParameters, p_bre_edge_brep_curve_on_surface);
 
-            rModelPart.AddGeometry(p_brep_curve_on_surface);
+            rModelPart.AddGeometry(p_bre_edge_brep_curve_on_surface);
         }
 
         static void ReadCouplingGeometry(
