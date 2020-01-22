@@ -50,25 +50,25 @@ KRATOS_TEST_CASE_IN_SUITE(FileSystemJoinPaths, KratosCoreFastSuite)
     KRATOS_CHECK_STRING_EQUAL(Kratos::FileSystem::JoinPaths(paths_2), "");
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(FileSystemIsRegularFile, KratosCoreFastSuite)
-// {
-//     const std::string file_name("dummy_file.txt");
-//     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(file_name));
+KRATOS_TEST_CASE_IN_SUITE(FileSystemIsRegularFile, KratosCoreFastSuite)
+{
+    const std::string file_name("dummy_file.txt");
+    KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(file_name));
 
-//     std::ofstream output_file;
-//     output_file.open(file_name);
-//     KRATOS_CHECK(output_file.good());
-//     output_file.close();
+    std::ofstream output_file;
+    output_file.open(file_name);
+    KRATOS_CHECK(output_file.good());
+    output_file.close();
 
-//     KRATOS_CHECK(Kratos::FileSystem::Exists(file_name));
+    KRATOS_CHECK(Kratos::FileSystem::Exists(file_name));
 
-//     KRATOS_CHECK(Kratos::FileSystem::IsRegularFile(file_name));
-//     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::IsDirectory(file_name));
+    KRATOS_CHECK(Kratos::FileSystem::IsRegularFile(file_name));
+    KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::IsDirectory(file_name));
 
-//     KRATOS_CHECK(Kratos::FileSystem::Remove(file_name));
+    KRATOS_CHECK(Kratos::FileSystem::Remove(file_name));
 
-//     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(file_name));
-// }
+    KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(file_name));
+}
 
 // KRATOS_TEST_CASE_IN_SUITE(FileSystemIsDirectory, KratosCoreFastSuite)
 // {
@@ -125,29 +125,29 @@ KRATOS_TEST_CASE_IN_SUITE(FileSystemJoinPaths, KratosCoreFastSuite)
 //     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(full_dir_name));
 // }
 
-// KRATOS_TEST_CASE_IN_SUITE(FileSystemRenameFile, KratosCoreFastSuite)
-// {
-//     const std::string file_name("dummy_file.txt");
-//     const std::string file_name_new("dummy_file_renamed.txt");
-//     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(file_name));
-//     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(file_name_new));
+KRATOS_TEST_CASE_IN_SUITE(FileSystemRenameFile, KratosCoreFastSuite)
+{
+    const std::string file_name("dummy_file.txt");
+    const std::string file_name_new("dummy_file_renamed.txt");
+    KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(file_name));
+    KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(file_name_new));
 
-//     std::ofstream output_file;
-//     output_file.open(file_name);
-//     KRATOS_CHECK(output_file.good());
-//     output_file.close();
+    std::ofstream output_file;
+    output_file.open(file_name);
+    KRATOS_CHECK(output_file.good());
+    output_file.close();
 
-//     KRATOS_CHECK(Kratos::FileSystem::Exists(file_name));
+    KRATOS_CHECK(Kratos::FileSystem::Exists(file_name));
 
-//     Kratos::FileSystem::Rename(file_name, file_name_new);
+    Kratos::FileSystem::Rename(file_name, file_name_new);
 
-//     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(file_name));
-//     KRATOS_CHECK(Kratos::FileSystem::Exists(file_name_new));
+    KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(file_name));
+    KRATOS_CHECK(Kratos::FileSystem::Exists(file_name_new));
 
-//     KRATOS_CHECK(Kratos::FileSystem::Remove(file_name_new));
+    KRATOS_CHECK(Kratos::FileSystem::Remove(file_name_new));
 
-//     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(file_name_new));
-// }
+    KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(file_name_new));
+}
 
 // KRATOS_TEST_CASE_IN_SUITE(FileSystemRenameDirectory, KratosCoreFastSuite)
 // {
