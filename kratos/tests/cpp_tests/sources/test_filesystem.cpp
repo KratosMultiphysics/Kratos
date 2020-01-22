@@ -161,7 +161,7 @@ KRATOS_TEST_CASE_IN_SUITE(FileSystemRenameDirectory, KratosCoreFastSuite)
     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(dir_name));
     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(dir_name_new));
 
-    // Kratos::FileSystem::CreateDirectory(dir_name);
+    Kratos::FileSystem::CreateDirectory(dir_name);
 
     std::ofstream output_file;
     output_file.open(file_name);
