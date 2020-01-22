@@ -374,7 +374,11 @@ namespace Kratos
 
                     GeometryPointerType p_brep_trim = p_geometry->pGetGeometryPart(rParameters["topology"][0]["trim_index"].GetInt());
 
-                    BrepCurveOnSurfaceType brep_curve_on_surface = static_cast<BrepCurveOnSurfaceType>(*p_brep_trim);
+                    BrepCurveOnSurfaceType brep_curve_on_surface = dynamic_cast<BrepCurveOnSurfaceType>(*p_brep_trim);
+                    KRATOS_ERROR_IF(brep_curve_on_surface == NULL)
+                        << "dynamic_cast from Geometry to BrepCurveOnSurface not successfull. Brep Id: "
+                        << GetIdOrName(rParameters["topology"][0]) << " and trim index "
+                        << rParameters["topology"][0]["trim_index"].GetInt() << std::endl;
 
                     bool relative_direction = rParameters["topology"][0]["trim_index"].GetInt();
 
