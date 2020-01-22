@@ -377,7 +377,7 @@ namespace Kratos
                     BrepCurveOnSurfaceType brep_curve_on_surface = dynamic_cast<BrepCurveOnSurfaceType>(*p_brep_trim);
                     KRATOS_ERROR_IF(brep_curve_on_surface == NULL)
                         << "dynamic_cast from Geometry to BrepCurveOnSurface not successfull. Brep Id: "
-                        << GetIdOrName(rParameters["topology"][0]) << " and trim index "
+                        << GetIdOrName(rParameters["topology"][0]) << " and trim index: "
                         << rParameters["topology"][0]["trim_index"].GetInt() << std::endl;
 
                     bool relative_direction = rParameters["topology"][0]["trim_index"].GetInt();
@@ -391,29 +391,39 @@ namespace Kratos
 
                     rModelPart.AddGeometry(p_brep_curve_on_surface);
                 }
-                else
-                {
-                    typename CouplingGeometryType::GeometryPointerVector geometry_vector;
-
-                    for (IndexType i = 0; i < rParameters["topology"].size(); i++)
-                    {
-                        KRATOS_ERROR_IF_NOT(HasIdOrName(rParameters["topology"][0]))
-                            << "Missing 'brep_id' or 'brep_name' in topology of Coupling - BrepEdge" << std::endl;
-
-                        auto p_geometry = GetGeometry(rParameters["topology"][i], rModelPart);
-
-                        geometry_vector.push_back(
-                                p_geometry->pGetGeometryPart(rParameters["topology"][i]["trim_index"].GetInt()));
-                    }
-
-                    auto p_coupling_geometry = Kratos::make_shared<CouplingGeometryType>(
-                        geometry_vector);
-
-                    SetIdOrName<CouplingGeometryType>(rParameters, p_coupling_geometry);
-
-                    rModelPart.AddGeometry(p_coupling_geometry);
+                else { // More than one topology means that a coupling geometry is required.
+                    ReadCouplingGeometry(rParameters, rModelPart, EchoLevel);
                 }
             }
+        }
+
+        static void ReadCouplingGeometry(
+            const Parameters& rParameters,
+            ModelPart& rModelPart,
+            SizeType EchoLevel = 0)
+        {
+            KRATOS_INFO_IF("ReadCouplingGeometry", (EchoLevel > 3))
+                << "Reading CouplingGeometry \"" << GetIdOrName(rParameters) << "\"" << std::endl;
+
+            typename CouplingGeometryType::GeometryPointerVector geometry_vector;
+
+            for (IndexType i = 0; i < rParameters["topology"].size(); i++)
+            {
+                KRATOS_ERROR_IF_NOT(HasIdOrName(rParameters["topology"][0]))
+                    << "Missing 'brep_id' or 'brep_name' in topology of Coupling - BrepEdge" << std::endl;
+
+                auto p_geometry = GetGeometry(rParameters["topology"][i], rModelPart);
+
+                geometry_vector.push_back(
+                    p_geometry->pGetGeometryPart(rParameters["topology"][i]["trim_index"].GetInt()));
+            }
+
+            auto p_coupling_geometry = Kratos::make_shared<CouplingGeometryType>(
+                geometry_vector);
+
+            SetIdOrName<CouplingGeometryType>(rParameters, p_coupling_geometry);
+
+            rModelPart.AddGeometry(p_coupling_geometry);
         }
 
         ///@}
