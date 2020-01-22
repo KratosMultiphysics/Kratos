@@ -333,7 +333,7 @@ private:
     NurbsInterval mCurveNurbsInterval;
 
     /** true-> brep curve and nurbs curve point in same direction.
-    *  false-> brep curve and nurbs curve point in controversial directions. */
+    *  false-> brep curve and nurbs curve point in opposite directions. */
     bool mSameCurveDirection;
 
     ///@}
