@@ -21,6 +21,15 @@
 namespace Kratos
 {
 
+/// Default constructor.
+
+SandProductionUtilities::SandProductionUtilities(){}
+
+/// Destructor.
+
+SandProductionUtilities::~SandProductionUtilities(){}
+
+
 void SandProductionUtilities::MarkSandProductionParticlesForErasing(ModelPart& r_model_part) {
 
     KRATOS_TRY
@@ -65,7 +74,22 @@ void SandProductionUtilities::MarkSandProductionParticlesForErasing(ModelPart& r
     KRATOS_CATCH("")
 }
 
+std::string SandProductionUtilities::Info() const
+{
+    return "";
+}
+
+/// Print information about this object.
+
+void SandProductionUtilities::PrintInfo(std::ostream& rOStream) const
+{
+}
+
+/// Print object's data.
+
+void SandProductionUtilities::PrintData(std::ostream& rOStream) const
+{
+}
 
 
-
-}  // namespace Python.
+}  // namespace Kratos.
