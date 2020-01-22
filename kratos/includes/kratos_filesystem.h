@@ -20,31 +20,33 @@
 // External includes
 
 // Project includes
+#include "includes/define.h"
+
 
 namespace Kratos {
 // Functions that provide some basic functionalities that are provided by std::filesystem (part of C++17)
 // please check the documentation of std::filesystem for the function documentation
 namespace FileSystem {
 
-bool Exists(const std::string& rPath);
+bool KRATOS_API(KRATOS_CORE) Exists(const std::string& rPath);
 
-bool IsRegularFile(const std::string& rPath);
+bool KRATOS_API(KRATOS_CORE) IsRegularFile(const std::string& rPath);
 
-bool IsDirectory(const std::string& rPath);
+bool KRATOS_API(KRATOS_CORE) IsDirectory(const std::string& rPath);
 
-bool CreateDirectory(const std::string& rPath);
+bool KRATOS_API(KRATOS_CORE) CreateDirectory(const std::string& rPath);
 
-bool CreateDirectories(const std::string& rPath);
+bool KRATOS_API(KRATOS_CORE) CreateDirectories(const std::string& rPath);
 
-std::string CurrentPath();
+std::string KRATOS_API(KRATOS_CORE) CurrentPath();
 
-bool Remove(const std::string& rPath);
+bool KRATOS_API(KRATOS_CORE) Remove(const std::string& rPath);
 
-bool RemoveAll(const std::string& rPath);
+bool KRATOS_API(KRATOS_CORE) RemoveAll(const std::string& rPath);
 
-void Rename(const std::string& rPathFrom, const std::string& rPathTo);
+void KRATOS_API(KRATOS_CORE) Rename(const std::string& rPathFrom, const std::string& rPathTo);
 
-std::string JoinPaths(const std::vector<std::string>& rPaths);
+std::string KRATOS_API(KRATOS_CORE) JoinPaths(const std::vector<std::string>& rPaths);
 
 } // namespace Kratos
 } // namespace FileSystem
