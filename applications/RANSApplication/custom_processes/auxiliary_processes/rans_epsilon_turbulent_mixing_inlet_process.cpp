@@ -64,10 +64,6 @@ RansEpsilonTurbulentMixingLengthInletProcess::RansEpsilonTurbulentMixingLengthIn
     KRATOS_CATCH("");
 }
 
-RansEpsilonTurbulentMixingLengthInletProcess::~RansEpsilonTurbulentMixingLengthInletProcess()
-{
-}
-
 void RansEpsilonTurbulentMixingLengthInletProcess::ExecuteInitialize()
 {
     if (mIsConstrained)

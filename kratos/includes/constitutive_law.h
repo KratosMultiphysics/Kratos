@@ -972,7 +972,7 @@ public:
     virtual void InitializeMaterialResponseCauchy (Parameters& rValues);
 
     /**
-     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     * @brief If the CL requires to finalize the material response, called by the element in FinalizeSolutionStep.
      */
     virtual bool RequiresFinalizeMaterialResponse()
     {
