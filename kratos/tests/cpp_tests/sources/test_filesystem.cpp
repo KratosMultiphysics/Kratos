@@ -23,23 +23,23 @@
 namespace Kratos {
 namespace Testing {
 
-// KRATOS_TEST_CASE_IN_SUITE(FileSystemExists, KratosCoreFastSuite)
-// {
-//     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists("StupidNameShouldNotExist"));
+KRATOS_TEST_CASE_IN_SUITE(FileSystemExists, KratosCoreFastSuite)
+{
+    KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists("StupidNameShouldNotExist"));
 
-//     const std::string file_name("dummy_file.txt");
-//     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(file_name));
-//     std::ofstream output_file;
-//     output_file.open(file_name);
-//     KRATOS_CHECK(output_file.good());
-//     output_file.close();
+    const std::string file_name("dummy_file.txt");
+    KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(file_name));
+    std::ofstream output_file;
+    output_file.open(file_name);
+    KRATOS_CHECK(output_file.good());
+    output_file.close();
 
-//     KRATOS_CHECK(Kratos::FileSystem::Exists(file_name));
+    KRATOS_CHECK(Kratos::FileSystem::Exists(file_name));
 
-//     KRATOS_CHECK(Kratos::FileSystem::Remove(file_name));
+    KRATOS_CHECK(Kratos::FileSystem::Remove(file_name));
 
-//     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(file_name));
-// }
+    KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(file_name));
+}
 
 KRATOS_TEST_CASE_IN_SUITE(FileSystemJoinPaths, KratosCoreFastSuite)
 {
