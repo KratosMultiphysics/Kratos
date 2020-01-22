@@ -183,33 +183,25 @@ public:
     /// Returns a reference geometry corresponding to the id
     TGeometryType& GetGeometry(IndexType GeometryId)
     {
-        const auto& const_this = *this;
-        return const_cast<TGeometryType&>(const_this.GetGeometry(GeometryId));
+        return *pGetGeometry(GeometryId);
     }
 
     /// Returns a const reference geometry corresponding to the id
     const TGeometryType& GetGeometry(IndexType GeometryId) const
     {
-        auto i = mGeometries.find(GeometryId);
-        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryId << ".";
-        return *i;
+        return *pGetGeometry(GeometryId);
     }
 
     /// Returns a reference geometry corresponding to the name
     TGeometryType& GetGeometry(std::string GeometryName)
     {
-        const auto& const_this = *this;
-        return const_cast<TGeometryType&>(const_this.GetGeometry(GeometryName));
+        return *pGetGeometry(GeometryName);
     }
 
     /// Returns a const reference geometry corresponding to the name
     const TGeometryType& GetGeometry(std::string GeometryName) const
     {
-        auto hash_index = TGeometryType::GenerateId(GeometryName);
-        auto i = mGeometries.find(hash_index);
-        KRATOS_ERROR_IF(i == mGeometries.end())
-            << " geometry index not found: " << GeometryName << ".";
-        return *i;
+        return *pGetGeometry(GeometryName);
     }
 
     ///@}
