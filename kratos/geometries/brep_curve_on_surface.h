@@ -219,15 +219,21 @@ public:
     * @brief Indicates if the NURBS-curve is pointing in the same direction
     *        as the B-Rep curve.
     * @return true -> brep curve and nurbs curve point in same direction.
-    *        false -> brep curve and nurbs curve point in controversial directions.
+    *        false -> brep curve and nurbs curve point in opposite directions.
     */
     bool HasSameCurveDirection()
     {
         return mSameCurveDirection;
     }
 
-    /// Returns the curve on surface of this brep.
+    /// Returns the NurbsCurveOnSurface::Pointer of this brep.
     NurbsCurveOnSurfacePointerType pGetCurveOnSurface()
+    {
+        return mpCurveOnSurface;
+    }
+
+    /// Returns the const NurbsCurveOnSurface::Pointer of this brep.
+    const NurbsCurveOnSurfacePointerType pGetCurveOnSurface() const
     {
         return mpCurveOnSurface;
     }
@@ -333,7 +339,7 @@ private:
     NurbsInterval mCurveNurbsInterval;
 
     /** true-> brep curve and nurbs curve point in same direction.
-    *  false-> brep curve and nurbs curve point in controversial directions. */
+    *  false-> brep curve and nurbs curve point in opposite directions. */
     bool mSameCurveDirection;
 
     ///@}
