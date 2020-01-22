@@ -213,7 +213,7 @@ public:
     GeometryPointer pGetGeometryPart(IndexType Index) override
     {
         const auto& const_this = *this;
-        return std::const_pointer_cast<GeometryPointer>(
+        return std::const_pointer_cast<GeometryType>(
             const_this.pGetGeometryPart(Index));
     }
 
