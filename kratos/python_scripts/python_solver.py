@@ -196,6 +196,13 @@ class PythonSolver(object):
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(model_part)
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading CAD model.")
 
+            # Create integration domain and elements.
+            if model_part_import_settings.Has("physics_file_name")
+                physics_filename = model_part_import_settings["input_filename"].GetString()
+                KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Creating integration domain, elements and conditions from file: " + os.path.join(problem_path, physics_filename) + ".json")
+                KratosMultiphysics.CadIntegrationDomain.CreateIntegrationDomain(physics_filename, model_part)
+                KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished creation of integration domain, elements and conditions.")
+
         elif (input_type == "rest"):
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
             RestartUtility(model_part, self._GetRestartSettings(model_part_import_settings)).LoadRestart()
