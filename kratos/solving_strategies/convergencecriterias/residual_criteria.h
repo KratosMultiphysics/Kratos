@@ -339,7 +339,7 @@ protected:
 
                 const IndexType dof_id = it_dof->EquationId();
 
-                if (mActiveDofs[dof_id]) {
+                if (mActiveDofs[dof_id] == 1) {
                     residual_dof_value = TSparseSpace::GetValue(rb,dof_id);
                     residual_solution_norm += std::pow(residual_dof_value, 2);
                     dof_num++;
@@ -395,7 +395,7 @@ private:
 
     TDataType mReferenceDispNorm;   /// The norm at the beginning of the iterations
 
-    std::vector<bool> mActiveDofs;  /// This vector contains the dofs that are active
+    std::vector<int> mActiveDofs;   /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators

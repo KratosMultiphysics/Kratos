@@ -127,8 +127,7 @@
                     "relative_tolerance": 1e-8,
                     "absolute_tolerance": 1e-9,
                     "max_iterations": 10,
-                    "echo_level": 0,
-                    "number_of_parent_solve_iterations" : 0
+                    "echo_level": 0
                 }
             }
         }

@@ -7,13 +7,13 @@ import KratosMultiphysics
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
 # Import base class file
-from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_base_solver
+from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_base_solver import ConvectionDiffusionBaseSolver
 import KratosMultiphysics.RomApplication as romapp
 
-def CreateSolver(main_model_part, custom_settings):
-    return ROMSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return ROMSolver(model, custom_settings)
 
-class ROMSolver(convection_diffusion_base_solver.ConvectionDiffusionBaseSolver):
+class ROMSolver(ConvectionDiffusionBaseSolver):
     """The stationary class for ROM convection-diffusion solvers.
 
     Public member variables:
@@ -22,12 +22,12 @@ class ROMSolver(convection_diffusion_base_solver.ConvectionDiffusionBaseSolver):
     See convection_diffusion_base_solver.py for more information.
     """
 
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings.
         self.stationary_settings = KratosMultiphysics.Parameters(r"""{}""")
 
         # Construct the base solver and validate the remaining settings in the base class
-        super(ROMSolver, self).__init__(main_model_part, custom_settings)
+        super(ROMSolver, self).__init__(model, custom_settings)
 
         # Overwrite the base solver minimum buffer size
         if (self.settings["element_replace_settings"]["element_name"].GetString() == "EulerianConvDiff"):

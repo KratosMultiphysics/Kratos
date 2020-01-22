@@ -27,6 +27,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ship_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/contact_info_spheric_particle.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/polyhedron_skin_spheric_particle.cpp
     #${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/analytic_rigid_body_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/RigidFace.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/analytic_RigidFace.cpp
@@ -142,6 +143,10 @@ kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/
 # Install python files
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
+
+# DEM: CLU files need to be installed.
+# This is a temporal fix until we find how standard python modules handle data files.
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.clu" PATTERN ".svn" EXCLUDE)
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
 if(${INSTALL_TESTING_FILES} MATCHES ON )

@@ -4,11 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    @{KRATOS_APP_AUTHOR}
-//
+//  Main authors:   Riccardo Rossi
+//                  Raul Bravo
 
 
 #if !defined(KRATOS_ROM_APPLICATION_H_INCLUDED )
@@ -108,7 +108,7 @@ public:
     ///// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-          KRATOS_WATCH("in my application");
+          KRATOS_WATCH("KratosRomApplication");
           KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
 
         rOStream << "Variables:" << std::endl;
