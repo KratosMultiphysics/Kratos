@@ -17,23 +17,23 @@
 #include "includes/kratos_filesystem.h"
 
 namespace Kratos {
-namespace FileSystem {
+namespace filesystem {
 
-bool Exists(const std::string& rPath)
+bool exists(const std::string& rPath)
 {
     return false;
     // return ghc::filesystem::exists(rPath);
 }
 
 
-bool IsRegularFile(const std::string& rPath)
+bool is_regular_file(const std::string& rPath)
 {
     return false;
     // return ghc::filesystem::is_regular_file(rPath);
 }
 
 
-bool IsDirectory(const std::string& rPath)
+bool is_directory(const std::string& rPath)
 {
     return false;
     // return ghc::filesystem::is_directory(rPath);
@@ -47,37 +47,41 @@ bool create_directory(const std::string& rPath)
 }
 
 
-bool CreateDirectories(const std::string& rPath)
+bool create_directories(const std::string& rPath)
 {
     return false;
     // return ghc::filesystem::create_directories(rPath);
 }
 
 
-std::string CurrentPath()
-{
-    return "";
-    // return ghc::filesystem::current_path().string();
-}
-
-
-bool Remove(const std::string& rPath)
+bool remove(const std::string& rPath)
 {
     return false;
     // return ghc::filesystem::remove(rPath);
 }
 
 
-std::uintmax_t RemoveAll(const std::string& rPath)
+std::uintmax_t remove_all(const std::string& rPath)
 {
     return 0;
     // return ghc::filesystem::remove_all(rPath);
 }
 
 
-void Rename(const std::string& rPathFrom, const std::string& rPathTo)
+void rename(const std::string& rPathFrom, const std::string& rPathTo)
 {
     // return ghc::filesystem::rename(rPathFrom, rPathTo);
+}
+
+} // namespace filesystem
+
+
+namespace FilesystemExtensions {
+
+std::string CurrentWorkingDirectory()
+{
+    return "";
+    // return ghc::filesystem::current_path().string();
 }
 
 std::string JoinPaths(const std::vector<std::string>& rPaths)
@@ -96,5 +100,5 @@ std::string JoinPaths(const std::vector<std::string>& rPaths)
     return full_path;
 }
 
+} // namespace FilesystemExtensions
 } // namespace Kratos
-} // namespace FileSystem

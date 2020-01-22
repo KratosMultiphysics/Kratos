@@ -26,29 +26,34 @@
 namespace Kratos {
 // Functions that provide some basic functionalities that are provided by std::filesystem (part of C++17)
 // please check the documentation of std::filesystem for the function documentation
-namespace FileSystem {
+namespace filesystem {
 
-bool KRATOS_API(KRATOS_CORE) Exists(const std::string& rPath);
+bool KRATOS_API(KRATOS_CORE) exists(const std::string& rPath);
 
-bool KRATOS_API(KRATOS_CORE) IsRegularFile(const std::string& rPath);
+bool KRATOS_API(KRATOS_CORE) is_regular_file(const std::string& rPath);
 
-bool KRATOS_API(KRATOS_CORE) IsDirectory(const std::string& rPath);
+bool KRATOS_API(KRATOS_CORE) is_directory(const std::string& rPath);
 
 bool KRATOS_API(KRATOS_CORE) create_directory(const std::string& rPath);
 
-bool KRATOS_API(KRATOS_CORE) CreateDirectories(const std::string& rPath);
+bool KRATOS_API(KRATOS_CORE) create_directories(const std::string& rPath);
 
-std::string KRATOS_API(KRATOS_CORE) CurrentPath();
+bool KRATOS_API(KRATOS_CORE) remove(const std::string& rPath);
 
-bool KRATOS_API(KRATOS_CORE) Remove(const std::string& rPath);
+std::uintmax_t KRATOS_API(KRATOS_CORE) remove_all(const std::string& rPath);
 
-std::uintmax_t KRATOS_API(KRATOS_CORE) RemoveAll(const std::string& rPath);
+void KRATOS_API(KRATOS_CORE) rename(const std::string& rPathFrom, const std::string& rPathTo);
 
-void KRATOS_API(KRATOS_CORE) Rename(const std::string& rPathFrom, const std::string& rPathTo);
+} // namespace filesystem
+
+
+namespace FilesystemExtensions {
+
+std::string KRATOS_API(KRATOS_CORE) CurrentWorkingDirectory();
 
 std::string KRATOS_API(KRATOS_CORE) JoinPaths(const std::vector<std::string>& rPaths);
 
+} // namespace FilesystemExtensions
 } // namespace Kratos
-} // namespace FileSystem
 
 #endif // KRATOS_FILESYSTEM defined
