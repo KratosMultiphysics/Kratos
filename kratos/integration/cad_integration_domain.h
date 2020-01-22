@@ -114,7 +114,7 @@ private:
 
         std::string sub_model_part_name = rParameters["iga_model_part"].GetString();
 
-        ModelPart& iga_model_part = rModelPart.HasSubModelPart(sub_model_part_name)
+        ModelPart& sub_model_part = rModelPart.HasSubModelPart(sub_model_part_name)
             ? rModelPart.GetSubModelPart(iga_model_part)
             : rModelPart.CreateSubModelPart(iga_model_part);
 
@@ -123,20 +123,21 @@ private:
 
         if (geometry_type == "GeometryCurveNodes" || geometry_type == "GeometrySurfaceNodes")
         {
-            GetGeometryPointsAt(geometry_list, sub_model_part_name, rParameters["parameters"], 0, EchoLevel);
+            GetGeometryPointsAt(geometry_list, sub_model_part, rParameters["parameters"], 0, EchoLevel);
         }
         if (geometry_type == "GeometryCurveVariationNodes" || geometry_type == "GeometrySurfaceVariationNodes")
         {
-            GetGeometryPointsAt(geometry_list, sub_model_part_name, rParameters["parameters"], 1, EchoLevel);
+            GetGeometryPointsAt(geometry_list, sub_model_part, rParameters["parameters"], 1, EchoLevel);
+        }
+        else
+        {
+            CreateIntegrationPoints(sub_model_part, rParameters);
         }
     }
 
     static void CreateIntegrationPoints(
-        std::vector<GeometryType>& rGeometryList,
-        ModelPart& rModelPart,
         ModelPart& rCadSubModelPart,
         const Parameters& rParameters,
-        IndexType SpecificationType,
         int EchoLevel = 0)
     {
         KRATOS_ERROR_IF_NOT(rParameters.Has("type"))
@@ -147,13 +148,10 @@ private:
 
         for (SizeType i = 0; i < rGeometryList.size(); ++i)
         {
-            IntegrationPointsArrayType integration_points;
-            rGeometryList[i]->CreateIntegrationPoints(
-                SpecificationType);
-
             GeometriesArrayType geometries;
             rGeometryList[i]->CreateQuadraturePointGeometries(
-                SpecificationType);
+                geometries, 2
+                );
 
             if (type == "element" || type == "Element") {
                 CreateElements(geometries, rCadSubModelPart, name, rIdCounter, EchoLevel);
