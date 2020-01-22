@@ -40,9 +40,10 @@ bool IsDirectory(const std::string& rPath)
 }
 
 
-bool CreateDirectory2(const std::string& rPath)
+bool create_directory(const std::string& rPath)
 {
     return false;
+    // return ghc::filesystem::create_directory(rPath);
 }
 
 

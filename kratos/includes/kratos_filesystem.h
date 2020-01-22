@@ -34,7 +34,7 @@ bool KRATOS_API(KRATOS_CORE) IsRegularFile(const std::string& rPath);
 
 bool KRATOS_API(KRATOS_CORE) IsDirectory(const std::string& rPath);
 
-bool KRATOS_API(KRATOS_CORE) CreateDirectory2(const std::string& rPath);
+bool KRATOS_API(KRATOS_CORE) create_directory(const std::string& rPath);
 
 bool KRATOS_API(KRATOS_CORE) CreateDirectories(const std::string& rPath);
 
