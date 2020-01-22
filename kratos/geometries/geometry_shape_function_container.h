@@ -146,7 +146,7 @@ public:
         if (ThisShapeFunctionsDerivatives.size() > 1)
         {
             ShapeFunctionsDerivativesIntegrationPointArrayType derivatives_array(ThisShapeFunctionsDerivatives.size() - 1);
-            for (int i = 1; i < ThisShapeFunctionsDerivatives.size(); ++i)
+            for (IndexType i = 1; i < ThisShapeFunctionsDerivatives.size(); ++i)
             {
                 ShapeFunctionsDerivativesType DN_De_i_array(1);
                 DN_De_i_array[0] = ThisShapeFunctionsDerivatives[i];
