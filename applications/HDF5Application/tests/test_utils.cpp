@@ -8,7 +8,7 @@
 #include "includes/kratos_components.h"
 #include "testing/testing.h"
 #include "custom_io/hdf5_file_serial.h"
-#include "custom_utilities/registered_variable_lookup.h"
+#include "custom_utilities/registered_component_lookup.h"
 
 namespace Kratos
 {
@@ -66,7 +66,7 @@ class AddNodalVariableFunctor;
 void TestModelPartFactory::AddNodalVariables(std::vector<std::string> const& rNodalVariables)
 {
     for (const auto& r_name : rNodalVariables)
-        RegisteredVariableLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>>(r_name)
+        RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>>(r_name)
             .Execute<AddNodalVariableFunctor>(mrTestModelPart);
 }
 
@@ -109,7 +109,7 @@ void TestModelPartFactory::AssignNodalTestData(std::vector<std::string> const& r
 
     for (auto& r_name : rNodalVariables)
     {
-        RegisteredVariableLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>>(r_name)
+        RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>>(r_name)
             .Execute<AssignNodalSolutionStepValueFunctor>(mrTestModelPart.Nodes());
     }
 }
@@ -166,7 +166,7 @@ class AssignDataValueContainerFunctor;
 void TestModelPartFactory::AssignDataValueContainer(DataValueContainer& rData, Flags& rFlags, std::vector<std::string> const& rVariables)
 {
     for (auto& r_name : rVariables)
-        RegisteredVariableLookup<Flags, Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
+        RegisteredComponentLookup<Flags, Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
                                  Variable<HDF5::Vector<double>>, Variable<HDF5::Matrix<double>>>(r_name)
             .Execute<AssignDataValueContainerFunctor>(rData, rFlags);
 }
@@ -394,7 +394,7 @@ class CompareVariableFunctor;
 void CompareDataValueContainers(DataValueContainer const& rData1, Flags const& rFlags1, DataValueContainer const& rData2, Flags const& rFlags2)
 {
     for (const auto& r_value1 : rData1)
-        RegisteredVariableLookup<Flags, Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
+        RegisteredComponentLookup<Flags, Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
                                  Variable<HDF5::Vector<double>>, Variable<HDF5::Matrix<double>>>(
             r_value1.first->Name())
             .Execute<CompareVariableFunctor>(rData1, rFlags1, rData2, rFlags2);

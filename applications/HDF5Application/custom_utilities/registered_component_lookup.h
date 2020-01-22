@@ -10,8 +10,8 @@
 //  Main author:    Michael Andre, https://github.com/msandre
 //
 
-#if !defined(KRATOS_REGISTERED_VARIABLE_LOOKUP_H_INCLUDED)
-#define KRATOS_REGISTERED_VARIABLE_LOOKUP_H_INCLUDED
+#if !defined(KRATOS_REGISTERED_COMPONENT_LOOKUP_H_INCLUDED)
+#define KRATOS_REGISTERED_COMPONENT_LOOKUP_H_INCLUDED
 
 // System includes
 #include <string>
@@ -43,10 +43,10 @@ namespace Kratos
  *  }
  * };
  *
- * RegisteredVariableLookup<Variable<double>>("PRESSURE").Execute<CopyVariableFunctor>(rSrc, rDest);
+ * RegisteredComponentLookup<Variable<double>>("PRESSURE").Execute<CopyVariableFunctor>(rSrc, rDest);
  */
 template <typename ...TVariables> 
-class RegisteredVariableLookup
+class RegisteredComponentLookup
 {
     template <template<typename T> class TFunctor, typename ...Targs>
     struct FunctorWrapper
@@ -64,7 +64,7 @@ class RegisteredVariableLookup
     };
 
 public:
-    explicit RegisteredVariableLookup(std::string const& rName) : mName(rName)
+    explicit RegisteredComponentLookup(std::string const& rName) : mName(rName)
     {}
 
   template <template<typename T> class TFunctor, typename ...Targs>
@@ -84,4 +84,4 @@ public:
 
 } // namespace Kratos.
 
-#endif // KRATOS_REGISTERED_VARIABLE_LOOKUP_H_INCLUDED defined
+#endif // KRATOS_REGISTERED_COMPONENT_LOOKUP_H_INCLUDED defined

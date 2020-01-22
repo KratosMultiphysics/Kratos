@@ -4,7 +4,7 @@
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
 #include "includes/kratos_parameters.h"
 #include "includes/communicator.h"
-#include "custom_utilities/registered_variable_lookup.h"
+#include "custom_utilities/registered_component_lookup.h"
 #include "custom_utilities/local_ghost_splitting_utility.h"
 
 namespace Kratos
@@ -49,7 +49,7 @@ void NodalDataValueIO::WriteNodalResults(NodesContainerType const& rNodes)
 
     // Write each variable.
     for (const std::string& r_variable_name : mVariableNames)
-        RegisteredVariableLookup<Flags,
+        RegisteredComponentLookup<Flags,
                                  Variable<array_1d<double, 3>>,
                                  Variable<double>,
                                  Variable<int>,
@@ -251,7 +251,7 @@ void NodalDataValueIO::ReadNodalResults(NodesContainerType& rNodes, Communicator
 
     // Read local data for each variable.
     for (const std::string& r_variable_name : mVariableNames)
-        RegisteredVariableLookup<Flags,
+        RegisteredComponentLookup<Flags,
                                  Variable<array_1d<double, 3>>,
                                  Variable<double>,
                                  Variable<int>,

@@ -3,7 +3,7 @@
 #include "utilities/openmp_utils.h"
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
 #include "includes/kratos_parameters.h"
-#include "custom_utilities/registered_variable_lookup.h"
+#include "custom_utilities/registered_component_lookup.h"
 
 namespace Kratos
 {
@@ -260,7 +260,7 @@ void ElementDataValueIO::WriteElementResults(ElementsContainerType const& rEleme
 
     // Write each variable.
     for (const std::string& r_variable_name : mVariableNames)
-        RegisteredVariableLookup<Flags,
+        RegisteredComponentLookup<Flags,
                                  Variable<array_1d<double, 3>>,
                                  Variable<double>,
                                  Variable<int>,
@@ -287,7 +287,7 @@ void ElementDataValueIO::ReadElementResults(ElementsContainerType& rElements)
 
     // Read local data for each variable.
     for (const std::string& r_variable_name : mVariableNames)
-        RegisteredVariableLookup<Flags,
+        RegisteredComponentLookup<Flags,
                                  Variable<array_1d<double, 3>>,
                                  Variable<double>,
                                  Variable<int>,
