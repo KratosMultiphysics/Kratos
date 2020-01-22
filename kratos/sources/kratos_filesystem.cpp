@@ -68,9 +68,9 @@ bool Remove(const std::string& rPath)
 }
 
 
-void RemoveAll(const std::string& rPath)
+std::uintmax_t RemoveAll(const std::string& rPath)
 {
-    // ghc::filesystem::remove_all(rPath);
+    // return ghc::filesystem::remove_all(rPath);
 }
 
 
