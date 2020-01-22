@@ -14,31 +14,31 @@ import KratosMultiphysics.scipy_conversion_tools
 from scipy.sparse.linalg import eigsh
 
 def CreateSolver(main_model_part, custom_settings):
-    return CustomScipySolver(main_model_part, custom_settings)
+    return CustomScipyBaseSolver(main_model_part, custom_settings)
 
-class CustomScipySolver(MechanicalSolver):
-    """The structural mechanics custom scipy solver.
+class CustomScipyBaseSolver(MechanicalSolver):
+    """The structural mechanics custom scipy base solver.
 
     This class creates the mechanical solvers to provide mass and stiffness matrices as scipy matrices.
     
-    Derived class can override the function SolveSolutionStep. In there the Mass and Stiffness matrices
+    Derived class must override the function SolveSolutionStep. In there the Mass and Stiffness matrices
     can be obtained as scipy matrices.
+    The computation of the eigenvalue problem in this implementation is only an example how this solver is to be used.
 
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings):
         # Construct the base solver.
-        super(CustomScipySolver, self).__init__(main_model_part, custom_settings)
+        super(CustomScipyBaseSolver, self).__init__(main_model_part, custom_settings)
         self.space = KratosMultiphysics.UblasSparseSpace()
-        KratosMultiphysics.Logger.PrintInfo("::[CustomScipySolver]:: ", "Construction finished")
-        
+        KratosMultiphysics.Logger.PrintInfo("::[CustomScipyBaseSolver]:: ", "Construction finished")
 
     @classmethod
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "scheme_type"         : "dynamic"
         }""")
-        this_defaults.AddMissingParameters(super(CustomScipySolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(CustomScipyBaseSolver, cls).GetDefaultSettings())
         return this_defaults
 
     #### Private functions ####
@@ -65,7 +65,7 @@ class CustomScipySolver(MechanicalSolver):
     def _create_mechanical_solution_strategy(self):
         if self.settings["block_builder"].GetBool() == True:
             warn_msg = "In case an eigenvalue problem is computed an elimantion builder shall be used to ensure boundary conditions are applied correctly!"
-            KratosMultiphysics.Logger.PrintWarning("CustomScipySolver", warn_msg)
+            KratosMultiphysics.Logger.PrintWarning("CustomScipyBaseSolver", warn_msg)
 
         eigen_scheme = self.get_solution_scheme() # The scheme defines the matrices
         computing_model_part = self.GetComputingModelPart()
@@ -106,12 +106,13 @@ class CustomScipySolver(MechanicalSolver):
         builder_and_solver.ApplyDirichletConditions(scheme, self.GetComputingModelPart(), aux, xD, b)
         # Convert Mass matrix to scipy
         M = KratosMultiphysics.scipy_conversion_tools.to_csr(aux)
+        
         return M
 
     def _StiffnessMatrixComputation(self): 
         self.GetComputingModelPart().ProcessInfo.SetValue(StructuralMechanicsApplication.BUILD_LEVEL,2) #Stiffness Matrix
         scheme = self.get_mechanical_solution_strategy().GetScheme() 
-        
+
         aux = self.get_mechanical_solution_strategy().GetSystemMatrix() 
         self.space.SetToZeroMatrix(aux)
 
@@ -149,12 +150,13 @@ class CustomScipySolver(MechanicalSolver):
         for node in self.GetComputingModelPart().Nodes:
             node_eigenvectors = node.GetValue(StructuralMechanicsApplication.EIGENVECTOR_MATRIX)
             if self.settings["rotation_dofs"].GetBool() == True:
-                dofs = [node.GetDof(KratosMultiphysics.DISPLACEMENT_X),
-                        node.GetDof(KratosMultiphysics.DISPLACEMENT_Y),
-                        node.GetDof(KratosMultiphysics.DISPLACEMENT_Z),
-                        node.GetDof(KratosMultiphysics.ROTATION_X),
+                dofs = [node.GetDof(KratosMultiphysics.ROTATION_X),
                         node.GetDof(KratosMultiphysics.ROTATION_Y),
-                        node.GetDof(KratosMultiphysics.ROTATION_Z)]
+                        node.GetDof(KratosMultiphysics.ROTATION_Z),
+                        node.GetDof(KratosMultiphysics.DISPLACEMENT_X),
+                        node.GetDof(KratosMultiphysics.DISPLACEMENT_Y),
+                        node.GetDof(KratosMultiphysics.DISPLACEMENT_Z)]
+
                 node_eigenvectors.Resize(num_eigenvalues, 6 )
             else:
                 dofs = [node.GetDof(KratosMultiphysics.DISPLACEMENT_X),
@@ -174,6 +176,10 @@ class CustomScipySolver(MechanicalSolver):
             node.SetValue(StructuralMechanicsApplication.EIGENVECTOR_MATRIX, node_eigenvectors)
 
     def SolveSolutionStep(self):
+        """This method must be overriden in derived class.
+
+        The computation of the egenvalue problem is only an example how this solver is to be used.
+        """
         ## Obtain scipy matrices
         M = self._MassMatrixComputation()
         K = self._StiffnessMatrixComputation()
@@ -181,8 +187,8 @@ class CustomScipySolver(MechanicalSolver):
         ## Obtain Dofs
         dofs = self.get_builder_and_solver().GetDofSet()
 
-        ##Compute eigenvalues and eigenvectors
-        tolerance = 1e-10
+        ## Compute eigenvalues and eigenvectors
+        tolerance = 1e-6
         iteration = M.size*100
         vals, vecs = eigsh(K, 5, M, which='SM', tol=tolerance, maxiter = iteration)
         
