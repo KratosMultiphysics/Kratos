@@ -214,7 +214,7 @@ public:
     {
         const auto& const_this = *this;
         return std::const_pointer_cast<GeometryPointer>(
-            const_this.pGetGeometry(Index));
+            const_this.pGetGeometryPart(Index));
     }
 
     /**
