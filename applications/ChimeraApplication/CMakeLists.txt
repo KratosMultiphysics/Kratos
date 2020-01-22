@@ -30,11 +30,17 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_CHIMERA_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
+if((${USE_MPI} MATCHES ON))
+ set(EXTRA_LIBRARIES "KratosMPICore")
+else()
+ set(EXTRA_LIBRARIES "")
+endif((${USE_MPI} MATCHES ON))
+
 ## ChimeraApplication python interface sources
 file(GLOB_RECURSE KRATOS_CHIMERA_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 add_library(KratosChimeraApplicationCore SHARED ${KRATOS_CHIMERA_APPLICATION_CORE} ${KRATOS_CHIMERA_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosChimeraApplicationCore PUBLIC KratosCore KratosFluidDynamicsCore)
+target_link_libraries(KratosChimeraApplicationCore PUBLIC KratosCore ${EXTRA_LIBRARIES} KratosFluidDynamicsCore)
 set_target_properties(KratosChimeraApplicationCore PROPERTIES COMPILE_DEFINITIONS "CHIMERA_APPLICATION=EXPORT,API")
 
 ###############################################################
@@ -90,5 +96,14 @@ endif(USE_COTIRE MATCHES ON)
 install(TARGETS KratosChimeraApplicationCore DESTINATION libs )
 install(TARGETS KratosChimeraApplication DESTINATION libs )
 
-# Add to the KratosMultiphisics Python module 
+# Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ChimeraApplication.py" DESTINATION "KratosMultiphysics/ChimeraApplication" RENAME "__init__.py")
+
+
+###############################################################################
+## If trilinos is avaliable, switch on the Chimera trilinos extension
+
+if((${USE_MPI} MATCHES ON) )
+  message("Enabling trilinos extension for KratosChimeraApplication")
+  add_subdirectory(trilinos_extension)
+endif((${USE_MPI} MATCHES ON) )

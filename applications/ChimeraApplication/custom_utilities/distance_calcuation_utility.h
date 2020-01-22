@@ -75,8 +75,8 @@ public:
     static inline void CalculateDistance(ModelPart &rBackgroundModelPart, ModelPart &rSkinModelPart)
     {
 
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        //typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+        //typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
         //typedef LinearSolverFactory<SparseSpaceType, LocalSparseSpaceType> LinearSolverFactoryType;
         //typedef LinearSolver<SparseSpaceType, TLocalSpaceType> LinearSolverType;
         //typedef VariationalDistanceCalculationProcess<TDim, TSparseSpaceType, TLocalSpaceType, LinearSolverType> VariationalDistanceCalculationProcessType;

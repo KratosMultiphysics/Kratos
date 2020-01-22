@@ -44,9 +44,6 @@ void AddCustomProcessesToPython(pybind11::module &m)
 
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-
     typedef ApplyChimera<2> BaseApplyChimera2D;
     typedef ApplyChimera<3> BaseApplyChimera3D;
 
@@ -62,7 +59,7 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def("SetReformulateEveryStep", &BaseApplyChimera2D::SetReformulateEveryStep);
     py::class_<BaseApplyChimera3D, BaseApplyChimera3D::Pointer, Process>(m, "BaseApplyChimera3D")
         .def(py::init<ModelPart &, Parameters>())
-        .def("SetEchoLevel", &BaseApplyChimera3D::SetEchoLevel) 
+        .def("SetEchoLevel", &BaseApplyChimera3D::SetEchoLevel)
         .def("SetReformulateEveryStep", &BaseApplyChimera3D::SetReformulateEveryStep);
 
     py::class_<ApplyChimeraMonolithic2DType, ApplyChimeraMonolithic2DType::Pointer, BaseApplyChimera2D>(m, "ApplyChimeraProcessMonolithic2d")
