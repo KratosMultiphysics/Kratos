@@ -323,7 +323,7 @@ namespace Kratos
                 }
             }
 
-            remove((Kratos::filesystem::current_path().string() + "/" + filename + ".json").c_str());
+            FileSystem::Remove(FileSystem::JoinPaths({FileSystem::CurrentPath(), filename + ".json"}));
         }
 
     } // namespace Testing
