@@ -11,7 +11,7 @@
 //
 
 // External includes
-#include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be exchanged with std::filesystem
+#include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
 
 // Project includes
 #include "includes/kratos_filesystem.h"
@@ -21,56 +21,49 @@ namespace filesystem {
 
 bool exists(const std::string& rPath)
 {
-    return false;
-    // return ghc::filesystem::exists(rPath);
+    return ghc::filesystem::exists(rPath);
 }
 
 
 bool is_regular_file(const std::string& rPath)
 {
-    return false;
-    // return ghc::filesystem::is_regular_file(rPath);
+    return ghc::filesystem::is_regular_file(rPath);
 }
 
 
 bool is_directory(const std::string& rPath)
 {
-    return false;
-    // return ghc::filesystem::is_directory(rPath);
+    return ghc::filesystem::is_directory(rPath);
 }
 
 
 bool create_directory(const std::string& rPath)
 {
-    return false;
-    // return ghc::filesystem::create_directory(rPath);
+    return ghc::filesystem::create_directory(rPath);
 }
 
 
 bool create_directories(const std::string& rPath)
 {
-    return false;
-    // return ghc::filesystem::create_directories(rPath);
+    return ghc::filesystem::create_directories(rPath);
 }
 
 
 bool remove(const std::string& rPath)
 {
-    return false;
-    // return ghc::filesystem::remove(rPath);
+    return ghc::filesystem::remove(rPath);
 }
 
 
 std::uintmax_t remove_all(const std::string& rPath)
 {
-    return 0;
-    // return ghc::filesystem::remove_all(rPath);
+    return ghc::filesystem::remove_all(rPath);
 }
 
 
 void rename(const std::string& rPathFrom, const std::string& rPathTo)
 {
-    // return ghc::filesystem::rename(rPathFrom, rPathTo);
+    return ghc::filesystem::rename(rPathFrom, rPathTo);
 }
 
 } // namespace filesystem
@@ -80,8 +73,7 @@ namespace FilesystemExtensions {
 
 std::string CurrentWorkingDirectory()
 {
-    return "";
-    // return ghc::filesystem::current_path().string();
+    return ghc::filesystem::current_path().string();
 }
 
 std::string JoinPaths(const std::vector<std::string>& rPaths)

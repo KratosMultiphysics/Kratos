@@ -24,7 +24,8 @@
 
 
 namespace Kratos {
-// Functions that provide some basic functionalities that are provided by std::filesystem (part of C++17)
+// wrapper functions for std::filesystem (part of C++17)
+// the function signatures are identical, hence after moving to C++17 Kratos::filesystem can be replaced with std::filesystem
 // please check the documentation of std::filesystem for the function documentation
 namespace filesystem {
 
@@ -48,6 +49,7 @@ void KRATOS_API(KRATOS_CORE) rename(const std::string& rPathFrom, const std::str
 
 
 namespace FilesystemExtensions {
+// helper functions related to filesystem
 
 std::string KRATOS_API(KRATOS_CORE) CurrentWorkingDirectory();
 
