@@ -24,7 +24,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/pointer_hash_map_set.h"
-#include "containers/data_value_container.h"
 
 
 namespace Kratos
@@ -352,7 +351,6 @@ private:
     /// Assignment operator.
     GeometryContainer& operator=(const GeometryContainer& rOther)
     {
-        Flags::operator =(rOther);
         mGeometries = rOther.mGeometries;
     }
 
