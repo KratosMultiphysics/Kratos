@@ -24,6 +24,7 @@
 #include "mor_application_variables.h"
 
 #include "geometries/tetrahedra_3d_4.h"
+#include "geometries/point_3d.h"
 
 
 namespace Kratos {
@@ -32,7 +33,10 @@ namespace Kratos {
 
 KratosMORApplication::KratosMORApplication():
     KratosApplication("MORApplication"),
-      mAcousticElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4))))
+      mAcousticElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4))))//,
+      
+      // conditions
+      // mComponentOutputCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1))))
     {}
 
 void KratosMORApplication::Register()
@@ -42,8 +46,11 @@ void KratosMORApplication::Register()
      KRATOS_INFO("") << "Initializing KratosMORApplication..." << std::endl;
 
   KRATOS_REGISTER_VARIABLE( FREQUENCY )
+  KRATOS_REGISTER_VARIABLE( BUILD_LEVEL )
 
   KRATOS_REGISTER_ELEMENT("AcousticElement3D4N", mAcousticElement3D4N)
+
+  // KRATOS_REGISTER_CONDITION("ComponentOutputCondition3D1N", mComponentOutputCondition3D1N)
 
 
 }

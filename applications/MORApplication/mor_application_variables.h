@@ -25,6 +25,7 @@
 namespace Kratos
 {
 KRATOS_DEFINE_VARIABLE( double, FREQUENCY )
+KRATOS_DEFINE_VARIABLE( int, BUILD_LEVEL )
 
 }
 

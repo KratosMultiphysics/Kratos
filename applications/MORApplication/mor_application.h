@@ -19,13 +19,13 @@
 
 
 // External includes
-
+#include "includes/variables.h"
 
 // Project includes
 #include "includes/kratos_application.h"
 
 #include "custom_elements/acoustic_element.h"
-
+#include "custom_conditions/component_output_condition.h"
 
 namespace Kratos {
 
@@ -179,6 +179,8 @@ private:
 
     const AcousticElement mAcousticElement3D4N;
     // const Elem3D   mElem3D;
+    // typedef DISPLACEMENT dt;
+    // const ComponentOutputCondition mComponentOutputCondition3D1N;
 
     ///@}
     ///@name Private Operators
