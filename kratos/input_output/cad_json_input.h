@@ -204,6 +204,12 @@ namespace Kratos
             bool is_trimmed = true;
             if (rParameters["surface"].Has("is_trimmed"))
                 is_trimmed = rParameters["surface"]["is_trimmed"].GetBool();
+            else {
+                KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 4))
+                    << "For BrepSurface \"" << GetIdOrName(rParameters) << "\""
+                    << "\", is_trimmed is not provided in the input." 
+                    << " is_trimmed = true is considered." << std::endl;
+            }
 
             if (rParameters.Has("boundary_loops"))
             {
@@ -224,6 +230,11 @@ namespace Kratos
             }
             else
             {
+                KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 4))
+                    << "For BrepSurface \"" << GetIdOrName(rParameters) << "\""
+                    << "\", boundary_loops are not provided in the input."
+                    <<" It will be considered as untrimmed." << std::endl;
+
                 auto p_brep_surface =
                     Kratos::make_shared<BrepSurfaceType>(
                         p_surface);
