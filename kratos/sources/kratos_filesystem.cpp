@@ -21,48 +21,56 @@ namespace FileSystem {
 
 bool Exists(const std::string& rPath)
 {
+    return false;
     // return ghc::filesystem::exists(rPath);
 }
 
 
 bool IsRegularFile(const std::string& rPath)
 {
+    return false;
     // return ghc::filesystem::is_regular_file(rPath);
 }
 
 
 bool IsDirectory(const std::string& rPath)
 {
+    return false;
     // return ghc::filesystem::is_directory(rPath);
 }
 
 
 bool CreateDirectory(const std::string& rPath)
 {
+    return false;
     // return ghc::filesystem::create_directory(rPath);
 }
 
 
 bool CreateDirectories(const std::string& rPath)
 {
+    return false;
     // return ghc::filesystem::create_directories(rPath);
 }
 
 
 std::string CurrentPath()
 {
+    return "";
     // return ghc::filesystem::current_path().string();
 }
 
 
 bool Remove(const std::string& rPath)
 {
+    return false;
     // return ghc::filesystem::remove(rPath);
 }
 
 
 bool RemoveAll(const std::string& rPath)
 {
+    return false;
     // return ghc::filesystem::remove_all(rPath);
 }
 
