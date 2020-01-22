@@ -145,8 +145,10 @@ public:
     /// Returns the Geometry::Pointer corresponding to its Id
     GeometryTypePointer pGetGeometry(IndexType GeometryId)
     {
-        const auto& const_this = *this;
-        return std::const_pointer_cast<TGeometryType>(const_this.pGetGeometry(GeometryId));
+        auto i = mGeometries.find(GeometryId);
+        KRATOS_ERROR_IF(i == mGeometries.end())
+            << " geometry index not found: " << GeometryId << ".";
+        return (i.base()->second);
     }
 
     /// Returns the const Geometry::Pointer corresponding to its Id
@@ -161,8 +163,11 @@ public:
     /// Returns the Geometry::Pointer corresponding to its name
     GeometryTypePointer pGetGeometry(std::string GeometryName)
     {
-        const auto& const_this = *this;
-        return std::const_pointer_cast<TGeometryType>(const_this.pGetGeometry(GeometryName));
+        auto hash_index = TGeometryType::GenerateId(GeometryName);
+        auto i = mGeometries.find(hash_index);
+        KRATOS_ERROR_IF(i == mGeometries.end())
+            << " geometry index not found: " << GeometryName << ".";
+        return (i.base()->second);
     }
 
     /// Returns the Geometry::Pointer corresponding to its name
