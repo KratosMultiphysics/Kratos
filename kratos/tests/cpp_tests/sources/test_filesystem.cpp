@@ -41,14 +41,14 @@ namespace Testing {
 //     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(file_name));
 // }
 
-// KRATOS_TEST_CASE_IN_SUITE(FileSystemJoinPaths, KratosCoreFastSuite)
-// {
-//     std::vector<std::string> paths_1 {"eee", "ccc", "gt"};
-//     KRATOS_CHECK_STRING_EQUAL(Kratos::FileSystem::JoinPaths(paths_1), "eee/ccc/gt");
+KRATOS_TEST_CASE_IN_SUITE(FileSystemJoinPaths, KratosCoreFastSuite)
+{
+    std::vector<std::string> paths_1 {"eee", "ccc", "gt"};
+    KRATOS_CHECK_STRING_EQUAL(Kratos::FileSystem::JoinPaths(paths_1), "eee/ccc/gt");
 
-//     std::vector<std::string> paths_2;
-//     KRATOS_CHECK_STRING_EQUAL(Kratos::FileSystem::JoinPaths(paths_2), "");
-// }
+    std::vector<std::string> paths_2;
+    KRATOS_CHECK_STRING_EQUAL(Kratos::FileSystem::JoinPaths(paths_2), "");
+}
 
 // KRATOS_TEST_CASE_IN_SUITE(FileSystemIsRegularFile, KratosCoreFastSuite)
 // {
