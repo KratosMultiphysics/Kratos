@@ -401,8 +401,9 @@ namespace Kratos
             GeometryPointerType p_geometry = GetGeometry(rParameters["topology"][0], rModelPart);
             GeometryPointerType p_brep_trim = p_geometry->pGetGeometryPart(rParameters["topology"][0]["trim_index"].GetInt());
 
-            BrepCurveOnSurfaceType brep_curve_on_surface = dynamic_cast<BrepCurveOnSurfaceType>(*p_brep_trim);
-            KRATOS_ERROR_IF(brep_curve_on_surface == NULL)
+            auto p_brep_curve_on_surface 
+                = dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_brep_trim);
+            KRATOS_ERROR_IF(p_brep_curve_on_surface == nullptr)
                 << "dynamic_cast from Geometry to BrepCurveOnSurface not successfull. Brep Id: "
                 << GetIdOrName(rParameters["topology"][0]) << " and trim index: "
                 << rParameters["topology"][0]["trim_index"].GetInt() << std::endl;
@@ -417,7 +418,7 @@ namespace Kratos
                     << "\", no relative_direction is provided in the input." << std::endl;
             }
 
-            auto p_nurbs_curve_on_surface = brep_curve_on_surface.pGetCurveOnSurface();
+            auto p_nurbs_curve_on_surface = p_brep_curve_on_surface->pGetCurveOnSurface();
 
             typename BrepCurveOnSurfaceType::Pointer p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
                 p_nurbs_curve_on_surface, relative_direction);
