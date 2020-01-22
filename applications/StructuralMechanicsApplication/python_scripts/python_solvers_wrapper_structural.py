@@ -8,19 +8,14 @@ from importlib import import_module
 
 def CreateSolverByParameters(model, solver_settings, parallelism):
 
-    if solver_settings.Has("custom_solver_module"):
-        # this means that the user specified a custom solver
-        solver_module_name = solver_settings["custom_solver_module"].GetString()
-        solver = import_module(solver_module_name).CreateSolver(model, solver_settings)
-        KratosMultiphysics.Logger.PrintInfo("MechanicalSolversWrapper", 'Using custom solver "{}", defined in module "{}"'.format(solver.__class__.__name__, solver.__class__.__module__))
-        return solver
-
     solver_type = solver_settings["solver_type"].GetString()
 
     if solver_settings.Has("time_integration_method"):
         time_integration_method = solver_settings["time_integration_method"].GetString()
     else:
         time_integration_method = "implicit" # defaulting to implicit time-integration
+
+    try_import_custom_solver = False
 
     # Solvers for OpenMP parallelism
     if parallelism == "OpenMP":
@@ -50,9 +45,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
             solver_module_name = "structural_mechanics_adjoint_static_solver"
 
         else:
-            err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"static\", \"dynamic\", \"eigen_value\", \"harmonic_analysis\", \"formfinding\", \"adjoint_static\""
-            raise Exception(err_msg)
+            available_solver_types = ["static", "dynamic", "eigen_value", "harmonic_analysis", "formfinding", "adjoint_static"]
+            try_import_custom_solver = True
 
     # Solvers for MPI parallelism
     elif parallelism == "MPI":
@@ -68,13 +62,24 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
             solver_module_name = "trilinos_structural_mechanics_static_solver"
 
         else:
-            err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"static\", \"dynamic\""
-            raise Exception(err_msg)
+            available_solver_types = ["static", "dynamic"]
+            try_import_custom_solver = True
     else:
         err_msg =  "The requested parallel type \"" + parallelism + "\" is not available!\n"
         err_msg += "Available options are: \"OpenMP\", \"MPI\""
         raise Exception(err_msg)
+
+    if try_import_custom_solver:
+        KratosMultiphysics.Logger.PrintInfo("MechanicalSolversWrapper", 'Selected "solver_type" "{0}" not available in the python solvers wrapper, attempting to import custom solver from module "{0}"'.format(solver_type))
+        try:
+            solver = import_module(solver_type).CreateSolver(model, solver_settings)
+            KratosMultiphysics.Logger.PrintInfo("MechanicalSolversWrapper", 'Using custom solver "{}", defined in module "{}"'.format(solver.__class__.__name__, solver.__class__.__module__))
+            return solver
+        except:
+            err_msg =  'Importing custom solver from module "{}" failed.\n'.format(solver_type)
+            err_msg += 'The requested solver type "{}" is not in the python solvers wrapper\n'.format(solver_type)
+            err_msg += "Available options are: {}".format(', '.join(available_solver_types))
+            raise Exception(err_msg)
 
     if solver_settings.Has("contact_settings"):  # This is a contact problem
         kratos_module = "KratosMultiphysics.ContactStructuralMechanicsApplication"
