@@ -209,6 +209,26 @@ public:
         return mIsTrimmed;
     }
 
+    /**
+    * @brief This method creates a list of quadrature point geometries
+    *        from a list of integration points.
+    *
+    * @param rResultGeometries list of quadrature point geometries.
+    * @param rIntegrationPoints list of integration points.
+    * @param NumberOfShapeFunctionDerivatives the number provided
+    *        derivatives of shape functions in the system.
+    *
+    * @see quadrature_point_geometry.h
+    */
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        mpNurbsSurface->CreateQuadraturePointGeometries(
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints);
+    }
+
     ///@}
     ///@name Geometrical Operations
     ///@{
