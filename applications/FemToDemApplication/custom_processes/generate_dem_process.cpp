@@ -76,6 +76,7 @@ void GenerateDemProcess::Execute()
                                 const double new_radius = dist_between_nodes*0.5;
                                 auto& pDEM_particle = r_neighbour.GetValue(DEM_PARTICLE_POINTER);
                                 auto& r_radius_neigh_old = pDEM_particle->GetGeometry()[0].GetSolutionStepValue(RADIUS);
+                                pDEM_particle->SetRadius(new_radius);
                                 r_radius_neigh_old = new_radius;
                                 r_neighbour.SetValue(RADIUS, new_radius);
                                 potential_radii(neigh) = new_radius;
