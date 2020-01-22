@@ -47,10 +47,13 @@ public:
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
 
-    typedef Geometry<Node<3>> GeometryType;
+    typedef Node<3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
 
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename GeometryType::PointsArrayType PointsArrayType;
+    typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
+    typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -120,17 +123,105 @@ private:
 
         if (geometry_type == "GeometryCurveNodes" || geometry_type == "GeometrySurfaceNodes")
         {
-            GetGeometryPointsAt(geometry_list, rModelPart, rCadModelPart, rParameters["parameters"], 0, EchoLevel);
+            GetGeometryPointsAt(geometry_list, sub_model_part_name, rParameters["parameters"], 0, EchoLevel);
         }
         if (geometry_type == "GeometryCurveVariationNodes" || geometry_type == "GeometrySurfaceVariationNodes")
         {
-            GetGeometryPointsAt(geometry_list, rModelPart, rCadModelPart, rParameters["parameters"], 1, EchoLevel);
+            GetGeometryPointsAt(geometry_list, sub_model_part_name, rParameters["parameters"], 1, EchoLevel);
         }
+    }
+
+    static void CreateIntegrationPoints(
+        std::vector<GeometryType>& rGeometryList,
+        ModelPart& rModelPart,
+        ModelPart& rCadSubModelPart,
+        const Parameters& rParameters,
+        IndexType SpecificationType,
+        int EchoLevel = 0)
+    {
+        KRATOS_ERROR_IF_NOT(rParameters.Has("type"))
+            << "\"type\" need to be specified." << std::endl;
+        std::string type = rParameters["type"];
+        KRATOS_ERROR_IF_NOT(rParameters.Has("name"))
+            << "\"name\" need to be specified." << std::endl;
+
+        for (SizeType i = 0; i < rGeometryList.size(); ++i)
+        {
+            IntegrationPointsArrayType integration_points;
+            rGeometryList[i]->CreateIntegrationPoints(
+                SpecificationType);
+
+            GeometriesArrayType geometries;
+            rGeometryList[i]->CreateQuadraturePointGeometries(
+                SpecificationType);
+
+            if (type == "element" || type == "Element") {
+                CreateElements(geometries, rCadSubModelPart, name, rIdCounter, EchoLevel);
+            }
+            else if (type == "condition" || type == "Condition") {
+                CreateConditions(geometries, rCadSubModelPart, name, rIdCounter, EchoLevel);
+            }
+            else {
+                KRATOS_ERROR << "\"type\" does not exist: " << type
+                    << ". Possible types are \"element\" and \"condition\"." << std::endl;
+            }
+        }
+    }
+
+    static void CreateElements(
+        std::vector<GeometryType>& rQuadraturePointGeometryList,
+        ModelPart& rCadSubModelPart,
+        std::string& rElementName,
+        int& rIdCounter,
+        int EchoLevel = 0)
+    {
+        const Element& rReferenceElement = KratosComponents<Element>::Get(rElementName);
+
+        rCadSubModelPart::ElementsContainerType new_element_list;
+        new_element_list.reserve(rQuadraturePointGeometryList.size());
+
+        for (IndexType i = 0; i < rQuadraturePointGeometryList.size(); ++i)
+        {
+            auto p_element = rReferenceElement.Create(rIdCounter, rGeometryList[i], nullptr);
+
+            rIdCounter++;
+
+            rCadSubModelPart.AddNodes(rCadSubModelPart[i]->begin(), rCadSubModelPart[i]->end());
+
+            new_element_list.push_back(p_element);
+        }
+
+        rCadSubModelPart.AddElements(new_element_list.begin(), new_element_list.end());
+    }
+
+    static void CreateConditions(
+        std::vector<GeometryType>& rQuadraturePointGeometryList,
+        ModelPart& rCadSubModelPart,
+        std::string& rConditionName,
+        int& rIdCounter,
+        int EchoLevel = 0)
+    {
+        const Condition& rReferenceCondition = KratosComponents<Condition>::Get(rConditionName);
+
+        rCadSubModelPart::ConditionsContainerType new_condition_list;
+        new_condition_list.reserve(rQuadraturePointGeometryList.size());
+
+        for (IndexType i = 0; i < rQuadraturePointGeometryList.size(); ++i)
+        {
+            auto p_condition = rReferenceCondition.Create(rIdCounter, rQuadraturePointGeometryList[i], nullptr);
+
+            rIdCounter++;
+
+            rCadSubModelPart.AddNodes(rQuadraturePointGeometryList[i]->begin(), rQuadraturePointGeometryList[i]->end());
+
+            new_condition_list.push_back(p_condition);
+        }
+
+        rCadSubModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
     }
 
     static void GetGeometryPointsAt(
         std::vector<GeometryType>& rGeometryList,
-        ModelPart& rModelPart,
         ModelPart& rCadSubModelPart,
         const Parameters& rParameters,
         IndexType SpecificationType,
