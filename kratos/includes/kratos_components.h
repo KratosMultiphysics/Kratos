@@ -32,6 +32,24 @@
 
 namespace Kratos
 {
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+    
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
 
 /// KratosComponents class encapsulates a lookup table for a family of classes in a generic way.
 /** KratosComponents class encapsulates a lookup table for a family of classes in a generic way.
