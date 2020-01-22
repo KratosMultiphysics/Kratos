@@ -62,13 +62,12 @@ public:
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
     typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>> BrepCurveOnSurfaceLoopArrayType;
 
-    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
-
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
 
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::PointsArrayType PointsArrayType;
+    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     ///@}

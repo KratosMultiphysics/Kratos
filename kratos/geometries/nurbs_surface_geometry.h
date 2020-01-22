@@ -49,6 +49,7 @@ public:
 
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::PointsArrayType PointsArrayType;
+    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     /// Counted pointer of NurbsSurfaceGeometry
