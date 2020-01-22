@@ -27,7 +27,7 @@
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_utilities.h"
 
-
+#include "integration/integration_point_utilities.h"
 
 namespace Kratos {
 
@@ -47,10 +47,9 @@ public:
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
 
-    /** Array of counted pointers to point. This type used to hold
-        geometry's points.*/
-    typedef  typename BaseType::PointsArrayType PointsArrayType;
-    typedef  typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::PointsArrayType PointsArrayType;
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     /// Counted pointer of NurbsSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsSurfaceGeometry);
@@ -295,7 +294,7 @@ public:
 
         std::vector<NurbsInterval> result(number_of_spans);
 
-        for (int i = 0; i < number_of_spans; i++) {
+        for (IndexType i = 0; i < number_of_spans; i++) {
             const double t0 = mKnotsU[first_span + i];
             const double t1 = mKnotsU[first_span + i + 1];
 
@@ -317,7 +316,7 @@ public:
 
         std::vector<NurbsInterval> result(number_of_spans);
 
-        for (int i = 0; i < number_of_spans; i++) {
+        for (IndexType i = 0; i < number_of_spans; i++) {
             const double t0 = mKnotsV[first_span + i];
             const double t1 = mKnotsV[first_span + i + 1];
 
@@ -404,6 +403,62 @@ public:
 
             rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
                 this->WorkingSpaceDimension(), 2, data_container, nonzero_control_points);
+        }
+    }
+
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /*
+    * Creates integration points according to its the polynomial degrees.
+    * @return integration points.
+    */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        const SizeType points_in_u = PolynomialDegreeU() + 1;
+        const SizeType points_in_v = PolynomialDegreeV() + 1;
+
+        CreateIntegrationPoints(
+            rIntegrationPoints, points_in_u, points_in_v);
+    }
+
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        SizeType IntegrationPointsPerKnotU, SizeType IntegrationPointsPerKnotV) const
+    {
+        auto knot_span_intervals_u = KnotSpanIntervalsU();
+        auto knot_span_intervals_v = KnotSpanIntervalsV();
+
+        const SizeType number_of_integration_points =
+            knot_span_intervals_u.size() * knot_span_intervals_v.size()
+            * IntegrationPointsPerKnotU * IntegrationPointsPerKnotV;
+
+        if (rIntegrationPoints.size() != number_of_integration_points)
+            rIntegrationPoints.resize(number_of_integration_points);
+
+        IntegrationPointsArrayType integration_points_knot_span(
+            IntegrationPointsPerKnotU * IntegrationPointsPerKnotV);
+
+        IndexType counter = 0;
+
+        for (IndexType i = 0; i < knot_span_intervals_u.size(); ++i)
+        {
+            for (IndexType j = 0; j < knot_span_intervals_v.size(); ++j)
+            {
+                IntegrationPointUtilities::IntegrationPoints2D(
+                    integration_points_knot_span,
+                    IntegrationPointsPerKnotU, IntegrationPointsPerKnotV,
+                    knot_span_intervals_u[i].GetT0(), knot_span_intervals_u[i].GetT1(),
+                    knot_span_intervals_v[j].GetT0(), knot_span_intervals_v[j].GetT1());
+
+                for (IndexType k = 0; k < integration_points_knot_span.size(); ++k)
+                {
+                    rIntegrationPoints[counter] = integration_points_knot_span[k];
+                    counter++;
+                }
+            }
         }
     }
 

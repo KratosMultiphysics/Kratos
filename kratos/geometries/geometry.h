@@ -1830,6 +1830,18 @@ public:
         return mpGeometryData->IntegrationPoints( ThisMethod );
     }
 
+    /*
+    * Creates integration points according to its own integration rule.
+    * @return integration points.
+    */
+    virtual void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const
+    {
+        KRATOS_ERROR << "Calling CreateIntegrationPoints from base class."
+            << " Please check the definition of derived class. "
+            << *this << std::endl;
+    }
+
     /**
     * @brief This method creates a list of quadrature point geometries
     *        from a list of integration points.
@@ -1863,12 +1875,10 @@ public:
     * @see quadrature_point_geometry.h
     */
     virtual void CreateQuadraturePointGeometries(
-        GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives) const
+    GeometriesArrayType& rResultGeometries,
+    IndexType NumberOfShapeFunctionDerivatives) const
     {
         KRATOS_ERROR << "Calling CreateQuadraturePointGeometries from base class."
-            << " Please check the definition of derived class. "
-            << *this << std::endl;
     }
 
     ///@}

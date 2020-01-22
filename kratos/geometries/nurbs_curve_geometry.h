@@ -36,11 +36,9 @@ public:
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
 
-    /** Array of counted pointers to point. This type used to hold
-        geometry's points.*/
-    typedef  typename BaseType::PointsArrayType PointsArrayType;
-
-    typedef  typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::PointsArrayType PointsArrayType;
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     /// Counted pointer of NurbsCurveGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveGeometry);

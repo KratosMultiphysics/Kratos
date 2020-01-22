@@ -67,8 +67,9 @@ public:
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
 
-    typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::PointsArrayType PointsArrayType;
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -227,6 +228,26 @@ public:
     {
         mpNurbsSurface->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints);
+    }
+
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /*
+    * Creates integration points according to its the polynomial degrees.
+    * @return integration points.
+    */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        if (!IsTrimmed()){
+            return mpNurbsSurface->CreateIntegrationPoints(
+                rIntegrationPoints);
+        }
+        else {
+            KRATOS_ERROR << "CreateIntegrationPoints is not impelemented for trimmed BrepSurfaces." << std::endl;
+        }
     }
 
     ///@}
