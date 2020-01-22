@@ -70,6 +70,7 @@ bool Remove(const std::string& rPath)
 
 std::uintmax_t RemoveAll(const std::string& rPath)
 {
+    return 0;
     // return ghc::filesystem::remove_all(rPath);
 }
 
