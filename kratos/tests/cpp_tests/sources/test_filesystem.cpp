@@ -119,7 +119,7 @@ KRATOS_TEST_CASE_IN_SUITE(FileSystemSubDirectories, KratosCoreFastSuite)
     KRATOS_CHECK(output_file.good());
     output_file.close();
 
-    KRATOS_CHECK(Kratos::FileSystem::RemoveAll(base_dir_name));
+    Kratos::FileSystem::RemoveAll(base_dir_name);
 
     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(base_dir_name));
     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(full_dir_name));
@@ -177,7 +177,7 @@ KRATOS_TEST_CASE_IN_SUITE(FileSystemRenameDirectory, KratosCoreFastSuite)
     KRATOS_CHECK(Kratos::FileSystem::Exists(dir_name_new));
     KRATOS_CHECK(Kratos::FileSystem::Exists(file_name_new));
 
-    KRATOS_CHECK(Kratos::FileSystem::RemoveAll(dir_name_new));
+    Kratos::FileSystem::RemoveAll(dir_name_new);
 
     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(dir_name_new));
 }

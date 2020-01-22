@@ -42,7 +42,7 @@ std::string KRATOS_API(KRATOS_CORE) CurrentPath();
 
 bool KRATOS_API(KRATOS_CORE) Remove(const std::string& rPath);
 
-bool KRATOS_API(KRATOS_CORE) RemoveAll(const std::string& rPath);
+void KRATOS_API(KRATOS_CORE) RemoveAll(const std::string& rPath);
 
 void KRATOS_API(KRATOS_CORE) Rename(const std::string& rPathFrom, const std::string& rPathTo);
 

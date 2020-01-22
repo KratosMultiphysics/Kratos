@@ -68,10 +68,9 @@ bool Remove(const std::string& rPath)
 }
 
 
-bool RemoveAll(const std::string& rPath)
+void RemoveAll(const std::string& rPath)
 {
-    return false;
-    // return ghc::filesystem::remove_all(rPath);
+    // ghc::filesystem::remove_all(rPath);
 }
 
 
