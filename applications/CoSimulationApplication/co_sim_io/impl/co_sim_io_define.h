@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //                   license: CoSimulationApplication/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
 #ifndef KRATOS_CO_SIM_IO_DEFINE_H_INCLUDED
