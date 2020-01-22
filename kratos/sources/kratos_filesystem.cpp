@@ -11,10 +11,10 @@
 //
 
 // External includes
+// #include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be exchanged with std::filesystem
 
 // Project includes
 #include "includes/kratos_filesystem.h"
-#include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be exchanged with std::filesystem
 
 namespace Kratos {
 namespace FileSystem {
