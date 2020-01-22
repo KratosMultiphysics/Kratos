@@ -1,4 +1,10 @@
 #include "hole_cutting_utility.h"
+#include "input_output/vtk_output.h"
+
+#ifdef KRATOS_USING_MPI
+#include "mpi/utilities/parallel_fill_communicator.h"
+#include "mpi/includes/mpi_communicator.h"
+#endif
 
 namespace Kratos
 {
@@ -27,14 +33,12 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
     KRATOS_TRY;
     std::vector<IndexType> vector_of_node_ids;
     vector_of_node_ids.reserve(rModelPart.NumberOfNodes());
-    std::vector<IndexType> vector_of_elem_ids;
-    vector_of_elem_ids.reserve(rModelPart.NumberOfElements());
-
 
     for (auto &i_element : rModelPart.Elements())
     {
-        const auto& p_elem = rModelPart.pGetElement(i_element.Id());
+        auto p_elem = rModelPart.pGetElement(i_element.Id());
         double nodal_distance = 0.0;
+        int num_nodes_outside = 0;
         bool is_elem_outside = true;
         Geometry<Node<3>> &geom = i_element.GetGeometry();
 
@@ -45,6 +49,7 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
             nodal_distance = nodal_distance * DomainType;
             if (nodal_distance < -1 * OverLapDistance){
                 is_elem_outside = is_elem_outside && true;
+                ++num_nodes_outside;
                 vector_of_node_ids.push_back(node.Id()); // This is for important for MPI cases when a different
                                                          // partition just touches this partition with one node.
             } else {
@@ -56,11 +61,13 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
         * Any node goes out of the domain means the element need to be INACTIVE ,
         *   otherwise the modified patch boundary wont find any nodes on background
         */
-        if (is_elem_outside)
+        //if (is_elem_outside)
+        if(num_nodes_outside == geom.size())
         {
             i_element.Set(ACTIVE, false);
-            if (Side == ChimeraHoleCuttingUtility::SideToExtract::INSIDE)
-                rRemovedModelPart.AddElement(p_elem);
+            if (Side == ChimeraHoleCuttingUtility::SideToExtract::INSIDE){
+                rRemovedModelPart.AddElement(rModelPart.pGetElement(i_element.Id()));
+            }
             for (auto& node : geom)
             {
                 node.FastGetSolutionStepValue(VELOCITY_X, 0) = 0.0;
@@ -81,12 +88,16 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
         {
             if (Side == ChimeraHoleCuttingUtility::SideToExtract::OUTSIDE)
             {
-                rRemovedModelPart.AddElement(p_elem);
+                rRemovedModelPart.AddElement(rModelPart.pGetElement(i_element.Id()));
                 for (auto& node :  geom)
                     vector_of_node_ids.push_back(node.Id());
             }
         }
     }
+
+    for(auto& elem : rRemovedModelPart.Elements())
+        for(auto& node : elem.GetGeometry())
+            vector_of_node_ids.push_back(node.Id());
 
     // sorting and making unique list of node ids
     std::set<IndexType> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
@@ -104,6 +115,17 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
         }
     }
 
+#ifdef KRATOS_USING_MPI
+    ModelPart& r_root_mp = rModelPart.GetRootModelPart();
+    Communicator::Pointer p_new_comm = Kratos::make_shared< MPICommunicator >(&rModelPart.GetNodalSolutionStepVariablesList(), r_root_mp.GetCommunicator().GetDataCommunicator());
+    rRemovedModelPart.SetCommunicator(p_new_comm);
+#endif
+
+if (Side == ChimeraHoleCuttingUtility::SideToExtract::INSIDE)
+    for(auto& elem : rRemovedModelPart.Elements()){
+        rModelPart.Elements()(elem.Id())->Set(ACTIVE, false);
+        elem.Set(ACTIVE, false);
+    }
     KRATOS_CATCH("");
 }
 template <int TDim>
@@ -409,6 +431,16 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(
 
     rExtractedBoundaryModelPart.RemoveConditions(TO_ERASE);
     rExtractedBoundaryModelPart.RemoveNodes(TO_ERASE);
+
+
+#ifdef KRATOS_USING_MPI
+    ModelPart& r_root_mp = rVolumeModelPart.GetRootModelPart();
+    Communicator::Pointer p_new_comm = Kratos::make_shared< MPICommunicator >(&rVolumeModelPart.GetNodalSolutionStepVariablesList(), r_root_mp.GetCommunicator().GetDataCommunicator());
+    rExtractedBoundaryModelPart.SetCommunicator(p_new_comm);
+#endif
+
+    //rExtractedBoundaryModelPart.SetCommunicator(rVolumeModelPart.pGetCommunicator());
+
     KRATOS_CATCH("");
 }
 
