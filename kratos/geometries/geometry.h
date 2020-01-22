@@ -1878,7 +1878,13 @@ public:
     GeometriesArrayType& rResultGeometries,
     IndexType NumberOfShapeFunctionDerivatives) const
     {
-        KRATOS_ERROR << "Calling CreateQuadraturePointGeometries from base class."
+        IntegrationPointsArrayType IntegrationPoints;
+        CreateIntegrationPoints(IntegrationPoints);
+
+        this->CreateQuadraturePointGeometries(
+            rResultGeometries,
+            NumberOfShapeFunctionDerivatives,
+            IntegrationPoints);
     }
 
     ///@}
