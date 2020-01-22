@@ -138,6 +138,7 @@ protected:
      */
     void ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, PointLocatorType &rBinLocator) override
     {
+        auto& r_comm = BaseType::mrMainModelPart.GetCommunicator().GetDataCommunicator();
         //loop over nodes and find the triangle in which it falls, then do interpolation
         MasterSlaveContainerVectorType master_slave_container_vector;
         BaseType::ReserveMemoryForConstraintContainers(rBoundaryModelPart, master_slave_container_vector);
@@ -145,85 +146,18 @@ protected:
         int num_constraints_required = (TDim + 1) * (rBoundaryModelPart.Nodes().size());
         BaseType::CreateConstraintIds(constraints_id_vector, num_constraints_required);
 
-        const int max_results = 10000;
         const int n_boundary_nodes = static_cast<int> (rBoundaryModelPart.Nodes().size());
-        IndexType counter = 0;
-        IndexType removed_counter = 0;
-        IndexType not_found_counter = 0;
-
         for (int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
         {
             ModelPart::NodesContainerType::iterator i_boundary_node = rBoundaryModelPart.NodesBegin() + i_bn;
             BaseType::mNodeIdToConstraintIdsMap[i_boundary_node->Id()].reserve(150);
         }
 
-#pragma omp parallel for shared(constraints_id_vector, master_slave_container_vector, rBinLocator) reduction(+                                                             \
-                                                                                                             : not_found_counter) reduction(+                              \
-                                                                                                                                            : removed_counter) reduction(+ \
-                                                                                                                                                                         : counter)
-        for (int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
-        {
-            Vector shape_fun_weights;
-            typename PointLocatorType::ResultContainerType results(max_results);
-            auto &ms_container = master_slave_container_vector[omp_get_thread_num()];
-
-            ModelPart::NodesContainerType::iterator i_boundary_node = rBoundaryModelPart.NodesBegin() + i_bn;
-            Node<3>::Pointer p_boundary_node = *(i_boundary_node.base());
-            unsigned int start_constraint_id = i_bn * (TDim + 1) * (TDim + 1);
-            bool node_coupled = false;
-            if ((p_boundary_node)->IsDefined(VISITED))
-                node_coupled = (p_boundary_node)->Is(VISITED);
-
-            typename PointLocatorType::ResultIteratorType result_begin = results.begin();
-            Element::Pointer p_element;
-            bool is_found = false;
-            is_found = rBinLocator.FindPointOnMesh(p_boundary_node->Coordinates(), shape_fun_weights, p_element, result_begin, max_results);
-
-            if (node_coupled && is_found)
-            {
-                auto &constrainIds_for_the_node = BaseType::mNodeIdToConstraintIdsMap[p_boundary_node->Id()];
-                for (auto const &constraint_id : constrainIds_for_the_node)
-                {
-#pragma omp critical
-                    {
-                        BaseType::mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(constraint_id);
-                        removed_counter++;
-                    }
-                }
-                constrainIds_for_the_node.clear();
-                p_boundary_node->Set(VISITED, false);
-            }
-
-            if (is_found)
-            {
-                Geometry<Node<3>> &r_geom = p_element->GetGeometry();
-                int init_index = 0;
-                BaseType::ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_X, start_constraint_id + init_index, constraints_id_vector, ms_container);
-                init_index += (TDim+1);
-                BaseType::ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_Y, start_constraint_id + init_index, constraints_id_vector, ms_container);
-                init_index += (TDim+1);
-                if (TDim == 3)
-                {
-                    BaseType::ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, VELOCITY_Z, start_constraint_id + init_index, constraints_id_vector, ms_container);
-                    init_index += (TDim+1);
-                }
-                BaseType::ApplyContinuityWithElement(r_geom, *p_boundary_node, shape_fun_weights, PRESSURE, start_constraint_id + init_index, constraints_id_vector, ms_container);
-                init_index += (TDim+1);
-                counter += 1;
-            }
-            else
-            {
-                not_found_counter += 1;
-            }
-            p_boundary_node->Set(VISITED, true);
-        } // end of loop over boundary nodes
-
+        BaseType::FormulateConstraints(rBoundaryModelPart, rBinLocator, master_slave_container_vector, master_slave_container_vector);
+        BuiltinTimer mpc_add_time;
         BaseType::AddConstraintsToModelpart(BaseType::mrMainModelPart, master_slave_container_vector);
-
-        KRATOS_INFO_IF("Number of boundary nodes in : ", BaseType::mEchoLevel > 1) << rBoundaryModelPart.Name() << " is coupled " << rBoundaryModelPart.NumberOfNodes() << std::endl;
-        KRATOS_INFO_IF("Number of Boundary nodes found : ", BaseType::mEchoLevel > 1) << counter << ". Number of constraints : " << counter * 9 << std::endl;
-        KRATOS_INFO_IF("Number of Boundary nodes not found  : ", BaseType::mEchoLevel > 1) << not_found_counter << std::endl;
-        KRATOS_INFO_IF("Number of constraints removed  : ", BaseType::mEchoLevel > 1) << removed_counter << std::endl;
+        auto add_time = mpc_add_time.ElapsedSeconds();
+        KRATOS_INFO_IF("Adding of MPCs from containers to modelpart took         : ", BaseType::mEchoLevel > 1)<< r_comm.Max(add_time, 0)<< " seconds"<< std::endl;
     }
 
     ///@}
@@ -276,4 +210,4 @@ private:
 
 } // namespace Kratos.
 
-#endif //  KRATOS_APPLY_CHIMERA_MONOLITHIC_H_INCLUDED defined
+#endif //  KRATOS_APPLY_CHIMERA_MONOLITHIC_H_INCLUDED defined 
