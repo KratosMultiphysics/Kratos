@@ -11,7 +11,7 @@
 //
 
 // External includes
-#include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be exchanged with std::filesystem
+// #include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be exchanged with std::filesystem
 
 // Project includes
 #include "includes/kratos_filesystem.h"
@@ -21,55 +21,55 @@ namespace FileSystem {
 
 bool Exists(const std::string& rPath)
 {
-    return ghc::filesystem::exists(rPath);
+    // return ghc::filesystem::exists(rPath);
 }
 
 
 bool IsRegularFile(const std::string& rPath)
 {
-    return ghc::filesystem::is_regular_file(rPath);
+    // return ghc::filesystem::is_regular_file(rPath);
 }
 
 
 bool IsDirectory(const std::string& rPath)
 {
-    return ghc::filesystem::is_directory(rPath);
+    // return ghc::filesystem::is_directory(rPath);
 }
 
 
 bool CreateDirectory(const std::string& rPath)
 {
-    return ghc::filesystem::create_directory(rPath);
+    // return ghc::filesystem::create_directory(rPath);
 }
 
 
 bool CreateDirectories(const std::string& rPath)
 {
-    return ghc::filesystem::create_directories(rPath);
+    // return ghc::filesystem::create_directories(rPath);
 }
 
 
 std::string CurrentPath()
 {
-    return ghc::filesystem::current_path().string();
+    // return ghc::filesystem::current_path().string();
 }
 
 
 bool Remove(const std::string& rPath)
 {
-    return ghc::filesystem::remove(rPath);
+    // return ghc::filesystem::remove(rPath);
 }
 
 
 bool RemoveAll(const std::string& rPath)
 {
-    return ghc::filesystem::remove_all(rPath);
+    // return ghc::filesystem::remove_all(rPath);
 }
 
 
 void Rename(const std::string& rPathFrom, const std::string& rPathTo)
 {
-    return ghc::filesystem::rename(rPathFrom, rPathTo);
+    // return ghc::filesystem::rename(rPathFrom, rPathTo);
 }
 
 std::string JoinPaths(const std::vector<std::string>& rPaths)
