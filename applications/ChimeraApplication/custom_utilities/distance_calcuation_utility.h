@@ -27,6 +27,14 @@
 #include "utilities/parallel_levelset_distance_calculator.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
 #include "utilities/variable_utils.h"
+#include "custom_utilities/gather_modelpart_on_all_ranks.h"
+
+
+#ifdef KRATOS_USING_MPI
+#include "mpi/utilities/parallel_fill_communicator.h"
+#include "mpi/includes/mpi_communicator.h"
+#endif
+#include "includes/data_communicator.h"
 
 
 namespace Kratos
@@ -68,11 +76,11 @@ public:
     ///@{
 
     /**
-     * @brief Calculates distance on the whole of rBackgroundModelPart from rSkinModelPart
-     * @param rBackgroundModelPart The background modelpart where distances are calculated.
+     * @brief Calculates distance on the whole of rVolumeModelPart from rSkinModelPart
+     * @param rVolumeModelPart The background modelpart where distances are calculated.
      * @param rSkinModelPart The skin modelpart from where the distances are calculated
      */
-    static inline void CalculateDistance(ModelPart &rBackgroundModelPart, ModelPart &rSkinModelPart)
+    static inline void CalculateDistance(ModelPart &rVolumeModelPart, ModelPart &rSkinModelPart)
     {
 
         //typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
@@ -81,18 +89,31 @@ public:
         //typedef LinearSolver<SparseSpaceType, TLocalSpaceType> LinearSolverType;
         //typedef VariationalDistanceCalculationProcess<TDim, TSparseSpaceType, TLocalSpaceType, LinearSolverType> VariationalDistanceCalculationProcessType;
         typedef CalculateDistanceToSkinProcess<TDim> CalculateDistanceToSkinProcessType;
-        const int nnodes = static_cast<int>(rBackgroundModelPart.NumberOfNodes());
+        const int n_vol_nodes = static_cast<int>(rVolumeModelPart.NumberOfNodes());
 
 #pragma omp parallel for
-        for (int i_node = 0; i_node < nnodes; ++i_node)
+        for (int i_node = 0; i_node < n_vol_nodes; ++i_node)
         {
-            auto it_node = rBackgroundModelPart.NodesBegin() + i_node;
+            auto it_node = rVolumeModelPart.NodesBegin() + i_node;
             it_node->FastGetSolutionStepValue(DISTANCE, 0) = 0.0;
             it_node->FastGetSolutionStepValue(DISTANCE, 1) = 0.0;
             it_node->SetValue(DISTANCE, 0.0);
         }
+        Model &current_model = rVolumeModelPart.GetModel();
+        const DataCommunicator &r_comm =
+            rVolumeModelPart.GetCommunicator().GetDataCommunicator();
+        ModelPart &r_gathered_skin_mp = r_comm.IsDistributed() ? current_model.CreateModelPart("GatheredSkin") : rSkinModelPart;
 
-        CalculateDistanceToSkinProcessType(rBackgroundModelPart, rSkinModelPart).Execute();
+#ifdef KRATOS_USING_MPI
+        ModelPart& r_root_mp = rVolumeModelPart.GetRootModelPart();
+        Communicator::Pointer pnew_comm = Kratos::make_shared< MPICommunicator >(&rVolumeModelPart.GetNodalSolutionStepVariablesList(), r_root_mp.GetCommunicator().GetDataCommunicator());
+        r_gathered_skin_mp.SetCommunicator(pnew_comm);
+        GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(rSkinModelPart, r_gathered_skin_mp);
+        ParallelFillCommunicator(r_gathered_skin_mp).Execute();
+#endif
+        const int n_skin_nodes = static_cast<int>(r_gathered_skin_mp.NumberOfNodes());
+        if(n_skin_nodes != 0 && n_vol_nodes != 0)
+            CalculateDistanceToSkinProcessType(rVolumeModelPart, r_gathered_skin_mp).Execute();
 
 
         // Parameters amgcl_settings(R"(
@@ -108,14 +129,15 @@ public:
         // const int max_iterations = 1;
         // LinearSolverFactoryType const &linear_solver_factory = KratosComponents<LinearSolverFactoryType>::Get("amgcl");
         // auto amgcl_solver = linear_solver_factory.Create(amgcl_settings);
-        // VariationalDistanceCalculationProcessType(rBackgroundModelPart, amgcl_solver, max_iterations, VariationalDistanceCalculationProcessType::CALCULATE_EXACT_DISTANCES_TO_PLANE).Execute();
+        // VariationalDistanceCalculationProcessType(rVolumeModelPart, amgcl_solver, max_iterations, VariationalDistanceCalculationProcessType::CALCULATE_EXACT_DISTANCES_TO_PLANE).Execute();
 
         unsigned int max_level = 100;
 		double max_distance = 200;
         auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<TDim>>();
-        p_distance_smoother->CalculateDistances(rBackgroundModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
+        p_distance_smoother->CalculateDistances(rVolumeModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
 
-        VariableUtils().CopyScalarVar(DISTANCE, CHIMERA_DISTANCE, rBackgroundModelPart.Nodes());
+        VariableUtils().CopyScalarVar(DISTANCE, CHIMERA_DISTANCE, rVolumeModelPart.Nodes());
+        current_model.DeleteModelPart("GatheredSkin");
     }
 
     ///@}
