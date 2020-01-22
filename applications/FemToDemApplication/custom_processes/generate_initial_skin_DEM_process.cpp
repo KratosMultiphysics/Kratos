@@ -28,7 +28,7 @@ GenerateInitialSkinDEMProcess::GenerateInitialSkinDEMProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenerateInitialSkinDEMProcess::Execute() 
+void GenerateInitialSkinDEMProcess::Execute()
 {
     auto nodal_neigh_process = FindNodalNeighboursProcess(mrModelPart, 5, 5);
     nodal_neigh_process.Execute();
@@ -46,7 +46,7 @@ void GenerateInitialSkinDEMProcess::Execute()
             auto& r_neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
             Vector potential_radii(r_neigh_nodes.size());
             Vector distances(r_neigh_nodes.size());
-    
+
             // Loop over the neighbours of that node
             bool has_dem_neigh = false;
             for (int neigh = 0; neigh < r_neigh_nodes.size(); neigh++) {
@@ -61,6 +61,7 @@ void GenerateInitialSkinDEMProcess::Execute()
                         auto& pDEM_particle = r_neighbour_node.GetValue(DEM_PARTICLE_POINTER);
                         auto& r_radius_neigh_old = pDEM_particle->GetGeometry()[0].GetSolutionStepValue(RADIUS);
                         r_radius_neigh_old = new_radius;
+                        pDEM_particle->SetRadius(new_radius);
                         r_neighbour_node.SetValue(RADIUS, new_radius);
                         potential_radii(neigh) = new_radius;
                     }
@@ -78,9 +79,9 @@ void GenerateInitialSkinDEMProcess::Execute()
             const array_1d<double,3>& r_coordinates = it_node->Coordinates();
             const int id = this->GetMaximumDEMId() + 1;
 
-            if (mrDEMModelPart.Elements().size() == 0) 
+            if (mrDEMModelPart.Elements().size() == 0)
                 this->CreateDEMParticle(id + max_id_FEM_nodes, r_coordinates, p_DEM_properties, 0.8*radius, it_node);
-            else 
+            else
                 this->CreateDEMParticle(id, r_coordinates, p_DEM_properties, 0.8*radius, it_node);
             num_DEM++;
         }
@@ -117,7 +118,7 @@ void GenerateInitialSkinDEMProcess::CreateDEMParticle(
 /***********************************************************************************/
 
 double GenerateInitialSkinDEMProcess::CalculateDistanceBetweenNodes(
-    NodeIteratorType rNode1, 
+    NodeIteratorType rNode1,
     const NodeType& rNode2
     )
 {
@@ -138,8 +139,8 @@ double GenerateInitialSkinDEMProcess::GetMinimumValue(
     )
 { // this method assumes that the Vector is NOT full of 0.0's
     double aux = 1.0e10;
-    for (int i = 0; i < rValues.size(); i++) 
-        if (aux > rValues[i] && rValues[i] != 0.0) 
+    for (int i = 0; i < rValues.size(); i++)
+        if (aux > rValues[i] && rValues[i] != 0.0)
             aux = rValues[i];
     return aux;
 }
