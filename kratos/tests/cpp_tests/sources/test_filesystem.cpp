@@ -75,7 +75,7 @@ KRATOS_TEST_CASE_IN_SUITE(FileSystemIsDirectory, KratosCoreFastSuite)
     const std::string dir_name("MyCustomDir");
     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(dir_name));
 
-    // KRATOS_CHECK(Kratos::FileSystem::CreateDirectory(dir_name));
+    // KRATOS_CHECK(Kratos::FileSystem::CreateDirectory2(dir_name));
 
     KRATOS_CHECK(Kratos::FileSystem::Exists(dir_name));
 
@@ -97,7 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(FileSystemSubDirectories, KratosCoreFastSuite)
 
     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(base_dir_name));
 
-    // KRATOS_CHECK(Kratos::FileSystem::CreateDirectory(base_dir_name)); // first create only the base-dir
+    // KRATOS_CHECK(Kratos::FileSystem::CreateDirectory2(base_dir_name)); // first create only the base-dir
 
     KRATOS_CHECK(Kratos::FileSystem::Exists(base_dir_name));
     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(full_dir_name));
@@ -161,7 +161,7 @@ KRATOS_TEST_CASE_IN_SUITE(FileSystemRenameDirectory, KratosCoreFastSuite)
     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(dir_name));
     KRATOS_CHECK_IS_FALSE(Kratos::FileSystem::Exists(dir_name_new));
 
-    Kratos::FileSystem::CreateDirectory(dir_name);
+    Kratos::FileSystem::CreateDirectory2(dir_name);
 
     std::ofstream output_file;
     output_file.open(file_name);
