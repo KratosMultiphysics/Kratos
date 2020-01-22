@@ -352,6 +352,7 @@ private:
     GeometryContainer& operator=(const GeometryContainer& rOther)
     {
         mGeometries = rOther.mGeometries;
+        return *this;
     }
 
     ///@}
