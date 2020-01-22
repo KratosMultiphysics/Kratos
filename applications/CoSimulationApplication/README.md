@@ -17,6 +17,6 @@ The CoSimulation Application contains the core developments in coupling black-bo
 
 ### IO with external solvers
 Different ways of IO with external solvers are possible
-- directly in python (see `python_scripts/solver_wrappers/sdof`)
+- directly in python (see e.g. the IO for a python-only single degree of freedom solver `python_scripts/solver_wrappers/sdof`)
 - using the CoSimIO (see `co_sim_io`). This is the preferred way for C++, C or Fortran based solvers
 - using the legacy EMPIRE-API (see `custom_io/co_sim_EMPIRE_API.h`)
