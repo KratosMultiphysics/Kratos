@@ -127,7 +127,6 @@ namespace Python
       #endif // KRATOS_USE_AMATRIX
         cplx_matrix_binder.def(py::init<const ComplexMatrix& >());
         cplx_matrix_binder.def("__mul__", [](const ComplexMatrix& m1, const ComplexVector& v){ return ComplexVector(prod(m1,v));}, py::is_operator());
-        // cplx_matrix_binder.def("__mul__", [](const ComplexMatrix& m1, const array_1d<double,3>& v){ if(m1.size2() != 3) KRATOS_ERROR << "matrix size2 is not 3!" << std::endl; return Vector(prod(m1,v));}, py::is_operator());
 
         ;
         //here we add the complex sparse matrix
