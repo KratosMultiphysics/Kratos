@@ -81,12 +81,12 @@ public:
     BrepCurveOnSurface( 
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve,
-        bool curve_direction = true)
+        bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpCurveOnSurface(
             Kratos::make_shared<NurbsCurveOnSurfaceType>(
                 pSurface, pCurve))
-        , mCurveDirection(curve_direction)
+        , mSameCurveDirection(SameCurveDirection)
     {
     }
 
@@ -95,23 +95,23 @@ public:
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve,
         NurbsInterval CurveNurbsInterval,
-        bool curve_direction = true)
+        bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpCurveOnSurface(
             Kratos::make_shared<NurbsCurveOnSurfaceType>(
                 pSurface, pCurve))
         , mCurveNurbsInterval(CurveNurbsInterval)
-        , mCurveDirection(curve_direction)
+        , mSameCurveDirection(SameCurveDirection)
     {
     }
 
     /// constructor for untrimmed surface with curve on surface
     BrepCurveOnSurface(
         NurbsCurveOnSurfacePointerType pNurbsCurveOnSurface,
-        bool curve_direction = true)
+        bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpCurveOnSurface(pNurbsCurveOnSurface)
-        , mCurveDirection(curve_direction)
+        , mSameCurveDirection(SameCurveDirection)
     {
     }
 
@@ -119,11 +119,11 @@ public:
     BrepCurveOnSurface(
         NurbsCurveOnSurfacePointerType pNurbsCurveOnSurface,
         NurbsInterval CurveNurbsInterval,
-        bool curve_direction = true)
+        bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
-        , mpCurveOnSurface(pNurbsCurveOnSurface)
         , mCurveNurbsInterval(CurveNurbsInterval)
-        , mCurveDirection(curve_direction)
+        , mpCurveOnSurface(pNurbsCurveOnSurface)
+        , mSameCurveDirection(SameCurveDirection)
     {
     }
 
@@ -141,6 +141,7 @@ public:
         : BaseType( rOther )
         , mpCurveOnSurface(rOther.mpCurveOnSurface)
         , mCurveNurbsInterval(rOther.mCurveNurbsInterval)
+        , mSameCurveDirection(rOther.mSameCurveDirection)
     {
     }
 
@@ -151,6 +152,7 @@ public:
         : BaseType( rOther )
         , mpCurveOnSurface(rOther.mpCurveOnSurface)
         , mCurveNurbsInterval(rOther.mCurveNurbsInterval)
+        , mSameCurveDirection(rOther.mSameCurveDirection)
     {
     }
 
@@ -177,6 +179,7 @@ public:
         BaseType::operator=( rOther );
         mpCurveOnSurface = rOther.mpCurveOnSurface;
         mCurveNurbsInterval = rOther.mCurveNurbsInterval;
+        mSameCurveDirection = rOther.mSameCurveDirection;
         return *this;
     }
 
@@ -197,6 +200,7 @@ public:
         BaseType::operator=( rOther );
         mpCurveOnSurface = rOther.mpCurveOnSurface;
         mCurveNurbsInterval = rOther.mCurveNurbsInterval;
+        mSameCurveDirection = rOther.mSameCurveDirection;
         return *this;
     }
 
@@ -210,51 +214,28 @@ public:
     }
 
     ///@}
-    ///@name Access to Geometry Parts
-    ///@{
-
-    GeometryType& GetGeometryPart(IndexType Index) const override
-    {
-        if (Index == CURVE_ON_SURFACE_INDEX)
-            return *mpCurveOnSurface;
-
-        KRATOS_ERROR << "Index " << Index << " not existing in BrepCurveOnSurface: "
-            << this->Id() << std::endl;
-    }
-
-    typename GeometryType::Pointer pGetGeometryPart(IndexType Index) override
-    {
-        if (Index == CURVE_ON_SURFACE_INDEX)
-            return mpCurveOnSurface;
-
-        KRATOS_ERROR << "Index " << Index << " not existing in BrepCurveOnSurface: "
-            << this->Id() << std::endl;
-    }
-
-    /**
-    * @brief This function is used to check if this BrepSurface
-    *        has certain trim or surface object.
-    * @param Index of the geometry part.
-    * @return true if has trim or surface
-    */
-    bool HasGeometryPart(IndexType Index) const override
-    {
-        if (Index == CURVE_ON_SURFACE_INDEX)
-            return true;
-
-        return false;
-    }
-
     ///@name Set/ Get functions
     ///@{
 
-    bool GetCurveDirection()
+    /*
+    * @brief Indicates if the NURBS-curve is pointing in the same direction
+    *        as the B-Rep curve.
+    * @return true -> brep curve and nurbs curve point in same direction.
+    *        false -> brep curve and nurbs curve point in opposite directions.
+    */
+    bool HasSameCurveDirection()
     {
-        return mCurveDirection;
+        return mSameCurveDirection;
     }
 
-    /// Returns the curve on surface of this brep.
+    /// Returns the NurbsCurveOnSurface::Pointer of this brep.
     NurbsCurveOnSurfacePointerType pGetCurveOnSurface()
+    {
+        return mpCurveOnSurface;
+    }
+
+    /// Returns the const NurbsCurveOnSurface::Pointer of this brep.
+    const NurbsCurveOnSurfacePointerType pGetCurveOnSurface() const
     {
         return mpCurveOnSurface;
     }
@@ -359,7 +340,9 @@ private:
 
     NurbsInterval mCurveNurbsInterval;
 
-    bool mCurveDirection;
+    /** true-> brep curve and nurbs curve point in same direction.
+    *  false-> brep curve and nurbs curve point in opposite directions. */
+    bool mSameCurveDirection;
 
     ///@}
     ///@name Serialization
@@ -372,7 +355,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
         rSerializer.save("CurveOnSurface", mpCurveOnSurface);
         rSerializer.save("NurbsInterval", mCurveNurbsInterval);
-        rSerializer.save("CurveDirection", mCurveDirection);
+        rSerializer.save("SameCurveDirection", mSameCurveDirection);
     }
 
     void load( Serializer& rSerializer ) override
@@ -380,7 +363,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
         rSerializer.load("CurveOnSurface", mpCurveOnSurface);
         rSerializer.load("NurbsInterval", mCurveNurbsInterval);
-        rSerializer.load("CurveDirection", mCurveDirection);
+        rSerializer.load("SameCurveDirection", mSameCurveDirection);
     }
 
     ///@}

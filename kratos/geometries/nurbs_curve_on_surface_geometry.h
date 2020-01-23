@@ -54,6 +54,7 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Constructor
     NurbsCurveOnSurfaceGeometry(
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve)
@@ -63,11 +64,12 @@ public:
     {
     }
 
+    /// Default constructor
     NurbsCurveOnSurfaceGeometry()
         : BaseType(PointsArrayType(), &msGeometryData)
     {};
 
-    /// Copy constructor.
+    /// Copy constructor
     NurbsCurveOnSurfaceGeometry(NurbsCurveOnSurfaceGeometry const& rOther)
         : BaseType(rOther)
         , mpNurbsSurface(rOther.mpNurbsSurface)
@@ -75,7 +77,7 @@ public:
     {
     }
 
-    /// Copy constructor from a geometry with different point type.
+    /// Copy constructor, with different point type.
     template<class TOtherCurveContainerPointType, class TOtherSurfaceContainerPointType> NurbsCurveOnSurfaceGeometry(
         NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TCurveContainerPointType, TOtherSurfaceContainerPointType> const& rOther)
         : BaseType(rOther, &msGeometryData)
