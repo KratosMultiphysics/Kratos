@@ -104,29 +104,29 @@ void register_base_dense_solver(pybind11::module& m)
     bool (ComplexDenseLinearSolverType::*pointer_to_complex_solve_dense)(ComplexDenseLinearSolverType::SparseMatrixType& rA, ComplexDenseLinearSolverType::VectorType& rX, ComplexDenseLinearSolverType::VectorType& rB) = &ComplexDenseLinearSolverType::Solve;
 
     py::class_<DenseLinearSolverType, DenseLinearSolverType::Pointer>(m,"DenseLinearSolver")
-    .def(py::init< >())
-    .def("Initialize",&DenseLinearSolverType::Initialize)
-    .def("Solve",pointer_to_solve_dense)
-    .def("Clear",&DenseLinearSolverType::Clear)
-    .def("__str__",PrintObject<DenseLinearSolverType>)
-    ;
+        .def(py::init< >())
+        .def("Initialize",&DenseLinearSolverType::Initialize)
+        .def("Solve",pointer_to_solve_dense)
+        .def("Clear",&DenseLinearSolverType::Clear)
+        .def("__str__",PrintObject<DenseLinearSolverType>)
+        ;
 
     py::class_<ComplexDenseLinearSolverType, ComplexDenseLinearSolverType::Pointer>(m,"ComplexDenseLinearSolver")
-    .def(py::init< >())
-    .def("Initialize",&ComplexDenseLinearSolverType::Initialize)
-    .def("Solve",pointer_to_complex_solve_dense)
-    .def("Clear",&ComplexDenseLinearSolverType::Clear)
-    .def("__str__",PrintObject<ComplexDenseLinearSolverType>)
-    ;
+        .def(py::init< >())
+        .def("Initialize",&ComplexDenseLinearSolverType::Initialize)
+        .def("Solve",pointer_to_complex_solve_dense)
+        .def("Clear",&ComplexDenseLinearSolverType::Clear)
+        .def("__str__",PrintObject<ComplexDenseLinearSolverType>)
+        ;
 
     typedef DirectSolver<LocalSpaceType,  LocalSpaceType> DenseDirectSolverType;
-    typedef DirectSolver<ComplexLocalSpaceType,  ComplexLocalSpaceType> ComplexDenseDirectSolverType;
     py::class_<DenseDirectSolverType, DenseDirectSolverType::Pointer, DenseLinearSolverType>(m,"DirectSolver")
-    .def(py::init< >() )
-    .def(py::init<Parameters>())
-    .def("__str__", PrintObject<DenseDirectSolverType>)
-    ;
+        .def(py::init< >() )
+        .def(py::init<Parameters>())
+        .def("__str__", PrintObject<DenseDirectSolverType>)
+        ;
 
+    typedef DirectSolver<ComplexLocalSpaceType,  ComplexLocalSpaceType> ComplexDenseDirectSolverType;
     py::class_<ComplexDenseDirectSolverType, ComplexDenseDirectSolverType::Pointer, ComplexDenseLinearSolverType>(m,"ComplexDirectSolver")
     .def(py::init< >() )
     .def(py::init<Parameters>())
@@ -134,7 +134,6 @@ void register_base_dense_solver(pybind11::module& m)
     ;
 
     typedef LinearSolverFactory< LocalSpaceType, LocalSpaceType > DenseLinearSolverFactoryType;
-
     py::class_<DenseLinearSolverFactoryType, DenseLinearSolverFactoryType::Pointer>(m, "DenseLinearSolverFactory")
         .def( py::init< >() )
         .def("Create",&DenseLinearSolverFactoryType::Create)
@@ -142,7 +141,6 @@ void register_base_dense_solver(pybind11::module& m)
         ;
 
     typedef LinearSolverFactory< ComplexLocalSpaceType, ComplexLocalSpaceType > ComplexDenseLinearSolverFactoryType;
-
     py::class_<ComplexDenseLinearSolverFactoryType, ComplexDenseLinearSolverFactoryType::Pointer>(m, "ComplexDenseLinearSolverFactory")
         .def( py::init< >() )
         .def("Create",&ComplexDenseLinearSolverFactoryType::Create)
@@ -194,8 +192,6 @@ void AddCustomSolversToPython(pybind11::module& m)
 EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLinearSolvers()
 {
     using complex = std::complex<double>;
-
-    std::cout << "---------------------EigenSolversApplicationRegisterLinearSolvers\n";
 
     // Sparse LU Solver
 
