@@ -54,7 +54,6 @@ namespace Kratos
                     SendNodes[dest_rank].push_back(*it.base());
             }
         }
-
         rModelPartToGather.GetCommunicator().TransferObjects(SendNodes, RecvNodes);
         for (unsigned int i = 0; i < RecvNodes.size(); i++)
         {
@@ -69,16 +68,13 @@ namespace Kratos
             << "the rGatheredModelPart has repeated nodes";
         SendNodes.clear();
         RecvNodes.clear();
-        for (NodesContainerType::iterator it = rModelPartToGather.GetMesh(0).NodesBegin();
-             it != rModelPartToGather.GetMesh(0).NodesEnd(); ++it)
+
+        for (NodesContainerType::iterator it = rModelPartToGather.NodesBegin();
+             it != rModelPartToGather.NodesEnd(); ++it)
         {
             rGatheredModelPart.Nodes().push_back(*it.base());
         }
         rGatheredModelPart.Nodes().Unique();
-
-#ifdef KRATOS_USING_MPI
-    ParallelFillCommunicator(rGatheredModelPart).Execute();
-#endif
 
         // transfer elements
         std::vector<ElementsContainerType> SendElements(mpi_size);
@@ -116,8 +112,8 @@ namespace Kratos
         SendElements.clear();
         RecvElements.clear();
         for (ElementsContainerType::iterator it =
-                 rModelPartToGather.GetMesh(0).ElementsBegin();
-             it != rModelPartToGather.GetMesh(0).ElementsEnd(); ++it)
+                 rModelPartToGather.ElementsBegin();
+             it != rModelPartToGather.ElementsEnd(); ++it)
         {
             rGatheredModelPart.Elements().push_back(*it.base());
         }
@@ -159,8 +155,8 @@ namespace Kratos
         RecvConditions.clear();
 
         for (ConditionsContainerType::iterator it =
-                 rModelPartToGather.GetMesh(0).ConditionsBegin();
-             it != rModelPartToGather.GetMesh(0).ConditionsEnd(); ++it)
+                 rModelPartToGather.ConditionsBegin();
+             it != rModelPartToGather.ConditionsEnd(); ++it)
         {
             rGatheredModelPart.Conditions().push_back(*it.base());
         }
@@ -250,6 +246,13 @@ namespace Kratos
 
         for(const int& node_id : all_node_ids)
             rGatheredModelPart.RemoveNode(node_id);
+
+#ifdef KRATOS_USING_MPI
+    ModelPart& r_root_mp = rModelPartToGather.GetRootModelPart();
+    Communicator::Pointer p_new_comm = Kratos::make_shared< MPICommunicator >(&rModelPartToGather.GetNodalSolutionStepVariablesList(), r_root_mp.GetCommunicator().GetDataCommunicator());
+    rGatheredModelPart.SetCommunicator(p_new_comm);
+    // ParallelFillCommunicator(rGatheredModelPart).Execute();
+#endif
 
     }
 }
