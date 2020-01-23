@@ -59,21 +59,11 @@ The application provides a generalized eigensystem solver for sparse matrices. I
     set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\EigenSolversApplication;
     ```
 
-    ```batch
-    -DEIGEN_ROOT="<path to eigen>" ^
-    ```
-
     **Linux:** in `configure.sh`
-    
+
     ```bash
     add_app ${KRATOS_APP_DIR}/EigenSolversApplication
     ```
-
-    ```bash
-    -DEIGEN_ROOT="<path to eigen>" \
-    ```
-
-    > **Hint:** The `EIGEN_ROOT` directory should contain a file called `README.md`.
 
 3. Build Kratos
 
