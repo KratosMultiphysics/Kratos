@@ -378,7 +378,7 @@ protected:
 
         // WriteModelPart(r_hole_model_part);
         // WriteModelPart(r_background_boundary_model_part);
-        WriteModelPart(r_background_model_part);
+        // WriteModelPart(r_background_model_part);
         // WriteModelPart(r_patch_boundary_model_part);
         // WriteModelPart(r_hole_boundary_model_part);
         // WriteModelPart(r_background_model_part);
@@ -392,10 +392,7 @@ protected:
         }
 
         BuiltinTimer mpc_time;
-        // KRATOS_INFO("ApplyChimera : Connecting patch boundary to background ... ")<<std::endl;
-        // ApplyContinuityWithMpcs(r_patch_boundary_model_part, *p_point_locator_on_background);
-
-        KRATOS_INFO("ApplyChimera : Connecting hole boundary to patch ... ")<<std::endl;
+        ApplyContinuityWithMpcs(r_patch_boundary_model_part, *p_point_locator_on_background);
         ApplyContinuityWithMpcs(r_hole_boundary_model_part, *p_pointer_locator_on_patch);
         auto mpc_time_elapsed = mpc_time.ElapsedSeconds();
         KRATOS_INFO_IF("ApplyChimera : Creation of MPC for chimera took          : ", mEchoLevel > 0) << r_comm.Max(mpc_time_elapsed, 0) << " seconds" << std::endl;
@@ -591,18 +588,15 @@ protected:
         const bool is_comm_distributed = r_comm.IsDistributed();
         std::vector<NodesContainerType> SendNodes(mpi_size);
         Model &current_model = mrMainModelPart.GetModel();
-        std::string gather_mp_name = rBoundaryModelPart.Name() + "_GatheredBoundary";
-        auto& r_gathered_modelpart = is_comm_distributed ? current_model.CreateModelPart(gather_mp_name) : rBoundaryModelPart;
-        r_gathered_modelpart.GetProcessInfo()[STEP] = mrMainModelPart.GetProcessInfo()[STEP];
+        auto& gathered_modelpart = is_comm_distributed ? current_model.CreateModelPart("GatheredBoundary") : rBoundaryModelPart;
         if(is_comm_distributed)
-            GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(rBoundaryModelPart, r_gathered_modelpart);
+            GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(rBoundaryModelPart, gathered_modelpart);
 
-        // KRATOS_INFO_ALL_RANKS("Full name of the passed boundary ")<<rBoundaryModelPart.FullName()<<std::endl;
-        // WriteModelPart(r_gathered_modelpart);
+        // WriteModelPart(gathered_modelpart);
         std::vector<int> vector_of_non_found_nodes;
-        const int n_boundary_nodes = static_cast<int>(r_gathered_modelpart.Nodes().size());
+        const int n_boundary_nodes = static_cast<int>(gathered_modelpart.Nodes().size());
         std::vector<int> constraints_id_vector;
-        int num_constraints_required = (TDim + 1) * (r_gathered_modelpart.Nodes().size());
+        int num_constraints_required = (TDim + 1) * (gathered_modelpart.Nodes().size());
         CreateConstraintIds(constraints_id_vector, num_constraints_required);
 
         IndexType found_counter = 0;
@@ -615,7 +609,7 @@ protected:
             auto &ms_velocity_container = rVelocityMasterSlaveContainerVector[omp_get_thread_num()];
             auto &ms_pressure_container = rPressureMasterSlaveContainerVector[omp_get_thread_num()];
 
-            ModelPart::NodesContainerType::iterator i_boundary_node = r_gathered_modelpart.NodesBegin() + i_bn;
+            ModelPart::NodesContainerType::iterator i_boundary_node = gathered_modelpart.NodesBegin() + i_bn;
             NodeType& r_boundary_node = *( *(i_boundary_node.base()) );
             const int node_p_index = is_comm_distributed ? r_boundary_node.GetSolutionStepValue(PARTITION_INDEX) : 0;
             unsigned int start_constraint_id = i_bn * (TDim + 1) * (TDim + 1);
@@ -627,24 +621,19 @@ protected:
                                                             constraints_id_vector, start_constraint_id);
                 found_counter += 1;
                 if(node_p_index != mpi_rank){
-                    auto p_geom = r_host_element->GetGeometry();
+                    auto p_geom = r_host_element->GetGeometry(); 
                     for(auto p_node=p_geom.ptr_begin(); p_node != p_geom.ptr_end(); ++p_node)
                         SendNodes[node_p_index].push_back(*p_node);
                 }
             }
         }
 
-        // We delete the boundary sub modelpart as soon as we are done
-        // looping. Otherwise it might cause problems in parallel fill later on.
-        // std::string full_boundary_name = rBoundaryModelPart.FullName();
-        // current_model.DeleteModelPart(full_boundary_name);
-
         if (is_comm_distributed)
         {
             SynchronizeNodes(mrMainModelPart, SendNodes);
             SynchronizeConstraints(rVelocityMasterSlaveContainerVector);
             SynchronizeConstraints(rPressureMasterSlaveContainerVector);
-            current_model.DeleteModelPart(gather_mp_name);
+            current_model.DeleteModelPart("GatheredBoundary");
         }
 
         double loop_time = loop_over_b_nodes.ElapsedSeconds();
@@ -763,7 +752,7 @@ protected:
         RecvNodes.clear();
 
 #ifdef KRATOS_USING_MPI
-        BuiltinTimer par_fill_comm;
+        BuiltinTimer par_fill_comm; 
         ParallelFillCommunicator(rModelpart).Execute();
         double par_fill_time = par_fill_comm.ElapsedSeconds();
         KRATOS_INFO_IF("SynchronizeNodes : Time taken for parallel fill comm     : ", mEchoLevel > 1) << r_comm.Max(par_fill_time, 0) << std::endl;
@@ -815,9 +804,10 @@ private:
         {
             ModelPart &r_patch_model_part = current_model.GetModelPart(PatchParameters["model_part_name"].GetString());
             ModelPart &r_modified_patch_model_part = r_patch_model_part.CreateSubModelPart(mModifiedName);
-            ModelPart &r_modified_patch_boundary_model_part = r_modified_patch_model_part.CreateSubModelPart(mBoundaryName);
+            ModelPart &r_modified_patch_boundary_model_part = r_modified_patch_model_part.CreateSubModelPart(mBoundaryName+r_modified_patch_model_part.Name());
             BuiltinTimer distance_calc_time_patch;
-            DistanceCalculationUtility <TDim>::CalculateDistance(r_patch_model_part,rBackgroundBoundaryModelpart);
+            DistanceCalculationUtility <TDim>::CalculateDistance(r_patch_model_part,
+                                                                                                            rBackgroundBoundaryModelpart);
             KRATOS_INFO_IF("Distance calculation on patch took                       : ", mEchoLevel > 0)<< distance_calc_time_patch.ElapsedSeconds()<< " seconds"<< std::endl;
             //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.
             BuiltinTimer rem_out_domain_time;
@@ -832,7 +822,6 @@ private:
             r_comm.Max(patch_boundary_extraction_time_elapsed, 0);
             KRATOS_INFO_IF("ApplyChimera : Extraction of patch boundary took         : ", mEchoLevel > 0) << patch_boundary_extraction_time_elapsed << " seconds" << std::endl;
 
-            r_patch_model_part.RemoveSubModelPart(mModifiedName);
             return r_modified_patch_boundary_model_part;
         }
         else
@@ -950,14 +939,13 @@ private:
                     "output_sub_model_parts"             : false,
                     "folder_name"                        : "test_vtk_output",
                     "save_output_files_in_folder"        : false,
-                    "nodal_solution_step_data_variables" : ["PARTITION_INDEX"],
+                    "nodal_solution_step_data_variables" : [],
                     "nodal_data_value_variables"         : [],
-                    "element_flags"                      : ["ACTIVE"],
+                    "element_flags"                      : [],
                     "nodal_flags"                        : [],
                     "element_data_value_variables"       : [],
                     "condition_data_value_variables"     : [],
-                    "write_ids"                          :true,
-                    "write_deformed_configuration"       :true
+                    "write_ids"                          :true
                 }
                 )");
 
