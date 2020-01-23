@@ -493,6 +493,12 @@ namespace Kratos
             bool is_rational = true;
             if (rParameters.Has("is_rational"))
                 is_rational = rParameters["is_rational"].GetBool();
+            else {
+                KRATOS_INFO_IF("ReadNurbsCurve", (EchoLevel > 4))
+                    << "\"is_rational\" is not provided within \"surface\". Thus, it is considered as rational. "
+                    << "If this curve is non-rational the computation of the shape functions is less optimized."
+                    << std::endl;
+            }
 
             KRATOS_ERROR_IF_NOT(rParameters.Has("knot_vector"))
                 << "Missing 'knot_vector' in nurbs curve" << std::endl;
@@ -555,7 +561,7 @@ namespace Kratos
             else{
                 KRATOS_INFO_IF("ReadNurbsSurface", (EchoLevel > 4))
                     << "\"is_rational\" is not provided within \"surface\". Thus, it is considered as rational. "
-                    << "If the surface is non-rational the computation of the shape functions is more optimized."
+                    << "If this surface is non-rational the computation of the shape functions is less optimized."
                     << std::endl;
             }
 
