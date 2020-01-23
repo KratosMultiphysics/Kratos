@@ -815,7 +815,7 @@ private:
         {
             ModelPart &r_patch_model_part = current_model.GetModelPart(PatchParameters["model_part_name"].GetString());
             ModelPart &r_modified_patch_model_part = r_patch_model_part.CreateSubModelPart(mModifiedName);
-            ModelPart &r_modified_patch_boundary_model_part = r_patch_model_part.CreateSubModelPart(mBoundaryName);
+            ModelPart &r_modified_patch_boundary_model_part = r_modified_patch_model_part.CreateSubModelPart(mBoundaryName);
             BuiltinTimer distance_calc_time_patch;
             DistanceCalculationUtility <TDim>::CalculateDistance(r_patch_model_part,rBackgroundBoundaryModelpart);
             KRATOS_INFO_IF("Distance calculation on patch took                       : ", mEchoLevel > 0)<< distance_calc_time_patch.ElapsedSeconds()<< " seconds"<< std::endl;
