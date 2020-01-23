@@ -590,6 +590,7 @@ namespace Kratos
         ///@name Read in Control Points
         ///@{
 
+        /// Reads the weights of all control points and provides them in a Vector.
         static Vector ReadControlPointWeightVector(
             const Parameters& rParameters,
             SizeType EchoLevel = 0)
@@ -603,10 +604,6 @@ namespace Kratos
                 << std::endl;
 
             SizeType number_of_entries = rParameters[0].size();
-            KRATOS_ERROR_IF((number_of_entries != 1) && (number_of_entries != 2))
-                << "Control points need to be provided in following structure: [[x, y, z, weight]] or [id, [x, y, z, weight]]"
-                << std::endl;
-
             for (IndexType cp_idx = 0; cp_idx < rParameters.size(); cp_idx++)
             {
                 control_point_weights[cp_idx] = rParameters[cp_idx][number_of_entries - 1][3].GetDouble();
@@ -615,24 +612,7 @@ namespace Kratos
             return control_point_weights;
         }
 
-        static void ReadControlPointVector(
-            PointerVector<Point>& rControlPoints,
-            const Parameters& rParameters,
-            ModelPart& rModelPart,
-            SizeType EchoLevel = 0)
-        {
-            KRATOS_ERROR_IF_NOT(rParameters.IsArray())
-                << "\"control_points\" section needs to be an array." << std::endl;
-
-            KRATOS_INFO_IF("ReadControlPointVector", EchoLevel > 4)
-                << "Reading " << rParameters.size() << " control points of type Point." << std::endl;
-
-            for (IndexType cp_idx = 0; cp_idx < rParameters.size(); cp_idx++)
-            {
-                rControlPoints.push_back(ReadPoint(rParameters[cp_idx]));
-            }
-        }
-
+        /// Reads a Node<3>::Pointer-vector of control points.
         static void ReadControlPointVector(
             PointerVector<Node<3>>& rControlPoints,
             const Parameters& rParameters,
@@ -648,6 +628,25 @@ namespace Kratos
             for (IndexType cp_idx = 0; cp_idx < rParameters.size(); cp_idx++)
             {
                 rControlPoints.push_back(ReadNode(rParameters[cp_idx], rModelPart));
+            }
+        }
+
+        /// Reads a Point::Pointer-vector of control points.
+        static void ReadControlPointVector(
+            PointerVector<Point>& rControlPoints,
+            const Parameters& rParameters,
+            ModelPart& rModelPart,
+            SizeType EchoLevel = 0)
+        {
+            KRATOS_ERROR_IF_NOT(rParameters.IsArray())
+                << "\"control_points\" section needs to be an array." << std::endl;
+
+            KRATOS_INFO_IF("ReadControlPointVector", EchoLevel > 4)
+                << "Reading " << rParameters.size() << " control points of type Point." << std::endl;
+
+            for (IndexType cp_idx = 0; cp_idx < rParameters.size(); cp_idx++)
+            {
+                rControlPoints.push_back(ReadPoint(rParameters[cp_idx]));
             }
         }
 
