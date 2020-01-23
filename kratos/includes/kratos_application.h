@@ -77,6 +77,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
           mpArray1D4VariableComponents(rOther.mpArray1D4VariableComponents),
           mpArray1D6VariableComponents(rOther.mpArray1D6VariableComponents),
           mpArray1D9VariableComponents(rOther.mpArray1D9VariableComponents),
+          mpGeometries(rOther.mpGeometries),
           mpElements(rOther.mpElements),
           mpConditions(rOther.mpConditions),
           mpMasterSlaveConstraints(rOther.mpMasterSlaveConstraints) {}
@@ -190,6 +191,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         return *mpVariableData;
     }
 
+    KratosComponents<Geometry<Node<3>>>::ComponentsContainerType& GetGeometries() {
+        return *mpGeometries;
+    }
+    
     KratosComponents<Element>::ComponentsContainerType& GetElements() {
         return *mpElements;
     }
@@ -214,6 +219,11 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         }
     }
 
+    void SetComponents(KratosComponents<Geometry<Node<3>>>::ComponentsContainerType const& GeometryComponents)
+    {
+        mpGeometries->insert(GeometryComponents.begin(), GeometryComponents.end());
+    }
+    
     void SetComponents(KratosComponents<Element>::ComponentsContainerType const&
             ElementComponents)
 
@@ -421,6 +431,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >::ComponentsContainerType* mpArray1D9VariableComponents;
 
+    KratosComponents<Geometry<Node<3>>>::ComponentsContainerType* mpGeometries;
+    
     KratosComponents<Element>::ComponentsContainerType* mpElements;
 
     KratosComponents<Condition>::ComponentsContainerType* mpConditions;

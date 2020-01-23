@@ -139,6 +139,7 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mpArray1D4VariableComponents(KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 4> > > >::pGetComponents()),
       mpArray1D6VariableComponents(KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 6> > > >::pGetComponents()),
       mpArray1D9VariableComponents(KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 9> > > >::pGetComponents()),
+      mpGeometries(KratosComponents<GeometryType>::pGetComponents()),
       mpElements(KratosComponents<Element>::pGetComponents()),
       mpConditions(KratosComponents<Condition>::pGetComponents()),
       mpRegisteredObjects(&(Serializer::GetRegisteredObjects())),
@@ -156,6 +157,7 @@ void KratosApplication::RegisterKratosCore() {
     //Register objects with general definition
     Serializer::Register("Node", NodeType());
     Serializer::Register("Dof", Dof<double>());
+    Serializer::Register("Geometry", GeometryType());
     Serializer::Register("Element", Element());
     Serializer::Register("Condition", Condition());
     Serializer::Register("Properties", Properties());
