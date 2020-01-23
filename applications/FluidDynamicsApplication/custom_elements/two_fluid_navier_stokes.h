@@ -666,6 +666,26 @@ private:
         VectorType& rRHS); 
 
     /**
+     * @brief Computes the surface tension on the interface and implement its effect on the RHS vector
+     * Curvature is implicit in the formulation and normal vector is calculated from distance
+     * LHS is also modified to include the contribution of surface tension
+     * @param coefficient surface tension coefficient
+     * @param rIntWeights Weights associated with interface gauss points
+     * @param rIntShapeFunctions Shape functions calculated at the interface gauss points
+     * @param rInterfaceShapeDerivativesNeg Negative side shape functions derivatives at the interface-gauss-points
+     * @param rLHS The contribution of surface tension to LHS is included
+     * @param rRHS The effect of pressure discontinuity is implemented as an interfacial integral on the RHS
+     */
+	void SurfaceTension(
+        TElementData& rData,
+        const double coefficient,
+        const Kratos::Vector& rIntWeights,
+        const Matrix& rIntShapeFunctions,
+        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
+        MatrixType& rLHS,
+        VectorType& rRHS); 
+
+    /**
      * @brief Condense the enrichment
      * This method performs the static condensation of the enrichment terms, by adding
      * its local contributions to both the LHS and RHS elemental matrices.

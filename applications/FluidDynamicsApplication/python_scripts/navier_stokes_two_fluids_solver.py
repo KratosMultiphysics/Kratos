@@ -280,13 +280,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #    (self.lumped_eikonal_distance_calculation).Execute()
 
             # Reinitialize distance using a new variational process needs Compute the DISTANCE_GRADIENT and CURVATURE on nodes
-            if (TimeStep % 1 == 0):
-                (self.distance_gradient_process).Execute()
+            #if (TimeStep % 1 == 0):
+            #    (self.distance_gradient_process).Execute()
                 #(self.curvature_calculation_process).Execute()
-                (self.variational_non_eikonal_distance).Execute()
-                for node in self.main_model_part.Nodes:
-                    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
-                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+            #    (self.variational_non_eikonal_distance).Execute()
+            #    for node in self.main_model_part.Nodes:
+            #        smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+            #        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
             # Smoothing the surface to filter oscillatory surface
             #(self.surface_smoothing_process).Execute()
@@ -296,7 +296,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
             # Compute the DISTANCE_GRADIENT on nodes
-            #(self.distance_gradient_process).Execute()
+            (self.distance_gradient_process).Execute()
 
             # Compute CURVATURE on nodes
             (self.curvature_calculation_process).Execute()

@@ -202,7 +202,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 
                 //SurfaceTension(surface_tension_coefficient,gauss_pts_curvature,int_gauss_pts_weights,int_normals_neg,surface_tension);
 
-                SurfaceTension(
+                /* SurfaceTension(
                     surface_tension_coefficient,
                     gauss_pts_curvature,
                     int_gauss_pts_weights,
@@ -212,7 +212,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     contact_shape_function_neg,
                     contact_tangential_neg,
                     has_contact_line,
-                    rRightHandSideVector);
+                    rRightHandSideVector); */
 
                 /* SurfaceTension(
                     surface_tension_coefficient,
@@ -228,6 +228,15 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     int_shape_function_neg,
                     int_shape_derivatives_neg,
                     rRightHandSideVector); */
+
+                SurfaceTension(
+                    data,
+                    surface_tension_coefficient,
+                    int_gauss_pts_weights,
+                    int_shape_function_neg,
+                    int_shape_derivatives_neg,
+                    rLeftHandSideMatrix,
+                    rRightHandSideVector);
 
                 /* PressureDiscontinuity(
                     surface_tension_coefficient,
@@ -2753,6 +2762,100 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 
     noalias(rRHS) += rhs;
 
+}
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::SurfaceTension(
+        TElementData& rData,
+        const double coefficient,
+        const Kratos::Vector& rIntWeights,
+        const Matrix& rIntShapeFunctions,
+        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
+        MatrixType& rLHS,
+        VectorType& rRHS)
+{
+    const unsigned int NumGP = rIntShapeFunctions.size1();
+    const unsigned int NumNodes = rIntShapeFunctions.size2();
+    const unsigned int NumDim = rInterfaceShapeDerivativesNeg[0].size2();
+
+    VectorType rhs = ZeroVector(NumNodes*(NumDim+1));
+
+    MatrixType lhs_ST = ZeroMatrix(NumNodes*(NumDim+1),NumNodes*(NumDim+1));
+
+    VectorType values_vel = ZeroVector(NumNodes*(NumDim+1));
+
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+
+    for (unsigned int gp = 0; gp < NumGP; gp++){
+
+        MatrixType P_gp = ZeroMatrix(NumDim, NumDim);
+
+        VectorType normal_gp = ZeroVector(NumDim);
+
+        for (unsigned int i=0; i < NumNodes; ++i){
+
+            /* for (unsigned int dim = 0; dim < NumDim; dim++){
+                normal_gp(dim) += (*p_geom)[i].FastGetSolutionStepValue(DISTANCE)*(rInterfaceShapeDerivativesNeg[gp])(i,dim);
+            } */
+
+            normal_gp += (*p_geom)[i].FastGetSolutionStepValue(DISTANCE_GRADIENT)*rIntShapeFunctions(gp,i);
+        }
+
+        double norm = 0.0;
+
+        for (unsigned int dim = 0; dim < NumDim; dim++){
+           norm += normal_gp(dim)*normal_gp(dim);
+        }
+
+        norm = std::sqrt(norm);
+        normal_gp = (1.0/norm)*normal_gp;
+
+        for (unsigned int dimi = 0; dimi < NumDim; dimi++){
+            for (unsigned int dimj = 0; dimj < NumDim; dimj++){
+                P_gp(dimi, dimj) = -normal_gp(dimi)*normal_gp(dimj);
+            }
+            P_gp(dimi, dimi) += 1;
+        }
+        //KRATOS_INFO("P Matrix") << P_gp << std::endl;
+
+        for (unsigned int i = 0; i < NumNodes; i++){ 
+            Vector velocity0 = (*p_geom)[i].FastGetSolutionStepValue(VELOCITY);
+
+            for (unsigned int dimi = 0; dimi < NumDim; dimi++){
+                values_vel[ i*(NumDim+1) + dimi ] = velocity0[dimi];
+
+                for (unsigned int dimj = 0; dimj < NumDim; dimj++){                    
+                    rhs[ i*(NumDim+1) + dimi ] -= 
+                        coefficient*P_gp(dimi, dimj)*(rInterfaceShapeDerivativesNeg[gp])(i,dimj)*rIntWeights(gp);
+                     
+                }
+            }
+
+            double n_dot_grad_N_I = 0;
+            for (unsigned int k = 0; k < NumDim; k++){
+                n_dot_grad_N_I += normal_gp[k]*(rInterfaceShapeDerivativesNeg[gp])(i,k);
+            }
+
+            for (unsigned int j = 0; j < NumNodes; j++){
+
+                double n_dot_grad_N_J = 0;
+                for (unsigned int l = 0; l < NumDim; l++){
+                    n_dot_grad_N_J += normal_gp[l]*(rInterfaceShapeDerivativesNeg[gp])(j,l);
+                }
+
+                for (unsigned int dimi = 0; dimi < NumDim; dimi++){
+                    for (unsigned int dimj = 0; dimj < NumDim; dimj++){ 
+                        lhs_ST( i*(NumDim+1) + dimi, j*(NumDim+1) + dimj) +=
+                            - 2.0 * coefficient * rData.DeltaTime * n_dot_grad_N_I * ( (rInterfaceShapeDerivativesNeg[gp])(j,dimj) 
+                            - n_dot_grad_N_J * normal_gp[dimj] ) * normal_gp[dimi] * rIntWeights(gp);
+                    }
+                }
+            }
+        }
+    }
+
+    noalias(rRHS) += rhs + prod(lhs_ST, values_vel); //Be careful about what is done here!!!
+    noalias(rLHS) += lhs_ST;
 }
 
 template <class TElementData>
