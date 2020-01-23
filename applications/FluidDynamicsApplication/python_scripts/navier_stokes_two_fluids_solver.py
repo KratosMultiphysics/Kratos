@@ -281,7 +281,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Reinitialize distance using a new variational process needs Compute the DISTANCE_GRADIENT and CURVATURE on nodes
             if (TimeStep % 1 == 0):
-                #(self.distance_gradient_process).Execute()
+                (self.distance_gradient_process).Execute()
                 #(self.curvature_calculation_process).Execute()
                 (self.variational_non_eikonal_distance).Execute()
                 for node in self.main_model_part.Nodes:
@@ -296,7 +296,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
             # Compute the DISTANCE_GRADIENT on nodes
-            (self.distance_gradient_process).Execute()
+            #(self.distance_gradient_process).Execute()
 
             # Compute CURVATURE on nodes
             (self.curvature_calculation_process).Execute()
@@ -309,6 +309,29 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Initialize the solver current step
             (self.solver).InitializeSolutionStep()
+
+            YPlus = 0.005
+            YMinus = 0.0
+            DistPlus = 1.0e5
+            DistMinus = -1.0e5
+
+            for node in self.main_model_part.Nodes:
+                NodeX = node.X
+                if (abs(NodeX - 0.005) < 1.0e-6):
+                    NodeY = node.Y
+                    if (NodeY > 0.005):
+                        Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                        if (Dist >= 0.0 and Dist < DistPlus):
+                            DistPlus = Dist
+                            YPlus = NodeY
+                        elif (Dist < 0.0 and Dist > DistMinus):
+                            DistMinus = Dist
+                            YMinus = NodeY
+
+            YZero = YMinus + (-DistMinus)/(DistPlus - DistMinus)*(YPlus - YMinus)
+
+            with open("ZeroDistance.log", "a") as distLogFile:
+                distLogFile.write( str(TimeStep) + "\t" + str(YZero) + "\n" )
 
     def FinalizeSolutionStep(self):
         if self._TimeBufferIsInitialized():

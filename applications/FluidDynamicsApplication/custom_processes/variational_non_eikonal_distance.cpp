@@ -96,7 +96,7 @@ void VariationalNonEikonalDistance::Execute()
     auto& geom = it_elem->GetGeometry();
     const double elem_size = ElementSizeCalculator<3,4>::AverageElementSize(geom);
     
-    //double distance_min = 1.0e10;
+    double distance_min = 1.0e10;
     //unsigned int node_nearest = 0;
 
     //double distance_max = 0.0;
@@ -108,14 +108,14 @@ void VariationalNonEikonalDistance::Execute()
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
         it_node->FastGetSolutionStepValue(DISTANCE_AUX) = distance;
 
-        /* if (abs(distance) <= distance_min){
+        if (abs(distance) <= distance_min){
             distance_min = abs(distance);
             //node_nearest = i_node;
-        } */
+        }
 
         /* if (abs(distance) >= distance_max){
             distance_max = abs(distance);
-            node_farthest = i_node;
+            //node_farthest = i_node;
         } */
 
         //if (abs(distance) > 7*elem_size){
@@ -134,24 +134,24 @@ void VariationalNonEikonalDistance::Execute()
     //auto it_node = mrModelPart.NodesBegin() + node_nearest; //node_farthest;
     //it_node->Fix(DISTANCE_AUX);
 
-    /* #pragma omp parallel for
+    #pragma omp parallel for
     for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
         auto it_node = mrModelPart.NodesBegin() + i_node;
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
 
-        if (abs((distance - distance_min)/distance_min) <= 1.0e-9){
+        if (abs((distance - distance_min)/distance_min) <= 1.0e-9){ // (abs((distance - distance_max)/distance_max) <= 1.0e-9){
             it_node->Fix(DISTANCE_AUX);
         }
-    } */
+    }
 
-    #pragma omp parallel for
-    for (int i_elem = 0; i_elem < NumElements; ++i_elem){
+    //#pragma omp parallel for
+    //for (int i_elem = 0; i_elem < NumElements; ++i_elem){
 
-        auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+    //    auto it_elem = mrModelPart.ElementsBegin() + i_elem;
 
     //     array_1d<double,num_nodes> distances;
 
-        auto& geom = it_elem->GetGeometry();
+    //    auto& geom = it_elem->GetGeometry();
 
     //     double distance_min = 1.0e10;
     //     unsigned int node_nearest = 0;
@@ -167,29 +167,29 @@ void VariationalNonEikonalDistance::Execute()
     //         }
     //     }
 
-        unsigned int nneg=0, npos=0;
-        for (unsigned int i_node = 0; i_node < num_nodes; ++i_node)
-        {
-            const double distance = geom[i_node].FastGetSolutionStepValue(DISTANCE);
-            if (distance >= 1.0e-14) npos += 1;
-            else if (distance <= -1.0e-14) nneg += 1;
-        }
+        // unsigned int nneg=0, npos=0;
+        // for (unsigned int i_node = 0; i_node < num_nodes; ++i_node)
+        // {
+        //     const double distance = geom[i_node].FastGetSolutionStepValue(DISTANCE);
+        //     if (distance >= 1.0e-14) npos += 1;
+        //     else if (distance <= -1.0e-14) nneg += 1;
+        // }
 
-        if (npos != 0 && nneg != 0){
-            for (unsigned int i_node = 0; i_node < num_nodes; ++i_node)
-            {
-                const double distance = geom[i_node].FastGetSolutionStepValue(DISTANCE);
-                if (distance >= 0.0){
-                    geom[i_node].SetLock();
-                    geom[i_node].Fix(DISTANCE_AUX);
-                    geom[i_node].UnSetLock();
-                }
-            }
+        // if (npos != 0 && nneg != 0){
+        //     for (unsigned int i_node = 0; i_node < num_nodes; ++i_node)
+        //     {
+        //         const double distance = geom[i_node].FastGetSolutionStepValue(DISTANCE);
+        //         if (distance >= 0.0){
+        //             geom[i_node].SetLock();
+        //             geom[i_node].Fix(DISTANCE_AUX);
+        //             geom[i_node].UnSetLock();
+        //         }
+        //     }
     //         geom[node_nearest].SetLock();
     //         geom[node_nearest].Fix(DISTANCE_AUX);
     //         geom[node_nearest].UnSetLock();
-        }
-    }
+    //    }
+    //}
 
     KRATOS_INFO("VariationalNonEikonalDistance") << "About to solve the LSE" << std::endl;
     mp_solving_strategy->Solve();

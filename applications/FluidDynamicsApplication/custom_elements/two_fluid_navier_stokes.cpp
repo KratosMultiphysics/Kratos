@@ -464,10 +464,10 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSC
     const auto &DN = rData.DN_DX;
 
     // Stabilization parameters
-    double stab_c1 = 4.0;
-    double stab_c2 = 2.0;
+    const double stab_c1 = 4.0;
+    const double stab_c2 = 2.0;
 
-    unsigned int nneg=0, npos=0;
+    /* unsigned int nneg=0, npos=0;
     for(unsigned int i = 0; i<4; ++i)
         if(rData.Distance[i] >= 0) npos += 1;
         else nneg += 1;
@@ -477,7 +477,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSC
         stab_c1 *= 1000.0;
         stab_c2 *= 1000.0;
         dyn_tau *= 1000.0;
-    }
+    } */
 
     auto &lhs = rData.lhs;
 
@@ -726,8 +726,8 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
     const auto &DN = rData.DN_DX;
 
     // Stabilization parameters
-    double stab_c1 = 4.0;
-    double stab_c2 = 2.0;
+    const double stab_c1 = 4.0;
+    const double stab_c2 = 2.0;
 
 /*     unsigned int nneg=0, npos=0;
     for(unsigned int i = 0; i<4; ++i)
