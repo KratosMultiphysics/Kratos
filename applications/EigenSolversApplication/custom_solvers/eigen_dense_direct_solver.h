@@ -18,12 +18,13 @@
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/direct_solver.h"
+#include "custom_factories/dense_linear_solver_factory.h"
 
 namespace Kratos {
 
 template <
     class TSolverType,
-    class TSparseSpaceType = typename SpaceType<typename TSolverType::Scalar>::Global,
+    class TSparseSpaceType = typename SpaceType<typename TSolverType::Scalar>::Local,
     class TDenseSpaceType = typename SpaceType<typename TSolverType::Scalar>::Local,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
 class EigenDenseDirectSolver
@@ -42,6 +43,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(EigenDenseDirectSolver);
 
     typedef DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
+
+    typedef typename TSparseSpaceType::MatrixType MatrixType;
 
     typedef typename TSparseSpaceType::VectorType VectorType;
 
@@ -67,7 +70,7 @@ public:
      * @param rX Solution vector
      * @param rB Right hand side vector
      */
-    void InitializeSolutionStep(DenseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    void InitializeSolutionStep(MatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>> A(rA.data().begin(), rA.size1(), rA.size2());
 
@@ -83,7 +86,7 @@ public:
      * @param rX Solution vector
      * @param rB Right hand side vector
      */
-    void PerformSolutionStep(DenseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    void PerformSolutionStep(MatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, 1>> x(rX.data().begin(), rX.size());
         Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, 1>> b(rB.data().begin(), rB.size());
@@ -100,7 +103,7 @@ public:
      * @param rB Right hand side vector
      * @return true if solution found, otherwise false
      */
-    bool Solve(DenseMatrixType &rA, VectorType &rX, VectorType &rB) override
+    bool Solve(MatrixType &rA, VectorType &rX, VectorType &rB) override
     {
         InitializeSolutionStep(rA, rX, rB);
         PerformSolutionStep(rA, rX, rB);
@@ -123,9 +126,9 @@ public:
     {
     }
 
-    static StandardLinearSolverFactory<TSparseSpaceType, TDenseSpaceType, EigenDenseDirectSolver> Factory()
+    static DenseLinearSolverFactory<TSparseSpaceType, TDenseSpaceType, EigenDenseDirectSolver> Factory()
     {
-        return StandardLinearSolverFactory<TSparseSpaceType, TDenseSpaceType, EigenDenseDirectSolver>();
+        return DenseLinearSolverFactory<TSparseSpaceType, TDenseSpaceType, EigenDenseDirectSolver>();
     }
 }; // class EigenDenseDirectSolver
 

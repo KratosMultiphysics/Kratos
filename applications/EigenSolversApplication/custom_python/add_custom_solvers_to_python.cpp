@@ -64,12 +64,11 @@ void register_dense_solver(pybind11::module& m, const std::string& name)
 {
     namespace py = pybind11;
 
-    using GlobalSpace = typename SpaceType<typename SolverType::Scalar>::Global;
     using LocalSpace = typename SpaceType<typename SolverType::Scalar>::Local;
 
     using Type = EigenDenseDirectSolver<SolverType>;
     using Holder = typename Type::Pointer;
-    using Base = DirectSolver<GlobalSpace, LocalSpace>;
+    using Base = DirectSolver<LocalSpace, LocalSpace>;
 
     py::class_<Type, Holder, Base>
         (m, name.c_str())
@@ -91,6 +90,64 @@ void register_eigensystem_solver(pybind11::module& m, const std::string& name)
         (m, name.c_str())
         .def(py::init<Parameters>())
     ;
+}
+
+void register_base_dense_solver(pybind11::module& m)
+{
+    namespace py = pybind11;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
+    typedef LinearSolver<LocalSpaceType,  LocalSpaceType> DenseLinearSolverType;
+    typedef LinearSolver<ComplexLocalSpaceType, ComplexLocalSpaceType> ComplexDenseLinearSolverType;
+    
+    bool (DenseLinearSolverType::*pointer_to_solve_dense)(DenseLinearSolverType::SparseMatrixType& rA, DenseLinearSolverType::VectorType& rX, DenseLinearSolverType::VectorType& rB) = &DenseLinearSolverType::Solve;
+    bool (ComplexDenseLinearSolverType::*pointer_to_complex_solve_dense)(ComplexDenseLinearSolverType::SparseMatrixType& rA, ComplexDenseLinearSolverType::VectorType& rX, ComplexDenseLinearSolverType::VectorType& rB) = &ComplexDenseLinearSolverType::Solve;
+
+    py::class_<DenseLinearSolverType, DenseLinearSolverType::Pointer>(m,"DenseLinearSolver")
+    .def(py::init< >())
+    .def("Initialize",&DenseLinearSolverType::Initialize)
+    .def("Solve",pointer_to_solve_dense)
+    .def("Clear",&DenseLinearSolverType::Clear)
+    .def("__str__",PrintObject<DenseLinearSolverType>)
+    ;
+
+    py::class_<ComplexDenseLinearSolverType, ComplexDenseLinearSolverType::Pointer>(m,"ComplexDenseLinearSolver")
+    .def(py::init< >())
+    .def("Initialize",&ComplexDenseLinearSolverType::Initialize)
+    .def("Solve",pointer_to_complex_solve_dense)
+    .def("Clear",&ComplexDenseLinearSolverType::Clear)
+    .def("__str__",PrintObject<ComplexDenseLinearSolverType>)
+    ;
+
+    typedef DirectSolver<LocalSpaceType,  LocalSpaceType> DenseDirectSolverType;
+    typedef DirectSolver<ComplexLocalSpaceType,  ComplexLocalSpaceType> ComplexDenseDirectSolverType;
+    py::class_<DenseDirectSolverType, DenseDirectSolverType::Pointer, DenseLinearSolverType>(m,"DirectSolver")
+    .def(py::init< >() )
+    .def(py::init<Parameters>())
+    .def("__str__", PrintObject<DenseDirectSolverType>)
+    ;
+
+    py::class_<ComplexDenseDirectSolverType, ComplexDenseDirectSolverType::Pointer, ComplexDenseLinearSolverType>(m,"ComplexDirectSolver")
+    .def(py::init< >() )
+    .def(py::init<Parameters>())
+    .def("__str__", PrintObject<ComplexDenseDirectSolverType>)
+    ;
+
+    typedef LinearSolverFactory< LocalSpaceType, LocalSpaceType > DenseLinearSolverFactoryType;
+
+    py::class_<DenseLinearSolverFactoryType, DenseLinearSolverFactoryType::Pointer>(m, "DenseLinearSolverFactory")
+        .def( py::init< >() )
+        .def("Create",&DenseLinearSolverFactoryType::Create)
+        .def("Has",&DenseLinearSolverFactoryType::Has)
+        ;
+
+    typedef LinearSolverFactory< ComplexLocalSpaceType, ComplexLocalSpaceType > ComplexDenseLinearSolverFactoryType;
+
+    py::class_<ComplexDenseLinearSolverFactoryType, ComplexDenseLinearSolverFactoryType::Pointer>(m, "ComplexDenseLinearSolverFactory")
+        .def( py::init< >() )
+        .def("Create",&ComplexDenseLinearSolverFactoryType::Create)
+        .def("Has",&ComplexDenseLinearSolverFactoryType::Has)
+        ;
 }
 
 void AddCustomSolversToPython(pybind11::module& m)
@@ -115,6 +172,8 @@ void AddCustomSolversToPython(pybind11::module& m)
     register_solver<EigenPardisoLLTSolver<complex>>(m, "ComplexPardisoLLTSolver");
 #endif // defined USE_EIGEN_MKL
 
+    register_base_dense_solver(m);
+
     register_dense_solver<EigenDenseColPivHouseholderQRSolver<double>>(m, "DenseColPivHouseholderQRSolver");
     register_dense_solver<EigenDenseHouseholderQRSolver<double>>(m, "DenseHouseholderQRSolver");
     register_dense_solver<EigenDenseLLTSolver<double>>(m, "DenseLLTSolver");
@@ -136,6 +195,7 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
 {
     using complex = std::complex<double>;
 
+    std::cout << "---------------------EigenSolversApplicationRegisterLinearSolvers\n";
 
     // Sparse LU Solver
 
@@ -236,7 +296,7 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
 
     static auto DenseColPivHouseholderQRSolverFactory = EigenDirectColPivHouseholderQRType::Factory();
 
-    KRATOS_REGISTER_LINEAR_SOLVER("dense_colpivhouseholderqr", DenseColPivHouseholderQRSolverFactory);
+    KRATOS_REGISTER_DENSE_LINEAR_SOLVER("dense_colpivhouseholderqr", DenseColPivHouseholderQRSolverFactory);
 
     // Dense HouseholderQR solver
 
@@ -244,7 +304,7 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
 
     static auto DenseHouseholderQRSolverFactory = EigenDirectHouseholderQRType::Factory();
 
-    KRATOS_REGISTER_LINEAR_SOLVER("dense_householderqr", DenseHouseholderQRSolverFactory);
+    KRATOS_REGISTER_DENSE_LINEAR_SOLVER("dense_householderqr", DenseHouseholderQRSolverFactory);
 
     // Dense LLT solver
 
@@ -252,7 +312,7 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
 
     static auto DenseLLTSolverFactory = EigenDirectLLTType::Factory();
 
-    KRATOS_REGISTER_LINEAR_SOLVER("dense_llt", DenseLLTSolverFactory);
+    KRATOS_REGISTER_DENSE_LINEAR_SOLVER("dense_llt", DenseLLTSolverFactory);
 
     // Dense PartialPivLU solver
 
@@ -260,7 +320,7 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
 
     static auto DensePartialPivLUSolverFactory = EigenDirectPartialPivLUType::Factory();
 
-    KRATOS_REGISTER_LINEAR_SOLVER("dense_partialpivlu", DensePartialPivLUSolverFactory);
+    KRATOS_REGISTER_DENSE_LINEAR_SOLVER("dense_partialpivlu", DensePartialPivLUSolverFactory);
 
 
     // Complex dense ColPivHouseholderQR solver
@@ -269,7 +329,7 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
 
     static auto ComplexDenseColPivHouseholderQRSolverFactory = ComplexEigenDirectColPivHouseholderQRType::Factory();
 
-    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("complex_dense_colpivhouseholderqr", ComplexDenseColPivHouseholderQRSolverFactory);
+    KRATOS_REGISTER_COMPLEX_DENSE_LINEAR_SOLVER("complex_dense_colpivhouseholderqr", ComplexDenseColPivHouseholderQRSolverFactory);
 
     // Complex dense HouseholderQR solver
 
@@ -277,7 +337,7 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
 
     static auto ComplexDenseHouseholderQRSolverFactory = ComplexEigenDirectHouseholderQRType::Factory();
 
-    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("complex_dense_householderqr", ComplexDenseHouseholderQRSolverFactory);
+    KRATOS_REGISTER_COMPLEX_DENSE_LINEAR_SOLVER("complex_dense_householderqr", ComplexDenseHouseholderQRSolverFactory);
 
     // Complex dense PartialPivLU solver
 
@@ -285,7 +345,7 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
 
     static auto ComplexDensePartialPivLUSolverFactory = ComplexEigenDirectPartialPivLUType::Factory();
 
-    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("complex_dense_partialpivlu", ComplexDensePartialPivLUSolverFactory);
+    KRATOS_REGISTER_COMPLEX_DENSE_LINEAR_SOLVER("complex_dense_partialpivlu", ComplexDensePartialPivLUSolverFactory);
 
 }
 

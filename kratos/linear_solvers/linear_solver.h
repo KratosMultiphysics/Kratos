@@ -142,10 +142,6 @@ public:
     {
     }
 
-    virtual void InitializeSolutionStep(DenseMatrixType& rA, VectorType& rX, VectorType& rB)
-    {
-    }
-
     /** This function actually performs the solution work, eventually taking advantage of what was done before in the
      * Initialize and InitializeSolutionStep functions.
     @param rA. System matrix
@@ -153,11 +149,6 @@ public:
     @param rB. Right hand side vector.
     */
     virtual void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
-    {
-        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
-    }
-
-    virtual void PerformSolutionStep(DenseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
     }
@@ -221,20 +212,6 @@ public:
                         DenseMatrixType& Eigenvectors)
     {
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
-    }
-
-    /** Solve method for dense systems.
-    Solves the linear system Ax=b and puts the result on DenseVector& rX.
-    rVectorx is also th initial guess for iterative methods.
-    @param rA. Dense system matrix
-    @param rX. Solution vector. it's also the initial
-    guess for iterative linear solvers.
-     @param rB. Right hand side vector.
-    */
-    virtual bool Solve(DenseMatrixType& rA, DenseVectorType& rX, DenseVectorType& rB)
-    {
-        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
-        return false;
     }
 
     /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
