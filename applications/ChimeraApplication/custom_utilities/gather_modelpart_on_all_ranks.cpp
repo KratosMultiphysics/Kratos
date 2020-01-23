@@ -46,23 +46,12 @@ namespace Kratos
         for (int dest_rank = 0; dest_rank < mpi_size; ++dest_rank)
         {
             SendNodes[dest_rank].reserve(rModelPartToGather.Nodes().size());
-            if (r_comm.IsDistributed())
+            for (NodesContainerType::iterator it = rModelPartToGather.NodesBegin();
+                    it != rModelPartToGather.NodesEnd(); ++it)
             {
-                for (NodesContainerType::iterator it = rModelPartToGather.NodesBegin();
-                     it != rModelPartToGather.NodesEnd(); ++it)
-                {
-                    // only send the nodes owned by this partition
-                    if (it->FastGetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
-                        SendNodes[dest_rank].push_back(*it.base());
-                }
-            }
-            else
-            {
-                for (NodesContainerType::iterator it = rModelPartToGather.NodesBegin();
-                     it != rModelPartToGather.NodesEnd(); ++it)
-                {
+                // only send the nodes owned by this partition
+                if (it->FastGetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
                     SendNodes[dest_rank].push_back(*it.base());
-                }
             }
         }
 
@@ -86,6 +75,10 @@ namespace Kratos
             rGatheredModelPart.Nodes().push_back(*it.base());
         }
         rGatheredModelPart.Nodes().Unique();
+
+#ifdef KRATOS_USING_MPI
+    ParallelFillCommunicator(rGatheredModelPart).Execute();
+#endif
 
         // transfer elements
         std::vector<ElementsContainerType> SendElements(mpi_size);
@@ -258,9 +251,5 @@ namespace Kratos
         for(const int& node_id : all_node_ids)
             rGatheredModelPart.RemoveNode(node_id);
 
-
-#ifdef KRATOS_USING_MPI
-        ParallelFillCommunicator(rGatheredModelPart).Execute();
-#endif
     }
 }
