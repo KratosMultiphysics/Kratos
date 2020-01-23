@@ -689,6 +689,7 @@ namespace Kratos
         ///@name Utility functions
         ///@{
 
+        /// Returns the string of either the 'brep_id' or the 'brep_name'. Used for output massages.
         static std::string GetIdOrName(
             const Parameters& rParameters)
         {
@@ -700,12 +701,14 @@ namespace Kratos
                 return "no_id_assigned";
         }
 
+        /// Checks if one of the 'brep_id' or the 'brep_name' is provided.
         static bool HasIdOrName(
             const Parameters& rParameters)
         {
             return (rParameters.Has("brep_id") || rParameters.Has("brep_name"));
         }
 
+        /// Sets the geometry Id with either the 'brep_id' or the 'brep_name'.
         template<class TGeometry>
         static void SetIdOrName(
             const Parameters& rParameters,
@@ -717,6 +720,7 @@ namespace Kratos
                 pGeometry->SetId(rParameters["brep_name"].GetString());
         }
 
+        /// Returns the geometry with either the 'brep_id' or the 'brep_name'.
         static typename GeometryType::Pointer GetGeometry(
             const Parameters& rParameters,
             ModelPart& rModelPart)
@@ -729,6 +733,7 @@ namespace Kratos
             }
         }
 
+        /// Reads in a json formatted file and returns its KratosParameters instance.
         static Parameters ReadParamatersFile(const std::string& rDataFileName)
         {
             // Check if rDataFileName ends with ".cad.json" and add it if needed.
@@ -740,10 +745,13 @@ namespace Kratos
             std::ifstream cad_json_file;
             cad_json_file.open(data_file_name);
 
+            // Convert std::ifstream into std::string
             std::string cad_json_string((std::istreambuf_iterator<char>(cad_json_file)),
                 std::istreambuf_iterator<char>());
 
             return Parameters(cad_json_string);
+
+            cad_json_file.close();
         }
 
         ///@}
