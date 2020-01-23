@@ -187,7 +187,7 @@ class PythonSolver(object):
                 KratosMultiphysics.ReorderAndOptimizeModelPartProcess(model_part, tmp).Execute()
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading model part from mdpa file.")
 
-        elif (input_type == "cad.json")
+        elif (input_type == "cad.json"):
             problem_path = os.getcwd()
             input_filename = model_part_import_settings["input_filename"].GetString()
 
@@ -197,11 +197,18 @@ class PythonSolver(object):
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading CAD model.")
 
             # Create integration domain and elements.
-            if model_part_import_settings.Has("physics_file_name")
-                physics_filename = model_part_import_settings["input_filename"].GetString()
-                KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Creating integration domain, elements and conditions from file: " + os.path.join(problem_path, physics_filename) + ".json")
-                KratosMultiphysics.CadIntegrationDomain.CreateIntegrationDomain(physics_filename, model_part)
-                KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished creation of integration domain, elements and conditions.")
+            if model_part_import_settings.Has("physics_input_type"):
+                physics_input_type = model_part_import_settings["physics_input_type"].GetString()
+                if (physics_input_type == "ph.json"):
+                    physics_filename = model_part_import_settings["physics_file_name"].GetString()
+                    KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Creating integration domain, elements and conditions from file: " + os.path.join(problem_path, physics_filename) + ".ph.json")
+                    KratosMultiphysics.CadIntegrationDomain.CreateIntegrationDomain(physics_filename, model_part)
+                    KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished creation of integration domain, elements and conditions.")
+                else:
+                    KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Unknown physics input type: " + physics_input_type)
+            else:
+                KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "No automated integration domain, elements and conditions are created.")
+
 
         elif (input_type == "rest"):
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")

@@ -94,7 +94,7 @@ class MechanicalSolver(PythonSolver):
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",
                 "physics_input_type": "ph.json",
-                "physics_file_name": "physics.ph.json"
+                "physics_file_name": "physics"
             },
             "computing_model_part_name" : "computing_domain",
             "use_computing_model_part" : true,
