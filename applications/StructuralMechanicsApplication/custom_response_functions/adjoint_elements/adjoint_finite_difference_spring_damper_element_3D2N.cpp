@@ -23,22 +23,17 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::InitializeSolut
 {
     KRATOS_TRY
 
+    KRATOS_ERROR_IF_NOT(this->Has(NODAL_DISPLACEMENT_STIFFNESS) || this->Has(NODAL_ROTATIONAL_STIFFNESS)) <<
+        "Neither NODAL_DISPLACEMENT_STIFFNESS nor NODAL_ROTATIONAL_STIFFNESS available!" << std::endl;
+
     // As the stiffness parameters are saved in the non-historical database of the element these parameters
     // have to be explicitly transfered from the adjoint to the primal element. Please note: if the stiffness parameters
     // would be part of the element properties this transferring would be not necessary. The stiffness parameters
     // are needed by the primal element in order to compute later on the element stiffness matrix for the
     // adjoint problem and the sensitivity matrix as the element contribution to the pseudo-load.
-    auto stiffness_available = false;
     const auto& r_const_this = *this;
-    if (this->Has(NODAL_DISPLACEMENT_STIFFNESS)) {
-        this->pGetPrimalElement()->SetValue(NODAL_DISPLACEMENT_STIFFNESS, r_const_this.GetValue(NODAL_DISPLACEMENT_STIFFNESS));
-        stiffness_available = true;
-    }
-    if (this->Has(NODAL_ROTATIONAL_STIFFNESS)) {
-        this->pGetPrimalElement()->SetValue(NODAL_ROTATIONAL_STIFFNESS, r_const_this.GetValue(NODAL_ROTATIONAL_STIFFNESS));
-        stiffness_available = true;
-    }
-    KRATOS_ERROR_IF_NOT(stiffness_available) << "Neither NODAL_DISPLACEMENT_STIFFNESS nor NODAL_ROTATIONAL_STIFFNESS available!" << std::endl;
+    this->pGetPrimalElement()->SetValue(NODAL_DISPLACEMENT_STIFFNESS, r_const_this.GetValue(NODAL_DISPLACEMENT_STIFFNESS));
+    this->pGetPrimalElement()->SetValue(NODAL_ROTATIONAL_STIFFNESS, r_const_this.GetValue(NODAL_ROTATIONAL_STIFFNESS));
 
     BaseType::InitializeSolutionStep(rCurrentProcessInfo);
 
