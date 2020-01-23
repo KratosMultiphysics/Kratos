@@ -355,7 +355,12 @@ void MembraneElement::StressPk2(Vector& rStress,
     element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     mConstitutiveLawVector[rIntegrationPointNumber]->CalculateMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
 
-    AddPreStressPk2(rStress,rTransformedBaseVectors);
+    if (Has(MEMBRANE_PRESTRESS)){
+        Matrix stress_input = GetValue(MEMBRANE_PRESTRESS);
+        rStress += column(stress_input,rIntegrationPointNumber);
+    } else {
+        AddPreStressPk2(rStress,rTransformedBaseVectors);
+    }
 }
 
 void MembraneElement::MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric,
@@ -974,6 +979,17 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
         column(rOutput,0) = base_1;
         column(rOutput,1) = base_2;
         column(rOutput,2) = base_3;
+    }
+    else if (rVariable == MEMBRANE_PRESTRESS) {
+        std::vector< Vector > prestress_matrix;
+        CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,prestress_matrix,rCurrentProcessInfo);
+        const auto& r_integration_points = GetGeometry().IntegrationPoints(GetGeometry().GetDefaultIntegrationMethod());
+        rOutput = ZeroMatrix(3,r_integration_points.size());
+
+        // each column represents 1 GP
+        for (SizeType i=0;i<r_integration_points.size();++i){
+            column(rOutput,i) = prestress_matrix[i];
+        }
     }
 }
 
