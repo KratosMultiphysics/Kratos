@@ -401,6 +401,13 @@ protected:
         r_background_model_part.RemoveSubModelPart(mHoleName);
         r_patch_model_part.RemoveSubModelPart(mModifiedName);
 
+#ifdef KRATOS_USING_MPI
+        BuiltinTimer par_fill_comm;
+        ParallelFillCommunicator(mrMainModelPart).Execute();
+        double par_fill_time = par_fill_comm.ElapsedSeconds();
+        KRATOS_INFO_IF("SynchronizeNodes : Time taken for parallel fill comm     : ", mEchoLevel > 1) << r_comm.Max(par_fill_time, 0) << std::endl;
+#endif
+
         KRATOS_INFO("End of Formulate Chimera") << std::endl;
     }
 
@@ -750,13 +757,6 @@ protected:
             << "the rModelpart has repeated nodes";
         rSendNodes.clear();
         RecvNodes.clear();
-
-#ifdef KRATOS_USING_MPI
-        BuiltinTimer par_fill_comm; 
-        ParallelFillCommunicator(rModelpart).Execute();
-        double par_fill_time = par_fill_comm.ElapsedSeconds();
-        KRATOS_INFO_IF("SynchronizeNodes : Time taken for parallel fill comm     : ", mEchoLevel > 1) << r_comm.Max(par_fill_time, 0) << std::endl;
-#endif
     }
     ///@}
     ///@name Protected  Access
