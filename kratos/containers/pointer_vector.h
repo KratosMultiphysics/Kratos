@@ -320,6 +320,11 @@ public:
         mData.clear();
     }
 
+    void resize(size_type dim)
+    {
+        mData.resize(dim);
+    }
+
     void reserve(int dim)
     {
         mData.reserve(dim);
