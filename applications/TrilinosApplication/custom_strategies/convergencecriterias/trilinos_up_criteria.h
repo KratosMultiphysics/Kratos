@@ -205,7 +205,7 @@ public:
             double local_dimension = 0;
             double dimension = 0;
 
-            if (r_model_part.GetCommunicator().LocalMesh().NumberOfElements())
+            if (r_model_part.GetCommunicator().LocalMesh().NumberOfElements() > 0)
                 local_dimension = r_model_part.GetCommunicator().LocalMesh().ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
             MPI_Allreduce(&local_dimension,&dimension,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
