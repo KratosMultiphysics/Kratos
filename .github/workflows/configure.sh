@@ -25,7 +25,7 @@ export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 # Set applications to compile
 add_app ${KRATOS_APP_DIR}/ExternalSolversApplication;
 add_app ${KRATOS_APP_DIR}/EigenSolversApplication;
-# add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
+add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
 # add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
 # add_app ${KRATOS_APP_DIR}/DEMApplication;
