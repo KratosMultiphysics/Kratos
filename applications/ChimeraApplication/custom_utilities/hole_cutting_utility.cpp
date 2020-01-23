@@ -115,11 +115,8 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
         }
     }
 
-#ifdef KRATOS_USING_MPI
-    ModelPart& r_root_mp = rModelPart.GetRootModelPart();
-    Communicator::Pointer p_new_comm = Kratos::make_shared< MPICommunicator >(&rModelPart.GetNodalSolutionStepVariablesList(), r_root_mp.GetCommunicator().GetDataCommunicator());
-    rRemovedModelPart.SetCommunicator(p_new_comm);
-    // ParallelFillCommunicator(rRemovedModelPart).Execute();
+#ifdef KRATOS_USING_MPI 
+    ParallelFillCommunicator(rRemovedModelPart).Execute();
 #endif
 
 if (Side == ChimeraHoleCuttingUtility::SideToExtract::INSIDE)
@@ -436,7 +433,7 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(
 
 #ifdef KRATOS_USING_MPI
     ModelPart& r_root_mp = rVolumeModelPart.GetRootModelPart();
-    Communicator::Pointer p_new_comm = Kratos::make_shared< MPICommunicator >(&rVolumeModelPart.GetNodalSolutionStepVariablesList(), r_root_mp.GetCommunicator().GetDataCommunicator());
+    Communicator::Pointer p_new_comm = Kratos::make_shared< MPICommunicator >(&rVolumeModelPart.GetNodalSolutionStepVariablesList(), DataCommunicator::GetDefault());
     rExtractedBoundaryModelPart.SetCommunicator(p_new_comm);
     // ParallelFillCommunicator(rExtractedBoundaryModelPart).Execute();
 #endif
