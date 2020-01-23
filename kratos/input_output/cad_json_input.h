@@ -655,14 +655,18 @@ namespace Kratos
         ///@name Read in Nodes/ Points
         ///@{
 
+        /* Reads, and returns a Pointer to Node<3>.
+        * Input needs to be a Parameter object:
+        * [id, [x, y, z, weight]]
+        */
         static Node<3>::Pointer ReadNode(
             const Parameters& rParameters,
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
         {
             SizeType number_of_entries = rParameters.size();
-            KRATOS_ERROR_IF((number_of_entries != 1) && (number_of_entries != 2))
-                << "Control points need to be provided in following structure: [[x, y, z, weight]] or [id, [x, y, z, weight]]"
+            KRATOS_ERROR_IF((number_of_entries != 2))
+                << "Control points as Node<3> need to be provided in following structure: [id, [x, y, z, weight]]"
                 << std::endl;
 
             IndexType id = rParameters[0].GetInt();
@@ -671,14 +675,18 @@ namespace Kratos
             return rModelPart.CreateNewNode(id, cp[0], cp[1], cp[2]);
         }
 
+        /* Reads, and returns a Pointer to Point.
+        * Input needs to be a Parameter object:
+        * [[x, y, z, weight]] or [id, [x, y, z, weight]]
+        */
         static Point::Pointer ReadPoint(
             const Parameters& rParameters,
             SizeType EchoLevel = 0)
         {
             SizeType number_of_entries = rParameters.size();
             KRATOS_ERROR_IF((number_of_entries != 1) && (number_of_entries != 2))
-                << "Control points need to be provided in following structure: [[x, y, z, weight]] or [id, [x, y, z, weight]]"
-                << std::endl;
+                << "Control points as Point need to be provided in following structure: "
+                << "[[x, y, z, weight]] or [id, [x, y, z, weight]]" << std::endl;
 
             Vector cp = rParameters[number_of_entries-1].GetVector();
 
