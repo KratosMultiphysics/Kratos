@@ -210,7 +210,7 @@ class PythonSolver(object):
                 KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "No automated integration domain, elements and conditions are created.")
 
 
-        elif (input_type == "rest"):
+        elif input_type == "rest":
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
             RestartUtility(model_part, self._GetRestartSettings(model_part_import_settings)).LoadRestart()
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished loading model part from restart file.")
