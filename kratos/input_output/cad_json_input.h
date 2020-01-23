@@ -469,6 +469,20 @@ namespace Kratos
         ///@name Read in Nurbs Geometries
         ///@{
 
+        /* @brief read NurbsCurves from the given parameter input.
+        *
+        * The input needs to be provided in the following shape:
+        * {
+        *     "is_rational": bool,
+        *     "degree": p:int,
+        *     "knot_vector": [ double, ... ],
+        *     "active_range": [ double, double ],
+        *     "control_points": [
+        *         [ id: int, [ x, y, z, weight ] ],
+        *         ...
+        *     ]
+        * }
+        */
         template<int TWorkingSpaceDimension, class TThisNodeType>
         static typename NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer
             ReadNurbsCurve(
@@ -514,7 +528,7 @@ namespace Kratos
         /* @brief read NurbsSurfaces from the given parameter input.
         *
         * The input needs to be provided in the following shape:
-        * "surface": {
+        * {
         *     "is_trimmed": bool,
         *     "is_rational" : bool,
         *     "degrees" : [int, int] ,
