@@ -511,6 +511,23 @@ namespace Kratos
                     knot_vector));
         }
 
+        /* @brief read NurbsSurfaces from the given parameter input.
+        *
+        * The input needs to be provided in the following shape:
+        * "surface": {
+        *     "is_trimmed": bool,
+        *     "is_rational" : bool,
+        *     "degrees" : [int, int] ,
+        *     "knot_vectors" : [
+        *         [ double, ... ],
+        *             [double, ...]
+        *     ],
+        *     "control_points" : [
+        *         [ id:p, [0, 10, 0, 1] ],
+        *         ...
+        *     ]
+        * }
+        */
         template<int TWorkingSpaceDimension, class TThisNodeType>
         static typename NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer
             ReadNurbsSurface(
@@ -521,6 +538,12 @@ namespace Kratos
             bool is_rational = true;
             if(rParameters.Has("is_rational"))
                 is_rational = rParameters["is_rational"].GetBool();
+            else{
+                KRATOS_INFO_IF("ReadNurbsSurface", (EchoLevel > 4))
+                    << "\"is_rational\" is not provided within \"surface\". Thus, it is considered as rational. "
+                    << "If the surface is non-rational the computation of the shape functions is more optimized."
+                    << std::endl;
+            }
 
             KRATOS_ERROR_IF_NOT(rParameters.Has("knot_vectors"))
                 << "Missing 'knot_vector' in nurbs surface" << std::endl;
