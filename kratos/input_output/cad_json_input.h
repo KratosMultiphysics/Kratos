@@ -69,7 +69,7 @@ namespace Kratos
         ///@name Life Cycle
         ///@{
 
-        /// Constructor.
+        /// Constructor with path to input file.
         CadJsonInput(
             const std::string & rDataFileName,
             SizeType EchoLevel = 0)
@@ -78,7 +78,7 @@ namespace Kratos
             mCadJsonParameters = ReadParamatersFile(rDataFileName);
         }
 
-        /// Constructor with Parameters
+        /// Constructor with KratosParameters.
         CadJsonInput(
             Parameters CadJsonParameters,
             SizeType EchoLevel = 0)
@@ -94,6 +94,7 @@ namespace Kratos
         ///@name Python exposed Functions
         ///@{
 
+        /// Adds all CAD geometries to the herin provided model_part.
         void ReadModelPart(ModelPart& rModelPart) override
         {
             ReadGeometryModelPart(mCadJsonParameters, rModelPart, mEchoLevel);
@@ -103,7 +104,8 @@ namespace Kratos
         ///@name Static Functions
         ///@{
 
-        void ReadGeometryModelPart(
+        /// Allows static access without any own memory.
+        static void ReadGeometryModelPart(
             const Parameters& rCadJsonParameters,
             ModelPart& rModelPart,
             SizeType EchoLevel = 0)
