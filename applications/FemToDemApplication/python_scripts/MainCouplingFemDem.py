@@ -205,16 +205,6 @@ class MainCoupledFemDem_Solution:
         self.ExecuteAfterGeneratingDEM()
         self.BeforeSolveDEMOperations()
 
-        # node = self.FEM_Solution.main_model_part.GetNode(2864)
-        # node_dem = self.DEM_Solution.spheres_model_part.GetNode(25099)
-        # print(node.X)
-        # print(node.X - node_dem.X)
-        # node = self.FEM_Solution.main_model_part.GetNode(2917)
-        # node_dem = self.DEM_Solution.SpheresModelPart.GetElement(25123)
-        # print(node.X)
-        # print(node.X - node_dem.X)
-        # Wait()
-
         #### SOLVE DEM #########################################
         self.DEM_Solution.solver.Solve()
         ########################################################
