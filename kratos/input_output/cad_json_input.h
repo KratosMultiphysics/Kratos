@@ -731,8 +731,14 @@ namespace Kratos
 
         static Parameters ReadParamatersFile(const std::string& rDataFileName)
         {
+            // Check if rDataFileName ends with ".cad.json" and add it if needed.
+            std::string data_file_name = rDataFileName;
+            if (rDataFileName.compare(rDataFileName.size() - 9, 9, ".cad.json") != 0) {
+                data_file_name += ".cad.json";
+            }
+
             std::ifstream cad_json_file;
-            cad_json_file.open(rDataFileName);
+            cad_json_file.open(data_file_name);
 
             std::string cad_json_string((std::istreambuf_iterator<char>(cad_json_file)),
                 std::istreambuf_iterator<char>());
