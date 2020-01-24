@@ -75,7 +75,7 @@ class MorSecondOrderKrylovStrategy
     // typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver, TReducedSparseSpace, TReducedDenseSpace > BaseType;
 
-    typedef SystemMatrixBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > TBuilderAndSolverType;
+    // typedef SystemMatrixBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > TBuilderAndSolverType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -126,7 +126,7 @@ class MorSecondOrderKrylovStrategy
     MorSecondOrderKrylovStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver,
+        typename BaseType::TBuilderAndSolverType::Pointer pBuilderAndSolver,
         typename LinearSolver< TReducedSparseSpace, TReducedDenseSpace >::Pointer pNewLinearSolver,
         vector< double > samplingPoints,
         bool MoveMeshFlag = false)
@@ -188,7 +188,7 @@ class MorSecondOrderKrylovStrategy
         KRATOS_TRY;
         std::cout << "hello! this is where the second order krylov MOR magic happens" << std::endl;
         typename TSchemeType::Pointer p_scheme = this->GetScheme();
-        typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
+        typename BaseType::TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
         const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
         TSystemMatrixType& r_K = this->GetSystemMatrix();

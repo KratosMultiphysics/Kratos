@@ -324,8 +324,7 @@ void DisplacementOutputCondition::CalculateAll(
         noalias( rRightHandSideVector ) = ZeroVector( mat_size ); //resetting RHS
     }
 
-    // Vector with a loading applied to the condition
-    if( rCurrentProcessInfo[BUILD_LEVEL] == 10 )
+    if( rCurrentProcessInfo[BUILD_LEVEL] == 301 )
     {
         array_1d<double, 3 > output_factor = ZeroVector(3);
         if( this->Has( COMPONENT_OUTPUT ) )

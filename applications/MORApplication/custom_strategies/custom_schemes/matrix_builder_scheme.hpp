@@ -101,24 +101,44 @@ public:
     {
         KRATOS_TRY
 
-        if (CurrentProcessInfo[BUILD_LEVEL] == 1)
-        { // mass matrix
+        const int build_level = CurrentProcessInfo[BUILD_LEVEL];
+        pCurrentElement->EquationIdVector(EquationId,CurrentProcessInfo);
+        
+        if ((0 < build_level) && (build_level < 100)) //stiffness matrix
+        {
+            pCurrentElement->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        }
+        else if ((100 < build_level) && (build_level < 200)) //damping matrix
+        {
+            pCurrentElement->CalculateDampingMatrix(LHS_Contribution,CurrentProcessInfo);
+            std::size_t LocalSize = LHS_Contribution.size1();
+            if (RHS_Contribution.size() != LocalSize)
+                RHS_Contribution.resize(LocalSize,false);
+            noalias(RHS_Contribution) = ZeroVector(LocalSize);
+        }
+        else if ((200 < build_level) && (build_level < 300)) //mass matrix
+        {
             pCurrentElement->CalculateMassMatrix(LHS_Contribution,CurrentProcessInfo);
             std::size_t LocalSize = LHS_Contribution.size1();
             if (RHS_Contribution.size() != LocalSize)
                 RHS_Contribution.resize(LocalSize,false);
             noalias(RHS_Contribution) = ZeroVector(LocalSize);
         }
-        else if (CurrentProcessInfo[BUILD_LEVEL] == 2) // stiffness matrix
+        else if ((300 < build_level) && (build_level < 400)) //various operations (output etc.)
         {
-            pCurrentElement->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+            const std::size_t local_size = EquationId.size();
+            if ((LHS_Contribution.size1() != local_size) || (LHS_Contribution.size2() != local_size))
+                LHS_Contribution.resize(local_size, local_size, false);
+            noalias(LHS_Contribution) = ZeroMatrix(local_size, local_size);
+            if (RHS_Contribution.size() != local_size)
+                RHS_Contribution.resize(local_size,false);
+            noalias(RHS_Contribution) = ZeroVector(local_size);
         }
         else
         {
             KRATOS_ERROR <<"Invalid BUILD_LEVEL" << std::endl;
         }
 
-        pCurrentElement->EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -167,26 +187,42 @@ public:
     {
         KRATOS_TRY
 
-        if (CurrentProcessInfo[BUILD_LEVEL] == 1)
-        { // mass matrix
+        const int build_level = CurrentProcessInfo[BUILD_LEVEL];
+        pCurrentCondition->EquationIdVector(EquationId,CurrentProcessInfo);
+        
+        if ((0 < build_level) && (build_level < 100)) //stiffness matrix
+        {
+            pCurrentCondition->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        }
+        else if ((100 < build_level) && (build_level < 200)) //damping matrix
+        {
+            pCurrentCondition->CalculateDampingMatrix(LHS_Contribution,CurrentProcessInfo);
+            std::size_t LocalSize = LHS_Contribution.size1();
+            if (RHS_Contribution.size() != LocalSize)
+                RHS_Contribution.resize(LocalSize,false);
+            noalias(RHS_Contribution) = ZeroVector(LocalSize);
+        }
+        else if ((200 < build_level) && (build_level < 300)) //mass matrix
+        {
             pCurrentCondition->CalculateMassMatrix(LHS_Contribution,CurrentProcessInfo);
             std::size_t LocalSize = LHS_Contribution.size1();
             if (RHS_Contribution.size() != LocalSize)
-            {
                 RHS_Contribution.resize(LocalSize,false);
-            }
             noalias(RHS_Contribution) = ZeroVector(LocalSize);
         }
-        else if (CurrentProcessInfo[BUILD_LEVEL] == 2) // stiffness matrix
+        else if ((300 < build_level) && (build_level < 400)) //various operations for vectors only (output etc.)
         {
-            pCurrentCondition->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+            const std::size_t local_size = EquationId.size();
+            if ((LHS_Contribution.size1() != local_size) || (LHS_Contribution.size2() != local_size))
+                LHS_Contribution.resize(local_size, local_size, false);
+            noalias(LHS_Contribution) = ZeroMatrix(local_size, local_size);
+
+            pCurrentCondition->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
         }
         else
         {
             KRATOS_ERROR <<"Invalid BUILD_LEVEL" << std::endl;
         }
-
-        pCurrentCondition->EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }

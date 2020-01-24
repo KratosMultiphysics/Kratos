@@ -25,6 +25,8 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/qr_utility.h"
 
+#include "mor_application_variables.h"
+
 //default builder and solver
 #include "custom_strategies/custom_builder_and_solvers/system_matrix_builder_and_solver.hpp"
 
@@ -75,7 +77,8 @@ class MorOfflineSecondOrderStrategy
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-    typedef SystemMatrixBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > TBuilderAndSolverType;
+    // typedef SystemMatrixBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > TBuilderAndSolverType;
+    typedef BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > TBuilderAndSolverType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -379,11 +382,13 @@ class MorOfflineSecondOrderStrategy
     virtual void InitializeSolutionStep() override
     {
         KRATOS_TRY;
-        std::cout << "offline initialize base class call\n";
+        // std::cout << "offline initialize base class call\n";
 
         if (mSolutionStepIsInitialized == false)
         {
-            std::cout << "offline initialize base class perform\n";
+            // std::cout << "offline initialize base class perform\n";
+            ModelPart& r_model_part = BaseType::GetModelPart();
+
             //pointers needed in the solution
             typename TSchemeType::Pointer p_scheme = GetScheme();
             typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
@@ -430,21 +435,36 @@ class MorOfflineSecondOrderStrategy
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
 
                 //set up system matrices
+                std::vector<bool> fixed_dofs;
+                GetDirichletConstraints(fixed_dofs);
+
                 TSystemVectorType tmp(r_K.size1(), 0.0);
 
                 p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), r_RHS);
 
-                p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), r_K, tmp);
-                p_builder_and_solver->ApplyDirichletConditions(p_scheme, BaseType::GetModelPart(), r_K, tmp, r_RHS);
+                //set up the stiffness matrix
+                r_model_part.GetProcessInfo()[BUILD_LEVEL] = 1;
+                p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_K, tmp);
+                ApplyDirichletConditions(r_K, r_RHS, fixed_dofs, 1.0);
 
-                p_builder_and_solver->BuildMassMatrix(p_scheme, BaseType::GetModelPart(), r_M, tmp);
-                p_builder_and_solver->ApplyDirichletConditionsForMassMatrix(p_scheme, BaseType::GetModelPart(), r_M);
+                //set up the mass matrix
+                r_model_part.GetProcessInfo()[BUILD_LEVEL] = 201;
+                p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_M, tmp);
+                ApplyDirichletConditions(r_M, tmp, fixed_dofs, 0.0);
 
+                //set up the damping matrix
                 if( mUseDamping )
                 {
-                    p_builder_and_solver->BuildDampingMatrix(p_scheme, BaseType::GetModelPart(), r_C, tmp);
-                    p_builder_and_solver->ApplyDirichletConditionsForDampingMatrix(p_scheme, BaseType::GetModelPart(), r_C);
+                    r_model_part.GetProcessInfo()[BUILD_LEVEL] = 101;
+                    p_builder_and_solver->Build(p_scheme, BaseType::GetModelPart(), r_C, tmp);
+                    ApplyDirichletConditions(r_C, tmp, fixed_dofs, 0.0);
                 }
+
+                //create output vector
+                r_model_part.GetProcessInfo()[BUILD_LEVEL] = 301;
+                noalias(r_OV) = ZeroVector(r_K.size1());
+                p_builder_and_solver->BuildRHS(p_scheme, r_model_part, r_OV);
+                r_OV -= r_RHS;
             }
 
             KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 && rank == 0)
@@ -458,9 +478,6 @@ class MorOfflineSecondOrderStrategy
             // p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rA, rOV, rRHS);
             // p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rM, rOV, rRHS);
 
-            //create output vector
-            r_OV = ZeroVector(r_K.size1());
-            p_builder_and_solver->BuildOutputStructure(BaseType::GetModelPart(), r_OV);
 
             mSolutionStepIsInitialized = true;
         }
@@ -771,31 +788,31 @@ class MorOfflineSecondOrderStrategy
     ///@}
 
   private:
-    ///@name Protected static Member Variables
+    ///@name Private static Member Variables
     ///@{
 
     ///@}
-    ///@name Protected member Variables
+    ///@name Private member Variables
     ///@{
 
     ///@}
-    ///@name Protected Operators
+    ///@name Private Operators
     ///@{
 
     ///@}
-    ///@name Protected Operations
+    ///@name Private Operations
     ///@{
 
     ///@}
-    ///@name Protected  Access
+    ///@name Private  Access
     ///@{
 
     ///@}
-    ///@name Protected Inquiry
+    ///@name Private Inquiry
     ///@{
 
     ///@}
-    ///@name Protected LifeCycle
+    ///@name Private LifeCycle
     ///@{
 
     ///@}
@@ -848,7 +865,7 @@ class MorOfflineSecondOrderStrategy
     bool mUseDamping; /// Flag to set if damping should be considered
 
     ///@}
-    ///@name Private Operators
+    ///@name Protected Operators
     ///@{
 
     /**
@@ -867,15 +884,121 @@ class MorOfflineSecondOrderStrategy
     }
 
     ///@}
-    ///@name Private Operations
+    ///@name Protected Operations
+    ///@{
+
+    /**
+     * @brief Finds all fixed dofs
+     * @param rFixedDofSet array where true specifies a fixed dof
+     */ 
+    void GetDirichletConstraints(std::vector<bool>& rFixedDofSet)
+    {
+        // std::size_t system_size = A.size1();
+        // std::vector<double> scaling_factors (system_size, 0.0);
+
+        // const int n_dofs = static_cast<int>(BaseType::mDofSet.size());
+        const size_t n_dofs = this->GetBuilderAndSolver()->GetEquationSystemSize();
+
+        if( rFixedDofSet.size() != n_dofs )
+            rFixedDofSet.resize( n_dofs, false);
+
+        //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        #pragma omp parallel for firstprivate(n_dofs)
+        for( int k = 0; k < static_cast<int>(n_dofs); k++ )
+        {
+            // typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
+            typename DofsArrayType::iterator dof_iterator = this->GetBuilderAndSolver()->GetDofSet().begin() + k;
+            if( dof_iterator->IsFixed() )
+                rFixedDofSet[k] = true;
+            else
+                rFixedDofSet[k] = false;
+        }
+    }
+
+    /**
+     * @brief Applies the dirichlet conditions. This operation may be very heavy or completely
+     * unexpensive depending on the implementation choosen and on how the System Matrix is built.
+     * This should be part of the builder and solver.
+     * @details For explanation of how it works for a particular implementation the user
+     * should refer to the particular Builder And Solver choosen
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param A The LHS matrix
+     * @param Dx The Unknowns vector
+     * @param b The RHS vector
+     */
+    void ApplyDirichletConditions(
+        TSystemMatrixType& A,
+        TSystemVectorType& b,
+        const std::vector<bool>& FixedDofSet,
+        // bool TreatSingularity,
+        double Factor)
+    {
+        std::size_t system_size = A.size1();
+        double* Avalues = A.value_data().begin();
+        std::size_t* Arow_indices = A.index1_data().begin();
+        std::size_t* Acol_indices = A.index2_data().begin();
+
+        //detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+        if( Factor != 0.0 )
+        {
+            #pragma omp parallel for firstprivate(system_size)
+            for (int k = 0; k < static_cast<int>(system_size); ++k){
+                std::size_t col_begin = Arow_indices[k];
+                std::size_t col_end = Arow_indices[k+1];
+                bool empty = true;
+                for (std::size_t j = col_begin; j < col_end; ++j)
+                {
+                    if(Avalues[j] != 0.0)
+                    {
+                        empty = false;
+                        break;
+                    }
+                }
+
+                if(empty == true)
+                {
+                    A(k,k) = 1.0;
+                    b[k] = 0.0;
+                }
+            }
+        }
+
+        #pragma omp parallel for
+        for (int k = 0; k < static_cast<int>(system_size); ++k)
+        {
+            std::size_t col_begin = Arow_indices[k];
+            std::size_t col_end = Arow_indices[k+1];
+            // double k_factor = scaling_factors[k];
+            bool is_fixed = FixedDofSet[k];
+            if( is_fixed )
+            {
+                // zero out the whole row, except the diagonal
+                for (std::size_t j = col_begin; j < col_end; ++j)
+                    if (static_cast<int>(Acol_indices[j]) != k )
+                        Avalues[j] = 0.0;
+                    else
+                        Avalues[j] *= Factor;
+
+                // zero out the RHS
+                b[k] = 0.0;
+            }
+            else
+            {
+                // zero out the column which is associated with the zero'ed row
+                for( std::size_t j = col_begin; j < col_end; ++j )
+                    if( FixedDofSet[ Acol_indices[j] ] )
+                        Avalues[j] = 0.0;
+            }
+        }
+    }
+
+    ///@}
+    ///@name Protected  Access
     ///@{
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
+    ///@name Protected Inquiry
     ///@{
 
     ///@}
