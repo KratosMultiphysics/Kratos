@@ -41,6 +41,7 @@ public:
     typedef typename TContainerPointType::value_type NodeType;
 
     /// Geometry as base class.
+    typedef typename TContainerPointType::value_type NodeType;
     typedef Geometry<typename TContainerPointType::value_type> BaseType;
     typedef NurbsSurfaceGeometry<TWorkingSpaceDimension, TContainerPointType> GeometryType;
 
@@ -51,6 +52,8 @@ public:
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    using BaseType::GetPoint;
+    using BaseType::pGetPoint;
 
     /// Counted pointer of NurbsSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsSurfaceGeometry);
@@ -464,7 +467,105 @@ public:
     }
 
     ///@}
-    ///@name Operations
+    ///@name Point Access
+    ///@{
+
+    NodeType GetPoint(IndexType IndexU, IndexType IndexV)
+    {
+        return this->GetPoint(static_cast<int>(
+            NurbsUtilities::GetVectorIndexFromMatrixIndices(
+            NumberOfControlPointsU(), NumberOfControlPointsV(),
+            IndexU, IndexV)));
+    }
+
+    const NodeType GetPoint(IndexType IndexU, IndexType IndexV) const
+    {
+        return this->GetPoint(static_cast<int>(
+            NurbsUtilities::GetVectorIndexFromMatrixIndices(
+            NumberOfControlPointsU(), NumberOfControlPointsV(),
+            IndexU, IndexV)));
+    }
+
+    typename NodeType::Pointer pGetPoint(IndexType IndexU, IndexType IndexV)
+    {
+        return this->pGetPoint(static_cast<int>(
+            NurbsUtilities::GetVectorIndexFromMatrixIndices(
+            NumberOfControlPointsU(), NumberOfControlPointsV(),
+            IndexU, IndexV)));
+    }
+
+    const typename NodeType::Pointer pGetPoint(IndexType IndexU, IndexType IndexV) const
+    {
+        return this->pGetPoint(static_cast<int>(
+            NurbsUtilities::GetVectorIndexFromMatrixIndices(
+            NumberOfControlPointsU(), NumberOfControlPointsV(),
+            IndexU, IndexV)));
+    }
+
+    void GetPointsAt(
+        PointsArrayType& rPoints,
+        const CoordinatesArrayType& rLocalCoordinates,
+        IndexType SpecificationType = 0) const override
+    {
+        rPoints.clear();
+
+        SizeType number_of_cps_u = NumberOfControlPointsU();
+        SizeType number_of_cps_v = NumberOfControlPointsV();
+
+        IndexType u_start = 0;
+        IndexType u_end = number_of_cps_u;
+        IndexType v_start = 0;
+        IndexType v_end = number_of_cps_v;
+
+        if (SpecificationType == 0)
+        {
+            if (rLocalCoordinates[0] >= 0) {
+                u_start = rLocalCoordinates[0] * (number_of_cps_u - 1);
+                u_end = rLocalCoordinates[0] * (number_of_cps_u - 1) + 1;
+            }
+            if (rLocalCoordinates[1] >= 0) {
+                v_start = rLocalCoordinates[1] * (number_of_cps_v - 1);
+                v_end = rLocalCoordinates[1] * (number_of_cps_v - 1) + 1;
+            }
+
+            for (IndexType i = u_start; i < u_end; ++i) {
+                for (IndexType j = v_start; j < v_end; ++j) {
+                    rPoints.push_back(this->pGetPoint(i, j));
+                }
+            }
+        }
+        else if (SpecificationType == 1)
+        {
+            if (rLocalCoordinates[0] == 0) {
+                u_start = 1;
+                u_end = 2;
+            }
+            if (rLocalCoordinates[0] == 1) {
+                u_start = number_of_cps_u - 2;
+                u_end = number_of_cps_u - 1;
+            }
+            if (rLocalCoordinates[1] == 0) {
+                v_start = 1;
+                v_end = 2;
+            }
+            if (rLocalCoordinates[1] == 1) {
+                v_start = number_of_cps_v - 2;
+                v_end = number_of_cps_v - 1;
+            }
+
+            for (IndexType i = u_start; i < u_end; ++i) {
+                for (IndexType j = v_start; j < v_end; ++j) {
+                    rPoints.push_back(this->pGetPoint(i, j));
+                }
+            }
+        }
+        else {
+            KRATOS_ERROR << "SpecificationType " << SpecificationType
+                << " not defined." << std::endl;
+        }
+    }
+
+    ///@}    ///@name Operations
     ///@{
 
     /** This method maps from dimension space to working space.

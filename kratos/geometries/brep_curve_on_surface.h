@@ -241,8 +241,19 @@ public:
         return mpCurveOnSurface;
     }
 
-    ///@}
-    ///@name Geometrical Operations
+    ///@}    ///@name Point Access
+    ///@{
+
+    void GetPointsAt(
+        PointsArrayType& rPoints,
+        const CoordinatesArrayType& rLocalCoordinates,
+        IndexType SpecificationType = 0) const override
+    {
+        mpNurbsSurface->GetPointsAt(
+            rPoints, rLocalCoordinates, SpecificationType);
+    }
+
+    ///@}    ///@name Geometrical Operations
     ///@{
 
     /*

@@ -409,6 +409,39 @@ namespace Testing {
         KRATOS_CHECK_NEAR(result[2], 0.0, TOLERANCE);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceNodePointsAt, KratosCoreNurbsGeometriesFastSuite) {
+        auto surface = GenerateReferenceNodeSurface();
+
+        Geometry<Node<3>>::PointsArrayType points;
+        array_1d<double, 3> local_parameters = ZeroVector(3);
+        local_parameters[1] = -1;
+
+        surface.GetPointsAt(points, local_parameters, 0);
+
+        // test to obtain the points on the left boundary
+        KRATOS_CHECK_EQUAL(points.size(), 2);
+        KRATOS_CHECK_EQUAL(points[0].Id(), 1);
+        KRATOS_CHECK_EQUAL(points[1].Id(), 4);
+
+        surface.GetPointsAt(points, local_parameters, 1);
+
+        // test to obtain the second row of points on the left boundary
+        KRATOS_CHECK_EQUAL(points.size(), 2);
+        KRATOS_CHECK_EQUAL(points[0].Id(), 2);
+        KRATOS_CHECK_EQUAL(points[1].Id(), 5);
+
+
+        local_parameters[0] = -1;
+        local_parameters[1] = 0;
+
+        surface.GetPointsAt(points, local_parameters, 0);
+
+        // test to obtain the second row of points on the left boundary
+        KRATOS_CHECK_EQUAL(points.size(), 3);
+        KRATOS_CHECK_EQUAL(points[0].Id(), 1);
+        KRATOS_CHECK_EQUAL(points[1].Id(), 2);
+        KRATOS_CHECK_EQUAL(points[2].Id(), 3);
+    }
     /// Check integration of nurbs surface.
     KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceNodeIntegrationDomain, KratosCoreNurbsGeometriesFastSuite) {
         auto surface = GenerateReferenceNodeSurface();

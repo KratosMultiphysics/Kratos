@@ -257,6 +257,54 @@ public:
     }
 
     ///@}
+    ///@name Point Access
+    ///@{
+
+    void GetPointsAt(
+        PointsArrayType& rPoints,
+        const CoordinatesArrayType& rLocalCoordinates,
+        IndexType SpecificationType = 0) const override
+    {
+        rPoints.clear();
+
+        SizeType number_of_cps = this->size();
+
+        if (SpecificationType == 0)
+        {
+            IndexType t_start = 0;
+            IndexType t_end = number_of_cps;
+
+            if (rLocalCoordinates[0] >= 0)
+            {
+                t_start = rLocalCoordinates[0] * (number_of_cps - 1);
+                t_end = rLocalCoordinates[0] * (number_of_cps - 1) + 1;
+            }
+
+            for (IndexType i = t_start; i < t_end; ++i)
+            {
+                rPoints.push_back(this->pGetPoint(i));
+            }
+        }
+        if (SpecificationType == 1)
+        {
+            KRATOS_ERROR_IF(number_of_cps < 3)
+                << "GetPointsAt: Not enough control points to get second row of nodes."
+                << std::endl;
+
+            if (rLocalCoordinates[0] == 0)
+            {
+                rPoints.push_back(this->pGetPoint(1));
+            }
+            if (rLocalCoordinates[0] == 1)
+            {
+                rPoints.push_back(this->pGetPoint(number_of_cps - 1));
+            }
+        }
+        KRATOS_ERROR << "SpecificationType " << SpecificationType
+            << " not defined." << std::endl;
+    }
+
+    ///@}
     ///@name Operation within Global Space
     ///@{
 
