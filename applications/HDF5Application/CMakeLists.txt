@@ -15,11 +15,10 @@ set( KRATOS_HDF5_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_data_value_container_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_variables_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_data_io.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_element_data_value_io.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_bossak_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_points_data.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_connectivities_data.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_data_value_io.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_container_component_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/hdf5_xdmf_connectivities_writer_process.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/hdf5_data_set_partition_utility.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/factor_elements_and_conditions_utility.cpp
