@@ -28,12 +28,18 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ElementDataValueIO', autospec=True)
         self.patcher6 = patch(
             'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5NodalSolutionStepBossakIO', autospec=True)
+        self.patcher7 = patch(
+            'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ElementFlagValueIO', autospec=True)            
+        self.patcher8 = patch(
+            'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5NodalFlagValueIO', autospec=True)                        
         self.HDF5FileSerial = self.patcher1.start()
         self.HDF5ModelPartIO = self.patcher2.start()
         self.HDF5NodalSolutionStepDataIO = self.patcher3.start()
         self.HDF5NodalDataValueIO = self.patcher4.start()
         self.HDF5ElementDataValueIO = self.patcher5.start()
         self.HDF5NodalSolutionStepBossakIO = self.patcher6.start()
+        self.HDF5ElementFlagValueIO = self.patcher7.start()
+        self.HDF5NodalFlagValueIO = self.patcher8.start()
 
     def tearDown(self):
         self.patcher1.stop()
@@ -63,6 +69,12 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                     "element_data_value_settings": {
                         "prefix": "/ResultsData/ElementDataValues"
                     },
+                    "nodal_flag_value_settings": {
+                        "prefix": "/ResultsData/NodalFlagValues"
+                    },                     
+                    "element_flag_value_settings": {
+                        "prefix": "/ResultsData/ElementFlagValues"
+                    },                    
                     "output_time_settings": {
                         "time_frequency": 0.2,
                         "step_frequency": 10
@@ -108,6 +120,17 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             self.HDF5NodalDataValueIO.return_value.WriteNodalResults.call_count, 2)
         self.HDF5NodalDataValueIO.return_value.WriteNodalResults.assert_called_with(
             self.model_part.Nodes)
+
+        self.assertEqual(self.HDF5NodalFlagValueIO.call_count, 2)
+        self.assertEqual(
+            self.HDF5NodalFlagValueIO.call_args[0][0]['prefix'].GetString(), '/ResultsData/NodalFlagValues')
+        self.assertEqual(
+            self.HDF5NodalFlagValueIO.call_args[0][0]['list_of_variables'].size(), 0)
+        self.assertEqual(
+            self.HDF5NodalFlagValueIO.return_value.WriteNodalFlags.call_count, 2)
+        self.HDF5NodalFlagValueIO.return_value.WriteNodalFlags.assert_called_with(
+            self.model_part.Nodes)
+
         self.assertEqual(self.HDF5ElementDataValueIO.call_count, 2)
         self.assertEqual(self.HDF5ElementDataValueIO.call_args[0][0]['prefix'].GetString(
         ), '/ResultsData/ElementDataValues')
@@ -117,6 +140,16 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             self.HDF5ElementDataValueIO.return_value.WriteElementResults.call_count, 2)
         self.HDF5ElementDataValueIO.return_value.WriteElementResults.assert_called_with(
             self.model_part.Elements)
+
+        self.assertEqual(self.HDF5ElementFlagValueIO.call_count, 2)
+        self.assertEqual(self.HDF5ElementFlagValueIO.call_args[0][0]['prefix'].GetString(
+        ), '/ResultsData/ElementFlagValues')
+        self.assertEqual(
+            self.HDF5ElementFlagValueIO.call_args[0][0]['list_of_variables'].size(), 0)
+        self.assertEqual(
+            self.HDF5ElementFlagValueIO.return_value.WriteElementFlags.call_count, 2)
+        self.HDF5ElementFlagValueIO.return_value.WriteElementFlags.assert_called_with(
+            self.model_part.Elements)            
 
     def test_MultipleMeshTemporalOutputProcess(self):
         settings = KratosMultiphysics.Parameters('''
@@ -223,9 +256,17 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.HDF5NodalDataValueIO.return_value.ReadNodalResults.assert_called_with(
             self.model_part.Nodes, self.model_part.GetCommunicator())
         self.assertEqual(
+            self.HDF5NodalFlagValueIO.return_value.ReadNodalFlags.call_count, 1)
+        self.HDF5NodalFlagValueIO.return_value.ReadNodalFlags.assert_called_with(
+            self.model_part.Nodes, self.model_part.GetCommunicator())            
+        self.assertEqual(
             self.HDF5ElementDataValueIO.return_value.ReadElementResults.call_count, 1)
         self.HDF5ElementDataValueIO.return_value.ReadElementResults.assert_called_with(
             self.model_part.Elements)
+        self.assertEqual(
+            self.HDF5ElementFlagValueIO.return_value.ReadElementFlags.call_count, 1)
+        self.HDF5ElementFlagValueIO.return_value.ReadElementFlags.assert_called_with(
+            self.model_part.Elements)            
 
     def test_SingleMeshTemporalInputProcess(self):
         settings = KratosMultiphysics.Parameters('''
@@ -258,6 +299,14 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             self.HDF5ElementDataValueIO.return_value.ReadElementResults.call_count, 2)
         self.HDF5ElementDataValueIO.return_value.ReadElementResults.assert_called_with(
             self.model_part.Elements)
+        self.assertEqual(
+            self.HDF5NodalFlagValueIO.return_value.ReadNodalFlags.call_count, 2)
+        self.HDF5NodalFlagValueIO.return_value.ReadNodalFlags.assert_called_with(
+            self.model_part.Nodes, self.model_part.GetCommunicator())
+        self.assertEqual(
+            self.HDF5ElementFlagValueIO.return_value.ReadElementFlags.call_count, 2)
+        self.HDF5ElementFlagValueIO.return_value.ReadElementFlags.assert_called_with(
+            self.model_part.Elements)            
 
     def test_SingleMeshXdmfOutputProcess(self):
         settings = KratosMultiphysics.Parameters('''
