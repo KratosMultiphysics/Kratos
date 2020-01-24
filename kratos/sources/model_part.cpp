@@ -1615,7 +1615,7 @@ void ModelPart::RemoveGeometry(
 
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin();
         i_sub_model_part != SubModelPartsEnd();
-        i_sub_model_part++)
+        ++i_sub_model_part)
         i_sub_model_part->RemoveGeometry(GeometryId);
 }
 
@@ -1627,7 +1627,7 @@ void ModelPart::RemoveGeometry(
 
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin();
         i_sub_model_part != SubModelPartsEnd();
-        i_sub_model_part++)
+        ++i_sub_model_part)
         i_sub_model_part->RemoveGeometry(GeometryName);
 }
 
@@ -1789,6 +1789,7 @@ void ModelPart::PrintData(std::ostream& rOStream) const
         mpProcessInfo->PrintData(rOStream);
     }
     rOStream << std::endl;
+    rOStream << "    Number of Geometries  : " << mGeometries.NumberOfGeometries() << std::endl;
     for (IndexType i = 0; i < mMeshes.size(); i++) {
         rOStream << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, "    ");
@@ -1832,7 +1833,8 @@ void ModelPart::PrintData(std::ostream& rOStream, std::string const& PrefixStrin
         mpProcessInfo->PrintData(rOStream);
     }
     rOStream << std::endl;
-
+    rOStream << PrefixString << "    Number of Geometries  : " << mGeometries.NumberOfGeometries() << std::endl;
+    
     for (IndexType i = 0; i < mMeshes.size(); i++) {
         rOStream << PrefixString << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, PrefixString + "    ");
