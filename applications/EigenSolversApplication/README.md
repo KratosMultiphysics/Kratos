@@ -69,7 +69,7 @@ The application provides a generalized eigensystem solver for sparse matrices. I
 
     ```json
     "linear_solver_settings": {
-        "solver_type" : "sparse_lu"
+        "solver_type" : "EigenSolversApplication.sparse_lu"
     }
     ```
 
