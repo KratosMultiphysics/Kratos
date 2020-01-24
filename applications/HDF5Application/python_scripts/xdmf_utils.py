@@ -177,6 +177,36 @@ def XdmfNodalResults(h5_results):
     return list(results.values())
 
 
+def XdmfNodalFlags(h5_results):
+    """Return a list of XDMF Attribute objects for nodal flags in an HDF5 file.
+
+    Keyword arguments:
+    h5_results -- the HDF5 group containing the flags
+
+    Checks for flags stored in data sets by variable name in:
+    - h5_flags["NodalFlagValues/<flag-name>"]
+
+    Expects:
+    - each flag variable occurs only once
+
+    If no flags are found, returns an empty list.
+
+    See:
+    - core.operations.NodalFlagsValueOutput.
+    """
+
+    results_path = "NodalFlagValues"
+    results = []
+    try:
+        grp = h5_results[results_path]
+    except KeyError:
+        return results
+    for variable, data in filter(Has_dtype, grp.items()):
+        r = NodalData(variable, HDF5UniformDataItem(data))
+        results.append(r)
+    return results 
+
+
 def XdmfElementResults(h5_results):
     """Return a list of XDMF Attribute objects for element results in an HDF5 file.
 
@@ -202,6 +232,31 @@ def XdmfElementResults(h5_results):
         results.append(r)
     return results
 
+def XdmfElementFlags(h5_results):
+    """Return a list of XDMF Attribute objects for element flags in an HDF5 file.
+
+    Keyword arguments:
+    h5_flags -- the HDF5 group containing the flags
+
+    Checks for flags stored by variable name in:
+    - h5_flags["ElementFlagValues/<flag-name>"]
+
+    If no flags are found, returns an empty list.
+
+    See:
+    - core.operations.ElementFlagValueOutput.
+    """
+    results_path = "ElementFlagValues"
+    results = []
+    try:
+        grp = h5_results[results_path]
+    except KeyError:
+        return results
+    for variable, data in filter(Has_dtype, grp.items()):
+        r = ElementData(variable, HDF5UniformDataItem(data))
+        results.append(r)
+    return results    
+
 
 def XdmfResults(h5_results):
     """Return a list of XDMF Attribute objects for results in an HDF5 file.
@@ -212,7 +267,9 @@ def XdmfResults(h5_results):
     return list(
         chain(
             XdmfNodalResults(h5_results),
-            XdmfElementResults(h5_results)
+            XdmfNodalFlags(h5_results),
+            XdmfElementResults(h5_results),
+            XdmfElementFlags(h5_results),
         )
     )
 
