@@ -510,6 +510,10 @@ ModelPart::SizeType ModelPartNumberOfGeometries1(ModelPart& rModelPart)
     return rModelPart.NumberOfGeometries();
 }
 
+void ModelPartAddGeometry1(ModelPart& rModelPart, Geometry::Pointer pNewGeometry)
+{
+    rModelPart.AddCondition(pNewGeometry);
+}
 
 // Master slave constraints
 /* // Try with perfect forwarding
@@ -938,6 +942,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels3)
         .def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels4)
         .def("RemoveConditionsFromAllLevels", ModelPartRemoveConditionsFromAllLevels)
+        .def("AddGeometry", ModelPartAddGeometry1)
         .def("CreateSubModelPart", &ModelPart::CreateSubModelPart, py::return_value_policy::reference_internal)
         .def("NumberOfSubModelParts", &ModelPart::NumberOfSubModelParts)
         .def("GetSubModelPart", &ModelPart::GetSubModelPart, py::return_value_policy::reference_internal)
