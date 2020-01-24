@@ -128,8 +128,6 @@ class TestCase(KratosUnittest.TestCase):
         model_part.GetCommunicator().SynchronizeNonHistoricalVariable(DENSITY)
         model_part.GetCommunicator().SynchronizeNonHistoricalVariable(ACTIVATION_LEVEL)
 
-        # model_part.GetCommunicator().SynchronizeNodalFlags()
-
         # Set some process info variables.
         model_part.ProcessInfo[DOMAIN_SIZE] = 3 # int
         model_part.ProcessInfo[TIME] = 1.2345 # float
