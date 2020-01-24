@@ -105,6 +105,27 @@ class ElementDataValueInput(VariableIO):
         KratosHDF5.HDF5ElementDataValueIO(
             self.GetSettings(model_part).Get(), hdf5_file).ReadElementResults(model_part.Elements)
 
+class ElementFlagValueOutput(VariableIO):
+    '''Writes non-historical element flag values to a file.'''
+
+    def __init__(self, settings):
+        super(ElementFlagValueOutput, self).__init__(settings)
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ElementFlagValueIO(
+            self.GetSettings(model_part).Get(), hdf5_file).WriteElementFlags(model_part.Elements)
+
+
+class ElementFlagValueInput(VariableIO):
+    '''Reads non-historical element flag values from a file.'''
+
+    def __init__(self, settings):
+        super(ElementFlagValueInput, self).__init__(settings)
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ElementFlagValueIO(
+            self.GetSettings(model_part).Get(), hdf5_file).ReadElementFlags(model_part.Elements)            
+
 
 class NodalSolutionStepDataOutput(VariableIO):
     '''Writes nodal solution step data to a file.'''
@@ -152,6 +173,29 @@ class NodalDataValueInput(VariableIO):
             self.GetSettings(model_part).Get(), hdf5_file)
         primal_io.ReadNodalResults(
             model_part.Nodes, model_part.GetCommunicator())
+
+class NodalFlagValueOutput(VariableIO):
+    '''Writes non-historical nodal flag values to a file.'''
+
+    def __init__(self, settings):
+        super(NodalFlagValueOutput, self).__init__(settings)
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5NodalFlagValueIO(
+            self.GetSettings(model_part).Get(), hdf5_file).WriteNodalFlags(model_part.Nodes)
+
+
+class NodalFlagValueInput(VariableIO):
+    '''Reads non-historical nodal flag values from a file.'''
+
+    def __init__(self, settings):
+        super(NodalFlagValueInput, self).__init__(settings)
+
+    def __call__(self, model_part, hdf5_file):
+        primal_io = KratosHDF5.HDF5NodalFlagValueIO(
+            self.GetSettings(model_part).Get(), hdf5_file)
+        primal_io.ReadNodalFlags(
+            model_part.Nodes, model_part.GetCommunicator())            
 
 
 class PrimalBossakOutput(VariableIO):
@@ -220,16 +264,24 @@ def Create(settings):
         return PartitionedModelPartOutput(settings)
     elif operation_type == 'element_data_value_output':
         return ElementDataValueOutput(settings)
+    elif operation_type == 'element_flag_value_output':
+        return ElementFlagValueOutput(settings)        
     elif operation_type == 'element_data_value_input':
         return ElementDataValueInput(settings)
+    elif operation_type == 'element_flag_value_input':
+        return ElementFlagValueInput(settings)        
     elif operation_type == 'nodal_solution_step_data_output':
         return NodalSolutionStepDataOutput(settings)
     elif operation_type == 'nodal_solution_step_data_input':
         return NodalSolutionStepDataInput(settings)
     elif operation_type == 'nodal_data_value_output':
         return NodalDataValueOutput(settings)
+    elif operation_type == 'nodal_flag_value_output':
+        return NodalFlagValueOutput(settings)        
     elif operation_type == 'nodal_data_value_input':
         return NodalDataValueInput(settings)
+    elif operation_type == 'nodal_flag_value_input':
+        return NodalFlagValueInput(settings)        
     elif operation_type == 'primal_bossak_output':
         return PrimalBossakOutput(settings)
     elif operation_type == 'primal_bossak_input':
