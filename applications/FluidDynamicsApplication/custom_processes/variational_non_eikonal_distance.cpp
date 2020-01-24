@@ -105,6 +105,7 @@ void VariationalNonEikonalDistance::Execute()
     #pragma omp parallel for
     for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
         auto it_node = mrModelPart.NodesBegin() + i_node;
+        it_node->Free(DISTANCE_AUX);
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
         it_node->FastGetSolutionStepValue(DISTANCE_AUX) = distance;
 
@@ -139,7 +140,7 @@ void VariationalNonEikonalDistance::Execute()
         auto it_node = mrModelPart.NodesBegin() + i_node;
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
 
-        if (abs((distance - distance_min)/distance_min) <= 1.0e-9){ // (abs((distance - distance_max)/distance_max) <= 1.0e-9){
+        if (abs((distance - distance_min)/distance_min) <= 1.0e-2){ // (abs((distance - distance_max)/distance_max) <= 1.0e-9){
             it_node->Fix(DISTANCE_AUX);
         }
     }

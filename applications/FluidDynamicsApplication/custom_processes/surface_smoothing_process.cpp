@@ -85,7 +85,16 @@ void SurfaceSmoothingProcess::Execute()
     #pragma omp parallel for
     for (unsigned int k = 0; k < NumNodes; ++k) {
         auto it_node = mrModelPart.NodesBegin() + k;
+        it_node->Free(DISTANCE_AUX);
         it_node->FastGetSolutionStepValue(DISTANCE_AUX) = it_node->FastGetSolutionStepValue(DISTANCE);
+    }
+
+    for (auto it_cond = mrModelPart.ConditionsBegin(); it_cond != mrModelPart.ConditionsEnd(); ++it_cond){
+       Geometry< Node<3> >& geom = it_cond->GetGeometry();
+
+       for(unsigned int i=0; i<geom.size(); i++){
+           geom[i].Fix(DISTANCE_AUX);
+       }
     }
 
     KRATOS_INFO("SurfaceSmoothingProcess") << "About to solve the LSE" << std::endl;
