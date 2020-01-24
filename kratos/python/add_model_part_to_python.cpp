@@ -503,6 +503,13 @@ void ModelPartRemoveConditionsFromAllLevels(ModelPart& rModelPart, Flags identif
     rModelPart.RemoveConditionsFromAllLevels(identifier_flag);
 }
 
+// Geometries
+
+ModelPart::SizeType ModelPartNumberOfGeometries1(ModelPart& rModelPart)
+{
+    return rModelPart.NumberOfGeometries();
+}
+
 
 // Master slave constraints
 /* // Try with perfect forwarding
@@ -838,6 +845,8 @@ void AddModelPartToPython(pybind11::module& m)
         .def("NumberOfElements", &ModelPart::NumberOfElements)
         .def("NumberOfConditions", ModelPartNumberOfConditions1)
         .def("NumberOfConditions", &ModelPart::NumberOfConditions)
+        .def("NumberOfGeometries", ModelPartNumberOfGeometries1)
+        .def("NumberOfGeometries", &ModelPart::NumberOfGeometries)
         .def("NumberOfMasterSlaveConstraints", ModelPartNumberOfMasterSlaveConstraints1)
         .def("NumberOfMasterSlaveConstraints", &ModelPart::NumberOfMasterSlaveConstraints)
         .def("NumberOfMeshes", &ModelPart::NumberOfMeshes)
