@@ -22,7 +22,7 @@ set( KRATOS_MOR_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/mor_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mor_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/acoustic_element.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/component_output_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/displacement_output_condition.cpp
 
     ## PYTHON
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/mor_python_application.cpp

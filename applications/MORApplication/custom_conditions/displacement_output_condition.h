@@ -10,8 +10,8 @@
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_COMPONENT_OUTPUT_CONDITION_H_INCLUDED )
-#define  KRATOS_COMPONENT_OUTPUT_CONDITION_H_INCLUDED
+#if !defined(KRATOS_DISPLACEMENT_OUTPUT_CONDITION_H_INCLUDED )
+#define  KRATOS_DISPLACEMENT_OUTPUT_CONDITION_H_INCLUDED
 
 // System includes
 
@@ -46,14 +46,14 @@ namespace Kratos
 ///@{
 
 /**
- * @class ComponentOutputCondition
+ * @class DisplacementOutputCondition
  * @ingroup StructuralMechanicsApplication
  * @brief This is the base class of all the load conditions on StructuralMechanicsApplication
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
 // template< class TVariableType, TVariableType& TVariable >
-class ComponentOutputCondition
+class DisplacementOutputCondition
     : public Condition
 {
 public:
@@ -82,30 +82,30 @@ public:
     /// Definition of nodes container type, redefined from GeometryType
     typedef BaseType::NodesArrayType NodesArrayType;
 
-    // Counted pointer of ComponentOutputCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( ComponentOutputCondition );
+    // Counted pointer of DisplacementOutputCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( DisplacementOutputCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    ComponentOutputCondition()
+    DisplacementOutputCondition()
     {};
 
     // Constructor using an array of nodes
-    ComponentOutputCondition( IndexType NewId, GeometryType::Pointer pGeometry ):Condition(NewId,pGeometry)
+    DisplacementOutputCondition( IndexType NewId, GeometryType::Pointer pGeometry ):Condition(NewId,pGeometry)
     {};
 
     // Constructor using an array of nodes with properties
-    ComponentOutputCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Condition(NewId,pGeometry,pProperties)
+    DisplacementOutputCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Condition(NewId,pGeometry,pProperties)
     {};
 
     ///Copy constructor
-    ComponentOutputCondition(ComponentOutputCondition const& rOther);
+    DisplacementOutputCondition(DisplacementOutputCondition const& rOther);
 
     // Destructor
-    ~ComponentOutputCondition() override
+    ~DisplacementOutputCondition() override
     {};
 
     ///@}
@@ -113,7 +113,7 @@ public:
     ///@{
 
     /// Assignment operator.
-    ComponentOutputCondition& operator=(ComponentOutputCondition const& rOther);
+    DisplacementOutputCondition& operator=(DisplacementOutputCondition const& rOther);
 
     ///@}
     ///@name Operations
@@ -270,33 +270,33 @@ public:
      */
     int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
-    /**
-     * @brief Check if Rotational Dof existant
-     * @return Trues if exists, false otherwise
-     */
-    virtual bool HasRotDof() const
-    {
-        return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);
-    }
+    // /**
+    //  * @brief Check if Rotational Dof existant
+    //  * @return Trues if exists, false otherwise
+    //  */
+    // virtual bool HasRotDof() const
+    // {
+    //     return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);
+    // }
 
-    /**
-     * @brief This method computes the DoF block size
-     * @return The size of the DoF block
-     */
-    unsigned int GetBlockSize() const
-    {
-        unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        if( HasRotDof() ) { // if it has rotations
-            if(dim == 2)
-                return 3;
-            else if(dim == 3)
-                return 6;
-            else
-                KRATOS_ERROR << "The conditions only works for 2D and 3D elements";
-        } else {
-            return dim;
-        }
-    }
+    // /**
+    //  * @brief This method computes the DoF block size
+    //  * @return The size of the DoF block
+    //  */
+    // unsigned int GetBlockSize() const
+    // {
+    //     unsigned int dim = GetGeometry().WorkingSpaceDimension();
+    //     if( HasRotDof() ) { // if it has rotations
+    //         if(dim == 2)
+    //             return 3;
+    //         else if(dim == 3)
+    //             return 6;
+    //         else
+    //             KRATOS_ERROR << "The conditions only works for 2D and 3D elements";
+    //     } else {
+    //         return dim;
+    //     }
+    // }
 
     ///@}
     ///@name Access
@@ -314,7 +314,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Base load Condition #" << Id();
+        buffer << "Displacement output Condition #" << Id();
         return buffer.str();
     }
 
@@ -322,7 +322,7 @@ public:
 
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Base load Condition #" << Id();
+        rOStream << "Displacement output Condition #" << Id();
     }
 
     /// Print object's data.
@@ -431,7 +431,7 @@ private:
 
     void load( Serializer& rSerializer ) override;
 
-}; // class ComponentOutputCondition.
+}; // class DisplacementOutputCondition.
 
 ///@}
 ///@name Type Definitions
@@ -444,4 +444,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_COMPONENT_OUTPUT_CONDITION_H_INCLUDED  defined
+#endif // KRATOS_DISPLACEMENT_OUTPUT_CONDITION_H_INCLUDED  defined

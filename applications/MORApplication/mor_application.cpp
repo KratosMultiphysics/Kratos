@@ -33,10 +33,10 @@ namespace Kratos {
 
 KratosMORApplication::KratosMORApplication():
     KratosApplication("MORApplication"),
-      mAcousticElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4))))//,
+      mAcousticElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       
       // conditions
-      // mComponentOutputCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1))))
+      mDisplacementOutputCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1))))
     {}
 
 void KratosMORApplication::Register()
@@ -47,10 +47,12 @@ void KratosMORApplication::Register()
 
   KRATOS_REGISTER_VARIABLE( FREQUENCY )
   KRATOS_REGISTER_VARIABLE( BUILD_LEVEL )
+  KRATOS_REGISTER_VARIABLE( SCALAR_OUTPUT )
+  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( COMPONENT_OUTPUT )
 
   KRATOS_REGISTER_ELEMENT("AcousticElement3D4N", mAcousticElement3D4N)
 
-  // KRATOS_REGISTER_CONDITION("ComponentOutputCondition3D1N", mComponentOutputCondition3D1N)
+  KRATOS_REGISTER_CONDITION("DisplacementOutputCondition3D1N", mDisplacementOutputCondition3D1N)
 
 
 }
