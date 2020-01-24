@@ -92,9 +92,7 @@ class MechanicalSolver(PythonSolver):
             "analysis_type": "non_linear",
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "unknown_name",
-                "physics_input_type": "ph.json",
-                "physics_file_name": "physics"
+                "input_filename": "unknown_name"
             },
             "computing_model_part_name" : "computing_domain",
             "use_computing_model_part" : true,

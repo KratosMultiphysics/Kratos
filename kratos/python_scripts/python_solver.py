@@ -201,14 +201,14 @@ class PythonSolver(object):
                 physics_input_type = model_part_import_settings["physics_input_type"].GetString()
                 if physics_input_type == "ph.json":
                     physics_filename = model_part_import_settings["physics_file_name"].GetString()
-                    KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Creating integration domain, elements and conditions from file: " + os.path.join(problem_path, physics_filename) + ".ph.json")
+                    KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Creating integration domain, elements and conditions from file: "
+                        + os.path.join(problem_path, physics_filename) + ".ph.json")
                     KratosMultiphysics.CadIntegrationDomain.CreateIntegrationDomain(physics_filename, model_part)
                     KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished creation of integration domain, elements and conditions.")
                 else:
                     KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Unknown physics input type: " + physics_input_type)
             else:
                 KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "No automated integration domain, elements and conditions are created.")
-
 
         elif input_type == "rest":
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
