@@ -43,17 +43,17 @@ class DEM3D_ContactTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_s
             for node in self.rigid_face_model_part.Nodes:
                 dem_pressure = node.GetSolutionStepValue(DEM_PRESSURE)
                 contact_force = node.GetSolutionStepValue(CONTACT_FORCES_Z)
-                if node.Id == 13:
-                    if time > 0.5 and time < 0.51:
-                        expected_value = 1006.578
+                if node.Id == 9:
+                    if time > 0.349:
+                        expected_value = 1621.242
                         self.CheckPressure(dem_pressure, expected_value, tolerance)
-                        expected_value = -4026.311
+                        expected_value = -6484.97
                         self.CheckContactF(contact_force, expected_value, tolerance)
-                if node.Id == 16:
-                    if time > 0.5 and time < 0.51:
-                        expected_value = 2039.718
+                if node.Id == 13:
+                    if time > 0.349:
+                        expected_value = 841.6042
                         self.CheckPressure(dem_pressure, expected_value, tolerance)
-                        expected_value = -8158.871
+                        expected_value = -3366.417
                         self.CheckContactF(contact_force, expected_value, tolerance)
                         self.signal=1
 
