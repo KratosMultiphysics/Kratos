@@ -63,13 +63,13 @@ public:
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
     typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>> BrepCurveOnSurfaceLoopArrayType;
 
-    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
-
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
 
-    typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::PointsArrayType PointsArrayType;
+    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     static constexpr IndexType SURFACE_INDEX = -1;
 
@@ -294,6 +294,46 @@ public:
     bool IsTrimmed() const
     {
         return mIsTrimmed;
+    }
+
+    /**
+    * @brief This method creates a list of quadrature point geometries
+    *        from a list of integration points.
+    *
+    * @param rResultGeometries list of quadrature point geometries.
+    * @param rIntegrationPoints list of integration points.
+    * @param NumberOfShapeFunctionDerivatives the number provided
+    *        derivatives of shape functions in the system.
+    *
+    * @see quadrature_point_geometry.h
+    */
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        mpNurbsSurface->CreateQuadraturePointGeometries(
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints);
+    }
+
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /*
+    * Creates integration points according to its the polynomial degrees.
+    * @return integration points.
+    */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        if (!IsTrimmed()){
+            return mpNurbsSurface->CreateIntegrationPoints(
+                rIntegrationPoints);
+        }
+        else {
+            KRATOS_ERROR << "CreateIntegrationPoints is not impelemented for trimmed BrepSurfaces." << std::endl;
+        }
     }
 
     ///@}

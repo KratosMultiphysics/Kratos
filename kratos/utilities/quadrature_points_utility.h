@@ -40,9 +40,84 @@ namespace Kratos
         typedef std::size_t SizeType;
         typedef std::size_t IndexType;
 
+        typedef PointerVector<TPointType> PointsArrayType;
+
         ///@}
         ///@name Operations
         ///@{
+
+        static typename GeometryType::Pointer CreateQuadraturePoint(
+            SizeType WorkingSpaceDimension,
+            SizeType LocalSpaceDimension,
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
+            PointsArrayType rPoints,
+            GeometryType* pGeometryParent)
+        {
+            if (WorkingSpaceDimension == 1 && LocalSpaceDimension == 1)
+                return Kratos::make_shared<
+                    QuadraturePointGeometry<TPointType, 1>>(
+                        rPoints,
+                        rShapeFunctionContainer,
+                        pGeometryParent);
+            if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
+                return Kratos::make_shared<
+                    QuadraturePointGeometry<TPointType, 2>>(
+                        rPoints,
+                        rShapeFunctionContainer,
+                        pGeometryParent);
+            else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 2)
+                return Kratos::make_shared<
+                    QuadraturePointGeometry<TPointType, 3, 2>>(
+                        rPoints,
+                        rShapeFunctionContainer,
+                        pGeometryParent);
+            else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 3)
+                return Kratos::make_shared<
+                    QuadraturePointGeometry<TPointType, 3>>(
+                        rPoints,
+                        rShapeFunctionContainer,
+                        pGeometryParent);
+            else{
+                KRATOS_ERROR << "Working/ Local space dimension combinations are "
+                    << "not provieded for QuadraturePointGeometry. WorkingSpaceDimension: "
+                    << WorkingSpaceDimension << ", LocalSpaceDimension: " << LocalSpaceDimension
+                    <<  std::endl;
+            }
+        }
+
+        static typename GeometryType::Pointer CreateQuadraturePoint(
+            SizeType WorkingSpaceDimension,
+            SizeType LocalSpaceDimension,
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
+            PointsArrayType rPoints)
+        {
+            if (WorkingSpaceDimension == 1 && LocalSpaceDimension == 1)
+                return Kratos::make_shared<
+                QuadraturePointGeometry<TPointType, 1>>(
+                    rPoints,
+                    rShapeFunctionContainer);
+            if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
+                return Kratos::make_shared<
+                QuadraturePointGeometry<TPointType, 2>>(
+                    rPoints,
+                    rShapeFunctionContainer);
+            else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 2)
+                return Kratos::make_shared<
+                QuadraturePointGeometry<TPointType, 3, 2>>(
+                    rPoints,
+                    rShapeFunctionContainer);
+            else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 3)
+                return Kratos::make_shared<
+                QuadraturePointGeometry<TPointType, 3>>(
+                    rPoints,
+                    rShapeFunctionContainer);
+            else {
+                KRATOS_ERROR << "Working/ Local space dimension combinations are "
+                    << "not provieded for QuadraturePointGeometry. WorkingSpaceDimension: "
+                    << WorkingSpaceDimension << ", LocalSpaceDimension: " << LocalSpaceDimension
+                    << std::endl;
+            }
+        }
 
         static std::vector<typename GeometryType::Pointer> Create(
             typename GeometryType::Pointer pGeometry) {
@@ -68,34 +143,9 @@ namespace Kratos
                     N_i,
                     pGeometry->ShapeFunctionLocalGradient(i));
 
-                if (pGeometry->WorkingSpaceDimension() == 1 && pGeometry->LocalSpaceDimension() == 1)
-                    geometry_pointer_vector[i] = typename Geometry<TPointType>::Pointer(
-                        Kratos::make_shared<
-                        QuadraturePointGeometry<TPointType, 1>>(
-                            pGeometry->Points(),
-                            data_container,
-                            pGeometry.get()));
-                if(pGeometry->WorkingSpaceDimension() == 2 && pGeometry->LocalSpaceDimension() == 2)
-                    geometry_pointer_vector[i] = typename Geometry<TPointType>::Pointer(
-                        Kratos::make_shared<
-                        QuadraturePointGeometry<TPointType, 2>>(
-                            pGeometry->Points(),
-                            data_container,
-                            pGeometry.get()));
-                else if (pGeometry->WorkingSpaceDimension() == 3 && pGeometry->LocalSpaceDimension() == 2)
-                    geometry_pointer_vector[i] = typename Geometry<TPointType>::Pointer(
-                        Kratos::make_shared<
-                        QuadraturePointGeometry<TPointType, 3, 2>>(
-                            pGeometry->Points(),
-                            data_container,
-                            pGeometry.get()));
-                else if (pGeometry->WorkingSpaceDimension() == 3 && pGeometry->LocalSpaceDimension() == 3)
-                    geometry_pointer_vector[i] = typename Geometry<TPointType>::Pointer(
-                        Kratos::make_shared<
-                        QuadraturePointGeometry<TPointType, 3>>(
-                            pGeometry->Points(),
-                            data_container,
-                            pGeometry.get()));
+                geometry_pointer_vector[i] = CreateQuadraturePoint(
+                    pGeometry->WorkingSpaceDimension(), pGeometry->LocalSpaceDimension(),
+                    data_container, pGeometry->Points(), pGeometry.get());
             }
             return geometry_pointer_vector;
 
@@ -126,34 +176,9 @@ namespace Kratos
                     N_i,
                     pGeometry->ShapeFunctionLocalGradient(i, ThisIntegrationMethod));
 
-                if (pGeometry->WorkingSpaceDimension() == 1 && pGeometry->LocalSpaceDimension() == 1)
-                    geometry_pointer_vector[i] = typename Geometry<TPointType>::Pointer(
-                        Kratos::make_shared<
-                        QuadraturePointGeometry<TPointType, 1>>(
-                            pGeometry->Points(),
-                            data_container,
-                            pGeometry.get()));
-                if (pGeometry->WorkingSpaceDimension() == 2 && pGeometry->LocalSpaceDimension() == 2)
-                    geometry_pointer_vector[i] = typename Geometry<TPointType>::Pointer(
-                        Kratos::make_shared<
-                        QuadraturePointGeometry<TPointType, 2>>(
-                            pGeometry->Points(),
-                            data_container,
-                            pGeometry.get()));
-                else if (pGeometry->WorkingSpaceDimension() == 3 && pGeometry->LocalSpaceDimension() == 2)
-                    geometry_pointer_vector[i] = typename Geometry<TPointType>::Pointer(
-                        Kratos::make_shared<
-                        QuadraturePointGeometry<TPointType, 3, 2>>(
-                            pGeometry->Points(),
-                            data_container,
-                            pGeometry.get()));
-                else if (pGeometry->WorkingSpaceDimension() == 3 && pGeometry->LocalSpaceDimension() == 3)
-                    geometry_pointer_vector[i] = typename Geometry<TPointType>::Pointer(
-                        Kratos::make_shared<
-                        QuadraturePointGeometry<TPointType, 3>>(
-                            pGeometry->Points(),
-                            data_container,
-                            pGeometry.get()));
+                geometry_pointer_vector[i] = CreateQuadraturePoint(
+                    pGeometry->WorkingSpaceDimension(), pGeometry->LocalSpaceDimension(),
+                    data_container, pGeometry->Points(), pGeometry.get());
             }
             return geometry_pointer_vector;
 

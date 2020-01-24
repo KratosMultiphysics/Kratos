@@ -38,6 +38,7 @@
 #include "add_containers_to_python.h"
 #include "add_processes_to_python.h"
 #include "add_model_to_python.h"
+#include "add_integration_to_python.h"
 #include "add_io_to_python.h"
 #include "add_mesh_to_python.h"
 #include "add_modeler_to_python.h"
@@ -107,6 +108,7 @@ PYBIND11_MODULE(Kratos, m)
 //     AddIntegrationPointsToPython();
 
     AddProcessesToPython(m);
+    AddIntegrationToPython(m);
     AddIOToPython(m);
     AddModelToPython(m);
 

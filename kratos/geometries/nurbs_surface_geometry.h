@@ -21,12 +21,13 @@
 
 // Project includes
 #include "geometries/geometry.h"
+#include "utilities/quadrature_points_utility.h"
 
 #include "geometries/nurbs_shape_function_utilities/nurbs_surface_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_utilities.h"
 
-
+#include "integration/integration_point_utilities.h"
 
 namespace Kratos {
 
@@ -37,6 +38,8 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef typename TContainerPointType::value_type NodeType;
+
     /// Geometry as base class.
     typedef Geometry<typename TContainerPointType::value_type> BaseType;
     typedef NurbsSurfaceGeometry<TWorkingSpaceDimension, TContainerPointType> GeometryType;
@@ -44,10 +47,10 @@ public:
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
 
-    /** Array of counted pointers to point. This type used to hold
-        geometry's points.*/
-    typedef  typename BaseType::PointsArrayType PointsArrayType;
-    typedef  typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::PointsArrayType PointsArrayType;
+    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     /// Counted pointer of NurbsSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsSurfaceGeometry);
@@ -292,7 +295,7 @@ public:
 
         std::vector<NurbsInterval> result(number_of_spans);
 
-        for (int i = 0; i < number_of_spans; i++) {
+        for (IndexType i = 0; i < number_of_spans; i++) {
             const double t0 = mKnotsU[first_span + i];
             const double t1 = mKnotsU[first_span + i + 1];
 
@@ -314,7 +317,7 @@ public:
 
         std::vector<NurbsInterval> result(number_of_spans);
 
-        for (int i = 0; i < number_of_spans; i++) {
+        for (IndexType i = 0; i < number_of_spans; i++) {
             const double t0 = mKnotsV[first_span + i];
             const double t1 = mKnotsV[first_span + i + 1];
 
@@ -322,6 +325,142 @@ public:
         }
 
         return result;
+    }
+
+    /**
+    * @brief This method creates a list of quadrature point geometries
+    *        from a list of integration points.
+    *
+    * @param rResultGeometries list of quadrature point geometries.
+    * @param rIntegrationPoints list of integration points.
+    * @param NumberOfShapeFunctionDerivatives the number provided
+    *        derivatives of shape functions in the system.
+    *
+    * @see quadrature_point_geometry.h
+    */
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        // shape function container.
+        NurbsSurfaceShapeFunction shape_function_container(
+            mPolynomialDegreeU, mPolynomialDegreeV, NumberOfShapeFunctionDerivatives);
+
+        // Resize containers.
+        if (rResultGeometries.size() != rIntegrationPoints.size())
+            rResultGeometries.resize(rIntegrationPoints.size());
+
+        auto default_method = this->GetDefaultIntegrationMethod();
+        SizeType number_of_non_zero_cps = shape_function_container.NumberOfNonzeroControlPoints();
+
+        Matrix N(1, number_of_non_zero_cps);
+        DenseVector<Matrix> shape_function_derivatives(NumberOfShapeFunctionDerivatives - 1);
+        for (IndexType i = 0; i < NumberOfShapeFunctionDerivatives - 1; i++) {
+            shape_function_derivatives[i].resize(number_of_non_zero_cps, i + 2);
+        }
+
+        for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
+        {
+            if (IsRational()) {
+                shape_function_container.ComputeNurbsShapeFunctionValues(
+                    mKnotsU, mKnotsV, mWeights, rIntegrationPoints[i][0], rIntegrationPoints[i][1]);
+            }
+            else {
+                shape_function_container.ComputeBSplineShapeFunctionValues(
+                    mKnotsU, mKnotsV, rIntegrationPoints[i][0], rIntegrationPoints[i][1]);
+            }
+
+            /// Get List of Control Points
+            PointsArrayType nonzero_control_points(number_of_non_zero_cps);
+            auto cp_indices = shape_function_container.ControlPointIndices(
+                NumberOfControlPointsU(), NumberOfControlPointsV());
+            for (IndexType j = 0; j < number_of_non_zero_cps; j++) {
+                nonzero_control_points[j] += (*this)[cp_indices[j]];
+            }
+
+            /// Get Shape Functions N
+            if (NumberOfShapeFunctionDerivatives >= 0) {
+                for (IndexType j = 0; j < number_of_non_zero_cps; j++) {
+                    N(0, j) = shape_function_container(cp_indices[j], 0);
+                }
+            }
+            /// Get Shape Function Derivatives DN_De, ...
+            if (NumberOfShapeFunctionDerivatives > 0) {
+                IndexType shape_derivative_index = 1;
+                for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; n++) {
+                    for (IndexType k = 0; k < n + 2; k++) {
+                        for (IndexType j = 0; j < number_of_non_zero_cps; j++) {
+                            shape_function_derivatives[n](j, k) = shape_function_container(cp_indices[j], shape_derivative_index + k);
+                        }
+                    }
+                    shape_derivative_index += n + 2;
+                }
+            }
+
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                default_method, rIntegrationPoints[i],
+                N, shape_function_derivatives);
+
+            rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
+                this->WorkingSpaceDimension(), 2, data_container, nonzero_control_points);
+        }
+    }
+
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /*
+    * Creates integration points according to its the polynomial degrees.
+    * @return integration points.
+    */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        const SizeType points_in_u = PolynomialDegreeU() + 1;
+        const SizeType points_in_v = PolynomialDegreeV() + 1;
+
+        CreateIntegrationPoints(
+            rIntegrationPoints, points_in_u, points_in_v);
+    }
+
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        SizeType IntegrationPointsPerKnotU, SizeType IntegrationPointsPerKnotV) const
+    {
+        auto knot_span_intervals_u = KnotSpanIntervalsU();
+        auto knot_span_intervals_v = KnotSpanIntervalsV();
+
+        const SizeType number_of_integration_points =
+            knot_span_intervals_u.size() * knot_span_intervals_v.size()
+            * IntegrationPointsPerKnotU * IntegrationPointsPerKnotV;
+
+        if (rIntegrationPoints.size() != number_of_integration_points)
+            rIntegrationPoints.resize(number_of_integration_points);
+
+        IntegrationPointsArrayType integration_points_knot_span(
+            IntegrationPointsPerKnotU * IntegrationPointsPerKnotV);
+
+        IndexType counter = 0;
+
+        for (IndexType i = 0; i < knot_span_intervals_u.size(); ++i)
+        {
+            for (IndexType j = 0; j < knot_span_intervals_v.size(); ++j)
+            {
+                IntegrationPointUtilities::IntegrationPoints2D(
+                    integration_points_knot_span,
+                    IntegrationPointsPerKnotU, IntegrationPointsPerKnotV,
+                    knot_span_intervals_u[i].GetT0(), knot_span_intervals_u[i].GetT1(),
+                    knot_span_intervals_v[j].GetT0(), knot_span_intervals_v[j].GetT1());
+
+                for (IndexType k = 0; k < integration_points_knot_span.size(); ++k)
+                {
+                    rIntegrationPoints[counter] = integration_points_knot_span[k];
+                    counter++;
+                }
+            }
+        }
     }
 
     ///@}

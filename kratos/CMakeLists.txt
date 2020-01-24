@@ -132,6 +132,7 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_constitutive_law_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_processes_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_geometries_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_integration_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_io_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_kernel_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_vector_to_python.cpp
