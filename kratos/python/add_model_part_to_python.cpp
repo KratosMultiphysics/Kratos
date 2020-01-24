@@ -510,7 +510,7 @@ ModelPart::SizeType ModelPartNumberOfGeometries1(ModelPart& rModelPart)
     return rModelPart.NumberOfGeometries();
 }
 
-void ModelPartAddGeometry1(ModelPart& rModelPart, GeometryType::Pointer pNewGeometry)
+void ModelPartAddGeometry1(ModelPart& rModelPart, ModelPart::GeometryType::Pointer pNewGeometry)
 {
     rModelPart.AddGeometry(pNewGeometry);
 }
