@@ -535,6 +535,16 @@ bool ModelPartHasGeometry2(ModelPart& rModelPart, std::string GeometryName)
     return rModelPart.HasGeometry(GeometryName);
 }
 
+void ModelPartRemoveGeometry1(ModelPart& rModelPart, ModelPart::IndexType GeometryId)
+{
+    rModelPart.RemoveGeometry(GeometryId);
+}
+
+void ModelPartRemoveGeometry2(ModelPart& rModelPart, std::string GeometryName)
+{
+    rModelPart.RemoveGeometry(GeometryName);
+}
+
 // Master slave constraints
 /* // Try with perfect forwarding
 template <typename ... Args>
@@ -967,6 +977,8 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GetGeometry", ModelPartGetGeometry2)
         .def("HasGeometry", ModelPartHasGeometry1)
         .def("HasGeometry", ModelPartHasGeometry2)
+        .def("RemoveGeometry", ModelPartRemoveGeometry1)
+        .def("RemoveGeometry", ModelPartRemoveGeometry2)
         .def("CreateSubModelPart", &ModelPart::CreateSubModelPart, py::return_value_policy::reference_internal)
         .def("NumberOfSubModelParts", &ModelPart::NumberOfSubModelParts)
         .def("GetSubModelPart", &ModelPart::GetSubModelPart, py::return_value_policy::reference_internal)
