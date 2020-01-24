@@ -31,8 +31,10 @@
 #include "custom_io/hdf5_model_part_io.h"
 #include "custom_io/hdf5_nodal_solution_step_data_io.h"
 #include "custom_io/hdf5_element_data_value_io.h"
+#include "custom_io/hdf5_element_flag_value_io.h"
 #include "custom_io/hdf5_nodal_solution_step_bossak_io.h"
 #include "custom_io/hdf5_nodal_data_value_io.h"
+#include "custom_io/hdf5_nodal_flag_value_io.h"
 #include "custom_io/hdf5_data_value_container_io.h"
 #ifdef KRATOS_USING_MPI
 #include "custom_io/hdf5_file_parallel.h"
@@ -93,12 +95,26 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("ReadElementResults", &HDF5::ElementDataValueIO::ReadElementResults)
         ;
 
+    py::class_<HDF5::ElementFlagValueIO, HDF5::ElementFlagValueIO::Pointer>(
+        m,"HDF5ElementFlagValueIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>())
+        .def("WriteElementFlags", &HDF5::ElementFlagValueIO::WriteElementFlags)
+        .def("ReadElementFlags", &HDF5::ElementFlagValueIO::ReadElementFlags)
+        ;        
+
     py::class_<HDF5::NodalDataValueIO, HDF5::NodalDataValueIO::Pointer>(
         m,"HDF5NodalDataValueIO")
         .def(py::init<Parameters, HDF5::File::Pointer>())
         .def("WriteNodalResults", &HDF5::NodalDataValueIO::WriteNodalResults)
         .def("ReadNodalResults", &HDF5::NodalDataValueIO::ReadNodalResults)
         ;
+
+    py::class_<HDF5::NodalFlagValueIO, HDF5::NodalFlagValueIO::Pointer>(
+        m,"HDF5NodalFlagValueIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>())
+        .def("WriteNodalFlags", &HDF5::NodalFlagValueIO::WriteNodalFlags)
+        .def("ReadNodalFlags", &HDF5::NodalFlagValueIO::ReadNodalFlags)
+        ;        
 
 #ifdef KRATOS_USING_MPI
     py::class_<HDF5::FileParallel, HDF5::FileParallel::Pointer, HDF5::File>(m,"HDF5FileParallel")

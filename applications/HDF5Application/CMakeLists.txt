@@ -34,7 +34,9 @@ set( KRATOS_HDF5_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_model_part_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_nodal_solution_step_data_io.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_element_data_value_io.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_element_flag_value_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_nodal_data_value_io.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hdf5_nodal_flag_value_io.cpp
 )
 
 set(HDF5_USE_STATIC_LIBRARIES OFF)
