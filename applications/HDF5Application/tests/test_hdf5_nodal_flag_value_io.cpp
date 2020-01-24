@@ -28,7 +28,7 @@ namespace Kratos
 {
 namespace Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(HDF5NodalDataValueIO_WriteNodalFlags1, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5NodalFlagValueIO_WriteNodalFlags1, KratosHDF5TestSuite)
 {
     Parameters settings(R"({
         "prefix": "/Results",
