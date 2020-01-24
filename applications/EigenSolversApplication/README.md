@@ -146,5 +146,5 @@ apt-get install -y intel-mkl-2020.0-088
 To enable the MKL environment use 
     
 ```batch
-/opt/intel/compilers_and_libraries_2020.0.166/linux/mkl/bin/mklvars.sh intel64 lp64
+source /opt/intel/compilers_and_libraries_2020.0.166/linux/mkl/bin/mklvars.sh intel64 lp64
 ```
