@@ -14,9 +14,9 @@ POISSON_RATIO 0.25
 End Properties
 
 Begin Nodes
-14 -3 1 1
-15 -3 -1 1
-16 -3 0 -1
+14 -1 1 1
+15 -1 -1 1
+16 -1 0 -1
 End Nodes
 
 Begin Conditions RigidFace3D3N
