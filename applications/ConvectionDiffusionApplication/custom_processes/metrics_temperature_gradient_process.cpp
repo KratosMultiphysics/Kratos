@@ -89,7 +89,7 @@ void MetricsTemperatureGradientProcess<TDim>::Execute()
     this->CalculateNodalTempGradient(nodal_area);
 
     // // e) Call the Nodal Error Function
-    this->CalculateNodalError(nodal_area);
+    this->CalculateElementError(nodal_area);
 
     // e) Call the Metric Scalar Function
     this->CalculateMetric();
@@ -137,7 +137,7 @@ void MetricsTemperatureGradientProcess<TDim>::CalculateNodalTempGradient(Vector 
             {
                 const int n_id = r_geometry[i_node].Id();
                 auto &rNodalArea = nodal_area[mNodeMap.find(n_id)->second];
-                if (rNodalArea == 1.0)
+                if (rNodalArea == 0.0)
                 {
                     nodal_grad(mNodeMap.find(n_id)->second, 0) += 0.0;
                     nodal_grad(mNodeMap.find(n_id)->second, 1) += 0.0;
@@ -171,28 +171,19 @@ void MetricsTemperatureGradientProcess<TDim>::CalculateNodalTempGradient(Vector 
 }
 
 template <std::size_t TDim>
-void MetricsTemperatureGradientProcess<TDim>::CalculateNodalError(Vector &nodal_area)
+void MetricsTemperatureGradientProcess<TDim>::CalculateElementError(Vector &nodal_area)
 {
     // a) Obtain Nodes and Elements from Model Part
-    const int number_nodes = mrThisModelPart.NumberOfNodes();
+    //const int number_nodes = mrThisModelPart.NumberOfNodes();
     const int number_elements = mrThisModelPart.NumberOfElements();
-
-    // KRATOS_INFO(this->Info()) << "Calculating nodal error for " << number_nodes << " nodes in " << mrThisModelPart.Name() << "\n";
 
     double global_gw = 0.0;
     double global_del_sigma = 0.0;
 
-    // Debug Options
-    // double max_Nodal_error = 0.0;
-    // double max_N_tempGrad = 0.0;
-    // double max_GP_tempGrad = 0.0;
-    // double max_elem_del_sigma = 0.0;
-    double max_mElementError = 0.0;
-
     Vector element_del_sigma = ZeroVector(number_elements);
     Vector element_error_norm_squared = ZeroVector(number_elements);
     Vector element_gw = ZeroVector(number_elements);
-    Vector nodal_error_proj = ZeroVector(number_nodes);
+    //Vector nodal_error_proj = ZeroVector(number_nodes);
     Matrix element_error = ZeroMatrix(number_elements, 3);
 
     // c) Loop over the elements to calculate Element Error
@@ -276,48 +267,41 @@ void MetricsTemperatureGradientProcess<TDim>::CalculateNodalError(Vector &nodal_
     for (int i_elem = 0; i_elem < number_elements; i_elem++)
     {
         mElementError[i_elem] = element_del_sigma[i_elem] / global_del_sigma;
-
-        if (mElementError[i_elem] > max_mElementError)
-        {
-            max_mElementError = mElementError[i_elem];
-        }
     }
 
-    KRATOS_WATCH(max_mElementError);
+    // //d) Loop over the elements to calculate Nodal Error Projections
+    // for (int i_elem = 0; i_elem < number_elements; i_elem++)
+    // {
+    //     ModelPart::ElementType &r_element = *(mrThisModelPart.ElementsBegin() + i_elem);
+    //     ModelPart::ElementType::GeometryType &r_geometry = r_element.GetGeometry();
+    //     const auto n_nodes = r_geometry.PointsNumber();
 
-    //d) Loop over the elements to calculate Nodal Error Projections
-    for (int i_elem = 0; i_elem < number_elements; i_elem++)
-    {
-        ModelPart::ElementType &r_element = *(mrThisModelPart.ElementsBegin() + i_elem);
-        ModelPart::ElementType::GeometryType &r_geometry = r_element.GetGeometry();
-        const auto n_nodes = r_geometry.PointsNumber();
+    //     Vector GaussWeights;
+    //     Vector DetJ;
+    //     Matrix ShapeFunctions;
+    //     ShapeFunctionDerivativesArrayType ShapeDerivatives;
+    //     unsigned int NumGPoints = 0;
+    //     CalculateGeomData(r_geometry, ShapeFunctions, ShapeDerivatives, DetJ, GaussWeights, NumGPoints);
 
-        Vector GaussWeights;
-        Vector DetJ;
-        Matrix ShapeFunctions;
-        ShapeFunctionDerivativesArrayType ShapeDerivatives;
-        unsigned int NumGPoints = 0;
-        CalculateGeomData(r_geometry, ShapeFunctions, ShapeDerivatives, DetJ, GaussWeights, NumGPoints);
+    //     const Vector &Ncontainer = row(ShapeFunctions, 0);
 
-        const Vector &Ncontainer = row(ShapeFunctions, 0);
-
-        for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
-        {
-            const int n_id = r_geometry[i_node].Id();
-            auto& rNodalArea = nodal_area[mNodeMap.find(n_id)->second];
-            if ( rNodalArea != 0.0 || rNodalArea != 1.0)
-            {
-                if (mHistoricalResults)
-                {
-                    r_geometry[i_node].FastGetSolutionStepValue(NODAL_ERROR_PROJ) += Ncontainer[i_node] * element_del_sigma[i_elem] / (global_del_sigma * rNodalArea);
-                }
-                else
-                {
-                    r_geometry[i_node].GetValue(NODAL_ERROR_PROJ) += Ncontainer[i_node] * element_del_sigma[i_elem] / (global_del_sigma * rNodalArea);
-                }
-            }
-        }
-    }
+    //     for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
+    //     {
+    //         const int n_id = r_geometry[i_node].Id();
+    //         auto& rNodalArea = nodal_area[mNodeMap.find(n_id)->second];
+    //         if ( rNodalArea != 0.0 || rNodalArea != 1.0)
+    //         {
+    //             if (mHistoricalResults)
+    //             {
+    //                 r_geometry[i_node].FastGetSolutionStepValue(NODAL_ERROR_PROJ) += Ncontainer[i_node] * element_del_sigma[i_elem] / (global_del_sigma * rNodalArea);
+    //             }
+    //             else
+    //             {
+    //                 r_geometry[i_node].GetValue(NODAL_ERROR_PROJ) += Ncontainer[i_node] * element_del_sigma[i_elem] / (global_del_sigma * rNodalArea);
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 template <std::size_t TDim>
@@ -328,14 +312,7 @@ void MetricsTemperatureGradientProcess<TDim>::CalculateMetric()
     ElementsArrayType &elements_array = mrThisModelPart.Elements();
     const int number_elements = mrThisModelPart.NumberOfElements();
 
-    std::fstream OutFile("Nodal_Metric_Scalar.txt", std::ios::out);
-    OutFile << "r_node.Id()"
-            << "\t\t"
-            << "Metric Value"
-            << "\n";
-
-// Debug Options
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int i_elem = 0; i_elem < number_elements; i_elem++)
     {
         auto it_elem = elements_array.begin() + i_elem;
@@ -400,12 +377,7 @@ void MetricsTemperatureGradientProcess<TDim>::CalculateMetric()
 
         // Setting value
         it_node->SetValue(METRIC_SCALAR, h_min);
-
-        //KRATOS_INFO_IF("MetricErrorProcess", mEchoLevel > 2) << "Node " << it_node->Id() << " has metric: "<< h_min << std::endl;
-        //KRATOS_INFO("MetricTemperatureGradientProcess") << "Node " << it_node->Id() << " has metric: " << h_min << std::endl;
-        OutFile << it_node->Id() << "\t\t" << h_min << "\n";
     }
-    OutFile.close();
 }
 
 template <std::size_t TDim>
@@ -414,15 +386,8 @@ void MetricsTemperatureGradientProcess<TDim>::CreateMap()
     int node_index = 0;
     int elem_index = 0;
 
-    std::fstream OutFile("Node_Map.txt", std::ios::out);
-    OutFile << "node_index"
-            << "\t\t"
-            << "r_node.Id()"
-            << "\n";
-
     for (const ModelPart::NodeType &r_node : mrThisModelPart.Nodes())
     {
-        OutFile << node_index << "\t\t" << r_node.Id() << "\n";
         mNodeMap.insert(std::make_pair<int, int>(r_node.Id(), node_index++));
     }
 
@@ -430,8 +395,6 @@ void MetricsTemperatureGradientProcess<TDim>::CreateMap()
     {
         mElemMap.insert(std::make_pair<int, int>(r_elem.Id(), elem_index++));
     }
-    OutFile.close();
-    KRATOS_INFO(this->Info()) << "Creating Node Map for " << mrThisModelPart.NumberOfNodes() << " nodes in " << mrThisModelPart.Name() << "\n";
 }
 
 template <std::size_t TDim>
@@ -441,17 +404,8 @@ void MetricsTemperatureGradientProcess<TDim>::CalculateNodalArea(Vector &rNodalA
     const Variable<double> &nodal_area_variable = KratosComponents<Variable<double>>::Get("NODAL_AREA");
     VariableUtils().SetNonHistoricalVariableToZero(nodal_area_variable, mrThisModelPart.Nodes());
 
-    std::fstream OutFile("Nodal_Area.txt", std::ios::out);
-    OutFile << "r_node.Id()"
-            << "\t\t"
-            << "Nodal_Area"
-            << "\n";
-    int count_zeros = 0;
-    int count_zero_node_elem = 0;
-
     const int number_nodes = mrThisModelPart.NumberOfNodes();
     const int number_elements = mrThisModelPart.NumberOfElements();
-    KRATOS_INFO(this->Info()) << "Calculating nodal area of " << number_nodes << " nodes in " << mrThisModelPart.Name() << "\n";
 
     if (rNodalArea.size() != number_nodes)
     {
@@ -473,36 +427,8 @@ void MetricsTemperatureGradientProcess<TDim>::CalculateNodalArea(Vector &rNodalA
             {
                 rNodalArea[mNodeMap.find(n_id)->second] += r_geometry.Area() / static_cast<double>(n_nodes);
             }
-            else
-            {
-                count_zero_node_elem++;
-            }
         }
     }
-
-    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
-
-    for (int i_node = 0; i_node < number_nodes; i_node++)
-    {
-        auto it_node = r_nodes_array.begin() + i_node;
-        
-        //it_node->SetValue(nodal_area_variable, rNodalArea[i_node]);
-
-        if (rNodalArea[i_node] == 0.0)
-        {
-            rNodalArea[i_node] = 1.0;
-            count_zeros++;
-        }
-        OutFile << it_node->Id() << "\t\t" << rNodalArea[i_node] << "\n";
-    }
-    OutFile << "Number of 0s"
-            << "\t\t" << count_zeros << "\n";
-    OutFile << "Number of 0 node elements"
-            << "\t\t" << count_zero_node_elem << "\n";
-    OutFile.close();
-
-    // Calculating Nodal Area using external process
-    CalculateNodalAreaProcess<false> calculate_nodal_area(mrThisModelPart);
 }
 
 template <std::size_t TDim>

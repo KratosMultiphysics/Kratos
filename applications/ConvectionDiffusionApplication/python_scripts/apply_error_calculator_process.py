@@ -5,6 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as KratosMesh
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 def Factory(settings, Model): 
     if(type(settings) != KratosMultiphysics.Parameters): 
@@ -84,9 +85,75 @@ class ApplyErrorCalculatorProcess(KratosMultiphysics.Process):
             # We execute our process
             self.error_calc.Execute()
         self.remesh_process.Execute()
-        print(self.model_part)
-        KratosMultiphysics.ModelPartIO("Revised_fluid_buoyancy", KratosMultiphysics.IO.WRITE).WriteModelPart(self.model_part)
+        # Fix Model before Printing
+        # self.model_part.RemoveSubModelPart("thermal_computing_domain")
+
+        model_parts = self.model_part.SubModelParts
+
+        for r_sub_model_part in model_parts:
+            if r_sub_model_part.NumberOfElements() == 0 and r_sub_model_part.NumberOfConditions() == 0:
+                r_sub_model_part.Nodes.clear()
+                for node in self.model_part.Nodes:
+                    r_sub_model_part.AddNode(node, 0)
         
+        print(self.model_part)
+
+        output_params = KratosMultiphysics.Parameters("""{
+            "output_configuration"                  : {
+                "result_file_configuration" : {
+                    "gidpost_flags" : {
+                        "GiDPostMode"           : "GiD_PostBinary",
+                        "WriteDeformedMeshFlag" : "WriteDeformed",
+                        "WriteConditionsFlag"   : "WriteConditions",
+                        "MultiFileFlag"         : "SingleFile"
+                    },
+                    "file_label"          : "time",
+                    "output_control_type" : "time",
+                    "output_frequency"    : 0.1,
+                    "body_output"         : true,
+                    "node_output"         : false,
+                    "skin_output"         : false,
+                    "nodal_results"       : []
+                },
+                "point_data_configuration"  : []
+            }
+        }""")
+
+        KratosMultiphysics.ModelPartIO("Revised_fluid_buoyancy", KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart(self.model_part)
+        gid_output = GiDOutputProcess(self.model_part, "Revised_fluid_buoyancy", output_params["output_configuration"])
+        gid_output.ExecuteInitialize()
+        gid_output.ExecuteBeforeSolutionLoop()
+        gid_output.ExecuteInitializeSolutionStep()
+        gid_output.PrintOutput()
+        gid_output.ExecuteFinalizeSolutionStep()
+        gid_output.ExecuteFinalize()
+
+        vtk_settings = KratosMultiphysics.Parameters("""{
+            "condition_data_value_variables": [],
+            "condition_flags": [],
+            "custom_name_postfix": "",
+            "custom_name_prefix": "",
+            "element_data_value_variables": [],
+            "element_flags": [],
+            "file_format": "ascii",
+            "folder_name": "VTK_Output",
+            "gauss_point_variables_extrapolated_to_nodes": [],
+            "gauss_point_variables_in_elements": [],
+            "model_part_name": "FluidPart",
+            "nodal_data_value_variables": [],
+            "nodal_flags": [],
+            "nodal_solution_step_data_variables": ["VELOCITY","PRESSURE","TEMPERATURE","NODAL_TEMP_GRADIENT"],
+            "output_control_type": "step",
+            "output_frequency": 1.0,
+            "output_precision": 7,
+            "output_sub_model_parts": false,
+            "save_output_files_in_folder": false,
+            "write_deformed_configuration": false,
+            "write_ids": false
+        }""")
+        #vtk_settings["model_part_name"] = str(model_input)
+        vtk_io = KratosMultiphysics.VtkOutput(self.model_part, vtk_settings)
+        vtk_io.PrintOutput()
 
     def Clear(self):
         pass

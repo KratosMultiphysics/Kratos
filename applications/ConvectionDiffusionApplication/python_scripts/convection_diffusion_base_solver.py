@@ -440,6 +440,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                     elif value.IsVector():
                         KratosMultiphysics.VariableUtils().SetVectorVar(var, value.GetVector(), model_part.Nodes)
                     else:
+                        print(value)
                         raise ValueError("Type of value is not available")
 
     def _check_variable_to_set(self, var):

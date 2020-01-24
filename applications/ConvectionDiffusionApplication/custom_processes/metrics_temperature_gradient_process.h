@@ -235,7 +235,7 @@ private:
     /**
      * @brief This method computes the Nodal error between the C1 and C0 continuous definitions
      */
-    void CalculateNodalError(Vector& nodal_area);
+    void CalculateElementError(Vector& nodal_area);
 
     /**
      * @brief In this final step the metric is computed for MMGProcess
