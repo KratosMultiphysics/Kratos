@@ -140,7 +140,7 @@ void VariationalNonEikonalDistance::Execute()
         auto it_node = mrModelPart.NodesBegin() + i_node;
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
 
-        if (abs((distance - distance_min)/distance_min) <= 1.0e-2){ // (abs((distance - distance_max)/distance_max) <= 1.0e-9){
+        if (abs((abs(distance) - distance_min)/distance_min) <= 1.0e-6){ // (abs((distance - distance_max)/distance_max) <= 1.0e-9){
             it_node->Fix(DISTANCE_AUX);
         }
     }
