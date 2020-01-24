@@ -331,6 +331,7 @@ class TestOperations(KratosUnittest.TestCase):
             nodal_data_value_output(model_part, hdf5_file)
             self.assertEqual(p.call_count, 1)
             self.assertEqual(nodal_data_value_io.WriteNodalResults.call_count, 1)
+            
 
     def test_NodalDataValueInput(self):
         settings = ParametersWrapper()
@@ -539,6 +540,7 @@ class TestFactory(KratosUnittest.TestCase):
                 "list_of_controllers" : []
             }
             ''')
+        settings = ParametersWrapper(settings)
         with self.assertRaisesRegex(RuntimeError, '"PLEASE_SPECIFY_MODEL_PART_NAME" was not found'):
             core.Factory(settings['list_of_controllers'], model)
 
@@ -554,6 +556,7 @@ class TestFactory(KratosUnittest.TestCase):
                 ]
             }
             ''')
+        parent_settings = ParametersWrapper(parent_settings)
         core.Factory(parent_settings['list_of_controllers'], model)
         settings = parent_settings['list_of_controllers'][0]
         self.assertTrue(settings.Has('model_part_name'))
@@ -579,6 +582,7 @@ class TestFactory(KratosUnittest.TestCase):
                 ]
             }
             ''')
+        parent_settings = ParametersWrapper(parent_settings)
         process = core.Factory(
             parent_settings['list_of_controllers'], model)
         patcher1 = patch(
@@ -700,7 +704,7 @@ class TestParametersWrapper(KratosUnittest.TestCase):
         count = 0
         for k in settings['array_of_double_values']:
             self.assertEqual(k, count)
-        count += 1
+            count += 1
 
     def test_nonarray_keys(self):
         settings = ParametersWrapper(self.get_params)
