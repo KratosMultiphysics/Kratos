@@ -14,7 +14,9 @@
 
 // Project includes
 #include "includes/define_python.h"
+#include "python/add_integration_to_python.h"
 
+#include "integration/cad_integration_domain.h"
 
 namespace Kratos
 {
@@ -22,7 +24,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddIOToPython(pybind11::module& m)
+void  AddIntegrationToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
