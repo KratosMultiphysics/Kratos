@@ -220,13 +220,13 @@ public:
     double currentTime = rCurrentProcessInfo[TIME];
     double timeInterval = rCurrentProcessInfo[DELTA_TIME];
     bool timeIntervalChanged = rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
-		unsigned int stepsWithChangedDt = rCurrentProcessInfo[STEPS_WITH_CHANGED_DT];
+    unsigned int stepsWithChangedDt = rCurrentProcessInfo[STEPS_WITH_CHANGED_DT];
 
     unsigned int maxNonLinearIterations = mMaxPressureIter;
 
     KRATOS_INFO("TwoStepVPStrategy") << "\n                   Solve with two_step_vp strategy at t=" << currentTime << "s" << std::endl;
 
-    if ((timeIntervalChanged == true && currentTime > 10 * timeInterval) || stepsWithChangedDt>0)
+    if ((timeIntervalChanged == true && currentTime > 10 * timeInterval) || stepsWithChangedDt > 0)
     {
       maxNonLinearIterations *= 2;
     }
@@ -259,6 +259,8 @@ public:
     /* 	unsigned int iter=0; */
     /* 	momentumConverged = this->SolveMomentumIteration(iter,maxNonLinearIterations,fixedTimeStep); */
     /* }else{ */
+
+    this->UnactiveSliverElements();
 
     for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
     {
@@ -347,6 +349,51 @@ public:
     /* BoundaryNormalsCalculationUtilities BoundaryComputation; */
     /* BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel); */
 
+    KRATOS_CATCH("");
+  }
+
+  void UnactiveSliverElements()
+  {
+    KRATOS_TRY;
+
+    ModelPart &rModelPart = BaseType::GetModelPart();
+    const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+    MesherUtilities MesherUtils;
+    double ModelPartVolume = MesherUtils.ComputeModelPartVolume(rModelPart);
+    double CriticalVolume = 0.001 * ModelPartVolume / double(rModelPart.Elements().size());
+    double ElementalVolume = 0;
+
+#pragma omp parallel
+    {
+      ModelPart::ElementIterator ElemBegin;
+      ModelPart::ElementIterator ElemEnd;
+      OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElemBegin, ElemEnd);
+      for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+      {
+        unsigned int numNodes = itElem->GetGeometry().size();
+        if (numNodes == (dimension + 1))
+        {
+          if (dimension == 2)
+          {
+            ElementalVolume = (itElem)->GetGeometry().Area();
+          }
+          else if (dimension == 3)
+          {
+            ElementalVolume = (itElem)->GetGeometry().Volume();
+          }
+
+          if (ElementalVolume < CriticalVolume)
+          {
+            // std::cout << "sliver element: it has Volume: " << ElementalVolume << " vs CriticalVolume(meanVol/1000): " << CriticalVolume<< std::endl;
+            (itElem)->Set(ACTIVE, false);
+          }
+          else
+          {
+            (itElem)->Set(ACTIVE, true);
+          }
+        }
+      }
+    }
     KRATOS_CATCH("");
   }
 

@@ -165,8 +165,6 @@ public:
                 unsigned int numfreesurf = 0;
                 unsigned int numboundary = 0;
                 unsigned int numrigid = 0;
-                unsigned int numinternalsolid = 0;
-                unsigned int numsolid = 0;
                 unsigned int numinlet = 0;
                 unsigned int numisolated = 0;
                 bool noremesh = false;
@@ -220,14 +218,7 @@ public:
                             countIsolatedWallNodes++;
                         }
                     }
-                    if (vertices.back().Is(SOLID) && vertices.back().IsNot(BOUNDARY))
-                    {
-                        numinternalsolid++;
-                    }
-                    if (vertices.back().Is(SOLID))
-                    {
-                        numsolid++;
-                    }
+
                     if (vertices.back().IsNot(RIGID) && vertices.back().Is(BOUNDARY))
                     {
                         numfreesurf++;
@@ -304,7 +295,9 @@ public:
                     {
                         Alpha *= 1.75;
                     }
-                    else
+                    else if (numrigid > 0 && numfreesurf == 0 && numisolated == 0){
+                        Alpha *= 1.1;
+                    }else
                     {
                         Alpha *= 1.04;
                     }
