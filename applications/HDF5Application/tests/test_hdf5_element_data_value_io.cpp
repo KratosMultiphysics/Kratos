@@ -52,8 +52,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
     std::vector<std::string> variables_list = {{"DISPLACEMENT"},
                                                {"PRESSURE"},
                                                {"REFINEMENT_LEVEL"},
-                                               {"GREEN_LAGRANGE_STRAIN_TENSOR"},
-                                               {"SLIP"}};
+                                               {"GREEN_LAGRANGE_STRAIN_TENSOR"}};
 
     for (auto& r_element : r_write_model_part.Elements())
     {
@@ -63,7 +62,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
     Parameters io_params(R"(
         {
             "prefix": "/Step",
-            "list_of_variables": ["DISPLACEMENT", "PRESSURE", "REFINEMENT_LEVEL", "GREEN_LAGRANGE_STRAIN_TENSOR", "SLIP"]
+            "list_of_variables": ["DISPLACEMENT", "PRESSURE", "REFINEMENT_LEVEL", "GREEN_LAGRANGE_STRAIN_TENSOR"]
         })");
 
     HDF5::ElementDataValueIO data_io(io_params, p_test_file);
