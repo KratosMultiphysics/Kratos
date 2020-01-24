@@ -512,7 +512,7 @@ ModelPart::SizeType ModelPartNumberOfGeometries1(ModelPart& rModelPart)
 
 void ModelPartAddGeometry1(ModelPart& rModelPart, GeometryType::Pointer pNewGeometry)
 {
-    rModelPart.AddCondition(pNewGeometry);
+    rModelPart.AddGeometry(pNewGeometry);
 }
 
 ModelPart::GeometryType::Pointer ModelPartGetGeometry1(ModelPart& rModelPart, ModelPart::IndexType GeometryId)
@@ -545,9 +545,9 @@ void ModelPartRemoveGeometry2(ModelPart& rModelPart, std::string GeometryName)
     rModelPart.RemoveGeometry(GeometryName);
 }
 
-void ModelPartRemoveGeometryFromAllLevels1(ModelPart& rModelPart, ModelPart::IndexType ConditionId)
+void ModelPartRemoveGeometryFromAllLevels1(ModelPart& rModelPart, ModelPart::IndexType GeometryId)
 {
-    rModelPart.RemoveGeometryFromAllLevels(ConditionId);
+    rModelPart.RemoveGeometryFromAllLevels(GeometryId);
 }
 
 void ModelPartRemoveGeometryFromAllLevels2(ModelPart& rModelPart, std::string GeometryName)
