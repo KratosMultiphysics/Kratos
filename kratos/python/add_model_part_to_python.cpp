@@ -510,9 +510,19 @@ ModelPart::SizeType ModelPartNumberOfGeometries1(ModelPart& rModelPart)
     return rModelPart.NumberOfGeometries();
 }
 
-void ModelPartAddGeometry1(ModelPart& rModelPart, Geometry::Pointer pNewGeometry)
+void ModelPartAddGeometry1(ModelPart& rModelPart, GeometryType::Pointer pNewGeometry)
 {
     rModelPart.AddCondition(pNewGeometry);
+}
+
+ModelPart::GeometryType::Pointer ModelPartGetGeometry1(ModelPart& rModelPart, ModelPart::IndexType GeometryId)
+{
+    return rModelPart.pGetGeometry(GeometryId);
+}
+
+ModelPart::GeometryType::Pointer ModelPartGetGeometry2(ModelPart& rModelPart, std::string GeometryName)
+{
+    return rModelPart.pGetGeometry(GeometryName);
 }
 
 // Master slave constraints
@@ -943,6 +953,8 @@ void AddModelPartToPython(pybind11::module& m)
         .def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels4)
         .def("RemoveConditionsFromAllLevels", ModelPartRemoveConditionsFromAllLevels)
         .def("AddGeometry", ModelPartAddGeometry1)
+        .def("GetGeometry", ModelPartGetGeometry1)
+        .def("GetGeometry", ModelPartGetGeometry2)
         .def("CreateSubModelPart", &ModelPart::CreateSubModelPart, py::return_value_policy::reference_internal)
         .def("NumberOfSubModelParts", &ModelPart::NumberOfSubModelParts)
         .def("GetSubModelPart", &ModelPart::GetSubModelPart, py::return_value_policy::reference_internal)
