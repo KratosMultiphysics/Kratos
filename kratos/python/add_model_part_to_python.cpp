@@ -545,6 +545,16 @@ void ModelPartRemoveGeometry2(ModelPart& rModelPart, std::string GeometryName)
     rModelPart.RemoveGeometry(GeometryName);
 }
 
+void ModelPartRemoveGeometryFromAllLevels1(ModelPart& rModelPart, ModelPart::IndexType ConditionId)
+{
+    rModelPart.RemoveGeometryFromAllLevels(ConditionId);
+}
+
+void ModelPartRemoveGeometryFromAllLevels2(ModelPart& rModelPart, std::string GeometryName)
+{
+    rModelPart.RemoveGeometryFromAllLevels(GeometryName);
+}
+
 // Master slave constraints
 /* // Try with perfect forwarding
 template <typename ... Args>
@@ -979,6 +989,8 @@ void AddModelPartToPython(pybind11::module& m)
         .def("HasGeometry", ModelPartHasGeometry2)
         .def("RemoveGeometry", ModelPartRemoveGeometry1)
         .def("RemoveGeometry", ModelPartRemoveGeometry2)
+        .def("RemoveGeometryFromAllLevels", ModelPartRemoveGeometryFromAllLevels1)
+        .def("RemoveGeometryFromAllLevels", ModelPartRemoveGeometryFromAllLevels2)
         .def("CreateSubModelPart", &ModelPart::CreateSubModelPart, py::return_value_policy::reference_internal)
         .def("NumberOfSubModelParts", &ModelPart::NumberOfSubModelParts)
         .def("GetSubModelPart", &ModelPart::GetSubModelPart, py::return_value_policy::reference_internal)
