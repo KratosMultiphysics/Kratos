@@ -170,13 +170,14 @@ public:
         // Actual execution of the functionality of this class
         if (mReformulateEveryStep || !mIsFormulated)
         {
-            const auto &r_comm = mrMainModelPart.GetCommunicator().GetDataCommunicator();
+            const auto &r_comm = mrMainModelPart.GetCommunicator();
+            ModelPart::MeshType::Pointer p_interface_mesh = r_comm.pGhostMesh();
             if(r_comm.IsDistributed()){
-                const int mpi_rank = r_comm.Rank();
+                const int mpi_rank = r_comm.MyPID();
                 for(const auto& node_id : mRemoteNodes)
                 {
                     if(mrMainModelPart.GetNode(node_id).FastGetSolutionStepValue(PARTITION_INDEX) != mpi_rank)
-                        mrMainModelPart.RemoveNodeFromAllLevels(node_id);
+                        p_interface_mesh->RemoveNode(node_id);
                 }
                 mRemoteNodes.clear();
             }
@@ -741,6 +742,7 @@ protected:
             for (NodesContainerType::iterator it = RecvNodes[i].begin();
                  it != RecvNodes[i].end(); ++it){
                         auto p_node = *it.base();
+                        mRemoteNodes.push_back(p_node->Id());
                         rModelpart.Nodes().push_back(p_node);
                  }
         }
