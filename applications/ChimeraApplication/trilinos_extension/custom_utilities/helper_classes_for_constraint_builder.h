@@ -637,22 +637,22 @@ private:
         //     master_i++;
         // }
 
-        // // For K(s,m) and K(m,s). This is to be done at the end only
-        // for (auto& master_index : mLocalIndices.processed_master_indices) {
-        //     for (auto& slave_index : mLocalIndices.slave_index_vector) {
-        //         rLHSContribution(slave_index, master_index) = 0.0;
-        //         rLHSContribution(master_index, slave_index) = 0.0;
-        //     }
-        // }
+        // For K(s,m) and K(m,s). This is to be done at the end only
+        for (auto& master_index : mLocalIndices.processed_master_indices) {
+            for (auto& slave_index : mLocalIndices.slave_index_vector) {
+                rLHSContribution(slave_index, master_index) = 0.0;
+                rLHSContribution(master_index, slave_index) = 0.0;
+            }
+        }
 
 
-        // // For K(u,s) and K(s,u). This is to be done at the end only
-        // for (auto& slave_index : mLocalIndices.slave_index_vector) {
-        //     for (auto& internal_index : mLocalIndices.internal_index_vector) {
-        //         rLHSContribution(slave_index, internal_index) = 0.0;
-        //         rLHSContribution(internal_index, slave_index) = 0.0;
-        //     }
-        // }
+        // For K(u,s) and K(s,u). This is to be done at the end only
+        for (auto& slave_index : mLocalIndices.slave_index_vector) {
+            for (auto& internal_index : mLocalIndices.internal_index_vector) {
+                rLHSContribution(slave_index, internal_index) = 0.0;
+                rLHSContribution(internal_index, slave_index) = 0.0;
+            }
+        }
 
         // For K(s,s)
         for (auto& slave_index1 : mLocalIndices.slave_index_vector) {
@@ -694,26 +694,26 @@ private:
                 rRHSContribution(internal_index) -= rLHSContribution(internal_index, slave_index) * slave_constant;
             }
 
-            // IndexType master_index = 0;
-            // double master_weight = 0.0;
-            // IndexType i_master = 0;
-            // for (auto&  master_eq_id : master_equation_ids)
-            // { // Loop over all the masters the slave has
-            //     // master_index = std::distance(rEquationIds.begin(), std::find(rEquationIds.begin(), rEquationIds.end(), master_eq_id));
-            //     //master_weight = mTransformationMatrixLocal(slave_index,master_index);
-            //     // master_weight = master_weights_vector(i_master);
-            //     // For RHS(m) += A'*LHS(s,s)*B
-            //     // for (auto& slave_index_other : mLocalIndices.slave_index_vector) {
-            //     //     auto global_master_slave_constraint_other = mrGlobalMasterSlaveConstraints.find(rEquationIds[slave_index_other]);
-            //     //     global_master_slave_constraint_other->second->CalculateLocalSystem(master_weights_vector_other, constant_other);
-            //     //     // rRHSContribution(master_index) -= rLHSContribution(slave_index, slave_index_other) * master_weight * constant_other;
-            //     // }
-            //     // Changing the RHS side of the equation
-            //     // rRHSContribution(master_index) += master_weight * rRHSContribution(slave_index);
-            //     // rRHSContribution(master_index) -= rLHSContribution(master_index, slave_index) * slave_constant;
+            IndexType master_index = 0;
+            double master_weight = 0.0;
+            IndexType i_master = 0;
+            for (auto&  master_eq_id : master_equation_ids)
+            { // Loop over all the masters the slave has
+                // master_index = std::distance(rEquationIds.begin(), std::find(rEquationIds.begin(), rEquationIds.end(), master_eq_id));
+                //master_weight = mTransformationMatrixLocal(slave_index,master_index);
+                // master_weight = master_weights_vector(i_master);
+                // For RHS(m) += A'*LHS(s,s)*B
+                // for (auto& slave_index_other : mLocalIndices.slave_index_vector) {
+                //     auto global_master_slave_constraint_other = mrGlobalMasterSlaveConstraints.find(rEquationIds[slave_index_other]);
+                //     global_master_slave_constraint_other->second->CalculateLocalSystem(master_weights_vector_other, constant_other);
+                //     // rRHSContribution(master_index) -= rLHSContribution(slave_index, slave_index_other) * master_weight * constant_other;
+                // }
+                // Changing the RHS side of the equation
+                // rRHSContribution(master_index) += master_weight * rRHSContribution(slave_index);
+                rRHSContribution(master_index) -= rLHSContribution(master_index, slave_index) * slave_constant;
 
-            //     i_master++;
-            // } // Loop over all the masters the slave has
+                i_master++;
+            } // Loop over all the masters the slave has
 
             rRHSContribution(slave_index) = 0.0;
         }
