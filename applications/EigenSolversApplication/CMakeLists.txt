@@ -16,10 +16,6 @@ message( "**** configuring KratosEigenSolversApplication ****" )
 ################### PYBIND11
 include(pybind11Tools)
 
-if( NOT DEFINED EIGEN_ROOT )
-    message( FATAL_ERROR "EIGEN_ROOT not defined" )
-endif()
-
 if( USE_EIGEN_MKL MATCHES ON AND NOT DEFINED ENV{MKLROOT} )
     message( FATAL_ERROR "MKLROOT not defined" )
 endif()
@@ -28,7 +24,7 @@ add_definitions( -DEIGEN_DEFAULT_TO_ROW_MAJOR -DEIGEN_MPL2_ONLY )
 
 include_directories(
     ${KRATOS_SOURCE_DIR}/kratos
-        SYSTEM ${EIGEN_ROOT} # Including as System to suppress compile-warnings from it
+        SYSTEM external_libraries/eigen3 # Including as System to suppress compile-warnings from it
 )
 
 if( USE_EIGEN_MKL MATCHES ON )

@@ -19,6 +19,15 @@ namespace Kratos
 {
 namespace Testing
 {
+
+    void AddDisplacementDofs(ModelPart& rModelPart){
+        for (auto& r_node : rModelPart.Nodes()){
+            r_node.AddDof(DISPLACEMENT_X);
+            r_node.AddDof(DISPLACEMENT_Y);
+            r_node.AddDof(DISPLACEMENT_Z);
+        }
+    }
+
     void AssignPredefinedDisplacement(Element::Pointer pElement)
     {
         const unsigned int number_of_nodes = pElement->GetGeometry().size();
@@ -46,7 +55,8 @@ namespace Testing
         Vector RHS_original = ZeroVector(number_of_dofs);
         Matrix LHS_original = ZeroMatrix(number_of_dofs,number_of_dofs);
 
-        pElement->Initialize(); // Initialize the element to initialize the constitutive law
+        pElement->Initialize(rModelPart.GetProcessInfo()); // Initialize the element to initialize the constitutive law
+        pElement->Check(rModelPart.GetProcessInfo());
         pElement->CalculateLocalSystem(LHS_original, RHS_original, rModelPart.GetProcessInfo());
 
         const double delta = 1e-4;
@@ -82,8 +92,10 @@ namespace Testing
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
 
         // Set the element properties
         auto p_elem_prop = r_model_part.CreateNewProperties(0);
@@ -97,11 +109,16 @@ namespace Testing
         auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
         auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
         auto p_node_3 = r_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.0);
+
+        AddDisplacementDofs(r_model_part);
+
+
         std::vector<ModelPart::IndexType> element_nodes {1,2,3};
         auto p_element = r_model_part.CreateNewElement("MembraneElement3D3N", 1, element_nodes, p_elem_prop);
         const unsigned int number_of_nodes = p_element->GetGeometry().size();
         const unsigned int dimension = p_element->GetGeometry().WorkingSpaceDimension();
         const unsigned int number_of_dofs = number_of_nodes * dimension;
+
 
         Vector relative_error = ZeroVector(number_of_dofs*number_of_dofs);
         ComputeRelativeError(relative_error, p_element, r_model_part);
@@ -117,8 +134,10 @@ namespace Testing
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
 
         // Set the element properties
         auto p_elem_prop = r_model_part.CreateNewProperties(0);
@@ -133,6 +152,9 @@ namespace Testing
         auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
         auto p_node_3 = r_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
         auto p_node_4 = r_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
+
+        AddDisplacementDofs(r_model_part);
+
         std::vector<ModelPart::IndexType> element_nodes {1,2,3,4};
         auto p_element = r_model_part.CreateNewElement("MembraneElement3D4N", 1, element_nodes, p_elem_prop);
 

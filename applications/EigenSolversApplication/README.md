@@ -47,9 +47,7 @@ The application provides a generalized eigensystem solver for sparse matrices. I
 
 ## Build instructions
 
-1. Download and unpack [Eigen](http://eigen.tuxfamily.org/)
-
-2. Set the required definitions for cmake
+1. Set the required definitions for cmake
 
     As any other app:
 
@@ -59,33 +57,23 @@ The application provides a generalized eigensystem solver for sparse matrices. I
     set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\EigenSolversApplication;
     ```
 
-    ```batch
-    -DEIGEN_ROOT="<path to eigen>" ^
-    ```
-
     **Linux:** in `configure.sh`
-    
+
     ```bash
     add_app ${KRATOS_APP_DIR}/EigenSolversApplication
     ```
 
-    ```bash
-    -DEIGEN_ROOT="<path to eigen>" \
-    ```
+2. Build Kratos
 
-    > **Hint:** The `EIGEN_ROOT` directory should contain a file called `README.md`.
-
-3. Build Kratos
-
-4. Setup the `ProjectParameters.json`
+3. Setup the `ProjectParameters.json`
 
     ```json
     "linear_solver_settings": {
-        "solver_type" : "sparse_lu"
+        "solver_type" : "EigenSolversApplication.sparse_lu"
     }
     ```
 
-5. Run the simulation
+4. Run the simulation
 
 ## Enable MKL (optional)
 
