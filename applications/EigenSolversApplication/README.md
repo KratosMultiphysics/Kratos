@@ -128,7 +128,7 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl), you can 
 
 ## Install MKL on Ubuntu with apt
 
-Open a terminal windows an run the following commands to install MKL from the official Intel repository:
+Open a terminal window and run the following commands to install MKL from the official Intel repository:
 
 ```batch
 apt-get update -y
