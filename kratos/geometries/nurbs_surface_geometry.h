@@ -513,7 +513,7 @@ private:
 
         if (number_of_cps !=
             (NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeU, mKnotsU.size())
-                * NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeV, rKnotsV.size())))
+                * NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeV, mKnotsV.size())))
         {
             if (number_of_cps ==
                 (NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeU, mKnotsU.size() - 2)
