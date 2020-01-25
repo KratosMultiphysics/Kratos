@@ -124,7 +124,7 @@ class ElementFlagValueInput(VariableIO):
 
     def __call__(self, model_part, hdf5_file):
         KratosHDF5.HDF5ElementFlagValueIO(
-            self.GetSettings(model_part).Get(), hdf5_file).ReadElementFlags(model_part.Elements)            
+            self.GetSettings(model_part).Get(), hdf5_file).ReadElementFlags(model_part.Elements)
 
 
 class NodalSolutionStepDataOutput(VariableIO):
@@ -195,7 +195,7 @@ class NodalFlagValueInput(VariableIO):
         primal_io = KratosHDF5.HDF5NodalFlagValueIO(
             self.GetSettings(model_part).Get(), hdf5_file)
         primal_io.ReadNodalFlags(
-            model_part.Nodes, model_part.GetCommunicator())            
+            model_part.Nodes, model_part.GetCommunicator())
 
 
 class PrimalBossakOutput(VariableIO):
@@ -265,11 +265,11 @@ def Create(settings):
     elif operation_type == 'element_data_value_output':
         return ElementDataValueOutput(settings)
     elif operation_type == 'element_flag_value_output':
-        return ElementFlagValueOutput(settings)        
+        return ElementFlagValueOutput(settings)
     elif operation_type == 'element_data_value_input':
         return ElementDataValueInput(settings)
     elif operation_type == 'element_flag_value_input':
-        return ElementFlagValueInput(settings)        
+        return ElementFlagValueInput(settings)
     elif operation_type == 'nodal_solution_step_data_output':
         return NodalSolutionStepDataOutput(settings)
     elif operation_type == 'nodal_solution_step_data_input':
@@ -277,11 +277,11 @@ def Create(settings):
     elif operation_type == 'nodal_data_value_output':
         return NodalDataValueOutput(settings)
     elif operation_type == 'nodal_flag_value_output':
-        return NodalFlagValueOutput(settings)        
+        return NodalFlagValueOutput(settings)
     elif operation_type == 'nodal_data_value_input':
         return NodalDataValueInput(settings)
     elif operation_type == 'nodal_flag_value_input':
-        return NodalFlagValueInput(settings)        
+        return NodalFlagValueInput(settings)
     elif operation_type == 'primal_bossak_output':
         return PrimalBossakOutput(settings)
     elif operation_type == 'primal_bossak_input':

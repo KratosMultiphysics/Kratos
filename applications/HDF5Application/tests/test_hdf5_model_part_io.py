@@ -112,7 +112,7 @@ class TestCase(KratosUnittest.TestCase):
 
             element.Set(SLIP, bool(random.randint(-100, 100) % 2))
             element.Set(ACTIVE, bool(random.randint(-100, 100) % 2))
-            element.Set(STRUCTURE, bool(random.randint(-100, 100) % 2))            
+            element.Set(STRUCTURE, bool(random.randint(-100, 100) % 2))
         # Set some process info variables.
         model_part.ProcessInfo[DOMAIN_SIZE] = 3 # int
         model_part.ProcessInfo[TIME] = random.random() # float
@@ -160,7 +160,7 @@ class TestCase(KratosUnittest.TestCase):
             "prefix" : "/ResultsData",
             "list_of_variables" : ["SLIP", "ACTIVE", "STRUCTURE"]
         }""")
-        return HDF5ElementFlagValueIO(params, hdf5_file)        
+        return HDF5ElementFlagValueIO(params, hdf5_file)
 
     def _get_nodal_data_value_io(self, hdf5_file):
         params = Parameters("""
@@ -176,7 +176,7 @@ class TestCase(KratosUnittest.TestCase):
             "prefix" : "/ResultsData",
             "list_of_variables" : ["SLIP", "ACTIVE", "STRUCTURE"]
         }""")
-        return HDF5NodalFlagValueIO(params, hdf5_file)         
+        return HDF5NodalFlagValueIO(params, hdf5_file)
 
     def test_HDF5ModelPartIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -290,7 +290,7 @@ class TestCase(KratosUnittest.TestCase):
             # Check data.
             for read_element, write_element in zip(read_model_part.Elements, write_model_part.Elements):
                 for var in assert_variables_list:
-                    self.assertEqual(read_element.Is(var), write_element.Is(var))                    
+                    self.assertEqual(read_element.Is(var), write_element.Is(var))
 
     def test_HDF5NodalDataValueIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -333,7 +333,7 @@ class TestCase(KratosUnittest.TestCase):
             # Check flag.
             for read_node, write_node in zip(read_model_part.Nodes, write_model_part.Nodes):
                 for var in assert_variables_list:
-                    self.assertEqual(read_node.Is(var), write_node.Is(var))                    
+                    self.assertEqual(read_node.Is(var), write_node.Is(var))
 
     def tearDown(self):
         pass

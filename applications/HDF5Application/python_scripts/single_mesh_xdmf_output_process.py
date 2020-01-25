@@ -58,8 +58,8 @@ def Factory(settings, Model):
     +-------------------------------------+------------+---------------------------------+
     | "element_flag_value_settings"       | Parameters | "prefix": "/ResultsData"        |
     |                                     |            | "list_of_variables": []         |
-    +-------------------------------------+------------+---------------------------------+    
-    
+    +-------------------------------------+------------+---------------------------------+
+
     """
     core_settings = CreateCoreSettings(settings["Parameters"])
     return SingleMeshXdmfOutputProcessFactory(core_settings, Model)
@@ -137,7 +137,7 @@ def CreateCoreSettings(user_settings):
             "nodal_data_value_settings": {},
             "element_data_value_settings" : {},
             "nodal_flag_value_settings": {},
-            "element_flag_value_settings" : {}            
+            "element_flag_value_settings" : {}
         }
         """))
     user_settings = ParametersWrapper(user_settings)
@@ -167,7 +167,7 @@ def CreateCoreSettings(user_settings):
         CreateOperationSettings("nodal_flag_value_output",
                                 user_settings["nodal_flag_value_settings"]),
         CreateOperationSettings("element_flag_value_output",
-                                user_settings["element_flag_value_settings"])                                
+                                user_settings["element_flag_value_settings"])
     ]
     core_settings[2]["list_of_operations"] = [
         CreateOperationSettings("nodal_solution_step_data_output",
@@ -179,7 +179,7 @@ def CreateCoreSettings(user_settings):
         CreateOperationSettings("nodal_flag_value_output",
                                 user_settings["nodal_flag_value_settings"]),
         CreateOperationSettings("element_flag_value_output",
-                                user_settings["element_flag_value_settings"])                                
+                                user_settings["element_flag_value_settings"])
     ]
     for key in user_settings["output_time_settings"]:
         core_settings[2]["controller_settings"][key] = user_settings["output_time_settings"][key]

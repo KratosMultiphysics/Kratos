@@ -108,7 +108,7 @@ class TestXdmfNodalResults(KratosUnittest.TestCase):
         self.assertEqual(results[0].data.file_name, "kratos.h5")
         self.assertEqual(results[0].data.name, "/Results/NodalFlagValues/SLIP")
         self.assertEqual(results[0].data.dtype, "int32")
-        self.assertEqual(results[0].attribute_type, "Scalar")        
+        self.assertEqual(results[0].attribute_type, "Scalar")
 
     @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
     def test_XdmfNodalResults_RepeatedVariableException(self):
@@ -131,7 +131,7 @@ class TestXdmfNodalResults(KratosUnittest.TestCase):
         with h5py.File("kratos.h5", "a", "core", backing_store=False) as f:
             f.create_group("/Results")
             results = XdmfNodalFlags(f["/Results"])
-            self.assertEqual(len(results), 0)            
+            self.assertEqual(len(results), 0)
 
 
 class TestXdmfElementResults(KratosUnittest.TestCase):
@@ -157,7 +157,7 @@ class TestXdmfElementResults(KratosUnittest.TestCase):
         self.assertEqual(results[0].data.file_name, "kratos.h5")
         self.assertEqual(results[0].data.name, "/Results/ElementFlagValues/SLIP")
         self.assertEqual(results[0].data.dtype, "int32")
-        self.assertEqual(results[0].attribute_type, "Scalar")        
+        self.assertEqual(results[0].attribute_type, "Scalar")
 
     @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
     def test_XdmfElementResults_NoResultsFound(self):
@@ -171,7 +171,7 @@ class TestXdmfElementResults(KratosUnittest.TestCase):
         with h5py.File("kratos.h5", "a", "core", backing_store=False) as f:
             f.create_group("/Results")
             results = XdmfElementFlags(f["/Results"])
-            self.assertEqual(len(results), 0)            
+            self.assertEqual(len(results), 0)
 
 
 class TestXdmfResults(KratosUnittest.TestCase):

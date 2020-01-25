@@ -43,7 +43,7 @@ def Factory(settings, Model):
     +-------------------------------------+------------+-----------------------------------------+
     | "element_flag_value_settings"       | Parameters | "prefix": "/ResultsData"                |
     |                                     |            | "list_of_variables": []                 |
-    +-------------------------------------+------------+-----------------------------------------+    
+    +-------------------------------------+------------+-----------------------------------------+
     """
     core_settings = CreateCoreSettings(settings["Parameters"])
     return SingleMeshTemporalInputProcessFactory(core_settings, Model)
@@ -78,7 +78,7 @@ def CreateCoreSettings(user_settings):
                 "nodal_data_value_settings": {},
                 "element_data_value_settings" : {},
                 "nodal_flag_value_settings": {},
-                "element_flag_value_settings" : {}                
+                "element_flag_value_settings" : {}
             }
             """)
     )
@@ -100,6 +100,6 @@ def CreateCoreSettings(user_settings):
         CreateOperationSettings("nodal_flag_value_input",
                                 user_settings["nodal_flag_value_settings"]),
         CreateOperationSettings("element_flag_value_input",
-                                user_settings["element_flag_value_settings"])                                
+                                user_settings["element_flag_value_settings"])
     ]
     return core_settings

@@ -346,8 +346,8 @@ class TestOperations(KratosUnittest.TestCase):
             hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
             nodal_flag_value_output(model_part, hdf5_file)
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(nodal_flag_value_io.WriteNodalFlags.call_count, 1)            
-            
+            self.assertEqual(nodal_flag_value_io.WriteNodalFlags.call_count, 1)
+
 
     def test_NodalDataValueInput(self):
         settings = ParametersWrapper()
@@ -379,7 +379,7 @@ class TestOperations(KratosUnittest.TestCase):
             hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
             nodal_flag_value_input(model_part, hdf5_file)
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(nodal_flag_value_io.ReadNodalFlags.call_count, 1)            
+            self.assertEqual(nodal_flag_value_io.ReadNodalFlags.call_count, 1)
 
     def test_ElementDataValueOutput(self):
         settings = ParametersWrapper()
@@ -411,7 +411,7 @@ class TestOperations(KratosUnittest.TestCase):
             hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
             element_flag_value_output(model_part, hdf5_file)
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(element_flag_value_io.WriteElementFlags.call_count, 1)            
+            self.assertEqual(element_flag_value_io.WriteElementFlags.call_count, 1)
 
     def test_ElementDataValueInput(self):
         settings = ParametersWrapper()
@@ -443,7 +443,7 @@ class TestOperations(KratosUnittest.TestCase):
             hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
             element_flag_value_input(model_part, hdf5_file)
             self.assertEqual(p.call_count, 1)
-            self.assertEqual(element_flag_value_io.ReadElementFlags.call_count, 1)            
+            self.assertEqual(element_flag_value_io.ReadElementFlags.call_count, 1)
 
     def test_PrimalBossakOutput(self):
         settings = ParametersWrapper()

@@ -168,7 +168,7 @@ class TestCase(KratosUnittest.TestCase):
             "prefix" : "/ResultsData",
             "list_of_variables" : ["DISPLACEMENT", "VELOCITY", "ACCELERATION", "PRESSURE", "VISCOSITY", "DENSITY", "ACTIVATION_LEVEL"]
         }""")
-        return HDF5NodalDataValueIO(params, hdf5_file)  
+        return HDF5NodalDataValueIO(params, hdf5_file)
 
     def _get_nodal_flag_io(self, hdf5_file):
         params = Parameters("""
@@ -176,7 +176,7 @@ class TestCase(KratosUnittest.TestCase):
             "prefix" : "/ResultsData",
             "list_of_variables" : ["SLIP", "ACTIVE"]
         }""")
-        return HDF5NodalFlagValueIO(params, hdf5_file)               
+        return HDF5NodalFlagValueIO(params, hdf5_file)
 
     def test_HDF5ModelPartIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -303,7 +303,7 @@ class TestCase(KratosUnittest.TestCase):
                 self.assertEqual(read_node.GetValue(VISCOSITY), write_node.GetValue(VISCOSITY))
                 self.assertEqual(read_node.GetValue(DENSITY), write_node.GetValue(DENSITY))
                 self.assertEqual(read_node.GetValue(ACTIVATION_LEVEL), write_node.GetValue(ACTIVATION_LEVEL))
-            kratos_utilities.DeleteFileIfExisting("test_hdf5_model_part_io_mpi.h5")     
+            kratos_utilities.DeleteFileIfExisting("test_hdf5_model_part_io_mpi.h5")
 
     def test_HDF5NodalFlagIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -326,7 +326,7 @@ class TestCase(KratosUnittest.TestCase):
             for read_node, write_node in zip(read_model_part.GetCommunicator().LocalMesh().Nodes, write_model_part.GetCommunicator().LocalMesh().Nodes):
                 self.assertEqual(read_node.Is(SLIP), write_node.Is(SLIP))
                 self.assertEqual(read_node.Is(ACTIVE), write_node.Is(ACTIVE))
-            kratos_utilities.DeleteFileIfExisting("test_hdf5_model_part_io_mpi.h5")                   
+            kratos_utilities.DeleteFileIfExisting("test_hdf5_model_part_io_mpi.h5")
 
     def tearDown(self):
         pass

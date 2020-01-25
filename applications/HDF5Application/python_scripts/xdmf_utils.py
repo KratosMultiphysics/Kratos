@@ -204,7 +204,7 @@ def XdmfNodalFlags(h5_results):
     for variable, data in filter(Has_dtype, grp.items()):
         r = NodalData(variable, HDF5UniformDataItem(data))
         results.append(r)
-    return results 
+    return results
 
 
 def XdmfElementResults(h5_results):
@@ -255,7 +255,7 @@ def XdmfElementFlags(h5_results):
     for variable, data in filter(Has_dtype, grp.items()):
         r = ElementData(variable, HDF5UniformDataItem(data))
         results.append(r)
-    return results    
+    return results
 
 
 def XdmfResults(h5_results):
