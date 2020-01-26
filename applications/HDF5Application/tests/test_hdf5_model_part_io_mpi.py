@@ -128,6 +128,8 @@ class TestCase(KratosUnittest.TestCase):
         model_part.GetCommunicator().SynchronizeNonHistoricalVariable(DENSITY)
         model_part.GetCommunicator().SynchronizeNonHistoricalVariable(ACTIVATION_LEVEL)
 
+        model_part.GetCommunicator().SynchronizeNodalFlags()
+
         # Set some process info variables.
         model_part.ProcessInfo[DOMAIN_SIZE] = 3 # int
         model_part.ProcessInfo[TIME] = 1.2345 # float
@@ -323,7 +325,7 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_nodal_flag_io.ReadNodalFlags(read_model_part.Nodes, read_model_part.GetCommunicator())
 
             # # Check flag.
-            for read_node, write_node in zip(read_model_part.GetCommunicator().LocalMesh().Nodes, write_model_part.GetCommunicator().LocalMesh().Nodes):
+            for read_node, write_node in zip(read_model_part.Nodes, write_model_part.Nodes):
                 self.assertEqual(read_node.Is(SLIP), write_node.Is(SLIP))
                 self.assertEqual(read_node.Is(ACTIVE), write_node.Is(ACTIVE))
             kratos_utilities.DeleteFileIfExisting("test_hdf5_model_part_io_mpi.h5")

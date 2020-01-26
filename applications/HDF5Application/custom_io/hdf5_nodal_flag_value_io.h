@@ -74,6 +74,7 @@ public:
     void ReadNodalFlags(NodesContainerType& rNodes, Communicator& rComm)
     {
         this->ReadContainerComponents(rNodes, rComm);
+        rComm.SynchronizeNodalFlags();
     }
 
     ///@}

@@ -252,7 +252,6 @@ class ComponentNodeSynchronizingFunctor<Flags>
 public:
     void operator()(Flags const& rComponent, std::vector<NodeType*>& rGhostNodes, Communicator& rCommunicator)
     {
-        rCommunicator.SynchronizeNodalFlags();
     }
 };
 
