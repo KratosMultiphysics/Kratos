@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosConvectionDiffusionApplication",
 	"included_modules": ["ConvectionDiffusionApplication"],
-	"included_binaries": ["KratosConvectionDiffusionApplication.cpython-${PYTHON}-x86_64-linux-gnu.so", "libKratosConvectionDiffusionCore.so"],
+	"included_binaries": ["KratosConvectionDiffusionApplication.cpython-${PYTHON}-x86_64-linux-gnu.so"],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",
 	"author_email": "kratos@listas.cimne.upc.edu",
