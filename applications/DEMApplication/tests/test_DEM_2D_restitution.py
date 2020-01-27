@@ -27,16 +27,16 @@ def CreateAndRunStageInOneOpenMPThread(my_obj, model, parameters_file_name):
     if "OMP_NUM_THREADS" in os.environ:
         omp_utils.SetNumThreads(int(initial_number_of_threads))
 
-class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
+class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
 
     def Initialize(self):
-        super(DEM3D_RestitutionTestSolution, self).Initialize()
+        super(DEM2D_RestitutionTestSolution, self).Initialize()
         for node in self.spheres_model_part.Nodes:
-            self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
+            self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
 
     @classmethod
     def GetMainPath(self):
-        return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_restitution_tests_files")
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_restitution_tests_files")
 
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
@@ -49,15 +49,16 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
     def Finalize(self):
         tolerance = 1.0001
         for node in self.spheres_model_part.Nodes:
-            final_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
-            print("initial velocity:",-self.initial_normal_vel)
+            final_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
+            print("initial velocity:",self.initial_normal_vel)
             print("final velocity:",final_vel)
             restitution_coefficient = -final_vel / self.initial_normal_vel
+            print("restitution_coefficient",restitution_coefficient)
             print("ref:", self.coeff)
             print("upper bound:",restitution_coefficient*tolerance)
             print("lower bound:",restitution_coefficient/tolerance)
             self.CheckRestitution(self.coeff, restitution_coefficient, tolerance)
-        super(DEM3D_RestitutionTestSolution, self).Finalize()
+        super(DEM2D_RestitutionTestSolution, self).Finalize()
 
 
     def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):
@@ -76,29 +77,23 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
         rotational_scheme = ForwardEulerScheme()
         rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
 
-        element_name = "SphericParticle3D"
+        element_name = "CylinderParticle2D"
         PropertiesProxiesManager().CreatePropertiesProxies(self.spheres_model_part)
 
         coordinates = KratosMultiphysics.Array3()
         coordinates[0] = 0.0
-        coordinates[1] = 0.0
-        coordinates[2] = 0.00255
+        coordinates[1] = 0.00255
         radius = 0.0025
         self.creator_destructor.CreateSphericParticle(self.spheres_model_part, coordinates, properties, radius, element_name)
 
         for node in self.spheres_model_part.Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, -3.9)
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, -3.9)
 
-        self.rigid_face_model_part.CreateNewNode(3, -0.01, 0.01, 0.0)
-        self.rigid_face_model_part.CreateNewNode(4, 0.01, 0.01, 0.0)
+        self.rigid_face_model_part.CreateNewNode(3, -0.01, 0.0, 0.0)
+        self.rigid_face_model_part.CreateNewNode(4, 0.01, 0.0, 0.0)
 
-        self.rigid_face_model_part.CreateNewNode(5, -0.01, -0.01, 0.0)
-        self.rigid_face_model_part.CreateNewNode(6, 0.01, -0.01, 0.0)
-
-        condition_name = "RigidFace3D3N"
-        self.rigid_face_model_part.CreateNewCondition(condition_name, 7, [5, 6, 3], self.rigid_face_model_part.GetProperties()[0])
-        self.rigid_face_model_part.CreateNewCondition(condition_name, 8, [3, 6, 4], self.rigid_face_model_part.GetProperties()[0])
-
+        condition_name = "RigidEdge2D2N"
+        self.rigid_face_model_part.CreateNewCondition(condition_name, 7, [3, 4], self.rigid_face_model_part.GetProperties()[0])
 
     @classmethod
     def SetHardcodedProperties(self, properties, properties_walls):
@@ -108,7 +103,7 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
         properties[FRICTION] = 0.0
         properties[PARTICLE_COHESION] = 0.0
         properties[COEFFICIENT_OF_RESTITUTION] = 1.0
-        self.coeff = 1.0963606640305437
+        self.coeff = 1.0985200123566359      # reference value at dt=1.0e-6
         properties[KratosMultiphysics.PARTICLE_MATERIAL] = 1
         properties[ROLLING_FRICTION] = 0.0
         properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEMContinuumConstitutiveLaw"
@@ -125,7 +120,7 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
 
 
 
-class DEM3D_RestitutionTestSolution_2(DEM3D_RestitutionTestSolution):
+class DEM2D_RestitutionTestSolution_2(DEM2D_RestitutionTestSolution):
 
     @classmethod
     def SetHardcodedProperties(self, properties, properties_walls):
@@ -135,7 +130,7 @@ class DEM3D_RestitutionTestSolution_2(DEM3D_RestitutionTestSolution):
         properties[FRICTION] = 0.0
         properties[PARTICLE_COHESION] = 0.0
         properties[COEFFICIENT_OF_RESTITUTION] = 0.5
-        self.coeff = 0.5472000544114178
+        self.coeff = 0.5455811757241611      # reference value at dt=1.0e-6
         properties[KratosMultiphysics.PARTICLE_MATERIAL] = 1
         properties[ROLLING_FRICTION] = 0.0
         properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEMContinuumConstitutiveLaw"
@@ -151,28 +146,28 @@ class DEM3D_RestitutionTestSolution_2(DEM3D_RestitutionTestSolution):
         properties_walls[KratosMultiphysics.POISSON_RATIO] = 0.23
 
 
-class TestDEM3DRestitution(KratosUnittest.TestCase):
+class TestDEM2DRestitution(KratosUnittest.TestCase):
 
     def setUp(self):
         pass
 
     @classmethod
-    def test_DEM3D_restitution_1(self):
-        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_restitution_tests_files")
+    def test_DEM2D_restitution_1(self):
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        CreateAndRunStageInOneOpenMPThread(DEM3D_RestitutionTestSolution, model, parameters_file_name)
+        CreateAndRunStageInOneOpenMPThread(DEM2D_RestitutionTestSolution, model, parameters_file_name)
 
     @classmethod
-    def test_DEM3D_restitution_2(self):
-        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_restitution_tests_files")
+    def test_DEM2D_restitution_2(self):
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        CreateAndRunStageInOneOpenMPThread(DEM3D_RestitutionTestSolution_2, model, parameters_file_name)
+        CreateAndRunStageInOneOpenMPThread(DEM2D_RestitutionTestSolution_2, model, parameters_file_name)
 
 
     def tearDown(self):
-        file_to_remove = os.path.join("DEM3D_restitution_tests_files", "TimesPartialRelease")
+        file_to_remove = os.path.join("DEM2D_restitution_tests_files", "TimesPartialRelease")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
         os.chdir(this_working_dir_backup)
 
