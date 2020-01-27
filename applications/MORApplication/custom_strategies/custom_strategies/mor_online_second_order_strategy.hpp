@@ -67,7 +67,7 @@ template <class TSparseSpace,
           class OfflineStrategyType
           >
 class MorOnlineSecondOrderStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public SolvingStrategy<TSparseSpace, TDenseSpace, LinearSolver<TSparseSpace,TDenseSpace>>
 {
   public:
     ///@name Type Definitions
@@ -75,7 +75,7 @@ class MorOnlineSecondOrderStrategy
     // Counted pointer of ClassName
     KRATOS_CLASS_POINTER_DEFINITION(MorOnlineSecondOrderStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace, LinearSolver<TSparseSpace,TDenseSpace>> BaseType;
 
     typedef TUblasSparseSpace< std::complex< double > > ComplexSparseSpaceType;
     typedef TUblasDenseSpace< std::complex< double > > ComplexDenseSpaceType;
@@ -131,7 +131,7 @@ class MorOnlineSecondOrderStrategy
         typename TLinearSolver::Pointer pLinearSolver,
         typename OfflineStrategyType::Pointer pOfflineStrategy,
         bool expandSolution = true)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, false),
+        : SolvingStrategy<TSparseSpace, TDenseSpace, LinearSolver<TSparseSpace,TDenseSpace>>(rModelPart, false),
             mExpandSolution(expandSolution)
     {
         KRATOS_TRY;
