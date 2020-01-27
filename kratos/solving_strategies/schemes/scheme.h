@@ -745,7 +745,7 @@ public:
         Element& rElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
-        const Element::EquationIdVectorType& rEquationIdVector,
+        Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         )
     {
@@ -753,12 +753,12 @@ public:
             Element::Pointer(&rElement),
             LHS_Contribution,
             RHS_Contribution,
-            const_cast<Element::EquationIdVectorType&>(rEquationIdVector),
+            rEquationIdVector,
             const_cast<ProcessInfo&>(rCurrentProcessInfo)
         ); // TODO remove this after the transition period and uncomment the following
         // rElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void CalculateSystemContributions(
         Element::Pointer pCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
@@ -782,7 +782,7 @@ public:
         Condition& rCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
-        const Element::EquationIdVectorType& rEquationIdVector,
+        Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         )
     {
@@ -790,12 +790,12 @@ public:
             Condition::Pointer(&rCondition),
             LHS_Contribution,
             RHS_Contribution,
-            const_cast<Element::EquationIdVectorType&>(rEquationIdVector),
+            rEquationIdVector,
             const_cast<ProcessInfo&>(rCurrentProcessInfo)
         ); // TODO remove this after the transition period and uncomment the following
         // rCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void Condition_CalculateSystemContributions(
         Condition::Pointer pCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
@@ -817,19 +817,19 @@ public:
     virtual void Calculate_RHS_Contribution(
         Element& rElement,
         LocalSystemVectorType& RHS_Contribution,
-        const Element::EquationIdVectorType& rEquationIdVector,
+        Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         )
     {
         this->Calculate_RHS_Contribution(
             Element::Pointer(&rElement),
             RHS_Contribution,
-            const_cast<Element::EquationIdVectorType&>(rEquationIdVector),
+            rEquationIdVector,
             const_cast<ProcessInfo&>(rCurrentProcessInfo)
         ); // TODO remove this after the transition period and uncomment the following
         // rElement.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void Calculate_RHS_Contribution(
         Element::Pointer pCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
@@ -850,19 +850,19 @@ public:
     virtual void Calculate_RHS_Contribution(
         Condition& rCondition,
         LocalSystemVectorType& RHS_Contribution,
-        const Element::EquationIdVectorType& rEquationIdVector,
+        Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         )
     {
         this->Condition_Calculate_RHS_Contribution(
             Condition::Pointer(&rCondition),
             RHS_Contribution,
-            const_cast<Element::EquationIdVectorType&>(rEquationIdVector),
+            rEquationIdVector,
             const_cast<ProcessInfo&>(rCurrentProcessInfo)
         ); // TODO remove this after the transition period and uncomment the following
         // rCondition.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void Condition_Calculate_RHS_Contribution(
         Condition::Pointer pCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
@@ -883,19 +883,19 @@ public:
     virtual void Calculate_LHS_Contribution(
         Element& rElement,
         LocalSystemMatrixType& LHS_Contribution,
-        const Element::EquationIdVectorType& rEquationIdVector,
+        Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         )
     {
         this->Calculate_LHS_Contribution(
             Element::Pointer(&rElement),
             LHS_Contribution,
-            const_cast<Element::EquationIdVectorType&>(rEquationIdVector),
+            rEquationIdVector,
             const_cast<ProcessInfo&>(rCurrentProcessInfo)
         ); // TODO remove this after the transition period and uncomment the following
         // rElement.CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void Calculate_LHS_Contribution(
         Element::Pointer pCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
@@ -916,19 +916,19 @@ public:
     virtual void Calculate_LHS_Contribution(
         Condition& rCondition,
         LocalSystemMatrixType& LHS_Contribution,
-        const Element::EquationIdVectorType& rEquationIdVector,
+        Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         )
     {
         this->Condition_Calculate_LHS_Contribution(
             Condition::Pointer(&rCondition),
             LHS_Contribution,
-            const_cast<Element::EquationIdVectorType&>(rEquationIdVector),
+            rEquationIdVector,
             const_cast<ProcessInfo&>(rCurrentProcessInfo)
         ); // TODO remove this after the transition period and uncomment the following
         // rrCondition.CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void Condition_Calculate_LHS_Contribution(
         Condition::Pointer pCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
@@ -988,7 +988,7 @@ public:
         ); // TODO remove this after the transition period and uncomment the following
         // rElement.GetDofList(rDofList, rCurrentProcessInfo);
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetElementalDofList(
         Element::Pointer pCurrentElement,
         Element::DofsVectorType& ElementalDofList,
@@ -1017,7 +1017,7 @@ public:
         ); // TODO remove this after the transition period and uncomment the following
         rCondition.GetDofList(rDofList, rCurrentProcessInfo);
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetConditionDofList(
         Condition::Pointer pCurrentCondition,
         Element::DofsVectorType& ConditionDofList,
