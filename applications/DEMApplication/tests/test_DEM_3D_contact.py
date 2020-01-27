@@ -31,31 +31,29 @@ class DEM3D_ContactTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_s
 
     @classmethod
     def GetMainPath(self):
-        self.signal=0
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_contact_tests_files")
 
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeTimeStep(self, time):
-        tolerance = 1.1
-        if self.signal==0:
-            for node in self.rigid_face_model_part.Nodes:
-                dem_pressure = node.GetSolutionStepValue(DEM_PRESSURE)
-                contact_force = node.GetSolutionStepValue(CONTACT_FORCES_Z)
-                if node.Id == 9:
-                    if time > 0.349:
-                        expected_value = 1621.242
-                        self.CheckPressure(dem_pressure, expected_value, tolerance)
-                        expected_value = -6484.97
-                        self.CheckContactF(contact_force, expected_value, tolerance)
-                if node.Id == 13:
-                    if time > 0.349:
-                        expected_value = 841.6042
-                        self.CheckPressure(dem_pressure, expected_value, tolerance)
-                        expected_value = -3366.417
-                        self.CheckContactF(contact_force, expected_value, tolerance)
-                        self.signal=1
+        tolerance = 1.001
+        for node in self.rigid_face_model_part.Nodes:
+            dem_pressure = node.GetSolutionStepValue(DEM_PRESSURE)
+            contact_force = node.GetSolutionStepValue(CONTACT_FORCES_Z)
+            if node.Id == 9:
+                if time > 0.35:
+                    expected_value = 1621
+                    self.CheckPressure(dem_pressure, expected_value, tolerance)
+                    expected_value = -6484
+                    self.CheckContactF(contact_force, expected_value, tolerance)
+            if node.Id == 13:
+                if time > 0.35:
+                    expected_value = 841
+                    self.CheckPressure(dem_pressure, expected_value, tolerance)
+                    expected_value = -3366
+                    self.CheckContactF(contact_force, expected_value, tolerance)
+
 
 
     @classmethod
