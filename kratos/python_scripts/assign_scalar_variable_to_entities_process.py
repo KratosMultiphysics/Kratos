@@ -105,13 +105,20 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        
+        # Reset thag of the model part
+        self.model_part.Set(KratosMultiphysics.MARKER, False)
 
+        # Check interval 
         if self.interval.IsInInterval(current_time):
             self.step_is_active = True
             for process in self.aux_processes:
                 #process.ExecuteInitializeSolutionStep() # WARNING: Should be this one, for retrocompatibility we consider the Execute!!!
                 process.Execute()
-
+                self.model_part.Set(KratosMultiphysics.MARKER, True) # Me mark the model part, so in case any other process is outside the interval it will not clear the conditions
+        elif self.model_part.IsNot(KratosMultiphysics.MARKER):
+            for process in self.aux_processes:
+                process.Clear()
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
