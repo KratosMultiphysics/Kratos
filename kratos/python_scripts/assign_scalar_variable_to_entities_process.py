@@ -106,7 +106,7 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
         """
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         
-        # Reset thag of the model part
+        # Reset flag of the model part
         self.model_part.Set(KratosMultiphysics.MARKER, False)
 
         # Check interval 
