@@ -76,7 +76,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef LinearMorMatrixOutputStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > LinearMorMatrixOutputStrategyType;
     typedef FrequencyResponseAnalysisStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType > FrequencyResponseAnalysisStrategyType;
     typedef MorOfflineSecondOrderStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType, SparseSpaceType, LocalSpaceType > MorSecondOrderRealInRealOutOfflineStrategyType;
-    typedef MorOfflineSecondOrderStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType, ComplexSpaceType, ComplexLocalSpaceType > MorSecondOrderRealInComplexOutOfflineStrategyType;
+    typedef MorOfflineSecondOrderStrategy< SparseSpaceType, LocalSpaceType, ComplexLinearSolverType, ComplexSpaceType, ComplexLocalSpaceType > MorSecondOrderRealInComplexOutOfflineStrategyType;
     // typedef MorOfflineSecondOrderStrategy< ComplexSpaceType, ComplexLocalSpaceType, ComplexLinearSolverType, ComplexSpaceType, ComplexLocalSpaceType > MorSecondOrderComplexInComplexOutOfflineStrategyType;
     // typedef MorOfflineSecondOrderStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType, ComplexLocalSpaceType > MorOfflineSecondOrderComplexStrategyType;
     typedef MorOnlineSecondOrderStrategy< LocalSpaceType, LocalSpaceType, ComplexDenseLinearSolverType, MorSecondOrderRealInRealOutOfflineStrategyType > MorSecondOrderRealOnlineStrategyType;
@@ -84,7 +84,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // typedef MorOnlineStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType, MorOfflineSecondOrderStrategyType > MorOnlineStrategyType;
 
     typedef MorSecondOrderKrylovStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType, SparseSpaceType, LocalSpaceType > MorSecondOrderKrylovStrategyType;
-    typedef MorSecondOrderKrylovStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType, ComplexSpaceType, ComplexLocalSpaceType > MorSecondOrderComplexKrylovStrategyType;
+    typedef MorSecondOrderKrylovStrategy< SparseSpaceType, LocalSpaceType, ComplexLinearSolverType, ComplexSpaceType, ComplexLocalSpaceType > MorSecondOrderComplexKrylovStrategyType;
 
     // Custom builder and solver types
     typedef SystemMatrixBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > SystemMatrixBuilderAndSolverType;

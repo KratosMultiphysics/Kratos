@@ -67,7 +67,7 @@ template <class TSparseSpace,
           class TReducedDenseSpace
           >
 class MorOfflineSecondOrderStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public SolvingStrategy<TSparseSpace, TDenseSpace, LinearSolver<TSparseSpace,TDenseSpace>>
 {
   public:
     ///@name Type Definitions
@@ -75,10 +75,10 @@ class MorOfflineSecondOrderStrategy
     // Counted pointer of ClassName
     KRATOS_CLASS_POINTER_DEFINITION(MorOfflineSecondOrderStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace, LinearSolver<TSparseSpace,TDenseSpace>> BaseType;
 
     // typedef SystemMatrixBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > TBuilderAndSolverType;
-    typedef BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > TBuilderAndSolverType;
+    typedef BuilderAndSolver< TSparseSpace, TDenseSpace, LinearSolver<TSparseSpace,TDenseSpace> > TBuilderAndSolverType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -142,11 +142,12 @@ class MorOfflineSecondOrderStrategy
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver,
-        typename LinearSolver< TReducedSparseSpace, TReducedDenseSpace >::Pointer pNewLinearSolver,
+        // typename LinearSolver< TReducedSparseSpace, TReducedDenseSpace >::Pointer pNewLinearSolver,
+        typename TLinearSolverType::Pointer pNewLinearSolver,
         bool UseDampingFlag = false,
         bool MoveMeshFlag = false)//,
         // bool UseDefinedOutputFlag = false)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
+        : SolvingStrategy<TSparseSpace, TDenseSpace, LinearSolver<TSparseSpace,TDenseSpace>>(rModelPart, MoveMeshFlag),
             mUseDamping(UseDampingFlag)
     {
         KRATOS_TRY;
@@ -229,7 +230,7 @@ class MorOfflineSecondOrderStrategy
      * @brief Set method for the builder and solver
      * @param pNewBuilderAndSolver The pointer to the builder and solver considered
      */
-    void SetLinearSolver(typename LinearSolver< TReducedSparseSpace, TReducedDenseSpace >::Pointer pNewLinearSolver)
+    void SetLinearSolver(typename TLinearSolverType::Pointer pNewLinearSolver)
     {
         mpLinearSolver = pNewLinearSolver;
     };
@@ -238,7 +239,7 @@ class MorOfflineSecondOrderStrategy
      * @brief Get method for the builder and solver
      * @return mpBuilderAndSolver: The pointer to the builder and solver considered
      */
-    typename LinearSolver< TReducedSparseSpace, TReducedDenseSpace >::Pointer GetLinearSolver()
+    typename TLinearSolverType::Pointer GetLinearSolver()
     {
         return mpLinearSolver;
     };
@@ -824,7 +825,7 @@ class MorOfflineSecondOrderStrategy
     ///@}
     ///@name Member Variables
     ///@{
-    typename LinearSolver< TReducedSparseSpace, TReducedDenseSpace >::Pointer mpLinearSolver; /// The pointer to the linear solver considered
+    typename TLinearSolverType::Pointer mpLinearSolver; /// The pointer to the linear solver considered
     typename TSchemeType::Pointer mpScheme; /// The pointer to the time scheme employed
     typename TBuilderAndSolverType::Pointer mpBuilderAndSolver; /// The pointer to the builder and solver employe
 

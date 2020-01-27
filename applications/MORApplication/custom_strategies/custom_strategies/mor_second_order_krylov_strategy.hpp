@@ -91,6 +91,8 @@ class MorSecondOrderKrylovStrategy
 
     //typedef typename BaseType::DofSetType DofSetType;
 
+    typedef TLinearSolver TLinearSolverType;
+
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
@@ -127,7 +129,7 @@ class MorSecondOrderKrylovStrategy
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename BaseType::TBuilderAndSolverType::Pointer pBuilderAndSolver,
-        typename LinearSolver< TReducedSparseSpace, TReducedDenseSpace >::Pointer pNewLinearSolver,
+        typename TLinearSolverType::Pointer pNewLinearSolver,
         vector< double > samplingPoints,
         bool MoveMeshFlag = false)
         : BaseType(rModelPart, pScheme, pBuilderAndSolver, pNewLinearSolver, true, MoveMeshFlag),
