@@ -45,6 +45,9 @@ class MechanicalSolver(PythonSolver):
     def __init__(self, model, custom_settings):
         settings_have_smps_for_comp_mp = custom_settings.Has("problem_domain_sub_model_part_list") or custom_settings.Has("processes_sub_model_part_list")
 
+        if settings_have_smps_for_comp_mp:
+            kratos_utils.IssueDeprecationWarning('MechanicalSolver', 'Using "problem_domain_sub_model_part_list" and "processes_sub_model_part_list" is deprecated, please remove it from your "solver_settings"')
+
         self._validate_settings_in_baseclass=True # To be removed eventually
         super(MechanicalSolver, self).__init__(model, custom_settings)
 
