@@ -399,30 +399,37 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<AssignScalarVariableToEntitiesProcess<NodeType>, AssignScalarVariableToEntitiesProcess<NodeType>::Pointer, Process>(m,"AssignScalarVariableToNodesProcess")
     .def(py::init<ModelPart&, Parameters >())
+    .def("Clear", &AssignScalarVariableToEntitiesProcess<NodeType>::Clear)
     ;
 
     py::class_<AssignScalarVariableToEntitiesProcess<Condition>, AssignScalarVariableToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarVariableToConditionsProcess")
     .def(py::init<ModelPart&, Parameters >())
+    .def("Clear", &AssignScalarVariableToEntitiesProcess<Condition>::Clear)
     ;
 
     py::class_<AssignScalarVariableToEntitiesProcess<Element>, AssignScalarVariableToEntitiesProcess<Element>::Pointer, Process>(m,"AssignScalarVariableToElementsProcess")
     .def(py::init<ModelPart&, Parameters >())
+    .def("Clear", &AssignScalarVariableToEntitiesProcess<Element>::Clear)
     ;
 
     py::class_<AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>, AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::Pointer, Process>(m,"AssignScalarVariableToMasterSlaveConstraintsProcess")
     .def(py::init<ModelPart&, Parameters >())
+    .def("Clear", &AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::Clear)
     ;
 
     py::class_<AssignScalarFieldToEntitiesProcess<NodeType>, AssignScalarFieldToEntitiesProcess<NodeType>::Pointer, Process>(m,"AssignScalarFieldToNodesProcess")
     .def(py::init<ModelPart&, Parameters >())
+    .def("Clear", &AssignScalarFieldToEntitiesProcess<NodeType>::Clear)
     ;
 
     py::class_<AssignScalarFieldToEntitiesProcess<Condition>, AssignScalarFieldToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarFieldToConditionsProcess")
     .def(py::init<ModelPart&, Parameters >())
+    .def("Clear", &AssignScalarFieldToEntitiesProcess<Condition>::Clear)
     ;
 
     py::class_<AssignScalarFieldToEntitiesProcess<Element>, AssignScalarFieldToEntitiesProcess<Element>::Pointer, Process>(m,"AssignScalarFieldToElementsProcess")
     .def(py::init<ModelPart&, Parameters >())
+    .def("Clear", &AssignScalarFieldToEntitiesProcess<Element>::Clear)
     ;
 
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
