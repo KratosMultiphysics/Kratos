@@ -5,8 +5,6 @@ import KratosMultiphysics.kratos_utilities
 meshing_is_available = KratosMultiphysics.kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication")
 
 import KratosMultiphysics.KratosUnittest as UnitTest
-import random
-import math
 
 
 class TimeAveragingProcessTests(UnitTest.TestCase):

@@ -74,9 +74,11 @@ class DivergenceFreeRefinementProcess(KratosMultiphysics.Process):
         ExaquteSandboxApplication.DivergenceProcess(self.model.GetModelPart(self.model_part_name)).ExecuteInitialize()
         KratosMultiphysics.TimeAveragingProcess(self.model,self.averaging_process_parameters).ExecuteInitialize()
         if (self.domain_size == 2):
-            ExaquteSandboxApplication.MetricDivergenceFreeProcess2D(self.model.GetModelPart(self.model_part_name),self.metric_divergencefree_parameters).ExecuteInitialize()
+            ExaquteSandboxApplication.MetricDivergenceFreeProcess2D(\
+                self.model.GetModelPart(self.model_part_name),self.metric_divergencefree_parameters).ExecuteInitialize()
         elif (self.domain_size == 3):
-            ExaquteSandboxApplication.MetricDivergenceFreeProcess3D(self.model.GetModelPart(self.model_part_name),self.metric_divergencefree_parameters).ExecuteInitialize()
+            ExaquteSandboxApplication.MetricDivergenceFreeProcess3D(\
+                self.model.GetModelPart(self.model_part_name),self.metric_divergencefree_parameters).ExecuteInitialize()
 
     def ExecuteFinalizeSolutionStep(self):
         current_time = self.model.GetModelPart(self.model_part_name).ProcessInfo[KratosMultiphysics.TIME]
@@ -90,9 +92,11 @@ class DivergenceFreeRefinementProcess(KratosMultiphysics.Process):
         find_nodal_h.Execute()
         # Calculate divergence metric of the variable
         if (self.domain_size == 2):
-            divergencefree_metric = ExaquteSandboxApplication.MetricDivergenceFreeProcess2D(self.model.GetModelPart(self.model_part_name),self.metric_divergencefree_parameters)
+            divergencefree_metric = ExaquteSandboxApplication.MetricDivergenceFreeProcess2D(\
+                self.model.GetModelPart(self.model_part_name),self.metric_divergencefree_parameters)
         elif (self.domain_size == 3):
-            divergencefree_metric = ExaquteSandboxApplication.MetricDivergenceFreeProcess3D(self.model.GetModelPart(self.model_part_name),self.metric_divergencefree_parameters)
+            divergencefree_metric = ExaquteSandboxApplication.MetricDivergenceFreeProcess3D(\
+                self.model.GetModelPart(self.model_part_name),self.metric_divergencefree_parameters)
         divergencefree_metric.Execute()
         # Execute remeshing process
         remesh_parameters = KratosMultiphysics.Parameters()
