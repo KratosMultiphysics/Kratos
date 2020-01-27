@@ -130,7 +130,7 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl), you can 
 
 Open a terminal window and run the following commands to install MKL from the official Intel repository:
 
-```batch
+```bash
 apt-get update -y
 apt-get upgrade -y
 apt-get install -y gnupg2 software-properties-common wget
@@ -145,6 +145,6 @@ apt-get install -y intel-mkl-2020.0-088
 
 To enable the MKL environment use 
     
-```batch
+```bash
 source /opt/intel/compilers_and_libraries_2020.0.166/linux/mkl/bin/mklvars.sh intel64 lp64
 ```
