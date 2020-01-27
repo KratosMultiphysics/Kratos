@@ -95,8 +95,11 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
                 elif self.entities[i] == "elements":
                     self.aux_processes.append( KratosMultiphysics.AssignScalarFieldToElementsProcess(self.model_part, params))
 
-        # construct a variable_utils object to speedup fixing
+        # Construct a variable_utils object to speedup fixing
         self.step_is_active = False
+        
+        # Reset flag of the model part
+        self.model_part.Set(KratosMultiphysics.MARKER, False)
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
@@ -105,9 +108,6 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        
-        # Reset flag of the model part
-        self.model_part.Set(KratosMultiphysics.MARKER, False)
 
         # Check interval 
         if self.interval.IsInInterval(current_time):
@@ -127,3 +127,6 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
         self.step_is_active = False
+        
+        # Reset flag of the model part
+        self.model_part.Set(KratosMultiphysics.MARKER, False)
