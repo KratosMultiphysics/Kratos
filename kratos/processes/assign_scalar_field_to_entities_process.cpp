@@ -79,6 +79,27 @@ void AssignScalarFieldToEntitiesProcess<TEntity>::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<class TEntity>
+void AssignScalarFieldToEntitiesProcess<TEntity>::Clear()
+{
+    KRATOS_TRY;
+
+    if( KratosComponents< Variable<double> >::Has( mVariableName ) ) { //case of scalar variable
+        ClearValueScalar<>(KratosComponents< Variable<double> >::Get(mVariableName));
+    } else if( KratosComponents< array_1d_component_type >::Has( mVariableName ) ) { //case of component variable
+        ClearValueScalar<>(KratosComponents< array_1d_component_type >::Get(mVariableName));
+    } else if( KratosComponents< Variable<Vector> >::Has( mVariableName ) ) { //case of vector variable
+        ClearValueVector<>(KratosComponents< Variable<Vector> >::Get(mVariableName));
+    } else {
+        KRATOS_ERROR << "Not able to clear the variable. Attempting to clear variable:" << mVariableName << std::endl;
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 void AssignScalarFieldToEntitiesProcess<Node<3>>::CallFunction(
     const typename Node<3>::Pointer& pEntity,

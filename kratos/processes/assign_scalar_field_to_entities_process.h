@@ -104,7 +104,7 @@ public:
 
     ///@}
     ///@name Operations
-    ///@{.
+    ///@{
 
     /**
      * @brief Execute method is used to execute the AssignScalarFieldToEntitiesProcess algorithms.
@@ -118,7 +118,12 @@ public:
     {
         Execute();
     }
-
+    
+    /**
+     * @brief This method clears the assignation of the conditions
+     */
+    void Clear();
+    
     ///@}
     ///@name Access
     ///@{
@@ -264,7 +269,7 @@ private:
         Vector& rValue,
         const double Value
         );
-
+    
     /**
      * @brief This is the methods that set the values globally (tries all the possible options)
      * @param rVar The variable to set
@@ -355,6 +360,50 @@ private:
                     it_entity->SetValue(rVar, TimeValue);
                 }
 
+            }
+        }
+    }
+    
+    /**
+     * @brief This is the methods that clears the values globally
+     * @param rVar The variable to clear
+     */
+    template< class TVarType >
+    void ClearValueVector(TVarType& rVar)
+    {
+        auto& r_entities_array = GetEntitiesContainer();
+        const SizeType number_of_entities = r_entities_array.size();
+
+        Vector zero_vector = ZeroVector(3);
+
+        if(number_of_entities != 0) {
+            auto it_begin = r_entities_array.begin();
+
+            // WARNING: do not parallelize with openmp. python GIL prevents it
+            for(IndexType i = 0; i<number_of_entities; ++i) {
+                auto it_entity = it_begin + i;
+                it_entity->SetValue(rVar, zero_vector);
+            }
+        }
+    }
+
+    /**
+     * @brief This is the methods that clears the values globally for components
+     * @param rVar The variable to clear
+     */
+    template< class TVarType >
+    void ClearValueScalar(TVarType& rVar)
+    {
+        auto& r_entities_array = GetEntitiesContainer();
+        const SizeType number_of_entities = r_entities_array.size();
+
+        if(number_of_entities != 0) {
+            auto it_begin = r_entities_array.begin();
+
+            // WARNING: do not parallelize with openmp. python GIL prevents it
+            for(IndexType i = 0; i<number_of_entities; ++i) {
+                auto it_entity = it_begin + i;
+                it_entity->SetValue(rVar, 0.0);
             }
         }
     }
