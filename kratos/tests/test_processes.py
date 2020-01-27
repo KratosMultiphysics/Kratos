@@ -588,8 +588,9 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"          : "AssignScalarVariableToConditionsProcess",
                     "Parameters"            : {
                         "model_part_name":"Main",
-                        "variable_name": "INITIAL_STRAIN",
-                        "value" : "x+y*t+z"
+                        "interval"       : [0.0, 5.5],
+                        "variable_name"  : "INITIAL_STRAIN",
+                        "value"          : "x+y*t+z"
                     }
                 }
                 ]
@@ -612,6 +613,19 @@ class TestProcesses(KratosUnittest.TestCase):
             for node in cond.GetNodes():
                 self.assertEqual(v[i],node.X+node.Y*t+node.Z)
                 i=i+1
+                
+        model_part.CloneTimeStep(6.0)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        for cond in model_part.Conditions:
+            v = cond.GetValue(KratosMultiphysics.INITIAL_STRAIN)
+
+            i = 0
+            for node in cond.GetNodes():
+                self.assertEqual(v[i],0.0)
+                i=i+1
 
     def test_assign_scalar_field_scalar_variable_to_conditions(self):
         current_model = KratosMultiphysics.Model()
@@ -629,8 +643,9 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"          : "AssignScalarVariableToConditionsProcess",
                     "Parameters"            : {
                         "model_part_name":"Main",
-                        "variable_name": "PRESSURE",
-                        "value" : "t"
+                        "interval"       : [0.0, 5.5],
+                        "variable_name"  : "PRESSURE",
+                        "value"          : "t"
                     }
                 }
                 ]
@@ -649,6 +664,15 @@ class TestProcesses(KratosUnittest.TestCase):
         for cond in model_part.Conditions:
             v = cond.GetValue(KratosMultiphysics.PRESSURE)
             self.assertEqual(v,t)
+            
+        model_part.CloneTimeStep(6.0)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        for cond in model_part.Conditions:
+            v = cond.GetValue(KratosMultiphysics.PRESSURE)
+            self.assertEqual(v,0.0)
 
     def test_assign_scalar_field_component_to_conditions(self):
         current_model = KratosMultiphysics.Model()
@@ -667,8 +691,9 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"          : "AssignScalarVariableToConditionsProcess",
                     "Parameters"            : {
                         "model_part_name":"Main",
-                        "variable_name": "DISPLACEMENT_X",
-                        "value" : "t"
+                        "interval"       : [0.0, 5.5],
+                        "variable_name"  : "DISPLACEMENT_X",
+                        "value"          : "t"
                     }
                 }
                 ]
@@ -687,6 +712,15 @@ class TestProcesses(KratosUnittest.TestCase):
         for cond in model_part.Conditions:
             v = cond.GetValue(KratosMultiphysics.DISPLACEMENT)
             self.assertEqual(v[0],t)
+            
+        model_part.CloneTimeStep(6.0)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        for cond in model_part.Conditions:
+            v = cond.GetValue(KratosMultiphysics.DISPLACEMENT)
+            self.assertEqual(v[0],0.0)
 
     def test_find_nodal_h_process(self):
         current_model = KratosMultiphysics.Model()
