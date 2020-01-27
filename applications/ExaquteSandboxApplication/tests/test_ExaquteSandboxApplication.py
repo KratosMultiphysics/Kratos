@@ -30,10 +30,7 @@ def AssembleTestSuites():
     # - testSmallExample
     smallSuite = suites['small']
     smallSuite.addTest(KratosExaquteSandboxGeneralTests('testSmallExample'))
-    if(hasattr(MeshingApplication,"MmgProcess2D")):
-        smallSuite.addTest(TimeAveragingProcessTests('testDivergenceFreeRefinementProcess'))
-    else:
-        print("MMG process is not compiled and the corresponding tests will not be executed")
+    smallSuite.addTest(TimeAveragingProcessTests('testDivergenceFreeRefinementProcess'))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:

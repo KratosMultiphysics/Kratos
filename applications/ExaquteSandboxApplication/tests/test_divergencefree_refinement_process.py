@@ -1,6 +1,8 @@
 import KratosMultiphysics
 import KratosMultiphysics.ExaquteSandboxApplication as ExaquteSandboxApplication
 from KratosMultiphysics.process_factory import KratosProcessFactory
+import KratosMultiphysics.kratos_utilities
+meshing_is_available = KratosMultiphysics.kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication")
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 import random
@@ -10,6 +12,9 @@ import math
 class TimeAveragingProcessTests(UnitTest.TestCase):
 
     def testDivergenceFreeRefinementProcess(self):
+        if not meshing_is_available:
+            self.skipTest("Missing required application: MeshingApplication")
+
         self.__CreateModel()
 
         settings = KratosMultiphysics.Parameters(r'''
