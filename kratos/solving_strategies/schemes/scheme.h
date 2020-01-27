@@ -517,16 +517,6 @@ public:
      */
     virtual void InitializeNonLinearIteration(
         Element::Pointer rCurrentElement,
-        const ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        KRATOS_TRY
-        this->InitializeNonLinearIteration(rCurrentElement, rCurrentProcessInfo);
-        KRATOS_CATCH("")
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
-    virtual void InitializeNonLinearIteration(
-        Element::Pointer rCurrentElement,
         ProcessInfo& rCurrentProcessInfo
         )
     {
@@ -540,16 +530,6 @@ public:
      * @param rCurrentCondition The condition to compute
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void InitializeNonLinearIteration(
-        Condition::Pointer rCurrentCondition,
-        const ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        KRATOS_TRY
-        this->InitializeNonLinearIteration(rCurrentCondition, rCurrentProcessInfo);
-        KRATOS_CATCH("")
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void InitializeNonLinearIteration(
         Condition::Pointer rCurrentCondition,
         ProcessInfo& rCurrentProcessInfo
