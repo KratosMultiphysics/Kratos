@@ -441,7 +441,10 @@ class TestProcesses(KratosUnittest.TestCase):
         for cond in model_part.Conditions:
             self.assertEqual(cond.GetValue(KratosMultiphysics.PRESSURE), 15.0)
             self.assertEqual(cond.GetValue(KratosMultiphysics.VISCOSITY), 2)
-            
+        
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+        
         model_part.ProcessInfo[KratosMultiphysics.TIME] = 2.0
         
         for process in list_of_processes:
@@ -497,6 +500,9 @@ class TestProcesses(KratosUnittest.TestCase):
         for elem in model_part.Elements:
             self.assertEqual(elem.GetValue(KratosMultiphysics.PRESSURE), 15.0)
             self.assertEqual(elem.GetValue(KratosMultiphysics.VISCOSITY), 2)
+
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
 
         model_part.ProcessInfo[KratosMultiphysics.TIME] = 2.0
         
@@ -562,6 +568,9 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(const.GetValue(KratosMultiphysics.PRESSURE), 15.0)
             self.assertEqual(const.GetValue(KratosMultiphysics.VISCOSITY), 2)
 
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+    
         model_part.ProcessInfo[KratosMultiphysics.TIME] = 2.0
 
         for process in list_of_processes:
@@ -614,6 +623,9 @@ class TestProcesses(KratosUnittest.TestCase):
                 self.assertEqual(v[i],node.X+node.Y*t+node.Z)
                 i=i+1
                 
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+                
         model_part.CloneTimeStep(6.0)
 
         for process in list_of_processes:
@@ -665,6 +677,9 @@ class TestProcesses(KratosUnittest.TestCase):
             v = cond.GetValue(KratosMultiphysics.PRESSURE)
             self.assertEqual(v,t)
             
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+            
         model_part.CloneTimeStep(6.0)
 
         for process in list_of_processes:
@@ -712,6 +727,9 @@ class TestProcesses(KratosUnittest.TestCase):
         for cond in model_part.Conditions:
             v = cond.GetValue(KratosMultiphysics.DISPLACEMENT)
             self.assertEqual(v[0],t)
+            
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
             
         model_part.CloneTimeStep(6.0)
 
