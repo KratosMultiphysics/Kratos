@@ -520,7 +520,7 @@ ModelPart::GeometryType::Pointer ModelPartGetGeometry1(ModelPart& rModelPart, Mo
     return rModelPart.pGetGeometry(GeometryId);
 }
 
-ModelPart::GeometryType::Pointer ModelPartGetGeometry2(ModelPart& rModelPart, std::string GeometryName)
+ModelPart::GeometryType::Pointer ModelPartGetGeometry2(ModelPart& rModelPart, const std::string& GeometryName)
 {
     return rModelPart.pGetGeometry(GeometryName);
 }
