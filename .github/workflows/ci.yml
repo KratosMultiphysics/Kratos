@@ -45,9 +45,9 @@ jobs:
         CCACHE_COMPRESS: true
         CCACHE_NODISABLE: true
         CCACHE_MAXSIZE: 500M
-        FC: gfortran-7
-        CC: /usr/lib/ccache/gcc
-        CXX: /usr/lib/ccache/g++
+        FC: /usr/bin/gfortran-7
+        CC: /usr/bin/gcc
+        CXX: /usr/bin/g++
 
     steps:
     - uses: actions/checkout@v2-beta
