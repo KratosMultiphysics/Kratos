@@ -706,6 +706,10 @@ class TestModelPart(KratosUnittest.TestCase):
         # Check map access
         self.assertEqual(model_part.Conditions[0].Id(), 2)
         self.assertEqual(len(model_part.Conditions), 1)
+        counter = 0
+        for geometry in model_part1.Geometries:
+            counter+=1
+        self.assertEqual(counter, 1)
 
     def test_model_part_iterators(self):
         current_model = KratosMultiphysics.Model()
