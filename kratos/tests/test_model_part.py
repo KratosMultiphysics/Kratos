@@ -696,7 +696,7 @@ class TestModelPart(KratosUnittest.TestCase):
         # Check container and correct access
         self.assertEqual(model_part.NumberOfGeometries(), 2)
         self.assertEqual(model_part.GetGeometry(2).Id(), 2)
-        self.assertEqual(model_part.GetGeometry("geom_1").Id(), Geometry.GenerateId("geom_1"))
+        self.assertEqual(model_part.GetGeometry("geom_1").Id(), KratosMultiphysics.Geometry.GenerateId("geom_1"))
 
         # Check remove
         model_part.RemoveGeomety("geom_1")
