@@ -681,6 +681,32 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertTrue( e5.Id in sub1.Elements )
         self.assertFalse( e5.Id in sub2.Elements )
 
+    def test_geometry_container(self):
+        current_model = KratosMultiphysics.Model()
+        model_part= current_model.CreateModelPart("Main")
+
+        geom_1 = Geometry("geom_1")
+        geom_2 = Geometry(2)
+
+        self.assertEqual(model_part.NumberOfGeometries(), 0)
+
+        model_part.AddGeometry(geom_1)
+        model_part.AddGeometry(geom_2)
+
+        # Check container and correct access
+        self.assertEqual(model_part.NumberOfGeometries(), 2)
+        self.assertEqual(model_part.GetGeometry(2).Id(), 2)
+        self.assertEqual(model_part.GetGeometry("geom_1").Id(), Geometry.GenerateId("geom_1"))
+
+        # Check remove
+        model_part.RemoveGeomety("geom_1")
+        self.assertEqual(model_part.HasGeometry("geom_1"), False)
+        self.assertEqual(model_part.HasGeometry(2), True)
+
+        # Check map access
+        self.assertEqual(model_part.Conditions[0].Id(), 2)
+        self.assertEqual(len(model_part.Conditions), 1)
+
     def test_model_part_iterators(self):
         current_model = KratosMultiphysics.Model()
 
