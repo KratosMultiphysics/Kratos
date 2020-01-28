@@ -530,7 +530,7 @@ bool ModelPartHasGeometry1(ModelPart& rModelPart, ModelPart::IndexType GeometryI
     return rModelPart.HasGeometry(GeometryId);
 }
 
-bool ModelPartHasGeometry2(ModelPart& rModelPart, std::string GeometryName)
+bool ModelPartHasGeometry2(ModelPart& rModelPart, const std::string& GeometryName)
 {
     return rModelPart.HasGeometry(GeometryName);
 }
