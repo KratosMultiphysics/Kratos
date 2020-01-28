@@ -597,8 +597,12 @@ protected:
         std::vector<NodesContainerType> SendNodes(mpi_size);
         Model &current_model = mrMainModelPart.GetModel();
         auto& gathered_modelpart = is_comm_distributed ? current_model.CreateModelPart("GatheredBoundary") : rBoundaryModelPart;
-        if(is_comm_distributed)
+        if(is_comm_distributed){
+            BuiltinTimer gather_mp;
             GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(rBoundaryModelPart, gathered_modelpart);
+            double gather_time = gather_mp.ElapsedSeconds();
+            KRATOS_INFO_IF("ApplyChimera : Gathering modelpart took                  : ", mEchoLevel > 1) << r_comm.Max(gather_time, 0) << " seconds" << std::endl;
+        }
 
         // WriteModelPart(gathered_modelpart);
         std::vector<int> vector_of_non_found_nodes;

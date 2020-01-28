@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:
+//  Main authors: Aditya Ghantasala
 //
 
 // System includes
@@ -202,7 +202,7 @@ namespace Kratos
         std::vector<IndexType> node_ids_to_keep;
         std::vector<IndexType> all_node_ids;
         all_node_ids.reserve(rGatheredModelPart.NumberOfNodes());
-        node_ids_to_keep.reserve(3*rGatheredModelPart.NumberOfNodes());
+        node_ids_to_keep.reserve(rGatheredModelPart.NumberOfNodes());
 
         for (int i_c = 0; i_c < num_conditions; ++i_c)
         {
