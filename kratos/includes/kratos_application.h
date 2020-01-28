@@ -295,6 +295,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
         rOStream << std::endl;
 
+        rOStream << "Geometries:" << std::endl;
+
+        KratosComponents<Geometry<Node<3>>>().PrintData(rOStream);
+        
         rOStream << "Elements:" << std::endl;
 
         KratosComponents<Element>().PrintData(rOStream);
