@@ -60,13 +60,13 @@ namespace Python
     array_1d<double, 3> SetId1(
         GeometryType& dummy, IndexType geometry_id)
     {
-        return(dummy.SetId1(geometry_id));
+        return(dummy.SetId(geometry_id));
     }
 
     array_1d<double, 3> SetId2(
         GeometryType& dummy, const std::string& geometry_name)
     {
-        return(dummy.SetId1(geometry_name));
+        return(dummy.SetId(geometry_name));
     }
 
     array_1d<double,3> GetNormal(
