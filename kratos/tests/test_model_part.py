@@ -707,7 +707,7 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(len(model_part.Geometries), 1)
         self.assertEqual(model_part.Geometries[0].Id, 2)
         counter = 0
-        for geometry in model_part1.Geometries:
+        for geometry in model_part.Geometries:
             counter+=1
         self.assertEqual(counter, 1)
 
