@@ -69,9 +69,14 @@ namespace Python
         return(dummy.SetId(geometry_name));
     }
 
-    void IsIdGeneratedFromString1(GeometryType& dummy)
+    bool IsIdGeneratedFromString1(GeometryType& dummy)
     {
         return(dummy.IsIdGeneratedFromString());
+    }
+
+    bool IsIdSelfAssigned1(GeometryType& dummy)
+    {
+        return(dummy.IsIdSelfAssigned());
     }
 
     array_1d<double,3> GetNormal(
@@ -124,7 +129,7 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("SetId", SetId1)
     .def("SetId", SetId2)
     .def("IsIdGeneratedFromString", IsIdGeneratedFromString1)
-    .def("IsIdSelfAssigned", &GeometryType::IsIdSelfAssigned)
+    .def("IsIdSelfAssigned", IsIdSelfAssigned1)
     .def("GenerateId", &GeometryType::GenerateId)
     // Dimension access
     .def("WorkingSpaceDimension",&GeometryType::WorkingSpaceDimension)
