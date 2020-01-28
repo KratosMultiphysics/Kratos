@@ -247,7 +247,7 @@ public:
         const CoordinatesArrayType& rLocalCoordinates,
         IndexType SpecificationType = 0) const override
     {
-        mpNurbsSurface->GetPointsAt(
+        mpCurveOnSurface->GetPointsAt(
             rPoints, rLocalCoordinates, SpecificationType);
     }
 
