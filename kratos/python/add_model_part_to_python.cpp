@@ -550,7 +550,7 @@ void ModelPartRemoveGeometryFromAllLevels1(ModelPart& rModelPart, ModelPart::Ind
     rModelPart.RemoveGeometryFromAllLevels(GeometryId);
 }
 
-void ModelPartRemoveGeometryFromAllLevels2(ModelPart& rModelPart, std::string GeometryName)
+void ModelPartRemoveGeometryFromAllLevels2(ModelPart& rModelPart, const std::string& GeometryName)
 {
     rModelPart.RemoveGeometryFromAllLevels(GeometryName);
 }
