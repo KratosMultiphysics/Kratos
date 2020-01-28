@@ -52,7 +52,7 @@ void DefineEmbeddedWakeProcess::ComputeDistanceToWake(){
 void DefineEmbeddedWakeProcess::MarkWakeElements(){
 
     ModelPart& deactivated_model_part = mrModelPart.CreateSubModelPart("deactivated_model_part");
-    std::vector<std::size_t> deactivated_ids;
+    std::vector<std::size_t> deactivated_elements_id_list;
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i;
@@ -72,7 +72,10 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
         // Mark wake element and save their nodal distances to the wake
         if (is_wake_element) {
             if (is_embedded){
-                deactivated_ids.push_back(it_elem->Id());
+                #pragma omp critical
+                {
+                    deactivated_elements_id_list.push_back(it_elem->Id());
+                }
                 it_elem->Set(ACTIVE, false);
             }
             else{
@@ -86,7 +89,7 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
             }
         }
     }
-    deactivated_model_part.AddElements(deactivated_ids);
+    deactivated_model_part.AddElements(deactivated_elements_id_list);
 }
 
 void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
