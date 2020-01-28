@@ -56,14 +56,15 @@ public:
 
     typedef typename TGeometryType::Pointer GeometryPointerType;
 
-    /* Geometry Hash Map Container.
-    *  Hash of Id are keys to corresponding intrusive pointer */
+
+    /// Geometry Hash Map Container.
+    // Stores with hash of Ids to corresponding geometries.
     typedef PointerHashMapSet<
         TGeometryType,
         std::hash<std::size_t>,
         GetGeometryId,
         GeometryPointerType
-    > GeometriesMapType;
+        > GeometriesMapType;
 
     /// Geometry Iterator
     typedef typename GeometriesMapType::iterator GeometryIterator;
