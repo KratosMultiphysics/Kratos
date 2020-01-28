@@ -699,7 +699,7 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.GetGeometry("geom_1").Id(), KratosMultiphysics.Geometry.GenerateId("geom_1"))
 
         # Check remove
-        model_part.RemoveGeomety("geom_1")
+        model_part.RemoveGeometry("geom_1")
         self.assertEqual(model_part.HasGeometry("geom_1"), False)
         self.assertEqual(model_part.HasGeometry(2), True)
 
