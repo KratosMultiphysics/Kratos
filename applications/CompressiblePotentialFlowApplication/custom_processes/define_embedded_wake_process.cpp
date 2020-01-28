@@ -12,7 +12,7 @@
 
 
 #include "define_embedded_wake_process.h"
-#include "processes/calculate_distance_to_skin_process.h"
+#include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_utilities/potential_flow_utilities.h"
 
@@ -45,16 +45,14 @@ void DefineEmbeddedWakeProcess::Execute()
 
 void DefineEmbeddedWakeProcess::ComputeDistanceToWake(){
 
-    // TEMPORARILY USING CONTINUOUS DISTANCE PROCESS
-    // TO BE CHANGED TO DISCONTINOUS PROCESS
-    CalculateDistanceToSkinProcess<2> distance_calculator(mrModelPart, mrWakeModelPart);
+    CalculateDiscontinuousDistanceToSkinProcess<2> distance_calculator(mrModelPart, mrWakeModelPart);
     distance_calculator.Execute();
 }
 
 void DefineEmbeddedWakeProcess::MarkWakeElements(){
 
     ModelPart& deactivated_model_part = mrModelPart.CreateSubModelPart("deactivated_model_part");
-    std::vector<std::size_t> deactivated_ids;
+    std::vector<std::size_t> deactivated_elements_id_list;
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i;
@@ -74,7 +72,10 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
         // Mark wake element and save their nodal distances to the wake
         if (is_wake_element) {
             if (is_embedded){
-                deactivated_ids.push_back(it_elem->Id());
+                #pragma omp critical
+                {
+                    deactivated_elements_id_list.push_back(it_elem->Id());
+                }
                 it_elem->Set(ACTIVE, false);
             }
             else{
@@ -88,7 +89,7 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
             }
         }
     }
-    deactivated_model_part.AddElements(deactivated_ids);
+    deactivated_model_part.AddElements(deactivated_elements_id_list);
 }
 
 void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
@@ -127,19 +128,30 @@ void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
 
 void DefineEmbeddedWakeProcess::MarkKuttaWakeElements(){
 
-    // Find elements that touch the furthes deactivated element and that are part of the wake.
+    // Find elements that touch the furthest deactivated element and that are part of the wake.
+    std::vector<std::size_t> trailing_edge_node_list;
     for (std::size_t i = 0; i < mKuttaWakeElementCandidates.size(); i++)
     {
         auto& r_geometry = mKuttaWakeElementCandidates[i].GetGeometry();
         if (mKuttaWakeElementCandidates[i].GetValue(WAKE) && mKuttaWakeElementCandidates[i].Is(ACTIVE)) {
             for (std::size_t i_node= 0; i_node < r_geometry.size(); i_node++) {
                 if(r_geometry[i_node].GetValue(TRAILING_EDGE)){
+                    trailing_edge_node_list.push_back(r_geometry[i_node].Id());
                     mKuttaWakeElementCandidates[i].Set(STRUCTURE);
-                    break;
                 }
             }
         }
 
     }
+
+    if (mrModelPart.HasSubModelPart("trailing_edge_sub_model_part")){
+        mrModelPart.RemoveSubModelPart("trailing_edge_sub_model_part");
+    }
+    mrModelPart.CreateSubModelPart("trailing_edge_sub_model_part");
+
+    std::sort(trailing_edge_node_list.begin(),
+              trailing_edge_node_list.end());
+    mrModelPart.GetSubModelPart("trailing_edge_sub_model_part").AddNodes(trailing_edge_node_list);
+
 }
 }// Namespace Kratos

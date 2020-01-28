@@ -53,7 +53,7 @@ void MoveModelPartProcess::Execute()
     KRATOS_TRY;
 
     #pragma omp parallel for
-    for(std::size_t i = 0; i < mrModelPart.Nodes().size(); ++i) {
+    for(int i = 0; i <  static_cast<int>(mrModelPart.NumberOfNodes()); ++i) {
         auto it_node=mrModelPart.NodesBegin()+i;
         auto &r_coordinates = it_node->Coordinates();
 

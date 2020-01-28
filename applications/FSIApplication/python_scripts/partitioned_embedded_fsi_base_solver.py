@@ -117,6 +117,11 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Python fluid solver initialization
         self.fluid_solver.Initialize()
 
+        # Compute the fluid domain NODAL_AREA values
+        # Required by the parallel distance calculator if the distance has to be extended
+        if (self.level_set_type == "continuous"):
+            KratosMultiphysics.CalculateNodalAreaProcess(self.GetFluidComputingModelPart(), self.domain_size).Execute()
+
         # Initialize the Dirichlet-Neumann interface
         self.__InitializeFSIInterfaces()
 
@@ -126,9 +131,13 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Initialize the distance field
         update_distance_process = True
         self.__GetDistanceToSkinProcess(update_distance_process).Execute()
+        if (self.level_set_type == "continuous"):
+            self.__ExtendLevelSet()
 
         # Initialize the embedded skin utility
         self.__GetEmbeddedSkinUtility()
+
+        KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', "Finished initialization.")
 
     def AdvanceInTime(self, current_time):
         fluid_new_time = self.fluid_solver.AdvanceInTime(current_time)
@@ -159,14 +168,17 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # give a better approximation of the level-set position at the end of step.
         self.structure_solver.Predict()
 
-        # # Update the level set position
+        # Update the level set position with the structure prediction
         self.__UpdateLevelSet()
+
+        # Correct the updated level set
+        self.fluid_solver._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
         # Fluid solver prediction
         self.fluid_solver.Predict()
 
         # Restore the fluid node fixity to its original status
-        self.__GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
+        self.fluid_solver._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
     def GetComputingModelPart(self):
         err_msg =  'Calling GetComputingModelPart() method in a partitioned solver.\n'
@@ -299,7 +311,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
     def __CreateDistanceToSkinProcess(self):
         # Set the distance computation process
         if (self.level_set_type == "continuous"):
-            raycasting_relative_tolerance = 1.0e-8
+            raycasting_relative_tolerance = 1.0e-10
             if self.domain_size == 2:
                 return KratosMultiphysics.CalculateDistanceToSkinProcess2D(
                     self.GetFluidComputingModelPart(),
@@ -327,42 +339,18 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             err_msg = 'Level set type is: \'' + self.level_set_type + '\'. Expected \'continuous\' or \'discontinuous\'.'
             raise Exception(err_msg)
 
-    def __GetDistanceModificationProcess(self):
-        if not hasattr(self, '_distance_modification_process'):
-            self._distance_modification_process = self.__CreateDistanceModificationProcess()
-        return self._distance_modification_process
+    def __GetParallelDistanceCalculator(self):
+        if not hasattr(self, '_parallel_distance_calculator'):
+            self._parallel_distance_calculator = self.__CreateParallelDistanceCalculator()
+        return self._parallel_distance_calculator
 
-    # TODO: This should be moved to the fluid solver
-    def __CreateDistanceModificationProcess(self):
-        # Set the distance modification settings according to the level set type
-        if (self.level_set_type == "continuous"):
-            distance_modification_settings = KratosMultiphysics.Parameters(r'''{
-                "model_part_name": "",
-                "distance_threshold": 1e-3,
-                "continuous_distance": true,
-                "check_at_each_time_step": true,
-                "avoid_almost_empty_elements": true,
-                "deactivate_full_negative_elements": true
-            }''')
-        elif (self.level_set_type == "discontinuous"):
-            distance_modification_settings = KratosMultiphysics.Parameters(r'''{
-                "model_part_name": "",
-                "distance_threshold": 1e-4,
-                "continuous_distance": false,
-                "check_at_each_time_step": true,
-                "avoid_almost_empty_elements": false,
-                "deactivate_full_negative_elements": false
-            }''')
+    def __CreateParallelDistanceCalculator(self):
+        if self.domain_size == 2:
+            return KratosMultiphysics.ParallelDistanceCalculator2D()
+        elif self.domain_size == 3:
+            return KratosMultiphysics.ParallelDistanceCalculator3D()
         else:
-            err_msg = 'Level set type is: \'' + self.level_set_type + '\'. Expected \'continuous\' or \'discontinuous\'.'
-            raise Exception(err_msg)
-
-        # Set the volume model part name in which the distance modification is applied to
-        volume_model_part_name = self.settings["fluid_solver_settings"]["volume_model_part_name"].GetString()
-        distance_modification_settings["model_part_name"].SetString(volume_model_part_name)
-
-        # Construct and return the distance modification process
-        return KratosFluid.DistanceModificationProcess(self.model, distance_modification_settings)
+            raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
 
     def __GetEmbeddedSkinUtility(self):
         if not hasattr(self, '_embedded_skin_utility'):
@@ -427,21 +415,30 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Recompute the distance field with the obtained solution
         self.__GetDistanceToSkinProcess().Execute()
 
-        # Correct the distance field
-        self.__GetDistanceModificationProcess().Execute()
+        # Extend the level set to the first layer of non-intersected elements
+        # This is required in case the distance modification process moves the level set
+        # to a non-intersected element to prevent almost empty fluid elements.
+        # Note that non-intersected elements have a large default distance value, which might
+        # alter the zero isosurface when the distance modification avoids almost empty elements.
+        if (self.level_set_type == "continuous"):
+            self.__ExtendLevelSet()
+
+    def __ExtendLevelSet(self):
+        max_layers = 2
+        max_distance = 1.0e+12
+        self.__GetParallelDistanceCalculator().CalculateDistances(
+            self.GetFluidComputingModelPart(),
+            KratosMultiphysics.DISTANCE,
+            KratosMultiphysics.NODAL_AREA,
+            max_layers,
+            max_distance)
 
     def __SolveFluid(self):
         # Update the current iteration level-set position
         self.__UpdateLevelSet()
 
         # Solve fluid problem
-        self.fluid_solver.SolveSolutionStep() # This contains the FM-ALE operations
-
-        # Undo the FM-ALE virtual mesh movement
-        self.fluid_solver._get_mesh_moving_util().UndoMeshMovement()
-
-        # Restore the fluid node fixity to its original status
-        self.__GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
+        self.fluid_solver.SolveSolutionStep() # This contains the FM-ALE operations and the level set correction
 
     def __TransferFluidLoad(self):
         if (self.level_set_type == "continuous"):
@@ -600,7 +597,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
     def __GetStructureInterfaceSubmodelPart(self):
         # Returns the structure interface submodelpart that will be used in the residual minimization
-        return self.structure_solver.main_model_part.GetSubModelPart(self.structure_interface_submodelpart_name)
+        return self.model.GetModelPart(self.structure_interface_submodelpart_name)
 
     def __GetDomainSize(self):
         fluid_domain_size = self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]

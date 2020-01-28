@@ -68,13 +68,16 @@ template <int Dim, int NumNodes>
 double ComputeIncompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-const bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);
+double ComputeCompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);
 
 template <int Dim>
 void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel);
 
 template <int Dim, int NumNodes>
-const bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 
 } // namespace PotentialFlow
 } // namespace Kratos

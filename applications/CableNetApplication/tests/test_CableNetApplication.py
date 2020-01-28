@@ -28,12 +28,12 @@ def AssembleTestSuites():
     ################################################################################
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
     nightSuite.addTests(smallSuite)
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCableNetCoSimulationCases]))
+
 
     ################################################################################
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
-
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCableNetCoSimulationCases]))
 
 
     ################################################################################

@@ -75,6 +75,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       // Adding the membrane element
       mPreStressMembraneElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mPreStressMembraneElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mMembraneElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mMembraneElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       // Adding the SPRISM element
       mSolidShellElementSprism3D6N(0, Element::GeometryType::Pointer(new Prism3D6<NodeType >(Element::GeometryType::PointsArrayType(6)))),
       // Adding the nodal concentrated element
@@ -98,6 +100,11 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
 
       mSmallDisplacementBbar2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType>(Element::GeometryType::PointsArrayType(4)))),
       mSmallDisplacementBbar3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType>(Element::GeometryType::PointsArrayType(8)))),
+
+      mSmallDisplacementMixedVolumetricStrainElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mSmallDisplacementMixedVolumetricStrainElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementMixedVolumetricStrainElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementMixedVolumetricStrainElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
 
       mAxisymSmallDisplacement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mAxisymSmallDisplacement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
@@ -153,6 +160,11 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mTotalLagrangianAdjoint2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<NodeType >(Element::GeometryType::PointsArrayType(6)))),
       mTotalLagrangianAdjoint3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mTotalLagrangianAdjoint3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
+      mAdjointFiniteDifferencingSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mAdjointFiniteDifferencingSmallDisplacementElement3D6N(0, Element::GeometryType::Pointer(new Prism3D6<NodeType >(Element::GeometryType::PointsArrayType(6)))),
+      mAdjointFiniteDifferencingSmallDisplacementElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
+      mAdjointFiniteDifferenceSpringDamperElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+
       /* CONDITIONS */
       // Adding point load conditions
       mPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
@@ -178,7 +190,10 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
 
       // Adding adjoint conditions
       mAdjointSemiAnalyticPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
-      mAdjointSemiAnalyticPointLoadCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))){}
+      mAdjointSemiAnalyticPointLoadCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
+
+      // Adding the displacement-control condition
+      mDisplacementControlCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))){}
 
 void KratosStructuralMechanicsApplication::Register() {
     // calling base class register to register Kratos components
@@ -195,6 +210,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(LOCAL_MATERIAL_AXIS_1);
     KRATOS_REGISTER_VARIABLE(LOCAL_MATERIAL_AXIS_2);
     KRATOS_REGISTER_VARIABLE(LOCAL_MATERIAL_AXIS_3);
+    KRATOS_REGISTER_VARIABLE(LOCAL_PRESTRESS_AXIS_1);
+    KRATOS_REGISTER_VARIABLE(LOCAL_PRESTRESS_AXIS_2);
     KRATOS_REGISTER_VARIABLE(CENTER_OF_GRAVITY);
     KRATOS_REGISTER_VARIABLE(MASS_MOMENT_OF_INERTIA);
     KRATOS_REGISTER_VARIABLE(ELASTICITY_TENSOR);
@@ -283,6 +300,11 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( PRESTRESS_AXIS_1 )
     KRATOS_REGISTER_VARIABLE( PRESTRESS_AXIS_2 )
     KRATOS_REGISTER_VARIABLE( PROJECTION_TYPE_COMBO )
+    KRATOS_REGISTER_VARIABLE( PRINCIPAL_CAUCHY_STRESS_VECTOR )
+    KRATOS_REGISTER_VARIABLE( PRINCIPAL_PK2_STRESS_VECTOR )
+
+    // Mixed formulations generalized variables
+    KRATOS_REGISTER_VARIABLE( REACTION_STRAIN )
 
     // Formfinding
     KRATOS_REGISTER_VARIABLE(LAMBDA_MAX)
@@ -362,7 +384,13 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(POSITIVE_FACE_PRESSURES_VECTOR)
     KRATOS_REGISTER_VARIABLE(NEGATIVE_FACE_PRESSURES_VECTOR)
 
+    // Displacement-Control variables
+    KRATOS_REGISTER_VARIABLE(LOAD_FACTOR)
+    KRATOS_REGISTER_VARIABLE(PRESCRIBED_DISPLACEMENT)
+
     // Constitutive laws variables
+    KRATOS_REGISTER_VARIABLE(INELASTIC_FLAG)
+    KRATOS_REGISTER_VARIABLE(INFINITY_YIELD_STRESS)
     KRATOS_REGISTER_VARIABLE(YIELD_STRESS_TENSION)
     KRATOS_REGISTER_VARIABLE(PLASTIC_STRAIN_VECTOR)
     KRATOS_REGISTER_VARIABLE(YIELD_STRESS_COMPRESSION)
@@ -370,6 +398,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(SOFTENING_TYPE)
     KRATOS_REGISTER_VARIABLE(SOFTENING_TYPE_COMPRESSION)
     KRATOS_REGISTER_VARIABLE(HARDENING_CURVE)
+    KRATOS_REGISTER_VARIABLE(MAX_NUMBER_NL_CL_ITERATIONS)
     KRATOS_REGISTER_VARIABLE(VISCOUS_PARAMETER)
     KRATOS_REGISTER_VARIABLE(DELAY_TIME)
     KRATOS_REGISTER_VARIABLE(MAXIMUM_STRESS)
@@ -394,11 +423,18 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(COMPRESSION_STRESS_VECTOR)
     KRATOS_REGISTER_VARIABLE(EFFECTIVE_TENSION_STRESS_VECTOR)
     KRATOS_REGISTER_VARIABLE(EFFECTIVE_COMPRESSION_STRESS_VECTOR)
+    KRATOS_REGISTER_VARIABLE(CAUCHY_STRESS_TENSOR_FIBER)
+    KRATOS_REGISTER_VARIABLE(CAUCHY_STRESS_TENSOR_MATRIX)
+    KRATOS_REGISTER_VARIABLE(GREEN_LAGRANGE_STRAIN_TENSOR_MATRIX)
+    KRATOS_REGISTER_VARIABLE(GREEN_LAGRANGE_STRAIN_TENSOR_FIBER)
     KRATOS_REGISTER_VARIABLE(EXPONENTIAL_SATURATION_YIELD_STRESS)
     KRATOS_REGISTER_VARIABLE(ACCUMULATED_PLASTIC_STRAIN)
     KRATOS_REGISTER_VARIABLE(BACK_STRESS_VECTOR)
     KRATOS_REGISTER_VARIABLE(BACK_STRESS_TENSOR)
     KRATOS_REGISTER_VARIABLE(HARDENING_MODULI_VECTOR)
+
+    // Some variables related with SP
+    KRATOS_REGISTER_VARIABLE(SERIAL_PARALLEL_EQUILIBRIUM_TOLERANCE)
 
     // D+D- Damage Constitutive laws variables
     KRATOS_REGISTER_VARIABLE(DAMAGE_TENSION)
@@ -413,6 +449,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(FATIGUE_REDUCTION_FACTOR)
     KRATOS_REGISTER_VARIABLE(NUMBER_OF_CYCLES)
     KRATOS_REGISTER_VARIABLE(WOHLER_STRESS)
+    KRATOS_REGISTER_VARIABLE(OGDEN_BETA_1)
+    KRATOS_REGISTER_VARIABLE(OGDEN_BETA_2)
 
     // D+D- Damage Constitutive laws variables, additional Masonry 2D & 3D
     KRATOS_REGISTER_VARIABLE(DAMAGE_ONSET_STRESS_COMPRESSION)
@@ -428,10 +466,14 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // Response function variables
     KRATOS_REGISTER_VARIABLE(RESPONSE_VALUE)
+
     // Adjoint variables
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_DISPLACEMENT)
+    KRATOS_REGISTER_VARIABLE(ADJOINT_PARTICULAR_DISPLACEMENT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_ROTATION)
     KRATOS_REGISTER_VARIABLE(PERTURBATION_SIZE)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_CURVATURE)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_STRAIN)
     KRATOS_REGISTER_VARIABLE(ADAPT_PERTURBATION_SIZE)
 
     // Variables for output of sensitivities
@@ -444,6 +486,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( AREA_EFFECTIVE_Y_SENSITIVITY );
     KRATOS_REGISTER_VARIABLE( AREA_EFFECTIVE_Z_SENSITIVITY );
     KRATOS_REGISTER_VARIABLE( IS_ADJOINT );
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NODAL_DISPLACEMENT_STIFFNESS_SENSITIVITY);
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NODAL_ROTATIONAL_STIFFNESS_SENSITIVITY);
 
     // Variables to for computing parts of sensitivity analysis
     KRATOS_REGISTER_VARIABLE( TRACED_STRESS_TYPE );
@@ -454,10 +498,6 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( STRESS_ON_GP  );
     KRATOS_REGISTER_VARIABLE( STRESS_ON_NODE  );
     KRATOS_REGISTER_VARIABLE( DESIGN_VARIABLE_NAME );
-
-    // Some variables related with CL
-    KRATOS_REGISTER_VARIABLE(INELASTIC_FLAG)
-    KRATOS_REGISTER_VARIABLE(INFINITY_YIELD_STRESS)
 
     //Register the truss element
     KRATOS_REGISTER_ELEMENT("TrussElement3D2N", mTrussElement3D2N)
@@ -482,6 +522,8 @@ void KratosStructuralMechanicsApplication::Register() {
     // Register the membrane element
     KRATOS_REGISTER_ELEMENT("PreStressMembraneElement3D3N", mPreStressMembraneElement3D3N)
     KRATOS_REGISTER_ELEMENT("PreStressMembraneElement3D4N", mPreStressMembraneElement3D4N)
+    KRATOS_REGISTER_ELEMENT("MembraneElement3D4N", mMembraneElement3D4N)
+    KRATOS_REGISTER_ELEMENT("MembraneElement3D3N", mMembraneElement3D3N)
 
     // Register the SPRISM element
     KRATOS_REGISTER_ELEMENT("SolidShellElementSprism3D6N", mSolidShellElementSprism3D6N);
@@ -506,6 +548,11 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("SmallDisplacementElement3D15N", mSmallDisplacement3D15N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementElement3D20N", mSmallDisplacement3D20N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementElement3D27N", mSmallDisplacement3D27N)
+
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement2D3N", mSmallDisplacementMixedVolumetricStrainElement2D3N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement2D4N", mSmallDisplacementMixedVolumetricStrainElement2D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement3D4N", mSmallDisplacementMixedVolumetricStrainElement3D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainElement3D8N", mSmallDisplacementMixedVolumetricStrainElement3D8N)
 
     KRATOS_REGISTER_ELEMENT("SmallDisplacementBbarElement2D4N", mSmallDisplacementBbar2D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementBbarElement3D8N", mSmallDisplacementBbar3D8N)
@@ -569,6 +616,10 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement2D6N", mTotalLagrangianAdjoint2D6N)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement3D4N", mTotalLagrangianAdjoint3D4N)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement3D8N", mTotalLagrangianAdjoint3D8N)
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingSmallDisplacementElement3D4N", mAdjointFiniteDifferencingSmallDisplacementElement3D4N)
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingSmallDisplacementElement3D6N", mAdjointFiniteDifferencingSmallDisplacementElement3D6N)
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingSmallDisplacementElement3D8N", mAdjointFiniteDifferencingSmallDisplacementElement3D8N)
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceSpringDamperElement3D2N", mAdjointFiniteDifferenceSpringDamperElement3D2N)
 
     // Register the conditions
     // Point loads
@@ -602,15 +653,21 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("AdjointSemiAnalyticPointLoadCondition2D1N", mAdjointSemiAnalyticPointLoadCondition2D1N )
     KRATOS_REGISTER_CONDITION("AdjointSemiAnalyticPointLoadCondition3D1N", mAdjointSemiAnalyticPointLoadCondition3D1N )
 
+    // Displacement-Control Conditions
+    KRATOS_REGISTER_CONDITION("DisplacementControlCondition3D1N", mDisplacementControlCondition3D1N)
+
     // Register linear elastics laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussConstitutiveLaw", mTrussConstitutiveLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussPlasticityConstitutiveLaw", mTrussPlasticityConstitutiveLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BeamConstitutiveLaw", mBeamConstitutiveLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DLaw", mElasticIsotropic3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrain2DLaw", mLinearPlaneStrain);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStress2DLaw", mLinearPlaneStress);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticPlaneStressUncoupledShear2DLaw", mElasticIsotropicPlaneStressUncoupledShear);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticAxisym2DLaw", mAxisymElasticIsotropic);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("UserProvidedLinearElastic2DLaw", mUserProvidedLinearElastic2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("UserProvidedLinearElastic3DLaw", mUserProvidedLinearElastic3DLaw);
+
+#ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
+    // Damage and plasticity
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticOrthotropic2DLaw", mLinearElasticOrthotropic2DLaw);
     // Register hyper elastic laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("KirchhoffSaintVenant3DLaw", mHyperElasticIsotropicKirchhoff3D);
@@ -623,9 +680,12 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamagePlaneStrain2DLaw", mSmallStrainIsotropicDamagePlaneStrain2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamage3DLaw", mSmallStrainIsotropicDamage3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamageTractionOnly3DLaw", mSmallStrainIsotropicDamageTractionOnly3D);
-
-    // Damage and plasticity
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussPlasticityConstitutiveLaw", mTrussPlasticityConstitutiveLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticIsotropicOgden1D", mHyperElasticIsotropicOgden1D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticIsotropicHenky1D", mHyperElasticIsotropicHenky1D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticPlaneStressUncoupledShear2DLaw", mElasticIsotropicPlaneStressUncoupledShear);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicPlasticityFactory", mSmallStrainIsotropicPlasticityFactory);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainKinematicPlasticityFactory", mSmallStrainKinematicPlasticityFactory);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamageFactory", mSmallStrainIsotropicDamageFactory);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ViscousGeneralizedKelvin3D", mViscousGeneralizedKelvin3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ViscousGeneralizedMaxwell3D", mViscousGeneralizedMaxwell3D);
@@ -633,6 +693,9 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("PlasticityIsotropicKinematicJ2Law", mPlasticityIsotropicKinematicJ2);
 
     // Custom Constitutive laws
+    // Serial-Parallel Rule Of Mixtures
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SerialParallelRuleOfMixturesLaw", mSerialParallelRuleOfMixturesLaw);
+
     /// Plasticity
 
     /* Small strain */
@@ -741,6 +804,56 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticIsotropicNeoHookeanPlasticity3DTrescaMohrCoulomb", mHyperElasticIsotropicNeoHookeanPlasticity3DTrescaMohrCoulomb);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticIsotropicNeoHookeanPlasticity3DDruckerPragerMohrCoulomb", mHyperElasticIsotropicNeoHookeanPlasticity3DDruckerPragerMohrCoulomb);
 
+    // Kirchhoff
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DVonMisesVonMises", mHyperElasticKirchhoffKinematicPlasticity3DVonMisesVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DVonMisesModifiedMohrCoulomb", mHyperElasticKirchhoffKinematicPlasticity3DVonMisesModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DVonMisesDruckerPrager", mHyperElasticKirchhoffKinematicPlasticity3DVonMisesDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DVonMisesTresca", mHyperElasticKirchhoffKinematicPlasticity3DVonMisesTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DModifiedMohrCoulombVonMises", mHyperElasticKirchhoffKinematicPlasticity3DModifiedMohrCoulombVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DModifiedMohrCoulombModifiedMohrCoulomb", mHyperElasticKirchhoffKinematicPlasticity3DModifiedMohrCoulombModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DModifiedMohrCoulombDruckerPrager", mHyperElasticKirchhoffKinematicPlasticity3DModifiedMohrCoulombDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DModifiedMohrCoulombTresca", mHyperElasticKirchhoffKinematicPlasticity3DModifiedMohrCoulombTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DTrescaVonMises", mHyperElasticKirchhoffKinematicPlasticity3DTrescaVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DTrescaModifiedMohrCoulomb", mHyperElasticKirchhoffKinematicPlasticity3DTrescaModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DTrescaDruckerPrager", mHyperElasticKirchhoffKinematicPlasticity3DTrescaDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DTrescaTresca", mHyperElasticKirchhoffKinematicPlasticity3DTrescaTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DDruckerPragerVonMises", mHyperElasticKirchhoffKinematicPlasticity3DDruckerPragerVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DDruckerPragerModifiedMohrCoulomb", mHyperElasticKirchhoffKinematicPlasticity3DDruckerPragerModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DDruckerPragerDruckerPrager", mHyperElasticKirchhoffKinematicPlasticity3DDruckerPragerDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DDruckerPragerTresca", mHyperElasticKirchhoffKinematicPlasticity3DDruckerPragerTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DVonMisesMohrCoulomb", mHyperElasticKirchhoffKinematicPlasticity3DVonMisesMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DMohrCoulombVonMises", mHyperElasticKirchhoffKinematicPlasticity3DMohrCoulombVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DMohrCoulombMohrCoulomb", mHyperElasticKirchhoffKinematicPlasticity3DMohrCoulombMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DMohrCoulombDruckerPrager", mHyperElasticKirchhoffKinematicPlasticity3DMohrCoulombDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DMohrCoulombTresca", mHyperElasticKirchhoffKinematicPlasticity3DMohrCoulombTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DTrescaMohrCoulomb", mHyperElasticKirchhoffKinematicPlasticity3DTrescaMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DDruckerPragerMohrCoulomb", mHyperElasticKirchhoffKinematicPlasticity3DDruckerPragerMohrCoulomb);
+
+    // Neo-Hookean
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DVonMisesVonMises", mHyperElasticNeoHookeanKinematicPlasticity3DVonMisesVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DVonMisesModifiedMohrCoulomb", mHyperElasticNeoHookeanKinematicPlasticity3DVonMisesModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DVonMisesDruckerPrager", mHyperElasticNeoHookeanKinematicPlasticity3DVonMisesDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DVonMisesTresca", mHyperElasticNeoHookeanKinematicPlasticity3DVonMisesTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DModifiedMohrCoulombVonMises", mHyperElasticNeoHookeanKinematicPlasticity3DModifiedMohrCoulombVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DModifiedMohrCoulombModifiedMohrCoulomb", mHyperElasticNeoHookeanKinematicPlasticity3DModifiedMohrCoulombModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DModifiedMohrCoulombDruckerPrager", mHyperElasticNeoHookeanKinematicPlasticity3DModifiedMohrCoulombDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DModifiedMohrCoulombTresca", mHyperElasticNeoHookeanKinematicPlasticity3DModifiedMohrCoulombTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DTrescaVonMises", mHyperElasticNeoHookeanKinematicPlasticity3DTrescaVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DTrescaModifiedMohrCoulomb", mHyperElasticNeoHookeanKinematicPlasticity3DTrescaModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DTrescaDruckerPrager", mHyperElasticNeoHookeanKinematicPlasticity3DTrescaDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DTrescaTresca", mHyperElasticNeoHookeanKinematicPlasticity3DTrescaTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerVonMises", mHyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerModifiedMohrCoulomb", mHyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerDruckerPrager", mHyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerTresca", mHyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DVonMisesMohrCoulomb", mHyperElasticNeoHookeanKinematicPlasticity3DVonMisesMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DMohrCoulombVonMises", mHyperElasticNeoHookeanKinematicPlasticity3DMohrCoulombVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DMohrCoulombMohrCoulomb", mHyperElasticNeoHookeanKinematicPlasticity3DMohrCoulombMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DMohrCoulombDruckerPrager", mHyperElasticNeoHookeanKinematicPlasticity3DMohrCoulombDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DMohrCoulombTresca", mHyperElasticNeoHookeanKinematicPlasticity3DMohrCoulombTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DTrescaMohrCoulomb", mHyperElasticNeoHookeanKinematicPlasticity3DTrescaMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerMohrCoulomb", mHyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerMohrCoulomb);
+
     /// Damage
 
     /* Small strain */
@@ -838,7 +951,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatigue3DLawSimoJuDruckerPrager", mSmallStrainHighCycleFatigue3DLawSimoJuDruckerPrager);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatigue3DLawSimoJuTresca", mSmallStrainHighCycleFatigue3DLawSimoJuTresca);
 
-    // d+d- laws
+    // d+d- laws (3D)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainDplusDminusDamageModifiedMohrCoulombModifiedMohrCoulomb3D", mSmallStrainDplusDminusDamageModifiedMohrCoulombModifiedMohrCoulomb3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainDplusDminusDamageModifiedMohrCoulombRankine3D", mSmallStrainDplusDminusDamageModifiedMohrCoulombRankine3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainDplusDminusDamageModifiedMohrCoulombSimoJu3D", mSmallStrainDplusDminusDamageModifiedMohrCoulombSimoJu3D);
@@ -887,6 +1000,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainDplusDminusDamageTrescaMohrCoulomb3D", mSmallStrainDplusDminusDamageTrescaMohrCoulomb3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainDplusDminusDamageDruckerPragerMohrCoulomb3D", mSmallStrainDplusDminusDamageDruckerPragerMohrCoulomb3D);
 
+    // d+d- laws (2D)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainDplusDminusDamageModifiedMohrCoulombModifiedMohrCoulomb2D", mSmallStrainDplusDminusDamageModifiedMohrCoulombModifiedMohrCoulomb2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainDplusDminusDamageModifiedMohrCoulombRankine2D", mSmallStrainDplusDminusDamageModifiedMohrCoulombRankine2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainDplusDminusDamageModifiedMohrCoulombSimoJu2D", mSmallStrainDplusDminusDamageModifiedMohrCoulombSimoJu2D);
@@ -953,5 +1067,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageModifiedMohrCoulomb2D", mSmallStrainOrthotropicDamageModifiedMohrCoulomb2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainOrthotropicDamageSimoJu2D", mSmallStrainOrthotropicDamageSimoJu2D);
 
+    // Rules of mixtures
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("RuleOfMixturesLaw", mRuleOfMixturesLaw);
+#endif // STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
 }
 }  // namespace Kratos.

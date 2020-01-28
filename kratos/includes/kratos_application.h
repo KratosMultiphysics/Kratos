@@ -35,13 +35,15 @@
 namespace Kratos {
 ///@name Kratos Classes
 ///@{
-
-/// This class defines the interface with kernel for all applications in Kratos.
-/** The application class defines the interface necessary for providing the information
-    needed by Kernel in order to configure the whole sistem correctly.
-
-*/
-
+ 
+/** 
+ * @class KratosApplication
+ * @brief This class defines the interface with kernel for all applications in Kratos.
+ * @details The application class defines the interface necessary for providing the information needed by Kernel in order to configure the whole sistem correctly.
+ * @ingroup KratosCore
+ * @author Pooyan Dadvand
+ * @author Riccardo Rossi
+ */
 class KRATOS_API(KRATOS_CORE) KratosApplication {
    public:
     ///@name Type Definitions
@@ -95,7 +97,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     ///////////////////////////////////////////////////////////////////
     void RegisterVariables();  // This contains the whole list of common variables in the Kratos Core
-    void RegisterDeprecatedVariables();  //TODO: remove, this variables should not be there
+    void RegisterDeprecatedVariables();           //TODO: remove, this variables should not be there
     void RegisterC2CVariables();                  //TODO: move to application
     void RegisterCFDVariables();                  //TODO: move to application
     void RegisterALEVariables();                  //TODO: move to application
@@ -111,12 +113,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///@}
     ///@name Access
     ///@{
-
-    //	template<class TComponentType>
-    //		typename KratosComponents<TComponentType>::ComponentsContainerType& GetComponents(TComponentType const& rComponentType)
-    //	{
-    //		return KratosComponents<TComponentType>::GetComponents();
-    //	}
 
     // I have to see why the above version is not working for multi thread ...
     // Anyway its working with these functions.Pooyan.
@@ -211,41 +207,11 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
             VariableDataComponents)
 
     {
-        for (KratosComponents<VariableData>::ComponentsContainerType::iterator
-                 i = mpVariableData->begin();
-
-             i != mpVariableData->end(); i++)
-
-        {
-            std::string const& variable_name = i->second->Name();
-            KratosComponents<VariableData>::ComponentsContainerType::
-                const_iterator i_variable =
-                    VariableDataComponents.find(variable_name);
-
-            if (i_variable == VariableDataComponents.end())
-
-                KRATOS_THROW_ERROR(std::logic_error,
-                    "This variable is not registered in Kernel : ",
-                    *(i_variable->second));
-
-            unsigned int variable_key = i_variable->second->Key();
-
-            if (variable_key == 0)
-
-                KRATOS_THROW_ERROR(std::logic_error,
-                    "This variable is not initialized in Kernel : ",
-                    *(i_variable->second));
-
-            //			KRATOS_WATCH(i_variable->second.get());
-
-            //			KRATOS_WATCH(i->second.get().Key());
-
-            //			KRATOS_WATCH(variable_key);
-
-            i->second->SetKey(variable_key);
+        for (auto it = mpVariableData->begin(); it != mpVariableData->end(); it++) {
+            std::string const& r_variable_name = it->second->Name();
+            auto it_variable = VariableDataComponents.find(r_variable_name);
+            KRATOS_ERROR_IF(it_variable == VariableDataComponents.end()) << "This variable is not registered in Kernel : " << *(it_variable->second) << std::endl;
         }
-
-        //			KRATOS_WATCH("!!!!!!!!!!!!!!!!!!!!! END SETTING COMPONENETS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     }
 
     void SetComponents(KratosComponents<Element>::ComponentsContainerType const&
@@ -253,7 +219,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     {
         // It's better to make a loop over new components and add them if they are NOT already exist in application. Or make an ERROR for incompatibility between applications.
-
         mpElements->insert(ElementComponents.begin(), ElementComponents.end());
     }
 
@@ -401,7 +366,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshElement mElement;
     const MeshElement mElement2D2N;
     const MeshElement mElement2D3N;
+    const MeshElement mElement2D6N;
     const MeshElement mElement2D4N;
+    const MeshElement mElement2D8N;
+    const MeshElement mElement2D9N;
 
     const MeshElement mElement3D2N;
     const MeshElement mElement3D3N;
@@ -409,6 +377,9 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshElement mElement3D6N;
     const MeshElement mElement3D8N;
     const MeshElement mElement3D10N;
+    const MeshElement mElement3D15N;
+    const MeshElement mElement3D20N;
+    const MeshElement mElement3D27N;
 
     const DistanceCalculationElementSimplex<2> mDistanceCalculationElementSimplex2D3N;
     const DistanceCalculationElementSimplex<3> mDistanceCalculationElementSimplex3D4N;

@@ -67,26 +67,91 @@ RigidEdge3D::~RigidEdge3D()
 * calculates only the RHS vector (certainly to be removed due to contact algorithm)
 */
 
-void RigidEdge3D::Initialize() {
+void RigidEdge3D::Initialize(const ProcessInfo& rCurrentProcessInfo) {
 
 //  mTgOfFrictionAngle = GetProperties()[FRICTION];
+    if (! rCurrentProcessInfo[IS_RESTARTED]){
+        this->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
+        this->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
 
-  this->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
-  this->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
-
-  this->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
-  this->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
-
+        this->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+        this->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+    }
 }
 
 
+void RigidEdge3D::ComputeConditionRelativeData(int rigid_neighbour_index,
+                                               SphericParticle* const particle,
+                                               double LocalCoordSystem[3][3],
+                                               double& DistPToB,
+                                               array_1d<double, 4>& Weight,
+                                               array_1d<double, 3>& edge_delta_disp_at_contact_point,
+                                               array_1d<double, 3>& edge_velocity_at_contact_point,
+                                               int& ContactType)
+{
+    size_t FE_size = this->GetGeometry().size();
 
+    std::vector<double> TempWeight;
+    TempWeight.resize(FE_size);
+
+    double total_weight = 0.0;
+    int points = 0;
+    int inode1 = 0, inode2 = 0;
+
+    for (unsigned int inode = 0; inode < FE_size; inode++) {
+
+        if (Weight[inode] > 1.0e-12) {
+            total_weight = total_weight + Weight[inode];
+            points++;
+            if (points == 1) {inode1 = inode;}
+            if (points == 2) {inode2 = inode;}
+        }
+
+        if (fabs(total_weight - 1.0) < 1.0e-12) {
+            break;
+        }
+    }
+
+    bool contact_exists = true;
+    array_1d<double, 3>& node_coordinates = particle->GetGeometry()[0].Coordinates();
+
+    const double radius = particle->GetInteractionRadius();
+
+    if (points == 2) {
+
+        double eta = 0.0;
+        contact_exists = GeometryFunctions::EdgeCheck(this->GetGeometry()[inode1], this->GetGeometry()[inode2], node_coordinates, radius, LocalCoordSystem, DistPToB, eta);
+
+        Weight[inode1] = 1-eta;
+        Weight[inode2] = eta;
+        ContactType = 2;
+
+    }
+
+    else if (points == 1) {
+        contact_exists = GeometryFunctions::VertexCheck(this->GetGeometry()[inode1], node_coordinates, radius, LocalCoordSystem, DistPToB);
+        Weight[inode1] = 1.0;
+        ContactType = 3;
+    }
+
+    if (contact_exists == false) {ContactType = -1;}
+
+    for (std::size_t inode = 0; inode < FE_size; inode++) {
+        noalias(edge_velocity_at_contact_point) += this->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY) * Weight[inode];
+
+        array_1d<double, 3>  wall_delta_displacement = ZeroVector(3);
+        this->GetDeltaDisplacement(wall_delta_displacement, inode);
+        noalias(edge_delta_disp_at_contact_point) += wall_delta_displacement* Weight[inode];
+
+    }
+}//ComputeConditionRelativeData
 
 void RigidEdge3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info)
 {
 
     const unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int MatSize = number_of_nodes * 3;
+    const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+    unsigned int MatSize = number_of_nodes * dim;
 
     if (rRightHandSideVector.size() != MatSize)
     {
@@ -124,11 +189,10 @@ void RigidEdge3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Proce
                 {
                     weight = weights_vector[k];
 
-                    unsigned int w =  k * 3;
-
-                    rRightHandSideVector[w + 0] += -ContactForce[0] * weight;
-                    rRightHandSideVector[w + 1] += -ContactForce[1] * weight;
-                    rRightHandSideVector[w + 2] += -ContactForce[2] * weight;
+                    unsigned int w =  k * dim;
+                    for(size_t l=0; l<dim; l++) {
+                        rRightHandSideVector[w + l] += -ContactForce[l] * weight;
+                    }
                 }
 
             }//if the condition neighbour of my sphere neighbour is myself.

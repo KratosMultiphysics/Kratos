@@ -20,6 +20,7 @@
 #include "utilities/table_stream_utility.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/color_utilities.h"
+#include "utilities/constraint_utilities.h"
 
 namespace Kratos
 {
@@ -214,22 +215,29 @@ public:
             std::size_t dof_id = 0;
             TDataType residual_dof_value = 0.0;
 
+            // The number of active dofs
+            const std::size_t number_active_dofs = rb.size();
+
             // Loop over Dofs
-            #pragma omp parallel for reduction(+:disp_residual_solution_norm,lm_residual_solution_norm,disp_dof_num,lm_dof_num,dof_id,residual_dof_value)
+            #pragma omp parallel for firstprivate(dof_id, residual_dof_value) reduction(+:disp_residual_solution_norm,lm_residual_solution_norm,disp_dof_num,lm_dof_num)
             for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
                 auto it_dof = it_dof_begin + i;
 
-                if (it_dof->IsFree()) {
-                    dof_id = it_dof->EquationId();
-                    residual_dof_value = rb[dof_id];
+                dof_id = it_dof->EquationId();
 
-                    const auto curr_var = it_dof->GetVariable();
-                    if ((curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
-                        lm_residual_solution_norm += residual_dof_value * residual_dof_value;
-                        lm_dof_num++;
-                    } else {
-                        disp_residual_solution_norm += residual_dof_value * residual_dof_value;
-                        disp_dof_num++;
+                // Check dof id is solved
+                if (dof_id < number_active_dofs) {
+                    if (mActiveDofs[dof_id] == 1) {
+                        residual_dof_value = rb[dof_id];
+
+                        const auto& r_curr_var = it_dof->GetVariable();
+                        if ((r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (r_curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (r_curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
+                            lm_residual_solution_norm += residual_dof_value * residual_dof_value;
+                            ++lm_dof_num;
+                        } else {
+                            disp_residual_solution_norm += residual_dof_value * residual_dof_value;
+                            ++disp_dof_num;
+                        }
                     }
                 }
             }
@@ -372,7 +380,11 @@ public:
         const TSystemVectorType& rb
         ) override
     {
+        // Initialize flag
         mOptions.Set(DisplacementLagrangeMultiplierResidualContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
+
+        // Filling mActiveDofs when MPC exist
+        ConstraintUtilities::ComputeActiveDofs(rModelPart, mActiveDofs, rDofSet);
     }
 
     ///@}
@@ -440,6 +452,8 @@ private:
     TDataType mLMAbsTolerance;        /// The absolute value threshold for the norm of the LM  residual
     TDataType mLMInitialResidualNorm; /// The reference norm of the LM residual
     TDataType mLMCurrentResidualNorm; /// The current norm of the LM residual
+
+    std::vector<int> mActiveDofs;     /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators

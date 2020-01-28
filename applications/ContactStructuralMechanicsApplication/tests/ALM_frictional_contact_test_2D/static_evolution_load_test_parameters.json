@@ -24,20 +24,14 @@
             "mortar_type"                    : "ALMContactFrictional"
         },
         "time_stepping"                      : {
-            "time_step_intervals" : {
-                "first_interval" : {
-                    "interval"  : [0.0, 0.9999999999],
-                    "time_step" : 1.0e0
-                },
-                "second_interval" : {
-                    "interval"  : [1.0, 1.9999999999],
-                    "time_step" : 5.0e-1
-                },
-                "third_interval" : {
-                    "interval"  : [2.0, "End"],
-                    "time_step" : 5.0e-2
-                }
-            }
+            "time_step_table" : [
+                [0.0, 1.0],
+                [0.9999, 1.0],
+                [1.0, 0.5],
+                [1.999999999, 0.5],
+                [2.0, 0.05],
+                [2.6, 0.05]
+            ]
         },
         "buffer_size"                        : 3,
         "line_search"                        : false,
@@ -46,9 +40,7 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 20,
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2"],
-        "processes_sub_model_part_list"      : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2","DISPLACEMENT_Displacement_Auto1","LineLoad2D_Load_on_lines_Auto1","LineLoad2D_Load_on_lines_Auto2","GENERIC_Add_SubModelPart_Auto1","GENERIC_Add_SubModelPart_Auto2"]
+        "max_iteration"                      : 20
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -130,7 +122,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
                 "input_file_name"      : "ALM_frictional_contact_test_2D/static_evolution_load_test_results.json",
-                "model_part_name"      : "GENERIC_Add_SubModelPart_Auto1",
+                "model_part_name"      : "Structure.GENERIC_Add_SubModelPart_Auto1",
                 "time_frequency"       : 5.0e-2
             }
         },
@@ -144,7 +136,7 @@
                 "check_for_flag"       : "ACTIVE",
                 "input_file_name"      : "ALM_frictional_contact_test_2D/static_evolution_load_test_LM_results.json",
                 "historical_value"     : false,
-                "model_part_name"      : "GENERIC_Add_SubModelPart_Auto1",
+                "model_part_name"      : "Structure.GENERIC_Add_SubModelPart_Auto1",
                 "time_frequency"       : 5.0e-2
             }
         }
@@ -193,7 +185,7 @@
                 "output_frequency"                   : 1,
                 "file_format"                        : "ascii",
                 "output_precision"                   : 7,
-                "output_sub_model_parts"             : true,
+                "output_sub_model_parts"             : false,
                 "folder_name"                        : "vtk_output",
                 "save_output_files_in_folder"        : true,
                 "nodal_solution_step_data_variables" : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER","WEIGHTED_GAP","WEIGHTED_SLIP"],
@@ -203,7 +195,7 @@
                 "element_flags"                      : [],
                 "condition_data_value_variables"     : [],
                 "condition_flags"                    : [],
-                "gauss_point_variables"              : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
+                "gauss_point_variables_extrapolated_to_nodes"              : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
             }
         }]
     },
@@ -216,7 +208,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictional_contact_test_2D/static_evolution_load_test_results.json",
-            "model_part_name"      : "GENERIC_Add_SubModelPart_Auto1",
+            "model_part_name"      : "Structure.GENERIC_Add_SubModelPart_Auto1",
             "time_frequency"       : 5.0e-2
         }
     },{
@@ -228,7 +220,7 @@
             "output_variables"     : ["AUGMENTED_NORMAL_CONTACT_PRESSURE","AUGMENTED_TANGENT_CONTACT_PRESSURE_X"],
             "output_file_name"     : "ALM_frictional_contact_test_2D/static_evolution_load_test_LM_results.json",
             "historical_value"     : false,
-            "model_part_name"      : "GENERIC_Add_SubModelPart_Auto1",
+            "model_part_name"      : "Structure.GENERIC_Add_SubModelPart_Auto1",
             "time_frequency"       : 5.0e-2
         }
     }
