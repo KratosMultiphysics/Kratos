@@ -518,7 +518,7 @@ public:
 
         // throws an exception if there are no Degrees of freedom involved in
         // the analysis
-        if (BaseType::mDofSet.size() == 0)
+        if(rModelPart.GetCommunicator().GetDataCommunicator().SumAll(BaseType::mDofSet.size()) == 0)
             KRATOS_ERROR << "No degrees of freedom!";
 
 #ifdef KRATOS_DEBUG

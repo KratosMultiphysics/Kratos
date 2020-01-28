@@ -1,3 +1,4 @@
+@echo off
 rem Please do not modify this script
 
 rem For any question please contact with us in:
@@ -8,7 +9,6 @@ rem You can find a list will all the compiation options in INSTALL.md or here:
 rem  - https://github.com/KratosMultiphysics/Kratos/wiki/Compilation-options
 
 rem Set compiler
-@echo off
 set CC=cl.exe
 set CXX=cl.exe
 
@@ -16,6 +16,9 @@ rem Set variables
 set KRATOS_SOURCE=~0,-1%/..
 set KRATOS_BUILD=%KRATOS_SOURCE%/build
 set KRATOS_APP_DIR=applications
+
+rem Warning: In windows this option only works if you run through a terminal with admin privileges
+rem set KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 rem Set basic configuration
 if not defined KRATOS_BUILD_TYPE set KRATOS_BUILD_TYPE=Release

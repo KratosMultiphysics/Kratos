@@ -221,8 +221,8 @@ public:
     const double FourThirds = 4.0 / 3.0;
     const double nTwoThirds = -2.0 / 3.0;
 
-    double theta = 0.5;
-    //double theta=1.0;
+    //double theta = 0.5;
+    double theta=1.0;
     array_1d<double, 3> Acc(3, 0.0);
 
     double dNdXi = 0;

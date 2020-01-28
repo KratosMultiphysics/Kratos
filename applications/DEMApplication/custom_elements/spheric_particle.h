@@ -252,7 +252,7 @@ return buffer.str();
 virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "SphericParticle";}
 
 /// Print object's data.
-virtual void PrintData(std::ostream& rOStream) const override {}
+//virtual void PrintData(std::ostream& rOStream) const override {}
 
 double mElasticEnergy;
 double mInelasticFrictionalEnergy;
