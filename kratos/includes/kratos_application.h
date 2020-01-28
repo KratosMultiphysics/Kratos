@@ -32,6 +32,34 @@
 #include "includes/master_slave_constraint.h"
 #include "includes/linear_master_slave_constraint.h"
 
+/* Geometries definition */
+#include "geometries/line_2d_2.h"
+#include "geometries/line_2d_3.h"
+#include "geometries/line_3d_2.h"
+#include "geometries/line_3d_3.h"
+#include "geometries/point.h"
+#include "geometries/point_2d.h"
+#include "geometries/point_3d.h"
+#include "geometries/sphere_3d_1.h"
+#include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_2d_6.h"
+#include "geometries/triangle_3d_3.h"
+#include "geometries/triangle_3d_6.h"
+#include "geometries/quadrilateral_2d_4.h"
+#include "geometries/quadrilateral_2d_8.h"
+#include "geometries/quadrilateral_2d_9.h"
+#include "geometries/quadrilateral_3d_4.h"
+#include "geometries/quadrilateral_3d_8.h"
+#include "geometries/quadrilateral_3d_9.h"
+#include "geometries/tetrahedra_3d_4.h"
+#include "geometries/tetrahedra_3d_10.h"
+#include "geometries/prism_3d_6.h"
+#include "geometries/prism_3d_15.h"
+#include "geometries/hexahedra_3d_8.h"
+#include "geometries/hexahedra_3d_20.h"
+#include "geometries/hexahedra_3d_27.h"
+#include "geometries/quadrature_point_geometry.h"
+
 namespace Kratos {
 ///@name Kratos Classes
 ///@{
@@ -49,6 +77,9 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///@name Type Definitions
     ///@{
 
+    typedef Node<3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+       
     /// Pointer definition of KratosApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosApplication);
 
@@ -317,25 +348,61 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     }
 
     ///@}
-
     ///@name Friends
-
     ///@{
 
     ///@}
-
    protected:
     ///@name Protected static Member Variables
-
     ///@{
 
     ///@}
-
     ///@name Protected member Variables
-
     ///@{
+       
     std::string mApplicationName;
 
+    // General geometries must be defined
+    //Points:
+    const Point mPointPrototype;
+    const GeometryType mPoint2DPrototype = Point2D<NodeType>(GeometryType::PointsArrayType(1));
+    const GeometryType mPoint3DPrototype = Point3D<NodeType>(GeometryType::PointsArrayType(1));
+    //Sphere
+    const GeometryType mSphere3D1Prototype = Sphere3D1<NodeType>(GeometryType::PointsArrayType(1));
+    //Lines:
+    const GeometryType mLine2D2Prototype = Line2D2<NodeType>(GeometryType::PointsArrayType(2));
+    const GeometryType mLine2D3Prototype = Line2D3<NodeType>(GeometryType::PointsArrayType(3));
+    const GeometryType mLine3D2Prototype = Line3D2<NodeType>(GeometryType::PointsArrayType(2));
+    const GeometryType mLine3D3Prototype = Line3D3<NodeType>(GeometryType::PointsArrayType(3));
+    //Triangles:
+    const GeometryType mTriangle2D3Prototype = Triangle2D3<NodeType>(GeometryType::PointsArrayType(3));
+    const GeometryType mTriangle2D6Prototype = Triangle2D6<NodeType>(GeometryType::PointsArrayType(6));
+    const GeometryType mTriangle3D3Prototype = Triangle3D3<NodeType>(GeometryType::PointsArrayType(3));
+    const GeometryType mTriangle3D6Prototype = Triangle3D6<NodeType>( GeometryType::PointsArrayType(6));
+    //Quadrilaterals:
+    const GeometryType mQuadrilateral2D4Prototype = Quadrilateral2D4<NodeType>( GeometryType::PointsArrayType(4));
+    const GeometryType mQuadrilateral2D8Prototype = Quadrilateral2D8<NodeType>( GeometryType::PointsArrayType(8));
+    const GeometryType mQuadrilateral2D9Prototype = Quadrilateral2D9<NodeType>( GeometryType::PointsArrayType(9));
+    const GeometryType mQuadrilateral3D4Prototype = Quadrilateral3D4<NodeType>( GeometryType::PointsArrayType(4));
+    const GeometryType mQuadrilateral3D8Prototype = Quadrilateral3D8<NodeType>( GeometryType::PointsArrayType(8));
+    const GeometryType mQuadrilateral3D9Prototype = Quadrilateral3D9<NodeType>( GeometryType::PointsArrayType(9));
+    //Tetrahedra:
+    const GeometryType mTetrahedra3D4Prototype = Tetrahedra3D4<NodeType>( GeometryType::PointsArrayType(4));
+    const GeometryType mTetrahedra3D10Prototype = Tetrahedra3D10<NodeType>( GeometryType::PointsArrayType(10));
+    //Prisms:
+    const GeometryType mPrism3D6Prototype = Prism3D6<NodeType>( GeometryType::PointsArrayType(6));
+    const GeometryType mPrism3D15Prototype = Prism3D15<NodeType>( GeometryType::PointsArrayType(15));
+    //Hexahedra:
+    const GeometryType mHexahedra3D8Prototype = Hexahedra3D8<NodeType>( GeometryType::PointsArrayType(8));
+    const GeometryType mHexahedra3D20Prototype = Hexahedra3D20<NodeType>( GeometryType::PointsArrayType(20));
+    const GeometryType mHexahedra3D27Prototype = Hexahedra3D27<NodeType>( GeometryType::PointsArrayType(27));
+    //QuadraturePointGeometry:
+    const GeometryType mQuadraturePointGeometryVolume3dPrototype = QuadraturePointGeometry<NodeType, 3>(GeometryType::PointsArrayType(1));
+    const GeometryType mQuadraturePointGeometrySurface3dPrototype = QuadraturePointGeometry<NodeType, 3, 2>(GeometryType::PointsArrayType(1));
+    const GeometryType mQuadraturePointGeometrySurface2dPrototype = QuadraturePointGeometry<NodeType, 2>(GeometryType::PointsArrayType(1));
+    const GeometryType mQuadraturePointGeometryCurve3dPrototype = QuadraturePointGeometry<NodeType, 3, 1>(GeometryType::PointsArrayType(1));
+    const GeometryType mQuadraturePointGeometryCurve2dPrototype = QuadraturePointGeometry<NodeType, 2, 1>(GeometryType::PointsArrayType(1));
+    
     // General conditions must be defined
 
     // Point conditions
