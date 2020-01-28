@@ -47,7 +47,7 @@ namespace Kratos
 
 namespace Python
 {
-    typedef std::size_t SizeType;
+    typedef std::size_t IndexType;
     typedef Geometry<Node<3> > GeometryType;
     typedef GeometryType::PointsArrayType NodesArrayType;
     typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
@@ -58,7 +58,7 @@ namespace Python
 
     // Id utilities
     array_1d<double, 3> SetId1(
-        GeometryType& dummy, SizeType geometry_id)
+        GeometryType& dummy, IndexType geometry_id)
     {
         return(dummy.SetId1(geometry_id));
     }
@@ -109,7 +109,11 @@ void  AddGeometriesToPython(pybind11::module& m)
 
     py::class_<GeometryType, GeometryType::Pointer >(m,"Geometry")
     .def(py::init<>())
+    .def(py::init< IndexType >())
+    .def(py::init< std::string >())
     .def(py::init< GeometryType::PointsArrayType& >())
+    .def(py::init< IndexType, GeometryType::PointsArrayType& >())
+    .def(py::init< std::string, GeometryType::PointsArrayType& >())
     // Id functions
     .def("Id", &GeometryType::Id)
     .def("SetId", SetId1)
