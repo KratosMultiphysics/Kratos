@@ -762,7 +762,7 @@ protected:
     double DvErrorNorm = 0;
     ConvergedMomentum = this->CheckVelocityConvergence(NormDv, DvErrorNorm);
 
-    unsigned int iterationForCheck = 3;
+    unsigned int iterationForCheck = 2;
     KRATOS_INFO("TwoStepVPStrategy") << "iteration(" << it << ") Velocity error: " << DvErrorNorm << " velTol: " << mVelocityTolerance << std::endl;
 
     // Check convergence
@@ -1385,6 +1385,25 @@ protected:
     {
       fixedTimeStep = true;
       rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, true);
+      if (DvErrorNorm > 10 * minTolerance)
+      {
+        rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, true);
+        std::cout << "           BAD CONVERGENCE DETECTED DURING THE ITERATIVE LOOP!!! error: " << DvErrorNorm << " higher than 0.9999" << std::endl;
+        std::cout << "      I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS" << std::endl;
+        fixedTimeStep = true;
+#pragma omp parallel
+        {
+          ModelPart::NodeIterator NodeBegin;
+          ModelPart::NodeIterator NodeEnd;
+          OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
+          for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+          {
+            itNode->FastGetSolutionStepValue(VELOCITY, 0) = itNode->FastGetSolutionStepValue(VELOCITY, 1);
+            itNode->FastGetSolutionStepValue(PRESSURE, 0) = itNode->FastGetSolutionStepValue(PRESSURE, 1);
+            itNode->FastGetSolutionStepValue(ACCELERATION, 0) = itNode->FastGetSolutionStepValue(ACCELERATION, 1);
+          }
+        }
+      }
     }
     else
     {
