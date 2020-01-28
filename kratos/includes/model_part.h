@@ -248,6 +248,9 @@ public:
     /// Const Geometry Iterator
     typedef typename GeometryContainerType::GeometryConstantIterator GeometryConstantIterator;
 
+    /// Geometry Hash Map Container. Stores with hash of Ids to corresponding geometries.
+    typedef typename GeometryContainerType::GeometriesMapType GeometryMapType;
+
     /// The container of the sub model parts. A hash table is used.
     /**
     */
