@@ -685,8 +685,8 @@ class TestModelPart(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         model_part= current_model.CreateModelPart("Main")
 
-        geom_1 = Geometry("geom_1")
-        geom_2 = Geometry(2)
+        geom_1 = KratosMultiphysics.Geometry("geom_1")
+        geom_2 = KratosMultiphysics.Geometry(2)
 
         self.assertEqual(model_part.NumberOfGeometries(), 0)
 
