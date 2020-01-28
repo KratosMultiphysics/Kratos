@@ -513,12 +513,10 @@ private:
 
         if (number_of_cps !=
             (NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeU, mKnotsU.size())
-                * NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeV, mKnotsV.size())))
-        {
+                * NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeV, mKnotsV.size()))) {
             if (number_of_cps ==
                 (NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeU, mKnotsU.size() - 2)
-                    * NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeV, mKnotsV.size() - 2)))
-            {
+                    * NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeV, mKnotsV.size() - 2))) {
                 Vector KnotsU = ZeroVector(mKnotsU.size() - 2);
                 for (SizeType i = 0; i < mKnotsU.size() - 2; ++i)
                     KnotsU[i] = mKnotsU[i + 1];
@@ -528,8 +526,7 @@ private:
                 for (SizeType i = 0; i < mKnotsV.size() - 2; ++i)
                     KnotsV[i] = mKnotsV[i + 1];
                 mKnotsV = KnotsV;
-            }
-            else {
+            } else {
                 KRATOS_ERROR
                     << "Number of controls points and polynomial degrees and number of knots do not match! "
                     << " P: " << mPolynomialDegreeU << ", Q: " << mPolynomialDegreeV
