@@ -46,8 +46,8 @@ jobs:
         CCACHE_NODISABLE: true
         CCACHE_MAXSIZE: 500M
         FC: gfortran-7
-        CC: /usr/lib/ccache/gcc
-        CXX: /usr/lib/ccache/g++
+        CC: /usr/bin/clang-7
+        CXX: /usr/bin/clang++-7
 
     steps:
     - uses: actions/checkout@v2-beta
@@ -62,6 +62,7 @@ jobs:
 
     - name: Build
       run: |
+        apt install clang-7
         cp .github/workflows/configure.sh configure.sh
         bash configure.sh
         ccache -s
