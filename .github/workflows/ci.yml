@@ -62,7 +62,7 @@ jobs:
 
     - name: Build
       run: |
-        apt install clang-7
+        apt-get install -y clang-7
         cp .github/workflows/configure.sh configure.sh
         bash configure.sh
         ccache -s
