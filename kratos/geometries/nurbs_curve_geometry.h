@@ -58,7 +58,7 @@ public:
         , mPolynomialDegree(PolynomialDegree)
         , mKnots(rKnots)
     {
-        void CheckAndFitKnotVectors();
+        CheckAndFitKnotVectors();
     }
 
     /// Conctructor for NURBS curves
@@ -72,7 +72,7 @@ public:
         , mKnots(rKnots)
         , mWeights(rWeights)
     {
-        void CheckAndFitKnotVectors();
+        CheckAndFitKnotVectors();
 
         KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
             << "Number of control points and weights do not match!" << std::endl;
