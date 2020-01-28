@@ -860,16 +860,11 @@ void AddModelPartToPython(pybind11::module& m)
         .def("__str__", PrintObject<Communicator>);
         ;
 
-        py::class_<typename ModelPart::SubModelPartsContainerType >(m, "SubModelPartsContainerType")
+    py::class_<typename ModelPart::SubModelPartsContainerType >(m, "SubModelPartsContainerType")
         .def("__iter__", [](typename ModelPart::SubModelPartsContainerType& self){ return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
         ;
-        
-        py::class_<typename ModelPart::GeometriesMapType >(m, "GeometriesMapType")
-        .def("__getitem__", [](typename ModelPart::GeometriesMapType& self, const std::size_t i){ return self[i];})
-        .def("__len__", [](typename ModelPart::GeometriesMapType& self){ return self.size();})
-        .def("__iter__", [](typename ModelPart::GeometriesMapType& self){ return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
-        ;
 
+    IdMapInterface<ModelPart::GeometriesMapType>().CreateInterface(m,"GeometriesMapType");
     PointerVectorSetPythonInterface<ModelPart::MasterSlaveConstraintContainerType>().CreateInterface(m,"MasterSlaveConstraintsArray");
 
     py::class_<ModelPart, Kratos::shared_ptr<ModelPart>, DataValueContainer, Flags >(m,"ModelPart")

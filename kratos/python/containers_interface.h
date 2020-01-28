@@ -54,6 +54,30 @@ class ContainerInterface
 };
 
 template< class TContainerType >
+class IdMapInterface
+{
+    public:
+
+    IdMapInterface(){};
+    virtual ~IdMapInterface(){};
+
+    void CreateInterface(pybind11::module& m, std::string ContainerName)
+    {
+        py::class_<TContainerType, typename TContainerType::Pointer  >(m,ContainerName.c_str())
+        .def(py::init<>())
+        .def("__len__",     [](TContainerType& self){return self.size();} )
+        .def("__contains__", [](TContainerType& self, const typename TContainerType::value_type& value){return (self.find(value.Id()) != self.end());} )
+        .def("__contains__", [](TContainerType& self, unsigned int i){return (self.find(i) != self.end());} )
+//         .def("__setitem__", [](TContainerType& self, unsigned int i, typename TContainerType::value_type& value){self[i] = value;} )
+//         .def("__getitem__", [](TContainerType& self, unsigned int i){return self(i);} )
+        .def("__iter__",    [](TContainerType& self){return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
+//         .def("append",    [](TContainerType& self, typename TContainerType::value_type& value){(self.GetContainer()).insert(std::pair<std::size_t, typename TContainerType::value_type>(value.Id(), value));}  )
+        .def("clear",        [](TContainerType& self){self.clear();} )
+        ;
+    }
+};
+
+template< class TContainerType >
 class PointerVectorSetPythonInterface
 {
 public:
