@@ -516,7 +516,7 @@ ModelPart::GeometryType::Pointer ModelPartGetGeometry1(ModelPart& rModelPart, Mo
     return rModelPart.pGetGeometry(GeometryId);
 }
 
-ModelPart::GeometryType::Pointer ModelPartGetGeometry2(ModelPart& rModelPart, std::string GeometryName)
+ModelPart::GeometryType::Pointer ModelPartGetGeometry2(ModelPart& rModelPart, const std::string& GeometryName)
 {
     return rModelPart.pGetGeometry(GeometryName);
 }
@@ -526,7 +526,7 @@ bool ModelPartHasGeometry1(ModelPart& rModelPart, ModelPart::IndexType GeometryI
     return rModelPart.HasGeometry(GeometryId);
 }
 
-bool ModelPartHasGeometry2(ModelPart& rModelPart, std::string GeometryName)
+bool ModelPartHasGeometry2(ModelPart& rModelPart, const std::string& GeometryName)
 {
     return rModelPart.HasGeometry(GeometryName);
 }
@@ -536,7 +536,7 @@ void ModelPartRemoveGeometry1(ModelPart& rModelPart, ModelPart::IndexType Geomet
     rModelPart.RemoveGeometry(GeometryId);
 }
 
-void ModelPartRemoveGeometry2(ModelPart& rModelPart, std::string GeometryName)
+void ModelPartRemoveGeometry2(ModelPart& rModelPart, const std::string& GeometryName)
 {
     rModelPart.RemoveGeometry(GeometryName);
 }
@@ -546,7 +546,7 @@ void ModelPartRemoveGeometryFromAllLevels1(ModelPart& rModelPart, ModelPart::Ind
     rModelPart.RemoveGeometryFromAllLevels(GeometryId);
 }
 
-void ModelPartRemoveGeometryFromAllLevels2(ModelPart& rModelPart, std::string GeometryName)
+void ModelPartRemoveGeometryFromAllLevels2(ModelPart& rModelPart, const std::string& GeometryName)
 {
     rModelPart.RemoveGeometryFromAllLevels(GeometryName);
 }
