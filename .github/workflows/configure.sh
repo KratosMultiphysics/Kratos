@@ -55,11 +55,7 @@ echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DUSE_MPI=ON \
 -DPYBIND11_PYTHON_VERSION="3.6" \
--DCMAKE_CXX_FLAGS="-O0 -fopenmp -Wall \
--Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable \
--Werror=misleading-indentation -Werror=return-type \
--Werror=sign-compare -Werror=unused-but-set-variable \
--Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized -Wno-deprecated-declarations" \
+-DCMAKE_CXX_FLAGS="-O0 -std=c++11 -fopenmp -Wall" \
 -DEIGEN_ROOT="/usr/include/eigen3" \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
