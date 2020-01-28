@@ -69,6 +69,11 @@ namespace Python
         return(dummy.SetId(geometry_name));
     }
 
+    void IsIdGeneratedFromString1(GeometryType& dummy)
+    {
+        return(dummy.IsIdGeneratedFromString());
+    }
+
     array_1d<double,3> GetNormal(
         GeometryType& dummy,
         CoordinatesArrayType& LocalCoords
@@ -118,7 +123,7 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Id", &GeometryType::Id)
     .def("SetId", SetId1)
     .def("SetId", SetId2)
-    .def("IsIdGeneratedFromString", &GeometryType::IsIdGeneratedFromString)
+    .def("IsIdGeneratedFromString", IsIdGeneratedFromString1)
     .def("IsIdSelfAssigned", &GeometryType::IsIdSelfAssigned)
     .def("GenerateId", &GeometryType::GenerateId)
     // Dimension access
