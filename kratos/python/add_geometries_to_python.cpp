@@ -57,13 +57,13 @@ namespace Python
     PointerVector< Node<3> >& GetPoints( GeometryType& geom ) { return geom.Points(); }
 
     // Id utilities
-    array_1d<double, 3> SetId1(
+    void SetId1(
         GeometryType& dummy, IndexType geometry_id)
     {
         return(dummy.SetId(geometry_id));
     }
 
-    array_1d<double, 3> SetId2(
+    void SetId2(
         GeometryType& dummy, const std::string& geometry_name)
     {
         return(dummy.SetId(geometry_name));
