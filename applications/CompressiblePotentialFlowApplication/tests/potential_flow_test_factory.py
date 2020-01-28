@@ -247,18 +247,8 @@ class PotentialFlowTests(UnitTest.TestCase):
                                     "plane_output"        : [],
                                     "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL"],
                                     "nodal_nonhistorical_results": ["TRAILING_EDGE","WAKE_DISTANCE"],
-<<<<<<< HEAD
-<<<<<<< HEAD
                                     "elemental_conditional_flags_results": ["STRUCTURE"],
                                     "gauss_point_results" : ["PRESSURE_COEFFICIENT","VELOCITY","WAKE","WAKE_ELEMENTAL_DISTANCES","KUTTA"]
-=======
-                                    "elemental_conditional_flags_results": ["STRUCTURE","TO_SPLIT"],
-                                    "gauss_point_results" : ["PRESSURE_COEFFICIENT","VELOCITY","VELOCITY_LOWER","PRESSURE_LOWER","WAKE","WAKE_ELEMENTAL_DISTANCES","KUTTA"]
->>>>>>> origin/cps/embedded-pr-3of4
-=======
-                                    "elemental_conditional_flags_results": ["STRUCTURE"],
-                                    "gauss_point_results" : ["PRESSURE_COEFFICIENT","VELOCITY","WAKE","WAKE_ELEMENTAL_DISTANCES","KUTTA"]
->>>>>>> fc3a071ef148811714a3001fec2d88d1e4b7fecf
                                 },
                                 "point_data_configuration"  : []
                             }
