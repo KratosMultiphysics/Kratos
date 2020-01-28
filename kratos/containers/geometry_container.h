@@ -63,13 +63,13 @@ public:
         std::hash<std::size_t>,
         GetGeometryId,
         GeometryPointerType
-    > GeometriesContainerType;
+    > GeometriesMapType;
 
     /// Geometry Iterator
-    typedef typename GeometriesContainerType::iterator GeometryIterator;
+    typedef typename GeometriesMapType::iterator GeometryIterator;
 
     /// Const Geometry Iterator
-    typedef typename GeometriesContainerType::const_iterator GeometryConstantIterator;
+    typedef typename GeometriesMapType::const_iterator GeometryConstantIterator;
 
     ///@}
     ///@name Life Cycle
@@ -87,7 +87,7 @@ public:
 
     /// Components Constructor
     GeometryContainer(
-        GeometriesContainerType& NewGeometries)
+        GeometriesMapType& NewGeometries)
         : mGeometries(NewGeometries)
     {}
 
@@ -100,7 +100,7 @@ public:
 
     GeometryContainer Clone()
     {
-        typename GeometriesContainerType::Pointer p_geometries(new GeometriesContainerType(*mGeometries));
+        typename GeometriesMapType::Pointer p_geometries(new GeometriesMapType(*mGeometries));
 
         return GeometryContainer(p_geometries);
     }
@@ -265,12 +265,12 @@ public:
     ///@name Container Functions
     ///@{
 
-    GeometriesContainerType& Geometries()
+    GeometriesMapType& Geometries()
     {
         return mGeometries;
     }
 
-    const GeometriesContainerType& Geometries() const
+    const GeometriesMapType& Geometries() const
     {
         return mGeometries;
     }
@@ -316,7 +316,7 @@ private:
     ///@{
 
     /// Geometry Container
-    GeometriesContainerType mGeometries;
+    GeometriesMapType mGeometries;
 
     ///@}
     ///@name Serialization
