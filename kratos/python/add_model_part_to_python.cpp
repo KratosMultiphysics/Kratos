@@ -986,6 +986,9 @@ void AddModelPartToPython(pybind11::module& m)
         .def("RemoveGeometry", ModelPartRemoveGeometry2)
         .def("RemoveGeometryFromAllLevels", ModelPartRemoveGeometryFromAllLevels1)
         .def("RemoveGeometryFromAllLevels", ModelPartRemoveGeometryFromAllLevels2)
+        .def_property("Geometries", [](ModelPart& self) { return self.Geometries(); },
+            [](ModelPart& self, ModelPart::GeometriesMapType& geometries) {
+                KRATOS_ERROR << "Setting geometries is not allowed! Trying to set value of ModelPart::Geometries()."; })
         .def("CreateSubModelPart", &ModelPart::CreateSubModelPart, py::return_value_policy::reference_internal)
         .def("NumberOfSubModelParts", &ModelPart::NumberOfSubModelParts)
         .def("GetSubModelPart", &ModelPart::GetSubModelPart, py::return_value_policy::reference_internal)
