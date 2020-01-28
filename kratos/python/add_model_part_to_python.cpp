@@ -819,7 +819,6 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GetNumberOfColors", &Communicator::GetNumberOfColors)
         .def("NeighbourIndices", NeighbourIndicesConst, py::return_value_policy::reference_internal)
         .def("SynchronizeNodalSolutionStepsData", &Communicator::SynchronizeNodalSolutionStepsData)
-        .def("SynchronizeNodalFlags", &Communicator::SynchronizeNodalFlags)
         .def("SynchronizeDofs", &Communicator::SynchronizeDofs)
         .def("LocalMesh", CommunicatorGetLocalMesh, py::return_value_policy::reference_internal )
         .def("LocalMesh", CommunicatorGetLocalMeshWithIndex, py::return_value_policy::reference_internal )
@@ -862,6 +861,11 @@ void AddModelPartToPython(pybind11::module& m)
 
         py::class_<typename ModelPart::SubModelPartsContainerType >(m, "SubModelPartsContainerType")
         .def("__iter__", [](typename ModelPart::SubModelPartsContainerType& self){ return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
+        ;
+        
+        py::class_<typename ModelPart::GeometriesMapType >(m, "GeometriesMapType")
+        .def("__len__", [](typename ModelPart::GeometriesMapType& self){ return self.size();})
+        .def("__iter__", [](typename ModelPart::GeometriesMapType& self){ return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
         ;
 
     PointerVectorSetPythonInterface<ModelPart::MasterSlaveConstraintContainerType>().CreateInterface(m,"MasterSlaveConstraintsArray");
