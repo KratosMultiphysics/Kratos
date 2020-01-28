@@ -123,3 +123,26 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl), you can 
     ```batch
     source ~/intel/mkl/bin/mklvars.sh intel64 lp64
     ```
+
+## Install MKL on Ubuntu with apt
+
+Open a terminal window and run the following commands to install MKL from the official Intel repository:
+
+```bash
+apt-get update -y
+apt-get upgrade -y
+apt-get install -y gnupg2 software-properties-common wget
+wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB -P/tmp
+apt-key add /tmp/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
+rm /tmp/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
+echo deb https://apt.repos.intel.com/mkl all main > /etc/apt/sources.list.d/intel-mkl.list
+add-apt-repository ppa:git-core/ppa -y
+apt-get update -y
+apt-get install -y intel-mkl-2020.0-088
+```
+
+To enable the MKL environment use 
+    
+```bash
+source /opt/intel/compilers_and_libraries_2020.0.166/linux/mkl/bin/mklvars.sh intel64 lp64
+```

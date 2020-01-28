@@ -146,6 +146,31 @@ void CableElement3D2N::UpdateInternalForces(
     KRATOS_CATCH("");
 }
 
+void CableElement3D2N::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == FORCE){
+        TrussElement3D2N::CalculateOnIntegrationPoints(rVariable,rOutput,rCurrentProcessInfo);
+        if (rOutput[0][0]<0.0){
+            rOutput[0]=ZeroVector(msDimension);
+        }
+    }
+}
+
+void CableElement3D2N::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable, std::vector<Vector>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if ((rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) || (rVariable == CAUCHY_STRESS_VECTOR) || (rVariable == PK2_STRESS_VECTOR)){
+        TrussElement3D2N::CalculateOnIntegrationPoints(rVariable,rOutput,rCurrentProcessInfo);
+        if (rOutput[0][0]<0.0){
+            rOutput[0]=ZeroVector(msDimension);
+        }
+    }
+}
+
 void CableElement3D2N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, TrussElement3D2N);
