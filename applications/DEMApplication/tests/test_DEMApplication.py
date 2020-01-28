@@ -13,6 +13,9 @@ import test_DEM_2D
 import test_DEM_3D_contact
 import test_DEM_2D_contact
 
+import test_DEM_3D_restitution
+import test_DEM_2D_restitution
+
 def AssembleTestSuites():
 
     ''' Populates the test suites to run. At least, it should populate the suites:
@@ -41,6 +44,11 @@ def AssembleTestSuites():
     smallSuite.addTest(test_DEM_2D.TestDEM2D("test_DEM2D_1"))
     smallSuite.addTest(test_DEM_3D_contact.TestDEM3DContact("test_DEM3D_contact"))
     smallSuite.addTest(test_DEM_2D_contact.TestDEM2DContact("test_DEM2D_contact"))
+
+    smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_1"))
+    smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_2"))
+    smallSuite.addTest(test_DEM_2D_restitution.TestDEM2DRestitution("test_DEM2D_restitution_1"))
+    smallSuite.addTest(test_DEM_2D_restitution.TestDEM2DRestitution("test_DEM2D_restitution_2"))
 
     smallSuite.addTest(test_restart.TestRestartOneBall("test_execution"))
     smallSuite.addTest(test_restart.TestRestartTwoBalls("test_execution"))
