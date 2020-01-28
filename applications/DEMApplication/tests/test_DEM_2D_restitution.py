@@ -50,13 +50,13 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
         tolerance = 1.0001
         for node in self.spheres_model_part.Nodes:
             final_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
-            print("initial velocity:",self.initial_normal_vel)
-            print("final velocity:",final_vel)
+            Logger.PrintInfo("initial velocity:",self.initial_normal_vel)
+            Logger.PrintInfo("final velocity:",final_vel)
             restitution_coefficient = -final_vel / self.initial_normal_vel
-            print("restitution_coefficient",restitution_coefficient)
-            print("ref:", self.coeff)
-            print("upper bound:",restitution_coefficient*tolerance)
-            print("lower bound:",restitution_coefficient/tolerance)
+            Logger.PrintInfo("restitution_coefficient",restitution_coefficient)
+            Logger.PrintInfo("ref:",self.coeff)
+            Logger.PrintInfo("upper bound:",restitution_coefficient*tolerance)
+            Logger.PrintInfo("lower bound:",restitution_coefficient/tolerance)
             self.CheckRestitution(self.coeff, restitution_coefficient, tolerance)
         super(DEM2D_RestitutionTestSolution, self).Finalize()
 
