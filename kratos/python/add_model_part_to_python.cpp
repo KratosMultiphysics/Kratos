@@ -540,7 +540,7 @@ void ModelPartRemoveGeometry1(ModelPart& rModelPart, ModelPart::IndexType Geomet
     rModelPart.RemoveGeometry(GeometryId);
 }
 
-void ModelPartRemoveGeometry2(ModelPart& rModelPart, std::string GeometryName)
+void ModelPartRemoveGeometry2(ModelPart& rModelPart, const std::string& GeometryName)
 {
     rModelPart.RemoveGeometry(GeometryName);
 }
