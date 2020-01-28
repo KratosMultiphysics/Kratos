@@ -1446,6 +1446,19 @@ public:
         return mGeometries.GeometriesEnd();
     }
 
+
+    /// Get geometry map containe
+    GeometriesMapType& Geometries()
+    {
+        return mGeometries.Geometries();
+    }
+
+    /// Get geometry map containe
+    const GeometriesMapType& Geometries() const
+    {
+        return mGeometries.Geometries();
+    }
+
     ///@}
     ///@name Sub model parts
     ///@{
