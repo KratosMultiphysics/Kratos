@@ -865,6 +865,7 @@ void AddModelPartToPython(pybind11::module& m)
         ;
         
         py::class_<typename ModelPart::GeometriesMapType >(m, "GeometriesMapType")
+        .def("__getitem__", [](typename ModelPart::GeometriesMapType& self, const std::size_t i){ return self[i];})
         .def("__len__", [](typename ModelPart::GeometriesMapType& self){ return self.size();})
         .def("__iter__", [](typename ModelPart::GeometriesMapType& self){ return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
         ;

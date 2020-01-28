@@ -178,12 +178,12 @@ public:
 
     TDataType& operator[](const key_type& Key)
     {
-		return *(mData[Key].second);
+		return *(mData.find(Key)->second);
     }
 
     pointer_type& operator()(const key_type& Key)
     {
-		return mData[Key].second;
+		return mData.find(Key)->second;
 	}
 
     bool operator==( const PointerHashMapSet& r ) const // nothrow
