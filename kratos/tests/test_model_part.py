@@ -695,8 +695,8 @@ class TestModelPart(KratosUnittest.TestCase):
 
         # Check container and correct access
         self.assertEqual(model_part.NumberOfGeometries(), 2)
-        self.assertEqual(model_part.GetGeometry(2).Id(), 2)
-        self.assertEqual(model_part.GetGeometry("geom_1").Id(), KratosMultiphysics.Geometry.GenerateId("geom_1"))
+        self.assertEqual(model_part.GetGeometry(2).Id, 2)
+        self.assertEqual(model_part.GetGeometry("geom_1").Id, KratosMultiphysics.Geometry.GenerateId("geom_1"))
 
         # Check remove
         model_part.RemoveGeometry("geom_1")
@@ -704,10 +704,10 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.HasGeometry(2), True)
 
         # Check map access
-        self.assertEqual(model_part.Geometries()[0].Id(), 2)
-        self.assertEqual(len(model_part.Geometries()), 1)
+        self.assertEqual(len(model_part.Geometries), 1)
+        self.assertEqual(model_part.Geometries[0].Id, 2)
         counter = 0
-        for geometry in model_part1.Geometries():
+        for geometry in model_part1.Geometries:
             counter+=1
         self.assertEqual(counter, 1)
 
