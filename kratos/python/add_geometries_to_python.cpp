@@ -47,6 +47,7 @@ namespace Kratos
 
 namespace Python
 {
+    typedef std::size_t SizeType;
     typedef Geometry<Node<3> > GeometryType;
     typedef GeometryType::PointsArrayType NodesArrayType;
     typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
@@ -54,6 +55,19 @@ namespace Python
 
     const PointerVector< Node<3> >& ConstGetPoints( GeometryType& geom ) { return geom.Points(); }
     PointerVector< Node<3> >& GetPoints( GeometryType& geom ) { return geom.Points(); }
+
+    // Id utilities
+    array_1d<double, 3> SetId1(
+        GeometryType& dummy, SizeType geometry_id)
+    {
+        return(dummy.SetId1(geometry_id));
+    }
+
+    array_1d<double, 3> SetId2(
+        GeometryType& dummy, const std::string& geometry_name)
+    {
+        return(dummy.SetId1(geometry_name));
+    }
 
     array_1d<double,3> GetNormal(
         GeometryType& dummy,
@@ -96,6 +110,9 @@ void  AddGeometriesToPython(pybind11::module& m)
     py::class_<GeometryType, GeometryType::Pointer >(m,"Geometry")
     .def(py::init<>())
     .def(py::init< GeometryType::PointsArrayType& >())
+    .def("Id", &GeometryType::Id)
+    .def("SetId", &GeometryType::SetId1)
+    .def("SetId", &GeometryType::SetId2)
     .def("WorkingSpaceDimension",&GeometryType::WorkingSpaceDimension)
     .def("LocalSpaceDimension",&GeometryType::LocalSpaceDimension)
     .def("DomainSize",&GeometryType::DomainSize)
