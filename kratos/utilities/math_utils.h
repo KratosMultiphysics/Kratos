@@ -1698,6 +1698,10 @@ public:
         TDataType a, u, c, s, gamma, teta;
         IndexType index1, index2;
 
+        aux_A.resize(size,size,false);
+        aux_V_matrix.resize(size,size,false);
+        rotation_matrix.resize(size,size,false);
+
         for(IndexType iterations = 0; iterations < MaxIterations; ++iterations) {
             is_converged = true;
 
@@ -1808,6 +1812,31 @@ public:
                 rEigenVectorsMatrix(i, j) = V_matrix(j, i);
             }
         }
+
+        return is_converged;
+    }
+
+    template<class TMatrixType1, class TMatrixType2>
+    static inline bool MatrixSquareRoot(
+        const TMatrixType1 &rA,
+        TMatrixType2 &rMatrixSquareRoot,
+        const TDataType Tolerance = 1.0e-18,
+        const SizeType MaxIterations = 20)
+    {
+        // Do an eigenvalue decomposition of the input matrix
+        TMatrixType2 eigenvectors_matrix;
+        TMatrixType2 eigenvalues_matrix;
+        const bool is_converged = GaussSeidelEigenSystem(rA, eigenvectors_matrix, eigenvalues_matrix, Tolerance, MaxIterations);
+        KRATOS_WARNING_IF("MatrixSquareRoot", !is_converged) << "GaussSeidelEigenSystem did not converge.\n";
+
+        // Get the square root of the eigenvalues
+        SizeType size = eigenvalues_matrix.size1();
+        for (SizeType i = 0; i < size; ++i) {
+            eigenvalues_matrix(i,i) = std::sqrt(eigenvalues_matrix(i,i));
+        }
+
+        // Calculate the solution from the previous decomposition and eigenvalues square root
+        rMatrixSquareRoot = prod(eigenvectors_matrix, Matrix(prod(eigenvalues_matrix, trans(eigenvectors_matrix))));
 
         return is_converged;
     }
