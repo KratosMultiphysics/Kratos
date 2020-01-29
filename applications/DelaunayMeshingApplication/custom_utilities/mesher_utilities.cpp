@@ -1760,7 +1760,7 @@ namespace Kratos
 
         if(condition_found)
         {
-          pCondition->Set(Flags::Not(SELECTED)); //meaning that is a element that shares faces
+          pCondition->Set(Flags::Unset(SELECTED)); //meaning that is a element that shares faces
           face_elements++;
           break;
         }

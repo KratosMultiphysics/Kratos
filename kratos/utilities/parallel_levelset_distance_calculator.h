@@ -89,7 +89,7 @@ public:
                             const Variable<double>& rAreaVar,
                             const unsigned int max_levels,
                             const double max_distance,
-                            Flags Options = Flags::Not(CALCULATE_EXACT_DISTANCES_TO_PLANE))
+                            Flags Options = Flags::Unset(CALCULATE_EXACT_DISTANCES_TO_PLANE))
     {
         KRATOS_TRY
 
