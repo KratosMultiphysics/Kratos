@@ -814,6 +814,12 @@ namespace Kratos {
                 ModelPart& submp = *sub_model_part;
                 NodesArrayType& pNodes = sub_model_part->Nodes();
 
+                if (submp.Has(RIGID_BODY_OPTION)) {
+                    if (submp[RIGID_BODY_OPTION] == false) {
+                        continue;
+                    }
+                }
+
                 #pragma omp parallel for
                 for (int i=0; i<(int)pTConditions.size(); i++) {
                     ConditionsArrayType::iterator it = pTConditions.ptr_begin() + i;
@@ -1155,6 +1161,12 @@ namespace Kratos {
 
             ModelPart& submp = *sub_model_part;
 
+            if (submp.Has(RIGID_BODY_OPTION)) {
+                if (submp[RIGID_BODY_OPTION] == false) {
+                    continue;
+                }
+            }
+
             ElementsArrayType& pElements = mpFem_model_part->Elements();
             ElementsArrayType::iterator it = pElements.ptr_begin() + rigid_body_elements_counter;
             RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
@@ -1321,6 +1333,12 @@ namespace Kratos {
         unsigned int rigid_body_elements_counter = 0;
 
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
+
+            if ((*sub_model_part).Has(RIGID_BODY_OPTION)) {
+                if ((*sub_model_part)[RIGID_BODY_OPTION] == false) {
+                    continue;
+                }
+            }
 
             ElementsArrayType& pElements = mpFem_model_part->Elements();
             ElementsArrayType::iterator it = pElements.ptr_begin() + rigid_body_elements_counter;
