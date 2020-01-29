@@ -15,24 +15,32 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
 
         model_part= current_model.CreateModelPart("Main")
 
-        model_part.CreateNewNode(1, 0.00,0.00,0.00)
-        model_part.CreateNewNode(2, 1.00,0.00,0.00)
-        model_part.CreateNewNode(3, 1.00,1.00,0.00)
+        node1 = model_part.CreateNewNode(1, 0.0,0.0,0.0)
+        node2 = model_part.CreateNewNode(2, 1.0,0.0,0.0)
+        node3 = model_part.CreateNewNode(3, 1.0,1.0,0.0)
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         model_part.CreateNewElement("Element2D3N", 1, [1,2,3], model_part.GetProperties()[1])
 
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 0)
         KratosMultiphysics.SpecificationsUtilities.AddMissingVariables(model_part)
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 0)
+
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_X), False)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), False)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), False)
+        KratosMultiphysics.SpecificationsUtilities.AddMissingDofs(model_part)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_X), False)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), False)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), False)
         
     def test_specifications_utilities_conditions(self):
         current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
 
-        model_part.CreateNewNode(1, 0.00,0.00,0.00)
-        model_part.CreateNewNode(2, 1.00,0.00,0.00)
-        model_part.CreateNewNode(3, 1.00,1.00,0.00)
+        node1 = model_part.CreateNewNode(1, 0.0,0.0,0.0)
+        node2 = model_part.CreateNewNode(2, 1.0,0.0,0.0)
+        node3 = model_part.CreateNewNode(3, 1.0,1.0,0.0)
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         model_part.CreateNewCondition("Condition3D", 1, [1,2,3], model_part.GetProperties()[1])
         
@@ -40,15 +48,23 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         KratosMultiphysics.SpecificationsUtilities.AddMissingVariables(model_part)
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 0)
 
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_X), False)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), False)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), False)
+        KratosMultiphysics.SpecificationsUtilities.AddMissingDofs(model_part)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_X), False)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), False)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), False)
+
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication is not available")
     def test_specifications_utilities_elements_dependencies(self):
         current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
 
-        model_part.CreateNewNode(1, 0.00,0.00,0.00)
-        model_part.CreateNewNode(2, 1.00,0.00,0.00)
-        model_part.CreateNewNode(3, 1.00,1.00,0.00)
+        node1 = model_part.CreateNewNode(1, 0.0,0.0,0.0)
+        node2 = model_part.CreateNewNode(2, 1.0,0.0,0.0)
+        node3 = model_part.CreateNewNode(3, 1.0,1.0,0.0)
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         model_part.CreateNewElement("SmallDisplacementElement2D3N", 1, [1,2,3], model_part.GetProperties()[1])
         
@@ -56,21 +72,37 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         KratosMultiphysics.SpecificationsUtilities.AddMissingVariables(model_part)
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 3)
 
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_X), False)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), False)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), False)
+        KratosMultiphysics.SpecificationsUtilities.AddMissingDofs(model_part)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_X), True)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), True)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), True)
+
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication is not available")
     def test_specifications_utilities_conditions_dependencies(self):
         current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
 
-        model_part.CreateNewNode(1, 0.00,0.00,0.00)
-        model_part.CreateNewNode(2, 1.00,0.00,0.00)
-        model_part.CreateNewNode(3, 1.00,1.00,0.00)
+        node1 = model_part.CreateNewNode(1, 0.0,0.0,0.0)
+        node2 = model_part.CreateNewNode(2, 1.0,0.0,0.0)
+        node3 = model_part.CreateNewNode(3, 1.0,1.0,0.0)
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         model_part.CreateNewCondition("SurfaceLoadCondition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
         
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 0)
         KratosMultiphysics.SpecificationsUtilities.AddMissingVariables(model_part)
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 3)
+
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_X), False)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), False)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), False)
+        KratosMultiphysics.SpecificationsUtilities.AddMissingDofs(model_part)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_X), True)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), True)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), True)
         
 if __name__ == '__main__':
     KratosUnittest.main()
