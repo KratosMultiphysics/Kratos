@@ -643,7 +643,9 @@ public:
         // is self assigned or not.
         KRATOS_ERROR_IF(IsIdGeneratedFromString(Id)
             || IsIdSelfAssigned(Id))
-            << "Id out of range. The Id must me lower than 2^62 = 4.61e+18"
+            << "Id: " << Id << " out of range. The Id must me lower than 2^62 = 4.61e+18. "
+            << "Geometry being recognized as generated from string: " << IsIdGeneratedFromString(Id)
+            << ", self assigned: " << IsIdSelfAssigned(Id) << "."
             << std::endl;
 
         mId = Id;
