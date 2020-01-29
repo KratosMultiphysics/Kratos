@@ -16,16 +16,17 @@
 // Project includes
 #include "includes/define.h"
 #include "eigen_solvers_application.h"
+#include "custom_factories/dense_linear_solver_factory.h"
 
 #include "custom_solvers/eigen_sparse_cg_solver.h"
 #include "custom_solvers/eigen_sparse_lu_solver.h"
 #include "custom_solvers/eigen_sparse_qr_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
-#include "custom_solvers/eigen_dense_colpivhouseholderqr_solver.h"
-#include "custom_solvers/eigen_dense_householderqr_solver.h"
-#include "custom_solvers/eigen_dense_llt_solver.h"
-#include "custom_solvers/eigen_dense_partialpivlu_solver.h"
-#include "custom_solvers/eigen_dense_direct_solver.h"
+// #include "custom_solvers/eigen_dense_colpivhouseholderqr_solver.h"
+// #include "custom_solvers/eigen_dense_householderqr_solver.h"
+// #include "custom_solvers/eigen_dense_llt_solver.h"
+// #include "custom_solvers/eigen_dense_partialpivlu_solver.h"
+// #include "custom_solvers/eigen_dense_direct_solver.h"
 #include "custom_solvers/eigensystem_solver.h"
 
 #if defined USE_EIGEN_MKL
@@ -44,7 +45,8 @@ void KratosEigenSolversApplication::Register()
     KratosApplication::Register();
     KRATOS_INFO("") << "Initializing KratosEigenSolversApplication..." << std::endl;
 
-    EigenSolversApplicationRegisterLinearSolvers();
+    // EigenSolversApplicationRegisterLinearSolvers();
+    RegisterDenseLinearSolvers();
 
     using complex = std::complex<double>;
 

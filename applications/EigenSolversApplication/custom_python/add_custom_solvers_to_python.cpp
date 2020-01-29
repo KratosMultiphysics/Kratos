@@ -15,6 +15,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/define_python.h"
 #include "custom_python/add_custom_solvers_to_python.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_solvers/eigen_sparse_cg_solver.h"
@@ -34,7 +35,7 @@
 #include "custom_solvers/eigen_pardiso_ldlt_solver.h"
 #endif
 
-// #include "factories/standard_linear_solver_factory.h"
+#include "factories/standard_linear_solver_factory.h"
 #include "eigen_solvers_application.h"
 
 namespace Kratos {
@@ -188,161 +189,161 @@ void AddCustomSolversToPython(pybind11::module& m)
 
 } // namespace Python
 
-//Must put this definition here to avoid a problem with multiply defined symbols when including the external C libraries
-EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLinearSolvers()
-{
-    using complex = std::complex<double>;
+// //Must put this definition here to avoid a problem with multiply defined symbols when including the external C libraries
+// EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLinearSolvers()
+// {
+//     using complex = std::complex<double>;
 
-    // // // Sparse LU Solver
+//     // // // Sparse LU Solver
 
-    // // using SparseLUType = EigenDirectSolver<EigenSparseLUSolver<double>>;
+//     // // using SparseLUType = EigenDirectSolver<EigenSparseLUSolver<double>>;
 
-    // // static auto SparseLUFactory = SparseLUType::Factory();
+//     // // static auto SparseLUFactory = SparseLUType::Factory();
 
-    // // KRATOS_REGISTER_LINEAR_SOLVER("sparse_lu", SparseLUFactory);
+//     // // KRATOS_REGISTER_LINEAR_SOLVER("sparse_lu", SparseLUFactory);
 
 
-    // // Complex Sparse LU Solver
+//     // // Complex Sparse LU Solver
 
-    // using ComplexSparseLUType = EigenDirectSolver<EigenSparseLUSolver<complex>>;
+//     // using ComplexSparseLUType = EigenDirectSolver<EigenSparseLUSolver<complex>>;
 
-    // static auto ComplexSparseLUFactory = ComplexSparseLUType::Factory();
+//     // static auto ComplexSparseLUFactory = ComplexSparseLUType::Factory();
 
-    // KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("sparse_lu_complex", ComplexSparseLUFactory);
+//     // KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("sparse_lu_complex", ComplexSparseLUFactory);
 
 
-    // // Sparse QR Solver
+//     // // Sparse QR Solver
 
-    // using SparseQRType = EigenDirectSolver<EigenSparseQRSolver<double>>;
+//     // using SparseQRType = EigenDirectSolver<EigenSparseQRSolver<double>>;
 
-    // static auto SparseQRFactory = SparseQRType::Factory();
+//     // static auto SparseQRFactory = SparseQRType::Factory();
 
-    // KRATOS_REGISTER_LINEAR_SOLVER("sparse_qr", SparseQRFactory);
+//     // KRATOS_REGISTER_LINEAR_SOLVER("sparse_qr", SparseQRFactory);
 
 
-    // // Sparse CG Solver
+//     // // Sparse CG Solver
 
-    // using SparseCGType = EigenDirectSolver<EigenSparseCGSolver<double>>;
+//     // using SparseCGType = EigenDirectSolver<EigenSparseCGSolver<double>>;
 
-    // static auto SparseCGFactory = SparseCGType::Factory();
+//     // static auto SparseCGFactory = SparseCGType::Factory();
 
-    // KRATOS_REGISTER_LINEAR_SOLVER("sparse_cg", SparseCGFactory);
+//     // KRATOS_REGISTER_LINEAR_SOLVER("sparse_cg", SparseCGFactory);
 
 
-    // #if defined USE_EIGEN_MKL
+//     // #if defined USE_EIGEN_MKL
 
-    // // Pardiso LU Solver
+//     // // Pardiso LU Solver
 
-    // using PardisoLUType = EigenDirectSolver<EigenPardisoLUSolver<double>>;
+//     // using PardisoLUType = EigenDirectSolver<EigenPardisoLUSolver<double>>;
 
-    // static auto PardisoLUFactory = PardisoLUType::Factory();
+//     // static auto PardisoLUFactory = PardisoLUType::Factory();
 
-    // KRATOS_REGISTER_LINEAR_SOLVER("pardiso_lu", PardisoLUFactory);
+//     // KRATOS_REGISTER_LINEAR_SOLVER("pardiso_lu", PardisoLUFactory);
 
 
-    // // Pardiso LDLT Solver
+//     // // Pardiso LDLT Solver
 
-    // using PardisoLDLTType = EigenDirectSolver<EigenPardisoLDLTSolver<double>>;
+//     // using PardisoLDLTType = EigenDirectSolver<EigenPardisoLDLTSolver<double>>;
 
-    // static auto PardisoLDLTFactory = PardisoLDLTType::Factory();
+//     // static auto PardisoLDLTFactory = PardisoLDLTType::Factory();
 
-    // KRATOS_REGISTER_LINEAR_SOLVER("pardiso_ldlt", PardisoLDLTFactory);
+//     // KRATOS_REGISTER_LINEAR_SOLVER("pardiso_ldlt", PardisoLDLTFactory);
 
 
-    // // Pardiso LLT Solver
+//     // // Pardiso LLT Solver
 
-    // using PardisoLLTType = EigenDirectSolver<EigenPardisoLLTSolver<double>>;
+//     // using PardisoLLTType = EigenDirectSolver<EigenPardisoLLTSolver<double>>;
 
-    // static auto PardisoLLTFactory = PardisoLLTType::Factory();
+//     // static auto PardisoLLTFactory = PardisoLLTType::Factory();
 
-    // KRATOS_REGISTER_LINEAR_SOLVER("pardiso_llt", PardisoLLTFactory);
+//     // KRATOS_REGISTER_LINEAR_SOLVER("pardiso_llt", PardisoLLTFactory);
 
-    // // Complex Pardiso LU Solver
+//     // // Complex Pardiso LU Solver
 
-    // using ComplexPardisoLUType = EigenDirectSolver<EigenPardisoLUSolver<complex>>;
+//     // using ComplexPardisoLUType = EigenDirectSolver<EigenPardisoLUSolver<complex>>;
 
-    // static auto ComplexPardisoLUFactory = ComplexPardisoLUType::Factory();
+//     // static auto ComplexPardisoLUFactory = ComplexPardisoLUType::Factory();
 
-    // KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_lu_complex", ComplexPardisoLUFactory);
+//     // KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_lu_complex", ComplexPardisoLUFactory);
 
 
-    // // Complex Pardiso LDLT Solver
+//     // // Complex Pardiso LDLT Solver
 
-    // using ComplexPardisoLDLTType = EigenDirectSolver<EigenPardisoLDLTSolver<complex>>;
+//     // using ComplexPardisoLDLTType = EigenDirectSolver<EigenPardisoLDLTSolver<complex>>;
 
-    // static auto ComplexPardisoLDLTFactory = ComplexPardisoLDLTType::Factory();
+//     // static auto ComplexPardisoLDLTFactory = ComplexPardisoLDLTType::Factory();
 
-    // KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_ldlt_complex", ComplexPardisoLDLTFactory);
+//     // KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_ldlt_complex", ComplexPardisoLDLTFactory);
 
 
-    // // Complex Pardiso LLT Solver
+//     // // Complex Pardiso LLT Solver
 
-    // using ComplexPardisoLLTType = EigenDirectSolver<EigenPardisoLLTSolver<complex>>;
+//     // using ComplexPardisoLLTType = EigenDirectSolver<EigenPardisoLLTSolver<complex>>;
 
-    // static auto ComplexPardisoLLTFactory = ComplexPardisoLLTType::Factory();
+//     // static auto ComplexPardisoLLTFactory = ComplexPardisoLLTType::Factory();
 
-    // KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_llt_complex", ComplexPardisoLLTFactory);
+//     // KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_llt_complex", ComplexPardisoLLTFactory);
 
-    // #endif // defined USE_EIGEN_MKL
+//     // #endif // defined USE_EIGEN_MKL
 
 
-    // Dense ColPivHouseholderQR solver
+//     // // Dense ColPivHouseholderQR solver
 
-    using EigenDirectColPivHouseholderQRType = EigenDenseDirectSolver<EigenDenseColPivHouseholderQRSolver<double>>;
+//     // using EigenDirectColPivHouseholderQRType = EigenDenseDirectSolver<EigenDenseColPivHouseholderQRSolver<double>>;
 
-    static auto DenseColPivHouseholderQRSolverFactory = EigenDirectColPivHouseholderQRType::Factory();
+//     // static auto DenseColPivHouseholderQRSolverFactory = EigenDirectColPivHouseholderQRType::Factory();
 
-    KRATOS_REGISTER_DENSE_LINEAR_SOLVER("dense_colpivhouseholderqr", DenseColPivHouseholderQRSolverFactory);
+//     // KRATOS_REGISTER_DENSE_LINEAR_SOLVER("dense_colpivhouseholderqr", DenseColPivHouseholderQRSolverFactory);
 
-    // Dense HouseholderQR solver
+//     // // Dense HouseholderQR solver
 
-    using EigenDirectHouseholderQRType = EigenDenseDirectSolver<EigenDenseHouseholderQRSolver<double>>;
+//     // using EigenDirectHouseholderQRType = EigenDenseDirectSolver<EigenDenseHouseholderQRSolver<double>>;
 
-    static auto DenseHouseholderQRSolverFactory = EigenDirectHouseholderQRType::Factory();
+//     // static auto DenseHouseholderQRSolverFactory = EigenDirectHouseholderQRType::Factory();
 
-    KRATOS_REGISTER_DENSE_LINEAR_SOLVER("dense_householderqr", DenseHouseholderQRSolverFactory);
+//     // KRATOS_REGISTER_DENSE_LINEAR_SOLVER("dense_householderqr", DenseHouseholderQRSolverFactory);
 
-    // Dense LLT solver
+//     // // Dense LLT solver
 
-    using EigenDirectLLTType = EigenDenseDirectSolver<EigenDenseLLTSolver<double>>;
+//     // using EigenDirectLLTType = EigenDenseDirectSolver<EigenDenseLLTSolver<double>>;
 
-    static auto DenseLLTSolverFactory = EigenDirectLLTType::Factory();
+//     // static auto DenseLLTSolverFactory = EigenDirectLLTType::Factory();
 
-    KRATOS_REGISTER_DENSE_LINEAR_SOLVER("dense_llt", DenseLLTSolverFactory);
+//     // KRATOS_REGISTER_DENSE_LINEAR_SOLVER("dense_llt", DenseLLTSolverFactory);
 
-    // Dense PartialPivLU solver
+//     // // Dense PartialPivLU solver
 
-    using EigenDirectPartialPivLUType = EigenDenseDirectSolver<EigenDensePartialPivLUSolver<double>>;
+//     // using EigenDirectPartialPivLUType = EigenDenseDirectSolver<EigenDensePartialPivLUSolver<double>>;
 
-    static auto DensePartialPivLUSolverFactory = EigenDirectPartialPivLUType::Factory();
+//     // static auto DensePartialPivLUSolverFactory = EigenDirectPartialPivLUType::Factory();
 
-    KRATOS_REGISTER_DENSE_LINEAR_SOLVER("dense_partialpivlu", DensePartialPivLUSolverFactory);
+//     // KRATOS_REGISTER_DENSE_LINEAR_SOLVER("dense_partialpivlu", DensePartialPivLUSolverFactory);
 
 
-    // Complex dense ColPivHouseholderQR solver
+//     // // Complex dense ColPivHouseholderQR solver
 
-    using ComplexEigenDirectColPivHouseholderQRType = EigenDenseDirectSolver<EigenDenseColPivHouseholderQRSolver<complex>>;
+//     // using ComplexEigenDirectColPivHouseholderQRType = EigenDenseDirectSolver<EigenDenseColPivHouseholderQRSolver<complex>>;
 
-    static auto ComplexDenseColPivHouseholderQRSolverFactory = ComplexEigenDirectColPivHouseholderQRType::Factory();
+//     // static auto ComplexDenseColPivHouseholderQRSolverFactory = ComplexEigenDirectColPivHouseholderQRType::Factory();
 
-    KRATOS_REGISTER_COMPLEX_DENSE_LINEAR_SOLVER("complex_dense_colpivhouseholderqr", ComplexDenseColPivHouseholderQRSolverFactory);
+//     // KRATOS_REGISTER_COMPLEX_DENSE_LINEAR_SOLVER("complex_dense_colpivhouseholderqr", ComplexDenseColPivHouseholderQRSolverFactory);
 
-    // Complex dense HouseholderQR solver
+//     // // Complex dense HouseholderQR solver
 
-    using ComplexEigenDirectHouseholderQRType = EigenDenseDirectSolver<EigenDenseHouseholderQRSolver<complex>>;
+//     // using ComplexEigenDirectHouseholderQRType = EigenDenseDirectSolver<EigenDenseHouseholderQRSolver<complex>>;
 
-    static auto ComplexDenseHouseholderQRSolverFactory = ComplexEigenDirectHouseholderQRType::Factory();
+//     // static auto ComplexDenseHouseholderQRSolverFactory = ComplexEigenDirectHouseholderQRType::Factory();
 
-    KRATOS_REGISTER_COMPLEX_DENSE_LINEAR_SOLVER("complex_dense_householderqr", ComplexDenseHouseholderQRSolverFactory);
+//     // KRATOS_REGISTER_COMPLEX_DENSE_LINEAR_SOLVER("complex_dense_householderqr", ComplexDenseHouseholderQRSolverFactory);
 
-    // Complex dense PartialPivLU solver
+//     // // Complex dense PartialPivLU solver
 
-    using ComplexEigenDirectPartialPivLUType = EigenDenseDirectSolver<EigenDensePartialPivLUSolver<complex>>;
+//     // using ComplexEigenDirectPartialPivLUType = EigenDenseDirectSolver<EigenDensePartialPivLUSolver<complex>>;
 
-    static auto ComplexDensePartialPivLUSolverFactory = ComplexEigenDirectPartialPivLUType::Factory();
+//     // static auto ComplexDensePartialPivLUSolverFactory = ComplexEigenDirectPartialPivLUType::Factory();
 
-    KRATOS_REGISTER_COMPLEX_DENSE_LINEAR_SOLVER("complex_dense_partialpivlu", ComplexDensePartialPivLUSolverFactory);
+//     // KRATOS_REGISTER_COMPLEX_DENSE_LINEAR_SOLVER("complex_dense_partialpivlu", ComplexDensePartialPivLUSolverFactory);
 
-}
+// }
 
 } // namespace Kratos

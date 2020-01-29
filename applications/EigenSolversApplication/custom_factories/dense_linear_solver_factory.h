@@ -76,7 +76,6 @@ protected:
     typename LinearSolverType::Pointer CreateSolver(Kratos::Parameters settings) const override
     {
             return typename LinearSolverType::Pointer(new TLinearSolverType(settings));
-            //ok
     }
     ///@}
 };
@@ -117,7 +116,7 @@ typedef LinearSolverFactory<LocalSparseSpaceType, LocalSparseSpaceType> DenseLin
 typedef LinearSolverFactory<ComplexLocalSparseSpaceType, ComplexLocalSparseSpaceType> ComplexDenseLinearSolverFactoryType;
 
 #ifdef KRATOS_REGISTER_COMPLEX_DENSE_LINEAR_SOLVER
-#undef KRATOS_REGISTER_COMPLEX_DENSE_LINEAR_SOLVERCOMPLEX_
+#undef KRATOS_REGISTER_COMPLEX_DENSE_LINEAR_SOLVER
 #endif
 #define KRATOS_REGISTER_COMPLEX_DENSE_LINEAR_SOLVER(name, reference) \
     KratosComponents<ComplexDenseLinearSolverFactoryType>::Add(name, reference);

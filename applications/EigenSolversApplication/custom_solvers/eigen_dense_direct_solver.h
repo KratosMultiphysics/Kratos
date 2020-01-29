@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "linear_solvers/direct_solver.h"
 #include "custom_factories/dense_linear_solver_factory.h"
+#include "custom_solvers/eigen_direct_solver.h"
 
 namespace Kratos {
 
