@@ -5,6 +5,7 @@
 The MIT License
 
 Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2019 Peter Gamnitzer, UIBK (University of Innsbruck)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +30,11 @@ THE SOFTWARE.
  * \file   amgcl/relaxation/chebyshev.hpp
  * \author Denis Demidov <dennis.demidov@gmail.com>
  * \brief  Chebyshev polynomial smoother.
+ *
+ * Implements Algorithm 1 from
+ * P. Ghysels, P. Kłosiewicz, and W. Vanroose.
+ * "Improving the arithmetic intensity of multigrid with the help of polynomial smoothers".
+ * Numer. Linear Algebra Appl. 2012;19:253-267. DOI: 10.1002/nla.1808
  */
 
 #include <vector>
@@ -58,6 +64,14 @@ class chebyshev {
             /// Chebyshev polynomial degree.
             unsigned degree;
 
+            /// highest eigen value safety upscaling.
+            // use boosting factor for a more conservative upper bound estimate
+            // See: Adams, Brezina, Hu, Tuminaro,
+            //      PARALLEL MULTIGRID SMOOTHING: POLYNOMIAL VERSUS
+            //      GAUSS-SEIDEL, J. Comp. Phys. 188 (2003) 593-610.
+            //
+            float higher;
+
             /// Lowest-to-highest eigen value ratio.
             float lower;
 
@@ -66,21 +80,31 @@ class chebyshev {
             // spectral radius.
             int power_iters;
 
-            params() : degree(5), lower(1.0f / 30), power_iters(0) {}
+            // Scale the system matrix
+            bool scale;
+
+            params()
+                : degree(5), higher(1.0f), lower(1.0f / 30), power_iters(0),
+                  scale(false)
+            {}
 
 #ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_VALUE(p, degree),
+                  AMGCL_PARAMS_IMPORT_VALUE(p, higher),
                   AMGCL_PARAMS_IMPORT_VALUE(p, lower),
-                  AMGCL_PARAMS_IMPORT_VALUE(p, power_iters)
+                  AMGCL_PARAMS_IMPORT_VALUE(p, power_iters),
+                  AMGCL_PARAMS_IMPORT_VALUE(p, scale)
             {
-                check_params(p, {"degree", "lower", "power_iters"});
+                check_params(p, {"degree", "higher", "lower", "power_iters", "scale"});
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path) const {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, degree);
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, higher);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, lower);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, power_iters);
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, scale);
             }
 #endif
         } prm;
@@ -90,109 +114,90 @@ class chebyshev {
         chebyshev(
                 const Matrix &A, const params &prm,
                 const typename Backend::params &backend_prm
-            ) : C( prm.degree ),
+            ) : prm(prm),
                 p( Backend::create_vector(rows(A), backend_prm) ),
-                q( Backend::create_vector(rows(A), backend_prm) )
+                r( Backend::create_vector(rows(A), backend_prm) )
         {
-            scalar_type hi = backend::spectral_radius</*scale=*/false>(A, prm.power_iters);
-            scalar_type lo = hi * prm.lower;
+            scalar_type hi, lo;
 
-            // Chebyshev polynomial roots on the interval [lo, hi].
-            std::vector<scalar_type> roots(prm.degree);
-            for(unsigned i = 0; i < prm.degree; ++i) {
-                scalar_type pi   = static_cast<scalar_type>(3.14159265358979323846);
-                scalar_type half = static_cast<scalar_type>(0.5);
-
-                roots[i] = lo + half * (hi - lo) * (1 + cos( pi * ( i + half ) / prm.degree));
+            if (prm.scale) {
+                M  = Backend::copy_vector( diagonal(A, /*invert*/true), backend_prm );
+                hi = backend::spectral_radius<true>(A, prm.power_iters);
+            } else {
+                hi = backend::spectral_radius<false>(A, prm.power_iters);
             }
 
-            // Construct linear system to determine Chebyshev coefficients.
-            multi_array<scalar_type, 2> S(prm.degree, prm.degree);
-            std::vector<scalar_type> buf(prm.degree * prm.degree);
+            lo = hi * prm.lower;
+            hi *= prm.higher;
 
-            std::vector<scalar_type> rhs(prm.degree);
-            for(unsigned i = 0; i < prm.degree; ++i) {
-                scalar_type x = roots[i];
-                scalar_type x_to_j = 1;
-                for(unsigned j = 0; j < prm.degree; ++j) {
-                    S(i,j) = x_to_j;
-                    x_to_j *= x;
-                }
-                rhs[i] = -x_to_j;
-            }
+            // Centre of ellipse containing the eigenvalues of A:
+            d = 0.5 * (hi + lo);
 
-            // Invert S, compute coefficients.
-            amgcl::detail::inverse(prm.degree, S.data(), buf.data());
-
-            scalar_type const_c = 1;
-            for(unsigned i = 0; i < prm.degree; ++i) {
-                scalar_type c = 0;
-                for(unsigned j = 0; j < prm.degree; ++j)
-                    c += S(i,j) * rhs[j];
-                if (i == 0)
-                    const_c = c;
-                else
-                    C[prm.degree - i] = -c / const_c;
-            }
-            C[0] = -1 / const_c;
+            // Semi-major axis of ellipse containing the eigenvalues of A:
+            c = 0.5 * (hi - lo);
         }
 
-        /// \copydoc amgcl::relaxation::damped_jacobi::apply_pre
         template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
         void apply_pre(
-                const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp
+                const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP&
                 ) const
-        {
-            static const scalar_type one  = math::identity<scalar_type>();
-
-            backend::residual(rhs, A, x, tmp);
-            solve(A, tmp, *p);
-            backend::axpby(one, *p, one, x);
-        }
-
-        /// \copydoc amgcl::relaxation::damped_jacobi::apply_post
-        template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
-        void apply_post(
-                const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp
-                ) const
-        {
-            static const scalar_type one  = math::identity<scalar_type>();
-
-            backend::residual(rhs, A, x, tmp);
-            solve(A, tmp, *p);
-            backend::axpby(one, *p, one, x);
-        }
-
-        /// \copydoc amgcl::relaxation::damped_jacobi::apply_post
-        template <class Matrix, class VectorRHS, class VectorX>
-        void apply(const Matrix &A, const VectorRHS &rhs, VectorX &x) const
         {
             solve(A, rhs, x);
         }
 
+        template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
+        void apply_post(
+                const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP&
+                ) const
+        {
+            solve(A, rhs, x);
+        }
+
+        template <class Matrix, class VectorRHS, class VectorX>
+        void apply(const Matrix &A, const VectorRHS &rhs, VectorX &x) const
+        {
+            backend::clear(x);
+            solve(A, rhs, x);
+        }
+
         size_t bytes() const {
-            return
-                backend::bytes(C) +
-                backend::bytes(*p) +
-                backend::bytes(*q);
+            size_t b = backend::bytes(*p) + backend::bytes(*r);
+            if (prm.scale) b += backend::bytes(*M);
+            return b;
         }
 
     private:
-        std::vector<scalar_type> C;
-        mutable std::shared_ptr<vector> p, q;
+        std::shared_ptr<typename Backend::matrix_diagonal> M;
+        mutable std::shared_ptr<vector> p, r;
 
-        template <class Matrix, class VectorRHS, class VectorX>
-        void solve(const Matrix &A, const VectorRHS &rhs, VectorX &x) const
+        scalar_type c, d;
+
+        template <class Matrix, class VectorB, class VectorX>
+        void solve(const Matrix &A, const VectorB &b, VectorX &x) const
         {
             static const scalar_type one  = math::identity<scalar_type>();
             static const scalar_type zero = math::zero<scalar_type>();
 
-            backend::axpby(C[0], rhs, zero, x);
+            scalar_type alpha = zero, beta = zero;
 
-            for(auto c = C.begin() + 1; c != C.end(); ++c)
-            {
-                backend::spmv(one, A, x, zero, *q);
-                backend::axpbypcz(*c, rhs, one, *q, zero, x);
+            for (unsigned k = 0; k < prm.degree; ++k) {
+                backend::residual(b, A, x, *r);
+
+                if (prm.scale) backend::vmul(one, *M, *r, zero, *r);
+
+                if (k == 0) {
+                    alpha = math::inverse(d);
+                    beta  = zero;
+                } else if (k == 1) {
+                    alpha = 2 * d * math::inverse(2 * d * d - c * c);
+                    beta  = alpha * d - one;
+                } else {
+                    alpha = math::inverse(d - 0.25 * alpha * c * c);
+                    beta  = alpha * d - one;
+                }
+
+                backend::axpby(alpha, *r, beta, *p);
+                backend::axpby(one, *p, one, x);
             }
         }
 };

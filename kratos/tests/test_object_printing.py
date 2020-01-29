@@ -21,6 +21,7 @@ model_part_str = '''-Main- model part
     Number of sub model parts : 2
     Current solution step index : 0
 
+    Number of Geometries  : 0
     Mesh 0 :
         Number of Nodes       : 6
         Number of Properties  : 1
@@ -32,6 +33,7 @@ model_part_str = '''-Main- model part
         Number of tables : 1
         Number of sub model parts : 2
 
+        Number of Geometries  : 0
         Mesh 0 :
             Number of Nodes       : 3
             Number of Properties  : 0
@@ -42,6 +44,7 @@ model_part_str = '''-Main- model part
             Number of tables : 0
             Number of sub model parts : 0
 
+            Number of Geometries  : 0
             Mesh 0 :
                 Number of Nodes       : 2
                 Number of Properties  : 0
@@ -52,6 +55,7 @@ model_part_str = '''-Main- model part
             Number of tables : 0
             Number of sub model parts : 0
 
+            Number of Geometries  : 0
             Mesh 0 :
                 Number of Nodes       : 0
                 Number of Properties  : 0
@@ -62,6 +66,7 @@ model_part_str = '''-Main- model part
         Number of tables : 0
         Number of sub model parts : 0
 
+        Number of Geometries  : 0
         Mesh 0 :
             Number of Nodes       : 0
             Number of Properties  : 1
