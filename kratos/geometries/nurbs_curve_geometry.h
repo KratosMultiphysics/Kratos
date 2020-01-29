@@ -451,8 +451,9 @@ private:
         if (mKnots.size() != NurbsUtilities::GetNumberOfKnots(mPolynomialDegree, number_of_cps)) {
             if (mKnots.size() == NurbsUtilities::GetNumberOfKnots(mPolynomialDegree, number_of_cps - 2)) {
                 Vector Knots = ZeroVector(mKnots.size() - 2);
-                for (SizeType i = 0; i < mKnots.size() - 2; ++i)
+                for (SizeType i = 0; i < mKnots.size() - 2; ++i) {
                     Knots[i] = mKnots[i + 1];
+                }
                 mKnots = Knots;
             } else {
                 KRATOS_ERROR

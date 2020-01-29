@@ -518,13 +518,15 @@ private:
                 (NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeU, mKnotsU.size() - 2)
                     * NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeV, mKnotsV.size() - 2))) {
                 Vector KnotsU = ZeroVector(mKnotsU.size() - 2);
-                for (SizeType i = 0; i < mKnotsU.size() - 2; ++i)
+                for (SizeType i = 0; i < mKnotsU.size() - 2; ++i) {
                     KnotsU[i] = mKnotsU[i + 1];
+                }
                 mKnotsU = KnotsU;
 
                 Vector KnotsV = ZeroVector(mKnotsV.size() - 2);
-                for (SizeType i = 0; i < mKnotsV.size() - 2; ++i)
+                for (SizeType i = 0; i < mKnotsV.size() - 2; ++i) {
                     KnotsV[i] = mKnotsV[i + 1];
+                }
                 mKnotsV = KnotsV;
             } else {
                 KRATOS_ERROR
