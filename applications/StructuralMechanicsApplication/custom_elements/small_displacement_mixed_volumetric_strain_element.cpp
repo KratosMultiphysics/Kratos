@@ -355,7 +355,8 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
 
         // Calculate tau_1 stabilization constant
         Matrix aux = ZeroMatrix(dim,dim);
-        Matrix Ddev = prod(kinematic_variables.DevStrainOp, constitutive_variables.D);
+        // Matrix Ddev = prod(kinematic_variables.DevStrainOp, constitutive_variables.D);
+        Matrix D_iso = prod(trans(mAnisotropyTensor), Matrix(prod(constitutive_variables.D, mAnisotropyTensor)));
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             for (IndexType k = 0;  k < strain_size; ++k) {
                 for (IndexType l = 0; l < dim; ++l) {
@@ -364,6 +365,8 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
             }
             // TODO: DECIDE BETWEEN COMPLETE D OR ONLY THE DEVIATORIC D
             aux += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
+            // aux += prod(trans(B_i), Matrix(prod(D_iso, B_i)));
+            // aux += prod(trans(B_i), Matrix(prod(constitutive_variables.D, B_i)));
             // aux += prod(trans(B_i), Matrix(prod(Ddev, B_i)));
         }
         double det;
@@ -969,21 +972,110 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateAnisotropyTensor(co
     mConstitutiveLawVector[0]->InitializeMaterialResponseCauchy(cons_law_values);
     mConstitutiveLawVector[0]->CalculateMaterialResponse(cons_law_values, ConstitutiveLaw::StressMeasure_Cauchy);
 
-    // Calculate the anisotropy tensor from the initial C tensor
-    const Matrix &rC = constitutive_variables.D;
-    const double aux_E = (dim == 2) ? (rC(0, 0) + rC(1, 1)) / 2.0 : (rC(0, 0) + rC(1, 1) + rC(2, 2)) / 3.0;
-    const double aux_G = (dim == 2) ? rC(2, 2) : (rC(3, 3) + rC(4, 4) + rC(5, 5)) / 3.0;
-    // const double aux_G = (dim == 2) ? rC(2, 2) / 2.0 : (rC(3, 3) + rC(4, 4) + rC(5, 5)) / 3.0;
-
-    mAnisotropyTensor = ZeroMatrix(strain_size, strain_size);
-    mAnisotropyTensor(0,0) = std::sqrt(aux_E / rC(0, 0));
-    mAnisotropyTensor(1,1) = std::sqrt(aux_E / rC(1, 1));
-    mAnisotropyTensor(2,2) = (dim == 2) ? std::sqrt(aux_G / rC(2,2)) : std::sqrt(aux_E / rC(2, 2));
-    if (dim == 3) {
-        mAnisotropyTensor(3,3) = std::sqrt(aux_G / rC(3,3));
-        mAnisotropyTensor(4,4) = std::sqrt(aux_G / rC(4,4));
-        mAnisotropyTensor(5,5) = std::sqrt(aux_G / rC(5,5));
+    // Calculate the closest isotropic tensor
+    Vector u = ZeroVector(strain_size);
+    for (IndexType i = 0; i < dim; ++i) {
+        u(i) = 1.0 / std::sqrt(dim);
     }
+    const Matrix J = outer_prod(u, u);
+    Matrix I = ZeroMatrix(strain_size);
+    for (IndexType i = 0; i < strain_size; ++i){
+        I(i, i) = i < dim ? 1.0 : 0.5;
+    }
+    const Matrix K = I - J;
+    const Matrix &rC = constitutive_variables.D;
+    const double k_iso = (dim == 2) ?
+        0.25 * (rC(0,0) + 2.0 * rC(0,1) + rC(1,1)) :
+        (1.0 / 9.0) * (rC(0,0) + 2*rC(0,1) + 2*rC(0,2) + rC(1,1) + 2*rC(1,2) + rC(2,2));
+    const double mu_iso = (dim == 2) ?
+        0.2 * (rC(0,0) - 2.0*rC(0,1) + rC(1,1) + rC(2,2)) :
+        (4.0 / 33.0)*(rC(0,0) - rC(0,1) - rC(0,2) + rC(1,1) - rC(1,2) + rC(2,2) + (3.0/4.0)*(rC(3,3) + rC(4,4) + rC(5,5)));
+
+    // Without considering the K as a constraint (original one)
+    // const double k_iso = (dim == 2) ?
+    //     (1.0 / 6.0) * (rC(0, 0) + rC(1, 1) + 2.0 * rC(0, 1)) :
+    //     (1.0 / 9.0) * (rC(0, 0) + rC(1, 1) + rC(2, 2) + 2.0 * (rC(0, 1) + rC(0, 2) + rC(1, 2)));
+    // const double mu_iso = (dim == 2) ?
+    //     (1.0 / 5.0) * (rC(0, 0) + rC(1, 1) + rC(2, 2) - 2.0 * rC(0, 1)) :
+    //     (4.0 / 33.0) * (rC(0, 0) + rC(1, 1) + rC(2, 2) - (rC(0, 1) + rC(0, 2) + rC(1, 2)) + (3.0 / 4.0) * (rC(3, 3) + rC(4, 4) + rC(5, 5)));
+    const Matrix C_iso = 3.0 * k_iso * J + 2.0 * mu_iso * K;
+
+    // Calculate the square root of the C and closest isotropic C tensors
+    Matrix a;
+    Matrix b;
+    const double tolerance = 1.0e-12;
+    const bool is_converged_a = MathUtils<double>::MatrixSquareRoot(rC, a, tolerance);
+    KRATOS_WARNING_IF("SmallDisplacementMixedVolumetricStrainElement", !is_converged_a) << "Element " << Id() << " anisotropic tensor square root did not converge.";
+    const bool is_converged_b = MathUtils<double>::MatrixSquareRoot(C_iso, b, tolerance);
+    KRATOS_WARNING_IF("SmallDisplacementMixedVolumetricStrainElement", !is_converged_b) << "Element " << Id() << " isotropic tensor square root did not converge.";
+
+    // Calculate the anisotropy tensor T as inv(b)*a
+    Matrix inv_b;
+    double det_b;
+    MathUtils<double>::InvertMatrix(b, inv_b, det_b);
+    mAnisotropyTensor = prod(inv_b, a);
+
+    if (Id() == 1) {
+        KRATOS_WATCH(I)
+        KRATOS_WATCH(J)
+        KRATOS_WATCH(K)
+        KRATOS_WATCH(k_iso)
+        KRATOS_WATCH(mu_iso)
+        KRATOS_WATCH(mAnisotropyTensor)
+        KRATOS_WATCH(rC)
+        KRATOS_WATCH(C_iso)
+        KRATOS_WATCH(prod(trans(mAnisotropyTensor),Matrix(prod(C_iso,mAnisotropyTensor))))
+        Vector strain = ZeroVector(strain_size);
+        strain(0) = 1.0;
+        KRATOS_WATCH(prod(C_iso,strain))
+        KRATOS_WATCH(norm_2(prod(C_iso,strain)))
+        strain(0) = 1.0 / std::sqrt(2);
+        strain(1) = 1.0 / std::sqrt(2);
+        KRATOS_WATCH(prod(C_iso,strain))
+        KRATOS_WATCH(norm_2(prod(C_iso,strain)))
+    }
+
+    // mAnisotropyTensor(0,0) = 1.30449197; mAnisotropyTensor(0,1) = 0.12977382; mAnisotropyTensor(0,2) = 0.34942429;
+    // mAnisotropyTensor(1,0) = 0.07612034; mAnisotropyTensor(1,1) = 0.41473179; mAnisotropyTensor(1,2) = 0.02164278;
+    // mAnisotropyTensor(2,0) = 0.37323589; mAnisotropyTensor(2,1) = 0.04545438; mAnisotropyTensor(2,2) = 0.42419266;
+
+    // mAnisotropyTensor.resize(strain_size, strain_size, false);
+    // mAnisotropyTensor(0, 0) = 1.5783234303895588;
+    // mAnisotropyTensor(0, 1) = 0.14589235405175682;
+    // mAnisotropyTensor(0, 2) = -0.05714846717574273;
+    // mAnisotropyTensor(0, 3) = 0.0;
+    // mAnisotropyTensor(0, 4) = 0.0;
+    // mAnisotropyTensor(0, 5) = 0.09175628862598234;
+    // mAnisotropyTensor(1, 0) = 0.07322185281809604;
+    // mAnisotropyTensor(1, 1) = 1.157789997039901;
+    // mAnisotropyTensor(1, 2) = -0.04580361831996916;
+    // mAnisotropyTensor(1, 3) = 0.0;
+    // mAnisotropyTensor(1, 4) = 0.0;
+    // mAnisotropyTensor(1, 5) = -0.08322313423897049;
+    // mAnisotropyTensor(2, 0) = -0.32680225869621965;
+    // mAnisotropyTensor(2, 1) = -0.24278690860678495;
+    // mAnisotropyTensor(2, 2) = 0.44865272459399685;
+    // mAnisotropyTensor(2, 3) = 0.0;
+    // mAnisotropyTensor(2, 4) = 0.0;
+    // mAnisotropyTensor(2, 5) = -0.0016159837104732237;
+    // mAnisotropyTensor(3, 0) = 0.0;
+    // mAnisotropyTensor(3, 1) = 0.0;
+    // mAnisotropyTensor(3, 2) = 0.0;
+    // mAnisotropyTensor(3, 3) = 0.3410963490792868;
+    // mAnisotropyTensor(3, 4) = 0.0008231152285359656;
+    // mAnisotropyTensor(3, 5) = 0.0;
+    // mAnisotropyTensor(4, 0) = 0.0;
+    // mAnisotropyTensor(4, 1) = 0.0;
+    // mAnisotropyTensor(4, 2) = 0.0;
+    // mAnisotropyTensor(4, 3) = 0.0008231152285359656;
+    // mAnisotropyTensor(4, 4) = 0.35708734022671357;
+    // mAnisotropyTensor(4, 5) = 0.0;
+    // mAnisotropyTensor(5, 0) = 0.09366145772520965;
+    // mAnisotropyTensor(5, 1) = -0.08131796513974296;
+    // mAnisotropyTensor(5, 2) = 0.0002891853887538581;
+    // mAnisotropyTensor(5, 3) = 0.0;
+    // mAnisotropyTensor(5, 4) = 0.0;
+    // mAnisotropyTensor(5, 5) = 1.2226121801915393;
 }
 
 /***********************************************************************************/
@@ -992,10 +1084,9 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateAnisotropyTensor(co
 void SmallDisplacementMixedVolumetricStrainElement::CalculateInverseAnisotropyTensor()
 {
     const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+    double aux_det;
     mInverseAnisotropyTensor = ZeroMatrix(strain_size, strain_size);
-    for (IndexType i = 0; i < strain_size; ++i) {
-        mInverseAnisotropyTensor(i, i) = 1.0 / mAnisotropyTensor(i, i);
-    }
+    MathUtils<double>::InvertMatrix(mAnisotropyTensor, mInverseAnisotropyTensor, aux_det);
 }
 
 /***********************************************************************************/
