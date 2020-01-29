@@ -54,7 +54,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 0)
         KratosMultiphysics.SpecificationsUtilities.AddMissingVariables(model_part)
-        #self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 3)
+        self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 3)
 
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication is not available")
     def test_specifications_utilities_conditions_dependencies(self):
@@ -70,7 +70,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 0)
         KratosMultiphysics.SpecificationsUtilities.AddMissingVariables(model_part)
-        #self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 3)
+        self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 3)
         
 if __name__ == '__main__':
     KratosUnittest.main()
