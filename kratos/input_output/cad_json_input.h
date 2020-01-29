@@ -762,7 +762,9 @@ class CadJsonInput : public IO
         }
 
         /// Reads in a json formatted file and returns its KratosParameters instance.
-        static Parameters ReadParamatersFile(const std::string& rDataFileName, SizeType EchoLevel = 0)
+        static Parameters ReadParamatersFile(
+            const std::string& rDataFileName,
+            SizeType EchoLevel = 0)
         {
             // Check if rDataFileName ends with ".cad.json" and add it if needed.
             std::string data_file_name = rDataFileName;
@@ -780,9 +782,9 @@ class CadJsonInput : public IO
             std::string cad_json_string((std::istreambuf_iterator<char>(cad_json_file)),
                 std::istreambuf_iterator<char>());
 
-            return Parameters(cad_json_string);
-
             cad_json_file.close();
+
+            return Parameters(cad_json_string);
         }
 
         ///@}
