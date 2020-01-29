@@ -159,19 +159,19 @@ public:
         if(rModelPart.GetCommunicator().TotalProcesses() > 1)
             is_distributed = true;
 
+        array_1d<double,TDim+1> visited;
+        const int elem_size = rModelPart.Elements().size();
+        const int node_size = rModelPart.Nodes().size();
+
         //check that variables needed are in the model part
-        if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
+        if(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
             KRATOS_THROW_ERROR(std::logic_error,"distance Variable is not in the model part","");
-        if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
+        if(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
             KRATOS_THROW_ERROR(std::logic_error,"Area Variable is not in the model part","");
 
         if(is_distributed == true)
-            if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
+            if(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
                 KRATOS_THROW_ERROR(std::logic_error,"PARTITION_INDEX Variable is not in the model part","");
-
-                        array_1d<double,TDim+1> visited;
-        const int elem_size = rModelPart.Elements().size();
-        const int node_size = rModelPart.Nodes().size();
 
         // set to zero the distance
         #pragma omp parallel for
@@ -718,15 +718,17 @@ private:
         if(rModelPart.GetCommunicator().TotalProcesses() > 1)
             is_distributed = true;
 
+        const int node_size = rModelPart.Nodes().size();
+
         //check that variables needed are in the model part
-        if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
+        if(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
             KRATOS_THROW_ERROR(std::logic_error,"distance Variable is not in the model part","");
 
-        if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
+        if(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
             KRATOS_THROW_ERROR(std::logic_error,"Area Variable is not in the model part","");
 
         if(is_distributed == true)
-            if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
+            if(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
                  KRATOS_THROW_ERROR(std::logic_error,"PARTITION_INDEX Variable is not in the model part","")
 
 		KRATOS_CATCH("")
