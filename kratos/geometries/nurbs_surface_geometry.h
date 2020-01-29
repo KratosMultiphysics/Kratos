@@ -509,12 +509,12 @@ private:
     */
     void CheckAndFitKnotVectors()
     {
-        SizeType number_of_cps = this->size();
+        SizeType num_control_points = this->size();
 
-        if (number_of_cps !=
+        if (num_control_points !=
             (NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeU, mKnotsU.size())
                 * NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeV, mKnotsV.size()))) {
-            if (number_of_cps ==
+            if (num_control_points ==
                 (NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeU, mKnotsU.size() - 2)
                     * NurbsUtilities::GetNumberOfControlPoints(mPolynomialDegreeV, mKnotsV.size() - 2))) {
                 Vector KnotsU = ZeroVector(mKnotsU.size() - 2);
@@ -532,7 +532,7 @@ private:
                 KRATOS_ERROR
                     << "Number of controls points and polynomial degrees and number of knots do not match! "
                     << " P: " << mPolynomialDegreeU << ", Q: " << mPolynomialDegreeV
-                    << ", number of control points: " << number_of_cps << std::endl;
+                    << ", number of control points: " << num_control_points << std::endl;
             }
         }
     }
