@@ -71,6 +71,12 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(MoveShallowParticlesProcess<TDim>);
 
     ///@}
+    ///@name  Enum's
+    ///@{
+
+    enum ProjectionType {Incompressible, Compressible};
+
+    ///@}
     ///@name Life Cycle
     ///@{
 
@@ -79,7 +85,8 @@ public:
         ModelPart& rModelPart,
         ModelPart& rParticles,
         Variable<array_1d<double,3>>& rVectorVariable,
-        Variable<double>& rScalarVariable);
+        Variable<double>& rScalarVariable,
+        Parameters Settings);
 
     /// Destructor.
     virtual ~MoveShallowParticlesProcess() = default;
@@ -166,6 +173,7 @@ protected:
     size_t mLastParticleId;
     ConvectionOperator<TDim> mConvectionOperator;
     GeometryData::IntegrationMethod mQuadratureOrder;
+    ProjectionType mProjectionType;
 
     ///@}
     ///@name Protected Operators
@@ -194,7 +202,15 @@ protected:
 
     void TransferEulerianToLagrangian();
 
-    void GetShapeFunctionsValues(Vector& rN, GeometryType& rGeom, NodeType& rParticle);
+    void StandardProjection();
+
+    void StandardParticlesUpdate();
+
+    void ProjectionWithMassConservation();
+
+    void ParticlesUpdateWithMassConservation();
+
+    void GetShapeFunctionsValues(Vector& rN, const GeometryType& rGeom, const NodeType& rParticle);
 
     ///@}
     ///@name Protected  Access

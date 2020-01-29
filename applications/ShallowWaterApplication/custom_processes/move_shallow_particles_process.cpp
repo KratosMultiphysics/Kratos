@@ -30,7 +30,8 @@ MoveShallowParticlesProcess<TDim>::MoveShallowParticlesProcess(
     ModelPart& rModelPart,
     ModelPart& rParticles,
     Variable<array_1d<double,3>>& rVectorVariable,
-    Variable<double>& rScalarVariable)
+    Variable<double>& rScalarVariable,
+    Parameters Settings)
  : mrModelPart(rModelPart)
  , mrParticles(rParticles)
  , mrMomentumVariable(rVectorVariable)
@@ -39,16 +40,45 @@ MoveShallowParticlesProcess<TDim>::MoveShallowParticlesProcess(
 {
     Check();
 
+    Parameters default_settings = Parameters(R"(
+    {
+        "quadrature_order"    : 1,
+        "projection_type"     : "incompressible"
+    })");
+    Settings.ValidateAndAssignDefaults(default_settings);
+
     mrParticles.AddNodalSolutionStepVariable(mrMassVariable);
     mrParticles.AddNodalSolutionStepVariable(mrMomentumVariable);
-    mrParticles.AddNodalSolutionStepVariable(INTEGRATION_WEIGHT);
+    mrParticles.AddNodalSolutionStepVariable(PARTICLE_WEIGHT);
+    mrParticles.AddNodalSolutionStepVariable(PARTICLE_AREA);
     mLastParticleId = 0;
     mDryTreshold = mrModelPart.GetProcessInfo()[DRY_HEIGHT];
 
-    mQuadratureOrder = GeometryData::GI_GAUSS_1;
+    const int order = Settings["quadrature_order"].GetInt();
+    if (order == 1) {
+        mQuadratureOrder = GeometryData::GI_GAUSS_1;
+    } else if (order == 2) {
+        mQuadratureOrder = GeometryData::GI_GAUSS_2;
+    } else if (order == 3) {
+        mQuadratureOrder = GeometryData::GI_GAUSS_3;
+    } else if (order == 4) {
+        mQuadratureOrder = GeometryData::GI_GAUSS_4;
+    } else if (order == 5) {
+        mQuadratureOrder = GeometryData::GI_GAUSS_5;
+    } else {
+        KRATOS_ERROR << "Unknown quadrature order" << std::endl;
+    }
+
+    const std::string& projection_type = Settings["projection_type"].GetString();
+    if (projection_type == "incompressible") {
+        mProjectionType = Incompressible;
+    } else if (projection_type == "compressible") {
+        mProjectionType = Compressible;
+    } else {
+        KRATOS_ERROR << "Unknown projection type" << std::endl;
+    }
 
     InitializeVariables();
-    ComputeMeanSize();
 }
 
 template<size_t TDim>
@@ -98,6 +128,16 @@ void MoveShallowParticlesProcess<TDim>::InitializeVariables()
         it_elem->SetValue(MEAN_VEL_OVER_ELEM_SIZE, 0.0);
         it_elem->SetValue(NUMBER_OF_PARTICLES, 0);
     }
+
+    if (mProjectionType == Compressible)
+    {
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
+        {
+            auto it_node = mrModelPart.NodesBegin() + i;
+            it_node->SetValue(SUM_AREAS, 0.0);
+        }
+    }
 }
 
 template<size_t TDim>
@@ -109,6 +149,21 @@ void MoveShallowParticlesProcess<TDim>::ComputeMeanSize()
         const auto it_elem = mrModelPart.ElementsBegin() + i;
         const double mean_size = std::sqrt(it_elem->GetGeometry().Area());
         it_elem->GetValue(MEAN_SIZE) = mean_size;
+    }
+
+    if (mProjectionType == Compressible)
+    {
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
+        {
+            const auto it_elem = mrModelPart.ElementsBegin() + i;
+            const double area = it_elem->GetGeometry().Area();
+            for (auto& node : it_elem->GetGeometry())
+            {
+                #pragma omp critical
+                node.GetValue(SUM_AREAS) += area;
+            }
+        }
     }
 }
 
@@ -225,6 +280,33 @@ void MoveShallowParticlesProcess<TDim>::MoveParticles()
 template<size_t TDim>
 void MoveShallowParticlesProcess<TDim>::TransferLagrangianToEulerian()
 {
+    if (mProjectionType == Incompressible)
+    {
+        StandardProjection();
+    }
+    else if (mProjectionType == Compressible)
+    {
+        ProjectionWithMassConservation();
+    }
+}
+
+template<size_t TDim>
+void MoveShallowParticlesProcess<TDim>::TransferEulerianToLagrangian()
+{
+    if (mProjectionType == Incompressible)
+    {
+        StandardParticlesUpdate();
+    }
+    else if (mProjectionType == Compressible)
+    {
+        ParticlesUpdateWithMassConservation();
+    }
+}
+
+    
+template<size_t TDim>
+void MoveShallowParticlesProcess<TDim>::StandardProjection()
+{
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
     {
@@ -241,7 +323,6 @@ void MoveShallowParticlesProcess<TDim>::TransferLagrangianToEulerian()
         auto it_part = mrParticles.NodesBegin() + i;
 
         // Particle contributions
-        // double particle_weight = it_part->FastGetSolutionStepValue(INTEGRATION_WEIGHT);
         double scalar_contribution = 0;
         array_1d<double,3> vector_contribution = ZeroVector(3);
         scalar_contribution =  it_part->FastGetSolutionStepValue(mrMassVariable);
@@ -281,8 +362,9 @@ void MoveShallowParticlesProcess<TDim>::TransferLagrangianToEulerian()
     }
 }
 
+    
 template<size_t TDim>
-void MoveShallowParticlesProcess<TDim>::TransferEulerianToLagrangian()
+void MoveShallowParticlesProcess<TDim>::StandardParticlesUpdate()
 {
     size_t num_nodes = mrModelPart.ElementsBegin()->GetGeometry().size();
     #pragma omp parallel for
@@ -292,7 +374,7 @@ void MoveShallowParticlesProcess<TDim>::TransferEulerianToLagrangian()
         auto p_elem = it_part->GetValue(CURRENT_ELEMENT);
         if (p_elem != nullptr)
         {
-            GeometryType& geom = p_elem->GetGeometry();
+            const auto& geom = p_elem->GetGeometry();
             Vector N;
             GetShapeFunctionsValues(N, geom, *it_part);
 
@@ -314,12 +396,113 @@ void MoveShallowParticlesProcess<TDim>::TransferEulerianToLagrangian()
 }
 
 template<size_t TDim>
+void MoveShallowParticlesProcess<TDim>::ProjectionWithMassConservation()
+{
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
+    {
+        auto it_node = mrModelPart.NodesBegin() + i;
+        it_node->FastGetSolutionStepValue(PROJECTED_SCALAR1) = 0.0;
+        it_node->FastGetSolutionStepValue(PROJECTED_VECTOR1) = ZeroVector(3);
+    }
+
+    const size_t num_nodes = mrModelPart.ElementsBegin()->GetGeometry().size();
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrParticles.NumberOfNodes()); ++i)
+    {
+        auto it_part = mrParticles.NodesBegin() + i;
+        auto p_elem = it_part->GetValue(CURRENT_ELEMENT);
+        if (p_elem != nullptr)
+        {
+            auto& geom = p_elem->GetGeometry();
+            Vector N;
+            GetShapeFunctionsValues(N, geom, *it_part);
+
+            double sum_part_weights = 0.0;
+            for (size_t j = 0; j < num_nodes; ++j)
+            {
+                sum_part_weights += N[j]*N[j];
+            }
+
+            for (size_t j = 0; j < num_nodes; ++j)
+            {
+                const double part_weight = N[j]*N[j] / sum_part_weights;
+                const double part_area = it_part->FastGetSolutionStepValue(PARTICLE_AREA);
+                const double sum_areas = geom[j].GetValue(SUM_AREAS);
+                const auto scalar_value = it_part->FastGetSolutionStepValue(mrMassVariable);
+                const auto vector_value = it_part->FastGetSolutionStepValue(mrMomentumVariable);
+                geom[j].FastGetSolutionStepValue(PROJECTED_SCALAR1) += num_nodes * part_weight * part_area / sum_areas * scalar_value;
+                geom[j].FastGetSolutionStepValue(PROJECTED_VECTOR1) += num_nodes * part_weight * part_area / sum_areas * vector_value;
+            }
+        }
+    }
+}
+
+template<size_t TDim>
+void MoveShallowParticlesProcess<TDim>::ParticlesUpdateWithMassConservation()
+{
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
+    {
+        (mrModelPart.NodesBegin() + i)->FastGetSolutionStepValue(SUM_PARTICLES_WEIGHTS) = 0.0;
+    }
+
+    const size_t num_nodes = mrModelPart.ElementsBegin()->GetGeometry().size();
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrParticles.NumberOfNodes()); ++i)
+    {
+        const auto it_part = mrParticles.NodesBegin() + i;
+        const auto p_elem = it_part->GetValue(CURRENT_ELEMENT);
+        if (p_elem != nullptr)
+        {
+            auto& geom = p_elem->GetGeometry();
+            Vector N;
+            GetShapeFunctionsValues(N, geom, *it_part);
+
+            for (size_t j = 0; j < num_nodes; ++j)
+            {
+                #pragma omp critical
+                geom[j].FastGetSolutionStepValue(SUM_PARTICLES_WEIGHTS) += N[j] * N[j];
+            }
+        }
+    }
+
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrParticles.NumberOfNodes()); ++i)
+    {
+        const auto it_part = mrParticles.NodesBegin() + i;
+        const auto p_elem = it_part->GetValue(CURRENT_ELEMENT);
+        if (p_elem != nullptr)
+        {
+            const auto& geom = p_elem->GetGeometry();
+            Vector N;
+            GetShapeFunctionsValues(N, geom, *it_part);
+
+            auto& part_scalar = it_part->FastGetSolutionStepValue(mrMassVariable);
+            auto& part_vector = it_part->FastGetSolutionStepValue(mrMomentumVariable);
+
+            for (size_t j = 0; j < num_nodes; ++j)
+            {
+                const double part_weight = N[j] * N[j] / geom[j].FastGetSolutionStepValue(SUM_PARTICLES_WEIGHTS);
+                const double part_area = it_part->FastGetSolutionStepValue(PARTICLE_AREA);
+                const double sum_areas = geom[j].GetValue(SUM_AREAS);
+                const auto delta_scalar = geom[j].FastGetSolutionStepValue(mrMassVariable,0) - geom[j].FastGetSolutionStepValue(mrMassVariable,1);
+                const auto delta_vector = geom[j].FastGetSolutionStepValue(mrMomentumVariable,0) - geom[j].FastGetSolutionStepValue(mrMomentumVariable,1);
+                part_scalar += part_weight * sum_areas / part_area / num_nodes * delta_scalar;
+                part_vector += part_weight * sum_areas / part_area / num_nodes * delta_vector;
+            }
+        }
+    }
+}
+
+template<size_t TDim>
 void MoveShallowParticlesProcess<TDim>::InitializeParticle(NodeType& rParticle, Element& rElement)
 {
-    GeometryType& geom = rElement.GetGeometry();
+    const auto& geom = rElement.GetGeometry();
     const size_t num_nodes = geom.size();
     const size_t num_particles = geom.IntegrationPointsNumber(mQuadratureOrder);
     const double particle_weight = 1 / static_cast<double>(num_particles);
+    const double elem_area = geom.Area();
 
     Vector N;
     GetShapeFunctionsValues(N, geom, rParticle);
@@ -333,13 +516,17 @@ void MoveShallowParticlesProcess<TDim>::InitializeParticle(NodeType& rParticle, 
     }
 
     rParticle.SetValue(CURRENT_ELEMENT, &rElement);
-    rParticle.FastGetSolutionStepValue(INTEGRATION_WEIGHT) = particle_weight;
+    rParticle.FastGetSolutionStepValue(PARTICLE_WEIGHT) = particle_weight;
+    rParticle.FastGetSolutionStepValue(PARTICLE_AREA) = elem_area * particle_weight;
     rParticle.FastGetSolutionStepValue(mrMassVariable) = scalar_value;
     rParticle.FastGetSolutionStepValue(mrMomentumVariable) = vector_value;
 }
 
 template<size_t TDim>
-void MoveShallowParticlesProcess<TDim>::GetShapeFunctionsValues(Vector& rN, GeometryType& rGeom, NodeType& rParticle)
+void MoveShallowParticlesProcess<TDim>::GetShapeFunctionsValues(
+    Vector& rN,
+    const GeometryType& rGeom,
+    const NodeType& rParticle)
 {
     array_1d<double,3> local_coordinates;
     rGeom.PointLocalCoordinates(local_coordinates, rParticle);

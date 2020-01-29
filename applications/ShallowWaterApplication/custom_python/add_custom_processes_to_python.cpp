@@ -112,7 +112,7 @@ namespace Python
 
         py::class_<MoveShallowParticlesProcess<2>, MoveShallowParticlesProcess<2>::Pointer, Process>
         (m, "MoveShallowParticlesProcess2D")
-        .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3>>&, Variable<double>&>())
+        .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3>>&, Variable<double>&, Parameters>())
         ;
 
     }
