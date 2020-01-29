@@ -3,6 +3,8 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 
 import sys
+import requests
+
 from math import *
 
 def Factory(settings, Model):
@@ -65,11 +67,19 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         self.mesh = self.model_part.GetMesh(settings["mesh_id"].GetInt())
         self.is_fixed = settings["constrained"].GetBool()
 
-        self.value_is_numeric = False
         if settings["value"].IsNumber():
-            self.value_is_numeric = True
+            self.value_type = "Number"
             self.value = settings["value"].GetDouble()
+        elif settings["value"].IsSubParameter():
+            self.value_tag = settings["value"]["type"]
+            if value_tag == "REST"
+                self.value_type = "Sensor"
+                self.endpoint = settings["value"].GetString()
+            else:
+                print("Error: unrecognized tag")
         else:
+            self.value_type = "Function"
+
             self.function_string = settings["value"].GetString()
             self.aux_function = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string, settings["local_axes"])
 
@@ -103,14 +113,21 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             if self.is_fixed:
                 self.variable_utils.ApplyFixity(self.variable, self.is_fixed, self.mesh.Nodes)
 
-            if self.value_is_numeric:
+            if self.value_type == "Number":
                 self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
-            else:
+            elif self.value_type == "Function":
                 if self.aux_function.DependsOnSpace() == False: #depends on time only
                     self.value = self.aux_function.CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0)
                     self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
                 else: #most general case - space varying function (possibly also time varying)
                     self.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
+            elif self.value_type == "Sensor":
+                response = requests.post(self.endpoint, data="")
+                self.value = response.text
+                self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
+            else:
+                print("Error: Unrecognized value")
+
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
