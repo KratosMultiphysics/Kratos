@@ -708,8 +708,13 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.Geometries[2].Id, 2)
         counter = 0
         for geometry in model_part.Geometries:
-            counter+=1
-        self.assertEqual(counter, 1)
+            counter += geometry.Id
+        self.assertEqual(counter, 2)
+
+        # Check correct geometries
+        for geometry in model_part.Geometries:
+            geometry.Id = 140
+            self.assertEqual(geometry.Id, geom_2.Id)
 
     def test_model_part_iterators(self):
         current_model = KratosMultiphysics.Model()
