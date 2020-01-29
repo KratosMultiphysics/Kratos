@@ -684,8 +684,7 @@ public:
 
     ///@}
     ///@name Input and output
-    ///@{
-    
+    ///@{    
     /// Turn back information as a string.
     std::string Info() const override
     {
