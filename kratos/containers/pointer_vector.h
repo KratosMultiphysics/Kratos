@@ -120,17 +120,9 @@ public:
     explicit PointerVector(std::size_t NewSize) :  mData(NewSize)
     {
     }
-/*
-    template<class TOtherDataType>
-    PointerVector(std::size_t NewSize, TOtherDataType const& Value) :  mData(NewSize)
-    {
-        for(size_type i = 0 ; i < NewSize ; i++)
-            mData[i] = pointer(new TOtherDataType(Value));
-    }*/
 
     /// Destructor.
     virtual ~PointerVector() {}
-
 
     ///@}
     ///@name Operators
@@ -340,8 +332,6 @@ public:
         return mData;
     }
 
-
-
     ///@}
     ///@name Inquiry
     ///@{
@@ -375,12 +365,6 @@ public:
     {
         std::copy(begin(), end(), std::ostream_iterator<TDataType>(rOStream, "\n "));
     }
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
 
     ///@}
 
