@@ -228,11 +228,11 @@ public:
     {
     }
 
-    /// Standard Constructor with a Id
+    /// Standard Constructor with a geometry Id
     Geometry(IndexType GeomertyId)
-        : mId(GeomertyId)
-        , mpGeometryData(&GeometryDataInstance())
+        : mpGeometryData(&GeometryDataInstance())
     {
+        SetId(GeomertyId);
     }
 
     /// Standard Constructor with a Name
@@ -310,13 +310,13 @@ public:
     }
 
     Geometry(
-        IndexType Id,
+        IndexType GeometryId,
         const PointsArrayType& ThisPoints,
         GeometryData const* pThisGeometryData = &GeometryDataInstance())
-        : mId(Id)
-        , mpGeometryData(pThisGeometryData)
+        : mpGeometryData(pThisGeometryData)
         , mPoints(ThisPoints)
     {
+        SetId(GeomertyId);
     }
 
     Geometry(
