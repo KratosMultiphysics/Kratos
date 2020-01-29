@@ -1293,11 +1293,7 @@ protected:
       minTolerance = 10;
     }
 
-    bool isItNan = false;
-    isItNan = std::isnan(DvErrorNorm);
-    bool isItInf = false;
-    isItInf = std::isinf(DvErrorNorm);
-    if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm) || isItNan == true || isItInf == true) &&
+    if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
         DvErrorNorm != 0 &&
         (DvErrorNorm != 1 || currentTime > timeInterval))
     {
@@ -1338,11 +1334,7 @@ protected:
     double minTolerance = 0.99999;
     bool fixedTimeStep = false;
 
-    bool isItNan = false;
-    isItNan = std::isnan(DvErrorNorm);
-    bool isItInf = false;
-    isItInf = std::isinf(DvErrorNorm);
-    if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm) || isItNan == true || isItInf == true) &&
+    if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
         DvErrorNorm != 0 &&
         (DvErrorNorm != 1 || currentTime > timeInterval))
     {
@@ -1383,11 +1375,7 @@ protected:
       minTolerance = 10;
     }
 
-    bool isItNan = false;
-    isItNan = std::isnan(DvErrorNorm);
-    bool isItInf = false;
-    isItInf = std::isinf(DvErrorNorm);
-    if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm) || isItNan == true || isItInf == true) &&
+    if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
         DvErrorNorm != 0 &&
         (DvErrorNorm != 1 || currentTime > timeInterval))
     {
