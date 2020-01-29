@@ -1,15 +1,13 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+/*
+//  KRATOS _______
+//        / ____(_)___ ____  ____
+//       / __/ / / __ `/ _ \/ __ \
+//      / /___/ / /_/ /  __/ / / /
+//     /_____/_/\__, /\___/_/ /_/ SolversApplication
+//             /____/
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
-//
-//  Main authors:    Quirin Aumann
-//
-//
+//  Author: Quirin Aumann
+*/
 
 #if !defined(KRATOS_DENSE_LINEAR_SOLVER_FACTORY_H_INCLUDED )
 #define  KRATOS_DENSE_LINEAR_SOLVER_FACTORY_H_INCLUDED

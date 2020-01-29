@@ -1,16 +1,13 @@
-//  KRATOS  _____     _ _ _
-//         |_   _| __(_) (_)_ __   ___  ___
-//           | || '__| | | | '_ \ / _ \/ __|
-//           | || |  | | | | | | | (_) \__
-//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
+/*
+//  KRATOS _______
+//        / ____(_)___ ____  ____
+//       / __/ / / __ `/ _ \/ __ \
+//      / /___/ / /_/ /  __/ / / /
+//     /_____/_/\__, /\___/_/ /_/ SolversApplication
+//             /____/
 //
-//  License:             BSD License
-//                                       Kratos default license: kratos/license.txt
-//
-//  Main authors:   Vicente Mataix Ferrandiz
-//                  Philipp Bucher
-//
-
+//  Author: Quirin Aumann
+*/
 
 // // Project includes
 #include "includes/define.h"

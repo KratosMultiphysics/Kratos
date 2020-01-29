@@ -13,16 +13,15 @@
 #define KRATOS_EIGENSOLVERS_APPLICATION_H_INCLUDED
 
 // System includes
-// #include <string>
-// #include <iostream>
+#include <string>
+#include <iostream>
 
 // External includes
 
 // Project includes
-// #include "includes/define_python.h"
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/kratos_application.h"
-// #include "includes/variables.h"
+#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -45,45 +44,6 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-/// registers the linear solvers to kratos
-/** registers the linear solvers to kratos
-*/
-// class EigenSolversApplicationRegisterLinearSolvers
-// {
-// public:
-//     ///@name Type Definitions
-//     ///@{
-
-//     /// Pointer definition of EigenSolversApplicationRegisterLinearSolvers
-//     KRATOS_CLASS_POINTER_DEFINITION(EigenSolversApplicationRegisterLinearSolvers);
-
-//     ///@}
-//     ///@name Life Cycle
-//     ///@{
-
-//     /// Default constructor.
-//     EigenSolversApplicationRegisterLinearSolvers();
-
-//     /// Destructor.
-//     virtual ~EigenSolversApplicationRegisterLinearSolvers(){};
-
-
-//     ///@}
-
-// private:
-//     ///@name Un accessible methods
-//     ///@{
-
-//     /// Assignment operator.
-//     EigenSolversApplicationRegisterLinearSolvers& operator=(EigenSolversApplicationRegisterLinearSolvers const& rOther) = delete;
-
-//     /// Copy constructor.
-//     EigenSolversApplicationRegisterLinearSolvers(EigenSolversApplicationRegisterLinearSolvers const& rOther) = delete;
-
-//     ///@}
-
-// }; // Class EigenSolversApplicationRegisterLinearSolvers
 
 class KratosEigenSolversApplication : public KratosApplication
 {
