@@ -713,7 +713,7 @@ class TestModelPart(KratosUnittest.TestCase):
 
         # Check correct geometries
         for geometry in model_part.Geometries:
-            geometry.Id = 140
+            geometry.Id = 60
             self.assertEqual(geometry.Id, geom_2.Id)
 
     def test_model_part_iterators(self):
