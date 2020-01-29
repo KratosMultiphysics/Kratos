@@ -92,6 +92,7 @@ void AddMissingVariablesFromSpecifications(
 
     if (SpecificationsParameters.Has("required_variables")) {
         const std::vector<std::string>& r_variables = SpecificationsParameters["required_variables"].GetStringArray();
+        auto& r_variable_list = rModelPart.GetNodalSolutionStepVariablesList();
         for (auto& r_variable_name : r_variables) {
             bool has_variable = false;
             if (KratosComponents<Variable<double> >::Has(r_variable_name)) {
@@ -100,7 +101,7 @@ void AddMissingVariablesFromSpecifications(
                 
                 // If variable is missign is added to the model part
                 if (!has_variable) {
-                    rModelPart.AddNodalSolutionStepVariable(r_variable);
+                    r_variable_list.Add(r_variable);
                 }
             } else if(KratosComponents<Variable<bool> >::Has(r_variable_name)) {
                 const Variable<bool>& r_variable = KratosComponents<Variable<bool>>().Get(r_variable_name);
@@ -108,7 +109,7 @@ void AddMissingVariablesFromSpecifications(
                 
                 // If variable is missign is added to the model part
                 if (!has_variable) {
-                    rModelPart.AddNodalSolutionStepVariable(r_variable);
+                    r_variable_list.Add(r_variable);;
                 }
             } else if(KratosComponents<Variable<int> >::Has(r_variable_name)) {
                 const Variable<int>& r_variable = KratosComponents<Variable<int>>().Get(r_variable_name);
@@ -116,7 +117,7 @@ void AddMissingVariablesFromSpecifications(
                 
                 // If variable is missign is added to the model part
                 if (!has_variable) {
-                    rModelPart.AddNodalSolutionStepVariable(r_variable);
+                    r_variable_list.Add(r_variable);;
                 }
             } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(r_variable_name)) {
                 const Variable<array_1d<double, 3>>& r_variable = KratosComponents<Variable<array_1d<double, 3>>>().Get(r_variable_name);
@@ -124,7 +125,7 @@ void AddMissingVariablesFromSpecifications(
 
                 // If variable is missign is added to the model part
                 if (!has_variable) {
-                    rModelPart.AddNodalSolutionStepVariable(r_variable);
+                    r_variable_list.Add(r_variable);;
                 }
             } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(r_variable_name)) {
                 const Variable<array_1d<double, 6>>& r_variable = KratosComponents<Variable<array_1d<double, 6>>>().Get(r_variable_name);
@@ -132,7 +133,7 @@ void AddMissingVariablesFromSpecifications(
                 
                 // If variable is missign is added to the model part
                 if (!has_variable) {
-                    rModelPart.AddNodalSolutionStepVariable(r_variable);
+                    r_variable_list.Add(r_variable);;
                 }
             } else if(KratosComponents<Variable<Vector > >::Has(r_variable_name)) {
                 const Variable<Vector>& r_variable = KratosComponents<Variable<Vector>>().Get(r_variable_name);
@@ -140,7 +141,7 @@ void AddMissingVariablesFromSpecifications(
                 
                 // If variable is missign is added to the model part
                 if (!has_variable) {
-                    rModelPart.AddNodalSolutionStepVariable(r_variable);
+                    r_variable_list.Add(r_variable);;
                 }
             } else if(KratosComponents<Variable<Matrix> >::Has(r_variable_name)) {
                 const Variable<Matrix>& r_variable = KratosComponents<Variable<Matrix>>().Get(r_variable_name);
@@ -148,12 +149,21 @@ void AddMissingVariablesFromSpecifications(
                 
                 // If variable is missign is added to the model part
                 if (!has_variable) {
-                    rModelPart.AddNodalSolutionStepVariable(r_variable);
+                    r_variable_list.Add(r_variable);;
                 }
             } else {
                 KRATOS_ERROR << "Value type for \"" << r_variable_name << "\" not defined" << std::endl;
             }
             KRATOS_WARNING_IF("SpecificationsUtilities", has_variable) << "Variable:" << r_variable_name << " is not in the model part. Required by entity: " << EntityName << "Added to the model part" << std::endl;
+        }
+
+        // Set the variable list in all the nodes
+        auto& r_nodes_array = rModelPart.Nodes();
+        const auto it_node_begin = r_nodes_array.begin();
+        #pragma omp parallel for
+        for (int k = 0; k< static_cast<int> (r_nodes_array.size()); ++k) {
+            auto it_node = it_node_begin + k;
+            it_node->SetSolutionStepVariablesList(&r_variable_list);
         }
     }
     
