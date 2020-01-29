@@ -100,10 +100,12 @@ class CadJsonInput : public IO
         }
 
         ///@}
+
+    private:
         ///@name Static Functions
         ///@{
 
-        /// Allows static access without any own memory.
+        /// Allows static access without own memory.
         static void ReadGeometryModelPart(
             const Parameters& rCadJsonParameters,
             ModelPart& rModelPart,
@@ -116,8 +118,6 @@ class CadJsonInput : public IO
         }
 
         ///@}
-
-    private:
         ///@name Read in Brep
         ///@{
 

@@ -326,13 +326,13 @@ void  AddIOToPython(pybind11::module& m)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<array_1d<double,3>>&, const double)) &UnvOutput::WriteNodalResults)
         ;
 
+    // Import of CAD models to the model part
     py::class_<CadJsonInput<>, CadJsonInput<>::Pointer>(m, "CadJsonInput")
         .def(py::init<const std::string &>())
         .def(py::init<const std::string&, std::size_t>())
         .def(py::init<Parameters>())
         .def(py::init<Parameters, std::size_t>())
         .def("ReadModelPart", &CadJsonInput<>::ReadModelPart)
-        .def("ReadGeometryModelPart", &CadJsonInput<>::ReadGeometryModelPart)
         ;
 }
 }  // namespace Python.
