@@ -206,8 +206,9 @@ class CadJsonInput : public IO
                 rParameters["surface"], rModelPart, EchoLevel);
 
             bool is_trimmed = true;
-            if (rParameters["surface"].Has("is_trimmed"))
+            if (rParameters["surface"].Has("is_trimmed")) {
                 is_trimmed = rParameters["surface"]["is_trimmed"].GetBool();
+            }
             else {
                 KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 4))
                     << "For BrepSurface \"" << GetIdOrName(rParameters) << "\""
@@ -296,8 +297,9 @@ class CadJsonInput : public IO
                 = Kratos::make_shared<BrepCurveOnSurfaceType>(
                     pNurbsSurface, p_trimming_curve, curve_direction);
 
-            if (rParameters.Has("trim_index"))
+            if (rParameters.Has("trim_index")) {
                 p_brep_curve_on_surface->SetId(rParameters["trim_index"].GetInt());
+            }
 
             return p_brep_curve_on_surface;
         }
@@ -418,8 +420,9 @@ class CadJsonInput : public IO
                 << rParameters["topology"][0]["trim_index"].GetInt() << std::endl;
 
             bool relative_direction = true;
-            if (rParameters["topology"][0].Has("trim_index"))
+            if (rParameters["topology"][0].Has("trim_index")) {
                 relative_direction = rParameters["topology"][0]["trim_index"].GetInt();
+            }
             else {
                 KRATOS_INFO_IF("ReadBrepEdge", (EchoLevel > 4))
                     << "For trim: \"" << rParameters["topology"][0]["trim_index"].GetInt()
@@ -492,8 +495,9 @@ class CadJsonInput : public IO
                 SizeType EchoLevel = 0)
         {
             bool is_rational = true;
-            if (rParameters.Has("is_rational"))
+            if (rParameters.Has("is_rational")) {
                 is_rational = rParameters["is_rational"].GetBool();
+            }
             else {
                 KRATOS_INFO_IF("ReadNurbsCurve", (EchoLevel > 4))
                     << "\"is_rational\" is not provided within \"surface\". Thus, it is considered as rational. "
@@ -557,8 +561,9 @@ class CadJsonInput : public IO
                 SizeType EchoLevel = 0)
         {
             bool is_rational = true;
-            if (rParameters.Has("is_rational"))
+            if (rParameters.Has("is_rational")) {
                 is_rational = rParameters["is_rational"].GetBool();
+            }
             else {
                 KRATOS_INFO_IF("ReadNurbsSurface", (EchoLevel > 4))
                     << "\"is_rational\" is not provided within \"surface\". Thus, it is considered as rational. "
@@ -721,12 +726,15 @@ class CadJsonInput : public IO
         static std::string GetIdOrName(
             const Parameters& rParameters)
         {
-            if (rParameters.Has("brep_id"))
+            if (rParameters.Has("brep_id")) {
                 return std::to_string(rParameters["brep_id"].GetInt());
-            else if (rParameters.Has("brep_name"))
+            }
+            else if (rParameters.Has("brep_name")) {
                 return rParameters["brep_name"].GetString();
-            else
+            }
+            else {
                 return "no_id_assigned";
+            }
         }
 
         /// Checks if one of the 'brep_id' or the 'brep_name' is provided.
@@ -742,10 +750,12 @@ class CadJsonInput : public IO
             const Parameters& rParameters,
             typename TGeometry::Pointer pGeometry)
         {
-            if (rParameters.Has("brep_id"))
+            if (rParameters.Has("brep_id")) {
                 pGeometry->SetId(rParameters["brep_id"].GetInt());
-            else if (rParameters.Has("brep_name"))
+            }
+            else if (rParameters.Has("brep_name")) {
                 pGeometry->SetId(rParameters["brep_name"].GetString());
+            }
         }
 
         /// Returns the geometry with either the 'brep_id' or the 'brep_name'.
