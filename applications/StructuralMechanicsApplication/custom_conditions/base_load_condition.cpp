@@ -366,6 +366,29 @@ void BaseLoadCondition::AddExplicitContribution(
 /***********************************************************************************/
 /***********************************************************************************/
 
+const Parameters BaseLoadCondition::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({        
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "required_variables"         : ["DISPLACEMENT"],
+        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Line2D2", "Line2D3", "Triangle3D3", "Triangle3D6", "Quadrilateral3D4", "Quadrilateral3D8", "Quadrilateral3D9"],
+        "is_implicit"                : true,
+        "element_integrates_in_time" : true,
+        "compatible_constitutive_laws": {
+            "type"        : [],
+            "dimension"   : [],
+            "strain_size" : []
+        }})");
+    return specifications;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void BaseLoadCondition::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
