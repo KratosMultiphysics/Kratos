@@ -189,7 +189,7 @@ struct plain_aggregates {
             }
         }
 
-        precondition(count > 0, "Zero aggregates found.");
+        if (!count) throw error::empty_level();
 
         // Some of the aggregates could potentially vanish during expansion
         // step (*) above. We need to exclude those and renumber the rest.
