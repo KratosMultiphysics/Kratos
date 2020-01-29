@@ -55,19 +55,26 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSy
     const EmbeddedIncompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
     const int kutta = r_this.GetValue(KUTTA);
+    bool is_trailing_edge = false;
 
     BoundedVector<double,NumNodes> distances;
     for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
         distances[i_node] = this->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+        if (this->GetGeometry()[i_node].GetValue(TRAILING_EDGE)) {
+            is_trailing_edge = true;
+        }
     }
     const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(distances);
 
     if (is_embedded && wake == 0 && kutta == 0) {
         CalculateEmbeddedLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-        AddPotentialGradientStabilizationTerm(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+        if (!is_trailing_edge && std::abs(rCurrentProcessInfo[INITIAL_PENALTY]) > std::numeric_limits<double>::epsilon()) {
+            AddPotentialGradientStabilizationTerm(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+        }
     }
-    else
+    else {
         BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+    }
 
 }
 
@@ -140,7 +147,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGrad
 
                 PotentialFlowUtilities::ElementalData<NumNodes,Dim> this_data;
                 GeometryUtils::CalculateGeometryData(r_geometry, this_data.DN_DX, this_data.N, this_data.vol);
-                this_data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(r_elem);
+                this_data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(r_elem);
                 r_geometry.ShapeFunctionsIntegrationPointsGradients(DN_DX, detJ0, r_integration_method);
 
 
@@ -183,14 +190,10 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGrad
 
     auto penalty_term_xi = data.vol*prod(data.DN_DX, averaged_xi);
     auto penalty_term_potential = data.vol*prod(data.DN_DX,trans(data.DN_DX));
-    auto penalty = rCurrentProcessInfo[INITIAL_PENALTY];
-    for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
-        if (this->GetGeometry()[i_node].GetValue(TRAILING_EDGE))
-            penalty = 0.0;
-    }
+    auto penalty_coefficient = rCurrentProcessInfo[INITIAL_PENALTY];
 
-    noalias(rLeftHandSideMatrix) +=  penalty*penalty_term_potential;
-    noalias(rRightHandSideVector) += penalty*(penalty_term_xi-prod(penalty_term_potential, potential));
+    noalias(rLeftHandSideMatrix) +=  penalty_coefficient*penalty_term_potential;
+    noalias(rRightHandSideVector) += penalty_coefficient*(penalty_term_xi-prod(penalty_term_potential, potential));
 
 }
 
