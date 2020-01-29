@@ -33,6 +33,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), False)
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), False)
         
+        self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineFramework(model_part), "lagrangian")
     def test_specifications_utilities_conditions(self):
         current_model = KratosMultiphysics.Model()
 
@@ -56,6 +57,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), False)
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), False)
 
+        self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineFramework(model_part), "lagrangian")
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication is not available")
     def test_specifications_utilities_elements_dependencies(self):
         current_model = KratosMultiphysics.Model()
@@ -80,6 +82,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), True)
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), True)
 
+        self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineFramework(model_part), "lagrangian")
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication is not available")
     def test_specifications_utilities_conditions_dependencies(self):
         current_model = KratosMultiphysics.Model()
@@ -104,5 +107,6 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), True)
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), True)
         
+        self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineFramework(model_part), "lagrangian")
 if __name__ == '__main__':
     KratosUnittest.main()
