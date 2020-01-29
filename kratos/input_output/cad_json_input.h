@@ -24,15 +24,14 @@
 namespace Kratos
 {
 
-  ///@name Kratos Classes
-  ///@{
-  /// Short class definition.
-  /** Gives IO capabilities for Nurbs based Brep models in the JSON format defined in
-  https://amses-journal.springeropen.com/articles/10.1186/s40323-018-0109-4.
-  */
-    template<class TNodeType = Node<3>, class TEmbeddedNodeType = Point>
-    class CadJsonInput : public IO
-    {
+///@name Kratos Classes
+///@{
+/// Input for CAD-files.
+/** Gives IO capabilities for Nurbs based Brep models in the JSON format defined in
+https://amses-journal.springeropen.com/articles/10.1186/s40323-018-0109-4. */
+template<class TNodeType = Node<3>, class TEmbeddedNodeType = Point>
+class CadJsonInput : public IO
+{
     public:
 
         ///@}
@@ -71,11 +70,11 @@ namespace Kratos
 
         /// Constructor with path to input file.
         CadJsonInput(
-            const std::string & rDataFileName,
+            const std::string& rDataFileName,
             SizeType EchoLevel = 0)
             : mEchoLevel(EchoLevel)
         {
-            mCadJsonParameters = ReadParamatersFile(rDataFileName);
+            mCadJsonParameters = ReadParamatersFile(rDataFileName, EchoLevel);
         }
 
         /// Constructor with KratosParameters.
@@ -212,7 +211,7 @@ namespace Kratos
             else {
                 KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 4))
                     << "For BrepSurface \"" << GetIdOrName(rParameters) << "\""
-                    << "\", is_trimmed is not provided in the input." 
+                    << "\", is_trimmed is not provided in the input."
                     << " is_trimmed = true is considered." << std::endl;
             }
 
@@ -238,7 +237,7 @@ namespace Kratos
                 KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 4))
                     << "For BrepSurface \"" << GetIdOrName(rParameters) << "\""
                     << "\", boundary_loops are not provided in the input."
-                    <<" It will be considered as untrimmed." << std::endl;
+                    << " It will be considered as untrimmed." << std::endl;
 
                 auto p_brep_surface =
                     Kratos::make_shared<BrepSurfaceType>(
@@ -329,7 +328,7 @@ namespace Kratos
                 if (loop_type == "outer")
                 {
                     outer_loops.resize(outer_loops.size() + 1);
-                    outer_loops[outer_loops.size()-1] = trimming_curves;
+                    outer_loops[outer_loops.size() - 1] = trimming_curves;
                 }
                 else if (loop_type == "inner")
                 {
@@ -408,10 +407,10 @@ namespace Kratos
                 << "\"." << std::endl;
 
             GeometryPointerType p_geometry = GetGeometry(rParameters["topology"][0], rModelPart);
-            GeometryPointerType p_brep_trim = 
+            GeometryPointerType p_brep_trim =
                 p_geometry->pGetGeometryPart(rParameters["topology"][0]["trim_index"].GetInt());
 
-            auto p_brep_curve_on_surface 
+            auto p_brep_curve_on_surface
                 = dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_brep_trim);
             KRATOS_ERROR_IF(p_brep_curve_on_surface == nullptr)
                 << "dynamic_cast from Geometry to BrepCurveOnSurface not successfull. Brep Id: "
@@ -558,9 +557,9 @@ namespace Kratos
                 SizeType EchoLevel = 0)
         {
             bool is_rational = true;
-            if(rParameters.Has("is_rational"))
+            if (rParameters.Has("is_rational"))
                 is_rational = rParameters["is_rational"].GetBool();
-            else{
+            else {
                 KRATOS_INFO_IF("ReadNurbsSurface", (EchoLevel > 4))
                     << "\"is_rational\" is not provided within \"surface\". Thus, it is considered as rational. "
                     << "If this surface is non-rational the computation of the shape functions is less optimized."
@@ -592,12 +591,12 @@ namespace Kratos
                     rParameters["control_points"]);
 
                 return Kratos::make_shared<NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
-                        control_points,
-                        p,
-                        q,
-                        knot_vector_u,
-                        knot_vector_v,
-                        control_point_weights);
+                    control_points,
+                    p,
+                    q,
+                    knot_vector_u,
+                    knot_vector_v,
+                    control_point_weights);
             }
             return Kratos::make_shared<NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
                 NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
@@ -709,7 +708,7 @@ namespace Kratos
                 << "Control points as Point need to be provided in following structure: "
                 << "[[x, y, z, weight]] or [id, [x, y, z, weight]]" << std::endl;
 
-            Vector cp = rParameters[number_of_entries-1].GetVector();
+            Vector cp = rParameters[number_of_entries - 1].GetVector();
 
             return Kratos::make_shared<Point>(cp[0], cp[1], cp[2]);
         }
@@ -763,13 +762,16 @@ namespace Kratos
         }
 
         /// Reads in a json formatted file and returns its KratosParameters instance.
-        static Parameters ReadParamatersFile(const std::string& rDataFileName)
+        static Parameters ReadParamatersFile(const std::string& rDataFileName, SizeType EchoLevel = 0)
         {
             // Check if rDataFileName ends with ".cad.json" and add it if needed.
             std::string data_file_name = rDataFileName;
             if (rDataFileName.compare(rDataFileName.size() - 9, 9, ".cad.json") != 0) {
                 data_file_name += ".cad.json";
             }
+
+            KRATOS_INFO_IF("ReadParamatersFile", EchoLevel > 3)
+                << "Reading file: \"" << data_file_name << "\"" << std::endl;
 
             std::ifstream cad_json_file;
             cad_json_file.open(data_file_name);
