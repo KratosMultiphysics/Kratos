@@ -36,6 +36,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineFramework(model_part), "lagrangian")
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineSymmetricLHS(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DeterminePositiveDefiniteLHS(model_part), True)
+        self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfCompatibleGeometries(model_part), True)
         
     def test_specifications_utilities_conditions(self):
         current_model = KratosMultiphysics.Model()
@@ -63,6 +64,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineFramework(model_part), "lagrangian")
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineSymmetricLHS(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DeterminePositiveDefiniteLHS(model_part), True)
+        self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfCompatibleGeometries(model_part), True)
 
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication is not available")
     def test_specifications_utilities_elements_dependencies(self):
@@ -91,6 +93,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineFramework(model_part), "lagrangian")
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineSymmetricLHS(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DeterminePositiveDefiniteLHS(model_part), True)
+        self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfCompatibleGeometries(model_part), True)
 
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication is not available")
     def test_specifications_utilities_conditions_dependencies(self):
@@ -119,6 +122,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineFramework(model_part), "lagrangian")
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineSymmetricLHS(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DeterminePositiveDefiniteLHS(model_part), True)
+        self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfCompatibleGeometries(model_part), True)
         
 if __name__ == '__main__':
     KratosUnittest.main()
