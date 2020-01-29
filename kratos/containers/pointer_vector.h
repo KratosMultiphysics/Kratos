@@ -280,17 +280,6 @@ public:
         mData.push_back(x);
     }
 
-//     template<class TOtherDataType>
-//     void push_back(TOtherDataType const& x)
-//     {
-//         push_back(TPointerType(new TOtherDataType(x)));
-//     }
-/*
-    template<class TOtherDataType>
-    iterator insert(iterator Position, const TOtherDataType& rData)
-    {
-        return iterator(mData.insert(Position, TPointerType(new TOtherDataType(rData))));
-    }*/
 
     iterator insert(iterator Position, const TPointerType pData)
     {
