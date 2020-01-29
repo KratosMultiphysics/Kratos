@@ -316,7 +316,7 @@ public:
         : mpGeometryData(pThisGeometryData)
         , mPoints(ThisPoints)
     {
-        SetId(GeomertyId);
+        SetId(GeometryId);
     }
 
     Geometry(
