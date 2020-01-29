@@ -1932,7 +1932,9 @@ protected:
 			minTolerance = 10;
 		}
 
-		if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) && DvErrorNorm != 0 && DvErrorNorm != 1)
+		if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
+			DvErrorNorm != 0 &&
+			(DvErrorNorm != 1 || currentTime > timeInterval))
 		{
 			rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, true);
 			std::cout << "NOT GOOD CONVERGENCE!!! I'll reduce the next time interval" << DvErrorNorm << std::endl;
@@ -1966,10 +1968,14 @@ protected:
 	{
 		ModelPart &rModelPart = BaseType::GetModelPart();
 		ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+		double currentTime = rCurrentProcessInfo[TIME];
+		double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 		double minTolerance = 0.99999;
 		bool fixedTimeStep = false;
 
-		if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) && DvErrorNorm != 0 && DvErrorNorm != 1)
+		if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
+			DvErrorNorm != 0 &&
+			(DvErrorNorm != 1 || currentTime > timeInterval))
 		{
 			rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, true);
 			std::cout << "           BAD CONVERGENCE DETECTED DURING THE ITERATIVE LOOP!!! error: " << DvErrorNorm << " higher than 0.9999" << std::endl;
@@ -2008,7 +2014,9 @@ protected:
 			minTolerance = 10;
 		}
 
-		if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) && DvErrorNorm != 0 && DvErrorNorm != 1)
+		if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
+			DvErrorNorm != 0 &&
+			(DvErrorNorm != 1 || currentTime > timeInterval))
 		{
 			fixedTimeStep = true;
 			rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, true);
