@@ -13,6 +13,7 @@
 #define KRATOS_EIGEN_DENSE_COLPIVHOUSEHOLDERQR_SOLVER_H_INCLUDED
 
 // External includes
+#include <Eigen/QR>
 
 // Project includes
 #include "includes/define.h"

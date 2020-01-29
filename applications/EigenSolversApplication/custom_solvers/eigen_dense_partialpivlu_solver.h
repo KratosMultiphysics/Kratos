@@ -13,6 +13,7 @@
 #define KRATOS_EIGEN_DENSE_PARTIALPIVLU_SOLVER_H_INCLUDED
 
 // External includes
+#include <Eigen/LU>
 
 // Project includes
 #include "includes/define.h"
