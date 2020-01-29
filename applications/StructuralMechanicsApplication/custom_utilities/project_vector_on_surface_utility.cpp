@@ -102,11 +102,9 @@ void ProjectVectorOnSurfaceUtility::PlanarProjection(
         Vector local_axis_2 = ZeroVector(3);
         Vector local_axis_3 = ZeroVector(3);
 
-        for (size_t i=0;i<3;++i) {
-            local_axis_1[i] = local_coordinate_orientation(i,0);
-            local_axis_2[i] = local_coordinate_orientation(i,1);
-            local_axis_3[i] = local_coordinate_orientation(i,2);
-        }
+        local_axis_1 = column(local_coordinate_orientation,0);
+        local_axis_2 = column(local_coordinate_orientation,1);
+        local_axis_3 = column(local_coordinate_orientation,2);
 
         // normalise local axis vectors (global cartesian)
         local_axis_1 /= norm_2(local_axis_1);
@@ -167,11 +165,9 @@ void ProjectVectorOnSurfaceUtility::RadialProjection(
         Vector local_axis_2 = ZeroVector(3);
         Vector local_axis_3 = ZeroVector(3);
 
-        for (size_t i=0;i<3;++i) {
-            local_axis_1[i] = local_coordinate_orientation(i,0);
-            local_axis_2[i] = local_coordinate_orientation(i,1);
-            local_axis_3[i] = local_coordinate_orientation(i,2);
-        }
+        local_axis_1 = column(local_coordinate_orientation,0);
+        local_axis_2 = column(local_coordinate_orientation,1);
+        local_axis_3 = column(local_coordinate_orientation,2);
 
         // normalise local axis vectors (global cartesian)
         local_axis_1 /= norm_2(local_axis_1);
