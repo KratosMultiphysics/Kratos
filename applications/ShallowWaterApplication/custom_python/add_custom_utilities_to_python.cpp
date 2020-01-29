@@ -64,6 +64,7 @@ namespace Python
         .def("FlipScalarVariable", &ShallowWaterUtilities::FlipScalarVariable)
         .def("IdentifySolidBoundary", &ShallowWaterUtilities::IdentifySolidBoundary)
         .def("IdentifyWetDomain", &ShallowWaterUtilities::IdentifyWetDomain)
+        .def("ResetDryDomain", &ShallowWaterUtilities::ResetDryDomain)
         .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::NodesContainerType>)
         .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::ElementsContainerType>)
         .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::ConditionsContainerType>)

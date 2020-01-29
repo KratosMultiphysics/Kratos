@@ -97,6 +97,8 @@ public:
 
     void IdentifyWetDomain(ModelPart& rModelPart, Flags WetFlag, double Thickness = 0.0);
 
+    void ResetDryDomain(ModelPart& rModelPart, double Thickness = 0.0);
+
     template<class TContainerType>
     void DeactivateDryEntities(TContainerType& rContainer, Flags WetFlag)
     {

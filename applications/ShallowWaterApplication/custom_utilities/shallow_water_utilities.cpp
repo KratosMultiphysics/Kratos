@@ -174,7 +174,18 @@ void ShallowWaterUtilities::IdentifyWetDomain(ModelPart& rModelPart, Flags WetFl
             }
         }
 
-        it_elem->Set(WetFlag, wet_element);
+void ShallowWaterUtilities::ResetDryDomain(ModelPart& rModelPart, double Thickness)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+    {
+        auto it_node = rModelPart.NodesBegin() + i;
+        double& height = it_node->FastGetSolutionStepValue(HEIGHT);
+        if (height < Thickness)
+        {
+            height = 0.1 * Thickness;
+            it_node->FastGetSolutionStepValue(MOMENTUM) = ZeroVector(3);
+        }
     }
 }
 
