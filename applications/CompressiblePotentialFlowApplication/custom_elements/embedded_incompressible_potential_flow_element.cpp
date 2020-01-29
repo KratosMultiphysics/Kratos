@@ -62,8 +62,10 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSy
     }
     const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(distances);
 
-    if (is_embedded && wake == 0 && kutta == 0)
+    if (is_embedded && wake == 0 && kutta == 0) {
         CalculateEmbeddedLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+        AddPotentialGradientStabilizationTerm(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+    }
     else
         BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
@@ -86,7 +88,6 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
 
     potential = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(*this);
 
-
     ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(distances);
     Matrix positive_side_sh_func;
     ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
@@ -102,8 +103,19 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
     BoundedMatrix<double,NumNodes,Dim> DN_DX;
     for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
         DN_DX=positive_side_sh_func_gradients(i_gauss);
-        noalias(rLeftHandSideMatrix) += free_stream_density*prod(DN_DX,trans(DN_DX))*positive_side_weights(i_gauss);;
+        noalias(rLeftHandSideMatrix) += free_stream_density*prod(DN_DX,trans(DN_DX))*positive_side_weights(i_gauss);
     }
+
+    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, potential);
+}
+
+template <int Dim, int NumNodes>
+void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGradientStabilizationTerm(
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    array_1d<double, NumNodes> potential;
+
+    potential = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(*this);
 
     std::vector<array_1d<double, Dim>> xi_vector(NumNodes);
     for(std::size_t i_node=0; i_node<NumNodes; ++i_node) {
@@ -169,12 +181,16 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
     GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
 
 
-    auto penalty_term_xi = data.vol*prod(DN_DX, averaged_xi);
-    auto penalty_term_potential = data.vol*prod(DN_DX,trans(DN_DX));
-    const auto penalty = rCurrentProcessInfo[INITIAL_PENALTY];
+    auto penalty_term_xi = data.vol*prod(data.DN_DX, averaged_xi);
+    auto penalty_term_potential = data.vol*prod(data.DN_DX,trans(data.DN_DX));
+    auto penalty = rCurrentProcessInfo[INITIAL_PENALTY];
+    for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
+        if (this->GetGeometry()[i_node].GetValue(TRAILING_EDGE))
+            penalty = 0.0;
+    }
 
     noalias(rLeftHandSideMatrix) +=  penalty*penalty_term_potential;
-    noalias(rRightHandSideVector) = penalty*penalty_term_xi-prod(rLeftHandSideMatrix, potential);
+    noalias(rRightHandSideVector) += penalty*(penalty_term_xi-prod(penalty_term_potential, potential));
 
 }
 
@@ -228,7 +244,7 @@ std::string EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Info() co
 template <int Dim, int NumNodes>
 void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "EmbeddedIncompressiblePotentialFlowEle ment #" << this->Id();
+    rOStream << "EmbeddedIncompressiblePotentialFlowElement #" << this->Id();
 }
 
 template <int Dim, int NumNodes>
