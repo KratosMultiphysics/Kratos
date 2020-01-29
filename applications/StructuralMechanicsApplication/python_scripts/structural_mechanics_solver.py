@@ -45,6 +45,9 @@ class MechanicalSolver(PythonSolver):
     def __init__(self, model, custom_settings):
         settings_have_smps_for_comp_mp = custom_settings.Has("problem_domain_sub_model_part_list") or custom_settings.Has("processes_sub_model_part_list")
 
+        if settings_have_smps_for_comp_mp:
+            kratos_utils.IssueDeprecationWarning('MechanicalSolver', 'Using "problem_domain_sub_model_part_list" and "processes_sub_model_part_list" is deprecated, please remove it from your "solver_settings"')
+
         self._validate_settings_in_baseclass=True # To be removed eventually
         super(MechanicalSolver, self).__init__(model, custom_settings)
 
@@ -144,7 +147,7 @@ class MechanicalSolver(PythonSolver):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
-        if self.settings["volumetric_strain_dofs"]:
+        if self.settings["volumetric_strain_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN)
@@ -238,7 +241,17 @@ class MechanicalSolver(PythonSolver):
         return new_time
 
     def ComputeDeltaTime(self):
-        return self.settings["time_stepping"]["time_step"].GetDouble()
+        if self.settings["time_stepping"].Has("time_step"):
+            return self.settings["time_stepping"]["time_step"].GetDouble()
+        elif self.settings["time_stepping"].Has("time_step_table"):
+            current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            time_step_table = self.settings["time_stepping"]["time_step_table"].GetMatrix()
+            tb = KratosMultiphysics.PiecewiseLinearTable()
+            for interval in range(time_step_table.Size1()):
+                tb.AddRow(time_step_table[interval, 0], time_step_table[interval, 1])
+            return tb.GetValue(current_time)
+        else:
+            raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
 
     def GetComputingModelPart(self):
         if self.use_computing_model_part:

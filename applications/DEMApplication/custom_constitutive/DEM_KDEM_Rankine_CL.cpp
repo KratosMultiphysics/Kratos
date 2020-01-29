@@ -126,6 +126,11 @@ namespace Kratos {
 
             double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
             const double equiv_tg_of_fri_ang = 0.5 * (element1->GetTgOfFrictionAngle() + element2->GetTgOfFrictionAngle());
+
+            if(equiv_tg_of_fri_ang < 0.0) {
+                KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
+            }
+
             double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
 
             if (Frictional_ShearForceMax < 0.0) {

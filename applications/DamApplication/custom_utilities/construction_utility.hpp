@@ -516,12 +516,12 @@ class ConstructionUtility
                         {
                             for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
                             {
-                                const unsigned int number_of_points = (*it_thermal).GetGeometry().Edges()[i_edge].PointsNumber();
+                                const unsigned int number_of_points = (*it_thermal).GetGeometry().GenerateEdges()[i_edge].PointsNumber();
                                 bool active_edge = true;
 
                                 for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                                 {
-                                    if ((*it_thermal).GetGeometry().Edges()[i_edge][i_node].IsNot(ACTIVE))
+                                    if ((*it_thermal).GetGeometry().GenerateEdges()[i_edge][i_node].IsNot(ACTIVE))
                                     {
                                         active_edge = false;
                                         break;
@@ -531,7 +531,7 @@ class ConstructionUtility
                                 {
                                     for (unsigned int m = 0; m < number_of_points; ++m)
                                     {
-                                        ConditionNodeIds[m] = (*it_thermal).GetGeometry().Edges()[i_edge][m].Id();
+                                        ConditionNodeIds[m] = (*it_thermal).GetGeometry().GenerateEdges()[i_edge][m].Id();
                                     }
                                     this->DeactiveFaceHeatFluxStep(ConditionNodeIds);
 
@@ -557,12 +557,12 @@ class ConstructionUtility
                         {
                             for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
                             {
-                                const unsigned int number_of_points = (*it_thermal).GetGeometry().Faces()[i_face].PointsNumber();
+                                const unsigned int number_of_points = (*it_thermal).GetGeometry().GenerateFaces()[i_face].PointsNumber();
                                 bool active_face = true;
 
                                 for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                                 {
-                                    if ((*it_thermal).GetGeometry().Faces()[i_face][i_node].IsNot(ACTIVE))
+                                    if ((*it_thermal).GetGeometry().GenerateFaces()[i_face][i_node].IsNot(ACTIVE))
                                     {
                                         active_face = false;
                                         break;
@@ -572,7 +572,7 @@ class ConstructionUtility
                                 {
                                     for (unsigned int m = 0; m < number_of_points; ++m)
                                     {
-                                        ConditionNodeIds[m] = (*it_thermal).GetGeometry().Faces()[i_face][m].Id();
+                                        ConditionNodeIds[m] = (*it_thermal).GetGeometry().GenerateFaces()[i_face][m].Id();
                                     }
                                     this->DeactiveFaceHeatFluxStep(ConditionNodeIds);
 
@@ -630,12 +630,12 @@ class ConstructionUtility
                         {
                             for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
                             {
-                                const unsigned int number_of_points = (*it_thermal).GetGeometry().Edges()[i_edge].PointsNumber();
+                                const unsigned int number_of_points = (*it_thermal).GetGeometry().GenerateEdges()[i_edge].PointsNumber();
                                 bool active_edge = true;
 
                                 for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                                 {
-                                    if ((*it_thermal).GetGeometry().Edges()[i_edge][i_node].IsNot(ACTIVE))
+                                    if ((*it_thermal).GetGeometry().GenerateEdges()[i_edge][i_node].IsNot(ACTIVE))
                                     {
                                         active_edge = false;
                                         break;
@@ -645,7 +645,7 @@ class ConstructionUtility
                                 {
                                     for (unsigned int m = 0; m < number_of_points; ++m)
                                     {
-                                        ConditionNodeIds[m] = (*it_thermal).GetGeometry().Edges()[i_edge][m].Id();
+                                        ConditionNodeIds[m] = (*it_thermal).GetGeometry().GenerateEdges()[i_edge][m].Id();
                                     }
                                     this->ActiveFaceHeatFluxStep(ConditionNodeIds);
 
@@ -672,12 +672,12 @@ class ConstructionUtility
                         {
                             for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
                             {
-                                const unsigned int number_of_points = (*it_thermal).GetGeometry().Faces()[i_face].PointsNumber();
+                                const unsigned int number_of_points = (*it_thermal).GetGeometry().GenerateFaces()[i_face].PointsNumber();
                                 bool active_face = true;
 
                                 for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                                 {
-                                    if ((*it_thermal).GetGeometry().Faces()[i_face][i_node].IsNot(ACTIVE))
+                                    if ((*it_thermal).GetGeometry().GenerateFaces()[i_face][i_node].IsNot(ACTIVE))
                                     {
                                         active_face = false;
                                         break;
@@ -687,7 +687,7 @@ class ConstructionUtility
                                 {
                                     for (unsigned int m = 0; m < number_of_points; ++m)
                                     {
-                                        ConditionNodeIds[m] = (*it_thermal).GetGeometry().Faces()[i_face][m].Id();
+                                        ConditionNodeIds[m] = (*it_thermal).GetGeometry().GenerateFaces()[i_face][m].Id();
                                     }
                                     this->ActiveFaceHeatFluxStep(ConditionNodeIds);
 

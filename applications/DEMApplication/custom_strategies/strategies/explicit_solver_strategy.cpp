@@ -949,9 +949,9 @@ namespace Kratos {
                 p_wall->CalculateElasticForces(rhs_cond_elas, r_process_info);
                 array_1d<double, 3> Normal_to_Element = ZeroVector(3);
 
-                if (geom.size()>2) p_wall->CalculateNormal(Normal_to_Element);
-
                 const unsigned int& dim = geom.WorkingSpaceDimension();
+
+                if (geom.size()>2 || dim==2) p_wall->CalculateNormal(Normal_to_Element);
 
                 for (unsigned int i = 0; i < geom.size(); i++) { //talking about each of the three nodes of the condition
                     //we are studying a certain condition here
@@ -1409,6 +1409,7 @@ namespace Kratos {
                 Element* p_neighbour_element = (*neighbour_it).get();
                 SphericParticle* p_spheric_neighbour_particle = dynamic_cast<SphericParticle*> (p_neighbour_element);
                 if (mListOfSphericParticles[i]->Is(DEMFlags::BELONGS_TO_A_CLUSTER) && (mListOfSphericParticles[i]->GetClusterId() == p_spheric_neighbour_particle->GetClusterId())) continue;
+                if (mListOfSphericParticles[i]->Is(DEMFlags::POLYHEDRON_SKIN)) continue;
                 mListOfSphericParticles[i]->mNeighbourElements.push_back(p_spheric_neighbour_particle);
             }
             this->GetResults()[i].clear();
@@ -1648,6 +1649,23 @@ namespace Kratos {
                 for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[i].begin(); neighbour_it != this->GetRigidFaceResults()[i].end(); ++neighbour_it) {
                     Condition* p_neighbour_condition = (*neighbour_it).get();
                     DEMWall* p_wall = dynamic_cast<DEMWall*> (p_neighbour_condition);
+                    if (mListOfSphericParticles[i]->Is(DEMFlags::POLYHEDRON_SKIN)) {
+                        bool must_skip_this_one = false;
+                        auto& geom = p_wall->GetGeometry();
+                        const unsigned int number_of_nodes = geom.size();
+                        const array_1d<double, 3>& sphere_center = mListOfSphericParticles[i]->GetGeometry()[0];
+                        const double epsilon = std::numeric_limits<double>::epsilon();
+                        for(unsigned int k = 0; k < number_of_nodes; k++) {
+                            const double distance_x = std::abs(geom[k][0] - sphere_center[0]);
+                            const double distance_y = std::abs(geom[k][1] - sphere_center[1]);
+                            const double distance_z = std::abs(geom[k][2] - sphere_center[2]);
+                            if(distance_x < epsilon && distance_y < epsilon && distance_z < epsilon) {
+                                must_skip_this_one= true;
+                                break;
+                            }
+                        }
+                        if (must_skip_this_one) continue;
+                    }
                     mListOfSphericParticles[i]->mNeighbourPotentialRigidFaces.push_back(p_wall);
                 }//for results iterator
                 this->GetRigidFaceResults()[i].clear();
