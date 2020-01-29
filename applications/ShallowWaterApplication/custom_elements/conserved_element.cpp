@@ -306,10 +306,10 @@ void ConservedElement<TNumNodes>::ComputeStabilizationParameters(
     rTauH = CTau * elem_size / (c + rVariables.epsilon);
 
     // Discontinuity capturing
-    const double mom_div_norm = std::abs(rVariables.momentum_div);
-    const double surface_grad_norm = norm_2(rVariables.height_grad);
-    rTauQ += 0.5 * 0.1 * elem_size * mom_div_norm;
-    rTauH += 0.5 * 0.1 * elem_size * surface_grad_norm;
+    // const double mom_div_norm = std::abs(rVariables.momentum_div);
+    // const double surface_grad_norm = norm_2(rVariables.height_grad);
+    // rTauQ += 0.5 * 0.1 * elem_size * mom_div_norm;
+    // rTauH += 0.5 * 0.1 * elem_size * surface_grad_norm;
 }
 
 
