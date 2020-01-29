@@ -109,7 +109,7 @@ public:
 	const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 	const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 	const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-
+	unsigned int sliversDetected = 0;
 	// const unsigned int dimension = (itElem)->GetGeometry().WorkingSpaceDimension();
 	ModelPart::ElementIterator ElemBegin;
 	ModelPart::ElementIterator ElemEnd;
@@ -128,7 +128,7 @@ public:
 		unsigned int numNodes = itElem->GetGeometry().size();
 
 		// ELIMINATION CHECK FOR SLIVERS
-		if (mUnactiveSliverElements == true)
+		if (mUnactiveSliverElements == true && numNodes == (dimension + 1))
 		{
 			double ElementalVolume = 0;
 			if (dimension == 2)
@@ -145,13 +145,18 @@ public:
 			{
 				ElementalVolume = 0;
 			}
-			double CriticalVolume = 0.01 * ModelPartVolume / double(mrModelPart.Elements().size());
+			double CriticalVolume = 0.005 * ModelPartVolume / double(mrModelPart.Elements().size());
 			// if(ElementalVolume<CriticalVolume && ElementalVolume>0){
-			if (ElementalVolume < CriticalVolume)
+			if (fabs(ElementalVolume) < CriticalVolume)
 			{
 				sliverEliminationCriteria = true;
-				std::cout << "RESET ACTIVE FOR THIS SLIVER! \t";
-				std::cout << "its volume is " << ElementalVolume << " vs CriticalVolume " << CriticalVolume << std::endl;
+				sliversDetected++;
+				// std::cout << "RESET ACTIVE FOR THIS SLIVER! \t";
+				// std::cout << "its volume is " << ElementalVolume << " vs CriticalVolume " << CriticalVolume <<"number of elements= "<<mrModelPart.Elements().size()<<std::endl;
+				// for (unsigned int i = 0; i < numNodes; i++)
+				// {
+				// 	itElem->GetGeometry()[i].Set(ACTIVE,true);
+				// }
 			}
 		}
 
@@ -282,6 +287,10 @@ public:
 			(itElem)->Set(ACTIVE, true);
 		}
 	}
+	//if (sliversDetected > 0)
+	//{
+	//	std::cout << "I have set ACTIVE=false to " << sliversDetected << " slivers." << std::endl;
+	//}
 
 }
 
