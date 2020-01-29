@@ -55,16 +55,13 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSy
     const EmbeddedIncompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
     const int kutta = r_this.GetValue(KUTTA);
-    bool is_trailing_edge = false;
 
     BoundedVector<double,NumNodes> distances;
     for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
         distances[i_node] = this->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
-        if (this->GetGeometry()[i_node].GetValue(TRAILING_EDGE)) {
-            is_trailing_edge = true;
-        }
     }
     const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(distances);
+    const bool is_trailing_edge = PotentialFlowUtilities::CheckIfElementIsTrailingEdge(*this);
 
     if (is_embedded && wake == 0 && kutta == 0) {
         CalculateEmbeddedLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
@@ -121,7 +118,6 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGrad
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     array_1d<double, NumNodes> potential;
-
     potential = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(*this);
 
     std::vector<array_1d<double, Dim>> nodal_gradient_vector(NumNodes);
@@ -195,7 +191,6 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGrad
 
     noalias(rLeftHandSideMatrix) +=  penalty_coefficient*penalty_term_potential;
     noalias(rRightHandSideVector) += penalty_coefficient*(penalty_term_nodal_gradient-prod(penalty_term_potential, potential));
-
 }
 
 template <>

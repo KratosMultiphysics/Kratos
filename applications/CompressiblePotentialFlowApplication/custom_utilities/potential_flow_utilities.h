@@ -73,6 +73,8 @@ double ComputeCompressiblePressureCoefficient(const Element& rElement, const Pro
 template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);
 
+bool CheckIfElementIsTrailingEdge(const Element& rElement);
+
 template <int Dim>
 void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel);
 
