@@ -23,16 +23,16 @@ class CoupledDrillingBeamAlgorithm(dem_fem_coupling_algorithm.Algorithm):
     def Initialize(self):
         self.structural_solution.Initialize()    # Reading mdpa
         self.structural_main_model_part = self.structural_solution._GetSolver().main_model_part
-        
+
         self.dem_solution.Initialize()    # Adding DEM variables and reading
 
         self._DetectStructuresSkin()
         self._TransferStructuresSkinToDem()
-        self.dem_solution.solver.Initialize()
+        self.dem_solution._GetSolver().Initialize()
 
         self.sandwich_simulation = False
 
-        self.beam_solids_utility = DBA.BeamSolidsUtility(self.structural_main_model_part)       
+        self.beam_solids_utility = DBA.BeamSolidsUtility(self.structural_main_model_part)
 
         mixed_mp = self.model.CreateModelPart('MixedPart')
         filename = os.path.join(self.dem_solution.post_path, self.dem_solution.DEM_parameters["problem_name"].GetString())
@@ -88,7 +88,7 @@ class CoupledDrillingBeamAlgorithm(dem_fem_coupling_algorithm.Algorithm):
             self.structural_solution._GetSolver().Predict()
             self.structural_solution._GetSolver().SolveSolutionStep()
             self.structural_solution.FinalizeSolutionStep()
-            
+
             self.structural_solution.OutputSolutionStep()
 
             time_final_DEM_substepping = self.structural_solution.time
@@ -100,41 +100,18 @@ class CoupledDrillingBeamAlgorithm(dem_fem_coupling_algorithm.Algorithm):
             DemFem.ComputeDEMFaceLoadUtility().ClearDEMFaceLoads(self.skin_mp)
 
             for self.dem_solution.time_dem in self.yield_DEM_time(self.dem_solution.time, time_final_DEM_substepping, self.Dt_DEM):
-                self.dem_solution.InitializeTimeStep()
-                self.dem_solution.time = self.dem_solution.time + self.dem_solution.solver.dt
+                self.dem_solution.InitializeSolutionStep()
+                self.dem_solution.time = self.dem_solution.time + self.dem_solution._GetSolver().dt
 
                 self.dem_solution.step += 1
 
-                self.dem_solution.DEMFEMProcedures.UpdateTimeInModelParts(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution.solver.dt, self.dem_solution.step)
+                self.dem_solution.DEMFEMProcedures.UpdateTimeInModelParts(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution._GetSolver().dt, self.dem_solution.step)
 
-                self.dem_solution._BeforeSolveOperations(self.dem_solution.time)
-
-                DemFem.InterpolateStructuralSolutionForDEM().InterpolateStructuralSolution(self.structural_mp, self.Dt_structural, self.structural_solution.time, self.dem_solution.solver.dt, self.dem_solution.time)
+                DemFem.InterpolateStructuralSolutionForDEM().InterpolateStructuralSolution(self.structural_mp, self.Dt_structural, self.structural_solution.time, self.dem_solution._GetSolver().dt, self.dem_solution.time)
 
                 self.dem_solution.SolverSolve()
 
-                center = Kratos.Array3()
-                center[0] = 0.0
-                center[1] = 0.0
-                center[2] = 0.0
-                axis = Kratos.Array3()
-                axis[0] = 0.0
-                axis[1] = 0.0
-                axis[2] = 1.0
-
-                specimen_radius_small = 0.0036195; #95% of the real hole. This is for the CTW16 specimen (smaller inner radius)
-                specimen_radius_large = 0.012065; #95% of the real hole. This is for the CTW10 specimen (larger inner radius)
-                blind_radius = 0.036195; #95% of the real hole
-                radius = specimen_radius_small
-
-                self.dem_solution.creator_destructor.MarkParticlesForErasingGivenCylinder(self.dem_solution.spheres_model_part, center, axis, radius)
-
-                self.dem_solution.AfterSolveOperations()
-
-                DemFem.ComputeDEMFaceLoadUtility().CalculateDEMFaceLoads(self.skin_mp, self.dem_solution.solver.dt, self.Dt_structural)
-
-                self.dem_solution.DEMFEMProcedures.MoveAllMeshes(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution.solver.dt)
-                #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
+                DemFem.ComputeDEMFaceLoadUtility().CalculateDEMFaceLoads(self.skin_mp, self.dem_solution._GetSolver().dt, self.Dt_structural)
 
                 ##### adding DEM elements by the inlet ######
                 if self.dem_solution.DEM_parameters["dem_inlet_option"].GetBool():
@@ -157,18 +134,17 @@ class CoupledDrillingBeamAlgorithm(dem_fem_coupling_algorithm.Algorithm):
                 self.dem_solution.DEMEnergyCalculator.CalculateEnergyAndPlot(self.dem_solution.time)
 
                 self.dem_solution.BeforePrintingOperations(self.dem_solution.time)
-                
 
                 #### GiD IO ##########################################
                 if self.dem_solution.IsTimeToPrintPostProcess():
-                    self.dem_solution.solver.PrepareElementsForPrinting()
+                    self.dem_solution._GetSolver().PrepareElementsForPrinting()
                     if self.dem_solution.DEM_parameters["ContactMeshOption"].GetBool():
-                        self.dem_solution.solver.PrepareContactElementsForPrinting()
+                        self.dem_solution._GetSolver().PrepareContactElementsForPrinting()
                     self.dem_solution.PrintResultsForGid(self.dem_solution.time)
                     self.dem_solution.demio.PrintMultifileLists(self.dem_solution.time, self.dem_solution.post_path)
                     self.dem_solution.time_old_print = self.dem_solution.time
 
-                self.dem_solution.FinalizeTimeStep(self.dem_solution.time)
+                self.dem_solution.FinalizeSolutionStep()
 
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
 
