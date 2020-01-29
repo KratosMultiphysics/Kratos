@@ -71,7 +71,6 @@ class IdMapInterface
         .def("__setitem__", [](TContainerType& self, unsigned int i, typename TContainerType::value_type& value){self[i] = value;} )
         .def("__getitem__", [](TContainerType& self, unsigned int i){return self(i);} )
         .def("__iter__",    [](TContainerType& self){return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
-//         .def("append",    [](TContainerType& self, typename TContainerType::value_type& value){(self.GetContainer()).insert(std::pair<std::size_t, typename TContainerType::value_type>(value.Id(), value));}  )
         .def("clear",        [](TContainerType& self){self.clear();} )
         ;
     }
