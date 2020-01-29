@@ -43,11 +43,11 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
 
     @classmethod
     def CheckRestitution(self, reference, restitution_coefficient, tolerance):
-        if not (reference < abs(restitution_coefficient*tolerance) and reference > abs(restitution_coefficient/tolerance)):
+        if not (reference < restitution_coefficient*tolerance and reference > restitution_coefficient/tolerance):
             raise ValueError('Incorrect value for COEFFICIENT_OF_RESTITUTION: expected value was '+ str(reference) + ' but received ' + str(restitution_coefficient))
 
     def Finalize(self):
-        tolerance = 1.0001
+        tolerance = 1.0+1.0e-4
         for node in self.spheres_model_part.Nodes:
             final_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
             Logger.PrintInfo("initial velocity:",self.initial_normal_vel)
