@@ -56,7 +56,8 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             if settings["value"].IsString():
                 default_settings["value"].SetString("0.0")
 
-        settings.ValidateAndAssignDefaults(default_settings)
+        #settings.ValidateAndAssignDefaults(default_settings)
+        settings.AddMissingParameters(default_settings)
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
         if not isinstance(self.variable, KratosMultiphysics.Array1DComponentVariable) and not isinstance(self.variable, KratosMultiphysics.DoubleVariable) and not isinstance(self.variable, KratosMultiphysics.VectorVariable):
@@ -71,12 +72,13 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             self.value_type = "Number"
             self.value = settings["value"].GetDouble()
         elif settings["value"].IsSubParameter():
-            self.value_tag = settings["value"]["type"]
-            if value_tag == "REST"
-                self.value_type = "Sensor"
-                self.endpoint = settings["value"].GetString()
+            self.value_type = "Sensor"
+            self.value_tag = settings["value"]["type"].GetString()
+            if self.value_tag == "REST":
+                self.endpoint = settings["value"]["endpoint"].GetString()
             else:
                 print("Error: unrecognized tag")
+                abort()
         else:
             self.value_type = "Function"
 
@@ -122,8 +124,8 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
                 else: #most general case - space varying function (possibly also time varying)
                     self.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
             elif self.value_type == "Sensor":
-                response = requests.post(self.endpoint, data="")
-                self.value = response.text
+                response = requests.get(self.endpoint)
+                self.value = float(response.text)
                 self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
             else:
                 print("Error: Unrecognized value")
