@@ -62,11 +62,6 @@ RansWallDistanceCalculationProcess<TSparseSpace, TDenseSpace, TLinearSolver>::Ra
 }
 
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
-RansWallDistanceCalculationProcess<TSparseSpace, TDenseSpace, TLinearSolver>::~RansWallDistanceCalculationProcess()
-{
-}
-
-template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 int RansWallDistanceCalculationProcess<TSparseSpace, TDenseSpace, TLinearSolver>::Check()
 {
     KRATOS_TRY

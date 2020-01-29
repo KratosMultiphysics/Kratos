@@ -107,10 +107,6 @@ RansApplyExactNodalPeriodicConditionProcess::RansApplyExactNodalPeriodicConditio
     KRATOS_CATCH("");
 }
 
-RansApplyExactNodalPeriodicConditionProcess::~RansApplyExactNodalPeriodicConditionProcess()
-{
-}
-
 int RansApplyExactNodalPeriodicConditionProcess::Check()
 {
     KRATOS_TRY
