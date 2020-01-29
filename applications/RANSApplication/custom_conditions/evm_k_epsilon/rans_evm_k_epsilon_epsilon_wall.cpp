@@ -30,44 +30,6 @@
 namespace Kratos
 {
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>::RansEvmKEpsilonEpsilonWall(IndexType NewId)
-    : Condition(NewId)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>::RansEvmKEpsilonEpsilonWall(IndexType NewId,
-                                                                        const NodesArrayType& ThisNodes)
-    : Condition(NewId, ThisNodes)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>::RansEvmKEpsilonEpsilonWall(IndexType NewId,
-                                                                        GeometryType::Pointer pGeometry)
-    : Condition(NewId, pGeometry)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>::RansEvmKEpsilonEpsilonWall(
-    IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Condition(NewId, pGeometry, pProperties)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>::RansEvmKEpsilonEpsilonWall(RansEvmKEpsilonEpsilonWall const& rOther)
-    : Condition(rOther)
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>::~RansEvmKEpsilonEpsilonWall()
-{
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>& RansEvmKEpsilonEpsilonWall<TDim, TNumNodes>::operator=(
     RansEvmKEpsilonEpsilonWall<TDim, TNumNodes> const& rOther)
 {
