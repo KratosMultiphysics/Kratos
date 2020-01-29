@@ -34,7 +34,7 @@
 #include "custom_solvers/eigen_pardiso_ldlt_solver.h"
 #endif
 
-#include "factories/standard_linear_solver_factory.h"
+// #include "factories/standard_linear_solver_factory.h"
 #include "eigen_solvers_application.h"
 
 namespace Kratos {
@@ -99,7 +99,7 @@ void register_base_dense_solver(pybind11::module& m)
     typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
     typedef LinearSolver<LocalSpaceType,  LocalSpaceType> DenseLinearSolverType;
     typedef LinearSolver<ComplexLocalSpaceType, ComplexLocalSpaceType> ComplexDenseLinearSolverType;
-    
+
     bool (DenseLinearSolverType::*pointer_to_solve_dense)(DenseLinearSolverType::SparseMatrixType& rA, DenseLinearSolverType::VectorType& rX, DenseLinearSolverType::VectorType& rB) = &DenseLinearSolverType::Solve;
     bool (ComplexDenseLinearSolverType::*pointer_to_complex_solve_dense)(ComplexDenseLinearSolverType::SparseMatrixType& rA, ComplexDenseLinearSolverType::VectorType& rX, ComplexDenseLinearSolverType::VectorType& rB) = &ComplexDenseLinearSolverType::Solve;
 
@@ -193,97 +193,97 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
 {
     using complex = std::complex<double>;
 
-    // Sparse LU Solver
+    // // // Sparse LU Solver
 
-    using SparseLUType = EigenDirectSolver<EigenSparseLUSolver<double>>;
+    // // using SparseLUType = EigenDirectSolver<EigenSparseLUSolver<double>>;
 
-    static auto SparseLUFactory = SparseLUType::Factory();
+    // // static auto SparseLUFactory = SparseLUType::Factory();
 
-    KRATOS_REGISTER_LINEAR_SOLVER("sparse_lu", SparseLUFactory);
-
-
-    // Complex Sparse LU Solver
-
-    using ComplexSparseLUType = EigenDirectSolver<EigenSparseLUSolver<complex>>;
-
-    static auto ComplexSparseLUFactory = ComplexSparseLUType::Factory();
-
-    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("sparse_lu_complex", ComplexSparseLUFactory);
+    // // KRATOS_REGISTER_LINEAR_SOLVER("sparse_lu", SparseLUFactory);
 
 
-    // Sparse QR Solver
+    // // Complex Sparse LU Solver
 
-    using SparseQRType = EigenDirectSolver<EigenSparseQRSolver<double>>;
+    // using ComplexSparseLUType = EigenDirectSolver<EigenSparseLUSolver<complex>>;
 
-    static auto SparseQRFactory = SparseQRType::Factory();
+    // static auto ComplexSparseLUFactory = ComplexSparseLUType::Factory();
 
-    KRATOS_REGISTER_LINEAR_SOLVER("sparse_qr", SparseQRFactory);
-
-
-    // Sparse CG Solver
-
-    using SparseCGType = EigenDirectSolver<EigenSparseCGSolver<double>>;
-
-    static auto SparseCGFactory = SparseCGType::Factory();
-
-    KRATOS_REGISTER_LINEAR_SOLVER("sparse_cg", SparseCGFactory);
+    // KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("sparse_lu_complex", ComplexSparseLUFactory);
 
 
-    #if defined USE_EIGEN_MKL
+    // // Sparse QR Solver
 
-    // Pardiso LU Solver
+    // using SparseQRType = EigenDirectSolver<EigenSparseQRSolver<double>>;
 
-    using PardisoLUType = EigenDirectSolver<EigenPardisoLUSolver<double>>;
+    // static auto SparseQRFactory = SparseQRType::Factory();
 
-    static auto PardisoLUFactory = PardisoLUType::Factory();
-
-    KRATOS_REGISTER_LINEAR_SOLVER("pardiso_lu", PardisoLUFactory);
+    // KRATOS_REGISTER_LINEAR_SOLVER("sparse_qr", SparseQRFactory);
 
 
-    // Pardiso LDLT Solver
+    // // Sparse CG Solver
 
-    using PardisoLDLTType = EigenDirectSolver<EigenPardisoLDLTSolver<double>>;
+    // using SparseCGType = EigenDirectSolver<EigenSparseCGSolver<double>>;
 
-    static auto PardisoLDLTFactory = PardisoLDLTType::Factory();
+    // static auto SparseCGFactory = SparseCGType::Factory();
 
-    KRATOS_REGISTER_LINEAR_SOLVER("pardiso_ldlt", PardisoLDLTFactory);
-
-
-    // Pardiso LLT Solver
-
-    using PardisoLLTType = EigenDirectSolver<EigenPardisoLLTSolver<double>>;
-
-    static auto PardisoLLTFactory = PardisoLLTType::Factory();
-
-    KRATOS_REGISTER_LINEAR_SOLVER("pardiso_llt", PardisoLLTFactory);
-
-    // Complex Pardiso LU Solver
-
-    using ComplexPardisoLUType = EigenDirectSolver<EigenPardisoLUSolver<complex>>;
-
-    static auto ComplexPardisoLUFactory = ComplexPardisoLUType::Factory();
-
-    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_lu_complex", ComplexPardisoLUFactory);
+    // KRATOS_REGISTER_LINEAR_SOLVER("sparse_cg", SparseCGFactory);
 
 
-    // Complex Pardiso LDLT Solver
+    // #if defined USE_EIGEN_MKL
 
-    using ComplexPardisoLDLTType = EigenDirectSolver<EigenPardisoLDLTSolver<complex>>;
+    // // Pardiso LU Solver
 
-    static auto ComplexPardisoLDLTFactory = ComplexPardisoLDLTType::Factory();
+    // using PardisoLUType = EigenDirectSolver<EigenPardisoLUSolver<double>>;
 
-    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_ldlt_complex", ComplexPardisoLDLTFactory);
+    // static auto PardisoLUFactory = PardisoLUType::Factory();
+
+    // KRATOS_REGISTER_LINEAR_SOLVER("pardiso_lu", PardisoLUFactory);
 
 
-    // Complex Pardiso LLT Solver
+    // // Pardiso LDLT Solver
 
-    using ComplexPardisoLLTType = EigenDirectSolver<EigenPardisoLLTSolver<complex>>;
+    // using PardisoLDLTType = EigenDirectSolver<EigenPardisoLDLTSolver<double>>;
 
-    static auto ComplexPardisoLLTFactory = ComplexPardisoLLTType::Factory();
+    // static auto PardisoLDLTFactory = PardisoLDLTType::Factory();
 
-    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_llt_complex", ComplexPardisoLLTFactory);
+    // KRATOS_REGISTER_LINEAR_SOLVER("pardiso_ldlt", PardisoLDLTFactory);
 
-    #endif // defined USE_EIGEN_MKL
+
+    // // Pardiso LLT Solver
+
+    // using PardisoLLTType = EigenDirectSolver<EigenPardisoLLTSolver<double>>;
+
+    // static auto PardisoLLTFactory = PardisoLLTType::Factory();
+
+    // KRATOS_REGISTER_LINEAR_SOLVER("pardiso_llt", PardisoLLTFactory);
+
+    // // Complex Pardiso LU Solver
+
+    // using ComplexPardisoLUType = EigenDirectSolver<EigenPardisoLUSolver<complex>>;
+
+    // static auto ComplexPardisoLUFactory = ComplexPardisoLUType::Factory();
+
+    // KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_lu_complex", ComplexPardisoLUFactory);
+
+
+    // // Complex Pardiso LDLT Solver
+
+    // using ComplexPardisoLDLTType = EigenDirectSolver<EigenPardisoLDLTSolver<complex>>;
+
+    // static auto ComplexPardisoLDLTFactory = ComplexPardisoLDLTType::Factory();
+
+    // KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_ldlt_complex", ComplexPardisoLDLTFactory);
+
+
+    // // Complex Pardiso LLT Solver
+
+    // using ComplexPardisoLLTType = EigenDirectSolver<EigenPardisoLLTSolver<complex>>;
+
+    // static auto ComplexPardisoLLTFactory = ComplexPardisoLLTType::Factory();
+
+    // KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_llt_complex", ComplexPardisoLLTFactory);
+
+    // #endif // defined USE_EIGEN_MKL
 
 
     // Dense ColPivHouseholderQR solver
