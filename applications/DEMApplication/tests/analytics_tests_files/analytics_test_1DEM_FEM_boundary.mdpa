@@ -19,9 +19,9 @@ Begin Nodes
 11 -2 -1 -0.5
 12  2 1  -0.5
 13  2 -1 -0.5
-14 -3 1 1
-15 -3 -1 1
-16 -3 0 -1
+14 -0.35 1 1
+15 -0.35 -1 1
+16 -0.35 0 -1
 End Nodes
 
 Begin Conditions RigidFace3D3N

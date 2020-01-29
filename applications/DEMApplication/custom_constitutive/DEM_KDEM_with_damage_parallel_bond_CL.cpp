@@ -188,7 +188,7 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        const double tension_limit = 0.5 * 1e6 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2));
+        const double tension_limit = 0.5 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2));
         const double fracture_energy = 0.5 * (element1->GetProperties()[FRACTURE_ENERGY] + element2->GetProperties()[FRACTURE_ENERGY]);
         mDamageEnergyCoeff = 2.0 * fracture_energy * kn_el / (calculation_area * tension_limit * tension_limit) - 1.0;
 
@@ -331,9 +331,8 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        const double mTauZero = 0.5 * 1e6 * (GetTauZero(element1) + GetTauZero(element2));
-        const double mInternalFriction = 0.5 * (GetInternalFricc(element1) + GetInternalFricc(element2));
-
+        const double tau_zero = 0.5 * (GetTauZero(element1) + GetTauZero(element2));
+        const double internal_friction = 0.5 * (GetInternalFricc(element1) + GetInternalFricc(element2));
         double k_unload = 0.0;
         double tau_strength = 0.0;
         static bool first_time_entered = true;
@@ -391,12 +390,11 @@ namespace Kratos {
             contact_sigma = LocalElasticContactForce[2] / calculation_area;
             contact_tau = current_tangential_force_module / calculation_area;
 
-            double updated_max_tau_strength = mTauZero;
-            tau_strength = (1.0 - mDamageTangential) * mTauZero;
+            double updated_max_tau_strength = tau_zero;
+            tau_strength = (1.0 - mDamageTangential) * tau_zero;
 
             if (contact_sigma >= 0) {
-                tau_strength += (1.0 - mDamageTangential) * mInternalFriction * contact_sigma;
-                updated_max_tau_strength += mInternalFriction * contact_sigma;
+                AdjustTauStrengthAndUpdatedMaxTauStrength(tau_strength, updated_max_tau_strength, internal_friction, contact_sigma, element1, element2);
             }
 
             if (contact_tau > tau_strength) { // damage
@@ -447,6 +445,10 @@ namespace Kratos {
         const double my_tg_of_friction_angle    = element1->GetTgOfFrictionAngle();
         const double wall_tg_of_friction_angle  = element2->GetProperties()[FRICTION];
         const double equiv_tg_of_fri_ang        = 0.5 * (my_tg_of_friction_angle + wall_tg_of_friction_angle);
+
+        if(equiv_tg_of_fri_ang < 0.0) {
+            KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
+        }
 
         const double max_admissible_shear_force = mUnbondedLocalElasticContactForce2 * equiv_tg_of_fri_ang;
 
@@ -534,13 +536,21 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
+    void DEM_KDEM_with_damage_parallel_bond::AdjustTauStrengthAndUpdatedMaxTauStrength(double& tau_strength, double& updated_max_tau_strength, const double internal_friction,
+                                                                                       double contact_sigma, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
+        KRATOS_TRY
+        tau_strength += (1.0 - mDamageTangential) * internal_friction * contact_sigma;
+        updated_max_tau_strength += internal_friction * contact_sigma;
+        KRATOS_CATCH("")
+    }
+
     double DEM_KDEM_with_damage_parallel_bond::LocalMaxSearchDistance(const int i,
                                             SphericContinuumParticle* element1,
                                             SphericContinuumParticle* element2) {
 
         Properties& element1_props = element1->GetProperties();
         Properties& element2_props = element2->GetProperties();
-        double mTensionLimit;
+        double tension_limit;
 
         // calculation of equivalent Young modulus
         double myYoung = element1->GetProperties()[LOOSE_MATERIAL_YOUNG_MODULUS];
@@ -562,12 +572,12 @@ namespace Kratos {
         double kn_el = equiv_young * calculation_area / initial_dist;
 
         if (&element1_props == &element2_props) {
-            mTensionLimit = 1e6 * GetContactSigmaMax(element1);
+            tension_limit = GetContactSigmaMax(element1);
         } else {
-            mTensionLimit = 0.5 * 1e6 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2));
+            tension_limit = 0.5 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2));
         }
 
-        const double Ntstr_el = mTensionLimit * calculation_area;
+        const double Ntstr_el = tension_limit * calculation_area;
         double u1 = Ntstr_el / kn_el;
         if (u1 > 2*radius_sum) {u1 = 2*radius_sum;} // avoid error in special cases with too high tensile
         return u1;

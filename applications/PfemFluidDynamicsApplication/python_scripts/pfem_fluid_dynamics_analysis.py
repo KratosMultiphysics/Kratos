@@ -11,6 +11,7 @@ import KratosMultiphysics.DelaunayMeshingApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.PfemFluidDynamicsApplication import python_solvers_wrapper_pfem_fluid as solver_wrapper
 
 class PfemFluidDynamicsAnalysis(AnalysisStage):
     """The base class for the PfemFluidDynamicsAnalysis
@@ -73,26 +74,19 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
     def _CreateSolver(self):
         """Create the solver
         """
-        python_module_name = "KratosMultiphysics.PfemFluidDynamicsApplication"
-        full_module_name = python_module_name + "." + self.project_parameters["solver_settings"]["solver_type"].GetString()
-        solver_module = import_module(full_module_name)
-        solver = solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
-        return solver
-
-    def AddNodalVariablesToModelPart(self):
-        from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_variables
-        pfem_variables.AddVariables(self.main_model_part)
+        return solver_wrapper.CreateSolverByParameters(self.model, self.project_parameters["solver_settings"],self.project_parameters["problem_data"]["parallel_type"].GetString())
 
     def Initialize(self):
         """This function initializes the AnalysisStage
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         This function has to be implemented in deriving classes!
         """
-        # Add variables (always before importing the model part)
-        self.AddNodalVariablesToModelPart()
 
-        # Read model_part (note: the buffer_size is set here) (restart is read here)
+        # Read model_part from mdpa file
         self._solver.ImportModelPart()
+
+        # Prepare model_part (note: the buffer_size is set here) (restart is read here)
+        self._solver.PrepareModelPart()
 
         # Add dofs (always after importing the model part)
         if((self.main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
@@ -111,7 +105,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         #### Processes settings start ####
 
         # obtain the list of the processes to be applied
-        from KratosMultiphysics.SolidMechanicsApplication.process_handler import ProcessHandler
+        from KratosMultiphysics.PfemFluidDynamicsApplication.process_handler import ProcessHandler
 
         process_parameters = KratosMultiphysics.Parameters("{}")
         process_parameters.AddValue("echo_level", self.project_parameters["problem_data"]["echo_level"])
@@ -342,7 +336,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
     def _import_project_parameters(self, input_file):
         """This function reads the ProjectsParameters.json
         """
-        from KratosMultiphysics.SolidMechanicsApplication.input_manager import InputManager
+        from KratosMultiphysics.PfemFluidDynamicsApplication.input_manager import InputManager
         self.input_manager = InputManager(input_file)
         return self.input_manager.Getparameters()
 

@@ -217,6 +217,7 @@ class ExplicitStrategy(object):
             self.all_model_parts.Get(name).ProcessInfo.SetValue(IS_RESTARTED, self._GetInputType() == 'rest')
 
         # SIMULATION FLAGS
+        self.spheres_model_part.ProcessInfo.SetValue(IS_TIME_TO_PRINT, False)
         self.spheres_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
         self.spheres_model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
         self.spheres_model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
@@ -232,6 +233,7 @@ class ExplicitStrategy(object):
         self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, self.compute_stress_tensor_option)
         self.spheres_model_part.ProcessInfo.SetValue(PRINT_STRESS_TENSOR_OPTION, self.print_stress_tensor_option)
         self.spheres_model_part.ProcessInfo.SetValue(CONTINUUM_OPTION, self.continuum_type)
+        self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, 0.0) # A default value
 
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, 0) #TODO: DOMAIN_IS_PERIODIC should be a bool, and should have the suffix option
         if "PeriodicDomainOption" in self.DEM_parameters.keys():

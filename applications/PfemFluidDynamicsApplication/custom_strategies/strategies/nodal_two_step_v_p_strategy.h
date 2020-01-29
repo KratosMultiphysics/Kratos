@@ -268,6 +268,9 @@ public:
 		bool continuityConverged = false;
 		bool fixedTimeStep = false;
 		/* boost::timer solve_step_time; */
+
+		this->UnactiveSliverElements();
+
 		this->InitializeSolutionStep();
 		for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
 		{
@@ -480,6 +483,51 @@ public:
 		}
 
 		// }
+	}
+
+	void UnactiveSliverElements()
+	{
+		KRATOS_TRY;
+
+		ModelPart &rModelPart = BaseType::GetModelPart();
+		const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+		MesherUtilities MesherUtils;
+		double ModelPartVolume = MesherUtils.ComputeModelPartVolume(rModelPart);
+		double CriticalVolume = 0.001 * ModelPartVolume / double(rModelPart.Elements().size());
+		double ElementalVolume = 0;
+
+#pragma omp parallel
+		{
+			ModelPart::ElementIterator ElemBegin;
+			ModelPart::ElementIterator ElemEnd;
+			OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElemBegin, ElemEnd);
+			for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+			{
+				unsigned int numNodes = itElem->GetGeometry().size();
+				if (numNodes == (dimension + 1))
+				{
+					if (dimension == 2)
+					{
+						ElementalVolume = (itElem)->GetGeometry().Area();
+					}
+					else if (dimension == 3)
+					{
+						ElementalVolume = (itElem)->GetGeometry().Volume();
+					}
+
+					if (ElementalVolume < CriticalVolume)
+					{
+						// std::cout << "sliver element: it has Volume: " << ElementalVolume << " vs CriticalVolume(meanVol/1000): " << CriticalVolume<< std::endl;
+						(itElem)->Set(ACTIVE, false);
+					}
+					else
+					{
+						(itElem)->Set(ACTIVE, true);
+					}
+				}
+			}
+		}
+		KRATOS_CATCH("");
 	}
 
 	void AssignFluidMaterialToEachNode(ModelPart::NodeIterator itNode)
@@ -1213,7 +1261,7 @@ public:
 			array_1d<double, 3> &CurrentAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
 			array_1d<double, 3> &PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
-			if ((i)->IsNot(ISOLATED) && (i)->IsNot(RIGID))
+			if ((i)->IsNot(ISOLATED) && ((i)->IsNot(RIGID) || (i)->Is(SOLID)))
 			{
 				UpdateAccelerations(CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity, BDFcoeffs);
 			}

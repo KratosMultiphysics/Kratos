@@ -56,6 +56,7 @@ inline void UpdateInterfaceWithSearchRadius(Mapper<TSparseSpace, TDenseSpace>& d
     dummy.UpdateInterface(dummy_flags, search_radius);
 }
 
+
 template<class TSparseSpace, class TDenseSpace>
 inline void MapWithoutOptionsScalar(Mapper<TSparseSpace, TDenseSpace>& dummy,
          const Variable<double>& origin_variable,
@@ -92,29 +93,43 @@ inline void InverseMapWithoutOptionsVector(Mapper<TSparseSpace, TDenseSpace>& du
     dummy.InverseMap(origin_variable, destination_variable, dummy_flags);
 }
 
-template<class TSparseSpace, class TDenseSpace>
-void (Mapper<TSparseSpace, TDenseSpace>::*pMapScalarOptions)(const Variable<double> &,
-        const Variable<double> &,
-        Kratos::Flags)
-    = &Mapper<TSparseSpace, TDenseSpace>::Map;
 
 template<class TSparseSpace, class TDenseSpace>
-void (Mapper<TSparseSpace, TDenseSpace>::*pMapVectorOptions)(const Variable< array_1d<double, 3> > &,
-        const Variable< array_1d<double, 3> > &,
-        Kratos::Flags)
-    = &Mapper<TSparseSpace, TDenseSpace>::Map;
+inline void MapWithOptionsScalar(Mapper<TSparseSpace, TDenseSpace>& dummy,
+         const Variable<double>& origin_variable,
+         const Variable<double>& destination_variable,
+         Kratos::Flags MappingOptions)
+{
+    dummy.Map(origin_variable, destination_variable, MappingOptions);
+}
 
 template<class TSparseSpace, class TDenseSpace>
-void (Mapper<TSparseSpace, TDenseSpace>::*pInverseMapScalarOptions)(const Variable<double> &,
-        const Variable<double> &,
-        Kratos::Flags)
-    = &Mapper<TSparseSpace, TDenseSpace>::InverseMap;
+inline void MapWithOptionsVector(Mapper<TSparseSpace, TDenseSpace>& dummy,
+         const Variable< array_1d<double, 3> >& origin_variable,
+         const Variable< array_1d<double, 3> >& destination_variable,
+         Kratos::Flags MappingOptions)
+{
+    dummy.Map(origin_variable, destination_variable, MappingOptions);
+}
 
 template<class TSparseSpace, class TDenseSpace>
-void (Mapper<TSparseSpace, TDenseSpace>::*pInverseMapVectorOptions)(const Variable< array_1d<double, 3> > &,
-        const Variable< array_1d<double, 3> > &,
-        Kratos::Flags)
-    = &Mapper<TSparseSpace, TDenseSpace>::InverseMap;
+inline void InverseMapWithOptionsScalar(Mapper<TSparseSpace, TDenseSpace>& dummy,
+                const Variable<double>& origin_variable,
+                const Variable<double>& destination_variable,
+                Kratos::Flags MappingOptions)
+{
+    dummy.InverseMap(origin_variable, destination_variable, MappingOptions);
+}
+
+template<class TSparseSpace, class TDenseSpace>
+inline void InverseMapWithOptionsVector(Mapper<TSparseSpace, TDenseSpace>& dummy,
+                const Variable< array_1d<double, 3> >& origin_variable,
+                const Variable< array_1d<double, 3> >& destination_variable,
+                Kratos::Flags MappingOptions)
+{
+    dummy.InverseMap(origin_variable, destination_variable, MappingOptions);
+}
+
 
 template<class TSparseSpace, class TDenseSpace>
 void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
@@ -127,25 +142,28 @@ void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
             .def("UpdateInterface",  UpdateInterfaceWithoutArgs<TSparseSpace, TDenseSpace>)
             .def("UpdateInterface",  UpdateInterfaceWithOptions<TSparseSpace, TDenseSpace>)
             .def("UpdateInterface",  UpdateInterfaceWithSearchRadius<TSparseSpace, TDenseSpace>)
+            .def("UpdateInterface",  &MapperType::UpdateInterface) // with options & search-radius
+
             .def("Map",              MapWithoutOptionsScalar<TSparseSpace, TDenseSpace>)
             .def("Map",              MapWithoutOptionsVector<TSparseSpace, TDenseSpace>)
+            .def("Map",              MapWithOptionsScalar<TSparseSpace, TDenseSpace>)
+            .def("Map",              MapWithOptionsVector<TSparseSpace, TDenseSpace>)
+
             .def("InverseMap",       InverseMapWithoutOptionsScalar<TSparseSpace, TDenseSpace>)
             .def("InverseMap",       InverseMapWithoutOptionsVector<TSparseSpace, TDenseSpace>)
-
-            .def("UpdateInterface",  &MapperType::UpdateInterface)
-            .def("Map",              pMapScalarOptions<TSparseSpace, TDenseSpace>)
-            .def("Map",              pMapVectorOptions<TSparseSpace, TDenseSpace>)
-            .def("InverseMap",       pInverseMapScalarOptions<TSparseSpace, TDenseSpace>)
-            .def("InverseMap",       pInverseMapVectorOptions<TSparseSpace, TDenseSpace>)
+            .def("InverseMap",       InverseMapWithOptionsScalar<TSparseSpace, TDenseSpace>)
+            .def("InverseMap",       InverseMapWithOptionsVector<TSparseSpace, TDenseSpace>)
 
             .def("__str__",          PrintObject<MapperType>)
             ;
 
     // Adding the flags that can be used for mapping
-    mapper.attr("SWAP_SIGN")        = MapperFlags::SWAP_SIGN;
-    mapper.attr("ADD_VALUES")       = MapperFlags::ADD_VALUES;
-    mapper.attr("REMESHED")         = MapperFlags::REMESHED;
-    mapper.attr("USE_TRANSPOSE")    = MapperFlags::USE_TRANSPOSE;
+    mapper.attr("SWAP_SIGN")           = MapperFlags::SWAP_SIGN;
+    mapper.attr("ADD_VALUES")          = MapperFlags::ADD_VALUES;
+    mapper.attr("REMESHED")            = MapperFlags::REMESHED;
+    mapper.attr("USE_TRANSPOSE")       = MapperFlags::USE_TRANSPOSE;
+    mapper.attr("TO_NON_HISTORICAL")   = MapperFlags::TO_NON_HISTORICAL;
+    mapper.attr("FROM_NON_HISTORICAL") = MapperFlags::FROM_NON_HISTORICAL;
 }
 
 void  AddCustomMappersToPython(pybind11::module& m)

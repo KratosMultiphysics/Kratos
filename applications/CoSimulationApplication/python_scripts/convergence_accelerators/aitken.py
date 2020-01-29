@@ -19,9 +19,9 @@ import numpy as np
 from copy import deepcopy
 from collections import deque
 
-def Create(settings, solver_wrapper):
+def Create(settings):
     cs_tools.SettingsTypeCheck(settings)
-    return AitkenConvergenceAccelerator(settings, solver_wrapper)
+    return AitkenConvergenceAccelerator(settings)
 
 ## Class AitkenConvergenceAccelerator.
 # This class contains the implementation of Aitken relaxation and helper functions.
@@ -30,8 +30,8 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     ## The constructor.
     # @param init_alpha Initial relaxation factor in the first time step.
     # @param init_alpha_max Maximum relaxation factor for the first iteration in each time step
-    def __init__( self, settings, solver_wrapper):
-        super(AitkenConvergenceAccelerator, self).__init__(settings, solver_wrapper)
+    def __init__( self, settings):
+        super(AitkenConvergenceAccelerator, self).__init__(settings)
         self.R = deque( maxlen = 2 )
 
         self.alpha_old = self.settings["init_alpha"].GetDouble()
