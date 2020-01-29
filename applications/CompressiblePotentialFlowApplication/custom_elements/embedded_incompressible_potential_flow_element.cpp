@@ -124,76 +124,77 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGrad
 
     potential = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(*this);
 
-    std::vector<array_1d<double, Dim>> xi_vector(NumNodes);
+    std::vector<array_1d<double, Dim>> nodal_gradient_vector(NumNodes);
     for(std::size_t i_node=0; i_node<NumNodes; ++i_node) {
-        auto& xi = xi_vector[i_node]    ;
-        xi.clear();
-        double this_area = 0.0;
+        auto& nodal_gradient = nodal_gradient_vector[i_node];
+        nodal_gradient.clear();
+        double neighbour_elements_total_area = 0.0;
         auto neighbour_elem = this->GetGeometry()[i_node].GetValue(NEIGHBOUR_ELEMENTS);
 
         for (auto r_elem : neighbour_elem){
 
-            BoundedVector<double,NumNodes> distances;
+            BoundedVector<double,NumNodes> neighbour_distances;
             for(unsigned int i = 0; i<NumNodes; i++){
-                distances[i] = r_elem.GetGeometry()[i].GetSolutionStepValue(GEOMETRY_DISTANCE);
+                neighbour_distances[i] = r_elem.GetGeometry()[i].GetSolutionStepValue(GEOMETRY_DISTANCE);
             }
-            const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(distances);
-            if(!is_embedded) {
+            const bool is_neighbour_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(neighbour_distances);
+            if(!is_neighbour_embedded) {
                 auto r_geometry = r_elem.GetGeometry();
                 const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
                 const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
                 Vector detJ0;
-                GeometryData::ShapeFunctionsGradientsType DN_DX;
+                PotentialFlowUtilities::ElementalData<NumNodes,Dim> neighbour_data;
 
-                PotentialFlowUtilities::ElementalData<NumNodes,Dim> this_data;
-                GeometryUtils::CalculateGeometryData(r_geometry, this_data.DN_DX, this_data.N, this_data.vol);
-                this_data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(r_elem);
-                r_geometry.ShapeFunctionsIntegrationPointsGradients(DN_DX, detJ0, r_integration_method);
+                GeometryUtils::CalculateGeometryData(r_geometry, neighbour_data.DN_DX, neighbour_data.N, neighbour_data.vol);
+                neighbour_data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(r_elem);
+                r_geometry.DeterminantOfJacobian(detJ0, r_integration_method);
 
-
-                const Vector elemental_gradient = prod(trans(this_data.DN_DX), this_data.potentials);
+                const Vector neighbour_elemental_gradient = prod(trans(neighbour_data.DN_DX), neighbour_data.potentials);
 
                 for (IndexType i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss){
                     const double gauss_point_volume = r_integration_points[i_gauss].Weight() * detJ0[i_gauss];
-                    IndexType this_node = -1;
+                    IndexType neighbour_node_id = -1;
                     for(std::size_t j=0; j<NumNodes; ++j) {
                         if (this->GetGeometry()[i_node].Id() == r_elem.GetGeometry()[j].Id()){
-                            this_node = j;
+                            neighbour_node_id = j;
                             break;
                         }
                     }
+
+                    KRATOS_ERROR_IF(neighbour_node_id<0)<<"No neighbour node was found for neighbour element " << r_elem.Id() << " and element " << this-> Id() <<std::endl;
+
                     for(std::size_t k=0; k<Dim; ++k) {
-                        xi[k] += this_data.N[this_node] * gauss_point_volume * elemental_gradient[k];
+                        nodal_gradient[k] += neighbour_data.N[neighbour_node_id] * gauss_point_volume * neighbour_elemental_gradient[k];
                     }
-                    this_area += this_data.N[this_node] * gauss_point_volume;
+                    neighbour_elements_total_area += neighbour_data.N[neighbour_node_id] * gauss_point_volume;
                 }
             }
         }
-        xi = xi/this_area;
+        nodal_gradient = nodal_gradient/neighbour_elements_total_area;
     }
 
-    array_1d<double,Dim> averaged_xi;
-    averaged_xi.clear();
+    array_1d<double,Dim> averaged_nodal_gradient;
+    averaged_nodal_gradient.clear();
     int number_of_positive_nodes = 0;
 
     for (IndexType i_node=0; i_node<NumNodes; i_node++){
         if (this->GetGeometry()[i_node].FastGetSolutionStepValue(GEOMETRY_DISTANCE)>0.0){
             number_of_positive_nodes += 1;
-            averaged_xi += xi_vector[i_node];
+            averaged_nodal_gradient += nodal_gradient_vector[i_node];
         }
     }
-    averaged_xi = averaged_xi/number_of_positive_nodes;
+    averaged_nodal_gradient = averaged_nodal_gradient/number_of_positive_nodes;
 
     PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
     GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
 
 
-    auto penalty_term_xi = data.vol*prod(data.DN_DX, averaged_xi);
+    auto penalty_term_nodal_gradient = data.vol*prod(data.DN_DX, averaged_nodal_gradient);
     auto penalty_term_potential = data.vol*prod(data.DN_DX,trans(data.DN_DX));
     auto penalty_coefficient = rCurrentProcessInfo[INITIAL_PENALTY];
 
     noalias(rLeftHandSideMatrix) +=  penalty_coefficient*penalty_term_potential;
-    noalias(rRightHandSideVector) += penalty_coefficient*(penalty_term_xi-prod(penalty_term_potential, potential));
+    noalias(rRightHandSideVector) += penalty_coefficient*(penalty_term_nodal_gradient-prod(penalty_term_potential, potential));
 
 }
 
