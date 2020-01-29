@@ -108,9 +108,7 @@ public:
     }
 
     /// Destructor.
-    ~ScalarCoSolvingProcess() override
-    {
-    }
+    ~ScalarCoSolvingProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -307,8 +305,9 @@ protected:
                             << "_Step_" << r_current_process_info[STEP]
                             << "_ParentItr_" << parent_solve_iteration
                             << std::setw(iteration_format_length) << "_CoupleItr_"
-                            << std::setfill('0') << iteration << ".vtk";
+                            << std::setfill('0') << iteration;
                     mpVtkOutput->PrintOutput(s_label.str());
+                    KRATOS_INFO_IF(this->Info(), mEchoLevel > 1) << "Writing Vtk output to " << s_label.str() << "\n";
                 }
 
                 this->UpdateConvergenceVariable();

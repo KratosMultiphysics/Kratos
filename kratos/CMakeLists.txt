@@ -35,6 +35,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/nodal_data.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_filesystem.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/model.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/factories/standard_linear_solver_factory.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/factories/standard_preconditioner_factory.cpp;
@@ -110,6 +111,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/apply_periodic_boundary_condition_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers/amgcl_solver_impl.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/communication_coloring_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/constraints/slip_constraint.cpp
 )
 
 ## Kratos python interface code
@@ -224,6 +226,7 @@ if(USE_COTIRE MATCHES ON)
     SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j2")
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/memory_info.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_filesystem.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/mortar_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     cotire(KratosVersion)
     cotire(KratosCore)

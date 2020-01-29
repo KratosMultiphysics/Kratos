@@ -11,8 +11,13 @@
 *.pyc
 
 # Common build directory
-scripts/configure.sh
-scripts/configure.bat
+~scripts/standard_configure_MINGW.sh
+~scripts/standard_configure_mac.sh
+~scripts/standard_configure.sh
+~scripts/standard_configure_MINGW.bat
+~scripts/standard_configure.bat
+scripts/*.sh
+scripts/*.bat
 build/*
 bin/*
 

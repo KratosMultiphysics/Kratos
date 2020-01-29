@@ -31,7 +31,7 @@ namespace Kratos {
         /**
 	     * Auxiliar function to generate a triangular element to be tested.
 	     */
-        void GenerateModelPartToTest(
+        void GenerateModelPartToTestDivergence(
             ModelPart& rModelPart) {
 
             // Variables addition
@@ -78,21 +78,21 @@ namespace Kratos {
         }
 
 	    /**
-	     * Checks the body fitted drag computation utility.
+	     * Checks the time average divergence utility.
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(CalculationWeightedDivergence, ExaquteSandboxApplicationFastSuite)
 		{
             // Create a test element inside a modelpart
             Model model;
             ModelPart& model_part = model.CreateModelPart("Main", 3);
-            GenerateModelPartToTest(model_part);
+            GenerateModelPartToTestDivergence(model_part);
             Element::Pointer p_element = model_part.pGetElement(1);
 
             // Initialize the element
             p_element->Initialize();
 
-            // Call the body fitted drag utility
-            WeightedDivergenceCalculationProcess(model_part).Execute();
+            // Call the divergence time average process
+            WeightedDivergenceCalculationProcess(model_part).ExecuteFinalizeSolutionStep();
 
             // Check computed values over the elements
             auto elements_begin = model_part.ElementsBegin();
