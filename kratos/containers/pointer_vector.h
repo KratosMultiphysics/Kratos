@@ -325,7 +325,7 @@ public:
         mData.resize(dim);
     }
 
-    void reserve(int dim)
+    void reserve(size_type dim)
     {
         mData.reserve(dim);
     }
