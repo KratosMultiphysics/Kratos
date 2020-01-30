@@ -59,6 +59,9 @@ namespace Kratos {
                     "material_import_settings"          :{
                         "materials_filename"                : ""
                     },
+                    "linear_solver_settings" : {
+                        "solver_type": "skyline_lu"
+                    },
                     "time_stepping"                     : { },
                     "rotation_dofs"                     : false,
                     "reform_dofs_at_each_step"          : true,
