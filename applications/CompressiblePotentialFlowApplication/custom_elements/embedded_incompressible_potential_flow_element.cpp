@@ -62,11 +62,10 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSy
         distances[i_node] = this->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
     }
     const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(distances);
-    const bool is_trailing_edge = PotentialFlowUtilities::CheckIfElementIsTrailingEdge(*this);
 
     if (is_embedded && wake == 0 && kutta == 0) {
         CalculateEmbeddedLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-        if (!is_trailing_edge && std::abs(rCurrentProcessInfo[PENALTY_COEFFICIENT]) > std::numeric_limits<double>::epsilon()) {
+        if (std::abs(rCurrentProcessInfo[PENALTY_COEFFICIENT]) > std::numeric_limits<double>::epsilon()) {
             AddPotentialGradientStabilizationTerm(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
         }
     }
@@ -136,7 +135,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGrad
                 neighbour_distances[i] = r_elem.GetGeometry()[i].GetSolutionStepValue(GEOMETRY_DISTANCE);
             }
             const bool is_neighbour_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(neighbour_distances);
-            if(!is_neighbour_embedded) {
+            if(!is_neighbour_embedded && r_elem.Is(ACTIVE)) {
                 auto r_geometry = r_elem.GetGeometry();
                 const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
                 const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
@@ -147,7 +146,14 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGrad
                 neighbour_data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(r_elem);
                 r_geometry.DeterminantOfJacobian(detJ0, r_integration_method);
 
-                const Vector neighbour_elemental_gradient = prod(trans(neighbour_data.DN_DX), neighbour_data.potentials);
+                const int is_neighbour_wake = r_elem.GetValue(WAKE);
+                Vector neighbour_elemental_gradient;
+                if (is_neighbour_wake == 0) {
+                    neighbour_elemental_gradient = PotentialFlowUtilities::ComputeVelocityNormalElement<Dim,NumNodes>(r_elem);
+                }
+                else {
+                    neighbour_elemental_gradient = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(r_elem);
+                }
 
                 for (IndexType i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss){
                     const double gauss_point_volume = r_integration_points[i_gauss].Weight() * detJ0[i_gauss];
