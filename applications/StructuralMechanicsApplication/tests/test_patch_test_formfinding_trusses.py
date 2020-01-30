@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-from math import sqrt, sin, cos, pi, exp, atan
+
 
 class TestPatchTestFormfinding(KratosUnittest.TestCase):
     def setUp(self):

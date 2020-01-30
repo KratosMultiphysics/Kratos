@@ -407,8 +407,6 @@ class DynamicPatchTestMembrane(BasePatchTestMembrane):
         end_time = 0.5
         step = 0
 
-        disp_vec = []
-
         self._set_and_fill_buffer(mp,3,dt)
         strategy_expl = _create_dynamic_explicit_strategy(mp,'central_differences')
         while(time <= end_time):
