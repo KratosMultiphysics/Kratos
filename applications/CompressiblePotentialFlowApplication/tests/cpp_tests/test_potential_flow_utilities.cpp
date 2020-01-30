@@ -14,6 +14,7 @@
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
+#include "custom_utilities/potential_flow_utilities.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_elements/compressible_potential_flow_element.h"
 
@@ -23,21 +24,23 @@ namespace Testing {
 typedef ModelPart::IndexType IndexType;
 typedef ModelPart::NodeIterator NodeIteratorType;
 
-void GenerateCompressibleElement(ModelPart& rModelPart) {
+void GenerateTestingElement(ModelPart& rModelPart) {
     // Variables addition
     rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
     rModelPart.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
 
     // Set the element properties
     Properties::Pointer pElemProp = rModelPart.CreateNewProperties(0);
-    BoundedVector<double, 3> v_inf = ZeroVector(3);
-    v_inf(0) = 34.0;
 
-    rModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY] = v_inf;
     rModelPart.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.225;
-    rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.1;
+    rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
     rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
     rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
+
+    BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
+    free_stream_velocity(0) = rModelPart.GetProcessInfo().GetValue(FREE_STREAM_MACH) *
+                              rModelPart.GetProcessInfo().GetValue(SOUND_VELOCITY);
+    rModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
 
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -47,41 +50,43 @@ void GenerateCompressibleElement(ModelPart& rModelPart) {
     rModelPart.CreateNewElement("CompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
 }
 
-/** Checks the IncompressiblePotentialFlowElement element.
- * Checks the LHS and RHS computation.
- */
-KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
+void AssignPotentialsToElement(Element& rElement) {
+    // Define the nodal values
+    std::array<double, 3> potential({0.0, 150.0, 350.0});
+
+    for (unsigned int i = 0; i < 3; i++)
+        rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) =
+            potential[i];
+}
+
+// Checks the function ComputeLocalSpeedOfSound from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeLocalSpeedOfSound, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
-    GenerateCompressibleElement(model_part);
+    GenerateTestingElement(model_part);
     Element::Pointer pElement = model_part.pGetElement(1);
 
-    // Define the nodal values
-    std::array<double, 3> potential;
-    potential[0] = 1.0;
-    potential[1] = 2.0;
-    potential[2] = 3.0;
+    AssignPotentialsToElement(*pElement);
+    const double local_speed_of_sound =
+        PotentialFlowUtilities::ComputeLocalSpeedOfSound<2, 3>(
+            *pElement, model_part.GetProcessInfo());
+    KRATOS_CHECK_NEAR(local_speed_of_sound, 333.801138, 1e-6);
+}
 
-    for (unsigned int i = 0; i < 3; i++) {
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) =
-            potential[i];
-    }
-    // Compute RHS and LHS
-    Vector RHS = ZeroVector(3);
-    Matrix LHS = ZeroMatrix(3, 3);
+// Checks the function ComputeLocalMachNumber from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachNumber, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
-    pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+    GenerateTestingElement(model_part);
+    Element::Pointer pElement = model_part.pGetElement(1);
 
-    std::array<double, 9> reference({0.615556466, -0.615561780, 5.314318652e-06,
-                                     -0.615561780, 1.231123561, -0.615561780,
-                                     5.314318652e-06, -0.615561780, 0.615556466});
-
-    for (unsigned int i = 0; i < LHS.size1(); i++) {
-        for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 3 + j], 1e-6);
-        }
-    }
+    AssignPotentialsToElement(*pElement);
+    const double local_mach_number =
+        PotentialFlowUtilities::ComputeLocalMachNumber<2, 3>(
+            *pElement, model_part.GetProcessInfo());
+    KRATOS_CHECK_NEAR(local_mach_number, 0.748948914, 1e-6);
 }
 
 } // namespace Testing
