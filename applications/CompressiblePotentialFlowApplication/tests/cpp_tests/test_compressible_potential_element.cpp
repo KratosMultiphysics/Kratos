@@ -33,14 +33,16 @@ namespace Kratos {
 
       // Set the element properties
       Properties::Pointer pElemProp = rModelPart.CreateNewProperties(0);
-      BoundedVector<double, 3> v_inf = ZeroVector(3);
-      v_inf(0) = 34.0;
 
-      rModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY] = v_inf;
       rModelPart.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.225;
-      rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.1;
+      rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
       rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
       rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
+
+      BoundedVector<double, 3> v_inf = ZeroVector(3);
+      v_inf(0) = rModelPart.GetProcessInfo().GetValue(FREE_STREAM_MACH) * rModelPart.GetProcessInfo().GetValue(SOUND_VELOCITY);
+      rModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY] = v_inf;
+
 
       // Geometry creation
       rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -144,6 +146,82 @@ namespace Kratos {
       for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
           KRATOS_CHECK_NEAR(LHS(i,j), reference[i*3+j], 1e-6);
+        }
+      }
+    }
+
+    /** Checks the IncompressiblePotentialFlowElement element.
+     * Checks the LHS and RHS computation.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementPingLHS, CompressiblePotentialApplicationFastSuite)
+    {
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      GenerateCompressibleElement(model_part);
+      Element::Pointer pElement = model_part.pGetElement(1);
+
+      // Define the nodal values
+      std::array<double,3> potential;
+      potential[0] = 1.0;
+      potential[1] = 200.0;
+      potential[2] = 300.0;
+
+      for (unsigned int i = 0; i < 3; i++){
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
+      }
+      // Compute RHS and LHS
+      Vector RHS_or = ZeroVector(3);
+      Matrix LHS_or = ZeroMatrix(3, 3);
+
+      pElement->CalculateLocalSystem(LHS_or, RHS_or, model_part.GetProcessInfo());
+      KRATOS_WATCH(LHS_or)
+      KRATOS_WATCH(LHS_or)
+
+      const double delta = 1e-4;
+
+      const unsigned int number_of_nodes = pElement->GetGeometry().size();
+
+      Matrix LHS_fd = ZeroMatrix(number_of_nodes, number_of_nodes);
+      Matrix LHS_an = ZeroMatrix(number_of_nodes, number_of_nodes);
+      Vector rRelativeError = ZeroVector(number_of_nodes*number_of_nodes);
+
+      for(unsigned int i = 0; i < number_of_nodes; i++){
+          // Pinging
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
+
+          Vector RHS_pinged = ZeroVector(number_of_nodes);
+          Matrix LHS_pinged = ZeroMatrix(number_of_nodes, number_of_nodes);
+          // Compute pinged LHS and RHS
+          pElement->CalculateLocalSystem(LHS_pinged, RHS_pinged, model_part.GetProcessInfo());
+
+          for(unsigned int k = 0; k < number_of_nodes; k++){
+              // Compute the finite difference estimate of the sensitivity
+              double sensitivity_fd = -(RHS_pinged(k)-RHS_or(k)) / delta;
+              // Compute the average of the original and pinged analytic sensitivities
+              double sensitivity_an = 0.5 * (LHS_or(k,i) + LHS_pinged(k,i));
+
+              LHS_fd( k, i) = sensitivity_fd;
+              LHS_an( k, i) = sensitivity_an;
+              // Compute the relative error between sensitivities
+              rRelativeError( i*number_of_nodes + k) =  std::abs(sensitivity_fd - sensitivity_an)/std::abs(sensitivity_an)*100.0;
+          }
+
+          // Unpinging
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
+      }
+
+      KRATOS_WATCH(LHS_fd)
+      KRATOS_WATCH(LHS_an)
+      KRATOS_WATCH(rRelativeError)
+
+      std::array<double,9> reference({0.615556466,-0.615561780,5.314318652e-06,
+                                      -0.615561780,1.231123561,-0.615561780,
+                                      5.314318652e-06,-0.615561780, 0.615556466});
+
+      for (unsigned int i = 0; i < LHS_or.size1(); i++) {
+        for (unsigned int j = 0; j < LHS_or.size2(); j++) {
+          KRATOS_CHECK_NEAR(LHS_or(i,j), reference[i*3+j], 1e-6);
         }
       }
     }
