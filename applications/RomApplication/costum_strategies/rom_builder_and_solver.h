@@ -346,80 +346,91 @@ public:
 
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
-
-        for (int k = 0; k < nelements; k++)
+        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId)
         {
-            auto it_el = el_begin + k;
-            //detect if the element is active or not. If the user did not make any choice the element
-            //is active by default
-            bool element_is_active = true;
-            if ((it_el)->IsDefined(ACTIVE))
-                element_is_active = (it_el)->Is(ACTIVE);
+            Matrix tempA = ZeroMatrix(mRomDofs,mRomDofs);
+            Vector tempb = ZeroVector(mRomDofs);
+            #pragma omp for nowait
+            for (int k = 0; k < nelements; k++)
+            {
+                auto it_el = el_begin + k;
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool element_is_active = true;
+                if ((it_el)->IsDefined(ACTIVE))
+                    element_is_active = (it_el)->Is(ACTIVE);
 
-            if (element_is_active){
-                //calculate elemental contribution
-                pScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                Element::DofsVectorType dofs;
-                it_el->GetDofList(dofs, CurrentProcessInfo);
-                //assemble the elemental contribution - here is where the ROM acts
-                //compute the elemental reduction matrix Phi
-                const auto &geom = it_el->GetGeometry();
-                Matrix PhiElemental(geom.size() * mNodalDofs, mRomDofs);
+                if (element_is_active){
+                    //calculate elemental contribution
+                    pScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    Element::DofsVectorType dofs;
+                    it_el->GetDofList(dofs, CurrentProcessInfo);
+                    //assemble the elemental contribution - here is where the ROM acts
+                    //compute the elemental reduction matrix Phi
+                    const auto &geom = it_el->GetGeometry();
+                    Matrix PhiElemental(geom.size() * mNodalDofs, mRomDofs);
 
-                for (unsigned int i = 0; i < geom.size(); ++i){
-                    const Matrix &rom_nodal_basis = geom[i].GetValue(ROM_BASIS);
-                    for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k){
-                        if (dofs[i * mNodalDofs + k]->IsFixed())
-                            row(PhiElemental, i * mNodalDofs + k) = ZeroVector(PhiElemental.size2());
-                        else
-                            row(PhiElemental, i * mNodalDofs + k) = row(rom_nodal_basis, k);
+                    for (unsigned int i = 0; i < geom.size(); ++i){
+                        const Matrix &rom_nodal_basis = geom[i].GetValue(ROM_BASIS);
+                        for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k){
+                            if (dofs[i * mNodalDofs + k]->IsFixed())
+                                row(PhiElemental, i * mNodalDofs + k) = ZeroVector(PhiElemental.size2());
+                            else
+                                row(PhiElemental, i * mNodalDofs + k) = row(rom_nodal_basis, k);
+                        }
                     }
+                    Matrix aux = prod(LHS_Contribution, PhiElemental);
+                    noalias(tempA) += prod(trans(PhiElemental), aux);
+                    noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution);
+
+                    // clean local elemental me overridemory
+                    pScheme->CleanMemory(*(it_el.base()));
                 }
-                Matrix aux = prod(LHS_Contribution, PhiElemental);
-                noalias(Arom) += prod(trans(PhiElemental), aux);
-                noalias(brom) += prod(trans(PhiElemental), RHS_Contribution);
-
-                // clean local elemental me overridemory
-                pScheme->CleanMemory(*(it_el.base()));
             }
-        }
 
-        for (int k = 0; k < nconditions; k++){
-            ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+            #pragma omp for
+            for (int k = 0; k < nconditions; k++){
+                ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
 
-            //detect if the element is active or not. If the user did not make any choice the element
-            //is active by default
-            bool condition_is_active = true;
-            if ((it)->IsDefined(ACTIVE))
-                condition_is_active = (it)->Is(ACTIVE);
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool condition_is_active = true;
+                if ((it)->IsDefined(ACTIVE))
+                    condition_is_active = (it)->Is(ACTIVE);
 
-            if (condition_is_active){
-                Condition::DofsVectorType dofs;
-                it->GetDofList(dofs, CurrentProcessInfo);
-                //calculate elemental contribution
-                pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                if (condition_is_active){
+                    Condition::DofsVectorType dofs;
+                    it->GetDofList(dofs, CurrentProcessInfo);
+                    //calculate elemental contribution
+                    pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-                //assemble the elemental contribution - here is where the ROM acts
-                //compute the elemental reduction matrix Phi
-                const auto &r_geom = it->GetGeometry();
-                Matrix PhiElemental(r_geom.size() * mNodalDofs, mRomDofs);
+                    //assemble the elemental contribution - here is where the ROM acts
+                    //compute the elemental reduction matrix Phi
+                    const auto &r_geom = it->GetGeometry();
+                    Matrix PhiElemental(r_geom.size() * mNodalDofs, mRomDofs);
 
-                for (unsigned int i = 0; i < r_geom.size(); ++i){
-                    const Matrix &rom_nodal_basis = r_geom[i].GetValue(ROM_BASIS);
-                    for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k){
-                        if (dofs[i * mNodalDofs + k]->IsFixed())
-                            row(PhiElemental, i * mNodalDofs + k) = ZeroVector(PhiElemental.size2());
-                        else
-                            row(PhiElemental, i * mNodalDofs + k) = row(rom_nodal_basis, k);
+                    for (unsigned int i = 0; i < r_geom.size(); ++i){
+                        const Matrix &rom_nodal_basis = r_geom[i].GetValue(ROM_BASIS);
+                        for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k){
+                            if (dofs[i * mNodalDofs + k]->IsFixed())
+                                row(PhiElemental, i * mNodalDofs + k) = ZeroVector(PhiElemental.size2());
+                            else
+                                row(PhiElemental, i * mNodalDofs + k) = row(rom_nodal_basis, k);
+                        }
                     }
-                }
-                Matrix aux = prod(LHS_Contribution, PhiElemental);
-                noalias(Arom) += prod(trans(PhiElemental), aux);
-                noalias(brom) += prod(trans(PhiElemental), RHS_Contribution);
+                    Matrix aux = prod(LHS_Contribution, PhiElemental);
+                    noalias(tempA) += prod(trans(PhiElemental), aux);
+                    noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution);
 
-                // clean local elemental memory
-                pScheme->CleanMemory(*(it.base()));
+                    // clean local elemental memory
+                    pScheme->CleanMemory(*(it.base()));
+                }
             }
+            #pragma omp critical 
+            {
+                noalias(Arom) +=tempA;
+                noalias(brom) +=tempb;
+            }            
         }
 
         const double stop_build = OpenMPUtils::GetCurrentTime();
