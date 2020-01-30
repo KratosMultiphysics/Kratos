@@ -197,7 +197,7 @@ class PythonSolver(object):
 
             # Import model part from mdpa file.
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading CAD model from file: " + os.path.join(problem_path, input_filename) + ".json")
-            KratosMultiphysics.ModelPartIO(input_filename, echo_level).ReadModelPart(model_part)
+            KratosMultiphysics.CadJsonInput(input_filename, echo_level).ReadModelPart(model_part)
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading CAD model.")
 
             # Create integration domain and elements.
