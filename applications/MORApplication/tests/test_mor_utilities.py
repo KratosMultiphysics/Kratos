@@ -31,5 +31,41 @@ class TestMORUtilities(KratosUnittest.TestCase):
         for i in range(3):
             self.assertAlmostEqual(v[i], v_exp[i], 7)
 
+    def test_generalized_eigenvalue_utility(self):
+        A0 = KratosMultiphysics.Matrix(4,4,0)
+        A0[0,0] = -7
+        A0[0,1] = 2
+        A0[1,0] = 2
+        A0[2,0] = 4
+        A0[0,2] = 4
+        A0[1,1] = -4
+        A0[1,2] = 2
+        A0[2,1] = 2
+        A0[2,2] = -9
+        A0[2,3] = 3
+        A0[3,2] = 3
+        A0[3,3] = -3
+        A1 = KratosMultiphysics.Matrix(4,4,0)
+        A1[0,0] = .4
+        A1[0,2] = -.3
+        A1[2,0] = -.3
+        A1[2,2] = .5
+        A1[2,3] = -.2
+        A1[3,2] = -.2
+        A1[3,3] = .2
+        A2 = KratosMultiphysics.Matrix(4,4,0)
+        A2[0,0] = 3
+        A2[1,1] = 1
+        A2[2,2] = 3
+        A2[3,3] = 1
+        e = KratosMultiphysics.ComplexVector(8)
+
+        KratosMOR.ComputeGeneralizedEigenvalues(A0,A1,A2,e)
+
+        e_exp = KratosMultiphysics.ComplexVector([-2.44984944370563, -2.15361619803731, -1.62477834052925, 1.47524114347567, \
+            0.335294429778544, 2.03635097664370, 2.22790873204791, -0.346551299673631])
+        for i in range(7):
+            self.assertAlmostEqual(e[i], e_exp[i], 7)
+
 if __name__ == '__main__':
     KratosUnittest.main()
