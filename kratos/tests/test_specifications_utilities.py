@@ -87,7 +87,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         node3 = model_part.CreateNewNode(3, 1.0,1.0,0.0)
         prop1 = KratosMultiphysics.Properties(1) 
         model_part.AddProperties(prop1)
-        prop1.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw())
+        prop1.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, StructuralMechanicsApplication.LinearElasticPlaneStrain2DLaw())
         elem1 = model_part.CreateNewElement("SmallDisplacementElement2D3N", 1, [1,2,3], model_part.GetProperties()[1])
         elem1.Initialize(model_part.ProcessInfo)
         
@@ -109,7 +109,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfCompatibleGeometries(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfImplicitSimulation(model_part), True)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.DetermineIfRequiresTimeIntegration(model_part), True)
-        #self.assertEqual(KratosMultiphysics.SpecificationsUtilities.CheckCompatibleConstitutiveLaws(model_part), True)
+        self.assertEqual(KratosMultiphysics.SpecificationsUtilities.CheckCompatibleConstitutiveLaws(model_part), True)
 
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication is not available")
     def test_specifications_utilities_conditions_dependencies(self):
