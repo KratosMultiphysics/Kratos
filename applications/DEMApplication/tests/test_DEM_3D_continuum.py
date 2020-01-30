@@ -2,7 +2,7 @@ import os
 import KratosMultiphysics
 from KratosMultiphysics import Logger
 Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
-from KratosMultiphysics.DEMApplication import *
+import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
@@ -94,10 +94,10 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
 
         for node in self.rigid_face_model_part.Nodes:
             if node.Id == 5:
-                dem_pressure = node.GetSolutionStepValue(DEM_PRESSURE)
-                z_elastic = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
-                shear= node.GetSolutionStepValue(SHEAR_STRESS)
-                x_tangential = node.GetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES)[0]
+                dem_pressure = node.GetSolutionStepValue(DEM.DEM_PRESSURE)
+                z_elastic = node.GetSolutionStepValue(DEM.ELASTIC_FORCES)[2]
+                shear= node.GetSolutionStepValue(DEM.SHEAR_STRESS)
+                x_tangential = node.GetSolutionStepValue(DEM.TANGENTIAL_ELASTIC_FORCES)[0]
 
         self.CheckValues(x_vel, z_vel, x_force, z_force, dem_pressure, z_elastic, shear, x_tangential)
         super(DEM3D_ContinuumTestSolution, self).Finalize()
@@ -110,17 +110,16 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
         self.spheres_model_part.AddProperties(properties)
         self.rigid_face_model_part.AddProperties(properties_walls)
 
-        DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
-        DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
+        DiscontinuumConstitutiveLaw = getattr(DEM, properties[DEM.DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
         DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, False)
 
-        translational_scheme = ForwardEulerScheme()
+        translational_scheme = DEM.ForwardEulerScheme()
         translational_scheme.SetTranslationalIntegrationSchemeInProperties(properties, True)
-        rotational_scheme = ForwardEulerScheme()
+        rotational_scheme = DEM.ForwardEulerScheme()
         rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
 
         element_name = "SphericContinuumParticle3D"
-        PropertiesProxiesManager().CreatePropertiesProxies(self.spheres_model_part)
+        DEM.PropertiesProxiesManager().CreatePropertiesProxies(self.spheres_model_part)
 
         coordinates = KratosMultiphysics.Array3()
         coordinates[0] = -1
@@ -137,7 +136,7 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
         self.creator_destructor.CreateSphericParticle(self.spheres_model_part, coordinates, properties, radius, element_name)
 
         for node in self.spheres_model_part.Nodes:
-            node.SetSolutionStepValue(COHESIVE_GROUP, 1)
+            node.SetSolutionStepValue(DEM.COHESIVE_GROUP, 1)
 
         for node in self.spheres_model_part.Nodes:
             if node.Id == 2:
@@ -159,27 +158,27 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
 
     @classmethod
     def SetHardcodedProperties(self, properties, properties_walls):
-        properties[PARTICLE_DENSITY] = 4000.0
+        properties[DEM.PARTICLE_DENSITY] = 4000.0
         properties[KratosMultiphysics.YOUNG_MODULUS] = 1.0e9
         properties[KratosMultiphysics.POISSON_RATIO] = 0.20
-        properties[FRICTION] = 0.5
-        properties[PARTICLE_COHESION] = 0.0
-        properties[COEFFICIENT_OF_RESTITUTION] = 0.5
+        properties[DEM.FRICTION] = 0.5
+        properties[DEM.PARTICLE_COHESION] = 0.0
+        properties[DEM.COEFFICIENT_OF_RESTITUTION] = 0.5
         properties[KratosMultiphysics.PARTICLE_MATERIAL] = 1
-        properties[ROLLING_FRICTION] = 0.0
-        properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_KDEM"
-        properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_D_Hertz_viscous_Coulomb"
-        properties[CONTACT_TAU_ZERO] = 0.5e6
-        properties[CONTACT_SIGMA_MIN] = 1e6
-        properties[CONTACT_INTERNAL_FRICC] = 1.0
-        properties[ROTATIONAL_MOMENT_COEFFICIENT] = 0.0
+        properties[DEM.ROLLING_FRICTION] = 0.0
+        properties[DEM.DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_KDEM"
+        properties[DEM.DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_D_Hertz_viscous_Coulomb"
+        properties[DEM.CONTACT_TAU_ZERO] = 0.5e6
+        properties[DEM.CONTACT_SIGMA_MIN] = 1e6
+        properties[DEM.CONTACT_INTERNAL_FRICC] = 1.0
+        properties[DEM.ROTATIONAL_MOMENT_COEFFICIENT] = 0.0
 
-        properties_walls[FRICTION] = 0.0
-        properties_walls[WALL_COHESION] = 0.0
-        properties_walls[COMPUTE_WEAR] = 0
-        properties_walls[SEVERITY_OF_WEAR] = 0.001
-        properties_walls[IMPACT_WEAR_SEVERITY] = 0.001
-        properties_walls[BRINELL_HARDNESS] = 200.0
+        properties_walls[DEM.FRICTION] = 0.0
+        properties_walls[DEM.WALL_COHESION] = 0.0
+        properties_walls[DEM.COMPUTE_WEAR] = 0
+        properties_walls[DEM.SEVERITY_OF_WEAR] = 0.001
+        properties_walls[DEM.IMPACT_WEAR_SEVERITY] = 0.001
+        properties_walls[DEM.BRINELL_HARDNESS] = 200.0
         properties_walls[KratosMultiphysics.YOUNG_MODULUS] = 1.0e20
         properties_walls[KratosMultiphysics.POISSON_RATIO] = 0.23
 
