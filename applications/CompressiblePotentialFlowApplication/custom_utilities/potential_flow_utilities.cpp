@@ -206,6 +206,8 @@ double ComputeCompressiblePressureCoefficient(const Element& rElement, const Pro
 template <int Dim, int NumNodes>
 double ComputeLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCurrentProcessInfo)
 {
+    // Implemented according to Equation 8.7 of Drela, M. (2014) Flight Vehicle
+    // Aerodynamics, The MIT Press, London
     // Reading free stream conditions
     const array_1d<double, 3>& v_inf = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
@@ -230,9 +232,11 @@ double ComputeLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCur
 template <int Dim, int NumNodes>
 double ComputeLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo)
 {
-    // Computing local velocity and speed of sound
+    // Implemented according to Equation 8.8 of Drela, M. (2014) Flight Vehicle
+    // Aerodynamics, The MIT Press, London
+
     array_1d<double, Dim> velocity = ComputeVelocity<Dim, NumNodes>(rElement);
-    const double velocity_module = sqrt(inner_prod(velocity,velocity));
+    const double velocity_module = sqrt(inner_prod(velocity, velocity));
     const double local_speed_of_sound = ComputeLocalSpeedOfSound<Dim, NumNodes>(rElement, rCurrentProcessInfo);
 
     return velocity_module / local_speed_of_sound;
