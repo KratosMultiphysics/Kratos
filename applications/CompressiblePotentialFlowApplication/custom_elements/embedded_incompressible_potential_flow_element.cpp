@@ -127,6 +127,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGrad
         nodal_gradient.clear();
         double neighbour_elements_total_area = 0.0;
         auto neighbour_elem = this->GetGeometry()[i_node].GetValue(NEIGHBOUR_ELEMENTS);
+		KRATOS_ERROR_IF(neighbour_elem.size() == 0) << this->Info() << " neighbour elements were not computed\n";
 
         for (auto r_elem : neighbour_elem){
 
