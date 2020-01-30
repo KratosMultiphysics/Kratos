@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/ublas_complex_interface.h"
 #include "linear_solvers/linear_solver.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -110,7 +111,7 @@ class MorOfflineSecondOrderStrategy
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-    typedef typename TReducedSparseSpace::MatrixType TReducedSparseMatrixType;
+    // typedef typename TReducedSparseSpace::MatrixType TReducedSparseMatrixType;
 
     typedef typename TReducedDenseSpace::MatrixType TReducedDenseMatrixType;
 
@@ -490,7 +491,7 @@ class MorOfflineSecondOrderStrategy
      * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
      * @details A member variable should be used as a flag to make sure this function is called only once per step.
      */
-    void FinalizeSolutionStep() override
+    virtual void FinalizeSolutionStep() override
     {
         KRATOS_TRY;
 
@@ -592,7 +593,7 @@ class MorOfflineSecondOrderStrategy
      * @brief Function to perform expensive checks.
      * @details It is designed to be called ONCE to verify that the input is correct.
      */
-    int Check() override
+    virtual int Check() override
     {
         KRATOS_TRY
 
@@ -670,23 +671,23 @@ class MorOfflineSecondOrderStrategy
      * @brief This method returns the LHS matrix
      * @return The LHS matrix
      */
-    virtual TSystemMatrixType &GetSystemMatrix()
+    virtual TSystemMatrixType& GetSystemMatrix()
     {
-        TSystemMatrixType &mA = *mpA;
+        TSystemMatrixType& mA = *mpA;
 
         return mA;
     }
 
-    virtual TSystemMatrixType &GetMassMatrix()
+    virtual TSystemMatrixType& GetMassMatrix()
     {
-        TSystemMatrixType &mM = *mpM;
+        TSystemMatrixType& mM = *mpM;
 
         return mM;
     }
 
-    virtual TSystemMatrixType &GetDampingMatrix()
+    virtual TSystemMatrixType& GetDampingMatrix()
     {
-        TSystemMatrixType &mS = *mpS;
+        TSystemMatrixType& mS = *mpS;
 
         return mS;
     }
@@ -991,6 +992,38 @@ class MorOfflineSecondOrderStrategy
                     if( FixedDofSet[ Acol_indices[j] ] )
                         Avalues[j] = 0.0;
             }
+        }
+    }
+
+    /**
+     * @brief computes X=V^H * A * V
+     */
+    void ProjectMatrix(TSystemMatrixType& rA, ComplexMatrix& rV, ComplexMatrix& rX)
+    {
+        // noalias(VH) = herm(V);
+
+        // noalias(T) = prod( VH, A );
+        // noalias(X) = prod( T, V );
+    }
+
+    /**
+     * @brief computes X=V^T * A * V
+     */
+    void ProjectMatrix(TSystemMatrixType& rA, Matrix& rV, Matrix& rX)
+    {
+        const int reduced_system_size = static_cast<int>(rV.size2());
+        Vector v_col = ZeroVector(rV.size1());
+        Vector tmp_1 = ZeroVector(rV.size1());
+        Vector tmp_2 = ZeroVector(rV.size2());
+
+        #pragma omp parallel for firstprivate(v_col, tmp_1, tmp_2) schedule(static)// nowait
+        for( int i=0; i<reduced_system_size; ++i )
+        {
+            noalias(v_col) = column(rV,i);
+
+            axpy_prod(rA, v_col, tmp_1, true);      // A*V  (=T)
+            axpy_prod(tmp_1, rV, tmp_2, true);      // V' * T
+            noalias(column(rX, i)) = tmp_2;         // X = V' A V
         }
     }
 
