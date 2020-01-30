@@ -59,9 +59,6 @@ namespace Kratos {
                     "material_import_settings"          :{
                         "materials_filename"                : ""
                     },
-                    "linear_solver_settings" : {
-                        "solver_type": "skyline_lu"
-                    },
                     "time_stepping"                     : { },
                     "rotation_dofs"                     : false,
                     "reform_dofs_at_each_step"          : true,
@@ -77,7 +74,9 @@ namespace Kratos {
                     "residual_relative_tolerance"       : 1.0e-4,
                     "residual_absolute_tolerance"       : 1.0e-9,
                     "max_iteration"                     : 10,
-                    "linear_solver_settings"            : { },
+                    "linear_solver_settings"            : {
+                        "solver_type": "skyline_lu"
+                    },
                     "problem_domain_sub_model_part_list": [],
                     "processes_sub_model_part_list"     : [],
                     "auxiliary_variables_list"          : [],
