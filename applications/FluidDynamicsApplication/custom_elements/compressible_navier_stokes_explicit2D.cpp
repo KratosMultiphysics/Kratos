@@ -10,12 +10,12 @@
 //  Main authors:    Andrea Montanino
 //
 
-#include "custom_elements/compressible_navier_stokes.h"
+#include "custom_elements/compressible_navier_stokes_explicit.h"
 
 namespace Kratos {
 
 template<>
-void CompressibleNavierStokes<2>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void CompressibleNavierStokesExplicit<2>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -40,7 +40,7 @@ void CompressibleNavierStokes<2>::EquationIdVector(EquationIdVectorType& rResult
 
 
 template<>
-void CompressibleNavierStokes<2>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
+void CompressibleNavierStokesExplicit<2>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -52,7 +52,7 @@ void CompressibleNavierStokes<2>::GetDofList(DofsVectorType& ElementalDofList, P
     if (ElementalDofList.size() != nNodalVariables)     // A che serve sta roba ?
         ElementalDofList.resize(nNodalVariables);
 
-    for(unsigned int i=0; i<NumNodes; i++)
+    for(unsigned int i=0; i<nodesElement; i++)
     {
         ElementalDofList[i*(nScalarVariables)  ]  =  this->GetGeometry()[i].pGetDof(DENSITY);		// Difference with the operation made before? 
         ElementalDofList[i*(nScalarVariables)+1]  =  this->GetGeometry()[i].pGetDof(MOMENTUM_X);
@@ -65,7 +65,7 @@ void CompressibleNavierStokes<2>::GetDofList(DofsVectorType& ElementalDofList, P
 
 
 template<>
-void CompressibleNavierStokes<2>::ComputeGaussPointLHSContribution(BoundedMatrix<double,12,12>& lhs, const ElementDataStruct& data,double data_v_sc, double data_k_sc)
+void CompressibleNavierStokesExplicit<2>::ComputeGaussPointLHSContribution(BoundedMatrix<double,12,12>& lhs, const ElementDataStruct& data,double data_v_sc, double data_k_sc)
 {
 
     const int nnodes = 3;				// OK
@@ -1624,7 +1624,7 @@ const double clhs1473 =             (1.0L/2.0L)*N[2]*clhs102*gamma*tau2;
             lhs(2,1)=-clhs111*clhs116 - clhs116*clhs837 + clhs405*clhs525*clhs548 - clhs428*clhs530 + clhs519*clhs829 - clhs523*clhs821 + clhs542*clhs836 - clhs543 + (2.0L/3.0L)*clhs544 - clhs838*clhs839;
             lhs(2,2)=-clhs111*clhs833 - clhs31*clhs528 + clhs505 - clhs510 - 4.0L/3.0L*clhs515 + clhs519*(-clhs824 + clhs826 + clhs831 + clhs840) + clhs532 + clhs547*clhs844 + clhs555*clhs836 - clhs842*clhs843;
             lhs(2,3)=clhs53*(clhs103*clhs841 - clhs116*clhs136 + clhs135 - clhs557*clhs845);
-            lhs(2,4)=clhs346*clhs564 - clhs364*clhs864 - clhs560*clhs810 + clhs591*clhs811 - clhs602*clhs821 - clhs603*(-clhs233*clhs91 + clhs441*clhs560 + clhs867) - clhs612*clhs835 - clhs616*clhs834 - clhs647*clhs836 - clhs812*clhs861 + clhs855;
+            lhs(2,4)=clhs346*clhs564 - clhs364*ccont(3,1,3,2,4,2,4,4)s864 - clhs560*clhs810 + clhs591*clhs811 - clhs602*clhs821 - clhs603*(-clhs233*clhs91 + clhs441*clhs560 + clhs867) - clhs612*clhs835 - clhs616*clhs834 - clhs647*clhs836 - clhs812*clhs861 + clhs855;
             lhs(2,5)=-clhs111*clhs218 - clhs218*clhs837 - clhs671*clhs821 + clhs676*clhs836 - clhs680 + (2.0L/3.0L)*clhs681 - clhs838*clhs871 + clhs870;
             lhs(2,6)=-clhs111*clhs875 - clhs661 - 4.0L/3.0L*clhs665 + clhs682*clhs844 + clhs686*clhs836 - clhs842*clhs877 + clhs872 + clhs876;
             lhs(2,7)=clhs53*(-clhs116*clhs687 + clhs234 + clhs688*clhs841 - clhs689*clhs845);
@@ -1741,22 +1741,22 @@ const double clhs1473 =             (1.0L/2.0L)*N[2]*clhs102*gamma*tau2;
             lhs(11,10)=-1.0L/2.0L*N[2]*clhs1006*clhs7*(clhs1449 + 3*clhs256 + 6*clhs316 - 6*clhs704) - clhs1004*clhs1470 - clhs1179*clhs1457 - clhs1181*clhs1456 - clhs1183*clhs1458 - clhs1184*clhs1450 - clhs1185*clhs1451 + clhs1422*clhs1468 + clhs1424*clhs1472*clhs945 + clhs1444 + clhs1452*clhs800 + clhs1453*clhs803;
             lhs(11,11)=clhs1012*clhs1469 - clhs1187*clhs1462 + clhs1188*clhs1450 + clhs1189*clhs1451 + clhs1386 - clhs1424*clhs1473*clhs428 - clhs1427*clhs1473*clhs405 - clhs1460*clhs780 - clhs1461*clhs784 - clhs1463*clhs806;
 
-
+*/
 }
 
-*/
+
 
 
 
 template<>
-void CompressibleNavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,12>& rhs, const ElementDataStruct& data,double data_v_sc, double data_k_sc)
+void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array_1d<double,12>& rhs, const ElementDataStruct& data,double data_v_sc, double data_k_sc)
 {
     const int nodesElement = 3;
     const int SpaceDimension = 2;
     const int nScalarVariables = SpaceDimension + 2;
     const double h = data.h;
 
-    const unsigned int i, j, k, l, m, s, t, tt, p, pp;
+    unsigned int i, j, k, l, m, s, t, tt, p, pp;
     const unsigned int maxi, maxj, maxl, maxl;
 
     const unsigned int size3 = nScalarVariables * SpaceDimension * nScalarVariables;
@@ -2020,7 +2020,7 @@ void CompressibleNavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<doub
 	dAdU[cont(3,1,3,2,4,2,4,4)] = (1.0 + dpde)/ro_el;
 
 
-
+fava
 
 
 
