@@ -24,7 +24,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/pointer_hash_map_set.h"
-#include "containers/data_value_container.h"
 
 
 namespace Kratos
@@ -55,13 +54,15 @@ public:
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
 
+    typedef typename TGeometryType::Pointer GeometryPointerType;
+
     /* Geometry Hash Map Container.
     *  Hash of Id are keys to corresponding intrusive pointer */
     typedef PointerHashMapSet<
         TGeometryType,
         std::hash<std::size_t>,
         GetGeometryId,
-        typename TGeometryType::Pointer
+        GeometryPointerType
     > GeometriesContainerType;
 
     /// Geometry Iterator
@@ -124,7 +125,7 @@ public:
     ///@{
 
     /// Adds a geometry to the geometry container.
-    GeometryIterator AddGeometry(typename TGeometryType::Pointer pNewGeometry)
+    GeometryIterator AddGeometry(GeometryPointerType pNewGeometry)
     {
         auto i = mGeometries.find(pNewGeometry->Id());
         if(i == mGeometries.end())
@@ -141,7 +142,7 @@ public:
     ///@{
 
     /// Returns the Geometry::Pointer corresponding to its Id
-    typename TGeometryType::Pointer pGetGeometry(IndexType GeometryId)
+    GeometryPointerType pGetGeometry(IndexType GeometryId)
     {
         auto i = mGeometries.find(GeometryId);
         KRATOS_ERROR_IF(i == mGeometries.end())
@@ -150,7 +151,7 @@ public:
     }
 
     /// Returns the const Geometry::Pointer corresponding to its Id
-    const typename TGeometryType::Pointer pGetGeometry(IndexType GeometryId) const
+    const GeometryPointerType pGetGeometry(IndexType GeometryId) const
     {
         auto i = mGeometries.find(GeometryId);
         KRATOS_ERROR_IF(i == mGeometries.end())
@@ -159,7 +160,7 @@ public:
     }
 
     /// Returns the Geometry::Pointer corresponding to its name
-    typename TGeometryType::Pointer pGetGeometry(std::string GeometryName)
+    GeometryPointerType pGetGeometry(std::string GeometryName)
     {
         auto hash_index = TGeometryType::GenerateId(GeometryName);
         auto i = mGeometries.find(hash_index);
@@ -169,7 +170,7 @@ public:
     }
 
     /// Returns the Geometry::Pointer corresponding to its name
-    const typename TGeometryType::Pointer pGetGeometry(std::string GeometryName) const
+    const GeometryPointerType pGetGeometry(std::string GeometryName) const
     {
         auto hash_index = TGeometryType::GenerateId(GeometryName);
         auto i = mGeometries.find(hash_index);
@@ -181,37 +182,25 @@ public:
     /// Returns a reference geometry corresponding to the id
     TGeometryType& GetGeometry(IndexType GeometryId)
     {
-        auto i = mGeometries.find(GeometryId);
-        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryId << ".";
-        return *i;
+        return *pGetGeometry(GeometryId);
     }
 
     /// Returns a const reference geometry corresponding to the id
     const TGeometryType& GetGeometry(IndexType GeometryId) const
     {
-        auto i = mGeometries.find(GeometryId);
-        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryId << ".";
-        return *i;
+        return *pGetGeometry(GeometryId);
     }
 
     /// Returns a reference geometry corresponding to the name
     TGeometryType& GetGeometry(std::string GeometryName)
     {
-        auto hash_index = TGeometryType::GenerateId(GeometryName);
-        auto i = mGeometries.find(hash_index);
-        KRATOS_ERROR_IF(i == mGeometries.end())
-            << " geometry index not found: " << GeometryName << ".";
-        return *i;
+        return *pGetGeometry(GeometryName);
     }
 
     /// Returns a const reference geometry corresponding to the name
     const TGeometryType& GetGeometry(std::string GeometryName) const
     {
-        auto hash_index = TGeometryType::GenerateId(GeometryName);
-        auto i = mGeometries.find(hash_index);
-        KRATOS_ERROR_IF(i == mGeometries.end())
-            << " geometry index not found: " << GeometryName << ".";
-        return *i;
+        return *pGetGeometry(GeometryName);
     }
 
     ///@}
@@ -352,8 +341,8 @@ private:
     /// Assignment operator.
     GeometryContainer& operator=(const GeometryContainer& rOther)
     {
-        Flags::operator =(rOther);
         mGeometries = rOther.mGeometries;
+        return *this;
     }
 
     ///@}
