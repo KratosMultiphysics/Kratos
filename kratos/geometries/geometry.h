@@ -3516,37 +3516,37 @@ private:
     /// Checks first bit in Id. 0 -> id; 1 -> name/ string
     static inline bool IsIdGeneratedFromString(IndexType Id)
     {
-        return Id & (1ULL << (sizeof(IndexType) - 1));
+        return Id & (IndexType(1) << (sizeof(IndexType) * 8 - 1));
     }
 
     /// Sets first bit in Id to 1 -> name/ string
     static inline void SetIdGeneratedFromString(IndexType& Id)
     {
-        Id |= (1ULL << (sizeof(IndexType) - 1));
+        Id |= (IndexType(1) << (sizeof(IndexType) * 8 - 1));
     }
 
     /// Sets first bit in Id to 0 -> no name/ string
     static inline void SetIdNotGeneratedFromString(IndexType& Id)
     {
-        Id &= ~(1ULL << (sizeof(IndexType) - 1));
+        Id &= ~(IndexType(1) << (sizeof(IndexType) * 8 - 1));
     }
 
     /// Checks second bit in Id. 0 -> defined id; 1 -> self assigned
     static inline bool IsIdSelfAssigned(IndexType Id)
     {
-        return Id & (1ULL << (sizeof(IndexType) - 2));
+        return Id & (IndexType(1) << (sizeof(IndexType) * 8 - 2));
     }
 
     /// Sets second bit in Id to 1 -> self assigned
     static inline void SetIdSelfAssigned(IndexType& Id)
     {
-        Id |= (1ULL << (sizeof(IndexType) - 2));
+        Id |= (IndexType(1) << (sizeof(IndexType) * 8 - 2));
     }
 
     /// Sets second bit in Id to 0 -> not self assigned
     static inline void SetIdNotSelfAssigned(IndexType& Id)
     {
-        Id &= ~(1ULL << (sizeof(IndexType) - 2));
+        Id &= ~(IndexType(1) << (sizeof(IndexType) * 8 - 2));
     }
 
     ///@}
