@@ -444,7 +444,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
     const ProcessInfo& rCurrentProcessInfo)
 {
-     ElementalData<NumNodes, Dim> data;
+    ElementalData<NumNodes, Dim> data;
 
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
@@ -484,41 +484,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
         else
             ComputeLHSGaussPointContribution(Volumes[i]*free_stream_density, lhs_negative, data);
     }
-
-
-    BoundedMatrix<double, 2, 1 > n_kutta;
-    double angle_in_deg = rCurrentProcessInfo[ROTATION_ANGLE];
-    n_kutta(0,0)=sin(angle_in_deg*Globals::Pi/180);
-    n_kutta(1,0)=cos(angle_in_deg*Globals::Pi/180);
-
-    Matrix test=prod(data.DN_DX,n_kutta);
-
-    BoundedMatrix<double, NumNodes, NumNodes> lhs_kutta_positive = ZeroMatrix(NumNodes, NumNodes);
-    BoundedMatrix<double, NumNodes, NumNodes> lhs_kutta_negative = ZeroMatrix(NumNodes, NumNodes);
-    for(unsigned int i=0; i<nsubdivisions; ++i)
-    {
-        if(PartitionsSign[i] > 0){
-            noalias(lhs_kutta_positive) += free_stream_density*Volumes[i] * prod(test,trans(test));
-        }
-        else{
-            noalias(lhs_kutta_negative) += free_stream_density*Volumes[i] * prod(test,trans(test));
-        }
-    }
-    // auto penalty = rCurrentProcessInfo[TEMPERATURE];
-//
-    // lhs_positive = lhs_kutta_positive + lhs_kutta_negative;
-    // lhs_negative = lhs_kutta_negative + lhs_kutta_positive;
-
-    // lhs_positive = lhs_kutta_positive;
-    // lhs_negative = lhs_kutta_negative;
-    // lhs_positive += lhs_negative;
-
-    // lhs_positive += penalty*(lhs_kutta_positive+lhs_kutta_negative);
-    // lhs_negative += penalty*(lhs_kutta_negative+lhs_kutta_positive);
-    // lhs_positive += penalty*(lhs_kutta_positive);
-    // lhs_negative += penalty*(lhs_kutta_negative);
-    // lhs_positive += 100*(lhs_positive+lhs_negative);
-    // lhs_negative += 100*(lhs_negative+lhs_positive);
 }
 
 template <int Dim, int NumNodes>
