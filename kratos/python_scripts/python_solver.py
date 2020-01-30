@@ -204,10 +204,13 @@ class PythonSolver(object):
             if model_part_import_settings.Has("physics_input_type"):
                 physics_input_type = model_part_import_settings["physics_input_type"].GetString()
                 if physics_input_type == "ph.json":
-                    physics_filename = model_part_import_settings["physics_file_name"].GetString()
+                    physics_filename = model_part_import_settings["physics_filename"].GetString()
+                    physics_filename += '.ph.json'
                     KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Creating integration domain, elements and conditions from file: "
                         + os.path.join(problem_path, physics_filename) + ".ph.json")
-                    KratosMultiphysics.CadIntegrationDomain.CreateIntegrationDomain(physics_filename, model_part, echo_level)
+                    with open(physics_filename,'r') as parameter_file:
+                        parameters_ph = KratosMultiphysics.Parameters(parameter_file.read())
+                    KratosMultiphysics.CreateIntegrationDomain(model_part, model_part, parameters_ph, echo_level)
                     KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished creation of integration domain, elements and conditions.")
                 else:
                     KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Unknown physics input type: " + physics_input_type)
