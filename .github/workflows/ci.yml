@@ -62,10 +62,15 @@ jobs:
 
     - name: Build
       run: |
-        source /opt/intel/mkl/bin/mklvars.sh intel64 lp64
+        echo "test1"
+        source configure.sh
+        echo "test2"
         cp .github/workflows/configure.sh configure.sh
+        echo "test3"
         bash configure.sh
+        echo "test4"
         ccache -s
+        echo "test5"
 
     - name: Running small tests
       if: github.event_name == 'pull_request'
