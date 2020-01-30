@@ -288,13 +288,6 @@ public:
         }
     }
 
-    void GetDofValues(const std::vector<DofPointerType> &rDofList, TSystemVectorType &rX)
-    {
-        unsigned int i = 0;
-        for (auto &dof : rDofList)
-            rX[i++] = dof->GetSolutionStepValue();
-    }
-
     /*@{ */
 
     /**
@@ -313,9 +306,6 @@ public:
         Matrix Arom = ZeroMatrix(mRomDofs, mRomDofs);
         Vector brom = ZeroVector(mRomDofs);
         TSystemVectorType x(Dx.size());
-
-        //find the rom basis
-        this->GetDofValues(mDofList, x);
 
         double project_to_reduced_start = OpenMPUtils::GetCurrentTime();
         Vector xrom = ZeroVector(mRomDofs);
@@ -532,7 +522,6 @@ protected:
     typename TLinearSolver::Pointer mpLinearSystemSolver;
 
     DofsArrayType mDofSet;
-    std::vector<DofPointerType> mDofList;
 
     bool mReshapeMatrixFlag = false;
 
