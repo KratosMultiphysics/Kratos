@@ -22,10 +22,10 @@
 #include "custom_solvers/eigen_sparse_lu_solver.h"
 #include "custom_solvers/eigen_sparse_qr_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
-#include "custom_solvers/eigen_dense_colpivhouseholderqr_solver.h"
-#include "custom_solvers/eigen_dense_householderqr_solver.h"
+#include "custom_solvers/eigen_dense_col_piv_householder_qr_solver.h"
+#include "custom_solvers/eigen_dense_householder_qr_solver.h"
 #include "custom_solvers/eigen_dense_llt_solver.h"
-#include "custom_solvers/eigen_dense_partialpivlu_solver.h"
+#include "custom_solvers/eigen_dense_partial_piv_lu_solver.h"
 #include "custom_solvers/eigen_dense_direct_solver.h"
 #include "custom_solvers/eigensystem_solver.h"
 

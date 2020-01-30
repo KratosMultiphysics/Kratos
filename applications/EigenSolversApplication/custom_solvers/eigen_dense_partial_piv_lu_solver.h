@@ -9,8 +9,8 @@
 //  Author: Quirin Aumann
 */
 
-#if !defined(KRATOS_EIGEN_DENSE_PARTIALPIVLU_SOLVER_H_INCLUDED)
-#define KRATOS_EIGEN_DENSE_PARTIALPIVLU_SOLVER_H_INCLUDED
+#if !defined(KRATOS_EIGEN_DENSE_PARTIAL_PIV_LU_SOLVER_H_INCLUDED)
+#define KRATOS_EIGEN_DENSE_PARTIAL_PIV_LU_SOLVER_H_INCLUDED
 
 // External includes
 #include <Eigen/LU>
@@ -34,7 +34,7 @@ private:
 public:
     static std::string Name()
     {
-        return "complex_dense_partialpivlu";
+        return "complex_dense_partial_piv_lu";
     }
 
     void Initialize(Parameters settings)
@@ -68,4 +68,4 @@ public:
 
 } // namespace Kratos
 
-#endif // defined(KRATOS_EIGEN_DENSE_PARTIALPIVLU_SOLVER_H_INCLUDED)
+#endif // defined(KRATOS_EIGEN_DENSE_PARTIAL_PIV_LU_SOLVER_H_INCLUDED)

@@ -9,8 +9,8 @@
 //  Author: Quirin Aumann
 */
 
-#if !defined(KRATOS_EIGEN_DENSE_COLPIVHOUSEHOLDERQR_SOLVER_H_INCLUDED)
-#define KRATOS_EIGEN_DENSE_COLPIVHOUSEHOLDERQR_SOLVER_H_INCLUDED
+#if !defined(KRATOS_EIGEN_DENSE_COL_PIV_HOUSEHOLDER_QR_SOLVER_H_INCLUDED)
+#define KRATOS_EIGEN_DENSE_COL_PIV_HOUSEHOLDER_QR_SOLVER_H_INCLUDED
 
 // External includes
 #include <Eigen/QR>
@@ -34,7 +34,7 @@ private:
 public:
     static std::string Name()
     {
-        return "complex_dense_colpivhouseholderqr";
+        return "complex_dense_col_piv_householder_qr";
     }
 
     void Initialize(Parameters settings)
@@ -72,4 +72,4 @@ public:
 
 } // namespace Kratos
 
-#endif // defined(KRATOS_EIGEN_DENSE_COLPIVHOUSEHOLDERQR_SOLVER_H_INCLUDED)
+#endif // defined(KRATOS_EIGEN_DENSE_COL_PIV_HOUSEHOLDER_QR_SOLVER_H_INCLUDED)

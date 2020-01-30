@@ -69,25 +69,25 @@ class TestEigenDenseDirectSolver(KratosUnittest.TestCase):
             self.assertAlmostEqual(b_act[i], b_exp[i], 7)
 
     def test_eigen_dense_colpivhouseholderqr(self):
-        self._execute_eigen_dense_direct_solver_test('DenseColPivHouseholderQRSolver', 'dense_colpivhouseholderqr',self._real_eq_system)
+        self._execute_eigen_dense_direct_solver_test('DenseColPivHouseholderQRSolver', 'dense_col_piv_householder_qr',self._real_eq_system)
 
     def test_eigen_dense_householderqr(self):
-        self._execute_eigen_dense_direct_solver_test('DenseHouseholderQRSolver', 'dense_householderqr',self._real_eq_system)
+        self._execute_eigen_dense_direct_solver_test('DenseHouseholderQRSolver', 'dense_householder_qr',self._real_eq_system)
 
     def test_eigen_dense_llt(self):
         self._execute_eigen_dense_direct_solver_test('DenseLLTSolver', 'dense_llt', self._real_posdef_eq_system)
 
     def test_eigen_dense_partialpivlu(self):
-        self._execute_eigen_dense_direct_solver_test('DensePartialPivLUSolver', 'dense_partialpivlu', self._real_eq_system)
+        self._execute_eigen_dense_direct_solver_test('DensePartialPivLUSolver', 'dense_partial_piv_lu', self._real_eq_system)
 
     def test_eigen_dense_colpivhouseholderqr_complex(self):
-        self._execute_eigen_dense_direct_solver_test('ComplexDenseColPivHouseholderQRSolver', 'complex_dense_colpivhouseholderqr', self._cplx_eq_system)
+        self._execute_eigen_dense_direct_solver_test('ComplexDenseColPivHouseholderQRSolver', 'complex_dense_col_piv_householder_qr', self._cplx_eq_system)
 
     def test_eigen_dense_householderqr_complex(self):
-        self._execute_eigen_dense_direct_solver_test('ComplexDenseHouseholderQRSolver', 'complex_dense_householderqr', self._cplx_eq_system)
+        self._execute_eigen_dense_direct_solver_test('ComplexDenseHouseholderQRSolver', 'complex_dense_householder_qr', self._cplx_eq_system)
 
     def test_eigen_dense_partialpivlu_complex(self):
-        self._execute_eigen_dense_direct_solver_test('ComplexDensePartialPivLUSolver', 'complex_dense_partialpivlu', self._cplx_eq_system)
+        self._execute_eigen_dense_direct_solver_test('ComplexDensePartialPivLUSolver', 'complex_dense_partial_piv_lu', self._cplx_eq_system)
 
 if __name__ == '__main__':
     KratosUnittest.main()

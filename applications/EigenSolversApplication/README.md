@@ -35,13 +35,13 @@ The application provides the following direct solvers for dense systems of equat
 
 | Python class                          | solver_type                         | Matrix requirements | Domain  | Dependencies |
 | ------------------------------------- | ----------------------------------- | :-----------------: | :-----: | :----------: |
-| DenseColPivHouseholderQRSolver        | `dense_colpivhouseholderqr`         |        None         |  Real   |     None     |
-| DenseHouseholderQRSolver              | `dense_householderqr`               |        None         |  Real   |     None     |
+| DenseColPivHouseholderQRSolver        | `dense_col_piv_householder_qr`      |        None         |  Real   |     None     |
+| DenseHouseholderQRSolver              | `dense_householder_qr`              |        None         |  Real   |     None     |
 | DenseLLTSolver                        | `dense_llt`                         |        SPD*         |  Real   |     None     |
-| DensePartialPivLUSolver               | `dense_partialpivlu`                |     Invertible      |  Real   |     None     |
-| ComplexDenseColPivHouseholderQRSolver | `complex_dense_colpivhouseholderqr` |        None         | Complex |     None     |
-| ComplexDenseHouseholderQRSolver       | `complex_dense_householderqr`       |        None         | Complex |     None     |
-| ComplexDensePartialPivLUSolver        | `complex_dense_partialpivlu`        |     Invertible      | Complex |     None     |
+| DensePartialPivLUSolver               | `dense_partial_piv_lu`              |     Invertible      |  Real   |     None     |
+| ComplexDenseColPivHouseholderQRSolver | `complex_dense_col_piv_householder_qr` |        None         | Complex |     None     |
+| ComplexDenseHouseholderQRSolver       | `complex_dense_householder_qr`       |        None         | Complex |     None     |
+| ComplexDensePartialPivLUSolver        | `complex_dense_partial_piv_lu`       |     Invertible      | Complex |     None     |
 
 *SPD = Symmetric Positive Definite
 
