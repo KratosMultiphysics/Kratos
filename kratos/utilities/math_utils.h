@@ -1816,6 +1816,21 @@ public:
         return is_converged;
     }
 
+    /**
+     * @brief Calculates the square root of a matrix
+     * This function calculates the square root of a matrix by doing an eigenvalue decomposition
+     * The square root of a matrix A is defined as A = V*S*inv(V) where A is the eigenvectors matrix
+     * and S the diagonal matrix containing the square root of the eigenvalues. Note that the previous
+     * expression can be rewritten as A = V*S*trans(V) since V is orthogonal.
+     * @tparam TMatrixType1 Input matrix type
+     * @tparam TMatrixType2 Output matrix type
+     * @param rA Input matrix
+     * @param rMatrixSquareRoot Square root output matrix
+     * @param Tolerance Tolerance of the eigenvalue decomposition
+     * @param MaxIterations Maximum iterations of the eigenvalue decomposition
+     * @return true The eigenvalue decomposition problem converged
+     * @return false The eigenvalue decomposition problem did not converge
+     */
     template<class TMatrixType1, class TMatrixType2>
     static inline bool MatrixSquareRoot(
         const TMatrixType1 &rA,
