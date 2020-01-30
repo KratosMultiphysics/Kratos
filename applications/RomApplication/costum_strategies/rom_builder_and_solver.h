@@ -308,8 +308,6 @@ public:
         TSystemVectorType x(Dx.size());
 
         double project_to_reduced_start = OpenMPUtils::GetCurrentTime();
-        Vector xrom = ZeroVector(mRomDofs);
-        this->ProjectToReducedBasis(x, rModelPart.Nodes(),xrom);
         const double project_to_reduced_end = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to reduced basis time: " << project_to_reduced_end - project_to_reduced_start << std::endl;
 
@@ -428,15 +426,12 @@ public:
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
         //solve for the rom unkowns dunk = Arom^-1 * brom
-        Vector dxrom(xrom.size());
+        Vector dxrom(mRomDofs);
         double start_solve = OpenMPUtils::GetCurrentTime();
         MathUtils<double>::Solve(Arom, dxrom, brom);
         const double stop_solve = OpenMPUtils::GetCurrentTime();
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << stop_solve - start_solve << std::endl;
-
-        //update database
-        noalias(xrom) += dxrom;
 
         double project_to_fine_start = OpenMPUtils::GetCurrentTime();
         ProjectToFineBasis(dxrom, rModelPart.Nodes(), Dx);
