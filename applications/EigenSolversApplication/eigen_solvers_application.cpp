@@ -22,7 +22,6 @@
 #include "custom_solvers/eigen_sparse_lu_solver.h"
 #include "custom_solvers/eigen_sparse_qr_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
-// #include "custom_solvers/eigensystem_solver.h"
 
 #if defined USE_EIGEN_MKL
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
@@ -40,7 +39,6 @@ void KratosEigenSolversApplication::Register()
     KratosApplication::Register();
     KRATOS_INFO("") << "Initializing KratosEigenSolversApplication..." << std::endl;
 
-    // EigenSolversApplicationRegisterLinearSolvers();
     RegisterDenseLinearSolvers();
 
     using complex = std::complex<double>;

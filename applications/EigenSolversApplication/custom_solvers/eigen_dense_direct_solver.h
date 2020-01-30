@@ -38,8 +38,6 @@ private:
 
     EigenDenseDirectSolver(const EigenDenseDirectSolver &Other);
 
-    // UblasWrapper<typename TSolverType::Scalar> m_a_wrapper;
-
 public:
     KRATOS_CLASS_POINTER_DEFINITION(EigenDenseDirectSolver);
 
