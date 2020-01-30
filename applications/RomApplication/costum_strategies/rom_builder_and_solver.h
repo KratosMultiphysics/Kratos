@@ -345,6 +345,9 @@ public:
             bool element_is_active = true;
             if ((it_el)->IsDefined(ACTIVE))
                 element_is_active = (it_el)->Is(ACTIVE);
+            //detect if the element has a Hyperreduced Weight (H-ROM simulation) or not (ROM simulation)
+            if (!((it_el)->Has(HROM_WEIGHT)))
+                it_el->SetValue(HROM_WEIGHT, 1.0);           
 
             if (element_is_active){
                 //calculate elemental contribution
@@ -365,9 +368,11 @@ public:
                             row(PhiElemental, i * mNodalDofs + k) = row(rom_nodal_basis, k);
                     }
                 }
+                double H_ROM_WEIGHT = it_el->GetValue(HROM_WEIGHT);
                 Matrix aux = prod(LHS_Contribution, PhiElemental);
-                noalias(Arom) += prod(trans(PhiElemental), aux);
-                noalias(brom) += prod(trans(PhiElemental), RHS_Contribution);
+
+                noalias(Arom) += prod(trans(PhiElemental), aux) * H_ROM_WEIGHT;
+                noalias(brom) += prod(trans(PhiElemental), RHS_Contribution) * H_ROM_WEIGHT;
 
                 // clean local elemental me overridemory
                 pScheme->CleanMemory(*(it_el.base()));
@@ -382,6 +387,9 @@ public:
             bool condition_is_active = true;
             if ((it)->IsDefined(ACTIVE))
                 condition_is_active = (it)->Is(ACTIVE);
+            //detect if the condition has a Hyperreduced Weight (H-ROM simulation) or not (ROM simulation)
+            if (!((it)->Has(HROM_WEIGHT)))
+                it->SetValue(HROM_WEIGHT, 1.0);   
 
             if (condition_is_active){
                 Condition::DofsVectorType dofs;
@@ -403,9 +411,11 @@ public:
                             row(PhiElemental, i * mNodalDofs + k) = row(rom_nodal_basis, k);
                     }
                 }
+                double H_ROM_WEIGHT = it->GetValue(HROM_WEIGHT);
                 Matrix aux = prod(LHS_Contribution, PhiElemental);
-                noalias(Arom) += prod(trans(PhiElemental), aux);
-                noalias(brom) += prod(trans(PhiElemental), RHS_Contribution);
+
+                noalias(Arom) += prod(trans(PhiElemental), aux) * H_ROM_WEIGHT;
+                noalias(brom) += prod(trans(PhiElemental), RHS_Contribution) * H_ROM_WEIGHT;
 
                 // clean local elemental memory
                 pScheme->CleanMemory(*(it.base()));
