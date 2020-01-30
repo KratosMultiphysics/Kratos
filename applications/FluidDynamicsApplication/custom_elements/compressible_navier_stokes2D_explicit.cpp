@@ -2016,10 +2016,8 @@ void CompressibleNavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<doub
 	dAdU[cont(3,1,2,2,4,2,4,4)] = (2*dpdm2 + d2pdm22*m2_el)/ro_el;
 	dAdU[cont(3,1,2,3,4,2,4,4)] = (1 + dpde)/ro_el;
 
-	dAdU[cont(3,1,3,0,4,2,4,4)] = (-1 - dpde)*m2_el/(ro_el*ro_el);
+	dAdU[cont(3,1,3,0,4,2,4,4)] = (-1.0 - dpde)*m2_el/(ro_el*ro_el);
 	dAdU[cont(3,1,3,2,4,2,4,4)] = (1.0 + dpde)/ro_el;
-
-
 
 
 
