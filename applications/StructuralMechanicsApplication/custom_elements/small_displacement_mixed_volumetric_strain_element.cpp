@@ -327,7 +327,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
     Vector psi_j(dim);
     Vector m_T(strain_size);
     Vector transBi_C_invT_m(dim);
-    Matrix m_T_tau_1(dim,dim);
+    // Matrix m_T_tau_1(dim,dim);
     Matrix B_i(strain_size, dim);
     Matrix B_j(strain_size, dim);
 
@@ -372,11 +372,16 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
         double det;
         Matrix tau_1_mat(dim, dim);
         MathUtils<double>::InvertMatrix(aux, tau_1_mat, det);
-        m_T_tau_1 = prod(m_T_tensor, tau_1_mat);
+        double m_T_tau_1 = 0.0;
+        for (IndexType i = 0; i < dim; ++i) {
+            for (IndexType j = 0; j < dim; ++j) {
+                m_T_tau_1 += m_T_tensor(i,j) * tau_1_mat(i,j);
+            }
+        }
 
         // Calculate tau_2 stabilization constant
         const double shear_modulus = CalculateLinearisedShearModulus(constitutive_variables);
-        const double tau_2 = std::min(1.0e-2, 4.0*shear_modulus/bulk_modulus);
+        const double tau_2 = std::min(2.0e-1, 4.0*shear_modulus/bulk_modulus);
 
         // Calculate the volumetric residual
         // double div_u_gauss = 0.0;
@@ -396,7 +401,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
         // const Vector C_m_voigt = prod(cons_law_values.GetConstitutiveMatrix(), voigt_identity);
         const Vector grad_eps = prod(trans(kinematic_variables.DN_DX), kinematic_variables.VolumetricNodalStrains);
         // const Vector tau_1_body = prod(tau_1_mat, body_force);
-        const Vector m_T_tau_1_body = prod(m_T_tau_1, body_force);
+        const Vector m_T_tau_1_body = m_T_tau_1 * body_force;
 
         for (IndexType i = 0; i < n_nodes; ++i) {
             const double N_i = kinematic_variables.N[i];
@@ -422,7 +427,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
             // (already includes mass conservation divergence contribution (eps_vol x div(u)))
             // rhs_mass_i = w_gauss * (1 - tau_2) * bulk_modulus * N_i * vol_residual;
             // Add the divergence mass stabilization term (grad(eps_vol) x grad(eps_vol)) to the RHS
-            rhs_mass_i = w_gauss * std::pow(bulk_modulus, 2) * inner_prod(G_i, Vector(prod(m_T_tau_1, grad_eps)));
+            rhs_mass_i = w_gauss * std::pow(bulk_modulus, 2) * m_T_tau_1 * inner_prod(G_i, grad_eps);
             // rhs_mass_i += w_gauss * std::pow(bulk_modulus, 2) * inner_prod(G_i, Vector(prod(tau_1_mat, grad_eps)));
             // rhs_mass_i += w_gauss * std::pow(bulk_modulus, 2) * inner_prod(G_i, Vector(prod(tau_1_mat, grad_eps)));
             // Add the divergence mass stabilization term (grad(eps_vol) x body_force) to the RHS
@@ -463,7 +468,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
                 // lhs_eu_ij = w_gauss * (1 - tau_2) * bulk_modulus * N_i * G_j;
                 // Add mass conservation volumetric strain LHS contribution
                 lhs_ee_ij = - w_gauss * (1 - tau_2) * bulk_modulus * N_i * N_j;
-                lhs_ee_ij -= w_gauss * std::pow(bulk_modulus, 2) * inner_prod(G_i, Vector(prod(m_T_tau_1, G_j)));
+                lhs_ee_ij -= w_gauss * std::pow(bulk_modulus, 2) * m_T_tau_1 * inner_prod(G_i, G_j);
                 // lhs_ee_ij -= w_gauss * std::pow(bulk_modulus, 2) * inner_prod(G_i, Vector(prod(tau_1_mat, G_j)));
 
                 // Assemble the LHS contributions
@@ -985,11 +990,19 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateAnisotropyTensor(co
     const Matrix K = I - J;
     const Matrix &rC = constitutive_variables.D;
     const double k_iso = (dim == 2) ?
-        0.25 * (rC(0,0) + 2.0 * rC(0,1) + rC(1,1)) :
-        (1.0 / 9.0) * (rC(0,0) + 2*rC(0,1) + 2*rC(0,2) + rC(1,1) + 2*rC(1,2) + rC(2,2));
+        (2.0/3.0) * (rC(0,0) + 2.0 * rC(0,1) + rC(1,1)) :
+        rC(0,0) + 2*rC(0,1) + 2*rC(0,2) + rC(1,1) + 2*rC(1,2) + rC(2,2);
     const double mu_iso = (dim == 2) ?
         0.2 * (rC(0,0) - 2.0*rC(0,1) + rC(1,1) + rC(2,2)) :
         (4.0 / 33.0)*(rC(0,0) - rC(0,1) - rC(0,2) + rC(1,1) - rC(1,2) + rC(2,2) + (3.0/4.0)*(rC(3,3) + rC(4,4) + rC(5,5)));
+
+    // Inconsistent bulk minimization
+    // const double k_iso = (dim == 2) ?
+    //     0.25 * (rC(0,0) + 2.0 * rC(0,1) + rC(1,1)) :
+    //     (1.0 / 9.0) * (rC(0,0) + 2*rC(0,1) + 2*rC(0,2) + rC(1,1) + 2*rC(1,2) + rC(2,2));
+    // const double mu_iso = (dim == 2) ?
+    //     0.2 * (rC(0,0) - 2.0*rC(0,1) + rC(1,1) + rC(2,2)) :
+    //     (4.0 / 33.0)*(rC(0,0) - rC(0,1) - rC(0,2) + rC(1,1) - rC(1,2) + rC(2,2) + (3.0/4.0)*(rC(3,3) + rC(4,4) + rC(5,5)));
 
     // Without considering the K as a constraint (original one)
     // const double k_iso = (dim == 2) ?
@@ -1015,6 +1028,10 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateAnisotropyTensor(co
     MathUtils<double>::InvertMatrix(b, inv_b, det_b);
     mAnisotropyTensor = prod(inv_b, a);
 
+    Vector m = ZeroVector(3);
+    m(0) = 1.0;
+    m(1) = 1.0;
+
     if (Id() == 1) {
         KRATOS_WATCH(I)
         KRATOS_WATCH(J)
@@ -1033,6 +1050,10 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateAnisotropyTensor(co
         strain(1) = 1.0 / std::sqrt(2);
         KRATOS_WATCH(prod(C_iso,strain))
         KRATOS_WATCH(norm_2(prod(C_iso,strain)))
+        KRATOS_WATCH("")
+        KRATOS_WATCH(prod(m,mAnisotropyTensor))
+        KRATOS_WATCH(prod(m,trans(mAnisotropyTensor)))
+        KRATOS_WATCH("")
     }
 
     // mAnisotropyTensor(0,0) = 1.30449197; mAnisotropyTensor(0,1) = 0.12977382; mAnisotropyTensor(0,2) = 0.34942429;
