@@ -157,7 +157,8 @@ class PotentialFlowSolver(FluidSolver):
         self._ComputeNodalNeighbours()
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        if "incompressible" in self.settings["formulation"]["element_type"].GetString() and not self.settings["formulation"].Has("penalty_coefficient"):
+        strategy = self._GetStrategyType()
+        if strategy == "linear":
             # TODO: Rename to self.strategy once we upgrade the base FluidDynamicsApplication solvers
             self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
             self.GetComputingModelPart(),
@@ -167,7 +168,7 @@ class PotentialFlowSolver(FluidSolver):
             self.settings["reform_dofs_at_each_step"].GetBool(),
             self.settings["calculate_solution_norm"].GetBool(),
             self.settings["move_mesh_flag"].GetBool())
-        elif "compressible" in self.settings["formulation"]["element_type"].GetString() or self.settings["formulation"].Has("penalty_coefficient"):
+        elif strategy == "non_linear":
             conv_criteria = KratosMultiphysics.ResidualCriteria(
                 self.settings["relative_tolerance"].GetDouble(),
                 self.settings["absolute_tolerance"].GetDouble())
@@ -197,3 +198,19 @@ class PotentialFlowSolver(FluidSolver):
         avg_node_num = 10
         KratosMultiphysics.FindNodalNeighboursProcess(
             self.main_model_part, avg_elem_num, avg_node_num).Execute()
+
+    def _GetStrategyType(self):
+        element_type = self.settings["formulation"]["element_type"].GetString()
+        if "incompressible" in element_type:
+            if not self.settings["formulation"].Has("penalty_coefficient"):
+                strategy = "linear"
+            elif self.settings["formulation"]["penalty_coefficient"].GetDouble() == 0.0:
+                strategy = "linear"
+            else:
+                strategy = "non_linear"
+        elif "compressible" in element_type:
+            strategy = "non_linear"
+        else:
+            strategy = ""
+
+        return strategy
