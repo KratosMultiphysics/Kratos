@@ -104,9 +104,9 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], -0.04198874676923284, 0.0, 1e-9)
             self._runTest(settings_adjoint_file_name)
             self._runTest(settings_penalty_file_name)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.006485612965939316, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.5680459498767206, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], -0.05856936683947716, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.12976919914058177, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.4636936459965071, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.08091879125682809, 0.0, 1e-9)
 
             for file_name in os.listdir(os.getcwd()):
                 if file_name.endswith(".h5"):
