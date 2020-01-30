@@ -62,7 +62,9 @@ jobs:
 
     - name: Build
       run: |
-        sh /opt/intel/mkl/bin/mklvars.sh intel64 lp64
+        . /opt/intel/mkl/bin/mklvars.sh intel64 lp64
+        echo $MKLROOT
+        echo "test"
         cp .github/workflows/configure.sh configure.sh
         bash configure.sh
         ccache -s
@@ -70,7 +72,6 @@ jobs:
     - name: Running small tests
       if: github.event_name == 'pull_request'
       run: |
-        /bin/bash -c "source /opt/intel/mkl/bin/mklvars.sh intel64 lp64"
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/run_tests.py -l small -c python3
@@ -78,7 +79,6 @@ jobs:
     - name: Running nightly tests
       if: github.event_name == 'schedule' # this is the nightly build
       run: |
-        /bin/bash -c "source /opt/intel/mkl/bin/mklvars.sh intel64 lp64"
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/run_tests.py -l nightly -c python3
