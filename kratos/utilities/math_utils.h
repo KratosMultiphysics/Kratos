@@ -1818,7 +1818,7 @@ public:
 
     /**
      * @brief Calculates the square root of a matrix
-     * This function calculates the square root of a matrix by doing an eigenvalue decomposition
+     * @details This function calculates the square root of a matrix by doing an eigenvalue decomposition
      * The square root of a matrix A is defined as A = V*S*inv(V) where A is the eigenvectors matrix
      * and S the diagonal matrix containing the square root of the eigenvalues. Note that the previous
      * expression can be rewritten as A = V*S*trans(V) since V is orthogonal.
