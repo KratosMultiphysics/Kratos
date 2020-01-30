@@ -674,8 +674,7 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensity(const Pro
     double v_2 = inner_prod(v, v);
 
     // Computing local mach number
-    const double u = sqrt(v_2);
-    const double M = u / a_inf;
+    const double M = PotentialFlowUtilities::ComputeLocalMachNumber<Dim, NumNodes>(*this, rCurrentProcessInfo);
 
     if (M > 0.94)
     { // Clamping the mach number to 0.94
