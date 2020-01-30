@@ -1118,7 +1118,7 @@ bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
                 }
                 if (!check) {
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
-                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "is considering a not compatible CL" << std::endl; 
+                    KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << " is considering a not compatible CL" << std::endl; 
                     return false;
                 }
             }
@@ -1156,7 +1156,7 @@ bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
                         }
                         if (!check) {
                             CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
-                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "is considering a not compatible CL" << std::endl; 
+                            KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << " is considering a not compatible CL" << std::endl; 
                             return false;
                         }
                     }
