@@ -990,11 +990,19 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateAnisotropyTensor(co
     const Matrix K = I - J;
     const Matrix &rC = constitutive_variables.D;
     const double k_iso = (dim == 2) ?
-        0.25 * (rC(0,0) + 2.0 * rC(0,1) + rC(1,1)) :
-        (1.0 / 9.0) * (rC(0,0) + 2*rC(0,1) + 2*rC(0,2) + rC(1,1) + 2*rC(1,2) + rC(2,2));
+        (2.0/3.0) * (rC(0,0) + 2.0 * rC(0,1) + rC(1,1)) :
+        rC(0,0) + 2*rC(0,1) + 2*rC(0,2) + rC(1,1) + 2*rC(1,2) + rC(2,2);
     const double mu_iso = (dim == 2) ?
         0.2 * (rC(0,0) - 2.0*rC(0,1) + rC(1,1) + rC(2,2)) :
         (4.0 / 33.0)*(rC(0,0) - rC(0,1) - rC(0,2) + rC(1,1) - rC(1,2) + rC(2,2) + (3.0/4.0)*(rC(3,3) + rC(4,4) + rC(5,5)));
+
+    // Inconsistent bulk minimization
+    // const double k_iso = (dim == 2) ?
+    //     0.25 * (rC(0,0) + 2.0 * rC(0,1) + rC(1,1)) :
+    //     (1.0 / 9.0) * (rC(0,0) + 2*rC(0,1) + 2*rC(0,2) + rC(1,1) + 2*rC(1,2) + rC(2,2));
+    // const double mu_iso = (dim == 2) ?
+    //     0.2 * (rC(0,0) - 2.0*rC(0,1) + rC(1,1) + rC(2,2)) :
+    //     (4.0 / 33.0)*(rC(0,0) - rC(0,1) - rC(0,2) + rC(1,1) - rC(1,2) + rC(2,2) + (3.0/4.0)*(rC(3,3) + rC(4,4) + rC(5,5)));
 
     // Without considering the K as a constraint (original one)
     // const double k_iso = (dim == 2) ?
@@ -1020,6 +1028,10 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateAnisotropyTensor(co
     MathUtils<double>::InvertMatrix(b, inv_b, det_b);
     mAnisotropyTensor = prod(inv_b, a);
 
+    Vector m = ZeroVector(3);
+    m(0) = 1.0;
+    m(1) = 1.0;
+
     if (Id() == 1) {
         KRATOS_WATCH(I)
         KRATOS_WATCH(J)
@@ -1038,6 +1050,10 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateAnisotropyTensor(co
         strain(1) = 1.0 / std::sqrt(2);
         KRATOS_WATCH(prod(C_iso,strain))
         KRATOS_WATCH(norm_2(prod(C_iso,strain)))
+        KRATOS_WATCH("")
+        KRATOS_WATCH(prod(m,mAnisotropyTensor))
+        KRATOS_WATCH(prod(m,trans(mAnisotropyTensor)))
+        KRATOS_WATCH("")
     }
 
     // mAnisotropyTensor(0,0) = 1.30449197; mAnisotropyTensor(0,1) = 0.12977382; mAnisotropyTensor(0,2) = 0.34942429;
