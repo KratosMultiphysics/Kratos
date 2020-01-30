@@ -80,15 +80,7 @@ namespace SpecificationsUtilities
         {"Point3D",GeometryData::KratosGeometryType::Kratos_Point3D},
         {"Sphere3D1",GeometryData::KratosGeometryType::Kratos_Sphere3D1}
     }; 
-    
-    // Definition of the map between the CL type and the corresponding flags
-    static std::unordered_map<std::string, Flags> string_cl_type_map = {
-        {"PlaneStress",ConstitutiveLaw::PLANE_STRESS_LAW},
-        {"PlaneStrain",ConstitutiveLaw::PLANE_STRAIN_LAW},
-        {"Axisymmetric",ConstitutiveLaw::AXISYMMETRIC_LAW},
-        {"ThreeDimensional",ConstitutiveLaw::THREE_DIMENSIONAL_LAW}
-    }; 
-    
+
     // Definition of the map between the dimension and integers
     static std::unordered_map<std::string, std::size_t> string_dimension_map = {
         {"2D",2},

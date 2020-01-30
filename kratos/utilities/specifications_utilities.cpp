@@ -1109,9 +1109,12 @@ bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
                     // Getting features
                     p_cl->GetLawFeatures(features);
                     
+                    // Getting flag
+                    const Flags* p_flag_considered = r_type == "ThreeDimensional" ?  &ConstitutiveLaw::THREE_DIMENSIONAL_LAW : r_type == "PlaneStrain" ? &ConstitutiveLaw::PLANE_STRAIN_LAW : r_type == "PlaneStress" ? &ConstitutiveLaw::PLANE_STRESS_LAW : &ConstitutiveLaw::AXISYMMETRIC_LAW; // NOTE: "Axisymmetric"
+                    
                     if (p_cl->GetStrainSize() == strain_size &&
                         p_cl->WorkingSpaceDimension() == string_dimension_map[r_dimension] &&
-                        features.mOptions.Is( string_cl_type_map[r_type] )
+                        features.mOptions.Is( *p_flag_considered )
                     ) {
                         check = true;
                     }
@@ -1147,9 +1150,12 @@ bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
                             // Getting features
                             p_cl->GetLawFeatures(features);
                             
+                            // Getting flag
+                            const Flags* p_flag_considered = r_type == "ThreeDimensional" ?  &ConstitutiveLaw::THREE_DIMENSIONAL_LAW : r_type == "PlaneStrain" ? &ConstitutiveLaw::PLANE_STRAIN_LAW : r_type == "PlaneStress" ? &ConstitutiveLaw::PLANE_STRESS_LAW : &ConstitutiveLaw::AXISYMMETRIC_LAW; // NOTE: "Axisymmetric"
+                            
                             if (p_cl->GetStrainSize() == strain_size &&
                                 p_cl->WorkingSpaceDimension() == string_dimension_map[r_dimension] &&
-                                features.mOptions.Is( string_cl_type_map[r_type] )
+                                features.mOptions.Is( *p_flag_considered )
                             ) {
                                 check = true;
                             }
