@@ -31,14 +31,15 @@ void GenerateCompressibleElement(ModelPart& rModelPart) {
 
     // Set the element properties
     Properties::Pointer pElemProp = rModelPart.CreateNewProperties(0);
-    BoundedVector<double, 3> v_inf = ZeroVector(3);
-    v_inf(0) = 34.0;
 
-    rModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY] = v_inf;
     rModelPart.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.225;
-    rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.1;
+    rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
     rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
     rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
+
+    BoundedVector<double, 3> v_inf = ZeroVector(3);
+    v_inf(0) = rModelPart.GetProcessInfo().GetValue(FREE_STREAM_MACH) * rModelPart.GetProcessInfo().GetValue(SOUND_VELOCITY);
+    rModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY] = v_inf;
 
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -117,21 +118,23 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHS, CompressiblePoten
     Element::Pointer pElement = model_part.pGetElement(1);
 
     // Define the nodal values
-    std::array<double, 3> potential;
-    potential[0] = 1.0;
-    potential[1] = 2.0;
-    potential[2] = 3.0;
+    std::array<double, 3> potential({1.0,200.0,300.0});
 
     for (unsigned int i = 0; i < 3; i++) {
         pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
     }
+
     // Compute RHS and LHS
     Vector RHS = ZeroVector(3);
     Matrix LHS = ZeroMatrix(3, 3);
 
     pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+    std::cout.precision(9);
+    // std::cout << std::scientific;
+    // std::cout << std::showpos;
+    KRATOS_WATCH(LHS)
 
-    std::array<double, 9> reference({0.615556466, -0.615561780, 5.314318652e-06, -0.615561780, 1.231123561, -0.615561780, 5.314318652e-06, -0.615561780, 0.615556466});
+    std::array<double, 9> reference({0.728762551, -0.728768432, 5.88082606e-06, -0.728768432, 1.45753686, -0.728768432, 5.88082606e-06, -0.728768432, 0.728762551});
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
