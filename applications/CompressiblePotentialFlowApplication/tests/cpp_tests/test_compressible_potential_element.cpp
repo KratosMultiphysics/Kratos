@@ -18,14 +18,13 @@
 #include "custom_elements/compressible_potential_flow_element.h"
 #include "custom_elements/embedded_compressible_potential_flow_element.h"
 
-namespace Kratos{
-namespace Testing{
+namespace Kratos {
+namespace Testing {
 
 typedef ModelPart::IndexType IndexType;
 typedef ModelPart::NodeIterator NodeIteratorType;
 
-void GenerateCompressibleElement(ModelPart& rModelPart)
-{
+void GenerateCompressibleElement(ModelPart& rModelPart) {
     // Variables addition
     rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
     rModelPart.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
@@ -49,8 +48,7 @@ void GenerateCompressibleElement(ModelPart& rModelPart)
     rModelPart.CreateNewElement("CompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
 }
 
-void GenerateCompressibleEmbeddedElement(ModelPart& rModelPart)
-{
+void GenerateCompressibleEmbeddedElement(ModelPart& rModelPart) {
     // Variables addition
     rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
     rModelPart.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
@@ -79,8 +77,7 @@ void GenerateCompressibleEmbeddedElement(ModelPart& rModelPart)
 /** Checks the IncompressiblePotentialFlowElement element.
  * Checks the LHS and RHS computation.
  */
-KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementRHS, CompressiblePotentialApplicationFastSuite)
-{
+KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementRHS, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
@@ -112,8 +109,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementRHS, CompressiblePoten
 /** Checks the IncompressiblePotentialFlowElement element.
  * Checks the LHS and RHS computation.
  */
-KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite)
-{
+KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
@@ -144,8 +140,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHS, CompressiblePoten
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocalSystemRHS, CompressiblePotentialApplicationFastSuite)
-{
+KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocalSystemRHS, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
@@ -173,8 +168,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocal
     KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-6);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocalSystemLHS, CompressiblePotentialApplicationFastSuite)
-{
+KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocalSystemLHS, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
@@ -208,8 +202,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocal
     KRATOS_CHECK_MATRIX_NEAR(LHS, reference, 1e-6);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementRHSWake, CompressiblePotentialApplicationFastSuite)
-{
+KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementRHSWake, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
