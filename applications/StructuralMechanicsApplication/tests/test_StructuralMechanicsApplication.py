@@ -33,6 +33,8 @@ from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchT
 from test_quadratic_elements import TestQuadraticElements as TTestQuadraticElements
 from test_patch_test_shells import TestPatchTestShells as TTestPatchTestShells
 from test_patch_test_truss import TestTruss3D2N as TTestTruss3D2N
+from test_patch_test_membrane import StaticPatchTestMembrane as TStaticPatchTestMembrane
+from test_patch_test_membrane import DynamicPatchTestMembrane as TDynamicPatchTestMembrane
 from test_patch_test_cr_beam import DynamicPatchTestBeam3D2N as TDynamicPatchTestBeam3D2N
 from test_patch_test_cr_beam import StaticPatchTestBeam3D2N as TStaticPatchTestBeam3D2N
 from test_patch_test_cr_beam import DynamicPatchTestBeam2D2N as TDynamicPatchTestBeam2D2N
@@ -279,6 +281,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShells]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsStressRec])) # TODO should be in smallSuite but is too slow
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsOrthotropic])) # TODO should be in smallSuite but is too slow
+    # Membranes
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicPatchTestMembrane]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TStaticPatchTestMembrane]))
     # Formfinding
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestFormfinding]))
     # Trusses
