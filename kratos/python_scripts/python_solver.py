@@ -191,9 +191,13 @@ class PythonSolver(object):
             problem_path = os.getcwd()
             input_filename = model_part_import_settings["input_filename"].GetString()
 
+            echo_level = 0
+            if model_part_import_settings.Has("echo_level"):
+                echo_level = model_part_import_settings["physics_input_type"].GetInt()
+
             # Import model part from mdpa file.
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading CAD model from file: " + os.path.join(problem_path, input_filename) + ".json")
-            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(model_part)
+            KratosMultiphysics.ModelPartIO(input_filename, echo_level).ReadModelPart(model_part)
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading CAD model.")
 
             # Create integration domain and elements.
@@ -203,7 +207,7 @@ class PythonSolver(object):
                     physics_filename = model_part_import_settings["physics_file_name"].GetString()
                     KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Creating integration domain, elements and conditions from file: "
                         + os.path.join(problem_path, physics_filename) + ".ph.json")
-                    KratosMultiphysics.CadIntegrationDomain.CreateIntegrationDomain(physics_filename, model_part)
+                    KratosMultiphysics.CadIntegrationDomain.CreateIntegrationDomain(physics_filename, model_part, echo_level)
                     KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished creation of integration domain, elements and conditions.")
                 else:
                     KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Unknown physics input type: " + physics_input_type)
