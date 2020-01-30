@@ -21,9 +21,11 @@
 #include "includes/define.h"
 #include "spaces/ublas_space.h"
 #include "includes/ublas_interface.h"
+#include "includes/ublas_complex_interface.h"
 
 //Utilities
 #include "custom_utilities/generalized_eigenvalue_utility.hpp"
+#include "custom_utilities/complex_sort_utility.hpp"
 
 
 namespace Kratos {
@@ -34,6 +36,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     namespace py = pybind11;
 
 	m.def("ComputeGeneralizedEigenvalues", &GeneralizedEigenvalueUtility::Compute<TUblasDenseSpace<double>>);
+    m.def("PairComplexConjugates", &ComplexSortUtility::PairComplexConjugates<ComplexVector>, py::arg(), py::arg("tol") = std::numeric_limits<double>::epsilon()*100);
        
 }
 

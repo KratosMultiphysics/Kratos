@@ -7,6 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 from generalTests import KratosMORGeneralTests
+from test_mor_utilities import TestMORUtilities
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -24,27 +25,16 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     # Create a test suit with the selected tests (Small tests):
-    # smallSuite will contain the following tests:
-    # - testSmallExample
     smallSuite = suites['small']
-    smallSuite.addTest(KratosMORGeneralTests('testSmallExample'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMORUtilities]))
 
     # Create a test suit with the selected tests
-    # nightSuite will contain the following tests:
-    # - testSmallExample
-    # - testNightlyFirstExample
-    # - testNightlySecondExample
     nightSuite = suites['nightly']
-    nightSuite.addTests(KratosMORGeneralTests)
+    nightSuite.addTests(smallSuite)
 
     # Create a test suit that contains all the tests from every testCase
-    # in the list:
     allSuite = suites['all']
-    allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            KratosMORGeneralTests
-        ])
-    )
+    allSuite.addTests(nightSuite)
 
     return suites
 
