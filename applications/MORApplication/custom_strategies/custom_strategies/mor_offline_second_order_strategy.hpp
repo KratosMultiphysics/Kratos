@@ -524,29 +524,13 @@ class MorOfflineSecondOrderStrategy
         r_output_vector_r.resize( reduced_system_size, false);
         r_output_vector_r = prod( r_output_vector, r_basis );
 
-        TReducedDenseMatrixType basis_herm;
-        TReducedDenseSpace::Resize(basis_herm, reduced_system_size, system_size);
-        TReducedDenseMatrixType T;
-        TReducedDenseSpace::Resize(T, reduced_system_size, system_size);
-
-        noalias(basis_herm) = herm(r_basis);
-
-        noalias(T) = prod( basis_herm, r_K );
-        noalias(r_stiffness_matrix_reduced) = prod( T, r_basis );
-
-        noalias(T) = prod( basis_herm, r_M );
-        noalias(r_mass_matrix_reduced) = prod( T, r_basis );
-
+        ProjectMatrix(r_K, r_basis, r_stiffness_matrix_reduced);
+        ProjectMatrix(r_M, r_basis, r_mass_matrix_reduced);
         if (mUseDamping)
-        {
-            noalias(T) = prod( basis_herm, r_D );
-            noalias(r_damping_matrix_reduced) = prod( T, r_basis );
-        }
+            ProjectMatrix(r_D, r_basis, r_damping_matrix_reduced);
 
         KRATOS_INFO_IF("System Projection Time", BaseType::GetEchoLevel() > 0 && rank == 0)
             << system_projection_time.ElapsedSeconds() << std::endl;
-
-
 
         //Finalisation of the solution step,
         //operations to be done after achieving convergence, for example the
@@ -1000,10 +984,23 @@ class MorOfflineSecondOrderStrategy
      */
     void ProjectMatrix(TSystemMatrixType& rA, ComplexMatrix& rV, ComplexMatrix& rX)
     {
-        // noalias(VH) = herm(V);
+        const size_t system_size = rV.size1();
+        const size_t reduced_system_size = rV.size2();
+        ComplexVector v_col = ComplexZeroVector(system_size);
+        ComplexVector tmp_1 = ComplexZeroVector(system_size);
+        ComplexVector tmp_2 = ComplexZeroVector(reduced_system_size);
+        ComplexMatrix rVH = ComplexZeroMatrix(reduced_system_size, system_size);
+        noalias(rVH) = herm(rV);
 
-        // noalias(T) = prod( VH, A );
-        // noalias(X) = prod( T, V );
+        #pragma omp parallel for firstprivate(v_col, tmp_1, tmp_2) schedule(static)
+        for( int i=0; i<static_cast<int>(reduced_system_size); ++i )
+        {
+            noalias(v_col) = column(rV,i);
+
+            axpy_prod(rA, v_col, tmp_1, true);      // A*V  (=T)
+            axpy_prod(rVH, tmp_1, tmp_2, true);     // V^H * T
+            noalias(column(rX, i)) = tmp_2;         // X = V^H A V
+        }
     }
 
     /**
@@ -1011,13 +1008,13 @@ class MorOfflineSecondOrderStrategy
      */
     void ProjectMatrix(TSystemMatrixType& rA, Matrix& rV, Matrix& rX)
     {
-        const int reduced_system_size = static_cast<int>(rV.size2());
+        const size_t reduced_system_size = rV.size2();
         Vector v_col = ZeroVector(rV.size1());
         Vector tmp_1 = ZeroVector(rV.size1());
         Vector tmp_2 = ZeroVector(rV.size2());
 
         #pragma omp parallel for firstprivate(v_col, tmp_1, tmp_2) schedule(static)// nowait
-        for( int i=0; i<reduced_system_size; ++i )
+        for( int i=0; i<static_cast<int>(reduced_system_size); ++i )
         {
             noalias(v_col) = column(rV,i);
 
