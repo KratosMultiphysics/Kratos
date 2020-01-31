@@ -1,7 +1,7 @@
 # import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication
-import KratosMultiphysics.CompressiblePotentialFlowApplication
+from KratosMultiphysics import *
+from KratosMultiphysics.CompressiblePotentialFlowApplication import *
 
 ##### SMALL TESTS #####
 from potential_flow_test_factory import PotentialFlowTests
