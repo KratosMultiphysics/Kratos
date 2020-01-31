@@ -370,6 +370,7 @@ Parameters ReadMaterialsUtility::FilterFailingVariablesIfRequired(
                 KRATOS_WARNING("Read materials") << "The variable property: " << variable_name << " for material ID: " << PropertyId << " is not a registered variable. It will be skipped, and assumed that this value will be processed later" << std::endl;
             }
         }
+        return variables_considered;
     } else {
         return VariablesParameters;
     }
