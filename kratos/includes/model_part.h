@@ -1353,10 +1353,32 @@ public:
         return mGeometries.NumberOfGeometries();
     }
 
+    /** 
+     * @◙brief Inserts an geometry in the current model part
+     * @param GeometryName The name of the geometry to be added, must be registered
+     * @param Id The id of the new geometry added
+     * @param GeometryNodeIds The noddes ids to create the geometry
+     */
+    GeometryType::Pointer CreateNewGeometry(
+        std::string GeometryName, 
+        IndexType Id, 
+        std::vector<IndexType> GeometryNodeIds
+        );
 
+    /** 
+     * @◙brief Inserts an geometry in the current model part
+     * @param GeometryName The name of the geometry to be added, must be registered
+     * @param Id The id of the new geometry added
+     * @param pGeometryNodes The nodes array to create the geometry
+     */
+    GeometryType::Pointer CreateNewGeometry(
+        std::string GeometryName, 
+        IndexType Id, 
+        GeometryType::PointsArrayType pGeometryNodes
+        );
+    
     /// Adds a geometry to the geometry container.
     void AddGeometry(typename GeometryType::Pointer pNewGeometry);
-
 
     /// Returns the Geometry::Pointer corresponding to the Id
     typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) {

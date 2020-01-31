@@ -1594,6 +1594,57 @@ void ModelPart::RemoveConditionsFromAllLevels(Flags IdentifierFlag)
 ///@name Geometry Container
 ///@{
 
+ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
+    std::string GeometryName, 
+    IndexType Id, 
+    std::vector<IndexType> GeometryNodeIds
+    )
+{
+    if (IsSubModelPart()) {
+        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(GeometryName, Id, GeometryNodeIds);
+        this->AddGeometry(p_new_geometry);
+        return p_new_geometry;
+    }
+
+    GeometryType::PointsArrayType p_geometry_nodes;
+    for (IndexType i = 0; i < GeometryNodeIds.size(); ++i) {
+        p_geometry_nodes.push_back(pGetNode(GeometryNodeIds[i]));
+    }
+
+    return CreateNewGeometry(GeometryName, Id, p_geometry_nodes);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
+    std::string GeometryName, 
+    IndexType Id, 
+    GeometryType::PointsArrayType pGeometryNodes
+    )
+{
+    KRATOS_TRY
+    
+    if (IsSubModelPart()) {
+        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(GeometryName, Id, pGeometryNodes);
+        this->AddGeometry(p_new_geometry);
+        return p_new_geometry;
+    }
+
+    KRATOS_ERROR_IF(this->HasGeometry(Id)) << "Trying to construct an geometry with ID " << Id << " however an geometry with the same Id already exists" << std::endl;
+
+    // Create the new geometry
+    GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(GeometryName);
+    GeometryType::Pointer p_geometry = r_clone_geometry.Create(Id, pGeometryNodes);
+
+    //add the new geometry
+    this->AddGeometry(p_geometry);
+
+    return p_geometry;
+    
+    KRATOS_CATCH("")
+}
+
 /// Adds a geometry to the geometry container.
 void ModelPart::AddGeometry(
     typename GeometryType::Pointer pNewGeometry)
