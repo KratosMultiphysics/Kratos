@@ -57,10 +57,10 @@ namespace Kratos {
         Condition::Pointer p_cond_2 = rModelPart.CreateNewCondition("Condition2D2N", 3, PointerVector<NodeType>{condition_nodes_2}, p_elem_prop);
         Condition::Pointer p_cond_3 = rModelPart.CreateNewCondition("Condition2D2N", 4, PointerVector<NodeType>{condition_nodes_3}, p_elem_prop);
 
-        rModelPart.CreateNewGeometry("Line2D2N", 1, PointerVector<NodeType>{condition_nodes_0});
-        rModelPart.CreateNewGeometry("Line2D2N", 2, PointerVector<NodeType>{condition_nodes_1});
-        rModelPart.CreateNewGeometry("Line2D2N", 3, PointerVector<NodeType>{condition_nodes_2});
-        rModelPart.CreateNewGeometry("Line2D2N", 4, PointerVector<NodeType>{condition_nodes_3});
+        rModelPart.CreateNewGeometry("Line2D2", 1, PointerVector<NodeType>{condition_nodes_0});
+        rModelPart.CreateNewGeometry("Line2D2", 2, PointerVector<NodeType>{condition_nodes_1});
+        rModelPart.CreateNewGeometry("Line2D2", 3, PointerVector<NodeType>{condition_nodes_2});
+        rModelPart.CreateNewGeometry("Line2D2", 4, PointerVector<NodeType>{condition_nodes_3});
         
         // Now we create the "elements"
         std::vector<NodeType::Pointer> element_nodes_0 (3);
@@ -88,10 +88,10 @@ namespace Kratos {
         Element::Pointer p_elem_2 = rModelPart.CreateNewElement("Element2D3N", 3, PointerVector<NodeType>{element_nodes_2}, p_elem_prop);
         Element::Pointer p_elem_3 = rModelPart.CreateNewElement("Element2D3N", 4, PointerVector<NodeType>{element_nodes_3}, p_elem_prop);
         
-        rModelPart.CreateNewGeometry("Triangle2D3N", 5, PointerVector<NodeType>{element_nodes_0});
-        rModelPart.CreateNewGeometry("Triangle2D3N", 6, PointerVector<NodeType>{element_nodes_1});
-        rModelPart.CreateNewGeometry("Triangle2D3N", 7, PointerVector<NodeType>{element_nodes_2});
-        rModelPart.CreateNewGeometry("Triangle2D3N", 8, PointerVector<NodeType>{element_nodes_3});
+        rModelPart.CreateNewGeometry("Triangle2D3", 5, PointerVector<NodeType>{element_nodes_0});
+        rModelPart.CreateNewGeometry("Triangle2D3", 6, PointerVector<NodeType>{element_nodes_1});
+        rModelPart.CreateNewGeometry("Triangle2D3", 7, PointerVector<NodeType>{element_nodes_2});
+        rModelPart.CreateNewGeometry("Triangle2D3", 8, PointerVector<NodeType>{element_nodes_3});
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartSubModelPartsIterator, KratosCoreFastSuite)
