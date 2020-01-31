@@ -83,19 +83,19 @@ public:
 
 
     AdjointFiniteDifferencingMembraneElement(IndexType NewId = 0)
-    : BaseType(NewId, true)
+    : BaseType(NewId, false)
     {
     }
 
     AdjointFiniteDifferencingMembraneElement(IndexType NewId, typename GeometryType::Pointer pGeometry)
-    : BaseType(NewId, pGeometry, true)
+    : BaseType(NewId, pGeometry, false)
     {
     }
 
     AdjointFiniteDifferencingMembraneElement(IndexType NewId,
                         typename GeometryType::Pointer pGeometry,
                         typename PropertiesType::Pointer pProperties)
-    : BaseType(NewId, pGeometry, pProperties, true)
+    : BaseType(NewId, pGeometry, pProperties, false)
     {
     }
 
