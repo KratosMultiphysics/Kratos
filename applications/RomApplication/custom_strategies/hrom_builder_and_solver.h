@@ -377,11 +377,11 @@ public:
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
 
-        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId)
+        //#pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId)
         {
             Matrix tempA = ZeroMatrix(mRomDofs,mRomDofs);
             Vector tempb = ZeroVector(mRomDofs);
-            #pragma omp for nowait
+            //#pragma omp for nowait
             for (int k = 0; k < nelements; k++)
             {
                 auto it_el = el_begin + k;
@@ -427,7 +427,7 @@ public:
                 
             }
             
-            #pragma omp for
+            //#pragma omp for
             for (int k = 0; k < nconditions;  k++)
             {
                 ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
@@ -474,7 +474,7 @@ public:
                     pScheme->CleanMemory(*(it.base()));
                 }
             }
-            #pragma omp critical 
+            //#pragma omp critical 
             {
                 noalias(Arom) +=tempA;
                 noalias(brom) +=tempb;
