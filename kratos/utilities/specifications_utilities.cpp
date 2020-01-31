@@ -154,7 +154,7 @@ void AddMissingVariablesFromSpecifications(
             } else {
                 KRATOS_ERROR << "Value type for \"" << r_variable_name << "\" not defined" << std::endl;
             }
-            KRATOS_WARNING_IF("SpecificationsUtilities", has_variable) << "Variable:" << r_variable_name << " is not in the model part. Required by entity: " << EntityName << "Added to the model part" << std::endl;
+            KRATOS_WARNING_IF("SpecificationsUtilities", !has_variable) << "Variable:" << r_variable_name << " is not in the model part. Required by entity: " << EntityName << ". Added to the model part" << std::endl;
         }
 
         // Set the variable list in all the nodes
@@ -291,7 +291,7 @@ void AddMissingDofsFromSpecifications(
             } else {
                 KRATOS_ERROR << "Value type for \"" << r_variable_name << "\" not defined" << std::endl;
             }
-            KRATOS_WARNING_IF("SpecificationsUtilities", has_dof) << "Variable:" << r_variable_name << " is not in the model part nodes. Required by entity: " << EntityName << "Added to the model part nodes" << std::endl;
+            KRATOS_WARNING_IF("SpecificationsUtilities", !has_dof) << "Variable:" << r_variable_name << " is not in the model part nodes. Required by entity: " << EntityName << ". Added to the model part nodes" << std::endl;
         }
     }
 
