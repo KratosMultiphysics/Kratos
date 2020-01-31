@@ -585,9 +585,28 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief It creates a new geometry pointer
+     * @param ThisPoints the nodes of the new geometry
+     * @return a Pointer to the new geometry
+     */
     virtual Pointer Create( PointsArrayType const& ThisPoints ) const
     {
         return Pointer( new Geometry( ThisPoints, mpGeometryData ) );
+    }
+    
+    /**
+     * @brief It creates a new geometry pointer
+     * @param NewId the ID of the new geometry
+     * @param ThisPoints the nodes of the new geometry
+     * @return a Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        IndexType NewId,  
+        PointsArrayType const& ThisPoints
+        ) const
+    {
+        return Pointer( new Geometry(NewId, ThisPoints, mpGeometryData));
     }
 
     /** This methods will create a duplicate of all its points and
