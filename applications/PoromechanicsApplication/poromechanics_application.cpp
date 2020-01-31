@@ -268,6 +268,8 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( NODAL_JOINT_DAMAGE )
 
     KRATOS_REGISTER_VARIABLE( SHEAR_FRACTURE_ENERGY )
+
+    KRATOS_REGISTER_VARIABLE( IS_AXISYMMETRIC )
 }
 
 }// namespace Kratos.
