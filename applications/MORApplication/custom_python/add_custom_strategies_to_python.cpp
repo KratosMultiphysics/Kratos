@@ -196,7 +196,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_< MorSecondOrderIrkaRealStrategyType, typename MorSecondOrderIrkaRealStrategyType::Pointer, MorSecondOrderRealInRealOutOfflineStrategyType >(m,"MorSecondOrderRealIrkaStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, vector<std::complex<double>>, bool >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, ComplexLinearSolverPointer, vector<std::complex<double>>, size_t, double, bool >())
         ;
 
     //********************************************************************
