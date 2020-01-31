@@ -224,6 +224,14 @@ public:
         KRATOS_ERROR_IF( this->PointsNumber() != 8 ) << "Invalid points number. Expected 8, given " << this->PointsNumber() << std::endl;
     }
 
+    explicit Quadrilateral3D8( 
+        IndexType Id,
+        const PointsArrayType& ThisPoints 
+        ) : BaseType( Id, ThisPoints, &msGeometryData )
+    {
+        KRATOS_ERROR_IF( this->PointsNumber() != 8 ) << "Invalid points number. Expected 8, given " << this->PointsNumber() << std::endl;
+    }
+    
     /**
      * Copy constructor.
      * Constructs this geometry as a copy of given geometry.
