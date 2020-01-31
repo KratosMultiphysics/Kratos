@@ -174,6 +174,34 @@ namespace Testing {
  
     /** Checks bins search nearest
     */
+    KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadius, KratosFastSuite) {
+        constexpr double tolerance = 1e-12;
+
+        Model current_model;
+
+        const double cube_x = 0.6;
+        const double cube_y = 0.9;
+        const double cube_z = 0.3;
+
+        // Generate the cube skin
+        ModelPart& skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
+
+        GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd());
+
+        Point center_point{0.00,0.00,0.00};
+        auto result = bins.SearchNearestInRadius(center_point, cube_z - 1.e-6);
+
+        KRATOS_CHECK_IS_FALSE(result.IsObjectFound());
+
+        result = bins.SearchNearestInRadius(center_point, cube_z + 1.e-6);
+        KRATOS_CHECK_NEAR(result.GetDistance(), cube_z, tolerance);
+        
+        std::size_t id = result.Get()->Id();
+        KRATOS_CHECK((id == 1) ||(id == 2) ||(id == 3) ||(id == 4)); 
+   }
+ 
+    /** Checks bins search nearest
+    */
     KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearest, KratosFastSuite) {
         constexpr double tolerance = 1e-12;
 
