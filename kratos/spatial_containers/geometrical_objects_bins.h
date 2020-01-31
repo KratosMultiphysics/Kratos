@@ -183,30 +183,33 @@ public:
         }
     }
 
-    /** This method takes a point and finds the nearest object to it.
+    /** This method takes a point and finds the nearest object to it in a given radius.
      * If there are more than one object in the same minimum distance only one is returned
+     * If there are no objects in that radius the 
      * Result contains a flag is the object has been found or not. 
     */
      template<typename TPointType>
-    ResultType SearchNearest(TPointType const& ThePoint) {
+    ResultType SearchNearestInRadius(TPointType const& ThePoint, double Radius) {
 		ResultType current_result;
+        current_result.SetDistance(std::numeric_limits<double>::max());
+
+        double radius_increment = *std::max_element(mCellSizes.begin(), mCellSizes.end());
 
         array_1d< std::size_t, 3 > min_position;
         array_1d< std::size_t, 3 > max_position;
 
-        for(int i = 0; i < 3; i++ ) {
-            min_position[i] = CalculatePosition(ThePoint[i], i);
-            max_position[i] = CalculatePosition(ThePoint[i], i) + 1;
-        }
+        for(double current_radius = 0 ; current_radius < Radius + radius_increment ; current_radius += radius_increment){
+            current_radius = (current_radius > Radius) ? Radius : current_radius;
+            for(int i = 0; i < 3; i++ ) {
+                min_position[i] = CalculatePosition(ThePoint[i] - current_radius, i);
+                max_position[i] = CalculatePosition(ThePoint[i] + current_radius, i) + 1;
+            }
 
-        current_result.SetDistance(std::numeric_limits<double>::max());
-
-        while (!current_result.IsObjectFound() ) {
             for(std::size_t k = min_position[2] ; k < max_position[2] ; k++){
                 for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
                     for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
                         auto& cell = GetCell(i,j,k);
-                        SearchNearestInCell(cell, ThePoint, current_result);
+                        SearchNearestInCell(cell, ThePoint, current_result, current_radius);
                     }
                 }
             }
@@ -216,18 +219,22 @@ public:
             if(all_cells_are_covered){
                 break;
             }
-
-            for(int i = 0; i < 3; i++ ) {
-                const std::size_t min_i = min_position[i];
-                const std::size_t max_i = max_position[i];
-                const std::size_t max = mNumberOfCells[i] - 1;
-
-                min_position[i] = (min_i > 0) ? min_i - 1 : 0;
-                max_position[i] = (max_i < max) ? max_i + 1 : max;
-            }
         }
-
 		return current_result;
+	}
+
+    /** This method takes a point and finds the nearest object to it.
+     * If there are more than one object in the same minimum distance only one is returned
+     * Result contains a flag is the object has been found or not. 
+    */
+    template<typename TPointType>
+    ResultType SearchNearest(TPointType const& ThePoint) {
+		ResultType current_result;
+
+        array_1d<double, 3> box_size = mBoundingBox.GetMaxPoint() - mBoundingBox.GetMinPoint();
+        double max_radius= *std::max_element(box_size.begin(), box_size.end());
+
+        return SearchNearestInRadius(ThePoint, max_radius);
 	}
 
     ///@}
@@ -394,7 +401,7 @@ private:
 
    /// Searchs in objects in the given cell for the nearest one.
     template<typename TPointType>
-    void SearchNearestInCell(CellType const& TheCell, TPointType const& ThePoint, ResultType& rResult) {
+    void SearchNearestInCell(CellType const& TheCell, TPointType const& ThePoint, ResultType& rResult, double MaxRadius) {
         for(auto p_geometrical_object : TheCell){  
             auto& geometry = p_geometrical_object->GetGeometry();
             // TODO: Change this to new Distance method of the geometry to be more general
@@ -403,7 +410,7 @@ private:
 			geometry[1],
 			geometry[2],
 			ThePoint);
-            if (distance < rResult.GetDistance()) {
+            if ((distance < rResult.GetDistance()) && (distance < MaxRadius)) {
                 rResult.Set(p_geometrical_object);
                 rResult.SetDistance(distance);
             }
