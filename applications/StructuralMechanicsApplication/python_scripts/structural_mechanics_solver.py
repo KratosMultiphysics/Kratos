@@ -316,7 +316,7 @@ class MechanicalSolver(PythonSolver):
     def import_constitutive_laws(self):
         if self.settings["material_import_settings"].Has("custom_reader"): # We use our own file for reading
             custom_reader = import_module(self.settings["material_import_settings"]["custom_reader"].GetString())
-            custom_reader.read(self.settings["material_import_settings"])
+            custom_reader.ReadMaterials(self.model, self.settings["material_import_settings"])
             materials_imported = True
         else: # We follow the normal path
             materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
