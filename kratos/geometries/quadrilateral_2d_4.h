@@ -238,6 +238,14 @@ public:
             KRATOS_ERROR << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
     }
 
+    explicit Quadrilateral2D4( 
+        IndexType Id,
+        const PointsArrayType& ThisPoints 
+        ) : BaseType( Id, ThisPoints, &msGeometryData )
+    {
+        KRATOS_ERROR_IF( this->PointsNumber() != 4 ) << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
+    }
+
     /**
      * Copy constructor.
      * Construct this geometry as a copy of given geometry.
@@ -326,13 +334,31 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
+    
+    /**
+     * @brief It creates a new geometry pointer
+     * @param ThisPoints the nodes of the new geometry
+     * @return a Pointer to the new geometry
+     */
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
         return typename BaseType::Pointer( new Quadrilateral2D4( ThisPoints ) );
     }
 
-
+    /**
+     * @brief It creates a new geometry pointer
+     * @param NewId the ID of the new geometry
+     * @param ThisPoints the nodes of the new geometry
+     * @return a Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        IndexType NewId,  
+        PointsArrayType const& ThisPoints
+        ) const override
+    {
+        return typename BaseType::Pointer( new Quadrilateral2D4( NewId, ThisPoints ) );
+    }
+    
     // Geometry< Point<3> >::Pointer Clone() const override
     // {
     //     Geometry< Point<3> >::PointsArrayType NewPoints;
