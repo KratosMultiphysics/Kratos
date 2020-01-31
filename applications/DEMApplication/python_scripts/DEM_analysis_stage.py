@@ -6,8 +6,8 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.DEMApplication.DEM_restart_utility import DEMRestartUtility
-#
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
+from KratosMultiphysics.DEMApplication import mesh_creator_sphere_2D
 
 from importlib import import_module
 
@@ -76,6 +76,10 @@ class DEMAnalysisStage(AnalysisStage):
         self.FixParametersInconsistencies()
 
         self.do_print_results_option = self.DEM_parameters["do_print_results_option"].GetBool()
+        if not "WriteMdpaFromResults" in self.DEM_parameters.keys():
+            self.write_mdpa_from_results = False
+        else:
+            self.write_mdpa_from_results = self.DEM_parameters["WriteMdpaFromResults"].GetBool()
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()
@@ -588,6 +592,11 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
+
+        spheres_mp_filename_post = self.problem_name + 'DEM_Post'
+        if self.write_mdpa_from_results:
+            mesh_creator_sphere_2D.WriteSphereMdpaFromResults(self.problem_name + 'DEM', spheres_mp_filename_post, self.file_msh, self.post_path)
+
         self.CleanUpOperations()
 
     def __SafeDeleteModelParts(self):
@@ -655,7 +664,8 @@ class DEMAnalysisStage(AnalysisStage):
             if self.DEM_parameters["post_vtk_option"].GetBool():
                 self.vtk_output.WriteResults(self.time)
 
-        #
+        self.file_msh = self.demio.GetMultiFileListName(self.problem_name + "_" + "%.12g"%time + ".post.msh")
+
         DemFem.DemStructuresCouplingUtilities().MarkBrokenSpheres(self.spheres_model_part)
 
         center = Array3()
@@ -680,7 +690,6 @@ class DEMAnalysisStage(AnalysisStage):
 
         DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(self.spheres_model_part, self.rigid_face_model_part, self.time)
         DemFem.DemStructuresCouplingUtilities().ComputeSandProduction(self.spheres_model_part, self.rigid_face_model_part, self.time)
-        #
 
     def GraphicalOutputFinalize(self):
         self.demio.FinalizeMesh()
