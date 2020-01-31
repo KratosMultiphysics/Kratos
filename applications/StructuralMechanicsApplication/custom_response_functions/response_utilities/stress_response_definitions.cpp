@@ -138,6 +138,8 @@ void StressCalculation::CalculateStressOnGP(Element& rElement,
         StressCalculation::CalculateStressOnGPLinearTruss(rElement, rTracedStressType, rOutput, rCurrentProcessInfo);
     else if((name_current_element == "SmallDisplacementElement3D4N") || (name_current_element == "SmallDisplacementElement3D6N" ) || (name_current_element == "SmallDisplacementElement3D8N" ))
         StressCalculation::CalculateStressOnGPSmallDisplacement(rElement, rTracedStressType, rOutput, rCurrentProcessInfo);
+    else if(name_current_element == "CableElement3D2N")
+        StressCalculation::CalculateStressOnGPTruss(rElement, rTracedStressType, rOutput, rCurrentProcessInfo);
     else
         KRATOS_ERROR << "Stress calculation on GP not yet implemented for " << name_current_element << std::endl;
 

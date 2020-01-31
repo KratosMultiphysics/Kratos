@@ -17,6 +17,7 @@
 #include "includes/checks.h"
 #include "custom_elements/truss_element_3D2N.hpp"
 #include "custom_elements/truss_element_linear_3D2N.hpp"
+#include "custom_elements/cable_element_3D2N.hpp"
 
 
 
@@ -221,6 +222,8 @@ double AdjointFiniteDifferenceTrussElement<TPrimalElement>::CalculateDerivativeP
     const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     double derivative_pre_factor = E * l / (l_0 * l_0);
 
+    //MFusseder TODOD evaluate if this derivative is correct after Klaus added prestress to the PK2 computation
+
     KRATOS_DEBUG_ERROR_IF(derivative_pre_factor<=numerical_limit)
         << "Derivative pre-factor of " << this->Id() << "~ 0" << std::endl;
 
@@ -241,6 +244,7 @@ void AdjointFiniteDifferenceTrussElement<TPrimalElement>::load(Serializer& rSeri
 
 template class AdjointFiniteDifferenceTrussElement<TrussElement3D2N>;
 template class AdjointFiniteDifferenceTrussElement<TrussElementLinear3D2N>;
+template class AdjointFiniteDifferenceTrussElement<CableElement3D2N>;
 
 } // namespace Kratos.
 
