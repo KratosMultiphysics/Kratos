@@ -204,12 +204,6 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
         const Parameters MaterialData,
         Properties& rProperty
         );
-        
-    /**
-     * @brief This method says if the variables must be filetered to avoid reading error
-     * @return True if it requires to filter the variables, false otherwise
-     */
-    virtual bool RequiresFilterFailingVariables();
     
     /**
      * @brief This method creates an auxiliar Parameters when reading properties in order to avoid error, so these non-registered properties can be processed later
