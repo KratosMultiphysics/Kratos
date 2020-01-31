@@ -37,6 +37,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     }
     puts $FileVar "        \"model_part_name\":                    \"PorousModelPart\","
     puts $FileVar "        \"domain_size\":                        [GiD_AccessValue get gendata Domain_Size],"
+    puts $FileVar "        \"axisymmetric\":                       [GiD_AccessValue get gendata Axisymmetric],"
     puts $FileVar "        \"start_time\":                         [GiD_AccessValue get gendata Start_Time],"
     puts $FileVar "        \"time_step\":                          [GiD_AccessValue get gendata Delta_Time],"
     puts $FileVar "        \"model_import_settings\":              \{"

@@ -36,6 +36,8 @@ class UPwSolver(PythonSolver):
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,
                                                   self.settings["domain_size"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosPoro.IS_AXISYMMETRIC,
+                                                  self.settings["axisymmetric"].GetBool())
 
         KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Construction of UPwSolver finished.")
 
@@ -45,6 +47,7 @@ class UPwSolver(PythonSolver):
             "solver_type": "poromechanics_U_Pw_solver",
             "model_part_name": "PorousModelPart",
             "domain_size": 2,
+            "axisymmetric": false,
             "start_time": 0.0,
             "time_step": 0.1,
             "model_import_settings":{
