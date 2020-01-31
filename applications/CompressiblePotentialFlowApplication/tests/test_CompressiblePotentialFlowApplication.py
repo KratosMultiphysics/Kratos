@@ -50,7 +50,8 @@ if __name__ == '__main__':
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
     KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.TESTS_OUTPUTS) # TESTS_OUTPUTS
-    KratosMultiphysics.Tester.RunTestSuite("CompressiblePotentialApplicationFastSuite")
+    #KratosMultiphysics.Tester.RunTestSuite("CompressiblePotentialApplicationFastSuite")
+    KratosMultiphysics.Tester.RunTestCases("TestCompressiblePotentialFlowElementLHS")
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
     # KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     # KratosUnittest.runTests(AssembleTestSuites())

@@ -75,6 +75,15 @@ void GenerateCompressibleEmbeddedElement(ModelPart& rModelPart) {
     rModelPart.CreateNewElement("EmbeddedCompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
 }
 
+void AssignPotentialsToNormalCompressibleElement(Element& rElement) {
+    // Define the nodal values
+    std::array<double, 3> potential({0.0, 400.0, 800.0});
+
+    for (unsigned int i = 0; i < 3; i++)
+        rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) =
+            potential[i];
+}
+
 /** Checks the IncompressiblePotentialFlowElement element.
  * Checks the LHS and RHS computation.
  */
@@ -117,12 +126,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHS, CompressiblePoten
     GenerateCompressibleElement(model_part);
     Element::Pointer pElement = model_part.pGetElement(1);
 
-    // Define the nodal values
-    std::array<double, 3> potential({1.0,200.0,300.0});
-
-    for (unsigned int i = 0; i < 3; i++) {
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
-    }
+    AssignPotentialsToNormalCompressibleElement(*pElement);
 
     // Compute RHS and LHS
     Vector RHS = ZeroVector(3);

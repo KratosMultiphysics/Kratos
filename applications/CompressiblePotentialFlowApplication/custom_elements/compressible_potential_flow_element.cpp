@@ -667,6 +667,7 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensity(const Pro
 
     // Computing local velocity
     array_1d<double, Dim> v = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
+    KRATOS_WATCH(v)
 
     // Computing squares
     const double v_inf_2 = inner_prod(vinfinity, vinfinity);
@@ -675,6 +676,7 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensity(const Pro
 
     // Computing local mach number
     const double M = PotentialFlowUtilities::ComputeLocalMachNumber<Dim, NumNodes>(*this, rCurrentProcessInfo);
+    KRATOS_WATCH(M)
 
     if (M > 0.94)
     { // Clamping the mach number to 0.94
