@@ -217,7 +217,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * @param PropertyId The current property Id (for a warning)
      * @return The variables filtered if required
      */
-    Parameters FilterFailingVariablesIfRequired(
+    virtual Parameters FilterFailingVariablesIfRequired(
         const Parameters VariablesParameters,
         const IndexType PropertyId = 0
         );
