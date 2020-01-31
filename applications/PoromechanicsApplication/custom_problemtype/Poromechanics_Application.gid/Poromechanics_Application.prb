@@ -6,7 +6,7 @@ VALUE: 2
 DEPENDENCIES: (2,RESTORE,Axisymmetric,#CURRENT#)(3,HIDE,Axisymmetric,false)
 QUESTION: Axisymmetric#CB#(true,false)
 VALUE: false
-HELP: Axisymmetric elements and CLs. Only for 2D domains. For the moment this is not working with nodal smoothing.
+HELP: Axisymmetric elements and CLs. For the moment this is not working with nodal smoothing.
 QUESTION: Start_Time
 VALUE: 0.0
 HELP: Units in IS: s
