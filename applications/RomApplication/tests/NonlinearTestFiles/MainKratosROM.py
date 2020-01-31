@@ -11,6 +11,7 @@ from KratosMultiphysics.RomApplication import ConvectionDiffusionROMsolver
 
 import json
 import sys
+import time
 
 class ConvDiffROM(ConvectionDiffusionAnalysis):
 
@@ -133,13 +134,13 @@ class ConvDiffROM(ConvectionDiffusionAnalysis):
             ArrayOfAreas.append(node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA))
         return ArrayOfAreas
 
-    def FinalizeSolutionStep(self):
-        super(ConvectionDiffusionAnalysisWithFlush,self).FinalizeSolutionStep()
-        if self.parallel_type == "OpenMP":
-            now = time.time()
-            if now - self.last_flush > self.flush_frequency:
-                sys.stdout.flush()
-                self.last_flush = now
+    # def FinalizeSolutionStep(self):
+    #     super(ConvDiffROM,self).FinalizeSolutionStep()
+    #     if self.parallel_type == "OpenMP":
+    #         now = time.time()
+    #         if now - self.last_flush > self.flush_frequency:
+    #             sys.stdout.flush()
+    #             self.last_flush = now
         
         #AAA = romapp.CalculateMeanTemperature(self._GetSolver().GetComputingModelPart())
         #AAA.Execute()
