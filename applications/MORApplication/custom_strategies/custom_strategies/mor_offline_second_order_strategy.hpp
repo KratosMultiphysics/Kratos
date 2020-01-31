@@ -513,16 +513,15 @@ class MorOfflineSecondOrderStrategy
         auto& r_output_vector_r = this->GetOVr();
         auto& r_basis = this->GetBasis();
 
-        const size_t system_size = r_basis.size1();
         const size_t reduced_system_size = r_basis.size2();
 
         BuiltinTimer system_projection_time;
 
         r_force_vector_reduced.resize( reduced_system_size, false);
-        r_force_vector_reduced = prod( r_RHS, r_basis );
+        noalias(r_force_vector_reduced) = prod( r_RHS, r_basis );
 
         r_output_vector_r.resize( reduced_system_size, false);
-        r_output_vector_r = prod( r_output_vector, r_basis );
+        noalias(r_output_vector_r) = prod( r_output_vector, r_basis );
 
         ProjectMatrix(r_K, r_basis, r_stiffness_matrix_reduced);
         ProjectMatrix(r_M, r_basis, r_mass_matrix_reduced);
