@@ -45,6 +45,7 @@
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_small_displacement_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_spring_damper_element_3D2N.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_membrane_element.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cable_element_3D2N.h"
 
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
@@ -450,6 +451,7 @@ private:
     const AdjointFiniteDifferenceSpringDamperElement<SpringDamperElement3D2N>  mAdjointFiniteDifferenceSpringDamperElement3D2N;
     const AdjointFiniteDifferencingMembraneElement<MembraneElement> mAdjointFiniteDifferencingMembraneElement3D3N;
     const AdjointFiniteDifferencingMembraneElement<MembraneElement> mAdjointFiniteDifferencingMembraneElement3D4N;
+    const AdjointFiniteDifferenceCableElement<CableElement3D2N> mAdjointFiniteDifferenceCableElement3D2N;
 
     /* CONDITIONS*/
     // Point load

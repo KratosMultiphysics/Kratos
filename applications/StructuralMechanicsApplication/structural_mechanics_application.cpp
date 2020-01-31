@@ -166,6 +166,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mAdjointFiniteDifferenceSpringDamperElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mAdjointFiniteDifferencingMembraneElement3D3N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mAdjointFiniteDifferencingMembraneElement3D4N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mAdjointFiniteDifferenceCableElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
 
       /* CONDITIONS */
       // Adding point load conditions
@@ -490,6 +491,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( IS_ADJOINT );
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NODAL_DISPLACEMENT_STIFFNESS_SENSITIVITY);
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NODAL_ROTATIONAL_STIFFNESS_SENSITIVITY);
+    KRATOS_REGISTER_VARIABLE( TRUSS_PRESTRESS_PK2_SENSITIVITY );
 
     // Variables to for computing parts of sensitivity analysis
     KRATOS_REGISTER_VARIABLE( TRACED_STRESS_TYPE );
@@ -624,6 +626,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceSpringDamperElement3D2N", mAdjointFiniteDifferenceSpringDamperElement3D2N)
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingMembraneElement3D3N", mAdjointFiniteDifferencingMembraneElement3D3N)
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingMembraneElement3D4N", mAdjointFiniteDifferencingMembraneElement3D4N)
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceCableElement3D2N", mAdjointFiniteDifferenceCableElement3D2N)
 
     // Register the conditions
     // Point loads
