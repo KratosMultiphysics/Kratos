@@ -121,7 +121,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.AREA_VARIABLE_AUX)              # Auxiliary area_variable for parallel distance calculator    
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.NORMAL_VECTOR)                  # Auxiliary normal vector at interface
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.TANGENT_VECTOR)                 # Auxiliary tangent vector at contact line
-        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONTACT_VECTOR)                 # Auxiliary contact vector     
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONTACT_VECTOR)                 # Auxiliary contact vector    
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.VELOCITY_STAR)                  # Last known velocity
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PRESSURE_STAR)                  # Last known pressure
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Fluid solver variables added correctly.")
 
@@ -187,11 +189,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #(self.lumped_eikonal_distance_calculation).Execute()
 
         self.surface_smoothing_process = self._set_surface_smoothing_process()
-        #(self.surface_smoothing_process).Execute()
-        
-        #for node in self.main_model_part.Nodes:
-        #    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
-        #    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+        (self.surface_smoothing_process).Execute()
+        for node in self.main_model_part.Nodes:
+            smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
         self.distance_gradient_process = self._set_distance_gradient_process()
         #(self.distance_gradient_process).Execute()
@@ -235,6 +236,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #KratosMultiphysics.Logger.PrintInfo("Wall", NodeId)
         #Set IS_STRUCTURE to define contact line.
 
+        #for elem in self.main_model_part.Elements:
+        #    elem.SetValue(KratosCFD.ENRICHED_PRESSURE_1, 0.0)
+        #    elem.SetValue(KratosCFD.ENRICHED_PRESSURE_2, 0.0)
+        #    elem.SetValue(KratosCFD.ENRICHED_PRESSURE_3, 0.0)
+        #    elem.SetValue(KratosCFD.ENRICHED_PRESSURE_4, 0.0)
+
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
@@ -261,6 +268,34 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             else:
                 (self.level_set_convection_process).Execute()
 
+            #for elem in self.main_model_part.Elements:
+            #    npos = 0
+            #    nneg = 0
+            #    for node in elem.GetNodes():
+            #        if(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0):
+            #            nneg += 1
+            #        else:
+            #            npos += 1
+            #        
+            #        if (npos == 0 or nneg == 0):
+            #            elem.SetValue(KratosCFD.ENRICHED_PRESSURE_1, 1.0)
+            #            elem.SetValue(KratosCFD.ENRICHED_PRESSURE_2, 1.0)
+            #            elem.SetValue(KratosCFD.ENRICHED_PRESSURE_3, 1.0)
+            #            elem.SetValue(KratosCFD.ENRICHED_PRESSURE_4, 1.0)
+                    #else:
+                    #    KratosMultiphysics.Logger.PrintInfo("N Positive", npos)
+                    #    KratosMultiphysics.Logger.PrintInfo("N Negative", nneg)
+                    #    KratosMultiphysics.Logger.PrintInfo("Enriched Pressure 1", elem.GetValue(KratosCFD.ENRICHED_PRESSURE_1))
+                    #    KratosMultiphysics.Logger.PrintInfo("Enriched Pressure 2", elem.GetValue(KratosCFD.ENRICHED_PRESSURE_2))
+                    #    KratosMultiphysics.Logger.PrintInfo("Enriched Pressure 3", elem.GetValue(KratosCFD.ENRICHED_PRESSURE_3))
+                    #    KratosMultiphysics.Logger.PrintInfo("Enriched Pressure 4", elem.GetValue(KratosCFD.ENRICHED_PRESSURE_4))
+
+            #for elem in self.main_model_part.Elements:
+            #    elem.SetValue(KratosCFD.ENRICHED_PRESSURE_1, 0.0)
+            #    elem.SetValue(KratosCFD.ENRICHED_PRESSURE_2, 0.0)
+            #    elem.SetValue(KratosCFD.ENRICHED_PRESSURE_3, 0.0)
+            #    elem.SetValue(KratosCFD.ENRICHED_PRESSURE_4, 0.0)
+
             # Recompute the distance field according to the new level-set position
             #if (TimeStep % 1 == 0):
             #    (self.variational_distance_process).Execute()
@@ -282,7 +317,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # Reinitialize distance using a new variational process needs Compute the DISTANCE_GRADIENT and CURVATURE on nodes
             #if (TimeStep % 1 == 0):
             #    (self.distance_gradient_process).Execute()
-                #(self.curvature_calculation_process).Execute()
+            #    #(self.curvature_calculation_process).Execute()
             #    (self.variational_non_eikonal_distance).Execute()
             #    for node in self.main_model_part.Nodes:
             #        smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
@@ -290,7 +325,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Smoothing the surface to filter oscillatory surface
             #(self.surface_smoothing_process).Execute()
-
             #for node in self.main_model_part.Nodes:
             #    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
             #    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
@@ -302,10 +336,16 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             (self.curvature_calculation_process).Execute()
 
             #for node in self.main_model_part.Nodes:
-            #    node.SetSolutionStepValue(KratosCFD.CURVATURE, 1000.0)
+            #    node.SetSolutionStepValue(KratosCFD.CURVATURE, 2.0/0.003)
 
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
             self._SetNodalProperties()
+
+            for node in self.main_model_part.Nodes:
+                velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+                node.SetSolutionStepValue(KratosCFD.VELOCITY_STAR, velocity)
+                pressure = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
+                node.SetSolutionStepValue(KratosCFD.PRESSURE_STAR, pressure)
 
             # Initialize the solver current step
             (self.solver).InitializeSolutionStep()

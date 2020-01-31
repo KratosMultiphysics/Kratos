@@ -1,6 +1,6 @@
 from sympy import *
 from KratosMultiphysics import *
-from sympy_fe_utilities import *
+from KratosMultiphysics.sympy_fe_utilities import *
 
 ## Settings explanation
 # DIMENSION TO COMPUTE:
@@ -31,7 +31,7 @@ elif (dim_to_compute == "Both"):
     dim_vector = [2,3]
 
 ## Read the template file
-templatefile = open("two_fluid_navier_stokes_template.cpp")
+templatefile = open("two_fluid_navier_stokes_template_no_grad_p_stab.cpp")
 outstring = templatefile.read()
 
 for dim in dim_vector:
@@ -146,6 +146,7 @@ for dim in dim_vector:
     ## Galerkin Functional
     rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss
     rv_galerkin -= w_gauss.transpose()*K_darcy*v_gauss #Darcy Term
+    rv_galerkin += div_w*penr_gauss #adding terms to rhs, so that there is no need for rhs_eV
 
     if (divide_by_rho):
         rv_galerkin -= q_gauss*div_v
@@ -155,13 +156,15 @@ for dim in dim_vector:
     # Stabilization functional terms
     # Momentum conservation residual
     # Note that the viscous stress term is dropped since linear elements are used
-    vel_residual = rho*f_gauss - rho*accel_gauss - rho*convective_term.transpose() - grad_p - K_darcy*v_gauss
+    vel_residual = rho*f_gauss - rho*accel_gauss - rho*convective_term.transpose() - K_darcy*v_gauss - grad_p - grad_penr
 
     # Mass conservation residual
     if (divide_by_rho):
         mas_residual = -div_v
+        rv_galerkin -= qenr_gauss*div_v
     else:
         mas_residual = -rho*div_v
+        rv_galerkin -= qenr_gauss*rho*div_v
 
     vel_subscale = tau1*vel_residual
     mas_subscale = tau2*mas_residual
@@ -213,7 +216,7 @@ for dim in dim_vector:
     ##  K V   x    =  b + rhs_eV
     ##  H Kee penr =  rhs_ee
 
-    vel_residual_enr = rho*f_gauss - rho*(accel_gauss + convective_term.transpose()) - grad_p - K_darcy*v_gauss - grad_penr
+    vel_residual_enr = rho*f_gauss - rho*(accel_gauss + convective_term.transpose()) - K_darcy*v_gauss - grad_p - grad_penr
     vel_subscale_enr = vel_residual_enr * tau1
 
     rv_galerkin_enriched = div_w*penr_gauss
@@ -253,10 +256,7 @@ for dim in dim_vector:
     H_out = OutputMatrix_CollectingFactors(H,"H",mode)
     Kee_out = OutputMatrix_CollectingFactors(Kee,"Kee",mode)
     rhs_ee_out = OutputVector_CollectingFactors(rhs_ee,"rhs_ee",mode)
-
-
-
-
+    #rhs_eV_out = OutputVector_CollectingFactors(rhs_eV,"rhs_eV",mode)
 
 
     #####################################################################
@@ -270,6 +270,7 @@ for dim in dim_vector:
         outstring = outstring.replace("//substitute_enrichment_H_2D", H_out)
         outstring = outstring.replace("//substitute_enrichment_Kee_2D", Kee_out)
         outstring = outstring.replace("//substitute_enrichment_rhs_ee_2D", rhs_ee_out)
+        #outstring = outstring.replace("//substitute_enrichment_rhs_eV_2D", rhs_eV_out)
     
     elif(dim == 3):
         outstring = outstring.replace("//substitute_lhs_3D", lhs_out)
@@ -279,6 +280,7 @@ for dim in dim_vector:
         outstring = outstring.replace("//substitute_enrichment_H_3D", H_out)
         outstring = outstring.replace("//substitute_enrichment_Kee_3D", Kee_out)
         outstring = outstring.replace("//substitute_enrichment_rhs_ee_3D", rhs_ee_out)
+        #outstring = outstring.replace("//substitute_enrichment_rhs_eV_3D", rhs_eV_out)
 
 #We write in the file
 out = open("two_fluid_navier_stokes.cpp",'w')

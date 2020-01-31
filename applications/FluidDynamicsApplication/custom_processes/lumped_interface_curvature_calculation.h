@@ -11,8 +11,8 @@
 //
 //
 
-#ifndef KRATOS_LUMPED_EIKONAL_DISTANCE_CALCULATION_H
-#define KRATOS_LUMPED_EIKONAL_DISTANCE_CALCULATION_H
+#ifndef KRATOS_LUMPED_INTERFACE_CURVATURE_CALCULATION_H
+#define KRATOS_LUMPED_INTERFACE_CURVATURE_CALCULATION_H
 
 // System includes
 #include <string>
@@ -58,14 +58,14 @@ namespace Kratos
 
 /// Utility to due the redistancing based on the time-dependednt Eikonal equation
 
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) LumpedEikonalDistanceCalculation : public Process
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) LumpedInterfaceCurvatureCalculation : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of LumpedEikonalDistanceCalculation
-    KRATOS_CLASS_POINTER_DEFINITION(LumpedEikonalDistanceCalculation);
+    /// Pointer definition of LumpedInterfaceCurvatureCalculation
+    KRATOS_CLASS_POINTER_DEFINITION(LumpedInterfaceCurvatureCalculation);
 
     typedef Node<3> NodeType;
     typedef Geometry<NodeType> GeometryType;
@@ -78,18 +78,12 @@ public:
      * @brief Constructor with separate paramters
      *
      * @param rModelPart Complete model part (including boundaries) for the process to operate on
-     * @param maxNumIterations Maximum nubmer artificial time-steps to reach the steady-state distance
-     * @param tolerance Tolerance in the calculated distance, which determines the steady-state distance
-     * @param pseudoTimeStep The size of the artificial time-step to reach the steady-state distance
      */
-    LumpedEikonalDistanceCalculation(
-        ModelPart& rModelPart,
-        const int maxNumIterations,
-        const double tolerance,
-        const double pseudoTimeStep);
+    LumpedInterfaceCurvatureCalculation(
+        ModelPart& rModelPart);
 
     /// Destructor.
-    ~LumpedEikonalDistanceCalculation() override {}
+    ~LumpedInterfaceCurvatureCalculation() override {}
 
     ///@}
     ///@name Operators
@@ -125,12 +119,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << " LumpedEikonalDistanceCalculation";
+        buffer << " LumpedInterfaceCurvatureCalculation";
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << " LumpedEikonalDistanceCalculation";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << " LumpedInterfaceCurvatureCalculation";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -154,12 +148,6 @@ private:
     // Reference to the model part
     const ModelPart& mrModelPart;
 
-    // Process parameters
-    int mMaxNumIterations = 20;
-    double mTolerance = 1.0e-6;
-    double mPseudoTimeStep = 1.0;
-
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -173,22 +161,6 @@ private:
      * This clears the variables
      */
     void ClearVariables();
-
-    /**
-     * This gets the auxiliary distance value, which works as distance difference
-     * @param rThisGeometry The geometry of the element
-     * @param i The node index
-     */
-    double& GetDDistance(
-        Element::GeometryType& rThisGeometry,
-        unsigned int i
-        );
-
-    /**
-     * @brief This divides the distance difference value by the nodal area
-     */
-    void PonderateDDistance();
-
 
     ///@}
     ///@name Private  Access
@@ -207,7 +179,7 @@ private:
 
     ///@}
 
-}; // Class LumpedEikonalDistanceCalculation
+}; // Class LumpedInterfaceCurvatureCalculation
 
 ///@}
 ///@name Type Definitions
@@ -223,5 +195,6 @@ private:
 
 };  // namespace Kratos.
 
-#endif // KRATOS_LUMPED_EIKONAL_DISTANCE_CALCULATION_H
+#endif // KRATOS_LUMPED_INTERFACE_CURVATURE_CALCULATION_H
+
 

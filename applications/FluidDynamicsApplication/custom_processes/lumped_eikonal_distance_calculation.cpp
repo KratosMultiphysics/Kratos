@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Simon Wenczowski, ME
+//  Main authors:    ME
 //
 //
 
@@ -75,8 +75,8 @@ void LumpedEikonalDistanceCalculation::Execute(){
         double distance = it_node->FastGetSolutionStepValue(DISTANCE);
 
         if ( distance == 0.0 ){
-            it_node->FastGetSolutionStepValue(DISTANCE) = 1.0e-8;
-            distance = 1.0e-8;
+            it_node->FastGetSolutionStepValue(DISTANCE) = 1.0e-14;
+            distance = 1.0e-14;
         }
 
         it_node->SetValue(DISTANCE, distance);
@@ -89,9 +89,15 @@ void LumpedEikonalDistanceCalculation::Execute(){
     int iter = 0;
     double tol = 1.0;
 
+    double max_norm = 0.0;
+
+    double x, y, z;
+
     while (iter < mMaxNumIterations && tol > mTolerance) {
         tol = mTolerance;
         iter++;
+
+        max_norm = 0.0;
 
         // Set to zero
         ClearVariables();
@@ -116,11 +122,13 @@ void LumpedEikonalDistanceCalculation::Execute(){
 
             unsigned int nneg=0, npos=0;
             for(unsigned int i = 0; i<4; ++i)
-                if(distances0(i) >= 1.0e-8) npos += 1;
-                else if(distances0(i) <= -1.0e-8) nneg += 1;
-        
-            if(nneg==0 || npos==0)
             {
+                if(distances0(i) >= 1.0e-14) npos += 1;
+                else if(distances0(i) <= -1.0e-14) nneg += 1;
+            }
+        
+            //if(nneg==0 || npos==0)
+            //{
                 // Resize if needed
                 if (DN_DX.size1() != number_of_nodes || DN_DX.size2() != dimension)
                     DN_DX.resize(number_of_nodes, dimension);
@@ -153,9 +161,22 @@ void LumpedEikonalDistanceCalculation::Execute(){
 
                     const double gauss_point_volume = r_integration_points[point_number].Weight() * detJ0;
 
-                    double rhs = gauss_point_volume * (1 - norm_2(dist_grad));
-                    if (nneg > 0)
-                        rhs = -rhs;
+                    const double norm2 = inner_prod(dist_grad, dist_grad);
+                    if(norm2 > max_norm){
+                        max_norm = norm2;
+                        x = r_geometry[0].X();
+                        y = r_geometry[0].Y();
+                        z = r_geometry[0].Z();
+                    }
+                        
+                    const double phi0 = inner_prod(N, distances0);
+                    const double sgn = phi0 / sqrt(phi0*phi0 + 1.0e-3); 
+                    //KRATOS_INFO("LumpedEikonalDistanceCalculation, sign") << sgn << std::endl;
+
+                    double rhs = gauss_point_volume * sgn * (1 - sqrt(norm2));
+
+                    /* if (npos == 0)
+                        rhs = -rhs; */
 
                     for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
 
@@ -170,7 +191,7 @@ void LumpedEikonalDistanceCalculation::Execute(){
                         vol += N[i_node] * gauss_point_volume;
                     }
                 }
-            }else{
+            /* }else{
                 Matrix neg_shape_functions, pos_shape_functions;
                 GeometryType::ShapeFunctionsGradientsType neg_shape_derivatives, pos_shape_derivatives;
                 Vector neg_gp_w, pos_gp_w;
@@ -231,7 +252,7 @@ void LumpedEikonalDistanceCalculation::Execute(){
                         vol += neg_shape_functions(point_number, i_node) * neg_gp_w(point_number);
                     }
                 }
-            }   
+            }  */  
         }
 
         PonderateDDistance();
@@ -252,7 +273,12 @@ void LumpedEikonalDistanceCalculation::Execute(){
 
             it_node->SetValue(DISTANCE, distance);
         }
+
+        KRATOS_INFO("LumpedEikonalDistanceCalculation, max norm") << max_norm << std::endl;
+        KRATOS_INFO("LumpedEikonalDistanceCalculation, max norm") << x << ", " << y << ", " << z << std::endl;
     }
+
+    KRATOS_INFO("LumpedEikonalDistanceCalculation, tolerance") << tol << std::endl;
 
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {

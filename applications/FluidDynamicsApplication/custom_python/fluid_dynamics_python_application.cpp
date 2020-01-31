@@ -109,10 +109,23 @@ PYBIND11_MODULE(KratosFluidDynamicsApplication,m)
     // Parallel levelset distance calculator needs an AREA_VARIABLE_AUX
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,AREA_VARIABLE_AUX);
 
+    // A variable to check if node is on cut element (maybe in a layer farther for future!)
+    //KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_NEAR_CUT)
+
     // Contact line calculation
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,NORMAL_VECTOR);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,TANGENT_VECTOR);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,CONTACT_VECTOR);
+
+    // Enriched pressure is an array of NumNodes components defined for elements. Access it using Element.GetValue()
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ENRICHED_PRESSURE_1)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ENRICHED_PRESSURE_2)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ENRICHED_PRESSURE_3)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ENRICHED_PRESSURE_4)
+
+     // Last known velocity and pressure to recalculate the last increment
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, VELOCITY_STAR)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PRESSURE_STAR)
 }
 
 

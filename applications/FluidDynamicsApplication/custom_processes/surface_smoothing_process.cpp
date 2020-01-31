@@ -82,20 +82,45 @@ void SurfaceSmoothingProcess::Execute()
     std::vector<double> DistDiffAvg(NumNodes);
     std::vector<double> NumNeighbors(NumNodes);
 
+    double min_distance = 0.0; //1.0e10;
+    int min_dist_node = 0;
+
     #pragma omp parallel for
     for (unsigned int k = 0; k < NumNodes; ++k) {
         auto it_node = mrModelPart.NodesBegin() + k;
         it_node->Free(DISTANCE_AUX);
-        it_node->FastGetSolutionStepValue(DISTANCE_AUX) = it_node->FastGetSolutionStepValue(DISTANCE);
+        const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
+        it_node->FastGetSolutionStepValue(DISTANCE_AUX) = distance;
+
+        if (distance < min_distance)//(abs(distance) < min_distance)
+        {
+            min_distance = distance;//abs(distance);
+            min_dist_node = k;
+        }
     }
 
-    for (auto it_cond = mrModelPart.ConditionsBegin(); it_cond != mrModelPart.ConditionsEnd(); ++it_cond){
+    /* const double epsilon = 1.0e-5;
+    #pragma omp parallel for
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        auto it_node = mrModelPart.NodesBegin() + i_node;
+        const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
+
+        if (abs((abs(distance) - min_distance)/(min_distance + epsilon)) <= epsilon){ // (abs((distance - distance_max)/distance_max) <= 1.0e-9){
+            it_node->Fix(DISTANCE_AUX);
+            KRATOS_INFO("VariationalNonEikonalDistancem, fixed distance") << distance << std::endl;
+        }
+    } */
+
+    auto it_node = mrModelPart.NodesBegin() + min_dist_node;
+    it_node->Fix(DISTANCE_AUX);
+
+    /* for (auto it_cond = mrModelPart.ConditionsBegin(); it_cond != mrModelPart.ConditionsEnd(); ++it_cond){
        Geometry< Node<3> >& geom = it_cond->GetGeometry();
 
        for(unsigned int i=0; i<geom.size(); i++){
            geom[i].Fix(DISTANCE_AUX);
        }
-    }
+    } */
 
     KRATOS_INFO("SurfaceSmoothingProcess") << "About to solve the LSE" << std::endl;
     mp_solving_strategy->Solve();

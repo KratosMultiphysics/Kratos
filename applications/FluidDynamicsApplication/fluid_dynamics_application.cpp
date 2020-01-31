@@ -188,10 +188,23 @@ void KratosFluidDynamicsApplication::Register() {
     // Parallel levelset distance calculator needs an AREA_VARIABLE_AUX
     KRATOS_REGISTER_VARIABLE( AREA_VARIABLE_AUX)
 
+    // A variable to check if node is on cut element (maybe in a layer farther for future!)
+    //KRATOS_REGISTER_VARIABLE( IS_NEAR_CUT)
+
     // Contact line calculation
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NORMAL_VECTOR)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TANGENT_VECTOR)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONTACT_VECTOR)
+
+    // Enriched pressure is an array of NumNodes components defined for elements. Access it using Element.GetValue()
+    KRATOS_REGISTER_VARIABLE( ENRICHED_PRESSURE_1)
+    KRATOS_REGISTER_VARIABLE( ENRICHED_PRESSURE_2)
+    KRATOS_REGISTER_VARIABLE( ENRICHED_PRESSURE_3)
+    KRATOS_REGISTER_VARIABLE( ENRICHED_PRESSURE_4)
+
+    // Last known velocity and pressure to recalculate the last increment
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( VELOCITY_STAR)
+    KRATOS_REGISTER_VARIABLE( PRESSURE_STAR)
 
     // Register Elements
     KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention

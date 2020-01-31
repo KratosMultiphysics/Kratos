@@ -56,6 +56,10 @@ NodalVectorData MeshVelocity;
 NodalVectorData BodyForce;
 
 NodalScalarData Pressure;
+NodalScalarData Pressure_OldStep1;  // Needed to reproduce dP
+NodalScalarData Pressure_Enriched;  // Enriched pressure is stored as if there is only NumNodes additional DOFs. The rest are essentially zero.
+                                    // Pressure_Enriched is generally discontinuous at the nodes (it is defined element-wise)
+
 NodalScalarData Distance;
 NodalScalarData NodalDensity;
 NodalScalarData NodalDynamicViscosity;
@@ -148,6 +152,20 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
             NumPositiveNodes++;
         else
             NumNegativeNodes++;
+    }
+
+    this->FillFromHistoricalNodalData(Pressure_OldStep1,PRESSURE,r_geometry,1);
+    
+    if (TDim == 2){
+        Pressure_Enriched(0) = rElement.GetValue(ENRICHED_PRESSURE_1);
+        Pressure_Enriched(1) = rElement.GetValue(ENRICHED_PRESSURE_2);
+        Pressure_Enriched(2) = rElement.GetValue(ENRICHED_PRESSURE_3);
+    }
+    else if (TDim == 3){
+        Pressure_Enriched(0) = rElement.GetValue(ENRICHED_PRESSURE_1);
+        Pressure_Enriched(1) = rElement.GetValue(ENRICHED_PRESSURE_2);
+        Pressure_Enriched(2) = rElement.GetValue(ENRICHED_PRESSURE_3);
+        Pressure_Enriched(3) = rElement.GetValue(ENRICHED_PRESSURE_4);
     }
 }
 

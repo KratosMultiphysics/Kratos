@@ -331,6 +331,49 @@ protected:
 		MatrixType& rKee,
 		VectorType& rRHS_ee);
 
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * @brief Computes the LHS Gauss pt. contribution
+     * This method computes the contribution to the LHS of a Gauss pt.
+     * @param rData Reference to the element data container
+     * @param rLHS Reference to the Left Hand Side matrix to be filled
+     */
+    void ComputeGaussPointLHSContributionCut(
+        TElementData& rData,
+        MatrixType& rLHS);
+
+    /**
+     * @brief Computes the RHS Gaus  pt. contribution
+     * This method computes the contribution to the RHS of a Gauss pt.
+     * @param rData Reference to the element data container
+     * @param rRHS Reference to the Right Hand Side vector to be filled
+     */
+    void ComputeGaussPointRHSContributionCut(
+        TElementData& rData,
+        VectorType& rRHS);
+
+    /**
+     * @brief Computes the pressure enrichment contributions
+     * This method computes the pressure enrichment contributions for
+     * a Gauss pt. in both the left hand side and righ hand side of the equations.
+     * @param rData Reference to the element data container
+     * @param rV Contribution related to the pressure enrichment DOFs in the N-S standard equations
+     * @param rH Contribution related to the standard velocity and pressure DOFs in the enrichment equations
+     * @param rKee Contribution related to the pressure enrichment DOFs in the enrichment equations
+     * @param rRHS_ee Right Hand Side of the enrichment equations
+     */
+	void ComputeGaussPointEnrichmentContributionsCut(
+		TElementData& rData,
+		MatrixType& rV,
+		MatrixType& rH,
+		MatrixType& rKee,
+		VectorType& rRHS_ee);
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
     /// Set up the element's data and constitutive law for the current integration point.
     /** @param[in/out] rData Container for the current element's data.
      *  @param[in] Weight Integration point weight.
@@ -527,7 +570,7 @@ private:
 
     /**
      * @brief Impose pressure discontinuity at the interface due to the surface tension
-     * A penalty method is acquired and integration is done on the interface
+     * A penalty method is NOT needed and integration is done on the interface
      * @param coefficient surface tension coefficient
      * @param rCurvature curvature calculated at the interface gauss points
      * @param rIntWeights Weights associated with interface gauss points
@@ -544,6 +587,17 @@ private:
         const Matrix& rIntShapeFunctions,
         const Matrix& rIntEnrShapeFunctionsPos,
         const Matrix& rIntEnrShapeFunctionsNeg,
+		MatrixType& rKeeTot,
+		VectorType& rRHSeeTot);
+
+    /**
+     * @brief Impose pressure discontinuity at the edges due to the surface tension
+     * @param coefficient surface tension coefficient
+     * @param rKeeTot Pressure enrichment contribution related to pressure enrichment DOFs will be modified by penalty method
+     * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs will be modified by surface tension contribution
+     */
+	void PressureDiscontinuity(
+        const double coefficient,
 		MatrixType& rKeeTot,
 		VectorType& rRHSeeTot);
 
@@ -664,6 +718,38 @@ private:
         const Matrix& rIntShapeFunctions,
         const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
         VectorType& rRHS); 
+
+    /**
+     * @brief Computes the surface tension on the interface and implement its effect on the RHS vector
+     * Curvature is implicit in the formulation and normal vector is calculated from distance
+     * @param coefficient surface tension coefficient
+     * @param rIntWeights Weights associated with interface gauss points
+     * @param rIntShapeFunctions Shape functions calculated at the interface gauss points
+     * @param rInterfaceShapeDerivativesNeg Negative side shape functions derivatives at the interface-gauss-points
+     * @param rRHS The effect of pressure discontinuity is implemented as an interfacial integral on the RHS
+     */
+	void SurfaceTensionMixed(
+        const double coefficient,
+        const Kratos::Vector& rIntWeights,
+        const Matrix& rIntShapeFunctions,
+        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
+        VectorType& rRHS); 
+
+    /**
+     * @brief Computes the pressure difference (surface tension) on the interface and implement its effect on the RHS vector
+     * Curvature is implicit in the formulation and normal vector is calculated from distance
+     * @param rIntWeights Weights associated with interface gauss points
+     * @param rIntShapeFunctions Shape functions calculated at the interface gauss points
+     * @param rIntEnrShapeFunctionsPos Enriched Shape functions calculated at the interface gauss points (positive side)
+     * @param rIntEnrShapeFunctionsNeg Enriched Shape functions calculated at the interface gauss points (negative side)
+     * @param rVLHS The effect of pressure discontinuity is implemented as an interfacial integral on the RHS
+     */
+	void SurfaceTensionDP(
+        const Kratos::Vector& rIntWeights,
+        const Matrix& rIntShapeFunctions,
+        const Matrix& rIntEnrShapeFunctionsPos,
+        const Matrix& rIntEnrShapeFunctionsNeg,
+        MatrixType& rVLHS); 
 
     /**
      * @brief Computes the surface tension on the interface and implement its effect on the RHS vector

@@ -97,7 +97,7 @@ void VariationalNonEikonalDistance::Execute()
     const double elem_size = ElementSizeCalculator<3,4>::AverageElementSize(geom);
     
     double distance_min = 1.0e10;
-    //unsigned int node_nearest = 0;
+    unsigned int node_nearest = 0;
 
     //double distance_max = 0.0;
     //unsigned int node_farthest = 0;
@@ -111,7 +111,7 @@ void VariationalNonEikonalDistance::Execute()
 
         if (abs(distance) <= distance_min){
             distance_min = abs(distance);
-            //node_nearest = i_node;
+            node_nearest = i_node;
         }
 
         /* if (abs(distance) >= distance_max){
@@ -134,14 +134,17 @@ void VariationalNonEikonalDistance::Execute()
 
     //auto it_node = mrModelPart.NodesBegin() + node_nearest; //node_farthest;
     //it_node->Fix(DISTANCE_AUX);
+    //KRATOS_INFO("VariationalNonEikonalDistancem, fixed distance") << it_node->FastGetSolutionStepValue(DISTANCE) << std::endl;
 
+    const double epsilon = 1.0e-6;
     #pragma omp parallel for
     for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
         auto it_node = mrModelPart.NodesBegin() + i_node;
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
 
-        if (abs((abs(distance) - distance_min)/distance_min) <= 1.0e-6){ // (abs((distance - distance_max)/distance_max) <= 1.0e-9){
+        if (abs((abs(distance) - distance_min)/(distance_min + epsilon)) <= epsilon){ // (abs((distance - distance_max)/distance_max) <= 1.0e-9){
             it_node->Fix(DISTANCE_AUX);
+            //KRATOS_INFO("VariationalNonEikonalDistancem, fixed distance") << distance << std::endl;
         }
     }
 

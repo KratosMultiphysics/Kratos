@@ -103,6 +103,7 @@ class FluidSolver(PythonSolver):
             self.solver.Predict()
 
     def SolveSolutionStep(self):
+        #KratosMultiphysics.Logger.PrintInfo("Fluid Solver", "to begin SolutionStep")
         if self._TimeBufferIsInitialized():
             is_converged = self.solver.SolveSolutionStep()
             if not is_converged:

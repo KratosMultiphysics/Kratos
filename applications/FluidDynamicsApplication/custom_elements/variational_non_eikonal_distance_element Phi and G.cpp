@@ -448,7 +448,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                         //KRATOS_INFO("VariationalNonEikonalDistanceElement") << k_dim << ", Here 4-2" << std::endl;
 
                         rhs(i_node*(num_dim + 1) + k_dim + 1) += 
-                            penalty_curvature*int_weights(int_gp)*(int_DN_DX[int_gp])(j_node,k_dim)*distance_gradient0(j_node, k_dim)*int_N(int_gp, j_node)*int_N(int_gp, i_node);
+                            penalty_curvature*int_weights(int_gp)*(int_DN_DX[int_gp])(j_node,k_dim)*distance_gradient0(j_node, k_dim)*int_N(int_gp, i_node);
 
                     }
 

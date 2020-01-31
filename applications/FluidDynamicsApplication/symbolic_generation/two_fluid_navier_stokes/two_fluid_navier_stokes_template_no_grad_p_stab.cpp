@@ -340,7 +340,7 @@ void TwoFluidNavierStokes<TElementData>::UpdateIntegrationPointData(
 }
 
 template <>
-void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSContribution(
+void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSContributionCut(
     TwoFluidNavierStokesData<2, 3> &rData,
     MatrixType &rLHS)
 {
@@ -369,6 +369,10 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSC
     constexpr double stab_c2 = 2.0;
 
     auto &lhs = rData.lhs;
+
+    const auto &Nenr = rData.Nenr;
+    const auto &DNenr = rData.DN_DXenr;
+    const auto &penr = rData.Pressure_Enriched; // array_1d<double, NumNodes> penr = ZeroVector(NumNodes);
 
     //substitute_lhs_2D
 
@@ -377,7 +381,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSC
 }
 
 template <>
-void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSContribution(
+void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSContributionCut(
     TwoFluidNavierStokesData<3, 4> &rData,
     MatrixType &rLHS)
 {
@@ -408,6 +412,10 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
 
     auto &lhs = rData.lhs;
 
+    const auto &Nenr = rData.Nenr;
+    const auto &DNenr = rData.DN_DXenr;
+    const auto &penr = rData.Pressure_Enriched; // array_1d<double, NumNodes> penr = ZeroVector(NumNodes);
+
     //substitute_lhs_3D
 
     // Add intermediate results to local system
@@ -415,7 +423,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
 }
 
 template <>
-void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSContribution(
+void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSContributionCut(
     TwoFluidNavierStokesData<2, 3> &rData,
     VectorType &rRHS)
 {
@@ -452,13 +460,17 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
 
     auto &rhs = rData.rhs;
 
+    const auto &Nenr = rData.Nenr;
+    const auto &DNenr = rData.DN_DXenr;
+    const auto &penr = rData.Pressure_Enriched; // array_1d<double, NumNodes> penr = ZeroVector(NumNodes);
+
     //substitute_rhs_2D
 
     noalias(rRHS) += rData.Weight * rhs;
 }
 
 template <>
-void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSContribution(
+void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSContributionCut(
     TwoFluidNavierStokesData<3, 4> &rData,
     VectorType &rRHS)
 {
@@ -495,13 +507,17 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
 
     auto &rhs = rData.rhs;
 
+    const auto &Nenr = rData.Nenr;
+    const auto &DNenr = rData.DN_DXenr;
+    const auto &penr = rData.Pressure_Enriched; // array_1d<double, NumNodes> penr = ZeroVector(NumNodes);
+
     //substitute_rhs_3D
 
     noalias(rRHS) += rData.Weight * rhs;
 }
 
 template <>
-void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnrichmentContributions(
+void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnrichmentContributionsCut(
     TwoFluidNavierStokesData<2, 3> &rData,
     MatrixType &rV,
     MatrixType &rH,
@@ -545,7 +561,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
     auto &Kee = rData.Kee;
     auto &rhs_ee = rData.rhs_ee;
 
-    array_1d<double, NumNodes> penr = ZeroVector(NumNodes); //penriched is considered to be zero as we do not want to store it
+    const auto &penr = rData.Pressure_Enriched; // array_1d<double, NumNodes> penr = ZeroVector(NumNodes); //penriched is considered to be zero as we do not want to store it
 
     //substitute_enrichment_V_2D
 
@@ -555,14 +571,17 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
 
     //substitute_enrichment_rhs_ee_2D
 
+    //substitute_enrichment_rhs_eV_2D
+
     noalias(rV) += rData.Weight * V;
     noalias(rH) += rData.Weight * H;
     noalias(rKee) += rData.Weight * Kee;
     noalias(rRHS_ee) += rData.Weight * rhs_ee;
+    //noalias(rRHS_eV) += rData.Weight * rhs_eV;
 }
 
 template <>
-void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnrichmentContributions(
+void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnrichmentContributionsCut(
     TwoFluidNavierStokesData<3, 4> &rData,
     MatrixType &rV,
     MatrixType &rH,
@@ -606,7 +625,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
     auto &Kee = rData.Kee;
     auto &rhs_ee = rData.rhs_ee;
 
-    array_1d<double, NumNodes> penr = ZeroVector(NumNodes); //penriched is considered to be zero as we do not want to store it
+    const auto &penr = rData.Pressure_Enriched; // array_1d<double, NumNodes> penr = ZeroVector(NumNodes); //penriched is considered to be zero as we do not want to store it
 
     //substitute_enrichment_V_3D
 
@@ -616,10 +635,13 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
 
     //substitute_enrichment_rhs_ee_3D
 
+    //substitute_enrichment_rhs_eV_3D
+
     noalias(rV) += rData.Weight * V;
     noalias(rH) += rData.Weight * H;
     noalias(rKee) += rData.Weight * Kee;
     noalias(rRHS_ee) += rData.Weight * rhs_ee;
+    //noalias(rRHS_eV) += rData.Weight * rhs_eV;
 }
 
 template <class TElementData>
@@ -636,7 +658,7 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
 {
     // Set the positive and negative enrichment interpolation matrices
     // Note that the enrichment is constructed using the standard shape functions such that:
-    // In the negative distance region, the enrichment functions correspondig to the negative
+    // In the negative distance region, the enrichment functions corresponding to the negative
     // distance nodes are null and the positive distance nodes are equal to the standard shape
     // functions. On the contrary, for the positive distance region, the enrichment functions
     // corresponding to the positive distance nodes are null meanwhile the negative distance
