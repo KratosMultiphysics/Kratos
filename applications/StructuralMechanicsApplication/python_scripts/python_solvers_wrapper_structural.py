@@ -74,23 +74,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         kratos_module = "KratosMultiphysics.ContactStructuralMechanicsApplication"
         solver_module_name = "contact_" + solver_module_name
 
-        if solver_settings.Has("use_computing_model_part"):
-            if not solver_settings["use_computing_model_part"].GetBool():
-                KratosMultiphysics.Logger.PrintWarning('MechanicalSolver', 'Contact Problems must use the computing model part for now, setting it to on')
-        else:
-            solver_settings.AddEmptyValue("use_computing_model_part")
-        solver_settings["use_computing_model_part"].SetBool(True)
-
     elif solver_settings.Has("mpc_contact_settings"):  # This is a mpc contact problem
         kratos_module = "KratosMultiphysics.ContactStructuralMechanicsApplication"
         solver_module_name = "mpc_contact_" + solver_module_name
-
-        if solver_settings.Has("use_computing_model_part"):
-            if not solver_settings["use_computing_model_part"].GetBool():
-                KratosMultiphysics.Logger.PrintWarning('MechanicalSolver', 'Contact Problems must use the computing model part for now, setting it to on')
-        else:
-            solver_settings.AddEmptyValue("use_computing_model_part")
-        solver_settings["use_computing_model_part"].SetBool(True)
 
     else:
         kratos_module = "KratosMultiphysics.StructuralMechanicsApplication"
