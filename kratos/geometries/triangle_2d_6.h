@@ -244,6 +244,14 @@ public:
             KRATOS_ERROR << "Invalid points number. Expected 6, given " << this->PointsNumber() << std::endl;
         }
     }
+    
+    explicit Triangle2D6( 
+        IndexType Id,
+        const PointsArrayType& ThisPoints 
+        ) : BaseType( Id, ThisPoints, &msGeometryData )
+    {
+        KRATOS_ERROR_IF( this->PointsNumber() != 6 ) << "Invalid points number. Expected 6, given " << this->PointsNumber() << std::endl;
+    }
 
     /**
      * Copy constructor.
@@ -334,11 +342,30 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief It creates a new geometry pointer
+     * @param ThisPoints the nodes of the new geometry
+     * @return a Pointer to the new geometry
+     */
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
         return typename BaseType::Pointer( new Triangle2D6( ThisPoints ) );
     }
 
+    /**
+     * @brief It creates a new geometry pointer
+     * @param NewId the ID of the new geometry
+     * @param ThisPoints the nodes of the new geometry
+     * @return a Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        IndexType NewId,  
+        PointsArrayType const& ThisPoints
+        ) const override
+    {
+        return typename BaseType::Pointer( new Triangle2D6( NewId, ThisPoints ) );
+    }
+    
     // Geometry< Point<3> >::Pointer Clone() const override
     // {
     //     Geometry< Point<3> >::PointsArrayType NewPoints;
