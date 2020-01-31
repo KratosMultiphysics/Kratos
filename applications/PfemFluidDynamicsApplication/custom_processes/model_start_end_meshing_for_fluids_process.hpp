@@ -215,7 +215,7 @@ protected:
                   vertices[i].Set(FLUID);
                 }
               }
-
+               i_elem->SetId(elemId);
               (rModelPart.Elements()).push_back(*(i_elem.base()));
               rModelPart.Elements().back().SetId(elemId);
               elemId += 1;
@@ -313,6 +313,21 @@ protected:
         // 	}
         //   }
       }
+
+        else {
+            // Skipping the Computing Model Part
+            if (!((i_mp->Is(ACTIVE) && i_mp->Is(SOLID)) || (i_mp->Is(ACTIVE) && i_mp->Is(FLUID)))) {
+                if (i_mp->NumberOfElements()) {
+                    // Adding the remaining elements to the Main Mode Part
+                    for (ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin(); i_elem != i_mp->ElementsEnd(); i_elem++) {
+                        i_elem->SetId(elemId);
+                        (rModelPart.Elements()).push_back(*(i_elem.base()));
+                        rModelPart.Elements().back().SetId(elemId);
+                        elemId += 1;
+                    }
+                }
+            }
+        }
     }
 
     // this->BuildBoundaryModelParts(rModelPart,PreservedConditions, nodeId, elemId, condId);
