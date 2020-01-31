@@ -21,8 +21,8 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         # Get the domain size
         self.domain_size = self._GetDomainSize()
 
-        # Get the nodal update FSI utilities
-        self.nodal_update_utilities = self._GetNodalUpdateUtilities()
+        # # Get the nodal update FSI utilities
+        # self.nodal_update_utilities = self._GetNodalUpdateUtilities()
 
         # Get the partitioned FSI utilities
         self.partitioned_fsi_utilities = self._GetPartitionedFSIUtilities()
@@ -116,13 +116,18 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         else:
             self.mesh_solver.MoveMesh()
 
-        # Update MESH_VELOCITY and MESH_ACCELERATION with Newmark formulas
-        self.nodal_update_utilities.UpdateMeshTimeDerivatives(
-            self.fluid_solver.GetComputingModelPart(),
-            self._ComputeDeltaTime())
+        # # Update MESH_VELOCITY and MESH_ACCELERATION with Newmark formulas
+        # self.nodal_update_utilities.UpdateMeshTimeDerivatives(
+        #     self.fluid_solver.GetComputingModelPart(),
+        #     self._ComputeDeltaTime())
 
         # Impose the structure MESH_VELOCITY and MESH_ACCELERATION in the fluid interface VELOCITY and ACCELERATION
-        self.nodal_update_utilities.SetMeshTimeDerivativesOnInterface(self._GetFluidInterfaceSubmodelPart())
+        # self.nodal_update_utilities.SetMeshTimeDerivativesOnInterface(self._GetFluidInterfaceSubmodelPart())
+        KratosMultiphysics.VariableUtils().CopyVectorVar(
+                KratosMultiphysics.MESH_VELOCITY,
+                KratosMultiphysics.VELOCITY,
+                self._GetFluidInterfaceSubmodelPart().GetCommunicator().LocalMesh().Nodes)
+        self._GetFluidInterfaceSubmodelPart().GetCommunicator().SynchronizeVariable(KratosMultiphysics.VELOCITY)
 
         # Solve fluid problem
         self.fluid_solver.SolveSolutionStep()
