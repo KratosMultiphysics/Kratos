@@ -161,6 +161,23 @@ void  AddGeometriesToPython(pybind11::module& m)
 //     py::class_<Hexahedra3D27<NodeType>, Hexahedra3D27<NodeType>::Pointer,  GeometryType  >(m,"Hexahedra3D27").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
 //     ;
 
+    /// Nurbs Geometries
+    // NurbsSurfaceGeometry3D
+    py::class_<NurbsSurfaceGeometry<3, NodeContainerType>, NurbsSurfaceGeometry<3, NodeContainerType>::Pointer, GeometryType >(m, "NurbsSurfaceGeometry3D")
+        .def(py::init<const PointsArrayType&, const SizeType, const SizeType, const Vector, const Vector>())
+        .def(py::init<const PointsArrayType&, const SizeType, const SizeType, const Vector, const Vector, const Vector>())
+        .def("PolynomialDegreeU", &NurbsSurfaceGeometry<3, NodeContainerType>::PolynomialDegreeU)
+        .def("PolynomialDegreeV", &NurbsSurfaceGeometry<3, NodeContainerType>::PolynomialDegreeV)
+        .def("KnotsU", &NurbsSurfaceGeometry<3, NodeContainerType>::KnotsU)
+        .def("KnotsV", &NurbsSurfaceGeometry<3, NodeContainerType>::KnotsV)
+        .def("NumberOfKnotsU", &NurbsSurfaceGeometry<3, NodeContainerType>::NumberOfKnotsU)
+        .def("NumberOfKnotsV", &NurbsSurfaceGeometry<3, NodeContainerType>::NumberOfKnotsV)
+        .def("IsRational", &NurbsSurfaceGeometry<3, NodeContainerType>::IsRational)
+        .def("Weights", &NurbsSurfaceGeometry<3, NodeContainerType>::Weights)
+        .def("NumberOfControlPointsU", &NurbsSurfaceGeometry<3, NodeContainerType>::NumberOfControlPointsU)
+        .def("NumberOfControlPointsV", &NurbsSurfaceGeometry<3, NodeContainerType>::NumberOfControlPointsV)
+        ;
+
 }
 
 }  // namespace Python.
