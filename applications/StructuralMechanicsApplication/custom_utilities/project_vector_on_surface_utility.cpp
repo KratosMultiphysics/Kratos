@@ -97,12 +97,14 @@ void ProjectVectorOnSurfaceUtility::Execute(ModelPart& rModelPart, Parameters Th
 
     const std::string& r_projection_type = ThisParameters["projection_type"].GetString();
     const auto method_specific_settings = ThisParameters["method_specific_settings"];
+    const bool check_local_space_dimension = ThisParameters["check_local_space_dimension"].GetBool();
+
     if (r_projection_type == "planar") {
-        PlanarProjection(rModelPart, method_specific_settings, global_direction, r_variable, echo_level, ThisParameters["check_local_space_dimension"].GetBool());
+        PlanarProjection(rModelPart, method_specific_settings, global_direction, r_variable, echo_level, check_local_space_dimension);
     } else if (r_projection_type == "radial") {
-        RadialProjection(rModelPart, method_specific_settings, global_direction, r_variable, echo_level, ThisParameters["check_local_space_dimension"].GetBool());
+        RadialProjection(rModelPart, method_specific_settings, global_direction, r_variable, echo_level, check_local_space_dimension);
     } else if (r_projection_type == "spherical") {
-        SphericalProjection(rModelPart, method_specific_settings, global_direction, r_variable, echo_level, ThisParameters["check_local_space_dimension"].GetBool());
+        SphericalProjection(rModelPart, method_specific_settings, global_direction, r_variable, echo_level, check_local_space_dimension);
     } else {
         KRATOS_ERROR << "projection type: " << r_projection_type << " not available, please use planar,radial,spherical" << std::endl;
     }
@@ -115,7 +117,7 @@ void ProjectVectorOnSurfaceUtility::PlanarProjection(
         const Vector3& rGlobalDirection,
         const ArrayVariableType& rVariable,
         const int EchoLevel,
-        const bool& rCheckLocalSpaceDimension)
+        const bool rCheckLocalSpaceDimension)
 {
      auto& r_process_info = rModelPart.GetProcessInfo();
 
@@ -183,7 +185,7 @@ void ProjectVectorOnSurfaceUtility::RadialProjection(
         const Vector3& rGlobalDirection,
         const ArrayVariableType& rVariable,
         const int EchoLevel,
-        const bool& rCheckLocalSpaceDimension)
+        const bool rCheckLocalSpaceDimension)
 {
     const auto& r_process_info = rModelPart.GetProcessInfo();
 
@@ -243,7 +245,7 @@ void ProjectVectorOnSurfaceUtility::SphericalProjection(
         const Vector3& rGlobalDirection,
         const ArrayVariableType& rVariable,
         const int EchoLevel,
-        const bool& rCheckLocalSpaceDimension)
+        const bool rCheckLocalSpaceDimension)
 {
     KRATOS_ERROR << "SphericalProjection not implemented" << std::endl;
 }

@@ -77,7 +77,7 @@ private:
         const Vector3& rGlobalDirection,
         const ArrayVariableType& rVariable,
         const int EchoLevel,
-        const bool& rCheckLocalSpaceDimension);
+        const bool rCheckLocalSpaceDimension);
 
     static void RadialProjection(
         ModelPart& rModelPart,
@@ -85,7 +85,7 @@ private:
         const Vector3& rGlobalDirection,
         const ArrayVariableType& rVariable,
         const int EchoLevel,
-        const bool& rCheckLocalSpaceDimension);
+        const bool rCheckLocalSpaceDimension);
 
     static void SphericalProjection(
         ModelPart& rModelPart,
@@ -93,7 +93,7 @@ private:
         const Vector3& rGlobalDirection,
         const ArrayVariableType& rVariable,
         const int EchoLevel,
-        const bool& rCheckLocalSpaceDimension);
+        const bool rCheckLocalSpaceDimension);
 
     ///@}
 
