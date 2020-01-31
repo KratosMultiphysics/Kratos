@@ -38,8 +38,10 @@
 #include "geometries/prism_3d_6.h"
 // #include "geometries/prism_3d_15.h"
 #include "geometries/hexahedra_3d_8.h"
-// #include "geometries/hexahedra_3d_20.h"
-// #include "geometries/hexahedra_3d_27.h"
+// Nurbs Geometries
+#include "geometries/nurbs_surface_geometry.h"
+#include "geometries/nurbs_curve_geometry.h"
+
 #include "python/add_geometries_to_python.h"
 
 namespace Kratos
