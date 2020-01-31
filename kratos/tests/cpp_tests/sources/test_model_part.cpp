@@ -57,6 +57,11 @@ namespace Kratos {
         Condition::Pointer p_cond_2 = rModelPart.CreateNewCondition("Condition2D2N", 3, PointerVector<NodeType>{condition_nodes_2}, p_elem_prop);
         Condition::Pointer p_cond_3 = rModelPart.CreateNewCondition("Condition2D2N", 4, PointerVector<NodeType>{condition_nodes_3}, p_elem_prop);
 
+        rModelPart.CreateNewGeometry("Line2D2N", 1, PointerVector<NodeType>{condition_nodes_0});
+        rModelPart.CreateNewGeometry("Line2D2N", 2, PointerVector<NodeType>{condition_nodes_1});
+        rModelPart.CreateNewGeometry("Line2D2N", 3, PointerVector<NodeType>{condition_nodes_2});
+        rModelPart.CreateNewGeometry("Line2D2N", 4, PointerVector<NodeType>{condition_nodes_3});
+        
         // Now we create the "elements"
         std::vector<NodeType::Pointer> element_nodes_0 (3);
         element_nodes_0[0] = p_node_1;
@@ -82,6 +87,11 @@ namespace Kratos {
         Element::Pointer p_elem_1 = rModelPart.CreateNewElement("Element2D3N", 2, PointerVector<NodeType>{element_nodes_1}, p_elem_prop);
         Element::Pointer p_elem_2 = rModelPart.CreateNewElement("Element2D3N", 3, PointerVector<NodeType>{element_nodes_2}, p_elem_prop);
         Element::Pointer p_elem_3 = rModelPart.CreateNewElement("Element2D3N", 4, PointerVector<NodeType>{element_nodes_3}, p_elem_prop);
+        
+        rModelPart.CreateNewGeometry("Triangle2D3N", 5, PointerVector<NodeType>{element_nodes_0});
+        rModelPart.CreateNewGeometry("Triangle2D3N", 6, PointerVector<NodeType>{element_nodes_1});
+        rModelPart.CreateNewGeometry("Triangle2D3N", 7, PointerVector<NodeType>{element_nodes_2});
+        rModelPart.CreateNewGeometry("Triangle2D3N", 8, PointerVector<NodeType>{element_nodes_3});
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartSubModelPartsIterator, KratosCoreFastSuite)
@@ -163,6 +173,22 @@ namespace Kratos {
             "Error: Please don't use names containing (\".\") when creating a ModelPart (used in \"name.other\")");
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartBaseCreation, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
+
+        // Fill model part
+        GenerateGenericModelPart(r_model_part);
+        
+        // Check results
+        KRATOS_CHECK(r_model_part.NumberOfNodes() == 6);
+        KRATOS_CHECK(r_model_part.NumberOfElements() == 4);
+        KRATOS_CHECK(r_model_part.NumberOfConditions() == 4);
+        KRATOS_CHECK(r_model_part.NumberOfGeometries() == 8);
+    }
+    
     KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveElements, KratosCoreFastSuite)
     {
         Model current_model;
