@@ -86,6 +86,19 @@ Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, doubl
     return rModelPart.CreateNewNode(Id, x, y, z);
 }
 
+Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry1(
+    ModelPart& rModelPart,
+    const std::string GeometryTypeName,
+    std::vector< ModelPart::IndexType >& NodeIdList)
+{
+    Geometry<Node<3>>::PointsArrayType pGeometryNodeList;
+    for (std::size_t i = 0; i < NodeIdList.size(); i++) {
+        pGeometryNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
+    }
+
+    return rModelPart.CreateNewGeometry(GeometryTypeName, pGeometryNodeList);
+}
+
 Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry2(
     ModelPart& rModelPart,
     const std::string GeometryTypeName,
@@ -983,6 +996,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GetNodalSolutionStepTotalDataSize", &ModelPart::GetNodalSolutionStepTotalDataSize)
         .def("OverwriteSolutionStepData", &ModelPart::OverwriteSolutionStepData)
         .def("CreateNewNode", ModelPartCreateNewNode)
+        .def("CreateNewGeometry", ModelPartCreateNewGeometry1)
         .def("CreateNewGeometry", ModelPartCreateNewGeometry2)
         .def("CreateNewGeometry", ModelPartCreateNewGeometry3)
         .def("CreateNewElement", ModelPartCreateNewElement)
