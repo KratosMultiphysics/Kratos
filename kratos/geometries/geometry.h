@@ -1589,7 +1589,7 @@ public:
      *                          1-> nodes in scond row\ variation
      */
     virtual void GetPointsAtEdge(
-        PointsArrayType& rPoints,
+        PointsArrayType& rResultPoints,
         IndexType EdgeIndex,
         IndexType SpecificationType = 0) const
     {
@@ -1607,8 +1607,8 @@ public:
      *                          1-> nodes in scond row\ variation
      */
     virtual void GetPointsAtVertex(
-        PointsArrayType& rPoints,
-        IndexType NodeIndex,
+        PointsArrayType& rResultPoints,
+        IndexType VertexIndex,
         IndexType SpecificationType = 0) const
     {
         KRATOS_ERROR << "Calling GetPointsAtVertex from base class."
