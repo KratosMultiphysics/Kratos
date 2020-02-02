@@ -177,7 +177,7 @@ public:
 
     /// Constructor with Geometry Name
     explicit Point3D(
-        IndexType GeometryName,
+        const std::string& GeometryName,
         const PointsArrayType& ThisPoints
     ) : BaseType(GeometryName, ThisPoints, &msGeometryData)
     {
@@ -286,11 +286,11 @@ public:
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        IndexType NewId,  
+        IndexType NewGeometryId,
         PointsArrayType const& ThisPoints
-        ) const override
+    ) const override
     {
-        return typename BaseType::Pointer( new Point3D( NewId, ThisPoints ) );
+        return typename BaseType::Pointer( new Point3D( NewGeometryId, ThisPoints ) );
     }
 
     /**
@@ -299,10 +299,10 @@ public:
      * @param ThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    virtual Pointer Create(
-        IndexType NewGeometryName,
+    typename BaseType::Pointer Create(
+        const std::string& NewGeometryName,
         PointsArrayType const& ThisPoints
-    ) const
+    ) const override
     {
         return typename BaseType::Pointer( new Point3D( NewGeometryName, ThisPoints ) );
     }

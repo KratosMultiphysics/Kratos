@@ -169,13 +169,23 @@ public:
         if ( BaseType::PointsNumber() != 1 )
             KRATOS_ERROR << "Invalid points number. Expected 1, given " << BaseType::PointsNumber() << std::endl;
     }
-    
-    explicit Sphere3D1( 
-        IndexType Id,
-        const PointsArrayType& ThisPoints 
-        ) : BaseType( Id, ThisPoints, &msGeometryData )
+
+    /// Constructor with Geometry Id
+    explicit Sphere3D1(
+        IndexType GeometryId,
+        const PointsArrayType& ThisPoints
+    ) : BaseType(GeometryId, ThisPoints, &msGeometryData)
     {
         KRATOS_ERROR_IF( this->PointsNumber() != 1 ) << "Invalid points number. Expected 1, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Name
+    explicit Sphere3D1(
+        const std::string& GeometryName,
+        const PointsArrayType& ThisPoints
+    ) : BaseType(GeometryName, ThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF(this->PointsNumber() != 1) << "Invalid points number. Expected 1, given " << this->PointsNumber() << std::endl;
     }
 
     /** Copy constructor.
@@ -269,7 +279,9 @@ public:
      * @param ThisPoints the nodes of the new geometry
      * @return a Pointer to the new geometry
      */
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
+    typename BaseType::Pointer Create(
+        PointsArrayType const& ThisPoints
+    ) const override
     {
         return typename BaseType::Pointer( new Sphere3D1( ThisPoints ) );
     }
@@ -281,11 +293,25 @@ public:
      * @return a Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        IndexType NewId,  
+        IndexType NewGeometryId,
         PointsArrayType const& ThisPoints
-        ) const override
+    ) const override
     {
-        return typename BaseType::Pointer( new Sphere3D1( NewId, ThisPoints ) );
+        return typename BaseType::Pointer( new Sphere3D1( NewGeometryId, ThisPoints ) );
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryName the name of the new geometry
+     * @param ThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    virtual BaseType::Pointer Create(
+        const std::string& NewGeometryName,
+        PointsArrayType const& ThisPoints
+    ) const override
+    {
+        return typename BaseType::Pointer( new Sphere3D1( NewGeometryName, ThisPoints ) );
     }
 
     // Geometry< Point<3> >::Pointer Clone() const override

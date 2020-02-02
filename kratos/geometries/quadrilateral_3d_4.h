@@ -257,7 +257,7 @@ public:
 
     /// Constructor with Geometry Id
     explicit Quadrilateral3D4(
-        IndexType GeometryName,
+        const std::string& GeometryName,
         const PointsArrayType& ThisPoints
     ) : BaseType(GeometryName, ThisPoints, &msGeometryData)
     {
@@ -358,7 +358,9 @@ public:
      * @param ThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
+    typename BaseType::Pointer Create(
+        PointsArrayType const& ThisPoints
+    ) const override
     {
         return typename BaseType::Pointer( new Quadrilateral3D4( ThisPoints ) );
     }
@@ -372,7 +374,7 @@ public:
     typename BaseType::Pointer Create(
         IndexType NewGeometryId,
         PointsArrayType const& ThisPoints
-    ) const
+    ) const override
     {
         return typename BaseType::Pointer( new Quadrilateral3D4( NewGeometryId, ThisPoints ) );
     }
@@ -383,10 +385,10 @@ public:
      * @param ThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    virtual Pointer Create(
-        IndexType NewGeometryName,
+    typename BaseType::Pointer Create(
+        const std::string& NewGeometryName,
         PointsArrayType const& ThisPoints
-    ) const
+    ) const override
     {
         return typename BaseType::Pointer( new Quadrilateral3D4( NewGeometryName, ThisPoints ) );
     }

@@ -177,7 +177,7 @@ public:
 
     /// Constructor with Geometry Id
     explicit Point2D(
-        IndexType GeometryName,
+        const std::string& GeometryName,
         const PointsArrayType& ThisPoints
     ) : BaseType(GeometryName, ThisPoints, &msGeometryData)
     {
@@ -270,9 +270,9 @@ public:
     ///@{
 
     /**
-     * @brief It creates a new geometry pointer
+     * @brief Creates a new geometry pointer
      * @param ThisPoints the nodes of the new geometry
-     * @return a Pointer to the new geometry
+     * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(PointsArrayType const& ThisPoints) const override
     {
@@ -280,10 +280,10 @@ public:
     }
     
     /**
-     * @brief It creates a new geometry pointer
-     * @param NewId the ID of the new geometry
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
      * @param ThisPoints the nodes of the new geometry
-     * @return a Pointer to the new geometry
+     * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
         IndexType NewGeometryId,
@@ -299,10 +299,10 @@ public:
      * @param ThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    virtual Pointer Create(
-        IndexType NewGeometryName,
+    typename BaseType::Pointer Create(
+        const std::string& NewGeometryName,
         PointsArrayType const& ThisPoints
-    ) const
+    ) const override
     {
         return typename BaseType::Pointer( new Point2D( NewGeometryName, ThisPoints));
     }

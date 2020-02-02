@@ -227,7 +227,7 @@ public:
 
     /// Constructor with Geometry Name
     explicit Tetrahedra3D4(
-        IndexType GeometryName,
+        const std::string& GeometryName,
         const PointsArrayType& ThisPoints
     ) : BaseType( GeometryName, ThisPoints, &msGeometryData )
     {
@@ -353,8 +353,8 @@ public:
      * @param ThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    virtual BaseType::Pointer Create(
-        IndexType NewGeometryName,
+    typename BaseType::Pointer Create(
+        const std::string& NewGeometryName,
         PointsArrayType const& ThisPoints
     ) const override
     {

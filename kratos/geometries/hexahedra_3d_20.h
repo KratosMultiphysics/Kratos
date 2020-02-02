@@ -258,24 +258,23 @@ public:
     Hexahedra3D20( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
-        if ( this->PointsNumber() != 20 )
-            KRATOS_ERROR << "Invalid points number. Expected 20, given " << this->PointsNumber() << std::endl;
+        KRATOS_ERROR_IF(this->PointsNumber() != 20) << "Invalid points number. Expected 20, given " << this->PointsNumber() << std::endl;
     }
 
     /// Constructor with Geometry Id
-    explicit Hexahedra3D20( 
+    explicit Hexahedra3D20(
         IndexType GeometryId,
-        const PointsArrayType& ThisPoints 
-        ) : BaseType(GeometryId, ThisPoints, &msGeometryData )
+        const PointsArrayType& ThisPoints
+    ) : BaseType(GeometryId, ThisPoints, &msGeometryData)
     {
         KRATOS_ERROR_IF( this->PointsNumber() != 20 ) << "Invalid points number. Expected 20, given " << this->PointsNumber() << std::endl;
     }
 
     /// Constructor with Geometry Name
     explicit Hexahedra3D20(
-        IndexType GeometryName,
+        const std::string& GeometryName,
         const PointsArrayType& ThisPoints
-    ) : BaseType(GeometryName, ThisPoints, &msGeometryData)
+    ) : BaseType( GeometryName, ThisPoints, &msGeometryData)
     {
         KRATOS_ERROR_IF(this->PointsNumber() != 20) << "Invalid points number. Expected 20, given " << this->PointsNumber() << std::endl;
     }
@@ -365,17 +364,18 @@ public:
         return *this;
     }
 
-
-    /**
-     * Operations
-     */
+    ///@}
+    ///@name Operations
+    ///@{
 
     /**
      * @brief Creates a new geometry pointer
      * @param ThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
+    typename BaseType::Pointer Create(
+        PointsArrayType const& ThisPoints
+    ) const override
     {
         return typename BaseType::Pointer( new Hexahedra3D20( ThisPoints ) );
     }
@@ -387,9 +387,9 @@ public:
      * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        IndexType NewGeometryId,  
+        IndexType NewGeometryId,
         PointsArrayType const& ThisPoints
-        ) const override
+    ) const override
     {
         return typename BaseType::Pointer( new Hexahedra3D20( NewGeometryId, ThisPoints ) );
     }
@@ -400,12 +400,12 @@ public:
      * @param ThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    virtual Pointer Create(
-        IndexType NewGeometryName,
+    typename BaseType::Pointer Create(
+        const std::string& NewGeometryName,
         PointsArrayType const& ThisPoints
-    ) const
+    ) const override
     {
-        return typename BaseType::Pointer(new Hexahedra3D20(NewGeometryName, ThisPoints));
+        return typename BaseType::Pointer(new Hexahedra3D20( NewGeometryName, ThisPoints));
     }
 
 

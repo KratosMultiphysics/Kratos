@@ -239,7 +239,7 @@ public:
 
     /// Constructor with Geometry Name
     explicit Hexahedra3D8(
-        IndexType GeometryName,
+        const std::string& GeometryName,
         const PointsArrayType& ThisPoints
     ) : BaseType( GeometryName, ThisPoints, &msGeometryData)
     {
@@ -365,10 +365,10 @@ public:
      * @param ThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    virtual Pointer Create(
-        IndexType NewGeometryName,
+    typename BaseType::Pointer Create(
+        const std::string& NewGeometryName,
         PointsArrayType const& ThisPoints
-    ) const
+    ) const override
     {
         return typename BaseType::Pointer(new Hexahedra3D8( NewGeometryName, ThisPoints));
     }

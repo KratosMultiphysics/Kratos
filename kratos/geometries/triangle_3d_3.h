@@ -239,8 +239,7 @@ public:
     explicit Triangle3D3( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
-        if ( this->PointsNumber() != 3 )
-            KRATOS_ERROR << "Invalid points number. Expected 3, given " << this->PointsNumber() << std::endl;
+        KRATOS_ERROR_IF(this->PointsNumber() != 3) << "Invalid points number. Expected 3, given " << this->PointsNumber() << std::endl;
     }
 
     /// Constructor with Geometry Id
@@ -249,12 +248,12 @@ public:
         const PointsArrayType& ThisPoints
     ) : BaseType(GeometryId, ThisPoints, &msGeometryData)
     {
-        KRATOS_ERROR_IF( this->PointsNumber() != 3 ) << "Invalid points number. Expected 3, given " << this->PointsNumber() << std::endl;
+        KRATOS_ERROR_IF(this->PointsNumber() != 3) << "Invalid points number. Expected 3, given " << this->PointsNumber() << std::endl;
     }
 
     /// Constructor with Geometry Name
     explicit Triangle3D3(
-        IndexType GeometryName,
+        const std::string& GeometryName,
         const PointsArrayType& ThisPoints
     ) : BaseType(GeometryName, ThisPoints, &msGeometryData)
     {
@@ -383,7 +382,7 @@ public:
      * @return Pointer to the new geometry
      */
     virtual BaseType::Pointer Create(
-        IndexType NewGeometryName,
+        const std::string& NewGeometryName,
         PointsArrayType const& ThisPoints
     ) const override
     {

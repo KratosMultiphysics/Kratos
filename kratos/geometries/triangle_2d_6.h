@@ -256,7 +256,7 @@ public:
 
     /// Constructor with Geometry Name
     explicit Triangle2D6(
-        IndexType GeometryName,
+        const std::string& GeometryName,
         const PointsArrayType& ThisPoints
     ) : BaseType( GeometryName, ThisPoints, &msGeometryData )
     {
@@ -385,7 +385,7 @@ public:
      * @return Pointer to the new geometry
      */
     virtual BaseType::Pointer Create(
-        IndexType NewGeometryName,
+        const std::string& NewGeometryName,
         PointsArrayType const& ThisPoints
     ) const override
     {

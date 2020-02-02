@@ -231,7 +231,6 @@ public:
         this->Points().push_back( pFourthPoint );
     }
 
-    /// Constructor with Geometry Id
     explicit Quadrilateral2D4( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
@@ -248,10 +247,11 @@ public:
         KRATOS_ERROR_IF( this->PointsNumber() != 4 ) << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
     }
 
+    /// Constructor with Geometry Name
     explicit Quadrilateral2D4(
-        IndexType Id,
+        const std::string& GeometryName,
         const PointsArrayType& ThisPoints
-    ) : BaseType(Id, ThisPoints, &msGeometryData)
+    ) : BaseType(GeometryName, ThisPoints, &msGeometryData)
     {
         KRATOS_ERROR_IF(this->PointsNumber() != 4) << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
     }
@@ -375,10 +375,10 @@ public:
      * @param ThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    virtual Pointer Create(
-        IndexType NewGeometryName,
+    typename BaseType::Pointer Create(
+        const std::string& NewGeometryName,
         PointsArrayType const& ThisPoints
-    ) const
+    ) const override
     {
         return typename BaseType::Pointer( new Quadrilateral2D4( NewGeometryName, ThisPoints ) );
     }

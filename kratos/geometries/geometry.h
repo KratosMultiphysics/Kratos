@@ -590,11 +590,13 @@ public:
      * @param ThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    virtual Pointer Create( PointsArrayType const& ThisPoints ) const
+    virtual Pointer Create(
+        PointsArrayType const& ThisPoints
+    ) const
     {
         return Pointer( new Geometry( ThisPoints, mpGeometryData ) );
     }
-    
+
     /**
      * @brief Creates a new geometry pointer
      * @param NewGeometryId the ID of the new geometry
@@ -604,9 +606,9 @@ public:
     virtual Pointer Create(
         IndexType NewGeometryId,
         PointsArrayType const& ThisPoints
-        ) const
+    ) const
     {
-        return Pointer( new Geometry(NewGeometryId, ThisPoints, mpGeometryData));
+        return Pointer( new Geometry( NewGeometryId, ThisPoints, mpGeometryData));
     }
 
     /**
@@ -616,11 +618,11 @@ public:
      * @return Pointer to the new geometry
      */
     virtual Pointer Create(
-        IndexType NewGeometryName,
+        const std::string& NewGeometryName,
         PointsArrayType const& ThisPoints
     ) const
     {
-        return Pointer(new Geometry(NewGeometryName, ThisPoints, mpGeometryData));
+        return Pointer(new Geometry( NewGeometryName, ThisPoints, mpGeometryData));
     }
 
     /** This methods will create a duplicate of all its points and
