@@ -1613,9 +1613,6 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     return CreateNewGeometry(GeometryTypeName, GeometryId, p_geometry_nodes);
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     std::string GeometryTypeName,
     IndexType GeometryId,
@@ -1629,7 +1626,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
         return p_new_geometry;
     }
 
-    KRATOS_ERROR_IF(this->HasGeometry(GeometryId)) << "Trying to construct an geometry with ID " << GeometryId << ". A geometry with the same Id exists already." << std::endl;
+    KRATOS_ERROR_IF(this->HasGeometry(GeometryId)) << "Trying to construct an geometry with ID: " << GeometryId << ". A geometry with the same Id exists already." << std::endl;
 
     // Create the new geometry
     GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(GeometryTypeName);
@@ -1640,6 +1637,52 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
 
     return p_geometry;
     
+    KRATOS_CATCH("")
+}
+
+ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
+    std::string GeometryTypeName,
+    const std::string& GeometryIdentifierName,
+    std::vector<IndexType> GeometryNodeIds)
+{
+    if (IsSubModelPart()) {
+        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(GeometryTypeName, GeometryIdentifierName, GeometryNodeIds);
+        this->AddGeometry(p_new_geometry);
+        return p_new_geometry;
+    }
+
+    GeometryType::PointsArrayType p_geometry_nodes;
+    for (IndexType i = 0; i < GeometryNodeIds.size(); ++i) {
+        p_geometry_nodes.push_back(pGetNode(GeometryNodeIds[i]));
+    }
+
+    return CreateNewGeometry(GeometryTypeName, GeometryIdentifierName, p_geometry_nodes);
+}
+
+ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
+    std::string GeometryTypeName,
+    const std::string& GeometryIdentifierName,
+    GeometryType::PointsArrayType pGeometryNodes)
+{
+    KRATOS_TRY
+
+        if (IsSubModelPart()) {
+            GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(GeometryTypeName, GeometryIdentifierName, pGeometryNodes);
+            this->AddGeometry(p_new_geometry);
+            return p_new_geometry;
+        }
+
+    KRATOS_ERROR_IF(this->HasGeometry(GeometryIdentifierName)) << "Trying to construct an geometry with name: " << GeometryIdentifierName << ". A geometry with the same name exists already." << std::endl;
+
+    // Create the new geometry
+    GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(GeometryTypeName);
+    GeometryType::Pointer p_geometry = r_clone_geometry.Create(GeometryIdentifierName, pGeometryNodes);
+
+    //add the new geometry
+    this->AddGeometry(p_geometry);
+
+    return p_geometry;
+
     KRATOS_CATCH("")
 }
 
