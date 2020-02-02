@@ -88,10 +88,10 @@ namespace Kratos {
         Element::Pointer p_elem_2 = rModelPart.CreateNewElement("Element2D3N", 3, PointerVector<NodeType>{element_nodes_2}, p_elem_prop);
         Element::Pointer p_elem_3 = rModelPart.CreateNewElement("Element2D3N", 4, PointerVector<NodeType>{element_nodes_3}, p_elem_prop);
         
-        rModelPart.CreateNewGeometry("Triangle2D3", 5, PointerVector<NodeType>{element_nodes_0});
-        rModelPart.CreateNewGeometry("Triangle2D3", 6, PointerVector<NodeType>{element_nodes_1});
-        rModelPart.CreateNewGeometry("Triangle2D3", 7, PointerVector<NodeType>{element_nodes_2});
-        rModelPart.CreateNewGeometry("Triangle2D3", 8, PointerVector<NodeType>{element_nodes_3});
+        rModelPart.CreateNewGeometry("Triangle2D3", PointerVector<NodeType>{element_nodes_0});
+        rModelPart.CreateNewGeometry("Triangle2D3", PointerVector<NodeType>{element_nodes_1});
+        rModelPart.CreateNewGeometry("Triangle2D3", "Geometry_7", PointerVector<NodeType>{element_nodes_2});
+        rModelPart.CreateNewGeometry("Triangle2D3", "Geometry_8", PointerVector<NodeType>{element_nodes_3});
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartSubModelPartsIterator, KratosCoreFastSuite)
