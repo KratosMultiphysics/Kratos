@@ -52,9 +52,9 @@ namespace Python
     typedef std::size_t SizeType;
 
     typedef Geometry<Node<3> > GeometryType;
-    typedef GeometryType::PointsArrayType PointsArrayType;
-    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
-    typedef Point::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename GeometryType::PointsArrayType PointsArrayType;
+    typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef typename Point::CoordinatesArrayType CoordinatesArrayType;
 
     const PointerVector< Node<3> >& ConstGetPoints( GeometryType& geom ) { return geom.Points(); }
     PointerVector< Node<3> >& GetPoints( GeometryType& geom ) { return geom.Points(); }
