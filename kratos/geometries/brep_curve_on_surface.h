@@ -239,19 +239,6 @@ public:
     }
 
     ///@}
-    ///@name Point Access
-    ///@{
-    
-    void GetPointsAt(
-        PointsArrayType& rPoints,
-        const CoordinatesArrayType& rLocalCoordinates,
-        IndexType SpecificationType = 0) const override
-    {
-        mpCurveOnSurface->GetPointsAt(
-            rPoints, rLocalCoordinates, SpecificationType);
-    }
-
-    ///@}
     ///@name Geometrical Operations
     ///@{
 
