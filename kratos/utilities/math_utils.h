@@ -1839,8 +1839,7 @@ public:
         const SizeType MaxIterations = 20)
     {
         // Do an eigenvalue decomposition of the input matrix
-        TMatrixType2 eigenvectors_matrix;
-        TMatrixType2 eigenvalues_matrix;
+        TMatrixType2 eigenvectors_matrix, eigenvalues_matrix;
         const bool is_converged = GaussSeidelEigenSystem(rA, eigenvectors_matrix, eigenvalues_matrix, Tolerance, MaxIterations);
         KRATOS_WARNING_IF("MatrixSquareRoot", !is_converged) << "GaussSeidelEigenSystem did not converge.\n";
 
@@ -1851,7 +1850,7 @@ public:
         }
 
         // Calculate the solution from the previous decomposition and eigenvalues square root
-        rMatrixSquareRoot = prod(eigenvectors_matrix, Matrix(prod(eigenvalues_matrix, trans(eigenvectors_matrix))));
+        BDBtProductOperation(rMatrixSquareRoot, eigenvalues_matrix, eigenvectors_matrix);
 
         return is_converged;
     }
