@@ -224,14 +224,24 @@ public:
         KRATOS_ERROR_IF( this->PointsNumber() != 8 ) << "Invalid points number. Expected 8, given " << this->PointsNumber() << std::endl;
     }
 
-    explicit Quadrilateral3D8( 
-        IndexType Id,
-        const PointsArrayType& ThisPoints 
-        ) : BaseType( Id, ThisPoints, &msGeometryData )
+    /// Constructor with Geometry Id
+    explicit Quadrilateral3D8(
+        IndexType GeometryId,
+        const PointsArrayType& ThisPoints
+    ) : BaseType(GeometryId, ThisPoints, &msGeometryData)
     {
         KRATOS_ERROR_IF( this->PointsNumber() != 8 ) << "Invalid points number. Expected 8, given " << this->PointsNumber() << std::endl;
     }
-    
+
+    /// Constructor with Geometry Name
+    explicit Quadrilateral3D8(
+        IndexType GeometryName,
+        const PointsArrayType& ThisPoints
+    ) : BaseType(GeometryName, ThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF(this->PointsNumber() != 8) << "Invalid points number. Expected 8, given " << this->PointsNumber() << std::endl;
+    }
+
     /**
      * Copy constructor.
      * Constructs this geometry as a copy of given geometry.
@@ -319,12 +329,46 @@ public:
         return *this;
     }
 
+    ///@}
+    ///@name Operations
+    ///@{
+
     /**
-     * Operations
+     * @brief Creates a new geometry pointer
+     * @param ThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
      */
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
+    virtual Pointer Create(PointsArrayType const& ThisPoints) const
     {
         return typename BaseType::Pointer( new Quadrilateral3D8( ThisPoints ) );
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param ThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        IndexType NewGeometryId,
+        PointsArrayType const& ThisPoints
+    ) const
+    {
+        return typename BaseType::Pointer( new Quadrilateral3D8( NewGeometryId, ThisPoints ) );
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryName the name of the new geometry
+     * @param ThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        IndexType NewGeometryName,
+        PointsArrayType const& ThisPoints
+    ) const
+    {
+        return typename BaseType::Pointer( new Quadrilateral3D8( NewGeometryName, ThisPoints ) );
     }
 
     // Geometry< Point<3> >::Pointer Clone() const override
