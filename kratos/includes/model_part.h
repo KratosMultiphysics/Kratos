@@ -1356,6 +1356,24 @@ public:
     /**
      * @◙brief Inserts a geometry in the current model part.
      * @param GeometryTypeName The type of the geometry to be added, must be registered.
+     * @param GeometryNodeIds The node ids to create the geometry.
+     */
+    GeometryType::Pointer CreateNewGeometry(
+        std::string GeometryTypeName,
+        std::vector<IndexType> GeometryNodeIds);
+
+    /**
+     * @◙brief Inserts a geometry in the current model part.
+     * @param GeometryTypeName The type of the geometry to be added, must be registered.
+     * @param pGeometryNodes The nodes array to create the geometry.
+     */
+    GeometryType::Pointer CreateNewGeometry(
+        std::string GeometryTypeName,
+        GeometryType::PointsArrayType pGeometryNodes);
+
+    /**
+     * @◙brief Inserts a geometry in the current model part.
+     * @param GeometryTypeName The type of the geometry to be added, must be registered.
      * @param GeometryId of the new geometry added.
      * @param GeometryNodeIds The node ids to create the geometry.
      */
