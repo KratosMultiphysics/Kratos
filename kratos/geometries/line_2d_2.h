@@ -187,13 +187,23 @@ public:
         if ( BaseType::PointsNumber() != 2 )
             KRATOS_ERROR << "Invalid points number. Expected 2, given " << BaseType::PointsNumber() << std::endl;
     }
-    
+
+    /// Constructor with Geometry Id
     explicit Line2D2( 
-        IndexType Id,
-        const PointsArrayType& ThisPoints 
-        ) : BaseType( Id, ThisPoints, &msGeometryData )
+        IndexType GeometryId,
+        const PointsArrayType& ThisPoints
+    ) : BaseType( GeometryId, ThisPoints, &msGeometryData)
     {
         KRATOS_ERROR_IF( this->PointsNumber() != 2 ) << "Invalid points number. Expected 2, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Name
+    explicit Line2D2(
+        IndexType GeometryName,
+        const PointsArrayType& ThisPoints
+    ) : BaseType(GeometryName, ThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF(this->PointsNumber() != 2) << "Invalid points number. Expected 2, given " << this->PointsNumber() << std::endl;
     }
 
     /** Copy constructor.
@@ -283,9 +293,9 @@ public:
     ///@{
 
     /**
-     * @brief It creates a new geometry pointer
+     * @brief Creates a new geometry pointer
      * @param ThisPoints the nodes of the new geometry
-     * @return a Pointer to the new geometry
+     * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
@@ -293,19 +303,33 @@ public:
     }
     
     /**
-     * @brief It creates a new geometry pointer
-     * @param NewId the ID of the new geometry
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
      * @param ThisPoints the nodes of the new geometry
-     * @return a Pointer to the new geometry
+     * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        IndexType NewId,  
+        IndexType NewGeometryId,
         PointsArrayType const& ThisPoints
-        ) const override
+    ) const
     {
-        return typename BaseType::Pointer( new Line2D2( NewId, ThisPoints ) );
+        return typename BaseType::Pointer( new Line2D2( NewGeometryId, ThisPoints ) );
     }
-    
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryName the name of the new geometry
+     * @param ThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        IndexType NewGeometryName,
+        PointsArrayType const& ThisPoints
+    ) const
+    {
+        return typename BaseType::Pointer( new Line2D2( NewGeometryName, ThisPoints));
+    }
+
     // Geometry< Point<3> >::Pointer Clone() const override
     // {
     //     Geometry< Point<3> >::PointsArrayType NewPoints;
