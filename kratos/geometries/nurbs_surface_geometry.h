@@ -362,12 +362,13 @@ public:
             IndexU, IndexV)));
     }
 
-    /**
-     * 3*--------*2
+    /**     2
+     *  *--------*
      *  | ^v     |
-     *  | |      |
+     *3 | |      | 1
      *  | .->u   |
-     * 0*--------*1
+     *  *--------*
+     *      0
      */
     virtual void GetPointsAtEdge(
         PointsArrayType& rResultPoints,
