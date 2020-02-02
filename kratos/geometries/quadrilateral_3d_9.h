@@ -365,7 +365,7 @@ public:
         PointsArrayType const& ThisPoints
         ) const override
     {
-        return typename BaseType::Pointer( new Quadrilateral3D9( NewId, ThisPoints ) );
+        return typename BaseType::Pointer( new Quadrilateral3D9(NewGeometryId, ThisPoints ) );
     }
 
     /**
