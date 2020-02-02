@@ -165,15 +165,25 @@ public:
         if( BaseType::PointsNumber() != 1)
             KRATOS_ERROR << "Invalid points number. Expected 2, given " << BaseType::PointsNumber() << std::endl;
     }
-    
-    explicit Point2D( 
-        IndexType Id,
-        const PointsArrayType& ThisPoints 
-        ) : BaseType( Id, ThisPoints, &msGeometryData )
+
+    /// Constructor with Geometry Id
+    explicit Point2D(
+        IndexType GeometryId,
+        const PointsArrayType& ThisPoints
+    ) : BaseType(GeometryId, ThisPoints, &msGeometryData)
     {
         KRATOS_ERROR_IF( this->PointsNumber() != 1 ) << "Invalid points number. Expected 1, given " << this->PointsNumber() << std::endl;
     }
-    
+
+    /// Constructor with Geometry Id
+    explicit Point2D(
+        IndexType GeometryName,
+        const PointsArrayType& ThisPoints
+    ) : BaseType(GeometryName, ThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF(this->PointsNumber() != 1) << "Invalid points number. Expected 1, given " << this->PointsNumber() << std::endl;
+    }
+
     /** Copy constructor.
     Construct this geometry as a copy of given geometry.
 
@@ -276,13 +286,27 @@ public:
      * @return a Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        IndexType NewId,  
+        IndexType NewGeometryId,
         PointsArrayType const& ThisPoints
         ) const override
     {
-        return typename BaseType::Pointer( new Point2D( NewId, ThisPoints ) );
+        return typename BaseType::Pointer( new Point2D( NewGeometryId, ThisPoints ) );
     }
-    
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryName the name of the new geometry
+     * @param ThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        IndexType NewGeometryName,
+        PointsArrayType const& ThisPoints
+    ) const
+    {
+        return typename BaseType::Pointer( new Point2D( NewGeometryName, ThisPoints));
+    }
+
     // Geometry< Point<3> >::Pointer Clone() const override
     // {
     //     Geometry< Point<3> >::PointsArrayType NewPoints;
