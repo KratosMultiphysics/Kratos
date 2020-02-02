@@ -356,7 +356,7 @@ public:
         PointsArrayType const& ThisPoints
         ) const override
     {
-        return typename BaseType::Pointer( new Hexahedra3D8( NewId, ThisPoints ) );
+        return typename BaseType::Pointer( new Hexahedra3D8( NewGeometryId, ThisPoints ) );
     }
 
     /**
