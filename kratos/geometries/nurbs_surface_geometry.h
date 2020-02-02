@@ -362,10 +362,76 @@ public:
             IndexU, IndexV)));
     }
 
-    void GetPointsAt(
-        PointsArrayType& rPoints,
-        const CoordinatesArrayType& rLocalCoordinates,
+    /**
+     * 3*--------*2
+     *  | ^v     |
+     *  | |      |
+     *  | .->u   |
+     * 0*--------*1
+     */
+    virtual void GetPointsAtEdge(
+        PointsArrayType& rResultPoints,
+        IndexType EdgeIndex,
+        IndexType SpecificationType = 0) const
+    {
+        if (EdgeIndex == 0) { // getting first point
+            this->GetPointsAt(rResultPoints, { -1,0,0 }, SpecificationType);
+        }
+        else if (EdgeIndex == 1) { // getting last point
+            this->GetPointsAt(rResultPoints, { 1,-1,0 }, SpecificationType);
+        }
+        else if (EdgeIndex == 2) { // getting last point
+            this->GetPointsAt(rResultPoints, { -1,1,0 }, SpecificationType);
+        }
+        else if (EdgeIndex == 3) { // getting last point
+            this->GetPointsAt(rResultPoints, { 0,-1,0 }, SpecificationType);
+        }
+        else {
+            KRATOS_ERROR << "NurbsSurfaceGeometry::GetPointsAtEdge: No points available at EdgeIndex: " << VertexIndex << std::endl;
+        }
+    }
+
+    /**
+     * 3*--------*2
+     *  | ^v     |
+     *  | |      |
+     *  | .->u   |
+     * 0*--------*1
+     */
+    void GetPointsAtVertex(
+        PointsArrayType& rResultPoints,
+        IndexType VertexIndex,
         IndexType SpecificationType = 0) const override
+    {
+        if (VertexIndex == 0) { // getting first point
+            this->GetPointsAt(rResultPoints, { 0,0,0 }, SpecificationType);
+        }
+        else if (VertexIndex == 1) { // getting last point
+            this->GetPointsAt(rResultPoints, { 1,0,0 }, SpecificationType);
+        }
+        else if (VertexIndex == 2) { // getting last point
+            this->GetPointsAt(rResultPoints, { 1,1,0 }, SpecificationType);
+        }
+        else if (VertexIndex == 3) { // getting last point
+            this->GetPointsAt(rResultPoints, { 0,1,0 }, SpecificationType);
+        }
+        else {
+            KRATOS_ERROR << "NurbsSurfaceGeometry::GetPointsAtVertex: No points available at VertexIndex: " << VertexIndex << std::endl;
+        }
+    }
+    /**
+     * @brief provides acces to a set of node lying at a boundary (face, edge, vertex).
+     * @param rGeometryArray is set with all boundary nodes.
+     * @param rLocalCoordinates 0-> Beginn
+     *                          1-> End
+     *                         -1-> nodes are all in this dimension
+     * @param SpecificationType 0-> nodes on boundary.
+     *                          1-> nodes in scond row\ variation
+     */
+    void GetPointsAt(
+        PointsArrayType& rResultPoints,
+        const CoordinatesArrayType& rLocalCoordinates,
+        IndexType SpecificationType = 0) const
     {
         rPoints.clear();
 
