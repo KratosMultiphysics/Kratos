@@ -149,7 +149,7 @@ class TestGeometry(KratosUnittest.TestCase):
 
         # check nodes
         self.assertAlmostEqual(curve[0].X, 0.0)
-        self.assertAlmostEqual(curve[1].X, 2.5)
+        self.assertAlmostEqual(curve[1].X, 3.3333333333333335)
 
         # check knot spans
         self.assertAlmostEqual(curve.Knots()[4], 11.180339887498949)
