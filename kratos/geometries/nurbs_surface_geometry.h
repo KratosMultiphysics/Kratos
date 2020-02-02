@@ -421,7 +421,6 @@ public:
             array_1d<double, 3> local_coords = ZeroVector(3);
             local_coords[0] = 1;
             local_coords[1] = 1;
-            array_1d<double, 3> local_coords = { 1,1,0 };
             this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else if (VertexIndex == 3) { // getting last point
