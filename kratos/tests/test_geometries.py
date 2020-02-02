@@ -67,7 +67,7 @@ class TestGeometry(KratosUnittest.TestCase):
         tester = GeometryTesterUtility()
         self.assertTrue( tester.TestHexahedraInterface3D8N(model_part) )
 
-    def create_geometry(model_part):
+    def test_nurbs_surface(model_part):
         current_model = Model()
         model_part= current_model.CreateModelPart("Main")
 
@@ -103,6 +103,20 @@ class TestGeometry(KratosUnittest.TestCase):
             2,
             knots_u,
             knots_v)
+
+        # check nodes
+        self.assertAlmostEqual(surface[0].X, 0.0)
+        self.assertAlmostEqual(surface[1].X, 2.5)
+
+        # check knot spans
+        self.assertEqual(surface.KnotsU()[3], 5.0)
+        self.assertEqual(surface.NumberOfKnotsU(), 4)
+        self.assertEqual(surface.NumberOfControlPointsU(), 3)
+
+
+        # check rational
+        self.assertTrue(!surface.IsRational())
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
