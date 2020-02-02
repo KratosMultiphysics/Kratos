@@ -18,6 +18,8 @@
 #include "includes/define_python.h"
 #include "geometries/point.h"
 #include "includes/node.h"
+#include "python/containers_interface.h"
+#include "python/add_geometries_to_python.h"
 #include "geometries/geometry.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
@@ -38,11 +40,11 @@
 #include "geometries/prism_3d_6.h"
 // #include "geometries/prism_3d_15.h"
 #include "geometries/hexahedra_3d_8.h"
+// #include "geometries/hexahedra_3d_20.h"
+// #include "geometries/hexahedra_3d_27.h"
 // Nurbs Geometries
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
-
-#include "python/add_geometries_to_python.h"
 
 namespace Kratos
 {
@@ -163,6 +165,9 @@ void  AddGeometriesToPython(pybind11::module& m)
 //     ;
 //     py::class_<Hexahedra3D27<NodeType>, Hexahedra3D27<NodeType>::Pointer,  GeometryType  >(m,"Hexahedra3D27").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
 //     ;
+
+    // Adding PointsArrayType to interface
+    PointerVectorPythonInterface<PointsArrayType>().CreateInterface(m,"PointsArrayType");
 
     /// Nurbs Geometries
     // NurbsSurfaceGeometry3D
