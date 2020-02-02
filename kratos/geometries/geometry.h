@@ -1581,9 +1581,10 @@ public:
     }
 
     /**
-     * @brief provides acces to a set of node lying at a certain edge.
+     * @brief provides acces to a set of node laying at a certain edge.
      * @param rGeometryArray is set with all boundary nodes.
-     * @param EdgeIndex
+     * @param EdgeIndex, dependent on geometry definition.
+     *        Beginning at local parameters: [0,0,0].
      * @param SpecificationType 0-> nodes on boundary.
      *                          1-> nodes in scond row\ variation
      */
@@ -1593,6 +1594,24 @@ public:
         IndexType SpecificationType = 0) const
     {
         KRATOS_ERROR << "Calling GetPointsAtEdge from base class."
+            << " Please check the definition of derived class. "
+            << *this << std::endl;
+    }
+
+    /**
+     * @brief provides acces to a the node laying at a certain boundary vertex.
+     * @param rGeometryArray boundary node is pushed back to it.
+     * @param EdgeIndex, dependent on geometry definition.
+     *        Beginning at local parameters: [0,0,0].
+     * @param SpecificationType 0-> nodes on boundary.
+     *                          1-> nodes in scond row\ variation
+     */
+    virtual void GetPointsAtVertex(
+        PointsArrayType& rPoints,
+        IndexType NodeIndex,
+        IndexType SpecificationType = 0) const
+    {
+        KRATOS_ERROR << "Calling GetPointsAtVertex from base class."
             << " Please check the definition of derived class. "
             << *this << std::endl;
     }
