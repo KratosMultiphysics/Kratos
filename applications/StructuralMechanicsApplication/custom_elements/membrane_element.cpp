@@ -355,7 +355,12 @@ void MembraneElement::StressPk2(Vector& rStress,
     element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     mConstitutiveLawVector[rIntegrationPointNumber]->CalculateMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
 
-    AddPreStressPk2(rStress,rTransformedBaseVectors);
+    if (Has(MEMBRANE_PRESTRESS)){
+        Matrix stress_input = GetValue(MEMBRANE_PRESTRESS);
+        rStress += column(stress_input,rIntegrationPointNumber);
+    } else {
+        AddPreStressPk2(rStress,rTransformedBaseVectors);
+    }
 }
 
 void MembraneElement::MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric,
@@ -975,6 +980,17 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
         column(rOutput,1) = base_2;
         column(rOutput,2) = base_3;
     }
+    else if (rVariable == MEMBRANE_PRESTRESS) {
+        std::vector< Vector > prestress_matrix;
+        CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,prestress_matrix,rCurrentProcessInfo);
+        const auto& r_integration_points = GetGeometry().IntegrationPoints(GetGeometry().GetDefaultIntegrationMethod());
+        rOutput = ZeroMatrix(3,r_integration_points.size());
+
+        // each column represents 1 GP
+        for (SizeType i=0;i<r_integration_points.size();++i){
+            column(rOutput,i) = prestress_matrix[i];
+        }
+    }
 }
 
 void MembraneElement::GetValueOnIntegrationPoints(
@@ -1157,20 +1173,21 @@ void MembraneElement::CalculateAndAddBodyForce(VectorType& rRightHandSideVector)
 {
     KRATOS_TRY
     auto& r_geom = GetGeometry();
-    const SizeType number_of_nodes = r_geom.size();
+    if (r_geom[0].SolutionStepsDataHas(VOLUME_ACCELERATION)){
 
-    const double total_mass = mReferenceArea * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
+        const SizeType number_of_nodes = r_geom.size();
+        const double total_mass = mReferenceArea * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+        Vector lump_fact =  ZeroVector(number_of_nodes);
+        r_geom.LumpingFactors(lump_fact);
 
-    Vector lump_fact =  ZeroVector(number_of_nodes);
-    r_geom.LumpingFactors(lump_fact);
+        for (SizeType i = 0; i < number_of_nodes; ++i) {
+            const double temp = lump_fact[i] * total_mass;
 
-    for (SizeType i = 0; i < number_of_nodes; ++i) {
-        const double temp = lump_fact[i] * total_mass;
-
-        for (SizeType j = 0; j < 3; ++j)
-        {
-            const SizeType index = i * 3 + j;
-            rRightHandSideVector[index] += temp * r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION)[j];
+            for (SizeType j = 0; j < 3; ++j)
+            {
+                const SizeType index = i * 3 + j;
+                rRightHandSideVector[index] += temp * r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION)[j];
+            }
         }
     }
     KRATOS_CATCH("")
