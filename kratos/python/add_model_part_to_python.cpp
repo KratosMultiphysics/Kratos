@@ -86,14 +86,32 @@ Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, doubl
     return rModelPart.CreateNewNode(Id, x, y, z);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry(ModelPart& rModelPart, const std::string GeometryTypeName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList)
+Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry2(
+    ModelPart& rModelPart,
+    const std::string GeometryTypeName,
+    ModelPart::IndexType GeometryId,
+    std::vector< ModelPart::IndexType >& NodeIdList)
 {
     Geometry<Node<3>>::PointsArrayType pGeometryNodeList;
     for(std::size_t i = 0; i < NodeIdList.size(); i++) {
         pGeometryNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
     }
 
-    return rModelPart.CreateNewGeometry(GeometryTypeName, Id, pGeometryNodeList);
+    return rModelPart.CreateNewGeometry(GeometryTypeName, GeometryId, pGeometryNodeList);
+}
+
+Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry3(
+    ModelPart& rModelPart,
+    const std::string GeometryTypeName,
+    const std::string& GeometryIdentifierName,
+    std::vector< ModelPart::IndexType >& NodeIdList)
+{
+    Geometry<Node<3>>::PointsArrayType pGeometryNodeList;
+    for (std::size_t i = 0; i < NodeIdList.size(); i++) {
+        pGeometryNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
+    }
+
+    return rModelPart.CreateNewGeometry(GeometryTypeName, GeometryIdentifierName, pGeometryNodeList);
 }
 
 Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
@@ -965,7 +983,8 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GetNodalSolutionStepTotalDataSize", &ModelPart::GetNodalSolutionStepTotalDataSize)
         .def("OverwriteSolutionStepData", &ModelPart::OverwriteSolutionStepData)
         .def("CreateNewNode", ModelPartCreateNewNode)
-        .def("CreateNewGeometry", ModelPartCreateNewGeometry)
+        .def("CreateNewGeometry", ModelPartCreateNewGeometry2)
+        .def("CreateNewGeometry", ModelPartCreateNewGeometry3)
         .def("CreateNewElement", ModelPartCreateNewElement)
         .def("CreateNewCondition", ModelPartCreateNewCondition)
         .def("GetCommunicator", ModelPartGetCommunicator, py::return_value_policy::reference_internal)
