@@ -15,6 +15,7 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "compressible_potential_flow_application_variables.h"
+#include "fluid_dynamics_application_variables.h"
 #include "custom_elements/compressible_potential_flow_element.h"
 #include "custom_elements/embedded_compressible_potential_flow_element.h"
 
