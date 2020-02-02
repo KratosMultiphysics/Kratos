@@ -167,7 +167,7 @@ void  AddGeometriesToPython(pybind11::module& m)
 //     ;
 
     // Adding PointsArrayType to interface
-    PointerVectorPythonInterface<PointsArrayType>().CreateInterface(m,"PointsArrayType");
+    PointerVectorPythonInterface<PointsArrayType>().CreateInterface(m,"NodesVector");
 
     /// Nurbs Geometries
     // NurbsSurfaceGeometry3D
