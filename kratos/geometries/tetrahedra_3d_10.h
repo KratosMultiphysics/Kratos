@@ -232,13 +232,23 @@ public:
         if ( this->PointsNumber() != 10 )
             KRATOS_ERROR << "Invalid points number. Expected 10, given " << this->PointsNumber() << std::endl;
     }
-    
-    explicit Tetrahedra3D10( 
-        IndexType Id,
-        const PointsArrayType& ThisPoints 
-        ) : BaseType( Id, ThisPoints, &msGeometryData )
+
+    /// Constructor with Geometry Id
+    explicit Tetrahedra3D10(
+        IndexType GeometryId,
+        const PointsArrayType& ThisPoints
+    ) : BaseType(GeometryId, ThisPoints, &msGeometryData)
     {
         KRATOS_ERROR_IF( this->PointsNumber() != 10 ) << "Invalid points number. Expected 10, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Name
+    explicit Tetrahedra3D10(
+        IndexType GeometryName,
+        const PointsArrayType& ThisPoints
+    ) : BaseType(GeometryName, ThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF(this->PointsNumber() != 10) << "Invalid points number. Expected 10, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -326,37 +336,53 @@ public:
     }
 
 
+    ///@}
+    ///@name Operations
+    ///@{
+
     /**
-     * Operations
-     */
-    
-    /**
-     * @brief It creates a new geometry pointer
+     * @brief Creates a new geometry pointer
      * @param ThisPoints the nodes of the new geometry
-     * @return a Pointer to the new geometry
+     * @return Pointer to the new geometry
      */
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
+    typename BaseType::Pointer Create(
+        PointsArrayType const& ThisPoints
+    ) const override
     {
         return typename BaseType::Pointer( new Tetrahedra3D10( ThisPoints ) );
     }
 
     /**
-     * @brief It creates a new geometry pointer
-     * @param NewId the ID of the new geometry
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
      * @param ThisPoints the nodes of the new geometry
-     * @return a Pointer to the new geometry
+     * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        IndexType NewId,  
+        IndexType NewGeometryId,
         PointsArrayType const& ThisPoints
-        ) const override
+    ) const override
     {
-        return typename BaseType::Pointer( new Tetrahedra3D10( NewId, ThisPoints ) );
+        return typename BaseType::Pointer( new Tetrahedra3D10( NewGeometryId, ThisPoints ) );
     }
-    
+
     /**
-     * Informations
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryName the name of the new geometry
+     * @param ThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
      */
+    virtual BaseType::Pointer Create(
+        IndexType NewGeometryName,
+        PointsArrayType const& ThisPoints
+    ) const override
+    {
+        return typename BaseType::Pointer( new Tetrahedra3D10( NewGeometryName, ThisPoints ) );
+    }
+
+    ///@}
+    ///@name Information
+    ///@{
 
     /**
      * This method calculates and returns Length or charactereistic
