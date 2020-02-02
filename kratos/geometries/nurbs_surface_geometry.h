@@ -370,19 +370,25 @@ public:
         IndexType SpecificationType = 0) const override
     {
         if (EdgeIndex == 0) { // getting first point
-            array_1d<double, 3> local_coords = { -1,0,0 };
+            array_1d<double, 3> local_coords = ZeroVector(3);
+            local_coords[0] = -1;
             this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else if (EdgeIndex == 1) { // getting last point
-            array_1d<double, 3> local_coords = { 1,-1,0 };
+            array_1d<double, 3> local_coords = ZeroVector(3);
+            local_coords[0] = 1;
+            local_coords[1] = -1;
             this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else if (EdgeIndex == 2) { // getting last point
-            array_1d<double, 3> local_coords = { -1,1,0 };
+            array_1d<double, 3> local_coords = ZeroVector(3);
+            local_coords[0] = -1;
+            local_coords[1] = 1;
             this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else if (EdgeIndex == 3) { // getting last point
-            array_1d<double, 3> local_coords = { 0,-1,0 };
+            array_1d<double, 3> local_coords = ZeroVector(3);
+            local_coords[1] = -1;
             this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else {
@@ -403,19 +409,24 @@ public:
         IndexType SpecificationType = 0) const override
     {
         if (VertexIndex == 0) { // getting first point
-            array_1d<double, 3> local_coords = { 0,0,0 };
+            array_1d<double, 3> local_coords = ZeroVector(3);
             this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else if (VertexIndex == 1) { // getting last point
-            array_1d<double, 3> local_coords = { 1,0,0 };
+            array_1d<double, 3> local_coords = ZeroVector(3);
+            local_coords[0] = 1;
             this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else if (VertexIndex == 2) { // getting last point
+            array_1d<double, 3> local_coords = ZeroVector(3);
+            local_coords[0] = 1;
+            local_coords[1] = 1;
             array_1d<double, 3> local_coords = { 1,1,0 };
             this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else if (VertexIndex == 3) { // getting last point
-            array_1d<double, 3> local_coords = { 0,1,0 };
+            array_1d<double, 3> local_coords = ZeroVector(3);
+            local_coords[1] = 1;
             this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else {
