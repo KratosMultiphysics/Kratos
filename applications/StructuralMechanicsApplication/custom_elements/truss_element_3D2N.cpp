@@ -366,12 +366,18 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
         array_1d<double, msDimension> temp_internal_stresses = ZeroVector(msDimension);
         ProcessInfo temp_process_information;
 
+        double prestress = 0.00;
+        if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+            prestress = GetProperties()[TRUSS_PRESTRESS_PK2];
+        }
+
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
         Vector temp_strain = ZeroVector(1);
         temp_strain[0] = CalculateGreenLagrangeStrain();
         Values.SetStrainVector(temp_strain);
         mpConstitutiveLaw->CalculateValue(Values,FORCE,temp_internal_stresses);
 
+        temp_internal_stresses[0] += prestress;
         rOutput[0] = temp_internal_stresses;
     }
     if (rVariable == CAUCHY_STRESS_VECTOR) {
@@ -386,10 +392,17 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
         Values.SetStrainVector(temp_strain);
         mpConstitutiveLaw->CalculateValue(Values,FORCE,temp_internal_stresses);
 
+        double prestress = 0.00;
+        if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+            prestress = GetProperties()[TRUSS_PRESTRESS_PK2];
+        }
+
 
         const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
         const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
 
+
+        temp_internal_stresses[0] += prestress;
         rOutput[0] = temp_internal_stresses*l/L0;
     }
 

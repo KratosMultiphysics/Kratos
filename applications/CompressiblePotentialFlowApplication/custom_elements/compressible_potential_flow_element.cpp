@@ -12,7 +12,9 @@
 
 #include "compressible_potential_flow_element.h"
 #include "compressible_potential_flow_application_variables.h"
+#include "fluid_dynamics_application_variables.h"
 #include "includes/cfd_variables.h"
+#include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
@@ -196,9 +198,17 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoint
     {
         rValues[0] = PotentialFlowUtilities::ComputeCompressiblePressureCoefficient<Dim, NumNodes>(*this, rCurrentProcessInfo);
     }
-    if (rVariable == DENSITY)
+    else if (rVariable == DENSITY)
     {
         rValues[0] = ComputeDensity(rCurrentProcessInfo);
+    }
+    else if (rVariable == MACH)
+    {
+        rValues[0] = PotentialFlowUtilities::ComputeLocalMachNumber<Dim, NumNodes>(*this, rCurrentProcessInfo);
+    }
+    else if (rVariable == SOUND_VELOCITY)
+    {
+        rValues[0] = PotentialFlowUtilities::ComputeLocalSpeedOfSound<Dim, NumNodes>(*this, rCurrentProcessInfo);
     }
     else if (rVariable == WAKE)
     {
@@ -674,8 +684,7 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensity(const Pro
     double v_2 = inner_prod(v, v);
 
     // Computing local mach number
-    const double u = sqrt(v_2);
-    const double M = u / a_inf;
+    const double M = PotentialFlowUtilities::ComputeLocalMachNumber<Dim, NumNodes>(*this, rCurrentProcessInfo);
 
     if (M > 0.94)
     { // Clamping the mach number to 0.94
