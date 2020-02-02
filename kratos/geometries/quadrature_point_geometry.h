@@ -143,16 +143,30 @@ public:
     {
     }
 
+    /// Constructor with Geometry Id
     explicit QuadraturePointGeometry(
-        IndexType Id,
-        const PointsArrayType& ThisPoints 
-        ) : BaseType(Id, ThisPoints, &mGeometryData)
+        IndexType GeometryId,
+        const PointsArrayType& ThisPoints
+    ) : BaseType( GeometryId, ThisPoints, &msGeometryData )
         , mGeometryData(
             &msGeometryDimension,
             GeometryData::GI_GAUSS_1,
             {}, {}, {})
     {
     }
+
+    /// Constructor with Geometry Name
+    explicit QuadraturePointGeometry(
+        IndexType GeometryName,
+        const PointsArrayType& ThisPoints
+    ) : BaseType( GeometryName, ThisPoints, &msGeometryData )
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryData::GI_GAUSS_1,
+            {}, {}, {})
+    {
+    }
+
     /**
      * Copy constructor.
      * Constructs this geometry as a copy of given geometry.
@@ -234,9 +248,9 @@ public:
     ///@{
 
     /**
-     * @brief It creates a new geometry pointer
+     * @brief Creates a new geometry pointer
      * @param ThisPoints the nodes of the new geometry
-     * @return a Pointer to the new geometry
+     * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
@@ -244,19 +258,33 @@ public:
     }
     
     /**
-     * @brief It creates a new geometry pointer
-     * @param NewId the ID of the new geometry
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
      * @param ThisPoints the nodes of the new geometry
-     * @return a Pointer to the new geometry
+     * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
-        IndexType NewId,  
+        IndexType NewGeometryId,
         PointsArrayType const& ThisPoints
-        ) const override
+    ) const override
     {
-        return typename BaseType::Pointer( new QuadraturePointGeometry( NewId, ThisPoints ) );
+        return typename BaseType::Pointer( new QuadraturePointGeometry( NewGeometryId, ThisPoints ) );
     }
-    
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryName the name of the new geometry
+     * @param ThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        IndexType NewGeometryName,
+        PointsArrayType const& ThisPoints
+    ) const
+    {
+        return typename BaseType::Pointer(new QuadraturePointGeometry( NewGeometryName, ThisPoints ) );
+    }
+
     ///@}
     ///@name Parent
     ///@{
