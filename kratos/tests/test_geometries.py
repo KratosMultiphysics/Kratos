@@ -71,19 +71,28 @@ class TestGeometry(KratosUnittest.TestCase):
         current_model = KM.Model()
         model_part= current_model.CreateModelPart("Main")
 
-        model_part.CreateNewNode(1, 0.0, 0.0, 0)
-        model_part.CreateNewNode(2, 2.5, 0.0, 0)
-        model_part.CreateNewNode(3, 5.0, 0.0, 0)
+        node1 = model_part.CreateNewNode(1, 0.0, 0.0, 0)
+        node2 = model_part.CreateNewNode(2, 2.5, 0.0, 0)
+        node3 = model_part.CreateNewNode(3, 5.0, 0.0, 0)
 
-        model_part.CreateNewNode(4, 0.0, 0.5, 0)
-        model_part.CreateNewNode(5, 2.5, 0.5, 0)
-        model_part.CreateNewNode(6, 5.0, 0.5, 0)
+        node4 = model_part.CreateNewNode(4, 0.0, 0.5, 0)
+        node5 = model_part.CreateNewNode(5, 2.5, 0.5, 0)
+        node6 = model_part.CreateNewNode(6, 5.0, 0.5, 0)
 
-        model_part.CreateNewNode(7, 0.0, 1.0, 0)
-        model_part.CreateNewNode(8, 2.5, 1.0, 0)
-        model_part.CreateNewNode(9, 5.0, 1.0, 0)
+        node7 = model_part.CreateNewNode(7, 0.0, 1.0, 0)
+        node8 = model_part.CreateNewNode(8, 2.5, 1.0, 0)
+        node9 = model_part.CreateNewNode(9, 5.0, 1.0, 0)
 
-        nodes = model_part.NodesArray
+        nodes = KM.NodesVector()
+        nodes.append(node1)
+        nodes.append(node2)
+        nodes.append(node3)
+        nodes.append(node4)
+        nodes.append(node5)
+        nodes.append(node6)
+        nodes.append(node7)
+        nodes.append(node8)
+        nodes.append(node9)
 
         knots_u = KM.Vector(4)
         knots_u[0] = 0.0
@@ -116,12 +125,16 @@ class TestGeometry(KratosUnittest.TestCase):
         current_model = KM.Model()
         model_part= current_model.CreateModelPart("Main")
 
-        model_part.CreateNewNode(1, 0, 0, 0)
-        model_part.CreateNewNode(2, 3.3333333333333335, 1.6666666666666667, 0)
-        model_part.CreateNewNode(3, 6.6666666666666661, 3.333333333333333, 0)
-        model_part.CreateNewNode(4, 10, 5, 0)
+        node1 = model_part.CreateNewNode(1, 0, 0, 0)
+        node2 = model_part.CreateNewNode(2, 3.3333333333333335, 1.6666666666666667, 0)
+        node3 = model_part.CreateNewNode(3, 6.6666666666666661, 3.333333333333333, 0)
+        node4 = model_part.CreateNewNode(4, 10, 5, 0)
 
-        nodes = model_part.NodesArray
+        nodes = KM.NodesVector()
+        nodes.append(node1)
+        nodes.append(node2)
+        nodes.append(node3)
+        nodes.append(node4)
 
         knots = KM.Vector(6)
         knots[0] = 0.0
