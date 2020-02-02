@@ -373,7 +373,7 @@ public:
     virtual void GetPointsAtEdge(
         PointsArrayType& rResultPoints,
         IndexType EdgeIndex,
-        IndexType SpecificationType = 0) const
+        IndexType SpecificationType = 0) const override
     {
         if (EdgeIndex == 0) { // getting first point
             this->GetPointsAt(rResultPoints, { -1,0,0 }, SpecificationType);
@@ -434,7 +434,7 @@ public:
         const CoordinatesArrayType& rLocalCoordinates,
         IndexType SpecificationType = 0) const
     {
-        rPoints.clear();
+        rResultPoints.clear();
 
         SizeType number_of_cps_u = NumberOfControlPointsU();
         SizeType number_of_cps_v = NumberOfControlPointsV();
@@ -457,7 +457,7 @@ public:
 
             for (IndexType i = u_start; i < u_end; ++i) {
                 for (IndexType j = v_start; j < v_end; ++j) {
-                    rPoints.push_back(this->pGetPoint(i, j));
+                    rResultPoints.push_back(this->pGetPoint(i, j));
                 }
             }
         }
@@ -482,7 +482,7 @@ public:
 
             for (IndexType i = u_start; i < u_end; ++i) {
                 for (IndexType j = v_start; j < v_end; ++j) {
-                    rPoints.push_back(this->pGetPoint(i, j));
+                    rResultPoints.push_back(this->pGetPoint(i, j));
                 }
             }
         }

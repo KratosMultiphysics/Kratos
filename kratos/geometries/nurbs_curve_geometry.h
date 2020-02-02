@@ -264,7 +264,7 @@ public:
     /*
      *      -> t
      * 0 * ------ * 1
-     * /
+     */
     void GetPointsAtVertex(
         PointsArrayType& rResultPoints,
         IndexType VertexIndex,
@@ -295,7 +295,7 @@ public:
         const CoordinatesArrayType& rLocalCoordinates,
         IndexType SpecificationType = 0) const
     {
-        rPoints.clear();
+        rResultPoints.clear();
 
         SizeType number_of_cps = this->size();
 
@@ -312,7 +312,7 @@ public:
 
             for (IndexType i = t_start; i < t_end; ++i)
             {
-                rPoints.push_back(this->pGetPoint(i));
+                rResultPoints.push_back(this->pGetPoint(i));
             }
         }
         if (SpecificationType == 1)
@@ -323,11 +323,11 @@ public:
 
             if (rLocalCoordinates[0] == 0)
             {
-                rPoints.push_back(this->pGetPoint(1));
+                rResultPoints.push_back(this->pGetPoint(1));
             }
             if (rLocalCoordinates[0] == 1)
             {
-                rPoints.push_back(this->pGetPoint(number_of_cps - 1));
+                rResultPoints.push_back(this->pGetPoint(number_of_cps - 1));
             }
         }
         KRATOS_ERROR << "SpecificationType " << SpecificationType
