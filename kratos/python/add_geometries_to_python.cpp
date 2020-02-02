@@ -52,7 +52,7 @@ namespace Python
     typedef std::size_t SizeType;
 
     typedef Geometry<Node<3> > GeometryType;
-    typedef GeometryType::PointsArrayType NodesArrayType;
+    typedef GeometryType::PointsArrayType PointsArrayType;
     typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
     typedef Point::CoordinatesArrayType CoordinatesArrayType;
 
