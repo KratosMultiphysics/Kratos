@@ -11,8 +11,9 @@ def GetFilePath(fileName):
 class TestCadJsonInput(KratosUnittest.TestCase):
 
     def test_cad_json_input_read(self):
-        cad_model = KratosMultiphysics.Model("CadModel")
+        cad_model = KratosMultiphysics.Model()
         cad_model_part = cad_model.CreateModelPart("CadModelPart")
+
         cad_json_parameters = KratosMultiphysics.Parameters(GetFilePath("auxiliar_files_for_python_unittest/cad_json_files/single_square.json"))
 
         KratosMultiphysics.CadJsonInput(cad_json_parameters).ReadModelPart(cad_model_part)
