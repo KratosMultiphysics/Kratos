@@ -14,7 +14,7 @@ class TestCadJsonInput(KratosUnittest.TestCase):
         cad_model = KratosMultiphysics.Model()
         cad_model_part = cad_model.CreateModelPart("CadModelPart")
 
-        KratosMultiphysics.CadJsonInput(GetFilePath("auxiliar_files_for_python_unittest/cad_json_files/single_square.json")).ReadModelPart(cad_model_part)
+        KratosMultiphysics.CadJsonInput(GetFilePath("auxiliar_files_for_python_unittest/cad_json_files/single_square")).ReadModelPart(cad_model_part)
 
 if __name__ == '__main__':
     KratosUnittest.main()
