@@ -360,7 +360,7 @@ public:
     typename BaseType::Pointer Create(
         IndexType NewGeometryId,
         PointsArrayType const& ThisPoints
-    ) const
+    ) const override
     {
         return typename BaseType::Pointer( new Quadrilateral2D8( NewGeometryId, ThisPoints ) );
     }

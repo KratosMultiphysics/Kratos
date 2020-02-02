@@ -377,7 +377,7 @@ public:
     typename BaseType::Pointer Create(
         IndexType NewGeometryId,
         PointsArrayType const& ThisPoints
-    ) const
+    ) const override
     {
         return typename BaseType::Pointer( new Prism3D15( NewGeometryId, ThisPoints ) );
     }
