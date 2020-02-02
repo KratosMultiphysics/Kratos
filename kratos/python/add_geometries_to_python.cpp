@@ -172,8 +172,8 @@ void  AddGeometriesToPython(pybind11::module& m)
     /// Nurbs Geometries
     // NurbsSurfaceGeometry3D
     py::class_<NurbsSurfaceGeometry<3, NodeContainerType>, NurbsSurfaceGeometry<3, NodeContainerType>::Pointer, GeometryType >(m, "NurbsSurfaceGeometry3D")
-        .def(py::init<const PointsArrayType&, const SizeType, const SizeType, const Vector, const Vector>())
-        .def(py::init<const PointsArrayType&, const SizeType, const SizeType, const Vector, const Vector, const Vector>())
+        .def(py::init<const PointsArrayType&, const SizeType, const SizeType, const Vector&, const Vector&>())
+        .def(py::init<const PointsArrayType&, const SizeType, const SizeType, const Vector&, const Vector&, const Vector&>())
         .def("PolynomialDegreeU", &NurbsSurfaceGeometry<3, NodeContainerType>::PolynomialDegreeU)
         .def("PolynomialDegreeV", &NurbsSurfaceGeometry<3, NodeContainerType>::PolynomialDegreeV)
         .def("KnotsU", &NurbsSurfaceGeometry<3, NodeContainerType>::KnotsU)
@@ -188,8 +188,8 @@ void  AddGeometriesToPython(pybind11::module& m)
 
     // NurbsCurveGeometry3D
     py::class_<NurbsCurveGeometry<3, NodeContainerType>, NurbsCurveGeometry<3, NodeContainerType>::Pointer, GeometryType >(m, "NurbsCurveGeometry3D")
-        .def(py::init<const PointsArrayType&, const SizeType, const Vector>())
-        .def(py::init<const PointsArrayType&, const SizeType, const Vector, const Vector>())
+        .def(py::init<const PointsArrayType&, const SizeType, const Vector&>())
+        .def(py::init<const PointsArrayType&, const SizeType, const Vector&, const Vector&>())
         .def("PolynomialDegree", &NurbsCurveGeometry<3, NodeContainerType>::PolynomialDegree)
         .def("KnotsU", &NurbsCurveGeometry<3, NodeContainerType>::Knots)
         .def("NumberOfKnots", &NurbsCurveGeometry<3, NodeContainerType>::NumberOfKnots)
