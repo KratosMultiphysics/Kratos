@@ -1360,10 +1360,9 @@ public:
      * @param GeometryNodeIds The noddes ids to create the geometry
      */
     GeometryType::Pointer CreateNewGeometry(
-        std::string GeometryName, 
-        IndexType Id, 
-        std::vector<IndexType> GeometryNodeIds
-        );
+        std::string GeometryTypeName,
+        IndexType GeometryId,
+        std::vector<IndexType> GeometryNodeIds);
 
     /** 
      * @◙brief Inserts an geometry in the current model part
@@ -1372,11 +1371,10 @@ public:
      * @param pGeometryNodes The nodes array to create the geometry
      */
     GeometryType::Pointer CreateNewGeometry(
-        std::string GeometryName, 
-        IndexType Id, 
-        GeometryType::PointsArrayType pGeometryNodes
-        );
-    
+        std::string GeometryTypeName,
+        IndexType GeometryId,
+        GeometryType::PointsArrayType pGeometryNodes);
+
     /// Adds a geometry to the geometry container.
     void AddGeometry(typename GeometryType::Pointer pNewGeometry);
 

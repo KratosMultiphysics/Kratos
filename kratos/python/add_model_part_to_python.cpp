@@ -86,14 +86,14 @@ Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, doubl
     return rModelPart.CreateNewNode(Id, x, y, z);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry(ModelPart& rModelPart, const std::string GeometryName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList)
+Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry(ModelPart& rModelPart, const std::string GeometryTypeName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList)
 {
     Geometry<Node<3>>::PointsArrayType pGeometryNodeList;
     for(std::size_t i = 0; i < NodeIdList.size(); i++) {
         pGeometryNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
     }
 
-    return rModelPart.CreateNewGeometry(GeometryName, Id, pGeometryNodeList);
+    return rModelPart.CreateNewGeometry(GeometryTypeName, Id, pGeometryNodeList);
 }
 
 Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
