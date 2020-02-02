@@ -370,19 +370,23 @@ public:
         IndexType SpecificationType = 0) const override
     {
         if (EdgeIndex == 0) { // getting first point
-            this->GetPointsAt(rResultPoints, { -1,0,0 }, SpecificationType);
+            array_1d<double, 3> local_coords = { -1,0,0 };
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else if (EdgeIndex == 1) { // getting last point
-            this->GetPointsAt(rResultPoints, { 1,-1,0 }, SpecificationType);
+            array_1d<double, 3> local_coords = { 1,-1,0 };
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else if (EdgeIndex == 2) { // getting last point
-            this->GetPointsAt(rResultPoints, { -1,1,0 }, SpecificationType);
+            array_1d<double, 3> local_coords = { -1,1,0 };
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else if (EdgeIndex == 3) { // getting last point
-            this->GetPointsAt(rResultPoints, { 0,-1,0 }, SpecificationType);
+            array_1d<double, 3> local_coords = { 0,-1,0 };
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else {
-            KRATOS_ERROR << "NurbsSurfaceGeometry::GetPointsAtEdge: No points available at EdgeIndex: " << VertexIndex << std::endl;
+            KRATOS_ERROR << "NurbsSurfaceGeometry::GetPointsAtEdge: No points available at EdgeIndex: " << EdgeIndex << std::endl;
         }
     }
 
@@ -399,16 +403,20 @@ public:
         IndexType SpecificationType = 0) const override
     {
         if (VertexIndex == 0) { // getting first point
-            this->GetPointsAt(rResultPoints, { 0,0,0 }, SpecificationType);
+            array_1d<double, 3> local_coords = { 0,0,0 };
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else if (VertexIndex == 1) { // getting last point
-            this->GetPointsAt(rResultPoints, { 1,0,0 }, SpecificationType);
+            array_1d<double, 3> local_coords = { 1,0,0 };
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else if (VertexIndex == 2) { // getting last point
-            this->GetPointsAt(rResultPoints, { 1,1,0 }, SpecificationType);
+            array_1d<double, 3> local_coords = { 1,1,0 };
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else if (VertexIndex == 3) { // getting last point
-            this->GetPointsAt(rResultPoints, { 0,1,0 }, SpecificationType);
+            array_1d<double, 3> local_coords = { 0,1,0 };
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else {
             KRATOS_ERROR << "NurbsSurfaceGeometry::GetPointsAtVertex: No points available at VertexIndex: " << VertexIndex << std::endl;

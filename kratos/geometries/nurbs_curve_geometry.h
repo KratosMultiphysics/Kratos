@@ -269,10 +269,12 @@ public:
         IndexType SpecificationType = 0) const override
     {
         if (VertexIndex == 0) { // getting first point
-            this->GetPointsAt(rResultPoints, { 0,0,0 }, SpecificationType);
+            array_1d<double, 3> local_coords = { 0,0,0 };
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else if (VertexIndex == 1) { // getting last point
-            this->GetPointsAt(rResultPoints, { 1,0,0 }, SpecificationType);
+            array_1d<double, 3> local_coords = { 1,0,0 };
+            this->GetPointsAt(rResultPoints, local_coords, SpecificationType);
         }
         else {
             KRATOS_ERROR << "NurbsCurveGeometry::GetPointsAtVertex: No points available at VertexIndex: " << VertexIndex << std::endl;
