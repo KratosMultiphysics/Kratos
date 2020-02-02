@@ -413,28 +413,22 @@ namespace Testing {
         auto surface = GenerateReferenceNodeSurface();
 
         Geometry<Node<3>>::PointsArrayType points;
-        array_1d<double, 3> local_parameters = ZeroVector(3);
-        local_parameters[1] = -1;
 
-        surface.GetPointsAt(points, local_parameters, 0);
+        surface.GetPointsAtEdge(points, 3, 0);
 
         // test to obtain the points on the left boundary
         KRATOS_CHECK_EQUAL(points.size(), 2);
         KRATOS_CHECK_EQUAL(points[0].Id(), 1);
         KRATOS_CHECK_EQUAL(points[1].Id(), 4);
 
-        surface.GetPointsAt(points, local_parameters, 1);
+        surface.GetPointsAtEdge(points, 3, 1);
 
         // test to obtain the second row of points on the left boundary
         KRATOS_CHECK_EQUAL(points.size(), 2);
         KRATOS_CHECK_EQUAL(points[0].Id(), 2);
         KRATOS_CHECK_EQUAL(points[1].Id(), 5);
 
-
-        local_parameters[0] = -1;
-        local_parameters[1] = 0;
-
-        surface.GetPointsAt(points, local_parameters, 0);
+        surface.GetPointsAtEdge(points, 0, 0);
 
         // test to obtain the second row of points on the left boundary
         KRATOS_CHECK_EQUAL(points.size(), 3);
