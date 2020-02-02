@@ -597,7 +597,7 @@ public:
     
     /**
      * @brief Creates a new geometry pointer
-     * @param NewId the ID of the new geometry
+     * @param NewGeometryId the ID of the new geometry
      * @param ThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
