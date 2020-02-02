@@ -50,8 +50,9 @@ namespace Kratos
 namespace Python
 {
     typedef std::size_t SizeType;
-
-    typedef Geometry<Node<3> > GeometryType;
+    typedef Node<3> NodeType;
+    typedef PointerVector<NodeType> NodeContainerType;
+    typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::PointsArrayType PointsArrayType;
     typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
     typedef typename Point::CoordinatesArrayType CoordinatesArrayType;
