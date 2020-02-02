@@ -123,7 +123,7 @@ class TestGeometry(KratosUnittest.TestCase):
 
         nodes = model_part.NodesArray
 
-        knots = Vector(4)
+        knots = Vector(6)
         knots[0] = 0.0
         knots[1] = 0.0
         knots[2] = 0.0
