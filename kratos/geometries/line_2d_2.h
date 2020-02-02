@@ -311,7 +311,7 @@ public:
     typename BaseType::Pointer Create(
         IndexType NewGeometryId,
         PointsArrayType const& ThisPoints
-    ) const
+    ) const override
     {
         return typename BaseType::Pointer( new Line2D2( NewGeometryId, ThisPoints ) );
     }

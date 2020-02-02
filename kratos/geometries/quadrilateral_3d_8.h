@@ -338,7 +338,7 @@ public:
      * @param ThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    virtual BaseType::Pointer Create(PointsArrayType const& ThisPoints) const override
+    typename BaseType::Pointer Create(PointsArrayType const& ThisPoints) const override
     {
         return typename BaseType::Pointer( new Quadrilateral3D8( ThisPoints ) );
     }
@@ -349,7 +349,7 @@ public:
      * @param ThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    virtual BaseType::Pointer Create(
+    typename BaseType::Pointer Create(
         IndexType NewGeometryId,
         PointsArrayType const& ThisPoints
     ) const override
@@ -363,7 +363,7 @@ public:
      * @param ThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    virtual BaseType::Pointer Create(
+    typename BaseType::Pointer Create(
         const std::string& NewGeometryName,
         PointsArrayType const& ThisPoints
     ) const override

@@ -353,12 +353,12 @@ public:
     {
         return typename BaseType::Pointer( new Quadrilateral3D9( ThisPoints ) );
     }
-    
+
     /**
-     * @brief It creates a new geometry pointer
-     * @param NewId the ID of the new geometry
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
      * @param ThisPoints the nodes of the new geometry
-     * @return a Pointer to the new geometry
+     * @return Pointer to the new geometry
      */
     typename BaseType::Pointer Create(
         IndexType NewGeometryId,
@@ -374,7 +374,7 @@ public:
      * @param ThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    virtual BaseType::Pointer Create(
+    typename BaseType::Pointer Create(
         const std::string& NewGeometryName,
         PointsArrayType const& ThisPoints
     ) const override

@@ -372,7 +372,7 @@ public:
      * @param ThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    virtual BaseType::Pointer Create(
+    typename BaseType::Pointer Create(
         const std::string& NewGeometryName,
         PointsArrayType const& ThisPoints
     ) const override
