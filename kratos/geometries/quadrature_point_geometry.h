@@ -147,7 +147,7 @@ public:
     explicit QuadraturePointGeometry(
         IndexType GeometryId,
         const PointsArrayType& ThisPoints
-    ) : BaseType( GeometryId, ThisPoints, &msGeometryData )
+    ) : BaseType( GeometryId, ThisPoints, &mGeometryData )
         , mGeometryData(
             &msGeometryDimension,
             GeometryData::GI_GAUSS_1,
@@ -159,7 +159,7 @@ public:
     explicit QuadraturePointGeometry(
         const std::string& GeometryName,
         const PointsArrayType& ThisPoints
-    ) : BaseType( GeometryName, ThisPoints, &msGeometryData )
+    ) : BaseType( GeometryName, ThisPoints, &mGeometryData )
         , mGeometryData(
             &msGeometryDimension,
             GeometryData::GI_GAUSS_1,
