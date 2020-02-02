@@ -110,7 +110,7 @@ class TestGeometry(KratosUnittest.TestCase):
         self.assertEqual(surface.NumberOfControlPointsU(), 3)
 
         # check rational
-        self.assertTrue(!surface.IsRational())
+        self.assertFalse(surface.IsRational())
 
     def test_nurbs_curve_3d(model_part):
         current_model = Model()
@@ -144,7 +144,7 @@ class TestGeometry(KratosUnittest.TestCase):
         self.assertEqual(surface.NumberOfControlPoints(), 4)
 
         # check rational
-        self.assertTrue(!curve.IsRational())
+        self.assertFalse(curve.IsRational())
 
         # check general information
         self.assertEqual(curve.Dimension(), 1);
