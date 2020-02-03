@@ -241,8 +241,8 @@ public:
     static const Flags Unset(Flags ThisFlag)
     {
         Flags unset_this_flag(ThisFlag);
-        UNSET_ThisFlag.mFlags = !ThisFlag.mFlags;
-        return  UNSET_ThisFlag;
+        unset_this_flag.mFlags = !ThisFlag.mFlags;
+        return  unset_this_flag;
     }
 
     ///@}
