@@ -58,8 +58,7 @@ public:
         , mPolynomialDegree(PolynomialDegree)
         , mKnots(rKnots)
     {
-        KRATOS_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
-            << "Number of knots and control points do not match!" << std::endl;
+        CheckAndFitKnotVectors();
     }
 
     /// Conctructor for NURBS curves
@@ -73,8 +72,7 @@ public:
         , mKnots(rKnots)
         , mWeights(rWeights)
     {
-        KRATOS_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
-            << "Number of knots and control points do not match!" << std::endl;
+        CheckAndFitKnotVectors();
 
         KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
             << "Number of control points and weights do not match!" << std::endl;
@@ -439,6 +437,32 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+
+    /*
+    * @brief Checks if the knot vector is coinciding with the number of
+    *        control points and the polynomial degree. If the knot vector
+    *        has a multiplicity of p+1 in the beginning, it is reduced to p.
+    */
+    void CheckAndFitKnotVectors()
+    {
+        SizeType num_control_points = this->size();
+
+        if (mKnots.size() != NurbsUtilities::GetNumberOfKnots(mPolynomialDegree, num_control_points)) {
+            if (mKnots.size() == NurbsUtilities::GetNumberOfKnots(mPolynomialDegree, num_control_points - 2)) {
+                Vector Knots = ZeroVector(mKnots.size() - 2);
+                for (SizeType i = 0; i < mKnots.size() - 2; ++i) {
+                    Knots[i] = mKnots[i + 1];
+                }
+                mKnots = Knots;
+            } else {
+                KRATOS_ERROR
+                    << "Number of controls points, polynomial degree and number of knots do not match! "
+                    << " P: " << mPolynomialDegree << ", number of control points: " << num_control_points
+                    << std::endl;
+            }
+        }
+    }
 
     ///@}
     ///@name Private Serialization
