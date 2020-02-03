@@ -311,7 +311,7 @@ class CHTWorkflow():
             "output_control_type": "step",
             "output_frequency": 1.0,
             "output_precision": 7,
-            "output_sub_model_parts": false,
+            "output_sub_model_parts": true,
             "save_output_files_in_folder": false,
             "write_deformed_configuration": false,
             "write_ids": false
@@ -323,10 +323,10 @@ class CHTWorkflow():
 if __name__ == "__main__":
     
     CHT_tool = CHTWorkflow("/mdpa_files/cavity_fluid3", "/mdpa_files/solid3D")
-    CHT_tool.RefineSolid()
+    #CHT_tool.RefineSolid()
     #CHT_tool.EmbeddedSkinVisualization()
-    CHT_tool.RefineBeforeVisualization(2.5)
-    CHT_tool.CutMeshnearSolid(1.5, 2, 5, 0.1)
-    CHT_tool.CleanFluidModel()
+    #CHT_tool.RefineBeforeVisualization(2.5)
+    #CHT_tool.CutMeshnearSolid(1.5, 2, 5, 0.1)
+    #CHT_tool.CleanFluidModel()
+    #CHT_tool.CreateGIDOutput("coarse_fluid")
     CHT_tool.VTKFileOutput()
-    CHT_tool.CreateGIDOutput("modified_fluid3")

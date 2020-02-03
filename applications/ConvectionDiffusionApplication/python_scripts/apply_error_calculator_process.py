@@ -136,24 +136,24 @@ class ApplyErrorCalculatorProcess(KratosMultiphysics.Process):
             "element_data_value_variables": [],
             "element_flags": [],
             "file_format": "ascii",
-            "folder_name": "VTK_Output",
+            "folder_name": "Revised_VTK_Output",
             "gauss_point_variables_extrapolated_to_nodes": [],
             "gauss_point_variables_in_elements": [],
-            "model_part_name": "FluidPart",
-            "nodal_data_value_variables": [],
+            "model_part_name": "",
+            "nodal_data_value_variables": ["METRIC_SCALAR","NODAL_AREA"],
             "nodal_flags": [],
             "nodal_solution_step_data_variables": ["VELOCITY","PRESSURE","TEMPERATURE","NODAL_TEMP_GRADIENT"],
             "output_control_type": "step",
             "output_frequency": 1.0,
             "output_precision": 7,
-            "output_sub_model_parts": false,
+            "output_sub_model_parts": true,
             "save_output_files_in_folder": false,
             "write_deformed_configuration": false,
             "write_ids": false
         }""")
         #vtk_settings["model_part_name"] = str(model_input)
         vtk_io = KratosMultiphysics.VtkOutput(self.model_part, vtk_settings)
-        vtk_io.PrintOutput()
+        vtk_io.PrintOutput("RevisedFluidPart")
 
     def Clear(self):
         pass
