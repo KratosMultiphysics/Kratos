@@ -74,9 +74,7 @@ namespace Kratos {
                     "residual_relative_tolerance"       : 1.0e-4,
                     "residual_absolute_tolerance"       : 1.0e-9,
                     "max_iteration"                     : 10,
-                    "linear_solver_settings"            : {
-                        "solver_type": "skyline_lu_factorization"
-                    },
+                    "linear_solver_settings"            : { },
                     "problem_domain_sub_model_part_list": [],
                     "processes_sub_model_part_list"     : [],
                     "auxiliary_variables_list"          : [],
