@@ -36,7 +36,8 @@ class PotentialFlowAdjointFormulation(PotentialFlowFormulation):
     def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "",
-            "gradient_mode": ""
+            "gradient_mode": "",
+            "penalty_coefficient": 0.0
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
