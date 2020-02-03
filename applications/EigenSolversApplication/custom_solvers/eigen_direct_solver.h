@@ -102,7 +102,7 @@ public:
 
         const bool success = m_solver.Compute(a);
 
-        KRATOS_ERROR_IF(!success) << "Decomposition failed!" << std::endl;
+        KRATOS_ERROR_IF(!success) << "Decomposition failed!\n" << a << std::endl;
     }
 
     /**
