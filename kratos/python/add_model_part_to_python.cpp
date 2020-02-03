@@ -860,10 +860,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("__str__", PrintObject<Communicator>);
         ;
 
-    py::class_<typename ModelPart::SubModelPartsContainerType >(m, "SubModelPartsContainerType")
-        .def("__iter__", [](typename ModelPart::SubModelPartsContainerType& self){ return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
-        ;
-
+    MapInterface<ModelPart::SubModelPartsContainerType>().CreateInterface(m,"SubModelPartsContainerType");
     MapInterface<ModelPart::GeometriesMapType>().CreateInterface(m,"GeometriesMapType");
     PointerVectorSetPythonInterface<ModelPart::MasterSlaveConstraintContainerType>().CreateInterface(m,"MasterSlaveConstraintsArray");
 
