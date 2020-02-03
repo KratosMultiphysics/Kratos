@@ -1,9 +1,10 @@
 import KratosMultiphysics
+import KratosMultiphysics.EigenSolversApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.CSharpWrapperApplication
 
 def run():
-    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
+    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.TESTS_OUTPUTS) # TESTS_OUTPUTS
     KratosMultiphysics.Tester.RunTestSuite("KratosCSharpWrapperApplicationFastSuite")
 
 if __name__ == '__main__':

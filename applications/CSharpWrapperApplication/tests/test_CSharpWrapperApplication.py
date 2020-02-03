@@ -1,6 +1,5 @@
 # import Kratos
 import KratosMultiphysics
-# import KratosMultiphysics.EigenSolversApplication
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.CSharpWrapperApplication as CSharpWrapperApplication
 import run_cpp_unit_tests

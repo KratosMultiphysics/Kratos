@@ -75,7 +75,6 @@ namespace Kratos {
                     "residual_absolute_tolerance"       : 1.0e-9,
                     "max_iteration"                     : 10,
                     "linear_solver_settings"            : {
-                        "solver_type": "pardiso_lu"
                     },
                     "problem_domain_sub_model_part_list": [],
                     "processes_sub_model_part_list"     : [],
