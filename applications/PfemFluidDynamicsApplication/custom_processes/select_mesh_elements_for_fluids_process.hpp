@@ -155,13 +155,12 @@ public:
             int el = 0;
             int number = 0;
 
-            double MeanMeshSize = mrRemesh.Refine->CriticalRadius;
 
             //#pragma omp parallel for reduction(+:number) private(el)
             for (el = 0; el < OutNumberOfElements; el++)
             {
                 Geometry<Node<3>> vertices;
-
+                double MeanMeshSize = mrRemesh.Refine->CriticalRadius; // this must be inside because if there is a refined zone, each element has a different critical radius
                 unsigned int numfreesurf = 0;
                 unsigned int numboundary = 0;
                 unsigned int numrigid = 0;
