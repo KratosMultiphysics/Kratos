@@ -11,6 +11,7 @@
 
 #include "custom_utilities/potential_flow_utilities.h"
 #include "compressible_potential_flow_application_variables.h"
+#include "fluid_dynamics_application_variables.h"
 #include "includes/model_part.h"
 
 namespace Kratos {
@@ -262,6 +263,21 @@ bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodal
     // Elements with nodes above and below the wake are wake elements
     return number_of_nodes_with_negative_distance > 0 &&
            number_of_nodes_with_positive_distance > 0;
+}
+
+bool CheckIfElementIsTrailingEdge(const Element& rElement)
+{
+    const auto& r_geometry = rElement.GetGeometry();
+    bool is_trailing_edge = false;
+
+    for(unsigned int i_node = 0; i_node<r_geometry.size(); i_node++){
+
+        if (r_geometry[i_node].GetValue(TRAILING_EDGE)) {
+            is_trailing_edge = true;
+        }
+    }
+
+    return is_trailing_edge;
 }
 
 template <int Dim>
