@@ -1345,7 +1345,6 @@ public:
 
         // DEM variables
         const Variable<int>& particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
-        const Variable<double>& radius = KratosComponents<Variable<double>>::Get("RADIUS");
 
         for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                 element_iterator != rThisMesh.ElementsEnd();
