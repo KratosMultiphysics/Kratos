@@ -145,16 +145,18 @@ void PreComputeExplicitConstraintConstribution(
     KRATOS_ERROR_IF_NOT(rDofVariableNames.size() == rResidualDofVariableNames.size()) << "PreComputeExplicitConstraintConstribution not properly defined variables" << std::endl;
 
     // Defining variable maps
-    std::unordered_map<std::size_t, Variable<double>> double_variable_map;
+    std::unordered_map<std::size_t, const Variable<double>*> double_variable_map;
     typedef ModelPart::VariableComponentType VariableComponentType;
-    std::unordered_map<std::size_t, VariableComponentType> components_variable_map;
+    std::unordered_map<std::size_t, const VariableComponentType*> components_variable_map;
 
     std::size_t counter = 0;
     for (auto& r_dof_variable_name : rDofVariableNames) {
         const std::string& r_reaction_variable_name = rResidualDofVariableNames[counter];
 
         if (KratosComponents<Variable<double>>::Has(r_dof_variable_name)) {
-            double_variable_map.insert(std::pair<std::size_t, Variable<double>>(KratosComponents<Variable<double>>::Get(r_dof_variable_name).Key(), KratosComponents<Variable<double>>::Get(r_reaction_variable_name)));
+            const auto& r_check_dof = KratosComponents<Variable<double>>::Get(r_dof_variable_name);
+            const auto& r_residual_dof = KratosComponents<Variable<double>>::Get(r_reaction_variable_name);
+            double_variable_map.insert({r_check_dof.Key(),&r_residual_dof});
         } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_dof_variable_name)) {
             // Getting the dof to check
             const VariableComponentType& r_check_dof_x = KratosComponents<VariableComponentType>::Get(r_dof_variable_name + "_X");
@@ -166,9 +168,9 @@ void PreComputeExplicitConstraintConstribution(
             const VariableComponentType& r_residual_dof_y = KratosComponents<VariableComponentType>::Get(r_reaction_variable_name + "_Y");
             const VariableComponentType& r_residual_dof_z = KratosComponents<VariableComponentType>::Get(r_reaction_variable_name + "_Z");
 
-            components_variable_map.insert(std::pair<std::size_t, VariableComponentType>(r_check_dof_x.Key(), r_residual_dof_x));
-            components_variable_map.insert(std::pair<std::size_t, VariableComponentType>(r_check_dof_y.Key(), r_residual_dof_y));
-            components_variable_map.insert(std::pair<std::size_t, VariableComponentType>(r_check_dof_z.Key(), r_residual_dof_z));
+            components_variable_map.insert({r_check_dof_x.Key(), &r_residual_dof_x});
+            components_variable_map.insert({r_check_dof_y.Key(), &r_residual_dof_y});
+            components_variable_map.insert({r_check_dof_z.Key(), &r_residual_dof_z});
         } else {
             KRATOS_ERROR << "Variable is not an array or a double" << std::endl;
         }
@@ -211,10 +213,10 @@ void PreComputeExplicitConstraintConstribution(
                     p_slave_node = rModelPart.pGetNode(r_dof_slave->Id());
 
                 if (double_variable_map.find(slave_variable_key) != double_variable_map.end()) {
-                    const auto& r_aux_var = double_variable_map.find(slave_variable_key)->second;
+                    const auto& r_aux_var = *(double_variable_map.find(slave_variable_key)->second);
                     slave_solution_vector[counter] = p_slave_node->FastGetSolutionStepValue(r_aux_var);
                 } else if (components_variable_map.find(slave_variable_key) != components_variable_map.end()) {
-                    const auto& r_aux_var = components_variable_map.find(slave_variable_key)->second;
+                    const auto& r_aux_var = *(components_variable_map.find(slave_variable_key)->second);
                     slave_solution_vector[counter] = p_slave_node->FastGetSolutionStepValue(r_aux_var);
                 } else {
                     slave_solution_vector[counter] = 0.0;
@@ -235,12 +237,12 @@ void PreComputeExplicitConstraintConstribution(
                     p_master_node = rModelPart.pGetNode(r_dof_master->Id());
 
                 if (double_variable_map.find(master_variable_key) != double_variable_map.end()) {
-                    const auto& r_aux_var = double_variable_map.find(master_variable_key)->second;
+                    const auto& r_aux_var = *(double_variable_map.find(master_variable_key)->second);
                     double& aux_value = p_master_node->FastGetSolutionStepValue(r_aux_var);
                     #pragma omp atomic
                     aux_value += master_solution_vector[counter];
                 } else if (components_variable_map.find(master_variable_key) != components_variable_map.end()) {
-                    const auto& r_aux_var = components_variable_map.find(master_variable_key)->second;
+                    const auto& r_aux_var = *(components_variable_map.find(master_variable_key)->second);
                     double& aux_value = p_master_node->FastGetSolutionStepValue(r_aux_var);
                     #pragma omp atomic
                     aux_value += master_solution_vector[counter];
