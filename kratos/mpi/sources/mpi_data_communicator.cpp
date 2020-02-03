@@ -271,6 +271,11 @@ array_1d<double,3> MPIDataCommunicator::Max(const array_1d<double,3>& rLocalValu
     return global_value;
 }
 
+bool MPIDataCommunicator::AndReduce(const bool Value, const int Root) const
+{
+    return ReduceDetail(Value, MPI_LAND, Root);
+}
+
 Kratos::Flags MPIDataCommunicator::AndReduce(const Kratos::Flags Values, const Kratos::Flags Mask, const int Root) const
 {
     Flags::BlockType local_active_flags = Values.GetDefined() & Mask.GetDefined();
@@ -285,6 +290,11 @@ Kratos::Flags MPIDataCommunicator::AndReduce(const Kratos::Flags Values, const K
     out.SetDefined(active_flags | Values.GetDefined());
     out.SetFlags( (reduced_flags & active_flags) | (Values.GetFlags() & ~active_flags) );
     return out;
+}
+
+bool MPIDataCommunicator::OrReduce(const bool Value, const int Root) const
+{
+    return ReduceDetail(Value, MPI_LOR, Root);
 }
 
 Kratos::Flags MPIDataCommunicator::OrReduce(const Kratos::Flags Values, const Kratos::Flags Mask, const int Root) const
@@ -326,6 +336,11 @@ array_1d<double,3> MPIDataCommunicator::MaxAll(const array_1d<double,3>& rLocalV
     return global_value;
 }
 
+bool MPIDataCommunicator::AndReduceAll(const bool Value) const
+{
+    return AllReduceDetail(Value, MPI_LAND);
+}
+
 Kratos::Flags MPIDataCommunicator::AndReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
 {
     Flags::BlockType local_active_flags = Values.GetDefined() & Mask.GetDefined();
@@ -340,6 +355,11 @@ Kratos::Flags MPIDataCommunicator::AndReduceAll(const Kratos::Flags Values, cons
     out.SetDefined(active_flags | Values.GetDefined());
     out.SetFlags( (reduced_flags & active_flags) | (Values.GetFlags() & ~active_flags) );
     return out;
+}
+
+bool MPIDataCommunicator::OrReduceAll(const bool Value) const
+{
+    return AllReduceDetail(Value, MPI_LOR);
 }
 
 Kratos::Flags MPIDataCommunicator::OrReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
@@ -869,6 +889,10 @@ bool MPIDataCommunicator::BroadcastErrorIfFalse(bool Condition, const int Source
 
 bool MPIDataCommunicator::ErrorIfTrueOnAnyRank(bool Condition) const
 {
+    // Note: this function cannot use the helper function AllReduceDetail
+    // even if it implements the same funtionality. AllReduceDetail calls
+    // ErrorIfTrueOnAnyRank in debug mode for consistency checking
+    // and that would result on a circular call.
     bool or_condition;
     int ierr = MPI_Allreduce(&Condition, &or_condition, 1, MPI_C_BOOL, MPI_LOR, mComm);
     CheckMPIErrorCode(ierr, "MPI_Allreduce");

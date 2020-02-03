@@ -24,7 +24,7 @@ namespace ConstraintUtilities
 {
 void ComputeActiveDofs(
     ModelPart& rModelPart,
-    std::vector<bool>& rActiveDofs,
+    std::vector<int>& rActiveDofs,
     const ModelPart::DofsArrayType& rDofSet
     )
 {
@@ -33,16 +33,16 @@ void ComputeActiveDofs(
     // Base active dofs
     rActiveDofs.resize(rDofSet.size());
 
-    //PLEASE DO NOT MAKE THIS LOOP PARALLEL - std::vector<bool> cannot be written to in parallel
+    #pragma omp parallel for
     for(int i=0; i<static_cast<int>(rActiveDofs.size()); ++i) {
-        rActiveDofs[i] = true;
+        rActiveDofs[i] = 1;
     }
 
-    //PLEASE DO NOT MAKE THIS LOOP PARALLEL - std::vector<bool> cannot be written to in parallel
+    #pragma omp parallel for
     for (int i = 0; i<static_cast<int>(rDofSet.size()); ++i) {
         const auto it_dof = rDofSet.begin() + i;
         if (it_dof->IsFixed()) {
-            rActiveDofs[it_dof->EquationId()] = false;
+            rActiveDofs[it_dof->EquationId()] = 0;
         }
     }
 
@@ -50,10 +50,10 @@ void ComputeActiveDofs(
     if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
         for (const auto& r_mpc : rModelPart.MasterSlaveConstraints()) {
             for (const auto& r_dof : r_mpc.GetMasterDofsVector()) {
-                rActiveDofs[r_dof->EquationId()] = false;
+                rActiveDofs[r_dof->EquationId()] = 0;
             }
             for (const auto& r_dof : r_mpc.GetSlaveDofsVector()) {
-                rActiveDofs[r_dof->EquationId()] = false;
+                rActiveDofs[r_dof->EquationId()] = 0;
             }
         }
     }

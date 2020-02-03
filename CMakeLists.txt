@@ -14,7 +14,7 @@ endif(POLICY CMP0022)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 7)
-set (KratosMultiphysics_MINOR_VERSION 0)
+set (KratosMultiphysics_MINOR_VERSION 1)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
@@ -414,6 +414,9 @@ endforeach()
 message("")
 message("***********************************************************************")
 message("")
+
+message("List of upcoming api-breaking changes:")
+message("\t Making variables non-copiable: https://github.com/KratosMultiphysics/Kratos/pull/6339")
 
 #compiling the triangle library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)

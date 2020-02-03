@@ -80,7 +80,7 @@ public:
     RansNutKEpsilonHighReCalculationProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
-    ~RansNutKEpsilonHighReCalculationProcess() override;
+    ~RansNutKEpsilonHighReCalculationProcess() override = default;
 
     ///@}
     ///@name Operators
