@@ -60,7 +60,7 @@ class TestMORUtilities(KratosUnittest.TestCase):
         A2[3,3] = 1
         e = KratosMultiphysics.ComplexVector(8)
 
-        KratosMOR.ComputeGeneralizedEigenvalues(A0,A1,A2,e)
+        KratosMOR.ComputePolynomialEigenvalues(A0,A1,A2,e)
 
         e_exp = KratosMultiphysics.ComplexVector([-2.44984944370563, -2.15361619803731, -1.62477834052925, 1.47524114347567, \
             0.335294429778544, 2.03635097664370, 2.22790873204791, -0.346551299673631])

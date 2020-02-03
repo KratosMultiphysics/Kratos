@@ -16,7 +16,7 @@ namespace GeneralizedEigenvalueUtility
 {
 
     template <typename DenseSpaceType>
-    void Compute(typename DenseSpaceType::MatrixType& rA0, 
+    void ComputePolynomial(typename DenseSpaceType::MatrixType& rA0, 
         typename DenseSpaceType::MatrixType& rA1, 
         typename DenseSpaceType::MatrixType& rA2,
         ComplexVector& rEigenvalues)

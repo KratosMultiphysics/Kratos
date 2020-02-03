@@ -323,7 +323,7 @@ class MorSecondOrderIRKAStrategy
             projection_time = irka_projection_time.ElapsedSeconds();
 
             // compute generalized eigenvalues
-            GeneralizedEigenvalueUtility::Compute<TReducedDenseSpace>(r_Kr, r_Dr, r_Mr, eigenvalues);
+            GeneralizedEigenvalueUtility::ComputePolynomial<TReducedDenseSpace>(r_Kr, r_Dr, r_Mr, eigenvalues);
 
             // use mirror images of first r eigenvalues as expansion points
             eigenvalues *= -1.;
