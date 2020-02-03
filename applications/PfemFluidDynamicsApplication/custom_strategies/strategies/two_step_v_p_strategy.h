@@ -260,6 +260,8 @@ public:
     /* 	momentumConverged = this->SolveMomentumIteration(iter,maxNonLinearIterations,fixedTimeStep); */
     /* }else{ */
 
+    this->UnactiveSliverElements();
+
     for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
     {
       if (BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
@@ -347,6 +349,51 @@ public:
     /* BoundaryNormalsCalculationUtilities BoundaryComputation; */
     /* BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel); */
 
+    KRATOS_CATCH("");
+  }
+
+  void UnactiveSliverElements()
+  {
+    KRATOS_TRY;
+
+    ModelPart &rModelPart = BaseType::GetModelPart();
+    const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+    MesherUtilities MesherUtils;
+    double ModelPartVolume = MesherUtils.ComputeModelPartVolume(rModelPart);
+    double CriticalVolume = 0.001 * ModelPartVolume / double(rModelPart.Elements().size());
+    double ElementalVolume = 0;
+
+#pragma omp parallel
+    {
+      ModelPart::ElementIterator ElemBegin;
+      ModelPart::ElementIterator ElemEnd;
+      OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElemBegin, ElemEnd);
+      for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+      {
+        unsigned int numNodes = itElem->GetGeometry().size();
+        if (numNodes == (dimension + 1))
+        {
+          if (dimension == 2)
+          {
+            ElementalVolume = (itElem)->GetGeometry().Area();
+          }
+          else if (dimension == 3)
+          {
+            ElementalVolume = (itElem)->GetGeometry().Volume();
+          }
+
+          if (ElementalVolume < CriticalVolume)
+          {
+            // std::cout << "sliver element: it has Volume: " << ElementalVolume << " vs CriticalVolume(meanVol/1000): " << CriticalVolume<< std::endl;
+            (itElem)->Set(ACTIVE, false);
+          }
+          else
+          {
+            (itElem)->Set(ACTIVE, true);
+          }
+        }
+      }
+    }
     KRATOS_CATCH("");
   }
 
@@ -1246,11 +1293,9 @@ protected:
       minTolerance = 10;
     }
 
-    bool isItNan = false;
-    isItNan = std::isnan(DvErrorNorm);
-    bool isItInf = false;
-    isItInf = std::isinf(DvErrorNorm);
-    if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm) || isItNan == true || isItInf == true) && DvErrorNorm != 0 && DvErrorNorm != 1)
+    if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
+        DvErrorNorm != 0 &&
+        (DvErrorNorm != 1 || currentTime > timeInterval))
     {
       rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, true);
       std::cout << "NOT GOOD CONVERGENCE!!! I'll reduce the next time interval" << DvErrorNorm << std::endl;
@@ -1284,14 +1329,14 @@ protected:
   {
     ModelPart &rModelPart = BaseType::GetModelPart();
     ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+    double currentTime = rCurrentProcessInfo[TIME];
+    double timeInterval = rCurrentProcessInfo[DELTA_TIME];
     double minTolerance = 0.99999;
     bool fixedTimeStep = false;
 
-    bool isItNan = false;
-    isItNan = std::isnan(DvErrorNorm);
-    bool isItInf = false;
-    isItInf = std::isinf(DvErrorNorm);
-    if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm) || isItNan == true || isItInf == true) && DvErrorNorm != 0 && DvErrorNorm != 1)
+    if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
+        DvErrorNorm != 0 &&
+        (DvErrorNorm != 1 || currentTime > timeInterval))
     {
       rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, true);
       std::cout << "           BAD CONVERGENCE DETECTED DURING THE ITERATIVE LOOP!!! error: " << DvErrorNorm << " higher than 0.9999" << std::endl;
@@ -1330,11 +1375,9 @@ protected:
       minTolerance = 10;
     }
 
-    bool isItNan = false;
-    isItNan = std::isnan(DvErrorNorm);
-    bool isItInf = false;
-    isItInf = std::isinf(DvErrorNorm);
-    if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm) || isItNan == true || isItInf == true) && DvErrorNorm != 0 && DvErrorNorm != 1)
+    if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
+        DvErrorNorm != 0 &&
+        (DvErrorNorm != 1 || currentTime > timeInterval))
     {
       fixedTimeStep = true;
       rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, true);

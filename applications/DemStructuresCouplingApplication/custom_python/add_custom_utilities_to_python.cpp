@@ -60,7 +60,7 @@ namespace Kratos {
                 .def("ExecuteFinalizeSolutionStep", &StressFailureCheckUtilities::ExecuteFinalizeSolutionStep)
             ;
 
-            class_<PostProcessUtilities, PostProcessUtilities::Pointer>(m, "PostProcessUtilities")
+            class_<PostProcessUtilities,PostProcessUtilities::Pointer>(m, "PostProcessUtilities", module_local())
                 .def(init<ModelPart&>())
                 .def("GetStickyStatus", &PostProcessUtilities::GetStickyStatus)
                 .def("GetInitialContinuumBonds", &PostProcessUtilities::GetInitialContinuumBonds)
