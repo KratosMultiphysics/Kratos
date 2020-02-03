@@ -271,9 +271,9 @@ void PreComputeExplicitConstraintMassAndInertia(
 
     // Defining variable maps
     typedef ModelPart::VariableComponentType VariableComponentType;
-    std::unordered_map<std::size_t, Variable<double>> displacement_variable_map;
-//     std::unordered_map<std::size_t, VariableComponentType> displacement_variable_map; // NOTE: Mass should be components for consistency
-//     std::unordered_map<std::size_t, VariableComponentType> rotation_variable_map; // TODO: Add in the future
+    std::unordered_map<std::size_t, const Variable<double>*> displacement_variable_map;
+//     std::unordered_map<std::size_t, const VariableComponentType*> displacement_variable_map; // NOTE: Mass should be components for consistency
+//     std::unordered_map<std::size_t, const VariableComponentType*> rotation_variable_map; // TODO: Add in the future
 
     // Getting the displacement dof to check
     const VariableComponentType& r_check_dof_x = KratosComponents<VariableComponentType>::Get(DofDisplacementVariableName + "_X");
@@ -285,9 +285,9 @@ void PreComputeExplicitConstraintMassAndInertia(
     const Variable<double>& r_mass_dof_y = r_mass_dof_x;
     const Variable<double>& r_mass_dof_z = r_mass_dof_x;
 
-    displacement_variable_map.insert(std::pair<std::size_t, Variable<double>>(r_check_dof_x.Key(), r_mass_dof_x));
-    displacement_variable_map.insert(std::pair<std::size_t, Variable<double>>(r_check_dof_y.Key(), r_mass_dof_y));
-    displacement_variable_map.insert(std::pair<std::size_t, Variable<double>>(r_check_dof_z.Key(), r_mass_dof_z));
+    displacement_variable_map.insert({r_check_dof_x.Key(), &r_mass_dof_x});
+    displacement_variable_map.insert({r_check_dof_y.Key(), &r_mass_dof_y});
+    displacement_variable_map.insert({r_check_dof_z.Key(), &r_mass_dof_z});
 
     // Getting auxiliar variables
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -330,7 +330,7 @@ void PreComputeExplicitConstraintMassAndInertia(
 
             if (displacement_variable_map.find(slave_variable_key) != displacement_variable_map.end()) {
                 if (slave_mass_map_counter.find(dof_id) == slave_mass_map_counter.end()) {
-                    const auto& r_aux_var = displacement_variable_map.find(slave_variable_key)->second;
+                    const auto& r_aux_var = *(displacement_variable_map.find(slave_variable_key)->second);
                     slave_solution_vector[counter] = p_slave_node->GetValue(r_aux_var);
                     slave_mass_map_counter.insert(dof_id);
                 } else {
@@ -357,7 +357,7 @@ void PreComputeExplicitConstraintMassAndInertia(
 
             if (displacement_variable_map.find(master_variable_key) != displacement_variable_map.end()) {
                 if (mass_mass_map_counter.find(dof_id) == mass_mass_map_counter.end()) {
-                    const auto& r_aux_var = displacement_variable_map.find(master_variable_key)->second;
+                    const auto& r_aux_var = *(displacement_variable_map.find(master_variable_key)->second);
                     double& aux_value = p_master_node->GetValue(r_aux_var);
 
                     #pragma omp atomic
