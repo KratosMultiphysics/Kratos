@@ -1428,20 +1428,20 @@ public:
         return mGeometries.GeometriesBegin();
     }
 
-    ///// Begin geometry const iterator
-    //GeometryConstantIterator GeometriesBegin() const {
-    //    return mGeometries.GeometriesBegin();
-    //}
+    /// Begin geometry const iterator
+    GeometryConstantIterator GeometriesBegin() const {
+        return mGeometries.GeometriesBegin();
+    }
 
     /// End geometry iterator
     GeometryIterator GeometriesEnd() {
         return mGeometries.GeometriesEnd();
     }
 
-    ///// End geometry const iterator
-    //GeometryConstantIterator GeometriesEnd() const {
-    //    return mGeometries.GeometriesEnd();
-    //}
+    /// End geometry const iterator
+    GeometryConstantIterator GeometriesEnd() const {
+        return mGeometries.GeometriesEnd();
+    }
 
     ///@}
     ///@name Sub model parts
