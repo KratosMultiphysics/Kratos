@@ -889,9 +889,8 @@ class MainCoupledFemDem_Solution:
     #-----------------------------------
     def EraseConditionsAndNodesSubModelPart(self):
         DEM_sub_model_part = self.DEM_Solution.rigid_face_model_part.GetSubModelPart("SkinTransferredFromStructure")
-        DEM_sub_model_part.Nodes.clear()
-        DEM_sub_model_part.Conditions.clear()
         self.DEM_Solution.rigid_face_model_part.Conditions.clear()
+        self.DEM_Solution.rigid_face_model_part.Nodes.clear()
     #-----------------------------------
     def CreateFEMPropertiesForDEFEContact(self):
         max_id_properties = 0
