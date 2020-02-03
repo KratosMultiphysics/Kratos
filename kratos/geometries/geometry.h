@@ -228,11 +228,11 @@ public:
     {
     }
 
-    /// Standard Constructor with a Id
+    /// Standard Constructor with a geometry Id
     Geometry(IndexType GeomertyId)
-        : mId(GeomertyId)
-        , mpGeometryData(&GeometryDataInstance())
+        : mpGeometryData(&GeometryDataInstance())
     {
+        SetId(GeomertyId);
     }
 
     /// Standard Constructor with a Name
@@ -310,13 +310,13 @@ public:
     }
 
     Geometry(
-        IndexType Id,
+        IndexType GeometryId,
         const PointsArrayType& ThisPoints,
         GeometryData const* pThisGeometryData = &GeometryDataInstance())
-        : mId(Id)
-        , mpGeometryData(pThisGeometryData)
+        : mpGeometryData(pThisGeometryData)
         , mPoints(ThisPoints)
     {
+        SetId(GeometryId);
     }
 
     Geometry(
@@ -516,6 +516,16 @@ public:
     {
         return mPoints.size();
     }
+
+    /** 
+    * @detail Returns the number of the points/ nodes
+    *         belonging to this geometry.
+    * @return Number of points/ nodes.
+    */
+    SizeType PointsNumber() const {
+        return this->size();
+    }
+
     virtual SizeType max_size() const
     {
         return mPoints.max_size();
@@ -589,11 +599,26 @@ public:
     }
 
     ///@}
+    ///@name  Geometry Data
+    ///@{
+
+    /**
+    * @brief GeometryData contains all information about dimensions
+    *        and has a set of precomputed values for integration points
+    *        and shape functions, including derivatives.
+    * @return the geometry data of a certain geometry class.
+    */
+    GeometryData const& GetGeometryData() const
+    {
+        return *mpGeometryData;
+    }
+
+    ///@}
     ///@name Id
     ///@{
 
     /// Id of this Geometry
-    IndexType Id() const
+    IndexType const& Id() const
     {
         return mId;
     }
@@ -618,7 +643,9 @@ public:
         // is self assigned or not.
         KRATOS_ERROR_IF(IsIdGeneratedFromString(Id)
             || IsIdSelfAssigned(Id))
-            << "Id out of range. The Id must me lower than 2^62 = 4.61e+18"
+            << "Id: " << Id << " out of range. The Id must me lower than 2^62 = 4.61e+18. "
+            << "Geometry being recognized as generated from string: " << IsIdGeneratedFromString(Id)
+            << ", self assigned: " << IsIdSelfAssigned(Id) << "."
             << std::endl;
 
         mId = Id;
@@ -674,6 +701,82 @@ public:
         KRATOS_ERROR <<
             "Calling SetGeometryParent from base geometry class."
             << std::endl;
+    }
+
+    ///@}
+    ///@name Geometry part functions
+    ///@{
+
+    /**
+    * @brief Used for composite geometries. It returns the
+    *        the geometry part, corresponding to the Index.
+    * @param Index of the geometry part. This index can be used differently
+    *        within the derived classes.
+    * @return reference to corresponding geometry.
+     */
+    virtual GeometryType& GetGeometryPart(IndexType Index)
+    {
+        return *pGetGeometryPart(Index);
+    }
+
+    /**
+    * @brief Used for composite geometries. It returns the
+    *        the geometry part, corresponding to the Index.
+    * @param Index of the geometry part. This index can be used differently
+    *        within the derived classes.
+    * @return const reference to corresponding geometry.
+    */
+    virtual const GeometryType& GetGeometryPart(IndexType Index) const
+    {
+        return *pGetGeometryPart(Index);
+    }
+
+    /**
+    * @brief Used for composite geometries. It returns the pointer
+    *        of a geometry part, corresponding to the Index.
+    * @param Index of the geometry part. This index can be used differently
+    *        within the derived classes.
+    * @return pointer to corresponding geometry.
+    */
+    virtual typename GeometryType::Pointer pGetGeometryPart(IndexType Index)
+    {
+        KRATOS_ERROR << "Calling base class 'pGetGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+    * @brief Used for composite geometries. It returns the const pointer
+    *        of a geometry part, corresponding to the Index.
+    * @details This index is dependent on the derived implementation.
+    * @param Index of the geometry part. This index can be used differently
+    *        within the derived classes.
+    * @return const pointer to corresponding geometry.
+    */
+    virtual const typename GeometryType::Pointer pGetGeometryPart(IndexType Index) const
+    {
+        KRATOS_ERROR << "Calling base class 'pGetGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+    * @brief Use to check if certain Indexed object is
+    *        within the geometry parts of this geometry.
+    * @param Index of the geometry part. This index can be used differently
+    *        within the derived classes.
+    * @return true if has geometry part
+    */
+    virtual bool HasGeometryPart(IndexType Index) const
+    {
+        KRATOS_ERROR << "Calling base class 'HasGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+    * @return the number of geometry parts that this geometry contains.
+    */
+    virtual SizeType NumberOfGeometryParts() const
+    {
+        return 0;
     }
 
     ///@}
@@ -821,14 +924,6 @@ public:
     inline SizeType LocalSpaceDimension() const
     {
         return mpGeometryData->LocalSpaceDimension();
-    }
-
-    /** Returns number of the points which this geometry has.
-     *
-     * @return SizeType, number of the points in this geometry.
-     */
-    SizeType PointsNumber() const {
-      return this->size();
     }
 
     /** This method calculate and return Length or charactereistic
@@ -1201,21 +1296,6 @@ public:
     }
 
     ///@}
-    ///@name  Geometry Data
-    ///@{
-
-    /**
-    * @brief GeometryData contains all information about dimensions
-    *        and has a set of precomputed values for integration points
-    *        and shape functions, including derivatives.
-    * @return the geometry data of a certain geometry class.
-    */
-    GeometryData const& GetGeometryData() const
-    {
-        return *mpGeometryData;
-    }
-
-    ///@}
     ///@name Quality
     ///@{
 
@@ -1364,29 +1444,6 @@ public:
         KRATOS_TRY
         return mPoints[Index];
         KRATOS_CATCH(mPoints);
-    }
-
-    /**
-    * @brief This function is necessary for composite geometries. It returns the
-    * geometry part which is accessable with a certain index.
-    * @details This index
-    * is dependent on the derived implementation.
-    * @param Index of the geometry part. This index can be used differently
-    *        within the derived classes
-    * @return geometry, which is connected through the Index
-     */
-    virtual GeometryType& GetGeometryPart(IndexType Index) const
-    {
-        KRATOS_ERROR << "Calling base class 'GetGeometryPart' method instead of derived function."
-            <<" Please check the definition in the derived class. " << *this << std::endl;
-    }
-
-    /**
-    * @return the number of geometry parts that this geometry contains.
-    */
-    virtual SizeType NumberOfGeometryParts() const
-    {
-        return 0;
     }
 
     /**
@@ -3459,37 +3516,37 @@ private:
     /// Checks first bit in Id. 0 -> id; 1 -> name/ string
     static inline bool IsIdGeneratedFromString(IndexType Id)
     {
-        return Id & (IndexType(1) << (sizeof(IndexType) - 1));
+        return Id & (IndexType(1) << (sizeof(IndexType) * 8 - 1));
     }
 
     /// Sets first bit in Id to 1 -> name/ string
     static inline void SetIdGeneratedFromString(IndexType& Id)
     {
-        Id |= (IndexType(1) << (sizeof(IndexType) - 1));
+        Id |= (IndexType(1) << (sizeof(IndexType) * 8 - 1));
     }
 
     /// Sets first bit in Id to 0 -> no name/ string
     static inline void SetIdNotGeneratedFromString(IndexType& Id)
     {
-        Id &= ~(IndexType(1) << (sizeof(IndexType) - 1));
+        Id &= ~(IndexType(1) << (sizeof(IndexType) * 8 - 1));
     }
 
     /// Checks second bit in Id. 0 -> defined id; 1 -> self assigned
     static inline bool IsIdSelfAssigned(IndexType Id)
     {
-        return Id & (IndexType(1) << (sizeof(IndexType) - 2));
+        return Id & (IndexType(1) << (sizeof(IndexType) * 8 - 2));
     }
 
     /// Sets second bit in Id to 1 -> self assigned
     static inline void SetIdSelfAssigned(IndexType& Id)
     {
-        Id |= (IndexType(1) << (sizeof(IndexType) - 2));
+        Id |= (IndexType(1) << (sizeof(IndexType) * 8 - 2));
     }
 
     /// Sets second bit in Id to 0 -> not self assigned
     static inline void SetIdNotSelfAssigned(IndexType& Id)
     {
-        Id &= ~(IndexType(1) << (sizeof(IndexType) - 2));
+        Id &= ~(IndexType(1) << (sizeof(IndexType) * 8 - 2));
     }
 
     ///@}
