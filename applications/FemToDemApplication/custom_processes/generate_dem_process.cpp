@@ -170,16 +170,22 @@ double GenerateDemProcess::GetMinimumValue(
 
 int GenerateDemProcess::GetMaximumDEMId()
 {
-    int max_id = 0;
     const auto it_DEM_begin = mrDEMModelPart.ElementsBegin();
-    // #pragma omp parallel for
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    std::vector<int> max_vector(num_threads, 0.0);
+
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrDEMModelPart.Elements().size()); i++) {
         auto it_DEM = it_DEM_begin + i;
         auto& r_geometry = it_DEM->GetGeometry();
         const int DEM_id = r_geometry[0].Id();
-        max_id = (max_id < DEM_id) ? DEM_id : max_id;
+
+        const int thread_id = OpenMPUtils::ThisThread();
+
+        if (DEM_id > max_vector[thread_id])
+            max_vector[thread_id] = DEM_id;
     }
-    return max_id;
+    return *std::max_element(max_vector.begin(), max_vector.end());
 }
 
 /***********************************************************************************/
@@ -187,15 +193,20 @@ int GenerateDemProcess::GetMaximumDEMId()
 
 int GenerateDemProcess::GetMaximumFEMId()
 {
-    int max_id = 0;
     const auto it_FEM_node_begin = mrModelPart.NodesBegin();
-    // #pragma omp parallel for
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    std::vector<int> max_vector(num_threads, 0.0);
+
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
         auto it_FEM_node = it_FEM_node_begin + i;
         const int FEM_node_id = it_FEM_node->Id();
-        max_id = (max_id < FEM_node_id) ? FEM_node_id : max_id;
+
+        const int thread_id = OpenMPUtils::ThisThread();
+        if (FEM_node_id > max_vector[thread_id])
+            max_vector[thread_id] = FEM_node_id;
     }
-    return max_id;
+    return *std::max_element(max_vector.begin(), max_vector.end());
 }
 
 }  // namespace Kratos
