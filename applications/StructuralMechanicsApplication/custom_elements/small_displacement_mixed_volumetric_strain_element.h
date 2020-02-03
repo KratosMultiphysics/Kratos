@@ -604,6 +604,22 @@ private:
     void CalculateInverseAnisotropyTensor();
 
     /**
+     * @brief Calculate the isotropic bulk modulus
+     * Calculates the bulk modulus for the transformation to the closest isotropic tensor
+     * @param rC Input constitutive matrx
+     * @return double Isotropic bulk modulus
+     */
+    double CalculateBulkModulus(const Matrix &rC) const;
+
+    /**
+     * @brief Calculate the isotropic shear modulus
+     * Calculates the shear modulus for the transformation to the closest isotropic tensor
+     * @param rC Input constitutive matrx
+     * @return double Isotropic shear modulus
+     */
+    double CalculateShearModulus(const Matrix &rC) const;
+
+    /**
      * @brief Calculation of the deformation gradient F
      * @param rF The deformation gradient
      * @param rStrainTensor The strain tensor in Voigt notation
@@ -613,30 +629,30 @@ private:
         const Vector& rStrainTensor
         ) const;
 
-    /**
-     * @brief Calculate the element size
-     * This method calculates the element size used in the stabilization terms
-     * @param rThisKinematicVariables Kinematic variables container. Required
-     * in case h is computed using the gradients (triangles and tetrahedas)
-     * @return double The element size
-     */
-    double CalculateElementSize(const KinematicVariables& rThisKinematicVariables) const;
+    // /**
+    //  * @brief Calculate the element size
+    //  * This method calculates the element size used in the stabilization terms
+    //  * @param rThisKinematicVariables Kinematic variables container. Required
+    //  * in case h is computed using the gradients (triangles and tetrahedas)
+    //  * @return double The element size
+    //  */
+    // double CalculateElementSize(const KinematicVariables& rThisKinematicVariables) const;
 
-    /**
-     * @brief Calculates the linearised bulk modulus
-     * This method approximates the bulk modulus for the current volumetric strain
-     * @param rConstitutiveVariables The constitutive variables containing the constitutive tensor
-     * @return double Approximated bulk modulus
-     */
-    double CalculateLinearisedBulkModulus(const ConstitutiveVariables& rThisConstitutiveVariables) const;
+    // /**
+    //  * @brief Calculates the linearised bulk modulus
+    //  * This method approximates the bulk modulus for the current volumetric strain
+    //  * @param rConstitutiveVariables The constitutive variables containing the constitutive tensor
+    //  * @return double Approximated bulk modulus
+    //  */
+    // double CalculateLinearisedBulkModulus(const ConstitutiveVariables& rThisConstitutiveVariables) const;
 
-    /**
-     * @brief Calculates the linearised shear modulus
-     * This method approximates the shear modulus for the current deviatoric strain
-     * @param rConstitutiveVariables The constitutive variables containing the constitutive tensor
-     * @return double Approximated shear modulus
-     */
-    double CalculateLinearisedShearModulus(const ConstitutiveVariables& rThisConstitutiveVariables) const;
+    // /**
+    //  * @brief Calculates the linearised shear modulus
+    //  * This method approximates the shear modulus for the current deviatoric strain
+    //  * @param rConstitutiveVariables The constitutive variables containing the constitutive tensor
+    //  * @return double Approximated shear modulus
+    //  */
+    // double CalculateLinearisedShearModulus(const ConstitutiveVariables& rThisConstitutiveVariables) const;
 
     /**
      * @brief This method gets a value directly in the CL

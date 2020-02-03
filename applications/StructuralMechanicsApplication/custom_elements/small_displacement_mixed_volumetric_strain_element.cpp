@@ -350,12 +350,8 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
         const Matrix m_T_tensor = MathUtils<double>::StrainVectorToTensor(m_T);
         const Vector invT_m = prod(mInverseAnisotropyTensor, voigt_identity);
 
-        // Calculate the linearised bulk modulus
-        const double bulk_modulus = CalculateLinearisedBulkModulus(constitutive_variables);
-
         // Calculate tau_1 stabilization constant
         Matrix aux = ZeroMatrix(dim,dim);
-        Matrix D_iso = prod(trans(mAnisotropyTensor), Matrix(prod(constitutive_variables.D, mAnisotropyTensor)));
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             for (IndexType k = 0;  k < strain_size; ++k) {
                 for (IndexType l = 0; l < dim; ++l) {
@@ -375,8 +371,9 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
         }
 
         // Calculate tau_2 stabilization constant
-        const double shear_modulus = CalculateLinearisedShearModulus(constitutive_variables);
-        const double tau_2 = std::min(2.0e-1, 4.0*shear_modulus/bulk_modulus);
+        const double bulk_modulus = CalculateBulkModulus(constitutive_variables.D);
+        const double shear_modulus = CalculateShearModulus(constitutive_variables.D);
+        const double tau_2 = std::min(1.0e-2, 4.0*shear_modulus/bulk_modulus);
 
         // Calculate and add the LHS contributions
         const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
@@ -524,7 +521,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
 
         // Calculate the linearised bulk modulus
-        const double bulk_modulus = CalculateLinearisedBulkModulus(constitutive_variables);
+        const double bulk_modulus = CalculateBulkModulus(constitutive_variables.D);
 
         // Calculate tau_1 stabilization constant
         Matrix aux = ZeroMatrix(dim,dim);
@@ -542,7 +539,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
         MathUtils<double>::InvertMatrix(aux, tau_1_mat, det);
 
         // Calculate tau_2 stabilization constant
-        const double shear_modulus = CalculateLinearisedShearModulus(constitutive_variables);
+        const double shear_modulus = CalculateShearModulus(constitutive_variables.D);
         const double tau_2 = std::min(1.0e-2, 4.0*shear_modulus/bulk_modulus);
 
         // Calculate and add the LHS contributions
@@ -652,7 +649,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
         CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(this->GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
 
         // Calculate the linearised bulk modulus
-        const double bulk_modulus = CalculateLinearisedBulkModulus(constitutive_variables);
+        const double bulk_modulus = CalculateBulkModulus(constitutive_variables.D);
 
         // Calculate tau_1 stabilization constant
         Matrix aux = ZeroMatrix(dim, dim);
@@ -672,7 +669,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
         MathUtils<double>::InvertMatrix(aux, tau_1_mat, det);
 
         // Calculate tau_2 stabilization constant
-        const double shear_modulus = CalculateLinearisedShearModulus(constitutive_variables);
+        const double shear_modulus = CalculateShearModulus(constitutive_variables.D);
         const double tau_2 = std::min(1.0e-2, 4.0*shear_modulus/bulk_modulus);
 
         // Calculate the volumetric residual
@@ -946,13 +943,9 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateAnisotropyTensor(co
     }
     const Matrix K = I - J;
     const Matrix &rC = constitutive_variables.D;
-    const double k_iso = (dim == 2) ?
-        (2.0/3.0) * (rC(0,0) + 2.0 * rC(0,1) + rC(1,1)) :
-        rC(0,0) + 2*rC(0,1) + 2*rC(0,2) + rC(1,1) + 2*rC(1,2) + rC(2,2);
-    const double mu_iso = (dim == 2) ?
-        0.2 * (rC(0,0) - 2.0*rC(0,1) + rC(1,1) + rC(2,2)) :
-        (4.0 / 33.0)*(rC(0,0) - rC(0,1) - rC(0,2) + rC(1,1) - rC(1,2) + rC(2,2) + (3.0/4.0)*(rC(3,3) + rC(4,4) + rC(5,5)));
-    const Matrix C_iso = 3.0 * k_iso * J + 2.0 * mu_iso * K;
+    const double k_iso = CalculateBulkModulus(rC);
+    const double mu_iso = CalculateShearModulus(rC);
+    const Matrix C_iso = 3.0 * (dim * k_iso / 3.0) * J + 2.0 * mu_iso * K;
 
     // Calculate the square root of the C and closest isotropic C tensors
     Matrix a;
@@ -984,6 +977,32 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateInverseAnisotropyTe
 /***********************************************************************************/
 /***********************************************************************************/
 
+double SmallDisplacementMixedVolumetricStrainElement::CalculateBulkModulus(const Matrix &rC) const
+{
+    const SizeType dim = GetGeometry().WorkingSpaceDimension();
+    double bulk_modulus = 0.0;
+    for (SizeType i = 0; i < dim; ++i) {
+        for (SizeType j = 0; j < dim; ++j) {
+            bulk_modulus += rC(i,j);
+        }
+    }
+    return bulk_modulus / std::pow(dim, 2);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double SmallDisplacementMixedVolumetricStrainElement::CalculateShearModulus(const Matrix &rC) const
+{
+    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+    return (strain_size == 3) ?
+        0.2 * (rC(0,0) - 2.0*rC(0,1) + rC(1,1) + rC(2,2)) :
+        (4.0 / 33.0)*(rC(0,0) - rC(0,1) - rC(0,2) + rC(1,1) - rC(1,2) + rC(2,2) + (3.0/4.0)*(rC(3,3) + rC(4,4) + rC(5,5)));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SmallDisplacementMixedVolumetricStrainElement::ComputeEquivalentF(
     Matrix& rF,
     const Vector& rStrainTensor
@@ -992,74 +1011,74 @@ void SmallDisplacementMixedVolumetricStrainElement::ComputeEquivalentF(
     StructuralMechanicsElementUtilities::ComputeEquivalentF(*this, rStrainTensor, rF);
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
+// /***********************************************************************************/
+// /***********************************************************************************/
 
-double SmallDisplacementMixedVolumetricStrainElement::CalculateElementSize(const KinematicVariables& rThisKinematicVariables) const
-{
-    const auto& r_geometry = GetGeometry();
-    switch (r_geometry.GetGeometryType())
-    {
-        case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-        {
-            const BoundedMatrix<double,3,2> aux_grads(rThisKinematicVariables.DN_DX);
-            return ElementSizeCalculator<2,3>::GradientsElementSize(aux_grads);
-        }
-        case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-        {
-            const BoundedMatrix<double,4,3> aux_grads(rThisKinematicVariables.DN_DX);
-            return ElementSizeCalculator<3,4>::GradientsElementSize(aux_grads);
-        }
-        case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4:
-        {
-            return ElementSizeCalculator<2,4>::AverageElementSize(r_geometry);
-        }
-        case GeometryData::KratosGeometryType::Kratos_Hexahedra3D8:
-        {
-            return ElementSizeCalculator<3,8>::AverageElementSize(r_geometry);
-        }
-        default:
-        {
-            KRATOS_ERROR << "Asking for a non-implemented geometry element size calculation." << std::endl;
-        }
-    }
-}
+// double SmallDisplacementMixedVolumetricStrainElement::CalculateElementSize(const KinematicVariables& rThisKinematicVariables) const
+// {
+//     const auto& r_geometry = GetGeometry();
+//     switch (r_geometry.GetGeometryType())
+//     {
+//         case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+//         {
+//             const BoundedMatrix<double,3,2> aux_grads(rThisKinematicVariables.DN_DX);
+//             return ElementSizeCalculator<2,3>::GradientsElementSize(aux_grads);
+//         }
+//         case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+//         {
+//             const BoundedMatrix<double,4,3> aux_grads(rThisKinematicVariables.DN_DX);
+//             return ElementSizeCalculator<3,4>::GradientsElementSize(aux_grads);
+//         }
+//         case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4:
+//         {
+//             return ElementSizeCalculator<2,4>::AverageElementSize(r_geometry);
+//         }
+//         case GeometryData::KratosGeometryType::Kratos_Hexahedra3D8:
+//         {
+//             return ElementSizeCalculator<3,8>::AverageElementSize(r_geometry);
+//         }
+//         default:
+//         {
+//             KRATOS_ERROR << "Asking for a non-implemented geometry element size calculation." << std::endl;
+//         }
+//     }
+// }
 
-/***********************************************************************************/
-/***********************************************************************************/
+// /***********************************************************************************/
+// /***********************************************************************************/
 
-double SmallDisplacementMixedVolumetricStrainElement::CalculateLinearisedBulkModulus(const ConstitutiveVariables& rThisConstitutiveVariables) const
-{
-    const auto& r_geom = GetGeometry();
-    const SizeType dim = r_geom.WorkingSpaceDimension();
+// double SmallDisplacementMixedVolumetricStrainElement::CalculateLinearisedBulkModulus(const ConstitutiveVariables& rThisConstitutiveVariables) const
+// {
+//     const auto& r_geom = GetGeometry();
+//     const SizeType dim = r_geom.WorkingSpaceDimension();
 
-    double bulk_modulus = 0.0;
-    for (IndexType i = 0; i < dim; ++i) {
-        for (IndexType j = 0; j < dim; ++j) {
-            bulk_modulus += mInverseAnisotropyTensor(i, i) * rThisConstitutiveVariables.D(i, j) * mInverseAnisotropyTensor(j,j);
-        }
-    }
+//     double bulk_modulus = 0.0;
+//     for (IndexType i = 0; i < dim; ++i) {
+//         for (IndexType j = 0; j < dim; ++j) {
+//             bulk_modulus += mInverseAnisotropyTensor(i, i) * rThisConstitutiveVariables.D(i, j) * mInverseAnisotropyTensor(j,j);
+//         }
+//     }
 
-    return bulk_modulus / std::pow(dim, 2);
-}
+//     return bulk_modulus / std::pow(dim, 2);
+// }
 
-/***********************************************************************************/
-/***********************************************************************************/
+// /***********************************************************************************/
+// /***********************************************************************************/
 
-double SmallDisplacementMixedVolumetricStrainElement::CalculateLinearisedShearModulus(const ConstitutiveVariables& rThisConstitutiveVariables) const
-{
-    const auto& r_geom = GetGeometry();
-    const SizeType dim = r_geom.WorkingSpaceDimension();
-    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+// double SmallDisplacementMixedVolumetricStrainElement::CalculateLinearisedShearModulus(const ConstitutiveVariables& rThisConstitutiveVariables) const
+// {
+//     const auto& r_geom = GetGeometry();
+//     const SizeType dim = r_geom.WorkingSpaceDimension();
+//     const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 
-    double shear_modulus = std::numeric_limits<double>::max();
-    const auto& rD = rThisConstitutiveVariables.D;
-    for (unsigned int i = dim; i < strain_size; ++i) {
-        shear_modulus = std::min(shear_modulus, rD(i,i));
-    }
+//     double shear_modulus = std::numeric_limits<double>::max();
+//     const auto& rD = rThisConstitutiveVariables.D;
+//     for (unsigned int i = dim; i < strain_size; ++i) {
+//         shear_modulus = std::min(shear_modulus, rD(i,i));
+//     }
 
-    return shear_modulus;
-}
+//     return shear_modulus;
+// }
 
 /***********************************************************************************/
 /***********************************************************************************/
