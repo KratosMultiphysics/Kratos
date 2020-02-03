@@ -1,5 +1,4 @@
 import KratosMultiphysics
-import KratosMultiphysics.EigenSolversApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.CSharpWrapperApplication
 
