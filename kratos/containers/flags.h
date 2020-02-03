@@ -240,7 +240,7 @@ public:
 
     static const Flags Unset(Flags ThisFlag)
     {
-        Flags UNSET_ThisFlag(ThisFlag);
+        Flags unset_this_flag(ThisFlag);
         UNSET_ThisFlag.mFlags = !ThisFlag.mFlags;
         return  UNSET_ThisFlag;
     }
