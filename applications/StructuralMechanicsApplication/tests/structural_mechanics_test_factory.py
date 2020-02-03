@@ -30,12 +30,7 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
 
                 else:
                     default_lin_solver_settings = KratosMultiphysics.Parameters("""{
-                        "solver_type": "ExternalSolversApplication.super_lu",
-                        "max_iteration": 500,
-                        "tolerance": 1e-9,
-                        "scaling": false,
-                        "symmetric_scaling": true,
-                        "verbosity": 0
+                        "solver_type": "pardiso_lu"
                     }""")
                 ProjectParameters["solver_settings"].AddValue("linear_solver_settings", default_lin_solver_settings)
 
