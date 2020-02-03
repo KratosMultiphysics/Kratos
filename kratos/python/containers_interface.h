@@ -54,12 +54,12 @@ class ContainerInterface
 };
 
 template< class TContainerType >
-class PointerVectorPythonInterface
+class MapInterface
 {
     public:
 
-    PointerVectorPythonInterface(){};
-    virtual ~PointerVectorPythonInterface(){};
+    MapInterface(){};
+    virtual ~MapInterface(){};
    
     void CreateInterface(pybind11::module& m, std::string ContainerName)
     {
@@ -77,12 +77,12 @@ class PointerVectorPythonInterface
 };
   
 template< class TContainerType >
-class MapInterface
+class PointerVectorPythonInterface
 {
     public:
 
-    MapInterface(){};
-    virtual ~MapInterface(){};
+    PointerVectorPythonInterface(){};
+    virtual ~PointerVectorPythonInterface(){};
 
     void CreateInterface(pybind11::module& m, std::string ContainerName)
     {
