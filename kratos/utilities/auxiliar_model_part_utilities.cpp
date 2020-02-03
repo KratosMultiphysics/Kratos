@@ -61,7 +61,7 @@ void AuxiliarModelPartUtilities::EnsureModelPartOwnsProperties(const bool Remove
         // The list of properties
         std::unordered_set<Properties::Pointer, IndexedObjecPointertHasher<Properties::Pointer>, IndexedObjectPointerComparator<Properties::Pointer>> buffer_list_of_properties;
 
-        #pragma omp for schedule(guided, 512) nowait
+        #pragma omp for schedule(dynamic, 512) nowait
         for (int i = 0; i < number_of_elements; ++i) {
             auto it_elem = it_elem_begin + i;
 
@@ -72,7 +72,7 @@ void AuxiliarModelPartUtilities::EnsureModelPartOwnsProperties(const bool Remove
             }
         }
 
-        #pragma omp for schedule(guided, 512) nowait
+        #pragma omp for schedule(dynamic, 512) nowait
         for (int i = 0; i < number_of_conditions; ++i) {
             auto it_cond = it_cond_begin + i;
 
