@@ -5,6 +5,8 @@ import KratosMultiphysics
 import KratosMultiphysics.MORApplication as KratosMOR
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+from math import sqrt
+
 class TestMORUtilities(KratosUnittest.TestCase):
     def test_pair_complex_conjugates(self):
         # mixed complex and real
@@ -65,6 +67,21 @@ class TestMORUtilities(KratosUnittest.TestCase):
         e_exp = KratosMultiphysics.ComplexVector([-2.44984944370563, -2.15361619803731, -1.62477834052925, 1.47524114347567, \
             0.335294429778544, 2.03635097664370, 2.22790873204791, -0.346551299673631])
         for i in range(7):
+            self.assertAlmostEqual(e[i], e_exp[i], 7)
+
+    def test_complex_generalized_eigenvalue_utility(self):
+        A = KratosMultiphysics.ComplexMatrix(2,2,0)
+        A[0,0] = 1j/sqrt(2)
+        A[1,1] = 1j
+        B = KratosMultiphysics.ComplexMatrix(2,2,0)
+        B[0,1] = 1
+        B[1,0] = -1/sqrt(2)
+        e = KratosMultiphysics.ComplexVector(2)
+        
+        KratosMOR.ComputeGeneralizedEigenvalues(A,B,e)
+
+        e_exp = KratosMultiphysics.ComplexVector([1, -1])
+        for i in range(len(e)):
             self.assertAlmostEqual(e[i], e_exp[i], 7)
 
 if __name__ == '__main__':

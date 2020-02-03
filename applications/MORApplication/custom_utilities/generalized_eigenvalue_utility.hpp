@@ -33,7 +33,6 @@ namespace GeneralizedEigenvalueUtility
         Eigen::Map<EigenMatrixType> A2(rA2.data().begin(), rA2.size1(), rA2.size2());
 
         Eigen::Map<Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1>> ev(rEigenvalues.data().begin(), rEigenvalues.size());
-        // Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, 1>> x(rX.data().begin(), rX.size());
 
         // linearization (L1)
         EigenMatrixType I(EigenMatrixType::Identity(system_size, system_size));
@@ -60,7 +59,36 @@ namespace GeneralizedEigenvalueUtility
         ges.compute(A,B,false);
 
         ev = ges.eigenvalues();
+    }
 
+    /**
+     * @brief Computes the generalized eigenvalue problem A*v = lambda*B*v
+     * @param rA A square matrix
+     * @param rB A square matrix
+     * @param rEigenvalues vector of eigenvalues
+     * @details This utility pairs computes the complex generalized eigenvalue problem for two matrices A and B.
+     *      The gep is converted to a standard eigenvalue problem, because Eigen does not support complex generalized
+     *      eigenvalue problems. Therefore B has to be invertible.
+     * @author Quirin Aumann
+     */
+    template <typename DenseSpaceType>
+    void Compute(typename DenseSpaceType::MatrixType& rA, typename DenseSpaceType::MatrixType& rB, ComplexVector& rEigenvalues)
+    {
+        typedef typename DenseSpaceType::DataType ScalarType;
+        typedef typename Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> EigenMatrixType;
+        const size_t system_size = rA.size1();
+
+        if( rEigenvalues.size() != system_size )
+            rEigenvalues.resize(system_size);
+
+        Eigen::Map<EigenMatrixType> A(rA.data().begin(), rA.size1(), rA.size2());
+        Eigen::Map<EigenMatrixType> B(rB.data().begin(), rB.size1(), rB.size2());
+        Eigen::Map<Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1>> ev(rEigenvalues.data().begin(), rEigenvalues.size());
+
+        Eigen::ComplexEigenSolver<EigenMatrixType> ces;
+        ces.compute(B.lu().solve(A));
+
+        ev = ces.eigenvalues();
     }
 
 } // namespace GeneralizedEigenvalueUtility

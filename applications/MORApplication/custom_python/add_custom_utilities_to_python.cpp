@@ -36,6 +36,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     namespace py = pybind11;
 
 	m.def("ComputePolynomialEigenvalues", &GeneralizedEigenvalueUtility::ComputePolynomial<TUblasDenseSpace<double>>);
+	m.def("ComputeGeneralizedEigenvalues", &GeneralizedEigenvalueUtility::Compute<TUblasDenseSpace<std::complex<double>>>);
     m.def("PairComplexConjugates", &ComplexSortUtility::PairComplexConjugates<ComplexVector>, py::arg(), py::arg("tol") = std::numeric_limits<double>::epsilon()*100);
        
 }
