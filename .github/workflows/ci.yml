@@ -70,7 +70,7 @@ jobs:
       if: github.event_name == 'pull_request'
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/FullDebug
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/FullDebug/libs
         python3 kratos/python_scripts/run_tests.py -l small -c python3
 
     - name: Running nightly tests
