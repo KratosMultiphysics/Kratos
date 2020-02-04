@@ -59,7 +59,7 @@ def WriteSphereMdpaFromResults(filename_pre, filename_post, filename_msh, post_p
             Line = Line.strip('\n') # Remove the line-ending characters
             ElementList = Line.split(' ')
             SpheresMdpa_post.write(ElementList[1] + ' 0 ' + ElementList[2] + '\n')
-    
+
     flag_coh = 0
     for Line in coh:
         if 'Elements' in Line and flag_coh == 0:
@@ -75,7 +75,7 @@ def WriteSphereMdpaFromResults(filename_pre, filename_post, filename_msh, post_p
             Line = Line.strip('\n') # Remove the line-ending characters
             ElementList = Line.split(' ')
             SpheresMdpa_post.write(ElementList[1] + ' 0 1' + '\n')
-            
+
     flag_mod = 0
     for Line in mod:
         if 'ElemType Sphere Nnode 1' in Line:
@@ -95,9 +95,6 @@ def WriteSphereMdpaFromResults(filename_pre, filename_post, filename_msh, post_p
             continue
         if 'Elements' in Line and flag_mod == 4:
             SpheresMdpa_post.write('End SubModelPartElements\nBegin SubModelPartConditions\nEnd SubModelPartConditions\nEnd SubModelPart\n')
-            '''SpheresMdpa_post.write('Begin SubModelPartConditions\n')
-            SpheresMdpa_post.write('End SubModelPartConditions\n')
-            SpheresMdpa_post.write('End SubModelPart\n')'''
             mod.close()
             break
 
@@ -109,21 +106,5 @@ def WriteSphereMdpaFromResults(filename_pre, filename_post, filename_msh, post_p
             Line = Line.strip('\n') # Remove the line-ending characters
             ElementList = Line.split(' ')
             SpheresMdpa_post.write(ElementList[0] + '\n')
-            
-    '''flag_ski = 0
-    for Line in ski:
-        if 'Elements' in Line and flag_ski == 0:
-            SpheresMdpa_post.write('\nBegin NodalData SKIN_SPHERE  // GUI group identifier: dems Elementid CylinderContinuumParticle2D\n')
-            flag_ski = 1
-            continue
-        if 'Elements' in Line and flag_ski == 1:
-            SpheresMdpa_post.write('End NodalData\n')
-            ski.close()
-            break
-
-        if flag_ski == 1:
-            Line = Line.strip('\n')# Remove the line-ending characters
-            ElementList = Line.split(' ')
-            SpheresMdpa_post.write(ElementList[1] + ' 0 1' + '\n')'''
 
     SpheresMdpa_post.close()
