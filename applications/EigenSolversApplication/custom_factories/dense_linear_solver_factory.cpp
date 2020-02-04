@@ -64,4 +64,5 @@ void RegisterDenseLinearSolvers()
 }
 
 template class KratosComponents<DenseLinearSolverFactoryType>;
+template class KratosComponents<ComplexDenseLinearSolverFactoryType>;
 }

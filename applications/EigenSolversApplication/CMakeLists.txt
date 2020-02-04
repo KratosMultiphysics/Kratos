@@ -51,20 +51,15 @@ file(
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
-# Kratos tests sources. Enabled by default
-if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_EIGEN_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
-endif(${KRATOS_BUILD_TESTING} MATCHES ON)
-
 ###############################################################
 ## EigenSolversApplication core library (C++ parts)
-add_library( KratosEigenCore SHARED ${KRATOS_EIGENSOLVERS_APPLICATION_CORE_SOURCES} ${KRATOS_EIGEN_TEST_SOURCES} )
-target_link_libraries( KratosEigenCore PRIVATE KratosCore )
-set_target_properties( KratosEigenCore PROPERTIES COMPILE_DEFINITIONS "EIGENSOLVERS_APPLICATION=EXPORT,API")
+add_library( KratosEigenSolversCore SHARED ${KRATOS_EIGENSOLVERS_APPLICATION_CORE_SOURCES} )
+target_link_libraries( KratosEigenSolversCore PRIVATE KratosCore )
+set_target_properties( KratosEigenSolversCore PROPERTIES COMPILE_DEFINITIONS "EIGENSOLVERS_APPLICATION=EXPORT,API")
 
 ## EigenSolversApplication python module
 pybind11_add_module( KratosEigenSolversApplication MODULE THIN_LTO ${KRATOS_EIGEN_PYTHON_INTERFACE_SOURCES} )
-target_link_libraries( KratosEigenSolversApplication PRIVATE KratosEigenCore )
+target_link_libraries( KratosEigenSolversApplication PRIVATE KratosEigenSolversCore )
 set_target_properties( KratosEigenSolversApplication PROPERTIES PREFIX "")
 
 if( USE_EIGEN_MKL MATCHES ON )
@@ -84,7 +79,7 @@ endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 
 # Cotire
 if(USE_COTIRE MATCHES ON)
-    cotire(KratosEigenCore)
+    cotire(KratosEigenSolversCore)
     cotire(KratosEigenSolversApplication)
 endif(USE_COTIRE MATCHES ON)
 
@@ -108,5 +103,5 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
-install( TARGETS KratosEigenCore DESTINATION libs )
+install( TARGETS KratosEigenSolversCore DESTINATION libs )
 install( TARGETS KratosEigenSolversApplication DESTINATION libs )
