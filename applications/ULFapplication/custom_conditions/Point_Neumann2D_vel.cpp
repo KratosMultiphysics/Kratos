@@ -17,7 +17,7 @@
 
 // Project includes 
 #include "includes/define.h"
-#include "custom_conditions/Point_Neumann2D.h"
+#include "custom_conditions/Point_Neumann2D_vel.h"
 #include "utilities/math_utils.h"
 #include "ULF_application.h"
 
@@ -25,7 +25,7 @@ namespace Kratos
 {
 	//************************************************************************************
 	//************************************************************************************
-	PointNeumann2D::PointNeumann2D(IndexType NewId, GeometryType::Pointer pGeometry)
+	PointNeumann2D_vel::PointNeumann2D_vel(IndexType NewId, GeometryType::Pointer pGeometry)
 		: Condition(NewId, pGeometry)
 	{		
 		//DO NOT ADD DOFS HERE!!!
@@ -33,26 +33,26 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	PointNeumann2D::PointNeumann2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
+	PointNeumann2D_vel::PointNeumann2D_vel(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
 		: Condition(NewId, pGeometry, pProperties)
 	{
-		//KRATOS_WATCH("CREATING ============= PointNeumann2D  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+		//KRATOS_WATCH("CREATING ============= PointNeumann2D_vel  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 	}
 
-	Condition::Pointer PointNeumann2D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
+	Condition::Pointer PointNeumann2D_vel::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 	{
-		return Condition::Pointer(new PointNeumann2D(NewId, GetGeometry().Create(ThisNodes), pProperties));
+		return Condition::Pointer(new PointNeumann2D_vel(NewId, GetGeometry().Create(ThisNodes), pProperties));
 		KRATOS_WATCH("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 	}
 
-	PointNeumann2D::~PointNeumann2D()
+	PointNeumann2D_vel::~PointNeumann2D_vel()
 	{
 	}
 
 
 	//************************************************************************************
 	//************************************************************************************
-	void PointNeumann2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	void PointNeumann2D_vel::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		//calculation flags
 
@@ -63,7 +63,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void PointNeumann2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	void PointNeumann2D_vel::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 
 	//KRATOS_WATCH("POINT NEUMANNNN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11")
@@ -103,14 +103,14 @@ namespace Kratos
 			    //ext_pr = -1.0*GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_PRESSURE);
 
 			//FOR AXISYMETRIC
-			
+			/*
 			double r=GetGeometry()[0].X();
 			//ext_pr*=6.28*r;
-			if (r<0.00005)
+			if (r<0.00001)
 			   //r=0.00025;
-			   r=0.00003333;
+			   r=0.000155;
 			ext_pr*=r;
-			
+			*/
 			
 			//double temp=An[0]*ext_pr;
 			//double temp1=An[1]*ext_pr;
@@ -135,7 +135,7 @@ namespace Kratos
         //************************************************************************************
 	//************************************************************************************
 	/*
-	void PointNeumann2D::CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
+	void PointNeumann2D_vel::CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 	KRATOS_WATCH("")
@@ -167,7 +167,7 @@ namespace Kratos
 	*/
 	//************************************************************************************
 	//************************************************************************************
-	void PointNeumann2D::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
+	void PointNeumann2D_vel::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
 										ProcessInfo& rCurrentProcessInfo,
 										bool CalculateStiffnessMatrixFlag,
 										bool CalculateResidualVectorFlag)
@@ -183,7 +183,7 @@ KRATOS_THROW_ERROR(std::logic_error,"Method not implemented!!!!","");
 
 	//************************************************************************************
 	//************************************************************************************
-	void PointNeumann2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+	void PointNeumann2D_vel::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 	{
 		KRATOS_TRY
 		unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -196,9 +196,9 @@ KRATOS_THROW_ERROR(std::logic_error,"Method not implemented!!!!","");
 
 			for (unsigned int i=0;i<number_of_nodes;i++)
 			{
-				rResult[i*node_size] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-				rResult[i*node_size+1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-				//rResult[i*node_size+2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
+				rResult[i*node_size] = GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
+				rResult[i*node_size+1] = GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
+				//rResult[i*node_size+2] = GetGeometry()[i].GetDof(VELOCITY_Z).EquationId();
 
 			}
 		KRATOS_CATCH("")
@@ -207,7 +207,7 @@ KRATOS_THROW_ERROR(std::logic_error,"Method not implemented!!!!","");
 
 	//************************************************************************************
 	//************************************************************************************
-	  void PointNeumann2D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+	  void PointNeumann2D_vel::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
 	{
 		KRATOS_TRY
 		unsigned int number_of_nodes = 1;
@@ -219,9 +219,9 @@ KRATOS_THROW_ERROR(std::logic_error,"Method not implemented!!!!","");
 
 			for (unsigned int i=0;i<number_of_nodes;i++)
 			{
-				ElementalDofList[i*node_size] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-				ElementalDofList[i*node_size+1] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-				//ElementalDofList[i*node_size+2] = GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
+				ElementalDofList[i*node_size] = GetGeometry()[i].pGetDof(VELOCITY_X);
+				ElementalDofList[i*node_size+1] = GetGeometry()[i].pGetDof(VELOCITY_Y);
+				//ElementalDofList[i*node_size+2] = GetGeometry()[i].pGetDof(VELOCITY_Z);
 			}
 		KRATOS_CATCH("");
 	}
@@ -229,7 +229,7 @@ KRATOS_THROW_ERROR(std::logic_error,"Method not implemented!!!!","");
 	//************************************************************************************
 	//*************************************************************************************
 
-	  void PointNeumann2D::GetFirstDerivativesVector(Vector& values, int Step)
+	  void PointNeumann2D_vel::GetFirstDerivativesVector(Vector& values, int Step)
 	{
 		const unsigned int number_of_nodes = GetGeometry().size();
 		const unsigned int dim = 2;
@@ -248,7 +248,7 @@ KRATOS_THROW_ERROR(std::logic_error,"Method not implemented!!!!","");
 	}
 	//************************************************************************************
 	//************************************************************************************
-	  void PointNeumann2D::GetSecondDerivativesVector(Vector& values, int Step)
+	  void PointNeumann2D_vel::GetSecondDerivativesVector(Vector& values, int Step)
 	{
 		const unsigned int number_of_nodes = GetGeometry().size();
 		const unsigned int dim = GetGeometry().WorkingSpaceDimension();
