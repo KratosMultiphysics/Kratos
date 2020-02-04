@@ -185,7 +185,7 @@ public:
 
     /** This method takes a point and finds the nearest object to it in a given radius.
      * If there are more than one object in the same minimum distance only one is returned
-     * If there are no objects in that radius the 
+     * If there are no objects in that radius the result will be set to not found.
      * Result contains a flag is the object has been found or not. 
     */
      template<typename TPointType>
@@ -216,7 +216,7 @@ public:
             bool all_cells_are_covered = (min_position[0] == 0) && (min_position[1] == 0) && (min_position[2] == 0);
             all_cells_are_covered &= (max_position[0] == mNumberOfCells[0] - 1) && (max_position[1] == mNumberOfCells[1] - 1) && (max_position[2] == mNumberOfCells[2] - 1);
 
-            if(all_cells_are_covered){
+            if(all_cells_are_covered || current_result.IsObjectFound()){
                 break;
             }
         }
