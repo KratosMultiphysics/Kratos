@@ -82,6 +82,8 @@ namespace Kratos {
             auto p_coupling_geometry = Kratos::make_shared<CouplingGeometry<NodeType>>(
                 p_triangle_master, p_triangle_slave);
 
+            p_coupling_geometry->SetId(1);
+
             KRATOS_CHECK_EQUAL(p_coupling_geometry->Dimension(), 2);
             KRATOS_CHECK_EQUAL(p_coupling_geometry->WorkingSpaceDimension(), 2);
             KRATOS_CHECK_EQUAL(p_coupling_geometry->LocalSpaceDimension(), 2);
