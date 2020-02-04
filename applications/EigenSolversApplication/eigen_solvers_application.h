@@ -45,7 +45,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KratosEigenSolversApplication : public KratosApplication
+class KRATOS_API(EIGENSOLVERS_APPLICATION) KratosEigenSolversApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions

@@ -39,17 +39,33 @@ if( USE_EIGEN_MKL MATCHES ON )
 endif()
 
 ## generate variables with the sources
-set( KRATOS_EIGENSOLVERS_APPLICATION_SOURCES
+set( KRATOS_EIGENSOLVERS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/eigen_solvers_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/dense_linear_solver_factory.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/eigen_solvers_python_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_solvers_to_python.cpp
 )
 
+# Sources for the Python module
+file(
+    GLOB_RECURSE
+    KRATOS_EIGEN_PYTHON_INTERFACE_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
+)
+
+# Kratos tests sources. Enabled by default
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_EIGEN_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
 ###############################################################
-## define library Kratos which defines the basic python interface
-pybind11_add_module( KratosEigenSolversApplication MODULE THIN_LTO ${KRATOS_EIGENSOLVERS_APPLICATION_SOURCES} )
-target_link_libraries( KratosEigenSolversApplication PRIVATE KratosCore )
+## EigenSolversApplication core library (C++ parts)
+add_library( KratosEigenCore SHARED ${KRATOS_EIGENSOLVERS_APPLICATION_CORE_SOURCES} ${KRATOS_EIGEN_TEST_SOURCES} )
+target_link_libraries( KratosEigenCore PRIVATE KratosCore )
+set_target_properties( KratosEigenCore PROPERTIES COMPILE_DEFINITIONS "EIGENSOLVERS_APPLICATION=EXPORT,API")
+
+## EigenSolversApplication python module
+pybind11_add_module( KratosEigenSolversApplication MODULE THIN_LTO ${KRATOS_EIGEN_PYTHON_INTERFACE_SOURCES} )
+target_link_libraries( KratosEigenSolversApplication PRIVATE KratosEigenCore )
+set_target_properties( KratosEigenSolversApplication PROPERTIES PREFIX "")
 
 if( USE_EIGEN_MKL MATCHES ON )
     if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
@@ -61,8 +77,6 @@ if( USE_EIGEN_MKL MATCHES ON )
     endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 endif()
 
-set_target_properties( KratosEigenSolversApplication PROPERTIES PREFIX "" )
-
 # changing the .dll suffix to .pyd
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
     set_target_properties( KratosEigenSolversApplication PROPERTIES SUFFIX .pyd )
@@ -70,6 +84,7 @@ endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 
 # Cotire
 if(USE_COTIRE MATCHES ON)
+    cotire(KratosEigenCore)
     cotire(KratosEigenSolversApplication)
 endif(USE_COTIRE MATCHES ON)
 
@@ -93,4 +108,5 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
+install( TARGETS KratosEigenCore DESTINATION libs )
 install( TARGETS KratosEigenSolversApplication DESTINATION libs )
