@@ -4,6 +4,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # import the configuration data as read from the GiD
 import ProjectParameters
 import problem_settings
+import math
 
 
 def PrintResults(model_part):
@@ -38,7 +39,7 @@ variables_dictionary = {"PRESSURE" : PRESSURE,
                         "VELOCITY" : VELOCITY,
                         "REACTION" : REACTION,
                         "DISTANCE" : DISTANCE,
-			 "AUX_VEL" : AUX_VEL,                        
+                        "AUX_VEL" : AUX_VEL,                        
                         "DISPLACEMENT" : DISPLACEMENT,
                         "IS_INTERFACE" : IS_INTERFACE,
                         "IS_STRUCTURE" : IS_STRUCTURE,
@@ -115,8 +116,7 @@ else:
     print("Unknown GiD multiple file mode, assuming Single")
     multifile = MultiFileFlag.SingleFile
 
-
-input_file_name = "90deg_1mm_2"
+input_file_name = "2d-8e-6"
 
 gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
 
@@ -150,11 +150,6 @@ eul_model_part = 0
 gamma = 0.072 		#surface tension coefficient [N m-1]
 contact_angle = 45.0	#contact angle [deg]
 
-zeta_dissapative_JM = 1.0
-zeta_dissapative_BM = 0.0
-zeta_dissapative_SM = 0.0
-
-
 
 ################################################################
 
@@ -162,15 +157,15 @@ zeta_dissapative_SM = 0.0
 
 ##you can choose one of the three models as:
 
-# option 1: assign: zeta_dissapative_JM = 1.0, for Jiang's Model : tanh(4.96 Ca^(0.702))
+# option 1: assign: zeta_dissapative_JM = (math.cos(contact_angle*0.0174533)+1.0), for Jiang's Model : tanh(4.96 Ca^(0.702))
 
 ## or
 
-# option 2: assign: zeta_dissapative_BM = 1.0, for Bracke's model : 2.24 ca ^(0.54)
+# option 2: assign: zeta_dissapative_BM = (math.cos(contact_angle*0.0174533)+1.0) for Bracke's model : 2.24 ca ^(0.54)
 
 ## or 
 
-# option 3 :assign: zeta_dissapative_SM = 1.0, for Seeberg's model: 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
+# option 3 :assign: zeta_dissapative_SM = (math.cos(contact_angle*0.0174533)+1.0), for Seeberg's model: 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
 
 ##or
 
@@ -180,11 +175,23 @@ zeta_dissapative_SM = 0.0
 #Manservisi S, Scardovelli R. A variational approach to the contact angle dynamics of spreading droplets. Computers & Fluids. 2009 Feb 1;38(2):406-24.
 #Buscaglia GC, Ausas RF. Variational formulations for surface tension, capillarity and wetting. Computer Methods in Applied Mechanics and Engineering. 2011 Oct 15;200(45-46):3011-25.
 
+zeta_dissapative_JM = (math.cos(contact_angle*0.0174533)+1.0)
+#zeta_dissapative_JM = 0.0
+zeta_dissapative_BM = 0.0
+zeta_dissapative_SM = 0.0
 
 ################################################################
 
 
-lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM)
+# for beta_struct, we intialize the Navier-slip coefficients at the solid-liquid interface.
+# for eta_tp_coef,  we intialize the Navier-slip coefficients at the triple_point + taking into account the normal stress at the triple points for normal-force-balance
+# both eta_struct, and eta_tp_coef are then updated from the SurfaceTension_monolithic_solver.py
+eta_tp_coef = 0.0
+beta_struct = 0.0
+
+
+
+lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM,eta_tp_coef,beta_struct)
 
 
 
@@ -200,7 +207,7 @@ lagrangian_model_part.SetBufferSize(3)
 
 for node in lagrangian_model_part.Nodes:
   node.SetSolutionStepValue(DENSITY,0, 1000.0)
-  node.SetSolutionStepValue(VISCOSITY,0, 8.90 * 1e-4)
+  node.SetSolutionStepValue(VISCOSITY,0, 1e-6)
   node.SetSolutionStepValue(BODY_FORCE_X, 0, 0.0)
   node.SetSolutionStepValue(BODY_FORCE_Y, 0, -9.81)
   node.SetSolutionStepValue(PRESSURE,0, 0.0)
@@ -209,10 +216,6 @@ for node in lagrangian_model_part.Nodes:
     node.SetSolutionStepValue(IS_FREE_SURFACE,0, 1.0)
     node.SetSolutionStepValue(IS_INTERFACE,0, 1.0)
     node.SetSolutionStepValue(FLAG_VARIABLE,0, 1.0)
-  if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0):
-    node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-    node.Fix(VELOCITY_Y)
-    node.Free(VELOCITY_X)
 
 
 
@@ -242,21 +245,6 @@ while(time <= final_time):
     print("TIME = ", time)
 
     if(step >= 3):
-      
-      for node in lagrangian_model_part.Nodes:
-        if (node.GetSolutionStepValue(IS_BOUNDARY) != 0.0 and node.GetSolutionStepValue(IS_STRUCTURE) != 1.0):
-            node.SetSolutionStepValue(IS_FREE_SURFACE,0, 1.0)
-            node.SetSolutionStepValue(IS_INTERFACE,0, 1.0)
-            node.SetSolutionStepValue(FLAG_VARIABLE,0, 1.0)
-        if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0):
-            node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-            node.Fix(VELOCITY_Y)
-            if (node.GetSolutionStepValue(TRIPLE_POINT) != 1.0):
-                node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
-                node.Fix(VELOCITY_X)
-            else:
-                node.Free(VELOCITY_X)
-
       lag_solver.Solve()	
 
 ##################################################
@@ -290,6 +278,8 @@ while(time <= final_time):
         gid_io.WriteNodalResults(PRESSURE,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(TRIPLE_POINT,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(VELOCITY,lagrangian_model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(VISCOUS_STRESSX,lagrangian_model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(VISCOUS_STRESSY,lagrangian_model_part.Nodes,time,0)
         
         gid_io.Flush()
         gid_io.FinalizeResults();

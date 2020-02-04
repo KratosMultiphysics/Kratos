@@ -8,19 +8,19 @@ from KratosMultiphysics.ExternalSolversApplication import *
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
-variables_dictionary = {"PRESSURE" : PRESSURE,
-                        "VELOCITY" : VELOCITY,
-                        "REACTION" : REACTION,
-                        "DISTANCE" : DISTANCE,
-			 "AUX_VEL" : AUX_VEL,                        
-                        "DISPLACEMENT" : DISPLACEMENT,
-                        "IS_INTERFACE" : IS_INTERFACE,
-                        "IS_STRUCTURE" : IS_STRUCTURE,
-                        "VISCOUS_STRESSX": VISCOUS_STRESSX,
-                        "VISCOUS_STRESSY": VISCOUS_STRESSY,
-                        "IS_WATER": IS_WATER,
-                        "DENSITY": DENSITY,
-                        "VISCOSITY": VISCOSITY}
+#variables_dictionary = {"PRESSURE" : PRESSURE,
+                        #"VELOCITY" : VELOCITY,
+                        #"REACTION" : REACTION,
+                        #"DISTANCE" : DISTANCE,
+                        #"AUX_VEL" : AUX_VEL,                        
+                        #"DISPLACEMENT" : DISPLACEMENT,
+                        #"IS_INTERFACE" : IS_INTERFACE,
+                        #"IS_STRUCTURE" : IS_STRUCTURE,
+                        #"VISCOUS_STRESSX": VISCOUS_STRESSX,
+                        #"VISCOUS_STRESSY": VISCOUS_STRESSY,
+                        #"IS_WATER": IS_WATER,
+                        #"DENSITY": DENSITY,
+                        #"VISCOSITY": VISCOSITY}
 
 
 def AddVariables(model_part, config=None):
@@ -76,6 +76,8 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_JM)
     model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_BM)
     model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_SM)
+    model_part.AddNodalSolutionStepVariable(BETA_NAVIER_SLIP_STRUCT)
+    model_part.AddNodalSolutionStepVariable(ETA_NAVIER_SLIP_TRIPLE_PONT)
 
 
 def AddDofs(model_part, config=None):
@@ -91,7 +93,7 @@ def AddDofs(model_part, config=None):
 
 
 class STMonolithicSolver:
-    def __init__(self, model_part, domain_size, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM):
+    def __init__(self, model_part, domain_size, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM, beta_struct, eta_tp_coef):
         self.model_part = model_part
         self.domain_size = domain_size
         # eul_model_part can be 0 (meaning that the model part is lagrangian) or 1 (eulerian)
@@ -126,8 +128,8 @@ class STMonolithicSolver:
         self.zeta_dissapative_JM = zeta_dissapative_JM
         self.zeta_dissapative_BM = zeta_dissapative_BM
         self.zeta_dissapative_SM = zeta_dissapative_SM
-        #self.gamma_sl = gamma_sl
-        #self.gamma_sv = gamma_sv
+        self.beta_struct = beta_struct
+        self.eta_tp_coef = eta_tp_coef
         
 
         # default settings
@@ -235,6 +237,8 @@ class STMonolithicSolver:
         self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_JM, self.zeta_dissapative_JM)
         self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_BM, self.zeta_dissapative_BM)
         self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_SM, self.zeta_dissapative_SM)
+        self.model_part.ProcessInfo.SetValue(BETA_NAVIER_SLIP_STRUCT, self.beta_struct)
+        self.model_part.ProcessInfo.SetValue(ETA_NAVIER_SLIP_TRIPLE_PONT, self.eta_tp_coef)
 
 
         if(self.eul_model_part == 0):
@@ -264,6 +268,7 @@ class STMonolithicSolver:
                 node.SetSolutionStepValue(NORMAL_Z,0,0.0)
         if (self.domain_size == 2):
             FindTriplePoint().FindTriplePoint2D(self.model_part)
+            self.Navier_slip_function()
             CalculateCurvature().CalculateCurvature2D(self.model_part)
             CalculateNodalLength().CalculateNodalLength2D(self.model_part)
             CalculateContactAngle().CalculateContactAngle2D(self.model_part)
@@ -292,7 +297,7 @@ class STMonolithicSolver:
     ##########################################
     def Remesh(self):
 
-        self.UlfUtils.MarkNodesTouchingWall(self.model_part, self.domain_size, 0.1)
+        #self.UlfUtils.MarkNodesTouchingWall(self.model_part, self.domain_size, 0.08)
 
         ##erase all conditions and elements prior to remeshing
         ((self.model_part).Elements).clear();
@@ -326,7 +331,7 @@ class STMonolithicSolver:
                 node.SetSolutionStepValue(FLAG_VARIABLE,0,0.0)
 #
             for node in self.model_part.Nodes:
-                if (node.GetSolutionStepValue(IS_FREE_SURFACE) > 0.99999999999999999999):
+                if (node.GetSolutionStepValue(IS_FREE_SURFACE) > 0.999):
                     node.SetSolutionStepValue(FLAG_VARIABLE, 0, 1.0)
                     node.SetSolutionStepValue(IS_INTERFACE, 0, 1.0)
                 else:
@@ -337,6 +342,7 @@ class STMonolithicSolver:
                     node.SetSolutionStepValue(NORMAL_Y,0,0.0)
                     node.SetSolutionStepValue(NORMAL_Z,0,0.0)
             FindTriplePoint().FindTriplePoint2D(self.model_part)
+            self.Navier_slip_function()
             CalculateCurvature().CalculateCurvature2D(self.model_part)
             CalculateNodalLength().CalculateNodalLength2D(self.model_part)
             CalculateContactAngle().CalculateContactAngle2D(self.model_part)
@@ -348,6 +354,29 @@ class STMonolithicSolver:
 
     def FindNeighbours(self):
         (self.neigh_finder).Execute();
+        
+        
+    def Navier_slip_function(self):
+        #Navier slip can be though as a directinoal derviative, its coeffcient is claculated using the shear stress per node. First caculating the total shear stress and project it to the area (node) of interset by multiplying this total_shear_stress by the mesh size. 
+        #Also, the normal_stress at the triple_point is included by considering the normal_stress acting on the triple_point only, and projecting it to the area (or node) of interset by multiplying it by the mesh size. 
+        eta_tp_coef = self.eta_tp_coef
+        dt = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
+        if(dt > 0.0):
+            for node in self.model_part.Nodes:
+                normal_stress_tp = 0.0
+                if(node.GetSolutionStepValue(TRIPLE_POINT)==1):
+                    normal_stress_tp=abs(node.GetSolutionStepValue(VISCOUS_STRESSX_X,0))
+                shear_stress=abs(node.GetSolutionStepValue(VISCOUS_STRESSX_Y,0))
+                stress_tp = shear_stress + normal_stress_tp
+                stress_tp += stress_tp
+                shear_stress += shear_stress
+            total_stress_tp = stress_tp
+            total_shear_stress = shear_stress
+            eta_tp_coef =  total_stress_tp
+            beta_struct = total_shear_stress
+            for node in self.model_part.Nodes:
+                node.SetSolutionStepValue(ETA_NAVIER_SLIP_TRIPLE_PONT,0,eta_tp_coef)
+                node.SetSolutionStepValue(BETA_NAVIER_SLIP_STRUCT,0,beta_struct)
 
     def cont_angle_cond(self):
         theta_adv = self.contact_angle + 1.0
@@ -357,30 +386,13 @@ class STMonolithicSolver:
         ################### For sessile drop examples
         for node in self.model_part.Nodes:
             if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0):
-                node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                node.Free(VELOCITY_X)
                 node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-                node.Fix(VELOCITY_X)
-                node.Fix(VELOCITY_Y)
-                if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
-                    if (node.GetSolutionStepValue(CONTACT_ANGLE) > theta_adv or node.GetSolutionStepValue(CONTACT_ANGLE) < theta_rec):
-                        b = Vector(2)
-                        b[0] = 0.0
-                        b[1] = 0.0
-                        b[0] = node.GetSolutionStepValue(DISPLACEMENT_X)
-                        b[1] = node.GetSolutionStepValue(DISPLACEMENT_Y)
-                        b[1] = 0.0
-                        node.SetSolutionStepValue(DISPLACEMENT_X,0,b[0])
-                        node.SetSolutionStepValue(DISPLACEMENT_Y,0,b[1])
-                        node.Free(VELOCITY_X)
-                        node.Free(VELOCITY_Y)
-                    else:
-                        node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
-                        node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-                        node.Fix(VELOCITY_Y)
-                        node.Fix(VELOCITY_X)
+                node.SetSolutionStepValue(DISPLACEMENT_Y,0, 0.0)
+                node.Fix(DISPLACEMENT_Y)
 
-def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM): #FOR 3D!
-    fluid_solver = STMonolithicSolver(model_part, config.domain_size, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM)
+def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM,eta_tp_coef,beta_struct):
+    fluid_solver = STMonolithicSolver(model_part, config.domain_size, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM,eta_tp_coef,beta_struct)
 
     if(hasattr(config, "alpha")):
         fluid_solver.alpha = config.alpha

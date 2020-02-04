@@ -232,7 +232,7 @@ public:
 			Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
 			
 			
-			double factor=2.0;			
+			double factor=1.15;			
 			if (edge01>factor*nodal_h)
 			{
 			    id++;
@@ -258,12 +258,51 @@ public:
 			    const array_1d<double,3>& disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
 			    pnode->X0() = pnode->X() - disp[0];
 			    pnode->Y0() = pnode->Y() - disp[1];
+//                 pnode->Y0() = 0.0;
 			    KRATOS_WATCH("Added node at the EDGE")
 			}
 		      
 		    }
+		    
+		        if (n_struct==ic->GetGeometry().size())
+    		    {
+    			double x0=ic->GetGeometry()[0].X();
+    			double y0=ic->GetGeometry()[0].Y();
+    			double x1=ic->GetGeometry()[1].X();
+    			double y1=ic->GetGeometry()[1].Y();
+    			double edge02=sqrt((x0-x1)*(x0-x1)+(y0-y1)*(y0-y1));
+    			
+    			//////////////////////////////////////////////////////////////////////////////////////////////////////////
+    			double nodal_h=ic->GetGeometry()[0].FastGetSolutionStepValue(NODAL_H);
+    			nodal_h+=ic->GetGeometry()[1].FastGetSolutionStepValue(NODAL_H);
+    			nodal_h*=0.5;
+    			//if the edge of the segment (condition) is too long, we split it into two by adding a node in the middle
+    				
+    			Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
+    			
+    			
+    			double factor2=0.1;			
+    			if (edge02<nodal_h*factor2 && ( ic->GetGeometry()[0].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15))
+    			{
+                                ic->GetGeometry()[0].Set(TO_ERASE,true);
+    			}
+                            if (edge02<nodal_h*factor2 && ( ic->GetGeometry()[1].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15))
+    			{
+                                ic->GetGeometry()[1].Set(TO_ERASE,true);
+    			}
+    		      
+    		    }
 		}
 	    }
+	    
+//     for(ModelPart::NodesContainerType::iterator ic = ThisModelPart.NodesBegin() ; ic != ThisModelPart.NodesEnd() ; ic++)
+// 	{
+// 					
+// 		if ((ic->FastGetSolutionStepValue(IS_STRUCTURE) != 0.0) && (ic->FastGetSolutionStepValue(IS_BOUNDARY) != 1.0))
+// 	
+// 				ic->Set(TO_ERASE,true);
+//      }
+      
 	
 	
         ThisModelPart.Conditions().clear();
@@ -277,6 +316,9 @@ public:
         //typedef Bins< 3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > StaticBins;
         // bucket types
 
+        
+        int number_node2 = InitialNumberOfNodes(ThisModelPart);
+//         std::cout << "number_node2 " << number_node2 << std::endl;
         //typedef Tree< StaticBins > Bin; 			     //Binstree;
         unsigned int bucket_size = 20;
 
@@ -774,11 +816,41 @@ private:
     array_1d<double,2> mC; //center pos
     array_1d<double,2> mRhs; //center pos
     //NodeEraseProcess* mpNodeEraseProcess;
+    
+    array_1d<double,3> Vector3D(const double x0, const double y0, const double z0, const double x1, const double y1, const double z1)
+    {
+	array_1d<double,3> r01;
+	r01[0] = x1 - x0;
+	r01[1] = y1 - y0;
+	r01[2] = z1 - z0;
+	return r01;
+    }
+    
+    double Norm3D(const array_1d<double,3>& a)
+    {
+	return sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2]);
+    }
+	      
+
 
 
     ///@}
     ///@name Private Operators
     ///@{
+    
+    int InitialNumberOfNodes(ModelPart& ThisModelPart)
+    {
+	static double number_node2 = 0.0;
+        double dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
+        if (dt < 1e-15)
+        {
+            number_node2 = ThisModelPart.Nodes().size();
+//             std::cout << "number_node2 " << number_node2 << std::endl;
+        }
+        return number_node2;
+    }
+    
+    
     void RemoveCloseNodes(ModelPart& ThisModelPart, KdtreeType& nodes_tree1, NodeEraseProcess& node_erase, double& h_factor)
     {
         //unsigned int bucket_size = 20;
@@ -793,7 +865,7 @@ private:
 
         unsigned int n_points_in_radius;
         //radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
-        double radius;
+        double radius, num_erased_nodes = 0;
 
         for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin(); in != ThisModelPart.NodesEnd(); in++)
         {
@@ -806,7 +878,7 @@ private:
             n_points_in_radius = nodes_tree1.SearchInRadius(work_point, radius, res.begin(),res_distances.begin(), max_results);
             if (n_points_in_radius>1)
             {
-                if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
+                if (in->FastGetSolutionStepValue(IS_BOUNDARY)!=1.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)!=1.0)
                 {
                     //look if we are already erasing any of the other nodes
                     double erased_nodes = 0;
@@ -825,7 +897,7 @@ private:
                     unsigned int counter = 0;
                     for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
                     {
-                        if ( (*i)->FastGetSolutionStepValue(IS_BOUNDARY,1)==1.0 && res_distances[k] < 0.2*radius && res_distances[k] > 0.0 )
+                        if ( (*i)->FastGetSolutionStepValue(IS_BOUNDARY,1)!=0.0 && res_distances[k] < 0.1*radius && res_distances[k] > 0.0 || (*i)->FastGetSolutionStepValue(IS_STRUCTURE,1)!=1.0 && res_distances[k] < 0.2*radius && res_distances[k] > 0.0 || (*i)->FastGetSolutionStepValue(IS_STRUCTURE,1)!=0.0 && res_distances[k] < 0.2*radius && res_distances[k] > 0.0)
                         {
                             // 										KRATOS_WATCH( res_distances[k] );
                             counter += 1;
@@ -834,12 +906,84 @@ private:
                     }
                     if(counter > 0)
                         in->Set(TO_ERASE,true);
+//                         num_erased_nodes++;
+//                         if (num_erased_nodes > 5)
+//                             break;
                 }
             }
 
         }
 
 
+        node_erase.Execute();
+
+        KRATOS_WATCH("Number of nodes after erasing")
+        KRATOS_WATCH(ThisModelPart.Nodes().size())
+    }
+
+    
+    void RemoveCloseNodes2(ModelPart& ThisModelPart, KdtreeType& nodes_tree1, NodeEraseProcess& node_erase, double& h_factor, int& number_node2)
+    {
+        unsigned int bucket_size = 20;
+        //performing the interpolation - all of the nodes in this list will be preserved
+        unsigned int max_results = 100;
+        PointVector res(max_results);
+        DistanceVector res_distances(max_results);
+        Node<3> work_point(0,0.0,0.0,0.0);
+        unsigned int n_points_in_radius;
+
+
+        double radius,initial_area_node,nodal_area_one_node,total_area,ave_area_node,num_node,relative_element_size;
+        int is_lag_inlet_neighbs, is_interface_neighbs, num_erased_nodes = 0;
+
+        for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); in != ThisModelPart.NodesEnd(); in++)
+        {
+            initial_area_node = 0.0;
+            nodal_area_one_node = 0.0;
+            total_area = 0.0;
+            ave_area_node = 0.0;
+            num_node = 0.0;
+            relative_element_size = 0.0;
+            nodal_area_one_node = in->FastGetSolutionStepValue(NODAL_AREA);
+            total_area += nodal_area_one_node;
+            num_node = ThisModelPart.Nodes().size();
+            ave_area_node = total_area/num_node;
+            relative_element_size = ave_area_node/total_area;
+
+            double threshold_erase = 1.0/number_node2;
+
+            radius=in->FastGetSolutionStepValue(NODAL_H)*0.85*threshold_erase/relative_element_size;
+//             std::cout << "radius " << radius << std::endl;
+//             std::cout << "num_node " << num_node << std::endl;
+//             std::cout << "relative_element_size " << relative_element_size << std::endl;
+//             std::cout << "nthreshold_erase " << threshold_erase << std::endl;
+            
+            work_point[0]=in->X();
+            work_point[1]=in->Y();
+            work_point[2]=in->Z();
+
+            n_points_in_radius = nodes_tree1.SearchInRadius(work_point, radius, res.begin(),res_distances.begin(), max_results);
+            if (n_points_in_radius>1)
+            {
+                if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0 || in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)==0.0 || in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_INTERFACE)==0.0 )
+                {
+                    //look if we are already erasing any of the other nodes
+                    double erased_nodes = 0;
+                    for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
+                        erased_nodes +=  in->Is(TO_ERASE);
+                    if(erased_nodes < 1)
+                    {
+                        in->Set(TO_ERASE,true);
+                        num_erased_nodes++;
+                        if (num_erased_nodes > 5)
+                            break;
+                    }
+
+                }
+
+            }
+
+        }
         node_erase.Execute();
 
         KRATOS_WATCH("Number of nodes after erasing")

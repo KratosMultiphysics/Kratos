@@ -469,6 +469,36 @@ public:
 	      this->ApplySurfaceTensionContribution3D(rDampingMatrix, rRightHandSideVector, node_indx, k, rCurrentProcessInfo);
 	}
 	
+	// elaf : add navier-slip bc (july 2019)
+	//  navier-slip bc (nsbc) contribution
+	int nsbc = 0;
+	if(TDim < 3)
+	{
+	    array_1d<double,3> node_indx;
+	    node_indx[0] = 0.0;
+	    node_indx[1] = 0.0;
+	    node_indx[2] = 0.0;
+	    int node_indx_wrong = 5;
+	    for(unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+	    {
+	      if(this->GetGeometry()[iNode].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0)
+		nsbc++;
+	      if(this->GetGeometry()[iNode].FastGetSolutionStepValue(IS_BOUNDARY) < 0.1)
+		node_indx_wrong = iNode;
+	    }
+	    nsbc = 0;
+	    for(unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+	    {
+	      if(this->GetGeometry()[iNode].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0)
+	      {
+		  node_indx[nsbc] = iNode;
+		  nsbc++;
+	      }
+	    }
+	    if(nsbc > 1)
+	      this->ApplyNavierSlipBoundaryCondition(rDampingMatrix, rRightHandSideVector, node_indx, nsbc, rCurrentProcessInfo);
+	}
+	//end elaf : add navier-slip bc
 	
 	// Viscous stress
 	k = 0;
@@ -1019,7 +1049,7 @@ protected:
      * @param rAdvVel advection velocity
      * @param ElemSize Characteristic element length
      * @param Density Density on integrartion point
-     * @param Viscosity Dynamic viscosity (mu) on integrartion point
+     * @param Viscosity viscosity (mu) on integrartion point
      * @param rCurrentProcessInfo Process info instance
      */
     virtual void CalculateTau(double& TauOne,
@@ -1051,7 +1081,7 @@ protected:
      * @param rAdvVel advection velocity
      * @param ElemSize Characteristic element length
      * @param Density Density on integrartion point
-     * @param Viscosity Dynamic viscosity (mu) on integrartion point
+     * @param Viscosity viscosity (mu) on integrartion point
      */
     virtual void CalculateStaticTau(double& TauOne,
                                     const array_1d< double, 3 > & rAdvVel,
@@ -1356,6 +1386,17 @@ protected:
 // 	double gamma_sv = rCurrentProcessInfo[SOLID_AIR_SURFTENS_COEFF];
 	
 	double dt = rCurrentProcessInfo[DELTA_TIME];
+    
+    double eta_tp_coef = rCurrentProcessInfo[ETA_NAVIER_SLIP_TRIPLE_PONT];
+
+	
+	for (unsigned int i = 0; i < TNumNodes; ++i)
+        {
+	  if(this->GetGeometry()[i].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	  {
+	    eta_tp_coef = this->GetGeometry()[i].FastGetSolutionStepValue(ETA_NAVIER_SLIP_TRIPLE_PONT);
+	  }
+        }
 	
 	double theta_s = rCurrentProcessInfo[CONTACT_ANGLE_STATIC];
 	double pi = 3.14159265359;
@@ -1608,49 +1649,69 @@ protected:
 		  //MODEL 1 - contact angle condition with vector tangent to the surface:
 		  rRightHandSideVector[3*ii] 	-= coef*gamma*(m[0]-x12[0]);
  		  rRightHandSideVector[3*ii+1]	-= coef*gamma*(m[1]-x12[1]);
- 		  this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_X) = -coef*gamma*(m[0] - x12[0]);
+ 		  this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_X) -= coef*gamma*(m[0] - x12[0]);
 	  	  
-//  		  this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_Y) = -coef*gamma*(m[1] - x12[1]);
+ 		  this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_Y)  -= coef*gamma*(m[1] - x12[1]);
 		  
 		  //start of adding dissipative force: where v_clx here is the x_velocity at the contact line; and v_cly is the y_velocity at the contact line
-                  double v_clx = this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_X);
-                  double v_cly = this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_Y);
+        double v_clx = this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_X);
+        double v_cly = this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_Y);
 //          
-                  double mu;
-                  mu  = this->GetGeometry()[ii].FastGetSolutionStepValue(VISCOSITY);
-                
-                  //capillary
-		  double v_clx_abs = fabs (v_clx);
-		  double v_cly_abs = fabs (v_cly) ;
-		  
-                  double cap_x   =  mu *  v_clx_abs / gamma;
-                  double cap_y   =  mu *  v_cly_abs / gamma;
-                  // using Jiang's Model : gamma tanh(4.96 Ca^(0.702))
-                  rRightHandSideVector[3*ii]	        -= zeta_dissapative_JM*gamma*tanh(4.96 * pow(cap_x,0.702)); 
-                  rRightHandSideVector[3*ii+1]	        -= zeta_dissapative_JM*gamma*tanh(4.96 * pow(cap_y,0.702)); 
+        double mu, rho;
+        mu  = this->GetGeometry()[ii].FastGetSolutionStepValue(VISCOSITY);
+        rho = this->GetGeometry()[ii].FastGetSolutionStepValue(DENSITY);
+        mu *= rho;  
+    
+        //capillary
+        double v_clx_abs = fabs (v_clx);
+        double v_cly_abs = fabs (v_cly) ;
+
+        double cap_x   =  mu *  v_clx_abs / gamma;
+        double cap_y   =  mu *  v_cly_abs / gamma;
+                  
+                //here we need to make sure that we are having the dissipative forces in oppiste direction of the motion by controlling the sign of the zeta_dissapative,,
+        double vx_sign = 0.0;
+		  //using constant zeta like in the variational ticle shared by alex (where gamma_sl is representing the zeta for now):
+        if (v_clx_abs > 1.0e-11)
+        {
+		    vx_sign = - v_clx / v_clx_abs;
+            
+            double nodal_size = this->GetGeometry()[ii].FastGetSolutionStepValue(NODAL_H);
+            
+              //adding ETA_NAVIER_SLIP_TRIPLE_PONT to account for the normal stresses as balance forces on the tiple points to avoid the jump 
+		    rRightHandSideVector[3*ii] 	+= eta_tp_coef * vx_sign * nodal_size;
+//  		    rRightHandSideVector[3*ii+1]	+= v_cly_abs * eta_tp_coef * vy_sign; 
+ 		    this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_X) += eta_tp_coef * vx_sign * nodal_size;
+//   		    this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_Y) += v_cly_abs * eta_tp_coef * vy_sign;
+            //
+            // using Jiang's Model : gamma tanh(4.96 Ca^(0.702))
+            rRightHandSideVector[3*ii]	        += zeta_dissapative_JM*gamma*tanh(4.96 * pow(cap_x,0.702))* vx_sign; 
+            rRightHandSideVector[3*ii+1]	        += zeta_dissapative_JM*gamma*tanh(4.96 * pow(cap_y,0.702))* vx_sign; 
 //                 
 //                   // using Bracke's model : gamma 2.24 ca ^(0.54)
-                  rRightHandSideVector[3*ii]	        -= zeta_dissapative_BM*gamma* 2.24 * pow(cap_x,0.54); 
-                  rRightHandSideVector[3*ii+1]	        -= zeta_dissapative_BM*gamma* 2.24 * pow(cap_y,0.54); 
+            rRightHandSideVector[3*ii]	        += zeta_dissapative_BM*gamma* 2.24 * pow(cap_x,0.54)* vx_sign; 
+            rRightHandSideVector[3*ii+1]	        += zeta_dissapative_BM*gamma* 2.24 * pow(cap_y,0.54)* vx_sign; 
 //                 
 //                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
-                  double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y));
-                  if (cap > 0.01)
-                  {
-                    rRightHandSideVector[3*ii]	        -= zeta_dissapative_SM*gamma* 2.24 * pow(cap_x,0.54); 
-                    rRightHandSideVector[3*ii+1]        -= zeta_dissapative_SM*gamma* 2.24 * pow(cap_y,0.54);  
-                  }
-                  else
-                  {
-                    rRightHandSideVector[3*ii]	        -= zeta_dissapative_SM*gamma* 4.47 * pow(cap_x,0.42); 
-                    rRightHandSideVector[3*ii+1]        -= zeta_dissapative_SM*gamma* 4.47 * pow(cap_y,0.42);  
-                  }
-                  // end of adding disppative force
+            double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y));
+            if (cap > 0.01)
+            {
+            rRightHandSideVector[3*ii]	        += zeta_dissapative_SM*gamma* 2.24 * pow(cap_x,0.54)* vx_sign; 
+            rRightHandSideVector[3*ii+1]        += zeta_dissapative_SM*gamma* 2.24 * pow(cap_y,0.54)* vx_sign;  
+            }
+            else
+            {
+            rRightHandSideVector[3*ii]	        += zeta_dissapative_SM*gamma* 4.47 * pow(cap_x,0.42)* vx_sign; 
+            rRightHandSideVector[3*ii+1]        += zeta_dissapative_SM*gamma* 4.47 * pow(cap_y,0.42)* vx_sign;  
+            }
+            // end of adding disppative force
+        }
                   
 	      }
 	      else
 	      {
 		  this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_X) = 0.0;
+          this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
 	      }
 	    }
 	}
@@ -1714,7 +1775,7 @@ protected:
 	//Clean spurious force values
 	for(unsigned int i = 0; i < 3; i++)
 	{
-	  if(this->GetGeometry()[i].FastGetSolutionStepValue(IS_BOUNDARY) == 0.0)
+	  if(this->GetGeometry()[i].FastGetSolutionStepValue(IS_BOUNDARY)  < 1e-15)
 	  {
 	    this->GetGeometry()[i].FastGetSolutionStepValue(FORCE_X) = 0.0;
 	    this->GetGeometry()[i].FastGetSolutionStepValue(FORCE_Y) = 0.0;
@@ -1722,6 +1783,159 @@ protected:
 	  }
 	}
     }
+    
+    
+     //elaf start: july 2019
+    // ApplyNavierSlipBoundaryCondition
+    void ApplyNavierSlipBoundaryCondition(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector,
+            const array_1d< double, 3 >& node_indx, const int& nsbc, const ProcessInfo& rCurrentProcessInfo)
+    {
+	//adding Navier slip bc varialbes
+	double beta_struct = rCurrentProcessInfo[BETA_NAVIER_SLIP_STRUCT];
+	double dt = rCurrentProcessInfo[DELTA_TIME];
+	
+	for (unsigned int i = 0; i < TNumNodes; ++i)
+        {
+	  if(this->GetGeometry()[i].FastGetSolutionStepValue(IS_BOUNDARY) != 0.0)
+	  {
+	    beta_struct = this->GetGeometry()[i].FastGetSolutionStepValue(BETA_NAVIER_SLIP_STRUCT);
+	  }
+        }
+	
+
+// 	array_1d<double,2> m;
+	
+	//Flag counter to identify contact element:
+	double flag_trip = 0.0;
+	flag_trip += (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0);
+	flag_trip += (this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0);
+	flag_trip += (this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0);
+	double flag_struct = 0.0;
+	flag_struct += (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0);
+	flag_struct += (this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0);
+	flag_struct += (this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0);
+	
+	int ii = 5;
+	int jj = 6;
+// 	int kk = 7;
+	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	//Set the indexes as follows:
+	// node "ii" -> triple point, if the element has one
+	// node "jj" -> node with flag IS_STRUCTURE
+	//////////////////////////////////////////////////////////////////////////////////////////
+	if(nsbc < 3) //General element with two nodes at the IS_STRUCTURE
+	{
+	    //Step to detect triple point. Node with index ii is TRIPLE_POINT, and node with index jj is IS_STRUCTURE
+	    ii = node_indx[0];
+	    jj = node_indx[1];
+	
+	    if(flag_trip > 0 && (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15)
+	    {
+		  ii = node_indx[1];
+		  jj = node_indx[0];	    
+	    }
+	}
+	else //Element with three nodes at the free surface OR one at free surface, one triple point and one at the structure
+	{
+	  if(flag_trip == 0.0)
+	    {
+	      if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0)
+	      {
+		jj = node_indx[0];
+		if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_2D) > 1.0)
+		{
+		  ii = node_indx[1]; //TRIPLE_POINT
+		}
+		else
+		{
+		  ii = node_indx[2]; //TRIPLE_POINT
+		}
+	      }
+	      if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0)
+	      {
+		jj = node_indx[1];
+		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_2D) > 1.0)
+		{
+		  ii = node_indx[0]; //TRIPLE_POINT
+		}
+		else
+		{
+		  ii = node_indx[2]; //TRIPLE_POINT
+		}
+	      }
+	      if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0)
+	      {
+		jj = node_indx[2];
+		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_2D) > 1.0)
+		{
+		  ii = node_indx[0]; //TRIPLE_POINT
+		}
+		else
+		{
+		  ii = node_indx[1]; //TRIPLE_POINT
+		}
+	      }
+	  }
+	  else //Element has one node with TRIPLE_POINT
+	  {
+	    if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	    {
+	      ii = node_indx[0];
+	      if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0)
+	      {
+		jj = node_indx[1];
+	      }
+	      else
+	      {
+		jj = node_indx[2];
+	      }
+	    }
+	    if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	    {
+	      ii = node_indx[1];
+	      if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0)
+	      {
+		jj = node_indx[0];
+	      }
+	      else
+	      {
+		jj = node_indx[2];
+	      }
+	    }
+	    if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	    {
+	      ii = node_indx[2];
+	      if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0)
+	      {
+		jj = node_indx[0];
+	      }
+	      else
+	      {
+		jj = node_indx[1];
+	      }
+	    }	    
+	  }
+	}
+	if(this->GetGeometry()[jj].FastGetSolutionStepValue(IS_STRUCTURE) > 1e-15)
+	   {
+        double v_struct_x = this->GetGeometry()[jj].FastGetSolutionStepValue(VELOCITY_X);
+		  double v_struct_x_abs = fabs (v_struct_x);
+// 		  std::cout << "beta_struct"  << beta_struct << std::endl;
+		  //here we need to make sure that we are having the condition and related forces in oppiste direction of the motion by controlling the sign of the beta,,
+		  double v_struct_x_sign;
+		  //using constant zeta like in the variational ticle shared by alex (where beta_struct is representing the zeta for now):
+		  if (v_struct_x_abs > 1.0e-9)
+		  {
+		    v_struct_x_sign = - v_struct_x / v_struct_x_abs;
+		    double nodal_size = this->GetGeometry()[ii].FastGetSolutionStepValue(NODAL_H);
+		    rRightHandSideVector[3*jj]	        += 0.5*beta_struct*v_struct_x_sign*nodal_size;
+// 		    std::cout << "beta_struct"  << beta_struct << std::endl;
+		    this->GetGeometry()[jj].FastGetSolutionStepValue(FORCE_X) += 0.5*beta_struct*v_struct_x_sign*nodal_size;
+	     }
+	   }
+    }
+    //elaf end ApplyNavierSlipBoundaryCondition
     
     
     void ApplySurfaceTensionContribution3D(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector,
@@ -2472,10 +2686,10 @@ protected:
 	  mu = this->GetGeometry()[i].FastGetSolutionStepValue(VISCOSITY);
 	  rho = this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
 	  mu *= rho;
-	  this->GetGeometry()[i].FastGetSolutionStepValue(VISCOUS_STRESSX_X) += mu * ( 2*du_dx );
-	  this->GetGeometry()[i].FastGetSolutionStepValue(VISCOUS_STRESSY_X) += mu * ( du_dy + dv_dx );
-	  this->GetGeometry()[i].FastGetSolutionStepValue(VISCOUS_STRESSX_Y) += mu * ( dv_dx + du_dy );
-	  this->GetGeometry()[i].FastGetSolutionStepValue(VISCOUS_STRESSY_Y) += mu * ( 2*dv_dy );  
+	  this->GetGeometry()[i].FastGetSolutionStepValue(VISCOUS_STRESSX_X) = mu * ( 2*du_dx );
+	  this->GetGeometry()[i].FastGetSolutionStepValue(VISCOUS_STRESSY_X) = mu * ( du_dy + dv_dx );
+	  this->GetGeometry()[i].FastGetSolutionStepValue(VISCOUS_STRESSX_Y) = mu * ( dv_dx + du_dy );
+	  this->GetGeometry()[i].FastGetSolutionStepValue(VISCOUS_STRESSY_Y) = mu * ( 2*dv_dy );  
 	}	
 	
     }    

@@ -60,9 +60,9 @@ laplacian_form = 2
 
 AutomaticDeltaTime = "Fixed"
 divergence_cleareance_step = 10
-Dt = 0.001
+Dt = 1e-7
 Start_time = 0.0
-max_time = 1.00
+max_time = 0.001
 nsteps = 100 
 
 use_dt_in_stabilization = 0.10
@@ -73,7 +73,7 @@ groups_dictionary = {
         "Fluid" : 1,
                    }
 
-output_time = 0.01
+output_time = 1e-5
 output_step = 100
 VolumeOutput = True
 
