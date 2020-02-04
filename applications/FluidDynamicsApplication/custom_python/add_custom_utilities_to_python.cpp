@@ -162,6 +162,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_< DragAndMomentUtilities> (m,"DragAndMomentUtilities")
         .def(py::init<>())
         .def("CalculateBodyFittedDragAndMoment", &DragAndMomentUtilities::CalculateBodyFittedDragAndMoment)
+        .def("CalculateEmbeddedDragAndMoment", &DragAndMomentUtilities::CalculateEmbeddedDragAndMoment)
         ;
 
     py::class_<
