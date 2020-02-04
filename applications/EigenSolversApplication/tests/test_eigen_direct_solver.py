@@ -47,7 +47,7 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
         for i in range(dimension):
             self.assertAlmostEqual(b_act[i], b_exp[i], 7)
 
-    def _execute_eigen_direct_solver_test_2(self, class_name, solver_type):
+    def _execute_eigen_direct_solver_test2(self, class_name, solver_type):
         # check if solver is available
         if (not hasattr(EigenSolversApplication, class_name)):
             self.skipTest(class_name + " is not included in the compilation of the EigenSolversApplication")
