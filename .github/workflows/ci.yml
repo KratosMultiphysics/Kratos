@@ -73,7 +73,7 @@ jobs:
         ccache -s
 
     - name: Running small tests
-      if: github.event_name == 'pull_request' || github.even_name != 'schedule'
+      if: github.event_name == 'pull_request' || github.event_name != 'schedule'
       run: |
         export MKLVARS_ARCHITECTURE=intel64
         export MKLVARS_INTERFACE=lp64
