@@ -77,7 +77,7 @@ jobs:
         . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/FullDebug
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/FullDebug/libs
-        python3 kratos/python_scripts/run_tests.py -l small -c python3
+        valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes python3 kratos/python_scripts/run_tests.py -l small -c python3
 
     - name: Running nightly tests
       if: github.event_name == 'schedule' # this is the nightly build
