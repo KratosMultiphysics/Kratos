@@ -47,6 +47,44 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
         for i in range(dimension):
             self.assertAlmostEqual(b_act[i], b_exp[i], 7)
 
+    def _execute_eigen_direct_solver_test_2(self, class_name, solver_type):
+        # check if solver is available
+        if (not hasattr(EigenSolversApplication, class_name)):
+            self.skipTest(class_name + " is not included in the compilation of the EigenSolversApplication")
+
+        space = KratosMultiphysics.UblasSparseSpace()
+
+        settings = KratosMultiphysics.Parameters('{ "solver_type" : "EigenSolversApplication.' + solver_type + '" }')
+
+        solver = ConstructSolver(settings)
+        a = KratosMultiphysics.CompressedMatrix()
+        a.Resize(3,3)
+
+        a[0,0] = 448718
+        a[0,1] = -0.0314103
+        a[0,2] = 0
+        a[1,0] = -0.0314103
+        a[1,1] = 1.57051e+06
+        a[1,2] = 0
+        a[2,0] = 0
+        a[2,1] = 0
+        a[2,2] = 448718
+
+        x = KratosMultiphysics.Vector(3)
+        b_exp = KratosMultiphysics.Vector(3)
+        b_act = KratosMultiphysics.Vector(3)
+
+        b_exp[0] = 0
+        b_exp[1] = 1e-8
+        b_exp[2] = 0
+
+        solver.Solve(a, x, b_exp)
+        space.Mult(a, x, b_act)
+
+        for i in range(3):
+            self.assertAlmostEqual(b_act[i], b_exp[i], 7)
+
+
     def _execute_eigen_direct_complex_solver_test(self, class_name, solver_type):
         # check if solver is available
         if (not hasattr(EigenSolversApplication, class_name)):
@@ -89,21 +127,27 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
 
     def test_eigen_sparse_lu(self):
         self._execute_eigen_direct_solver_test('SparseLUSolver', 'sparse_lu')
+        self._execute_eigen_direct_solver_test2('SparseLUSolver', 'sparse_lu')
 
     def test_eigen_sparse_cg(self):
         self._execute_eigen_direct_solver_test('SparseCGSolver', 'sparse_cg')
+        self._execute_eigen_direct_solver_test2('SparseCGSolver', 'sparse_cg')
 
     def test_eigen_sparse_qr(self):
         self._execute_eigen_direct_solver_test('SparseQRSolver', 'sparse_qr')
+        self._execute_eigen_direct_solver_test2('SparseQRSolver', 'sparse_qr')
 
     def test_eigen_pardiso_lu(self):
         self._execute_eigen_direct_solver_test('PardisoLUSolver', 'pardiso_lu')
+        self._execute_eigen_direct_solver_test2('PardisoLUSolver', 'pardiso_lu')
 
     def test_eigen_pardiso_ldlt(self):
         self._execute_eigen_direct_solver_test('PardisoLDLTSolver', 'pardiso_ldlt')
+        self._execute_eigen_direct_solver_test2('PardisoLDLTSolver', 'pardiso_ldlt')
 
     def test_eigen_pardiso_llt(self):
         self._execute_eigen_direct_solver_test('PardisoLLTSolver', 'pardiso_llt')
+        self._execute_eigen_direct_solver_test2('PardisoLLTSolver', 'pardiso_llt')
 
     def test_eigen_complex_sparse_lu(self):
         self._execute_eigen_direct_complex_solver_test('ComplexSparseLUSolver', 'sparse_lu_complex')
