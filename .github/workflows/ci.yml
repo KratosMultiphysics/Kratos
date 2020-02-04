@@ -73,7 +73,7 @@ jobs:
         ccache -s
 
     - name: Running small tests
-      if: github.event_name == 'pull_request' || github.event_name != 'schedule'
+      if: github.event_name == 'pull_request'
       run: |
         export MKLVARS_ARCHITECTURE=intel64
         export MKLVARS_INTERFACE=lp64
@@ -83,7 +83,7 @@ jobs:
         python3 kratos/python_scripts/run_tests.py -l small -c python3
 
     - name: Running nightly tests
-      if: github.event_name == 'schedule' # this is the nightly build
+      if: github.event_name == 'schedule' || github.event_name != 'pull_request' # schedule is the nightly build
       run: |
         export MKLVARS_ARCHITECTURE=intel64
         export MKLVARS_INTERFACE=lp64
