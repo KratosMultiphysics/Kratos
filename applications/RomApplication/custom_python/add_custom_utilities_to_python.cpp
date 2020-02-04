@@ -22,6 +22,7 @@
 #include "includes/define.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/rom_residuals_utility.h"
+#include "custom_utilities/residuals_utility.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -45,6 +46,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("GetVolumeVector",&GetRomResiduals::Volumes) //
     .def("ToNumpy",&GetRomResiduals::convert_to_numpy)
     ;  
+
+    py::class_<GetResiduals, typename GetResiduals::Pointer>(m, "GetResiduals")
+    .def(py::init<ModelPart&, BaseSchemeType::Pointer>()) // 
+    .def("ElementalResidual",&GetResiduals::ElementalResidual) //
+    .def("ConditionalResidual",&GetResiduals::ConditionalResidual) //  
+    .def("ToNumpy2",&GetResiduals::convert_to_numpy)
+    ;
 
 }
 
