@@ -263,10 +263,10 @@ public:
     {
         for (const auto &node : rNodes){
             unsigned int node_aux_id = node.GetValue(AUX_ID);
-            const auto &nodal_rom_basis = node.GetValue(ROM_BASIS);
+            const auto &nodal_NODAL_rom_basis = node.GetValue(NODAL_ROM_BASIS);
             for (int i = 0; i < mRomDofs; ++i){
                 for (int j = 0; j < mNodalDofs; ++j){
-                    rom_unknowns[i] += nodal_rom_basis(j, i) * rX(node_aux_id * mNodalDofs + j);
+                    rom_unknowns[i] += nodal_NODAL_rom_basis(j, i) * rX(node_aux_id * mNodalDofs + j);
                 }
             }
         }
@@ -280,8 +280,8 @@ public:
         TSparseSpace::SetToZero(rX);
         for (const auto &node : rNodes){
             unsigned int node_aux_id = node.GetValue(AUX_ID);
-            const auto &nodal_rom_basis = node.GetValue(ROM_BASIS);
-            Vector tmp = prod(nodal_rom_basis, rRomUnkowns);
+            const auto &nodal_NODAL_rom_basis = node.GetValue(NODAL_ROM_BASIS);
+            Vector tmp = prod(nodal_NODAL_rom_basis, rRomUnkowns);
             for (unsigned int i = 0; i < tmp.size(); ++i){
                 rX[node_aux_id * mNodalDofs + i] = tmp[i];
             }
@@ -333,6 +333,8 @@ public:
         const int nconditions = static_cast<int>(rModelPart.Conditions().size());
 
         auto &CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const double& rCurrentTime = CurrentProcessInfo[TIME];
+        KRATOS_WATCH(rCurrentTime)
         auto el_begin = rModelPart.ElementsBegin();
         auto cond_begin = rModelPart.ConditionsBegin();
 
@@ -367,7 +369,7 @@ public:
                 Matrix PhiElemental(geom.size() * mNodalDofs, mRomDofs);
 
                 for (unsigned int i = 0; i < geom.size(); ++i){
-                    const Matrix &rom_nodal_basis = geom[i].GetValue(ROM_BASIS);
+                    const Matrix &rom_nodal_basis = geom[i].GetValue(NODAL_ROM_BASIS);
                     for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k){
                         if (dofs[i * mNodalDofs + k]->IsFixed())
                             row(PhiElemental, i * mNodalDofs + k) = ZeroVector(PhiElemental.size2());
@@ -405,7 +407,7 @@ public:
                 Matrix PhiElemental(r_geom.size() * mNodalDofs, mRomDofs);
 
                 for (unsigned int i = 0; i < r_geom.size(); ++i){
-                    const Matrix &rom_nodal_basis = r_geom[i].GetValue(ROM_BASIS);
+                    const Matrix &rom_nodal_basis = r_geom[i].GetValue(NODAL_ROM_BASIS);
                     for (unsigned int k = 0; k < rom_nodal_basis.size1(); ++k){
                         if (dofs[i * mNodalDofs + k]->IsFixed())
                             row(PhiElemental, i * mNodalDofs + k) = ZeroVector(PhiElemental.size2());
