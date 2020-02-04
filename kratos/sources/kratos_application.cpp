@@ -156,7 +156,6 @@ void KratosApplication::RegisterKratosCore() {
     //Register objects with general definition
     Serializer::Register("Node", NodeType());
     Serializer::Register("Dof", Dof<double>());
-    Serializer::Register("Process", Process());
     Serializer::Register("Element", Element());
     Serializer::Register("Condition", Condition());
     Serializer::Register("Properties", Properties());
