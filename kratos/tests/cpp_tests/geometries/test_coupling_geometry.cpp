@@ -96,7 +96,9 @@ namespace Kratos {
             // Check if geometry 2 can be found.
             KRATOS_CHECK_EQUAL(p_coupling_geometry->GetGeometryPart(CouplingGeometry<Node<3>>::Slave).Dimension(), 2);
 
-            KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(p_coupling_geometry->GetGeometryPart(2), "Index 2 out of range. Composite contains only of: 2 geometries.")
+            KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(
+                p_coupling_geometry->GetGeometryPart(2),
+                "Index 2 out of range. CouplingGeometry #1 has 2 geometries.")
 
             std::size_t index = p_coupling_geometry->AddGeometryPart(p_triangle_second_slave);
             p_coupling_geometry->SetGeometryPart(index, p_triangle_third_slave);
