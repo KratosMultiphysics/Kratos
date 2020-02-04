@@ -49,4 +49,4 @@ cmake ..                                                                        
 -DUSE_MPI=OFF                                                                                       \
 
 # Buid
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j4
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)

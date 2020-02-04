@@ -155,18 +155,15 @@ public:
             int el = 0;
             int number = 0;
 
-            double MeanMeshSize = mrRemesh.Refine->CriticalRadius;
 
             //#pragma omp parallel for reduction(+:number) private(el)
             for (el = 0; el < OutNumberOfElements; el++)
             {
                 Geometry<Node<3>> vertices;
-
+                double MeanMeshSize = mrRemesh.Refine->CriticalRadius; // this must be inside because if there is a refined zone, each element has a different critical radius
                 unsigned int numfreesurf = 0;
                 unsigned int numboundary = 0;
                 unsigned int numrigid = 0;
-                unsigned int numinternalsolid = 0;
-                unsigned int numsolid = 0;
                 unsigned int numinlet = 0;
                 unsigned int numisolated = 0;
                 bool noremesh = false;
@@ -179,15 +176,6 @@ public:
 
                 for (unsigned int pn = 0; pn < nds; pn++)
                 {
-                    //set vertices
-                    if (mrRemesh.NodalPreIds[OutElementList[el * nds + pn]] < 0)
-                    {
-                        if (mrRemesh.Options.IsNot(MesherUtilities::CONTACT_SEARCH))
-                            std::cout << " ERROR: something is wrong: nodal id < 0 " << std::endl;
-                        box_side_element = true;
-                        break;
-                    }
-
                     if (OutElementList[el * nds + pn] <= 0)
                         std::cout << " ERROR: something is wrong: nodal id < 0 " << el << std::endl;
 
@@ -229,14 +217,7 @@ public:
                             countIsolatedWallNodes++;
                         }
                     }
-                    if (vertices.back().Is(SOLID) && vertices.back().IsNot(BOUNDARY))
-                    {
-                        numinternalsolid++;
-                    }
-                    if (vertices.back().Is(SOLID))
-                    {
-                        numsolid++;
-                    }
+
                     if (vertices.back().IsNot(RIGID) && vertices.back().Is(BOUNDARY))
                     {
                         numfreesurf++;
@@ -313,35 +294,37 @@ public:
                     {
                         Alpha *= 1.75;
                     }
-                    else
+                    else if (numrigid > 0 && numfreesurf == 0 && numisolated == 0){
+                        Alpha *= 1.1;
+                    }else
                     {
                         Alpha *= 1.04;
                     }
                 }
                 else if (dimension == 3)
                 {
-                    if (numfreesurf == nds || (numisolated + numfreesurf) == nds)
-                    {
-                        if (checkedNodes == nds)
-                        {
-                            const double maxValue = 1.5;
-                            const double minValue = 1.0 / maxValue;
-                            if (normVelocityP[0] / normVelocityP[1] < minValue || normVelocityP[0] / normVelocityP[2] < minValue || normVelocityP[0] / normVelocityP[3] < minValue ||
-                                normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[2] < maxValue || normVelocityP[0] / normVelocityP[3] > maxValue ||
-                                normVelocityP[1] / normVelocityP[2] < minValue || normVelocityP[1] / normVelocityP[3] < minValue ||
-                                normVelocityP[1] / normVelocityP[2] > maxValue || normVelocityP[1] / normVelocityP[3] < maxValue ||
-                                normVelocityP[2] / normVelocityP[3] < minValue ||
-                                normVelocityP[2] / normVelocityP[3] > maxValue)
-                            {
-                                Alpha *= 0;
-                            }
-                        }
-                        else
-                        {
-                            std::cout << "ATTENTION!!! CHECKED NODES= " << checkedNodes << " and the nodes are " << nds << std::endl;
-                            Alpha *= 0;
-                        }
-                    }
+                    // if (numfreesurf == nds || (numisolated + numfreesurf) == nds)
+                    // {
+                    //     if (checkedNodes == nds)
+                    //     {
+                    //         const double maxValue = 1.5;
+                    //         const double minValue = 1.0 / maxValue;
+                    //         if (normVelocityP[0] / normVelocityP[1] < minValue || normVelocityP[0] / normVelocityP[2] < minValue || normVelocityP[0] / normVelocityP[3] < minValue ||
+                    //             normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[2] < maxValue || normVelocityP[0] / normVelocityP[3] > maxValue ||
+                    //             normVelocityP[1] / normVelocityP[2] < minValue || normVelocityP[1] / normVelocityP[3] < minValue ||
+                    //             normVelocityP[1] / normVelocityP[2] > maxValue || normVelocityP[1] / normVelocityP[3] < maxValue ||
+                    //             normVelocityP[2] / normVelocityP[3] < minValue ||
+                    //             normVelocityP[2] / normVelocityP[3] > maxValue)
+                    //         {
+                    //             Alpha *= 0;
+                    //         }
+                    //     }
+                    //     else
+                    //     {
+                    //         std::cout << "ATTENTION!!! CHECKED NODES= " << checkedNodes << " and the nodes are " << nds << std::endl;
+                    //         Alpha *= 0;
+                    //     }
+                    // }
 
                     if (numrigid == 0 && numfreesurf == 0 && numisolated == 0)
                     {
@@ -380,75 +363,77 @@ public:
 
                 bool accepted = false;
                 MesherUtilities MesherUtils;
-                if (mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
-                {
-                    accepted = MesherUtils.ShrankAlphaShape(Alpha, vertices, mrRemesh.OffsetFactor, dimension);
-                }
-                else
-                {
+
                     accepted = MesherUtils.AlphaShape(Alpha, vertices, dimension, MeanMeshSize);
-                }
 
-                bool self_contact = false;
-                if (mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
-                    self_contact = MesherUtils.CheckSubdomain(vertices);
-
-                //4.- to control that the element is inside of the domain boundaries
-                if (accepted)
-                {
-                    if (mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
-                    {
-                        accepted = MesherUtils.CheckOuterCentre(vertices, mrRemesh.OffsetFactor, self_contact);
-                    }
-                }
 
                 if (numrigid == nds || noremesh == true)
                 {
                     accepted = false;
                 }
 
-                // to control that the element has a good shape
-                if (accepted && (numfreesurf > 0 || numrigid == nds))
-                {
-                    if (dimension == 3 && nds == 4)
-                    {
-                        Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
+                // // to control that the element has a good shape
+                // if (accepted && (numfreesurf > 0 || numrigid == nds))
+                //     {
+                //         Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
 
-                        double Volume = tetrahedron->Volume();
-                        double CriticalVolume = 0.01 * mrRemesh.Refine->MeanVolume;
+                //         double Volume = tetrahedron->Volume();
+                //         double CriticalVolume = 0.01 * mrRemesh.Refine->MeanVolume;
+                //         if(Volume==0){
+                //             std::cout<<" !!!!! Volume==0 ";
+                //             array_1d<double, 3> CoorDifference = vertices[0].Coordinates() - vertices[1].Coordinates();
+                //             double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
+                //             double meanLength = sqrt(SquaredLength) / 6.0;
+                //             CoorDifference = vertices[0].Coordinates() - vertices[2].Coordinates();
+                //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
+                //             meanLength += sqrt(SquaredLength) / 6.0;
+                //             CoorDifference = vertices[0].Coordinates() - vertices[3].Coordinates();
+                //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
+                //             meanLength += sqrt(SquaredLength) / 6.0;
+                //             CoorDifference = vertices[1].Coordinates() - vertices[2].Coordinates();
+                //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
+                //             meanLength += sqrt(SquaredLength) / 6.0;
+                //             CoorDifference = vertices[1].Coordinates() - vertices[3].Coordinates();
+                //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
+                //             meanLength += sqrt(SquaredLength) / 6.0;
+                //             CoorDifference = vertices[2].Coordinates() - vertices[3].Coordinates();
+                //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
+                //             meanLength += sqrt(SquaredLength) / 6.0;
+                //             Volume = pow(meanLength, 3) * sqrt(2) / 12.0;
+                //             std::cout<<" now volume is  "<<Volume<<std::endl;
+                //         }
+                //         if (CriticalVolume == 0)
+                //         {
+                //             array_1d<double, 3> CoorDifference = vertices[0].Coordinates() - vertices[1].Coordinates();
+                //             double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
+                //             double meanLength = sqrt(SquaredLength) / 6.0;
+                //             CoorDifference = vertices[0].Coordinates() - vertices[2].Coordinates();
+                //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
+                //             meanLength += sqrt(SquaredLength) / 6.0;
+                //             CoorDifference = vertices[0].Coordinates() - vertices[3].Coordinates();
+                //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
+                //             meanLength += sqrt(SquaredLength) / 6.0;
+                //             CoorDifference = vertices[1].Coordinates() - vertices[2].Coordinates();
+                //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
+                //             meanLength += sqrt(SquaredLength) / 6.0;
+                //             CoorDifference = vertices[1].Coordinates() - vertices[3].Coordinates();
+                //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
+                //             meanLength += sqrt(SquaredLength) / 6.0;
+                //             CoorDifference = vertices[2].Coordinates() - vertices[3].Coordinates();
+                //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
+                //             meanLength += sqrt(SquaredLength) / 6.0;
+                //             double regularTetrahedronVolume = pow(meanLength, 3) * sqrt(2) / 12.0;
+                //             CriticalVolume = 0.00001 * regularTetrahedronVolume;
+                //         }
 
-                        if (CriticalVolume == 0)
-                        {
-                            array_1d<double, 3> CoorDifference = vertices[0].Coordinates() - vertices[1].Coordinates();
-                            double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                            double meanLength = sqrt(SquaredLength) / 6.0;
-                            CoorDifference = vertices[0].Coordinates() - vertices[2].Coordinates();
-                            SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                            meanLength += sqrt(SquaredLength) / 6.0;
-                            CoorDifference = vertices[0].Coordinates() - vertices[3].Coordinates();
-                            SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                            meanLength += sqrt(SquaredLength) / 6.0;
-                            CoorDifference = vertices[1].Coordinates() - vertices[2].Coordinates();
-                            SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                            meanLength += sqrt(SquaredLength) / 6.0;
-                            CoorDifference = vertices[1].Coordinates() - vertices[3].Coordinates();
-                            SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                            meanLength += sqrt(SquaredLength) / 6.0;
-                            CoorDifference = vertices[2].Coordinates() - vertices[3].Coordinates();
-                            SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                            meanLength += sqrt(SquaredLength) / 6.0;
-                            double regularTetrahedronVolume = pow(meanLength, 3) * sqrt(2) / 12.0;
-                            CriticalVolume = 0.00001 * regularTetrahedronVolume;
-                        }
-
-                        if (Volume < CriticalVolume)
-                        {
-                            accepted = false;
-                            number_of_slivers++;
-                        }
-                        delete tetrahedron;
-                    }
-                }
+                //         if (fabs(Volume) < CriticalVolume)
+                //         {
+                //             accepted = false;
+                //             number_of_slivers++;
+                //         }
+                //         delete tetrahedron;
+                //     }
+                // }
 
                 if (accepted)
                 {

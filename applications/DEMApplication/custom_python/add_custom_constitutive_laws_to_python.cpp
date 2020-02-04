@@ -34,6 +34,7 @@
 #include "../custom_constitutive/DEM_KDEM_with_damage_CL.h"
 #include "../custom_constitutive/DEM_KDEM_with_damage_parallel_bond_CL.h"
 #include "../custom_constitutive/DEM_KDEM_with_damage_parallel_bond_bilinear_CL.h"
+#include "../custom_constitutive/DEM_KDEM_with_damage_parallel_bond_capped_CL.h"
 #include "../custom_constitutive/DEM_KDEM_with_damage_parallel_bond_2D_CL.h"
 #include "../custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "../custom_constitutive/DEM_KDEM_Mohr_Coulomb_CL.h"
@@ -190,6 +191,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEM_KDEM_with_damage_parallel_bond_bilinear, DEM_KDEM_with_damage_parallel_bond_bilinear::Pointer, DEM_KDEM_with_damage_parallel_bond>(m, "DEM_KDEM_with_damage_parallel_bond_bilinear")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_KDEM_with_damage_parallel_bond_capped, DEM_KDEM_with_damage_parallel_bond_capped::Pointer, DEM_KDEM_with_damage_parallel_bond>(m, "DEM_KDEM_with_damage_parallel_bond_capped")
         .def(py::init<>())
         ;
 

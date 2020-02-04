@@ -19,9 +19,9 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
+#include "includes/kratos_filesystem.h"
 
 /* Utilities */
-#include "utilities/os_utilities.h"
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
 
 namespace Kratos
@@ -323,7 +323,7 @@ namespace Kratos
                 }
             }
 
-            remove((OSUtilities::GetCurrentWorkingDir() + "/" + filename + ".json").c_str());
+            remove((Kratos::filesystem::current_path().string() + "/" + filename + ".json").c_str());
         }
 
     } // namespace Testing

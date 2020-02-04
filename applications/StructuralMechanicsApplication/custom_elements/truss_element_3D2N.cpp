@@ -298,10 +298,23 @@ void TrussElement3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOut
     if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
         BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix = ZeroMatrix(msLocalSize, msLocalSize);
         CreateTransformationMatrix(transformation_matrix);
-        if(rOutput.size1() != msLocalSize || rOutput.size2() != msLocalSize) {
-            rOutput.resize(msLocalSize, msLocalSize, false);
+        if(rOutput.size1() != msDimension || rOutput.size2() != msDimension) {
+            rOutput.resize(msDimension, msDimension, false);
         }
-        noalias(rOutput) = transformation_matrix;
+
+        Vector base_1 = ZeroVector(3);
+        Vector base_2 = ZeroVector(3);
+        Vector base_3 = ZeroVector(3);
+
+        for (SizeType i=0;i<msDimension;++i){
+            base_1[i] = transformation_matrix(i,0);
+            base_2[i] = transformation_matrix(i,1);
+            base_3[i] = transformation_matrix(i,2);
+        }
+
+        column(rOutput,0) = base_1;
+        column(rOutput,1) = base_2;
+        column(rOutput,2) = base_3;
     }
 }
 
@@ -353,12 +366,18 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
         array_1d<double, msDimension> temp_internal_stresses = ZeroVector(msDimension);
         ProcessInfo temp_process_information;
 
+        double prestress = 0.00;
+        if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+            prestress = GetProperties()[TRUSS_PRESTRESS_PK2];
+        }
+
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
         Vector temp_strain = ZeroVector(1);
         temp_strain[0] = CalculateGreenLagrangeStrain();
         Values.SetStrainVector(temp_strain);
         mpConstitutiveLaw->CalculateValue(Values,FORCE,temp_internal_stresses);
 
+        temp_internal_stresses[0] += prestress;
         rOutput[0] = temp_internal_stresses;
     }
     if (rVariable == CAUCHY_STRESS_VECTOR) {
@@ -373,10 +392,17 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
         Values.SetStrainVector(temp_strain);
         mpConstitutiveLaw->CalculateValue(Values,FORCE,temp_internal_stresses);
 
+        double prestress = 0.00;
+        if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+            prestress = GetProperties()[TRUSS_PRESTRESS_PK2];
+        }
+
 
         const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
         const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
 
+
+        temp_internal_stresses[0] += prestress;
         rOutput[0] = temp_internal_stresses*l/L0;
     }
 
