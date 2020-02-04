@@ -195,7 +195,6 @@ namespace Testing {
         KRATOS_CHECK_IS_FALSE(result.IsObjectFound());
 
         result = bins.SearchNearestInRadius(near_point, cube_z + 1.e-4);
-        KRATOS_WATCH((result.GetDistance() - cube_z + epsilon));
         KRATOS_CHECK_NEAR(result.GetDistance(), (cube_z - epsilon), tolerance);
         
         std::size_t id = result.Get()->Id();
