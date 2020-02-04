@@ -1,0 +1,14 @@
+{
+  "name": "packandpublish",
+  "version": "1.0.0",
+  "description": "",
+  "main": "pusher-dropbox.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "fjgarate@cimne.upc.edu",
+  "license": "BSD 4",
+  "dependencies": {
+    "dropbox-v2-api": "^2.4.11"
+  }
+}
