@@ -263,9 +263,9 @@ namespace Kratos
      * @param rTransformationMatrix local coordinate system transformation
      * @param rIntegrationPointNumber current integration point number
      */
-    void MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric,
+    /* void MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric,
       const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric, const Matrix& rTransformationMatrix,
-      const SizeType& rIntegrationPointNumber);
+      const SizeType& rIntegrationPointNumber); */
 
 
       /**
@@ -278,9 +278,10 @@ namespace Kratos
      * @param rTransformationMatrix local coordinate system transformation
      * @param rIntegrationPointNumber current integration point number
      */
-    void StressPk2(Vector& rStress,
+    void MaterialResponse(Vector& rStress,
       const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
-      const array_1d<Vector,2>& rTransformedBaseVectors, const Matrix& rTransformationMatrix, const SizeType& rIntegrationPointNumber);
+      const array_1d<Vector,2>& rTransformedBaseVectors, const Matrix& rTransformationMatrix, const SizeType& rIntegrationPointNumber,
+      Matrix& rTangentModulus);
 
 
       /**

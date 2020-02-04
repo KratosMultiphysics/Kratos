@@ -32,6 +32,7 @@
 #include "custom_advanced_constitutive/small_strain_j2_plasticity_plane_strain_2d.h"
 #include "custom_advanced_constitutive/small_strain_isotropic_damage_3d.h"
 #include "custom_advanced_constitutive/small_strain_isotropic_damage_traction_only_3d.h"
+#include "custom_advanced_constitutive/wrinkling_2d_law.h"
 
 // Plastic, damage laws and viscosities
 #include "custom_advanced_constitutive/small_strain_isotropic_damage_plane_strain_2d.h"
@@ -92,6 +93,10 @@ namespace Python {
 void  AddCustomAdvancedConstitutiveLawsToPython(pybind11::module& m)
 {
     namespace py = pybind11;
+
+    py::class_< Wrinkling2DLaw, typename Wrinkling2DLaw::Pointer, ConstitutiveLaw >
+    (m, "Wrinkling2DLaw").def(py::init<>() )
+    ;
 
     py::class_< TrussPlasticityConstitutiveLaw, typename TrussPlasticityConstitutiveLaw::Pointer, ConstitutiveLaw >
     (m, "TrussPlasticityConstitutiveLaw").def(py::init<>() )
