@@ -504,6 +504,53 @@ void ModelPartRemoveConditionsFromAllLevels(ModelPart& rModelPart, Flags identif
 }
 
 
+// Geometries
+
+void ModelPartAddGeometry1(ModelPart& rModelPart, ModelPart::GeometryType::Pointer pNewGeometry)
+{
+    rModelPart.AddGeometry(pNewGeometry);
+}
+
+ModelPart::GeometryType::Pointer ModelPartGetGeometry1(ModelPart& rModelPart, ModelPart::IndexType GeometryId)
+{
+    return rModelPart.pGetGeometry(GeometryId);
+}
+
+ModelPart::GeometryType::Pointer ModelPartGetGeometry2(ModelPart& rModelPart, const std::string& GeometryName)
+{
+    return rModelPart.pGetGeometry(GeometryName);
+}
+
+bool ModelPartHasGeometry1(ModelPart& rModelPart, ModelPart::IndexType GeometryId)
+{
+    return rModelPart.HasGeometry(GeometryId);
+}
+
+bool ModelPartHasGeometry2(ModelPart& rModelPart, const std::string& GeometryName)
+{
+    return rModelPart.HasGeometry(GeometryName);
+}
+
+void ModelPartRemoveGeometry1(ModelPart& rModelPart, ModelPart::IndexType GeometryId)
+{
+    rModelPart.RemoveGeometry(GeometryId);
+}
+
+void ModelPartRemoveGeometry2(ModelPart& rModelPart, const std::string& GeometryName)
+{
+    rModelPart.RemoveGeometry(GeometryName);
+}
+
+void ModelPartRemoveGeometryFromAllLevels1(ModelPart& rModelPart, ModelPart::IndexType GeometryId)
+{
+    rModelPart.RemoveGeometryFromAllLevels(GeometryId);
+}
+
+void ModelPartRemoveGeometryFromAllLevels2(ModelPart& rModelPart, const std::string& GeometryName)
+{
+    rModelPart.RemoveGeometryFromAllLevels(GeometryName);
+}
+
 // Master slave constraints
 /* // Try with perfect forwarding
 template <typename ... Args>
@@ -772,6 +819,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GetNumberOfColors", &Communicator::GetNumberOfColors)
         .def("NeighbourIndices", NeighbourIndicesConst, py::return_value_policy::reference_internal)
         .def("SynchronizeNodalSolutionStepsData", &Communicator::SynchronizeNodalSolutionStepsData)
+        .def("SynchronizeNodalFlags", &Communicator::SynchronizeNodalFlags)
         .def("SynchronizeDofs", &Communicator::SynchronizeDofs)
         .def("LocalMesh", CommunicatorGetLocalMesh, py::return_value_policy::reference_internal )
         .def("LocalMesh", CommunicatorGetLocalMeshWithIndex, py::return_value_policy::reference_internal )
@@ -812,10 +860,11 @@ void AddModelPartToPython(pybind11::module& m)
         .def("__str__", PrintObject<Communicator>);
         ;
 
-        py::class_<typename ModelPart::SubModelPartsContainerType >(m, "SubModelPartsContainerType")
+    py::class_<typename ModelPart::SubModelPartsContainerType >(m, "SubModelPartsContainerType")
         .def("__iter__", [](typename ModelPart::SubModelPartsContainerType& self){ return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
         ;
 
+    MapInterface<ModelPart::GeometriesMapType>().CreateInterface(m,"GeometriesMapType");
     PointerVectorSetPythonInterface<ModelPart::MasterSlaveConstraintContainerType>().CreateInterface(m,"MasterSlaveConstraintsArray");
 
     py::class_<ModelPart, Kratos::shared_ptr<ModelPart>, DataValueContainer, Flags >(m,"ModelPart")
@@ -838,6 +887,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("NumberOfElements", &ModelPart::NumberOfElements)
         .def("NumberOfConditions", ModelPartNumberOfConditions1)
         .def("NumberOfConditions", &ModelPart::NumberOfConditions)
+        .def("NumberOfGeometries", &ModelPart::NumberOfGeometries)
         .def("NumberOfMasterSlaveConstraints", ModelPartNumberOfMasterSlaveConstraints1)
         .def("NumberOfMasterSlaveConstraints", &ModelPart::NumberOfMasterSlaveConstraints)
         .def("NumberOfMeshes", &ModelPart::NumberOfMeshes)
@@ -929,6 +979,18 @@ void AddModelPartToPython(pybind11::module& m)
         .def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels3)
         .def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels4)
         .def("RemoveConditionsFromAllLevels", ModelPartRemoveConditionsFromAllLevels)
+        .def("AddGeometry", ModelPartAddGeometry1)
+        .def("GetGeometry", ModelPartGetGeometry1)
+        .def("GetGeometry", ModelPartGetGeometry2)
+        .def("HasGeometry", ModelPartHasGeometry1)
+        .def("HasGeometry", ModelPartHasGeometry2)
+        .def("RemoveGeometry", ModelPartRemoveGeometry1)
+        .def("RemoveGeometry", ModelPartRemoveGeometry2)
+        .def("RemoveGeometryFromAllLevels", ModelPartRemoveGeometryFromAllLevels1)
+        .def("RemoveGeometryFromAllLevels", ModelPartRemoveGeometryFromAllLevels2)
+        .def_property("Geometries", [](ModelPart& self) { return self.Geometries(); },
+            [](ModelPart& self, ModelPart::GeometriesMapType& geometries) {
+                KRATOS_ERROR << "Setting geometries is not allowed! Trying to set value of ModelPart::Geometries."; })
         .def("CreateSubModelPart", &ModelPart::CreateSubModelPart, py::return_value_policy::reference_internal)
         .def("NumberOfSubModelParts", &ModelPart::NumberOfSubModelParts)
         .def("GetSubModelPart", &ModelPart::GetSubModelPart, py::return_value_policy::reference_internal)

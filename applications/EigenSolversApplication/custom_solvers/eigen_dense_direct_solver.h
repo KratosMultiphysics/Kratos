@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "linear_solvers/direct_solver.h"
 #include "custom_factories/dense_linear_solver_factory.h"
+#include "custom_solvers/eigen_direct_solver.h"
 
 namespace Kratos {
 
@@ -36,8 +37,6 @@ private:
     EigenDenseDirectSolver &operator=(const EigenDenseDirectSolver &Other);
 
     EigenDenseDirectSolver(const EigenDenseDirectSolver &Other);
-
-    // UblasWrapper<typename TSolverType::Scalar> m_a_wrapper;
 
 public:
     KRATOS_CLASS_POINTER_DEFINITION(EigenDenseDirectSolver);

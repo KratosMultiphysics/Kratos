@@ -9,10 +9,11 @@
 //  Author: Quirin Aumann
 */
 
-#if !defined(KRATOS_EIGEN_DENSE_COLPIVHOUSEHOLDERQR_SOLVER_H_INCLUDED)
-#define KRATOS_EIGEN_DENSE_COLPIVHOUSEHOLDERQR_SOLVER_H_INCLUDED
+#if !defined(KRATOS_EIGEN_DENSE_PARTIAL_PIV_LU_SOLVER_H_INCLUDED)
+#define KRATOS_EIGEN_DENSE_PARTIAL_PIV_LU_SOLVER_H_INCLUDED
 
 // External includes
+#include <Eigen/LU>
 
 // Project includes
 #include "includes/define.h"
@@ -20,7 +21,7 @@
 namespace Kratos {
 
 template <typename TScalar = double>
-class EigenDenseColPivHouseholderQRSolver
+class EigenDensePartialPivLUSolver
 {
 public:
     using Scalar = TScalar;
@@ -28,12 +29,12 @@ public:
     using Vector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
 
 private:
-    Eigen::ColPivHouseholderQR<Matrix> m_solver;
+    Eigen::PartialPivLU<Matrix> m_solver;
 
 public:
     static std::string Name()
     {
-        return "complex_dense_colpivhouseholderqr";
+        return "complex_dense_partial_piv_lu";
     }
 
     void Initialize(Parameters settings)
@@ -44,18 +45,14 @@ public:
     {
         m_solver.compute(a);
 
-        const bool success = m_solver.info() == Eigen::Success;
-
-        return success;
+        return true;
     }
 
     bool Solve(Eigen::Ref<const Vector> b, Eigen::Ref<Vector> x) const
     {
         x = m_solver.solve(b);
 
-        const bool success = m_solver.info() == Eigen::Success;
-
-        return success;
+        return true;
     }
 
     void PrintInfo(std::ostream &rOStream) const
@@ -71,4 +68,4 @@ public:
 
 } // namespace Kratos
 
-#endif // defined(KRATOS_EIGEN_DENSE_COLPIVHOUSEHOLDERQR_SOLVER_H_INCLUDED)
+#endif // defined(KRATOS_EIGEN_DENSE_PARTIAL_PIV_LU_SOLVER_H_INCLUDED)

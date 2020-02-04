@@ -39,7 +39,7 @@ add_app ${KRATOS_APP_DIR}/RANSApplication;
 add_app ${KRATOS_APP_DIR}/MappingApplication;
 add_app ${KRATOS_APP_DIR}/FSIApplication;
 add_app ${KRATOS_APP_DIR}/MeshingApplication;
-add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
+# add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
 add_app ${KRATOS_APP_DIR}/HDF5Application;
 add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
 
@@ -60,11 +60,11 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -Werror=misleading-indentation -Werror=return-type \
 -Werror=sign-compare -Werror=unused-but-set-variable \
 -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized -Wno-deprecated-declarations" \
--DEIGEN_ROOT="/usr/include/eigen3" \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
--DUSE_COTIRE=ON
+-DUSE_COTIRE=ON \
+-DUSE_EIGEN_MKL=ON
 
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity    -- -j1
