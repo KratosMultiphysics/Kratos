@@ -188,16 +188,18 @@ namespace Testing {
 
         GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd());
 
-        Point center_point{0.00,0.00,0.00};
-        auto result = bins.SearchNearestInRadius(center_point, cube_z - 1.e-6);
+        double epsilon = 1.00e-6;
+        Point near_point{epsilon,epsilon,epsilon};
+        auto result = bins.SearchNearestInRadius(near_point, cube_z - 1.e-4);
 
         KRATOS_CHECK_IS_FALSE(result.IsObjectFound());
 
-        result = bins.SearchNearestInRadius(center_point, cube_z + 1.e-6);
-        KRATOS_CHECK_NEAR(result.GetDistance(), cube_z, tolerance);
+        result = bins.SearchNearestInRadius(near_point, cube_z + 1.e-4);
+        KRATOS_WATCH((result.GetDistance() - cube_z + epsilon));
+        KRATOS_CHECK_NEAR(result.GetDistance(), (cube_z - epsilon), tolerance);
         
         std::size_t id = result.Get()->Id();
-        KRATOS_CHECK((id == 1) ||(id == 2) ||(id == 3) ||(id == 4)); 
+        KRATOS_CHECK(id == 3); 
    }
  
     /** Checks bins search nearest
@@ -216,13 +218,14 @@ namespace Testing {
 
         GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd());
 
-        Point center_point{0.00,0.00,0.00};
-        auto result = bins.SearchNearest(center_point);
+        double epsilon = 1.00e-6;
+        Point near_point{epsilon,epsilon,epsilon};
+        auto result = bins.SearchNearest(near_point);
 
-        KRATOS_CHECK_NEAR(result.GetDistance(), cube_z, tolerance);
+        KRATOS_CHECK_NEAR(result.GetDistance(), (cube_z - epsilon), tolerance);
         
         std::size_t id = result.Get()->Id();
-        KRATOS_CHECK((id == 1) ||(id == 2) ||(id == 3) ||(id == 4)); 
+        KRATOS_CHECK(id == 3); 
    }
 
     /** Checks bins empty search nearest 
