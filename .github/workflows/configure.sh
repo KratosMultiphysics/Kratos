@@ -16,9 +16,6 @@ add_app () {
 export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
-
-# Set build type
-export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:="Custom"}
 export PYTHON_EXECUTABLE="/usr/bin/python3.6"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
