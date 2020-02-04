@@ -159,7 +159,7 @@ public:
 
     void ExecuteBeforeOutputStep() override;
 
-    void ExecuteFinalizeSolutionStep() override;
+    void ExecuteAfterOutputStep() override;
 
     ///@}
     ///@name Inquiry
@@ -293,21 +293,26 @@ private:
         const Condition::NodesArrayType &rNewNodesArray);
 
     /**
-     * Sets the visualization properties (one for the positive side
-     * and one for the negative)
-     * @return Tuple containing two properties pointers
+     * @brief Sets the visualization properties (one for the positive side and one for the negative)
+     * Set the properties for the new elements depending if they are in the positive or negative side of the cut.
+     * By doing this, two different layers will be created when printing this model part GiD.
+     * @return std::tuple< Properties::Pointer , Properties::Pointer > Tuple containing two properties pointers
      */
     std::tuple< Properties::Pointer , Properties::Pointer > SetVisualizationProperties();
+
+    /**
+     * @brief Removes the visualization properties
+     * When it is required, this function searchs for the visualization properties to remove them.
+     */
+    void RemoveVisualizationProperties();
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
