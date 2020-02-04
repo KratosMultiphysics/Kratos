@@ -31,7 +31,7 @@ if( USE_EIGEN_MKL MATCHES ON )
     message( "MKLROOT = $ENV{MKLROOT}" )
 
     if( NOT MSVC )
-        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lpthread -lm -ldl" )
+        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_rt -lpthread -lm -ldl" )
     endif()
 
     include_directories( $ENV{MKLROOT}/include )
