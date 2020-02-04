@@ -31,7 +31,7 @@ class KRATOS_API(POROMECHANICS_APPLICATION) UPwNormalFaceLoadCondition : public 
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION( UPwNormalFaceLoadCondition );
-    
+
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
     typedef Node <3> NodeType;
@@ -40,15 +40,15 @@ public:
     typedef Vector VectorType;
     typedef Matrix MatrixType;
     using UPwCondition<TDim,TNumNodes>::mThisIntegrationMethod;
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
     UPwNormalFaceLoadCondition() : UPwCondition<TDim,TNumNodes>() {}
-    
+
     // Constructor 1
     UPwNormalFaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry) {}
-    
+
     // Constructor 2
     UPwNormalFaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
 
@@ -58,42 +58,42 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
-  
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-protected:   
-    
+protected:
+
     struct NormalFaceLoadVariables
     {
         array_1d<double,TNumNodes> NormalStressVector;
         array_1d<double,TNumNodes> TangentialStressVector;
     };
-    
+
     // Member Variables
-        
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+
     void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
-    
+
     void InitializeConditionVariables(NormalFaceLoadVariables& rVariables, const GeometryType& Geom);
 
     void CalculateTractionVector(array_1d<double,TDim>& rTractionVector,const Matrix& Jacobian,const Matrix& NContainer,
                                     const NormalFaceLoadVariables& Variables,const unsigned int& GPoint);
-                                                                
-    void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& Weight);
-    
+
+    void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& Weight, const ProcessInfo& CurrentProcessInfo);
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
+
     // Member Variables
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Serialization
-    
+
     friend class Serializer;
-    
+
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
@@ -103,9 +103,9 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }
-    
+
 }; // class UPwNormalFaceLoadCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_U_PW_NORMAL_FACE_LOAD_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_U_PW_NORMAL_FACE_LOAD_CONDITION_H_INCLUDED defined

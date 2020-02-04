@@ -400,7 +400,7 @@ void UPwElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, P
         PoroElementUtilities::CalculateNuElementMatrix(Nut,NContainer,GPoint);
 
         //calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient( IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
+        this->CalculateIntegrationCoefficient( IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight(), rCurrentProcessInfo );
 
         //Adding contribution to Mass matrix
         noalias(rMassMatrix) += Density*prod(trans(Nut),Nut)*IntegrationCoefficient;
@@ -655,7 +655,24 @@ void UPwElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector,
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwElement<2,3>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight)
+void UPwElement<2,3>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight, const ProcessInfo& CurrentProcessInfo)
+{
+    rIntegrationCoefficient = weight * detJ * this->GetProperties()[THICKNESS];
+
+    if (CurrentProcessInfo[IS_AXISYMMETRIC] == true) {
+        Vector N;
+        N = GetGeometry().ShapeFunctionsValues( N, IntegrationPoints[PointNumber].Coordinates() );
+        const double radius = StructuralMechanicsMathUtilities::CalculateRadius(N, GetGeometry());
+        const double thickness = (GetProperties().Has( THICKNESS ) == true) ? this->GetProperties()[THICKNESS] : 1.0;
+
+        rIntegrationCoefficient = 2.0 * Globals::Pi * radius/thickness * IntegrationPoints[PointNumber].Weight() * detJ;
+    }
+}
+
+//----------------------------------------------------------------------------------------
+
+template< >
+void UPwElement<2,4>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight, const ProcessInfo& CurrentProcessInfo)
 {
     rIntegrationCoefficient = weight * detJ * this->GetProperties()[THICKNESS];
 }
@@ -663,15 +680,7 @@ void UPwElement<2,3>::CalculateIntegrationCoefficient(double& rIntegrationCoeffi
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwElement<2,4>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight)
-{
-    rIntegrationCoefficient = weight * detJ * this->GetProperties()[THICKNESS];
-}
-
-//----------------------------------------------------------------------------------------
-
-template< >
-void UPwElement<3,4>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight)
+void UPwElement<3,4>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight, const ProcessInfo& CurrentProcessInfo)
 {
     rIntegrationCoefficient = weight * detJ;
 }
@@ -679,7 +688,7 @@ void UPwElement<3,4>::CalculateIntegrationCoefficient(double& rIntegrationCoeffi
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwElement<3,6>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight)
+void UPwElement<3,6>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight, const ProcessInfo& CurrentProcessInfo)
 {
     rIntegrationCoefficient = weight * detJ;
 }
@@ -687,7 +696,7 @@ void UPwElement<3,6>::CalculateIntegrationCoefficient(double& rIntegrationCoeffi
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwElement<3,8>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight)
+void UPwElement<3,8>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight, const ProcessInfo& CurrentProcessInfo)
 {
     rIntegrationCoefficient = weight * detJ;
 }

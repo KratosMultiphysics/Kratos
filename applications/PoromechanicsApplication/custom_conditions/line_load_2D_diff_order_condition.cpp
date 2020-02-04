@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        KratosPoromechanicsApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:            January 2016 $
@@ -61,7 +61,7 @@ void LineLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& 
 
 //----------------------------------------------------------------------------------------
 
-void LineLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight)
+void LineLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

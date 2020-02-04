@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        KratosPoromechanicsApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:            January 2016 $
@@ -41,7 +41,7 @@ Condition::Pointer LineNormalLoad2DDiffOrderCondition::Create(IndexType NewId, N
 void LineNormalLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
 {
     KRATOS_TRY
-    
+
     const GeometryType& rGeom = GetGeometry();
     const SizeType NumUNodes = rGeom.PointsNumber();
     double NormalStress = 0.0;
@@ -63,7 +63,7 @@ void LineNormalLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVaria
 
 //----------------------------------------------------------------------------------------
 
-void LineNormalLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight)
+void LineNormalLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -82,7 +82,7 @@ void LineNormalLoad2DDiffOrderCondition::CalculateAndAddConditionForce(VectorTyp
     for ( SizeType i = 0; i < NumUNodes; i++ )
     {
         Index = i * 2;
-        
+
         rRightHandSideVector[Index]   += rVariables.Nu[i] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
         rRightHandSideVector[Index+1] += rVariables.Nu[i] * rVariables.ConditionVector[1] * rVariables.IntegrationCoefficient;
     }

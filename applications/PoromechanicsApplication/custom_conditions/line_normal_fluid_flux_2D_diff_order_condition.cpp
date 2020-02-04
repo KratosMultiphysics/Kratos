@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        KratosPoromechanicsApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:            January 2016 $
@@ -56,7 +56,7 @@ void LineNormalFluidFlux2DDiffOrderCondition::CalculateConditionVector(Condition
 
 //----------------------------------------------------------------------------------------
 
-void LineNormalFluidFlux2DDiffOrderCondition::CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight)
+void LineNormalFluidFlux2DDiffOrderCondition::CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

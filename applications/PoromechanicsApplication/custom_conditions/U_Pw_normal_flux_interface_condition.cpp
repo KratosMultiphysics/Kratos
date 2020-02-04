@@ -27,20 +27,20 @@ Condition::Pointer UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::Create(Index
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
-{        
+{
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
     const unsigned int NumGPoints = integration_points.size();
     const unsigned int LocalDim = Geom.LocalSpaceDimension();
-    
+
     //Containers of variables at all integration points
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
     GeometryType::JacobiansType JContainer(NumGPoints);
     for(unsigned int i = 0; i<NumGPoints; i++)
         (JContainer[i]).resize(TDim,LocalDim,false);
     Geom.Jacobian( JContainer, mThisIntegrationMethod );
-    
+
     //Condition variables
     array_1d<double,TNumNodes*TDim> DisplacementVector;
     PoroConditionUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
@@ -61,7 +61,7 @@ void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& 
     array_1d<double,TNumNodes> PVector;
     double NormalFlux;
     double IntegrationCoefficient;
-    
+
     //Loop over integration points
     for(unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
@@ -71,20 +71,20 @@ void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& 
         {
             NormalFlux += NContainer(GPoint,i)*NormalFluxVector[i];
         }
-        
+
         //Obtain Np
         noalias(Np) = row(NContainer,GPoint);
-        
+
         if(ComputeJointWidth==true)
         {
             //Compute Nu Matrix and Joint Width
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
             this->CalculateJointWidth(JointWidth, Nu, DisplacementVector, RelDispVector, RotationMatrix, LocalRelDispVector, MinimumJointWidth,GPoint);
         }
-        
+
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(IntegrationCoefficient, JContainer[GPoint], integration_points[GPoint].Weight(), JointWidth );
-                
+        this->CalculateIntegrationCoefficient(IntegrationCoefficient, JContainer[GPoint], integration_points[GPoint].Weight(), JointWidth, CurrentProcessInfo );
+
         //Contributions to the right hand side
         noalias(PVector) = -NormalFlux * Np * IntegrationCoefficient;
         PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,PVector,TDim,TNumNodes);

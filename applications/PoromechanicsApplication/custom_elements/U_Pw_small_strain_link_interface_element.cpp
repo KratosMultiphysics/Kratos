@@ -26,11 +26,11 @@ Element::Pointer UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::Create( Ind
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<array_1d<double,3>>& rVariable, 
+void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<array_1d<double,3>>& rVariable,
                                                                                 std::vector<array_1d<double,3>>& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    
+
     if(rVariable == FLUID_FLUX_VECTOR)
     {
         const PropertiesType& Prop = this->GetProperties();
@@ -42,7 +42,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
         const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = Geom.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
         GeometryType::JacobiansType JContainer(NumGPoints);
         Geom.Jacobian( JContainer, mThisIntegrationMethod );
-        
+
         //Defining necessary variables
         array_1d<double,TNumNodes> PressureVector;
         for(unsigned int i=0; i<TNumNodes; i++)
@@ -58,7 +58,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
         array_1d<double,TDim> LocalRelDispVector;
         array_1d<double,TDim> RelDispVector;
         const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
-        BoundedMatrix<double,TNumNodes, TDim> GradNpT; 
+        BoundedMatrix<double,TNumNodes, TDim> GradNpT;
         double JointWidth;
         BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
         const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
@@ -74,25 +74,25 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
             noalias(RelDispVector) = prod(Nu,DisplacementVector);
-            
+
             noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
-            
+
             this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth,GPoint);
 
             this->template CalculateShapeFunctionsGradients< BoundedMatrix<double,TNumNodes,TDim> >(GradNpT,SFGradAuxVars,JContainer[GPoint],RotationMatrix,
                                                                                                                 DN_DeContainer[GPoint],NContainer,JointWidth,GPoint);
-            
+
             PoroElementUtilities::InterpolateVariableWithComponents(BodyAcceleration,NContainer,VolumeAcceleration,GPoint);
 
             InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(LocalPermeabilityMatrix,JointWidth);
-            
+
             noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
             noalias(GradPressureTerm) += -FluidDensity*BodyAcceleration;
-            
+
             noalias(LocalFluidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
-            
+
             noalias(FluidFlux) = prod(trans(RotationMatrix),LocalFluidFlux);
-            
+
             PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],FluidFlux);
         }
     }
@@ -111,7 +111,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
         const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
         double JointWidth;
         array_1d<double,TDim> LocalStressVector;
-        
+
         //Create constitutive law parameters:
         Vector StrainVector(TDim);
         Vector StressVectorDynamic(TDim);
@@ -130,25 +130,25 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
         ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
         ConstitutiveParameters.SetDeterminantF(detF);
         ConstitutiveParameters.SetDeformationGradientF(F);
-        
+
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); GPoint++ )
         {
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
             noalias(RelDispVector) = prod(Nu,DisplacementVector);
-            
+
             noalias(StrainVector) = prod(RotationMatrix,RelDispVector);
-            
+
             this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint);
-            
+
             noalias(Np) = row(NContainer,GPoint);
-            
+
             //compute constitutive tensor and/or stresses
             mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-            
+
             noalias(LocalStressVector) = StressVectorDynamic;
-            
+
             PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalStressVector);
         }
     }
@@ -164,16 +164,16 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
         BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
         array_1d<double,TDim> LocalRelDispVector;
         array_1d<double,TDim> RelDispVector;
-                
+
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); GPoint++ )
         {
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
             noalias(RelDispVector) = prod(Nu,DisplacementVector);
-            
+
             noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
-                        
+
             PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalRelDispVector);
         }
     }
@@ -188,7 +188,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
         const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = Geom.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
         GeometryType::JacobiansType JContainer(NumGPoints);
         Geom.Jacobian( JContainer, mThisIntegrationMethod );
-        
+
         //Defining necessary variables
         array_1d<double,TNumNodes> PressureVector;
         for(unsigned int i=0; i<TNumNodes; i++)
@@ -204,7 +204,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
         array_1d<double,TDim> LocalRelDispVector;
         array_1d<double,TDim> RelDispVector;
         const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
-        BoundedMatrix<double,TNumNodes, TDim> GradNpT; 
+        BoundedMatrix<double,TNumNodes, TDim> GradNpT;
         double JointWidth;
         BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
         const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
@@ -212,45 +212,45 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
         array_1d<double,TDim> LocalFluidFlux;
         array_1d<double,TDim> GradPressureTerm;
         SFGradAuxVariables SFGradAuxVars;
-        
+
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
         {
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
             noalias(RelDispVector) = prod(Nu,DisplacementVector);
-            
+
             noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
-            
+
             this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth,GPoint);
 
             this->template CalculateShapeFunctionsGradients< BoundedMatrix<double,TNumNodes,TDim> >(GradNpT,SFGradAuxVars,JContainer[GPoint],RotationMatrix,
                                                                                                                 DN_DeContainer[GPoint],NContainer,JointWidth,GPoint);
-            
+
             PoroElementUtilities::InterpolateVariableWithComponents(BodyAcceleration,NContainer,VolumeAcceleration,GPoint);
 
             InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(LocalPermeabilityMatrix,JointWidth);
-            
+
             noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
             noalias(GradPressureTerm) += -FluidDensity*BodyAcceleration;
-            
+
             noalias(LocalFluidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
-            
+
             PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalFluidFlux);
         }
     }
-    
+
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, 
+void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput,
                                                                                     const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    
+
     if(rVariable == PERMEABILITY_MATRIX)
     {
         const GeometryType& Geom = this->GetGeometry();
@@ -258,7 +258,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
 
         //Defining the shape functions container
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
-        
+
         //Defining necessary variables
         array_1d<double,TNumNodes*TDim> DisplacementVector;
         PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
@@ -271,22 +271,22 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
         double JointWidth;
         BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
         BoundedMatrix<double,TDim, TDim> PermeabilityMatrix;
-    
+
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); GPoint++ )
         {
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
             noalias(RelDispVector) = prod(Nu,DisplacementVector);
-            
+
             noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
-            
+
             this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth,GPoint);
 
             InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(LocalPermeabilityMatrix,JointWidth);
-            
+
             noalias(PermeabilityMatrix) = prod(trans(RotationMatrix),BoundedMatrix<double,TDim, TDim>(prod(LocalPermeabilityMatrix,RotationMatrix)));
-            
+
             rOutput[GPoint].resize(TDim,TDim,false);
             noalias(rOutput[GPoint]) = PermeabilityMatrix;
         }
@@ -298,7 +298,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
 
         //Defining the shape functions container
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
-        
+
         //Defining necessary variables
         array_1d<double,TNumNodes*TDim> DisplacementVector;
         PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
@@ -310,16 +310,16 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
         const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
         double JointWidth;
         BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
-    
+
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); GPoint++ )
         {
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
             noalias(RelDispVector) = prod(Nu,DisplacementVector);
-            
+
             noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
-            
+
             this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth,GPoint);
 
             InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(LocalPermeabilityMatrix,JointWidth);
@@ -328,7 +328,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
             noalias(rOutput[GPoint]) = LocalPermeabilityMatrix;
         }
     }
-    
+
     KRATOS_CATCH( "" )
 }
 
@@ -336,15 +336,15 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationP
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
-{    
+{
     KRATOS_TRY
-    
-    //Previous definitions 
+
+    //Previous definitions
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
     const unsigned int NumGPoints = integration_points.size();
-    
+
     //Containers of variables at all integration points
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
     const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = Geom.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
@@ -358,16 +358,16 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixTyp
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    
+
     //Element variables
     InterfaceElementVariables Variables;
     this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,CurrentProcessInfo);
-    
+
     //Auxiliary variables
     const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
     array_1d<double,TDim> RelDispVector;
     SFGradAuxVariables SFGradAuxVars;
-    
+
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
@@ -375,28 +375,28 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixTyp
         noalias(Variables.Np) = row(NContainer,GPoint);
         InterfaceElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
         noalias(RelDispVector) = prod(Variables.Nu,Variables.DisplacementVector);
-        noalias(Variables.StrainVector) = prod(Variables.RotationMatrix,RelDispVector);        
+        noalias(Variables.StrainVector) = prod(Variables.RotationMatrix,RelDispVector);
         this->CheckAndCalculateJointWidth(Variables.JointWidth,ConstitutiveParameters,Variables.StrainVector[TDim-1], MinimumJointWidth, GPoint);
         this->template CalculateShapeFunctionsGradients< Matrix >(Variables.GradNpT,SFGradAuxVars,JContainer[GPoint],Variables.RotationMatrix,
                                                         DN_DeContainer[GPoint],NContainer,Variables.JointWidth,GPoint);
-        
+
         //Compute BodyAcceleration and Permeability Matrix
         PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
         InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(Variables.LocalPermeabilityMatrix,Variables.JointWidth);
-        
+
         //Compute constitutive tensor and stresses
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
-        
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight(), CurrentProcessInfo );
+
         //Contributions to the left hand side
         this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
-        
+
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
     }
-    
+
     KRATOS_CATCH( "" )
 }
 
@@ -404,15 +404,15 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixTyp
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
-{     
+{
     KRATOS_TRY
-       
-    //Previous definitions 
+
+    //Previous definitions
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
     const unsigned int NumGPoints = integration_points.size();
-    
+
     //Containers of variables at all integration points
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
     const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = Geom.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
@@ -425,21 +425,21 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateRHS( VectorTyp
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    
+
     //Element variables
     InterfaceElementVariables Variables;
     this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,CurrentProcessInfo);
-    
+
     //Auxiliary variables
     const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
     array_1d<double,TDim> RelDispVector;
     SFGradAuxVariables SFGradAuxVars;
-    
+
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
         //Compute Np, StrainVector, JointWidth, GradNpT
-        noalias(Variables.Np) = row(NContainer,GPoint);        
+        noalias(Variables.Np) = row(NContainer,GPoint);
         InterfaceElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
         noalias(RelDispVector) = prod(Variables.Nu,Variables.DisplacementVector);
         noalias(Variables.StrainVector) = prod(Variables.RotationMatrix,RelDispVector);
@@ -450,17 +450,17 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::CalculateRHS( VectorTyp
         //Compute BodyAcceleration and Permeability Matrix
         PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
         InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(Variables.LocalPermeabilityMatrix,Variables.JointWidth);
-        
+
         //Compute constitutive tensor and stresses
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
-        
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight(), CurrentProcessInfo );
+
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
     }
-    
+
     KRATOS_CATCH( "" )
 }
 

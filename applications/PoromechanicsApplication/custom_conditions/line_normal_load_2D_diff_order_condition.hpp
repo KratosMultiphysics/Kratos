@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        KratosPoromechanicsApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:            January 2016 $
@@ -23,15 +23,15 @@ class KRATOS_API(POROMECHANICS_APPLICATION) LineNormalLoad2DDiffOrderCondition :
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION( LineNormalLoad2DDiffOrderCondition );
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
     LineNormalLoad2DDiffOrderCondition();
-    
+
     // Constructor 1
     LineNormalLoad2DDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry );
-    
+
     // Constructor 2
     LineNormalLoad2DDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
@@ -52,18 +52,18 @@ protected:
 
     void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber) override;
 
-    void CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight) override;
-    
+    void CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight, const ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
+
     // Serialization
-    
+
     friend class Serializer;
-    
+
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, GeneralUPwDiffOrderCondition )
@@ -78,4 +78,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_LINE_NORMAL_LOAD_2D_DIFF_ORDER_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_LINE_NORMAL_LOAD_2D_DIFF_ORDER_CONDITION_H_INCLUDED defined

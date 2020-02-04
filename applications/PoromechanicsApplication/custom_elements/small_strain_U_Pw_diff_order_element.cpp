@@ -344,7 +344,7 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix( MatrixType& rMassMatri
         }
 
         //calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient( IntegrationCoefficient, detJcontainer[PointNumber], integration_points[PointNumber].Weight() );
+        this->CalculateIntegrationCoefficient( IntegrationCoefficient, detJcontainer[PointNumber], integration_points[PointNumber].Weight(), rCurrentProcessInfo );
 
         //Adding contribution to Mass matrix
         noalias(M) += Density*prod(trans(Nu),Nu)*IntegrationCoefficient;
@@ -940,7 +940,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType& rLeftHandSideMatri
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         //calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient, Variables.detJuContainer[PointNumber], integration_points[PointNumber].Weight() );
+        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient, Variables.detJuContainer[PointNumber], integration_points[PointNumber].Weight(), rCurrentProcessInfo );
 
         //Contributions to the left hand side
         if ( CalculateLHSMatrixFlag )
@@ -1160,7 +1160,7 @@ void SmallStrainUPwDiffOrderElement::SetElementalVariables(ElementalVariables& r
 
 //----------------------------------------------------------------------------------------
 
-void SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, double detJu, double weight)
+void SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, double detJu, double weight, const ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
