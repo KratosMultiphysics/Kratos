@@ -153,8 +153,6 @@ public:
 
     void ExecuteInitialize() override;
 
-    void ExecuteBeforeSolutionLoop() override;
-
     void ExecuteInitializeSolutionStep() override;
 
     void ExecuteBeforeOutputStep() override;
@@ -222,6 +220,12 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Create a Visualization Mesh object
+     * Fills the visualization model part with the corresponding geometrical entities
+     */
+    void CreateVisualizationMesh();
 
     /**
      * Computes the interpolation in the new (interface) nodes

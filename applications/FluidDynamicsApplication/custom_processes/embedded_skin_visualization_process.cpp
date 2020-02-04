@@ -125,35 +125,25 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitialize()
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationComponentVariables[i_var], r_orig_node);
     }
 
+    // Initialize the visualization mesh creation flag
+    mSetVisualizationMesh = true;
+
     KRATOS_CATCH("");
-}
-
-void EmbeddedSkinVisualizationProcess::ExecuteBeforeSolutionLoop()
-{
-    if (mSetVisualizationMesh){
-        // Copy the original nodes to the visualization model part
-        this->CopyOriginNodes();
-
-        // Creates the visualization model part geometrical entities (elements and conditions)
-        this->CreateVisualizationGeometries();
-
-        // Avoid creating the visualization mesh again
-        mSetVisualizationMesh = false;
-    }
 }
 
 void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep()
 {
     mrVisualizationModelPart.GetProcessInfo().GetValue(STEP) = mrModelPart.GetProcessInfo().GetValue(STEP);
     mrVisualizationModelPart.GetProcessInfo().GetValue(TIME) = mrModelPart.GetProcessInfo().GetValue(TIME);
-
-    if (mReformModelPartAtEachTimeStep) {
-        this->ExecuteBeforeSolutionLoop();
-    }
 }
 
 void EmbeddedSkinVisualizationProcess::ExecuteBeforeOutputStep()
 {
+    // If required, set the visualization mesh
+    if (mSetVisualizationMesh) {
+        this->CreateVisualizationMesh();
+    }
+
     // Copy the origin model part nodal values for the non-intersection nodes
     this->CopyOriginNodalValues();
 
@@ -249,6 +239,18 @@ void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation()
             }
         }
     }
+}
+
+void EmbeddedSkinVisualizationProcess::CreateVisualizationMesh()
+{
+    // Copy the original nodes to the visualization model part
+    this->CopyOriginNodes();
+
+    // Creates the visualization model part geometrical entities (elements and conditions)
+    this->CreateVisualizationGeometries();
+
+    // Set the visualization mesh flag to false
+    mSetVisualizationMesh = false;
 }
 
 void EmbeddedSkinVisualizationProcess::CopyOriginNodes()
