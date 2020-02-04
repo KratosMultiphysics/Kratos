@@ -121,7 +121,7 @@ public:
     }
 
     /// The total number of cells in the container
-    const std::size_t GetTotalNumberOfCells(){
+    std::size_t GetTotalNumberOfCells(){
         return mNumberOfCells[0] * mNumberOfCells[1] * mNumberOfCells[2];
     }
 
