@@ -8,6 +8,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/ublas_interface.h"
 #include "includes/ublas_complex_interface.h"
 
 namespace Kratos
@@ -15,6 +16,10 @@ namespace Kratos
 namespace GeneralizedEigenvalueUtility
 {
 
+    void SolveGEP(const Eigen::MatrixXcd& rA, const Eigen::MatrixXcd& rB, Eigen::Map<Eigen::ArrayXcd>& rEV);
+
+    void SolveGEP(const Eigen::MatrixXd& rA, const Eigen::MatrixXd& rB, Eigen::Map<Eigen::ArrayXcd>& rEV);
+    
     template <typename DenseSpaceType>
     void ComputePolynomial(typename DenseSpaceType::MatrixType& rA0, 
         typename DenseSpaceType::MatrixType& rA1, 
@@ -32,7 +37,8 @@ namespace GeneralizedEigenvalueUtility
         Eigen::Map<EigenMatrixType> A1(rA1.data().begin(), rA1.size1(), rA1.size2());
         Eigen::Map<EigenMatrixType> A2(rA2.data().begin(), rA2.size1(), rA2.size2());
 
-        Eigen::Map<Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1>> ev(rEigenvalues.data().begin(), rEigenvalues.size());
+        // Eigen::Map<Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1>> ev(rEigenvalues.data().begin(), rEigenvalues.size());
+        Eigen::Map<Eigen::ArrayXcd> ev(rEigenvalues.data().begin(), rEigenvalues.size());
 
         // linearization (L1)
         EigenMatrixType I(EigenMatrixType::Identity(system_size, system_size));
@@ -55,10 +61,12 @@ namespace GeneralizedEigenvalueUtility
         // B.block(system_size, 0, system_size, system_size) = I;
 
         // solve generalized eigenvalue problem
-        Eigen::GeneralizedEigenSolver<EigenMatrixType> ges;
-        ges.compute(A,B,false);
+        // Eigen::GeneralizedEigenSolver<EigenMatrixType> ges;
+        // ges.compute(A,B,false);
 
-        ev = ges.eigenvalues();
+        // ev = ges.eigenvalues();
+        // dispatch
+        SolveGEP(A, B, ev);
     }
 
     /**
@@ -91,7 +99,7 @@ namespace GeneralizedEigenvalueUtility
         ev = ces.eigenvalues();
     }
 
-} // namespace GeneralizedEigenvalueUtility
+}; // namespace GeneralizedEigenvalueUtility
 
 } // namespace Kratos
 

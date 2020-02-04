@@ -23,6 +23,7 @@ set( KRATOS_MOR_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/mor_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/acoustic_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/displacement_output_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/generalized_eigenvalue_utility.cpp
 
     ## PYTHON
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/mor_python_application.cpp

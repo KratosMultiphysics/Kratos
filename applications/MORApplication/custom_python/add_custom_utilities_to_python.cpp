@@ -20,11 +20,10 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "includes/define.h"
 #include "spaces/ublas_space.h"
-#include "includes/ublas_interface.h"
 #include "includes/ublas_complex_interface.h"
 
 //Utilities
-#include "custom_utilities/generalized_eigenvalue_utility.hpp"
+#include "custom_utilities/generalized_eigenvalue_utility.h"
 #include "custom_utilities/complex_sort_utility.hpp"
 
 
