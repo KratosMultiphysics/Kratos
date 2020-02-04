@@ -46,6 +46,7 @@
 #include "custom_conditions/Point_Neumann3D.h"
 #include "custom_conditions/Point_Neumann3D_vel.h"
 #include "custom_conditions/Point_Neumann2D.h"
+#include "custom_conditions/Point_Neumann2D_vel.h"
 #include "custom_conditions/Point_Neumann_Axisym.h"
 #include "custom_elements/surface_tension.h"
 
@@ -233,6 +234,7 @@ private:
     const PointNeumann3D  mPointNeumann3D;
     const PointNeumann2D  mPointNeumann2D;
     const PointNeumann3D_vel  mPointNeumann3D_vel;
+    const PointNeumann2D_vel  mPointNeumann2D_vel;
     const PointNeumannAxisym  mPointNeumannAxisym;
     
        /// 2D instance of the SurfaceTension element

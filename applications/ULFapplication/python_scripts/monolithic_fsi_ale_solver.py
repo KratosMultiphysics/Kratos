@@ -5,7 +5,7 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 #from KratosMultiphysics.SolidMechanicsApplication import *
 #from KratosMultiphysics.ConstitutiveModelsApplication import *
 
-
+import KratosMultiphysics
 from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
@@ -83,15 +83,16 @@ class FsiAleMonolithicSolver:
         # eul_model_part can be 0 (meaning that the model part is lagrangian) or 1 (eulerian)
         
 
+        #self.alpha = -0.3
         self.alpha = -0.3
         #2 Lagr 0 Eul #1 ALE
         #self.move_mesh_strategy = 2
         self.move_mesh_strategy = 1
 
         # definition of the convergence criteria
-        self.rel_vel_tol = 1e-3
-        self.abs_vel_tol = 1e-6
-        self.rel_pres_tol = 1e-3
+        self.rel_vel_tol = 1e-6
+        self.abs_vel_tol = 1e-8
+        self.rel_pres_tol = 1e-6
         self.abs_pres_tol = 1e-6
         self.dynamic_tau = 0.0
         self.oss_switch = 0
@@ -120,8 +121,28 @@ class FsiAleMonolithicSolver:
         #self.spalart_allmaras_linear_solver = None
         
         pDiagPrecond = DiagonalPreconditioner()
-        self.linear_solver = BICGSTABSolver(1e-6, 5000, pDiagPrecond)
-
+        #pILU0 = ILU0Preconditioner()
+        self.linear_solver = BICGSTABSolver(1e-4, 5000, pDiagPrecond)
+        #self.linear_solver = BICGSTABSolver(1e-5, 5000, pILU0)
+        #self.linear_solver = GMRESSolver(1e-5, 5000, None)
+        linear_solver_settings = KratosMultiphysics.Parameters("""
+        {
+                "solver_type"              : "AMGCL",
+                "smoother_type"            : "ilu0",
+                "preconditioner_type"      : "relaxation",
+                "gmres_krylov_space_dimension"         : 50,
+                "krylov_type"              : "gmres",
+                "coarsening_type"          : "aggregation",
+                "max_iteration"            : 1000,
+                "tolerance"                : 1.0e-4,
+                "scaling"                  : false               
+         
+        }
+        """)
+        
+        #import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+        #self.linear_solver = linear_solver_factory.ConstructSolver(linear_solver_settings)
+        
         self.divergence_clearance_steps = 0
 
         print("Construction monolithic solver finished")
@@ -147,6 +168,10 @@ class FsiAleMonolithicSolver:
         #for computing pressure in hypoelastic element
         #self.pressure_calculate_process = PressureCalculateProcess(self.model_part, self.domain_size);
         self.hypoelastic_solid_stress_tensor_calculate_process=HypoelasticStressCalculateProcess(self.model_part, self.domain_size)
+        
+        
+        outstring = "convergence_info.txt"
+        self.outputfile1 = open(outstring, 'w')
         
     #
     def Initialize(self):
@@ -175,8 +200,10 @@ class FsiAleMonolithicSolver:
         (self.neigh_finder).Execute();       
         #we need normals to prescribe the inlet velocity
         self.normal_util = NormalCalculationUtils()
+        self.body_normal_util=BodyNormalCalculationUtils()
         
-        self.normal_util.CalculateOnSimplex(self.model_part.Conditions, self.domain_size)
+        #self.normal_util.CalculateOnSimplex(self.model_part.Conditions, self.domain_size)
+        self.body_normal_util.CalculateBodyNormals(self.model_part, self.domain_size)
         #NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part.Conditions, self.domain_size)     
         #initializes Cachy stress to zero
         self.hypoelastic_solid_stress_tensor_calculate_process.Execute()
@@ -194,8 +221,10 @@ class FsiAleMonolithicSolver:
         #self.pressure_calculate_process.Execute()
         self.hypoelastic_solid_stress_tensor_calculate_process.Execute()
         print("Lalalal222222222222222")
+        it_number=self.linear_solver.GetIterationsNumber();
+        print ("\n\n\n\n\n\nNumber of iterations for solving the monol FSI system is ",it_number )    
 
-
+        self.outputfile1.write(str(it_number) + "\n")
 
     def SetEchoLevel(self, level):
         (self.solver).SetEchoLevel(level)

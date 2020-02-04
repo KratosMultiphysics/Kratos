@@ -149,7 +149,8 @@ density=problem_settings.density
 FSI=problem_settings.FSI
 
 eul_model_part = 0
-gamma = 0.072 		#surface tension coefficient [N m-1]
+#gamma = 0.072 		#surface tension coefficient [N m-1]
+gamma=0.0000001
 contact_angle = 45.0	#contact angle [deg]
 
 zeta_dissapative_JM = 1.0

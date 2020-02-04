@@ -58,6 +58,7 @@ KratosULFApplication::KratosULFApplication():
     mPointNeumann3D(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mPointNeumann3D_vel(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mPointNeumann2D(0, Element::GeometryType::Pointer(new Point2D <Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mPointNeumann2D_vel(0, Element::GeometryType::Pointer(new Point2D <Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mPointNeumannAxisym(0, Element::GeometryType::Pointer(new Point2D <Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mSurfaceTension2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mSurfaceTension3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
@@ -146,6 +147,7 @@ void KratosULFApplication::Register()
     KRATOS_REGISTER_CONDITION("PointNeumann3D", mPointNeumann3D);
     KRATOS_REGISTER_CONDITION("PointNeumann3D_vel", mPointNeumann3D_vel);
     KRATOS_REGISTER_CONDITION("PointNeumann2D", mPointNeumann2D);
+    KRATOS_REGISTER_CONDITION("PointNeumann2D_vel", mPointNeumann2D_vel);
     KRATOS_REGISTER_CONDITION("PointNeumannAxisym", mPointNeumannAxisym);
     
     KRATOS_REGISTER_ELEMENT("SurfaceTension2D3N",mSurfaceTension2D); //this is the name the element should have according to the naming convention
