@@ -1,6 +1,9 @@
 name: CI
 
 on:
+  push:
+    branch:
+      -run-ci/**
   pull_request:
     paths:
     - '.github/**'
@@ -70,7 +73,7 @@ jobs:
         ccache -s
 
     - name: Running small tests
-      if: github.event_name == 'pull_request'
+      if: github.event_name == 'pull_request' || github.even_name != 'schedule'
       run: |
         export MKLVARS_ARCHITECTURE=intel64
         export MKLVARS_INTERFACE=lp64
