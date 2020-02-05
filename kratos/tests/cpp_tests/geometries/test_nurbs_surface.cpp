@@ -424,6 +424,47 @@ namespace Testing {
         }
         KRATOS_CHECK_NEAR(area, 50.0, TOLERANCE);
     }
+
+    /// Check quadrature point geometries of nurbs surface.
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceQuadraturePointGeometries, KratosCoreNurbsGeometriesFastSuite) {
+        auto surface = GenerateReferenceNodeSurface();
+
+        // Check general information, input to ouput
+        typename Geometry<Node<3>>::GeometriesArrayType quadrature_points;
+        surface.CreateQuadraturePointGeometries(quadrature_points, 3);
+
+        KRATOS_CHECK_EQUAL(quadrature_points.size(), 6);
+        double area = 0;
+        for (IndexType i = 0; i < quadrature_points.size(); ++i) {
+            for (IndexType j = 0; j < quadrature_points.size(); ++j) {
+                area += quadrature_points[i].IntegrationPoints[j].Weight();
+            }
+        }
+        KRATOS_CHECK_NEAR(area, 50.0, TOLERANCE);
+
+        const Element& rReferenceElement = KratosComponents<Element>::Get("Element");
+
+        auto p_element = rReferenceElement.Create(0, quadrature_points[2], nullptr);
+
+        // Check shape functions
+        KRATOS_CHECK_MATRIX_NEAR(
+            p_element->pGetGeometry()->ShapeFunctionsValues(),
+            quadrature_points(2)->ShapeFunctionsValues(),
+            TOLERANCE)
+
+        // Check first derivatives
+        KRATOS_CHECK_MATRIX_NEAR(
+            p_element->GetGeometry().ShapeFunctionDerivatives(1, 0),
+            quadrature_points(2)->ShapeFunctionLocalGradient(0),
+            TOLERANCE)
+
+        // Check second derivatives
+        KRATOS_CHECK_MATRIX_NEAR(
+            p_element->GetGeometry().ShapeFunctionDerivatives(2,0),
+            quadrature_points(2)->ShapeFunctionDerivatives(2, 0),
+            TOLERANCE)
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(NurbsQuarterSphereSurface, KratosCoreNurbsGeometriesFastSuite) {
         auto surface = GenerateReferenceQuarterSphereGeometry();
 
