@@ -151,6 +151,9 @@ public:
     {
     }
 
+    /// Destructor.
+    ~QuadraturePointGeometry() override = default;
+
     /// Copy constructor with different point type.
     template<class TOtherPointType>
     QuadraturePointGeometry( QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const& rOther )
@@ -159,9 +162,6 @@ public:
         , mpGeometryParent(rOther.mpGeometryParent)
     {
     }
-
-    /// Destructor. Does nothing!!!
-    ~QuadraturePointGeometry() override {}
 
     ///@}
     ///@name Operators
