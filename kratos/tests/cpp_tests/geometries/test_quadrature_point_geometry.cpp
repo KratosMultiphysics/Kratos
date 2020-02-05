@@ -172,5 +172,25 @@ namespace Kratos {
                 p_this_quadrature_point->ShapeFunctionsValues(),
                 1e-6);
         }
+
+        KRATOS_TEST_CASE_IN_SUITE(QuadraturePointGeometry2dAssignmentOperatorDifferentPointType, KratosCoreFastSuite)
+        {
+            auto p_this_quadrature_point = GenerateQuadraturePointGeometry2();
+
+            QuadraturePointGeometry<Point, 2, 2> geom = *p_this_quadrature_point;
+
+            KRATOS_CHECK_EQUAL(geom.size(), 3);
+            KRATOS_CHECK_EQUAL(geom.WorkingSpaceDimension(), 2);
+            KRATOS_CHECK_EQUAL(geom.LocalSpaceDimension(), 2);
+            KRATOS_CHECK_EQUAL(geom.Dimension(), 2);
+
+            KRATOS_CHECK_EQUAL(geom.ShapeFunctionsValues().size1(), 1);
+            KRATOS_CHECK_EQUAL(geom.ShapeFunctionsValues().size2(), 3);
+
+            KRATOS_CHECK_MATRIX_NEAR(
+                geom.ShapeFunctionsValues(),
+                p_this_quadrature_point->ShapeFunctionsValues(),
+                1e-6);
+        }
     } // namespace Testing
 }  // namespace Kratos.
