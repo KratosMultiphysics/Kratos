@@ -142,7 +142,7 @@ def CreateXdmfSpatialGrid(h5_model_part):
             connectivities = HDF5UniformDataItem(value["Connectivities"])
             topology = UniformMeshTopology(cell_type, connectivities)
             sgrid.add_grid(UniformGrid(spatial_grid_name + "." + name, geom, topology))
-            print("Added " + spatial_grid_name + "." + name + " spatial grid.")
+            KratosMultiphysics.Logger.PrintInfo("XDMF", "Added " + spatial_grid_name + "." + name + " spatial grid.")
 
     return sgrid
 
