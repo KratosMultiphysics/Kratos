@@ -424,18 +424,11 @@ void  Wrinkling2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& 
     // do standard calculation
     Vector strain_vector = rValues.GetStrainVector();
     Vector stress_vector = ZeroVector(3);
-
-    // consider initial pre-stress state which is calculated on element level (i.e. projection)
-    // this must be manually set in the element
-    Vector pre_stress_vector = ZeroVector(3);
-    if (rValues.IsSetStressVector()){
-        pre_stress_vector = rValues.GetStressVector();
-        stress_vector += pre_stress_vector;
-    }
+    const Properties& base_claw_prop = *(rValues.GetMaterialProperties().GetSubProperties().begin());
 
     Matrix material_tangent_modulus = ZeroMatrix(3);
     ConstitutiveLaw::Parameters element_parameters;
-    element_parameters.SetMaterialProperties(rValues.GetMaterialProperties());
+    element_parameters.SetMaterialProperties(base_claw_prop);
     element_parameters.SetStrainVector(strain_vector);
     element_parameters.SetStressVector(stress_vector);
     element_parameters.SetConstitutiveMatrix(material_tangent_modulus);
@@ -444,6 +437,13 @@ void  Wrinkling2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& 
     element_parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     mpConstitutiveLaw->CalculateMaterialResponsePK2(element_parameters);
 
+    // consider initial pre-stress state which is calculated on element level (i.e. projection)
+    // this must be manually set in the element
+    Vector pre_stress_vector = ZeroVector(3);
+    if (rValues.IsSetStressVector()){
+        pre_stress_vector = rValues.GetStressVector();
+        stress_vector += pre_stress_vector;
+    }
 
     // check wrinkling state
     Vector wrinkling_direction = ZeroVector(2);
@@ -481,7 +481,7 @@ void  Wrinkling2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& 
 
         stress_vector = ZeroVector(3);
         ConstitutiveLaw::Parameters wrinkled_element_parameters;
-        wrinkled_element_parameters.SetMaterialProperties(rValues.GetMaterialProperties());
+        wrinkled_element_parameters.SetMaterialProperties(base_claw_prop);
         wrinkled_element_parameters.SetStrainVector(strain_vector);
         wrinkled_element_parameters.SetStressVector(stress_vector);
         wrinkled_element_parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -502,11 +502,13 @@ void  Wrinkling2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& 
     // set the data on the main claw
     Flags& r_constitutive_law_options = rValues.GetOptions();
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS )) {
-        rValues.SetStressVector(stress_vector);
+        Vector& r_stress_vector = rValues.GetStressVector();
+        r_stress_vector = stress_vector;
     }
 
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
-        rValues.SetConstitutiveMatrix(material_tangent_modulus);
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        r_constitutive_matrix = material_tangent_modulus;
     }
     KRATOS_CATCH("");
 }
