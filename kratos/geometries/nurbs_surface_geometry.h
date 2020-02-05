@@ -346,12 +346,12 @@ public:
             rResultGeometries.resize(rIntegrationPoints.size());
 
         auto default_method = this->GetDefaultIntegrationMethod();
-        SizeType number_of_non_zero_cps = shape_function_container.NumberOfNonzeroControlPoints();
+        SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
 
-        Matrix N(1, number_of_non_zero_cps);
+        Matrix N(1, num_nonzero_cps);
         DenseVector<Matrix> shape_function_derivatives(NumberOfShapeFunctionDerivatives - 1);
         for (IndexType i = 0; i < NumberOfShapeFunctionDerivatives - 1; i++) {
-            shape_function_derivatives[i].resize(number_of_non_zero_cps, i + 2);
+            shape_function_derivatives[i].resize(num_nonzero_cps, i + 2);
         }
 
         for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
@@ -366,25 +366,25 @@ public:
             }
 
             /// Get List of Control Points
-            PointsArrayType nonzero_control_points(number_of_non_zero_cps);
+            PointsArrayType nonzero_control_points(num_nonzero_cps);
             auto cp_indices = shape_function_container.ControlPointIndices(
                 NumberOfControlPointsU(), NumberOfControlPointsV());
-            for (IndexType j = 0; j < number_of_non_zero_cps; j++) {
-                nonzero_control_points[j] += (*this)[cp_indices[j]];
+            for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                nonzero_control_points(j) = pGetPoint(cp_indices[j]);
             }
-
             /// Get Shape Functions N
             if (NumberOfShapeFunctionDerivatives >= 0) {
-                for (IndexType j = 0; j < number_of_non_zero_cps; j++) {
+                for (IndexType j = 0; j < num_nonzero_cps; j++) {
                     N(0, j) = shape_function_container(cp_indices[j], 0);
                 }
             }
+
             /// Get Shape Function Derivatives DN_De, ...
             if (NumberOfShapeFunctionDerivatives > 0) {
                 IndexType shape_derivative_index = 1;
                 for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; n++) {
                     for (IndexType k = 0; k < n + 2; k++) {
-                        for (IndexType j = 0; j < number_of_non_zero_cps; j++) {
+                        for (IndexType j = 0; j < num_nonzero_cps; j++) {
                             shape_function_derivatives[n](j, k) = shape_function_container(cp_indices[j], shape_derivative_index + k);
                         }
                     }
