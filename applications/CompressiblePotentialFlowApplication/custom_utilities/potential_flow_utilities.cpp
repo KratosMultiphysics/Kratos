@@ -11,6 +11,7 @@
 
 #include "custom_utilities/potential_flow_utilities.h"
 #include "compressible_potential_flow_application_variables.h"
+#include "fluid_dynamics_application_variables.h"
 #include "includes/model_part.h"
 
 namespace Kratos {
@@ -204,6 +205,45 @@ double ComputeCompressiblePressureCoefficient(const Element& rElement, const Pro
 }
 
 template <int Dim, int NumNodes>
+double ComputeLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCurrentProcessInfo)
+{
+    // Implemented according to Equation 8.7 of Drela, M. (2014) Flight Vehicle
+    // Aerodynamics, The MIT Press, London
+    // Reading free stream conditions
+    const array_1d<double, 3>& v_inf = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
+    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+    const double a_inf = rCurrentProcessInfo[SOUND_VELOCITY];
+
+    // Computing local velocity
+    array_1d<double, Dim> v = ComputeVelocity<Dim, NumNodes>(rElement);
+
+    // Computing squares
+    const double v_inf_2 = inner_prod(v_inf, v_inf);
+    const double M_inf_2 = M_inf * M_inf;
+    const double v_2 = inner_prod(v, v);
+
+    KRATOS_ERROR_IF(v_inf_2 < std::numeric_limits<double>::epsilon())
+        << "Error on element -> " << rElement.Id() << "\n"
+        << "v_inf_2 must be larger than zero." << std::endl;
+
+    return a_inf * sqrt(1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2);
+}
+
+template <int Dim, int NumNodes>
+double ComputeLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo)
+{
+    // Implemented according to Equation 8.8 of Drela, M. (2014) Flight Vehicle
+    // Aerodynamics, The MIT Press, London
+
+    array_1d<double, Dim> velocity = ComputeVelocity<Dim, NumNodes>(rElement);
+    const double velocity_module = sqrt(inner_prod(velocity, velocity));
+    const double local_speed_of_sound = ComputeLocalSpeedOfSound<Dim, NumNodes>(rElement, rCurrentProcessInfo);
+
+    return velocity_module / local_speed_of_sound;
+}
+
+template <int Dim, int NumNodes>
 bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances)
 {
     // Initialize counters
@@ -223,6 +263,21 @@ bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodal
     // Elements with nodes above and below the wake are wake elements
     return number_of_nodes_with_negative_distance > 0 &&
            number_of_nodes_with_positive_distance > 0;
+}
+
+bool CheckIfElementIsTrailingEdge(const Element& rElement)
+{
+    const auto& r_geometry = rElement.GetGeometry();
+    bool is_trailing_edge = false;
+
+    for(unsigned int i_node = 0; i_node<r_geometry.size(); i_node++){
+
+        if (r_geometry[i_node].GetValue(TRAILING_EDGE)) {
+            is_trailing_edge = true;
+        }
+    }
+
+    return is_trailing_edge;
 }
 
 template <int Dim>
@@ -284,6 +339,8 @@ template array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element
 template array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
 template double ComputeIncompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeCompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeLocalSpeedOfSound<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeLocalMachNumber<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
@@ -303,6 +360,8 @@ template array_1d<double, 3> ComputeVelocityLowerWakeElement<3, 4>(const Element
 template array_1d<double, 3> ComputeVelocity<3, 4>(const Element& rElement);
 template double ComputeIncompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeCompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeLocalSpeedOfSound<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double ComputeLocalMachNumber<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);

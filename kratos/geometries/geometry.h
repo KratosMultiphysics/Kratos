@@ -228,11 +228,11 @@ public:
     {
     }
 
-    /// Standard Constructor with a Id
+    /// Standard Constructor with a geometry Id
     Geometry(IndexType GeomertyId)
-        : mId(GeomertyId)
-        , mpGeometryData(&GeometryDataInstance())
+        : mpGeometryData(&GeometryDataInstance())
     {
+        SetId(GeomertyId);
     }
 
     /// Standard Constructor with a Name
@@ -310,13 +310,13 @@ public:
     }
 
     Geometry(
-        IndexType Id,
+        IndexType GeometryId,
         const PointsArrayType& ThisPoints,
         GeometryData const* pThisGeometryData = &GeometryDataInstance())
-        : mId(Id)
-        , mpGeometryData(pThisGeometryData)
+        : mpGeometryData(pThisGeometryData)
         , mPoints(ThisPoints)
     {
+        SetId(GeometryId);
     }
 
     Geometry(
@@ -643,7 +643,9 @@ public:
         // is self assigned or not.
         KRATOS_ERROR_IF(IsIdGeneratedFromString(Id)
             || IsIdSelfAssigned(Id))
-            << "Id out of range. The Id must me lower than 2^62 = 4.61e+18"
+            << "Id: " << Id << " out of range. The Id must me lower than 2^62 = 4.61e+18. "
+            << "Geometry being recognized as generated from string: " << IsIdGeneratedFromString(Id)
+            << ", self assigned: " << IsIdSelfAssigned(Id) << "."
             << std::endl;
 
         mId = Id;
@@ -3514,37 +3516,37 @@ private:
     /// Checks first bit in Id. 0 -> id; 1 -> name/ string
     static inline bool IsIdGeneratedFromString(IndexType Id)
     {
-        return Id & (IndexType(1) << (sizeof(IndexType) - 1));
+        return Id & (IndexType(1) << (sizeof(IndexType) * 8 - 1));
     }
 
     /// Sets first bit in Id to 1 -> name/ string
     static inline void SetIdGeneratedFromString(IndexType& Id)
     {
-        Id |= (IndexType(1) << (sizeof(IndexType) - 1));
+        Id |= (IndexType(1) << (sizeof(IndexType) * 8 - 1));
     }
 
     /// Sets first bit in Id to 0 -> no name/ string
     static inline void SetIdNotGeneratedFromString(IndexType& Id)
     {
-        Id &= ~(IndexType(1) << (sizeof(IndexType) - 1));
+        Id &= ~(IndexType(1) << (sizeof(IndexType) * 8 - 1));
     }
 
     /// Checks second bit in Id. 0 -> defined id; 1 -> self assigned
     static inline bool IsIdSelfAssigned(IndexType Id)
     {
-        return Id & (IndexType(1) << (sizeof(IndexType) - 2));
+        return Id & (IndexType(1) << (sizeof(IndexType) * 8 - 2));
     }
 
     /// Sets second bit in Id to 1 -> self assigned
     static inline void SetIdSelfAssigned(IndexType& Id)
     {
-        Id |= (IndexType(1) << (sizeof(IndexType) - 2));
+        Id |= (IndexType(1) << (sizeof(IndexType) * 8 - 2));
     }
 
     /// Sets second bit in Id to 0 -> not self assigned
     static inline void SetIdNotSelfAssigned(IndexType& Id)
     {
-        Id &= ~(IndexType(1) << (sizeof(IndexType) - 2));
+        Id &= ~(IndexType(1) << (sizeof(IndexType) * 8 - 2));
     }
 
     ///@}
