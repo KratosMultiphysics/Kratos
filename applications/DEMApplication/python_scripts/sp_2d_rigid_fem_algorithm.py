@@ -6,9 +6,10 @@ import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
 class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
 
     def __init__(self, model, project_parameters):
-        super(DEMAnalysisStage2DSpRigidFem,self).__init__(model, project_parameters)
+        super(DEMAnalysisStage2DSpRigidFem, self).__init__(model, project_parameters)
 
-    def PrintResultsForGidAdditionalOperations(self):
+    def PrintResultsForGid(self, time):
+        super(DEMAnalysisStage2DSpRigidFem, self).PrintResultsForGid(time)
 
         DemFem.DemStructuresCouplingUtilities().MarkBrokenSpheres(self.spheres_model_part)
 
@@ -44,7 +45,7 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         spheres_mp_filename_post = self.problem_name + 'DEM_Post'
 
         if self.write_mdpa_from_results:
-            mesh_creator_sphere_2D.WriteSphereMdpaFromResults(self.problem_name + 'DEM', spheres_mp_filename_post, self.file_msh, self.post_path)
+            mesh_creator_sphere_2D.WriteSphereMdpaFromResults(self.problem_name + 'DEM', spheres_mp_filename_post, self.file_msh, self.file_res, self.post_path)
 
 if __name__ == "__main__":
     DEMAnalysisStage2DSpRigidFem(model, project_parameters).Run()

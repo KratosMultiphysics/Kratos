@@ -664,11 +664,7 @@ class DEMAnalysisStage(AnalysisStage):
                 self.vtk_output.WriteResults(self.time)
 
         self.file_msh = self.demio.GetMultiFileListName(self.problem_name + "_" + "%.12g"%time + ".post.msh")
-
-        self.PrintResultsForGidAdditionalOperations()
-
-    def PrintResultsForGidAdditionalOperations(self):
-        pass
+        self.file_res = self.demio.GetMultiFileListName(self.problem_name + "_" + "%.12g"%time + ".post.res")
 
     def GraphicalOutputFinalize(self):
         self.demio.FinalizeMesh()

@@ -1,11 +1,12 @@
 
-def WriteSphereMdpaFromResults(filename_pre, filename_post, filename_msh, post_path):
+def WriteSphereMdpaFromResults(filename_pre, filename_post, filename_msh, filename_res, post_path):
 
     SpheresMdpa_pre  = open(filename_pre + ".mdpa" , 'r')
     msh              = open(post_path + "/" + filename_msh, 'r')
     rad              = open(post_path + "/" + filename_msh, 'r')
     coh              = open(post_path + "/" + filename_msh, 'r')
     mod              = open(post_path + "/" + filename_msh, 'r')
+    ski              = open(post_path + "/" + filename_res, 'r')
     SpheresMdpa_post = open(filename_post + ".mdpa", 'w')
 
     for Line in SpheresMdpa_pre:
@@ -75,13 +76,31 @@ def WriteSphereMdpaFromResults(filename_pre, filename_post, filename_msh, post_p
             ElementList = Line.split(' ')
             SpheresMdpa_post.write(ElementList[1] + ' 0 1' + '\n')
 
+    flag_ski = 0
+    for Line in ski:
+        if 'SKIN_SPHERE' in Line and flag_ski == 0:
+            SpheresMdpa_post.write('\nBegin NodalData SKIN_SPHERE  // GUI group identifier: dems Elementid CylinderContinuumParticle2D\n')
+            flag_ski = 1
+            continue
+        if 'Values' in Line and flag_ski == 1:
+            flag_ski = 2
+            continue
+        if 'Values' in Line and flag_ski == 2:
+            SpheresMdpa_post.write('End NodalData\n')
+            ski.close()
+            break
+        if flag_ski == 2:
+            Line = Line.strip('\n') # Remove the line-ending characters
+            ElementList = Line.split(' ')
+            SpheresMdpa_post.write(ElementList[0] + ' 0 ' + ElementList[1] + '\n')
+
     flag_mod = 0
     for Line in mod:
         if 'ElemType Sphere Nnode 1' in Line:
             flag_mod = 1
         if 'Coordinates' in Line and flag_mod == 1:
             flag_mod = 2
-            SpheresMdpa_post.write('Begin SubModelPart Parts_dems // Group dems // Subtree Parts\nBegin SubModelPartNodes\n')
+            SpheresMdpa_post.write('\nBegin SubModelPart Parts_dems // Group dems // Subtree Parts\nBegin SubModelPartNodes\n')
             continue
         if 'Coordinates' in Line and flag_mod == 2:
             flag_mod = 3
