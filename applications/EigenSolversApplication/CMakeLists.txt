@@ -54,7 +54,7 @@ file(
 ###############################################################
 ## EigenSolversApplication core library (C++ parts)
 add_library( KratosEigenSolversCore SHARED ${KRATOS_EIGENSOLVERS_APPLICATION_CORE_SOURCES} )
-target_link_libraries( KratosEigenSolversCore PRIVATE KratosCore )
+target_link_libraries( KratosEigenSolversCore PUBLIC KratosCore )
 set_target_properties( KratosEigenSolversCore PROPERTIES COMPILE_DEFINITIONS "EIGENSOLVERS_APPLICATION=EXPORT,API")
 
 ## EigenSolversApplication python module
@@ -74,6 +74,7 @@ endif()
 
 # changing the .dll suffix to .pyd
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
+    set_target_properties( KratosEigenSolversCore PROPERTIES SUFFIX .pyd )
     set_target_properties( KratosEigenSolversApplication PROPERTIES SUFFIX .pyd )
 endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 
