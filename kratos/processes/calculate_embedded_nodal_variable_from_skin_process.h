@@ -344,7 +344,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Clear()
+    void Clear() override
     {
         Model& current_model = mrBaseModelPart.GetModel();
         ModelPart& r_intersected_edges_model_part = current_model.GetModelPart( mAuxModelPartName );
