@@ -233,6 +233,17 @@ public:
 };
 
 template <typename TComponent>
+class ComponentConditionSynchronizingFunctor
+{
+public:
+    void operator()(TComponent const& rComponent,
+                    std::vector<ConditionType*>& rGhostItems,
+                    Communicator& rCommunicator)
+    {
+    }
+};
+
+template <typename TComponent>
 class ComponentNodeSynchronizingFunctor
 {
 public:
@@ -268,6 +279,18 @@ class ReadElementComponent
 };
 
 template <typename TComponent>
+class WriteConditionComponent
+    : public ContainerItemComponentIO<ConditionType>::WriteComponentFunctor<TComponent, void>
+{
+};
+
+template <typename TComponent>
+class ReadConditionComponent
+    : public ContainerItemComponentIO<ConditionType>::ReadComponentFunctor<TComponent, ComponentConditionSynchronizingFunctor>
+{
+};
+
+template <typename TComponent>
 class WriteNodeComponent
     : public ContainerItemComponentIO<NodeType>::WriteComponentFunctor<TComponent, void>
 {
@@ -291,6 +314,21 @@ void GetContainerItemReferences(std::vector<ElementType*>& rLocalElements,
     {
         auto it = rElements.begin() + i;
         rLocalElements[i] = (&(*it));
+    }
+}
+
+void GetContainerItemReferences(std::vector<ConditionType*>& rLocalConditions,
+                                std::vector<ConditionType*>& rGhostConditions,
+                                ConditionsContainerType const& rConditions)
+{
+    rLocalConditions.resize(rConditions.size());
+    rGhostConditions.clear();
+
+#pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rConditions.size()); ++i)
+    {
+        auto it = rConditions.begin() + i;
+        rLocalConditions[i] = (&(*it));
     }
 }
 
@@ -381,6 +419,58 @@ void ContainerComponentIO<ElementsContainerType,
     RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
                               Variable<Vector<double>>, Variable<Matrix<double>>>(rComponentName)
         .Execute<ReadElementComponent>(args...);
+}
+
+// Adding condition flags WriteRegisteredComponent template definition
+template <>
+template <typename... Targs>
+void ContainerComponentIO<ConditionsContainerType, ConditionType, Flags>::WriteRegisteredComponent(
+    const std::string& rComponentName, Targs&... args)
+{
+    RegisteredComponentLookup<Flags>(rComponentName).Execute<WriteConditionComponent>(args...);
+}
+
+// Adding condition other variable WriteRegisteredComponent template definition
+template <>
+template <typename... Targs>
+void ContainerComponentIO<ConditionsContainerType,
+                          ConditionType,
+                          Variable<array_1d<double, 3>>,
+                          Variable<double>,
+                          Variable<int>,
+                          Variable<Vector<double>>,
+                          Variable<Matrix<double>>>::WriteRegisteredComponent(const std::string& rComponentName,
+                                                                              Targs&... args)
+{
+    RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
+                              Variable<Vector<double>>, Variable<Matrix<double>>>(rComponentName)
+        .Execute<WriteConditionComponent>(args...);
+}
+
+// Adding condition flags ReadRegisteredComponent template definition
+template <>
+template <typename... Targs>
+void ContainerComponentIO<ConditionsContainerType, ConditionType, Flags>::ReadRegisteredComponent(
+    const std::string& rComponentName, Targs&... args)
+{
+    RegisteredComponentLookup<Flags>(rComponentName).Execute<ReadConditionComponent>(args...);
+}
+
+// Adding condition other variable ReadRegisteredComponent template definition
+template <>
+template <typename... Targs>
+void ContainerComponentIO<ConditionsContainerType,
+                          ConditionType,
+                          Variable<array_1d<double, 3>>,
+                          Variable<double>,
+                          Variable<int>,
+                          Variable<Vector<double>>,
+                          Variable<Matrix<double>>>::ReadRegisteredComponent(const std::string& rComponentName,
+                                                                             Targs&... args)
+{
+    RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
+                              Variable<Vector<double>>, Variable<Matrix<double>>>(rComponentName)
+        .Execute<ReadConditionComponent>(args...);
 }
 
 // Adding node flags WriteRegisteredComponent template definition
@@ -650,6 +740,15 @@ template class ContainerComponentIO<ElementsContainerType,
                                     Variable<int>,
                                     Variable<Vector<double>>,
                                     Variable<Matrix<double>>>;
+
+template class ContainerComponentIO<ConditionsContainerType, ConditionType, Flags>;
+template class ContainerComponentIO<ConditionsContainerType,
+                                    ConditionType,
+                                    Variable<array_1d<double, 3>>,
+                                    Variable<double>,
+                                    Variable<int>,
+                                    Variable<Vector<double>>,
+                                    Variable<Matrix<double>>>;                                    
 
 template class ContainerComponentIO<NodesContainerType, NodeType, Flags>;
 template class ContainerComponentIO<NodesContainerType,
