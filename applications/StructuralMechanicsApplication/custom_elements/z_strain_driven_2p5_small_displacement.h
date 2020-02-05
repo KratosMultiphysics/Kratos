@@ -210,7 +210,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    std::vector<double> mImposedZStrain; /// The vector containing the imposed z strains
+    std::vector<double> mImposedZStrainVector; /// The vector containing the imposed z strains
 
     ///@}
     ///@name Protected Operators

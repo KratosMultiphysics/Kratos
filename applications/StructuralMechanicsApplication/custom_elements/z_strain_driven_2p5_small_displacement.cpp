@@ -83,6 +83,9 @@ Element::Pointer ZStrainDriven2p5DSmallDisplacement::Clone (
     // The vector containing the constitutive laws
     p_new_elem->SetConstitutiveLawVector(BaseType::mConstitutiveLawVector);
 
+    // The vector containing the imposed Z strain
+    p_new_elem->mImposedZStrainVector = mImposedZStrainVector;
+
     return p_new_elem;
 
     KRATOS_CATCH("");
@@ -99,12 +102,12 @@ void ZStrainDriven2p5DSmallDisplacement::Initialize()
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
-    //Constitutive Law initialisation
-    if ( mImposedZStrain.size() != integration_points.size() )
-        mImposedZStrain.resize( integration_points.size() );
+    //Imposed Z strain vector initialisation
+    if ( mImposedZStrainVector.size() != integration_points.size() )
+        mImposedZStrainVector.resize( integration_points.size() );
 
-    for ( IndexType point_number = 0; point_number < mImposedZStrain.size(); ++point_number ) {
-        mImposedZStrain[point_number] = 0.0;
+    for ( IndexType point_number = 0; point_number < mImposedZStrainVector.size(); ++point_number ) {
+        mImposedZStrainVector[point_number] = 0.0;
     }
 
     KRATOS_CATCH( "" )
@@ -126,7 +129,7 @@ void ZStrainDriven2p5DSmallDisplacement::SetConstitutiveVariables(
 
     // StrainVector must have the shape of a 3D element
     const double eps_xy = rThisConstitutiveVariables.StrainVector[2];
-    rThisConstitutiveVariables.StrainVector[2] = mImposedZStrain;
+    rThisConstitutiveVariables.StrainVector[2] = mImposedZStrainVector[PointNumber];
     rThisConstitutiveVariables.StrainVector[3] = eps_xy;
 
     const auto& r_geometry = GetGeometry();
@@ -151,9 +154,9 @@ void ZStrainDriven2p5DSmallDisplacement::SetValueOnIntegrationPoints(
     )
 {
     if (rVariable == IMPOSED_Z_STRAIN_VALUE) {
-        const SizeType integration_points_number = mImposedZStrain.size();
+        const SizeType integration_points_number = mImposedZStrainVector.size();
         for ( IndexType point_number = 0; point_number < integration_points_number; ++point_number ) {
-            mImposedZStrain[point_number] = rValues[point_number];
+            mImposedZStrainVector[point_number] = rValues[point_number];
         }
     } else {
         BaseType::SetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
@@ -199,6 +202,8 @@ int  ZStrainDriven2p5DSmallDisplacement::Check( const ProcessInfo& rCurrentProce
     const SizeType strain_size = r_properties.GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
     if ( dimension == 2 ) {
         KRATOS_ERROR_IF_NOT(strain_size == 6) << "Wrong constitutive law used. This is a 2.5D element! expected strain size is 6 (el id = ) "<<  rElement.Id() << std::endl;
+    } else {
+        KRATOS_ERROR << "Wrong dimension. The 2.5D element must have a 2D geometry." << std::endl;
     }
 
     // Check constitutive law
@@ -217,6 +222,7 @@ int  ZStrainDriven2p5DSmallDisplacement::Check( const ProcessInfo& rCurrentProce
 void ZStrainDriven2p5DSmallDisplacement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
+    rSerializer.save("ImposedZStrainVector", mImposedZStrainVector);
 }
 
 /***********************************************************************************/
@@ -225,6 +231,7 @@ void ZStrainDriven2p5DSmallDisplacement::save( Serializer& rSerializer ) const
 void ZStrainDriven2p5DSmallDisplacement::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
+    rSerializer.load("ImposedZStrainVector", mImposedZStrainVector);
 }
 
 } // Namespace Kratos
