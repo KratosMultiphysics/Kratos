@@ -11,8 +11,8 @@
 //                  Suneth Warnakulasuriya, https://github.com/sunethwarna
 //
 
-#if !defined(KRATOS_HDF5_ELEMENT_DATA_VALUE_IO_H_INCLUDED)
-#define KRATOS_HDF5_ELEMENT_DATA_VALUE_IO_H_INCLUDED
+#if !defined(KRATOS_HDF5_ELEMENT_FLAG_VALUE_IO_H_INCLUDED)
+#define KRATOS_HDF5_ELEMENT_FLAG_VALUE_IO_H_INCLUDED
 
 // System includes
 #include <string>
@@ -42,36 +42,25 @@ namespace HDF5
 ///@{
 
 /// A class for IO of element data in HDF5.
-class ElementDataValueIO : public ContainerComponentIO<ElementsContainerType,
-                                                       ElementType,
-                                                       Variable<array_1d<double, 3>>,
-                                                       Variable<double>,
-                                                       Variable<int>,
-                                                       Variable<Vector<double>>,
-                                                       Variable<Matrix<double>>>
+class ElementFlagValueIO
+    : public ContainerComponentIO<ElementsContainerType, ElementType, Flags>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    using BaseType = ContainerComponentIO<ElementsContainerType,
-                                          ElementType,
-                                          Variable<array_1d<double, 3>>,
-                                          Variable<double>,
-                                          Variable<int>,
-                                          Variable<Vector<double>>,
-                                          Variable<Matrix<double>>>;
+    using BaseType = ContainerComponentIO<ElementsContainerType, ElementType, Flags>;
 
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(ElementDataValueIO);
+    KRATOS_CLASS_POINTER_DEFINITION(ElementFlagValueIO);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    ElementDataValueIO(Parameters Settings, File::Pointer pFile)
-        : BaseType(Settings, pFile, "/ElementDataValues")
+    ElementFlagValueIO(Parameters Settings, File::Pointer pFile)
+        : BaseType(Settings, pFile, "/ElementFlagValues")
     {
     }
 
@@ -79,12 +68,12 @@ public:
     ///@name Operations
     ///@{
 
-    void WriteElementResults(ElementsContainerType const& rElements)
+    void WriteElementFlags(ElementsContainerType const& rElements)
     {
         this->WriteContainerComponents(rElements);
     }
 
-    void ReadElementResults(ElementsContainerType& rElements)
+    void ReadElementFlags(ElementsContainerType& rElements)
     {
         Communicator dummy_communicator;
         this->ReadContainerComponents(rElements, dummy_communicator);
@@ -105,11 +94,11 @@ private:
     ///@{
     ///@}
 
-}; // class ElementDataValueIO.
+}; // class ElementFlagValueIO.
 
 ///@} // Kratos Classes
 ///@} addtogroup
 } // namespace HDF5.
 } // namespace Kratos.
 
-#endif // KRATOS_HDF5_ELEMENT_DATA_VALUE_IO_H_INCLUDED defined
+#endif // KRATOS_HDF5_ELEMENT_FLAG_VALUE_IO_H_INCLUDED defined
