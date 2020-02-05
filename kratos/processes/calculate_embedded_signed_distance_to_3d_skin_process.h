@@ -127,7 +127,7 @@ public:
         pdistance_calculator->Clear();
     }
 
-    virtual void Clear()
+    void Clear() override
     {
     }
 

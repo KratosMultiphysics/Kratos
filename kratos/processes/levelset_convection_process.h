@@ -255,7 +255,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Clear(){
+    void Clear() override{
         mpDistanceModelPart->Nodes().clear();
         mpDistanceModelPart->Conditions().clear();
         mpDistanceModelPart->Elements().clear();
