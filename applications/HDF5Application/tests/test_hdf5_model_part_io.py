@@ -113,6 +113,17 @@ class TestCase(KratosUnittest.TestCase):
             element.Set(SLIP, bool(random.randint(-100, 100) % 2))
             element.Set(ACTIVE, bool(random.randint(-100, 100) % 2))
             element.Set(STRUCTURE, bool(random.randint(-100, 100) % 2))
+
+        for condition in model_part.Conditions:
+            condition.SetValue(ACCELERATION, Vector([random.random(), random.random(), random.random()]))
+            condition.SetValue(PRESSURE, random.random())
+            condition.SetValue(VISCOSITY, random.random())
+            condition.SetValue(DENSITY, random.random())
+            condition.SetValue(ACTIVATION_LEVEL, random.randint(-100, 100))
+
+            condition.Set(SLIP, bool(random.randint(-100, 100) % 2))
+            condition.Set(ACTIVE, bool(random.randint(-100, 100) % 2))
+            condition.Set(STRUCTURE, bool(random.randint(-100, 100) % 2))            
         # Set some process info variables.
         model_part.ProcessInfo[DOMAIN_SIZE] = 3 # int
         model_part.ProcessInfo[TIME] = random.random() # float
@@ -161,6 +172,22 @@ class TestCase(KratosUnittest.TestCase):
             "list_of_variables" : ["SLIP", "ACTIVE", "STRUCTURE"]
         }""")
         return HDF5ElementFlagValueIO(params, hdf5_file)
+
+    def _get_condition_data_value_io(self, hdf5_file):
+        params = Parameters("""
+        {
+            "prefix" : "/ResultsData",
+            "list_of_variables" : ["DISPLACEMENT", "VELOCITY", "ACCELERATION", "PRESSURE", "VISCOSITY", "DENSITY", "ACTIVATION_LEVEL"]
+        }""")
+        return HDF5ConditionDataValueIO(params, hdf5_file)
+
+    def _get_condition_flag_value_io(self, hdf5_file):
+        params = Parameters("""
+        {
+            "prefix" : "/ResultsData",
+            "list_of_variables" : ["SLIP", "ACTIVE", "STRUCTURE"]
+        }""")
+        return HDF5ConditionFlagValueIO(params, hdf5_file)        
 
     def _get_nodal_data_value_io(self, hdf5_file):
         params = Parameters("""
@@ -291,6 +318,46 @@ class TestCase(KratosUnittest.TestCase):
             for read_element, write_element in zip(read_model_part.Elements, write_model_part.Elements):
                 for var in assert_variables_list:
                     self.assertEqual(read_element.Is(var), write_element.Is(var))
+
+    def test_HDF5ConditionDataValueIO(self):
+        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            model = Model()
+            write_model_part = model.CreateModelPart("write", 2)
+            self._initialize_model_part(write_model_part)
+            hdf5_file = self._get_file()
+            hdf5_model_part_io = self._get_model_part_io(hdf5_file)
+            hdf5_condition_data_value_io = self._get_condition_data_value_io(hdf5_file)
+            hdf5_model_part_io.WriteModelPart(write_model_part)
+            hdf5_condition_data_value_io.WriteConditionResults(write_model_part.Conditions)
+            read_model_part = model.CreateModelPart("read", 2)
+            hdf5_model_part_io.ReadModelPart(read_model_part)
+            hdf5_condition_data_value_io.ReadConditionResults(read_model_part.Conditions)
+
+            assert_variables_list = [PRESSURE, VISCOSITY, DENSITY, ACTIVATION_LEVEL]
+            # Check data.
+            for read_condition, write_condition in zip(read_model_part.Conditions, write_model_part.Conditions):
+                for var in assert_variables_list:
+                    self.assertEqual(read_condition.GetValue(var), write_condition.GetValue(var))
+
+    def test_HDF5ConditionFlagValueIO(self):
+        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            model = Model()
+            write_model_part = model.CreateModelPart("write", 2)
+            self._initialize_model_part(write_model_part)
+            hdf5_file = self._get_file()
+            hdf5_model_part_io = self._get_model_part_io(hdf5_file)
+            hdf5_condition_flag_value_io = self._get_condition_flag_value_io(hdf5_file)
+            hdf5_model_part_io.WriteModelPart(write_model_part)
+            hdf5_condition_flag_value_io.WriteConditionFlags(write_model_part.Conditions)
+            read_model_part = model.CreateModelPart("read", 2)
+            hdf5_model_part_io.ReadModelPart(read_model_part)
+            hdf5_condition_flag_value_io.ReadConditionFlags(read_model_part.Conditions)
+
+            assert_variables_list = [SLIP, ACTIVE, STRUCTURE]
+            # Check data.
+            for read_condition, write_condition in zip(read_model_part.Conditions, write_model_part.Conditions):
+                for var in assert_variables_list:
+                    self.assertEqual(read_condition.Is(var), write_condition.Is(var))                    
 
     def test_HDF5NodalDataValueIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
