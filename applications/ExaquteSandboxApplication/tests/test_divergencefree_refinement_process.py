@@ -1,6 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.ExaquteSandboxApplication as ExaquteSandboxApplication
-from KratosMultiphysics.process_factory import KratosProcessFactory
+from KratosMultiphysics.ExaquteSandboxApplication.divergencefree_refinement_process import DivergenceFreeRefinementProcess
 import KratosMultiphysics.kratos_utilities
 meshing_is_available = KratosMultiphysics.kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication")
 
@@ -15,61 +15,48 @@ class TimeAveragingProcessTests(UnitTest.TestCase):
 
         self.__CreateModel()
 
-        settings = KratosMultiphysics.Parameters(r'''
-        [
+        settings = KratosMultiphysics.Parameters(r"""
             {
-                "kratos_module" : "KratosMultiphysics.ExaquteSandboxApplication",
-                "python_module" : "divergencefree_refinement_process",
-                "process_name"  : "DivergenceFreeRefinementProcess",
-                "Parameters" : {
-                    "model_part_name"                       : "test",
-                    "integration_end_point_control_value"   : 5.0,
-                    "integration_start_point_control_value" : 1.0,
-                    "average_settings": {
-                        "model_part_name"                               : "test",
-                        "variables_list"                                : ["DIVERGENCE"],
-                        "averaged_variables_list"                       : ["AVERAGED_DIVERGENCE"],
-                        "time_averaging_container"                      : "ElementalNonHistorical",
-                        "time_averaging_method"                         : "RootMeanSquare",
-                        "integration_start_point_control_variable_name" : "TIME",
-                        "integration_start_point_control_value"         : 2.0
+                "model_part_name": "test",
+                "integration_end_point_control_value": 5.0,
+                "integration_start_point_control_value": 1.0,
+                "average_settings": {
+                    "model_part_name": "test",
+                    "variables_list": ["DIVERGENCE"],
+                    "averaged_variables_list": ["AVERAGED_DIVERGENCE"],
+                    "time_averaging_container": "ElementalNonHistorical",
+                    "time_averaging_method": "RootMeanSquare",
+                    "integration_start_point_control_variable_name": "TIME",
+                    "integration_start_point_control_value": 2.0
+                },
+                "refinement_settings": {
+                    "refinement_strategy": "global_tolerance_strategy",
+                    "reference_variable_name": "AVERAGED_DIVERGENCE",
+                    "minimal_size": 0.001,
+                    "maximal_size": 10.0,
+                    "mean_distribution_strategy": {
+                        "target_refinement_coefficient": 0.9,
+                        "refinement_bound": 2.0,
+                        "reference_norm_name": "VELOCITY_H1_SEMINORM"
                     },
-                    "refinement_settings" : {
-                        "refinement_strategy" : "global_tolerance_strategy",
-                        "reference_variable_name" : "AVERAGED_DIVERGENCE",
-                        "minimal_size"                     : 0.001,
-                        "maximal_size"                     : 10.0,
-                        "mean_distribution_strategy":
-                        {
-                            "target_refinement_coefficient"       : 0.9,
-                            "refinement_bound"                    : 2.0,
-                            "reference_norm_name"                 : "VELOCITY_H1_SEMINORM"
-                        },
-                        "maximum_strategy":
-                        {
-                            "target_refinement_coefficient"       : 0.1,
-                            "refinement_coefficient"              : 2.0
-                        },
-                        "global_tolerance_strategy":
-                        {
-                            "global_tolerance"                 : 0.1
-                        }
+                    "maximum_strategy": {
+                        "target_refinement_coefficient": 0.1,
+                        "refinement_coefficient": 2.0
+                    },
+                    "global_tolerance_strategy": {
+                        "global_tolerance": 0.1
                     }
                 }
-            }
-        ]''')
+            }""")
 
-        factory = KratosProcessFactory(self.model)
-        self.process_list = factory.ConstructListOfProcesses(settings)
+        self.process = DivergenceFreeRefinementProcess(self.model,settings)
 
         velocity_vector = []
         for _ in self.model.GetModelPart("test").Nodes:
             velocity_vector.append([0.0, 0.0, 0.0])
 
-        for process in self.process_list:
-            process.Check()
-        for process in self.process_list:
-            process.ExecuteInitialize()
+        self.process.Check()
+        self.process.ExecuteInitialize()
 
         current_time = 0.0
         for _ in range(1, 10):
@@ -77,8 +64,7 @@ class TimeAveragingProcessTests(UnitTest.TestCase):
             self.model.GetModelPart("test").CloneTimeStep(current_time)
             self.model.GetModelPart("test").ProcessInfo[KratosMultiphysics.STEP] += 1
 
-            for process in self.process_list:
-                process.ExecuteInitializeSolutionStep()
+            self.process.ExecuteInitializeSolutionStep()
 
             for node_index, node in enumerate(self.model.GetModelPart("test").Nodes):
                 velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
@@ -93,11 +79,9 @@ class TimeAveragingProcessTests(UnitTest.TestCase):
                     velocity_vector[node_index][1] += temp_velocity[1] * 0.5
                     velocity_vector[node_index][2] += temp_velocity[2] * 0.5
 
-            for process in self.process_list:
-                process.ExecuteFinalizeSolutionStep()
+            self.process.ExecuteFinalizeSolutionStep()
 
-        for process in self.process_list:
-            process.ExecuteFinalize()
+        self.process.ExecuteFinalize()
 
         self.assertEqual(self.model.GetModelPart("test").NumberOfElements(),23884)
         self.assertEqual(self.model.GetModelPart("test").NumberOfNodes(),12163)
