@@ -72,9 +72,6 @@ namespace Kratos {
             GenerateModelPartToTestDivergenceProcess(model_part);
             Element::Pointer p_element = model_part.pGetElement(1);
 
-            // Initialize the element
-            p_element->Initialize();
-
             // Call the divergence time average process
             DivergenceProcess(model_part).ExecuteInitialize();
             DivergenceProcess(model_part).ExecuteBeforeOutputStep();
