@@ -257,6 +257,56 @@ def XdmfElementFlags(h5_results):
         results.append(r)
     return results
 
+def XdmfConditionResults(h5_results):
+    """Return a list of XDMF Attribute objects for element results in an HDF5 file.
+
+    Keyword arguments:
+    h5_results -- the HDF5 group containing the results
+
+    Checks for results stored by variable name in:
+    - h5_results["ConditionDataValues/<variable>"]
+
+    If no results are found, returns an empty list.
+
+    See:
+    - core.operations.ConditionDataValueOutput.
+    """
+    results_path = "ConditionDataValues"
+    results = []
+    try:
+        grp = h5_results[results_path]
+    except KeyError:
+        return results
+    for variable, data in filter(Has_dtype, grp.items()):
+        r = ElementData(variable, HDF5UniformDataItem(data))
+        results.append(r)
+    return results
+
+def XdmfConditionFlags(h5_results):
+    """Return a list of XDMF Attribute objects for element flags in an HDF5 file.
+
+    Keyword arguments:
+    h5_flags -- the HDF5 group containing the flags
+
+    Checks for flags stored by variable name in:
+    - h5_flags["ConditionFlagValues/<flag-name>"]
+
+    If no flags are found, returns an empty list.
+
+    See:
+    - core.operations.ConditionFlagValueOutput.
+    """
+    results_path = "ConditionFlagValues"
+    results = []
+    try:
+        grp = h5_results[results_path]
+    except KeyError:
+        return results
+    for variable, data in filter(Has_dtype, grp.items()):
+        r = ElementData(variable, HDF5UniformDataItem(data))
+        results.append(r)
+    return results    
+
 
 def XdmfResults(h5_results):
     """Return a list of XDMF Attribute objects for results in an HDF5 file.
