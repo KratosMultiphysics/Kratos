@@ -202,7 +202,7 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
     WriteNodes(rModelPart.Nodes());
     WriteElements(rModelPart.Elements());
     WriteConditions(rModelPart.Conditions());
-    WriteSubModelParts(rModelPart);
+    WriteSubModelParts(rModelPart, "/SubModelParts");
 
     KRATOS_INFO_IF("HDF5Application", mpFile->GetEchoLevel() == 1)
         << "Time to write model part \"" << rModelPart.Name()
@@ -262,13 +262,21 @@ std::vector<std::size_t> ModelPartIO::ReadContainerIds(std::string const& rPath)
     return ids;
 }
 
-void ModelPartIO::WriteSubModelParts(ModelPart const& rModelPart)
+void ModelPartIO::WriteSubModelParts(ModelPart const& rModelPart, const std::string& GroupName)
 {
-    mpFile->AddPath(mPrefix + "/SubModelParts");
+    mpFile->AddPath(mPrefix + GroupName);
     for (auto it = rModelPart.SubModelPartsBegin(); it != rModelPart.SubModelPartsEnd(); ++it)
     {
+        if (it->SubModelParts().size() > 0)
+        {
+            for (auto it_sub = it->SubModelPartsBegin(); it_sub != it->SubModelPartsEnd(); ++it)
+            {
+                WriteSubModelParts(*it, mPrefix + GroupName + "/" + it_sub->Name());
+            }
+        }
+
         WriteInfo info;
-        const std::string sub_model_part_path = mPrefix + "/SubModelParts/" + it->Name();
+        const std::string sub_model_part_path = mPrefix + GroupName + "/" + it->Name();
         mpFile->AddPath(sub_model_part_path);
         if (GlobalNumberOfNodes(*it) > 0)
         {
@@ -277,13 +285,13 @@ void ModelPartIO::WriteSubModelParts(ModelPart const& rModelPart)
         }
         if (GlobalNumberOfElements(*it) > 0)
         {
-            WriteContainerIds(*mpFile, sub_model_part_path + "/ElementIds", it->Elements(), info);
-            StoreWriteInfo(sub_model_part_path + "/ElementIds", info);
+            ModelPartIO current_model_part_io(mpFile, sub_model_part_path);
+            current_model_part_io.WriteElements(it->Elements());
         }
         if (GlobalNumberOfConditions(*it) > 0)
         {
-            WriteContainerIds(*mpFile, sub_model_part_path + "/ConditionIds", it->Conditions(), info);
-            StoreWriteInfo(sub_model_part_path + "/ConditionIds", info);
+            ModelPartIO current_model_part_io(mpFile, sub_model_part_path);
+            current_model_part_io.WriteConditions(it->Conditions());
         }
     }
 }
