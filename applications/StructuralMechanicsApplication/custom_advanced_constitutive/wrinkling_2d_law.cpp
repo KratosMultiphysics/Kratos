@@ -462,7 +462,6 @@ void  Wrinkling2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& 
     }
     // wrinkling
     else if (current_wrinkling_state==WrinklingType::Wrinkle){
-
         const double n_1 = wrinkling_direction[0];
         const double n_2 = wrinkling_direction[1];
 
@@ -480,25 +479,14 @@ void  Wrinkling2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& 
         material_tangent_modulus_modified_1 /= temp_double;
         material_tangent_modulus_modified_1 = material_tangent_modulus - material_tangent_modulus_modified_1;
 
-
-        stress_vector = ZeroVector(3);
-        ConstitutiveLaw::Parameters wrinkled_element_parameters;
-        wrinkled_element_parameters.SetMaterialProperties(base_claw_prop);
-        wrinkled_element_parameters.SetStrainVector(strain_vector);
-        wrinkled_element_parameters.SetStressVector(stress_vector);
-        wrinkled_element_parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-        wrinkled_element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-        wrinkled_element_parameters.SetConstitutiveMatrix(material_tangent_modulus_modified_1);
-        mpConstitutiveLaw->CalculateMaterialResponse(wrinkled_element_parameters,ConstitutiveLaw::StressMeasure_PK2);
-
         stress_vector = prod(material_tangent_modulus_modified_1,strain_vector);
         material_tangent_modulus = material_tangent_modulus_modified_1;
     }
     else {
         // else: taut, do nothing special
-        // we substract the pre stress again to only obtain the material reponse
-        // pre stress was only needed for wrinkling check
-        // pre stress is added in the element
+        // we substract the pre stress again to only obtain the material response
+        // pre-stress was only needed for wrinkling check
+        // pre-stress is added in the element
         stress_vector -= pre_stress_vector;
     }
 
