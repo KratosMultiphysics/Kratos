@@ -621,6 +621,9 @@ int Wrinkling2DLaw::Check(
     mpConstitutiveLaw->Check(base_claw_prop,rElementGeometry,rCurrentProcessInfo);
 
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(THICKNESS)) << "THICKNESS must be given in the main claw variables" << std::endl;
+    KRATOS_ERROR_IF_NOT(base_claw_prop.Has(THICKNESS)) << "THICKNESS must be given in the sub claw variables" << std::endl;
+
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[THICKNESS]==base_claw_prop[THICKNESS]) << "THICKNESS must be equal in main and sub claw variables" << std::endl;
 
     return 0;
 }
