@@ -343,7 +343,7 @@ public:
         KRATOS_DEBUG_ERROR_IF(mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex].size() > (DerivativeOrderIndex - 2))
             << "Not enough derivatives within geometry_shape_function_container." << std::endl;
 
-        return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 2];
+        return mShapeFunctionsDerivatives[ThisMethod][DerivativeOrderIndex - 2][IntegrationPointIndex];
     }
 
     /*
@@ -376,7 +376,7 @@ public:
         if (DerivativeOrderIndex == 1)
             return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex](ShapeFunctionIndex, DerivativeOrderRowIndex);
         
-        return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 2](ShapeFunctionIndex, DerivativeOrderRowIndex);
+        return mShapeFunctionsDerivatives[ThisMethod][DerivativeOrderIndex - 2][IntegrationPointIndex](ShapeFunctionIndex, DerivativeOrderRowIndex);
     }
 
     ///@}
