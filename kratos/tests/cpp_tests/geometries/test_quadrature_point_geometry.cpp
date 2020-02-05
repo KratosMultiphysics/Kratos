@@ -74,6 +74,35 @@ namespace Kratos {
             return p_this_quadrature_point;
         }
 
+        QuadraturePointGeometry<Node<3>, 2, 2>::Pointer GenerateQuadraturePointGeometry2() {
+            auto triangle = GeneratePointsTriangle2D3();
+
+            auto integration_points = triangle->IntegrationPoints();
+
+            auto r_N = triangle->ShapeFunctionsValues();
+
+            Matrix N_i = ZeroMatrix(1, triangle->size());
+            for (IndexType j = 0; j < triangle->size(); ++j)
+            {
+                N_i(0, j) = r_N(0, j);
+            }
+            Matrix DN_De = triangle->ShapeFunctionLocalGradient(0);
+
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                GeometryData::GI_GAUSS_1,
+                integration_points[0],
+                N_i,
+                DN_De);
+
+            QuadraturePointGeometry<Node<3>, 2, 2>::Pointer p_this_quadrature_point(
+                Kratos::make_shared<QuadraturePointGeometry<Node<3>, 2, 2>>(
+                    triangle->Points(),
+                    data_container,
+                    triangle.get()));
+
+            return p_this_quadrature_point;
+        }
+
         KRATOS_TEST_CASE_IN_SUITE(QuadraturePointUtility, KratosCoreFastSuite)
         {
             auto triangle = GeneratePointsTriangle2D3();
@@ -106,7 +135,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(QuadraturePointGeometry2dCopyConstructor, KratosCoreFastSuite)
         {
-            auto p_this_quadrature_point = GenerateQuadraturePointGeometry();
+            auto p_this_quadrature_point = GenerateQuadraturePointGeometry2();
 
             auto geom = QuadraturePointGeometry<Node<3>, 2, 2>(*p_this_quadrature_point);
 
@@ -121,7 +150,7 @@ namespace Kratos {
             KRATOS_CHECK_MATRIX_NEAR(
                 geom.ShapeFunctionsValues(),
                 p_this_quadrature_point->ShapeFunctionsValues(),
-                TOLERANCE);
+                1e-6);
         }
     } // namespace Testing
 }  // namespace Kratos.
