@@ -155,6 +155,7 @@ public:
     QuadraturePointGeometry( QuadraturePointGeometry const& rOther )
         : BaseType( rOther )
         , mGeometryData( rOther.mGeometryData )
+        , mpGeometryParent( rOther.mpGeometryParent )
     {
     }
 
@@ -174,6 +175,7 @@ public:
     QuadraturePointGeometry( QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const& rOther )
         : BaseType( rOther )
         , mGeometryData( rOther.mGeometryData )
+        , mpGeometryParent(rOther.mpGeometryParent)
     {
     }
 
@@ -200,6 +202,7 @@ public:
         BaseType::operator=( rOther );
 
         mGeometryData = rOther.mGeometryData;
+        mpGeometryParent = rOther.mpGeometryParent;
 
         return *this;
     }
@@ -221,6 +224,7 @@ public:
         BaseType::operator=( rOther );
 
         mGeometryData = rOther.mGeometryData;
+        mpGeometryParent = rOther.mpGeometryParent;
 
         return *this;
     }
