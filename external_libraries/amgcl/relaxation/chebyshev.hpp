@@ -178,7 +178,7 @@ class chebyshev {
             static const scalar_type one  = math::identity<scalar_type>();
             static const scalar_type zero = math::zero<scalar_type>();
 
-            scalar_type alpha, beta;
+            scalar_type alpha = zero, beta = zero;
 
             for (unsigned k = 0; k < prm.degree; ++k) {
                 backend::residual(b, A, x, *r);

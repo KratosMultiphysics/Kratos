@@ -55,7 +55,7 @@ namespace Kratos
 {
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeConditions() const
+SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeConditions() const
 {
     return NumberOfLines;
 }
@@ -64,7 +64,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeConditions() const
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeConditions() const
+SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeConditions() const
 {
     return NumberOfTriangles;
 }
@@ -73,7 +73,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeConditions() const
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeConditions() const
+SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeConditions() const
 {
     return NumberOfLines;
 }
@@ -82,7 +82,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeConditions() const
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeConditions() const
+SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeConditions() const
 {
     return 0;
 }
@@ -91,7 +91,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeConditions() cons
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeConditions() const
+SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeConditions() const
 {
     return NumberOfQuadrilaterals;
 }
@@ -100,7 +100,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeConditions() cons
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberSecondTypeConditions() const
+SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberSecondTypeConditions() const
 {
     return 0;
 }
@@ -109,7 +109,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberSecondTypeConditions() const
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeElements() const
+SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeElements() const
 {
     return NumberOfTriangles;
 }
@@ -118,7 +118,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeElements() const
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeElements() const
+SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeElements() const
 {
     return NumberOfTetrahedra;
 }
@@ -127,7 +127,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeElements() const
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeElements() const
+SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeElements() const
 {
     return NumberOfTriangles;
 }
@@ -136,7 +136,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeElements() const
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeElements() const
+SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeElements() const
 {
     return 0;
 }
@@ -145,7 +145,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeElements() const
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeElements() const
+SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeElements() const
 {
     return NumberOfPrism;
 }
@@ -154,7 +154,7 @@ const SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeElements() const
 /***********************************************************************************/
 
 template<>
-const SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberSecondTypeElements() const
+SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberSecondTypeElements() const
 {
     return 0;
 }
