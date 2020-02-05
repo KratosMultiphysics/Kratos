@@ -39,5 +39,12 @@ class DEMAnalysisStage2DSpRigidFem(DEMAnalysisStage):
         elif self.test_number == 3:
             self.radius = 0.036195; #95% of the real hole. Blind Test
 
+    def AdditionalFinalizeOperations(self):
+
+        spheres_mp_filename_post = self.problem_name + 'DEM_Post'
+
+        if self.write_mdpa_from_results:
+            mesh_creator_sphere_2D.WriteSphereMdpaFromResults(self.problem_name + 'DEM', spheres_mp_filename_post, self.file_msh, self.post_path)
+
 if __name__ == "__main__":
     DEMAnalysisStage2DSpRigidFem(model, project_parameters).Run()
