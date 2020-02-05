@@ -451,8 +451,8 @@ void  Wrinkling2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& 
     CheckWrinklingState(current_wrinkling_state,stress_vector,strain_vector,wrinkling_direction);
 
 
-    // apply wrinkling algorithm
 
+    // apply wrinkling algorithm
     // slack
     if (current_wrinkling_state==WrinklingType::Slack){
         // we assign -pre_stress_vector because pre_stress_vector is added in the element
@@ -487,6 +487,7 @@ void  Wrinkling2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& 
         wrinkled_element_parameters.SetStrainVector(strain_vector);
         wrinkled_element_parameters.SetStressVector(stress_vector);
         wrinkled_element_parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        wrinkled_element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         wrinkled_element_parameters.SetConstitutiveMatrix(material_tangent_modulus_modified_1);
         mpConstitutiveLaw->CalculateMaterialResponse(wrinkled_element_parameters,ConstitutiveLaw::StressMeasure_PK2);
 
