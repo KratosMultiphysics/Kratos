@@ -3055,7 +3055,8 @@ public:
         IndexType IntegrationPointIndex,
         IntegrationMethod ThisMethod) const
     {
-        return mpGeometryData->ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, ThisMethod);
+        return mpGeometryData->ShapeFunctionDerivatives(
+            DerivativeOrderIndex, IntegrationPointIndex, ThisMethod);
     }
 
     /*
