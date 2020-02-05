@@ -81,8 +81,8 @@ public:
     QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
         const IntegrationPointsContainerType& rIntegrationPoints,
-        ShapeFunctionsValuesContainerType& rShapeFunctionValues,
-        ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector)
+        const ShapeFunctionsValuesContainerType& rShapeFunctionValues,
+        const ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector)
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
@@ -114,7 +114,7 @@ public:
     /// Constructor with points and geometry shape function container
     QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
-        GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer)
+        const GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer)
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
@@ -124,7 +124,7 @@ public:
     /// Constructor with points, geometry shape function container, parent
     QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
-        GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
+        const GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
         GeometryType* pGeometryParent)
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
@@ -134,7 +134,8 @@ public:
     {
     }
 
-    explicit QuadraturePointGeometry(const PointsArrayType& ThisPoints)
+    explicit QuadraturePointGeometry(
+        const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
@@ -439,7 +440,6 @@ private:
         rSerializer.load("GeometryData", mGeometryData);
 
         mGeometryData.SetGeometryDimension(&msGeometryDimension);
-
     }
 
     QuadraturePointGeometry()
