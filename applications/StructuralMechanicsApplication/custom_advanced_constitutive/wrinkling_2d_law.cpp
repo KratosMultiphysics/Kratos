@@ -455,7 +455,9 @@ void  Wrinkling2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& 
 
     // slack
     if (current_wrinkling_state==WrinklingType::Slack){
-        stress_vector = ZeroVector(3);
+        // we assign -pre_stress_vector because pre_stress_vector is added in the element
+        // we want a zeroVector for the stress in case of slack
+        stress_vector = -1.0 * pre_stress_vector;
         material_tangent_modulus = ZeroMatrix(3);
     }
     // wrinkling
@@ -614,9 +616,12 @@ int Wrinkling2DLaw::Check(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    KRATOS_ERROR_IF_NOT(mpConstitutiveLaw) << "claw is not initialized" << std::endl;
+    KRATOS_ERROR_IF_NOT(mpConstitutiveLaw) << "Wrinkling2DLaw is not initialized" << std::endl;
     const Properties& base_claw_prop = *(rMaterialProperties.GetSubProperties().begin());
     mpConstitutiveLaw->Check(base_claw_prop,rElementGeometry,rCurrentProcessInfo);
+
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(THICKNESS)) << "THICKNESS must be given in the main claw variables" << std::endl;
+
     return 0;
 }
 
