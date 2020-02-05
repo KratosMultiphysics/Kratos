@@ -39,9 +39,6 @@ public:
     ///@{
 
     typedef typename TContainerPointType::value_type NodeType;
-
-    /// Geometry as base class.
-    typedef typename TContainerPointType::value_type NodeType;
     typedef Geometry<typename TContainerPointType::value_type> BaseType;
     typedef NurbsSurfaceGeometry<TWorkingSpaceDimension, TContainerPointType> GeometryType;
 
