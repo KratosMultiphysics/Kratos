@@ -355,7 +355,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Clear()
+    void Clear() override
     {
         Model& current_model = mr_base_model_part.GetModel();
         ModelPart& r_distance_model_part = current_model.GetModelPart( mAuxModelPartName );
