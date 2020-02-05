@@ -126,6 +126,48 @@ class ElementFlagValueInput(VariableIO):
         KratosHDF5.HDF5ElementFlagValueIO(
             self.GetSettings(model_part).Get(), hdf5_file).ReadElementFlags(model_part.Elements)
 
+class ConditionDataValueOutput(VariableIO):
+    '''Writes non-historical element data values to a file.'''
+
+    def __init__(self, settings):
+        super(ConditionDataValueOutput, self).__init__(settings)
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ConditionDataValueIO(
+            self.GetSettings(model_part).Get(), hdf5_file).WriteConditionResults(model_part.Conditions)
+
+
+class ConditionDataValueInput(VariableIO):
+    '''Reads non-historical element data values from a file.'''
+
+    def __init__(self, settings):
+        super(ConditionDataValueInput, self).__init__(settings)
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ConditionDataValueIO(
+            self.GetSettings(model_part).Get(), hdf5_file).ReadConditionResults(model_part.Conditions)
+
+class ConditionFlagValueOutput(VariableIO):
+    '''Writes non-historical element flag values to a file.'''
+
+    def __init__(self, settings):
+        super(ConditionFlagValueOutput, self).__init__(settings)
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ConditionFlagValueIO(
+            self.GetSettings(model_part).Get(), hdf5_file).WriteConditionFlags(model_part.Conditions)
+
+
+class ConditionFlagValueInput(VariableIO):
+    '''Reads non-historical element flag values from a file.'''
+
+    def __init__(self, settings):
+        super(ConditionFlagValueInput, self).__init__(settings)
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ConditionFlagValueIO(
+            self.GetSettings(model_part).Get(), hdf5_file).ReadConditionFlags(model_part.Conditions)            
+
 
 class NodalSolutionStepDataOutput(VariableIO):
     '''Writes nodal solution step data to a file.'''
