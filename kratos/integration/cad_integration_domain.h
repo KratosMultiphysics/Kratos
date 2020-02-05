@@ -201,7 +201,7 @@ private:
     }
 
     static void CreateElements(
-        GeometriesArrayType& rQuadraturePointGeometryList,
+        GeometriesArrayType rQuadraturePointGeometryList,
         ModelPart& rCadSubModelPart,
         std::string& rElementName,
         int& rIdCounter,
@@ -210,18 +210,16 @@ private:
         const Element& rReferenceElement = KratosComponents<Element>::Get(rElementName);
 
         ElementsContainerType new_element_list;
-        new_element_list.reserve(rQuadraturePointGeometryList.size());
+
+        KRATOS_INFO_IF("CreateElements", EchoLevel > 2)
+            << "Creating " << rQuadraturePointGeometryList.size()
+            << " elements of type " << rElementName
+            << " in " << rCadSubModelPart.Name() << "-SubModelPart." << std::endl;
 
         for (IndexType i = 0; i < rQuadraturePointGeometryList.size(); ++i)
         {
-            auto p_element = rReferenceElement.Create(rIdCounter, rQuadraturePointGeometryList[i], nullptr);
-
+            auto p_element = rReferenceElement.Create(rIdCounter, rQuadraturePointGeometryList(i), nullptr);
             rIdCounter++;
-
-            // Add nodes of new Condition to this ModelPart
-            // Is that even necessary. This is a costlly operation
-            rCadSubModelPart.AddNodes(p_element->pGetGeometry()->begin(), p_element->pGetGeometry()->end());
-
             new_element_list.push_back(p_element);
         }
 
@@ -229,7 +227,7 @@ private:
     }
 
     static void CreateConditions(
-        GeometriesArrayType& rQuadraturePointGeometryList,
+        GeometriesArrayType rQuadraturePointGeometryList,
         ModelPart& rCadSubModelPart,
         std::string& rConditionName,
         int& rIdCounter,
@@ -240,16 +238,15 @@ private:
         ModelPart::ConditionsContainerType new_condition_list;
         new_condition_list.reserve(rQuadraturePointGeometryList.size());
 
+        KRATOS_INFO_IF("CreateConditions", EchoLevel > 2)
+            << "Creating " << rQuadraturePointGeometryList.size()
+            << " conditions of type " << rConditionName
+            << " in " << rCadSubModelPart.Name() << "-SubModelPart." << std::endl;
+
         for (IndexType i = 0; i < rQuadraturePointGeometryList.size(); ++i)
         {
             auto p_condition = rReferenceCondition.Create(rIdCounter, rQuadraturePointGeometryList[i], nullptr);
-
             rIdCounter++;
-
-            // Add nodes of new Condition to this ModelPart
-            // Is that even necessary. This is a costlly operation
-            rCadSubModelPart.AddNodes(p_condition->pGetGeometry()->begin(), p_condition->pGetGeometry()->end());
-
             new_condition_list.push_back(p_condition);
         }
 
