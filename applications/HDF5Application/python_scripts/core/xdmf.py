@@ -446,8 +446,10 @@ class SpatialGrid(Grid):
         """Add an XDMF Attribute (results data set) to each child grid."""
         for grid in self.grids:
             if (attr.center == "Cell"):
-                if (grid.name.startswith("RootModelPart.Elements")):
+                if (isinstance(attr, ConditionData) and (grid.name.startswith("RootModelPart.Conditions"))):
                     grid.add_attribute(attr)    
+                if (isinstance(attr, ElementData) and (grid.name.startswith("RootModelPart.Elements"))):
+                    grid.add_attribute(attr)                        
             else:
                 grid.add_attribute(attr)
 
